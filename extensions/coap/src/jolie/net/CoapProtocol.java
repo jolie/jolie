@@ -31,6 +31,7 @@ import jolie.net.coap.codec.CoapMessageDecoder;
 import jolie.net.coap.codec.CoapMessageEncoder;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.OperationTypeDescription;
@@ -48,7 +49,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
-	//pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	pipeline.addLast("ENCODER", new CoapMessageEncoder());
 	pipeline.addLast("DECODER", new CoapMessageDecoder());
 	pipeline.addLast("CODEC", new CoapCodecHandler(this));
@@ -110,14 +111,18 @@ public class CoapProtocol extends AsyncCommProtocol {
     }
 
     @Override
-    public boolean hasOperationSpecificParameter(String operationName,
-	    String param) {
-	return super.hasOperationSpecificParameter(operationName, param);
+    public boolean hasOperationSpecificParameter(String on, String p) {
+	return super.hasOperationSpecificParameter(on, p);
     }
 
     @Override
-    public String getOperationSpecificStringParameter(String operationName,
-	    String param) {
-	return super.getOperationSpecificStringParameter(operationName, param);
+    public String getOperationSpecificStringParameter(String on, String p) {
+	return super.getOperationSpecificStringParameter(on, p);
+    }
+
+    @Override
+    public Value getOperationSpecificParameterFirstValue(String on,
+	    String p) {
+	return super.getOperationSpecificParameterFirstValue(on, p);
     }
 }

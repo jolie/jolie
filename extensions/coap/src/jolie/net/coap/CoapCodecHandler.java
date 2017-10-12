@@ -30,7 +30,9 @@ import io.netty.util.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -69,10 +71,12 @@ public class CoapCodecHandler
     private static final Charset charset = CharsetUtil.UTF_8;
     private final CoapProtocol protocol;
     private Channel cc;
+    private Map<String, Integer> allowedMethods;
 
     public CoapCodecHandler(CoapProtocol prt) {
-	this.input = prt.isInput;
+	this.allowedMethods = new HashMap<>();
 	this.protocol = prt;
+	this.input = prt.isInput;
     }
 
     @Override
@@ -87,21 +91,28 @@ public class CoapCodecHandler
     protected void encode(ChannelHandlerContext ctx,
 	    CommMessage in, List<Object> out) throws Exception {
 
+	String operationName = in.operationName();
 	if (input) {
 
 	} else { //output port - OW and RR
 
 	    // CREATE COAP MESSAGE 
-	    CoapMessage msg = new CoapMessage(MessageType.NON,
-		    MessageCode.POST) {
+	    int messageType = getMessageType(operationName);
+	    int messageCode = getMessageCode(operationName);
+	    CoapMessage msg = new CoapMessage(messageType, messageCode) {
 	    };
-
-	    ByteBuf payload = valueToByteBuf(in);
-	    msg.setContent(payload);
-
-	    // ADD and SEND THE ACK back to CommCore
+	    if (MessageCode.allowsContent(messageCode)) {
+		ByteBuf payload = valueToByteBuf(in);
+		msg.setContent(payload);
+	    } else {
+		Interpreter.getInstance().logSevere("Method do not "
+			+ "allow content!");
+	    }
 	    out.add(msg);
-	    sendAck(ctx, in);
+
+	    if (messageType == MessageType.NON) {
+		sendAck(ctx, in);
+    }
 	}
     }
 
@@ -189,10 +200,36 @@ public class CoapCodecHandler
 		in.id(), in.operationName(), "/", Value.create(), null));
     }
 
+    private int getMessageType(String operationName) {
+	if (protocol.hasOperationSpecificParameter(operationName,
+		Parameters.CONFIRMABLE)) {
+	    if (protocol.getOperationSpecificParameterFirstValue(operationName,
+		    Parameters.CONFIRMABLE).boolValue()) {
+		return MessageType.CON;
+	    }
+	}
+	return MessageType.NON;
+    }
+
+    private int getMessageCode(String operationName) {
+	if (protocol.hasOperationSpecificParameter(operationName,
+		Parameters.METHOD)) {
+	    String method = protocol
+		    .getOperationSpecificParameterFirstValue(operationName,
+			    Parameters.METHOD).strValue();
+	    if (allowedMethods.containsKey(method)) {
+		return allowedMethods.get(method);
+	    }
+	}
+	return MessageCode.POST;
+    }
+
     private static class Parameters {
 
-	private static String DEBUG = "debug";
-	private static String FORMAT = "format";
+	private static final String DEBUG = "debug";
+	private static final String FORMAT = "format";
+	private static final String CONFIRMABLE = "confirmable";
+	private static final String METHOD = "method";
 
     }
 }

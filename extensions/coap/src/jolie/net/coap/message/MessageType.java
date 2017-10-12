@@ -34,10 +34,10 @@ public abstract class MessageType {
 	    = new HashMap<>();
 
     static {
-	MESSAGE_TYPES.put(CON, "CON (" + CON + ")");
-	MESSAGE_TYPES.put(NON, "NON (" + NON + ")");
-	MESSAGE_TYPES.put(ACK, "ACK (" + ACK + ")");
-	MESSAGE_TYPES.put(RST, "RST (" + RST + ")");
+	MESSAGE_TYPES.put(CON, "CON");
+	MESSAGE_TYPES.put(NON, "NON");
+	MESSAGE_TYPES.put(ACK, "ACK");
+	MESSAGE_TYPES.put(RST, "RST");
     }
 
     public static String asString(int messageType) {
