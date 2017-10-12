@@ -5,6 +5,7 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,6 +17,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -54,14 +56,17 @@ public class NioDatagramListener extends CommListener {
 
 		@Override
 		protected void channelRead0(ChannelHandlerContext ctx,
-			DatagramPacket packet) throws Exception {
+			DatagramPacket in) throws Exception {
 
-		    remoteAddress = packet.sender();
+		    remoteAddress = in.sender();
 		    URI location = new URI(
 			    "datagram://"
 			    + remoteAddress.getHostName()
 			    + ":"
 			    + remoteAddress.getPort());
+
+		    System.out.println("Received datagram packet: " + in.toString());
+		    System.out.println(Unpooled.wrappedBuffer(in.content()).toString(CharsetUtil.UTF_8));
 
 		    ctx.pipeline().addLast(new ChannelInitializer<NioDatagramChannel>() {
 

@@ -1,10 +1,12 @@
 include "console.iol"
 
 inputPort  Server {
-    Location: "datagram://localhost:8003"
+    Location: "datagram://localhost:8004"
     Protocol: coap {
         .osc.setTmp << {
-            .format = "raw"
+            .format = "raw",
+            .confirmable = true,
+            .method = "POST"
         };
         .debug = true
     }
