@@ -65,46 +65,6 @@ public class CoapProtocol extends AsyncCommProtocol {
 	return false;
     }
 
-    public Type getSendType(CommMessage message)
-	    throws IOException {
-	Type ret = null;
-
-	if (channel().parentPort() == null) {
-	    throw new IOException("Could not retrieve communication "
-		    + "port for Coap protocol");
-	}
-
-	OperationTypeDescription opDesc = channel().parentPort()
-		.getOperationTypeDescription(message.operationName(), "/");
-
-	if (opDesc == null) {
-	    return null;
-	}
-
-	if (opDesc.asOneWayTypeDescription() != null) {
-	    if (message.isFault()) {
-		ret = Type.UNDEFINED;
-	    } else {
-		OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
-		ret = ow.requestType();
-	    }
-	} else if (opDesc.asRequestResponseTypeDescription() != null) {
-	    RequestResponseTypeDescription rr
-		    = opDesc.asRequestResponseTypeDescription();
-	    if (message.isFault()) {
-		ret = rr.getFaultType(message.fault().faultName());
-		if (ret == null) {
-		    ret = Type.UNDEFINED;
-		}
-	    } else {
-		ret = (channel().parentPort() instanceof InputPort)
-			? rr.responseType() : rr.requestType();
-	    }
-	}
-
-	return ret;
-    }
-
     @Override
     public boolean checkBooleanParameter(String param) {
 	return super.checkBooleanParameter(param);
@@ -124,5 +84,53 @@ public class CoapProtocol extends AsyncCommProtocol {
     public Value getOperationSpecificParameterFirstValue(String on,
 	    String p) {
 	return super.getOperationSpecificParameterFirstValue(on, p);
+    }
+
+    @Override
+    public boolean checkStringParameter(String id, String value) {
+	return super.checkStringParameter(id, value);
+    }
+
+    @Override
+    public CommChannel channel() {
+	return super.channel();
+    }
+
+    /**
+     * Retrieve Send Type for the CommMessage in input. TODO: move to super
+     * class
+     *
+     * @param operationName String
+     * @return Type
+     * @throws IOException
+     */
+    public Type getSendType(String operationName)
+	    throws IOException {
+
+	Type ret = null;
+
+	if (channel().parentPort() == null) {
+	    throw new IOException("Could not retrieve communication "
+		    + "port for " + this.name() + " protocol");
+	}
+
+	OperationTypeDescription opDesc = channel().parentPort()
+		.getOperationTypeDescription(operationName, "/");
+
+	if (opDesc == null) {
+	    return null;
+	}
+
+	if (opDesc.asOneWayTypeDescription() != null) {
+	    OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
+	    ret = ow.requestType();
+	} else if (opDesc.asRequestResponseTypeDescription() != null) {
+	    RequestResponseTypeDescription rr
+		    = opDesc.asRequestResponseTypeDescription();
+	    ret = (channel().parentPort() instanceof InputPort)
+		    ? rr.responseType() : rr.requestType();
+	}
+
+	return ret;
     }
 }

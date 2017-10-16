@@ -477,7 +477,7 @@ public class MqttProtocol extends PubSubCommProtocol {
     public CommMessage recv_request(MqttPublishMessage in) throws Exception {
 
 	String on = operation(in.variableHeader().topicName());
-	Value v = byteBufToValue(on, in);
+	Value v = byteBufToValue(on, in.payload());
 
 	return CommMessage.createRequest(on, "/", v);
     }
@@ -594,7 +594,8 @@ public class MqttProtocol extends PubSubCommProtocol {
     public CommMessage recv_pubReqResp(MqttPublishMessage mpm,
 	    CommMessage req) throws Exception {
 	return new CommMessage(req.id(),//CommMessage.GENERIC_ID,
-		req.operationName(), "/", byteBufToValue(req.operationName(), mpm.retain()), null);
+		req.operationName(), "/", byteBufToValue(req.operationName(),
+		mpm.retain().payload()), null);
     }
 
     /**
@@ -744,40 +745,48 @@ public class MqttProtocol extends PubSubCommProtocol {
      *
      * ******************************* REC *******************************
      */
-    private Value byteBufToValue(String operationName, MqttPublishMessage in) throws Exception {
-	String msg = Unpooled.wrappedBuffer(in.payload()).toString(charset);
+    private Value byteBufToValue(String operationName, ByteBuf payload) throws Exception {
+
+	String msg = Unpooled.wrappedBuffer(payload).toString(charset);
 	if (checkBooleanParameter(Parameters.DEBUG)) {
 	    Interpreter.getInstance().logInfo("Received message: " + msg);
 	}
-	if (channel().parentPort() instanceof InputPort && !isOneWay(operationName)) {
+	if (channel().parentPort() instanceof InputPort
+		&& !isOneWay(operationName)) {
 	    try {
-		msg = msg.substring(msg.indexOf(Parameters.BOUNDARY, 1) + 1, msg.length());
+		msg = msg.substring(msg.indexOf(Parameters.BOUNDARY, 1) + 1,
+			msg.length());
 	    } catch (IndexOutOfBoundsException ex) {
 	    }
 	}
 
 	Value v = Value.create();
 
-	Type type = operationType(operationName, channel().parentPort() instanceof InputPort);
+	Type type = operationType(operationName,
+		channel().parentPort() instanceof InputPort);
 
 	if (msg.length() > 0) {
 	    String format = format(operationName);
 	    switch (format) {
 		case "xml":
-		    DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+		    DocumentBuilderFactory docBuilderFactory
+			    = DocumentBuilderFactory.newInstance();
 		    DocumentBuilder builder = docBuilderFactory
 			    .newDocumentBuilder();
-		    InputSource src = new InputSource(new ByteBufInputStream(Unpooled.wrappedBuffer(msg.getBytes())));
+		    InputSource src = new InputSource(
+			    new ByteBufInputStream(
+				    Unpooled.wrappedBuffer(msg.getBytes())));
 		    src.setEncoding(charset.name());
 		    Document doc = builder.parse(src);
 		    XmlUtils.documentToValue(doc, v);
 		    break;
 		case "json":
 		    JsUtils.parseJsonIntoValue(new StringReader(msg), v,
-			    checkStringParameter(Parameters.JSON_ENCODING, "strict"));
+			    checkStringParameter(
+				    Parameters.JSON_ENCODING, "strict"));
 		    break;
 		case "raw":
-		    recv_parseMessage(msg, v, type);
+		    parseRaw(msg, v, type);
 		    break;
 		default:
 		    throw new FaultException("Format " + format
@@ -828,7 +837,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 	return type;
     }
 
-    private void recv_parseMessage(String message, Value value, Type type)
+    private void parseRaw(String message, Value value, Type type)
 	    throws TypeCheckingException {
 
 	try {

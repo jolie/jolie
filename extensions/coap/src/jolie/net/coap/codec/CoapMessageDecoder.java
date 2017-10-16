@@ -145,7 +145,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	in.discardReadBytes();
 
 	try {
-	    coapMessage.setContent(in);
+	    coapMessage.content(in);
 	} catch (IllegalArgumentException e) {
 	    errMsg = "Message code {} does not "
 		    + "allow content. Ignore {} bytes.";

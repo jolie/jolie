@@ -22,6 +22,7 @@
 package jolie.net.coap;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,6 +30,8 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +39,7 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -58,11 +62,16 @@ import jolie.runtime.ByteArray;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCastingException;
+import jolie.runtime.typing.TypeCheckingException;
 
 import jolie.xml.XmlUtils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class CoapCodecHandler
 	extends MessageToMessageCodec<CoapMessage, CommMessage> {
@@ -73,6 +82,7 @@ public class CoapCodecHandler
     private Channel cc;
     private Map<String, Integer> allowedMethods;
     private CommMessage commMessageRequest;
+    private CommMessage commMessageResponse;
 
     public CoapCodecHandler(CoapProtocol prt) {
 	this.allowedMethods = new HashMap<>();
@@ -93,29 +103,29 @@ public class CoapCodecHandler
 	    CommMessage in, List<Object> out) throws Exception {
 
 	String operationName = in.operationName();
+	int messageType = getMessageType(operationName);
+	int messageCode = getMessageCode(operationName);
+	CoapMessage msg = new CoapMessage(messageType, messageCode) {
+	};
+	ByteBuf payload = valueToByteBuf(in);
+	msg.content(payload);
+	out.add(msg);
+
 	if (input) { // input port - RR
 
-	} else { // output port - OW and RR
+	    this.commMessageResponse = in;
 
-	    // CREATE COAP MESSAGE 
-	    int messageType = getMessageType(operationName);
-	    int messageCode = getMessageCode(operationName);
-	    CoapMessage msg = new CoapMessage(messageType, messageCode) {
-	    };
-	    if (MessageCode.allowsContent(messageCode)) {
-		ByteBuf payload = valueToByteBuf(in);
-		msg.setContent(payload);
+	} else { // output port - OW
+
+	    if (isOneWay(operationName)) {
+		if (messageType == MessageType.NON) {
+		    sendAck(ctx, in);
+		} else if (messageType == MessageType.CON) {
+		    this.commMessageRequest = in;
+		}
 	    } else {
-		Interpreter.getInstance().logSevere("Method do not "
-			+ "allow content!");
+		this.commMessageRequest = in;
 	    }
-	    out.add(msg);
-
-	    if (messageType == MessageType.NON) {
-		sendAck(ctx, in);
-	    }
-
-	    this.commMessageRequest = in;
 	}
     }
 
@@ -124,31 +134,51 @@ public class CoapCodecHandler
 	    CoapMessage in, List<Object> out) throws Exception {
 	if (input) { // input port - OW and RR
 
-	    if (in.getMessageType() == MessageType.CON) { // send back ack
-		ctx.channel().writeAndFlush(CoapMessage
-			.createEmptyAcknowledgement(in.getMessageID()));
+	    if (in.getMessageType() == MessageType.ACK) { // RR ack to comm core
+		if (this.commMessageResponse != null) {
+		    sendAck(ctx, this.commMessageResponse);
+		} else { // AH AH AH!
+		    Interpreter.getInstance().logSevere("No Comm Message "
+			    + "Waiting for Acknowledgement");
+		}
+	    } else {
+
+		if (in.getMessageType() == MessageType.CON) { // OW ack to client
+		    ctx.channel().writeAndFlush(CoapMessage
+			    .createEmptyAcknowledgement(in.getMessageID()));
+		}
+
+		String operationName = getOperationName(in);
+		CommMessage msg = CommMessage.createRequest(operationName,
+			"/", byteBufToValue(in, operationName));
+		out.add(msg);
 	    }
 
-	    String operationName = getOperationName(in);
-	    CommMessage msg = CommMessage.createRequest(operationName, "/",
-		    byteBufToValue(in));
-	    out.add(msg);
-
-	} else { // output port - OW and RR (confirmable)
+	} else { // output port - OW and RR (ack V response)
 
 	    if (in.getMessageType() == MessageType.ACK) {
 		if (this.commMessageRequest != null) {
 		    out.add(CommMessage
 			    .createEmptyResponse(commMessageRequest));
-		} else { // should never happen
+		} else { // should not be handled
 		    Interpreter.getInstance().logSevere("No Comm Message "
 			    + "Waiting for Acknowledgement");
 		}
+	    } else if (in.isResponse()) { // maybe no need of this check ??
+		if (in.getMessageType() == MessageType.ACK) {
+		    ctx.channel().writeAndFlush(CoapMessage
+			    .createEmptyAcknowledgement(in.getMessageID()));
+		}
+
+		out.add(CommMessage.createResponse(commMessageRequest,
+			byteBufToValue(in,
+				commMessageRequest.operationName())));
 	    }
 	}
     }
 
     private ByteBuf valueToByteBuf(CommMessage in) throws Exception {
+
 	ByteBuf bb = Unpooled.buffer();
 	String format = format(in.operationName());
 	String message;
@@ -157,8 +187,8 @@ public class CoapCodecHandler
 	switch (format) {
 	    case "json":
 		StringBuilder jsonStringBuilder = new StringBuilder();
-		JsUtils.valueToJsonString(v, true, protocol.getSendType(in),
-			jsonStringBuilder);
+		JsUtils.valueToJsonString(v, true, protocol.getSendType(
+			in.operationName()), jsonStringBuilder);
 		message = jsonStringBuilder.toString();
 		break;
 	    case "xml":
@@ -190,6 +220,7 @@ public class CoapCodecHandler
 		    + format.toUpperCase() + " message: " + message);
 	}
 	bb.writeBytes(message.getBytes(charset));
+
 	return bb;
     }
 
@@ -250,8 +281,149 @@ public class CoapCodecHandler
 	return MessageCode.POST;
     }
 
-    private Value byteBufToValue(CoapMessage in) {
-	throw new UnsupportedOperationException("Not supported yet.");
+    private Value byteBufToValue(CoapMessage in, String operationName)
+	    throws IOException,
+	    FaultException, ParserConfigurationException, SAXException,
+	    TypeCheckingException {
+
+	if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+	    Interpreter.getInstance().logInfo("Received message: " + in);
+	}
+
+	ByteBuf content = Unpooled.wrappedBuffer(in.content());
+	Value value = Value.create();
+	Type type = protocol.getSendType(operationName);
+	String format = format(operationName);
+	String message = content.toString(charset);
+
+	if (message.length() > 0) {
+	    switch (format) {
+		case "xml":
+		    parseXml(content, value);
+		    break;
+		case "json":
+		    parseJson(content, value);
+		    break;
+		case "raw":
+		    parseRaw(message, value, type);
+		    break;
+		default:
+		    throw new FaultException("Format " + format
+			    + "is not supported. Supported formats are: "
+			    + "xml, json and raw");
+	    }
+
+	    // for XML format
+	    try {
+		value = type.cast(value);
+	    } catch (TypeCastingException e) {
+		// do nothing
+	    }
+
+	} else {
+
+	    value = Value.create();
+	    try {
+		type.check(value);
+	    } catch (TypeCheckingException ex1) {
+		value = Value.create("");
+		try {
+		    type.check(value);
+		} catch (TypeCheckingException ex2) {
+		    value = Value.create(new ByteArray(new byte[0]));
+		    try {
+			type.check(value);
+		    } catch (TypeCheckingException ex3) {
+			value = Value.create();
+		    }
+		}
+	    }
+	}
+
+	return value;
+    }
+
+    private void parseXml(ByteBuf content, Value value)
+	    throws SAXException, ParserConfigurationException, IOException {
+
+	DocumentBuilderFactory docBuilderFactory
+		= DocumentBuilderFactory.newInstance();
+	DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
+	InputSource src = new InputSource(new ByteBufInputStream(content));
+	src.setEncoding(charset.name());
+	Document doc = builder.parse(src);
+	XmlUtils.documentToValue(doc, value);
+    }
+
+    private void parseJson(ByteBuf content, Value value) throws IOException {
+	JsUtils.parseJsonIntoValue(new InputStreamReader(
+		new ByteBufInputStream(content)), value,
+		protocol.checkStringParameter(Parameters.JSON_ENCODING,
+			"strict"));
+    }
+
+    private void parseRaw(String message, Value value, Type type)
+	    throws TypeCheckingException {
+
+	try {
+	    type.check(Value.create(message));
+	    value.setValue(message);
+	} catch (TypeCheckingException e1) {
+	    if (isNumeric(message)) {
+		try {
+		    if (message.equals("0")) {
+			type.check(Value.create(false));
+			value.setValue(false);
+		    } else {
+			if (message.equals("1")) {
+			    type.check(Value.create(true));
+			    value.setValue(true);
+			} else {
+			    throw new TypeCheckingException("");
+			}
+		    }
+		} catch (TypeCheckingException e) {
+		    try {
+			value.setValue(Integer.parseInt(message));
+		    } catch (NumberFormatException nfe) {
+			try {
+			    value.setValue(Long.parseLong(message));
+			} catch (NumberFormatException nfe1) {
+			    try {
+				value.setValue(Double.parseDouble(message));
+			    } catch (NumberFormatException nfe2) {
+			    }
+			}
+		    }
+		}
+	    } else {
+		try {
+		    type.check(Value.create(new ByteArray(message.getBytes())));
+		    value.setValue(new ByteArray(message.getBytes()));
+		} catch (TypeCheckingException e) {
+		    value.setValue(message);
+		}
+	    }
+	}
+    }
+
+    private boolean isNumeric(final CharSequence cs) {
+
+	if (cs.length() == 0) {
+	    return false;
+	}
+	final int sz = cs.length();
+	for (int i = 0; i < sz; i++) {
+	    if (!Character.isDigit(cs.charAt(i))) {
+		return false;
+	    }
+	}
+	return true;
+    }
+
+    public boolean isOneWay(String operationName) {
+	return protocol.channel().parentPort().getInterface()
+		.oneWayOperations().containsKey(operationName);
     }
 
     private String getOperationName(CoapMessage in) {
@@ -264,6 +436,7 @@ public class CoapCodecHandler
 	private static final String FORMAT = "format";
 	private static final String CONFIRMABLE = "confirmable";
 	private static final String METHOD = "method";
+	private static final String JSON_ENCODING = "json_encoding";
 
     }
 }

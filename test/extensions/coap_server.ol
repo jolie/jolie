@@ -5,8 +5,7 @@ inputPort  Server {
     Protocol: coap {
         .osc.setTmp << {
             .format = "raw",
-            .confirmable = true,
-            .method = "POST"
+            .confirmable = true
         };
         .debug = true
     }

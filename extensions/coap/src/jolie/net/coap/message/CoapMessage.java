@@ -482,7 +482,12 @@ public abstract class CoapMessage {
 	}
     }
 
-    public void setContent(ByteBuf content) throws IllegalArgumentException {
+    /**
+     *
+     * @param content ByteBuf
+     * @throws IllegalArgumentException
+     */
+    public void content(ByteBuf content) throws IllegalArgumentException {
 
 	if (!(MessageCode.allowsContent(this.messageCode))
 		&& content.readableBytes() > 0) {
@@ -498,7 +503,7 @@ public abstract class CoapMessage {
 
 	try {
 	    this.addUintOption(Option.CONTENT_FORMAT, contentFormat);
-	    setContent(content);
+	    content(content);
 	} catch (IllegalArgumentException e) {
 	    this.content = Unpooled.EMPTY_BUFFER;
 	    this.removeOptions(Option.CONTENT_FORMAT);
@@ -507,7 +512,7 @@ public abstract class CoapMessage {
     }
 
     public void setContent(byte[] content) throws IllegalArgumentException {
-	setContent(Unpooled.wrappedBuffer(content));
+	content(Unpooled.wrappedBuffer(content));
     }
 
     public void setContent(byte[] content, long contentFormat)
@@ -515,13 +520,17 @@ public abstract class CoapMessage {
 	setContent(Unpooled.wrappedBuffer(content), contentFormat);
     }
 
-    public ByteBuf getContent() {
+    /**
+     *
+     * @return ByteBuf
+     */
+    public ByteBuf content() {
 	return this.content;
     }
 
     public byte[] getContentAsByteArray() {
 	byte[] result = new byte[this.getContentLength()];
-	this.getContent().readBytes(result, 0, this.getContentLength());
+	this.content().readBytes(result, 0, this.getContentLength());
 	return result;
     }
 
@@ -615,7 +624,7 @@ public abstract class CoapMessage {
 	}
 
 	//Check content
-	return this.getContent().equals(other.getContent());
+	return this.content().equals(other.content());
     }
 
     @Override
@@ -647,12 +656,12 @@ public abstract class CoapMessage {
 
 	//Content
 	result.append("Content: ");
-	long payloadLength = getContent().readableBytes();
+	long payloadLength = content().readableBytes();
 	if (payloadLength == 0) {
 	    result.append("<no content>]");
 	} else {
-	    result.append(getContent().toString(0,
-		    Math.min(getContent().readableBytes(), 20),
+	    result.append(content().toString(0,
+		    Math.min(content().readableBytes(), 20),
 		    CoapMessage.CHARSET)).append("... ( ")
 		    .append(payloadLength).append(" bytes)]");
 	}
