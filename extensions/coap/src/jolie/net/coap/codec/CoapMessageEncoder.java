@@ -54,7 +54,7 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 	}
 
 	if (in.getAllOptions().isEmpty()
-		&& in.getContent().readableBytes() == 0) {
+		&& in.content().readableBytes() == 0) {
 
 	    out.add(msg);
 	}
@@ -71,9 +71,9 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 	}
 
 	//write encoded content
-	if (in.getContent().readableBytes() > 0) {
+	if (in.content().readableBytes() > 0) {
 	    msg.writeByte(255);
-	    msg.writeBytes(Unpooled.wrappedBuffer(in.getContent()));
+	    msg.writeBytes(Unpooled.wrappedBuffer(in.content()));
 	}
 
 	out.add(msg);
