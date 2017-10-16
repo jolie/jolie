@@ -40,11 +40,21 @@ public abstract class MessageType {
 	MESSAGE_TYPES.put(RST, "RST");
     }
 
+    /**
+     *
+     * @param messageType
+     * @return String
+     */
     public static String asString(int messageType) {
 	String result = MESSAGE_TYPES.get(messageType);
 	return result == null ? "UNKOWN (" + messageType + ")" : result;
     }
 
+    /**
+     *
+     * @param number
+     * @return boolean
+     */
     public static boolean isMessageType(int number) {
 	return MESSAGE_TYPES.containsKey(number);
     }

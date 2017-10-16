@@ -89,27 +89,57 @@ public abstract class MessageCode {
 	MESSAGE_CODES.put(PROXYING_NOT_SUPPORTED_505, "PROXYING NOT SUPPORTED");
     }
 
+    /**
+     *
+     * @param messageCode
+     * @return String
+     */
     public static String asString(int messageCode) {
 	String result = MESSAGE_CODES.get(messageCode);
 	return result == null ? "UNKOWN" : result;
     }
 
+    /**
+     *
+     * @param number
+     * @return boolean
+     */
     public static boolean isMessageCode(int number) {
 	return MESSAGE_CODES.containsKey(number);
     }
 
+    /**
+     *
+     * @param messageCode
+     * @return boolean
+     */
     public static boolean isRequest(int messageCode) {
 	return (messageCode > 0 && messageCode < 5);
     }
 
+    /**
+     *
+     * @param messageCode
+     * @return boolean
+     */
     public static boolean isResponse(int messageCode) {
 	return messageCode >= 5;
     }
 
+    /**
+     *
+     * @param codeNumber
+     * @return boolean
+     */
     public static boolean isErrorMessage(int codeNumber) {
 	return (codeNumber >= 128);
     }
 
+    /**
+     *
+     * @param codeNumber
+     * @return boolean
+     */
     public static boolean allowsContent(int codeNumber) {
 	return !(codeNumber == GET || codeNumber == DELETE);
     }

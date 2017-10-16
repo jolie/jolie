@@ -72,6 +72,7 @@ public class CoapCodecHandler
     private final CoapProtocol protocol;
     private Channel cc;
     private Map<String, Integer> allowedMethods;
+    private CommMessage commMessageRequest;
 
     public CoapCodecHandler(CoapProtocol prt) {
 	this.allowedMethods = new HashMap<>();
@@ -92,9 +93,9 @@ public class CoapCodecHandler
 	    CommMessage in, List<Object> out) throws Exception {
 
 	String operationName = in.operationName();
-	if (input) {
+	if (input) { // input port - RR
 
-	} else { //output port - OW and RR
+	} else { // output port - OW and RR
 
 	    // CREATE COAP MESSAGE 
 	    int messageType = getMessageType(operationName);
@@ -112,14 +113,39 @@ public class CoapCodecHandler
 
 	    if (messageType == MessageType.NON) {
 		sendAck(ctx, in);
-    }
+	    }
+
+	    this.commMessageRequest = in;
 	}
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx,
 	    CoapMessage in, List<Object> out) throws Exception {
-	System.out.println("Message received!" + in.toString());
+	if (input) { // input port - OW and RR
+
+	    if (in.getMessageType() == MessageType.CON) { // send back ack
+		ctx.channel().writeAndFlush(CoapMessage
+			.createEmptyAcknowledgement(in.getMessageID()));
+	    }
+
+	    String operationName = getOperationName(in);
+	    CommMessage msg = CommMessage.createRequest(operationName, "/",
+		    byteBufToValue(in));
+	    out.add(msg);
+
+	} else { // output port - OW and RR (confirmable)
+
+	    if (in.getMessageType() == MessageType.ACK) {
+		if (this.commMessageRequest != null) {
+		    out.add(CommMessage
+			    .createEmptyResponse(commMessageRequest));
+		} else { // should never happen
+		    Interpreter.getInstance().logSevere("No Comm Message "
+			    + "Waiting for Acknowledgement");
+		}
+	    }
+	}
     }
 
     private ByteBuf valueToByteBuf(CommMessage in) throws Exception {
@@ -222,6 +248,14 @@ public class CoapCodecHandler
 	    }
 	}
 	return MessageCode.POST;
+    }
+
+    private Value byteBufToValue(CoapMessage in) {
+	throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private String getOperationName(CoapMessage in) {
+	throw new UnsupportedOperationException("Not supported yet.");
     }
 
     private static class Parameters {

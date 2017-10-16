@@ -101,6 +101,12 @@ public abstract class CoapMessage {
 	};
     }
 
+    /**
+     *
+     * @param messageID
+     * @return
+     * @throws IllegalArgumentException
+     */
     public static CoapMessage createEmptyAcknowledgement(int messageID)
 	    throws IllegalArgumentException {
 	return new CoapMessage(MessageType.ACK, MessageCode.EMPTY, messageID,
