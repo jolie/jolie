@@ -20,15 +20,14 @@ outputPort Broker {
             .format = "raw",
             .alias = "%!{id}/getTemperature",
             .aliasResponse = "%!{id}/getTempReply"
-        }
-        ;.debug = true
+        };
+        .debug = true
     }
     Interfaces: ThermostatInterface
 }
 
 main
 {
-  for ( i=0, i<3, i++ ) {
     {
       getTmp@Broker( { .id = "42" } )( varA );
       println@Console( "T1: " + varA )()
@@ -38,5 +37,4 @@ main
       getTmp1@Broker( { .id = "43" } )( varB );
       println@Console( "T2: " + varB )()
     }  
-  }
 }

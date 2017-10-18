@@ -22,12 +22,11 @@
 package jolie.net.coap;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageDecoder;
-import io.netty.util.CharsetUtil;
+import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.util.List;
+
 import jolie.Interpreter;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
@@ -41,21 +40,16 @@ import jolie.net.coap.options.StringOptionValue;
 import jolie.net.coap.miscellaneous.Token;
 import jolie.net.coap.options.UintOptionValue;
 
-public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
+public class CoapMessageDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in,
 	    List<Object> out) throws Exception {
 
-	String message = "";
-	System.out.println(Unpooled.wrappedBuffer(in).toString(CharsetUtil.UTF_8));
 	if (in.readableBytes() == 4) {
 	    CoapMessage msg = recv(in);
 	    if (msg != null) {
 		out.add(msg);
-	    } else {
-		message = "Invalid CoapMessage!";
-		Interpreter.getInstance().logSevere(message);
 	    }
 	}
     }
@@ -147,12 +141,8 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	try {
 	    coapMessage.content(in);
 	} catch (IllegalArgumentException e) {
-	    errMsg = "Message code {} does not "
-		    + "allow content. Ignore {} bytes.";
-	    Interpreter.getInstance().logSevere(errMsg);
+	    Interpreter.getInstance().logSevere(e);
 	}
-
-	Interpreter.getInstance().logInfo("Decoded Message: " + coapMessage);
 
 	return coapMessage;
     }
@@ -162,7 +152,6 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	//Decode the options
 	int previousOptionNumber = 0;
 	int firstByte = bb.readByte() & 0xFF;
-	String errMsg = "";
 
 	while (firstByte != 0xFF && bb.readableBytes() >= 0) {
 
@@ -218,14 +207,11 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 			break;
 		    }
 		    default: {
-			errMsg = "This should never happen!";
-			Interpreter.getInstance().logSevere(errMsg);
-			throw new RuntimeException(errMsg);
+			break;
 		    }
 		}
 	    } catch (IllegalArgumentException e) {
-		errMsg = "Exception while decoding option!" + e;
-		Interpreter.getInstance().logSevere(errMsg);
+		Interpreter.getInstance().logSevere(e);
 	    }
 
 	    previousOptionNumber = actualOptionNumber;
@@ -235,9 +221,6 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	    } else {
 		firstByte = 0xFF;
 	    }
-
-	    Interpreter.getInstance().logInfo(bb.readableBytes()
-		    + " readable bytes remaining.");
 	}
     }
 }

@@ -37,8 +37,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.AttributeKey;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
@@ -84,7 +82,6 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
 	channel.bootstrap = new Bootstrap();
 	channel.bootstrap.group(workerGroup)
 		.channel(NioDatagramChannel.class)
-		.handler(new LoggingHandler(LogLevel.INFO))
 		.handler(new ChannelInitializer() {
 		    @Override
 		    protected void initChannel(Channel ch) throws Exception {

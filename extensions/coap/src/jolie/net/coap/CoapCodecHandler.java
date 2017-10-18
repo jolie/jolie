@@ -118,7 +118,7 @@ public class CoapCodecHandler
 	int messageType = getMessageType(operationName);
 	int messageCode = getMessageCode(operationName);
 	CoapMessage msg = new CoapMessage(messageType, messageCode) {
-	    // override method code portion
+	    // override Coap Message methods code portion
 	};
 	ByteBuf payload = valueToByteBuf(in);
 	msg.content(payload);
