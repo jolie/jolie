@@ -76,16 +76,28 @@ import org.xml.sax.SAXException;
 public class CoapCodecHandler
 	extends MessageToMessageCodec<CoapMessage, CommMessage> {
 
-    private boolean input;
     private static final Charset charset = CharsetUtil.UTF_8;
+    public static final int GET = 1;
+    public static final int POST = 2;
+    public static final int PUT = 3;
+    public static final int DELETE = 4;
+    private static final Map<String, Integer> allowedMethods = new HashMap<>();
+
+    static {
+	allowedMethods.put("GET", GET);
+	allowedMethods.put("POST", POST);
+	allowedMethods.put("PUT", PUT);
+	allowedMethods.put("DELETE", DELETE);
+    }
+
+    private final boolean input;
     private final CoapProtocol protocol;
+
     private Channel cc;
-    private Map<String, Integer> allowedMethods;
     private CommMessage commMessageRequest;
     private CommMessage commMessageResponse;
 
     public CoapCodecHandler(CoapProtocol prt) {
-	this.allowedMethods = new HashMap<>();
 	this.protocol = prt;
 	this.input = prt.isInput;
     }
@@ -106,6 +118,7 @@ public class CoapCodecHandler
 	int messageType = getMessageType(operationName);
 	int messageCode = getMessageCode(operationName);
 	CoapMessage msg = new CoapMessage(messageType, messageCode) {
+	    // override method code portion
 	};
 	ByteBuf payload = valueToByteBuf(in);
 	msg.content(payload);
@@ -132,7 +145,10 @@ public class CoapCodecHandler
     @Override
     protected void decode(ChannelHandlerContext ctx,
 	    CoapMessage in, List<Object> out) throws Exception {
+
 	if (input) { // input port - OW and RR
+
+	    System.out.println("Coap Message arrived: " + in.toString());
 
 	    if (in.getMessageType() == MessageType.ACK) { // RR ack to comm core
 		if (this.commMessageResponse != null) {
@@ -144,7 +160,7 @@ public class CoapCodecHandler
 	    } else {
 
 		if (in.getMessageType() == MessageType.CON) { // OW ack to client
-		    ctx.channel().writeAndFlush(CoapMessage
+		    this.cc.writeAndFlush(CoapMessage
 			    .createEmptyAcknowledgement(in.getMessageID()));
 		}
 
@@ -166,7 +182,7 @@ public class CoapCodecHandler
 		}
 	    } else if (in.isResponse()) { // maybe no need of this check ??
 		if (in.getMessageType() == MessageType.ACK) {
-		    ctx.channel().writeAndFlush(CoapMessage
+		    cc.writeAndFlush(CoapMessage
 			    .createEmptyAcknowledgement(in.getMessageID()));
 		}
 
@@ -276,6 +292,9 @@ public class CoapCodecHandler
 			    Parameters.METHOD).strValue();
 	    if (allowedMethods.containsKey(method)) {
 		return allowedMethods.get(method);
+	    } else {
+		Interpreter.getInstance().logSevere("Methods allowed are: "
+			+ "POST, GET, PUT, DELETE.");
 	    }
 	}
 	return MessageCode.POST;
@@ -421,6 +440,12 @@ public class CoapCodecHandler
 	return true;
     }
 
+    /**
+     * TODO it can be upgrade to Streaming Comm Channel method
+     *
+     * @param operationName
+     * @return
+     */
     public boolean isOneWay(String operationName) {
 	return protocol.channel().parentPort().getInterface()
 		.oneWayOperations().containsKey(operationName);

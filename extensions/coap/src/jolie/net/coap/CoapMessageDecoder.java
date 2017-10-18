@@ -19,7 +19,7 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap.codec;
+package jolie.net.coap;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
