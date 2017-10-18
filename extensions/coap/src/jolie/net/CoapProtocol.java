@@ -22,8 +22,6 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 
@@ -40,10 +38,21 @@ import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 
+/**
+ * Implementations of Async Comm Protocol COstrained APplications (http over
+ * UDP) for IoT
+ *
+ * @author stefanopiozingaro
+ */
 public class CoapProtocol extends AsyncCommProtocol {
 
     public boolean isInput;
 
+    /**
+     *
+     * @param configurationPath VariablePath
+     * @param isInput boolean
+     */
     public CoapProtocol(VariablePath configurationPath, boolean isInput) {
 	super(configurationPath);
 	this.isInput = isInput;
@@ -51,7 +60,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
-	pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	//pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	pipeline.addLast("ENCODER", new CoapMessageEncoder());
 	pipeline.addLast("DECODER", new CoapMessageDecoder());
 	pipeline.addLast("CODEC", new CoapCodecHandler(this));

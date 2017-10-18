@@ -76,9 +76,6 @@ public class NioDatagramListener extends CommListener {
 		protected void initChannel(NioDatagramChannel ch)
 			throws Exception {
 
-		    /*
-		    Alternative solution for udp channel creation
-		     */
 		    // create the protocol (coap for instance)
 		    CommProtocol protocol = createProtocol();
 		    assert (protocol instanceof AsyncCommProtocol);
@@ -92,11 +89,11 @@ public class NioDatagramListener extends CommListener {
 		    protocol.setChannel(datagramChannel);
 		    datagramChannel.setParentInputPort(inputPort());
 
-		    // setup the pipeline (the one we already have)
+		    // setup the pipeline 
 		    ChannelPipeline p = ch.pipeline();
 		    ((AsyncCommProtocol) protocol).setupPipeline(p);
 
-		    //add some other handler
+		    //add handlers
 		    p.addFirst(new ChannelOutboundHandlerAdapter() {
 			@Override
 			public void flush(ChannelHandlerContext ctx)

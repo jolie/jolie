@@ -30,53 +30,57 @@ import java.util.List;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.options.OptionValue;
 
-public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
+public class CoapMessageEncoder<C extends CoapMessage>
+	extends MessageToMessageEncoder<Object> {
 
     public static final int MAX_OPTION_DELTA = 65804;
     public static final int MAX_OPTION_LENGTH = 65804;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, CoapMessage in,
+    protected void encode(ChannelHandlerContext ctx, Object o,
 	    List<Object> out) throws Exception {
 
 	ByteBuf msg = Unpooled.buffer();
 
-	//write encoded header
-	byte[] token = in.getToken().getBytes();
-	int encodedHeader = ((in.getProtocolVersion() & 0x03) << 30)
-		| ((in.getMessageType() & 0x03) << 28)
-		| ((token.length & 0x0F) << 24)
-		| ((in.getMessageCode() & 0xFF) << 16)
-		| ((in.getMessageID() & 0xFFFF));
-	msg.writeInt(encodedHeader);
-	if (token.length > 0) {
-	    msg.writeBytes(token);
-	}
+	if (o instanceof CoapMessage) {
+	    C in = (C) o;
+	    //write encoded header
+	    byte[] token = in.getToken().getBytes();
+	    int encodedHeader = ((in.getProtocolVersion() & 0x03) << 30)
+		    | ((in.getMessageType() & 0x03) << 28)
+		    | ((token.length & 0x0F) << 24)
+		    | ((in.getMessageCode() & 0xFF) << 16)
+		    | ((in.getMessageID() & 0xFFFF));
+	    msg.writeInt(encodedHeader);
+	    if (token.length > 0) {
+		msg.writeBytes(token);
+	    }
 
-	if (in.getAllOptions().isEmpty()
-		&& in.content().readableBytes() == 0) {
+	    if (in.getAllOptions().isEmpty()
+		    && in.content().readableBytes() == 0) {
+
+		out.add(msg);
+	    }
+
+	    //write encoded options
+	    int previousOptionNumber = 0;
+
+	    for (int optionNumber : in.getAllOptions().keySet()) {
+		for (OptionValue optionValue : in.getOptions(optionNumber)) {
+		    encodeOption(msg, optionNumber, optionValue,
+			    previousOptionNumber);
+		    previousOptionNumber = optionNumber;
+		}
+	    }
+
+	    //write encoded content
+	    if (in.content().readableBytes() > 0) {
+		msg.writeByte(255);
+		msg.writeBytes(Unpooled.wrappedBuffer(in.content()));
+	    }
 
 	    out.add(msg);
 	}
-
-	//write encoded options
-	int previousOptionNumber = 0;
-
-	for (int optionNumber : in.getAllOptions().keySet()) {
-	    for (OptionValue optionValue : in.getOptions(optionNumber)) {
-		encodeOption(msg, optionNumber, optionValue,
-			previousOptionNumber);
-		previousOptionNumber = optionNumber;
-	    }
-	}
-
-	//write encoded content
-	if (in.content().readableBytes() > 0) {
-	    msg.writeByte(255);
-	    msg.writeBytes(Unpooled.wrappedBuffer(in.content()));
-	}
-
-	out.add(msg);
     }
 
     private void encodeOption(ByteBuf buffer, int optionNumber,
