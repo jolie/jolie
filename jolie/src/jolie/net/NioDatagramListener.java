@@ -1,3 +1,24 @@
+/*
+ *   Copyright (C) 2017 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>  
+ *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>
+ *                                                                             
+ *   This program is free software; you can redistribute it and/or modify      
+ *   it under the terms of the GNU Library General Public License as           
+ *   published by the Free Software Foundation; either version 2 of the        
+ *   License, or (at your option) any later version.                           
+ *                                                                             
+ *   This program is distributed in the hope that it will be useful,           
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             
+ *   GNU General Public License for more details.                              
+ *                                                                             
+ *   You should have received a copy of the GNU Library General Public         
+ *   License along with this program; if not, write to the                     
+ *   Free Software Foundation, Inc.,                                           
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 
+ *                                                                             
+ *   For details about the authors of this software, see the AUTHORS file.     
+ */
 package jolie.net;
 
 import jolie.Interpreter;
@@ -5,7 +26,6 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,10 +34,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -27,9 +44,10 @@ import jolie.net.protocols.CommProtocol;
 public class NioDatagramListener extends CommListener {
 
     private final Bootstrap bootstrap;
-    private Channel serverChannel;
     private final EventLoopGroup workerGroup;
-    private InetSocketAddress remoteAddress;
+
+    private Channel serverChannel;
+    private URI location;
 
     public NioDatagramListener(Interpreter interpreter,
 	    CommProtocolFactory protocolFactory, InputPort inputPort,
@@ -52,70 +70,62 @@ public class NioDatagramListener extends CommListener {
 
 	    bootstrap.group(workerGroup);
 	    bootstrap.channel(NioDatagramChannel.class);
-	    bootstrap.handler(new SimpleChannelInboundHandler<DatagramPacket>() {
+	    bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
 
 		@Override
-		protected void channelRead0(ChannelHandlerContext ctx,
-			DatagramPacket in) throws Exception {
+		protected void initChannel(NioDatagramChannel ch)
+			throws Exception {
 
-		    remoteAddress = in.sender();
-		    URI location = new URI(
-			    "datagram://"
-			    + remoteAddress.getHostName()
-			    + ":"
-			    + remoteAddress.getPort());
+		    /*
+		    Alternative solution for udp channel creation
+		     */
+		    // create the protocol (coap for instance)
+		    CommProtocol protocol = createProtocol();
+		    assert (protocol instanceof AsyncCommProtocol);
 
-		    System.out.println("Received datagram packet: " + in.toString());
-		    System.out.println(Unpooled.wrappedBuffer(in.content()).toString(CharsetUtil.UTF_8));
+		    // create the response channel 
+		    NioDatagramCommChannel datagramChannel
+			    = new NioDatagramCommChannel(location,
+				    (AsyncCommProtocol) protocol);
 
-		    ctx.pipeline().addLast(new ChannelInitializer<NioDatagramChannel>() {
+		    // protocol handling
+		    protocol.setChannel(datagramChannel);
+		    datagramChannel.setParentInputPort(inputPort());
 
+		    // setup the pipeline (the one we already have)
+		    ChannelPipeline p = ch.pipeline();
+		    ((AsyncCommProtocol) protocol).setupPipeline(p);
+
+		    //add some other handler
+		    p.addFirst(new ChannelOutboundHandlerAdapter() {
 			@Override
-			protected void initChannel(NioDatagramChannel ch)
+			public void flush(ChannelHandlerContext ctx)
 				throws Exception {
 
-			    CommProtocol protocol = createProtocol();
-			    assert (protocol instanceof AsyncCommProtocol);
-
-			    NioDatagramCommChannel datagramChannel
-				    = new NioDatagramCommChannel(location,
-					    (AsyncCommProtocol) protocol);
-
-			    protocol.setChannel(datagramChannel);
-			    datagramChannel.setParentInputPort(inputPort());
-
-			    ChannelPipeline p = ch.pipeline();
-			    ((AsyncCommProtocol) protocol).setupPipeline(p);
-
-			    p.addFirst(new ChannelOutboundHandlerAdapter() {
-				@Override
-				public void flush(ChannelHandlerContext ctx)
-					throws Exception {
-
-				    ctx.flush();
-				}
-			    });
-			    p.addLast(datagramChannel.commChannelHandler);
-			    p.addLast(new ChannelInboundHandlerAdapter() {
-
-				@Override
-				public void exceptionCaught(
-					ChannelHandlerContext ctx,
-					Throwable cause) throws Exception {
-
-				    cause.printStackTrace();
-				    ctx.close();
-				    serverChannel.close();
-				}
-
-			    });
-
-			    ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
-				    .set(interpreter().initThread());
+			    ctx.flush();
 			}
 		    });
+		    p.addLast(datagramChannel.commChannelHandler);
+		    p.addLast(new ChannelInboundHandlerAdapter() {
+
+			@Override
+			public void exceptionCaught(
+				ChannelHandlerContext ctx,
+				Throwable cause) throws Exception {
+
+			    cause.printStackTrace();
+			    ctx.close();
+			    serverChannel.close();
+			}
+
+		    });
+
+		    // set the execution context
+		    ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
+			    .set(interpreter().initThread());
 		}
 	    });
+
 	    ChannelFuture f = bootstrap.bind(new InetSocketAddress(
 		    inputPort().location().getHost(),
 		    inputPort().location().getPort())).sync();

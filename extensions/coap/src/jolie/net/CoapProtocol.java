@@ -21,16 +21,18 @@
  */
 package jolie.net;
 
-import jolie.net.coap.CoapCodecHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+
 import java.io.IOException;
 
-import jolie.net.coap.codec.CoapMessageDecoder;
-import jolie.net.coap.codec.CoapMessageEncoder;
+import jolie.net.coap.CoapCodecHandler;
+import jolie.net.coap.CoapMessageDecoder;
+import jolie.net.coap.CoapMessageEncoder;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
+
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OneWayTypeDescription;

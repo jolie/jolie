@@ -5,13 +5,23 @@ outputPort Server {
     Protocol: coap {
         .osc.setTmp << {
             .format = "raw",
-            .confirmable = true,
+            .confirmable = false,
             .method = "POST"
         };
         .debug = true
     }
     OneWay: setTmp( int )
 }
+
+/*
+outputPort Server {
+    Location: "socket://localhost:8004"
+    Protocol: http {
+        .debug = true
+    }
+    OneWay: setTmp( int )
+}
+*/
 
 main
 {

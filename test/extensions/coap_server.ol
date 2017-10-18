@@ -12,6 +12,16 @@ inputPort  Server {
     OneWay: setTmp( int )
 }
 
+/*
+inputPort  Server {
+    Location: "socket://localhost:8004"
+    Protocol: http {
+        .debug = true
+    }
+    OneWay: setTmp( int )
+}
+*/
+
 main 
 {
     setTmp( temp );
