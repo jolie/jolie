@@ -22,6 +22,9 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.DatagramPacketDecoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 
@@ -46,102 +49,104 @@ import jolie.runtime.typing.Type;
  */
 public class CoapProtocol extends AsyncCommProtocol {
 
-    public boolean isInput;
+  public boolean isInput;
 
-    /**
-     *
-     * @param configurationPath VariablePath
-     * @param isInput boolean
-     */
-    public CoapProtocol(VariablePath configurationPath, boolean isInput) {
-	super(configurationPath);
-	this.isInput = isInput;
+  /**
+   *
+   * @param configurationPath VariablePath
+   * @param isInput boolean
+   */
+  public CoapProtocol(VariablePath configurationPath, boolean isInput) {
+    super(configurationPath);
+    this.isInput = isInput;
+  }
+
+  @Override
+  public void setupPipeline(ChannelPipeline pipeline) {
+    if (isInput) {
+      pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+    }
+    pipeline.addLast("UDP DECODER", new DatagramPacketDecoder(
+        new CoapMessageDecoder()));
+    pipeline.addLast("ENCODER", new CoapMessageEncoder());
+    pipeline.addLast("CODEC", new CoapCodecHandler(this));
+  }
+
+  @Override
+  public String name() {
+    return "coap";
+  }
+
+  @Override
+  public boolean isThreadSafe() {
+    return false;
+  }
+
+  @Override
+  public boolean checkBooleanParameter(String param) {
+    return super.checkBooleanParameter(param);
+  }
+
+  @Override
+  public boolean hasOperationSpecificParameter(String on, String p) {
+    return super.hasOperationSpecificParameter(on, p);
+  }
+
+  @Override
+  public String getOperationSpecificStringParameter(String on, String p) {
+    return super.getOperationSpecificStringParameter(on, p);
+  }
+
+  @Override
+  public Value getOperationSpecificParameterFirstValue(String on,
+      String p) {
+    return super.getOperationSpecificParameterFirstValue(on, p);
+  }
+
+  @Override
+  public boolean checkStringParameter(String id, String value) {
+    return super.checkStringParameter(id, value);
+  }
+
+  @Override
+  public CommChannel channel() {
+    return super.channel();
+  }
+
+  /**
+   * Retrieve Send Type for the CommMessage in input. TODO: move to super class
+   *
+   * @param operationName String
+   * @return Type
+   * @throws IOException
+   */
+  public Type getSendType(String operationName)
+      throws IOException {
+
+    Type ret = null;
+
+    if (channel().parentPort() == null) {
+      throw new IOException("Could not retrieve communication "
+          + "port for " + this.name() + " protocol");
     }
 
-    @Override
-    public void setupPipeline(ChannelPipeline pipeline) {
-	//pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
-	pipeline.addLast("ENCODER", new CoapMessageEncoder());
-	pipeline.addLast("DECODER", new CoapMessageDecoder());
-	pipeline.addLast("CODEC", new CoapCodecHandler(this));
+    OperationTypeDescription opDesc = channel().parentPort()
+        .getOperationTypeDescription(operationName, "/");
+
+    if (opDesc == null) {
+      return null;
     }
 
-    @Override
-    public String name() {
-	return "coap";
+    if (opDesc.asOneWayTypeDescription() != null) {
+      OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
+      ret = ow.requestType();
+    } else if (opDesc.asRequestResponseTypeDescription() != null) {
+      RequestResponseTypeDescription rr
+          = opDesc.asRequestResponseTypeDescription();
+      ret = (channel().parentPort() instanceof InputPort)
+          ? rr.responseType() : rr.requestType();
     }
 
-    @Override
-    public boolean isThreadSafe() {
-	return false;
-    }
-
-    @Override
-    public boolean checkBooleanParameter(String param) {
-	return super.checkBooleanParameter(param);
-    }
-
-    @Override
-    public boolean hasOperationSpecificParameter(String on, String p) {
-	return super.hasOperationSpecificParameter(on, p);
-    }
-
-    @Override
-    public String getOperationSpecificStringParameter(String on, String p) {
-	return super.getOperationSpecificStringParameter(on, p);
-    }
-
-    @Override
-    public Value getOperationSpecificParameterFirstValue(String on,
-	    String p) {
-	return super.getOperationSpecificParameterFirstValue(on, p);
-    }
-
-    @Override
-    public boolean checkStringParameter(String id, String value) {
-	return super.checkStringParameter(id, value);
-    }
-
-    @Override
-    public CommChannel channel() {
-	return super.channel();
-    }
-
-    /**
-     * Retrieve Send Type for the CommMessage in input. TODO: move to super
-     * class
-     *
-     * @param operationName String
-     * @return Type
-     * @throws IOException
-     */
-    public Type getSendType(String operationName)
-	    throws IOException {
-
-	Type ret = null;
-
-	if (channel().parentPort() == null) {
-	    throw new IOException("Could not retrieve communication "
-		    + "port for " + this.name() + " protocol");
-	}
-
-	OperationTypeDescription opDesc = channel().parentPort()
-		.getOperationTypeDescription(operationName, "/");
-
-	if (opDesc == null) {
-	    return null;
-	}
-
-	if (opDesc.asOneWayTypeDescription() != null) {
-	    OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
-	    ret = ow.requestType();
-	} else if (opDesc.asRequestResponseTypeDescription() != null) {
-	    RequestResponseTypeDescription rr
-		    = opDesc.asRequestResponseTypeDescription();
-	    ret = (channel().parentPort() instanceof InputPort)
-		    ? rr.responseType() : rr.requestType();
-	}
-
-	return ret;
-    }
+    return ret;
+  }
 }

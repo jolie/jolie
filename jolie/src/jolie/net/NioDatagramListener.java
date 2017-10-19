@@ -24,115 +24,128 @@ package jolie.net;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.net.protocols.CommProtocol;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
 
 public class NioDatagramListener extends CommListener {
 
-    private final Bootstrap bootstrap;
-    private final EventLoopGroup workerGroup;
+  private final Bootstrap bootstrap;
+  private final EventLoopGroup workerGroup;
 
-    private Channel serverChannel;
+  private Channel serverChannel;
+
+  public NioDatagramListener(Interpreter interpreter,
+      CommProtocolFactory protocolFactory, InputPort inputPort,
+      EventLoopGroup workerGroup) {
+
+    super(interpreter, protocolFactory, inputPort);
+    this.bootstrap = new Bootstrap();
+    this.workerGroup = workerGroup;
+  }
+
+  @Override
+  public void shutdown() {
+    serverChannel.close();
+  }
+
+  @Override
+  public void run() {
+
+    try {
+
+      bootstrap
+          .group(workerGroup)
+          .channel(NioDatagramChannel.class)
+          .handler(new UdpServerHandler());
+
+      // bind the listener
+      ChannelFuture f = bootstrap.bind(new InetSocketAddress(
+          inputPort().location().getHost(),
+          inputPort().location().getPort())).sync();
+      serverChannel = f.channel();
+      serverChannel.closeFuture().sync();
+
+    } catch (InterruptedException | IOException ex) {
+      interpreter().logWarning(ex);
+    } finally {
+      workerGroup.shutdownGracefully();
+    }
+  }
+
+  private class UdpServerHandler
+      extends SimpleChannelInboundHandler<DatagramPacket> {
+
+    private CommProtocol protocol;
+    private NioDatagramCommChannel responseChannel;
     private URI location;
+    private ChannelPipeline p;
 
-    public NioDatagramListener(Interpreter interpreter,
-	    CommProtocolFactory protocolFactory, InputPort inputPort,
-	    EventLoopGroup workerGroup) {
-
-	super(interpreter, protocolFactory, inputPort);
-	this.bootstrap = new Bootstrap();
-	this.workerGroup = workerGroup;
+    /**
+     *
+     * @throws IOException
+     */
+    public UdpServerHandler() throws IOException {
+      protocol = createProtocol();
     }
 
     @Override
-    public void shutdown() {
-	serverChannel.close();
+    protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg)
+        throws Exception {
+
+      // create the response channel and attach it to the protocol
+      this.location = new URI("datagram://" + msg.sender().getHostName() + ":"
+          + msg.sender().getPort());
+      responseChannel = new NioDatagramCommChannel(this.location,
+          (AsyncCommProtocol) protocol);
+      protocol.setChannel(responseChannel);
+      responseChannel.setParentInputPort(inputPort());
+
+      // setup the pipeline 
+      p = ctx.pipeline();
+      assert (protocol instanceof AsyncCommProtocol);
+      ((AsyncCommProtocol) protocol).setupPipeline(p);
+
+      // add response handlers
+      p.addFirst(new ChannelOutboundHandlerAdapter() {
+
+        @Override
+        public void flush(ChannelHandlerContext ctx) throws Exception {
+          ctx.flush();
+        }
+      });
+      p.addLast(responseChannel.commChannelHandler);
+      p.addLast(new ChannelInboundHandlerAdapter() {
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+            throws Exception {
+          cause.printStackTrace();
+          ctx.close();
+        }
+      });
+
+      // set the execution context
+      ctx.channel().attr(NioDatagramCommChannel.EXECUTION_CONTEXT)
+          .set(interpreter().initThread());
+
+      // pass it to the next hanlder in the pipeline
+      ctx.fireChannelRead(msg.retain());
     }
-
-    @Override
-    public void run() {
-
-	try {
-
-	    bootstrap.group(workerGroup);
-	    bootstrap.channel(NioDatagramChannel.class);
-	    bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
-
-		@Override
-		protected void initChannel(NioDatagramChannel ch)
-			throws Exception {
-
-		    // create the protocol (coap for instance)
-		    CommProtocol protocol = createProtocol();
-		    assert (protocol instanceof AsyncCommProtocol);
-
-		    // create the response channel 
-		    NioDatagramCommChannel datagramChannel
-			    = new NioDatagramCommChannel(location,
-				    (AsyncCommProtocol) protocol);
-
-		    // protocol handling
-		    protocol.setChannel(datagramChannel);
-		    datagramChannel.setParentInputPort(inputPort());
-
-		    // setup the pipeline 
-		    ChannelPipeline p = ch.pipeline();
-		    ((AsyncCommProtocol) protocol).setupPipeline(p);
-
-		    //add handlers
-		    p.addFirst(new ChannelOutboundHandlerAdapter() {
-			@Override
-			public void flush(ChannelHandlerContext ctx)
-				throws Exception {
-
-			    ctx.flush();
-			}
-		    });
-		    p.addLast(datagramChannel.commChannelHandler);
-		    p.addLast(new ChannelInboundHandlerAdapter() {
-
-			@Override
-			public void exceptionCaught(
-				ChannelHandlerContext ctx,
-				Throwable cause) throws Exception {
-
-			    cause.printStackTrace();
-			    ctx.close();
-			    serverChannel.close();
-			}
-
-		    });
-
-		    // set the execution context
-		    ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
-			    .set(interpreter().initThread());
-		}
-	    });
-
-	    ChannelFuture f = bootstrap.bind(new InetSocketAddress(
-		    inputPort().location().getHost(),
-		    inputPort().location().getPort())).sync();
-	    serverChannel = f.channel();
-	    serverChannel.closeFuture().sync();
-
-	} catch (InterruptedException ex) {
-	    interpreter().logWarning(ex);
-	} finally {
-	    workerGroup.shutdownGracefully();
-	}
-    }
+  }
 }
