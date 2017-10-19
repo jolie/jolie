@@ -38,249 +38,255 @@ import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.typing.TypeCheckingException;
 
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 @ChannelHandler.Sharable
-public class StreamingCommChannelHandler extends SimpleChannelInboundHandler<CommMessage> {
+public class StreamingCommChannelHandler
+    extends SimpleChannelInboundHandler<CommMessage> {
 
-    private ChannelHandlerContext ctx;
-    private StreamingCommChannel outChannel;  // TOWARDS THE NETWORK
-    private StreamingCommChannel inChannel;   // TOWARDS JOLIE
-    private final Interpreter interpreter;
+  private ChannelHandlerContext ctx;
+  private StreamingCommChannel outChannel;  // TOWARDS THE NETWORK
+  private StreamingCommChannel inChannel;   // TOWARDS JOLIE
+  private final Interpreter interpreter;
 
-    StreamingCommChannelHandler(StreamingCommChannel channel) {
-	this.inChannel = channel;
-	this.outChannel = channel;
-	this.interpreter = Interpreter.getInstance();
+  StreamingCommChannelHandler(StreamingCommChannel channel) {
+    this.inChannel = channel;
+    this.outChannel = channel;
+    this.interpreter = Interpreter.getInstance();
+  }
+
+  public void setOutChannel(StreamingCommChannel c) {
+    this.outChannel = c;
+  }
+
+  public void setInChannel(StreamingCommChannel c) {
+    this.inChannel = c;
+  }
+
+  public StreamingCommChannel getOutChannel() {
+    return this.outChannel;
+  }
+
+  public StreamingCommChannel getInChannel() {
+    return this.inChannel;
+  }
+
+  @Override
+  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+    super.channelRegistered(ctx);
+    this.ctx = ctx;
+  }
+
+  @Override
+  protected void channelRead0(ChannelHandlerContext ctx, CommMessage msg)
+      throws Exception {
+    if (inChannel.parentPort() instanceof OutputPort) {
+      this.inChannel.receiveResponse(msg);
+    } else {
+      messageRecv(msg);
     }
+  }
 
-    public void setOutChannel(StreamingCommChannel c) {
-	this.outChannel = c;
+  protected ChannelFuture write(CommMessage msg)
+      throws InterruptedException {
+
+    ChannelFuture f = this.ctx.writeAndFlush(msg);
+    return f;
+  }
+
+  protected ChannelFuture close() {
+    return ctx.close();
+  }
+
+  private final ReadWriteLock channelHandlersLock
+      = new ReentrantReadWriteLock(true);
+
+  private void forwardResponse(CommMessage message)
+      throws IOException {
+    message = new CommMessage(
+        inChannel.redirectionMessageId(),
+        message.operationName(),
+        message.resourcePath(),
+        message.value(),
+        message.fault()
+    );
+    try {
+      try {
+        inChannel.redirectionChannel().send(message);
+      } finally {
+        try {
+          if (inChannel.redirectionChannel().toBeClosed()) {
+            inChannel.redirectionChannel().close();
+          } else {
+            inChannel.redirectionChannel().disposeForInput();
+          }
+        } finally {
+          inChannel.setRedirectionChannel(null);
+        }
+      }
+    } finally {
+      inChannel.closeImpl();
     }
+  }
 
-    public void setInChannel(StreamingCommChannel c) {
-	this.inChannel = c;
+  private void handleRedirectionInput(CommMessage message, String[] ss)
+      throws IOException, URISyntaxException {
+    // Redirection
+    String rPath;
+    if (ss.length <= 2) {
+      rPath = "/";
+    } else {
+      StringBuilder builder = new StringBuilder();
+      for (int i = 2; i < ss.length; i++) {
+        builder.append('/');
+        builder.append(ss[i]);
+      }
+      rPath = builder.toString();
     }
-
-    public StreamingCommChannel getOutChannel() {
-	return this.outChannel;
+    OutputPort oPort = inChannel.parentInputPort().redirectionMap().get(ss[1]);
+    if (oPort == null) {
+      String error = "Discarded a message for resource " + ss[1]
+          + ", not specified in the appropriate redirection table.";
+      interpreter.logWarning(error);
+      throw new IOException(error);
     }
-
-    public StreamingCommChannel getInChannel() {
-	return this.inChannel;
+    try {
+      CommChannel oChannel = oPort.getNewCommChannel();
+      CommMessage rMessage
+          = new CommMessage(
+              message.id(),
+              message.operationName(),
+              rPath,
+              message.value(),
+              message.fault()
+          );
+      oChannel.setRedirectionChannel(inChannel);
+      oChannel.setRedirectionMessageId(rMessage.id());
+      oChannel.send(rMessage);
+      oChannel.setToBeClosed(false);
+      oChannel.disposeForInput();
+    } catch (IOException e) {
+      outChannel.send(CommMessage.createFaultResponse(message,
+          new FaultException(Constants.IO_EXCEPTION_FAULT_NAME, e)));
+      outChannel.disposeForInput();
+      throw e;
     }
+  }
 
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-	super.channelRegistered(ctx);
-	this.ctx = ctx;
+  private void handleAggregatedInput(CommMessage message,
+      AggregatedOperation operation)
+      throws IOException, URISyntaxException {
+    operation.runAggregationBehaviour(message, inChannel);
+  }
+
+  private void handleDirectMessage(CommMessage message)
+      throws IOException {
+    try {
+      InputOperation operation
+          = interpreter.getInputOperation(message.operationName());
+      try {
+        operation.requestType().check(message.value());
+        interpreter.correlationEngine().onMessageReceive(message, inChannel);
+        if (operation instanceof OneWayOperation) {
+          // We need to send the acknowledgement
+          outChannel.send(CommMessage.createEmptyResponse(message));
+          //channel.release();
+        }
+      } catch (TypeCheckingException e) {
+        interpreter.logWarning("Received message TypeMismatch (input operation "
+            + operation.id() + "): " + e.getMessage());
+        try {
+          outChannel.send(CommMessage.createFaultResponse(message,
+              new FaultException(jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME,
+                  e.getMessage())));
+        } catch (IOException ioe) {
+          Interpreter.getInstance().logSevere(ioe);
+        }
+      } catch (CorrelationError e) {
+        interpreter.logWarning("Received a non correlating message "
+            + "for operation " + message.operationName() + ". Sending "
+            + "CorrelationError to the caller.");
+        outChannel.send(CommMessage.createFaultResponse(message,
+            new FaultException("CorrelationError", "The message you sent "
+                + "can not be correlated with any session and can not be "
+                + "used to start a new session.")));
+      }
+    } catch (InvalidIdException e) {
+      interpreter.logWarning("Received a message for undefined operation "
+          + message.operationName() + ". Sending IOException to the caller.");
+      outChannel.send(CommMessage.createFaultResponse(message,
+          new FaultException("IOException", "Invalid operation: "
+              + message.operationName())));
+    } finally {
+      outChannel.disposeForInput();
     }
+  }
 
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, CommMessage msg) throws Exception {
-	if (inChannel.parentPort() instanceof OutputPort) {
-	    this.inChannel.receiveResponse(msg);
-	} else {
-	    messageRecv(msg);
-	}
+  private final static Pattern pathSplitPattern = Pattern.compile("/");
+
+  private void handleMessage(CommMessage message)
+      throws IOException {
+    try {
+      String[] ss = pathSplitPattern.split(message.resourcePath());
+      if (ss.length > 1) {
+        handleRedirectionInput(message, ss);
+      } else if (inChannel.parentInputPort().canHandleInputOperationDirectly(
+          message.operationName())) {
+        handleDirectMessage(message);
+      } else {
+        AggregatedOperation operation
+            = inChannel.parentInputPort().getAggregatedOperation(
+                message.operationName());
+        if (operation == null) {
+          interpreter.logWarning(
+              "Received a message for operation " + message.operationName()
+              + ", not specified in the input port at the receiving service. "
+              + "Sending IOException to the caller."
+          );
+          try {
+            outChannel.send(CommMessage.createFaultResponse(message,
+                new FaultException("IOException", "Invalid operation: "
+                    + message.operationName())));
+          } finally {
+            outChannel.disposeForInput();
+          }
+        } else {
+          handleAggregatedInput(message, operation);
+        }
+      }
+    } catch (URISyntaxException e) {
+      interpreter.logSevere(e);
     }
+  }
 
-    protected ChannelFuture write(CommMessage msg) throws InterruptedException {
-
-	ChannelFuture f = this.ctx.writeAndFlush(msg);
-
-	/*
-	f.addListener(new ChannelFutureListener() {
-	    @Override
-	    public void operationComplete(ChannelFuture future) throws Exception {
-
-		if (outChannel.parentPort().getInterface().oneWayOperations()
-			.containsKey(msg.operationName())
-			&& !inChannel.protocol().name().equals("coap")) {
-
-		    this.ctx.channel().pipeline()
-	.fireChannelRead(CommMessage.createEmptyResponse(msg));
-		}
-	    }
-	});
-	 */
-	return f;
+  private void messageRecv(CommMessage message) {
+    inChannel.lock.lock();
+    channelHandlersLock.readLock().lock();
+    try {
+      if (inChannel.redirectionChannel() == null) {
+        assert (inChannel.parentInputPort() != null);
+        if (message != null) {
+          handleMessage(message);
+        } else {
+          inChannel.disposeForInput();
+        }
+      }
+    } catch (ChannelClosingException e) {
+      interpreter.logFine(e);
+    } catch (IOException e) {
+      interpreter.logSevere(e);
+      try {
+        inChannel.closeImpl();
+      } catch (IOException e2) {
+        interpreter.logSevere(e2);
+      }
+    } finally {
+      channelHandlersLock.readLock().unlock();
+      if (inChannel.lock.isHeldByCurrentThread()) {
+        inChannel.lock.unlock();
+      }
     }
-
-    protected ChannelFuture close() {
-	return ctx.close();
-    }
-
-    private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock(true);
-
-    private void forwardResponse(CommMessage message)
-	    throws IOException {
-	message = new CommMessage(
-		inChannel.redirectionMessageId(),
-		message.operationName(),
-		message.resourcePath(),
-		message.value(),
-		message.fault()
-	);
-	try {
-	    try {
-		inChannel.redirectionChannel().send(message);
-	    } finally {
-		try {
-		    if (inChannel.redirectionChannel().toBeClosed()) {
-			inChannel.redirectionChannel().close();
-		    } else {
-			inChannel.redirectionChannel().disposeForInput();
-		    }
-		} finally {
-		    inChannel.setRedirectionChannel(null);
-		}
-	    }
-	} finally {
-	    inChannel.closeImpl();
-	}
-    }
-
-    private void handleRedirectionInput(CommMessage message, String[] ss)
-	    throws IOException, URISyntaxException {
-	// Redirection
-	String rPath;
-	if (ss.length <= 2) {
-	    rPath = "/";
-	} else {
-	    StringBuilder builder = new StringBuilder();
-	    for (int i = 2; i < ss.length; i++) {
-		builder.append('/');
-		builder.append(ss[i]);
-	    }
-	    rPath = builder.toString();
-	}
-	OutputPort oPort = inChannel.parentInputPort().redirectionMap().get(ss[1]);
-	if (oPort == null) {
-	    String error = "Discarded a message for resource " + ss[1]
-		    + ", not specified in the appropriate redirection table.";
-	    interpreter.logWarning(error);
-	    throw new IOException(error);
-	}
-	try {
-	    CommChannel oChannel = oPort.getNewCommChannel();
-	    CommMessage rMessage
-		    = new CommMessage(
-			    message.id(),
-			    message.operationName(),
-			    rPath,
-			    message.value(),
-			    message.fault()
-		    );
-	    oChannel.setRedirectionChannel(inChannel);
-	    oChannel.setRedirectionMessageId(rMessage.id());
-	    oChannel.send(rMessage);
-	    oChannel.setToBeClosed(false);
-	    oChannel.disposeForInput();
-	} catch (IOException e) {
-	    outChannel.send(CommMessage.createFaultResponse(message, new FaultException(Constants.IO_EXCEPTION_FAULT_NAME, e)));
-	    outChannel.disposeForInput();
-	    throw e;
-	}
-    }
-
-    private void handleAggregatedInput(CommMessage message, AggregatedOperation operation)
-	    throws IOException, URISyntaxException {
-	operation.runAggregationBehaviour(message, inChannel);
-    }
-
-    private void handleDirectMessage(CommMessage message)
-	    throws IOException {
-	try {
-	    InputOperation operation
-		    = interpreter.getInputOperation(message.operationName());
-	    try {
-		operation.requestType().check(message.value());
-		interpreter.correlationEngine().onMessageReceive(message, inChannel);
-		if (operation instanceof OneWayOperation) {
-		    // We need to send the acknowledgement
-		    outChannel.send(CommMessage.createEmptyResponse(message));
-		    //channel.release();
-		}
-	    } catch (TypeCheckingException e) {
-		interpreter.logWarning("Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage());
-		try {
-		    outChannel.send(CommMessage.createFaultResponse(message, new FaultException(jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage())));
-		} catch (IOException ioe) {
-		    Interpreter.getInstance().logSevere(ioe);
-		}
-	    } catch (CorrelationError e) {
-		interpreter.logWarning("Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller.");
-		outChannel.send(CommMessage.createFaultResponse(message, new FaultException("CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session.")));
-	    }
-	} catch (InvalidIdException e) {
-	    interpreter.logWarning("Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller.");
-	    outChannel.send(CommMessage.createFaultResponse(message, new FaultException("IOException", "Invalid operation: " + message.operationName())));
-	} finally {
-	    outChannel.disposeForInput();
-	}
-    }
-
-    private final static Pattern pathSplitPattern = Pattern.compile("/");
-
-    private void handleMessage(CommMessage message)
-	    throws IOException {
-	try {
-	    String[] ss = pathSplitPattern.split(message.resourcePath());
-	    if (ss.length > 1) {
-		handleRedirectionInput(message, ss);
-	    } else if (inChannel.parentInputPort().canHandleInputOperationDirectly(message.operationName())) {
-		handleDirectMessage(message);
-	    } else {
-		AggregatedOperation operation = inChannel.parentInputPort().getAggregatedOperation(message.operationName());
-		if (operation == null) {
-		    interpreter.logWarning(
-			    "Received a message for operation " + message.operationName()
-			    + ", not specified in the input port at the receiving service. Sending IOException to the caller."
-		    );
-		    try {
-			outChannel.send(CommMessage.createFaultResponse(message, new FaultException("IOException", "Invalid operation: " + message.operationName())));
-		    } finally {
-			outChannel.disposeForInput();
-		    }
-		} else {
-		    handleAggregatedInput(message, operation);
-		}
-	    }
-	} catch (URISyntaxException e) {
-	    interpreter.logSevere(e);
-	}
-    }
-
-    private void messageRecv(CommMessage message) {
-	inChannel.lock.lock();
-	channelHandlersLock.readLock().lock();
-	try {
-	    if (inChannel.redirectionChannel() == null) {
-		assert (inChannel.parentInputPort() != null);
-		if (message != null) {
-		    handleMessage(message);
-		} else {
-		    inChannel.disposeForInput();
-		}
-	    }
-	} catch (ChannelClosingException e) {
-	    interpreter.logFine(e);
-	} catch (IOException e) {
-	    interpreter.logSevere(e);
-	    try {
-		inChannel.closeImpl();
-	    } catch (IOException e2) {
-		interpreter.logSevere(e2);
-	    }
-	} finally {
-	    channelHandlersLock.readLock().unlock();
-	    if (inChannel.lock.isHeldByCurrentThread()) {
-		inChannel.lock.unlock();
-	    }
-	}
-    }
+  }
 };

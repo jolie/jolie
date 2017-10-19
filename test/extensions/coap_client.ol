@@ -13,16 +13,6 @@ outputPort Server {
     OneWay: setTmp( int )
 }
 
-/*
-outputPort Server {
-    Location: "socket://localhost:8004"
-    Protocol: http {
-        .debug = true
-    }
-    OneWay: setTmp( int )
-}
-*/
-
 main
 {
     setTmp@Server( 24 )

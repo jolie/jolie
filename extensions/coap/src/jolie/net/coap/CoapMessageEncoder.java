@@ -30,127 +30,123 @@ import java.util.List;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.options.OptionValue;
 
-public class CoapMessageEncoder<C extends CoapMessage>
-	extends MessageToMessageEncoder<Object> {
+public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 
-    public static final int MAX_OPTION_DELTA = 65804;
-    public static final int MAX_OPTION_LENGTH = 65804;
+  public static final int MAX_OPTION_DELTA = 65804;
+  public static final int MAX_OPTION_LENGTH = 65804;
 
-    @Override
-    protected void encode(ChannelHandlerContext ctx, Object o,
-	    List<Object> out) throws Exception {
+  @Override
+  protected void encode(ChannelHandlerContext ctx, CoapMessage in,
+      List<Object> out) throws Exception {
 
-	ByteBuf msg = Unpooled.buffer();
+    ByteBuf msg = Unpooled.buffer();
 
-	if (o instanceof CoapMessage) {
-	    C in = (C) o;
-	    //write encoded header
-	    byte[] token = in.getToken().getBytes();
-	    int encodedHeader = ((in.getProtocolVersion() & 0x03) << 30)
-		    | ((in.getMessageType() & 0x03) << 28)
-		    | ((token.length & 0x0F) << 24)
-		    | ((in.getMessageCode() & 0xFF) << 16)
-		    | ((in.getMessageID() & 0xFFFF));
-	    msg.writeInt(encodedHeader);
-	    if (token.length > 0) {
-		msg.writeBytes(token);
-	    }
-
-	    if (in.getAllOptions().isEmpty()
-		    && in.content().readableBytes() == 0) {
-
-		out.add(msg);
-	    }
-
-	    //write encoded options
-	    int previousOptionNumber = 0;
-
-	    for (int optionNumber : in.getAllOptions().keySet()) {
-		for (OptionValue optionValue : in.getOptions(optionNumber)) {
-		    encodeOption(msg, optionNumber, optionValue,
-			    previousOptionNumber);
-		    previousOptionNumber = optionNumber;
-		}
-	    }
-
-	    //write encoded content
-	    if (in.content().readableBytes() > 0) {
-		msg.writeByte(255);
-		msg.writeBytes(Unpooled.wrappedBuffer(in.content()));
-	    }
-
-	    out.add(msg);
-	}
+    //write encoded header
+    byte[] token = in.getToken().getBytes();
+    int encodedHeader = ((in.getProtocolVersion() & 0x03) << 30)
+        | ((in.getMessageType() & 0x03) << 28)
+        | ((token.length & 0x0F) << 24)
+        | ((in.getMessageCode() & 0xFF) << 16)
+        | ((in.getMessageID() & 0xFFFF));
+    msg.writeInt(encodedHeader);
+    if (token.length > 0) {
+      msg.writeBytes(token);
     }
 
-    private void encodeOption(ByteBuf buffer, int optionNumber,
-	    OptionValue optionValue, int prevNumber) throws Exception {
+    if (in.getAllOptions().isEmpty()
+        && in.content().readableBytes() == 0) {
 
-	if (prevNumber > optionNumber) {
-	    throw new Exception("The previous option number must be smaller "
-		    + "or equal to the actual one!");
-	}
-
-	int optionDelta = optionNumber - prevNumber;
-	int optionLength = optionValue.getValue().length;
-
-	if (optionLength > MAX_OPTION_LENGTH) {
-	    throw new Exception("Option length error!");
-	}
-
-	if (optionDelta > MAX_OPTION_DELTA) {
-	    throw new Exception("option delta error!");
-	}
-
-	if (optionDelta < 13) {
-	    //option delta < 13
-	    if (optionLength < 13) {
-		buffer.writeByte(((optionDelta & 0xFF) << 4)
-			| (optionLength & 0xFF));
-	    } else if (optionLength < 269) {
-		buffer.writeByte(((optionDelta << 4) & 0xFF) | (13 & 0xFF));
-		buffer.writeByte((optionLength - 13) & 0xFF);
-	    } else {
-		buffer.writeByte(((optionDelta << 4) & 0xFF) | (14 & 0xFF));
-		buffer.writeByte(((optionLength - 269) & 0xFF00) >>> 8);
-		buffer.writeByte((optionLength - 269) & 0xFF);
-	    }
-	} else if (optionDelta < 269) {
-	    //13 <= option delta < 269
-	    if (optionLength < 13) {
-		buffer.writeByte(((13 & 0xFF) << 4) | (optionLength & 0xFF));
-		buffer.writeByte((optionDelta - 13) & 0xFF);
-	    } else if (optionLength < 269) {
-		buffer.writeByte(((13 & 0xFF) << 4) | (13 & 0xFF));
-		buffer.writeByte((optionDelta - 13) & 0xFF);
-		buffer.writeByte((optionLength - 13) & 0xFF);
-	    } else {
-		buffer.writeByte((13 & 0xFF) << 4 | (14 & 0xFF));
-		buffer.writeByte((optionDelta - 13) & 0xFF);
-		buffer.writeByte(((optionLength - 269) & 0xFF00) >>> 8);
-		buffer.writeByte((optionLength - 269) & 0xFF);
-	    }
-	} else {
-	    //269 <= option delta < 65805
-	    if (optionLength < 13) {
-		buffer.writeByte(((14 & 0xFF) << 4) | (optionLength & 0xFF));
-		buffer.writeByte(((optionDelta - 269) & 0xFF00) >>> 8);
-		buffer.writeByte((optionDelta - 269) & 0xFF);
-	    } else if (optionLength < 269) {
-		buffer.writeByte(((14 & 0xFF) << 4) | (13 & 0xFF));
-		buffer.writeByte(((optionDelta - 269) & 0xFF00) >>> 8);
-		buffer.writeByte((optionDelta - 269) & 0xFF);
-		buffer.writeByte((optionLength - 13) & 0xFF);
-	    } else {
-		buffer.writeByte(((14 & 0xFF) << 4) | (14 & 0xFF));
-		buffer.writeByte(((optionDelta - 269) & 0xFF00) >>> 8);
-		buffer.writeByte((optionDelta - 269) & 0xFF);
-		buffer.writeByte(((optionLength - 269) & 0xFF00) >>> 8);
-		buffer.writeByte((optionLength - 269) & 0xFF);
-	    }
-	}
-
-	//Write option value
-	buffer.writeBytes(optionValue.getValue());
+      out.add(msg);
     }
+
+    //write encoded options
+    int previousOptionNumber = 0;
+
+    for (int optionNumber : in.getAllOptions().keySet()) {
+      for (OptionValue optionValue : in.getOptions(optionNumber)) {
+        encodeOption(msg, optionNumber, optionValue,
+            previousOptionNumber);
+        previousOptionNumber = optionNumber;
+      }
+    }
+
+    //write encoded content
+    if (in.content().readableBytes() > 0) {
+      msg.writeByte(255);
+      msg.writeBytes(Unpooled.wrappedBuffer(in.content()));
+    }
+
+    out.add(msg);
+  }
+
+  private void encodeOption(ByteBuf buffer, int optionNumber,
+      OptionValue optionValue, int prevNumber) throws Exception {
+
+    if (prevNumber > optionNumber) {
+      throw new Exception("The previous option number must be smaller "
+          + "or equal to the actual one!");
+    }
+
+    int optionDelta = optionNumber - prevNumber;
+    int optionLength = optionValue.getValue().length;
+
+    if (optionLength > MAX_OPTION_LENGTH) {
+      throw new Exception("Option length error!");
+    }
+
+    if (optionDelta > MAX_OPTION_DELTA) {
+      throw new Exception("option delta error!");
+    }
+
+    if (optionDelta < 13) {
+      //option delta < 13
+      if (optionLength < 13) {
+        buffer.writeByte(((optionDelta & 0xFF) << 4)
+            | (optionLength & 0xFF));
+      } else if (optionLength < 269) {
+        buffer.writeByte(((optionDelta << 4) & 0xFF) | (13 & 0xFF));
+        buffer.writeByte((optionLength - 13) & 0xFF);
+      } else {
+        buffer.writeByte(((optionDelta << 4) & 0xFF) | (14 & 0xFF));
+        buffer.writeByte(((optionLength - 269) & 0xFF00) >>> 8);
+        buffer.writeByte((optionLength - 269) & 0xFF);
+      }
+    } else if (optionDelta < 269) {
+      //13 <= option delta < 269
+      if (optionLength < 13) {
+        buffer.writeByte(((13 & 0xFF) << 4) | (optionLength & 0xFF));
+        buffer.writeByte((optionDelta - 13) & 0xFF);
+      } else if (optionLength < 269) {
+        buffer.writeByte(((13 & 0xFF) << 4) | (13 & 0xFF));
+        buffer.writeByte((optionDelta - 13) & 0xFF);
+        buffer.writeByte((optionLength - 13) & 0xFF);
+      } else {
+        buffer.writeByte((13 & 0xFF) << 4 | (14 & 0xFF));
+        buffer.writeByte((optionDelta - 13) & 0xFF);
+        buffer.writeByte(((optionLength - 269) & 0xFF00) >>> 8);
+        buffer.writeByte((optionLength - 269) & 0xFF);
+      }
+    } else {
+      //269 <= option delta < 65805
+      if (optionLength < 13) {
+        buffer.writeByte(((14 & 0xFF) << 4) | (optionLength & 0xFF));
+        buffer.writeByte(((optionDelta - 269) & 0xFF00) >>> 8);
+        buffer.writeByte((optionDelta - 269) & 0xFF);
+      } else if (optionLength < 269) {
+        buffer.writeByte(((14 & 0xFF) << 4) | (13 & 0xFF));
+        buffer.writeByte(((optionDelta - 269) & 0xFF00) >>> 8);
+        buffer.writeByte((optionDelta - 269) & 0xFF);
+        buffer.writeByte((optionLength - 13) & 0xFF);
+      } else {
+        buffer.writeByte(((14 & 0xFF) << 4) | (14 & 0xFF));
+        buffer.writeByte(((optionDelta - 269) & 0xFF00) >>> 8);
+        buffer.writeByte((optionDelta - 269) & 0xFF);
+        buffer.writeByte(((optionLength - 269) & 0xFF00) >>> 8);
+        buffer.writeByte((optionLength - 269) & 0xFF);
+      }
+    }
+
+    //Write option value
+    buffer.writeBytes(optionValue.getValue());
+  }
 }

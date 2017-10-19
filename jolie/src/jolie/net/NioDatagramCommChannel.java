@@ -44,120 +44,119 @@ import jolie.net.ports.Port;
 
 public class NioDatagramCommChannel extends StreamingCommChannel {
 
-    public final static String CHANNEL_HANDLER_NAME
-	    = "STREAMING-CHANNEL-HANDLER";
-    public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT
-	    = AttributeKey.valueOf("ExecutionContext");
+  public final static String CHANNEL_HANDLER_NAME
+      = "STREAMING-CHANNEL-HANDLER";
+  public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT
+      = AttributeKey.valueOf("ExecutionContext");
 
-    private Bootstrap bootstrap;
-    protected CompletableFuture<CommMessage> waitingForMsg = null;
-    protected StreamingCommChannelHandler commChannelHandler;
-    private ChannelPipeline channelPipeline;
+  private Bootstrap bootstrap;
+  protected CompletableFuture<CommMessage> waitingForMsg = null;
+  protected StreamingCommChannelHandler commChannelHandler;
+  private ChannelPipeline channelPipeline;
 
-    public NioDatagramCommChannel(URI location, AsyncCommProtocol protocol) {
-	super(location, protocol);
-	this.commChannelHandler = new StreamingCommChannelHandler(this);
+  public NioDatagramCommChannel(URI location, AsyncCommProtocol protocol) {
+    super(location, protocol);
+    this.commChannelHandler = new StreamingCommChannelHandler(this);
+  }
+
+  @Override
+  public StreamingCommChannelHandler getChannelHandler() {
+    return commChannelHandler;
+  }
+
+  private void setChannelPipeline(ChannelPipeline channelPipeline) {
+    this.channelPipeline = channelPipeline;
+  }
+
+  public ChannelPipeline getChannelPipeline() {
+    return channelPipeline;
+  }
+
+  public static NioDatagramCommChannel CreateChannel(URI location,
+      AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port) {
+
+    ExecutionThread ethread = ExecutionThread.currentThread();
+    NioDatagramCommChannel channel
+        = new NioDatagramCommChannel(location, protocol);
+
+    channel.bootstrap = new Bootstrap();
+    channel.bootstrap.group(workerGroup)
+        .channel(NioDatagramChannel.class)
+        .handler(new ChannelInitializer() {
+          @Override
+          protected void initChannel(Channel ch) throws Exception {
+            ChannelPipeline p = ch.pipeline();
+            if (port instanceof InputPort) {
+              channel.setParentInputPort((InputPort) port);
+            }
+            if (port instanceof OutputPort) {
+              channel.setParentOutputPort((OutputPort) port);
+            }
+            protocol.setChannel(channel);
+            channel.setChannelPipeline(p);
+            protocol.setupPipeline(p);
+            p.addLast(CHANNEL_HANDLER_NAME,
+                channel.commChannelHandler);
+            ch.attr(EXECUTION_CONTEXT).set(ethread);
+          }
+        });
+
+    return channel;
+  }
+
+  public ChannelFuture connect(URI location) throws InterruptedException {
+    return bootstrap.connect(new InetSocketAddress(location.getHost(),
+        location.getPort()));
+  }
+
+  /**
+   * This is blocking to integrate with existing CommCore and ExecutionThreads.
+   *
+   * @return
+   * @throws IOException
+   */
+  @Override
+  protected CommMessage recvImpl() throws IOException {
+    try {
+      if (waitingForMsg != null) {
+        throw new UnsupportedOperationException("Waiting for multiple "
+            + "messages is currently not supported!");
+      }
+      waitingForMsg = new CompletableFuture<>();
+      CommMessage msg = waitingForMsg.get();
+      waitingForMsg = null;
+      return msg;
+    } catch (InterruptedException | ExecutionException ex) {
     }
+    return null;
+  }
 
-    @Override
-    public StreamingCommChannelHandler getChannelHandler() {
-	return commChannelHandler;
+  protected void completeRead(CommMessage message) {
+    while (waitingForMsg == null) {
+      // spinlock
     }
-
-    private void setChannelPipeline(ChannelPipeline channelPipeline) {
-	this.channelPipeline = channelPipeline;
+    if (waitingForMsg == null) {
+      throw new IllegalStateException("No pending read to complete!");
+    } else {
+      waitingForMsg.complete(message);
     }
+  }
 
-    public ChannelPipeline getChannelPipeline() {
-	return channelPipeline;
+  @Override
+  protected void sendImpl(CommMessage message) throws IOException {
+    try {
+      commChannelHandler.write(message).sync();
+    } catch (InterruptedException ex) {
+      throw new IOException(ex);
     }
+  }
 
-    public static NioDatagramCommChannel CreateChannel(URI location,
-	    AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port) {
-
-	ExecutionThread ethread = ExecutionThread.currentThread();
-	NioDatagramCommChannel channel
-		= new NioDatagramCommChannel(location, protocol);
-
-	channel.bootstrap = new Bootstrap();
-	channel.bootstrap.group(workerGroup)
-		.channel(NioDatagramChannel.class)
-		.handler(new ChannelInitializer() {
-		    @Override
-		    protected void initChannel(Channel ch) throws Exception {
-			ChannelPipeline p = ch.pipeline();
-			if (port instanceof InputPort) {
-			    channel.setParentInputPort((InputPort) port);
-			}
-			if (port instanceof OutputPort) {
-			    channel.setParentOutputPort((OutputPort) port);
-			}
-			protocol.setChannel(channel);
-			channel.setChannelPipeline(p);
-			protocol.setupPipeline(p);
-			p.addLast(CHANNEL_HANDLER_NAME,
-				channel.commChannelHandler);
-			ch.attr(EXECUTION_CONTEXT).set(ethread);
-		    }
-		});
-
-	return channel;
+  @Override
+  protected void closeImpl() throws IOException {
+    try {
+      commChannelHandler.close().sync();
+    } catch (InterruptedException ex) {
+      throw new IOException(ex);
     }
-
-    public ChannelFuture connect(URI location) throws InterruptedException {
-	return bootstrap.connect(new InetSocketAddress(location.getHost(),
-		location.getPort()));
-    }
-
-    /**
-     * This is blocking to integrate with existing CommCore and
-     * ExecutionThreads.
-     *
-     * @return
-     * @throws IOException
-     */
-    @Override
-    protected CommMessage recvImpl() throws IOException {
-	try {
-	    if (waitingForMsg != null) {
-		throw new UnsupportedOperationException("Waiting for multiple "
-			+ "messages is currently not supported!");
-	    }
-	    waitingForMsg = new CompletableFuture<>();
-	    CommMessage msg = waitingForMsg.get();
-	    waitingForMsg = null;
-	    return msg;
-	} catch (InterruptedException | ExecutionException ex) {
-	}
-	return null;
-    }
-
-    protected void completeRead(CommMessage message) {
-	while (waitingForMsg == null) {
-	    // spinlock
-	}
-	if (waitingForMsg == null) {
-	    throw new IllegalStateException("No pending read to complete!");
-	} else {
-	    waitingForMsg.complete(message);
-	}
-    }
-
-    @Override
-    protected void sendImpl(CommMessage message) throws IOException {
-	try {
-	    commChannelHandler.write(message).sync();
-	} catch (InterruptedException ex) {
-	    throw new IOException(ex);
-	}
-    }
-
-    @Override
-    protected void closeImpl() throws IOException {
-	try {
-	    commChannelHandler.close().sync();
-	} catch (InterruptedException ex) {
-	    throw new IOException(ex);
-	}
-    }
+  }
 }
