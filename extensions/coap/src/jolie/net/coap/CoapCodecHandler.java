@@ -115,13 +115,22 @@ public class CoapCodecHandler
       CommMessage in, List<Object> out) throws Exception {
 
     String operationName = in.operationName();
+
+    // get message type and code from parameters
     int messageType = getMessageType(operationName);
     int messageCode = getMessageCode(operationName);
     CoapMessage msg = new CoapMessage(messageType, messageCode) {
       // override Coap Message methods code portion
     };
+
+    // try setting message id as the Jolie one
+    msg.setMessageID((int) in.id());
+
+    // set the content of the message
     ByteBuf payload = valueToByteBuf(in);
     msg.content(payload);
+
+    // mark the message for sending
     out.add(msg);
 
     if (input) { // input port - RR
@@ -456,6 +465,7 @@ public class CoapCodecHandler
     private static final String CONFIRMABLE = "confirmable";
     private static final String METHOD = "method";
     private static final String JSON_ENCODING = "json_encoding";
+    private static final String ALIAS = "alias";
 
   }
 }
