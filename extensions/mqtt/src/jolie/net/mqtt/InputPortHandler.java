@@ -74,7 +74,8 @@ public class InputPortHandler
       throws Exception {
     switch (in.fixedHeader().messageType()) {
       case CONNACK:
-        MqttConnectReturnCode crc = ((MqttConnAckMessage) in).variableHeader().connectReturnCode();
+        MqttConnectReturnCode crc
+            = ((MqttConnAckMessage) in).variableHeader().connectReturnCode();
         if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
           // WE ARE CONNECTED, WE CAN PROCEED TO SUBSCRIBE TO ALL MAPPED TOPICS IN THE INPUTPORT
           // AND START PINGING
@@ -97,7 +98,8 @@ public class InputPortHandler
         // we send back a PUBCOMP
         mp.handlePubrel(cc, in);
         // we get the message to be handled (handleReceivedMessage will take care of the removal)
-        MqttPublishMessage pendigPublishReception = qos2pendingPublish.get(MqttProtocol.getMessageID(in));
+        MqttPublishMessage pendigPublishReception
+            = qos2pendingPublish.get(MqttProtocol.getMessageID(in));
         if (pendigPublishReception != null) {
           handleReceptionPolicy(ctx, out, pendigPublishReception);
         }
@@ -139,31 +141,35 @@ public class InputPortHandler
     }
   }
 
-  private void handleMessageReception(
-      ChannelHandlerContext ctx,
-      List<Object> out,
-      MqttPublishMessage m) throws Exception {
+  private void handleMessageReception(ChannelHandlerContext ctx,
+      List<Object> out, MqttPublishMessage m) throws Exception {
     CommMessage cm = mp.recv_request(m);
     // if it is a one-way, we handle it directly
     if (mp.isOneWay(cm.operationName())) {
       out.add(cm);
     } else {
       // we forward the received message to the new CommChannel
-      URI location = new URI(commChannel.parentInputPort().protocolConfigurationPath()
-          .evaluate().getFirstChild("broker").strValue()
-      );
+      URI location
+          = new URI(commChannel.parentInputPort().protocolConfigurationPath()
+              .evaluate().getFirstChild("broker").strValue()
+          );
 
-      AsyncCommProtocol newMP = (AsyncCommProtocol) Interpreter.getInstance().commCore()
-          .getCommProtocolFactory(mp.name()).createInputProtocol(commChannel.parentInputPort().protocolConfigurationPath(), location);
+      AsyncCommProtocol newMP
+          = (AsyncCommProtocol) Interpreter.getInstance().commCore()
+              .getCommProtocolFactory(mp.name()).createInputProtocol(
+              commChannel.parentInputPort().protocolConfigurationPath(),
+              location);
 
       // else we forward the message to a new channel pipeline
       InputResponseHandler ih = new InputResponseHandler(newMP);
 
       // we store the response topic into the InputResponseHandler
-      ih.setTopicResponse(mp.extractTopicResponse(m)).setRequestCommMessage(cm);
+      ih.setTopicResponse(mp.extractTopicResponse(m))
+          .setRequestCommMessage(cm);
 
       NioSocketCommChannel sideChannel = NioSocketCommChannel
-          .createChannel(location, newMP, ctx.channel().eventLoop().parent(), null);
+          .createChannel(location, newMP, ctx.channel().eventLoop().parent(),
+              null);
 
       newMP.setChannel(sideChannel);
 
@@ -179,7 +185,9 @@ public class InputPortHandler
       // AS IT HAD NOT PARENT PORT. WE ADD IT AND ALSO THE HIGH-LEVEL DEDICATED HANDLER
       sideChannel.setParentInputPort(commChannel.parentInputPort());
 
-      sideChannel.getChannelPipeline().addBefore(NioSocketCommChannel.CHANNEL_HANDLER_NAME, "INPUTRESPONSEHANLDER", ih);
+      sideChannel.getChannelPipeline().addBefore(
+          NioSocketCommChannel.CHANNEL_HANDLER_NAME, "INPUTRESPONSEHANLDER",
+          ih);
 
       sideChannel.getChannelPipeline().fireChannelRead(cm);
     }

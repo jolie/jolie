@@ -176,19 +176,23 @@ public class MqttProtocol extends PubSubCommProtocol {
 
   public void checkDebug(ChannelPipeline p) {
     if (checkBooleanParameter(Parameters.DEBUG)) {
-      p.addAfter("DECODER", "DBDecode", new MessageToMessageDecoder<MqttMessage>() {
+      p.addAfter("DECODER", "DBDecode",
+          new MessageToMessageDecoder<MqttMessage>() {
         @Override
-        protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> list) throws Exception {
+            protected void decode(ChannelHandlerContext chc, MqttMessage i,
+                List<Object> list) throws Exception {
           String logLine = "";
           try {
             logLine = "#" + getMessageID(i) + " ";
           } catch (Exception e) {
           }
           MqttMessageType t = i.fixedHeader().messageType();
-          if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
+          if (!(t.equals(MqttMessageType.PINGRESP)
+              || t.equals(MqttMessageType.PINGREQ))) {
             logLine += " <- " + t;
             if (t.equals(MqttMessageType.PUBLISH)) {
-              logLine += "\t  " + ((MqttPublishMessage) i).variableHeader().topicName();
+              logLine += "\t  " + ((MqttPublishMessage) i)
+                  .variableHeader().topicName();
             }
             Interpreter.getInstance().logInfo(logLine);
           }
@@ -198,9 +202,11 @@ public class MqttProtocol extends PubSubCommProtocol {
           list.add(i);
         }
       });
-      p.addAfter("DECODER", "DBEncode", new MessageToMessageEncoder<MqttMessage>() {
+      p.addAfter("DECODER", "DBEncode",
+          new MessageToMessageEncoder<MqttMessage>() {
         @Override
-        protected void encode(ChannelHandlerContext chc, MqttMessage i, List list) throws Exception {
+            protected void encode(ChannelHandlerContext chc, MqttMessage i,
+                List list) throws Exception {
           String logLine = "";
           try {
             logLine = "#" + getMessageID(i) + " ";
@@ -209,25 +215,30 @@ public class MqttProtocol extends PubSubCommProtocol {
           MqttMessageType t = i.fixedHeader().messageType();
           logLine += t + " ->";
           if (t.equals(MqttMessageType.PUBLISH)) {
-            logLine += "\t topic: " + ((MqttPublishMessage) i).variableHeader().topicName();
+            logLine += "\t topic: " + ((MqttPublishMessage) i)
+                .variableHeader().topicName();
           }
           if (t.equals(MqttMessageType.SUBSCRIBE)) {
             logLine += "\t topics: ";
-            for (MqttTopicSubscription topic : ((MqttSubscribeMessage) i).payload().topicSubscriptions()) {
+            for (MqttTopicSubscription topic : ((MqttSubscribeMessage) i)
+                .payload().topicSubscriptions()) {
               logLine += topic.topicName() + ", ";
             }
             logLine = logLine.substring(0, logLine.length() - 2); // removes the trailing ", "
           }
 
-          if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
+          if (!(t.equals(MqttMessageType.PINGRESP)
+              || t.equals(MqttMessageType.PINGREQ))) {
             Interpreter.getInstance().logInfo(logLine);
           }
 
-          if (channel().parentPort() instanceof OutputPort && t.equals(MqttMessageType.PUBLISH)) {
+          if (channel().parentPort() instanceof OutputPort
+              && t.equals(MqttMessageType.PUBLISH)) {
             chc.write(i);
             chc.flush();
           } else {
-            if (channel().parentPort() instanceof InputPort && t.equals(MqttMessageType.PUBLISH)) {
+            if (channel().parentPort() instanceof InputPort
+                && t.equals(MqttMessageType.PUBLISH)) {
               ((MqttPublishMessage) i).retain();
             }
             list.add(i);
@@ -317,10 +328,12 @@ public class MqttProtocol extends PubSubCommProtocol {
   }
 
   public void releaseMessage(int messageID) throws IOException {
-    ((StreamingCommChannel) ((NioSocketCommChannel) channel()).getChannelHandler().getInChannel()).sendRelease((long) messageID);
+    ((StreamingCommChannel) ((NioSocketCommChannel) channel())
+        .getChannelHandler().getInChannel()).sendRelease((long) messageID);
   }
 
-  public void markAsSentAndStopPing(Channel cc, int messageID) throws IOException {
+  public void markAsSentAndStopPing(Channel cc, int messageID)
+      throws IOException {
     releaseMessage(messageID);
     stopPing(cc.pipeline());
   }
@@ -449,7 +462,8 @@ public class MqttProtocol extends PubSubCommProtocol {
           Parameters.ALIAS_RESPONSE);
     }
 
-    return Parameters.BOUNDARY + topic(cm, topicResponse, true) + Parameters.BOUNDARY;
+    return Parameters.BOUNDARY + topic(cm, topicResponse, true)
+        + Parameters.BOUNDARY;
 
   }
 
@@ -460,7 +474,8 @@ public class MqttProtocol extends PubSubCommProtocol {
    * @return
    * @throws java.lang.Exception
    */
-  public MqttPublishMessage send_response(CommMessage in, String t) throws Exception {
+  public MqttPublishMessage send_response(CommMessage in, String t)
+      throws Exception {
 
     ByteBuf bb = Unpooled.copiedBuffer(valueToByteBuf(in));
     MqttQoS q = getOperationQoS(in.operationName());
@@ -507,7 +522,8 @@ public class MqttProtocol extends PubSubCommProtocol {
           Parameters.ALIAS);
     }
 
-    return publishMsg(topic(in, a, true), valueToByteBuf(in), getOperationQoS(in.operationName()), (int) in.id());
+    return publishMsg(topic(in, a, true), valueToByteBuf(in),
+        getOperationQoS(in.operationName()), (int) in.id());
   }
 
   /**
@@ -545,7 +561,8 @@ public class MqttProtocol extends PubSubCommProtocol {
           Parameters.ALIAS);
     }
 
-    return publishMsg(topic(in, a, false), valueToByteBuf(in), getOperationQoS(in.operationName()), (int) in.id());
+    return publishMsg(topic(in, a, false), valueToByteBuf(in),
+        getOperationQoS(in.operationName()), (int) in.id());
   }
 
   /*
@@ -606,7 +623,8 @@ public class MqttProtocol extends PubSubCommProtocol {
   public String extractTopicResponse(MqttPublishMessage m) {
     String msg = Unpooled.wrappedBuffer(m.payload()).toString(charset);
 
-    if (msg.indexOf(Parameters.BOUNDARY) == 0 && msg.indexOf(Parameters.BOUNDARY, 1) > 0) {
+    if (msg.indexOf(Parameters.BOUNDARY)
+        == 0 && msg.indexOf(Parameters.BOUNDARY, 1) > 0) {
       return msg.substring(1, msg.indexOf(Parameters.BOUNDARY, 1));
     } else {
       return null;
