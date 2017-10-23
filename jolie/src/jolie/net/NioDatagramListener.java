@@ -135,8 +135,8 @@ public class NioDatagramListener extends CommListener {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
-          cause.printStackTrace();
           ctx.close();
+          throw new Exception(cause);
         }
       });
 
