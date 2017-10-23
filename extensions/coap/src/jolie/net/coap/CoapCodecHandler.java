@@ -32,10 +32,16 @@ import io.netty.util.CharsetUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -58,6 +64,8 @@ import jolie.net.NioDatagramCommChannel;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
+import jolie.net.coap.miscellaneous.Token;
+import jolie.net.coap.options.Option;
 import jolie.runtime.ByteArray;
 
 import jolie.runtime.FaultException;
@@ -114,30 +122,31 @@ public class CoapCodecHandler
   protected void encode(ChannelHandlerContext ctx,
       CommMessage in, List<Object> out) throws Exception {
 
-    String operationName = in.operationName();
-
-    // get message type and code from parameters
-    int messageType = getMessageType(operationName);
-    int messageCode = getMessageCode(operationName);
-    CoapMessage msg = new CoapMessage(messageType, messageCode) {
-      // override Coap Message methods code portion
-    };
-
-    // try setting message id as the Jolie one
-    msg.setMessageID((int) in.id());
-
-    // set the content of the message
-    ByteBuf payload = valueToByteBuf(in);
-    msg.content(payload);
-
-    // mark the message for sending
-    out.add(msg);
-
     if (input) { // input port - RR
 
       this.commMessageResponse = in;
 
     } else { // output port - OW
+
+      String operationName = in.operationName();
+
+      // get message type and code from parameters
+      int messageType = getMessageType(operationName);
+      int messageCode = getMessageCode(operationName);
+      CoapMessage msg = new CoapMessage(messageType, messageCode,
+          CoapMessage.getRandomMessageId(), Token.getRandomToken(2));
+
+      // set the operation alias into the options
+      String operationAlias = getOperationAlias(in);
+      System.out.println("The alias is: " + operationAlias);
+      msg.addStringOption(Option.URI_PATH, operationAlias);
+
+      // set the content of the message
+      ByteBuf payload = valueToByteBuf(in);
+      msg.content(payload);
+
+      // mark the message for sending
+      out.add(msg);
 
       if (isOneWay(operationName)) {
         if (messageType == MessageType.NON) {
@@ -455,7 +464,54 @@ public class CoapCodecHandler
   }
 
   private String getOperationName(CoapMessage in) {
-    throw new UnsupportedOperationException("Not supported yet.");
+    StringBuilder sb = new StringBuilder();
+    return sb.toString();
+  }
+
+  private String getOperationAlias(CommMessage in) throws URISyntaxException {
+    if (protocol.hasOperationSpecificParameter(in.operationName(),
+        Parameters.ALIAS)) {
+
+      Set<String> aliasKeys = new TreeSet<>();
+      String pattern = "%(!)?\\{[^\\}]*\\}";
+      String alias
+          = protocol.getOperationSpecificStringParameter(in.operationName(),
+              Parameters.ALIAS);
+
+      // find pattern
+      int offset = 0;
+      String currStrValue;
+      String currKey;
+      StringBuilder result = new StringBuilder(alias);
+      Matcher m = Pattern.compile(pattern).matcher(alias);
+
+      // substitute in alias
+      while (m.find()) {
+        currKey = alias.substring(m.start() + 3, m.end() - 1);
+        currStrValue = in.value().getFirstChild(currKey).strValue();
+        aliasKeys.add(currKey);
+        result.replace(
+            m.start() + offset, m.end() + offset,
+            currStrValue
+        );
+        offset += currStrValue.length() - 3 - currKey.length();
+      }
+
+      // remove from the value
+      for (String aliasKey : aliasKeys) {
+        in.value().children().remove(aliasKey);
+      }
+
+      return result.toString();
+
+    } else {
+      if (protocol.isInput) {
+        return protocol.channel().parentInputPort().location().getPath();
+      } else {
+        URI v = new URI(protocol.channel().parentOutputPort().locationVariablePath().evaluate().strValue());
+        return v.getPath().substring(v.getPath().indexOf("/") + 1);
+      }
+    }
   }
 
   private static class Parameters {

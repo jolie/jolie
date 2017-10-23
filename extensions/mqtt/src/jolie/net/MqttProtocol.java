@@ -371,11 +371,11 @@ public class MqttProtocol extends PubSubCommProtocol {
   public MqttConnectMessage connectMsg() {
 
     Random random = new Random();
-    String clientId = "jolie-mqtt/";
+    String clientId = "jolie/";
     String[] options
         = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456"
             + "789").split("");
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 4; i++) {
       clientId += options[random.nextInt(options.length)];
     }
 

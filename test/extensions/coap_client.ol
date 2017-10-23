@@ -1,19 +1,43 @@
 include "console.iol"
 
-outputPort Server {
+type TmpType: int | int { .id: string }
+
+outputPort S_1 {
+    Location: "datagram://localhost:8004/42/getTemperature"
+    Protocol: coap {
+        .osc.setTmp << {
+            .format = "raw"
+        };
+        .debug = true
+    }
+    OneWay: setTmp( TmpType )
+}
+
+outputPort S_2 {
     Location: "datagram://localhost:8004"
     Protocol: coap {
         .osc.setTmp << {
             .format = "raw",
-            .confirmable = false,
-            .method = "POST"
+            .alias = "42/getTemperature"
         };
         .debug = true
     }
-    OneWay: setTmp( int )
+    OneWay: setTmp( TmpType )
+}
+
+outputPort S_3 {
+    Location: "datagram://localhost:8004"
+    Protocol: coap {
+        .osc.setTmp << {
+            .format = "raw",
+            .alias = "%!{id}/getTemperature"
+        };
+        .debug = true
+    }
+    OneWay: setTmp( TmpType )
 }
 
 main
 {
-    setTmp@Server( 24 )
+    setTmp@S_1( 24 ) | setTmp@S_2( 24 ) | setTmp@S_3( 24 { .id = "42" } )
 }

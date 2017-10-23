@@ -39,7 +39,7 @@ import jolie.net.coap.options.StringOptionValue;
 import jolie.net.coap.miscellaneous.Token;
 import jolie.net.coap.options.UintOptionValue;
 
-public abstract class CoapMessage {
+public class CoapMessage {
 
   public static final int PROTOCOL_VERSION = 1;
   public static final Charset CHARSET = CharsetUtil.UTF_8;
@@ -58,16 +58,29 @@ public abstract class CoapMessage {
   private static final String EXCLUDES = "Already contained option no. "
       + "%d excludes option no. %d";
 
+  public static int getRandomMessageId() {
+    return new Random().nextInt(65535);
+  }
+
   private int messageType;
   private int messageCode;
   private int messageID;
 
   private ByteBuf content;
   private Token token;
+
   protected Map<Integer, LinkedHashSet<OptionValue>> options;
   private static final long UNDEFINED = -1;
 
-  protected CoapMessage(int messageType, int messageCode, int messageID,
+  /**
+   *
+   * @param messageType
+   * @param messageCode
+   * @param messageID
+   * @param token
+   * @throws IllegalArgumentException
+   */
+  public CoapMessage(int messageType, int messageCode, int messageID,
       Token token) throws IllegalArgumentException {
 
     if (!MessageType.isMessageType(messageType)) {
@@ -81,17 +94,11 @@ public abstract class CoapMessage {
     }
 
     this.setMessageType(messageType);
-    this.setMessageCode(messageCode);
+    this.messageCode(messageCode);
     this.setMessageID(messageID);
     this.setToken(token);
     this.options = new TreeMap<>();
     this.content = Unpooled.EMPTY_BUFFER;
-  }
-
-  protected CoapMessage(int messageType, int messageCode)
-      throws IllegalArgumentException {
-    this(messageType, messageCode, UNDEFINED_MESSAGE_ID,
-        new Token(new byte[0]));
   }
 
   public static CoapMessage createEmptyReset(int messageID)
@@ -145,17 +152,14 @@ public abstract class CoapMessage {
     return MessageCode.isResponse(this.getMessageCode());
   }
 
+  /**
+   *
+   * @param optionNumber
+   * @param optionValue
+   * @throws IllegalArgumentException
+   */
   public void addOption(int optionNumber, OptionValue optionValue)
       throws IllegalArgumentException {
-
-    this.checkOptionPermission(optionNumber);
-
-    for (int containedOption : options.keySet()) {
-      if (Option.mutuallyExcludes(containedOption, optionNumber)) {
-        throw new IllegalArgumentException(String.format(EXCLUDES,
-            containedOption, optionNumber));
-      }
-    }
 
     if (options.containsKey(optionNumber)) {
       options.get(optionNumber).add(optionValue);
@@ -166,7 +170,13 @@ public abstract class CoapMessage {
     }
   }
 
-  protected void addStringOption(int optionNumber, String value)
+  /**
+   *
+   * @param optionNumber
+   * @param value
+   * @throws IllegalArgumentException
+   */
+  public void addStringOption(int optionNumber, String value)
       throws IllegalArgumentException {
 
     if (!(OptionValue.getType(optionNumber) == OptionValue.Type.STRING)) {
@@ -239,23 +249,6 @@ public abstract class CoapMessage {
     }
     int result = options.size();
     return result;
-  }
-
-  private void checkOptionPermission(int optionNumber)
-      throws IllegalArgumentException {
-
-    Option.Occurence permittedOccurence
-        = Option.getPermittedOccurrence(optionNumber, this.messageCode);
-    if (permittedOccurence == Option.Occurence.NONE) {
-      throw new IllegalArgumentException(String.format(
-          OPTION_NOT_ALLOWED_WITH_MESSAGE_TYPE,
-          optionNumber, Option.asString(optionNumber),
-          this.getMessageCodeName()));
-    } else if (options.containsKey(optionNumber)
-        && permittedOccurence == Option.Occurence.ONCE) {
-      throw new IllegalArgumentException(String.format(OPTION_ALREADY_SET,
-          optionNumber));
-    }
   }
 
   private static long extractBits(final long value, final int bits,
@@ -494,6 +487,25 @@ public abstract class CoapMessage {
 
   /**
    *
+   * @param content
+   * @param contentFormat
+   * @throws IllegalArgumentException
+   */
+  public void content(ByteBuf content, long contentFormat)
+      throws IllegalArgumentException {
+
+    try {
+      this.addUintOption(Option.CONTENT_FORMAT, contentFormat);
+      content(content);
+    } catch (IllegalArgumentException e) {
+      this.content = Unpooled.EMPTY_BUFFER;
+      this.removeOptions(Option.CONTENT_FORMAT);
+      throw e;
+    }
+  }
+
+  /**
+   *
    * @param content ByteBuf
    * @throws IllegalArgumentException
    */
@@ -508,28 +520,6 @@ public abstract class CoapMessage {
     this.content = content;
   }
 
-  public void setContent(ByteBuf content, long contentFormat)
-      throws IllegalArgumentException {
-
-    try {
-      this.addUintOption(Option.CONTENT_FORMAT, contentFormat);
-      content(content);
-    } catch (IllegalArgumentException e) {
-      this.content = Unpooled.EMPTY_BUFFER;
-      this.removeOptions(Option.CONTENT_FORMAT);
-      throw e;
-    }
-  }
-
-  public void setContent(byte[] content) throws IllegalArgumentException {
-    content(Unpooled.wrappedBuffer(content));
-  }
-
-  public void setContent(byte[] content, long contentFormat)
-      throws IllegalArgumentException {
-    setContent(Unpooled.wrappedBuffer(content), contentFormat);
-  }
-
   /**
    *
    * @return ByteBuf
@@ -538,13 +528,28 @@ public abstract class CoapMessage {
     return this.content;
   }
 
-  public byte[] getContentAsByteArray() {
-    byte[] result = new byte[this.getContentLength()];
-    this.content().readBytes(result, 0, this.getContentLength());
+  /**
+   *
+   * @param messageCode
+   * @throws IllegalArgumentException
+   */
+  public void messageCode(int messageCode)
+      throws IllegalArgumentException {
+    if (!MessageCode.isMessageCode(messageCode)) {
+      throw new IllegalArgumentException("Invalid message code no. "
+          + messageCode);
+    }
+
+    this.messageCode = messageCode;
+  }
+
+  public byte[] contentAsByteArray() {
+    byte[] result = new byte[this.contentLength()];
+    this.content().readBytes(result, 0, this.contentLength());
     return result;
   }
 
-  public int getContentLength() {
+  public int contentLength() {
     return this.content.readableBytes();
   }
 
@@ -573,7 +578,6 @@ public abstract class CoapMessage {
   public boolean equals(Object object) {
 
     if (!(object instanceof CoapMessage)) {
-      Interpreter.getInstance().logInfo("Different type");
       return false;
     }
 
@@ -678,15 +682,5 @@ public abstract class CoapMessage {
 
     return result.toString();
 
-  }
-
-  public void setMessageCode(int messageCode)
-      throws IllegalArgumentException {
-    if (!MessageCode.isMessageCode(messageCode)) {
-      throw new IllegalArgumentException("Invalid message code no. "
-          + messageCode);
-    }
-
-    this.messageCode = messageCode;
   }
 }
