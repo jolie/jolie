@@ -89,6 +89,13 @@ public class StreamingCommChannelHandler
     }
   }
 
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+      throws Exception {
+    ctx.close();
+    throw new Exception(cause);
+  }
+
   protected ChannelFuture write(CommMessage msg)
       throws InterruptedException {
 

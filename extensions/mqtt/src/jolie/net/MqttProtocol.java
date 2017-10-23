@@ -118,7 +118,6 @@ public class MqttProtocol extends PubSubCommProtocol {
   private String topicResponse;
 
   /**
-   * ****************************** PROTOCOL *****************************
    *
    * @param configurationPath
    */
@@ -260,7 +259,6 @@ public class MqttProtocol extends PubSubCommProtocol {
   }
 
   /**
-   * ******************************** PUBLIC ********************************
    *
    * @param operationName
    * @return boolean
@@ -565,9 +563,6 @@ public class MqttProtocol extends PubSubCommProtocol {
         getOperationQoS(in.operationName()), (int) in.id());
   }
 
-  /*
-     * ******************************* PRIVATE *******************************
-   */
   private String operation(String topic) {
 
     if (channel().parentPort() instanceof OutputPort) {
@@ -631,9 +626,6 @@ public class MqttProtocol extends PubSubCommProtocol {
     }
   }
 
-  /* 
-     * ******************************* PARAM *******************************
-   */
   private static class Parameters {
 
     private static final String BROKER = "broker";
@@ -652,40 +644,15 @@ public class MqttProtocol extends PubSubCommProtocol {
 
   }
 
-  /*
-     * ******************************* PARAM *******************************
-     *
-     * ******************************* SEND *******************************
-   */
-//    private String extractTopicResponseFromValue(CommMessage in)
-//	    throws Exception {
-//
-//	String ar = "aliasResponse";
-//	if (hasOperationSpecificParameter(in.operationName(),
-//		Parameters.ALIAS_RESPONSE)) {
-//	    ar = getOperationSpecificStringParameter(in.operationName(),
-//		    Parameters.ALIAS_RESPONSE);
-//	}
-//
-//	String t = in.value().getFirstChild(ar).strValue();
-//	in.value().children().remove(ar);
-//
-//	return t;
-//    }
   private ByteBuf valueToByteBuf(CommMessage in) throws Exception {
-    /*
-	Depending on the format the user specified in the operation parameter
-	the value as to be read in order to produce a byte buffer in accordance.
-	we focus on 3 cases: xml format, json format or raw format.
-	This last kind of format could be a simple string or numeric field, or
-	in addition, a more complex tree structure.
-     */
+
     ByteBuf bb = Unpooled.buffer();
     String format = format(in.operationName());
     String message;
     String topicResponsePrefix = "";
     Value v = in.isFault() ? Value.create(in.fault().getMessage()) : in.value();
-    if (!isOneWay(in.operationName()) && channel().parentPort() instanceof OutputPort) {
+    if (!isOneWay(in.operationName())
+        && channel().parentPort() instanceof OutputPort) {
       topicResponsePrefix = getRespTopic(in);
     }
     switch (format) {
@@ -720,7 +687,8 @@ public class MqttProtocol extends PubSubCommProtocol {
     }
     message = topicResponsePrefix + message;
     if (checkBooleanParameter(Parameters.DEBUG)) {
-      Interpreter.getInstance().logInfo("Sending " + format.toUpperCase() + " message: " + message);
+      Interpreter.getInstance().logInfo("Sending " + format.toUpperCase()
+          + " message: " + message);
     }
     bb.writeBytes(message.getBytes(charset));
     return bb;
@@ -758,12 +726,8 @@ public class MqttProtocol extends PubSubCommProtocol {
     return str;
   }
 
-  /*
-     * ******************************* SEND *******************************
-     *
-     * ******************************* REC *******************************
-   */
-  private Value byteBufToValue(String operationName, ByteBuf payload) throws Exception {
+  private Value byteBufToValue(String operationName, ByteBuf payload)
+      throws Exception {
 
     String msg = Unpooled.wrappedBuffer(payload).toString(charset);
     if (checkBooleanParameter(Parameters.DEBUG)) {
@@ -838,12 +802,6 @@ public class MqttProtocol extends PubSubCommProtocol {
     return v;
   }
 
-//    private Value addTopicResponse(Value v, String aliasResp, String topicResp) {
-//	if (topicResp != null) {
-//	    v.setFirstChild(aliasResp, topicResp);
-//	}
-//	return v;
-//    }
   private Type operationType(String on, boolean isRequest) {
 
     OperationTypeDescription otd = channel().parentPort()
@@ -914,11 +872,6 @@ public class MqttProtocol extends PubSubCommProtocol {
     return true;
   }
 
-  /*
-     * ******************************* SEND *******************************
-     *
-     * ******************************* REC *******************************
-   */
   private String alias(String operationName) {
 
     for (Iterator<Map.Entry<String, ValueVector>> it = configurationPath()
