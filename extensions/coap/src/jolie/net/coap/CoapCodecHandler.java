@@ -138,7 +138,6 @@ public class CoapCodecHandler
 
       // set the operation alias into the options
       String operationAlias = getOperationAlias(in);
-      System.out.println("The alias is: " + operationAlias);
       msg.addStringOption(Option.URI_PATH, operationAlias);
 
       // set the content of the message
@@ -508,7 +507,8 @@ public class CoapCodecHandler
       if (protocol.isInput) {
         return protocol.channel().parentInputPort().location().getPath();
       } else {
-        URI v = new URI(protocol.channel().parentOutputPort().locationVariablePath().evaluate().strValue());
+        URI v = new URI(protocol.channel().parentOutputPort()
+            .locationVariablePath().evaluate().strValue());
         return v.getPath().substring(v.getPath().indexOf("/") + 1);
       }
     }
