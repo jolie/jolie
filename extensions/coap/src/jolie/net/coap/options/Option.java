@@ -23,7 +23,7 @@ package jolie.net.coap.options;
 
 import java.util.HashMap;
 
-public abstract class Option {
+public class Option {
 
   public static final int UNKNOWN = -1;
   public static final int IF_MATCH = 1;
