@@ -28,7 +28,7 @@ import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 
-import jolie.net.coap.CoapCodecHandler;
+import jolie.net.coap.CoapMessageToCommMessageCodec;
 import jolie.net.coap.CoapMessageDecoder;
 import jolie.net.coap.CoapMessageEncoder;
 import jolie.net.ports.InputPort;
@@ -66,7 +66,7 @@ public class CoapProtocol extends AsyncCommProtocol {
     pipeline.addLast("UDP DECODER", new DatagramPacketDecoder(
         new CoapMessageDecoder()));
     pipeline.addLast("ENCODER", new CoapMessageEncoder());
-    pipeline.addLast("CODEC", new CoapCodecHandler(this));
+    pipeline.addLast("CODEC", new CoapMessageToCommMessageCodec(this));
   }
 
   @Override

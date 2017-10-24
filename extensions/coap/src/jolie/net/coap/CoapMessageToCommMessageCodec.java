@@ -83,7 +83,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class CoapCodecHandler
+public class CoapMessageToCommMessageCodec
     extends MessageToMessageCodec<CoapMessage, CommMessage> {
 
   private static final Charset charset = CharsetUtil.UTF_8;
@@ -107,7 +107,7 @@ public class CoapCodecHandler
   private CommMessage commMessageRequest;
   private CommMessage commMessageResponse;
 
-  public CoapCodecHandler(CoapProtocol prt) {
+  public CoapMessageToCommMessageCodec(CoapProtocol prt) {
     this.protocol = prt;
     this.input = prt.isInput;
   }
