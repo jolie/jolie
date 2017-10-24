@@ -62,9 +62,11 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.NioDatagramCommChannel;
 import jolie.net.coap.message.CoapMessage;
+import jolie.net.coap.message.CoapRequest;
+import jolie.net.coap.message.ContentFormat;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
-import jolie.net.coap.miscellaneous.Token;
+import jolie.net.coap.message.Token;
 import jolie.net.coap.options.Option;
 import jolie.runtime.ByteArray;
 
@@ -133,16 +135,21 @@ public class CoapCodecHandler
       // get message type and code from parameters
       int messageType = getMessageType(operationName);
       int messageCode = getMessageCode(operationName);
-      CoapMessage msg = new CoapMessage(messageType, messageCode,
-          CoapMessage.getRandomMessageId(), Token.getRandomToken(2));
+      URI targetUri = getTargetUri(in);
+      boolean useProxy = protocol.hasOperationSpecificParameter(operationName, Parameters.PROXY);
+      CoapMessage msg = new CoapRequest(messageType, messageCode, targetUri, useProxy);
+
+      // set message id and token for the request
+      msg.setRandomMessageID();
+      msg.setToken(Token.getRandomToken(2));
 
       // set the operation alias into the options
       String operationAlias = getOperationAlias(in);
       msg.addStringOption(Option.URI_PATH, operationAlias);
 
-      // set the content of the message
+      // set the setContent of the message
       ByteBuf payload = valueToByteBuf(in);
-      msg.content(payload);
+      msg.setContent(payload, getContentFormat(operationName));
 
       // mark the message for sending
       out.add(msg);
@@ -173,6 +180,8 @@ public class CoapCodecHandler
               + "Waiting for Acknowledgement");
         }
       } else {
+
+        System.out.println(in);
 
         if (in.getMessageType() == MessageType.CON) { // OW ack to client
           this.cc.writeAndFlush(CoapMessage
@@ -259,6 +268,28 @@ public class CoapCodecHandler
                 Parameters.FORMAT) : "raw";
   }
 
+  private long getContentFormat(String operationName) throws Exception {
+    if (protocol.hasOperationSpecificParameter(operationName,
+        Parameters.FORMAT)) {
+      String format
+          = protocol.getOperationSpecificStringParameter(operationName,
+              Parameters.FORMAT);
+      if (format.equals("application/xml") || format.contains("xml")) {
+        return ContentFormat.APP_XML;
+      } else if (format.equals("application/json") || format.contains("json")) {
+        return ContentFormat.APP_JSON;
+      } else if (format.equals("text/plain")) {
+        return ContentFormat.TEXT_PLAIN_UTF8;
+      } else {
+        throw new Exception("The Content Format is not supported! Currently "
+            + "we support application/xml, "
+            + "application/json and text/plain formats");
+      }
+    } else {
+      return ContentFormat.UNDEFINED;
+    }
+  }
+
   private String valueToRaw(Value value) {
     Object valueObject = value.valueObject();
     String str = "";
@@ -320,7 +351,7 @@ public class CoapCodecHandler
       Interpreter.getInstance().logInfo("Received message: " + in);
     }
 
-    ByteBuf content = Unpooled.wrappedBuffer(in.content());
+    ByteBuf content = Unpooled.wrappedBuffer(in.getContent());
     Value value = Value.create();
     Type type = protocol.getSendType(operationName);
     String format = format(operationName);
@@ -462,56 +493,71 @@ public class CoapCodecHandler
         .oneWayOperations().containsKey(operationName);
   }
 
-  private String getOperationName(CoapMessage in) {
-    StringBuilder sb = new StringBuilder();
-    return sb.toString();
-  }
-
   private String getOperationAlias(CommMessage in) throws URISyntaxException {
     if (protocol.hasOperationSpecificParameter(in.operationName(),
         Parameters.ALIAS)) {
 
-      Set<String> aliasKeys = new TreeSet<>();
-      String pattern = "%(!)?\\{[^\\}]*\\}";
       String alias
           = protocol.getOperationSpecificStringParameter(in.operationName(),
               Parameters.ALIAS);
 
-      // find pattern
-      int offset = 0;
-      String currStrValue;
-      String currKey;
-      StringBuilder result = new StringBuilder(alias);
-      Matcher m = Pattern.compile(pattern).matcher(alias);
-
-      // substitute in alias
-      while (m.find()) {
-        currKey = alias.substring(m.start() + 3, m.end() - 1);
-        currStrValue = in.value().getFirstChild(currKey).strValue();
-        aliasKeys.add(currKey);
-        result.replace(
-            m.start() + offset, m.end() + offset,
-            currStrValue
-        );
-        offset += currStrValue.length() - 3 - currKey.length();
-      }
-
-      // remove from the value
-      for (String aliasKey : aliasKeys) {
-        in.value().children().remove(aliasKey);
-      }
-
-      return result.toString();
-
+      return getDynamicAlias(alias, in.value());
     } else {
-      if (protocol.isInput) {
-        return protocol.channel().parentInputPort().location().getPath();
+
+      String operationAlias = new URI(protocol.channel().parentOutputPort()
+          .locationVariablePath().evaluate().strValue()).getPath();
+
+      if (operationAlias.equals("") || operationAlias.equals("/")) {
+        return in.operationName();
       } else {
-        URI v = new URI(protocol.channel().parentOutputPort()
-            .locationVariablePath().evaluate().strValue());
-        return v.getPath().substring(v.getPath().indexOf("/") + 1);
+        return operationAlias.substring(1);
       }
     }
+  }
+
+  private String getDynamicAlias(String start, Value value) {
+
+    Set<String> aliasKeys = new TreeSet<>();
+    String pattern = "%(!)?\\{[^\\}]*\\}";
+
+    // find pattern
+    int offset = 0;
+    String currStrValue;
+    String currKey;
+    StringBuilder result = new StringBuilder(start);
+    Matcher m = Pattern.compile(pattern).matcher(start);
+
+    // substitute in alias
+    while (m.find()) {
+      currKey = start.substring(m.start() + 3, m.end() - 1);
+      currStrValue = value.getFirstChild(currKey).strValue();
+      aliasKeys.add(currKey);
+      result.replace(
+          m.start() + offset, m.end() + offset,
+          currStrValue
+      );
+      offset += currStrValue.length() - 3 - currKey.length();
+    }
+
+    // remove from the value
+    for (String aliasKey : aliasKeys) {
+      value.children().remove(aliasKey);
+    }
+
+    return result.toString();
+  }
+
+  private String getOperationName(CoapMessage in) throws Exception {
+    if (in.containsOption(Option.URI_PATH)) {
+      return null;//in.getOptions(Option.URI_PATH);
+    } else {
+      throw new Exception("URI PATH Option do not contains the "
+          + "operation name!");
+    }
+  }
+
+  private URI getTargetUri(CommMessage in) {
+    throw new UnsupportedOperationException("Not supported yet.");
   }
 
   private static class Parameters {
@@ -522,6 +568,7 @@ public class CoapCodecHandler
     private static final String METHOD = "method";
     private static final String JSON_ENCODING = "json_encoding";
     private static final String ALIAS = "alias";
+    private static final String PROXY = "proxy";
 
   }
 }

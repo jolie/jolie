@@ -27,6 +27,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
 import java.util.List;
+import java.util.Map;
+
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.options.OptionValue;
 
@@ -53,27 +55,24 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
       msg.writeBytes(token);
     }
 
-    if (in.getAllOptions().isEmpty()
-        && in.content().readableBytes() == 0) {
-
+    if (in.getAllOptions().isEmpty() && in.getContent().readableBytes() == 0) {
       out.add(msg);
     }
 
     //write encoded options
     int previousOptionNumber = 0;
+    for (Map.Entry<Integer, OptionValue> entry : in.getAllOptions().entrySet()) {
+      Integer optionNumber = entry.getKey();
+      OptionValue optionValue = entry.getValue();
 
-    for (int optionNumber : in.getAllOptions().keySet()) {
-      for (OptionValue optionValue : in.getOptions(optionNumber)) {
-        encodeOption(msg, optionNumber, optionValue,
-            previousOptionNumber);
-        previousOptionNumber = optionNumber;
-      }
+      encodeOption(msg, optionNumber, optionValue, previousOptionNumber);
+      previousOptionNumber = optionNumber;
     }
 
-    //write encoded content
-    if (in.content().readableBytes() > 0) {
+    //write encoded setContent
+    if (in.getContent().readableBytes() > 0) {
       msg.writeByte(255);
-      msg.writeBytes(Unpooled.wrappedBuffer(in.content()));
+      msg.writeBytes(Unpooled.wrappedBuffer(in.getContent()));
     }
 
     out.add(msg);

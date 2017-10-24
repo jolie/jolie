@@ -63,9 +63,6 @@ public class CoapProtocol extends AsyncCommProtocol {
 
   @Override
   public void setupPipeline(ChannelPipeline pipeline) {
-    if (isInput) {
-      pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
-    }
     pipeline.addLast("UDP DECODER", new DatagramPacketDecoder(
         new CoapMessageDecoder()));
     pipeline.addLast("ENCODER", new CoapMessageEncoder());

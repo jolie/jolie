@@ -30,15 +30,20 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import jolie.Interpreter;
-import jolie.net.coap.miscellaneous.BlockSize;
 import jolie.net.coap.options.EmptyOptionValue;
 import jolie.net.coap.options.OpaqueOptionValue;
 import jolie.net.coap.options.Option;
 import jolie.net.coap.options.OptionValue;
 import jolie.net.coap.options.StringOptionValue;
-import jolie.net.coap.miscellaneous.Token;
 import jolie.net.coap.options.UintOptionValue;
 
+/**
+ * This class is the base class for inheriting subtypes, e.g. requests and
+ * responses. This abstract class provides the cut-set in terms of functionality
+ * of {@link CoapRequest} and {@link CoapResponse}.
+ *
+ * @author Oliver Kleine
+ */
 public class CoapMessage {
 
   public static final int PROTOCOL_VERSION = 1;
@@ -47,38 +52,28 @@ public class CoapMessage {
   public static final int MAX_TOKEN_LENGTH = 8;
   private static final String WRONG_OPTION_TYPE = "Option no. %d is no "
       + "option of type %s";
-  private static final String OPTION_NOT_ALLOWED_WITH_MESSAGE_TYPE
-      = "Option no. %d (%s) is not allowed with "
-      + "message type %s";
-  private static final String OPTION_ALREADY_SET = "Option no. %d is "
-      + "already set and is only allowed once per "
-      + "message";
   private static final String DOES_NOT_ALLOW_CONTENT = "CoAP messages "
       + "with code %s do not allow payload.";
-  private static final String EXCLUDES = "Already contained option no. "
-      + "%d excludes option no. %d";
-
-  public static int getRandomMessageId() {
-    return new Random().nextInt(65535);
-  }
 
   private int messageType;
   private int messageCode;
   private int messageID;
-
   private ByteBuf content;
   private Token token;
 
-  protected Map<Integer, LinkedHashSet<OptionValue>> options;
-  private static final long UNDEFINED = -1;
+  protected Map<Integer, OptionValue> options;
 
   /**
+   * Creates a new instance of {@link CoapMessage}.
    *
-   * @param messageType
-   * @param messageCode
-   * @param messageID
-   * @param token
-   * @throws IllegalArgumentException
+   * @param messageType the number representing the {@link MessageType} for this
+   * {@link CoapMessage}
+   * @param messageCode the number representing the {@link MessageCode} for this
+   * {@link CoapMessage}
+   * @param messageID the message ID for this {@link CoapMessage}
+   * @param token the {@link Token} for this {@link CoapMessage}
+   *
+   * @throws IllegalArgumentException if one of the given arguments is invalid
    */
   public CoapMessage(int messageType, int messageCode, int messageID,
       Token token) throws IllegalArgumentException {
@@ -101,6 +96,17 @@ public class CoapMessage {
     this.content = Unpooled.EMPTY_BUFFER;
   }
 
+  /**
+   * Method to create an empty reset message which is strictly speaking neither
+   * a request nor a response
+   *
+   * @param messageID the message ID of the reset message.
+   *
+   * @return an instance of {@link CoapMessage} with {@link MessageType#RST}
+   *
+   * @throws IllegalArgumentException if the given message ID is out of the
+   * allowed range
+   */
   public static CoapMessage createEmptyReset(int messageID)
       throws IllegalArgumentException {
     return new CoapMessage(MessageType.RST, MessageCode.EMPTY, messageID,
@@ -109,10 +115,15 @@ public class CoapMessage {
   }
 
   /**
+   * Method to create an empty acknowledgement message which is strictly
+   * speaking neither a request nor a response
    *
-   * @param messageID
-   * @return
-   * @throws IllegalArgumentException
+   * @param messageID the message ID of the acknowledgement message.
+   *
+   * @return an instance of {@link CoapMessage} with {@link MessageType#ACK}
+   *
+   * @throws IllegalArgumentException if the given message ID is out of the
+   * allowed range
    */
   public static CoapMessage createEmptyAcknowledgement(int messageID)
       throws IllegalArgumentException {
@@ -121,6 +132,18 @@ public class CoapMessage {
     };
   }
 
+  /**
+   * Method to create an empty confirmable message which is considered a PIMG
+   * message on application layer, i.e. a message to check if a CoAP endpoints
+   * is alive (not only the host but also the CoAP application!).
+   *
+   * @param messageID the message ID of the acknowledgement message.
+   *
+   * @return an instance of {@link CoapMessage} with {@link MessageType#CON}
+   *
+   * @throws IllegalArgumentException if the given message ID is out of the
+   * allowed range
+   */
   public static CoapMessage createPing(int messageID)
       throws IllegalArgumentException {
     return new CoapMessage(MessageType.CON, MessageCode.EMPTY, messageID,
@@ -128,6 +151,16 @@ public class CoapMessage {
     };
   }
 
+  /**
+   * Sets the message type of this {@link CoapMessage}. Usually there is no need
+   * to use this method as the value is either set via constructor parameter
+   * (for requests) or automatically by the nCoAP framework (for responses).
+   *
+   * @param messageType the number representing the message type of this method
+   *
+   * @throws java.lang.IllegalArgumentException if the given message type is not
+   * supported.
+   */
   public void setMessageType(int messageType)
       throws IllegalArgumentException {
     if (!MessageType.isMessageType(messageType)) {
@@ -152,29 +185,40 @@ public class CoapMessage {
     return MessageCode.isResponse(this.getMessageCode());
   }
 
-  /**
-   *
-   * @param optionNumber
-   * @param optionValue
-   * @throws IllegalArgumentException
-   */
-  public void addOption(int optionNumber, OptionValue optionValue)
-      throws IllegalArgumentException {
-
-    if (options.containsKey(optionNumber)) {
-      options.get(optionNumber).add(optionValue);
-    } else {
-      LinkedHashSet<OptionValue> tmp = new LinkedHashSet<>();
-      tmp.add(optionValue);
-      options.put(optionNumber, tmp);
-    }
+  public boolean isAck() {
+    return MessageType.isMessageType(MessageType.ACK);
   }
 
   /**
+   * Adds an option to this {@link CoapMessage}. However, it is recommended to
+   * use the options specific methods from {@link CoapRequest} and
+   * {@link CoapResponse} to add options. This method is intended for framework
+   * internal use.
    *
-   * @param optionNumber
-   * @param value
-   * @throws IllegalArgumentException
+   * @param optionNumber the number representing the option type
+   * @param optionValue the {@link OptionValue} of this option
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number is
+   * unknwon, or if the given value is either the default value or exceeds the
+   * defined length limits for options with the given option number
+   */
+  public void addOption(int optionNumber, OptionValue optionValue)
+      throws IllegalArgumentException {
+    this.options.put(optionNumber, optionValue);
+  }
+
+  /**
+   * Adds an string option to this {@link CoapMessage}. However, it is
+   * recommended to use the options specific methods from {@link CoapRequest}
+   * and {@link CoapResponse} to add options. This method is intended for
+   * framework internal use.
+   *
+   * @param optionNumber the number representing the option type
+   * @param value the value of this string option
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number
+   * refers to an unknown option or if the given {@link OptionValue} is not
+   * valid, e.g. to long
    */
   public void addStringOption(int optionNumber, String value)
       throws IllegalArgumentException {
@@ -184,12 +228,21 @@ public class CoapMessage {
           optionNumber, OptionValue.Type.STRING));
     }
 
-    //Add new option to option list
-    StringOptionValue option = new StringOptionValue(optionNumber, value);
-    addOption(optionNumber, option);
+    addOption(optionNumber, new StringOptionValue(optionNumber, value));
   }
 
-  protected void addUintOption(int optionNumber, long value)
+  /**
+   * Adds an uint option to this {@link CoapMessage}. However, it is recommended
+   * to use the options specific methods from {@link CoapRequest} and
+   * {@link CoapResponse} to add options. This method is intended for framework
+   * internal use.
+   *
+   * @param optionNumber the number representing the option type
+   * @param value the value of this uint option
+   *
+   * @throws java.lang.IllegalArgumentException
+   */
+  public void addUintOption(int optionNumber, long value)
       throws IllegalArgumentException {
 
     if (!(OptionValue.getType(optionNumber) == OptionValue.Type.UINT)) {
@@ -197,19 +250,27 @@ public class CoapMessage {
           optionNumber, OptionValue.Type.STRING));
     }
 
-    //Add new option to option list
     byte[] byteValue = ByteBuffer.allocate(Long.BYTES).putLong(value).array();
     int index = 0;
     while (index < byteValue.length && byteValue[index] == 0) {
       index++;
     }
-    UintOptionValue option = new UintOptionValue(optionNumber,
-        Arrays.copyOfRange(byteValue, index, byteValue.length));
-    addOption(optionNumber, option);
-
+    addOption(optionNumber, new UintOptionValue(optionNumber,
+        Arrays.copyOfRange(byteValue, index, byteValue.length)));
   }
 
-  protected void addOpaqueOption(int optionNumber, byte[] value)
+  /**
+   * Adds an opaque option to this {@link CoapMessage}. However, it is
+   * recommended to use the options specific methods from {@link CoapRequest}
+   * and {@link CoapResponse} to add options. This method is intended for
+   * framework internal use.
+   *
+   * @param optionNumber the number representing the option type
+   * @param value the value of this opaque option
+   *
+   * @throws java.lang.IllegalArgumentException
+   */
+  public void addOpaqueOption(int optionNumber, byte[] value)
       throws IllegalArgumentException {
 
     if (!(OptionValue.getType(optionNumber) == OptionValue.Type.OPAQUE)) {
@@ -217,36 +278,40 @@ public class CoapMessage {
           optionNumber, OptionValue.Type.OPAQUE));
     }
 
-    //Add new option to option list
-    OpaqueOptionValue option = new OpaqueOptionValue(optionNumber, value);
-    addOption(optionNumber, option);
-
+    addOption(optionNumber, new OpaqueOptionValue(optionNumber, value));
   }
 
-  protected void addEmptyOption(int optionNumber)
+  /**
+   * Adds an empty option to this {@link CoapMessage}. However, it is
+   * recommended to use the options specific methods from {@link CoapRequest}
+   * and {@link CoapResponse} to add options. This method is intended for
+   * framework internal use.
+   *
+   * @param optionNumber the number representing the option type
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number
+   * refers to an unknown option or to a not-empty option.
+   */
+  public void addEmptyOption(int optionNumber)
       throws IllegalArgumentException {
 
     if (!(OptionValue.getType(optionNumber) == OptionValue.Type.EMPTY)) {
       throw new IllegalArgumentException(String.format(WRONG_OPTION_TYPE,
           optionNumber, OptionValue.Type.EMPTY));
     }
-
-    //Add new option to option list
-    if (options.containsKey(optionNumber)) {
-      options.get(optionNumber).add(new EmptyOptionValue(optionNumber));
-    } else {
-      LinkedHashSet<OptionValue> tmp = new LinkedHashSet<>();
-      tmp.add(new EmptyOptionValue(optionNumber));
-      options.put(optionNumber, tmp);
-    }
+    addOption(optionNumber, new EmptyOptionValue(optionNumber));
   }
 
+  /**
+   * Removes all options with the given option number from this
+   * {@link CoapMessage} instance.
+   *
+   * @param optionNumber the option number to remove from this message
+   *
+   * @return the number of options that were removed, i.e. the count.
+   */
   public int removeOptions(int optionNumber) {
-    for (Integer i : options.keySet()) {
-      if (i == optionNumber) {
-        options.remove(i);
-      }
-    }
+    this.options.remove(optionNumber);
     int result = options.size();
     return result;
   }
@@ -258,10 +323,32 @@ public class CoapMessage {
     return shifted & masked;
   }
 
+  /**
+   * Returns the CoAP protocol version used for this {@link CoapMessage}
+   *
+   * @return the CoAP protocol version used for this {@link CoapMessage}
+   */
   public int getProtocolVersion() {
     return PROTOCOL_VERSION;
   }
 
+  /**
+   * Sets a Random geenerated message ID for this message. However, there is no
+   * need to set the message ID manually. It is set (or overwritten)
+   * automatically by the nCoAP framework.
+   *
+   */
+  public void setRandomMessageID() {
+    this.setMessageID(new Random().nextInt(65535));
+  }
+
+  /**
+   * Sets the message ID for this message. However, there is no need to set the
+   * message ID manually. It is set (or overwritten) automatically by the nCoAP
+   * framework.
+   *
+   * @param messageID the message ID for the message
+   */
   public void setMessageID(int messageID) throws IllegalArgumentException {
 
     if (messageID < -1 || messageID > 65535) {
@@ -272,43 +359,92 @@ public class CoapMessage {
     this.messageID = messageID;
   }
 
+  /**
+   * Returns the message ID (or {@link CoapMessage#UNDEFINED_MESSAGE_ID} if not
+   * set)
+   *
+   * @return the message ID (or {@link CoapMessage#UNDEFINED_MESSAGE_ID} if not
+   * set)
+   */
   public int getMessageID() {
     return this.messageID;
   }
 
+  /**
+   * Returns the number representing the {@link MessageType} of this
+   * {@link CoapMessage}
+   *
+   * @return the number representing the {@link MessageType} of this
+   * {@link CoapMessage}
+   */
   public int getMessageType() {
     return this.messageType;
   }
 
+  /**
+   * Returns the {@link java.lang.String} representation of this
+   * {@link CoapMessage}s type
+   *
+   * @return the {@link java.lang.String} representation of this
+   * {@link CoapMessage}s type
+   */
   public String getMessageTypeName() {
     return MessageType.asString(this.messageType);
   }
 
+  /**
+   * Returns the number representing the {@link MessageCode} of this
+   * {@link CoapMessage}
+   *
+   * @return the number representing the {@link MessageCode} of this
+   * {@link CoapMessage}
+   */
   public int getMessageCode() {
     return this.messageCode;
   }
 
+  /**
+   * Returns the {@link java.lang.String} representation of this
+   * {@link CoapMessage}s code
+   *
+   * @return the {@link java.lang.String} representation of this
+   * {@link CoapMessage}s code
+   */
   public String getMessageCodeName() {
     return MessageCode.asString(this.messageCode);
   }
 
+  /**
+   * Sets a {@link Token} to this {@link CoapMessage}. However, there is no need
+   * to set the {@link Token} manually, as it is set (or overwritten)
+   * automatically by the framework.
+   *
+   * @param token the {@link Token} for this {@link CoapMessage}
+   */
   public void setToken(Token token) {
     this.token = token;
   }
 
+  /**
+   * Returns the {@link Token} of this {@link CoapMessage}
+   *
+   * @return the {@link Token} of this {@link CoapMessage}
+   */
   public Token getToken() {
     return this.token;
   }
 
-  public long getContentFormat() {
-    if (options.containsKey(Option.CONTENT_FORMAT)) {
-      return ((UintOptionValue) options.get(Option.CONTENT_FORMAT)
-          .iterator().next()).getDecodedValue();
-    } else {
-      return UNDEFINED;
-    }
-  }
-
+  /**
+   * Sets the observing option in this {@link CoapRequest} and returns
+   * <code>true</code> if the option is set after method returns (may already
+   * have been set beforehand in a prior method invocation) or
+   * <code>false</code> if the option is not set, e.g. because that option has
+   * no meaning with the message code of this {@link CoapRequest}.
+   *
+   * @param value <code>true</code> if this {@link CoapRequest} is supposed to
+   * register as an observer and <code>false</code> to deregister as observer,
+   * i.e. cancel an ongoing observation
+   */
   public void setObserve(long value) {
     try {
       this.removeOptions(Option.OBSERVE);
@@ -320,183 +456,47 @@ public class CoapMessage {
     }
   }
 
+  /**
+   * Returns the value of the observing option (no.6) or
+   * {@link UintOptionValue#UNDEFINED} if there is no such option present in
+   * this {@link CoapRequest}.
+   *
+   * @return he value of the observing option (no.6) or
+   * {@link UintOptionValue#UNDEFINED} if there is no such option present in
+   * this {@link CoapRequest}.
+   */
   public long getObserve() {
     if (!options.containsKey(Option.OBSERVE)) {
       return UintOptionValue.UNDEFINED;
     } else {
-      return (long) options.get(Option.OBSERVE).iterator()
-          .next().getDecodedValue();
-    }
-  }
-
-  public long getBlock2Number() {
-    if (!options.containsKey(Option.BLOCK_2)) {
-      return UintOptionValue.UNDEFINED;
-    } else {
-      return (long) options.get(Option.BLOCK_2).iterator()
-          .next().getDecodedValue() >> 4;
-    }
-  }
-
-  public boolean isLastBlock2() {
-    if (!options.containsKey(Option.BLOCK_2)) {
-      return true;
-    } else {
-      long m = (long) options.get(Option.BLOCK_2).iterator()
-          .next().getDecodedValue();
-      return (extractBits(m, 1, 3) == 0);
-    }
-  }
-
-  public long getBlock2Szx() {
-    if (!options.containsKey(Option.BLOCK_2)) {
-      return UintOptionValue.UNDEFINED;
-    } else {
-      long value = (long) options.get(Option.BLOCK_2)
-          .iterator().next().getDecodedValue();
-      return extractBits(value, 3, 0);
-    }
-  }
-
-  public long getBlock2Size() {
-    long block2szx = getBlock2Szx();
-    if (block2szx != BlockSize.UNDEFINED) {
-      return BlockSize.UNDEFINED;
-    } else {
-      return BlockSize.getBlockSize(block2szx).getSize();
-    }
-  }
-
-  public long getBlock1Number() {
-    if (!options.containsKey(Option.BLOCK_1)) {
-      return UintOptionValue.UNDEFINED;
-    } else {
-      return (long) options.get(Option.BLOCK_1).iterator()
-          .next().getDecodedValue() >> 4;
-    }
-  }
-
-  public boolean isLastBlock1() {
-    if (!options.containsKey(Option.BLOCK_1)) {
-      return true;
-    } else {
-      long m = (long) options.get(Option.BLOCK_1).iterator()
-          .next().getDecodedValue();
-      return (extractBits(m, 1, 3) == 0);
-    }
-  }
-
-  public long getBlock1Szx() {
-    if (!options.containsKey(Option.BLOCK_1)) {
-      return UintOptionValue.UNDEFINED;
-    } else {
-      long value = (long) options.get(Option.BLOCK_1)
-          .iterator().next().getDecodedValue();
-      return extractBits(value, 3, 0);
-    }
-  }
-
-  public long getBlock1Size() {
-    long block1szx = getBlock1Szx();
-    if (block1szx == UintOptionValue.UNDEFINED) {
-      return UintOptionValue.UNDEFINED;
-    } else {
-      return BlockSize.getBlockSize(block1szx).getSize();
-    }
-  }
-
-  public void setSize2(long size2) throws IllegalArgumentException {
-    this.options.remove(Option.SIZE_2);
-    this.addUintOption(Option.SIZE_2, size2);
-  }
-
-  public long getSize2() {
-    if (options.containsKey(Option.SIZE_2)) {
-      return ((UintOptionValue) options.get(Option.SIZE_2)
-          .iterator().next()).getDecodedValue();
-    } else {
-      return UintOptionValue.UNDEFINED;
-    }
-  }
-
-  public void setSize1(long size1) throws IllegalArgumentException {
-    this.options.remove(Option.SIZE_1);
-    this.addUintOption(Option.SIZE_1, size1);
-  }
-
-  public long getSize1() {
-    if (options.containsKey(Option.SIZE_1)) {
-      return ((UintOptionValue) options.get(Option.SIZE_1).iterator()
-          .next()).getDecodedValue();
-    } else {
-      return UintOptionValue.UNDEFINED;
+      return (long) options.get(Option.OBSERVE).getDecodedValue();
     }
   }
 
   /**
+   * Sets the getContent (payload) of this {@link CoapMessage}.
    *
-   * @return byte[]
-   */
-  public byte[] getEndpointID1() {
-    Set<OptionValue> values = getOptions(Option.ENDPOINT_ID_1);
-    if (values.isEmpty()) {
-      return null;
-    } else {
-      return values.iterator().next().getValue();
-    }
-  }
-
-  /**
+   * @param content {@link ChannelBuffer} containing the message getContent
+   * @param contentFormat a long value representing the format of the getContent
+   * (see {@link ContentFormat} for some predefined numbers (according to the
+   * CoAP specification)
    *
-   * @param value byte[]
+   * @throws java.lang.IllegalArgumentException if the messages code does not
+   * allow getContent and for the given {@link ChannelBuffer#readableBytes()} is
+   * greater then zero.
    */
-  public void setEndpointID1(byte[] value) {
-    try {
-      this.removeOptions(Option.ENDPOINT_ID_1);
-      this.addOpaqueOption(Option.ENDPOINT_ID_1, value);
-    } catch (IllegalArgumentException e) {
-      this.removeOptions(Option.ENDPOINT_ID_1);
-    }
-  }
-
-  /**
-   *
-   * @return byte[]
-   */
-  public byte[] getEndpointID2() {
-    Set<OptionValue> values = getOptions(Option.ENDPOINT_ID_2);
-    if (values.isEmpty()) {
-      return null;
-    } else {
-      return values.iterator().next().getValue();
-    }
-  }
-
-  /**
-   *
-   * @param value byte[]
-   */
-  public void setEndpointID2(byte[] value) {
-    try {
-      this.removeOptions(Option.ENDPOINT_ID_2);
-      this.addOpaqueOption(Option.ENDPOINT_ID_2, value);
-    } catch (IllegalArgumentException e) {
-      this.removeOptions(Option.ENDPOINT_ID_2);
-    }
-  }
-
-  /**
-   *
-   * @param content
-   * @param contentFormat
-   * @throws IllegalArgumentException
-   */
-  public void content(ByteBuf content, long contentFormat)
+  public void setContent(ByteBuf content, long contentFormat)
       throws IllegalArgumentException {
 
     try {
       this.addUintOption(Option.CONTENT_FORMAT, contentFormat);
-      content(content);
+      if (!(MessageCode.allowsContent(this.messageCode))
+          && content.readableBytes() > 0) {
+        throw new IllegalArgumentException(String.format(
+            DOES_NOT_ALLOW_CONTENT, this.getMessageCodeName()));
+      }
+
+      this.content = content;
     } catch (IllegalArgumentException e) {
       this.content = Unpooled.EMPTY_BUFFER;
       this.removeOptions(Option.CONTENT_FORMAT);
@@ -505,27 +505,24 @@ public class CoapMessage {
   }
 
   /**
+   * Returns the messages getContent. If the message does not contain any
+   * getContent, this method returns an empty
+   * {@link ChannelBuffer} ({@link ChannelBuffers#EMPTY_BUFFER}).
    *
-   * @param content ByteBuf
-   * @throws IllegalArgumentException
+   * @return Returns the messages getContent.
    */
-  public void content(ByteBuf content) throws IllegalArgumentException {
-
-    if (!(MessageCode.allowsContent(this.messageCode))
-        && content.readableBytes() > 0) {
-      throw new IllegalArgumentException(String.format(
-          DOES_NOT_ALLOW_CONTENT, this.getMessageCodeName()));
-    }
-
-    this.content = content;
+  public ByteBuf getContent() {
+    return this.content;
   }
 
-  /**
-   *
-   * @return ByteBuf
-   */
-  public ByteBuf content() {
-    return this.content;
+  public byte[] contentAsByteArray() {
+    byte[] result = new byte[this.contentLength()];
+    this.getContent().readBytes(result, 0, this.contentLength());
+    return result;
+  }
+
+  public int contentLength() {
+    return this.content.readableBytes();
   }
 
   /**
@@ -543,30 +540,44 @@ public class CoapMessage {
     this.messageCode = messageCode;
   }
 
-  public byte[] contentAsByteArray() {
-    byte[] result = new byte[this.contentLength()];
-    this.content().readBytes(result, 0, this.contentLength());
-    return result;
-  }
-
-  public int contentLength() {
-    return this.content.readableBytes();
-  }
-
-  public Map<Integer, LinkedHashSet<OptionValue>> getAllOptions() {
+  /**
+   * Returns a {@link Map} with the option numbers as keys and
+   * {@link OptionValue}s as values. The returned multimap does not contain
+   * options with default values.
+   *
+   * @return a {@link Map} with the option numbers as keys and
+   * {@link OptionValue}s as values.
+   */
+  public Map<Integer, OptionValue> getAllOptions() {
     return this.options;
   }
 
-  public void setAllOptions(Map<Integer, LinkedHashSet<OptionValue>> options) {
-    this.options = options;
-  }
-
-  public Set<OptionValue> getOptions(int optionNumber) {
+  /**
+   * Returns the {@link OptionValue}s that are explicitly set in this
+   * {@link CoapMessage}. The returned set does not contain options with default
+   * values. If this {@link CoapMessage} does not contain any options of the
+   * given option number, then the returned set is empty.
+   *
+   * @param optionNumber the option number
+   *
+   * @return a {@link Set} containing the {@link OptionValue}s that are
+   * explicitly set in this {@link CoapMessage}.
+   */
+  public OptionValue getOptions(int optionNumber) {
     return this.options.get(optionNumber);
   }
 
+  /**
+   * Returns <code>true</code> if an option with the given number is contained
+   * in this {@link CoapMessage} and <code>false</code> otherwise.
+   *
+   * @param optionNumber the option number
+   *
+   * @return <code>true</code> if an option with the given number is contained
+   * in this {@link CoapMessage} and <code>false</code> otherwise.
+   */
   public boolean containsOption(int optionNumber) {
-    return !getOptions(optionNumber).isEmpty();
+    return getOptions(optionNumber) != null;
   }
 
   @Override
@@ -605,9 +616,9 @@ public class CoapMessage {
     }
 
     //Iterators iterate over the contained options
-    Iterator<Map.Entry<Integer, LinkedHashSet<OptionValue>>> iterator1
+    Iterator<Map.Entry<Integer, OptionValue>> iterator1
         = this.getAllOptions().entrySet().iterator();
-    Iterator<Map.Entry<Integer, LinkedHashSet<OptionValue>>> iterator2
+    Iterator<Map.Entry<Integer, OptionValue>> iterator2
         = other.getAllOptions().entrySet().iterator();
 
     //Check if both CoAP Messages contain the same options in the same order
@@ -618,9 +629,9 @@ public class CoapMessage {
         return false;
       }
 
-      Map.Entry<Integer, LinkedHashSet<OptionValue>> entry1
+      Map.Entry<Integer, OptionValue> entry1
           = iterator1.next();
-      Map.Entry<Integer, LinkedHashSet<OptionValue>> entry2
+      Map.Entry<Integer, OptionValue> entry2
           = iterator2.next();
 
       if (!entry1.getKey().equals(entry2.getKey())) {
@@ -637,8 +648,8 @@ public class CoapMessage {
       return false;
     }
 
-    //Check content
-    return this.content().equals(other.content());
+    //Check setContent
+    return this.getContent().equals(other.getContent());
   }
 
   @Override
@@ -658,24 +669,19 @@ public class CoapMessage {
     result.append("Options:");
     for (int optionNumber : getAllOptions().keySet()) {
       result.append(" (No. ").append(optionNumber).append(") ");
-      Iterator<OptionValue> iterator = this.getOptions(optionNumber)
-          .iterator();
-      OptionValue optionValue = iterator.next();
+      OptionValue optionValue = this.getOptions(optionNumber);
       result.append(optionValue.toString());
-      while (iterator.hasNext()) {
-        result.append(" / ").append(iterator.next().toString());
-      }
     }
     result.append(" | ");
 
     //Content
     result.append("Content: ");
-    long payloadLength = content().readableBytes();
+    long payloadLength = getContent().readableBytes();
     if (payloadLength == 0) {
       result.append("<no content>]");
     } else {
-      result.append(content().toString(0,
-          Math.min(content().readableBytes(), 20),
+      result.append(getContent().toString(0,
+          Math.min(getContent().readableBytes(), 20),
           CoapMessage.CHARSET)).append("... ( ")
           .append(payloadLength).append(" bytes)]");
     }

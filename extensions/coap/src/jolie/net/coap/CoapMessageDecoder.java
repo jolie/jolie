@@ -31,13 +31,14 @@ import jolie.Interpreter;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
 import jolie.net.coap.message.CoapResponse;
+import jolie.net.coap.message.ContentFormat;
 import jolie.net.coap.options.EmptyOptionValue;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
 import jolie.net.coap.options.OpaqueOptionValue;
 import jolie.net.coap.options.OptionValue;
 import jolie.net.coap.options.StringOptionValue;
-import jolie.net.coap.miscellaneous.Token;
+import jolie.net.coap.message.Token;
 import jolie.net.coap.options.UintOptionValue;
 
 public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
@@ -50,11 +51,6 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     if (msg != null) {
       out.add(msg);
     }
-  }
-
-  @Override
-  public boolean acceptInboundMessage(Object msg) throws Exception {
-    return msg instanceof ByteBuf;
   }
 
   private CoapMessage recv(ByteBuf in) {
@@ -118,10 +114,9 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     CoapMessage coapMessage;
 
     if (MessageCode.isRequest(messageCode)) {
-      coapMessage = new CoapRequest(messageType, messageCode);
+      coapMessage = new CoapRequest(messageType, messageCode, null, false);
     } else {
       coapMessage = new CoapResponse(messageType, messageCode);
-      coapMessage.setMessageType(messageType);
     }
 
     coapMessage.setMessageID(messageID);
@@ -132,7 +127,6 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
       try {
         setOptions(coapMessage, in);
       } catch (Exception ex) {
-        Interpreter.getInstance().logSevere(ex);
       }
     }
 
@@ -142,9 +136,8 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     in.discardReadBytes();
 
     try {
-      coapMessage.content(in);
+      coapMessage.setContent(in, ContentFormat.UNDEFINED);
     } catch (IllegalArgumentException e) {
-      Interpreter.getInstance().logSevere(e);
     }
 
     return coapMessage;
