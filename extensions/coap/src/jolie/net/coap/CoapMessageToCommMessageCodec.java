@@ -68,6 +68,7 @@ import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
 import jolie.net.coap.message.Token;
 import jolie.net.coap.options.Option;
+import jolie.net.coap.options.StringOptionValue;
 import jolie.runtime.ByteArray;
 
 import jolie.runtime.FaultException;
@@ -136,8 +137,9 @@ public class CoapMessageToCommMessageCodec
       int messageType = getMessageType(operationName);
       int messageCode = getMessageCode(operationName);
       URI targetUri = getTargetUri(in);
-      boolean useProxy = protocol.hasOperationSpecificParameter(operationName, Parameters.PROXY);
-      CoapMessage msg = new CoapRequest(messageType, messageCode, targetUri, useProxy);
+      boolean useProxy = protocol.checkBooleanParameter(Parameters.PROXY);
+      CoapMessage msg = new CoapRequest(messageType, messageCode, targetUri,
+          useProxy);
 
       // set message id and token for the request
       msg.setRandomMessageID();
@@ -549,7 +551,16 @@ public class CoapMessageToCommMessageCodec
 
   private String getOperationName(CoapMessage in) throws Exception {
     if (in.containsOption(Option.URI_PATH)) {
-      return null;//in.getOptions(Option.URI_PATH);
+      String operationName
+          = ((StringOptionValue) in.getOptions(Option.URI_PATH))
+              .getDecodedValue();
+      if (protocol.channel().parentPort().getInterface()
+          .containsOperation(operationName)) {
+        return operationName;
+      } else {
+        throw new Exception("URI PATH Option do not contains  an "
+            + "operation name contained in the interface of the port!");
+      }
     } else {
       throw new Exception("URI PATH Option do not contains the "
           + "operation name!");
