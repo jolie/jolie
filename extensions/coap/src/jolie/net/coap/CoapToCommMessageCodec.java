@@ -84,7 +84,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class CoapMessageToCommMessageCodec
+public class CoapToCommMessageCodec
     extends MessageToMessageCodec<CoapMessage, CommMessage> {
 
   private static final Charset charset = CharsetUtil.UTF_8;
@@ -108,7 +108,7 @@ public class CoapMessageToCommMessageCodec
   private CommMessage commMessageRequest;
   private CommMessage commMessageResponse;
 
-  public CoapMessageToCommMessageCodec(CoapProtocol prt) {
+  public CoapToCommMessageCodec(CoapProtocol prt) {
     this.protocol = prt;
     this.input = prt.isInput;
   }
@@ -506,8 +506,7 @@ public class CoapMessageToCommMessageCodec
       return getDynamicAlias(alias, in.value());
     } else {
 
-      String operationAlias = new URI(protocol.channel().parentOutputPort()
-          .locationVariablePath().evaluate().strValue()).getPath();
+      String operationAlias = getTargetUri(in).getPath();
 
       if (operationAlias.equals("") || operationAlias.equals("/")) {
         return in.operationName();
@@ -567,8 +566,14 @@ public class CoapMessageToCommMessageCodec
     }
   }
 
-  private URI getTargetUri(CommMessage in) {
-    throw new UnsupportedOperationException("Not supported yet.");
+  private URI getTargetUri(CommMessage in) throws URISyntaxException {
+
+    if (protocol.isInput) {
+      return protocol.channel().parentInputPort().location();
+    } else {
+      return new URI(protocol.channel().parentOutputPort().locationVariablePath()
+          .evaluate().strValue());
+    }
   }
 
   private static class Parameters {
