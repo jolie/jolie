@@ -94,6 +94,7 @@ public class CoapRequest extends CoapMessage {
 
   private void setTargetUriOptions(URI targetUri)
       throws IllegalArgumentException {
+
     targetUri = targetUri.normalize();
 
     String scheme = targetUri.getScheme();

@@ -107,6 +107,7 @@ public class CoapToCommMessageCodec
   private Channel cc;
   private CommMessage commMessageRequest;
   private CommMessage commMessageResponse;
+  private URI targetURI;
 
   public CoapToCommMessageCodec(CoapProtocol prt) {
     this.protocol = prt;
@@ -132,25 +133,20 @@ public class CoapToCommMessageCodec
     } else { // output port - OW
 
       String operationName = in.operationName();
-
-      // get message type and code from parameters
       int messageType = getMessageType(operationName);
       int messageCode = getMessageCode(operationName);
-      URI targetUri = getTargetUri(in);
-      boolean useProxy = protocol.checkBooleanParameter(Parameters.PROXY);
-      CoapMessage msg = new CoapRequest(messageType, messageCode, targetUri,
-          useProxy);
+      String URIPath = getURIPath(in);
+      ByteBuf payload = valueToByteBuf(in);
 
-      // set message id and token for the request
+      System.out.println("URI: " + this.targetURI);
+
+      boolean useProxy = protocol.checkBooleanParameter(Parameters.PROXY);
+      CoapMessage msg = new CoapRequest(messageType, messageCode,
+          this.targetURI, useProxy);
+
       msg.setRandomMessageID();
       msg.setToken(Token.getRandomToken(2));
-
-      // set the operation alias into the options
-      String operationAlias = getOperationAlias(in);
-      msg.addStringOption(Option.URI_PATH, operationAlias);
-
-      // set the setContent of the message
-      ByteBuf payload = valueToByteBuf(in);
+      msg.addStringOption(Option.URI_PATH, URIPath);
       msg.setContent(payload, getContentFormat(operationName));
 
       // mark the message for sending
@@ -227,12 +223,14 @@ public class CoapToCommMessageCodec
     Value v = in.isFault() ? Value.create(in.fault().getMessage())
         : in.value();
     switch (format) {
+      case "application/json":
       case "json":
         StringBuilder jsonStringBuilder = new StringBuilder();
         JsUtils.valueToJsonString(v, true, protocol.getSendType(
             in.operationName()), jsonStringBuilder);
         message = jsonStringBuilder.toString();
         break;
+      case "application/xml":
       case "xml":
         DocumentBuilder db = DocumentBuilderFactory.newInstance()
             .newDocumentBuilder();
@@ -271,24 +269,17 @@ public class CoapToCommMessageCodec
   }
 
   private long getContentFormat(String operationName) throws Exception {
-    if (protocol.hasOperationSpecificParameter(operationName,
-        Parameters.FORMAT)) {
-      String format
-          = protocol.getOperationSpecificStringParameter(operationName,
-              Parameters.FORMAT);
-      if (format.equals("application/xml") || format.contains("xml")) {
-        return ContentFormat.APP_XML;
-      } else if (format.equals("application/json") || format.contains("json")) {
-        return ContentFormat.APP_JSON;
-      } else if (format.equals("text/plain")) {
-        return ContentFormat.TEXT_PLAIN_UTF8;
-      } else {
-        throw new Exception("The Content Format is not supported! Currently "
-            + "we support application/xml, "
-            + "application/json and text/plain formats");
-      }
+    String format = format(operationName);
+    if (format.equals("application/xml") || format.contains("xml")) {
+      return ContentFormat.APP_XML;
+    } else if (format.equals("application/json") || format.contains("json")) {
+      return ContentFormat.APP_JSON;
+    } else if (format.equals("raw")) {
+      return ContentFormat.TEXT_PLAIN_UTF8;
     } else {
-      return ContentFormat.UNDEFINED;
+      throw new Exception("The Content Format is not supported! Currently "
+          + "we support application/xml (xml), "
+          + "application/json (json) and text/plain UTF8 formats (raw)");
     }
   }
 
@@ -495,23 +486,45 @@ public class CoapToCommMessageCodec
         .oneWayOperations().containsKey(operationName);
   }
 
-  private String getOperationAlias(CommMessage in) throws URISyntaxException {
+  private String getURIPath(CommMessage in) throws URISyntaxException {
+
     if (protocol.hasOperationSpecificParameter(in.operationName(),
         Parameters.ALIAS)) {
 
       String alias
           = protocol.getOperationSpecificStringParameter(in.operationName(),
               Parameters.ALIAS);
+      String URIPath = getDynamicAlias(alias, in.value());
+      URI location = null;
 
-      return getDynamicAlias(alias, in.value());
+      if (protocol.isInput) {
+        location = protocol.channel().parentInputPort().location();
+      } else {
+        location = new URI(protocol.channel().parentOutputPort()
+            .locationVariablePath().evaluate().strValue());
+      }
+
+      this.targetURI = new URI(location.getScheme(), location.getUserInfo(),
+          location.getHost(), location.getPort(), URIPath,
+          location.getQuery(), location.getFragment());
+
+      return URIPath;
+
     } else {
 
-      String operationAlias = getTargetUri(in).getPath();
+      if (protocol.isInput) {
+        this.targetURI = protocol.channel().parentInputPort().location();
+      } else {
+        this.targetURI = new URI(protocol.channel().parentOutputPort()
+            .locationVariablePath().evaluate().strValue());
+      }
 
-      if (operationAlias.equals("") || operationAlias.equals("/")) {
+      String URIPath = targetURI.getPath();
+
+      if (URIPath.equals("") || URIPath.equals("/")) {
         return in.operationName();
       } else {
-        return operationAlias.substring(1);
+        return URIPath.substring(1);
       }
     }
   }
@@ -563,16 +576,6 @@ public class CoapToCommMessageCodec
     } else {
       throw new Exception("URI PATH Option do not contains the "
           + "operation name!");
-    }
-  }
-
-  private URI getTargetUri(CommMessage in) throws URISyntaxException {
-
-    if (protocol.isInput) {
-      return protocol.channel().parentInputPort().location();
-    } else {
-      return new URI(protocol.channel().parentOutputPort().locationVariablePath()
-          .evaluate().strValue());
     }
   }
 
