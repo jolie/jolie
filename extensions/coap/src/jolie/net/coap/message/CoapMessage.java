@@ -316,13 +316,6 @@ public class CoapMessage {
     return result;
   }
 
-  private static long extractBits(final long value, final int bits,
-      final int offset) {
-    final long shifted = value >>> offset;
-    final long masked = (1L << bits) - 1L;
-    return shifted & masked;
-  }
-
   /**
    * Returns the CoAP protocol version used for this {@link CoapMessage}
    *
