@@ -24,7 +24,6 @@ package jolie.net.coap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import java.net.InetSocketAddress;
 
 import java.util.List;
 import jolie.Interpreter;
@@ -129,7 +128,6 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
       }
     }
 
-    Interpreter.getInstance().logWarning("Decoded Message: " + coapMessage);
     out.add(coapMessage);
   }
 
@@ -226,8 +224,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   }
 
   @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-      throws Exception {
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 
     //Invalid Header Exceptions cause a RST
     if (cause instanceof HeaderDecodingException) {
