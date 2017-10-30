@@ -80,14 +80,38 @@ public class Option {
     return result == null ? "UNKOWN (" + optionNumber + ")" : result;
   }
 
+  /**
+   * Returns <code>true</code> if the option is critical and <code>false</code>
+   * if the option is elective
+   *
+   * @return <code>true</code> if the option is critical and <code>false</code>
+   * if the option is elective
+   */
   public static boolean isCritical(int optionNumber) {
     return (optionNumber & 1) == 1;
   }
 
+  /**
+   * Returns <code>true</code> if the option is safe-to-forward and
+   * <code>false</code> if the option is unsafe-to-forward by a proxy
+   *
+   * @param optionNumber the option number to be checked for safeness.
+   * @return <code>true</code> if the option is safe-to-forward and
+   * <code>false</code> if the option is unsafe-to-forward by a proxy
+   */
   public static boolean isSafe(int optionNumber) {
     return !((optionNumber & 2) == 2);
   }
 
+  /**
+   * Returns <code>true</code> if the option is part of the cache key and
+   * <code>false</code> if the option is not part of the cache key for proxies.
+   *
+   * @param optionNumber the option number to be checked if it is part of the
+   * cache key.
+   * @return <code>true</code> if the option is part of the cache key and
+   * <code>false</code> if the option is not part of the cache key for proxies.
+   */
   public static boolean isCacheKey(int optionNumber) {
     return !((optionNumber & 0x1e) == 0x1c);
   }

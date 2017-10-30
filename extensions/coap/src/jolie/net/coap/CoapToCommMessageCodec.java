@@ -50,12 +50,11 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import jolie.Interpreter;
-import jolie.js.JsUtils;
 
 import jolie.net.CoapProtocol;
 import jolie.net.CommCore;
@@ -66,17 +65,15 @@ import jolie.net.coap.message.CoapRequest;
 import jolie.net.coap.message.ContentFormat;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
-import jolie.net.coap.message.Token;
 import jolie.net.coap.options.Option;
 import jolie.net.coap.options.StringOptionValue;
 import jolie.runtime.ByteArray;
-
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
-
+import jolie.js.JsUtils;
 import jolie.xml.XmlUtils;
 
 import org.w3c.dom.Document;
@@ -88,11 +85,11 @@ public class CoapToCommMessageCodec
     extends MessageToMessageCodec<CoapMessage, CommMessage> {
 
   private static final Charset charset = CharsetUtil.UTF_8;
-  public static final int GET = 1;
-  public static final int POST = 2;
-  public static final int PUT = 3;
-  public static final int DELETE = 4;
   private static final Map<String, Integer> allowedMethods = new HashMap<>();
+  private static final int GET = 1;
+  private static final int POST = 2;
+  private static final int PUT = 3;
+  private static final int DELETE = 4;
 
   static {
     allowedMethods.put("GET", GET);
@@ -104,15 +101,15 @@ public class CoapToCommMessageCodec
   private final boolean input;
   private final CoapProtocol protocol;
 
-  private Channel cc;
-  private CommMessage commMessageRequest;
-  private CommMessage commMessageResponse;
-  private URI targetURI;
-
   public CoapToCommMessageCodec(CoapProtocol prt) {
     this.protocol = prt;
     this.input = prt.isInput;
   }
+
+  private Channel cc;
+  private CommMessage commMessageRequest;
+  private CommMessage commMessageResponse;
+  private URI targetURI;
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -128,30 +125,30 @@ public class CoapToCommMessageCodec
 
     if (input) { // input port - RR
 
+      // TODO support for response
       this.commMessageResponse = in;
 
     } else { // output port - OW
 
+      // create a coap request
       String operationName = in.operationName();
       int messageType = getMessageType(operationName);
       int messageCode = getMessageCode(operationName);
       String URIPath = getURIPath(in);
       ByteBuf payload = valueToByteBuf(in);
-
-      System.out.println("URI: " + this.targetURI);
-
       boolean useProxy = protocol.checkBooleanParameter(Parameters.PROXY);
+
       CoapMessage msg = new CoapRequest(messageType, messageCode,
           this.targetURI, useProxy);
-
       msg.setRandomMessageID();
-      msg.setToken(Token.getRandomToken(2));
-      msg.addStringOption(Option.URI_PATH, URIPath);
+      msg.setRandomToken();
       msg.setContent(payload, getContentFormat(operationName));
+      msg.addStringOption(Option.URI_PATH, URIPath);
 
       // mark the message for sending
       out.add(msg);
 
+      // handle ack
       if (isOneWay(operationName)) {
         if (messageType == MessageType.NON) {
           sendAck(ctx, in);
@@ -174,12 +171,10 @@ public class CoapToCommMessageCodec
         if (this.commMessageResponse != null) {
           sendAck(ctx, this.commMessageResponse);
         } else { // AH AH AH!
-          Interpreter.getInstance().logSevere("No Comm Message "
-              + "Waiting for Acknowledgement");
+          throw new FaultException("No Comm Message waiting for "
+              + "Acknowledgement");
         }
       } else {
-
-        System.out.println(in);
 
         if (in.getMessageType() == MessageType.CON) { // OW ack to client
           this.cc.writeAndFlush(CoapMessage
@@ -199,8 +194,8 @@ public class CoapToCommMessageCodec
           out.add(CommMessage
               .createEmptyResponse(commMessageRequest));
         } else { // should not be handled
-          Interpreter.getInstance().logSevere("No Comm Message "
-              + "Waiting for Acknowledgement");
+          throw new FaultException("No Comm Message waiting for "
+              + "Acknowledgement");
         }
       } else if (in.isResponse()) { // maybe no need of this check ??
         if (in.getMessageType() == MessageType.ACK) {
@@ -215,7 +210,9 @@ public class CoapToCommMessageCodec
     }
   }
 
-  private ByteBuf valueToByteBuf(CommMessage in) throws Exception {
+  private ByteBuf valueToByteBuf(CommMessage in) throws FaultException,
+      IOException, ParserConfigurationException,
+      TransformerConfigurationException, TransformerException {
 
     ByteBuf bb = Unpooled.buffer();
     String format = format(in.operationName());
@@ -268,7 +265,7 @@ public class CoapToCommMessageCodec
                 Parameters.FORMAT) : "raw";
   }
 
-  private long getContentFormat(String operationName) throws Exception {
+  private long getContentFormat(String operationName) throws FaultException {
     String format = format(operationName);
     if (format.equals("application/xml") || format.contains("xml")) {
       return ContentFormat.APP_XML;
@@ -277,7 +274,7 @@ public class CoapToCommMessageCodec
     } else if (format.equals("raw")) {
       return ContentFormat.TEXT_PLAIN_UTF8;
     } else {
-      throw new Exception("The Content Format is not supported! Currently "
+      throw new FaultException("The Content Format is not supported! Currently "
           + "we support application/xml (xml), "
           + "application/json (json) and text/plain UTF8 formats (raw)");
     }
@@ -319,7 +316,7 @@ public class CoapToCommMessageCodec
     return MessageType.NON;
   }
 
-  private int getMessageCode(String operationName) {
+  private int getMessageCode(String operationName) throws FaultException {
     if (protocol.hasOperationSpecificParameter(operationName,
         Parameters.METHOD)) {
       String method = protocol
@@ -328,7 +325,7 @@ public class CoapToCommMessageCodec
       if (allowedMethods.containsKey(method)) {
         return allowedMethods.get(method);
       } else {
-        Interpreter.getInstance().logSevere("Methods allowed are: "
+        throw new FaultException("Methods allowed are: "
             + "POST, GET, PUT, DELETE.");
       }
     }
@@ -336,13 +333,8 @@ public class CoapToCommMessageCodec
   }
 
   private Value byteBufToValue(CoapMessage in, String operationName)
-      throws IOException,
-      FaultException, ParserConfigurationException, SAXException,
-      TypeCheckingException {
-
-    if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-      Interpreter.getInstance().logInfo("Received message: " + in);
-    }
+      throws IOException, FaultException, ParserConfigurationException,
+      SAXException, TypeCheckingException {
 
     ByteBuf content = Unpooled.wrappedBuffer(in.getContent());
     Value value = Value.create();
@@ -522,14 +514,18 @@ public class CoapToCommMessageCodec
       String URIPath = targetURI.getPath();
 
       if (URIPath.equals("") || URIPath.equals("/")) {
-        return in.operationName();
+        return "/".concat(in.operationName());
       } else {
-        return URIPath.substring(1);
+        return URIPath;
       }
     }
   }
 
   private String getDynamicAlias(String start, Value value) {
+
+    if (!start.startsWith("/")) {
+      start = "/".concat(start);
+    }
 
     Set<String> aliasKeys = new TreeSet<>();
     String pattern = "%(!)?\\{[^\\}]*\\}";
@@ -565,17 +561,17 @@ public class CoapToCommMessageCodec
     if (in.containsOption(Option.URI_PATH)) {
       String operationName
           = ((StringOptionValue) in.getOptions(Option.URI_PATH))
-              .getDecodedValue();
+              .getDecodedValue().substring(1); // it has the "/" char 
       if (protocol.channel().parentPort().getInterface()
           .containsOperation(operationName)) {
         return operationName;
       } else {
-        throw new Exception("URI PATH Option do not contains  an "
+        throw new FaultException("URI PATH Option do not contains  an "
             + "operation name contained in the interface of the port!");
       }
     } else {
-      throw new Exception("URI PATH Option do not contains the "
-          + "operation name!");
+      throw new FaultException("URI PATH Option do not contains the "
+          + "operation name at all!");
     }
   }
 
