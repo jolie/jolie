@@ -74,6 +74,8 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
+import jolie.net.coap.message.CoapResponse;
+import jolie.net.coap.message.Token;
 import jolie.xml.XmlUtils;
 
 import org.w3c.dom.Document;
@@ -102,6 +104,7 @@ public class CoapToCommMessageCodec
   private final CoapProtocol protocol;
 
   public CoapToCommMessageCodec(CoapProtocol prt) {
+    this.correlationToken = new Token(new byte[0]);
     this.protocol = prt;
     this.input = prt.isInput;
   }
@@ -109,6 +112,8 @@ public class CoapToCommMessageCodec
   private Channel cc;
   private CommMessage commMessageRequest;
   private CommMessage commMessageResponse;
+  private int correlationId;
+  private Token correlationToken;
   private URI targetURI;
 
   @Override
@@ -123,41 +128,43 @@ public class CoapToCommMessageCodec
   protected void encode(ChannelHandlerContext ctx,
       CommMessage in, List<Object> out) throws Exception {
 
-    if (input) { // input port - RR
-
-      // TODO support for response
-      this.commMessageResponse = in;
-
-    } else { // output port - OW
-
-      // create a coap request
-      String operationName = in.operationName();
-      int messageType = getMessageType(operationName);
-      int messageCode = getMessageCode(operationName);
-      String URIPath = getURIPath(in);
-      ByteBuf payload = valueToByteBuf(in);
-      boolean useProxy = protocol.checkBooleanParameter(Parameters.PROXY);
-
-      CoapMessage msg = new CoapRequest(messageType, messageCode,
-          this.targetURI, useProxy);
-      msg.setRandomMessageID();
-      msg.setRandomToken();
-      msg.setContent(payload, getContentFormat(operationName));
-      msg.addStringOption(Option.URI_PATH, URIPath);
-
-      // mark the message for sending
+    String operationName = in.operationName();
+    int messageType = getMessageType(operationName);
+    int messageCode = getMessageCode(operationName);
+    if (input) { // input port 
+      // RESPONSE
+      CoapMessage msg = new CoapResponse(messageType, messageCode);
+      if (messageType == MessageType.CON) {
+        this.correlationId = msg.getMessageID();
+      }
       out.add(msg);
+      this.commMessageResponse = in;
+    } else { // output port
+
+      // REQUEST
+      CoapMessage msg = new CoapRequest(messageType,
+          messageCode, this.targetURI,
+          protocol.checkBooleanParameter(Parameters.PROXY));
+      msg.setContent(valueToByteBuf(in), getContentFormat(operationName));
+      msg.addStringOption(Option.URI_PATH, getURIPath(in));
 
       // handle ack
       if (isOneWay(operationName)) {
         if (messageType == MessageType.NON) {
           sendAck(ctx, in);
         } else if (messageType == MessageType.CON) {
+          msg.setRandomMessageID(); // id only set if CON message
+          this.correlationId = msg.getMessageID();
           this.commMessageRequest = in;
         }
-      } else {
+      } else { // output port - RR
+        msg.setRandomMessageID();
+        msg.setRandomToken(); // token only for request responses
         this.commMessageRequest = in;
       }
+
+      // mark the message for sending
+      out.add(msg);
     }
   }
 
@@ -165,47 +172,39 @@ public class CoapToCommMessageCodec
   protected void decode(ChannelHandlerContext ctx,
       CoapMessage in, List<Object> out) throws Exception {
 
-    if (input) { // input port - OW and RR
-
-      if (in.getMessageType() == MessageType.ACK) { // RR ack to comm core
-        if (this.commMessageResponse != null) {
-          sendAck(ctx, this.commMessageResponse);
-        } else { // AH AH AH!
-          throw new FaultException("No Comm Message waiting for "
-              + "Acknowledgement");
-        }
-      } else {
-
-        if (in.getMessageType() == MessageType.CON) { // OW ack to client
+    if (input) { // input port
+      // ACK
+      if (in.isAck() && this.correlationId == in.getMessageID()
+          && this.commMessageResponse != null) {
+        out.add(new CommMessage(this.commMessageResponse.id(),
+            this.commMessageResponse.operationName(), "/", Value.create(),
+            null));
+      }
+      // REQUEST
+      if (in.isRequest()) {
+        if (in.getMessageType() == MessageType.CON) {
           this.cc.writeAndFlush(CoapMessage
               .createEmptyAcknowledgement(in.getMessageID()));
         }
-
-        String operationName = getOperationName(in);
-        CommMessage msg = CommMessage.createRequest(operationName,
-            "/", byteBufToValue(in, operationName));
-        out.add(msg);
+        out.add(CommMessage.createRequest(getOperationName(in),
+            "/", byteBufToValue(in, getOperationName(in))));
       }
-
-    } else { // output port - OW and RR (ack V response)
-
-      if (in.getMessageType() == MessageType.ACK) {
-        if (this.commMessageRequest != null) {
-          out.add(CommMessage
-              .createEmptyResponse(commMessageRequest));
-        } else { // should not be handled
-          throw new FaultException("No Comm Message waiting for "
-              + "Acknowledgement");
-        }
-      } else if (in.isResponse()) { // maybe no need of this check ??
-        if (in.getMessageType() == MessageType.ACK) {
-          cc.writeAndFlush(CoapMessage
+    } else { // output port 
+      // ACK
+      if (in.isAck() && this.correlationId == in.getMessageID()
+          && this.commMessageRequest != null) {
+        out.add(new CommMessage(this.commMessageRequest.id(),
+            this.commMessageRequest.operationName(), "/", Value.create(),
+            null));
+      }
+      // RESPONSE
+      if (in.isResponse() && in.getToken().equals(this.correlationToken)) {
+        if (in.getMessageType() == MessageType.CON) {
+          this.cc.writeAndFlush(CoapMessage
               .createEmptyAcknowledgement(in.getMessageID()));
         }
-
         out.add(CommMessage.createResponse(commMessageRequest,
-            byteBufToValue(in,
-                commMessageRequest.operationName())));
+            byteBufToValue(in, commMessageRequest.operationName())));
       }
     }
   }
@@ -298,11 +297,6 @@ public class CoapToCommMessageCodec
     }
 
     return str;
-  }
-
-  private void sendAck(ChannelHandlerContext ctx, CommMessage in) {
-    ctx.pipeline().fireChannelRead(new CommMessage(
-        in.id(), in.operationName(), "/", Value.create(), null));
   }
 
   private int getMessageType(String operationName) {
@@ -557,21 +551,18 @@ public class CoapToCommMessageCodec
     return result.toString();
   }
 
-  private String getOperationName(CoapMessage in) throws Exception {
+  private String getOperationName(CoapMessage in) throws FaultException {
+
     if (in.containsOption(Option.URI_PATH)) {
-      String operationName
-          = ((StringOptionValue) in.getOptions(Option.URI_PATH))
-              .getDecodedValue().substring(1); // it has the "/" char 
-      if (protocol.channel().parentPort().getInterface()
-          .containsOperation(operationName)) {
-        return operationName;
-      } else {
-        throw new FaultException("URI PATH Option do not contains  an "
-            + "operation name contained in the interface of the port!");
-      }
+
+      String URIPath = ((StringOptionValue) in.getOptions(Option.URI_PATH))
+          .getDecodedValue().substring(1);
+      String operationName = protocol.getOperationFromAlias(URIPath);
+
+      return operationName;
     } else {
-      throw new FaultException("URI PATH Option do not contains the "
-          + "operation name at all!");
+      throw new FaultException("The message does not contains the URI Path!");
+
     }
   }
 
