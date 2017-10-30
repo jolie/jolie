@@ -21,6 +21,7 @@
  */
 package jolie.net.coap.message;
 
+import io.netty.buffer.Unpooled;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -214,5 +215,44 @@ public class CoapResponse extends CoapMessage {
     } else {
       return OptionValue.MAX_AGE_DEFAULT;
     }
+  }
+
+  /**
+   * Creates a new instance of {@link CoapResponse} with
+   * {@link MessageCode#INTERNAL_SERVER_ERROR_500} and the stacktrace of the
+   * given {@link Throwable} as payload (this is particularly useful for
+   * debugging). Basically, this can be considered a shortcut to create error
+   * responses.
+   *
+   * @param messageType
+   * <p>
+   * the {@link MessageType} (one of {@link MessageType#CON} or
+   * {@link MessageType#NON}).</p>
+   *
+   * <p>
+   * <b>Note:</b> the {@link MessageType} might be changed by the framework (see
+   * class description).</p>
+   * @param messageCode the {@link MessageCode} for this {@link CoapResponse}
+   *
+   * @return a new instance of {@link CoapResponse} with the
+   * {@link Throwable#getMessage} as content (payload).
+   *
+   * @throws java.lang.IllegalArgumentException if at least one of the given
+   * arguments causes an error
+   */
+  public static CoapResponse createErrorResponse(int messageType,
+      int messageCode, String content)
+      throws IllegalArgumentException {
+
+    if (!MessageCode.isErrorMessage(messageCode)) {
+      throw new IllegalArgumentException(String.format("Code no. %s is "
+          + "no error code!", MessageCode.asString(messageCode)));
+    }
+
+    CoapResponse errorResponse = new CoapResponse(messageType, messageCode);
+    errorResponse.setContent(Unpooled.wrappedBuffer(
+        content.getBytes(CoapMessage.CHARSET)), ContentFormat.TEXT_PLAIN_UTF8);
+
+    return errorResponse;
   }
 }
