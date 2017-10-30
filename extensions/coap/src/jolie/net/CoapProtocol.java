@@ -23,10 +23,9 @@ package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.DatagramPacketDecoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
+import java.util.Map;
 
 import jolie.net.coap.CoapToCommMessageCodec;
 import jolie.net.coap.CoapMessageDecoder;
@@ -35,6 +34,7 @@ import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.OperationTypeDescription;
@@ -42,8 +42,7 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 
 /**
- * Implementations of Async Comm Protocol COstrained APplications (http over
- * UDP) for IoT
+ * Implementations of {@link AsyncCommProtocol} CoAP for Jolie.
  *
  * @author stefanopiozingaro
  */
@@ -53,8 +52,8 @@ public class CoapProtocol extends AsyncCommProtocol {
 
   /**
    *
-   * @param configurationPath VariablePath
-   * @param isInput boolean
+   * @param configurationPath
+   * @param isInput
    */
   public CoapProtocol(VariablePath configurationPath, boolean isInput) {
     super(configurationPath);
@@ -111,11 +110,14 @@ public class CoapProtocol extends AsyncCommProtocol {
   }
 
   /**
-   * Retrieve Send Type for the CommMessage in input. TODO: move to super class
+   * Retrieves the send {@link Type}, {@link OneWayTypeDescription} or
+   * {@link RequestResponseTypeDescription}, for the {@link InputPort}, it
+   * searches iteratively in the parent port interface, looking for
+   * {@link OperationTypeDescription}.
    *
-   * @param operationName String
-   * @return Type
-   * @throws IOException
+   * @param operationName the operation name {@link String}
+   * @return Type The type for the specified operation.
+   * @throws IOException If the communicatino port is not reachable.
    */
   public Type getSendType(String operationName)
       throws IOException {
@@ -145,5 +147,31 @@ public class CoapProtocol extends AsyncCommProtocol {
     }
 
     return ret;
+  }
+
+  /**
+   * Given the <code>alias</code> for an operation, it searches iteratively in
+   * the <code>configurationPath</code> of the {@link AsyncCommProtocol} to find
+   * the corresponsding <code>operationName.</code>.
+   *
+   * @param alias the alias for the wanted operation
+   * @return The operation name String
+   */
+  public String getOperationFromAlias(String alias) {
+
+    if (configurationPath().getValue().hasChildren("osc")) {
+      for (Map.Entry<String, ValueVector> i : configurationPath().getValue()
+          .getFirstChild("osc").children().entrySet()) {
+        for (Map.Entry<String, ValueVector> j : i.getValue().first().children()
+            .entrySet()) {
+          if (j.getKey().equals("alias") && j.getValue().first().strValue()
+              .equals(alias)) {
+            return i.getKey();
+          }
+        }
+      }
+    }
+    // else we return directly the topic
+    return alias;
   }
 }

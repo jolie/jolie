@@ -29,6 +29,7 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import java.util.List;
 import java.util.Map;
 
+import jolie.Interpreter;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.options.OptionValue;
 
@@ -49,28 +50,41 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
   protected void encode(ChannelHandlerContext ctx, CoapMessage in,
       List<Object> out) throws Exception {
 
+    try {
+      ByteBuf msg = internal_encode(in);
+      out.add(msg);
+    } catch (OptionCodecException ex) {
+      ctx.fireExceptionCaught(ex);
+    }
+  }
+
+  private ByteBuf internal_encode(CoapMessage coapMessage)
+      throws OptionCodecException {
+
     ByteBuf msg = Unpooled.buffer();
 
     //write encoded header
-    byte[] token = in.getToken().getBytes();
-    int encodedHeader = ((in.getProtocolVersion() & 0x03) << 30)
-        | ((in.getMessageType() & 0x03) << 28)
+    byte[] token = coapMessage.getToken().getBytes();
+    int encodedHeader = ((coapMessage.getProtocolVersion() & 0x03) << 30)
+        | ((coapMessage.getMessageType() & 0x03) << 28)
         | ((token.length & 0x0F) << 24)
-        | ((in.getMessageCode() & 0xFF) << 16)
-        | ((in.getMessageID() & 0xFFFF));
+        | ((coapMessage.getMessageCode() & 0xFF) << 16)
+        | ((coapMessage.getMessageID() & 0xFFFF));
 
     msg.writeInt(encodedHeader);
     if (token.length > 0) {
       msg.writeBytes(token);
     }
 
-    if (in.getAllOptions().isEmpty() && in.getContent().readableBytes() == 0) {
-      out.add(msg);
+    if (coapMessage.getAllOptions().isEmpty()
+        && coapMessage.getContent().readableBytes() == 0) {
+      return msg;
     }
 
     //write encoded options
     int previousOptionNumber = 0;
-    for (Map.Entry<Integer, OptionValue> entry : in.getAllOptions().entrySet()) {
+    for (Map.Entry<Integer, OptionValue> entry
+        : coapMessage.getAllOptions().entrySet()) {
       Integer optionNumber = entry.getKey();
       OptionValue optionValue = entry.getValue();
       encodeOption(msg, optionNumber, optionValue, previousOptionNumber);
@@ -78,34 +92,44 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
     }
 
     //write encoded setContent
-    if (in.getContent().readableBytes() > 0) {
+    if (coapMessage.getContent().readableBytes() > 0) {
       msg.writeByte(255);
-      msg.writeBytes(Unpooled.wrappedBuffer(in.getContent()));
+      msg.writeBytes(Unpooled.wrappedBuffer(coapMessage.getContent()));
     }
 
-    out.add(msg);
+    return msg;
   }
 
   private void encodeOption(ByteBuf buffer, int optionNumber,
-      OptionValue optionValue, int prevNumber) throws Exception {
+      OptionValue optionValue, int prevNumber) throws OptionCodecException {
 
+    //The previous option number must be smaller or equal to the actual one
     if (prevNumber > optionNumber) {
-      throw new Exception("The previous option number must be smaller "
-          + "or equal to the actual one!");
+      Interpreter.getInstance().logSevere("Previous option no. (" + prevNumber
+          + ") must not be larger then current option no (" + optionNumber
+          + ")");
+      throw new OptionCodecException(optionNumber);
     }
 
     int optionDelta = optionNumber - prevNumber;
     int optionLength = optionValue.getValue().length;
 
     if (optionLength > MAX_OPTION_LENGTH) {
-      throw new Exception("Option length error!");
+      Interpreter.getInstance().logSevere("Option no. " + optionNumber
+          + " exceeds maximum option length (actual: " + optionLength
+          + ", max: " + MAX_OPTION_LENGTH + ").");
+      throw new OptionCodecException(optionNumber);
     }
 
     if (optionDelta > MAX_OPTION_DELTA) {
-      throw new Exception("option delta error!");
+      Interpreter.getInstance().logSevere("Option delta exceeds maximum "
+          + "option delta (actual: " + optionDelta + ", max: "
+          + MAX_OPTION_DELTA + ")");
+      throw new OptionCodecException(optionNumber);
     }
 
-    if (optionDelta < 13) {
+    if (optionDelta
+        < 13) {
       //option delta < 13
       if (optionLength < 13) {
         buffer.writeByte(((optionDelta & 0xFF) << 4)
@@ -118,7 +142,8 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
         buffer.writeByte(((optionLength - 269) & 0xFF00) >>> 8);
         buffer.writeByte((optionLength - 269) & 0xFF);
       }
-    } else if (optionDelta < 269) {
+    } else if (optionDelta
+        < 269) {
       //13 <= option delta < 269
       if (optionLength < 13) {
         buffer.writeByte(((13 & 0xFF) << 4) | (optionLength & 0xFF));
