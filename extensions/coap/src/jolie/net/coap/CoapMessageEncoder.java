@@ -32,6 +32,14 @@ import java.util.Map;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.options.OptionValue;
 
+/**
+ * A {@link CoapMessageEncoder} serializes outgoing {@link CoapMessage}s. In the
+ * (rather unlikely) case that there is an exception thrown during the encoding
+ * process, an internal message is sent upstream, i.e. in the direction of the
+ * application.
+ *
+ * @author Oliver Kleine
+ */
 public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 
   public static final int MAX_OPTION_DELTA = 65804;
@@ -50,6 +58,7 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
         | ((token.length & 0x0F) << 24)
         | ((in.getMessageCode() & 0xFF) << 16)
         | ((in.getMessageID() & 0xFFFF));
+
     msg.writeInt(encodedHeader);
     if (token.length > 0) {
       msg.writeBytes(token);
@@ -64,7 +73,6 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
     for (Map.Entry<Integer, OptionValue> entry : in.getAllOptions().entrySet()) {
       Integer optionNumber = entry.getKey();
       OptionValue optionValue = entry.getValue();
-
       encodeOption(msg, optionNumber, optionValue, previousOptionNumber);
       previousOptionNumber = optionNumber;
     }
