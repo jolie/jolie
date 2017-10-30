@@ -419,6 +419,16 @@ public class CoapMessage {
   }
 
   /**
+   * Sets a random generated {@link Token} to this {@link CoapMessage} with
+   * maximum length. However, there is no need to set the {@link Token}
+   * manually, as it is set (or overwritten) automatically by the framework.
+   *
+   */
+  public void setRandomToken() {
+    this.token = Token.getRandomToken(MAX_TOKEN_LENGTH);
+  }
+
+  /**
    * Returns the {@link Token} of this {@link CoapMessage}
    *
    * @return the {@link Token} of this {@link CoapMessage}
@@ -467,6 +477,27 @@ public class CoapMessage {
   }
 
   /**
+   * Adds the content to the message. If this {@link CoapMessage} contained any
+   * content prior to the invocation of method, the previous content is removed.
+   *
+   * @param content ChannelBuffer containing the message content
+   *
+   * @throws java.lang.IllegalArgumentException if the messages code does not
+   * allow content and for the given {@link ChannelBuffer#readableBytes()} is
+   * greater then zero.
+   */
+  public void setContent(ByteBuf content) throws IllegalArgumentException {
+
+    if (!(MessageCode.allowsContent(this.messageCode))
+        && content.readableBytes() > 0) {
+      throw new IllegalArgumentException(String.format(DOES_NOT_ALLOW_CONTENT,
+          this.getMessageCodeName()));
+    }
+
+    this.content = content;
+  }
+
+  /**
    * Sets the getContent (payload) of this {@link CoapMessage}.
    *
    * @param content {@link ChannelBuffer} containing the message getContent
@@ -488,7 +519,6 @@ public class CoapMessage {
         throw new IllegalArgumentException(String.format(
             DOES_NOT_ALLOW_CONTENT, this.getMessageCodeName()));
       }
-
       this.content = content;
     } catch (IllegalArgumentException e) {
       this.content = Unpooled.EMPTY_BUFFER;
