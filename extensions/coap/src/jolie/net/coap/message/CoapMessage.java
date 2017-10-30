@@ -97,6 +97,39 @@ public class CoapMessage {
   }
 
   /**
+   * Creates a new instance of {@link CoapMessage}.
+   *
+   * @param messageType the number representing the {@link MessageType} for this
+   * {@link CoapMessage}
+   * @param messageCode the number representing the {@link MessageCode} for this
+   * {@link CoapMessage}
+   * @param messageID the message ID for this {@link CoapMessage}
+   * @param token the {@link Token} for this {@link CoapMessage}
+   *
+   * @throws IllegalArgumentException if one of the given arguments is invalid
+   */
+  public CoapMessage(int messageType, int messageCode)
+      throws IllegalArgumentException {
+
+    if (!MessageType.isMessageType(messageType)) {
+      throw new IllegalArgumentException("No. " + messageType
+          + " is not corresponding to any message type.");
+    }
+
+    if (!MessageCode.isMessageCode(messageCode)) {
+      throw new IllegalArgumentException("No. " + messageCode
+          + " is not corresponding to any message code.");
+    }
+
+    this.setMessageType(messageType);
+    this.messageCode(messageCode);
+    setRandomMessageID();
+    setRandomToken();
+    this.options = new TreeMap<>();
+    this.content = Unpooled.EMPTY_BUFFER;
+  }
+
+  /**
    * Method to create an empty reset message which is strictly speaking neither
    * a request nor a response
    *
@@ -425,7 +458,7 @@ public class CoapMessage {
    *
    */
   public void setRandomToken() {
-    this.token = Token.getRandomToken(MAX_TOKEN_LENGTH);
+    this.token = Token.getRandomToken();
   }
 
   /**
