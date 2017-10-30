@@ -71,8 +71,7 @@ public class CoapResponse extends CoapMessage {
   public CoapResponse(int messageType, int messageCode)
       throws IllegalArgumentException {
 
-    super(messageType, messageCode, UNDEFINED_MESSAGE_ID,
-        new Token(new byte[0]));
+    super(messageType, messageCode);
     if (!MessageCode.isResponse(messageCode)) {
       throw new IllegalArgumentException("Message code no."
           + messageCode + " is no response code.");

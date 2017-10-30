@@ -25,13 +25,33 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
+/**
+ * A {@link Token} is the identifier to relate {@link CoapRequest}s with
+ * {@link CoapResponse}s. It consists of a byte array with a size between 0 and
+ * 8 (both inclusive). So, {@link Token} basically is a wrapper class for a byte
+ * array.
+ *
+ * The byte array content has no semantic meaning and thus, e.g. a {@link Token}
+ * instance backed by a byte array containing a single zero byte (all bits set
+ * to 0) is different from a byte array backed by a byte array containing two
+ * zero bytes.
+ *
+ * @author Oliver Kleine
+ */
 public class Token implements Comparable<Token> {
 
   public static int MAX_LENGTH = 8;
-  private static final char[] hexArray
-      = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789").toCharArray();
+  private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
   private byte[] token;
 
+  /**
+   * Creates a new {@link Token} instance.
+   *
+   * @param token the byte array this {@link Token} is supposed to consist of
+   *
+   * @throws java.lang.IllegalArgumentException if the length of the given byte
+   * array is larger than 8
+   */
   public Token(byte[] token) {
     if (token.length > 8) {
       throw new IllegalArgumentException("Maximum token length is 8 "
@@ -40,17 +60,34 @@ public class Token implements Comparable<Token> {
     this.token = token;
   }
 
+  /**
+   * Returns the byte array this {@link Token} instance wraps
+   *
+   * @return the byte array this {@link Token} instance wraps
+   */
   public byte[] getBytes() {
     return this.token;
   }
 
-  public static Token getRandomToken(int tokenLength) {
-    byte[] token = new byte[tokenLength];
+  /**
+   * Returns a random generated token of maximum length.
+   *
+   * @param tokenLength
+   * @return
+   */
+  public static Token getRandomToken() {
+    byte[] token = new byte[MAX_LENGTH];
     new Random().nextBytes(token);
-
     return new Token(token);
   }
 
+  /**
+   * Returns a representation of the token in form of a HEX string or "<EMPTY>"
+   * for tokens of length 0
+   *
+   * @return a representation of the token in form of a HEX string or "<EMPTY>"
+   * for tokens of length 0
+   */
   @Override
   public String toString() {
     String tmp = bytesToHex(getBytes());
