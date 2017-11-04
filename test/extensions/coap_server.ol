@@ -1,18 +1,38 @@
 include "console.iol"
 
-inputPort  S {
-    Location: "datagram://localhost:8004"
-    Protocol: coap {
-        .debug = true;
-        .proxy = false
-    }
-    OneWay: getTemperature( int )
+type TmpType: void { .id?: string }
+
+interface ThermostatInterface {
+    OneWay: test( string )
+    RequestResponse: getTmp( TmpType )( int )
 }
 
-execution{ concurrent }
+inputPort  Thermostat {
+    Location: "datagram://localhost:9000"
+    Protocol: coap {
+        .debug = true;
+        .proxy = false;
+        // .osc.getTmp << {
+        //     .format = "raw",
+        //     .alias = "42/getTemperature",
+        //     .confirmable = true
+        // };
+        .osc.test << {
+            .format = "raw",
+            .alias = "test/getTemperature"
+        }
+    }
+    Interfaces: ThermostatInterface
+}
 
 main 
 {
-    getTemperature( temp );
-    println@Console( temp )()
+    [ test( r ) ]{
+        println@Console( "Received TEST: " + r )()
+    }
+    // [ getTmp( temp )( resp ){
+    //         resp = 24;
+    //         println@Console( "Received getTmp, sending back: " + resp )()
+    //     } 
+    // ]
 }      

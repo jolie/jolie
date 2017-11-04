@@ -38,3 +38,5 @@ build/
 /extensions/pubsubchannel/nbproject/private/
 /extensions/auto/nbproject/private/
 /extensions/coap/nbproject/private/
+/extensions/datagram/nbproject/private/
+/extensions/mqtt/nbproject/private/

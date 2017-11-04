@@ -1,20 +1,40 @@
 include "console.iol"
 
-type TmpType: int | int { .id: string }
+type TmpType: void { .id?: string }
 
-outputPort S {
-    Location: "datagram://localhost:8004"
+interface ThermostatInterface {
+    OneWay: test( string )
+    RequestResponse: getTmp( TmpType )( undefined )
+}
+
+outputPort Server {
+    Location: "datagram://localhost:9000"
     Protocol: coap {
-        .proxy = false;
         .debug = true;
-        .osc.setTmp << {
-            .alias = "%!{id}/getTemperature"
+        .proxy = false;
+        // .osc.getTmp << {
+        //     .format = "raw",
+        //     .alias = "%!{id}/getTemperature",
+        //     .confirmable = true
+        // };
+        .osc.test << {
+            .format = "raw",
+            .alias = "test/getTemperature",
+            .confirmable = true
         }
     }
-    OneWay: setTmp( TmpType )
+    Interfaces: ThermostatInterface
 }
 
 main
 {
-    setTmp@S( 24 { .id = "42" } )
+    {
+        test@Server( "This is a test" );
+        println@Console( "Test done" )()
+    }
+    // |
+    // {
+    //     getTmp@Server( { .id = "42" } )( varA );
+    //     println@Console( "getTmp done: " + varA )()
+    // }
 }

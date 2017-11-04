@@ -22,6 +22,7 @@
 package jolie.net;
 
 import jolie.Interpreter;
+
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
@@ -29,19 +30,24 @@ import jolie.net.protocols.CommProtocol;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
+import io.netty.channel.socket.DuplexChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import jolie.net.ext.CommChannelFactory;
 
 public class NioDatagramListener extends CommListener {
 
@@ -66,15 +72,11 @@ public class NioDatagramListener extends CommListener {
 
   @Override
   public void run() {
-
     try {
-
       bootstrap
           .group(workerGroup)
           .channel(NioDatagramChannel.class)
           .handler(new UdpServerHandler());
-
-      // bind the listener
       ChannelFuture f = bootstrap.bind(new InetSocketAddress(
           inputPort().location().getHost(),
           inputPort().location().getPort())).sync();
@@ -82,70 +84,62 @@ public class NioDatagramListener extends CommListener {
       serverChannel.closeFuture().sync();
 
     } catch (InterruptedException | IOException ex) {
-      interpreter().logWarning(ex);
+      Interpreter.getInstance().logWarning(ex);
     } finally {
       workerGroup.shutdownGracefully();
     }
   }
 
-  private class UdpServerHandler
-      extends SimpleChannelInboundHandler<DatagramPacket> {
+  private class UdpServerHandler extends ChannelDuplexHandler {
 
-    private CommProtocol protocol;
-    private NioDatagramCommChannel responseChannel;
-    private URI location;
-    private ChannelPipeline p;
+    private final CommProtocol protocol;
+    private NioDatagramCommChannel commChannel;
+    private InetSocketAddress sender;
 
-    /**
-     *
-     * @throws IOException
-     */
     public UdpServerHandler() throws IOException {
-      protocol = createProtocol();
+      this.protocol = createProtocol();
+      this.commChannel = new NioDatagramCommChannel(null,
+          (AsyncCommProtocol) protocol);
+      this.protocol.setChannel(commChannel);
+      this.commChannel.setParentInputPort(inputPort());
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg)
+    public void channelRead(ChannelHandlerContext ctx, Object in)
         throws Exception {
 
-      // create the response channel and attach it to the protocol
-      this.location = new URI("datagram://" + msg.sender().getHostName() + ":"
-          + msg.sender().getPort());
-      responseChannel = new NioDatagramCommChannel(this.location,
-          (AsyncCommProtocol) protocol);
-      protocol.setChannel(responseChannel);
-      responseChannel.setParentInputPort(inputPort());
+      assert (in instanceof DatagramPacket);
+      DatagramPacket msg = (DatagramPacket) in;
+      this.sender = msg.sender();
 
-      // setup the pipeline 
-      p = ctx.pipeline();
+      ChannelPipeline p = ctx.pipeline();
       assert (protocol instanceof AsyncCommProtocol);
       ((AsyncCommProtocol) protocol).setupPipeline(p);
-
-      // add response handlers
-      p.addFirst(new ChannelOutboundHandlerAdapter() {
-
-        @Override
-        public void flush(ChannelHandlerContext ctx) throws Exception {
-          ctx.flush();
-        }
-      });
-      p.addLast(responseChannel.commChannelHandler);
-      p.addLast(new ChannelInboundHandlerAdapter() {
-
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-            throws Exception {
-          ctx.close();
-          throw new Exception(cause);
-        }
-      });
+      p.addLast("COMM CHANNEL", commChannel.commChannelHandler);
 
       // set the execution context
       ctx.channel().attr(NioDatagramCommChannel.EXECUTION_CONTEXT)
           .set(interpreter().initThread());
 
       // pass it to the next hanlder in the pipeline
-      ctx.fireChannelRead(msg.retain());
+      ctx.fireChannelRead(msg.content().retain());
+    }
+
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg,
+        ChannelPromise promise) throws Exception {
+
+      try {
+        ChannelFuture f = ctx.channel().connect(this.sender);
+        f.sync();
+        if (!f.isSuccess()) {
+          throw (IOException) f.cause();
+        } else {
+          ctx.write(msg, promise);
+        }
+      } catch (InterruptedException e) {
+        throw new IOException(e);
+      }
     }
   }
 }
