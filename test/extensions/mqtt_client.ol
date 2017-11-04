@@ -1,11 +1,5 @@
 include "console.iol"
 
-type TmpType: void { .id: string } | int { .id: string }
-
-interface ThermostatInterface {
-  RequestResponse: getTmp( TmpType )( int ), getTmp1( TmpType )( int )
-}
-
 outputPort Broker {
     Location: "socket://localhost:1883"
     Protocol: mqtt {

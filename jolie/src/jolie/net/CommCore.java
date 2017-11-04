@@ -255,12 +255,7 @@ public class CommCore {
 		CommListenerFactory socketListenerFactory = new NioSocketListenerFactory( this, bossGroup, workerGroup );
 		listenerFactories.put( "socket", socketListenerFactory );
 		CommChannelFactory socketChannelFactory = new NioSocketCommChannelFactory( this, workerGroup );
-		channelFactories.put( "socket", socketChannelFactory );
-		//UDP
-		CommListenerFactory datagramListenerFactory = new NioDatagramListenerFactory( this, workerGroup );
-		listenerFactories.put( "datagram", datagramListenerFactory );
-		CommChannelFactory datagramChannelFactory = new NioDatagramCommChannelFactory( this, workerGroup );
-		channelFactories.put( "datagram", datagramChannelFactory );
+      channelFactories.put("socket", socketChannelFactory);
 	}
 
 	public class ExecutionContextThread extends Thread {

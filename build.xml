@@ -238,6 +238,7 @@ Please make sure that:
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.local}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.datagram}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.pubsubchannel}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="jar"/>
@@ -280,6 +281,7 @@ Please make sure that:
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.datagram}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.pubsubchannel}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.local}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
@@ -325,6 +327,7 @@ Please make sure that:
 				<file file="${project.sodeps}/dist/sodeps.jar"/>
 				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
+				<file file="${project.datagram}/dist/datagram.jar"/>
 				<file file="${project.pubsubchannel}/dist/pubsubchannel.jar"/>
 				<file file="${project.local}/dist/local.jar"/>
 			</resources>

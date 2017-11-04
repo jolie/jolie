@@ -26,14 +26,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
 import java.util.List;
-import jolie.Interpreter;
 
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
 import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.options.EmptyOptionValue;
 import jolie.net.coap.message.MessageCode;
-import static jolie.net.coap.message.MessageCode.BAD_OPTION_402;
 import jolie.net.coap.message.MessageType;
 import jolie.net.coap.options.OpaqueOptionValue;
 import jolie.net.coap.options.OptionValue;
@@ -41,6 +39,8 @@ import jolie.net.coap.options.StringOptionValue;
 import jolie.net.coap.message.Token;
 import jolie.net.coap.options.Option;
 import jolie.net.coap.options.UintOptionValue;
+
+import jolie.Interpreter;
 import jolie.runtime.FaultException;
 
 public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
@@ -255,8 +255,8 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   private void writeBadOptionResponse(ChannelHandlerContext ctx,
       int messageType, String message) {
     CoapResponse errorResponse
-        = CoapResponse.createErrorResponse(messageType, BAD_OPTION_402,
-            message);
+        = CoapResponse.createErrorResponse(messageType,
+            MessageCode.BAD_OPTION_402, message);
     ctx.write(errorResponse);
   }
 }
