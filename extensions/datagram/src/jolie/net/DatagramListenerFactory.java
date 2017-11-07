@@ -21,80 +21,32 @@
  */
 package jolie.net;
 
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
-import jolie.net.ext.CommChannelFactory;
+import jolie.Interpreter;
+import jolie.net.ext.CommListenerFactory;
+import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
-import jolie.net.ports.OutputPort;
-import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
 
-public class NioDatagramCommChannelFactory extends CommChannelFactory {
+public class DatagramListenerFactory extends CommListenerFactory {
 
-    EventLoopGroup workerGroup;
+    protected final EventLoopGroup workerGroup;
 
-    public NioDatagramCommChannelFactory(CommCore commCore,
+    public DatagramListenerFactory(CommCore commCore,
 	    EventLoopGroup workerGroup) {
+
 	super(commCore);
 	this.workerGroup = workerGroup;
+
     }
 
     @Override
-    public CommChannel createChannel(URI location, OutputPort port)
+    public CommListener createListener(Interpreter interpreter,
+	    CommProtocolFactory protocolFactory, InputPort inputPort)
 	    throws IOException {
-	CommProtocol protocol;
-	try {
-	    protocol = port.getProtocol();
-	} catch (URISyntaxException e) {
-	    throw new IOException(e);
-	}
 
-	if (!(protocol instanceof AsyncCommProtocol)) {
-	    throw new UnsupportedCommProtocolException("Use an async protocol");
-	}
-
-	NioDatagramCommChannel channel = NioDatagramCommChannel.
-		CreateChannel(location, (AsyncCommProtocol) protocol,
-			workerGroup, port);
-
-	try {
-	    ChannelFuture f = channel.connect(location);
-	    f.sync();
-	    if (!f.isSuccess()) {
-		throw (IOException) f.cause();
-	    }
-	} catch (InterruptedException e) {
-	    throw new IOException(e);
-	}
-
-	return channel;
+	return new DatagramListener(interpreter, protocolFactory,
+		inputPort, workerGroup);
     }
-
-    @Override
-    public CommChannel createInputChannel(URI location, InputPort port,
-	    CommProtocol protocol) throws IOException {
-
-	if (!(protocol instanceof AsyncCommProtocol)) {
-	    throw new UnsupportedCommProtocolException("Use an async protocol");
-	}
-
-	NioDatagramCommChannel channel = NioDatagramCommChannel
-		.CreateChannel(location, (AsyncCommProtocol) protocol,
-			workerGroup, port);
-	try {
-	    ChannelFuture f = channel.connect(location);
-	    f.sync();
-	    if (!f.isSuccess()) {
-		throw (IOException) f.cause();
-	    }
-	} catch (InterruptedException e) {
-	    throw new IOException(e);
-	}
-	return channel;
-    }
-
 }

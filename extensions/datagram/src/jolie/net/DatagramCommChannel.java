@@ -42,7 +42,7 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
 
-public class NioDatagramCommChannel extends StreamingCommChannel {
+public class DatagramCommChannel extends StreamingCommChannel {
 
   public final static String CHANNEL_HANDLER_NAME
       = "STREAMING-CHANNEL-HANDLER";
@@ -54,7 +54,7 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
   protected StreamingCommChannelHandler commChannelHandler;
   private ChannelPipeline channelPipeline;
 
-  public NioDatagramCommChannel(URI location, AsyncCommProtocol protocol) {
+  public DatagramCommChannel(URI location, AsyncCommProtocol protocol) {
     super(location, protocol);
     this.commChannelHandler = new StreamingCommChannelHandler(this);
   }
@@ -72,12 +72,12 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
     return channelPipeline;
   }
 
-  public static NioDatagramCommChannel CreateChannel(URI location,
+  public static DatagramCommChannel CreateChannel(URI location,
       AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port) {
 
     ExecutionThread ethread = ExecutionThread.currentThread();
-    NioDatagramCommChannel channel
-        = new NioDatagramCommChannel(location, protocol);
+    DatagramCommChannel channel
+        = new DatagramCommChannel(location, protocol);
 
     channel.bootstrap = new Bootstrap();
     channel.bootstrap.group(workerGroup)

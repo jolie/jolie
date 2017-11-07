@@ -49,14 +49,14 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import jolie.net.ext.CommChannelFactory;
 
-public class NioDatagramListener extends CommListener {
+public class DatagramListener extends CommListener {
 
   private final Bootstrap bootstrap;
   private final EventLoopGroup workerGroup;
 
   private Channel serverChannel;
 
-  public NioDatagramListener(Interpreter interpreter,
+  public DatagramListener(Interpreter interpreter,
       CommProtocolFactory protocolFactory, InputPort inputPort,
       EventLoopGroup workerGroup) {
 
@@ -93,12 +93,12 @@ public class NioDatagramListener extends CommListener {
   private class UdpServerHandler extends ChannelDuplexHandler {
 
     private final CommProtocol protocol;
-    private NioDatagramCommChannel commChannel;
+    private DatagramCommChannel commChannel;
     private InetSocketAddress sender;
 
     public UdpServerHandler() throws IOException {
       this.protocol = createProtocol();
-      this.commChannel = new NioDatagramCommChannel(null,
+      this.commChannel = new DatagramCommChannel(null,
           (AsyncCommProtocol) protocol);
       this.protocol.setChannel(commChannel);
       this.commChannel.setParentInputPort(inputPort());
@@ -118,7 +118,7 @@ public class NioDatagramListener extends CommListener {
       p.addLast("COMM CHANNEL", commChannel.commChannelHandler);
 
       // set the execution context
-      ctx.channel().attr(NioDatagramCommChannel.EXECUTION_CONTEXT)
+      ctx.channel().attr(DatagramCommChannel.EXECUTION_CONTEXT)
           .set(interpreter().initThread());
 
       // pass it to the next hanlder in the pipeline
