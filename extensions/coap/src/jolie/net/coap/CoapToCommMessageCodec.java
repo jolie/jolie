@@ -72,6 +72,8 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
+import jolie.net.CommCore;
+import jolie.net.NioSocketCommChannel;
 import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.Token;
 import jolie.xml.XmlUtils;
@@ -117,9 +119,9 @@ public class CoapToCommMessageCodec
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
     this.cc = ctx.channel();
-//    ((CommCore.ExecutionContextThread) Thread.currentThread())
-//        .executionThread(this.cc.attr(NioDatagramCommChannel.EXECUTION_CONTEXT)
-//            .get());
+    ((CommCore.ExecutionContextThread) Thread.currentThread())
+        .executionThread(this.cc.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
+            .get());
     out.add(encode_internal(in));
   }
 
@@ -168,9 +170,9 @@ public class CoapToCommMessageCodec
   protected void decode(ChannelHandlerContext ctx, CoapMessage in,
       List<Object> out) throws Exception {
     this.cc = ctx.channel();
-//    ((CommCore.ExecutionContextThread) Thread.currentThread())
-//        .executionThread(this.cc.attr(NioDatagramCommChannel.EXECUTION_CONTEXT)
-//            .get());
+    ((CommCore.ExecutionContextThread) Thread.currentThread())
+        .executionThread(this.cc.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
+            .get());
     out.add(decode_internal(in));
   }
 
