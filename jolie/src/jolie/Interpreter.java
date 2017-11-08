@@ -326,9 +326,7 @@ public class Interpreter
 				do {
 					response = channel.recvResponseFor( m );
 				} while( response == null );
-			} catch( URISyntaxException e ) {
-				logWarning( e );
-			} catch( IOException e ) {
+			} catch( URISyntaxException | IOException e ) {
 				logWarning( e );
 			} finally {
 				if ( channel != null ) {
