@@ -269,7 +269,7 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
-        private boolean check = false;
+	private boolean check = false;
 	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
