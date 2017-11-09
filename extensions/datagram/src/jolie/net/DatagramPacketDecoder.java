@@ -31,7 +31,6 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.util.ReferenceCounted;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.Random;
 
 class DatagramPacketDecoder extends MessageToMessageEncoder<ByteBuf> {
 
