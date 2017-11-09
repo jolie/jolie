@@ -37,7 +37,9 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.codec.DatagramPacketEncoder;
 import io.netty.util.AttributeKey;
+import java.util.Random;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
@@ -55,10 +57,15 @@ public class DatagramCommChannel extends StreamingCommChannel {
   protected CompletableFuture<CommMessage> waitingForMsg = null;
   protected StreamingCommChannelHandler commChannelHandler;
   private ChannelPipeline channelPipeline;
+  private final InetSocketAddress recipient;
+  private final DatagramPacketDecoder datagramDecoderHandler;
 
   public DatagramCommChannel(URI location, AsyncCommProtocol protocol) {
     super(location, protocol);
     this.commChannelHandler = new StreamingCommChannelHandler(this);
+    this.recipient = new InetSocketAddress(
+        new Random().nextInt(65536 - 1025) + 65536);
+    this.datagramDecoderHandler = new DatagramPacketDecoder(this.recipient);
   }
 
   @Override
@@ -96,12 +103,13 @@ public class DatagramCommChannel extends StreamingCommChannel {
             }
             protocol.setChannel(channel);
             channel.setChannelPipeline(p);
-            p.addLast(DATAGRAM_ENCODER_NAME, new DatagramPacketDecoder(location));
+            p.addLast(DATAGRAM_ENCODER_NAME, channel.datagramDecoderHandler);
             protocol.setupPipeline(p);
             p.addLast(CHANNEL_HANDLER_NAME, channel.commChannelHandler);
             ch.attr(EXECUTION_CONTEXT).set(ethread);
           }
-        });
+        })
+        .bind(channel.recipient);
 
     return channel;
   }

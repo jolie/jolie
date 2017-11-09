@@ -30,15 +30,15 @@ import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.util.ReferenceCounted;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.List;
+import java.util.Random;
 
 class DatagramPacketDecoder extends MessageToMessageEncoder<ByteBuf> {
 
-  private URI location;
+  private InetSocketAddress recipient;
 
-  DatagramPacketDecoder(URI location) {
-    this.location = location;
+  DatagramPacketDecoder(InetSocketAddress recipient) {
+    this.recipient = recipient;
   }
 
   @Override
@@ -46,14 +46,13 @@ class DatagramPacketDecoder extends MessageToMessageEncoder<ByteBuf> {
       List<Object> out) throws Exception {
 
     DatagramPacket dp;
-    InetSocketAddress recipient = new InetSocketAddress(this.location.getHost(),
-        this.location.getPort());
     if (msg.isDirect() && msg.nioBufferCount() == 1) {
       dp = new DatagramPacket(msg, recipient);
     } else {
       ReferenceCounted p = null;
       dp = new DatagramPacket(newDirectBuffer(msg), recipient);
     }
+    out.add(dp);
   }
 
   protected final ByteBuf newDirectBuffer(ByteBuf buf) {
