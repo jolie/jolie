@@ -22,7 +22,6 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.DatagramPacketDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
