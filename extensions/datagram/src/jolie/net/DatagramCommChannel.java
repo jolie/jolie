@@ -46,6 +46,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
 
   public final static String CHANNEL_HANDLER_NAME
       = "STREAMING-CHANNEL-HANDLER";
+  public final static String DATAGRAM_ENCODER_NAME
+      = "DATAGRAM-ENCODER-HANDLER";
   public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT
       = AttributeKey.valueOf("ExecutionContext");
 
@@ -94,9 +96,9 @@ public class DatagramCommChannel extends StreamingCommChannel {
             }
             protocol.setChannel(channel);
             channel.setChannelPipeline(p);
+            p.addLast(DATAGRAM_ENCODER_NAME, new DatagramPacketDecoder(location));
             protocol.setupPipeline(p);
-            p.addLast(CHANNEL_HANDLER_NAME,
-                channel.commChannelHandler);
+            p.addLast(CHANNEL_HANDLER_NAME, channel.commChannelHandler);
             ch.attr(EXECUTION_CONTEXT).set(ethread);
           }
         });
@@ -107,6 +109,10 @@ public class DatagramCommChannel extends StreamingCommChannel {
   public ChannelFuture connect(URI location) throws InterruptedException {
     return bootstrap.connect(new InetSocketAddress(location.getHost(),
         location.getPort()));
+  }
+
+  public ChannelFuture bind(int port) {
+    return bootstrap.bind(port);
   }
 
   /**
