@@ -22,6 +22,7 @@
 package jolie.net;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.IOException;
 
 import jolie.Interpreter;
@@ -31,22 +32,21 @@ import jolie.net.ports.InputPort;
 
 public class DatagramListenerFactory extends CommListenerFactory {
 
-    protected final EventLoopGroup workerGroup;
+  protected final EventLoopGroup workerGroup;
 
-    public DatagramListenerFactory(CommCore commCore,
-	    EventLoopGroup workerGroup) {
+  public DatagramListenerFactory( CommCore commCore ) {
 
-	super(commCore);
-	this.workerGroup = workerGroup;
+    super( commCore );
+    this.workerGroup = new NioEventLoopGroup( 4, commCore.getNewExecutionContextThreadFactory() );
 
-    }
+  }
 
-    @Override
-    public CommListener createListener(Interpreter interpreter,
-	    CommProtocolFactory protocolFactory, InputPort inputPort)
-	    throws IOException {
+  @Override
+  public CommListener createListener( Interpreter interpreter,
+      CommProtocolFactory protocolFactory, InputPort inputPort )
+      throws IOException {
 
-	return new DatagramListener(interpreter, protocolFactory,
-		inputPort, workerGroup);
-    }
+    return new DatagramListener( interpreter, protocolFactory,
+        inputPort, workerGroup );
+  }
 }

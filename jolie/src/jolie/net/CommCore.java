@@ -257,6 +257,10 @@ public class CommCore {
 		CommChannelFactory socketChannelFactory = new NioSocketCommChannelFactory( this, workerGroup );
       channelFactories.put("socket", socketChannelFactory);
 	}
+  
+  public ExecutionContextThreadFactory getNewExecutionContextThreadFactory(){
+    return new ExecutionContextThreadFactory();
+  }
 
 	public class ExecutionContextThread extends Thread {
 
