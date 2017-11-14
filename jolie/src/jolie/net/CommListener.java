@@ -67,8 +67,8 @@ public abstract class CommListener extends NativeJolieThread
 		this.inputPort = inputPort;
 	}
 
-	protected CommProtocol createProtocol()
-		throws IOException
+  public CommProtocol createProtocol()
+    		throws IOException
 	{
 		return protocolFactory.createInputProtocol( inputPort.protocolConfigurationPath(), inputPort.location() );
 	}
