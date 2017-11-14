@@ -34,19 +34,19 @@ public class DatagramListenerFactory extends CommListenerFactory {
 
   protected final EventLoopGroup workerGroup;
 
-  public DatagramListenerFactory( CommCore commCore ) {
+  public DatagramListenerFactory(CommCore commCore) {
 
-    super( commCore );
-    this.workerGroup = new NioEventLoopGroup( 4, commCore.getNewExecutionContextThreadFactory() );
-
+    super(commCore);
+    this.workerGroup = new NioEventLoopGroup(4,
+        commCore.getNewExecutionContextThreadFactory());
   }
 
   @Override
-  public CommListener createListener( Interpreter interpreter,
-      CommProtocolFactory protocolFactory, InputPort inputPort )
+  public CommListener createListener(Interpreter interpreter,
+      CommProtocolFactory protocolFactory, InputPort inputPort)
       throws IOException {
 
-    return new DatagramListener( interpreter, protocolFactory,
-        inputPort, workerGroup );
+    return new DatagramListener(interpreter, protocolFactory,
+        inputPort, workerGroup);
   }
 }
