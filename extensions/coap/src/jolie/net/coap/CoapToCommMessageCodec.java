@@ -27,11 +27,14 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -56,6 +59,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import jolie.ExecutionThread;
 import jolie.net.CoapProtocol;
 import jolie.net.CommMessage;
 import jolie.net.coap.message.CoapMessage;
@@ -73,9 +77,9 @@ import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
 import jolie.net.CommCore;
-import jolie.net.NioSocketCommChannel;
 import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.Token;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.xml.XmlUtils;
 
 import org.w3c.dom.Document;
@@ -86,6 +90,8 @@ import org.xml.sax.SAXException;
 public class CoapToCommMessageCodec
     extends MessageToMessageCodec<CoapMessage, CommMessage> {
 
+  public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT
+      = AttributeKey.valueOf("ExecutionContext");
   private static final Charset charset = CharsetUtil.UTF_8;
   private static final Map<String, Integer> allowedMethods = new HashMap<>();
   private static final int GET = 1;
@@ -120,9 +126,29 @@ public class CoapToCommMessageCodec
       List<Object> out) throws Exception {
     this.cc = ctx.channel();
     ((CommCore.ExecutionContextThread) Thread.currentThread())
-        .executionThread(this.cc.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
-            .get());
+        .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
+    if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+      System.out.println("Channel: " + this.cc);
+      System.out.println("Channel Context Handler: " + ctx);
+      System.out.println("Comm Message arrived: " + in);
+      System.out.print(valueToPrettyString(in.value()));
+      if (input) {
+        System.out.println("Is an Input Port");
+      } else {
+        System.out.println("Is an Output Port");
+      }
+    }
     out.add(encode_internal(in));
+  }
+
+  public String valueToPrettyString(Value request) {
+    Writer writer = new StringWriter();
+    ValuePrettyPrinter printer = new ValuePrettyPrinter(request, writer, "Value");
+    try {
+      printer.run();
+    } catch (IOException e) {
+    } // Should never happen
+    return writer.toString();
   }
 
   private CoapMessage encode_internal(CommMessage commMessage)
@@ -133,16 +159,21 @@ public class CoapToCommMessageCodec
     int messageType = getMessageType(operationName);
     int messageCode = getMessageCode(operationName);
     if (input) { // input port 
-      // RESPONSE
-      CoapResponse msg = new CoapResponse(messageType, messageCode);
-      if (messageType == MessageType.CON) {
-        this.correlationId = msg.getMessageID();
-        this.commMessageResponse = commMessage;
+      if (isOneWay(operationName)) {
+        // comm core ack received
+        return CoapMessage.createEmptyAcknowledgement(this.correlationId);
+      } else {
+        // RESPONSE
+        CoapResponse msg = new CoapResponse(messageType, messageCode);
+        if (messageType == MessageType.CON) {
+          this.correlationId = msg.getMessageID();
+          this.commMessageResponse = commMessage;
+        }
+        msg.setContent(valueToByteBuf(commMessage),
+            getContentFormat(operationName));
+
+        return msg;
       }
-      msg.setContent(valueToByteBuf(commMessage),
-          getContentFormat(operationName));
-      // set location ?
-      return msg;
     } else { // output port
       // REQUEST
       String URIPath = getURIPath(commMessage);
@@ -171,8 +202,7 @@ public class CoapToCommMessageCodec
       List<Object> out) throws Exception {
     this.cc = ctx.channel();
     ((CommCore.ExecutionContextThread) Thread.currentThread())
-        .executionThread(this.cc.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
-            .get());
+        .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
     out.add(decode_internal(in));
   }
 
@@ -190,10 +220,6 @@ public class CoapToCommMessageCodec
       } else {
         // REQUEST
         if (coapMessage.isRequest()) {
-          if (coapMessage.getMessageType() == MessageType.CON) {
-            this.cc.writeAndFlush(CoapMessage
-                .createEmptyAcknowledgement(coapMessage.getMessageID()));
-          }
           return CommMessage.createRequest(getOperationName(coapMessage),
               "/", byteBufToValue(coapMessage, getOperationName(coapMessage)));
         } else {
@@ -204,6 +230,11 @@ public class CoapToCommMessageCodec
       // ACK
       if (coapMessage.isAck() && this.correlationId
           == coapMessage.getMessageID() && this.commMessageRequest != null) {
+        if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+          System.out.println("Ack Correlated Message Incoming "
+              + coapMessage.toString() + "\nwith correlation id "
+              + this.correlationId);
+        }
         return new CommMessage(this.commMessageRequest.id(),
             this.commMessageRequest.operationName(), "/", Value.create(),
             null);
@@ -211,10 +242,6 @@ public class CoapToCommMessageCodec
         // RESPONSE
         if (coapMessage.isResponse()
             && coapMessage.getToken().equals(this.correlationToken)) {
-          if (coapMessage.getMessageType() == MessageType.CON) {
-            this.cc.writeAndFlush(CoapMessage
-                .createEmptyAcknowledgement(coapMessage.getMessageID()));
-          }
           return CommMessage.createResponse(commMessageRequest,
               byteBufToValue(coapMessage, commMessageRequest.operationName()));
         } else {
