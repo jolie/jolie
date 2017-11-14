@@ -26,35 +26,37 @@ import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
+import jolie.ExecutionThread;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.FutureListener;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import jolie.net.protocols.CommProtocol;
 
 public class DatagramListener extends CommListener {
 
-  private final Bootstrap bootstrap;
   private final EventLoopGroup workerGroup;
-
   private Channel serverChannel;
 
   public DatagramListener(Interpreter interpreter,
       CommProtocolFactory protocolFactory, InputPort inputPort,
       EventLoopGroup workerGroup) {
-
     super(interpreter, protocolFactory, inputPort);
-    this.bootstrap = new Bootstrap();
     this.workerGroup = workerGroup;
   }
 
@@ -66,73 +68,62 @@ public class DatagramListener extends CommListener {
   @Override
   public void run() {
     try {
-      bootstrap
-          .group(workerGroup)
-          .channel(NioDatagramChannel.class)
-          .handler(new UdpServerHandler());
+
+      Bootstrap bootstrap = new Bootstrap();
+      bootstrap.group(workerGroup).channel(NioDatagramChannel.class);
+      bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
+
+        @Override
+        protected void initChannel(NioDatagramChannel ch)
+            throws Exception {
+
+          CommProtocol protocol = createProtocol();
+          if (!(protocol instanceof AsyncCommProtocol)) {
+            throw new UnsupportedCommProtocolException("Use an async protocol");
+          }
+          ChannelPipeline p = ch.pipeline();
+
+          p.addLast("INBOUND", new SimpleChannelInboundHandler<DatagramPacket>() {
+
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket in)
+                throws Exception {
+
+              DatagramPacket msg = in.copy();
+              URI location = new URI("datagram://" + msg.sender().getHostName()
+                  + ":" + msg.sender().getPort());
+
+              DatagramCommChannel channel = DatagramCommChannel.
+                  CreateChannel(location, (AsyncCommProtocol) protocol, workerGroup,
+                      inputPort());
+
+              ChannelFuture cf = channel.connect(location);
+              cf.addListener(new FutureListener() {
+                @Override
+                public void operationComplete(Future f) throws Exception {
+                  cf.channel().pipeline().fireChannelRead(msg.content().retain());
+                }
+              });
+            }
+
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+                throws Exception {
+              ctx.close();
+              throw new Exception(cause);
+            }
+          });
+        }
+      });
       ChannelFuture f = bootstrap.bind(new InetSocketAddress(
           inputPort().location().getHost(),
           inputPort().location().getPort())).sync();
       serverChannel = f.channel();
       serverChannel.closeFuture().sync();
-
-    } catch (InterruptedException | IOException ex) {
+    } catch (InterruptedException ex) {
       Interpreter.getInstance().logWarning(ex);
     } finally {
       workerGroup.shutdownGracefully();
-    }
-  }
-
-  private class UdpServerHandler extends ChannelDuplexHandler {
-
-    private final CommProtocol protocol;
-    private DatagramCommChannel commChannel;
-    private InetSocketAddress sender;
-
-    public UdpServerHandler() throws IOException {
-      this.protocol = createProtocol();
-      this.commChannel = new DatagramCommChannel(null,
-          (AsyncCommProtocol) protocol);
-      this.protocol.setChannel(commChannel);
-      this.commChannel.setParentInputPort(inputPort());
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object in)
-        throws Exception {
-
-      assert (in instanceof DatagramPacket);
-      DatagramPacket msg = (DatagramPacket) in;
-      this.sender = msg.sender();
-
-      ChannelPipeline p = ctx.pipeline();
-      assert (protocol instanceof AsyncCommProtocol);
-      ((AsyncCommProtocol) protocol).setupPipeline(p);
-      p.addLast("COMM CHANNEL", commChannel.commChannelHandler);
-
-      // set the execution context
-      ctx.channel().attr(DatagramCommChannel.EXECUTION_CONTEXT)
-          .set(interpreter().initThread());
-
-      // pass it to the next hanlder in the pipeline
-      ctx.fireChannelRead(msg.content().retain());
-    }
-
-    @Override
-    public void write(ChannelHandlerContext ctx, Object msg,
-        ChannelPromise promise) throws Exception {
-
-      try {
-        ChannelFuture f = ctx.channel().connect(this.sender);
-        f.sync();
-        if (!f.isSuccess()) {
-          throw (IOException) f.cause();
-        } else {
-          ctx.write(msg, promise);
-        }
-      } catch (InterruptedException e) {
-        throw new IOException(e);
-      }
     }
   }
 }
