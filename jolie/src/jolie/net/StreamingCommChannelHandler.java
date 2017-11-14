@@ -51,7 +51,7 @@ public class StreamingCommChannelHandler
   private StreamingCommChannel inChannel;   // TOWARDS JOLIE
   private final Interpreter interpreter;
 
-  StreamingCommChannelHandler(StreamingCommChannel channel) {
+  public StreamingCommChannelHandler(StreamingCommChannel channel) {
     this.inChannel = channel;
     this.outChannel = channel;
     this.interpreter = Interpreter.getInstance();
@@ -96,14 +96,12 @@ public class StreamingCommChannelHandler
     throw new Exception(cause);
   }
 
-  protected ChannelFuture write(CommMessage msg)
+  public ChannelFuture write(CommMessage msg)
       throws InterruptedException {
-
-    ChannelFuture f = this.ctx.writeAndFlush(msg);
-    return f;
+    return ctx.writeAndFlush(msg);
   }
 
-  protected ChannelFuture close() {
+  public ChannelFuture close() {
     return ctx.close();
   }
 
