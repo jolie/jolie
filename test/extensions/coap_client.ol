@@ -8,7 +8,7 @@ interface ThermostatInterface {
 }
 
 outputPort Server {
-    Location: "datagram://localhost:9000"
+    Location: "datagram://localhost:9001"
     Protocol: coap {
         .debug = true;
         .proxy = false;
@@ -19,6 +19,7 @@ outputPort Server {
         // };
         .osc.test << {
             .format = "raw",
+            .method = "POST",
             .alias = "test/getTemperature",
             .confirmable = true
         }
@@ -31,7 +32,12 @@ main
     {
         test@Server( "This is a test" );
         println@Console( "Test done" )()
-    }
+    } 
+    // |
+    // {
+    //     test@Server( "This is a test" );
+    //     println@Console( "Test done" )()
+    // }
     // |
     // {
     //     getTmp@Server( { .id = "42" } )( varA );

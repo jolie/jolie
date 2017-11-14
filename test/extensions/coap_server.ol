@@ -8,7 +8,7 @@ interface ThermostatInterface {
 }
 
 inputPort  Thermostat {
-    Location: "datagram://localhost:9000"
+    Location: "datagram://localhost:9001"
     Protocol: coap {
         .debug = true;
         .proxy = false;
@@ -24,6 +24,8 @@ inputPort  Thermostat {
     }
     Interfaces: ThermostatInterface
 }
+
+execution{ concurrent }
 
 main 
 {
