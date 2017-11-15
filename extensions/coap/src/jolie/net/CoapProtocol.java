@@ -22,7 +22,8 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.DatagramPacketDecoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,7 +33,6 @@ import jolie.net.coap.CoapMessageDecoder;
 import jolie.net.coap.CoapMessageEncoder;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
-
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -61,10 +61,11 @@ public class CoapProtocol extends AsyncCommProtocol {
   }
 
   @Override
-  public void setupPipeline(ChannelPipeline pipeline) {
-    pipeline.addLast("DECODER", new CoapMessageDecoder());
-    pipeline.addLast("ENCODER", new CoapMessageEncoder());
-    pipeline.addLast("CODEC", new CoapToCommMessageCodec(this));
+  public void setupPipeline(ChannelPipeline p) {
+    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+    p.addLast("DECODER", new CoapMessageDecoder());
+    p.addLast("ENCODER", new CoapMessageEncoder());
+    p.addLast("CODEC", new CoapToCommMessageCodec(this));
   }
 
   @Override

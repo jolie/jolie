@@ -24,7 +24,6 @@ package jolie.net.coap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.AttributeKey;
@@ -60,6 +59,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.CoapProtocol;
 import jolie.net.CommMessage;
 import jolie.net.coap.message.CoapMessage;
@@ -77,7 +77,6 @@ import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
 import jolie.net.CommCore;
-import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.Token;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.xml.XmlUtils;
@@ -114,9 +113,7 @@ public class CoapToCommMessageCodec
     this.input = prt.isInput;
   }
 
-  private Channel cc;
   private CommMessage commMessageRequest;
-  private CommMessage commMessageResponse;
   private int correlationId;
   private Token correlationToken;
   private URI targetURI;
@@ -124,7 +121,7 @@ public class CoapToCommMessageCodec
   @Override
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
-    this.cc = ctx.channel();
+
     ((CommCore.ExecutionContextThread) Thread.currentThread())
         .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
     out.add(encode_internal(in));
@@ -153,14 +150,10 @@ public class CoapToCommMessageCodec
         return CoapMessage.createEmptyAcknowledgement(this.correlationId);
       } else {
         // RESPONSE
-        CoapResponse msg = new CoapResponse(messageType, messageCode);
-        if (messageType == MessageType.CON) {
-          this.correlationId = msg.getMessageID();
-          this.commMessageResponse = commMessage;
-        }
-        msg.setContent(valueToByteBuf(commMessage),
-            getContentFormat(operationName));
-
+        CoapMessage msg = new CoapMessage(messageType, messageCode);
+        msg.setMessageID(this.correlationId);
+        msg.setToken(this.correlationToken);
+        msg.setContent(valueToByteBuf(commMessage), getContentFormat(operationName));
         return msg;
       }
     } else { // output port
@@ -172,16 +165,16 @@ public class CoapToCommMessageCodec
           getContentFormat(operationName));
       msg.addStringOption(Option.URI_PATH, URIPath);
       // ACK
-      if (messageType == MessageType.CON) {
-        msg.setRandomMessageID(); // id only set if CON message
+      if (messageType == MessageType.CON) { // CON message - ID
+        msg.setRandomMessageID();
         this.correlationId = msg.getMessageID();
       }
-      if (!isOneWay(operationName)) {
-        msg.setRandomToken(); // token only for request responses
+      if (!isOneWay(operationName)) { // RESPONSE - Id and Token
+        msg.setRandomMessageID();
+        this.correlationId = msg.getMessageID();
+        msg.setRandomToken();
       }
       this.commMessageRequest = commMessage;
-
-      // mark the message for sending
       return msg;
     }
   }
@@ -190,7 +183,6 @@ public class CoapToCommMessageCodec
   protected void decode(ChannelHandlerContext ctx, CoapMessage in,
       List<Object> out) throws Exception {
 
-    this.cc = ctx.channel();
     ((CommCore.ExecutionContextThread) Thread.currentThread())
         .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
     out.add(decode_internal(in));
@@ -204,6 +196,7 @@ public class CoapToCommMessageCodec
       // REQUEST
       if (coapMessage.isRequest()) {
         this.correlationId = coapMessage.getMessageID();
+        this.correlationToken = coapMessage.getToken();
         return CommMessage.createRequest(getOperationName(coapMessage),
             "/", byteBufToValue(coapMessage.getContent(), getOperationName(coapMessage)));
       } else {
@@ -221,15 +214,14 @@ public class CoapToCommMessageCodec
         return new CommMessage(this.commMessageRequest.id(),
             this.commMessageRequest.operationName(), "/", Value.create(),
             null);
+      }
+      // RESPONSE
+      if (this.correlationId == coapMessage.getMessageID() && this.commMessageRequest != null
+          && coapMessage.getToken().equals(this.correlationToken)) {
+        return CommMessage.createResponse(commMessageRequest,
+            byteBufToValue(coapMessage.getContent(), commMessageRequest.operationName()));
       } else {
-        // RESPONSE
-        if (coapMessage.isResponse()
-            && coapMessage.getToken().equals(this.correlationToken)) {
-          return CommMessage.createResponse(commMessageRequest,
-              byteBufToValue(coapMessage.getContent(), commMessageRequest.operationName()));
-        } else {
-          throw new FaultException("Not expected Coap Message: " + coapMessage);
-        }
+        throw new FaultException("Not expected Coap Message: " + coapMessage);
       }
     }
   }
@@ -321,6 +313,7 @@ public class CoapToCommMessageCodec
       str = ((Long) valueObject).toString();
     }
 
+    // TODO check empty string
     return str;
   }
 
@@ -355,18 +348,19 @@ public class CoapToCommMessageCodec
       throws IOException, FaultException, ParserConfigurationException,
       SAXException, TypeCheckingException {
 
+    ByteBuf bb = Unpooled.copiedBuffer(in);
     Value value = Value.create();
     Type type = protocol.getSendType(operationName);
     String format = format(operationName);
-    String message = in.toString(charset);
+    String message = Unpooled.copiedBuffer(bb).toString(charset);
 
     if (message.length() > 0) {
       switch (format) {
         case "xml":
-          parseXml(in, value);
+          parseXml(bb, value);
           break;
         case "json":
-          parseJson(in, value);
+          parseJson(bb, value);
           break;
         case "raw":
           parseRaw(message, value, type);

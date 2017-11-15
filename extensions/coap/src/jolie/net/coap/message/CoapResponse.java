@@ -25,7 +25,6 @@ import io.netty.buffer.Unpooled;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static jolie.net.coap.message.CoapMessage.UNDEFINED_MESSAGE_ID;
 import jolie.net.coap.options.Option;
 import jolie.net.coap.options.OptionValue;
 import jolie.net.coap.options.StringOptionValue;
