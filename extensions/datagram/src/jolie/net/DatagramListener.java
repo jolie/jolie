@@ -32,22 +32,22 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+//import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DatagramListener extends CommListener {
 
   private final EventLoopGroup workerGroup;
   private final InetSocketAddress localAddress;
-  private Channel channel;
-  private InetSocketAddress recipient;
-  private final ReentrantReadWriteLock responseChannels;
+  private Channel clientChannel;
+  private Channel serverChannel;
+//  public static final ReentrantReadWriteLock responseChannels
+//      = new ReentrantReadWriteLock();
 
   public DatagramListener(
       Interpreter interpreter,
@@ -56,7 +56,6 @@ public class DatagramListener extends CommListener {
       EventLoopGroup workerGroup
   ) {
     super(interpreter, protocolFactory, inputPort);
-    this.responseChannels = new ReentrantReadWriteLock();
     this.workerGroup = workerGroup;
     this.localAddress = new InetSocketAddress(inputPort().location().getHost(),
         inputPort().location().getPort());
@@ -64,24 +63,29 @@ public class DatagramListener extends CommListener {
 
   @Override
   public void shutdown() {
-    if (channel != null) {
-      responseChannels.writeLock().lock();
-      try {
-        channel.close();
-      } finally {
-        responseChannels.writeLock().unlock();
-      }
-    }
+//    System.out.println("Sto mandando in shutdown...");
+//    if (serverChannel.isOpen()) {
+//      System.out.println("--- PRENDO WRITE LOCK ---");
+//      responseChannels.writeLock().lock();
+//      try {
+//        System.out.println("!!! Canale Chiuso !!!");
+    serverChannel.close();
+//      } finally {
+//        System.out.println("--- RILASCIO WRITE LOCK ---");
+//        responseChannels.writeLock().unlock();
+//      }
+//    }
   }
 
-  public void addResponseChannel() {
-    responseChannels.readLock().lock();
-  }
-
-  public void removeResponseChannel() {
-    responseChannels.readLock().unlock();
-  }
-
+//  public void addResponseChannel() {
+//    System.out.println("--- PRENDO READ LOCK ---");
+//    responseChannels.readLock().lock();
+//  }
+//
+//  public static void removeResponseChannel() {
+//    System.out.println("--- RILASCIO READ LOCK ---");
+//    responseChannels.readLock().unlock();
+//  }
   @Override
   public void run() {
 
@@ -94,40 +98,30 @@ public class DatagramListener extends CommListener {
       protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg)
           throws Exception {
 
-        addResponseChannel();
-
+//        addResponseChannel();
         CommProtocol protocol = createProtocol();
         if (!(protocol instanceof AsyncCommProtocol)) {
           throw new UnsupportedCommProtocolException("Use an async protocol");
         }
 
-        recipient = msg.sender();
         DatagramCommChannel commChannel = DatagramCommChannel.createChannel(
             null,
             (AsyncCommProtocol) protocol,
             workerGroup,
             inputPort(),
-            new DatagramPacketEncoder(recipient));
+            new DatagramPacketEncoder(msg.sender())
+        );
 
         ChannelFuture f = commChannel.bind(new InetSocketAddress(0)).sync();
-        f.channel().pipeline().addFirst(new ChannelOutboundHandlerAdapter() {
-
-          @Override
-          public void flush(ChannelHandlerContext ctx)
-              throws Exception {
-            ctx.flush();
-            removeResponseChannel();
-          }
-        });
-        System.out.println(f.channel().pipeline());
-        f.channel().pipeline().fireChannelRead(msg.content().retain());
+        clientChannel = f.channel();
+        clientChannel.pipeline().fireChannelRead(msg.content().retain());
       }
     });
 
     try {
       ChannelFuture f = b.bind().sync();
-      channel = f.channel();
-      channel.closeFuture().sync();
+      serverChannel = f.channel();
+      serverChannel.closeFuture().sync();
     } catch (InterruptedException ex) {
       Interpreter.getInstance().logWarning(ex);
     } finally {

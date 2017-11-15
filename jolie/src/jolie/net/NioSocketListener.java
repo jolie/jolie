@@ -123,8 +123,8 @@ public class NioSocketListener extends CommListener {
             @Override
             public void flush(ChannelHandlerContext ctx)
                 throws Exception {
-              ctx.flush();
               removeResponseChannel();
+              ctx.flush();
             }
           });
           p.addLast(channel.commChannelHandler);
