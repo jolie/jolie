@@ -8,15 +8,15 @@ interface ThermostatInterface {
 }
 
 inputPort  Thermostat {
-    Location: "datagram://localhost:9001"
+    Location: "datagram://localhost:9020"
     Protocol: coap {
-        .debug = true;
+        .debug = false;
         .proxy = false;
-        // .osc.getTmp << {
-        //     .format = "raw",
-        //     .alias = "42/getTemperature",
-        //     .confirmable = true
-        // };
+        .osc.getTmp << {
+            .format = "raw",
+            .method = "POST",
+            .alias = "42/getTemperature"
+        };
         .osc.test << {
             .format = "raw",
             .alias = "test/getTemperature"
@@ -32,9 +32,9 @@ main
     [ test( r ) ]{
         println@Console( "Received TEST: " + r )()
     }
-    // [ getTmp( temp )( resp ){
-    //         resp = 24;
-    //         println@Console( "Received getTmp, sending back: " + resp )()
-    //     } 
-    // ]
+    [ getTmp( temp )( resp ){
+            resp = 24;
+            println@Console( "Received getTmp, sending back: " + resp )()
+        } 
+    ]
 }      
