@@ -36,12 +36,14 @@ import jolie.net.ports.Port;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.AttributeKey;
 
 public class DatagramCommChannel extends StreamingCommChannel {
@@ -51,7 +53,7 @@ public class DatagramCommChannel extends StreamingCommChannel {
   public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT
       = AttributeKey.valueOf("ExecutionContext");
 
-  private Bootstrap bootstrap;
+  private Bootstrap b;
   protected CompletableFuture<CommMessage> waitingForMsg = null;
   protected StreamingCommChannelHandler commChannelHandler;
   private ChannelPipeline channelPipeline;
@@ -66,49 +68,113 @@ public class DatagramCommChannel extends StreamingCommChannel {
     return commChannelHandler;
   }
 
+  /**
+   *
+   * @param channelPipeline
+   */
   public void setChannelPipeline(ChannelPipeline channelPipeline) {
     this.channelPipeline = channelPipeline;
   }
 
+  /**
+   *
+   * @return
+   */
   public ChannelPipeline getChannelPipeline() {
     return channelPipeline;
   }
 
-  public static DatagramCommChannel CreateChannel(URI location,
+  /**
+   *
+   * @param location
+   * @param protocol
+   * @param workerGroup
+   * @param port
+   * @return
+   */
+  public static DatagramCommChannel createChannel(URI location,
       AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port) {
 
-    ExecutionThread ethread = ExecutionThread.currentThread();
-    DatagramCommChannel channel = new DatagramCommChannel(location, protocol);
+    return createChannel(
+        location,
+        protocol,
+        workerGroup,
+        port,
+        new DatagramPacketEncoder(new InetSocketAddress(
+            location.getHost(),
+            location.getPort()
+        )));
+  }
 
-    channel.bootstrap = new Bootstrap();
-    channel.bootstrap.group(workerGroup);
-    channel.bootstrap.channel(NioDatagramChannel.class);
-    channel.bootstrap.handler(new ChannelInitializer() {
+  /**
+   *
+   * @param location
+   * @param protocol
+   * @param workerGroup
+   * @param port
+   * @return
+   */
+  public static DatagramCommChannel createChannel(URI location,
+      AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port,
+      ChannelHandler datagramPacketFormatter) {
+
+    ExecutionThread ethread = ExecutionThread.currentThread();
+    DatagramCommChannel c = new DatagramCommChannel(location, protocol);
+
+    c.b = new Bootstrap();
+    c.b.group(workerGroup);
+    c.b.channel(NioDatagramChannel.class);
+    c.b.handler(new ChannelInitializer() {
       @Override
       protected void initChannel(Channel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
-        p.addLast(new LoggingHandler(LogLevel.INFO));
         if (port instanceof InputPort) {
-          channel.setParentInputPort((InputPort) port);
+          c.setParentInputPort((InputPort) port);
         }
         if (port instanceof OutputPort) {
-          channel.setParentOutputPort((OutputPort) port);
+          c.setParentOutputPort((OutputPort) port);
         }
-        protocol.setChannel(channel);
-        channel.setChannelPipeline(p);
+        protocol.setChannel(c);
+        c.setChannelPipeline(p);
         protocol.setupPipeline(p);
-        p.addLast(CHANNEL_HANDLER_NAME, channel.commChannelHandler);
+        p.addLast(CHANNEL_HANDLER_NAME, c.commChannelHandler);
+        p.addFirst("DATAGRAM-PACKET-FORMATTER", datagramPacketFormatter);
+        p.addFirst(new SimpleChannelInboundHandler<DatagramPacket>() {
+          @Override
+          protected void channelRead0(ChannelHandlerContext chc, DatagramPacket i)
+              throws Exception {
+            chc.fireChannelRead(i.content().retain());
+          }
+        });
         ch.attr(EXECUTION_CONTEXT).set(ethread);
       }
     });
 
-    return channel;
+    return c;
   }
 
-  public ChannelFuture connect(URI location) {
-    ChannelFuture f = bootstrap.connect(
-        new InetSocketAddress(location.getHost(), location.getPort()));
-    return f;
+  /**
+   *
+   * @param location
+   * @return
+   * @throws InterruptedException
+   */
+  public ChannelFuture connect(URI location)
+      throws InterruptedException {
+
+    return b.bind(new InetSocketAddress(0));
+  }
+
+  /**
+   *
+   * @param location
+   * @return
+   * @throws InterruptedException
+   */
+  public ChannelFuture bind(InetSocketAddress location)
+      throws InterruptedException {
+
+    return b.bind(location);
   }
 
   /**
