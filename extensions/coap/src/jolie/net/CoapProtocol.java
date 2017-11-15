@@ -22,8 +22,7 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.codec.DatagramPacketDecoder;
 
 import java.io.IOException;
 import java.util.Map;

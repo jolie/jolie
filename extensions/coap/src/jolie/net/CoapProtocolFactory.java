@@ -31,8 +31,6 @@ import jolie.runtime.VariablePath;
 @AndJarDeps({"jolie-js.jar", "json_simple.jar", "jolie-xml.jar"})
 public class CoapProtocolFactory extends CommProtocolFactory {
 
-  private boolean isInput;
-
   public CoapProtocolFactory(CommCore commCore) {
     super(commCore);
   }
@@ -40,14 +38,12 @@ public class CoapProtocolFactory extends CommProtocolFactory {
   @Override
   public CommProtocol createInputProtocol(VariablePath configurationPath,
       URI location) throws IOException {
-    isInput = true;
-    return new CoapProtocol(configurationPath, isInput);
+    return new CoapProtocol(configurationPath, true);
   }
 
   @Override
   public CommProtocol createOutputProtocol(VariablePath configurationPath,
       URI location) throws IOException {
-    isInput = false;
-    return new CoapProtocol(configurationPath, isInput);
+    return new CoapProtocol(configurationPath, false);
   }
 }

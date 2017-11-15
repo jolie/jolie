@@ -48,7 +48,6 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   @Override
   protected void decode(ChannelHandlerContext ctx, ByteBuf in,
       List<Object> out) throws Exception {
-
     CoapMessage coapMessage;
 
     //Decode the Message Header which must have a length of exactly 4 bytes
@@ -122,7 +121,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
       //at the same position (buf.readableBytes() == 0).
       in.discardReadBytes();
       try {
-        coapMessage.setContent(in);
+        coapMessage.setContent(in.retain());
       } catch (IllegalArgumentException ex) {
         throw new FaultException(ex);
       }

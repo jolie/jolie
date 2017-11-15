@@ -49,7 +49,6 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
   @Override
   protected void encode(ChannelHandlerContext ctx, CoapMessage in,
       List<Object> out) throws Exception {
-
     try {
       ByteBuf msg = internal_encode(in);
       out.add(msg);
