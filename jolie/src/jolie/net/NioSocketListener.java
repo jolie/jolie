@@ -82,13 +82,14 @@ public class NioSocketListener extends CommListener {
     }
   }
 
-//  public void addResponseChannel() {
-//    responseChannels.readLock().lock();
-//  }
-//
-//  public void removeResponseChannel() {
-//    responseChannels.readLock().unlock();
-//  }
+  public void addResponseChannel() {
+    responseChannels.readLock().lock();
+  }
+
+  public void removeResponseChannel() {
+    responseChannels.readLock().unlock();
+  }
+
   @Override
   public void run() {
 
@@ -102,6 +103,8 @@ public class NioSocketListener extends CommListener {
         @Override
         protected void initChannel(SocketChannel ch)
             throws Exception {
+
+          addResponseChannel();
 
           CommProtocol protocol = createProtocol();
           assert (protocol instanceof AsyncCommProtocol);
@@ -121,6 +124,7 @@ public class NioSocketListener extends CommListener {
             public void flush(ChannelHandlerContext ctx)
                 throws Exception {
               ctx.flush();
+              removeResponseChannel();
             }
           });
           p.addLast(channel.commChannelHandler);
