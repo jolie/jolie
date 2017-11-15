@@ -127,17 +127,6 @@ public class CoapToCommMessageCodec
     this.cc = ctx.channel();
     ((CommCore.ExecutionContextThread) Thread.currentThread())
         .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
-    if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-      System.out.println("Channel: " + this.cc);
-      System.out.println("Channel Context Handler: " + ctx);
-      System.out.println("Comm Message arrived: " + in);
-      System.out.print(valueToPrettyString(in.value()));
-      if (input) {
-        System.out.println("Is an Input Port");
-      } else {
-        System.out.println("Is an Output Port");
-      }
-    }
     out.add(encode_internal(in));
   }
 
@@ -200,6 +189,7 @@ public class CoapToCommMessageCodec
   @Override
   protected void decode(ChannelHandlerContext ctx, CoapMessage in,
       List<Object> out) throws Exception {
+
     this.cc = ctx.channel();
     ((CommCore.ExecutionContextThread) Thread.currentThread())
         .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
@@ -211,20 +201,13 @@ public class CoapToCommMessageCodec
       TypeCheckingException {
 
     if (input) { // input port
-      // ACK
-      if (coapMessage.isAck() && this.correlationId
-          == coapMessage.getMessageID() && this.commMessageResponse != null) {
-        return new CommMessage(this.commMessageResponse.id(),
-            this.commMessageResponse.operationName(), "/", Value.create(),
-            null);
+      // REQUEST
+      if (coapMessage.isRequest()) {
+        this.correlationId = coapMessage.getMessageID();
+        return CommMessage.createRequest(getOperationName(coapMessage),
+            "/", byteBufToValue(coapMessage.getContent(), getOperationName(coapMessage)));
       } else {
-        // REQUEST
-        if (coapMessage.isRequest()) {
-          return CommMessage.createRequest(getOperationName(coapMessage),
-              "/", byteBufToValue(coapMessage, getOperationName(coapMessage)));
-        } else {
-          throw new FaultException("Not expected Coap Message: " + coapMessage);
-        }
+        throw new FaultException("Not expected Coap Message: " + coapMessage);
       }
     } else { // output port 
       // ACK
@@ -243,7 +226,7 @@ public class CoapToCommMessageCodec
         if (coapMessage.isResponse()
             && coapMessage.getToken().equals(this.correlationToken)) {
           return CommMessage.createResponse(commMessageRequest,
-              byteBufToValue(coapMessage, commMessageRequest.operationName()));
+              byteBufToValue(coapMessage.getContent(), commMessageRequest.operationName()));
         } else {
           throw new FaultException("Not expected Coap Message: " + coapMessage);
         }
@@ -368,23 +351,22 @@ public class CoapToCommMessageCodec
     return MessageCode.POST;
   }
 
-  private Value byteBufToValue(CoapMessage in, String operationName)
+  private Value byteBufToValue(ByteBuf in, String operationName)
       throws IOException, FaultException, ParserConfigurationException,
       SAXException, TypeCheckingException {
 
-    ByteBuf content = Unpooled.wrappedBuffer(in.getContent());
     Value value = Value.create();
     Type type = protocol.getSendType(operationName);
     String format = format(operationName);
-    String message = content.toString(charset);
+    String message = in.toString(charset);
 
     if (message.length() > 0) {
       switch (format) {
         case "xml":
-          parseXml(content, value);
+          parseXml(in, value);
           break;
         case "json":
-          parseJson(content, value);
+          parseJson(in, value);
           break;
         case "raw":
           parseRaw(message, value, type);
