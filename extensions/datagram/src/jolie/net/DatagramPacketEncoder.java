@@ -28,15 +28,14 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageEncoder;
-import io.netty.util.ReferenceCounted;
 import java.net.InetSocketAddress;
 import java.util.List;
 
-class DatagramPacketDecoder extends MessageToMessageEncoder<ByteBuf> {
+class DatagramPacketEncoder extends MessageToMessageEncoder<ByteBuf> {
 
   private InetSocketAddress recipient;
 
-  DatagramPacketDecoder(InetSocketAddress recipient) {
+  DatagramPacketEncoder(InetSocketAddress recipient) {
     this.recipient = recipient;
   }
 
@@ -48,13 +47,12 @@ class DatagramPacketDecoder extends MessageToMessageEncoder<ByteBuf> {
     if (msg.isDirect() && msg.nioBufferCount() == 1) {
       dp = new DatagramPacket(msg, recipient);
     } else {
-      ReferenceCounted p = null;
       dp = new DatagramPacket(newDirectBuffer(msg), recipient);
     }
     out.add(dp);
   }
 
-  protected final ByteBuf newDirectBuffer(ByteBuf buf) {
+  public final ByteBuf newDirectBuffer(ByteBuf buf) {
     final int readableBytes = buf.readableBytes();
     if (readableBytes == 0) {
       return Unpooled.EMPTY_BUFFER;
