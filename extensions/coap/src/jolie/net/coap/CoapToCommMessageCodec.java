@@ -76,6 +76,7 @@ import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
 import jolie.net.CommCore;
+import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.Token;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.xml.XmlUtils;
@@ -107,16 +108,17 @@ public class CoapToCommMessageCodec
 
   private final boolean isInput;
   private final CoapProtocol protocol;
+  private int correlationId;
+  private Token correlationToken;
 
   public CoapToCommMessageCodec(CoapProtocol protocol) {
+    this.correlationToken = null;
     this.correlationId = -1;
     this.protocol = protocol;
     this.isInput = protocol.isInput;
   }
 
   private CommMessage commMessageRequest;
-  private int correlationId;
-  private Token correlationToken;
   private URI targetURI;
 
   @Override
@@ -139,6 +141,7 @@ public class CoapToCommMessageCodec
     String operationName = commMessage.operationName();
     int messageType = getMessageType(operationName);
     int messageCode = getMessageCode(operationName);
+
     if (isInput) {
       if (isOneWay(operationName)) {
         if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
@@ -151,17 +154,18 @@ public class CoapToCommMessageCodec
           System.out.println("DEBUG: RECEIVING FROM COMM CORE A RESPONSE "
               + "--> forwarding it to the client");
         }
-        try {
-          msg = new CoapMessage(messageType, messageCode);
-          msg.setRandomMessageID();
-          msg.setToken(this.correlationToken);
-          msg.setContent(
-              valueToByteBuf(commMessage),
-              getContentFormat(operationName)
-          );
-        } catch (IllegalArgumentException e) {
-          throw new IllegalArgumentException(e);
-        }
+        String URIPath = getURIPath(commMessage);
+        msg = new CoapRequest(
+            messageType, 
+            messageCode, 
+            this.targetURI,
+            protocol.checkBooleanParameter(Parameters.PROXY),
+            this.correlationToken);
+        msg.addStringOption(Option.URI_PATH, URIPath);
+        msg.setContent(
+            valueToByteBuf(commMessage),
+            getContentFormat(operationName)
+        );
       }
     } else {
 
@@ -245,7 +249,7 @@ public class CoapToCommMessageCodec
       }
     } else {
       if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-        System.out.println("DEBUG: RECEIVING FROM CLIENT A RESPONSE "
+        System.out.println("DEBUG: RECEIVING FROM THE SERVER A RESPONSE "
             + "--> forwarding it to the comm core");
       }
       if (this.commMessageRequest != null
@@ -266,8 +270,7 @@ public class CoapToCommMessageCodec
             && this.correlationId == coapMessage.getMessageID()) {
 
           if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-            System.out.println("DEBUG: Ack Correlated Message Incoming "
-                + coapMessage.toString() + "\nwith correlation id "
+            System.out.println("DEBUG: ACK MATCHING CORRELATION ID "
                 + this.correlationId);
           }
 

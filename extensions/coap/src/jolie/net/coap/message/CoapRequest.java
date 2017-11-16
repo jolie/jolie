@@ -87,6 +87,28 @@ public class CoapRequest extends CoapMessage {
     }
   }
 
+  public CoapRequest(int messageType, int messageCode, URI targetUri,
+      boolean useProxy, Token token) throws IllegalArgumentException {
+
+    super(messageType, messageCode, UNDEFINED_MESSAGE_ID, token);
+
+    if (messageType < MessageType.CON || messageType > MessageType.NON) {
+      throw new IllegalArgumentException(String.format(NO_REQUEST_TYPE,
+          messageType));
+    }
+
+    if (!MessageCode.isRequest(messageCode)) {
+      throw new IllegalArgumentException(String.format(NO_REQUEST_CODE,
+          messageCode));
+    }
+
+    if (useProxy) {
+      setProxyURIOption(targetUri);
+    } else {
+      setTargetUriOptions(targetUri);
+    }
+  }
+
   /**
    * Creates a new instance of {@link CoapRequest}. <b>Note:</b> This
    * constructor is only intended for internal use. Please use one of the other
@@ -102,7 +124,7 @@ public class CoapRequest extends CoapMessage {
    */
   public CoapRequest(int messageType, int messageCode)
       throws IllegalArgumentException {
-    
+
     super(messageType, messageCode, UNDEFINED_MESSAGE_ID,
         new Token(new byte[0]));
 

@@ -89,7 +89,7 @@ public class CoapMessage {
     }
 
     this.setMessageType(messageType);
-    this.messageCode(messageCode);
+    this.setMessageCode(messageCode);
     this.setMessageID(messageID);
     this.setToken(token);
     this.options = new TreeMap<>();
@@ -111,22 +111,35 @@ public class CoapMessage {
   public CoapMessage(int messageType, int messageCode)
       throws IllegalArgumentException {
 
-    if (!MessageType.isMessageType(messageType)) {
-      throw new IllegalArgumentException("No. " + messageType
-          + " is not corresponding to any message type.");
-    }
+    new CoapMessage(
+        messageType,
+        messageCode,
+        new Random().nextInt(65535),
+        Token.getRandomToken()
+    );
+  }
 
-    if (!MessageCode.isMessageCode(messageCode)) {
-      throw new IllegalArgumentException("No. " + messageCode
-          + " is not corresponding to any message code.");
-    }
+  /**
+   * Creates a new instance of {@link CoapMessage}.
+   *
+   * @param messageType the number representing the {@link MessageType} for this
+   * {@link CoapMessage}
+   * @param messageCode the number representing the {@link MessageCode} for this
+   * {@link CoapMessage}
+   * @param messageID the message ID for this {@link CoapMessage}
+   * @param token the {@link Token} for this {@link CoapMessage}
+   *
+   * @throws IllegalArgumentException if one of the given arguments is invalid
+   */
+  public CoapMessage(int messageType, int messageCode, Token token)
+      throws IllegalArgumentException {
 
-    this.setMessageType(messageType);
-    this.messageCode(messageCode);
-    setRandomMessageID();
-    setRandomToken();
-    this.options = new TreeMap<>();
-    this.content = Unpooled.EMPTY_BUFFER;
+    new CoapMessage(
+        messageType,
+        messageCode,
+        new Random().nextInt(65535),
+        token
+    );
   }
 
   /**
@@ -282,7 +295,6 @@ public class CoapMessage {
       throw new IllegalArgumentException(String.format(WRONG_OPTION_TYPE,
           optionNumber, OptionValue.Type.STRING));
     }
-
     byte[] byteValue = ByteBuffer.allocate(Long.BYTES).putLong(value).array();
     int index = 0;
     while (index < byteValue.length && byteValue[index] == 0) {
@@ -586,13 +598,12 @@ public class CoapMessage {
    * @param messageCode
    * @throws IllegalArgumentException
    */
-  public void messageCode(int messageCode)
+  public void setMessageCode(int messageCode)
       throws IllegalArgumentException {
     if (!MessageCode.isMessageCode(messageCode)) {
       throw new IllegalArgumentException("Invalid message code no. "
           + messageCode);
     }
-
     this.messageCode = messageCode;
   }
 
@@ -736,10 +747,10 @@ public class CoapMessage {
     if (payloadLength == 0) {
       result.append("<no content>]");
     } else {
-      result.append(getContent().toString(0,
-          Math.min(getContent().readableBytes(), 20),
-          CoapMessage.CHARSET)).append("... ( ")
-          .append(payloadLength).append(" bytes)]");
+      result.append(
+          Unpooled.copiedBuffer(getContent())
+              .toString(CoapMessage.CHARSET))
+          .append(" ( ").append(payloadLength).append(" bytes)]");
     }
 
     return result.toString();
