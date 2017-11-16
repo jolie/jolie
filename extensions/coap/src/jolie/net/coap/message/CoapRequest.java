@@ -102,6 +102,7 @@ public class CoapRequest extends CoapMessage {
    */
   public CoapRequest(int messageType, int messageCode)
       throws IllegalArgumentException {
+    
     super(messageType, messageCode, UNDEFINED_MESSAGE_ID,
         new Token(new byte[0]));
 
