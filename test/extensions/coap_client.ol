@@ -8,9 +8,9 @@ interface ThermostatInterface {
 }
 
 outputPort Thermostat {
-    Location: "datagram://localhost:9020"
+    Location: "datagram://localhost:9027"
     Protocol: coap {
-        .debug = true;
+        .debug = false;
         .proxy = false;
         .osc.getTmp << {
             .alias = "%!{id}/getTemperature",
@@ -34,7 +34,8 @@ main
         |
         getTmp@Thermostat( { .id = "42" } )( varA );
         println@Console( " Thermostat n.42 forwarded temperature: " + varA + " C")()
-    };
+    }
+    |
     {
         println@Console( " Setting Temperature of Thermostat n.42 to 24 C ..." )()
         |

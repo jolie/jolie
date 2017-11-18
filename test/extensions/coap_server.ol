@@ -8,13 +8,13 @@ interface ThermostatInterface {
 }
 
 inputPort  Thermostat {
-    Location: "datagram://localhost:9020"
+    Location: "datagram://localhost:9027"
     Protocol: coap {
-        .debug = true;
+        .debug = false;
         .proxy = false;
         .osc.getTmp << {
             .format = "raw",
-            .method = "CONTENT_205",
+            .method = "205",
             .alias = "42/getTemperature"
         };
         .osc.setTmp << {
@@ -24,7 +24,7 @@ inputPort  Thermostat {
     Interfaces: ThermostatInterface
 }
 
-execution{ concurrent }
+// execution{ concurrent }
 
 main 
 {
