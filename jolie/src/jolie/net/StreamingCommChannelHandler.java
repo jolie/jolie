@@ -98,11 +98,12 @@ public class StreamingCommChannelHandler
 
   public ChannelFuture write(CommMessage msg)
       throws InterruptedException {
-    return ctx.writeAndFlush(msg);
+    ChannelFuture f = this.ctx.writeAndFlush(msg);
+    return f;
   }
 
   public ChannelFuture close() {
-    return ctx.close();
+    return this.ctx.close();
   }
 
   private final ReadWriteLock channelHandlersLock
@@ -197,7 +198,7 @@ public class StreamingCommChannelHandler
         if (operation instanceof OneWayOperation) {
           // We need to send the acknowledgement
           outChannel.send(CommMessage.createEmptyResponse(message));
-          //channel.release();
+          //outChannel.release();
         }
       } catch (TypeCheckingException e) {
         interpreter.logWarning("Received message TypeMismatch (input operation "
