@@ -34,7 +34,6 @@ import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -124,9 +123,9 @@ public class DatagramCommChannel extends StreamingCommChannel {
     c.b = new Bootstrap();
     c.b.group(workerGroup);
     c.b.channel(NioDatagramChannel.class);
-    c.b.handler(new ChannelInitializer() {
+    c.b.handler(new ChannelInitializer<NioDatagramChannel>() {
       @Override
-      protected void initChannel(Channel ch) throws Exception {
+      protected void initChannel(NioDatagramChannel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
         if (port instanceof InputPort) {
           c.setParentInputPort((InputPort) port);
@@ -139,10 +138,13 @@ public class DatagramCommChannel extends StreamingCommChannel {
         protocol.setupPipeline(p);
         p.addLast(CHANNEL_HANDLER_NAME, c.commChannelHandler);
         p.addFirst("DATAGRAM-PACKET-FORMATTER", datagramPacketFormatter);
-        p.addFirst(new SimpleChannelInboundHandler<DatagramPacket>() {
+        p.addFirst("BYTE-BUF-FORWARDER", new SimpleChannelInboundHandler<DatagramPacket>() {
           @Override
           protected void channelRead0(ChannelHandlerContext chc, DatagramPacket i)
               throws Exception {
+            if (port instanceof InputPort) {
+              DatagramListener.addResponseChannel();
+            }
             chc.fireChannelRead(i.content().retain());
           }
         });
