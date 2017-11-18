@@ -48,7 +48,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   @Override
   protected void decode(ChannelHandlerContext ctx, ByteBuf in,
       List<Object> out) throws Exception {
-    CoapMessage coapMessage;
+    CoapMessage coapMessage = null;
 
     //Decode the Message Header which must have a length of exactly 4 bytes
     if (in.readableBytes() < 4) {
@@ -66,19 +66,19 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     //Check whether the protocol version is supported (=1)
     if (version != CoapMessage.PROTOCOL_VERSION) {
-      throw new FaultException("CoAP version (" + version + ") is other "
+      Interpreter.getInstance().logSevere("CoAP version (" + version + ") is other "
           + "than \"1\"!");
     }
 
     //Check whether TKL indicates a not allowed token length
     if (tokenLength > CoapMessage.MAX_TOKEN_LENGTH) {
-      throw new FaultException("TKL value (" + tokenLength + ") is larger "
+      Interpreter.getInstance().logSevere("TKL value (" + tokenLength + ") is larger "
           + "than 8!");
     }
 
     //Check whether there are enough unread bytes left to read the token
     if (in.readableBytes() < tokenLength) {
-      throw new FaultException("TKL value is " + tokenLength + " but only "
+      Interpreter.getInstance().logSevere("TKL value is " + tokenLength + " but only "
           + in.readableBytes() + " bytes left!");
     }
 
@@ -92,7 +92,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
       } else if (messageType == MessageType.CON) {
         coapMessage = CoapMessage.createPing(messageID);
       } else {
-        throw new FaultException("Empty NON messages are invalid!");
+        Interpreter.getInstance().logSevere("Empty NON messages are invalid!");
       }
     } else {
 
@@ -123,7 +123,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
       try {
         coapMessage.setContent(in.retain());
       } catch (IllegalArgumentException ex) {
-        throw new FaultException(ex);
+        Interpreter.getInstance().logSevere(ex);
       }
     }
 
