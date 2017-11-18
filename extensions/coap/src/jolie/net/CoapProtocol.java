@@ -62,7 +62,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
   @Override
   public void setupPipeline(ChannelPipeline p) {
-    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+//    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
     p.addLast("DECODER", new CoapMessageDecoder());
     p.addLast("ENCODER", new CoapMessageEncoder());
     p.addLast("CODEC", new CoapToCommMessageCodec(this));
