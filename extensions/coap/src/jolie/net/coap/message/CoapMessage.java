@@ -61,7 +61,7 @@ public class CoapMessage {
   private ByteBuf content;
   private Token token;
 
-  protected Map<Integer, OptionValue> options;
+  public Map<Integer, OptionValue> options;
 
   /**
    * Creates a new instance of {@link CoapMessage}.
@@ -79,12 +79,12 @@ public class CoapMessage {
       Token token) throws IllegalArgumentException {
 
     if (!MessageType.isMessageType(messageType)) {
-      throw new IllegalArgumentException("No. " + messageType
+      Interpreter.getInstance().logSevere("No. " + messageType
           + " is not corresponding to any message type.");
     }
 
     if (!MessageCode.isMessageCode(messageCode)) {
-      throw new IllegalArgumentException("No. " + messageCode
+      Interpreter.getInstance().logSevere("No. " + messageCode
           + " is not corresponding to any message code.");
     }
 
@@ -164,16 +164,16 @@ public class CoapMessage {
    * Method to create an empty acknowledgement message which is strictly
    * speaking neither a request nor a response
    *
-   * @param messageID the message ID of the acknowledgement message.
+   * @param id the message ID of the acknowledgement message.
    *
    * @return an instance of {@link CoapMessage} with {@link MessageType#ACK}
    *
    * @throws IllegalArgumentException if the given message ID is out of the
    * allowed range
    */
-  public static CoapMessage createEmptyAcknowledgement(int messageID)
+  public static CoapMessage createEmptyAcknowledgement(int id)
       throws IllegalArgumentException {
-    return new CoapMessage(MessageType.ACK, MessageCode.EMPTY, messageID,
+    return new CoapMessage(MessageType.ACK, MessageCode.EMPTY, id,
         new Token(new byte[0])) {
     };
   }
@@ -190,11 +190,10 @@ public class CoapMessage {
    * @throws IllegalArgumentException if the given message ID is out of the
    * allowed range
    */
-  public static CoapMessage createPing(int messageID)
+  public static CoapMessage createPing(int id)
       throws IllegalArgumentException {
-    return new CoapMessage(MessageType.CON, MessageCode.EMPTY, messageID,
-        new Token(new byte[0])) {
-    };
+    return new CoapMessage(MessageType.CON, MessageCode.EMPTY, id,
+        new Token(new byte[0]));
   }
 
   /**
@@ -568,7 +567,7 @@ public class CoapMessage {
     } catch (IllegalArgumentException e) {
       this.content = Unpooled.EMPTY_BUFFER;
       this.removeOptions(Option.CONTENT_FORMAT);
-      throw e;
+      Interpreter.getInstance().logSevere(e);
     }
   }
 
@@ -734,11 +733,16 @@ public class CoapMessage {
 
     //Options
     result.append("Options:");
-    for (int optionNumber : getAllOptions().keySet()) {
-      result.append(" (No. ").append(optionNumber).append(") ");
-      OptionValue optionValue = this.getOptions(optionNumber);
-      result.append(optionValue.toString());
+    if (!this.options.isEmpty()) {
+      for (int optionNumber : getAllOptions().keySet()) {
+        result.append(" (No. ").append(optionNumber).append(") ");
+        OptionValue optionValue = this.getOptions(optionNumber);
+        result.append(optionValue.toString());
+      }
+    } else {
+      result.append(" <no options> ");
     }
+
     result.append(" | ");
 
     //Content
