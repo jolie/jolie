@@ -44,13 +44,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.AttributeKey;
+import jolie.Interpreter;
 
 public class DatagramCommChannel extends StreamingCommChannel {
 
   public final static String CHANNEL_HANDLER_NAME
       = "STREAMING-CHANNEL-HANDLER";
-  public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT
-      = AttributeKey.valueOf("ExecutionContext");
 
   private Bootstrap b;
   protected CompletableFuture<CommMessage> waitingForMsg = null;
@@ -139,6 +138,7 @@ public class DatagramCommChannel extends StreamingCommChannel {
         p.addLast(CHANNEL_HANDLER_NAME, c.commChannelHandler);
         p.addFirst("DATAGRAM-PACKET-FORMATTER", datagramPacketFormatter);
         p.addFirst("BYTE-BUF-FORWARDER", new SimpleChannelInboundHandler<DatagramPacket>() {
+
           @Override
           protected void channelRead0(ChannelHandlerContext chc, DatagramPacket i)
               throws Exception {
@@ -147,8 +147,16 @@ public class DatagramCommChannel extends StreamingCommChannel {
             }
             chc.fireChannelRead(i.content().retain());
           }
+
+          @Override
+          public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+              throws Exception {
+            Interpreter.getInstance().logSevere(cause);
+            ctx.close();
+          }
+          
         });
-        ch.attr(EXECUTION_CONTEXT).set(ethread);
+        ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT).set(ethread);
       }
     });
 
@@ -197,8 +205,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
       waitingForMsg = null;
       return msg;
     } catch (InterruptedException | ExecutionException ex) {
+      throw new IOException(ex);
     }
-    return null;
   }
 
   protected void completeRead(CommMessage message) {
