@@ -28,12 +28,11 @@ inputPort  Thermostat {
 
 main 
 {
-    [ getTmp( temp )( resp ){
-            resp = 19;
-            println@Console( " Get Temperature Request. Forwarding: " + resp )()
-        } 
-    ]
-    [ setTmp( r ) ]{
-        println@Console( " Setting Temperature of the Thermostat to " + r )()
+     getTmp( temp )( resp ){
+        resp = 19;
+        println@Console( " Get Temperature Request. Forwarding: " + resp )()
     }
+    |
+    setTmp( r );
+    println@Console( " Setting Temperature of the Thermostat to " + r )()
 }      

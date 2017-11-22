@@ -24,9 +24,11 @@ package jolie.net.coap.options;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import jolie.Interpreter;
 import jolie.net.coap.message.MessageCode;
 import static jolie.net.coap.options.Option.Occurence.MULTIPLE;
 import static jolie.net.coap.options.Option.Occurence.ONCE;
+import static jolie.net.coap.options.Option.Occurence.NONE;
 
 public class Option {
 
@@ -121,12 +123,12 @@ public class Option {
     return !((optionNumber & 0x1e) == 0x1c);
   }
 
-  private static final Hashtable<Integer, Map<Integer, Option.Occurence>> OCCURENCE_CONSTRAINTS
+  private static final Hashtable<Integer, Map<Integer, Occurence>> OCCURENCE_CONSTRAINTS
       = new Hashtable<>();
 
   static {
 
-    Map<Integer, Option.Occurence> GET = new HashMap<>();
+    Map<Integer, Occurence> GET = new HashMap<>();
     GET.put(OBSERVE, ONCE);
     GET.put(URI_HOST, ONCE);
     GET.put(URI_PORT, ONCE);
@@ -141,7 +143,7 @@ public class Option {
     GET.put(ENDPOINT_ID_1, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.GET, GET);
 
-    Map<Integer, Option.Occurence> POST = new HashMap<>();
+    Map<Integer, Occurence> POST = new HashMap<>();
     POST.put(URI_HOST, ONCE);
     POST.put(URI_PORT, ONCE);
     POST.put(URI_PATH, MULTIPLE);
@@ -157,7 +159,7 @@ public class Option {
     POST.put(ENDPOINT_ID_1, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.POST, POST);
 
-    Map<Integer, Option.Occurence> PUT = new HashMap<>();
+    Map<Integer, Occurence> PUT = new HashMap<>();
     PUT.put(URI_HOST, ONCE);
     PUT.put(URI_PORT, ONCE);
     PUT.put(URI_PATH, MULTIPLE);
@@ -175,7 +177,7 @@ public class Option {
     PUT.put(ENDPOINT_ID_1, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.PUT, PUT);
 
-    Map<Integer, Option.Occurence> DELETE = new HashMap<>();
+    Map<Integer, Occurence> DELETE = new HashMap<>();
     DELETE.put(URI_HOST, ONCE);
     DELETE.put(URI_PORT, ONCE);
     DELETE.put(URI_PATH, MULTIPLE);
@@ -185,7 +187,7 @@ public class Option {
     DELETE.put(ENDPOINT_ID_1, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.DELETE, DELETE);
 
-    Map<Integer, Option.Occurence> CREATED_201 = new HashMap<>();
+    Map<Integer, Occurence> CREATED_201 = new HashMap<>();
     CREATED_201.put(ETAG, ONCE);
     CREATED_201.put(OBSERVE, ONCE);
     CREATED_201.put(LOCATION_PATH, MULTIPLE);
@@ -197,7 +199,7 @@ public class Option {
     CREATED_201.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.CREATED_201, CREATED_201);
 
-    Map<Integer, Option.Occurence> DELETED_202 = new HashMap<>();
+    Map<Integer, Occurence> DELETED_202 = new HashMap<>();
     DELETED_202.put(CONTENT_FORMAT, ONCE);
     DELETED_202.put(BLOCK_2, ONCE);
     DELETED_202.put(BLOCK_1, ONCE);
@@ -205,7 +207,7 @@ public class Option {
     DELETED_202.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.DELETED_202, DELETED_202);
 
-    Map<Integer, Option.Occurence> VALID_203 = new HashMap<>();
+    Map<Integer, Occurence> VALID_203 = new HashMap<>();
     VALID_203.put(OBSERVE, ONCE);
     VALID_203.put(ETAG, ONCE);
     VALID_203.put(MAX_AGE, ONCE);
@@ -214,7 +216,7 @@ public class Option {
     VALID_203.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.VALID_203, VALID_203);
 
-    Map<Integer, Option.Occurence> CHANGED_204 = new HashMap<>();
+    Map<Integer, Occurence> CHANGED_204 = new HashMap<>();
     CHANGED_204.put(ETAG, ONCE);
     CHANGED_204.put(CONTENT_FORMAT, ONCE);
     CHANGED_204.put(BLOCK_2, ONCE);
@@ -223,7 +225,7 @@ public class Option {
     CHANGED_204.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.CHANGED_204, CHANGED_204);
 
-    Map<Integer, Option.Occurence> CONTENT_205 = new HashMap<>();
+    Map<Integer, Occurence> CONTENT_205 = new HashMap<>();
     CONTENT_205.put(OBSERVE, ONCE);
     CONTENT_205.put(CONTENT_FORMAT, ONCE);
     CONTENT_205.put(MAX_AGE, ONCE);
@@ -235,63 +237,63 @@ public class Option {
     CONTENT_205.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.CONTENT_205, CONTENT_205);
 
-    Map<Integer, Option.Occurence> CONTINUE_231 = new HashMap<>();
+    Map<Integer, Occurence> CONTINUE_231 = new HashMap<>();
     CONTINUE_231.put(BLOCK_1, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.CONTINUE_231, CONTINUE_231);
 
-    Map<Integer, Option.Occurence> BAD_REQUEST_400 = new HashMap<>();
+    Map<Integer, Occurence> BAD_REQUEST_400 = new HashMap<>();
     BAD_REQUEST_400.put(MAX_AGE, ONCE);
     BAD_REQUEST_400.put(CONTENT_FORMAT, ONCE);
     BAD_REQUEST_400.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.BAD_REQUEST_400, BAD_REQUEST_400);
 
-    Map<Integer, Option.Occurence> UNAUTHORIZED_401 = new HashMap<>();
+    Map<Integer, Occurence> UNAUTHORIZED_401 = new HashMap<>();
     UNAUTHORIZED_401.put(MAX_AGE, ONCE);
     UNAUTHORIZED_401.put(CONTENT_FORMAT, ONCE);
     UNAUTHORIZED_401.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.UNAUTHORIZED_401, UNAUTHORIZED_401);
 
-    Map<Integer, Option.Occurence> BAD_OPTION_402 = new HashMap<>();
+    Map<Integer, Occurence> BAD_OPTION_402 = new HashMap<>();
     BAD_OPTION_402.put(MAX_AGE, ONCE);
     BAD_OPTION_402.put(CONTENT_FORMAT, ONCE);
     BAD_OPTION_402.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.BAD_OPTION_402, BAD_OPTION_402);
 
-    Map<Integer, Option.Occurence> FORBIDDEN_403 = new HashMap<>();
+    Map<Integer, Occurence> FORBIDDEN_403 = new HashMap<>();
     FORBIDDEN_403.put(MAX_AGE, ONCE);
     FORBIDDEN_403.put(CONTENT_FORMAT, ONCE);
     FORBIDDEN_403.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.FORBIDDEN_403, FORBIDDEN_403);
 
-    Map<Integer, Option.Occurence> NOT_FOUND_404 = new HashMap<>();
+    Map<Integer, Occurence> NOT_FOUND_404 = new HashMap<>();
     NOT_FOUND_404.put(MAX_AGE, ONCE);
     NOT_FOUND_404.put(CONTENT_FORMAT, ONCE);
     NOT_FOUND_404.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.NOT_FOUND_404, NOT_FOUND_404);
 
-    Map<Integer, Option.Occurence> METHOD_NOT_ALLOWED_405 = new HashMap<>();
+    Map<Integer, Occurence> METHOD_NOT_ALLOWED_405 = new HashMap<>();
     METHOD_NOT_ALLOWED_405.put(MAX_AGE, ONCE);
     METHOD_NOT_ALLOWED_405.put(CONTENT_FORMAT, ONCE);
     METHOD_NOT_ALLOWED_405.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.METHOD_NOT_ALLOWED_405, METHOD_NOT_ALLOWED_405);
 
-    Map<Integer, Option.Occurence> NOT_ACCEPTABLE_406 = new HashMap<>();
+    Map<Integer, Occurence> NOT_ACCEPTABLE_406 = new HashMap<>();
     NOT_ACCEPTABLE_406.put(MAX_AGE, ONCE);
     NOT_ACCEPTABLE_406.put(CONTENT_FORMAT, ONCE);
     NOT_ACCEPTABLE_406.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.NOT_ACCEPTABLE_406, NOT_ACCEPTABLE_406);
 
-    Map<Integer, Option.Occurence> REQUEST_ENTITY_INCOMPLETE_408 = new HashMap<>();
+    Map<Integer, Occurence> REQUEST_ENTITY_INCOMPLETE_408 = new HashMap<>();
     REQUEST_ENTITY_INCOMPLETE_408.put(CONTENT_FORMAT, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.REQUEST_ENTITY_INCOMPLETE_408, REQUEST_ENTITY_INCOMPLETE_408);
 
-    Map<Integer, Option.Occurence> PRECONDITION_FAILED_412 = new HashMap<>();
+    Map<Integer, Occurence> PRECONDITION_FAILED_412 = new HashMap<>();
     PRECONDITION_FAILED_412.put(MAX_AGE, ONCE);
     PRECONDITION_FAILED_412.put(CONTENT_FORMAT, ONCE);
     PRECONDITION_FAILED_412.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.PRECONDITION_FAILED_412, PRECONDITION_FAILED_412);
 
-    Map<Integer, Option.Occurence> REQUEST_ENTITY_TOO_LARGE_413 = new HashMap<>();
+    Map<Integer, Occurence> REQUEST_ENTITY_TOO_LARGE_413 = new HashMap<>();
     REQUEST_ENTITY_TOO_LARGE_413.put(MAX_AGE, ONCE);
     REQUEST_ENTITY_TOO_LARGE_413.put(CONTENT_FORMAT, ONCE);
     REQUEST_ENTITY_TOO_LARGE_413.put(BLOCK_1, ONCE);
@@ -299,37 +301,37 @@ public class Option {
     REQUEST_ENTITY_TOO_LARGE_413.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.REQUEST_ENTITY_TOO_LARGE_413, REQUEST_ENTITY_TOO_LARGE_413);
 
-    Map<Integer, Option.Occurence> UNSUPPORTED_CONTENT_FORMAT_415 = new HashMap<>();
+    Map<Integer, Occurence> UNSUPPORTED_CONTENT_FORMAT_415 = new HashMap<>();
     UNSUPPORTED_CONTENT_FORMAT_415.put(MAX_AGE, ONCE);
     UNSUPPORTED_CONTENT_FORMAT_415.put(CONTENT_FORMAT, ONCE);
     UNSUPPORTED_CONTENT_FORMAT_415.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.UNSUPPORTED_CONTENT_FORMAT_415, UNSUPPORTED_CONTENT_FORMAT_415);
 
-    Map<Integer, Option.Occurence> INTERNAL_SERVER_ERROR_500 = new HashMap<>();
+    Map<Integer, Occurence> INTERNAL_SERVER_ERROR_500 = new HashMap<>();
     INTERNAL_SERVER_ERROR_500.put(MAX_AGE, ONCE);
     INTERNAL_SERVER_ERROR_500.put(CONTENT_FORMAT, ONCE);
     INTERNAL_SERVER_ERROR_500.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.INTERNAL_SERVER_ERROR_500, INTERNAL_SERVER_ERROR_500);
 
-    Map<Integer, Option.Occurence> NOT_IMPLEMENTED_501 = new HashMap<>();
+    Map<Integer, Occurence> NOT_IMPLEMENTED_501 = new HashMap<>();
     NOT_IMPLEMENTED_501.put(MAX_AGE, ONCE);
     NOT_IMPLEMENTED_501.put(CONTENT_FORMAT, ONCE);
     NOT_IMPLEMENTED_501.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.NOT_IMPLEMENTED_501, NOT_IMPLEMENTED_501);
 
-    Map<Integer, Option.Occurence> BAD_GATEWAY_502 = new HashMap<>();
+    Map<Integer, Occurence> BAD_GATEWAY_502 = new HashMap<>();
     BAD_GATEWAY_502.put(MAX_AGE, ONCE);
     BAD_GATEWAY_502.put(CONTENT_FORMAT, ONCE);
     BAD_GATEWAY_502.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.BAD_GATEWAY_502, BAD_GATEWAY_502);
 
-    Map<Integer, Option.Occurence> GATEWAY_TIMEOUT_504 = new HashMap<>();
+    Map<Integer, Occurence> GATEWAY_TIMEOUT_504 = new HashMap<>();
     GATEWAY_TIMEOUT_504.put(MAX_AGE, ONCE);
     GATEWAY_TIMEOUT_504.put(CONTENT_FORMAT, ONCE);
     GATEWAY_TIMEOUT_504.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.GATEWAY_TIMEOUT_504, GATEWAY_TIMEOUT_504);
 
-    Map<Integer, Option.Occurence> PROXYING_NOT_SUPPORTED_505 = new HashMap<>();
+    Map<Integer, Occurence> PROXYING_NOT_SUPPORTED_505 = new HashMap<>();
     PROXYING_NOT_SUPPORTED_505.put(MAX_AGE, ONCE);
     PROXYING_NOT_SUPPORTED_505.put(CONTENT_FORMAT, ONCE);
     PROXYING_NOT_SUPPORTED_505.put(ENDPOINT_ID_2, ONCE);
@@ -337,17 +339,17 @@ public class Option {
   }
 
   /**
-   * Returns the permitted option occurrence within a message with the given
-   * code
+   * Returns the permitted option Occurence within a message with the given code
    *
    * @param optionNumber the options number
    * @param messageCode the number corresponding to a message code
-   * @return the permitted option occurrence within a message with the given
-   * code
+   * @return the permitted option Occurence within a message with the given code
    */
-  public static Occurence getPermittedOccurrence(int optionNumber, int messageCode) {
-    Occurence result = OCCURENCE_CONSTRAINTS.get(messageCode).get(optionNumber);
-    return result == null ? Option.Occurence.NONE : result;
+  public static Occurence getPermittedOccurence(int optionNumber, int messageCode) {
+
+    Map<Integer, Occurence> m = OCCURENCE_CONSTRAINTS.get(messageCode);
+    Occurence result = m.get(optionNumber);
+    return result == null ? NONE : result;
   }
 
   private static HashMap<Integer, Integer> MUTUAL_EXCLUSIONS = new HashMap<>();

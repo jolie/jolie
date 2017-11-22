@@ -77,15 +77,7 @@ public class CoapResponse extends CoapMessage {
     }
   }
 
-  public CoapResponse(int messageType, int messageCode, Token token)
-      throws IllegalArgumentException {
-
-    super(messageType, messageCode, token);
-    if (!MessageCode.isResponse(messageCode)) {
-      throw new IllegalArgumentException("Message code no."
-          + messageCode + " is no response code.");
-    }
-  }
+  
 
   /**
    * Sets the observe option to a proper value automatically. This method is to

@@ -26,7 +26,6 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -58,7 +57,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CoapProtocol;
 import jolie.net.CommMessage;
@@ -77,6 +75,8 @@ import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
 import jolie.net.CommCore;
+import jolie.net.NioSocketCommChannel;
+import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.Token;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.xml.XmlUtils;
@@ -89,10 +89,7 @@ import org.xml.sax.SAXException;
 public class CoapToCommMessageCodec
     extends MessageToMessageCodec<CoapMessage, CommMessage> {
 
-  private static final AttributeKey<ExecutionThread> EXECUTION_CONTEXT
-      = AttributeKey.valueOf("ExecutionContext");
   private static final Charset charset = CharsetUtil.UTF_8;
-
   private static final Map<String, Integer> allowedMethods = new HashMap<>();
 
   static {
@@ -114,21 +111,19 @@ public class CoapToCommMessageCodec
 
   private Token correlationToken;
   private CommMessage commMessageRequest;
-  private URI targetURI;
 
   @Override
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
 
     ((CommCore.ExecutionContextThread) Thread.currentThread())
-        .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
-    out.add(encode_internal(in));
+        .executionThread(ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+    out.add(encode_internal(ctx, in));
   }
 
-  private CoapMessage encode_internal(CommMessage commMessage)
-      throws Exception {
+  private CoapMessage encode_internal(ChannelHandlerContext ctx,
+      CommMessage commMessage) throws Exception {
 
-    CoapMessage msg;
     String operationName = commMessage.operationName();
     int messageCode = getMessageCode(operationName);
     int messageType = getMessageType(operationName);
@@ -136,40 +131,56 @@ public class CoapToCommMessageCodec
     if (isInput) {
       if (isOneWay(operationName)) {
         if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-          System.out.println("DEBUG: RECEIVING FROM COMM CORE ALERT OF ACK "
+          Interpreter.getInstance().logInfo("Receiving an ack from CommCore "
               + "--> forward it to the client");
         }
-        msg = CoapMessage.createEmptyAcknowledgement(this.correlationId);
+        return CoapMessage.createEmptyAcknowledgement(correlationId);
       } else {
         if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-          System.out.println("DEBUG: RECEIVING FROM COMM CORE A RESPONSE "
+          Interpreter.getInstance().logInfo("Receiving a response from CommCore "
               + "--> forwarding it to the client");
         }
 
-        msg = new CoapMessage(
-            MessageType.NON,
-            messageCode,
-            CoapMessage.UNDEFINED_MESSAGE_ID,
-            correlationToken
-        );
+        CoapMessage msg = new CoapResponse(MessageType.NON, messageCode);
+        msg.setToken(correlationToken);
         msg.setRandomMessageID();
-        ByteBuf content = valueToByteBuf(commMessage);
-        msg.setContent(content);
+        if (MessageCode.allowsContent(messageCode)) {
+          ByteBuf content = valueToByteBuf(commMessage);
+          msg.setContent(content);
+        }
+        if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+          Interpreter.getInstance().logInfo("Sending CoapRequest\n" + msg);
+        }
+
+        return msg;
       }
     } else {
 
       if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-        System.out.println("DEBUG: RECEIVING FROM COMM CORE A REQUEST "
+        Interpreter.getInstance().logInfo("Receiving a request from CommCore "
             + "--> forwarding it to the server");
       }
 
-      String URIPath = getURIPath(commMessage); // !!!KEEP IT HERE!!!
-      msg = new CoapRequest(
+      URI targetURI = getTargetURI(commMessage);
+      String URIPath = getURIPath(targetURI, operationName);
+
+      CoapRequest msg = new CoapRequest(
           messageType,
           messageCode,
-          this.targetURI,
+          targetURI,
           protocol.checkBooleanParameter(Parameters.PROXY)
       );
+
+      if (isOneWay(operationName) && messageType == MessageType.NON) {
+        CommMessage ack = new CommMessage(
+            commMessage.id(),
+            commMessage.operationName(),
+            "/",
+            Value.create(),
+            null
+        );
+        ctx.fireChannelRead(ack);
+      }
 
       if (isOneWay(operationName) && messageType == MessageType.CON) {
         msg.setRandomMessageID();
@@ -182,19 +193,19 @@ public class CoapToCommMessageCodec
       }
 
       msg.addStringOption(Option.URI_PATH, URIPath);
-      msg.setContent(
-          valueToByteBuf(commMessage),
-          getContentFormat(operationName)
-      );
-
+      if (MessageCode.allowsContent(messageCode)) {
+        msg.setContent(
+            valueToByteBuf(commMessage),
+            getContentFormat(operationName)
+        );
+      }
       this.commMessageRequest = commMessage;
-    }
+      if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+        Interpreter.getInstance().logInfo("Sending CoapMessage\n" + msg);
+      }
 
-    if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-      System.out.println("DEBUG: COAP MESSAGE " + msg);
+      return msg;
     }
-
-    return msg;
   }
 
   @Override
@@ -202,7 +213,7 @@ public class CoapToCommMessageCodec
       List<Object> out) throws Exception {
 
     ((CommCore.ExecutionContextThread) Thread.currentThread())
-        .executionThread(ctx.channel().attr(EXECUTION_CONTEXT).get());
+        .executionThread(ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
     out.add(decode_internal(in));
   }
 
@@ -213,27 +224,23 @@ public class CoapToCommMessageCodec
       SAXException,
       TypeCheckingException {
 
-    CommMessage msg = null;
     if (isInput) {
       if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-        System.out.println("DEBUG: RECEIVING FROM CLIENT A REQUEST "
+        Interpreter.getInstance().logInfo("Receiving a request from a client coap "
             + "--> forwarding it to the comm core");
       }
-      if (isOneWay(getOperationName(coapMessage))) {
-        if (coapMessage.getMessageType() == MessageType.CON) {
-          correlationId = coapMessage.getMessageID();
-          if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-            System.out.println("DEBUG: STORING CORRELATION ID " + correlationId);
-          }
-        }
-      } else {
-        this.correlationToken = coapMessage.getToken();
+      correlationId = coapMessage.getMessageID();
+      if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+        Interpreter.getInstance().logInfo("Storing id for later correlation: " + correlationId);
+      }
+      if (!isOneWay(getOperationName(coapMessage))) {
+        correlationToken = coapMessage.getToken();
         if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-          System.out.println("DEBUG: STORING CORRELATION TOKEN " + correlationToken);
+          Interpreter.getInstance().logInfo("Storing token for later correlation: " + correlationToken);
         }
       }
 
-      msg = CommMessage.createRequest(
+      return CommMessage.createRequest(
           getOperationName(coapMessage),
           "/",
           byteBufToValue(
@@ -243,45 +250,59 @@ public class CoapToCommMessageCodec
       );
     } else {
       if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-        System.out.println("DEBUG: RECEIVING FROM THE SERVER A RESPONSE "
+        Interpreter.getInstance().logInfo("receiving a response form a server coap "
             + "--> forwarding it to the comm core");
       }
-      if (coapMessage.getToken().equals(correlationToken)) {
+      if (coapMessage.isAck()
+          && commMessageRequest != null
+          && correlationId != -1
+          && correlationId == coapMessage.getMessageID()
+          && coapMessage.getToken().equals(correlationToken)) {
 
-        msg = CommMessage.createResponse(
+        // PIGGYBACK RESPONSE
+        return CommMessage.createResponse(
             commMessageRequest,
             byteBufToValue(
                 coapMessage.getContent(),
                 commMessageRequest.operationName()
             )
         );
-      } else {
-        if (coapMessage.isAck()
-            && this.commMessageRequest != null
-            && this.correlationId != -1
-            && this.correlationId == coapMessage.getMessageID()) {
-
-          if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-            System.out.println("DEBUG: ACK MATCHING CORRELATION ID "
-                + this.correlationId);
-          }
-
-          msg = new CommMessage(
-              this.commMessageRequest.id(),
-              this.commMessageRequest.operationName(),
-              "/",
-              Value.create(),
-              null
-          );
-
-        } else {
-          Interpreter.getInstance().logSevere("TRYING TO DECODE A COAP MESSAGE "
-              + "NOT EXPECTED! NOT A RESPONSE, NOR AN ACK!");
-          return null;
-        }
       }
+      if (!coapMessage.isAck()
+          && coapMessage.getToken().equals(correlationToken)) {
+
+        // SEPARATE RESPONSE
+        return CommMessage.createResponse(
+            commMessageRequest,
+            byteBufToValue(
+                coapMessage.getContent(),
+                commMessageRequest.operationName()
+            )
+        );
+      }
+      if (coapMessage.isAck()
+          && this.commMessageRequest != null
+          && this.correlationId != -1
+          && this.correlationId == coapMessage.getMessageID()
+          && !coapMessage.getToken().equals(correlationToken)) {
+
+        if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+          Interpreter.getInstance().logInfo("Coap Acknowledgement Message matching correlation with id: "
+              + correlationId);
+        }
+
+        // ACK
+        return new CommMessage(
+            this.commMessageRequest.id(),
+            this.commMessageRequest.operationName(),
+            "/",
+            Value.create(),
+            null
+        );
+      }
+      return CommMessage.createFaultResponse(commMessageRequest,
+          new FaultException("Error in decoding a coap message response!"));
     }
-    return msg;
   }
 
   /**
@@ -559,15 +580,26 @@ public class CoapToCommMessageCodec
         .oneWayOperations().containsKey(operationName);
   }
 
-  private String getURIPath(CommMessage in) throws URISyntaxException {
+  private String getURIPath(URI targetURI, String operationName)
+      throws URISyntaxException {
+
+    String URIPath = targetURI.getPath();
+
+    if (URIPath.equals("") || URIPath.equals("/")) {
+      URIPath = "/".concat(operationName);
+    }
+
+    return URIPath;
+  }
+
+  private URI getTargetURI(CommMessage in)
+      throws URISyntaxException {
+
+    URI targetURI;
 
     if (protocol.hasOperationSpecificParameter(in.operationName(),
         Parameters.ALIAS)) {
 
-      String alias
-          = protocol.getOperationSpecificStringParameter(in.operationName(),
-              Parameters.ALIAS);
-      String URIPath = getDynamicAlias(alias, in.value());
       URI location = null;
 
       if (protocol.isInput) {
@@ -577,29 +609,32 @@ public class CoapToCommMessageCodec
             .locationVariablePath().evaluate().strValue());
       }
 
-      this.targetURI = new URI(location.getScheme(), location.getUserInfo(),
-          location.getHost(), location.getPort(), URIPath,
-          location.getQuery(), location.getFragment());
-
-      return URIPath;
+      targetURI = new URI(
+          location.getScheme(),
+          location.getUserInfo(),
+          location.getHost(),
+          location.getPort(),
+          getDynamicAlias(
+              protocol.getOperationSpecificStringParameter(
+                  in.operationName(),
+                  Parameters.ALIAS),
+              in.value()
+          ),
+          location.getQuery(),
+          location.getFragment()
+      );
 
     } else {
 
       if (protocol.isInput) {
-        this.targetURI = protocol.channel().parentInputPort().location();
+        targetURI = protocol.channel().parentInputPort().location();
       } else {
-        this.targetURI = new URI(protocol.channel().parentOutputPort()
+        targetURI = new URI(protocol.channel().parentOutputPort()
             .locationVariablePath().evaluate().strValue());
       }
-
-      String URIPath = targetURI.getPath();
-
-      if (URIPath.equals("") || URIPath.equals("/")) {
-        return "/".concat(in.operationName());
-      } else {
-        return URIPath;
-      }
     }
+
+    return targetURI;
   }
 
   private String getDynamicAlias(String start, Value value) {
@@ -674,6 +709,6 @@ public class CoapToCommMessageCodec
     private static final String JSON_ENCODING = "json_encoding";
     private static final String ALIAS = "alias";
     private static final String PROXY = "proxy";
-
+    private static final String STRICT = "strict";
   }
 }
