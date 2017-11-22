@@ -43,34 +43,35 @@ class DatagramPacketEncoder extends MessageToMessageEncoder<ByteBuf> {
   protected void encode(ChannelHandlerContext ctx, ByteBuf msg,
       List<Object> out) throws Exception {
 
-    DatagramPacket dp;
-    if (msg.isDirect() && msg.nioBufferCount() == 1) {
-      dp = new DatagramPacket(msg, recipient);
-    } else {
-      dp = new DatagramPacket(newDirectBuffer(msg), recipient);
-    }
-    out.add(dp);
+//    DatagramPacket dp;
+//    if (msg.isDirect() && msg.nioBufferCount() == 1) {
+//      dp = new DatagramPacket(msg, recipient);
+//    } else {
+//      dp = new DatagramPacket(newDirectBuffer(msg), recipient);
+//    }
+//    out.add(dp);
+      out.add(new DatagramPacket(msg.retain(), recipient));
   }
 
-  public final ByteBuf newDirectBuffer(ByteBuf buf) {
-    final int readableBytes = buf.readableBytes();
-    if (readableBytes == 0) {
-      return Unpooled.EMPTY_BUFFER;
-    }
-
-    final ByteBufAllocator alloc = ByteBufAllocator.DEFAULT;
-    if (alloc.isDirectBufferPooled()) {
-      ByteBuf directBuf = alloc.directBuffer(readableBytes);
-      directBuf.writeBytes(buf, buf.readerIndex(), readableBytes);
-      return directBuf;
-    }
-
-    final ByteBuf directBuf = ByteBufUtil.threadLocalDirectBuffer();
-    if (directBuf != null) {
-      directBuf.writeBytes(buf, buf.readerIndex(), readableBytes);
-      return directBuf;
-    }
-
-    return buf;
-  }
+//  public final ByteBuf newDirectBuffer(ByteBuf buf) {
+//    final int readableBytes = buf.readableBytes();
+//    if (readableBytes == 0) {
+//      return Unpooled.EMPTY_BUFFER;
+//    }
+//
+//    final ByteBufAllocator alloc = ByteBufAllocator.DEFAULT;
+//    if (alloc.isDirectBufferPooled()) {
+//      ByteBuf directBuf = alloc.directBuffer(readableBytes);
+//      directBuf.writeBytes(buf, buf.readerIndex(), readableBytes);
+//      return directBuf;
+//    }
+//
+//    final ByteBuf directBuf = ByteBufUtil.threadLocalDirectBuffer();
+//    if (directBuf != null) {
+//      directBuf.writeBytes(buf, buf.readerIndex(), readableBytes);
+//      return directBuf;
+//    }
+//
+//    return buf;
+//  }
 }
