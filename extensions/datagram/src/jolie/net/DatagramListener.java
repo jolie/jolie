@@ -124,7 +124,7 @@ public class DatagramListener extends CommListener {
           @Override
           public void flush(ChannelHandlerContext ctx)
               throws Exception {
-            addResponseChannel();
+//            addResponseChannel();
             removeResponseChannel();
             super.flush(ctx);
           }
