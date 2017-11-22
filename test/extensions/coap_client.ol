@@ -7,6 +7,8 @@ interface ThermostatInterface {
     RequestResponse: getTmp( TmpType )( int )
 }
 
+
+
 outputPort Thermostat {
     Location: "datagram://localhost:9027"
     Protocol: coap {
@@ -29,14 +31,12 @@ outputPort Thermostat {
 
 main
 {
-    {
-        println@Console( " Retrieving temperature from Thermostat n.42 ... " )()
-        |
-        getTmp@Thermostat( { .id = "42" } )( varA );
-        println@Console( " Thermostat n.42 forwarded temperature: " + varA + " C")()
-    }
+    println@Console( " Retrieving temperature from Thermostat n.42 ... " )()
     |
-    {
+    getTmp@Thermostat( { .id = "42" } )( varA );        
+    println@Console( " Thermostat n.42 forwarded temperature: " + varA + " C")()
+    ;
+    if (varA < 21) {
         println@Console( " Setting Temperature of Thermostat n.42 to 24 C ..." )()
         |
         setTmp@Thermostat( 21 { .id = "42" } );

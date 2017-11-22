@@ -50,18 +50,22 @@ public class CoapMessage {
   public static final Charset CHARSET = CharsetUtil.UTF_8;
   public static final int UNDEFINED_MESSAGE_ID = -1;
   public static final int MAX_TOKEN_LENGTH = 8;
-  private static final String WRONG_OPTION_TYPE = "Option no. %d is no "
-      + "option of type %s";
-  private static final String DOES_NOT_ALLOW_CONTENT = "CoAP messages "
-      + "with code %s do not allow payload.";
+  private static final String WRONG_OPTION_TYPE = "Option no. %d is no option of type %s";
+  private static final String OPTION_NOT_ALLOWED_WITH_MESSAGE_TYPE = "Option no. %d (%s) is not allowed with "
+      + "message type %s";
+  private static final String OPTION_ALREADY_SET = "Option no. %d is already set and is only allowed once per "
+      + "message";
+  private static final String DOES_NOT_ALLOW_CONTENT = "CoAP messages with code %s do not allow payload.";
+  private static final String EXCLUDES = "Already contained option no. %d excludes option no. %d";
 
   private int messageType;
   private int messageCode;
-  private int messageID;
-  private ByteBuf content;
+  private int messageId;
   private Token token;
 
-  public Map<Integer, OptionValue> options;
+  private ByteBuf content;
+
+  protected Map<Integer, OptionValue> options;
 
   /**
    * Creates a new instance of {@link CoapMessage}.
@@ -90,56 +94,37 @@ public class CoapMessage {
 
     this.setMessageType(messageType);
     this.setMessageCode(messageCode);
-    this.setMessageID(messageID);
+
+    this.setMessageId(messageID);
     this.setToken(token);
-    this.options = new TreeMap<>();
+
+    this.options = new HashMap<>();
     this.content = Unpooled.EMPTY_BUFFER;
   }
 
   /**
-   * Creates a new instance of {@link CoapMessage}.
+   * Creates a new instance of {@link CoapMessage}. Invocation of this
+   * constructor has the same effect as invocation of
+   * {@link #CoapMessage(int, int, int, Token)} with
+   * <ul>
+   * <li>
+   * message ID: {@link CoapMessage#UNDEFINED_MESSAGE_ID} (to be set
+   * automatically by the framework)
+   * </li>
+   * <li>
+   * token: {@link Token#Token(byte[])} with empty byte array.
+   * </li>
+   * </ul>
    *
    * @param messageType the number representing the {@link MessageType} for this
    * {@link CoapMessage}
    * @param messageCode the number representing the {@link MessageCode} for this
    * {@link CoapMessage}
-   * @param messageID the message ID for this {@link CoapMessage}
-   * @param token the {@link Token} for this {@link CoapMessage}
    *
    * @throws IllegalArgumentException if one of the given arguments is invalid
    */
-  public CoapMessage(int messageType, int messageCode)
-      throws IllegalArgumentException {
-
-    new CoapMessage(
-        messageType,
-        messageCode,
-        new Random().nextInt(65535),
-        Token.getRandomToken()
-    );
-  }
-
-  /**
-   * Creates a new instance of {@link CoapMessage}.
-   *
-   * @param messageType the number representing the {@link MessageType} for this
-   * {@link CoapMessage}
-   * @param messageCode the number representing the {@link MessageCode} for this
-   * {@link CoapMessage}
-   * @param messageID the message ID for this {@link CoapMessage}
-   * @param token the {@link Token} for this {@link CoapMessage}
-   *
-   * @throws IllegalArgumentException if one of the given arguments is invalid
-   */
-  public CoapMessage(int messageType, int messageCode, Token token)
-      throws IllegalArgumentException {
-
-    new CoapMessage(
-        messageType,
-        messageCode,
-        new Random().nextInt(65535),
-        token
-    );
+  protected CoapMessage(int messageType, int messageCode) throws IllegalArgumentException {
+    this(messageType, messageCode, UNDEFINED_MESSAGE_ID, new Token(new byte[0]));
   }
 
   /**
@@ -247,9 +232,15 @@ public class CoapMessage {
    * unknwon, or if the given value is either the default value or exceeds the
    * defined length limits for options with the given option number
    */
-  public void addOption(int optionNumber, OptionValue optionValue)
-      throws IllegalArgumentException {
-    this.options.put(optionNumber, optionValue);
+  public void addOption(int optionNumber, OptionValue optionValue) throws IllegalArgumentException {
+    this.checkOptionPermission(optionNumber);
+
+    for (int containedOption : options.keySet()) {
+      if (Option.mutuallyExcludes(containedOption, optionNumber)) {
+        throw new IllegalArgumentException(String.format(EXCLUDES, containedOption, optionNumber));
+      }
+    }
+    options.put(optionNumber, optionValue);
   }
 
   /**
@@ -376,7 +367,7 @@ public class CoapMessage {
    *
    */
   public void setRandomMessageID() {
-    this.setMessageID(new Random().nextInt(65535));
+    this.setMessageId(new Random().nextInt(65535));
   }
 
   /**
@@ -386,14 +377,14 @@ public class CoapMessage {
    *
    * @param messageID the message ID for the message
    */
-  public void setMessageID(int messageID) throws IllegalArgumentException {
+  public void setMessageId(int messageID) throws IllegalArgumentException {
 
     if (messageID < -1 || messageID > 65535) {
       throw new IllegalArgumentException("Message ID "
           + messageID + " is either negative or greater than 65535");
     }
 
-    this.messageID = messageID;
+    this.messageId = messageID;
   }
 
   /**
@@ -404,7 +395,7 @@ public class CoapMessage {
    * set)
    */
   public int getMessageID() {
-    return this.messageID;
+    return this.messageId;
   }
 
   /**
@@ -759,5 +750,16 @@ public class CoapMessage {
 
     return result.toString();
 
+  }
+
+  private void checkOptionPermission(int optionNumber) throws IllegalArgumentException {
+
+    Option.Occurence permittedOccurence = Option.getPermittedOccurence(optionNumber, this.messageCode);
+    if (permittedOccurence == Option.Occurence.NONE) {
+      throw new IllegalArgumentException(String.format(OPTION_NOT_ALLOWED_WITH_MESSAGE_TYPE,
+          optionNumber, Option.asString(optionNumber), this.getMessageCodeName()));
+    } else if (options.containsKey(optionNumber) && permittedOccurence == Option.Occurence.ONCE) {
+      throw new IllegalArgumentException(String.format(OPTION_ALREADY_SET, optionNumber));
+    }
   }
 }

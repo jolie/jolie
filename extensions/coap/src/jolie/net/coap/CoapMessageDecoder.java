@@ -28,8 +28,6 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.util.List;
 
 import jolie.net.coap.message.CoapMessage;
-import jolie.net.coap.message.CoapRequest;
-import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.options.EmptyOptionValue;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
@@ -37,23 +35,33 @@ import jolie.net.coap.options.OpaqueOptionValue;
 import jolie.net.coap.options.OptionValue;
 import jolie.net.coap.options.StringOptionValue;
 import jolie.net.coap.message.Token;
-import jolie.net.coap.options.Option;
 import jolie.net.coap.options.UintOptionValue;
 
 import jolie.Interpreter;
-import jolie.runtime.FaultException;
+import jolie.net.coap.message.CoapRequest;
+import jolie.net.coap.message.CoapResponse;
 
 public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
   @Override
   protected void decode(ChannelHandlerContext ctx, ByteBuf in,
       List<Object> out) throws Exception {
-    CoapMessage coapMessage = null;
 
-    //Decode the Message Header which must have a length of exactly 4 bytes
+    CoapMessage msg = decode_internal(in);
+    if (msg != null) {
+      out.add(msg);
+    } else {
+      throw new Exception("Marlformed Encoded CoAP messages! In order"
+          + "to accept it try setting protocol parameter \"strict\" to false ");
+    }
+  }
+
+  private CoapMessage decode_internal(ByteBuf in) {
+
     if (in.readableBytes() < 4) {
-      throw new FaultException("Encoded CoAP messages MUST have min. 4 bytes."
-          + " This has " + in.readableBytes() + "!");
+      Interpreter.getInstance().logSevere("Encoded CoAP messages MUST have "
+          + "min. 4 bytes. This has " + in.readableBytes() + "!");
+      return null;
     }
 
     //Decode the header values
@@ -62,78 +70,81 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     int messageType = (encodedHeader >>> 28) & 0x03;
     int tokenLength = (encodedHeader >>> 24) & 0x0F;
     int messageCode = (encodedHeader >>> 16) & 0xFF;
-    int messageID = (encodedHeader) & 0xFFFF;
+    int messageId = (encodedHeader) & 0xFFFF;
 
-    //Check whether the protocol version is supported (=1)
     if (version != CoapMessage.PROTOCOL_VERSION) {
-      Interpreter.getInstance().logSevere("CoAP version (" + version + ") is other "
-          + "than \"1\"!");
+      Interpreter.getInstance().logSevere("Coap Message Decoder >>> "
+          + "CoAP Message with \"version\": " + version
+          + " other than \"1\", is invalid!");
+      return null;
     }
 
-    //Check whether TKL indicates a not allowed token length
     if (tokenLength > CoapMessage.MAX_TOKEN_LENGTH) {
-      Interpreter.getInstance().logSevere("TKL value (" + tokenLength + ") is larger "
-          + "than 8!");
+      Interpreter.getInstance().logSevere("Coap Message Decoder >>> "
+          + "Coap Message with Token Length: " + tokenLength
+          + " larger than 8, is invalid!");
+      return null;
     }
 
-    //Check whether there are enough unread bytes left to read the token
     if (in.readableBytes() < tokenLength) {
-      Interpreter.getInstance().logSevere("TKL value is " + tokenLength + " but only "
-          + in.readableBytes() + " bytes left!");
+      Interpreter.getInstance().logSevere("Coap Message Decoder >>> "
+          + "Coap Message with Token Length: " + tokenLength
+          + " and readable " + in.readableBytes() + " bytes left, is invalid!");
+      return null;
     }
 
-    //Handle empty message (ignore everything but the first 4 bytes)
     if (messageCode == MessageCode.EMPTY) {
 
       if (messageType == MessageType.ACK) {
-        coapMessage = CoapMessage.createEmptyAcknowledgement(messageID);
+        return CoapMessage.createEmptyAcknowledgement(messageId);
       } else if (messageType == MessageType.RST) {
-        coapMessage = CoapMessage.createEmptyReset(messageID);
+        return CoapMessage.createEmptyReset(messageId);
       } else if (messageType == MessageType.CON) {
-        coapMessage = CoapMessage.createPing(messageID);
+        return CoapMessage.createPing(messageId);
       } else {
-        Interpreter.getInstance().logSevere("Empty NON messages are invalid!");
-      }
-    } else {
-
-      //Read the token
-      byte[] token = new byte[tokenLength];
-      in.readBytes(token);
-
-      //Handle non-empty messages (CON, NON or ACK)
-      if (MessageCode.isRequest(messageCode)) {
-        coapMessage = new CoapRequest(messageType, messageCode);
-      } else {
-        coapMessage = new CoapResponse(messageType, messageCode);
-      }
-
-      coapMessage.setMessageID(messageID);
-      Token t = new Token(token);
-      coapMessage.setToken(t);
-
-      //Decode and set the options
-      if (in.readableBytes() > 0) {
-        setOptions(coapMessage, in);
-      }
-
-      //The remaining bytes (if any) are the messages payload. 
-      //If there is no payload, reader and writer index are
-      //at the same position (buf.readableBytes() == 0).
-      in.discardReadBytes();
-      try {
-        coapMessage.setContent(in.retain());
-      } catch (IllegalArgumentException ex) {
-        Interpreter.getInstance().logSevere(ex);
+        Interpreter.getInstance().logSevere("Coap Message Decoder >>> "
+            + "Coap Message with Message Code: \"" + messageCode + "\" and "
+            + "Message Type: \"" + messageCode + "\" is invalid!");
       }
     }
 
-    out.add(coapMessage);
+    byte[] token = new byte[tokenLength];
+    in.readBytes(token);
+
+    CoapMessage coapMessage;
+    if (MessageCode.isRequest(messageCode)) {
+      coapMessage = new CoapRequest(messageType, messageCode);
+    } else {
+      coapMessage = new CoapResponse(messageType, messageCode);
+      coapMessage.setMessageType(messageType);
+    }
+
+    coapMessage.setMessageId(messageId);
+    coapMessage.setToken(new Token(token));
+
+    if (in.readableBytes() > 0) {
+      try {
+        setOptions(coapMessage, in);
+      } catch (OptionCodecException ex) {
+        Interpreter.getInstance().logSevere(ex);
+        return null;
+      }
+    }
+
+    in.discardReadBytes();
+    try {
+      coapMessage.setContent(in);
+    } catch (IllegalArgumentException ex) {
+      Interpreter.getInstance().logSevere(ex);
+      return null;
+    }
+
+    return coapMessage;
   }
 
   private void setOptions(CoapMessage coapMessage, ByteBuf bb)
       throws OptionCodecException {
 
-    //Decode the options
     int previousOptionNumber = 0;
     int firstByte = bb.readByte() & 0xFF;
 
@@ -158,57 +169,39 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
       int actualOptionNumber = previousOptionNumber + optionDelta;
 
-      try {
-        byte[] optionValue = new byte[optionLength];
-        bb.readBytes(optionValue);
+      byte[] optionValue = new byte[optionLength];
+      bb.readBytes(optionValue);
 
-        switch (OptionValue.getType(actualOptionNumber)) {
-          case EMPTY: {
-            EmptyOptionValue value
-                = new EmptyOptionValue(actualOptionNumber);
-            coapMessage.addOption(actualOptionNumber, value);
-            break;
-          }
-          case OPAQUE: {
-            OpaqueOptionValue value
-                = new OpaqueOptionValue(actualOptionNumber,
-                    optionValue);
-            coapMessage.addOption(actualOptionNumber, value);
-            break;
-          }
-          case STRING: {
-            StringOptionValue value
-                = new StringOptionValue(actualOptionNumber,
-                    optionValue, true);
-            coapMessage.addOption(actualOptionNumber, value);
-            break;
-          }
-          case UINT: {
-            UintOptionValue value
-                = new UintOptionValue(actualOptionNumber,
-                    optionValue, true);
-            coapMessage.addOption(actualOptionNumber, value);
-            break;
-          }
-          default:
-            throw new RuntimeException("This should never happen!");
+      switch (OptionValue.getType(actualOptionNumber)) {
+        case EMPTY: {
+          EmptyOptionValue value
+              = new EmptyOptionValue(actualOptionNumber);
+          coapMessage.addOption(actualOptionNumber, value);
+          break;
         }
-      } catch (IllegalArgumentException e) {
-        //failed option creation leads to an illegal argument exception
-        Interpreter.getInstance().logWarning("Exception while decoding "
-            + "option!");
-
-        if (MessageCode.isResponse(coapMessage.getMessageCode())) {
-          //Malformed options in responses are silently ignored...
-          Interpreter.getInstance().logWarning("Silently ignore malformed "
-              + "option no. " + actualOptionNumber + " in inbound response.");
-        } else if (Option.isCritical(actualOptionNumber)) {
-          //Critical malformed options in requests cause an exception
+        case OPAQUE: {
+          OpaqueOptionValue value
+              = new OpaqueOptionValue(actualOptionNumber,
+                  optionValue);
+          coapMessage.addOption(actualOptionNumber, value);
+          break;
+        }
+        case STRING: {
+          StringOptionValue value
+              = new StringOptionValue(actualOptionNumber,
+                  optionValue, true);
+          coapMessage.addOption(actualOptionNumber, value);
+          break;
+        }
+        case UINT: {
+          UintOptionValue value
+              = new UintOptionValue(actualOptionNumber,
+                  optionValue, true);
+          coapMessage.addOption(actualOptionNumber, value);
+          break;
+        }
+        default: {
           throw new OptionCodecException(actualOptionNumber);
-        } else {
-          //Not critical malformed options in requests are silently ignored...
-          Interpreter.getInstance().logWarning("Silently ignore elective option "
-              + " no. " + actualOptionNumber + " in inbound request.");
         }
       }
 
@@ -222,40 +215,17 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     }
   }
 
-  @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+  private static String toBinaryString(int byteValue) {
+    StringBuilder buffer = new StringBuilder(8);
 
-    //Invalid Header Exceptions cause a RST
-    if (cause instanceof HeaderDecodingException) {
-      HeaderDecodingException ex = (HeaderDecodingException) cause;
-
-      if (ex.getMessageID() != CoapMessage.UNDEFINED_MESSAGE_ID) {
-        writeReset(ctx, ex.getMessageID());
+    for (int i = 7; i >= 0; i--) {
+      if ((byteValue & (int) Math.pow(2, i)) > 0) {
+        buffer.append("1");
       } else {
-        Interpreter.getInstance().logWarning("Ignore inbound message with "
-            + "malformed header...");
+        buffer.append("0");
       }
-    } else if (cause instanceof OptionCodecException) {
-      OptionCodecException ex = (OptionCodecException) cause;
-      int messageType = ex.getMessageType() == MessageType.CON
-          ? MessageType.ACK : MessageType.NON;
-
-      writeBadOptionResponse(ctx, messageType, ex.getMessage());
-    } else {
-      ctx.fireExceptionCaught(cause);
     }
-  }
 
-  private void writeReset(ChannelHandlerContext ctx, int messageID) {
-    CoapMessage resetMessage = CoapMessage.createEmptyReset(messageID);
-    ctx.write(resetMessage);
-  }
-
-  private void writeBadOptionResponse(ChannelHandlerContext ctx,
-      int messageType, String message) {
-    CoapResponse errorResponse
-        = CoapResponse.createErrorResponse(messageType,
-            MessageCode.BAD_OPTION_402, message);
-    ctx.write(errorResponse);
+    return buffer.toString();
   }
 }

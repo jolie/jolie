@@ -45,6 +45,22 @@ public class CoapRequest extends CoapMessage {
       + "fragment (but given URI is: %s)!";
 
   /**
+   * Creates a new {@link CoapRequest} instance and uses the given parameters to
+   * create an appropriate header and initial option list with target
+   * URI-related options set.
+   *
+   * @param messageType A {@link MessageType}
+   * @param messageCode A {@link MessageCode}
+   * @param targetUri the recipients URI
+   *
+   * @throws java.lang.IllegalArgumentException if at least one of the given
+   * arguments causes an error
+   */
+  public CoapRequest(int messageType, int messageCode, URI targetUri) throws IllegalArgumentException {
+    this(messageType, messageCode, targetUri, false);
+  }
+
+  /**
    * Creates a {@link CoapRequest} instance with initial CoAP header and options
    * according to the given parameters.
    *
@@ -57,50 +73,16 @@ public class CoapRequest extends CoapMessage {
    * @param useProxy indicates if this {@link CoapRequest} is supposed to be
    * sent to its final destination via a forward-proxy (if set to
    * <code>true</code> the given target URI is set as {@link Option#PROXY_URI},
-   * if set to <code>false</code> the given target URI is set as combination of
-   * {@link Option#URI_HOST}, {@link Option#URI_PORT}, {@link Option#URI_PATH},
-   * and {@link Option#URI_QUERY}.
+   * if set to <code>false</code> the given target URI is set as combination of {@link Option#URI_HOST}, {@link Option#URI_PORT},
+   *                 {@link Option#URI_PATH}, and {@link Option#URI_QUERY}.
    *
    * @throws java.lang.IllegalArgumentException if at least one of the given
    * arguments causes an error
    */
-  public CoapRequest(int messageType, int messageCode, URI targetUri,
-      boolean useProxy) throws IllegalArgumentException {
+  public CoapRequest(int messageType, int messageCode, URI targetUri, boolean useProxy)
+      throws IllegalArgumentException {
 
-    super(messageType, messageCode, UNDEFINED_MESSAGE_ID,
-        new Token(new byte[0]));
-
-    if (messageType < MessageType.CON || messageType > MessageType.NON) {
-      throw new IllegalArgumentException(String.format(NO_REQUEST_TYPE,
-          messageType));
-    }
-
-    if (!MessageCode.isRequest(messageCode)) {
-      throw new IllegalArgumentException(String.format(NO_REQUEST_CODE,
-          messageCode));
-    }
-
-    if (useProxy) {
-      setProxyURIOption(targetUri);
-    } else {
-      setTargetUriOptions(targetUri);
-    }
-  }
-
-  public CoapRequest(int messageType, int messageCode, URI targetUri,
-      boolean useProxy, Token token) throws IllegalArgumentException {
-
-    super(messageType, messageCode, UNDEFINED_MESSAGE_ID, token);
-
-    if (messageType < MessageType.CON || messageType > MessageType.NON) {
-      throw new IllegalArgumentException(String.format(NO_REQUEST_TYPE,
-          messageType));
-    }
-
-    if (!MessageCode.isRequest(messageCode)) {
-      throw new IllegalArgumentException(String.format(NO_REQUEST_CODE,
-          messageCode));
-    }
+    this(messageType, messageCode);
 
     if (useProxy) {
       setProxyURIOption(targetUri);
@@ -122,20 +104,15 @@ public class CoapRequest extends CoapMessage {
    * @throws IllegalArgumentException if at least one of the given arguments
    * causes an error
    */
-  public CoapRequest(int messageType, int messageCode)
-      throws IllegalArgumentException {
-
-    super(messageType, messageCode, UNDEFINED_MESSAGE_ID,
-        new Token(new byte[0]));
+  public CoapRequest(int messageType, int messageCode) throws IllegalArgumentException {
+    super(messageType, messageCode);
 
     if (messageType < MessageType.CON || messageType > MessageType.NON) {
-      throw new IllegalArgumentException(String.format(NO_REQUEST_TYPE,
-          messageType));
+      throw new IllegalArgumentException(String.format(NO_REQUEST_TYPE, messageType));
     }
 
     if (!MessageCode.isRequest(messageCode)) {
-      throw new IllegalArgumentException(String.format(NO_REQUEST_CODE,
-          messageCode));
+      throw new IllegalArgumentException(String.format(NO_REQUEST_CODE, messageCode));
     }
   }
 
