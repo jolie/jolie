@@ -133,7 +133,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     in.discardReadBytes();
     try {
-      coapMessage.setContent(in);
+      coapMessage.setContent(in.retain());
     } catch (IllegalArgumentException ex) {
       Interpreter.getInstance().logSevere(ex);
       return null;
