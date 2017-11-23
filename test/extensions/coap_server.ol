@@ -10,7 +10,7 @@ interface ThermostatInterface {
 inputPort  Thermostat {
     Location: "datagram://localhost:9027"
     Protocol: coap {
-        .debug = false;
+        .debug = true;
         .proxy = false;
         .osc.getTmp << {
             .format = "raw",
@@ -24,15 +24,22 @@ inputPort  Thermostat {
     Interfaces: ThermostatInterface
 }
 
-// execution{ concurrent }
+execution{ concurrent }
+
+define setTemperature
+{
+  println@Console( " Setting Temperature of the Thermostat to " + temperatura )()
+}
 
 main 
 {
-     getTmp( temp )( resp ){
-        resp = 19;
-        println@Console( " Get Temperature Request. Forwarding: " + resp )()
-    }
-    |
-    setTmp( r );
-    println@Console( " Setting Temperature of the Thermostat to " + r )()
+    [
+        getTmp( temp )( resp ){
+            resp = 19;
+            println@Console( " Get Temperature Request. Forwarding: " + resp + " C")()
+        }
+    ]
+    [
+        setTmp( temperatura )
+    ]
 }      
