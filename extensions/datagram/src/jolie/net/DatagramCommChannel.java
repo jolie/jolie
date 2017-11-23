@@ -138,13 +138,18 @@ public class DatagramCommChannel extends StreamingCommChannel {
         p.addLast(CHANNEL_HANDLER_NAME, c.commChannelHandler);
         p.addFirst("DATAGRAM-PACKET-FORMATTER", datagramPacketFormatter);
         p.addFirst("BYTE-BUF-FORWARDER", new SimpleChannelInboundHandler<DatagramPacket>() {
-
+          
           @Override
-          protected void channelRead0(ChannelHandlerContext chc, DatagramPacket i)
-              throws Exception {
+          public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
             if (port instanceof InputPort) {
               DatagramListener.addResponseChannel();
             }
+            super.channelRegistered(ctx);
+          }
+          
+          @Override
+          protected void channelRead0(ChannelHandlerContext chc, DatagramPacket i)
+              throws Exception {
             chc.fireChannelRead(i.content().retain());
           }
 
