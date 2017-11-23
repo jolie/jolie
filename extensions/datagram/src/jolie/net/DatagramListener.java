@@ -72,7 +72,7 @@ public class DatagramListener extends CommListener {
       System.out.println("--- PRENDO WRITE LOCK --- " + Thread.currentThread());
       responseChannels.writeLock().lock();
       try {
-//        System.out.println("!!! Canale Chiuso !!!");
+        System.out.println("!!! Canale Chiuso !!!");
         serverChannel.close();
       } finally {
         System.out.println("--- RILASCIO WRITE LOCK --- " + Thread.currentThread());
@@ -124,7 +124,6 @@ public class DatagramListener extends CommListener {
           @Override
           public void flush(ChannelHandlerContext ctx)
               throws Exception {
-//            addResponseChannel();
             removeResponseChannel();
             super.flush(ctx);
           }
