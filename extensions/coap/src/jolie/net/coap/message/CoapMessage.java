@@ -515,10 +515,10 @@ public class CoapMessage {
    * Adds the content to the message. If this {@link CoapMessage} contained any
    * content prior to the invocation of method, the previous content is removed.
    *
-   * @param content ChannelBuffer containing the message content
+   * @param content ByteBuf containing the message content
    *
    * @throws java.lang.IllegalArgumentException if the messages code does not
-   * allow content and for the given {@link ChannelBuffer#readableBytes()} is
+   * allow content and for the given {@link ByteBuf#readableBytes()} is
    * greater then zero.
    */
   public void setContent(ByteBuf content) throws IllegalArgumentException {
@@ -535,13 +535,13 @@ public class CoapMessage {
   /**
    * Sets the getContent (payload) of this {@link CoapMessage}.
    *
-   * @param content {@link ChannelBuffer} containing the message getContent
+   * @param content {@link ByteBuf} containing the message getContent
    * @param contentFormat a long value representing the format of the getContent
    * (see {@link ContentFormat} for some predefined numbers (according to the
    * CoAP specification)
    *
    * @throws java.lang.IllegalArgumentException if the messages code does not
-   * allow getContent and for the given {@link ChannelBuffer#readableBytes()} is
+   * allow getContent and for the given {@link ByteBuf#readableBytes()} is
    * greater then zero.
    */
   public void setContent(ByteBuf content, long contentFormat)
@@ -565,7 +565,7 @@ public class CoapMessage {
   /**
    * Returns the messages getContent. If the message does not contain any
    * getContent, this method returns an empty
-   * {@link ChannelBuffer} ({@link ChannelBuffers#EMPTY_BUFFER}).
+   * {@link ByteBuf} ({@link ByteBuf#EMPTY_BUFFER}).
    *
    * @return Returns the messages getContent.
    */
@@ -718,7 +718,7 @@ public class CoapMessage {
     result.append("[Header: (V) ").append(getProtocolVersion())
         .append(", (T) ").append(getMessageTypeName())
         .append(", (TKL) ").append(token.getBytes().length)
-        .append(", (C) ").append(getMessageCodeName())
+        .append(", (C) ").append(getMessageCode())
         .append(", (ID) ").append(getMessageID())
         .append(" | (Token) ").append(token).append(" | ");
 
