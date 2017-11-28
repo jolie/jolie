@@ -3,12 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie/extensions/coap/src/jolie/net/coap/options/Option.java</file>
-            <file>file:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie/extensions/coap/src/jolie/net/coap/message/CoapResponse.java</file>
-            <file>file:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie/extensions/coap/src/jolie/net/coap/message/CoapMessage.java</file>
             <file>file:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie/extensions/coap/src/jolie/net/coap/CoapToCommMessageCodec.java</file>
-            <file>file:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie/extensions/coap/src/jolie/net/coap/message/CoapRequest.java</file>
-            <file>file:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie/extensions/coap/src/jolie/net/coap/CoapMessageDecoder.java</file>
+            <file>file:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie/extensions/coap/src/jolie/net/coap/message/MessageCode.java</file>
         </group>
     </open-files>
 </project-private>

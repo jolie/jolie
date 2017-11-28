@@ -8,7 +8,7 @@ interface ThermostatInterface {
 }
 
 inputPort  Thermostat {
-    Location: "datagram://localhost:9027"
+    Location: "datagram://localhost:9028"
     Protocol: coap {
         .debug = true;
         .proxy = false;
@@ -31,15 +31,23 @@ define setTemperature
   println@Console( " Setting Temperature of the Thermostat to " + temperatura )()
 }
 
+define getTemperature
+{
+  println@Console( " Get Temperature Request. Forwarding: " + resp + " C")()
+}
+
 main 
 {
     [
         getTmp( temp )( resp ){
             resp = 19;
-            println@Console( " Get Temperature Request. Forwarding: " + resp + " C")()
+            getTemperature            
         }
     ]
     [
         setTmp( temperatura )
-    ]
+    ] 
+    {
+        setTemperature
+    }
 }      
