@@ -69,25 +69,25 @@ public class DatagramListener extends CommListener {
   @Override
   public void shutdown() {
     if (serverChannel.isOpen()) {
-      System.out.println("--- PRENDO WRITE LOCK --- " + Thread.currentThread());
+//      System.out.println("--- PRENDO WRITE LOCK --- " + Thread.currentThread());
       responseChannels.writeLock().lock();
       try {
-        System.out.println("!!! Canale Chiuso !!!");
+//        System.out.println("!!! Canale Chiuso !!!");
         serverChannel.close();
       } finally {
-        System.out.println("--- RILASCIO WRITE LOCK --- " + Thread.currentThread());
+//        System.out.println("--- RILASCIO WRITE LOCK --- " + Thread.currentThread());
         responseChannels.writeLock().unlock();
       }
     }
   }
 
   public static void addResponseChannel() {
-    System.out.println("--- PRENDO READ LOCK --- " + Thread.currentThread());
+//    System.out.println("--- PRENDO READ LOCK --- " + Thread.currentThread());
     responseChannels.readLock().lock();
   }
 
   public static void removeResponseChannel() {
-    System.out.println("--- RILASCIO READ LOCK --- " + Thread.currentThread());
+//    System.out.println("--- RILASCIO READ LOCK --- " + Thread.currentThread());
     responseChannels.readLock().unlock();
   }
 

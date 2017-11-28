@@ -35,15 +35,15 @@ import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
 
 public class DatagramCommChannelFactory extends CommChannelFactory {
-  
+
   EventLoopGroup workerGroup;
-  
+
   public DatagramCommChannelFactory(CommCore commCore) {
     super(commCore);
     this.workerGroup = new NioEventLoopGroup(4,
         commCore.getNewExecutionContextThreadFactory());
   }
-  
+
   @Override
   public CommChannel createChannel(URI location, OutputPort port)
       throws IOException {
@@ -53,13 +53,19 @@ public class DatagramCommChannelFactory extends CommChannelFactory {
     } catch (URISyntaxException e) {
       throw new IOException(e);
     }
-    
+
     if (!(protocol instanceof AsyncCommProtocol)) {
       throw new UnsupportedCommProtocolException("Use an async protocol");
     }
-    
-    DatagramCommChannel channel = DatagramCommChannel.createChannel(location, (AsyncCommProtocol) protocol, workerGroup, port);
-    
+
+    DatagramCommChannel channel
+        = DatagramCommChannel.createChannel(
+            location,
+            (AsyncCommProtocol) protocol,
+            workerGroup,
+            port
+        );
+
     try {
       ChannelFuture f = channel.connect(location);
       f.sync();
@@ -69,18 +75,18 @@ public class DatagramCommChannelFactory extends CommChannelFactory {
     } catch (InterruptedException e) {
       throw new IOException(e);
     }
-    
+
     return channel;
   }
-  
+
   @Override
   public CommChannel createInputChannel(URI location, InputPort port,
       CommProtocol protocol) throws IOException {
-    
+
     if (!(protocol instanceof AsyncCommProtocol)) {
       throw new UnsupportedCommProtocolException("Use an async protocol");
     }
-    
+
     DatagramCommChannel channel = DatagramCommChannel
         .createChannel(location, (AsyncCommProtocol) protocol, workerGroup,
             port);
@@ -95,5 +101,5 @@ public class DatagramCommChannelFactory extends CommChannelFactory {
     }
     return channel;
   }
-  
+
 }
