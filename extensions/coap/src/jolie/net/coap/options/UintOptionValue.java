@@ -24,15 +24,52 @@ package jolie.net.coap.options;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+/**
+ * This class contains all specific functionality for {@link OptionValue}
+ * instances with unsigned integer values. If there is any need to access
+ * {@link OptionValue} instances directly, e.g. to retrieve its value, one could
+ * either cast the option to {@link UintOptionValue} and call
+ * {@link #getDecodedValue()} or one could all
+ * {@link OptionValue#getDecodedValue()} and cast the return value to
+ * {@link Long}.
+ *
+ * @author Oliver Kleine
+ */
 public class UintOptionValue extends OptionValue<Long> {
 
+  /**
+   * Corresponds to a value of <code>-1</code> to indicate that there is no
+   * value for that option set.
+   */
   public static final long UNDEFINED = -1;
 
+  /**
+   * @param optionNumber the option number of the {@link StringOptionValue} to
+   * be created
+   * @param value the value of the {@link StringOptionValue} to be created
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number is
+   * unknown, or if the given value is either the default value or exceeds the
+   * defined length limits for options with the given option number
+   */
   public UintOptionValue(int optionNumber, byte[] value)
       throws IllegalArgumentException {
     this(optionNumber, shortenValue(value), false);
   }
 
+  /**
+   * @param optionNumber the option number of the {@link StringOptionValue} to
+   * be created
+   * @param value the value of the {@link StringOptionValue} to be created
+   * @param allowDefault if set to <code>true</code> no
+   * {@link IllegalArgumentException} is thrown if the given value is the
+   * default value. This may be useful in very special cases, so do not use this
+   * feature if you are not absolutely sure that it is necessary!
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number is
+   * unknown, or if the given value is either the default value or exceeds the
+   * defined length limits for options with the given option number
+   */
   public UintOptionValue(int optionNumber, byte[] value, boolean allowDefault)
       throws IllegalArgumentException {
     super(optionNumber, shortenValue(value), allowDefault);
