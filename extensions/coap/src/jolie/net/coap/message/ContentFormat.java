@@ -21,6 +21,9 @@
  */
 package jolie.net.coap.message;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Helper class to provide constants for several content formats.
  *
@@ -62,4 +65,36 @@ public class ContentFormat {
    * Corresponds to number 50
    */
   public static final long APP_JSON = 50;
+
+  /**
+   * Map of Coap's Content Formats
+   */
+  public static final Map<Long, String> CONTENT_FORMAT = new HashMap<>(6);
+
+  static {
+    CONTENT_FORMAT.put(TEXT_PLAIN_UTF8, "text/plain");
+    CONTENT_FORMAT.put(APP_LINK_FORMAT, "application/link-format");
+    CONTENT_FORMAT.put(APP_XML, "application/xml");
+    CONTENT_FORMAT.put(APP_OCTET_STREAM, "application/octet-stream");
+    CONTENT_FORMAT.put(APP_EXI, "application/exi");
+    CONTENT_FORMAT.put(APP_JSON, "application/json");
+  }
+
+  /**
+   * Map of Joplie's allowed Content Formats
+   */
+  public static final Map<String, Long> JOLIE_ALLOWED_CONTENT_FORMAT = new HashMap<>(10);
+
+  static {
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("text/plain", TEXT_PLAIN_UTF8);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("text", TEXT_PLAIN_UTF8);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("utf8", TEXT_PLAIN_UTF8);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("application/xml", APP_XML);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("xml", APP_XML);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("application/octet-stream", APP_OCTET_STREAM);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("octet-stream", APP_OCTET_STREAM);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("raw", APP_OCTET_STREAM);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("application/json", APP_JSON);
+    JOLIE_ALLOWED_CONTENT_FORMAT.put("json", APP_JSON);
+  }
 }
