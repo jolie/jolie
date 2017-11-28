@@ -24,7 +24,6 @@ package jolie.net.coap.options;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
-import jolie.Interpreter;
 import jolie.net.coap.message.MessageCode;
 import static jolie.net.coap.options.Option.Occurence.MULTIPLE;
 import static jolie.net.coap.options.Option.Occurence.ONCE;
@@ -237,10 +236,6 @@ public class Option {
     CONTENT_205.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.CONTENT_205, CONTENT_205);
 
-    Map<Integer, Occurence> CONTINUE_231 = new HashMap<>();
-    CONTINUE_231.put(BLOCK_1, ONCE);
-    OCCURENCE_CONSTRAINTS.put(MessageCode.CONTINUE_231, CONTINUE_231);
-
     Map<Integer, Occurence> BAD_REQUEST_400 = new HashMap<>();
     BAD_REQUEST_400.put(MAX_AGE, ONCE);
     BAD_REQUEST_400.put(CONTENT_FORMAT, ONCE);
@@ -282,10 +277,6 @@ public class Option {
     NOT_ACCEPTABLE_406.put(CONTENT_FORMAT, ONCE);
     NOT_ACCEPTABLE_406.put(ENDPOINT_ID_2, ONCE);
     OCCURENCE_CONSTRAINTS.put(MessageCode.NOT_ACCEPTABLE_406, NOT_ACCEPTABLE_406);
-
-    Map<Integer, Occurence> REQUEST_ENTITY_INCOMPLETE_408 = new HashMap<>();
-    REQUEST_ENTITY_INCOMPLETE_408.put(CONTENT_FORMAT, ONCE);
-    OCCURENCE_CONSTRAINTS.put(MessageCode.REQUEST_ENTITY_INCOMPLETE_408, REQUEST_ENTITY_INCOMPLETE_408);
 
     Map<Integer, Occurence> PRECONDITION_FAILED_412 = new HashMap<>();
     PRECONDITION_FAILED_412.put(MAX_AGE, ONCE);

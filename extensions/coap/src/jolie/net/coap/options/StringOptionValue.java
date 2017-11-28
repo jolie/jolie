@@ -21,92 +21,153 @@
  */
 package jolie.net.coap.options;
 
-import io.netty.util.CharsetUtil;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 
 import java.util.Arrays;
 import java.util.Locale;
+import jolie.net.coap.message.CoapMessage;
 
 public class StringOptionValue extends OptionValue<String> {
 
-    private static final Charset charset = CharsetUtil.UTF_8;
+  /**
+   * @param optionNumber the option number of the {@link StringOptionValue} to
+   * be created
+   * @param value the value of the {@link StringOptionValue} to be created
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number is
+   * unknown, or if the given value is either the default value or exceeds the
+   * defined length limits for options with the given option number
+   */
+  public StringOptionValue(int optionNumber, byte[] value)
+      throws IllegalArgumentException {
+    this(optionNumber, value, false);
+  }
 
-    public StringOptionValue(int optionNumber, byte[] value)
-	    throws IllegalArgumentException {
-	this(optionNumber, value, false);
+  /**
+   * @param optionNumber the option number of the {@link StringOptionValue} to
+   * be created
+   * @param value the value of the {@link StringOptionValue} to be created
+   * @param allowDefault if set to <code>true</code> no
+   * {@link IllegalArgumentException} is thrown if the given value is the
+   * default value
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number is
+   * unknown, or if the given value is either the default value or exceeds the
+   * defined length limits for options with the given option number
+   */
+  public StringOptionValue(int optionNumber, byte[] value,
+      boolean allowDefault) throws IllegalArgumentException {
+    super(optionNumber, value, allowDefault);
+  }
+
+  /**
+   * Creates an instance of {@link StringOptionValue} according to the rules
+   * defined for CoAP. The pre-processing of the given value before encoding
+   * using {@link de.uzl.itm.ncoap.message.CoapMessage#CHARSET} depends on the
+   * given option number:
+   *
+   * <ul>
+   * <li> {@link Option#URI_HOST}: convert to lower case and remove percent
+   * encoding (if present)
+   * </li>
+   * <li> {@link Option#URI_PATH} and {@link Option#URI_QUERY}: remove percent
+   * encoding (if present)
+   * </li>
+   * <li>
+   * others: no pre-processing.
+   * </li>
+   * </ul>
+   *
+   * @param optionNumber the option number of the {@link StringOptionValue} to
+   * be created
+   * @param value the value of the {@link StringOptionValue} to be created
+   *
+   * @throws java.lang.IllegalArgumentException if the given option number is
+   * unknown, or if the given value is either the default value or exceeds the
+   * defined length limits for options with the given option number
+   */
+  public StringOptionValue(int optionNumber, String value)
+      throws IllegalArgumentException {
+
+    this(optionNumber, optionNumber == Option.URI_HOST
+        ? convertToByteArrayWithoutPercentEncoding(
+            value.toLowerCase(Locale.ENGLISH))
+        : ((optionNumber == Option.URI_PATH
+        || optionNumber == Option.URI_QUERY)
+            ? convertToByteArrayWithoutPercentEncoding(value)
+            : value.getBytes(CoapMessage.CHARSET)));
+  }
+
+  /**
+   * Returns the decoded value of this option assuming the byte array returned
+   * by {@link #getValue()} is an encoded String using
+   * {@link CoapMessage#CHARSET}.
+   *
+   * @return the decoded value of this option assuming the byte array returned
+   * by {@link #getValue()} is an encoded String using
+   * {@link CoapMessage#CHARSET}.
+   */
+  @Override
+  public String getDecodedValue() {
+    return new String(value, CoapMessage.CHARSET);
+  }
+
+  @Override
+  public int hashCode() {
+    return getDecodedValue().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof StringOptionValue)) {
+      return false;
     }
 
-    public StringOptionValue(int optionNumber, byte[] value,
-	    boolean allowDefault) throws IllegalArgumentException {
-	super(optionNumber, value, allowDefault);
-    }
+    StringOptionValue other = (StringOptionValue) object;
+    return Arrays.equals(this.getValue(), other.getValue());
+  }
 
-    public StringOptionValue(int optionNumber, String value)
-	    throws IllegalArgumentException {
+  /**
+   * Replaces percent-encoding from the given {@link String} and returns a byte
+   * array containing the encoded string using {@link CoapMessage#CHARSET}.
+   *
+   * @param s the {@link String} to be encoded
+   *
+   * @return a byte array containing the encoded string using
+   * {@link CoapMessage#CHARSET} without percent-encoding.
+   */
+  public static byte[] convertToByteArrayWithoutPercentEncoding(String s)
+      throws IllegalArgumentException {
 
-	this(optionNumber, optionNumber == Option.URI_HOST
-		? convertToByteArrayWithoutPercentEncoding(
-			value.toLowerCase(Locale.ENGLISH))
-		: ((optionNumber == Option.URI_PATH
-		|| optionNumber == Option.URI_QUERY)
-			? convertToByteArrayWithoutPercentEncoding(value)
-			: value.getBytes(charset)));
-    }
+    ByteArrayInputStream in = new ByteArrayInputStream(s.getBytes(CoapMessage.CHARSET));
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    @Override
-    public String getDecodedValue() {
-	return new String(value, charset);
-    }
+    int i;
 
-    @Override
-    public int hashCode() {
-	return getDecodedValue().hashCode();
-    }
+    do {
+      i = in.read();
+      if (i == -1) {
+        break;
+      }
+      if (i == 0x25) {
+        int d1 = Character.digit(in.read(), 16);
+        int d2 = Character.digit(in.read(), 16);
 
-    @Override
-    public boolean equals(Object object) {
-	if (!(object instanceof StringOptionValue)) {
-	    return false;
-	}
+        if (d1 == -1 || d2 == -1) {
+          throw new IllegalArgumentException("Invalid percent "
+              + "encoding in: " + s);
+        }
 
-	StringOptionValue other = (StringOptionValue) object;
-	return Arrays.equals(this.getValue(), other.getValue());
-    }
+        out.write((d1 << 4) | d2);
+      } else {
+        out.write(i);
+      }
 
-    public static byte[] convertToByteArrayWithoutPercentEncoding(String s)
-	    throws IllegalArgumentException {
+    } while (true);
 
-	ByteArrayInputStream in = new ByteArrayInputStream(s.getBytes(charset));
-	ByteArrayOutputStream out = new ByteArrayOutputStream();
+    byte[] result = out.toByteArray();
 
-	int i;
-
-	do {
-	    i = in.read();
-	    if (i == -1) {
-		break;
-	    }
-	    if (i == 0x25) {
-		int d1 = Character.digit(in.read(), 16);
-		int d2 = Character.digit(in.read(), 16);
-
-		if (d1 == -1 || d2 == -1) {
-		    throw new IllegalArgumentException("Invalid percent "
-			    + "encoding in: " + s);
-		}
-
-		out.write((d1 << 4) | d2);
-	    } else {
-		out.write(i);
-	    }
-
-	} while (true);
-
-	byte[] result = out.toByteArray();
-
-	return result;
-    }
+    return result;
+  }
 }
