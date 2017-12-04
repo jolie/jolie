@@ -273,21 +273,16 @@ public class CoapRequest extends CoapMessage {
   public URI getProxyURI() throws URISyntaxException {
 
     if (options.containsKey(Option.PROXY_URI)) {
-      OptionValue proxyUriOptionValue = options.get(Option.PROXY_URI);
-      return new URI(((StringOptionValue) proxyUriOptionValue)
-          .getDecodedValue());
+      return new URI((String) options.get(Option.PROXY_URI).get(0).getDecodedValue());
     }
 
     if (options.containsKey(Option.PROXY_SCHEME)) {
-      OptionValue proxySchemeOptionValue = options
-          .get(Option.PROXY_SCHEME);
-      String scheme = ((StringOptionValue) proxySchemeOptionValue)
-          .getDecodedValue();
+      String scheme = (String) options.get(Option.PROXY_SCHEME).get(0).getDecodedValue();
       String uriHost = getUriHost();
-      OptionValue uriPortOptionValue = options
-          .get(Option.URI_PORT);
-      int uriPort = ((UintOptionValue) uriPortOptionValue)
-          .getDecodedValue().intValue();
+      int uriPort = (int) OptionValue.URI_PORT_DEFAULT;
+      if (options.containsKey(Option.URI_PORT)) {
+        uriPort = (int) options.get(Option.URI_PORT).get(0).getDecodedValue();
+      }
       String uriPath = getUriPath();
       String uriQuery = getUriQuery();
 

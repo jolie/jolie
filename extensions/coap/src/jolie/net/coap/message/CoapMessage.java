@@ -65,7 +65,7 @@ public class CoapMessage {
 
   private ByteBuf content;
 
-  protected Map<Integer, OptionValue> options;
+  protected Map<Integer, List<OptionValue>> options;
 
   /**
    * Creates a new instance of {@link CoapMessage}.
@@ -240,7 +240,24 @@ public class CoapMessage {
         throw new IllegalArgumentException(String.format(EXCLUDES, containedOption, optionNumber));
       }
     }
-    options.put(optionNumber, optionValue);
+    switch (Option.getPermittedOccurence(optionNumber, this.messageCode)) {
+      case NONE:
+        break;
+      case ONCE:
+        options.putIfAbsent(optionNumber, Collections.singletonList(optionValue));
+        break;
+      case MULTIPLE:
+        if (options.get(optionNumber) == null) {
+          List<OptionValue> optionValueList = new ArrayList<>();
+          optionValueList.add(optionValue);
+          options.put(optionNumber, optionValueList);
+        } else {
+          options.get(optionNumber).add(optionValue);
+        }
+        break;
+      default:
+        throw new AssertionError(Option.getPermittedOccurence(optionNumber, this.messageCode).name());
+    }
   }
 
   /**
@@ -504,10 +521,10 @@ public class CoapMessage {
    * this {@link CoapRequest}.
    */
   public long getObserve() {
-    if (!options.containsKey(Option.OBSERVE)) {
-      return UintOptionValue.UNDEFINED;
+    if (options.containsKey(Option.OBSERVE)) {
+      return (long) options.get(Option.OBSERVE).get(0).getDecodedValue();
     } else {
-      return (long) options.get(Option.OBSERVE).getDecodedValue();
+      return UintOptionValue.UNDEFINED;
     }
   }
 
@@ -518,8 +535,8 @@ public class CoapMessage {
    * @param content ByteBuf containing the message content
    *
    * @throws java.lang.IllegalArgumentException if the messages code does not
-   * allow content and for the given {@link ByteBuf#readableBytes()} is
-   * greater then zero.
+   * allow content and for the given {@link ByteBuf#readableBytes()} is greater
+   * then zero.
    */
   public void setContent(ByteBuf content) throws IllegalArgumentException {
 
@@ -599,13 +616,13 @@ public class CoapMessage {
 
   /**
    * Returns a {@link Map} with the option numbers as keys and
-   * {@link OptionValue}s as values. The returned multimap does not contain
-   * options with default values.
+   * {@link OptionValue}s as values. The returned map does not contain options
+   * with default values.
    *
    * @return a {@link Map} with the option numbers as keys and
    * {@link OptionValue}s as values.
    */
-  public Map<Integer, OptionValue> getAllOptions() {
+  public Map<Integer, List<OptionValue>> getAllOptions() {
     return this.options;
   }
 
@@ -620,7 +637,7 @@ public class CoapMessage {
    * @return a {@link Set} containing the {@link OptionValue}s that are
    * explicitly set in this {@link CoapMessage}.
    */
-  public OptionValue getOptions(int optionNumber) {
+  public List<OptionValue> getOptions(int optionNumber) {
     return this.options.get(optionNumber);
   }
 
@@ -672,37 +689,16 @@ public class CoapMessage {
       return false;
     }
 
-    //Iterators iterate over the contained options
-    Iterator<Map.Entry<Integer, OptionValue>> iterator1
-        = this.getAllOptions().entrySet().iterator();
-    Iterator<Map.Entry<Integer, OptionValue>> iterator2
-        = other.getAllOptions().entrySet().iterator();
-
-    //Check if both CoAP Messages contain the same options in the same order
-    while (iterator1.hasNext()) {
-
-      //Check if iterator2 has no more options while iterator1 has at least one more
-      if (!iterator2.hasNext()) {
-        return false;
-      }
-
-      Map.Entry<Integer, OptionValue> entry1
-          = iterator1.next();
-      Map.Entry<Integer, OptionValue> entry2
-          = iterator2.next();
-
-      if (!entry1.getKey().equals(entry2.getKey())) {
-        return false;
-      }
-
-      if (!entry1.getValue().equals(entry2.getValue())) {
-        return false;
-      }
-    }
-
-    //Check if iterator2 has at least one more option while iterator1 has no more
-    if (iterator2.hasNext()) {
+    if (this.getAllOptions().size() == other.getAllOptions().size()) {
       return false;
+    } else {
+      for (Map.Entry<Integer, List<OptionValue>> entry : this.getAllOptions().entrySet()) {
+        Integer key = entry.getKey();
+        List<OptionValue> value = entry.getValue();
+        if (!other.getOptions(key).equals(value)) {
+          return false;
+        }
+      }
     }
 
     //Check setContent
@@ -727,8 +723,10 @@ public class CoapMessage {
     if (!this.options.isEmpty()) {
       for (int optionNumber : getAllOptions().keySet()) {
         result.append(" (No. ").append(optionNumber).append(") ");
-        OptionValue optionValue = this.getOptions(optionNumber);
-        result.append(optionValue.toString());
+        List<OptionValue> optionValueList = this.getOptions(optionNumber);
+        for (OptionValue optionValue : optionValueList) {
+          result.append(optionValue.getDecodedValue().toString()).append(" ");
+        }
       }
     } else {
       result.append(" <no options> ");
