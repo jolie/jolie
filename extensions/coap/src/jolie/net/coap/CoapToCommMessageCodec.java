@@ -75,9 +75,13 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
 import jolie.net.CommCore;
 import jolie.net.NioSocketCommChannel;
+import jolie.net.coap.linkformat.LinkParam;
+import jolie.net.coap.linkformat.LinkValueList;
 import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.Token;
+import jolie.net.coap.options.OptionValue;
 import jolie.runtime.ValuePrettyPrinter;
+import jolie.runtime.ValueVector;
 import jolie.xml.XmlUtils;
 
 import org.w3c.dom.Document;
@@ -186,7 +190,7 @@ public class CoapToCommMessageCodec
         correlationToken = msg.getToken();
       }
 
-      msg.addStringOption(Option.URI_PATH, URIPath);
+//      msg.addStringOption(Option.URI_PATH, URIPath);
       if (MessageCode.allowsContent(messageCode)) {
         msg.setContent(
             valueToByteBuf(commMessage),
@@ -219,21 +223,26 @@ public class CoapToCommMessageCodec
 
     if (isInput) {
 
+      if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+        Interpreter.getInstance().logInfo("Receiving a request from a client coap "
+            + "--> forwarding it to the comm core");
+      }
+
       String operationName = getOperationName(coapMessage);
       Value v = Value.create();
       if (MessageCode.allowsContent(coapMessage.getMessageCode())
           && !coapMessage.getContent().equals(Unpooled.EMPTY_BUFFER)) {
         String format
             = ContentFormat.CONTENT_FORMAT.get(
-                ((long) coapMessage.getOptions(Option.CONTENT_FORMAT).getDecodedValue())
+                ((long) coapMessage.getOptions(Option.CONTENT_FORMAT).get(0).getDecodedValue())
             );
+        if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+          Interpreter.getInstance().logInfo("The Message has a content in the format: "
+              + format);
+        }
         v = byteBufToValue(coapMessage.getContent(), operationName, format);
       }
 
-      if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-        Interpreter.getInstance().logInfo("Receiving a request from a client coap "
-            + "--> forwarding it to the comm core");
-      }
       correlationId = coapMessage.getMessageID();
       if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
         Interpreter.getInstance().logInfo("Storing id for later correlation: " + correlationId);
@@ -249,22 +258,27 @@ public class CoapToCommMessageCodec
 
     } else {
 
+      if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+        Interpreter.getInstance().logInfo("receiving a response form a server coap "
+            + "--> forwarding it to the comm core");
+        Interpreter.getInstance().logInfo(coapMessage.toString());
+      }
+
       String operationName = commMessageRequest.operationName();
       Value v = Value.create();
       if (MessageCode.allowsContent(coapMessage.getMessageCode())
           && !coapMessage.getContent().equals(Unpooled.EMPTY_BUFFER)) {
         String format
             = ContentFormat.CONTENT_FORMAT.get(
-                ((long) coapMessage.getOptions(Option.CONTENT_FORMAT).getDecodedValue())
+                ((long) coapMessage.getOptions(Option.CONTENT_FORMAT).get(0).getDecodedValue())
             );
+        if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+          Interpreter.getInstance().logInfo("The Message has a content in the format: "
+              + format);
+        }
         v = byteBufToValue(coapMessage.getContent(), operationName, format);
       }
 
-      if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
-        Interpreter.getInstance().logInfo("receiving a response form a server coap "
-            + "--> forwarding it to the comm core");
-        Interpreter.getInstance().logInfo(coapMessage.toString());
-      }
       if (coapMessage.isAck()
           && commMessageRequest != null
           && correlationId != -1
@@ -338,9 +352,6 @@ public class CoapToCommMessageCodec
     String format = ContentFormat.CONTENT_FORMAT.get(getContentFormat(commMessage.operationName()));
     Value v = commMessage.isFault() ? Value.create(commMessage.fault().getMessage()) : commMessage.value();
     switch (format) {
-      case "text/plain":
-        byteBuf.writeBytes(valueToPlainText(v).getBytes(charset));
-        break;
       case "application/link-format": // TODO support it!
         break;
       case "application/xml":
@@ -359,9 +370,8 @@ public class CoapToCommMessageCodec
         byteBuf.writeBytes(strm.toByteArray());
         break;
       case "application/octet-stream":
-        byteBuf.writeBytes(valueToPlainText(v).getBytes(charset));
-        break;
       case "application/exi":
+      case "text/plain":
         byteBuf.writeBytes(valueToPlainText(v).getBytes(charset));
         break;
       case "application/json":
@@ -532,6 +542,9 @@ public class CoapToCommMessageCodec
 
     if (message.length() > 0) {
       switch (format) {
+        case "application/link-format":
+          parseLinkFormat(in, value);
+          break;
         case "application/xml":
           DocumentBuilderFactory docBuilderFactory
               = DocumentBuilderFactory.newInstance();
@@ -541,7 +554,6 @@ public class CoapToCommMessageCodec
           Document doc = builder.parse(src);
           XmlUtils.documentToValue(doc, value);
           break;
-        case "application/link-format": // TODO support discovery!
         case "application/octet-stream":
         case "application/exi":
         case "text/plain":
@@ -706,12 +718,20 @@ public class CoapToCommMessageCodec
 
     // 7. if resource name is empty append a single /
     if (resource_name.length() == 0) {
-      url.append("/");
-    } else {
-      url.append(resource_name);
+      resource_name.append("/");
     }
 
-    return new URI(url.toString());
+    if (location.getQuery() != null) {
+      resource_name.append("?").append(location.getQuery());
+    }
+
+    // 9. append resource name to url
+    url.append(resource_name);
+
+    // set the string without percents or not allowed chars 
+    String uri = new URI(url.toString()).toASCIIString();
+
+    return new URI(uri);
   }
 
   private String getDynamicAlias(String start, Value value) {
@@ -748,18 +768,15 @@ public class CoapToCommMessageCodec
 
   private String getOperationName(CoapMessage in) {
 
-    if (in.containsOption(Option.URI_PATH)) {
-
-      String URIPath = ((StringOptionValue) in.getOptions(Option.URI_PATH))
-          .getDecodedValue().substring(1);
-      String operationName = protocol.getOperationFromAlias(URIPath);
-
-      return operationName;
-    } else {
-      Interpreter.getInstance().logSevere("The message does not contains the URI Path!");
-
+    StringBuilder sb = new StringBuilder("");
+    for (OptionValue option : in.getOptions(Option.URI_PATH)) {
+      StringOptionValue stringOption = (StringOptionValue) option;
+      sb.append(stringOption.getDecodedValue());
     }
-    return "";
+    String URIPath = sb.toString();
+    String operationName = protocol.getOperationFromOperationSpecificStringParameter(Parameters.ALIAS, URIPath);
+
+    return operationName;
   }
 
   private String valueToPrettyString(Value request) {
@@ -771,6 +788,24 @@ public class CoapToCommMessageCodec
     } // Should never happen
     return writer.toString();
 
+  }
+
+  private void parseLinkFormat(ByteBuf in, Value value) {
+    LinkValueList linkValueList = LinkValueList.decode(Unpooled.copiedBuffer(in).toString(charset));
+    for (String ref : linkValueList.getUriReferences()) {
+      ValueVector key = ValueVector.create();
+      Value v = Value.create();
+      for (LinkParam param : linkValueList.getLinkParams(ref)) {
+        ValueVector par = ValueVector.create();
+        par.add(Value.create(param.getValue().replaceAll("\"", "")));
+        v.children().put(param.getKey().toString(), par);
+      }
+      key.add(v);
+      value.children().put(ref, key);
+    }
+    if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
+      Interpreter.getInstance().logInfo(valueToPrettyString(value));
+    }
   }
 
   private static class Parameters {

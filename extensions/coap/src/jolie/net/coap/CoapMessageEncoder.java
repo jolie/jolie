@@ -21,6 +21,7 @@
  */
 package jolie.net.coap;
 
+import jolie.net.coap.exception.OptionCodecException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -82,12 +83,12 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 
     //write encoded options
     int previousOptionNumber = 0;
-    for (Map.Entry<Integer, OptionValue> entry
-        : coapMessage.getAllOptions().entrySet()) {
-      Integer optionNumber = entry.getKey();
-      OptionValue optionValue = entry.getValue();
-      encodeOption(msg, optionNumber, optionValue, previousOptionNumber);
-      previousOptionNumber = optionNumber;
+
+    for (int optionNumber : coapMessage.getAllOptions().keySet()) {
+      for (OptionValue optionValue : coapMessage.getOptions(optionNumber)) {
+        encodeOption(msg, optionNumber, optionValue, previousOptionNumber);
+        previousOptionNumber = optionNumber;
+      }
     }
 
     //write encoded setContent
@@ -127,8 +128,7 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
       throw new OptionCodecException(optionNumber);
     }
 
-    if (optionDelta
-        < 13) {
+    if (optionDelta < 13) {
       //option delta < 13
       if (optionLength < 13) {
         buffer.writeByte(((optionDelta & 0xFF) << 4)

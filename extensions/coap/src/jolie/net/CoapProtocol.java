@@ -26,6 +26,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 
 import jolie.net.coap.CoapToCommMessageCodec;
@@ -62,7 +63,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
   @Override
   public void setupPipeline(ChannelPipeline p) {
-//    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
     p.addLast("DECODER", new CoapMessageDecoder());
     p.addLast("ENCODER", new CoapMessageEncoder());
     p.addLast("CODEC", new CoapToCommMessageCodec(this));
@@ -86,6 +87,13 @@ public class CoapProtocol extends AsyncCommProtocol {
   @Override
   public boolean hasOperationSpecificParameter(String on, String p) {
     return super.hasOperationSpecificParameter(on, p);
+  }
+
+  @Override
+  public ValueVector getOperationSpecificParameterVector(String operationName,
+      String parameterName) {
+    return super.getOperationSpecificParameterVector(operationName,
+        parameterName);
   }
 
   @Override
@@ -152,26 +160,37 @@ public class CoapProtocol extends AsyncCommProtocol {
   /**
    * Given the <code>alias</code> for an operation, it searches iteratively in
    * the <code>configurationPath</code> of the {@link AsyncCommProtocol} to find
-   * the corresponsding <code>operationName.</code>.
+   * the corresponsding <code>operationName</code>.
    *
    * @param alias the alias for the wanted operation
    * @return The operation name String
    */
-  public String getOperationFromAlias(String alias) {
+  public String getOperationFromOperationSpecificStringParameter(String parameter,
+      String parameterStringValue) {
 
-    if (configurationPath().getValue().hasChildren("osc")) {
-      for (Map.Entry<String, ValueVector> i : configurationPath().getValue()
-          .getFirstChild("osc").children().entrySet()) {
-        for (Map.Entry<String, ValueVector> j : i.getValue().first().children()
-            .entrySet()) {
-          if (j.getKey().equals("alias") && j.getValue().first().strValue()
-              .equals(alias)) {
-            return i.getKey();
+    for (Map.Entry<String, ValueVector> i : configurationPath().getValue().children().entrySet()) {
+      String key = i.getKey();
+      ValueVector value = i.getValue();
+      if (key.equals("osc")) {
+        for (Iterator<Value> iterator = value.iterator(); iterator.hasNext();) {
+          Value next = iterator.next();
+          for (Map.Entry<String, ValueVector> j : next.children().entrySet()) {
+            String key1 = j.getKey();
+            ValueVector value1 = j.getValue();
+            if (key1.equals(parameter)) {
+              StringBuilder sb = new StringBuilder("");
+              for (Iterator<Value> iterator1 = value1.iterator(); iterator1.hasNext();) {
+                Value next1 = iterator1.next();
+                sb.append(next1.strValue());
+              }
+              if (sb.toString().equals(parameterStringValue)) {
+                return key1;
+              }
+            }
           }
         }
       }
     }
-    // else we return directly the topic
-    return alias;
+    return parameterStringValue;
   }
 }
