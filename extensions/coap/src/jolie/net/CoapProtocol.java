@@ -26,15 +26,17 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Iterator;
 import java.util.Map;
 
-import jolie.net.coap.CoapToCommMessageCodec;
-import jolie.net.coap.CoapMessageDecoder;
-import jolie.net.coap.CoapMessageEncoder;
+import jolie.net.coap.communication.codec.CoapMessageDecoder;
+import jolie.net.coap.communication.codec.CoapMessageEncoder;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OneWayTypeDescription;
@@ -63,7 +65,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
   @Override
   public void setupPipeline(ChannelPipeline p) {
-    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+//    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
     p.addLast("DECODER", new CoapMessageDecoder());
     p.addLast("ENCODER", new CoapMessageEncoder());
     p.addLast("CODEC", new CoapToCommMessageCodec(this));
@@ -157,6 +159,17 @@ public class CoapProtocol extends AsyncCommProtocol {
     return ret;
   }
 
+  private String valueToPrettyString(Value request) {
+    Writer writer = new StringWriter();
+    ValuePrettyPrinter printer = new ValuePrettyPrinter(request, writer, "");
+    try {
+      printer.run();
+    } catch (IOException e) {
+    } // Should never happen
+    return writer.toString();
+
+  }
+
   /**
    * Given the <code>alias</code> for an operation, it searches iteratively in
    * the <code>configurationPath</code> of the {@link AsyncCommProtocol} to find
@@ -168,23 +181,30 @@ public class CoapProtocol extends AsyncCommProtocol {
   public String getOperationFromOperationSpecificStringParameter(String parameter,
       String parameterStringValue) {
 
-    for (Map.Entry<String, ValueVector> i : configurationPath().getValue().children().entrySet()) {
-      String key = i.getKey();
-      ValueVector value = i.getValue();
-      if (key.equals("osc")) {
-        for (Iterator<Value> iterator = value.iterator(); iterator.hasNext();) {
-          Value next = iterator.next();
-          for (Map.Entry<String, ValueVector> j : next.children().entrySet()) {
-            String key1 = j.getKey();
-            ValueVector value1 = j.getValue();
-            if (key1.equals(parameter)) {
-              StringBuilder sb = new StringBuilder("");
-              for (Iterator<Value> iterator1 = value1.iterator(); iterator1.hasNext();) {
-                Value next1 = iterator1.next();
-                sb.append(next1.strValue());
-              }
-              if (sb.toString().equals(parameterStringValue)) {
-                return key1;
+    for (Map.Entry<String, ValueVector> first : configurationPath().getValue().children().entrySet()) {
+      String first_level_key = first.getKey();
+      ValueVector first_level_valueVector = first.getValue();
+      if (first_level_key.equals("osc")) {
+        for (Iterator<Value> first_iterator = first_level_valueVector.iterator(); first_iterator.hasNext();) {
+          Value fisrt_value = first_iterator.next();
+          for (Map.Entry<String, ValueVector> second : fisrt_value.children().entrySet()) {
+            String second_level_key = second.getKey();
+            ValueVector second_level_valueVector = second.getValue();
+            for (Iterator<Value> second_iterator = second_level_valueVector.iterator(); second_iterator.hasNext();) {
+              Value second_value = second_iterator.next();
+              for (Map.Entry<String, ValueVector> third : second_value.children().entrySet()) {
+                String third_level_key = third.getKey();
+                ValueVector third_level_valueVector = third.getValue();
+                if (third_level_key.equals(parameter)) {
+                  StringBuilder sb = new StringBuilder("");
+                  for (Iterator<Value> third_iterator = third_level_valueVector.iterator(); third_iterator.hasNext();) {
+                    Value third_value = third_iterator.next();
+                    sb.append(third_value.strValue());
+                  }
+                  if (sb.toString().equals(parameterStringValue)) {
+                    return second_level_key;
+                  }
+                }
               }
             }
           }

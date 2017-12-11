@@ -22,10 +22,10 @@
 package jolie.net.coap.message;
 
 import java.net.*;
-import jolie.net.coap.options.Option;
-import jolie.net.coap.options.OptionValue;
-import jolie.net.coap.options.StringOptionValue;
-import jolie.net.coap.options.UintOptionValue;
+import jolie.net.coap.message.options.Option;
+import jolie.net.coap.message.options.OptionValue;
+import jolie.net.coap.message.options.StringOptionValue;
+import jolie.net.coap.message.options.UintOptionValue;
 
 /**
  * Instances of {@link CoapRequest} are created by {@link CoapClient}s to
