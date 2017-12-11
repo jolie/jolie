@@ -21,6 +21,7 @@
  */
 package jolie.net.coap.message;
 
+import jolie.net.coap.communication.dispatching.Token;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
@@ -30,12 +31,13 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import jolie.Interpreter;
-import jolie.net.coap.options.EmptyOptionValue;
-import jolie.net.coap.options.OpaqueOptionValue;
-import jolie.net.coap.options.Option;
-import jolie.net.coap.options.OptionValue;
-import jolie.net.coap.options.StringOptionValue;
-import jolie.net.coap.options.UintOptionValue;
+import jolie.net.coap.communication.blockwise.BlockSize;
+import jolie.net.coap.message.options.EmptyOptionValue;
+import jolie.net.coap.message.options.OpaqueOptionValue;
+import jolie.net.coap.message.options.Option;
+import jolie.net.coap.message.options.OptionValue;
+import jolie.net.coap.message.options.StringOptionValue;
+import jolie.net.coap.message.options.UintOptionValue;
 
 /**
  * This class is the base class for inheriting subtypes, e.g. requests and
@@ -529,6 +531,265 @@ public class CoapMessage {
   }
 
   /**
+   * Returns the sequence number of the block2 option or
+   * {@link jolie.net.coap.message.options.UintOptionValue#UNDEFINED} if there
+   * is no such option present in this {@link CoapRequest}.
+   *
+   * @return the sequence number of the block2 option or
+   * {@link jolie.net.coap.message.options.UintOptionValue#UNDEFINED} if there
+   * is no such option present in this {@link CoapRequest}.
+   */
+  public long getBlock2Number() {
+    if (!options.containsKey(Option.BLOCK_2)) {
+      return UintOptionValue.UNDEFINED;
+    } else {
+      return (long) options.get(Option.BLOCK_2).iterator().next().getDecodedValue() >> 4;
+    }
+  }
+
+  /**
+   * Returns <code>true</code> if
+   * <ul>
+   * <li>the BLOCK2 option is present and its value indicates that there are no
+   * more blocks to come (should be always <code>false</code> for
+   * {@link CoapRequest}s or
+   * </li>
+   * <li>if there is no BLOCK2 option present.</li>
+   * </ul>
+   *
+   * @return <code>true</code> if there are no more blocks expected.
+   */
+  public boolean isLastBlock2() {
+    if (!options.containsKey(Option.BLOCK_2)) {
+      return true;
+    } else {
+      long m = (long) options.get(Option.BLOCK_2).iterator().next().getDecodedValue();
+      return (extractBits(m, 1, 3) == 0);
+    }
+  }
+
+  /**
+   * Returns encoded block size of the block2 option (i.e. the 'szx' portion) or
+   * {@link de.uzl.itm.ncoap.message.options.UintOptionValue#UNDEFINED} if there
+   * is no such option present in this {@link CoapRequest}.
+   *
+   * With szx as the returned value the actual blocksize is
+   * <code>2^(szx + 4)</code> bytes.
+   *
+   * @return the block size of the block2 option or
+   * {@link de.uzl.itm.ncoap.message.options.UintOptionValue#UNDEFINED} if there
+   * is no such option present in this {@link CoapRequest}.
+   */
+  public long getBlock2Szx() {
+    if (!options.containsKey(Option.BLOCK_2)) {
+      return UintOptionValue.UNDEFINED;
+    } else {
+      long value = (long) options.get(Option.BLOCK_2).iterator().next().getDecodedValue();
+      return extractBits(value, 3, 0);
+    }
+  }
+
+  public long getBlock2Size() {
+    long block2szx = getBlock2Szx();
+    if (block2szx != BlockSize.UNDEFINED) {
+      return BlockSize.UNDEFINED;
+    } else {
+      return BlockSize.getBlockSize(block2szx).getSize();
+    }
+  }
+
+  /**
+   * Returns the sequence number (i.e. the NUM portion) of the BLOCK1 option or
+   * {@link UintOptionValue#UNDEFINED} if there is no BLOCK1 option present in
+   * this {@link CoapMessage}.
+   *
+   * @return the sequence number of the block1 option or
+   * {@link de.uzl.itm.ncoap.message.options.UintOptionValue#UNDEFINED} if there
+   * is no such option present in this {@link CoapRequest}.
+   */
+  public long getBlock1Number() {
+    if (!options.containsKey(Option.BLOCK_1)) {
+      return UintOptionValue.UNDEFINED;
+    } else {
+      return (long) options.get(Option.BLOCK_1).iterator().next().getDecodedValue() >> 4;
+    }
+  }
+
+  /**
+   * Returns <code>true</code> if and only if
+   * <ul>
+   * <li>the BLOCK1 option is present and its value indicates that there are no
+   * more blocks to come or</li>
+   * <li>if there is no BLOCK1 option present in this {@link CoapMessage}.</li>
+   * </ul>
+   *
+   * @return <code>true</code> if there are no more blocks expected and
+   * <code>false</code> otherwise.
+   */
+  public boolean isLastBlock1() {
+    if (!options.containsKey(Option.BLOCK_1)) {
+      return true;
+    } else {
+      long m = (long) options.get(Option.BLOCK_1).iterator().next().getDecodedValue();
+      return (extractBits(m, 1, 3) == 0);
+    }
+  }
+
+  /**
+   * Returns the encoded block size of the BLOCK1 option (i.e. the SZX portion)
+   * or {@link UintOptionValue#UNDEFINED} if there is no BLOCK1 option contained
+   * in this {@link CoapMessage}.
+   *
+   * With szx as the returned value the actual blocksize is
+   * <code>2^(szx + 4)</code> bytes.
+   *
+   * @return the encoded block size of the BLOCK1 option (i.e. the SZX portion)
+   * or {@link UintOptionValue#UNDEFINED} if there is no BLOCK1 option contained
+   * in this {@link CoapMessage}.
+   */
+  public long getBlock1Szx() {
+    if (!options.containsKey(Option.BLOCK_1)) {
+      return UintOptionValue.UNDEFINED;
+    } else {
+      long value = (long) options.get(Option.BLOCK_1).iterator().next().getDecodedValue();
+      return extractBits(value, 3, 0);
+    }
+  }
+
+  /**
+   * Returns the decoded size (i.e. number of bytes) given by the SZX portion of
+   * the BLOCK-1 option or {@link UintOptionValue#UNDEFINED} if no BLOCK1 option
+   * is contained in this {@link CoapMessage}.
+   *
+   * @return the decoded size (i.e. number of bytes) given by the SZX portion of
+   * the BLOCK-1 option or {@link UintOptionValue#UNDEFINED} if no BLOCK1 option
+   * is contained in this {@link CoapMessage}.
+   */
+  public long getBlock1Size() {
+    long block1szx = getBlock1Szx();
+    if (block1szx == UintOptionValue.UNDEFINED) {
+      return UintOptionValue.UNDEFINED;
+    } else {
+      return BlockSize.getBlockSize(block1szx).getSize();
+    }
+  }
+
+  public void setSize2(long size2) throws IllegalArgumentException {
+    this.options.remove(Option.SIZE_2);
+    this.addUintOption(Option.SIZE_2, size2);
+  }
+
+  public long getSize2() {
+    if (options.containsKey(Option.SIZE_2)) {
+      return ((UintOptionValue) options.get(Option.SIZE_2).iterator().next()).getDecodedValue();
+    } else {
+      return UintOptionValue.UNDEFINED;
+    }
+  }
+
+  public void setSize1(long size1) throws IllegalArgumentException {
+    this.options.remove(Option.SIZE_1);
+    this.addUintOption(Option.SIZE_1, size1);
+  }
+
+  public long getSize1() {
+    if (options.containsKey(Option.SIZE_1)) {
+      return ((UintOptionValue) options.get(Option.SIZE_1).iterator().next()).getDecodedValue();
+    } else {
+      return UintOptionValue.UNDEFINED;
+    }
+  }
+
+  /**
+   * Returns the {@link jolie.net.coap.communication.identification.EndpointID}
+   * contained in this message as
+   * {@link de.uzl.itm.ncoap.message.options.Option#ENDPOINT_ID_1} or
+   * <code>null</code> if no such option is present
+   *
+   * @return the {@link jolie.net.coap.communication.identification.EndpointID}
+   * contained in this message as
+   * {@link jolie.net.coap.message.options.Option#ENDPOINT_ID_1} or
+   * <code>null</code> if no such option is present
+   */
+  public byte[] getEndpointID1() {
+    List<OptionValue> values = getOptions(Option.ENDPOINT_ID_1);
+    if (values.isEmpty()) {
+      return null;
+    } else {
+      return values.iterator().next().getValue();
+    }
+  }
+
+  /**
+   * Sets the {@link jolie.net.coap.message.options.Option#ENDPOINT_ID_1} with
+   * an empty byte array. This value is replaces with a valid ID by the
+   * framework during outbound message processing
+   */
+  public void setEndpointID1() {
+    this.setEndpointID1(new byte[0]);
+  }
+
+  /**
+   * Sets the {@link jolie.net.coap.message.options.Option#ENDPOINT_ID_1} with
+   * the given byte array.
+   *
+   * <b>Note:</b> This method is intended for internal use. The given value is
+   * likely to be replaced by the framework during outbound message processing!
+   * Use {@link #setEndpointID1} instead!
+   *
+   * @param value the
+   * {@link jolie.net.coap.message.options.Option#ENDPOINT_ID_1} option value
+   */
+  public void setEndpointID1(byte[] value) {
+    try {
+      this.removeOptions(Option.ENDPOINT_ID_1);
+      this.addOpaqueOption(Option.ENDPOINT_ID_1, value);
+    } catch (IllegalArgumentException e) {
+      this.removeOptions(Option.ENDPOINT_ID_1);
+    }
+  }
+
+  /**
+   * Returns the {@link jolie.net.coap.communication.identification.EndpointID}
+   * contained in this message as
+   * {@link de.uzl.itm.ncoap.message.options.Option#ENDPOINT_ID_2} or
+   * <code>null</code> if no such option is present
+   *
+   * @return the {@link jolie.net.coap.communication.identification.EndpointID}
+   * contained in this message as
+   * {@link jolie.net.coap.message.options.Option#ENDPOINT_ID_2} or
+   * <code>null</code> if no such option is present
+   */
+  public byte[] getEndpointID2() {
+    List<OptionValue> values = getOptions(Option.ENDPOINT_ID_2);
+    if (values.isEmpty()) {
+      return null;
+    } else {
+      return values.iterator().next().getValue();
+    }
+  }
+
+  /**
+   * Sets the {@link jolie.net.coap.message.options.Option#ENDPOINT_ID_2} with
+   * the given byte array.
+   *
+   * <b>Note:</b> This method is intended for internal use. The given value is
+   * likely to be replaced or removed by the framework during outbound message
+   * processing!
+   *
+   * @param value the
+   * {@link jolie.net.coap.message.options.Option#ENDPOINT_ID_1} option value
+   */
+  public void setEndpointID2(byte[] value) {
+    try {
+      this.removeOptions(Option.ENDPOINT_ID_2);
+      this.addOpaqueOption(Option.ENDPOINT_ID_2, value);
+    } catch (IllegalArgumentException e) {
+      this.removeOptions(Option.ENDPOINT_ID_2);
+    }
+  }
+
+  /**
    * Adds the content to the message. If this {@link CoapMessage} contained any
    * content prior to the invocation of method, the previous content is removed.
    *
@@ -547,6 +808,34 @@ public class CoapMessage {
     }
 
     this.content = content;
+  }
+
+  /**
+   * Adds the content to the message. If this {@link CoapMessage} contained any
+   * content prior to the invocation of method, the previous content is removed.
+   *
+   * @param content ChannelBuffer containing the message content
+   *
+   * @throws java.lang.IllegalArgumentException if the messages code does not
+   * allow content and the given byte array has a length more than zero.
+   */
+  public void setContent(byte[] content) throws IllegalArgumentException {
+    setContent(Unpooled.wrappedBuffer(content));
+  }
+
+  /**
+   * Adds the content to the message. If this {@link CoapMessage} contained any
+   * content prior to the invocation of method, the previous content is removed.
+   *
+   * @param content ChannelBuffer containing the message content
+   * @param contentFormat a long value representing the format of the content
+   *
+   * @throws java.lang.IllegalArgumentException if the messages code does not
+   * allow content
+   */
+  public void setContent(byte[] content, long contentFormat) 
+      throws IllegalArgumentException {
+    setContent(Unpooled.wrappedBuffer(content), contentFormat);
   }
 
   /**
@@ -590,13 +879,13 @@ public class CoapMessage {
     return this.content;
   }
 
-  public byte[] contentAsByteArray() {
-    byte[] result = new byte[this.contentLength()];
-    this.getContent().readBytes(result, 0, this.contentLength());
+  public byte[] getContentAsByteArray() {
+    byte[] result = new byte[this.getContentLength()];
+    this.getContent().readBytes(result, 0, this.getContentLength());
     return result;
   }
 
-  public int contentLength() {
+  public int getContentLength() {
     return this.content.readableBytes();
   }
 
@@ -759,5 +1048,11 @@ public class CoapMessage {
     } else if (options.containsKey(optionNumber) && permittedOccurence == Option.Occurence.ONCE) {
       throw new IllegalArgumentException(String.format(OPTION_ALREADY_SET, optionNumber));
     }
+  }
+
+  private static long extractBits(final long value, final int bits, final int offset) {
+    final long shifted = value >>> offset;
+    final long masked = (1L << bits) - 1L;
+    return shifted & masked;
   }
 }

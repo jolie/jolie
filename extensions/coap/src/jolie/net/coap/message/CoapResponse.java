@@ -21,14 +21,17 @@
  */
 package jolie.net.coap.message;
 
+import jolie.net.coap.message.options.ContentFormat;
 import io.netty.buffer.Unpooled;
 import java.net.URI;
 import java.net.URISyntaxException;
+import jolie.net.coap.communication.blockwise.BlockSize;
+import jolie.net.coap.message.options.OpaqueOptionValue;
 
-import jolie.net.coap.options.Option;
-import jolie.net.coap.options.OptionValue;
-import jolie.net.coap.options.StringOptionValue;
-import jolie.net.coap.options.UintOptionValue;
+import jolie.net.coap.message.options.Option;
+import jolie.net.coap.message.options.OptionValue;
+import jolie.net.coap.message.options.StringOptionValue;
+import jolie.net.coap.message.options.UintOptionValue;
 
 /**
  * <p>
@@ -77,7 +80,83 @@ public class CoapResponse extends CoapMessage {
     }
   }
 
-  
+  /**
+   * Sets the {@link jolie.net.coap.message.options.Option#ETAG} of this
+   * {@link CoapResponse}.
+   *
+   * @param etag the byte array that is supposed to represent the ETAG of the
+   * content returned by {@link #getContent()}.
+   *
+   * @throws IllegalArgumentException if the given byte array is invalid to be
+   * considered an ETAG
+   */
+  public void setEtag(byte[] etag) throws IllegalArgumentException {
+    this.addOpaqueOption(Option.ETAG, etag);
+  }
+
+  /**
+   * Returns the byte array representing the ETAG of the content returned by
+   * {@link #getContent()}
+   *
+   * @return the byte array representing the ETAG of the content returned by
+   * {@link #getContent()}
+   */
+  public byte[] getEtag() {
+    if (options.containsKey(Option.ETAG)) {
+      return ((OpaqueOptionValue) options.get(Option.ETAG).iterator().next()).getDecodedValue();
+    } else {
+      return null;
+    }
+  }
+
+  public void setPreferredBlock2Size(BlockSize block2Size) {
+    if (BlockSize.UNBOUND == block2Size || block2Size == null) {
+      this.removeOptions(Option.BLOCK_2);
+    } else {
+      this.setBlock2(0, false, block2Size.getSzx());
+    }
+  }
+
+  /**
+   * Sets the BLOCK2 option in this {@link CoapRequest} and returns
+   * <code>true</code> if the option is set after method returns (may already
+   * have been set beforehand in a prior method invocation) or
+   * <code>false</code> if the option is not set, e.g. because that option has
+   * no meaning with the message code of this {@link CoapRequest}.
+   *
+   * @param number The relative number of the block sent or requested
+   * @param more Whether more blocks are following;
+   * @param szx The block size (can assume values between 0 and 6, the actual
+   * block size is then 2^(szx + 4)).
+   *
+   * @throws IllegalArgumentException if the block number is greater than
+   * 1048575 (2^20 - 1)
+   */
+  public void setBlock2(long number, boolean more, long szx) throws IllegalArgumentException {
+    try {
+      this.removeOptions(Option.BLOCK_2);
+      if (number > 1048575) {
+        throw new IllegalArgumentException("Max. BLOCK2NUM is 1048575");
+      }
+      //long more = ((more) ? 1 : 0) << 3;
+      this.addUintOption(Option.BLOCK_2, ((number & 0xFFFFF) << 4) + ((more ? 1 : 0) << 3) + szx);
+    } catch (IllegalArgumentException e) {
+      this.removeOptions(Option.BLOCK_2);
+    }
+  }
+
+  public void setBlock1(long number, long szx) throws IllegalArgumentException {
+    try {
+      this.removeOptions(Option.BLOCK_1);
+      if (number > 1048575) {
+        throw new IllegalArgumentException("Max. BLOCK1NUM is 1048575");
+      }
+      //long more = ((more) ? 1 : 0) << 3;
+      this.addUintOption(Option.BLOCK_1, ((number & 0xFFFFF) << 4) + (1 << 3) + szx);
+    } catch (IllegalArgumentException e) {
+      this.removeOptions(Option.BLOCK_1);
+    }
+  }
 
   /**
    * Sets the observe option to a proper value automatically. This method is to
