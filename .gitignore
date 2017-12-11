@@ -43,3 +43,4 @@ build/
 lib/netty-all-4.1.17.Final-javadoc.jar
 lib/netty-all-4.1.17.Final-sources.jar
 extensions/coap/nbproject/private/private.xml
+tools/jolie2dummy/nbproject/private/private.properties
