@@ -19,9 +19,8 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net.coap.communication.codec;
 
-import jolie.net.coap.exception.OptionCodecException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -29,14 +28,14 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.util.List;
 
 import jolie.net.coap.message.CoapMessage;
-import jolie.net.coap.options.EmptyOptionValue;
+import jolie.net.coap.message.options.EmptyOptionValue;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
-import jolie.net.coap.options.OpaqueOptionValue;
-import jolie.net.coap.options.OptionValue;
-import jolie.net.coap.options.StringOptionValue;
-import jolie.net.coap.message.Token;
-import jolie.net.coap.options.UintOptionValue;
+import jolie.net.coap.message.options.OpaqueOptionValue;
+import jolie.net.coap.message.options.OptionValue;
+import jolie.net.coap.message.options.StringOptionValue;
+import jolie.net.coap.communication.dispatching.Token;
+import jolie.net.coap.message.options.UintOptionValue;
 
 import jolie.Interpreter;
 import jolie.net.coap.message.CoapRequest;

@@ -19,9 +19,8 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net.coap.communication.codec;
 
-import jolie.net.coap.exception.OptionCodecException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -32,7 +31,7 @@ import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.net.coap.message.CoapMessage;
-import jolie.net.coap.options.OptionValue;
+import jolie.net.coap.message.options.OptionValue;
 
 /**
  * A {@link CoapMessageEncoder} serializes outgoing {@link CoapMessage}s. In the

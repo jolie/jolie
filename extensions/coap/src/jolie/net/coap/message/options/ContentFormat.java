@@ -19,7 +19,7 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap.message;
+package jolie.net.coap.message.options;
 
 import java.util.HashMap;
 import java.util.Map;

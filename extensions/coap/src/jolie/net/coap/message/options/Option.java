@@ -19,15 +19,15 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap.options;
+package jolie.net.coap.message.options;
 
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import jolie.net.coap.message.MessageCode;
-import static jolie.net.coap.options.Option.Occurence.MULTIPLE;
-import static jolie.net.coap.options.Option.Occurence.ONCE;
-import static jolie.net.coap.options.Option.Occurence.NONE;
+import static jolie.net.coap.message.options.Option.Occurence.MULTIPLE;
+import static jolie.net.coap.message.options.Option.Occurence.ONCE;
+import static jolie.net.coap.message.options.Option.Occurence.NONE;
 
 public class Option {
 

@@ -19,7 +19,7 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -57,15 +57,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import jolie.Interpreter;
-import jolie.net.CoapProtocol;
-import jolie.net.CommMessage;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
-import jolie.net.coap.message.ContentFormat;
+import jolie.net.coap.message.options.ContentFormat;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
-import jolie.net.coap.options.Option;
-import jolie.net.coap.options.StringOptionValue;
+import jolie.net.coap.message.options.Option;
+import jolie.net.coap.message.options.StringOptionValue;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -73,13 +71,12 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.js.JsUtils;
-import jolie.net.CommCore;
-import jolie.net.NioSocketCommChannel;
-import jolie.net.coap.linkformat.LinkParam;
-import jolie.net.coap.linkformat.LinkValueList;
+import jolie.net.coap.application.linkformat.LinkParam;
+import jolie.net.coap.application.linkformat.LinkValueList;
 import jolie.net.coap.message.CoapResponse;
-import jolie.net.coap.message.Token;
-import jolie.net.coap.options.OptionValue;
+import jolie.net.coap.communication.dispatching.Token;
+import jolie.net.coap.message.options.OptionValue;
+import jolie.net.coap.message.options.UintOptionValue;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.xml.XmlUtils;
@@ -155,18 +152,16 @@ public class CoapToCommMessageCodec
             + "--> forwarding it to the server");
       }
 
-      URI targetURI = getTargetURI(commMessage); //new URI(getTargetURI(commMessage).toASCIIString()); // resolve the string with other char
+      URI targetURI = getTargetURI(commMessage);
       if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
         Interpreter.getInstance().logInfo("Complete URI Target of the resource: "
             + targetURI);
       }
-      String URIPath = getURIPath(targetURI, operationName);
       int messageCode = getMessageCode(operationName, false);
       CoapRequest msg = new CoapRequest(
           messageType,
           messageCode,
-          targetURI,
-          protocol.checkBooleanParameter(Parameters.PROXY)
+          targetURI
       );
 
       if (isOneWay(operationName) && messageType == MessageType.NON) {
@@ -190,7 +185,6 @@ public class CoapToCommMessageCodec
         correlationToken = msg.getToken();
       }
 
-//      msg.addStringOption(Option.URI_PATH, URIPath);
       if (MessageCode.allowsContent(messageCode)) {
         msg.setContent(
             valueToByteBuf(commMessage),
@@ -262,6 +256,11 @@ public class CoapToCommMessageCodec
         Interpreter.getInstance().logInfo("receiving a response form a server coap "
             + "--> forwarding it to the comm core");
         Interpreter.getInstance().logInfo(coapMessage.toString());
+      }
+
+      if (coapMessage instanceof CoapResponse
+          && coapMessage.getBlock2Szx() != UintOptionValue.UNDEFINED) {
+
       }
 
       String operationName = commMessageRequest.operationName();
@@ -543,7 +542,8 @@ public class CoapToCommMessageCodec
     if (message.length() > 0) {
       switch (format) {
         case "application/link-format":
-          parseLinkFormat(in, value);
+//          parseLinkFormat(in, value);
+          parsePlainText(message, value, type);
           break;
         case "application/xml":
           DocumentBuilderFactory docBuilderFactory
@@ -667,18 +667,6 @@ public class CoapToCommMessageCodec
         .oneWayOperations().containsKey(operationName);
   }
 
-  private String getURIPath(URI targetURI, String operationName)
-      throws URISyntaxException {
-
-    String URIPath = targetURI.getPath();
-
-    if (URIPath.equals("") || URIPath.equals("/")) {
-      URIPath = "/".concat(operationName);
-    }
-
-    return URIPath;
-  }
-
   private URI getTargetURI(CommMessage in)
       throws URISyntaxException {
 
@@ -768,10 +756,18 @@ public class CoapToCommMessageCodec
 
   private String getOperationName(CoapMessage in) {
 
-    StringBuilder sb = new StringBuilder("");
-    for (OptionValue option : in.getOptions(Option.URI_PATH)) {
+    StringBuilder sb = new StringBuilder();
+    int i = 1;
+    List<OptionValue> options = in.getOptions(Option.URI_PATH);
+    sb.append("/");
+    for (OptionValue option : options) {
       StringOptionValue stringOption = (StringOptionValue) option;
-      sb.append(stringOption.getDecodedValue());
+      if (i < options.size()) {
+        sb.append(stringOption.getDecodedValue()).append("/");
+      } else {
+        sb.append(stringOption.getDecodedValue());
+      }
+      i++;
     }
     String URIPath = sb.toString();
     String operationName = protocol.getOperationFromOperationSpecificStringParameter(Parameters.ALIAS, URIPath);
@@ -814,10 +810,7 @@ public class CoapToCommMessageCodec
     private static final String CONTENT_FORMAT = "contentFormat";
     private static final String MESSAGE_TYPE = "messageType";
     private static final String MESSAGE_CODE = "messageCode";
-    private static final String MESSAGE_ID = "messageID";
-    private static final String TOKEN = "token";
     private static final String JSON_ENCODING = "json_encoding";
     private static final String ALIAS = "alias";
-    private static final String PROXY = "proxy";
   }
 }

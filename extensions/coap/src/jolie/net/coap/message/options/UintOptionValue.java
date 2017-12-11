@@ -19,7 +19,7 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap.options;
+package jolie.net.coap.message.options;
 
 import java.math.BigInteger;
 import java.util.Arrays;

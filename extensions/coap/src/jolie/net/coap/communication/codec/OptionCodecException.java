@@ -19,11 +19,11 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap.exception;
+package jolie.net.coap.communication.codec;
 
 import java.net.InetSocketAddress;
-import jolie.net.coap.message.Token;
-import jolie.net.coap.options.Option;
+import jolie.net.coap.communication.dispatching.Token;
+import jolie.net.coap.message.options.Option;
 
 /**
  * Instances of {@link OptionCodecException} are thrown if either encoding of
