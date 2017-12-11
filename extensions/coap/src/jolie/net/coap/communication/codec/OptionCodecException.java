@@ -125,11 +125,11 @@ public class OptionCodecException extends Exception {
 
   /**
    * Returns the number refering to the
-   * {@link de.uzl.itm.ncoap.message.MessageType} of the message that caused
+   * {@link jolie.net.coap.message.MessageType} of the message that caused
    * this exception
    *
    * @return the number refering to the
-   * {@link de.uzl.itm.ncoap.message.MessageType} of the message that caused
+   * {@link jolie.net.coap.message.MessageType} of the message that caused
    * this exception
    */
   public int getMessageType() {
@@ -138,11 +138,11 @@ public class OptionCodecException extends Exception {
 
   /**
    * Method to set the number refering to the
-   * {@link de.uzl.itm.ncoap.message.MessageType} of the message that caused
+   * {@link jolie.net.coap.message.MessageType} of the message that caused
    * this exception
    *
    * @param messageType the number refering to the
-   * {@link de.uzl.itm.ncoap.message.MessageType} of the message that caused
+   * {@link jolie.net.coap.message.MessageType} of the message that caused
    * this exception
    */
   public void setMessageType(int messageType) {

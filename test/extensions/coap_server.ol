@@ -1,16 +1,10 @@
 include "console.iol"
-
-type TmpType: void { .id?: string } | int { .id?: string }
-
-interface ThermostatInterface {
-    OneWay: setTmp( TmpType )
-    RequestResponse: getTmp( TmpType )( int )
-}
+include "thermostat.iol"
 
 inputPort  Thermostat {
     Location: "datagram://localhost:9028"
     Protocol: coap {
-        .debug = true;
+        .debug = false;
         .proxy = false;
         .osc.getTmp << {
             .format = "raw",
@@ -19,6 +13,11 @@ inputPort  Thermostat {
         };
         .osc.setTmp << {
             .alias = "42/setTemperature"
+        };
+        .osc.core << {
+            .alias = "/.well-known",
+            .alias[1] = "/core",
+            .messageCode = "205"
         }
     }
     Interfaces: ThermostatInterface
@@ -38,16 +37,34 @@ define getTemperature
 
 main 
 {
+    // [
+    //     getTmp( temp )( resp ){
+    //         resp = 19;
+    //         getTemperature            
+    //     }
+    // ]
+    // |
+    // [
+    //     setTmp( temperatura )
+    // ] 
+    // {
+    //     setTemperature
+    // }
+    // |
     [
-        getTmp( temp )( resp ){
-            resp = 19;
-            getTemperature            
+        core(  )( response )
+        {
+            response = 
+            "
+                </obs>;
+                obs;
+                rt=\"observe\";
+                title=\"Observable resource which changes every 5 seconds\",
+                </obs-pumping>;
+                obs;
+                rt=\"observe\";
+                title=\"Observable resource which changes every 5 seconds\"
+            "
         }
     ]
-    [
-        setTmp( temperatura )
-    ] 
-    {
-        setTemperature
-    }
 }      
