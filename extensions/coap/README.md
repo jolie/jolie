@@ -29,7 +29,7 @@ include "console.iol"
 include "thermostat.iol"
 
 outputPort Thermostat {
-    Location: "datagram://localhost:9029"
+    Location: "datagram://localhost:5683"
     Protocol: coap {
         .debug = false;
         .proxy = false;
@@ -46,8 +46,7 @@ outputPort Thermostat {
         };
         .osc.core << {
             .messageCode = "GET",
-            .alias = "/.well-known",
-            .alias[1] = "/core"
+            .alias = "/.well-known/core"
         }
     }
     Interfaces: ThermostatInterface
@@ -59,8 +58,7 @@ outputPort CoapServer {
         .debug = false;
         .osc.core << {
             .messageCode = "GET",
-            .alias = "/.well-known",
-            .alias[1] = "/core"
+            .alias = "/.well-known/core"
         }
     }
     Interfaces: ThermostatInterface
@@ -85,7 +83,7 @@ main
         println@Console( " ... Thermostat set the Temperature 
         accordingly!" )()
     };
-    core@CoapServer( )( resp );
+    core@Thermostat( )( resp );
     println@Console( resp )() 
 }
 ```
@@ -99,7 +97,7 @@ include "console.iol"
 include "thermostat.iol"
 
 inputPort  Thermostat {
-    Location: "datagram://localhost:9029"
+    Location: "datagram://localhost:5683"
     Protocol: coap {
         .debug = false;
         .proxy = false;
@@ -112,32 +110,21 @@ inputPort  Thermostat {
             .alias = "42/setTemperature"
         };
         .osc.core << {
-            .alias = "/.well-known",
-            .alias[1] = "/core",
+            .alias = "/.well-known/core",
             .messageCode = "205"
         }
     }
     Interfaces: ThermostatInterface
 }
 
-//execution{ concurrent }
-
-define setTemperature
-{
-  println@Console( " Setting Temperature of the Thermostat to " + temperatura )()
-}
-
-define getTemperature
-{
-  println@Console( " Get Temperature Request. Forwarding: " + resp + " C")()
-}
-
 main 
 {
     [
-        getTmp( temp )( resp ){
+        getTmp( temp )( resp ) 
+        {
             resp = 19;
-            getTemperature            
+            println@Console( " Setting Temperature of the Thermostat to " 
+                + temperatura )()   
         }
     ]
     |
@@ -145,7 +132,8 @@ main
         setTmp( temperatura )
     ] 
     {
-        setTemperature
+        println@Console( " Get Temperature Request. Forwarding: " 
+            + resp + " C")()
     }
     |
     [
@@ -164,7 +152,7 @@ main
             "
         }
     ]
-}      
+}     
 ```
 
 * The [paper](http://cs.unibo.it/~sgiallor/publications/hicss2018/hicss2018.pdf) - Maurizio Gabbrielli, Saverio Giallorenzo, Ivan Lanese, and Stefano Pio Zingaro: A Language-based Approach for Interoperability of IoT Platforms. Hawaii International Conference on System Sciences 2018, IEEE Computer Society 2018.
