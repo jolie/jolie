@@ -2,7 +2,7 @@ include "console.iol"
 include "thermostat.iol"
 
 inputPort  Thermostat {
-    Location: "datagram://localhost:9028"
+    Location: "datagram://localhost:9029"
     Protocol: coap {
         .debug = false;
         .proxy = false;
@@ -56,11 +56,11 @@ main
         {
             response = 
             "
-                </obs>;
+            </obs>;
                 obs;
                 rt=\"observe\";
                 title=\"Observable resource which changes every 5 seconds\",
-                </obs-pumping>;
+            </obs-pumping>;
                 obs;
                 rt=\"observe\";
                 title=\"Observable resource which changes every 5 seconds\"

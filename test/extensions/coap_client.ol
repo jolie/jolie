@@ -2,9 +2,9 @@ include "console.iol"
 include "thermostat.iol"
 
 outputPort Thermostat {
-    Location: "datagram://localhost:9028"
+    Location: "datagram://localhost:9029"
     Protocol: coap {
-        .debug = true;
+        .debug = false;
         .proxy = false;
         .osc.getTmp << {
             .alias = "%!{id}/getTemperature",
@@ -29,7 +29,7 @@ outputPort Thermostat {
 outputPort CoapServer {
     Location: "datagram://coap.me:5683"
     Protocol: coap {
-        .debug = true;
+        .debug = false;
         .osc.core << {
             .messageCode = "GET",
             .alias = "/.well-known",
@@ -57,7 +57,7 @@ main
     //     setTmp@Thermostat( 21 { .id = "42" } );
     //     println@Console( " ... Thermostat set the Temperature 
     //     accordingly!" )()
-    // }
+    // };
     core@CoapServer( )( resp );
     println@Console( resp )() 
 }

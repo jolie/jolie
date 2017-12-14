@@ -205,7 +205,7 @@ Jolie has been installed.
 Please make sure that:
 	- the environment variable JOLIE_HOME is set to ${private.install.dir}
 	- the directory ${private.install.launcher_dir} is in your environment variable PATH
-</echo>
+		</echo>
 	</target>
 
 	<target name="dist-install" depends="dist,install" />
