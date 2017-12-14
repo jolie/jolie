@@ -28,8 +28,6 @@ What things you need to install the software and how to install them:
 
 First we need to define a Jolie `interface` to be used in common. Lets build a thermostat interface exposing operations for *get* and *set* temperature. Operation *core* is the operation for the CoAP Core resource list retrieval at `/.well-known/core` address.
 
-[[include repo=jolie path=../../test/extensions/thermostat.iol]]
-
 ```jolie
 type TmpType: void { .id?: string } | int { .id?: string }
 
@@ -176,18 +174,28 @@ Add additional notes about how to deploy this on a live system
 
 ## Built With
 
+The Jolie project and this module has been built with [Apache ant](https://ant.apache.org). 
+It has been tested the build with maven too, simply create a POM file in the root directory in order to 
+add your needed dependencies.
 
 ## Contributing
 
+* [Okleine nCoap](https://github.com/okleine/nCoAP)
 
 ## Versioning
  
+1.0
 
 ## Authors
 
+* [spz](http://cs.unibo.it/~stefanopio.zingaro) 
+* [thesave](http://cs.unibo.it/~sgiallor)
+* [ivan](http://cs.unibo.it/~lanese)
+* [mau](http://cs.unibo.it/~gabbri)
 
 ## License
 
+Please refer to [Jolie License](https://github.com/stefanopiozingaro/jolie/blob/next/LICENSE)
 
 ## Acknowledgments
 
