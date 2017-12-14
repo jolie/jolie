@@ -19,7 +19,8 @@ What things you need to install the software and how to install them:
 1. [Clone the Jolie Next Repository](https://github.com/stefanopiozingaro/jolie.git)
 +. Import in your IDE
 +. In NetBeans Project Jolie -> Properties -> Run add a new configuration with the following parameters:
-| Configuration | ./lib:./javaServices/*:./extensions/*:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie-coap/target/* -i ./include ../../test/extensions/coap_client.ol |
+    -------------- | --------------
+    Configuration  | ./lib:./javaServices/*:./extensions/*:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie-coap/target/* -i ./include ../../test/extensions/coap_client.ol
 
 ## Running the tests
 
