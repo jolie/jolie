@@ -7,31 +7,22 @@ outputPort Thermostat {
         .debug = false;
         .proxy = false;
         .osc.getTmp << {
+            .contentFormat = "text/plain",
             .alias = "%!{id}/getTemperature",
-            .method = "GET",
-            .confirmable = true
+            .messageCode = "GET",
+            .messageType = "CON"
         };
         .osc.setTmp << {
-            .format = "raw",
-            .method = "POST",
+            .contentFormat = "text/plain",
             .alias = "%!{id}/setTemperature",
-            .confirmable = true
+            .messageCode = "POST",
+            .messageType = "CON"
         };
         .osc.core << {
+            .contentFormat = "text/plain",
+            .alias = "/.well-known/core",
             .messageCode = "GET",
-            .alias = "/.well-known/core"
-        }
-    }
-    Interfaces: ThermostatInterface
-}
-
-outputPort CoapServer {
-    Location: "datagram://coap.me:5683"
-    Protocol: coap {
-        .debug = false;
-        .osc.core << {
-            .messageCode = "GET",
-            .alias = "/.well-known/core"
+            .messageType = "CON"
         }
     }
     Interfaces: ThermostatInterface
@@ -39,6 +30,8 @@ outputPort CoapServer {
 
 main
 {
+    core@Thermostat( )( resp );
+    println@Console( resp )();
     {
         println@Console( " Retrieving temperature 
         from Thermostat n.42 ... " )()
@@ -55,7 +48,5 @@ main
         setTmp@Thermostat( 21 { .id = "42" } );
         println@Console( " ... Thermostat set the Temperature 
         accordingly!" )()
-    };
-    core@Thermostat( )( resp );
-    println@Console( resp )() 
+    }
 }

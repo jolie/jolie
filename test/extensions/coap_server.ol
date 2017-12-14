@@ -7,16 +7,18 @@ inputPort  Thermostat {
         .debug = false;
         .proxy = false;
         .osc.getTmp << {
-            .format = "raw",
-            .method = "205",
+            .contentFormat = "text/plain",
+            .messageCode = "CONTENT",
             .alias = "42/getTemperature"
         };
         .osc.setTmp << {
+            .contentFormat = "text/plain",
             .alias = "42/setTemperature"
         };
         .osc.core << {
-            .alias = "/.well-known/core",
-            .messageCode = "205"
+            .contentFormat = "text/plain",
+            .messageCode = "205",
+            .alias = "/.well-known/core"
         }
     }
     Interfaces: ThermostatInterface
@@ -46,14 +48,12 @@ main
         {
             response = 
             "
-            </obs>;
+            </getTmp>;
                 obs;
                 rt=\"observe\";
-                title=\"Observable resource which changes every 5 seconds\",
-            </obs-pumping>;
-                obs;
-                rt=\"observe\";
-                title=\"Observable resource which changes every 5 seconds\"
+                title=\"Resource for retrieving of the thermostat temperature\",
+            </setTmp>;
+                title=\"Resource for setting temperature\"
             "
         }
     ]
