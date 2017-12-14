@@ -17,14 +17,18 @@ What things you need to install the software and how to install them:
 ### Installing
 
 1. [Clone the Jolie Next Repository](https://github.com/stefanopiozingaro/jolie.git)
-+. Import in your IDE
-+. In NetBeans Project Jolie -> Properties -> Run add a new configuration with the following parameters:
-    -------------- | --------------
-    Configuration  | ./lib:./javaServices/*:./extensions/*:/Users/stefanozingaro/Documents/uni/spaces/jolie/jolie-coap/target/* -i ./include ../../test/extensions/coap_client.ol
+2. Import in your IDE
+3. In NetBeans Project Jolie -> Properties -> Run add a new configuration with the following parameters
+    * Main Class    |   jolie.Jolie
+    * Configuration |   ./lib:./javaServices/*:./extensions/* -i ./include path/for/example.ol
+    * Working Dir   |	../dist/jolie
+    * VM Options    |   -ea:jolie... -ea:joliex... -cp ./lib/libjolie.jar:./jolie.jar
 
 ## Running the tests
 
 First we need to define a Jolie `interface` to be used in common. Lets build a thermostat interface exposing operations for *get* and *set* temperature. Operation *core* is the operation for the CoAP Core resource list retrieval at `/.well-known/core` address.
+
+[[include repo=jolie path=../../test/extensions/thermostat.iol]]
 
 ```jolie
 type TmpType: void { .id?: string } | int { .id?: string }
