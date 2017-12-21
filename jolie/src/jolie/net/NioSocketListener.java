@@ -53,8 +53,7 @@ public class NioSocketListener extends CommListener {
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
 	private final CommProtocolFactory protocolFactory;
-	private final ReentrantReadWriteLock responseChannels
-		= new ReentrantReadWriteLock();
+	private final ReentrantReadWriteLock responseChannels = new ReentrantReadWriteLock();
 
 	public NioSocketListener(
 		Interpreter interpreter,
@@ -89,61 +88,55 @@ public class NioSocketListener extends CommListener {
 //	public void removeResponseChannel() {
 //		responseChannels.readLock().unlock();
 //	}
-
 	@Override
 	public void run() {
 
 		try {
 
-			bootstrap.group( bossGroup, workerGroup );
-			bootstrap.channel( NioServerSocketChannel.class );
-			bootstrap.option( ChannelOption.SO_BACKLOG, 100 );
-			bootstrap.childHandler( new ChannelInitializer<SocketChannel>() {
+			bootstrap.group( bossGroup, workerGroup )
+				.channel( NioServerSocketChannel.class )
+				.option( ChannelOption.SO_BACKLOG, 100 )
+				.childHandler( new ChannelInitializer<SocketChannel>() {
 
-				@Override
-				protected void initChannel( SocketChannel ch )
-					throws Exception {
+					@Override
+					protected void initChannel( SocketChannel ch ) throws Exception {
 
 //					addResponseChannel();
+						CommProtocol protocol = createProtocol();
+						assert ( protocol instanceof AsyncCommProtocol );
 
-					CommProtocol protocol = createProtocol();
-					assert ( protocol instanceof AsyncCommProtocol );
+						NioSocketCommChannel channel = new NioSocketCommChannel( null, ( AsyncCommProtocol ) protocol );
+						protocol.setChannel( channel );
+						channel.setParentInputPort( inputPort() );
 
-					NioSocketCommChannel channel
-						= new NioSocketCommChannel(
-							null, ( AsyncCommProtocol ) protocol );
-					protocol.setChannel( channel );
-					channel.setParentInputPort( inputPort() );
+						ChannelPipeline p = ch.pipeline();
+						( ( AsyncCommProtocol ) protocol ).setupPipeline( p );
 
-					ChannelPipeline p = ch.pipeline();
-					( ( AsyncCommProtocol ) protocol ).setupPipeline( p );
+						p.addFirst( new ChannelOutboundHandlerAdapter() {
 
-					p.addFirst( new ChannelOutboundHandlerAdapter() {
-
-						@Override
-						public void flush( ChannelHandlerContext ctx )
-							throws Exception {
+							@Override
+							public void flush( ChannelHandlerContext ctx )
+								throws Exception {
 //							removeResponseChannel();
-							ctx.flush();
-						}
-					} );
-					p.addLast( channel.commChannelHandler );
-					p.addLast( new ChannelInboundHandlerAdapter() {
+								ctx.flush();
+							}
+						} );
+						p.addLast( channel.commChannelHandler );
+						p.addLast( new ChannelInboundHandlerAdapter() {
 
-						@Override
-						public void exceptionCaught( ChannelHandlerContext ctx,
-							Throwable cause ) throws Exception {
-							cause.printStackTrace();
-							ctx.close();
-							serverChannel.close();
-						}
-					} );
-					ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT )
-						.set( interpreter().initThread() );
-				}
-			} );
-			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort()
-				.location().getPort() ) ).sync();
+							@Override
+							public void exceptionCaught( ChannelHandlerContext ctx,
+								Throwable cause ) throws Exception {
+								cause.printStackTrace();
+								ctx.close();
+								serverChannel.close();
+							}
+						} );
+						ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT )
+							.set( interpreter().initThread() );
+					}
+				} );
+			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();
 			serverChannel = f.channel();
 			serverChannel.closeFuture().sync();
 		} catch ( InterruptedException ioe ) {
