@@ -251,7 +251,11 @@ public class SemanticVerifier implements OLVisitor
 
 	private void encounteredAssignment( VariablePathNode path )
 	{
-		encounteredAssignment( ((ConstantStringExpression)path.path().get( 0 ).key()).value() );
+		try {
+			encounteredAssignment( ( ( ConstantStringExpression ) path.path().get( 0 ).key() ).value() );
+		} catch ( ClassCastException e ){
+			error( path, path.toPrettyString() + " is an invalid path" );
+		}
 	}
 
 	public Map< String, Boolean > isConstantMap()
