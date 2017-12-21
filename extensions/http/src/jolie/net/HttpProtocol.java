@@ -1229,8 +1229,8 @@ public class HttpProtocol extends AsyncCommProtocol {
             decodedMessage.value.setValue( message.content().toString( Charset.forName( charset ) ) );
         } else if ( "application/x-www-form-urlencoded".equals( type ) ) {
             parseForm( message, decodedMessage.value, charset );
-        } else if ( "text/xml".equals( type ) || type.contains( "xml" ) ) {
-            parseXML( message, decodedMessage.value, charset );
+        } else if ( "text/xml".equals( type ) || type.contains( "xml" ) ) {  
+					parseXML( message, decodedMessage.value, charset );
         } else if ( "text/x-gwt-rpc".equals( type ) ) {
             decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value, charset );
         } else if ( "multipart/form-data".equals( type ) ) {
@@ -1514,6 +1514,22 @@ public class HttpProtocol extends AsyncCommProtocol {
         return retVal;
 
     }
+		
+	public boolean isOneWay( String operationName ) {
+		return channel().parentPort().getInterface()
+			.oneWayOperations().containsKey( operationName );
+	}
+		
+		private Type operationType( String on, boolean isRequest ) {
+
+		OperationTypeDescription otd = channel().parentPort()
+			.getOperationTypeDescription( on, "/" );
+		Type type = isOneWay( on ) ? otd.asOneWayTypeDescription().requestType()
+			: isRequest
+				? otd.asRequestResponseTypeDescription().requestType()
+				: otd.asRequestResponseTypeDescription().responseType();
+		return type;
+	}
 
     private Type getSendType( CommMessage message )
         throws IOException {

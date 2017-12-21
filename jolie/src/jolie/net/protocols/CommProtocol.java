@@ -42,8 +42,11 @@ public abstract class CommProtocol
 	private final static class LazyDummyChannelHolder {
 		private LazyDummyChannelHolder() {}
 		private static class DummyChannel extends AbstractCommChannel {
+                        @Override
 			public void closeImpl() {}
+                        @Override
 			public void sendImpl( CommMessage message ) {}
+                        @Override
 			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
 		}
 
