@@ -62,7 +62,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	}
 
 	public static NioSocketCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
-		ExecutionThread ethread = ExecutionThread.currentThread();
+//		ExecutionThread ethread = ExecutionThread.currentThread();
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
 		channel.bootstrap = new Bootstrap();
 		channel.bootstrap.group( workerGroup )
@@ -81,7 +81,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 					protocol.setChannel( channel );
 					protocol.setupPipeline( p );
 					p.addLast( CHANNEL_HANDLER_NAME, channel.commChannelHandler );
-					ch.attr( EXECUTION_CONTEXT ).set( ethread );
+//					ch.attr( EXECUTION_CONTEXT ).set( ethread );
 				}
 			}
 			);
@@ -128,7 +128,9 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	@Override
 	protected void sendImpl( CommMessage message ) throws IOException {
 		try {
-			commChannelHandler.write( message ).sync();
+			commChannelHandler.write( 
+				new CommMessageExt( message ).setExecutionThread( ExecutionThread.currentThread() ) 
+			).sync();
 		} catch ( InterruptedException ex ) {
 			throw new IOException( ex );
 		}

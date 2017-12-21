@@ -20,6 +20,7 @@
  ********************************************************************************/
 package jolie.net;
 
+import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
@@ -27,6 +28,7 @@ public class CommMessageExt {
 
     private final CommMessage m;
     private boolean isRequest;
+		private ExecutionThread executionThread;
 
     public CommMessageExt(long id, String operationName, String resourcePath, Value value, FaultException fault) {
         this.m = new CommMessage(id, operationName, resourcePath, value, fault);
@@ -35,6 +37,11 @@ public class CommMessageExt {
     public CommMessageExt( CommMessage m ){
         this.m = m;
     }
+		
+		public CommMessageExt setExecutionThread( ExecutionThread t ){
+			this.executionThread = t;
+			return this; // returns "this" for easier composition e.g., new CommMessageExt( ... ).setExecutionThread();
+		}
     
     public CommMessageExt setRequest(){
         this.isRequest = true;
@@ -48,6 +55,10 @@ public class CommMessageExt {
     public boolean isRequest(){
         return this.isRequest;
     }
+		
+		public ExecutionThread getExecutionThread(){
+			return this.executionThread;
+		}
 
     public String resourcePath() {
         return m.resourcePath();
