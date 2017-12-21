@@ -238,14 +238,14 @@ public class HttpProtocol extends AsyncCommProtocol {
         pipeline.addLast( new HttpCommMessageCodec() );
     }
 
-    public class HttpCommMessageCodec extends MessageToMessageCodec< FullHttpMessage, CommMessage> {
+    public class HttpCommMessageCodec extends MessageToMessageCodec< FullHttpMessage, CommMessageExt > {
 
         @Override
-        protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
+        protected void encode( ChannelHandlerContext ctx, CommMessageExt message, List< Object> out )
             throws Exception {
             ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-            FullHttpMessage msg = buildHttpMessage( message );
+                message.getExecutionThread() );
+            FullHttpMessage msg = buildHttpMessage( message.getCommMessage() );
             out.add( msg );
         }
 

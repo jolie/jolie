@@ -117,13 +117,13 @@ public class JsonRpcProtocol extends AsyncCommProtocol {
     }
 
     // EncodedJsonRpcContent <-> CommMessage
-    public class JsonRpcCommMessageCodec extends MessageToMessageCodec< EncodedJsonRpcContent, CommMessage> {
+    public class JsonRpcCommMessageCodec extends MessageToMessageCodec< EncodedJsonRpcContent, CommMessageExt > {
 
         @Override
-        protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) throws Exception {
+        protected void encode( ChannelHandlerContext ctx, CommMessageExt message, List<Object> out ) throws Exception {
             (( CommCore.ExecutionContextThread ) Thread.currentThread()).executionThread(
-                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-            CommMessageExt messageExt = new CommMessageExt( message );
+               message.getExecutionThread() );
+            CommMessageExt messageExt = new CommMessageExt( message.getCommMessage() );
             if ( inInputPort ) {
                 messageExt.setRequest();
             }

@@ -1,27 +1,26 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Claudio Guidi                                   *
- *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
-  *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk>     *
-  *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
-  *                                                                             *
-  *   This program is free software; you can redistribute it and/or modify      *
-  *   it under the terms of the GNU Library General Public License as           *
-  *   published by the Free Software Foundation; either version 2 of the        *
-  *   License, or (at your option) any later version.                           *
-  *                                                                             *
-  *   This program is distributed in the hope that it will be useful,           *
-  *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
-  *   GNU General Public License for more details.                              *
-  *                                                                             *
-  *   You should have received a copy of the GNU Library General Public         *
-  *   License along with this program; if not, write to the                     *
-  *   Free Software Foundation, Inc.,                                           *
-  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
-  *                                                                             *
-  *   For details about the authors of this software, see the AUTHORS file.     *
-  *******************************************************************************/
-
+/*******************************************************************************
+ *   Copyright (C) 2009 by Claudio Guidi																			 *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer													 *
+ *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk>     *
+ *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *                                                                             *
+ *   This program is free software; you can redistribute it and/or modify      *
+ *   it under the terms of the GNU Library General Public License as           *
+ *   published by the Free Software Foundation; either version 2 of the        *
+ *   License, or (at your option) any later version.                           *
+ *                                                                             *
+ *   This program is distributed in the hope that it will be useful,           *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+ *   GNU General Public License for more details.                              *
+ *                                                                             *
+ *   You should have received a copy of the GNU Library General Public         *
+ *   License along with this program; if not, write to the                     *
+ *   Free Software Foundation, Inc.,                                           *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
+ *                                                                             *
+ *   For details about the authors of this software, see the AUTHORS file.     *
+ *******************************************************************************/
 package jolie.net;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -76,7 +75,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-
 /** Implements the XML-RPC over HTTP protocol.
  * 
  * @author Claudio Guidi
@@ -103,8 +101,8 @@ import org.xml.sax.SAXException;
  * All the array in an input XMLRPC message will be translated into Jolie by means of arrays of the keyword array.
  * 
  */
-public class XmlRpcProtocol extends AsyncCommProtocol
-{
+public class XmlRpcProtocol extends AsyncCommProtocol {
+
 	private String inputId = null;
 	final private Transformer transformer;
 	final private Interpreter interpreter;
@@ -133,8 +131,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 	 */
 	private static final String ARRAY_KEY = "array";
 
-	public String name()
-	{
+	public String name() {
 		return "xmlrpc";
 	}
 
@@ -145,8 +142,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 		Transformer transformer,
 		DocumentBuilderFactory docBuilderFactory,
 		DocumentBuilder docBuilder,
-		Interpreter interpreter )
-	{
+		Interpreter interpreter ) {
 		super( configurationPath );
 		this.uri = uri;
 		this.transformer = transformer;
@@ -159,39 +155,35 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "no" );
 		transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 	}
-        
-        
-        public class XmlCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessage>
-        {
-            @Override
-            protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
-            throws Exception 
-            {
-                ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-                FullHttpMessage msg = buildXmlRpcMessage( message );
-                out.add( msg );
-            }
-            
-            @Override
-            protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
-            throws Exception 
-            {
-                if ( msg instanceof FullHttpRequest ) {
-                    FullHttpRequest request = (FullHttpRequest) msg;
-                } else if ( msg instanceof FullHttpResponse ) {
-                    FullHttpResponse response = (FullHttpResponse) msg;
-                }
-                CommMessage message = recv_internal( msg );
-                out.add( message );
-            }
-            
-        }
-        
-        @Override
-	public void setupPipeline( ChannelPipeline pipeline )
-	{		
-		if (inInputPort) {
+
+	public class XmlCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessageExt> {
+
+		@Override
+		protected void encode( ChannelHandlerContext ctx, CommMessageExt message, List< Object> out )
+			throws Exception {
+			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
+				message.getExecutionThread() );
+			FullHttpMessage msg = buildXmlRpcMessage( message.getCommMessage() );
+			out.add( msg );
+		}
+
+		@Override
+		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
+			throws Exception {
+			if ( msg instanceof FullHttpRequest ) {
+				FullHttpRequest request = ( FullHttpRequest ) msg;
+			} else if ( msg instanceof FullHttpResponse ) {
+				FullHttpResponse response = ( FullHttpResponse ) msg;
+			}
+			CommMessage message = recv_internal( msg );
+			out.add( message );
+		}
+
+	}
+
+	@Override
+	public void setupPipeline( ChannelPipeline pipeline ) {
+		if ( inInputPort ) {
 			pipeline.addLast( new HttpServerCodec() );
 			pipeline.addLast( new HttpContentCompressor() );
 		} else {
@@ -199,28 +191,26 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			pipeline.addLast( new HttpContentDecompressor() );
 		}
 		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
-		pipeline.addLast(new XmlCommMessageCodec() );
+		pipeline.addLast( new XmlCommMessageCodec() );
 	}
-        
-        @Override
-        public boolean isThreadSafe(){
-            return false;
-        }
+
+	@Override
+	public boolean isThreadSafe() {
+		return false;
+	}
 
 	private static Element getFirstElement( Element element, String name )
-		throws IOException
-	{
+		throws IOException {
 		NodeList children = element.getElementsByTagName( name );
 		if ( children.getLength() < 1 ) {
 			throw new IOException( "Could not find element " + name );
 		}
 
-		return (Element)children.item( 0 );
+		return ( Element ) children.item( 0 );
 	}
 
 	private void navigateValue( Value value, Element element )
-		throws IOException
-	{
+		throws IOException {
 		NodeList contents = element.getChildNodes();
 		if ( contents.getLength() < 1 ) {
 			throw new IOException( "empty value node" );
@@ -230,7 +220,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			throw new IOException( "a value node may contain only one sub-element" );
 		}
 
-		Element content = (Element)contentNode;
+		Element content = ( Element ) contentNode;
 		String name = content.getNodeName();
 		if ( name.equals( "array" ) ) {
 			Value currentValue;
@@ -238,7 +228,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			Element data = getFirstElement( content, "data" );
 			NodeList dataChildren = data.getElementsByTagName( "value" );
 			for ( int i = 0; i < dataChildren.getLength(); i++ ) {
-				Element member = (Element)dataChildren.item( i );
+				Element member = ( Element ) dataChildren.item( i );
 				if ( !member.getParentNode().equals( data ) ) {
 					continue; // not a direct child
 				}
@@ -249,7 +239,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 		} else if ( name.equals( "struct" ) ) {
 			NodeList members = content.getElementsByTagName( "member" );
 			for ( int i = 0; i < members.getLength(); i++ ) {
-				Element member = (Element)members.item( i );
+				Element member = ( Element ) members.item( i );
 				if ( !member.getParentNode().equals( content ) ) {
 					continue; // not a direct child
 				}
@@ -261,19 +251,19 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 		} else if ( name.equals( "int" ) || name.equals( "i4" ) ) {
 			try {
 				value.setValue( Integer.parseInt( content.getTextContent() ) );
-			} catch( NumberFormatException e ) {
+			} catch ( NumberFormatException e ) {
 				throw new IOException( e );
 			}
 		} else if ( name.equals( "double" ) ) {
 			try {
 				value.setValue( Double.parseDouble( content.getTextContent() ) );
-			} catch( NumberFormatException e ) {
+			} catch ( NumberFormatException e ) {
 				throw new IOException( e );
 			}
 		} else if ( name.equals( "boolean" ) ) {
 			try {
-				value.setValue( Integer.parseInt( content.getTextContent() ) != 0);
-			} catch( NumberFormatException e ) {
+				value.setValue( Integer.parseInt( content.getTextContent() ) != 0 );
+			} catch ( NumberFormatException e ) {
 				throw new IOException( e );
 			}
 		} else if ( name.equals( "base64" ) ) {
@@ -285,16 +275,15 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 	}
 
 	private void documentToValue( Value value, Document document )
-		throws IOException
-	{
+		throws IOException {
 		NodeList children = document.getDocumentElement().getElementsByTagName( "params" );
 		if ( children.getLength() < 1 ) {
 			return;
 		}
-		NodeList params = ((Element)children.item( 0 )).getElementsByTagName( "param" );
+		NodeList params = ( ( Element ) children.item( 0 ) ).getElementsByTagName( "param" );
 		ValueVector paramsValueVector = value.getChildren( PARAMS_KEY );
-		for( int i = 0; i < params.getLength(); i++ ) {
-			Element param = (Element)params.item( i );
+		for ( int i = 0; i < params.getLength(); i++ ) {
+			Element param = ( Element ) params.item( i );
 			Value paramValue = Value.create();
 			navigateValue( paramValue, getFirstElement( param, "value" ) );
 			paramsValueVector.add( paramValue );
@@ -304,8 +293,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 	private void valueToDocument(
 		Value value,
 		Node node,
-		Document doc )
-	{
+		Document doc ) {
 		Element v = doc.createElement( "value" );
 
 		// node value creation in case the contents is a value
@@ -328,7 +316,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			v.appendChild( d );
 			node.appendChild( v );
 		} else if ( value.isBool() ) {
-		
+
 			Element b = doc.createElement( "boolean" );
 			b.appendChild( doc.createTextNode( value.boolValue() ? "1" : "0" ) );
 			v.appendChild( b );
@@ -368,12 +356,11 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			node.appendChild( v );
 		}
 	}
-        
+
 	public FullHttpMessage buildXmlRpcMessage( CommMessage message )
-		throws IOException
-	{
-            
-            Document doc = docBuilder.newDocument();
+		throws IOException {
+
+		Document doc = docBuilder.newDocument();
 		// root element <methodCall>
 		String rootName = "methodCall";
 		if ( received ) {
@@ -441,7 +428,6 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			root.appendChild( params );
 		}
 
-
 		inputId = message.operationName();
 
 		Source src = new DOMSource( doc );
@@ -453,12 +439,12 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			throw new IOException( e );
 		}
 		ByteArray content = new ByteArray( tmpStream.toByteArray() );
-                
-                FullHttpMessage httpMessage;
-                
+
+		FullHttpMessage httpMessage;
+
 		if ( received ) {
 			// We're responding to a request
-                        httpMessage = new DefaultFullHttpResponse( HttpVersion.HTTP_1_1, HttpResponseStatus.OK );
+			httpMessage = new DefaultFullHttpResponse( HttpVersion.HTTP_1_1, HttpResponseStatus.OK );
 			received = false;
 		} else {
 			// We're sending a notification or a solicit
@@ -467,8 +453,8 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 				path = "*";
 			}
 			httpMessage = new DefaultFullHttpRequest( HttpVersion.HTTP_1_1, HttpMethod.POST, path );
-                        httpMessage.headers().set( HttpHeaderNames.USER_AGENT, "Jolie" );
-                        httpMessage.headers().set( HttpHeaderNames.HOST, uri.getHost() );
+			httpMessage.headers().set( HttpHeaderNames.USER_AGENT, "Jolie" );
+			httpMessage.headers().set( HttpHeaderNames.HOST, uri.getHost() );
 
 			if ( checkBooleanParameter( "compression", true ) ) {
 				String requestCompression = getStringParameter( "requestCompression" );
@@ -486,35 +472,33 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			httpMessage.headers().set( HttpHeaderNames.CONNECTION, "close" );
 		}
 
-                httpMessage.headers().set( HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=utf-8" );
+		httpMessage.headers().set( HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=utf-8" );
 		httpMessage.headers().set( HttpHeaderNames.CONTENT_LENGTH, content.size() );
-		
-                if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
+
+		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 		}
-                
+
 		httpMessage.content().writeBytes( content.getBytes() );
 		return httpMessage;
 	}
 
 	public CommMessage recv_internal( FullHttpMessage message )
-		throws IOException
-	{
+		throws IOException {
 		String charset = HttpUtils.getCharset( null, message );
-                
+
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		CommMessage retVal = null;
 		FaultException fault = null;
 		Value value = Value.create();
 		Document doc = null;
-                
-                // TODO It appears that a message of type ERROR cannot be returned from the old parser.
+
+		// TODO It appears that a message of type ERROR cannot be returned from the old parser.
 		/*if ( message.isError() ) {
 			throw new IOException( "HTTP error: " + new String( message.content(), charset ) );
 		}*/
-
-		if ( inInputPort && ( (FullHttpRequest) message).method() != HttpMethod.POST ) {
+		if ( inInputPort && ( ( FullHttpRequest ) message ).method() != HttpMethod.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
 
@@ -522,16 +506,16 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 
 		if ( message.content().readableBytes() > 0 ) {
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-				interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + 
-                                    message.content().toString( Charset.forName( charset ) ) 
-                                );
+				interpreter.logInfo( "[XMLRPC debug] Receiving:\n"
+					+ message.content().toString( Charset.forName( charset ) )
+				);
 			}
 
 			try {
 				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 				byte[] content = new byte[ message.content().readableBytes() ];
-                                message.content().readBytes( content, 0, content.length );
-                                InputSource src = new InputSource( new ByteArrayInputStream( content) );
+				message.content().readBytes( content, 0, content.length );
+				InputSource src = new InputSource( new ByteArrayInputStream( content ) );
 				src.setEncoding( charset );
 				doc = builder.parse( src );
 				if ( message instanceof FullHttpResponse ) {
@@ -543,12 +527,12 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 						if ( members.getLength() != 2 || members.item( 1 ).getNodeType() != Node.ELEMENT_NODE ) {
 							throw new IOException( "Malformed fault data" );
 						}
-						Element faultMember = (Element)members.item( 1 );
+						Element faultMember = ( Element ) members.item( 1 );
 						//Element valueElement = getFirstElement( getFirstElement( struct, "value" ), "string" );
 						String faultName = getFirstElement( faultMember, "name" ).getTextContent();
 						String faultString = getFirstElement( getFirstElement( faultMember, "value" ), "string" ).getTextContent();
 						fault = new FaultException( faultName, Value.create( faultString ) );
-					} catch( IOException e ) {
+					} catch ( IOException e ) {
 						documentToValue( value, doc );
 					}
 				} else {
