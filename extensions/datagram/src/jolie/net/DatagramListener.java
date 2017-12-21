@@ -40,103 +40,102 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-//import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DatagramListener extends CommListener {
 
-  private final EventLoopGroup workerGroup;
-  private final InetSocketAddress localAddress;
-  private Channel clientChannel;
-  private Channel serverChannel;
-  public static final ReentrantReadWriteLock responseChannels
-      = new ReentrantReadWriteLock();
+	private final EventLoopGroup workerGroup;
+	private final InetSocketAddress localAddress;
+	private Channel clientChannel;
+	private Channel serverChannel;
+	public static final ReentrantReadWriteLock responseChannels
+		= new ReentrantReadWriteLock();
 
-  public DatagramListener(
-      Interpreter interpreter,
-      CommProtocolFactory protocolFactory,
-      InputPort inputPort,
-      EventLoopGroup workerGroup
-  ) {
-    super(interpreter, protocolFactory, inputPort);
-    this.workerGroup = workerGroup;
-    this.localAddress = new InetSocketAddress(inputPort().location().getHost(),
-        inputPort().location().getPort());
-  }
+	public DatagramListener(
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort,
+		EventLoopGroup workerGroup
+	) {
+		super( interpreter, protocolFactory, inputPort );
+		this.workerGroup = workerGroup;
+		this.localAddress = new InetSocketAddress( inputPort().location().getHost(),
+			inputPort().location().getPort() );
+	}
 
-  @Override
-  public void shutdown() {
-    if (serverChannel.isOpen()) {
+	@Override
+	public void shutdown() {
+		if ( serverChannel.isOpen() ) {
 //      System.out.println("--- PRENDO WRITE LOCK --- " + Thread.currentThread());
-      responseChannels.writeLock().lock();
-      try {
+			responseChannels.writeLock().lock();
+			try {
 //        System.out.println("!!! Canale Chiuso !!!");
-        serverChannel.close();
-      } finally {
+				serverChannel.close();
+			} finally {
 //        System.out.println("--- RILASCIO WRITE LOCK --- " + Thread.currentThread());
-        responseChannels.writeLock().unlock();
-      }
-    }
-  }
+				responseChannels.writeLock().unlock();
+			}
+		}
+	}
 
-  public static void addResponseChannel() {
+	public static void addResponseChannel() {
 //    System.out.println("--- PRENDO READ LOCK --- " + Thread.currentThread());
-    responseChannels.readLock().lock();
-  }
+		responseChannels.readLock().lock();
+	}
 
-  public static void removeResponseChannel() {
+	public static void removeResponseChannel() {
 //    System.out.println("--- RILASCIO READ LOCK --- " + Thread.currentThread());
-    responseChannels.readLock().unlock();
-  }
+		responseChannels.readLock().unlock();
+	}
 
-  @Override
-  public void run() {
+	@Override
+	public void run() {
 
-    Bootstrap b = new Bootstrap();
-    b.group(workerGroup).channel(NioDatagramChannel.class);
-    b.localAddress(localAddress);
-    b.handler(new SimpleChannelInboundHandler<DatagramPacket>() {
+		Bootstrap b = new Bootstrap();
+		b.group( workerGroup ).channel( NioDatagramChannel.class );
+		b.localAddress( localAddress );
+		b.handler( new SimpleChannelInboundHandler<DatagramPacket>() {
 
-      @Override
-      protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg)
-          throws Exception {
+			@Override
+			protected void channelRead0( ChannelHandlerContext ctx, DatagramPacket msg )
+				throws Exception {
 
-        CommProtocol protocol = createProtocol();
-        if (!(protocol instanceof AsyncCommProtocol)) {
-          throw new UnsupportedCommProtocolException("Use an async protocol");
-        }
+				CommProtocol protocol = createProtocol();
+				if ( !( protocol instanceof AsyncCommProtocol ) ) {
+					throw new UnsupportedCommProtocolException( "Use an async protocol" );
+				}
 
-        DatagramCommChannel commChannel = DatagramCommChannel.createChannel(
-            null,
-            (AsyncCommProtocol) protocol,
-            workerGroup,
-            inputPort(),
-            new DatagramPacketEncoder(msg.sender())
-        );
+				DatagramCommChannel commChannel = DatagramCommChannel.createChannel(
+					null,
+					( AsyncCommProtocol ) protocol,
+					workerGroup,
+					inputPort(),
+					new DatagramPacketEncoder( msg.sender() )
+				);
 
-        ChannelFuture f = commChannel.bind(new InetSocketAddress(0)).sync();
-        clientChannel = f.channel();
-        
-        clientChannel.pipeline().addFirst("FLUSHER", new ChannelOutboundHandlerAdapter() {
+				ChannelFuture f = commChannel.bind( new InetSocketAddress( 0 ) ).sync();
+				clientChannel = f.channel();
 
-          @Override
-          public void flush(ChannelHandlerContext ctx)
-              throws Exception {
-            removeResponseChannel();
-            super.flush(ctx);
-          }
-        });
-        clientChannel.pipeline().fireChannelRead(msg.content().retain());
-      }
-    });
+				clientChannel.pipeline().addFirst( "FLUSHER", new ChannelOutboundHandlerAdapter() {
 
-    try {
-      ChannelFuture f = b.bind().sync();
-      serverChannel = f.channel();
-      serverChannel.closeFuture().sync();
-    } catch (InterruptedException ex) {
-      Interpreter.getInstance().logWarning(ex);
-    } finally {
-      workerGroup.shutdownGracefully();
-    }
-  }
+					@Override
+					public void flush( ChannelHandlerContext ctx )
+						throws Exception {
+						removeResponseChannel();
+						super.flush( ctx );
+					}
+				} );
+				clientChannel.pipeline().fireChannelRead( msg.content().retain() );
+			}
+		} );
+
+		try {
+			ChannelFuture f = b.bind().sync();
+			serverChannel = f.channel();
+			serverChannel.closeFuture().sync();
+		} catch ( InterruptedException ex ) {
+			Interpreter.getInstance().logWarning( ex );
+		} finally {
+			workerGroup.shutdownGracefully();
+		}
+	}
 }
