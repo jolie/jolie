@@ -1,6 +1,7 @@
 /*******************************************************************************
  *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk>     *
  *   Copyright (C) 2017 by Fabrizio Montesi <famontesi@gmail.com>              *
+ *   Copyright (C) 2017 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
  *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                             *
  *   This program is free software; you can redistribute it and/or modify      *
@@ -47,38 +48,38 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class NioSocketListener extends CommListener {
 
-  private final ServerBootstrap bootstrap;
-  private Channel serverChannel;
-  private final EventLoopGroup bossGroup;
-  private final EventLoopGroup workerGroup;
-  private final CommProtocolFactory protocolFactory;
-  private final ReentrantReadWriteLock responseChannels = new ReentrantReadWriteLock();
+	private final ServerBootstrap bootstrap;
+	private Channel serverChannel;
+	private final EventLoopGroup bossGroup;
+	private final EventLoopGroup workerGroup;
+	private final CommProtocolFactory protocolFactory;
+	private final ReentrantReadWriteLock responseChannels = new ReentrantReadWriteLock();
 
-  public NioSocketListener(
-      Interpreter interpreter,
-      CommProtocolFactory protocolFactory,
-      InputPort inputPort,
-      EventLoopGroup bossGroup,
-      EventLoopGroup workerGroup
-  ) {
-    super( interpreter, protocolFactory, inputPort );
-    bootstrap = new ServerBootstrap();
-    this.bossGroup = bossGroup;
-    this.workerGroup = workerGroup;
-    this.protocolFactory = protocolFactory;
-  }
+	public NioSocketListener(
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort,
+		EventLoopGroup bossGroup,
+		EventLoopGroup workerGroup
+	) {
+		super( interpreter, protocolFactory, inputPort );
+		bootstrap = new ServerBootstrap();
+		this.bossGroup = bossGroup;
+		this.workerGroup = workerGroup;
+		this.protocolFactory = protocolFactory;
+	}
 
-  @Override
-  public void shutdown() {
-    if ( serverChannel != null ) {
-      responseChannels.writeLock().lock();
-      try {
-        serverChannel.close();
-      } finally {
-        responseChannels.writeLock().unlock();
-      }
-    }
-  }
+	@Override
+	public void shutdown() {
+		if ( serverChannel != null ) {
+			responseChannels.writeLock().lock();
+			try {
+				serverChannel.close();
+			} finally {
+				responseChannels.writeLock().unlock();
+			}
+		}
+	}
 
 //  public void addResponseChannel() {
 //    responseChannels.readLock().lock();
@@ -87,65 +88,64 @@ public class NioSocketListener extends CommListener {
 //  public void removeResponseChannel() {
 //    responseChannels.readLock().unlock();
 //  }
+	@Override
+	public void run() {
 
-  @Override
-  public void run() {
+		try {
+			bootstrap.group( bossGroup, workerGroup )
+				.channel( NioServerSocketChannel.class )
+				.option( ChannelOption.SO_BACKLOG, 100 )
+				//.handler( new LoggingHandler( LogLevel.INFO ) )
+				.childHandler( new ChannelInitializer<SocketChannel>() {
 
-    try {
-      bootstrap.group( bossGroup, workerGroup )
-          .channel( NioServerSocketChannel.class )
-          .option( ChannelOption.SO_BACKLOG, 100 )
-          //.handler( new LoggingHandler( LogLevel.INFO ) )
-          .childHandler( new ChannelInitializer<SocketChannel>() {
-
-            @Override
-            protected void initChannel( SocketChannel ch ) throws Exception {
+					@Override
+					protected void initChannel( SocketChannel ch ) throws Exception {
 //              addResponseChannel();
-              CommProtocol protocol = createProtocol();
-              assert ( protocol instanceof AsyncCommProtocol );
+						CommProtocol protocol = createProtocol();
+						assert ( protocol instanceof AsyncCommProtocol );
 
-              NioSocketCommChannel channel = new NioSocketCommChannel( null, ( AsyncCommProtocol ) protocol );
-              protocol.setChannel( channel );
-              channel.setParentInputPort( inputPort() );
+						NioSocketCommChannel channel = new NioSocketCommChannel( null, ( AsyncCommProtocol ) protocol );
+						protocol.setChannel( channel );
+						channel.setParentInputPort( inputPort() );
 
-              //interpreter().commCore().scheduleReceive(channel, inputPort());
-              ChannelPipeline p = ch.pipeline();
-              ( ( AsyncCommProtocol ) protocol ).setupPipeline( p );
+						//interpreter().commCore().scheduleReceive(channel, inputPort());
+						ChannelPipeline p = ch.pipeline();
+						( ( AsyncCommProtocol ) protocol ).setupPipeline( p );
 
-              // the pipeline is an inbound one, hence outbound traffic goes
-              // from bottom-up into the pipeline. We add the outbound adapter
-              // as first to observe the ultimate send as the response from the
-              // nioSocketCommChannelHandler.
-              p.addFirst( new ChannelOutboundHandlerAdapter() {
+						// the pipeline is an inbound one, hence outbound traffic goes
+						// from bottom-up into the pipeline. We add the outbound adapter
+						// as first to observe the ultimate send as the response from the
+						// nioSocketCommChannelHandler.
+						p.addFirst( new ChannelOutboundHandlerAdapter() {
 
-                @Override
-                public void flush( ChannelHandlerContext ctx ) throws Exception {
-                  ctx.flush();
+							@Override
+							public void flush( ChannelHandlerContext ctx ) throws Exception {
+								ctx.flush();
 //                  removeResponseChannel();
-                }
-              } );
-              p.addLast( channel.commChannelHandler );
-              p.addLast( new ChannelInboundHandlerAdapter() {
+							}
+						} );
+						p.addLast( channel.commChannelHandler );
+						p.addLast( new ChannelInboundHandlerAdapter() {
 
-                @Override
-                public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception {
-                  cause.printStackTrace();
-                  ctx.close();
-                  serverChannel.close();
-                }
+							@Override
+							public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception {
+								cause.printStackTrace();
+								ctx.close();
+								serverChannel.close();
+							}
 
-              } );
-              ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set( interpreter().initThread() );
-            }
-          } );
-      ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();
-      serverChannel = f.channel();
-      serverChannel.closeFuture().sync();
-    } catch ( InterruptedException ioe ) {
-      interpreter().logWarning( ioe );
-    } finally {
-      bossGroup.shutdownGracefully();
-      workerGroup.shutdownGracefully();
-    }
-  }
+						} );
+						ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set( interpreter().initThread() );
+					}
+				} );
+			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();
+			serverChannel = f.channel();
+			serverChannel.closeFuture().sync();
+		} catch ( InterruptedException ioe ) {
+			interpreter().logWarning( ioe );
+		} finally {
+			bossGroup.shutdownGracefully();
+			workerGroup.shutdownGracefully();
+		}
+	}
 }
