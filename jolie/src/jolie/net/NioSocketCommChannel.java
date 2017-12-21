@@ -42,46 +42,45 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
+import jolie.net.ports.Port;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
 
-  public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
+	public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
 	public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf( "ExecutionContext" );
 
 	private Bootstrap bootstrap;
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
-	private ChannelPipeline channelPipeline;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol ) {
 		super( location, protocol );
 		this.commChannelHandler = new StreamingCommChannelHandler( this );
 	}
-	
-	private void setChannelPipeline( ChannelPipeline channelPipeline ){
-		this.channelPipeline = channelPipeline;
-	}
-	
-	public ChannelPipeline getChannelPipeline(){
-		return channelPipeline;
-	}
 
-	public static NioSocketCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup ) {
+	public static NioSocketCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
 		ExecutionThread ethread = ExecutionThread.currentThread();
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
 		channel.bootstrap = new Bootstrap();
 		channel.bootstrap.group( workerGroup )
 			.channel( NioSocketChannel.class )
 			.option( ChannelOption.SO_LINGER, SO_LINGER )
-			.handler(new ChannelInitializer() {
+			.handler( new ChannelInitializer() {
 				@Override
 				protected void initChannel( Channel ch ) throws Exception {
 					ChannelPipeline p = ch.pipeline();
-          protocol.setChannel( channel );
-          channel.setChannelPipeline( p );
-          protocol.setupPipeline( p );
-					p.addLast(CHANNEL_HANDLER_NAME, channel.commChannelHandler );
+					if( port instanceof InputPort ){
+						channel.setParentInputPort( (InputPort) port );
+					}
+					if( port instanceof OutputPort ){
+						channel.setParentOutputPort( (OutputPort) port );
+					}
+					protocol.setChannel( channel );
+					protocol.setupPipeline( p );
+					p.addLast( CHANNEL_HANDLER_NAME, channel.commChannelHandler );
 					ch.attr( EXECUTION_CONTEXT ).set( ethread );
 				}
 			}
@@ -93,10 +92,10 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		return bootstrap
 			.connect( new InetSocketAddress( location.getHost(), location.getPort() ) );
 	}
-  
-  public ChannelFuture initChannel( ){
-    return bootstrap.register();
-  }
+
+	public ChannelFuture initChannel() {
+		return bootstrap.register();
+	}
 
 	@Override
 	protected CommMessage recvImpl() throws IOException {
