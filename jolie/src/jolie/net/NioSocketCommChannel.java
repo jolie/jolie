@@ -53,8 +53,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     private static final int SO_LINGER = 10000;
     protected CompletableFuture<CommMessage> waitingForMsg = null;
     protected StreamingCommChannelHandler commChannelHandler;
-    private ChannelPipeline channelPipeline;
-
+    
     public NioSocketCommChannel(URI location, AsyncCommProtocol protocol) {
 	super(location, protocol);
 	this.commChannelHandler = new StreamingCommChannelHandler(this);
@@ -63,14 +62,6 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     public StreamingCommChannelHandler getChannelHandler() {
 	return commChannelHandler;
-    }
-
-    private void setChannelPipeline(ChannelPipeline channelPipeline) {
-	this.channelPipeline = channelPipeline;
-    }
-
-    public ChannelPipeline getChannelPipeline() {
-	return channelPipeline;
     }
 
     public static NioSocketCommChannel createChannel(URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port) {
@@ -91,7 +82,6 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 			    channel.setParentOutputPort((OutputPort) port);
 			}
 			protocol.setChannel(channel);
-			channel.setChannelPipeline(p);
 			protocol.setupPipeline(p);
 			p.addLast(CHANNEL_HANDLER_NAME, channel.commChannelHandler);
 			ch.attr(EXECUTION_CONTEXT).set(ethread);
