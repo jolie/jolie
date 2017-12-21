@@ -59,7 +59,7 @@ public class NioSocketCommChannelFactory extends CommChannelFactory {
         }
 
         NioSocketCommChannel channel = NioSocketCommChannel.
-            CreateChannel( location, ( AsyncCommProtocol ) protocol, workerGroup );
+            createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup );
 
         try {
             ChannelFuture f = channel.connect( location );
