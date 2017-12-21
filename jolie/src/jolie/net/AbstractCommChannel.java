@@ -78,7 +78,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 						.log( Level.SEVERE, null,
 							new Exception( "Requested reception for generic response without operation. "
 								+ "Impossible to handle." ) );
-				}
+			    }
+
 			} else {
 				if ( specificMap.containsKey( id ) ) {
 					futureResponse = specificMap.remove( id );
@@ -101,7 +102,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 		}
 
 		if ( futureResponse != null ) {
-			try {
+		    try {
+
 				// DO WE HAVE TO CHANGE THE ID OF A GENERIC RESPONSE TO THE ONE OF THIS REQUEST?
 				response = futureResponse.get();
 				// if we polled a generic response, we remove the specific request
@@ -118,7 +120,7 @@ public abstract class AbstractCommChannel extends CommChannel {
 		return response;
 	}
 
-	protected void receiveResponse( CommMessage response ) {
+    protected void receiveResponse(CommMessage response) {
 		if ( response.hasGenericId() ) {
 			handleGenericMessage( response );
 		} else {
@@ -160,7 +162,16 @@ public abstract class AbstractCommChannel extends CommChannel {
 
 		synchronized ( this ) {
 			if ( specificMap.containsKey( id ) ) {
-				future = specificMap.remove( id );
+				if( !specificMap.get( id ).isDone() ){
+					// if it is not done, the future has been put by a recvResponseFor
+					// hence we can remove it and complete it later on
+					future = specificMap.remove( id );
+				} else {
+					// otherwise we have received another message with the same id
+					// we consider the last one as valid and proceed to complete 
+					// it with the new message
+					future = specificMap.get( id );
+				}
 				if ( operation != null ) {
 					// removes related generic request
 					getGenericMessages( operation ).requests.remove( future );
