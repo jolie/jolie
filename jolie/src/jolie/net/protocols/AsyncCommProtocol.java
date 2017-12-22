@@ -29,6 +29,8 @@ import java.io.OutputStream;
 import jolie.net.CommMessage;
 
 import io.netty.channel.ChannelPipeline;
+import jolie.ExecutionThread;
+import jolie.net.CommCore;
 
 public abstract class AsyncCommProtocol extends CommProtocol {
 
@@ -41,6 +43,11 @@ public abstract class AsyncCommProtocol extends CommProtocol {
   public void setupWrappablePipeline( ChannelPipeline pipeline ) {
     setupPipeline( pipeline );
   }
+	
+	protected void setExecutionThread( ExecutionThread t ){
+		 (( CommCore.ExecutionContextThread ) Thread.currentThread() )
+			 .executionThread( t );
+	}
 
   @Override
   public void send( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException {
