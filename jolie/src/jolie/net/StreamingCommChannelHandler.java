@@ -98,7 +98,7 @@ public class StreamingCommChannelHandler
 		throw new Exception( cause );
 	}
 
-	public ChannelFuture write( CommMessageExt msg )
+	public ChannelFuture write( CommMessage msg )
 		throws InterruptedException {
 		ChannelFuture f = this.ctx.writeAndFlush( msg );
 		return f;

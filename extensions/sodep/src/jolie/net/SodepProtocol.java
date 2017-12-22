@@ -74,10 +74,10 @@ public class SodepProtocol extends AsyncCommProtocol {
 		pipeline.addLast( new SodepCommMessageCodec() );
 	}
 
-	public class SodepCommMessageCodec extends ByteToMessageCodec<CommMessageExt> {
+	public class SodepCommMessageCodec extends ByteToMessageCodec< CommMessage > {
 
 		@Override
-		protected void encode( ChannelHandlerContext ctx, CommMessageExt in, ByteBuf out ) throws Exception {
+		protected void encode( ChannelHandlerContext ctx, CommMessage in, ByteBuf out ) throws Exception {
 
 //            (( CommCore.ExecutionContextThread ) Thread.currentThread()).executionThread(
 //                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
@@ -86,7 +86,7 @@ public class SodepProtocol extends AsyncCommProtocol {
 			);
 			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 			updateCharset();
-			writeMessage( out, in.getCommMessage() );
+			writeMessage( out, in );
 		}
 
 		@Override

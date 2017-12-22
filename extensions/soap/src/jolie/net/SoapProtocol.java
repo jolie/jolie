@@ -212,25 +212,22 @@ public class SoapProtocol extends AsyncCommProtocol {
 		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 	}
 
-	public class SoapCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessageExt> {
+	public class SoapCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessage> {
 
 		@Override
-		protected void encode( ChannelHandlerContext ctx, CommMessageExt message, List<Object> out )
+		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out )
 			throws Exception {
-//			 ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-//         ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-				message.getExecutionThread() );
-			FullHttpMessage msg = buildSoapMessage( message.getCommMessage() );
+			setExecutionThread( message.getExecutionThread() );
+			FullHttpMessage msg = buildSoapMessage( message );
 			out.add( msg );
 		}
 
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
 			throws Exception {
-			CommMessageExt message = recv_internal( msg );
+			CommMessage message = recv_internal( msg );
 			// for the moment we keep this to transition from CommMessage to CommMessageExt
-			out.add( message.getCommMessage() );
+			out.add( message );
 		}
 	}
 
@@ -999,7 +996,7 @@ public class SoapProtocol extends AsyncCommProtocol {
 		return null;
 	}
 
-	public CommMessageExt recv_internal( FullHttpMessage message )
+	public CommMessage recv_internal( FullHttpMessage message )
 		throws IOException {
 		String charset = HttpUtils.getCharset( null, message );
 
@@ -1011,7 +1008,7 @@ public class SoapProtocol extends AsyncCommProtocol {
 
 		encoding = message.headers().get( "accept-encoding" );
 
-		CommMessageExt retVal = null;
+		CommMessage retVal = null;
 		String messageId = "";
 		FaultException fault = null;
 		Value value = Value.create();
@@ -1103,21 +1100,21 @@ public class SoapProtocol extends AsyncCommProtocol {
 				if ( fault != null && ( ( FullHttpResponse ) message ).status() == HttpResponseStatus.INTERNAL_SERVER_ERROR ) {
 					fault = new FaultException( "InternalServerError", "" );
 				}
-				retVal = new CommMessageExt( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
 			} else /* if ( !message.isError() )*/ { // TODO It appears that a message of type ERROR cannot be returned from the old parser.
 				if ( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
-				retVal = new CommMessageExt( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault ).setRequest();
+				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
 			}
 		} catch ( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch ( SAXException e ) {
 			//TODO support resourcePath
-			retVal = new CommMessageExt( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
-			if ( message instanceof FullHttpRequest ) {
-				retVal.setRequest();
-			}
+			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
+//			if ( message instanceof FullHttpRequest ) {
+//				retVal.setRequest();
+//			}
 		}
 
 		received = true;
