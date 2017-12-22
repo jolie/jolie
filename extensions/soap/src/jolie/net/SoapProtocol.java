@@ -20,7 +20,6 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net;
 
 import com.ibm.wsdl.extensions.schema.SchemaImpl;
@@ -145,8 +144,8 @@ import org.xml.sax.SAXException;
  * initial support for WSDL documents.
  *
  */
-public class SoapProtocol extends AsyncCommProtocol
-{
+public class SoapProtocol extends AsyncCommProtocol {
+
 	private String inputId = null;
 	private final Interpreter interpreter;
 	private final MessageFactory messageFactory;
@@ -160,8 +159,8 @@ public class SoapProtocol extends AsyncCommProtocol
 	private boolean received = false;
 	private String encoding;
 
-	private static class Parameters
-	{
+	private static class Parameters {
+
 		private static final String WRAPPED = "wrapped";
 		private static final String INHERITED_TYPE = "__soap_inherited_type";
 		private static final String ADD_ATTRIBUTE = "add_attribute";
@@ -188,26 +187,23 @@ public class SoapProtocol extends AsyncCommProtocol
         *		.attribute: Attribute
         *	}
         * }
-        */
-
-        @Override
-	public String name()
-	{
+	 */
+	@Override
+	public String name() {
 		return "soap";
 	}
-        
-        @Override
-        public boolean isThreadSafe(){
-            return false;
-        }
+
+	@Override
+	public boolean isThreadSafe() {
+		return false;
+	}
 
 	public SoapProtocol(
 		VariablePath configurationPath,
 		URI uri,
 		boolean inInputPort,
 		Interpreter interpreter )
-		throws SOAPException
-	{
+		throws SOAPException {
 		super( configurationPath );
 		this.uri = uri;
 		this.inInputPort = inInputPort;
@@ -215,34 +211,28 @@ public class SoapProtocol extends AsyncCommProtocol
 		this.interpreter = interpreter;
 		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 	}
-        
-        public class SoapCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessage>
-	{
+
+	public class SoapCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessage> {
 
 		@Override
-		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) 
-                    throws Exception
-		{
-			 ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-                            ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-                        FullHttpMessage msg = buildSoapMessage(message );
+		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out )
+			throws Exception {
+			setExecutionThread( message.getExecutionThread() );
+			FullHttpMessage msg = buildSoapMessage( message );
 			out.add( msg );
 		}
 
 		@Override
-		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) 
-                    throws Exception
-		{
-			CommMessageExt message = recv_internal( msg );
-                        // for the moment we keep this to transition from CommMessage to CommMessageExt
-			out.add( message.getCommMessage() );
+		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
+			throws Exception {
+			CommMessage message = recv_internal( msg );
+			// for the moment we keep this to transition from CommMessage to CommMessageExt
+			out.add( message );
 		}
 	}
-        
-        
-        @Override
-	public void setupPipeline( ChannelPipeline pipeline )
-	{
+
+	@Override
+	public void setupPipeline( ChannelPipeline pipeline ) {
 		if ( inInputPort ) {
 			pipeline.addLast( new HttpServerCodec() );
 			pipeline.addLast( new HttpContentCompressor() );
@@ -255,8 +245,7 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private void parseSchemaElement( Definition definition, Element element, XSOMParser schemaParser )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
@@ -267,26 +256,25 @@ public class SoapProtocol extends AsyncCommProtocol
 			InputSource schemaSource = new InputSource( new StringReader( sw.toString() ) );
 			schemaSource.setSystemId( definition.getDocumentBaseURI() );
 			schemaParser.parse( schemaSource );
-		} catch( TransformerConfigurationException e ) {
+		} catch ( TransformerConfigurationException e ) {
 			throw new IOException( e );
-		} catch( TransformerException | SAXException e ) {
+		} catch ( TransformerException | SAXException e ) {
 			throw new IOException( e );
 		}
 	}
 
 	private void parseWSDLTypes( XSOMParser schemaParser )
-		throws IOException
-	{
+		throws IOException {
 		Definition definition = getWSDLDefinition();
 		if ( definition != null ) {
 			Types types = definition.getTypes();
 			if ( types != null ) {
 				List<ExtensibilityElement> list = types.getExtensibilityElements();
-				for( ExtensibilityElement element : list ) {
+				for ( ExtensibilityElement element : list ) {
 					if ( element instanceof SchemaImpl ) {
-						Element schemaElement = ((SchemaImpl) element).getElement();
+						Element schemaElement = ( ( SchemaImpl ) element ).getElement();
 						Map<String, String> namespaces = definition.getNamespaces();
-						for( Entry<String, String> entry : namespaces.entrySet() ) {
+						for ( Entry<String, String> entry : namespaces.entrySet() ) {
 							if ( entry.getKey().equals( "xmlns" ) || entry.getKey().trim().isEmpty() ) {
 								continue;
 							}
@@ -302,13 +290,12 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private XSSchemaSet getSchemaSet()
-		throws IOException, SAXException
-	{
+		throws IOException, SAXException {
 		if ( schemaSet == null ) {
 			XSOMParser schemaParser = new XSOMParser();
 			ValueVector vec = getParameterVector( "schema" );
 			if ( vec.size() > 0 ) {
-				for( Value v : vec ) {
+				for ( Value v : vec ) {
 					schemaParser.parse( new File( v.strValue() ) );
 				}
 			}
@@ -316,7 +303,7 @@ public class SoapProtocol extends AsyncCommProtocol
 			schemaSet = schemaParser.getResult();
 			String nsPrefix = "jolie";
 			int i = 1;
-			for( XSSchema schema : schemaSet.getSchemas() ) {
+			for ( XSSchema schema : schemaSet.getSchemas() ) {
 				if ( !schema.getTargetNamespace().equals( XMLConstants.W3C_XML_SCHEMA_NS_URI ) ) {
 					namespacePrefixMap.put( schema.getTargetNamespace(), nsPrefix + i++ );
 				}
@@ -326,8 +313,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		return schemaSet;
 	}
 
-	private boolean convertAttributes()
-	{
+	private boolean convertAttributes() {
 		boolean ret = false;
 		if ( hasParameter( "convertAttributes" ) ) {
 			ret = checkBooleanParameter( "convertAttributes" );
@@ -336,9 +322,8 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private void initNamespacePrefixes( SOAPElement element )
-		throws SOAPException
-	{
-		for( Entry<String, String> entry : namespacePrefixMap.entrySet() ) {
+		throws SOAPException {
+		for ( Entry<String, String> entry : namespacePrefixMap.entrySet() ) {
 			element.addNamespaceDeclaration( entry.getValue(), entry.getKey() );
 		}
 	}
@@ -347,8 +332,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		Value value,
 		SOAPElement element,
 		SOAPEnvelope soapEnvelope )
-		throws SOAPException
-	{
+		throws SOAPException {
 		String type = "any";
 		if ( value.isDefined() ) {
 			if ( value.isInt() ) {
@@ -371,7 +355,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		if ( convertAttributes() ) {
 			Map<String, ValueVector> attrs = getAttributesOrNull( value );
 			if ( attrs != null ) {
-				for( Entry<String, ValueVector> attrEntry : attrs.entrySet() ) {
+				for ( Entry<String, ValueVector> attrEntry : attrs.entrySet() ) {
 					element.addAttribute(
 						soapEnvelope.createName( attrEntry.getKey() ),
 						attrEntry.getValue().first().strValue() );
@@ -379,9 +363,9 @@ public class SoapProtocol extends AsyncCommProtocol
 			}
 		}
 
-		for( Entry<String, ValueVector> entry : value.children().entrySet() ) {
+		for ( Entry<String, ValueVector> entry : value.children().entrySet() ) {
 			if ( !entry.getKey().startsWith( "@" ) ) {
-				for( Value val : entry.getValue() ) {
+				for ( Value val : entry.getValue() ) {
 					valueToSOAPElement(
 						val,
 						element.addChildElement( entry.getKey() ),
@@ -391,8 +375,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		}
 	}
 
-	private static Map<String, ValueVector> getAttributesOrNull( Value value )
-	{
+	private static Map<String, ValueVector> getAttributesOrNull( Value value ) {
 		Map<String, ValueVector> ret = null;
 		ValueVector vec = value.children().get( Constants.Predefined.ATTRIBUTES.token().content() );
 		if ( vec != null && vec.size() > 0 ) {
@@ -406,8 +389,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		return ret;
 	}
 
-	private static Value getAttributeOrNull( Value value, String attrName )
-	{
+	private static Value getAttributeOrNull( Value value, String attrName ) {
 		Value ret = null;
 		Map<String, ValueVector> attrs = getAttributesOrNull( value );
 		if ( attrs != null ) {
@@ -420,56 +402,50 @@ public class SoapProtocol extends AsyncCommProtocol
 		return ret;
 	}
 
-	private static Value getAttribute( Value value, String attrName )
-	{
+	private static Value getAttribute( Value value, String attrName ) {
 		return value.getChildren( Constants.Predefined.ATTRIBUTES.token().content() ).first().getChildren( attrName ).first();
 	}
 
-	private String getPrefixOrNull( XSAttributeDecl decl )
-	{
+	private String getPrefixOrNull( XSAttributeDecl decl ) {
 		if ( decl.getOwnerSchema().attributeFormDefault() ) {
 			return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
 		}
 		return null;
 	}
 
-	private String getPrefixOrNull( XSElementDecl decl )
-	{
+	private String getPrefixOrNull( XSElementDecl decl ) {
 		if ( decl.getOwnerSchema().elementFormDefault() ) {
 			return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
 		}
 		return null;
 	}
 
-	private String getPrefix( XSElementDecl decl )
-	{
+	private String getPrefix( XSElementDecl decl ) {
 		return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
 	}
 
-	private String getPrefix( XSComplexType compType )
-	{
+	private String getPrefix( XSComplexType compType ) {
 		return namespacePrefixMap.get( compType.getOwnerSchema().getTargetNamespace() );
 	}
 
-	private void termProcessing( 
-                Value value, 
-                SOAPElement element, 
-                SOAPEnvelope envelope, 
-                boolean first,
+	private void termProcessing(
+		Value value,
+		SOAPElement element,
+		SOAPEnvelope envelope,
+		boolean first,
 		XSTerm currTerm, int getMaxOccur,
 		XSSchemaSet sSet, String messageNamespace )
-		throws SOAPException
-	{
+		throws SOAPException {
 
 		if ( currTerm.isElementDecl() ) {
 			ValueVector vec;
 			XSElementDecl currElementDecl = currTerm.asElementDecl();
 			String name = currElementDecl.getName();
-			String prefix = (first) ? getPrefix( currElementDecl ) : getPrefixOrNull( currElementDecl );
+			String prefix = ( first ) ? getPrefix( currElementDecl ) : getPrefixOrNull( currElementDecl );
 			SOAPElement childElement;
-			if ( (vec = value.children().get( name )) != null ) {
+			if ( ( vec = value.children().get( name ) ) != null ) {
 				int k = 0;
-				while( vec.size() > 0 && (getMaxOccur > k || getMaxOccur == XSParticle.UNBOUNDED) ) {
+				while ( vec.size() > 0 && ( getMaxOccur > k || getMaxOccur == XSParticle.UNBOUNDED ) ) {
 					if ( prefix == null ) {
 						childElement = element.addChildElement( name );
 					} else {
@@ -500,12 +476,11 @@ public class SoapProtocol extends AsyncCommProtocol
 		XSModelGroup modelGroup,
 		XSSchemaSet sSet,
 		String messageNamespace )
-		throws SOAPException
-	{
+		throws SOAPException {
 
 		XSParticle[] children = modelGroup.getChildren();
 		XSTerm currTerm;
-		for( XSParticle child : children ) {
+		for ( XSParticle child : children ) {
 			currTerm = child.getTerm();
 			if ( currTerm.isModelGroup() ) {
 				groupProcessing( value, xsDecl, element, envelope, first, currTerm.asModelGroup(), sSet, messageNamespace );
@@ -523,8 +498,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		boolean first,// Ugly fix! This should be removed as soon as another option arises.
 		XSSchemaSet sSet,
 		String messageNamespace )
-		throws SOAPException
-	{
+		throws SOAPException {
 
 		XSType currType = xsDecl.getType();
 
@@ -560,9 +534,9 @@ public class SoapProtocol extends AsyncCommProtocol
 			//end new stuff
 			// Iterate over attributes
 			Collection<? extends XSAttributeUse> attributeUses = complexT.getAttributeUses();
-			for( XSAttributeUse attrUse : attributeUses ) {
+			for ( XSAttributeUse attrUse : attributeUses ) {
 				name = attrUse.getDecl().getName();
-				if ( (currValue = getAttributeOrNull( value, name )) != null ) {
+				if ( ( currValue = getAttributeOrNull( value, name ) ) != null ) {
 					String prefix = getPrefixOrNull( attrUse.getDecl() );
 					if ( prefix == null ) {
 						element.addAttribute( envelope.createName( name ), currValue.strValue() );
@@ -577,11 +551,11 @@ public class SoapProtocol extends AsyncCommProtocol
 			contentT = complexT.getContentType();
 			if ( contentT.asSimpleType() != null ) {
 				element.addTextNode( value.strValue() );
-			} else if ( (particle = contentT.asParticle()) != null ) {
+			} else if ( ( particle = contentT.asParticle() ) != null ) {
 				XSTerm term = particle.getTerm();
 				XSModelGroupDecl modelGroupDecl;
 				XSModelGroup modelGroup = null;
-				if ( (modelGroupDecl = term.asModelGroupDecl()) != null ) {
+				if ( ( modelGroupDecl = term.asModelGroupDecl() ) != null ) {
 					modelGroup = modelGroupDecl.getModelGroup();
 				} else if ( term.isModelGroup() ) {
 					modelGroup = term.asModelGroup();
@@ -598,13 +572,12 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private Definition getWSDLDefinition()
-		throws IOException
-	{
+		throws IOException {
 		if ( wsdlDefinition == null && hasParameter( "wsdl" ) ) {
 			String wsdlUrl = getStringParameter( "wsdl" );
 			try {
 				wsdlDefinition = WSDLCache.getInstance().get( wsdlUrl );
-			} catch( WSDLException e ) {
+			} catch ( WSDLException e ) {
 				throw new IOException( e );
 			}
 		}
@@ -612,15 +585,14 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private String getSoapActionForOperation( String operationName )
-		throws IOException
-	{
+		throws IOException {
 		String soapAction = null;
 		Port port = getWSDLPort();
 		if ( port != null ) {
 			BindingOperation bindingOperation = port.getBinding().getBindingOperation( operationName, null, null );
-			for( ExtensibilityElement element : (List<ExtensibilityElement>) bindingOperation.getExtensibilityElements() ) {
+			for ( ExtensibilityElement element : ( List<ExtensibilityElement> ) bindingOperation.getExtensibilityElements() ) {
 				if ( element instanceof SOAPOperation ) {
-					soapAction = ((SOAPOperation) element).getSoapActionURI();
+					soapAction = ( ( SOAPOperation ) element ).getSoapActionURI();
 				}
 			}
 		}
@@ -631,8 +603,7 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private Port getWSDLPort()
-		throws IOException
-	{
+		throws IOException {
 		Port port = wsdlPort;
 		if ( port == null && hasParameter( "wsdl" ) && getParameterFirstValue( "wsdl" ).hasChildren( "port" ) ) {
 			String portName = getParameterFirstValue( "wsdl" ).getFirstChild( "port" ).strValue();
@@ -640,7 +611,7 @@ public class SoapProtocol extends AsyncCommProtocol
 			if ( definition != null ) {
 				Map<QName, Service> services = definition.getServices();
 				Iterator<Entry<QName, Service>> it = services.entrySet().iterator();
-				while( port == null && it.hasNext() ) {
+				while ( port == null && it.hasNext() ) {
 					port = it.next().getValue().getPort( portName );
 				}
 			}
@@ -652,9 +623,8 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private String getOutputMessageRootElementName( String operationName )
-		throws IOException
-	{
-		String elementName = operationName + ( ( received ) ? "Response" : "");
+		throws IOException {
+		String elementName = operationName + ( ( received ) ? "Response" : "" );
 		Port port = getWSDLPort();
 		if ( port != null ) {
 			try {
@@ -662,20 +632,20 @@ public class SoapProtocol extends AsyncCommProtocol
 				Part part;
 				if ( received ) {
 					// We are sending a response
-					part = ( (Entry<String, Part>) operation.getOutput().getMessage().getParts().entrySet().iterator().next() ).getValue();
+					part = ( ( Entry<String, Part> ) operation.getOutput().getMessage().getParts().entrySet().iterator().next() ).getValue();
 				} else {
 					// We are sending a request
-					part = ( (Entry<String, Part>) operation.getInput().getMessage().getParts().entrySet().iterator().next() ).getValue();
+					part = ( ( Entry<String, Part> ) operation.getInput().getMessage().getParts().entrySet().iterator().next() ).getValue();
 				}
 				elementName = part.getElementName().getLocalPart();
-			} catch( Exception e ) {}
+			} catch ( Exception e ) {
+			}
 		}
 		return elementName;
 	}
 
 	private String getOutputMessageNamespace( String operationName )
-		throws IOException
-	{
+		throws IOException {
 		String messageNamespace = "";
 		Port port = getWSDLPort();
 		if ( port == null ) {
@@ -700,8 +670,7 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	private String[] getParameterOrder( String operationName )
-		throws IOException
-	{
+		throws IOException {
 		List<String> parameters = null;
 		Port port = getWSDLPort();
 		if ( port != null ) {
@@ -710,12 +679,11 @@ public class SoapProtocol extends AsyncCommProtocol
 				parameters = operation.getParameterOrdering();
 			}
 		}
-		return (parameters == null) ? null : parameters.toArray( new String[ 0 ] );
+		return ( parameters == null ) ? null : parameters.toArray( new String[ 0 ] );
 	}
 
 	private void setOutputEncodingStyle( SOAPEnvelope soapEnvelope, String operationName )
-		throws IOException, SOAPException
-	{
+		throws IOException, SOAPException {
 		Port port = getWSDLPort();
 		if ( port != null ) {
 			BindingOperation bindingOperation = port.getBinding().getBindingOperation( operationName, null, null );
@@ -726,9 +694,9 @@ public class SoapProtocol extends AsyncCommProtocol
 			if ( output == null ) {
 				return;
 			}
-			for( ExtensibilityElement element : (List<ExtensibilityElement>) output.getExtensibilityElements() ) {
+			for ( ExtensibilityElement element : ( List<ExtensibilityElement> ) output.getExtensibilityElements() ) {
 				if ( element instanceof javax.wsdl.extensions.soap.SOAPBody ) {
-					List<String> list = ((javax.wsdl.extensions.soap.SOAPBody) element).getEncodingStyles();
+					List<String> list = ( ( javax.wsdl.extensions.soap.SOAPBody ) element ).getEncodingStyles();
 					if ( list != null && list.isEmpty() == false ) {
 						soapEnvelope.setEncodingStyle( list.get( 0 ) );
 						soapEnvelope.addNamespaceDeclaration( "enc", list.get( 0 ) );
@@ -739,8 +707,7 @@ public class SoapProtocol extends AsyncCommProtocol
 	}
 
 	public FullHttpMessage buildSoapMessage( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			inputId = message.operationName();
 			String messageNamespace = getOutputMessageNamespace( message.operationName() );
@@ -826,7 +793,7 @@ public class SoapProtocol extends AsyncCommProtocol
 					if ( parameters == null ) {
 						valueToSOAPElement( message.value(), opBody, soapEnvelope );
 					} else {
-						for( String parameterName : parameters ) {
+						for ( String parameterName : parameters ) {
 							valueToSOAPElement( message.value().getFirstChild( parameterName ), opBody.addChildElement( parameterName ), soapEnvelope );
 						}
 					}
@@ -838,7 +805,7 @@ public class SoapProtocol extends AsyncCommProtocol
 						if ( add_parameter.hasChildren( Parameters.ENVELOPE ) ) {
 							// attributes must be added to the envelope
 							ValueVector attributes = add_parameter.getFirstChild( Parameters.ENVELOPE ).getChildren( "attribute" );
-							for( Value att : attributes ) {
+							for ( Value att : attributes ) {
 								soapEnvelope.addNamespaceDeclaration( att.getFirstChild( "name" ).strValue(), att.getFirstChild( "value" ).strValue() );
 							}
 						}
@@ -851,13 +818,13 @@ public class SoapProtocol extends AsyncCommProtocol
 					SOAPElement opBody = soapBody;
 					if ( wrapped ) {
 						opBody = soapBody.addBodyElement(
-						soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
+							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
 						// adding forced attributes to operation
 						if ( hasParameter( Parameters.ADD_ATTRIBUTE ) ) {
 							Value add_parameter = getParameterFirstValue( Parameters.ADD_ATTRIBUTE );
 							if ( add_parameter.hasChildren( Parameters.OPERATION ) ) {
 								ValueVector operations = add_parameter.getChildren( Parameters.OPERATION );
-								for( Value op : operations ) {
+								for ( Value op : operations ) {
 									if ( op.getFirstChild( "operation_name" ).strValue().equals( message.operationName() ) ) {
 										// attributes must be added to the envelope
 										Value attribute = op.getFirstChild( "attribute" );
@@ -892,12 +859,12 @@ public class SoapProtocol extends AsyncCommProtocol
 			if ( received ) {
 				// We're responding to a request
 				if ( message.isFault() ) {
-                                        httpMessage = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+					httpMessage = new DefaultFullHttpResponse( HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR );
 				} else {
-                                        httpMessage = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+					httpMessage = new DefaultFullHttpResponse( HttpVersion.HTTP_1_1, HttpResponseStatus.OK );
 
 				}
-				httpMessage.headers().add( HttpHeaderNames.SERVER, "Jolie");
+				httpMessage.headers().add( HttpHeaderNames.SERVER, "Jolie" );
 				received = false;
 			} else {
 				// We're sending a notification or a solicit
@@ -905,12 +872,12 @@ public class SoapProtocol extends AsyncCommProtocol
 				if ( path == null || path.length() == 0 ) {
 					path = "*";
 				}
-				httpMessage = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, path);
+				httpMessage = new DefaultFullHttpRequest( HttpVersion.HTTP_1_1, HttpMethod.POST, path );
 				httpMessage.headers().add( HttpHeaderNames.HOST, uri.getHost() );
 				/*
 				* soapAction = "SOAPAction: \"" + messageNamespace + "/" +
 				* message.operationName() + '\"' + HttpUtils.CRLF;
-				*/
+				 */
 				soapAction = "SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + "\"";
 
 				if ( checkBooleanParameter( "compression", true ) ) {
@@ -932,9 +899,8 @@ public class SoapProtocol extends AsyncCommProtocol
 //			if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
 //				content = HttpUtils.encode( encoding, content, httpMessage );
 //			}
-
 			//httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
-                        httpMessage.headers().add( HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=utf-8" );
+			httpMessage.headers().add( HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=utf-8" );
 			httpMessage.headers().add( HttpHeaderNames.CONTENT_LENGTH, content.size() );
 			if ( soapAction != null ) {
 				httpMessage.headers().add( "SOAPAction", soapAction );
@@ -947,14 +913,13 @@ public class SoapProtocol extends AsyncCommProtocol
 			inputId = message.operationName();
 
 			httpMessage.content().writeBytes( content.getBytes() );
-                        return httpMessage;
-		} catch( SOAPException | SAXException se ) {
+			return httpMessage;
+		} catch ( SOAPException | SAXException se ) {
 			throw new IOException( se );
 		}
 	}
 
-	private void xmlNodeToValue( Value value, Node node, boolean isRecRoot )
-	{
+	private void xmlNodeToValue( Value value, Node node, boolean isRecRoot ) {
 		String type = "xsd:string";
 		Node currNode;
 		boolean nil = false;
@@ -962,10 +927,10 @@ public class SoapProtocol extends AsyncCommProtocol
 		// Set attributes
 		NamedNodeMap attributes = node.getAttributes();
 		if ( attributes != null ) {
-			for( int i = 0; i < attributes.getLength(); i++ ) {
+			for ( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
 				if ( currNode.getNamespaceURI().equals( XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ) ) {
-					switch( currNode.getLocalName() ) {
+					switch ( currNode.getLocalName() ) {
 						case "type":
 							type = currNode.getNodeValue();
 							break;
@@ -989,9 +954,9 @@ public class SoapProtocol extends AsyncCommProtocol
 		Value childValue;
 		StringBuilder tmpNodeValue = new StringBuilder();
 		boolean foundSubElements = false;
-		for( int i = 0; i < list.getLength(); i++ ) {
+		for ( int i = 0; i < list.getLength(); i++ ) {
 			currNode = list.item( i );
-			switch( currNode.getNodeType() ) {
+			switch ( currNode.getNodeType() ) {
 				case Node.ELEMENT_NODE:
 					childValue = value.getNewChild( currNode.getLocalName() );
 					xmlNodeToValue( childValue, currNode, false );
@@ -1002,7 +967,7 @@ public class SoapProtocol extends AsyncCommProtocol
 					break;
 			}
 		}
-		
+
 		// the content of the root of a mixed element is not extracted
 		if ( !foundSubElements && !nil ) {
 			if ( !isRecRoot ) {
@@ -1021,31 +986,29 @@ public class SoapProtocol extends AsyncCommProtocol
 		}
 	}
 
-	private static Element getFirstElement( Node node )
-	{
+	private static Element getFirstElement( Node node ) {
 		NodeList nodes = node.getChildNodes();
-		for( int i = 0; i < nodes.getLength(); i++ ) {
+		for ( int i = 0; i < nodes.getLength(); i++ ) {
 			if ( nodes.item( i ).getNodeType() == Node.ELEMENT_NODE ) {
-				return (Element) nodes.item( i );
+				return ( Element ) nodes.item( i );
 			}
 		}
 		return null;
 	}
 
-        public CommMessageExt recv_internal( FullHttpMessage message )
-            throws IOException
-	{
+	public CommMessage recv_internal( FullHttpMessage message )
+		throws IOException {
 		String charset = HttpUtils.getCharset( null, message );
-		
+
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-		if ( inInputPort && ( (FullHttpRequest) message ).method() != HttpMethod.POST ) {
+		if ( inInputPort && ( ( FullHttpRequest ) message ).method() != HttpMethod.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
 
 		encoding = message.headers().get( "accept-encoding" );
 
-		CommMessageExt retVal = null;
+		CommMessage retVal = null;
 		String messageId = "";
 		FaultException fault = null;
 		Value value = Value.create();
@@ -1063,11 +1026,11 @@ public class SoapProtocol extends AsyncCommProtocol
 				* messageSchema != null ) {
 				* factory.setIgnoringElementContentWhitespace( true );
 				* factory.setSchema( messageSchema ); }
-				*/
+				 */
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
-				byte[] content = new byte[message.content().readableBytes()];
-				message.content().readBytes( content, 0, content.length);
+				byte[] content = new byte[ message.content().readableBytes() ];
+				message.content().readBytes( content, 0, content.length );
 				InputSource src = new InputSource( new ByteArrayInputStream( content ) );
 				src.setEncoding( charset );
 				Document doc = builder.parse( src );
@@ -1080,20 +1043,20 @@ public class SoapProtocol extends AsyncCommProtocol
 				* ByteArrayOutputStream(); soapMessage.writeTo( tmpStream );
 				* interpreter.logInfo( "[SOAP debug] Receiving:\n" +
 				* tmpStream.toString() ); }
-				*/
+				 */
 				SOAPFault soapFault = soapMessage.getSOAPBody().getFault();
 				if ( soapFault == null ) {
 					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
 					messageId = soapValueElement.getLocalName();
 
-				if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
-					String soapActionHeader = ( message.headers().contains( "soapaction" ) ? message.headers().get( "soapaction" ) : "" );
-					String[] soapAction = soapActionHeader.replaceAll("\"", "").split("/");
-					messageId = soapAction[ soapAction.length - 1 ];
+					if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
+						String soapActionHeader = ( message.headers().contains( "soapaction" ) ? message.headers().get( "soapaction" ) : "" );
+						String[] soapAction = soapActionHeader.replaceAll( "\"", "" ).split( "/" );
+						messageId = soapAction[ soapAction.length - 1 ];
 						if ( checkBooleanParameter( "debug" ) ) {
-							interpreter.logInfo( "Operation from SoapAction:" + messageId  );
+							interpreter.logInfo( "Operation from SoapAction:" + messageId );
 						}
-				}
+					}
 
 					// explanation: https://github.com/jolie/jolie/issues/5
 					xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );
@@ -1102,7 +1065,7 @@ public class SoapProtocol extends AsyncCommProtocol
 					if ( schemaPaths.size() > 0 ) {
 						List<Source> sources = new LinkedList<Source>();
 						Value schemaPath;
-						for( int i = 0; i < schemaPaths.size(); i++ ) {
+						for ( int i = 0; i < schemaPaths.size(); i++ ) {
 							schemaPath = schemaPaths.get( i );
 							if ( schemaPath.getChildren( "validate" ).first().intValue() > 0 ) {
 								sources.add( new StreamSource( new File( schemaPaths.get( i ).strValue() ) ) );
@@ -1134,24 +1097,24 @@ public class SoapProtocol extends AsyncCommProtocol
 
 			String resourcePath = recv_getResourcePath( message );
 			if ( message instanceof FullHttpResponse ) {
-				if ( fault != null && ( (FullHttpResponse) message ).status() == HttpResponseStatus.INTERNAL_SERVER_ERROR ) {
+				if ( fault != null && ( ( FullHttpResponse ) message ).status() == HttpResponseStatus.INTERNAL_SERVER_ERROR ) {
 					fault = new FaultException( "InternalServerError", "" );
 				}
-				retVal = new CommMessageExt( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
 			} else /* if ( !message.isError() )*/ { // TODO It appears that a message of type ERROR cannot be returned from the old parser.
 				if ( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
-				retVal = new CommMessageExt( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault ).setRequest();
+				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
 			}
-		} catch( SOAPException | ParserConfigurationException e ) {
+		} catch ( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch ( SAXException e ) {
 			//TODO support resourcePath
-			retVal = new CommMessageExt( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
-                        if ( message instanceof FullHttpRequest ){
-                            retVal.setRequest();
-                        }
+			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
+//			if ( message instanceof FullHttpRequest ) {
+//				retVal.setRequest();
+//			}
 		}
 
 		received = true;
@@ -1180,7 +1143,7 @@ public class SoapProtocol extends AsyncCommProtocol
 						rrTypeDescription.requestType().cast( retVal.value() );
 					}
 				}
-			} catch( TypeCastingException e ) {
+			} catch ( TypeCastingException e ) {
 				// TODO: do something here?
 			}
 		}
@@ -1188,13 +1151,11 @@ public class SoapProtocol extends AsyncCommProtocol
 		return retVal;
 	}
 
-        private String recv_getResourcePath( FullHttpMessage message )
-        {
-                if ( checkBooleanParameter( "interpretResource" ) && 
-                    message instanceof FullHttpRequest )
-                {
-                        return ( (FullHttpRequest) message ).uri();
-                }
-                return "/";
-        }
+	private String recv_getResourcePath( FullHttpMessage message ) {
+		if ( checkBooleanParameter( "interpretResource" )
+			&& message instanceof FullHttpRequest ) {
+			return ( ( FullHttpRequest ) message ).uri();
+		}
+		return "/";
+	}
 }

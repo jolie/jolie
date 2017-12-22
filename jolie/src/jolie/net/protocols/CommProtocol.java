@@ -25,12 +25,17 @@ package jolie.net.protocols;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import jolie.lang.Constants;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.OperationTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
 
 /**
  * A CommProtocol implements a protocol for sending and receiving data under the form of CommMessage objects.
@@ -205,6 +210,59 @@ public abstract class CommProtocol
 	{
 		Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 		return osc.getFirstChild( operationName ).getChildren( parameterName );
+	}
+	
+	protected boolean isOneWay( String operationName ) {
+		return channel().parentPort().getInterface()
+			.oneWayOperations().containsKey( operationName );
+	}
+
+	protected Type operationType( String on, boolean isRequest ) {
+
+		OperationTypeDescription otd = channel().parentPort()
+			.getOperationTypeDescription( on, "/" );
+		Type type = isOneWay( on ) ? otd.asOneWayTypeDescription().requestType()
+			: isRequest
+				? otd.asRequestResponseTypeDescription().requestType()
+				: otd.asRequestResponseTypeDescription().responseType();
+		return type;
+	}
+
+	protected Type getSendType( CommMessage message )
+		throws IOException {
+		Type ret = null;
+
+		if ( channel().parentPort() == null ) {
+			throw new IOException( "Could not retrieve communication port for HTTP protocol" );
+		}
+
+		OperationTypeDescription opDesc = channel().parentPort()
+			.getOperationTypeDescription( message.operationName(), Constants.ROOT_RESOURCE_PATH );
+
+		if ( opDesc == null ) {
+			return null;
+		}
+
+		if ( opDesc.asOneWayTypeDescription() != null ) {
+			if ( message.isFault() ) {
+				ret = Type.UNDEFINED;
+			} else {
+				OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
+				ret = ow.requestType();
+			}
+		} else if ( opDesc.asRequestResponseTypeDescription() != null ) {
+			RequestResponseTypeDescription rr = opDesc.asRequestResponseTypeDescription();
+			if ( message.isFault() ) {
+				ret = rr.getFaultType( message.fault().faultName() );
+				if ( ret == null ) {
+					ret = Type.UNDEFINED;
+				}
+			} else {
+				ret = ( channel().parentInputPort() != null ) ? rr.responseType() : rr.requestType();
+			}
+		}
+
+		return ret;
 	}
 
 	/**
