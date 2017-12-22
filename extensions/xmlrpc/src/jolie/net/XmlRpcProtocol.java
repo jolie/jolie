@@ -156,25 +156,19 @@ public class XmlRpcProtocol extends AsyncCommProtocol {
 		transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 	}
 
-	public class XmlCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessageExt> {
+	public class XmlCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessage > {
 
 		@Override
-		protected void encode( ChannelHandlerContext ctx, CommMessageExt message, List< Object> out )
+		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
 			throws Exception {
-			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-				message.getExecutionThread() );
-			FullHttpMessage msg = buildXmlRpcMessage( message.getCommMessage() );
+			setExecutionThread( message.getExecutionThread() );
+			FullHttpMessage msg = buildXmlRpcMessage( message );
 			out.add( msg );
 		}
 
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
 			throws Exception {
-			if ( msg instanceof FullHttpRequest ) {
-				FullHttpRequest request = ( FullHttpRequest ) msg;
-			} else if ( msg instanceof FullHttpResponse ) {
-				FullHttpResponse response = ( FullHttpResponse ) msg;
-			}
 			CommMessage message = recv_internal( msg );
 			out.add( message );
 		}
