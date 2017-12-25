@@ -67,6 +67,7 @@ public class InputResponseHandler
   @Override
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
+		mp.setExecutionThread( in.getExecutionThread() );
     init(ctx);
     cmResp = in;
     out.add(mp.connectMsg());
@@ -119,8 +120,6 @@ public class InputResponseHandler
 
   public void init(ChannelHandlerContext ctx) throws Exception {
     cc = ctx.channel();
-    ((CommCore.ExecutionContextThread) Thread.currentThread())
-        .executionThread(cc.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
     mp.checkDebug(cc.pipeline());
   }
 

@@ -166,8 +166,8 @@ public class InputPortHandler
       // we store the response topic into the InputResponseHandler
       ih.setTopicResponse(mp.extractTopicResponse(m))
           .setRequestCommMessage(cm);
-
-      NioSocketCommChannel sideChannel = NioSocketCommChannel
+			
+			NioSocketCommChannel sideChannel = NioSocketCommChannel
           .createChannel(location, newMP, ctx.channel().eventLoop().parent(),
               null);
 
