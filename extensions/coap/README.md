@@ -188,10 +188,10 @@ add your needed dependencies.
 
 ## Authors
 
-* [spz](http://cs.unibo.it/~stefanopio.zingaro) 
-* [thesave](http://cs.unibo.it/~sgiallor)
-* [ivan](http://cs.unibo.it/~lanese)
-* [mau](http://cs.unibo.it/~gabbri)
+* [Professor Maurizio Gabbrielli](http://cs.unibo.it/~gabbri)
+* [Post Doc Saverio Giallorenzo](http://cs.unibo.it/~sgiallor)
+* [Professor Ivan Lanese](http://cs.unibo.it/~lanese)
+* [PhD Candidate Stefano Pio Zingaro](http://cs.unibo.it/~stefanopio.zingaro) 
 
 ## License
 
