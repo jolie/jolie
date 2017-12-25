@@ -34,10 +34,8 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 
 import java.util.List;
 
-import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
-import jolie.net.NioSocketCommChannel;
 
 import jolie.runtime.Value;
 
@@ -66,6 +64,7 @@ public class OutputPortHandler
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
 
+		mp.setExecutionThread(in.getExecutionThread());
     init(ctx);
     // we start by connecting to the broker
     out.add(mp.connectMsg());
@@ -157,9 +156,6 @@ public class OutputPortHandler
 
   private void init(ChannelHandlerContext ctx) {
     cc = ctx.channel();
-    ((CommCore.ExecutionContextThread) Thread.currentThread())
-        .executionThread(cc
-            .attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
     mp.checkDebug(ctx.pipeline());
 
   }
