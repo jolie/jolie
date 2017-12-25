@@ -55,6 +55,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
+	private ChannelPipeline pipeline;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol ) {
 		super( location, protocol );
@@ -72,13 +73,14 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 				@Override
 				protected void initChannel( Channel ch ) throws Exception {
 					ChannelPipeline p = ch.pipeline();
-					if( port instanceof InputPort ){
-						channel.setParentInputPort( (InputPort) port );
+					if ( port instanceof InputPort ) {
+						channel.setParentInputPort( ( InputPort ) port );
 					}
-					if( port instanceof OutputPort ){
-						channel.setParentOutputPort( (OutputPort) port );
+					if ( port instanceof OutputPort ) {
+						channel.setParentOutputPort( ( OutputPort ) port );
 					}
 					protocol.setChannel( channel );
+					channel.setChannelPipeline(p);
 					protocol.setupPipeline( p );
 					p.addLast( CHANNEL_HANDLER_NAME, channel.commChannelHandler );
 //					ch.attr( EXECUTION_CONTEXT ).set( ethread );
@@ -141,6 +143,14 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		} catch ( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
+	}
+
+	public ChannelPipeline getChannelPipeline() {
+		return this.pipeline;
+	}
+
+	private void setChannelPipeline( ChannelPipeline p ) {
+		this.pipeline = p;
 	}
 
 }
