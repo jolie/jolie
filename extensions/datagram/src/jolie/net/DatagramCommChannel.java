@@ -47,198 +47,198 @@ import jolie.Interpreter;
 
 public class DatagramCommChannel extends StreamingCommChannel {
 
-  public final static String CHANNEL_HANDLER_NAME
-      = "STREAMING-CHANNEL-HANDLER";
+	public final static String CHANNEL_HANDLER_NAME
+		= "STREAMING-CHANNEL-HANDLER";
 
-  private Bootstrap b;
-  protected CompletableFuture<CommMessage> waitingForMsg = null;
-  protected StreamingCommChannelHandler commChannelHandler;
-  private ChannelPipeline channelPipeline;
+	private Bootstrap b;
+	protected CompletableFuture<CommMessage> waitingForMsg = null;
+	protected StreamingCommChannelHandler commChannelHandler;
+	private ChannelPipeline channelPipeline;
 
-  public DatagramCommChannel(URI location, AsyncCommProtocol protocol) {
-    super(location, protocol);
-    this.commChannelHandler = new StreamingCommChannelHandler(this);
-  }
+	public DatagramCommChannel( URI location, AsyncCommProtocol protocol ) {
+		super( location, protocol );
+		this.commChannelHandler = new StreamingCommChannelHandler( this );
+	}
 
-  @Override
-  public StreamingCommChannelHandler getChannelHandler() {
-    return commChannelHandler;
-  }
+	@Override
+	public StreamingCommChannelHandler getChannelHandler() {
+		return commChannelHandler;
+	}
 
-  /**
-   *
-   * @param channelPipeline
-   */
-  public void setChannelPipeline(ChannelPipeline channelPipeline) {
-    this.channelPipeline = channelPipeline;
-  }
+	/**
+	 *
+	 * @param channelPipeline
+	 */
+	public void setChannelPipeline( ChannelPipeline channelPipeline ) {
+		this.channelPipeline = channelPipeline;
+	}
 
-  /**
-   *
-   * @return
-   */
-  public ChannelPipeline getChannelPipeline() {
-    return channelPipeline;
-  }
+	/**
+	 *
+	 * @return
+	 */
+	public ChannelPipeline getChannelPipeline() {
+		return channelPipeline;
+	}
 
-  /**
-   *
-   * @param location
-   * @param protocol
-   * @param workerGroup
-   * @param port
-   * @return
-   */
-  public static DatagramCommChannel createChannel(URI location,
-      AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port) {
+	/**
+	 *
+	 * @param location
+	 * @param protocol
+	 * @param workerGroup
+	 * @param port
+	 * @return
+	 */
+	public static DatagramCommChannel createChannel( URI location,
+		AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
 
-    return createChannel(
-        location,
-        protocol,
-        workerGroup,
-        port,
-        new DatagramPacketEncoder(new InetSocketAddress(
-            location.getHost(),
-            location.getPort()
-        )));
-  }
+		return createChannel(
+			location,
+			protocol,
+			workerGroup,
+			port,
+			new DatagramPacketEncoder( new InetSocketAddress(
+				location.getHost(),
+				location.getPort()
+			) ) );
+	}
 
-  /**
-   *
-   * @param location
-   * @param protocol
-   * @param workerGroup
-   * @param port
-   * @return
-   */
-  public static DatagramCommChannel createChannel(URI location,
-      AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port,
-      ChannelHandler datagramPacketFormatter) {
+	/**
+	 *
+	 * @param location
+	 * @param protocol
+	 * @param workerGroup
+	 * @param port
+	 * @return
+	 */
+	public static DatagramCommChannel createChannel( URI location,
+		AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port,
+		ChannelHandler datagramPacketFormatter ) {
 
-    ExecutionThread ethread = ExecutionThread.currentThread();
-    DatagramCommChannel c = new DatagramCommChannel(location, protocol);
+//    ExecutionThread ethread = ExecutionThread.currentThread();
+		DatagramCommChannel c = new DatagramCommChannel( location, protocol );
 
-    c.b = new Bootstrap();
-    c.b.group(workerGroup);
-    c.b.channel(NioDatagramChannel.class);
-    c.b.handler(new ChannelInitializer<NioDatagramChannel>() {
-      @Override
-      protected void initChannel(NioDatagramChannel ch) throws Exception {
-        ChannelPipeline p = ch.pipeline();
-        if (port instanceof InputPort) {
-          c.setParentInputPort((InputPort) port);
-        }
-        if (port instanceof OutputPort) {
-          c.setParentOutputPort((OutputPort) port);
-        }
-        protocol.setChannel(c);
-        c.setChannelPipeline(p);
-        protocol.setupPipeline(p);
-        p.addLast(CHANNEL_HANDLER_NAME, c.commChannelHandler);
-        p.addFirst("DATAGRAM-PACKET-FORMATTER", datagramPacketFormatter);
-        p.addFirst("BYTE-BUF-FORWARDER", new SimpleChannelInboundHandler<DatagramPacket>() {
-          
-          @Override
-          public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-            if (port instanceof InputPort) {
-              DatagramListener.addResponseChannel();
-            }
-            super.channelRegistered(ctx);
-          }
-          
-          @Override
-          protected void channelRead0(ChannelHandlerContext chc, DatagramPacket i)
-              throws Exception {
-            chc.fireChannelRead(i.content().retain());
-          }
+		c.b = new Bootstrap();
+		c.b.group( workerGroup );
+		c.b.channel( NioDatagramChannel.class );
+		c.b.handler( new ChannelInitializer<NioDatagramChannel>() {
+			@Override
+			protected void initChannel( NioDatagramChannel ch ) throws Exception {
+				ChannelPipeline p = ch.pipeline();
+				if ( port instanceof InputPort ) {
+					c.setParentInputPort( ( InputPort ) port );
+				}
+				if ( port instanceof OutputPort ) {
+					c.setParentOutputPort( ( OutputPort ) port );
+				}
+				protocol.setChannel( c );
+				c.setChannelPipeline( p );
+				protocol.setupPipeline( p );
+				p.addLast( CHANNEL_HANDLER_NAME, c.commChannelHandler );
+				p.addFirst( "DATAGRAM-PACKET-FORMATTER", datagramPacketFormatter );
+				p.addFirst( "BYTE-BUF-FORWARDER", new SimpleChannelInboundHandler<DatagramPacket>() {
 
-          @Override
-          public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-              throws Exception {
-            Interpreter.getInstance().logSevere(cause);
-            ctx.close();
-          }
-          
-        });
-        ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT).set(ethread);
-      }
-    });
+					@Override
+					public void channelRegistered( ChannelHandlerContext ctx ) throws Exception {
+						if ( port instanceof InputPort ) {
+							DatagramListener.addResponseChannel();
+						}
+						super.channelRegistered( ctx );
+					}
 
-    return c;
-  }
+					@Override
+					protected void channelRead0( ChannelHandlerContext chc, DatagramPacket i )
+						throws Exception {
+						chc.fireChannelRead( i.content().retain() );
+					}
 
-  /**
-   *
-   * @param location
-   * @return
-   * @throws InterruptedException
-   */
-  public ChannelFuture connect(URI location)
-      throws InterruptedException {
+					@Override
+					public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause )
+						throws Exception {
+						Interpreter.getInstance().logSevere( cause );
+						ctx.close();
+					}
 
-    return b.bind(new InetSocketAddress(0));
-  }
+				} );
+//        ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT).set(ethread);
+			}
+		} );
 
-  /**
-   *
-   * @param location
-   * @return
-   * @throws InterruptedException
-   */
-  public ChannelFuture bind(InetSocketAddress location)
-      throws InterruptedException {
+		return c;
+	}
 
-    return b.bind(location);
-  }
+	/**
+	 *
+	 * @param location
+	 * @return
+	 * @throws InterruptedException
+	 */
+	public ChannelFuture connect( URI location )
+		throws InterruptedException {
 
-  /**
-   * This is blocking to integrate with existing CommCore and ExecutionThreads.
-   *
-   * @return
-   * @throws IOException
-   */
-  @Override
-  protected CommMessage recvImpl() throws IOException {
-    try {
-      if (waitingForMsg != null) {
-        throw new UnsupportedOperationException("Waiting for multiple "
-            + "messages is currently not supported!");
-      }
-      waitingForMsg = new CompletableFuture<>();
-      CommMessage msg = waitingForMsg.get();
-      waitingForMsg = null;
-      return msg;
-    } catch (InterruptedException | ExecutionException ex) {
-      throw new IOException(ex);
-    }
-  }
+		return b.bind( new InetSocketAddress( 0 ) );
+	}
 
-  protected void completeRead(CommMessage message) {
-    while (waitingForMsg == null) {
-      // spinlock
-    }
-    if (waitingForMsg == null) {
-      throw new IllegalStateException("No pending read to complete!");
-    } else {
-      waitingForMsg.complete(message);
-    }
-  }
+	/**
+	 *
+	 * @param location
+	 * @return
+	 * @throws InterruptedException
+	 */
+	public ChannelFuture bind( InetSocketAddress location )
+		throws InterruptedException {
 
-  @Override
-  protected void sendImpl(CommMessage message) throws IOException {
-    try {
-      commChannelHandler.write(message).sync();
-    } catch (InterruptedException ex) {
-      throw new IOException(ex);
-    }
-  }
+		return b.bind( location );
+	}
 
-  @Override
-  protected void closeImpl() throws IOException {
-    try {
-      commChannelHandler.close().sync();
-    } catch (InterruptedException ex) {
-      throw new IOException(ex);
-    }
-  }
+	/**
+	 * This is blocking to integrate with existing CommCore and ExecutionThreads.
+	 *
+	 * @return
+	 * @throws IOException
+	 */
+	@Override
+	protected CommMessage recvImpl() throws IOException {
+		try {
+			if ( waitingForMsg != null ) {
+				throw new UnsupportedOperationException( "Waiting for multiple "
+					+ "messages is currently not supported!" );
+			}
+			waitingForMsg = new CompletableFuture<>();
+			CommMessage msg = waitingForMsg.get();
+			waitingForMsg = null;
+			return msg;
+		} catch ( InterruptedException | ExecutionException ex ) {
+			throw new IOException( ex );
+		}
+	}
+
+	protected void completeRead( CommMessage message ) {
+		while ( waitingForMsg == null ) {
+			// spinlock
+		}
+		if ( waitingForMsg == null ) {
+			throw new IllegalStateException( "No pending read to complete!" );
+		} else {
+			waitingForMsg.complete( message );
+		}
+	}
+
+	@Override
+	protected void sendImpl( CommMessage message ) throws IOException {
+		try {
+			commChannelHandler.write( message.setExecutionThread( ExecutionThread.currentThread() ) ).sync();
+		} catch ( InterruptedException ex ) {
+			throw new IOException( ex );
+		}
+	}
+
+	@Override
+	protected void closeImpl() throws IOException {
+		try {
+			commChannelHandler.close().sync();
+		} catch ( InterruptedException ex ) {
+			throw new IOException( ex );
+		}
+	}
 }
