@@ -33,29 +33,28 @@ import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.CommProtocol;
 
-public class PubSubCommChannelFactory extends CommChannelFactory
-{
-	public PubSubCommChannelFactory( CommCore commCore )
-	{
+public class PubSubCommChannelFactory extends CommChannelFactory {
+
+	public PubSubCommChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
-		
+		throws IOException {
+
 		StreamingCommChannel channel = ( ( StreamingCommChannel ) Interpreter.getInstance().commCore().createCommChannel( location, port ) );
 		channel.setParentOutputPort( port );
-		
-    Map< Long, CompletableFuture<Void> > sendRelease = new ConcurrentHashMap<>();
-       
+
+		Map< Long, CompletableFuture<Void>> sendRelease = new ConcurrentHashMap<>();
+
 		PubSubCommChannel ret = null;
-		
-    try {  
+
+		try {
 			ret = new PubSubCommChannel( location, port.getProtocol(), channel, sendRelease );
-      channel.getChannelHandler().setInChannel( ret );
-		} catch( URISyntaxException e ) {
+			System.out.println( "Channel is a streaming commm channel: " + channel );
+			channel.getChannelHandler().setInChannel( ret );
+		} catch ( URISyntaxException e ) {
 			throw new IOException( e );
 		}
 		return ret;
