@@ -52,7 +52,6 @@ public class PubSubCommChannelFactory extends CommChannelFactory {
 
 		try {
 			ret = new PubSubCommChannel( location, port.getProtocol(), channel, sendRelease );
-			System.out.println( "Channel is a streaming commm channel: " + channel );
 			channel.getChannelHandler().setInChannel( ret );
 		} catch ( URISyntaxException e ) {
 			throw new IOException( e );
