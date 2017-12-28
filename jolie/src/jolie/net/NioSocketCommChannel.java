@@ -100,6 +100,11 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	}
 
 	@Override
+	public StreamingCommChannelHandler getChannelHandler() {
+		return commChannelHandler;
+	}
+	
+	@Override
 	protected CommMessage recvImpl() throws IOException {
 		// This is blocking to integrate with existing CommCore and ExecutionThreads.
 		try {

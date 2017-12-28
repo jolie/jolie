@@ -35,39 +35,39 @@ import jolie.util.Helpers;
  */
 public abstract class StreamingCommChannel extends AbstractCommChannel {
 
-  private final URI location;
-  private final CommProtocol protocol;
+	private final URI location;
+	private final CommProtocol protocol;
 
-  public StreamingCommChannel(URI location, CommProtocol protocol) {
-    this.location = location;
-    this.protocol = protocol;
-  }
+	public StreamingCommChannel( URI location, CommProtocol protocol ) {
+		this.location = location;
+		this.protocol = protocol;
+	}
 
-  protected CommProtocol protocol() {
-    return protocol;
-  }
+	protected CommProtocol protocol() {
+		return protocol;
+	}
 
-  public void sendRelease(long in) {
-    throw new UnsupportedOperationException("sendRelease not supported yet.");
-  }
+	public void sendRelease( long in ) {
+		throw new UnsupportedOperationException( "sendRelease not supported yet." );
+	}
 
-  public StreamingCommChannelHandler getChannelHandler() {
-    throw new UnsupportedOperationException("commChannelHandler not supported yet.");
-  }
+	public StreamingCommChannelHandler getChannelHandler() {
+		throw new UnsupportedOperationException( "commChannelHandler not supported yet." );
+	}
 
-  public StreamingCommChannel createWithSideChannel(CommChannel channel) {
-    throw new UnsupportedOperationException("createWithSideChannel not supported yet.");
-  }
+	public StreamingCommChannel createWithSideChannel( CommChannel channel ) {
+		throw new UnsupportedOperationException( "createWithSideChannel not supported yet." );
+	}
 
-  @Override
-  protected boolean isThreadSafe() {
-    return protocol.isThreadSafe();
-  }
+	@Override
+	protected boolean isThreadSafe() {
+		return protocol.isThreadSafe();
+	}
 
-  @Override
-  protected void releaseImpl()
-      throws IOException {
-    Helpers.lockAndThen(lock, () -> Interpreter.getInstance().commCore()
-        .putPersistentChannel(location, protocol.name(), this));
-  }
+	@Override
+	protected void releaseImpl()
+		throws IOException {
+		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore()
+			.putPersistentChannel( location, protocol.name(), this ) );
+	}
 }
