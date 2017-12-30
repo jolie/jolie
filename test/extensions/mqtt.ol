@@ -17,39 +17,42 @@
  * MA 02110-1301  USA
  */
 
-include "ThermostatInterface.iol"
+include "../AbstractTestUnit.iol"
+include "console.iol"
+include "private/ThermostatInterface.iol"
 
-execution{ single }
-
-inputPort  Thermostat {
-    Location: CoAP_ServerLocation
-    Protocol: coap {
+outputPort Server {
+    Location: MQTT_BrokerLocation
+    Protocol: mqtt {
+        .debug = false;
         .osc.getTmp << {
-            .contentFormat = "text/plain",
-            .messageCode = "205",
-            .alias = "/42/getTemperature"
+            .format = "raw",
+            .alias = "%!{id}/getTemperature",
+            .QoS = 2
         };
-        .osc.setTmp << {
-            .contentFormat = "text/plain",
-            .alias = "/42/setTemperature"
-        };
-        .osc.core << {
-            .contentFormat = "text/plain",
-            .messageCode = "205",
-            .alias = "/.well-known/core"
+        .osc.test << {
+            .format = "raw",
+            .alias = "test/getTemperature",
+            .QoS = 2
         }
     }
     Interfaces: ThermostatInterface
 }
 
-main {
-    [ core( request )( response ) {
-        response = "</getTmp>;\n\tobs;\n\trt=\"observe\";\n\ttitle=\"Resource for retrieving of the thermostat temperature\",\n</setTmp>;\n\ttitle=\"Resource for setting temperature\""
-    } ]
-    |
-    [ getTmp( request )( response ) { 
-        response = 19
-    } ]
-    |
-    [ setTmp( request ) ]
+embedded {
+Jolie:
+    "private/mqtt_server.ol"
+}
+
+define doTest
+{
+    getTmp@Server( { .id = "42" } )( response );
+    println@Console( "\nThermostat n.42 forwarded temperature " + response + " C" )();
+    
+    t_confort = 21;
+    if (response < t_confort) {
+        setTmp@Server( 21 { .id = "42" } )
+        |
+        println@Console( "\nSet Temperature of Thermostat n.42 to 21 C" )()
+    }
 }
