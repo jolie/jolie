@@ -22,7 +22,7 @@ include "console.iol"
 include "private/ThermostatInterface.iol"
 
 outputPort Server {
-    Location: Location_COAPServer
+    Location: CoAP_ServerLocation
     Protocol: coap {
         .debug = false;
         .proxy = false;
@@ -41,11 +41,6 @@ outputPort Server {
             .alias = "/.well-known/core",
             .messageCode = "GET",
             .messageType = "CON"
-        };
-        .osc.shutdown << {
-            .alias = "/shutdown",
-            .messageCode = "GET",
-            .messageType = "NON"
         }
     }
     Interfaces: ThermostatInterface
@@ -58,22 +53,18 @@ Jolie:
 
 define doTest
 {
-    println@Console( "Resources available @ Thermostat are: " )( );
-    core@Server( )( response );
-    println@Console( response )();
-
-    messageCode = "404";
-    
-    println@Console( "Retrieving temperature from Thermostat n.42 ... " )();
-    getTmp@Server( { .id = "42" } )( t );
-    println@Console( "Thermostat n.42 forwarded temperature: " + t + " C.")();
-   
-    t_confort = 21;
-    if (t < t_confort) {
-        println@Console( "Setting Temperature of Thermostat n.42 to " + t_confort + " C ..." )();
-        setTmp@Server( 21 { .id = "42" } );
-        println@Console( "... Thermostat set the Temperature accordingly!" )()
+    println@Console( "Resources available @ Thermostat are:\n" )( ) | {
+        core@Server( )( response );
+        println@Console( response )()
     };
 
-    shutdown@Server()
+    getTmp@Server( { .id = "42" } )( response );
+    println@Console( "\nThermostat n.42 forwarded temperature " + response + " C" )();
+    
+    t_confort = 21;
+    if (response < t_confort) {
+        setTmp@Server( 21 { .id = "42" } )
+        |
+        println@Console( "\nSet Temperature of Thermostat n.42 to 21 C" )()
+    }
 }

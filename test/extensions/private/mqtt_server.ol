@@ -17,24 +17,33 @@
  * MA 02110-1301  USA
  */
 
-constants {
-    CoAP_ServerLocation = "datagram://localhost:5683",
-    MQTT_ServerLocation = "socket://localhost:9001",
-    MQTT_BrokerLocation = "socket://iot.eclipse.org:1883"
+include "ThermostatInterface.iol"
+
+execution{ single }
+
+inputPort Thermostat {
+    Location: MQTT_ServerLocation
+    Protocol: mqtt {
+        .debug = false;
+        .broker = MQTT_BrokerLocation;
+        .osc.getTmp << {
+            .format = "raw",
+            .alias = "42/getTemperature",
+            .QoS = 2
+        };
+        .osc.setTmp << {
+            .format = "raw",
+            .alias = "42/setTemperature",
+            .QoS = 2
+        }
+    }
+    Interfaces: ThermostatInterface
 }
 
-type setRequestType: int { 
-    .id? : string 
-}
-
-type getRequestType: void { 
-    .id? : string 
-}
-
-interface ThermostatInterface {
-    OneWay: 
-        setTmp( setRequestType ),
-    RequestResponse: 
-        getTmp( getRequestType )( int ),
-        core( void )( string )
+main {
+    [ getTmp( request )( response ) { 
+        response = 19
+    } ]
+    |
+    [ setTmp( request ) ]
 }
