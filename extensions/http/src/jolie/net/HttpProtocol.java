@@ -111,8 +111,6 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.AsciiString;
 
 /**
@@ -128,7 +126,7 @@ public class HttpProtocol extends AsyncCommProtocol {
 
 	// default content type per RFC 2616#7.2.1
 	private static final AsciiString DEFAULT_CONTENT_TYPE = HttpHeaderValues.APPLICATION_OCTET_STREAM;
-	private static final String DEFAULT_FORMAT = "xml";
+	private static final String DEFAULT_FORMAT = "html";
 	private static final Map< Integer, String> statusCodeDescriptions = new HashMap<>();
 	private static final Set< Integer> locationRequiredStatusCodes = new HashSet<>();
 
@@ -226,7 +224,6 @@ public class HttpProtocol extends AsyncCommProtocol {
 
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline ) {
-		pipeline.addLast( new LoggingHandler(LogLevel.INFO));
 		if ( inInputPort ) {
 			pipeline.addLast( new HttpServerCodec() );
 			pipeline.addLast( new HttpContentCompressor() );
