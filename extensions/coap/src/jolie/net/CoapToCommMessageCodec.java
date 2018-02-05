@@ -442,7 +442,7 @@ public class CoapToCommMessageCodec
 	}
 
 	private int getMessageType( String operationName ) {
-		int messageType = MessageType.NON;
+		int messageType = MessageType.CON;
 		if ( protocol.hasOperationSpecificParameter( operationName,
 			Parameters.MESSAGE_TYPE ) ) {
 			Value messageTypeValue = protocol.getOperationSpecificParameterFirstValue(
@@ -453,7 +453,7 @@ public class CoapToCommMessageCodec
 				} else {
 					Interpreter.getInstance().logSevere( "Coap Message Type "
 						+ messageTypeValue.intValue() + " is not allowed! "
-						+ "Assuming default message type \"NON\"." );
+						+ "Assuming default message type \"CON\"." );
 				}
 			} else {
 				if ( messageTypeValue.isString() ) {
@@ -699,11 +699,12 @@ public class CoapToCommMessageCodec
 			resource_name.append( location.getPath() );
 		}
 
-		// 7. if resource name is empty append a single /
+		// 7. if resource name is empty append a single backslash and the operation name
 		if ( resource_name.length() == 0 ) {
 			resource_name.append( "/" );
+			resource_name.append( in.operationName() );
 		}
-
+		
 		if ( location.getQuery() != null ) {
 			resource_name.append( "?" ).append( location.getQuery() );
 		}

@@ -24,8 +24,6 @@ package jolie.net;
 import io.netty.channel.ChannelPipeline;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Iterator;
 import java.util.Map;
 import jolie.ExecutionThread;
@@ -34,7 +32,6 @@ import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
