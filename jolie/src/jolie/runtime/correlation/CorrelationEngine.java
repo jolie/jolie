@@ -98,7 +98,7 @@ public abstract class CorrelationEngine implements SessionListener
 		}
 	}
 
-	public void onMessageReceive( final CommMessage message, final CommChannel channel )
+	synchronized public void onMessageReceive( final CommMessage message, final CommChannel channel )
 		throws CorrelationError
 	{
 		if ( routeMessage( message, channel ) ) {
