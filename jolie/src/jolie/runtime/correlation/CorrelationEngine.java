@@ -101,15 +101,14 @@ public abstract class CorrelationEngine implements SessionListener
 	public synchronized void onMessageReceive( final CommMessage message, final CommChannel channel )
 		throws CorrelationError
 	{
-		// We try to find a correlating process.
-		// If there is none, we must be able to start a new process with this message.
-		final boolean result =
+		if ( !(
+			// We try to find a correlating process.
 			routeMessage( message, channel )
 			||
-			interpreter.startServiceSession( message, channel );
-		
-		// Otherwise, exception.
-		if ( !result ) {
+			// If there is none, we must be able to start a new process with this message.
+			interpreter.startServiceSession( message, channel )
+		) ) {
+			// Otherwise, exception.
 			throw new CorrelationError();
 		}
 	}
