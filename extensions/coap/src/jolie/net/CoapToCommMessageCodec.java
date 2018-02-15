@@ -26,6 +26,9 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -146,6 +149,8 @@ public class CoapToCommMessageCodec
 			}
 		} else {
 
+			this.commMessageRequest = commMessage;
+
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Receiving a request from jolie "
 					+ "--> forwarding it to the server" );
@@ -163,23 +168,10 @@ public class CoapToCommMessageCodec
 				targetURI
 			);
 
-			if ( isOneWay( operationName ) && messageType == MessageType.NON ) {
-				CommMessage ack = new CommMessage(
-					commMessage.id(),
-					commMessage.operationName(),
-					"/",
-					Value.create(),
-					null
-				);
-				ctx.fireChannelRead( ack );
-			}
+			msg.setRandomMessageID();
+			correlationId = msg.getMessageID();
 
-			if ( isOneWay( operationName ) && messageType == MessageType.CON ) {
-				msg.setRandomMessageID();
-				correlationId = msg.getMessageID();
-			} else {
-				msg.setRandomMessageID();
-				correlationId = msg.getMessageID();
+			if ( !isOneWay( operationName ) ) {
 				msg.setRandomToken();
 				correlationToken = msg.getToken();
 			}
@@ -190,7 +182,25 @@ public class CoapToCommMessageCodec
 					getContentFormat( operationName )
 				);
 			}
-			this.commMessageRequest = commMessage;
+
+			if ( isOneWay( operationName ) && messageType == MessageType.NON ) {
+				CommMessage ack = new CommMessage(
+					commMessage.id(),
+					commMessage.operationName(),
+					"/",
+					Value.create(),
+					null
+				);
+				channelRead( ctx, ack );
+			}
+
+			if ( messageType == MessageType.CON ) {
+				if ( protocol.hasOperationSpecificParameter( operationName, Parameters.TIMEOUT ) ) {
+					int timeout = protocol.getOperationSpecificParameterFirstValue( operationName, Parameters.TIMEOUT ).intValue();
+					ctx.pipeline().addBefore( "CODEC", "IDLESTATE", new IdleStateHandler( timeout, 0, 0 ) );
+				}
+			}
+
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Sending CoapRequest\n" + msg );
 			}
@@ -326,6 +336,17 @@ public class CoapToCommMessageCodec
 					}
 				}
 			}
+		}
+	}
+
+	@Override
+	public void userEventTriggered( ChannelHandlerContext ctx, Object evt ) throws Exception {
+		if ( evt instanceof IdleStateEvent ) {
+			IdleStateEvent e = ( IdleStateEvent ) evt;
+			if ( e.state() == IdleState.READER_IDLE ) {
+				ctx.fireChannelRead( CommMessage.createFaultResponse( commMessageRequest, new FaultException( "Timeout for Ack expired", Value.create( "Timeout for Ack expired" ) ) ) );
+				ctx.close();
+			} 
 		}
 	}
 
@@ -704,7 +725,7 @@ public class CoapToCommMessageCodec
 			resource_name.append( "/" );
 			resource_name.append( in.operationName() );
 		}
-		
+
 		if ( location.getQuery() != null ) {
 			resource_name.append( "?" ).append( location.getQuery() );
 		}
@@ -808,5 +829,6 @@ public class CoapToCommMessageCodec
 		private static final String MESSAGE_CODE = "messageCode";
 		private static final String JSON_ENCODING = "json_encoding";
 		private static final String ALIAS = "alias";
+		private static final String TIMEOUT = "timeout";
 	}
 }
