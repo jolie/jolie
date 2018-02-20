@@ -31,9 +31,9 @@ Interfaces: TestUnitInterface
 
 init
 {
-	//dirs[0] = "primitives";
-	//dirs[1] = "library";
-	dirs[0] = "extensions"
+	dirs[0] = "primitives";
+	dirs[1] = "library";
+	dirs[2] = "extensions"
 }
 
 define calcMaxLength
