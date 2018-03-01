@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="servletapi5">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../lib/servletapi/servletapi5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
