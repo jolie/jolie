@@ -1175,7 +1175,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
-		if ( getOperationSpecificStringParameter(inputId, Parameters.FORCE_CONTENT_DECODING ).equals("string") ) {
+		final String operationName = message.isResponse() ? inputId : decodedMessage.operationName;
+		if ( getOperationSpecificStringParameter( operationName, Parameters.FORCE_CONTENT_DECODING ).equals( "string" ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
@@ -1329,6 +1330,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		recv_parseRequestFormat( contentType );
+		if ( !message.isResponse() ) {
+			recv_checkReceivingOperation( message, decodedMessage );
+		}
 
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
 		if ( !message.isGet() && !message.isHead() && !message.isDelete() ) {
@@ -1364,7 +1368,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
-			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
 		}
