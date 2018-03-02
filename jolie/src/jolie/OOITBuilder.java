@@ -497,7 +497,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		Map< String, AggregationConfiguration > map = aggregationConfigurations.get( inputPortName );
 		if ( map == null ) {
-			map = new HashMap< String, AggregationConfiguration >();
+			map = new HashMap<>();
 			aggregationConfigurations.put( inputPortName, map );
 		}
 		map.put( operationName, configuration );
