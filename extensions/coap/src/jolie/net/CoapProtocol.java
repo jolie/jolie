@@ -22,6 +22,8 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -57,7 +59,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
 	@Override
 	public void setupPipeline( ChannelPipeline p ) {
-//    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+    p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 		p.addLast( "DECODER", new CoapMessageDecoder() );
 		p.addLast( "ENCODER", new CoapMessageEncoder() );
 		p.addLast( "CODEC", new CoapToCommMessageCodec( this ) );

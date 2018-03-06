@@ -281,7 +281,7 @@ public class CoapToCommMessageCodec
 					Interpreter.getInstance().logInfo( "The Message has a content in the format: "
 						+ format );
 				}
-				v = byteBufToValue( coapMessage.getContent(), protocol.getSendType( commMessageRequest.operationName() ), format );
+				v = byteBufToValue( coapMessage.getContent(), protocol.getSendType( operationName ), format );
 			}
 
 			if ( coapMessage.isAck()
@@ -346,7 +346,7 @@ public class CoapToCommMessageCodec
 			if ( e.state() == IdleState.READER_IDLE ) {
 				ctx.fireChannelRead( CommMessage.createFaultResponse( commMessageRequest, new FaultException( "Timeout for Ack expired", Value.create( "Timeout for Ack expired" ) ) ) );
 				ctx.close();
-			} 
+			}
 		}
 	}
 
@@ -463,7 +463,7 @@ public class CoapToCommMessageCodec
 	}
 
 	private int getMessageType( String operationName ) {
-		int messageType = MessageType.CON;
+		int messageType = MessageType.NON;
 		if ( protocol.hasOperationSpecificParameter( operationName,
 			Parameters.MESSAGE_TYPE ) ) {
 			Value messageTypeValue = protocol.getOperationSpecificParameterFirstValue(
@@ -474,7 +474,7 @@ public class CoapToCommMessageCodec
 				} else {
 					Interpreter.getInstance().logSevere( "Coap Message Type "
 						+ messageTypeValue.intValue() + " is not allowed! "
-						+ "Assuming default message type \"CON\"." );
+						+ "Assuming default message type \"NON\"." );
 				}
 			} else {
 				if ( messageTypeValue.isString() ) {
@@ -557,10 +557,6 @@ public class CoapToCommMessageCodec
 
 		if ( message.length() > 0 ) {
 			switch ( format ) {
-				case "application/link-format":
-//          parseLinkFormat(in, value);
-					parsePlainText( message, value, type );
-					break;
 				case "application/xml":
 					DocumentBuilderFactory docBuilderFactory
 						= DocumentBuilderFactory.newInstance();
@@ -570,6 +566,7 @@ public class CoapToCommMessageCodec
 					Document doc = builder.parse( src );
 					XmlUtils.documentToValue( doc, value );
 					break;
+				case "application/link-format":
 				case "application/octet-stream":
 				case "application/exi":
 				case "text/plain":
@@ -787,7 +784,7 @@ public class CoapToCommMessageCodec
 			i++;
 		}
 		String URIPath = sb.toString();
-		String operationName = protocol.getOperationFromOperationSpecificStringParameter( Parameters.ALIAS, URIPath );
+		String operationName = protocol.getOperationFromOperationSpecificStringParameter( Parameters.ALIAS, URIPath.substring( 1 ) );
 
 		return operationName;
 	}
