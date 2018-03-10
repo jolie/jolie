@@ -172,6 +172,7 @@ public class CoapToCommMessageCodec
 			correlationId = msg.getMessageID();
 
 			if ( !isOneWay( operationName ) ) {
+				msg.setMessageType( MessageType.CON );
 				msg.setRandomToken();
 				correlationToken = msg.getToken();
 			}
