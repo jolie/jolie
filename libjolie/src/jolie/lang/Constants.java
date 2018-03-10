@@ -32,8 +32,8 @@ import jolie.util.Range;
 public final class Constants
 {
 	// Release information
-	public static final String VERSION = "Jolie 1.6.0";
-	public static final String COPYRIGHT = "(C) 2006-2016 the Jolie team";
+	public static final String VERSION = "JIoT 0.4";
+	public static final String COPYRIGHT = "(C) 2006-2018 the Jolie team";
 	
 	public interface Manifest
 	{

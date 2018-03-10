@@ -47,3 +47,5 @@ lib/netty/netty-all-4.1.17.Final-sources.jar
 lib/netty/netty-all-4.1.17.Final-javadoc.jar
 *.properties
 extensions/coap/nbproject/private/private.xml
+/extensions/serial/nbproject/private/
+/extensions/ssl/nbproject/private/
