@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+X-JOLIE-ChannelExtension: serial:jolie.net.SerialCommChannelFactory
+X-JOLIE-ListenerExtension: serial:jolie.net.SerialListenerFactory
