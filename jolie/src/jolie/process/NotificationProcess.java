@@ -102,11 +102,12 @@ public class NotificationProcess implements Process
 					throw( e );
 				}
 			}
-			channel = outputPort.getCommChannel();
+			//channel = outputPort.getCommChannel();
 
 			log( "SENDING", message );
 			
-			channel.send( message );
+			//channel.send( message );
+			channel = outputPort.send( message );
 			
 			log( "SENT", message );
 			if ( Interpreter.getInstance().isMonitoring() ) {
@@ -115,7 +116,8 @@ public class NotificationProcess implements Process
 			
 			CommMessage response = null;
 			do {
-				response = channel.recvResponseFor( message );
+				//response = channel.recvResponseFor( message );
+				response = Interpreter.getInstance().commCore().recvResponseFor( channel, message );
 			} while( response == null );
 			
 			log( "RECEIVED ACK", response );

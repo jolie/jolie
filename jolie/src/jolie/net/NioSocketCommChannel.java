@@ -72,16 +72,15 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 				@Override
 				protected void initChannel( Channel ch ) throws Exception {
 					ChannelPipeline p = ch.pipeline();
-					if( port instanceof InputPort ){
-						channel.setParentInputPort( (InputPort) port );
+					if ( port instanceof InputPort ) {
+						channel.setParentInputPort( ( InputPort ) port );
 					}
-					if( port instanceof OutputPort ){
-						channel.setParentOutputPort( (OutputPort) port );
+					if ( port instanceof OutputPort ) {
+						channel.setParentOutputPort( ( OutputPort ) port );
 					}
 					protocol.setChannel( channel );
 					protocol.setupPipeline( p );
 					p.addLast( CHANNEL_HANDLER_NAME, channel.commChannelHandler );
-//					ch.attr( EXECUTION_CONTEXT ).set( ethread );
 				}
 			}
 			);

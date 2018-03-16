@@ -241,7 +241,7 @@ public class HttpProtocol extends AsyncCommProtocol {
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
 			throws Exception {
 			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-				message.getExecutionThread() );
+				message.executionThread() );
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
 		}

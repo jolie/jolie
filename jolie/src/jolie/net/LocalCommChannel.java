@@ -22,6 +22,7 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +34,16 @@ import jolie.Interpreter;
  */
 public class LocalCommChannel extends CommChannel implements PollableCommChannel
 {
+
+	@Override
+	public URI getLocation() {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	protected boolean isThreadSafe() {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
@@ -82,6 +93,16 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		@Override
 		protected void closeImpl()
 		{}
+
+		@Override
+		public URI getLocation() {
+			throw new UnsupportedOperationException( "LocalCommChannels are not supposed to be queried on their location." );
+		}
+
+		@Override
+		protected boolean isThreadSafe() {
+			throw new UnsupportedOperationException( "LocalCommChannels are not supposed to be queried on whether they are threadsafe or not." );
+		}
 	}
 
 	private final Interpreter interpreter;

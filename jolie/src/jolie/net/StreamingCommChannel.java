@@ -36,13 +36,16 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 {
 	private final URI location;
 	private final CommProtocol protocol;
+	private final boolean isThreadSafe;
+	
 	public StreamingCommChannel( URI location, CommProtocol protocol )
 	{
 		this.location = location;
 		this.protocol = protocol;
 		protocol.setChannel( this );
+		isThreadSafe = protocol.isThreadSafe();
 	}
-
+	
 	protected CommProtocol protocol()
 	{
 		return protocol;
@@ -51,7 +54,12 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 	@Override
 	protected boolean isThreadSafe()
 	{
-		return protocol.isThreadSafe();
+		return isThreadSafe;
+	}
+	
+	@Override
+	public URI getLocation(){
+		return this.location;
 	}
 
 	@Override

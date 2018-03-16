@@ -85,7 +85,8 @@ public class StreamingCommChannelHandler
 	protected void channelRead0( ChannelHandlerContext ctx, CommMessage msg )
 		throws Exception {
 		if ( inChannel.parentPort() instanceof OutputPort ) {
-			this.inChannel.receiveResponse( msg );
+			Interpreter.getInstance().commCore().receiveResponse( msg );
+			//this.inChannel.receiveResponse( msg );
 		} else {
 			messageRecv( msg );
 		}
