@@ -25,6 +25,7 @@ package jolie.net.protocols;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import jolie.lang.Constants;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
@@ -53,6 +54,14 @@ public abstract class CommProtocol
 			public void sendImpl( CommMessage message ) {}
                         @Override
 			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
+
+			@Override
+			public URI getLocation() {
+				throw new UnsupportedOperationException( "DummyChannels are not supposed to be queried for their location." );
+			}
+
+			@Override
+			protected boolean isThreadSafe() { return false; }
 		}
 
 		private final static DummyChannel dummyChannel = new DummyChannel();

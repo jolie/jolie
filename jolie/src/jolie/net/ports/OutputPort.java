@@ -215,6 +215,21 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		);
 	}
 
+	public CommChannel send( CommMessage message ) throws IOException, URISyntaxException{
+			Value loc = locationExpression.evaluate();
+			if ( loc.isChannel() ) {
+				loc.channelValue().send( message );
+				return loc.channelValue();
+			} else {
+				interpreter.commCore().sendCommMessage( 
+					message, 
+					getLocation( loc ), 
+					this, 
+					getProtocol().isThreadSafe() 
+				);
+				return null;
+			}
+	}
 	
 	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
@@ -227,7 +242,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			if ( forceNew ) {
 				ret = ret.createDuplicate();
 			}
-		} else {
+				} else {
 			URI uri = getLocation( loc );
 			if ( forceNew ) {
 				// A fresh channel was requested

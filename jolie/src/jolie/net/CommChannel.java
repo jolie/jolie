@@ -24,6 +24,7 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.locks.ReentrantLock;
 
 import jolie.net.ports.InputPort;
@@ -81,6 +82,9 @@ public abstract class CommChannel
 	{
 		redirectionMessageId = id;
 	}
+	
+	
+	public abstract URI getLocation();
 
 	private CommChannel redirectionChannel = null;
 
@@ -191,11 +195,8 @@ public abstract class CommChannel
 		return true;
 	}
 
-	protected boolean isThreadSafe()
-	{
-		return false;
-	}
-
+	protected abstract boolean isThreadSafe();
+	
 	/**
 	 * Receives a message from the channel. This is a blocking operation.
 	 *

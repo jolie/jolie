@@ -161,7 +161,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol {
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
 			throws Exception {
-			setExecutionThread( message.getExecutionThread() );
+			setExecutionThread( message.executionThread() );
 			FullHttpMessage msg = buildXmlRpcMessage( message );
 			out.add( msg );
 		}
