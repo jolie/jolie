@@ -22,7 +22,7 @@
 package jolie.net;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.oio.OioEventLoopGroup;
 import java.io.IOException;
 
 import jolie.Interpreter;
@@ -32,21 +32,20 @@ import jolie.net.ports.InputPort;
 
 public class SerialListenerFactory extends CommListenerFactory {
 
-  protected final EventLoopGroup workerGroup;
+	protected final EventLoopGroup workerGroup;
 
-  public SerialListenerFactory(CommCore commCore) {
+	public SerialListenerFactory( CommCore commCore ) {
 
-    super(commCore);
-    this.workerGroup = new NioEventLoopGroup(4,
-        commCore.getNewExecutionContextThreadFactory());
-  }
+		super( commCore );
+		this.workerGroup = new OioEventLoopGroup( 4,
+			commCore.getNewExecutionContextThreadFactory() );
+	}
 
-  @Override
-  public CommListener createListener(Interpreter interpreter,
-      CommProtocolFactory protocolFactory, InputPort inputPort)
-      throws IOException {
+	@Override
+	public CommListener createListener( Interpreter interpreter,
+		CommProtocolFactory protocolFactory, InputPort inputPort )
+		throws IOException {
 
-    return new SerialListener(interpreter, protocolFactory,
-        inputPort, workerGroup);
-  }
+		return new SerialListener( interpreter, protocolFactory, inputPort, workerGroup );
+	}
 }

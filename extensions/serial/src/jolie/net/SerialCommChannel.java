@@ -29,25 +29,16 @@ import java.util.concurrent.ExecutionException;
 
 import jolie.ExecutionThread;
 import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.ports.InputPort;
-import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.DatagramPacket;
-import io.netty.channel.socket.nio.NioDatagramChannel;
-import jolie.Interpreter;
 
 public class SerialCommChannel extends StreamingCommChannel {
 
-	public final static String CHANNEL_HANDLER_NAME
-		= "STREAMING-CHANNEL-HANDLER";
+	public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
 
 	private Bootstrap b;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
@@ -90,55 +81,7 @@ public class SerialCommChannel extends StreamingCommChannel {
 	 */
 	public static SerialCommChannel createChannel( URI location,
 		AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
-
-//    ExecutionThread ethread = ExecutionThread.currentThread();
 		SerialCommChannel c = new SerialCommChannel( location, protocol );
-
-		c.b = new Bootstrap();
-		c.b.group( workerGroup );
-		c.b.channel( NioDatagramChannel.class );
-		c.b.handler( new ChannelInitializer<NioDatagramChannel>() {
-			@Override
-			protected void initChannel( NioDatagramChannel ch ) throws Exception {
-				ChannelPipeline p = ch.pipeline();
-				if ( port instanceof InputPort ) {
-					c.setParentInputPort( ( InputPort ) port );
-				}
-				if ( port instanceof OutputPort ) {
-					c.setParentOutputPort( ( OutputPort ) port );
-				}
-				protocol.setChannel( c );
-				c.setChannelPipeline( p );
-				protocol.setupPipeline( p );
-				p.addLast( CHANNEL_HANDLER_NAME, c.commChannelHandler );
-				p.addFirst( "BYTE-BUF-FORWARDER", new SimpleChannelInboundHandler<DatagramPacket>() {
-
-					@Override
-					public void channelRegistered( ChannelHandlerContext ctx ) throws Exception {
-						if ( port instanceof InputPort ) {
-							SerialListener.addResponseChannel();
-						}
-						super.channelRegistered( ctx );
-					}
-
-					@Override
-					protected void channelRead0( ChannelHandlerContext chc, DatagramPacket i )
-						throws Exception {
-						chc.fireChannelRead( i.content().retain() );
-					}
-
-					@Override
-					public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause )
-						throws Exception {
-						Interpreter.getInstance().logSevere( cause );
-						ctx.close();
-					}
-
-				} );
-//        ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT).set(ethread);
-			}
-		} );
-
 		return c;
 	}
 
