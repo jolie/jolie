@@ -19,7 +19,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ssl;
 
 import java.io.FileInputStream;
@@ -61,7 +60,7 @@ import jolie.runtime.VariablePath;
  */
 public class SSLProtocol extends SequentialCommProtocol
 {
-	private static final int INITIAL_BUFFER_SIZE = 32768;
+	private static final int INITIAL_BUFFER_SIZE = 8192;
 
 	private final boolean isClient;
 	private boolean firstTime;
@@ -71,8 +70,8 @@ public class SSLProtocol extends SequentialCommProtocol
 	private OutputStream outputStream;
 	private InputStream inputStream;
 
-	private SSLInputStream sslInputStream = new SSLInputStream();
-	private SSLOutputStream sslOutputStream = new SSLOutputStream();
+	private final SSLInputStream sslInputStream = new SSLInputStream();
+	private final SSLOutputStream sslOutputStream = new SSLOutputStream();
 
 	private class SSLInputStream extends InputStream
 	{
@@ -93,7 +92,7 @@ public class SSLProtocol extends SequentialCommProtocol
 
 			try {
 				return clearInputBuffer.get();
-			} catch( BufferUnderflowException e ) {
+			} catch ( BufferUnderflowException e ) {
 				return -1;
 			}
 		}
@@ -117,7 +116,7 @@ public class SSLProtocol extends SequentialCommProtocol
 			try {
 				clearInputBuffer.get( b, off, len );
 				return len;
-			} catch( BufferUnderflowException e ) {
+			} catch ( BufferUnderflowException e ) {
 				// okay, just return the maximum possible
 				len = clearInputBuffer.remaining();
 				clearInputBuffer.get( b, off, len );
@@ -171,11 +170,11 @@ public class SSLProtocol extends SequentialCommProtocol
 			throws IOException
 		{
 			try {
-				internalBuffer.put( (byte)b );
+				internalBuffer.put( ( byte ) b );
 			} catch ( BufferOverflowException e ) {
 				// let us retry after freeing the buffer
 				writeCache();
-				internalBuffer.put( (byte)b );
+				internalBuffer.put( ( byte ) b );
 			}
 		}
 
@@ -184,11 +183,17 @@ public class SSLProtocol extends SequentialCommProtocol
 			throws IOException
 		{
 			try {
-				internalBuffer.put( b, off, len );
+
+				if ( INITIAL_BUFFER_SIZE < ( len - off ) ) {
+					internalBuffer.put( b, off, ( INITIAL_BUFFER_SIZE - 1 ) ); // otherwise it won't work in writeCache wrt .remaining
+					writeCache();
+					write( b, ( off + ( INITIAL_BUFFER_SIZE - 1 ) ), len );
+				} else {
+					internalBuffer.put( b, off, ( len - off ) );
+					writeCache();
+				}
 			} catch ( BufferOverflowException e ) {
-				// let us retry after freeing the buffer
-				writeCache();
-				internalBuffer.put( b, off, len );
+				throw new IOException( e.fillInStackTrace() );
 			}
 		}
 
@@ -301,7 +306,7 @@ public class SSLProtocol extends SequentialCommProtocol
 			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
 
 			sslEngine = context.createSSLEngine();
-			sslEngine.setEnabledProtocols( new String[] { protocol } );
+			sslEngine.setEnabledProtocols( new String[]{ protocol } );
 			sslEngine.setUseClientMode( isClient );
 			if ( isClient == false ) {
 				if ( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 ) {
@@ -332,81 +337,91 @@ public class SSLProtocol extends SequentialCommProtocol
 			firstTime = false;
 		}
 
+		boolean keepRun = true;
+
 		Runnable runnable;
-		while (
-			sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING
+		while ( keepRun
 			&& sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED
-		) {
+			&& sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING ) {
 			switch ( sslEngine.getHandshakeStatus() ) {
-			case NEED_TASK:
-				while ( (runnable = sslEngine.getDelegatedTask()) != null ) {
-					runnable.run();
-				}
-				break;
-			case NEED_WRAP:
-				wrap( ByteBuffer.allocate( INITIAL_BUFFER_SIZE ) );
-				break;
-			case NEED_UNWRAP:
-				unwrap( null );
-				break;
+				case NEED_TASK:
+					while ( ( runnable = sslEngine.getDelegatedTask() ) != null ) {
+						runnable.run();
+					}
+					break;
+				case NEED_WRAP:
+					wrap( ByteBuffer.allocate( INITIAL_BUFFER_SIZE ) );
+					break;
+				case NEED_UNWRAP:
+					keepRun = unwrap( null );
+					if ( sslEngine.isInboundDone() && sslEngine.isOutboundDone() ) {
+						keepRun = false;
+					}
+					break;
 			}
 		}
 	}
 
-	private void unwrap( SSLInputStream sslInputStream )
+	private boolean unwrap( SSLInputStream sslInputStream )
 		throws IOException
 	{
+
 		ByteBuffer cryptBuffer = ByteBuffer.allocate( 0 );
 		final SSLResult result = new SSLResult( INITIAL_BUFFER_SIZE );
 
 		boolean keepRun = true;
+		boolean returnResult = true;
 
-		while( keepRun ) {
+		while ( keepRun ) {
 			result.log = sslEngine.unwrap( cryptBuffer, result.buffer );
-			switch( result.log.getStatus() ) {
-			case BUFFER_OVERFLOW:
-				final int appSize = sslEngine.getSession().getApplicationBufferSize();
-				// Resize "result.buffer" if needed
-				if ( appSize > result.buffer.capacity() ) {
-					final ByteBuffer b = ByteBuffer.allocate( appSize );
-					result.buffer.flip();
-					b.put( result.buffer );
-					result.buffer = b;
-				} else {
-					result.buffer.compact();
-				}
-				break;
-			case BUFFER_UNDERFLOW:
-				final int netSize = sslEngine.getSession().getPacketBufferSize();
-				// Resize "cryptBuffer" if needed
-				if ( netSize > cryptBuffer.capacity() ) {
-					final ByteBuffer b = ByteBuffer.allocate( netSize );
-					cryptBuffer.flip();
-					b.put( cryptBuffer );
-					cryptBuffer = b;
-				} else {
-					cryptBuffer.compact();
-				}
 
-				int currByte = inputStream.read();
-				if ( currByte >= 0 ) {
-					cryptBuffer.put( (byte)currByte );
-					cryptBuffer.flip();
-				} else {
-					// input stream EOF reached, we may not continue
+			switch ( result.log.getStatus() ) {
+				case BUFFER_OVERFLOW:
+					final int appSize = sslEngine.getSession().getApplicationBufferSize();
+					// Resize "result.buffer" if needed
+					if ( appSize > result.buffer.capacity() ) {
+						final ByteBuffer b = ByteBuffer.allocate( appSize );
+						result.buffer.flip();
+						b.put( result.buffer );
+						result.buffer = b;
+					} else {
+						result.buffer.compact();
+					}
+					break;
+				case BUFFER_UNDERFLOW:
+					final int netSize = sslEngine.getSession().getPacketBufferSize();
+					// Resize "cryptBuffer" if needed
+					if ( netSize > cryptBuffer.capacity() ) {
+						final ByteBuffer b = ByteBuffer.allocate( netSize );
+						cryptBuffer.flip();
+						b.put( cryptBuffer );
+						cryptBuffer = b;
+					} else {
+						cryptBuffer.compact();
+					}
+
+					int currByte = inputStream.read();
+					if ( currByte >= 0 ) {
+						cryptBuffer.put( ( byte ) currByte );
+						cryptBuffer.flip();
+					} else {
+						// input stream EOF reached, we may not continue
+						returnResult = false;
+						keepRun = false;
+					}
+					break;
+				case CLOSED:
+					returnResult = false;
+				case OK:
+					if ( result.log.bytesConsumed() > 0 && sslInputStream != null ) {
+						sslInputStream.clearInputBuffer = result.buffer;
+						sslInputStream.clearInputBuffer.flip();
+					}
 					keepRun = false;
-				}
-				break;
-			case OK:
-			case CLOSED:
-				if ( sslInputStream != null && result.log.bytesProduced() > 0 ) {
-					sslInputStream.clearInputBuffer = result.buffer;
-					sslInputStream.clearInputBuffer.flip();
-				}
-				keepRun = false;
-				break;
+					break;
 			}
 		}
+		return returnResult;
 	}
 
 	private void wrap( ByteBuffer source )
@@ -416,16 +431,18 @@ public class SSLProtocol extends SequentialCommProtocol
 		result.log = sslEngine.wrap( source, result.buffer );
 		while ( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
 			final int appSize = sslEngine.getSession().getApplicationBufferSize();
-
 			// Resize "result.buffer" if needed
-			if ( appSize > result.buffer.capacity() ) {
-				final ByteBuffer b = ByteBuffer.allocate( appSize );
-				result.buffer.flip();
-				b.put( result.buffer );
-				result.buffer = b;
-			} else {
-				result.buffer.compact();
-			}
+//			if ( appSize > result.buffer.capacity() ) {
+//				final ByteBuffer b = ByteBuffer.allocate( appSize );
+//				result.buffer.flip();
+//				b.put( result.buffer );
+//				result.buffer = b;
+//			} else {
+//				result.buffer.compact();
+//			}
+			// From the docs: "The size of the outbound application data buffer generally does not matter."
+			// For the time being we can double it and later implement some smarter optimisations.
+			result.buffer = ByteBuffer.allocate( result.buffer.capacity() * 2 );
 
 			result.log = sslEngine.wrap( source, result.buffer );
 		}
