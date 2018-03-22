@@ -16,13 +16,13 @@
 package jolie.net.serial;
 
 import io.netty.channel.ChannelOption;
-import jolie.net.serial.JSerialCommChannelConfig.Paritybit;
-import jolie.net.serial.JSerialCommChannelConfig.Stopbits;
+import jolie.net.serial.JSCCConfig.Paritybit;
+import jolie.net.serial.JSCCConfig.Stopbits;
 
 /**
  * Option for configuring a serial port connection
  */
-public final class JSerialCommChannelOption<T> extends ChannelOption<T> {
+public final class JSCCOption<T> extends ChannelOption<T> {
 
     public static final ChannelOption<Integer> BAUD_RATE = valueOf("BAUD_RATE");
     public static final ChannelOption<Stopbits> STOP_BITS = valueOf("STOP_BITS");
@@ -32,7 +32,7 @@ public final class JSerialCommChannelOption<T> extends ChannelOption<T> {
     public static final ChannelOption<Integer> READ_TIMEOUT = valueOf("READ_TIMEOUT");
 
     @SuppressWarnings({ "unused", "deprecation" })
-    private JSerialCommChannelOption() {
+    private JSCCOption() {
         super(null);
     }
 }

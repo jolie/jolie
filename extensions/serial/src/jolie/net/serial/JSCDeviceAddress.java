@@ -21,7 +21,7 @@ import java.net.SocketAddress;
  * A {@link SocketAddress} subclass to wrap the serial port address of a jSerialComm
  * device (e.g. COM1, /dev/ttyUSB0).
  */
-public class JSerialCommDeviceAddress extends SocketAddress {
+public class JSCDeviceAddress extends SocketAddress {
 
     private static final long serialVersionUID = -2907820090993709523L;
 
@@ -32,7 +32,7 @@ public class JSerialCommDeviceAddress extends SocketAddress {
      *
      * @param value the address of the device (e.g. COM1, /dev/ttyUSB0, ...)
      */
-    public JSerialCommDeviceAddress(String value) {
+    public JSCDeviceAddress(String value) {
         this.value = value;
     }
 

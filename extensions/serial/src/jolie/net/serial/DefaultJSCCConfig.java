@@ -23,12 +23,12 @@ import io.netty.channel.RecvByteBufAllocator;
 
 import java.util.Map;
 
-import static jolie.net.serial.JSerialCommChannelOption.*;
+import static jolie.net.serial.JSCCOption.*;
 
 /**
  * Default configuration class for jSerialComm device connections.
  */
-final class DefaultJSerialCommChannelConfig extends DefaultChannelConfig implements JSerialCommChannelConfig {
+final class DefaultJSCCConfig extends DefaultChannelConfig implements JSCCConfig {
 
     private volatile int baudrate = 9600;
     private volatile Stopbits stopbits = Stopbits.STOPBITS_1;
@@ -37,7 +37,7 @@ final class DefaultJSerialCommChannelConfig extends DefaultChannelConfig impleme
     private volatile int waitTime;
     private volatile int readTimeout = 1000;
 
-    DefaultJSerialCommChannelConfig(JSerialCommChannel channel) {
+    DefaultJSCCConfig(JSCC channel) {
         super(channel);
     }
 
@@ -93,25 +93,25 @@ final class DefaultJSerialCommChannelConfig extends DefaultChannelConfig impleme
     }
 
     @Override
-    public JSerialCommChannelConfig setBaudrate(final int baudrate) {
+    public JSCCConfig setBaudrate(final int baudrate) {
         this.baudrate = baudrate;
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setStopbits(final Stopbits stopbits) {
+    public JSCCConfig setStopbits(final Stopbits stopbits) {
         this.stopbits = stopbits;
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setDatabits(final int databits) {
+    public JSCCConfig setDatabits(final int databits) {
         this.databits = databits;
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setParitybit(final Paritybit paritybit) {
+    public JSCCConfig setParitybit(final Paritybit paritybit) {
         this.paritybit = paritybit;
         return  this;
     }
@@ -143,7 +143,7 @@ final class DefaultJSerialCommChannelConfig extends DefaultChannelConfig impleme
     }
 
     @Override
-    public JSerialCommChannelConfig setWaitTimeMillis(final int waitTimeMillis) {
+    public JSCCConfig setWaitTimeMillis(final int waitTimeMillis) {
         if (waitTimeMillis < 0) {
             throw new IllegalArgumentException("Wait time must be >= 0");
         }
@@ -152,7 +152,7 @@ final class DefaultJSerialCommChannelConfig extends DefaultChannelConfig impleme
     }
 
     @Override
-    public JSerialCommChannelConfig setReadTimeout(int readTimeout) {
+    public JSCCConfig setReadTimeout(int readTimeout) {
         if (readTimeout < 0) {
             throw new IllegalArgumentException("readTime must be >= 0");
         }
@@ -166,55 +166,55 @@ final class DefaultJSerialCommChannelConfig extends DefaultChannelConfig impleme
     }
 
     @Override
-    public JSerialCommChannelConfig setConnectTimeoutMillis(int connectTimeoutMillis) {
+    public JSCCConfig setConnectTimeoutMillis(int connectTimeoutMillis) {
         super.setConnectTimeoutMillis(connectTimeoutMillis);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setWriteSpinCount(int writeSpinCount) {
+    public JSCCConfig setWriteSpinCount(int writeSpinCount) {
         super.setWriteSpinCount(writeSpinCount);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setAllocator(ByteBufAllocator allocator) {
+    public JSCCConfig setAllocator(ByteBufAllocator allocator) {
         super.setAllocator(allocator);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setRecvByteBufAllocator(RecvByteBufAllocator allocator) {
+    public JSCCConfig setRecvByteBufAllocator(RecvByteBufAllocator allocator) {
         super.setRecvByteBufAllocator(allocator);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setAutoRead(boolean autoRead) {
+    public JSCCConfig setAutoRead(boolean autoRead) {
         super.setAutoRead(autoRead);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setAutoClose(boolean autoClose) {
+    public JSCCConfig setAutoClose(boolean autoClose) {
         super.setAutoClose(autoClose);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setWriteBufferHighWaterMark(int writeBufferHighWaterMark) {
+    public JSCCConfig setWriteBufferHighWaterMark(int writeBufferHighWaterMark) {
         super.setWriteBufferHighWaterMark(writeBufferHighWaterMark);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
+    public JSCCConfig setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
         super.setWriteBufferLowWaterMark(writeBufferLowWaterMark);
         return this;
     }
 
     @Override
-    public JSerialCommChannelConfig setMessageSizeEstimator(MessageSizeEstimator estimator) {
+    public JSCCConfig setMessageSizeEstimator(MessageSizeEstimator estimator) {
         super.setMessageSizeEstimator(estimator);
         return this;
     }

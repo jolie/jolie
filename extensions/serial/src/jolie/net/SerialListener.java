@@ -21,6 +21,7 @@
  */
 package jolie.net;
 
+import io.netty.channel.Channel;
 import jolie.Interpreter;
 
 import jolie.net.ext.CommProtocolFactory;
@@ -28,31 +29,52 @@ import jolie.net.ports.InputPort;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import java.io.IOException;
+import java.net.URI;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.net.protocols.CommProtocol;
 
 public class SerialListener extends CommListener {
 
 	private final EventLoopGroup workerGroup;
-	private final String port;
-	private ChannelFuture f;
+	private final URI location;
+	private Channel serverChannel;
+	private InputPort inputPort;
+	private SerialCommChannel commChannel;
 
-	public SerialListener(
-		Interpreter interpreter,
-		CommProtocolFactory protocolFactory,
-		InputPort inputPort,
-		EventLoopGroup workerGroup
-	) {
+	public SerialListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort, EventLoopGroup workerGroup ) {
+
 		super( interpreter, protocolFactory, inputPort );
 		this.workerGroup = workerGroup;
-		this.port = "/dev/tty.SLAB_USBtoUART";
+		this.location = inputPort.location();
+		this.inputPort = inputPort;
 	}
 
 	@Override
 	public void run() {
 
+		try {
+
+			CommProtocol protocol = createProtocol();
+			assert ( protocol instanceof AsyncCommProtocol );
+			
+			commChannel = SerialCommChannel.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, inputPort );
+			ChannelFuture f = commChannel.connect( location ).sync();
+			
+			if (f.isSuccess()) {
+				serverChannel = f.channel();
+				serverChannel.closeFuture().sync();
+			}
+
+		} catch ( InterruptedException | IOException ioe ) {
+			interpreter().logWarning( ioe );
+		} finally {
+			workerGroup.shutdownGracefully();
+		}
 	}
 
 	@Override
 	public void shutdown() {
-
+		serverChannel.close();
 	}
 }

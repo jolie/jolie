@@ -91,7 +91,8 @@ public class DatagramListener extends CommListener {
 	public void run() {
 
 		Bootstrap b = new Bootstrap();
-		b.group( workerGroup ).channel( NioDatagramChannel.class );
+		b.group( workerGroup );
+		b.channel( NioDatagramChannel.class );
 		b.localAddress( localAddress );
 		b.handler( new SimpleChannelInboundHandler<DatagramPacket>() {
 
