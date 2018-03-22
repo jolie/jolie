@@ -24,29 +24,29 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
-import static jolie.net.serial.JSerialCommChannelOption.*;
+import static jolie.net.serial.JSCCOption.*;
 
 /**
  * A channel to a serial device using the jSerialComm library.
  */
-public class JSerialCommChannel extends OioByteStreamChannel {
+public class JSCC extends OioByteStreamChannel {
 
-	private static final JSerialCommDeviceAddress LOCAL_ADDRESS = new JSerialCommDeviceAddress( "localhost" );
+	private static final JSCDeviceAddress LOCAL_ADDRESS = new JSCDeviceAddress( "localhost" );
 
-	private final JSerialCommChannelConfig config;
+	private final JSCCConfig config;
 
 	private boolean open = true;
-	private JSerialCommDeviceAddress deviceAddress;
+	private JSCDeviceAddress deviceAddress;
 	private SerialPort serialPort;
 
-	public JSerialCommChannel() {
+	public JSCC() {
 		super( null );
 
-		config = new DefaultJSerialCommChannelConfig( this );
+		config = new DefaultJSCCConfig( this );
 	}
 
 	@Override
-	public JSerialCommChannelConfig config() {
+	public JSCCConfig config() {
 		return config;
 	}
 
@@ -62,7 +62,7 @@ public class JSerialCommChannel extends OioByteStreamChannel {
 
 	@Override
 	protected void doConnect( SocketAddress remoteAddress, SocketAddress localAddress ) throws Exception {
-		JSerialCommDeviceAddress remote = ( JSerialCommDeviceAddress ) remoteAddress;
+		JSCDeviceAddress remote = ( JSCDeviceAddress ) remoteAddress;
 		SerialPort commPort = SerialPort.getCommPort( remote.value() );
 		if ( !commPort.openPort() ) {
 			throw new IOException( "Could not open port: " + remote.value() );
@@ -87,22 +87,22 @@ public class JSerialCommChannel extends OioByteStreamChannel {
 	}
 
 	@Override
-	public JSerialCommDeviceAddress localAddress() {
-		return ( JSerialCommDeviceAddress ) super.localAddress();
+	public JSCDeviceAddress localAddress() {
+		return ( JSCDeviceAddress ) super.localAddress();
 	}
 
 	@Override
-	public JSerialCommDeviceAddress remoteAddress() {
-		return ( JSerialCommDeviceAddress ) super.remoteAddress();
+	public JSCDeviceAddress remoteAddress() {
+		return ( JSCDeviceAddress ) super.remoteAddress();
 	}
 
 	@Override
-	protected JSerialCommDeviceAddress localAddress0() {
+	protected JSCDeviceAddress localAddress0() {
 		return LOCAL_ADDRESS;
 	}
 
 	@Override
-	protected JSerialCommDeviceAddress remoteAddress0() {
+	protected JSCDeviceAddress remoteAddress0() {
 		return deviceAddress;
 	}
 

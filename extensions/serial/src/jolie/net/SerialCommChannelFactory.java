@@ -23,7 +23,7 @@ package jolie.net;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.oio.OioEventLoopGroup;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,73 +33,67 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.AndJarDeps;
 
+@AndJarDeps({"jSerialComm.jar"})
 public class SerialCommChannelFactory extends CommChannelFactory {
 
-  EventLoopGroup workerGroup;
+	protected final EventLoopGroup workerGroup;
 
-  public SerialCommChannelFactory(CommCore commCore) {
-    super(commCore);
-    this.workerGroup = new NioEventLoopGroup(4,
-        commCore.getNewExecutionContextThreadFactory());
-  }
+	public SerialCommChannelFactory( CommCore commCore ) {
 
-  @Override
-  public CommChannel createChannel(URI location, OutputPort port)
-      throws IOException {
-    CommProtocol protocol;
-    try {
-      protocol = port.getProtocol();
-    } catch (URISyntaxException e) {
-      throw new IOException(e);
-    }
+		super( commCore );
+		this.workerGroup = new OioEventLoopGroup( 4, commCore.getNewExecutionContextThreadFactory() );
+	}
 
-    if (!(protocol instanceof AsyncCommProtocol)) {
-      throw new UnsupportedCommProtocolException("Use an async protocol");
-    }
+	@Override
+	public CommChannel createChannel( URI location, OutputPort outputPort ) throws IOException {
 
-    SerialCommChannel channel
-        = SerialCommChannel.createChannel(
-            location,
-            (AsyncCommProtocol) protocol,
-            workerGroup,
-            port
-        );
+		CommProtocol protocol;
+		try {
+			protocol = outputPort.getProtocol();
+		} catch ( URISyntaxException e ) {
+			throw new IOException( e );
+		}
 
-    try {
-      ChannelFuture f = channel.connect(location);
-      f.sync();
-      if (!f.isSuccess()) {
-        throw (IOException) f.cause();
-      }
-    } catch (InterruptedException e) {
-      throw new IOException(e);
-    }
+		if ( !( protocol instanceof AsyncCommProtocol ) ) {
+			throw new UnsupportedCommProtocolException( "Use an async protocol" );
+		}
 
-    return channel;
-  }
+		SerialCommChannel channel = SerialCommChannel.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, outputPort );
 
-  @Override
-  public CommChannel createInputChannel(URI location, InputPort port,
-      CommProtocol protocol) throws IOException {
+		try {
+			ChannelFuture f = channel.connect( location );
+			f.sync();
+			if ( !f.isSuccess() ) {
+				throw ( IOException ) f.cause();
+			}
+		} catch ( InterruptedException e ) {
+			throw new IOException( e );
+		}
 
-    if (!(protocol instanceof AsyncCommProtocol)) {
-      throw new UnsupportedCommProtocolException("Use an async protocol");
-    }
+		return channel;
+	}
 
-    SerialCommChannel channel = SerialCommChannel
-        .createChannel(location, (AsyncCommProtocol) protocol, workerGroup,
-            port);
-    try {
-      ChannelFuture f = channel.connect(location);
-      f.sync();
-      if (!f.isSuccess()) {
-        throw (IOException) f.cause();
-      }
-    } catch (InterruptedException e) {
-      throw new IOException(e);
-    }
-    return channel;
-  }
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort inputPort, CommProtocol protocol ) throws IOException {
+
+		if ( !( protocol instanceof AsyncCommProtocol ) ) {
+			throw new UnsupportedCommProtocolException( "Use an async protocol" );
+		}
+
+		SerialCommChannel channel = SerialCommChannel.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, inputPort );
+
+		try {
+			ChannelFuture f = channel.connect( location );
+			f.sync();
+			if ( !f.isSuccess() ) {
+				throw ( IOException ) f.cause();
+			}
+		} catch ( InterruptedException e ) {
+			throw new IOException( e );
+		}
+		return channel;
+	}
 
 }

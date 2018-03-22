@@ -45,7 +45,7 @@ import io.netty.channel.RecvByteBufAllocator;
  * </tr>
  * </table>
  */
-public interface JSerialCommChannelConfig extends ChannelConfig {
+public interface JSCCConfig extends ChannelConfig {
 
 	enum Stopbits {
 		/**
@@ -132,7 +132,7 @@ public interface JSerialCommChannelConfig extends ChannelConfig {
 	 *
 	 * @param baudrate The baud rate (in bits per second)
 	 */
-	JSerialCommChannelConfig setBaudrate( int baudrate );
+	JSCCConfig setBaudrate( int baudrate );
 
 	/**
 	 * Sets the number of stop bits to include at the end of every character to aid the
@@ -140,7 +140,7 @@ public interface JSerialCommChannelConfig extends ChannelConfig {
 	 *
 	 * @param stopbits The number of stop bits to use
 	 */
-	JSerialCommChannelConfig setStopbits( Stopbits stopbits );
+	JSCCConfig setStopbits( Stopbits stopbits );
 
 	/**
 	 * Sets the number of data bits to use to make up each character sent to the serial
@@ -148,14 +148,14 @@ public interface JSerialCommChannelConfig extends ChannelConfig {
 	 *
 	 * @param databits The number of data bits to use
 	 */
-	JSerialCommChannelConfig setDatabits( int databits );
+	JSCCConfig setDatabits( int databits );
 
 	/**
 	 * Sets the type of parity bit to be used when communicating with the serial device.
 	 *
 	 * @param paritybit The type of parity bit to be used
 	 */
-	JSerialCommChannelConfig setParitybit( Paritybit paritybit );
+	JSCCConfig setParitybit( Paritybit paritybit );
 
 	/**
 	 * @return The configured baud rate, defaulting to 115200 if unset
@@ -192,12 +192,12 @@ public interface JSerialCommChannelConfig extends ChannelConfig {
 	 *     wait) if unset
 	 * @throws IllegalArgumentException if the supplied value is &lt; 0
 	 */
-	JSerialCommChannelConfig setWaitTimeMillis( int waitTimeMillis );
+	JSCCConfig setWaitTimeMillis( int waitTimeMillis );
 
 	/**
 	 * Sets the maximal time (in ms) to block while try to read from the serial port. Default is 1000ms
 	 */
-	JSerialCommChannelConfig setReadTimeout( int readTimeout );
+	JSCCConfig setReadTimeout( int readTimeout );
 
 	/**
 	 * Return the maximal time (in ms) to block and wait for something to be ready to read.
@@ -205,26 +205,26 @@ public interface JSerialCommChannelConfig extends ChannelConfig {
 	int getReadTimeout();
 
 	@Override
-	JSerialCommChannelConfig setConnectTimeoutMillis( int connectTimeoutMillis );
+	JSCCConfig setConnectTimeoutMillis( int connectTimeoutMillis );
 
 	@Override
-	JSerialCommChannelConfig setWriteSpinCount( int writeSpinCount );
+	JSCCConfig setWriteSpinCount( int writeSpinCount );
 
 	@Override
-	JSerialCommChannelConfig setAllocator( ByteBufAllocator allocator );
+	JSCCConfig setAllocator( ByteBufAllocator allocator );
 
 	@Override
-	JSerialCommChannelConfig setRecvByteBufAllocator( RecvByteBufAllocator allocator );
+	JSCCConfig setRecvByteBufAllocator( RecvByteBufAllocator allocator );
 
 	@Override
-	JSerialCommChannelConfig setAutoRead( boolean autoRead );
+	JSCCConfig setAutoRead( boolean autoRead );
 
 	@Override
-	JSerialCommChannelConfig setWriteBufferHighWaterMark( int writeBufferHighWaterMark );
+	JSCCConfig setWriteBufferHighWaterMark( int writeBufferHighWaterMark );
 
 	@Override
-	JSerialCommChannelConfig setWriteBufferLowWaterMark( int writeBufferLowWaterMark );
+	JSCCConfig setWriteBufferLowWaterMark( int writeBufferLowWaterMark );
 
 	@Override
-	JSerialCommChannelConfig setMessageSizeEstimator( MessageSizeEstimator estimator );
+	JSCCConfig setMessageSizeEstimator( MessageSizeEstimator estimator );
 }

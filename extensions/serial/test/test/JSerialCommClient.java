@@ -17,12 +17,13 @@ package test;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
-import jolie.net.serial.JSerialCommDeviceAddress;
-import jolie.net.serial.JSerialCommChannel;
+import io.netty.channel.SimpleChannelInboundHandler;
+import jolie.net.serial.JSCDeviceAddress;
+import jolie.net.serial.JSCC;
 import io.netty.channel.oio.OioEventLoopGroup;
-import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
@@ -33,20 +34,20 @@ import io.netty.handler.logging.LoggingHandler;
  */
 public final class JSerialCommClient {
 
-	static final String PORT = System.getProperty( "port", "/dev/tty.SLAB_USBtoUART" );
+	static final String location = System.getProperty( "port", "/dev/tty.SLAB_USBtoUART" );
 
 	public static void main( String[] args ) throws Exception {
-		EventLoopGroup group = new OioEventLoopGroup();
+
+		EventLoopGroup workerGroup = new OioEventLoopGroup();
 		try {
 			Bootstrap b = new Bootstrap();
-			b.group( group )
-				.channel( JSerialCommChannel.class )
-				.handler( new ChannelInitializer<JSerialCommChannel>() {
+			b.group( workerGroup )
+				.channel( JSCC.class )
+				.handler( new ChannelInitializer<JSCC>() {
 					@Override
-					public void initChannel( JSerialCommChannel ch ) throws Exception {
+					public void initChannel( JSCC ch ) throws Exception {
 						ch.pipeline().addLast(
 							new LoggingHandler( LogLevel.INFO ),
-//							new LineBasedFrameDecoder( 32768 ),
 							new StringEncoder(),
 							new StringDecoder(),
 							new JSerialCommClientHandler()
@@ -54,11 +55,31 @@ public final class JSerialCommClient {
 					}
 				} );
 
-			ChannelFuture f = b.connect( new JSerialCommDeviceAddress( PORT ) ).sync();
-
+			ChannelFuture f = b.connect(new JSCDeviceAddress( location ) ).sync();
 			f.channel().closeFuture().sync();
 		} finally {
-			group.shutdownGracefully();
+			workerGroup.shutdownGracefully();
+		}
+	}
+}
+
+class JSerialCommClientHandler extends SimpleChannelInboundHandler<String> {
+
+	@Override
+	public void channelActive( ChannelHandlerContext ctx ) {
+		ctx.writeAndFlush( "J" );
+	}
+
+	@Override
+	public void channelRead0( ChannelHandlerContext ctx, String msg ) throws Exception {
+		if ( "K".equals( msg ) ) {
+			System.out.println( "Serial port responded to J" );
+			ctx.close();
+		}
+		if ( "J".equals( msg ) ) {
+			System.out.println( "Serial port send J" );
+			ctx.writeAndFlush( "K" );
+			ctx.close();
 		}
 	}
 }

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ext;
 
 import java.io.IOException;
@@ -33,17 +32,15 @@ import jolie.net.protocols.CommProtocol;
  * A factory for delegating the creation of output communication channels to extensions.
  * @author Fabrizio Montesi
  */
-public abstract class CommChannelFactory
-{
+public abstract class CommChannelFactory {
+
 	final private CommCore commCore;
 
-	protected CommChannelFactory( CommCore commCore )
-	{
+	protected CommChannelFactory( CommCore commCore ) {
 		this.commCore = commCore;
 	}
 
-	final protected CommCore commCore()
-	{
+	final protected CommCore commCore() {
 		return commCore;
 	}
 
@@ -56,7 +53,7 @@ public abstract class CommChannelFactory
 	 */
 	abstract public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException;
-	
+
 	abstract public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol )
 		throws IOException;
 }

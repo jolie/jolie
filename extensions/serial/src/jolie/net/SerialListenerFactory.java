@@ -29,7 +29,9 @@ import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
+import jolie.runtime.AndJarDeps;
 
+@AndJarDeps({"jSerialComm.jar"})
 public class SerialListenerFactory extends CommListenerFactory {
 
 	protected final EventLoopGroup workerGroup;
@@ -37,14 +39,11 @@ public class SerialListenerFactory extends CommListenerFactory {
 	public SerialListenerFactory( CommCore commCore ) {
 
 		super( commCore );
-		this.workerGroup = new OioEventLoopGroup( 4,
-			commCore.getNewExecutionContextThreadFactory() );
+		this.workerGroup = new OioEventLoopGroup( 4, commCore.getNewExecutionContextThreadFactory() );
 	}
 
 	@Override
-	public CommListener createListener( Interpreter interpreter,
-		CommProtocolFactory protocolFactory, InputPort inputPort )
-		throws IOException {
+	public CommListener createListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort ) throws IOException {
 
 		return new SerialListener( interpreter, protocolFactory, inputPort, workerGroup );
 	}

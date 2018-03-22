@@ -54,7 +54,7 @@ public final class JolieClassLoader extends URLClassLoader {
     private void init(URL[] urls)
             throws IOException {
         for (URL url : urls) {
-            if ("jar".equals(url.getProtocol())) {
+					  if ("jar".equals(url.getProtocol())) {
                 try {
                     checkJarForJolieExtensions((JarURLConnection) url.openConnection());
                 } catch (IOException e) {
@@ -249,22 +249,14 @@ public final class JolieClassLoader extends URLClassLoader {
             throws IOException {
         CommListenerFactory factory = null;
         String className = listenerExtensionClassNames.get(name);
-        if (className != null) {
+				if (className != null) {
             try {
                 Class<?> c = loadExtensionClass(className);
                 if (CommListenerFactory.class.isAssignableFrom(c)) {
                     Class< ? extends CommListenerFactory> fClass = (Class< ? extends CommListenerFactory>) c;
                     factory = fClass.getConstructor(CommCore.class).newInstance(commCore);
                 }
-            } catch (ClassNotFoundException e) {
-                throw new IOException(e);
-            } catch (InstantiationException e) {
-                throw new IOException(e);
-            } catch (IllegalAccessException e) {
-                throw new IOException(e);
-            } catch (NoSuchMethodException e) {
-                throw new IOException(e);
-            } catch (InvocationTargetException e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 throw new IOException(e);
             }
         }
@@ -275,7 +267,7 @@ public final class JolieClassLoader extends URLClassLoader {
     private void checkForListenerExtension(Attributes attrs)
             throws IOException {
         String extension = attrs.getValue(Constants.Manifest.LISTENER_EXTENSION);
-        if (extension != null) {
+				if (extension != null) {
             String[] pair = extensionSplitPattern.split(extension);
             if (pair.length == 2) {
                 listenerExtensionClassNames.put(pair[0], pair[1]);
@@ -306,15 +298,7 @@ public final class JolieClassLoader extends URLClassLoader {
                     Class< ? extends CommProtocolFactory> fClass = (Class< ? extends CommProtocolFactory>) c;
                     factory = fClass.getConstructor(CommCore.class).newInstance(commCore);
                 }
-            } catch (ClassNotFoundException e) {
-                throw new IOException(e);
-            } catch (InstantiationException e) {
-                throw new IOException(e);
-            } catch (IllegalAccessException e) {
-                throw new IOException(e);
-            } catch (NoSuchMethodException e) {
-                throw new IOException(e);
-            } catch (InvocationTargetException e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 throw new IOException(e);
             }
         }
