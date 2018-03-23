@@ -31,7 +31,7 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"jSerialComm.jar"})
+@AndJarDeps( { "jSerialComm.jar" } )
 public class SerialListenerFactory extends CommListenerFactory {
 
 	protected final EventLoopGroup workerGroup;

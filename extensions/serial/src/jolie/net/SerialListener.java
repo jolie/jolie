@@ -21,33 +21,42 @@
  */
 package jolie.net;
 
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import jolie.Interpreter;
 
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
+import jolie.net.serial.JSCC;
 
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
-import java.io.IOException;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
 import java.net.URI;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
+import jolie.net.serial.JSCDeviceAddress;
 
 public class SerialListener extends CommListener {
 
 	private final EventLoopGroup workerGroup;
-	private final URI location;
 	private Channel serverChannel;
-	private InputPort inputPort;
-	private SerialCommChannel commChannel;
+	private URI location;
 
 	public SerialListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort, EventLoopGroup workerGroup ) {
 
 		super( interpreter, protocolFactory, inputPort );
 		this.workerGroup = workerGroup;
 		this.location = inputPort.location();
-		this.inputPort = inputPort;
 	}
 
 	@Override
@@ -55,19 +64,30 @@ public class SerialListener extends CommListener {
 
 		try {
 
-			CommProtocol protocol = createProtocol();
-			assert ( protocol instanceof AsyncCommProtocol );
-			
-			commChannel = SerialCommChannel.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, inputPort );
-			ChannelFuture f = commChannel.connect( location ).sync();
-			
-			if (f.isSuccess()) {
-				serverChannel = f.channel();
-				serverChannel.closeFuture().sync();
-			}
+			Bootstrap bootstrap = new Bootstrap()
+				.group( workerGroup )
+				.channel( JSCC.class )
+				.handler( new ChannelInitializer<JSCC>() {
+					@Override
+					public void initChannel( JSCC ch ) throws Exception {
+						ch.pipeline().addLast(
+							new LoggingHandler( LogLevel.INFO ),
+							new StringEncoder(),
+							new StringDecoder(),
+							new JSerialCommClientHandler()
+						);
+//						AsyncCommProtocol protocol = ( AsyncCommProtocol ) createProtocol();
+//						protocol.setupPipeline( ch.pipeline() );
+					}
+				} );
 
-		} catch ( InterruptedException | IOException ioe ) {
-			interpreter().logWarning( ioe );
+			String port = System.getProperty( "port", location.toString().substring( 7 ) );
+			ChannelFuture f = bootstrap.connect( new JSCDeviceAddress( port ) ).sync();
+			serverChannel = f.channel();
+			serverChannel.closeFuture().sync();
+
+		} catch ( InterruptedException ex ) {
+			Logger.getLogger( SerialListener.class.getName() ).log( Level.SEVERE, null, ex );
 		} finally {
 			workerGroup.shutdownGracefully();
 		}
@@ -78,3 +98,4 @@ public class SerialListener extends CommListener {
 		serverChannel.close();
 	}
 }
+
