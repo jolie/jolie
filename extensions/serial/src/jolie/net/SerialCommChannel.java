@@ -26,22 +26,31 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import java.io.IOException;
-import java.net.URI;
-import jolie.ExecutionThread;
-import jolie.net.ports.InputPort;
-import jolie.net.ports.OutputPort;
+
 import jolie.net.ports.Port;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.serial.JSCC;
 import jolie.net.serial.JSCDeviceAddress;
+import jolie.ExecutionThread;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SerialCommChannel extends StreamingCommChannel {
 
+	public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
+
+	private Bootstrap bootstrap;
+	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
-	private Bootstrap b;
 	private ChannelPipeline channelPipeline;
 
 	public SerialCommChannel( URI location, AsyncCommProtocol protocol ) {
@@ -56,7 +65,30 @@ public class SerialCommChannel extends StreamingCommChannel {
 
 	@Override
 	protected CommMessage recvImpl() throws IOException {
-		throw new UnsupportedOperationException( "Not supported yet." );
+		// This is blocking to integrate with existing CommCore and ExecutionThreads.
+		try {
+			if ( waitingForMsg != null ) {
+				throw new UnsupportedOperationException( "Waiting for multiple messages is currently not supported!" );
+			}
+			waitingForMsg = new CompletableFuture<>();
+			CommMessage msg = waitingForMsg.get();
+			waitingForMsg = null;
+			return msg;
+		} catch ( InterruptedException | ExecutionException ex ) {
+			Logger.getLogger( NioSocketCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
+		}
+		return null;
+	}
+
+	protected void completeRead( CommMessage message ) {
+		while ( waitingForMsg == null ) {
+			// spinlock
+		}
+		if ( waitingForMsg == null ) {
+			throw new IllegalStateException( "No pending read to complete!" );
+		} else {
+			waitingForMsg.complete( message );
+		}
 	}
 
 	@Override
@@ -79,45 +111,44 @@ public class SerialCommChannel extends StreamingCommChannel {
 
 	static SerialCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
 
-		SerialCommChannel c = new SerialCommChannel( location, protocol );
+		SerialCommChannel channel = new SerialCommChannel( location, protocol );
 
-		c.b = new Bootstrap();
-		c.b.group( workerGroup );
-		c.b.channel( JSCC.class );
-		c.b.handler( new ChannelInitializer<JSCC>() {
+		channel.bootstrap = new Bootstrap()
+			.group( workerGroup )
+			.channel( JSCC.class )
+			.handler( new ChannelInitializer<JSCC>() {
 
-			@Override
-			public void initChannel( JSCC ch ) throws Exception {
-
-				ChannelPipeline p = ch.pipeline();
-				if ( port instanceof InputPort ) {
-					c.setParentInputPort( ( InputPort ) port );
+				@Override
+				public void initChannel( JSCC ch ) throws Exception {
+					ch.pipeline().addLast(
+						new LoggingHandler( LogLevel.INFO ),
+						new StringEncoder(),
+						new StringDecoder(),
+						new JSerialCommClientHandler()
+					);
+//					protocol.setupPipeline( ch.pipeline() );
+					ch.pipeline().addLast( channel.commChannelHandler );
 				}
-				if ( port instanceof OutputPort ) {
-					c.setParentOutputPort( ( OutputPort ) port );
-				}
-				protocol.setChannel( c );
-				c.setChannelPipeline( p );
-				p.addLast( new LoggingHandler( LogLevel.INFO ) );
-				protocol.setupPipeline( p );
-				p.addLast( "STREAMING-CHANNEL-HANDLER", c.commChannelHandler );
-			}
 
-		} );
+			} );
 
-		return c;
+		return channel;
 	}
 
-	ChannelFuture connect( URI location ) {
+	public ChannelFuture connect( URI location ) {
 		String port = System.getProperty( "port", location.toString().substring( 7 ) );
-		return b.connect( new JSCDeviceAddress( port ) );
+		return bootstrap.connect( new JSCDeviceAddress( port ) );
+	}
+
+	public ChannelFuture initChannel() {
+		return bootstrap.register();
+	}
+
+	public ChannelPipeline getChannelPipeline() {
+		return this.channelPipeline;
 	}
 
 	private void setChannelPipeline( ChannelPipeline p ) {
 		this.channelPipeline = p;
-	}
-
-	public ChannelPipeline getChannelPipeline() {
-		return channelPipeline;
 	}
 }
