@@ -26,16 +26,14 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 import jolie.net.ports.Port;
 import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.serial.JSCC;
-import jolie.net.serial.JSCDeviceAddress;
 import jolie.ExecutionThread;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
+import jolie.net.serial.JsscChannel;
+import jolie.net.serial.JsscDeviceAddress;
 
 import java.io.IOException;
 import java.net.URI;
@@ -115,21 +113,23 @@ public class SerialCommChannel extends StreamingCommChannel {
 
 		channel.bootstrap = new Bootstrap()
 			.group( workerGroup )
-			.channel( JSCC.class )
-			.handler( new ChannelInitializer<JSCC>() {
-
+			.channel( JsscChannel.class )
+			.handler( new ChannelInitializer<JsscChannel>() {
 				@Override
-				public void initChannel( JSCC ch ) throws Exception {
-					ch.pipeline().addLast(
-						new LoggingHandler( LogLevel.INFO ),
-						new StringEncoder(),
-						new StringDecoder(),
-						new JSerialCommClientHandler()
-					);
-//					protocol.setupPipeline( ch.pipeline() );
-					ch.pipeline().addLast( channel.commChannelHandler );
-				}
+				public void initChannel( JsscChannel ch ) throws Exception {
 
+					ChannelPipeline pipeline = ch.pipeline();
+					if ( port instanceof InputPort ) {
+						channel.setParentInputPort( ( InputPort ) port );
+					}
+					if ( port instanceof OutputPort ) {
+						channel.setParentOutputPort( ( OutputPort ) port );
+					}
+					protocol.setChannel( channel );
+					channel.setChannelPipeline( pipeline );
+					protocol.setupPipeline( ch.pipeline() );
+					pipeline.addLast( "commMessageDecoder", channel.commChannelHandler );
+				}
 			} );
 
 		return channel;
@@ -137,7 +137,7 @@ public class SerialCommChannel extends StreamingCommChannel {
 
 	public ChannelFuture connect( URI location ) {
 		String port = System.getProperty( "port", location.toString().substring( 7 ) );
-		return bootstrap.connect( new JSCDeviceAddress( port ) );
+		return bootstrap.connect( new JsscDeviceAddress( port ) );
 	}
 
 	public ChannelFuture initChannel() {
