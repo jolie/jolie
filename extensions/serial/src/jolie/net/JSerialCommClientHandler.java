@@ -25,26 +25,55 @@ package jolie.net;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.List;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 
 public class JSerialCommClientHandler extends MessageToMessageCodec<String, CommMessage> {
 
+	private final boolean isInput;
+
+	public JSerialCommClientHandler( boolean isInput ) {
+		this.isInput = isInput;
+	}
+
 	@Override
 	protected void encode( ChannelHandlerContext chc, CommMessage otbndn, List<Object> list ) throws Exception {
-		String out = otbndn.value().strValue();
-		list.add( out );
+		if ( isInput ) {
+			String out = otbndn.value().strValue();
+			System.out.println( "value: " + out );
+			list.add( out );
+		} else {
+		}
 	}
 
 	@Override
 	protected void decode( ChannelHandlerContext chc, String inbndn, List<Object> list ) throws Exception {
-		long id = CommMessage.getNewMessageId();
-		String operationName = "sendAndReceive";
-		String resourcePath = "/";
-		Value value = Value.create( inbndn );
-		FaultException fault = null;
-		CommMessage out = new CommMessage( id, operationName, resourcePath, value, fault );
-		list.add( out );
+		if ( isInput ) {
+			long id = CommMessage.getNewMessageId();
+			String operationName = "sendAndReceive";
+			String resourcePath = "/";
+			Value value = Value.create( inbndn );
+			System.out.println( valueToPrettyString( value ));
+			FaultException fault = null;
+			CommMessage out = new CommMessage( id, operationName, resourcePath, value, fault );
+			list.add( out );
+		} else {
+
+		}
+	}
+
+	public String valueToPrettyString( Value request ) {
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( request, writer, "Value" );
+		try {
+			printer.run();
+		} catch ( IOException e ) {
+		} // Should never happen
+		return writer.toString();
 	}
 }

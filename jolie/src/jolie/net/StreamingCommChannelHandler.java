@@ -267,6 +267,12 @@ public class StreamingCommChannelHandler
     }
   }
 
+	@Override
+	public void channelRead( ChannelHandlerContext ctx, Object msg ) throws Exception {
+		System.out.println( "I am reading from the streaming comm channel handler" );
+		super.channelRead( ctx, msg ); //To change body of generated methods, choose Tools | Templates.
+	}
+
   private void messageRecv(CommMessage message) {
     inChannel.lock.lock();
     channelHandlersLock.readLock().lock();

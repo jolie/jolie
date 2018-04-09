@@ -27,24 +27,17 @@ import jolie.Interpreter;
 
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
-import jolie.net.serial.JSCC;
 
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.ApplicationProtocolConfig;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
-import jolie.net.serial.JSCDeviceAddress;
+import jolie.net.serial.JsscChannel;
+import jolie.net.serial.JsscDeviceAddress;
 
 public class SerialListener extends CommListener {
 
@@ -66,23 +59,23 @@ public class SerialListener extends CommListener {
 
 			Bootstrap bootstrap = new Bootstrap()
 				.group( workerGroup )
-				.channel( JSCC.class )
-				.handler( new ChannelInitializer<JSCC>() {
+				.channel( JsscChannel.class )
+				.handler( new ChannelInitializer<JsscChannel>() {
 					@Override
-					public void initChannel( JSCC ch ) throws Exception {
-						ch.pipeline().addLast(
-							new LoggingHandler( LogLevel.INFO ),
-							new StringEncoder(),
-							new StringDecoder(),
-							new JSerialCommClientHandler()
-						);
-//						AsyncCommProtocol protocol = ( AsyncCommProtocol ) createProtocol();
-//						protocol.setupPipeline( ch.pipeline() );
+					public void initChannel( JsscChannel ch ) throws Exception {
+
+						ChannelPipeline pipeline = ch.pipeline();
+						AsyncCommProtocol protocol = ( AsyncCommProtocol ) createProtocol();
+						protocol.setupPipeline( ch.pipeline() );
+						SerialCommChannel commChannel = new SerialCommChannel( location, protocol );
+						protocol.setChannel( commChannel );
+						commChannel.setParentInputPort( inputPort() );
+						pipeline.addLast( "commMessageDecoder", commChannel.commChannelHandler );
 					}
 				} );
 
 			String port = System.getProperty( "port", location.toString().substring( 7 ) );
-			ChannelFuture f = bootstrap.connect( new JSCDeviceAddress( port ) ).sync();
+			ChannelFuture f = bootstrap.connect( new JsscDeviceAddress( port ) ).sync();
 			serverChannel = f.channel();
 			serverChannel.closeFuture().sync();
 
@@ -98,4 +91,3 @@ public class SerialListener extends CommListener {
 		serverChannel.close();
 	}
 }
-
