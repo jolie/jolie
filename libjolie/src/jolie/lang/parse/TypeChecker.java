@@ -72,6 +72,7 @@ import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.ReThrowStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -119,6 +120,7 @@ import jolie.util.Pair;
  */
 public class TypeChecker implements OLVisitor
 {
+
 	private class FlaggedVariablePathNode extends VariablePathNode
 	{
 		private final boolean isFresh;
@@ -420,6 +422,9 @@ public class TypeChecker implements OLVisitor
 	@Override
 	public void visit( RequestResponseOperationDeclaration decl )
 	{}
+	
+	@Override
+	public void visit( ReThrowStatement n ) {}
 
 	@Override
 	public void visit( DefinitionNode n )

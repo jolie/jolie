@@ -84,6 +84,7 @@ import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.ReThrowStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.Scope;
@@ -1817,6 +1818,32 @@ public class OLParser extends AbstractParser
 			}
 
 			eat( Scanner.TokenType.RPAREN, "expected )" );
+			break;
+		case RETHROW:
+			/* Two cases:
+			 *   1. rethrow(some_data)
+			 *   2. rethrow
+			 * Note that 2) simply escalates the current failure to
+			 * the parent scope, while 1) escalates but with some_data as
+			 * the new payload.
+			 */
+			
+			//check whether case 1)
+			getToken();
+			if ( token.is( Scanner.TokenType.LPAREN ) ) { //case 1
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				
+				//rethrow with payload
+				retVal = new ReThrowStatement ( getContext(), parseExpression() );
+				
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+			}
+			else { //case 2
+				//rethrow without any payload
+				retVal = new ReThrowStatement ( getContext() );
+				
+			}
+			
 			break;
 		case INSTALL:
 			getToken();

@@ -70,6 +70,7 @@ import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.ReThrowStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -204,6 +205,9 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		list.add( n );
 		encounteredNode( n );
 	}
+	
+	@Override
+	public void visit( ReThrowStatement n ) {}
 
 	@Override
 	public void visit( OutputPortInfo n )

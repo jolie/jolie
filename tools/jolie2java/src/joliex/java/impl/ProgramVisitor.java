@@ -65,6 +65,7 @@ import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.ReThrowStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -296,6 +297,10 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 	}
 
 	public void visit( ThrowStatement n )
+	{
+	}
+	
+	public void visit( ReThrowStatement n )
 	{
 	}
 

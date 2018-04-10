@@ -65,6 +65,7 @@ import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.ReThrowStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -935,6 +936,16 @@ public class OLParseTreeOptimizer
 
 		@Override
 		public void visit( DocumentationComment n ) {}
+
+		@Override
+		public void visit( ReThrowStatement n ) {
+			if ( n.expression() == null ) {
+				currNode = null;
+			} else {
+				n.expression().accept( this );
+			}
+			currNode = new ReThrowStatement( n.context(), currNode );
+		}
 	}
 
 	public static Program optimize( Program originalProgram )
