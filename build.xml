@@ -370,7 +370,7 @@ Please make sure that:
 		<copy file="${libs.commons-lang3}" tofile="${dist.jolie}/lib/commons-lang3.jar"/>
 		<copy file="${libs.uri-templates}" tofile="${dist.jolie}/lib/uri-templates.jar"/>
 		<copy file="${libs.netty}" tofile="${dist.jolie}/lib/netty.jar"/>
-		<copy file="${libs.jSerialComm}" tofile="${dist.jolie}/lib/jSerialComm.jar"/>
+		<copy file="${libs.serial}" tofile="${dist.jolie}/lib/jssc.jar"/>
 
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />
