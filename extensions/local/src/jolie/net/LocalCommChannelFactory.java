@@ -38,6 +38,8 @@ public class LocalCommChannelFactory extends CommChannelFactory
 		if ( localListener == null ) {
 			throw new IOException( "Channel does not exist." );
 		}
-		return new LocalCommChannel( localListener.interpreter(), localListener );
+		LocalCommChannel l = new LocalCommChannel( localListener.interpreter(), localListener );
+		l.setParentOutputPort( port );
+		return l;
 	}
 }

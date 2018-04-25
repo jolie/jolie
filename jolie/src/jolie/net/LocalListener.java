@@ -60,7 +60,7 @@ public class LocalListener extends CommListener
 	
 	public static LocalListener create( Interpreter interpreter )
 	{
-		return create(interpreter, null );
+		return create( interpreter, null );
 	}
 	
 	private LocalListener( Interpreter interpreter, VariablePath locationPath, InputPort inputPort )

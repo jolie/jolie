@@ -41,7 +41,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.AttributeKey;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
@@ -49,7 +48,6 @@ import jolie.net.ports.Port;
 public class NioSocketCommChannel extends StreamingCommChannel {
 
 	public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
-	public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf( "ExecutionContext" );
 
 	private Bootstrap bootstrap;
 	private static final int SO_LINGER = 10000;

@@ -34,15 +34,16 @@ import jolie.Interpreter;
  */
 public class LocalCommChannel extends CommChannel implements PollableCommChannel
 {
+	private final URI location;
 
 	@Override
 	public URI getLocation() {
-		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+		return this.location;
 	}
 
 	@Override
 	protected boolean isThreadSafe() {
-		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+		return true;
 	}
 	private static class CoLocalCommChannel extends CommChannel
 	{
@@ -71,11 +72,13 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
-			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
-			if ( f == null ) {
-				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
-			}
-			f.complete( message );
+			System.out.println( this.senderChannel.toString() + " Sending back the response to the caller " + message.value().strValue() );
+			Interpreter.getInstance().commCore().receiveResponse( message );
+//			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
+//			if ( f == null ) {
+//				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
+//			}
+//			f.complete( message );
 		}
 
 		@Override
@@ -113,6 +116,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	{
 		this.interpreter = interpreter;
 		this.listener = listener;
+		this.location = listener.inputPort().location();
 	}
 
 	@Override

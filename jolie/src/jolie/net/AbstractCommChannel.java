@@ -58,8 +58,6 @@ public abstract class AbstractCommChannel extends CommChannel {
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException {
 
-		System.out.println( Thread.currentThread() + " called " + this.getClass() + " " + Thread.currentThread().getStackTrace()[1].getMethodName() );
-		
 		CompletableFuture< CommMessage> futureResponse = null;
 		CommMessage response = null;
 

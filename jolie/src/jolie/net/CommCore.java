@@ -264,7 +264,7 @@ public class CommCore {
 	}
 
 	public CommMessage recvResponseFor( CommChannel c, CommMessage message ) throws IOException {
-		if ( c == null /* temporary check for local channels */ ) {
+		if ( c == null /* TODO: temporary check for local channels, fix this */ ) {
 			return messagePool.recvResponseFor( message );
 		} else {
 			return c.recvResponseFor( message );
@@ -276,8 +276,7 @@ public class CommCore {
 		private final Map<String, Map<String, Set<CommChannel>>> threadSafeChannelPool = new HashMap<>();
 		private final Map<String, Map<String, Set<CommChannel>>> nonThreadSafeChannelPool = new HashMap<>();
 
-		public ChannelPool() {
-		}
+		public ChannelPool(){}
 
 		private Map<String, Map<String, Set<CommChannel>>> getPool( boolean threadSafe ) {
 			if ( threadSafe ) {
@@ -288,11 +287,14 @@ public class CommCore {
 		}
 
 		public CommChannel getChannel( boolean threadSafe, URI loc, OutputPort out ) throws IOException, URISyntaxException {
-			Map<String, Map<String, Set<CommChannel>>> pool = getPool( threadSafe );
+			Map< String, Map< String, Set< CommChannel > > > pool = getPool( threadSafe );
 			synchronized ( pool ) {
 				CommChannel ret = null;
 				String location = loc.toString();
-				String protocol = out.getProtocol().name();
+				String protocol = "none";
+				try {
+					protocol = out.getProtocol().name();
+				} catch ( IOException e ) {}
 				if ( !pool.containsKey( location ) ) {
 					pool.put( location, new HashMap<>() );
 				}
@@ -306,23 +308,25 @@ public class CommCore {
 			if( ret == null || !ret.isOpen() ){
 					// We create a fresh channel
 					ret = interpreter.commCore().createCommChannel( loc, out );
-					Interpreter.getInstance().logInfo( "created a new channel " + ret.toString() );
-				} else {
-					Interpreter.getInstance().logInfo( "reusing the existing channel " + ret.toString() );
-				}
+					//Interpreter.getInstance().logInfo( "created a new channel " + ret.toString() );
+				} 
+				// else {
+				//	Interpreter.getInstance().logInfo( "reusing the existing channel " + ret.toString() );
+				// }
 				return ret;
 			}
+			
 		}
 
 		public void releaseChannel( boolean threadSafe, URI location, String protocol, CommChannel c ) {
-				Map<String, Map<String, Set<CommChannel>>> pool = getPool( threadSafe );
+			Map< String, Map< String, Set< CommChannel > > > pool = getPool( threadSafe );
 			synchronized( pool ){
 				pool.get( location.toString() ).get( protocol ).add( c );
 			}
 		}
 		
 	}
-		
+		 
 		// Remove sync here, needed only to test channel re-use
 		public void sendCommMessage( CommMessage message, URI location, OutputPort out, boolean threadSafe )
 			throws IOException, URISyntaxException {
@@ -335,7 +339,11 @@ public class CommCore {
 
 		public void releaseChannel( CommChannel c ) throws IOException, URISyntaxException {
 			if ( c.parentOutputPort() != null ) {
-				channelPool.releaseChannel( c.isThreadSafe(), c.getLocation(), c.parentOutputPort().getProtocol().name(), c );
+					String protocol = "none";
+					try {
+						protocol = c.parentOutputPort().getProtocol().name();
+					} catch ( IOException e ) {}
+					channelPool.releaseChannel( c.isThreadSafe(), c.getLocation(), protocol, c );
 			} else {
 				throw new IOException( "Cannot release a channel without an OutputPort" );
 			}
@@ -352,7 +360,6 @@ public class CommCore {
 			}
 
 			public void executionThread( ExecutionThread ethread ) {
-				System.out.println( "Setting execution thread to " + ethread );
 				executionThread = ethread;
 			}
 
@@ -428,7 +435,6 @@ public class CommCore {
 			if ( factory == null ) {
 				throw new UnsupportedCommMediumException( medium );
 			}
-
 			return factory.createChannel( uri, port );
 		}
 
