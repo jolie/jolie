@@ -45,8 +45,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.net.InetSocketAddress;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
-import sun.util.logging.resources.logging;
 
 public class NioSocketListener extends CommListener {
 
@@ -123,7 +121,7 @@ public class NioSocketListener extends CommListener {
 							@Override
 							public void flush( ChannelHandlerContext ctx ) throws Exception {
 								ctx.flush();
-//                  removeResponseChannel();
+//              removeResponseChannel();
 							}
 						} );
 						p.addLast( channel.commChannelHandler );
@@ -137,8 +135,7 @@ public class NioSocketListener extends CommListener {
 							}
 
 						} );
-						System.out.println( "Reminder: change NioSocketListener to assign initThread as the reference thread in the pipeline" );
-						ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set( interpreter().initThread() );
+						( ( AsyncCommProtocol ) protocol ).setInitExecutionThread( interpreter().initThread() );
 					}
 				} );
 			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();

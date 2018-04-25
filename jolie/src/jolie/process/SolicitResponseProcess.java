@@ -121,11 +121,9 @@ public class SolicitResponseProcess implements Process
 
 //			channel = outputPort.getCommChannel();
 //			channel.send( message );
+			// send returns an non-null object only if the channel is in a "local" locations (e.g., embedded)
 			channel = outputPort.send( message );
-			if( channel != null ){
-				System.out.println( "Send message over " + channel.toString() );
-			}
-			
+
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
 			if ( Interpreter.getInstance().isMonitoring() ) {
@@ -134,6 +132,9 @@ public class SolicitResponseProcess implements Process
 
 			CommMessage response = null;
 			do {
+				if ( channel != null ) {
+					System.out.println( "Trying to receive a response from " + channel.toString() );
+				}
 				response = Interpreter.getInstance().commCore().recvResponseFor( channel, message );
 //			response = channel.recvResponseFor( message );
 			} while( response == null );
