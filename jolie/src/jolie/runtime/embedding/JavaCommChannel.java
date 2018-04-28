@@ -22,6 +22,7 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
@@ -102,4 +103,14 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	@Override
 	protected void closeImpl()
 	{}
+
+	@Override
+	public URI getLocation() {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	protected boolean isThreadSafe() {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
 }

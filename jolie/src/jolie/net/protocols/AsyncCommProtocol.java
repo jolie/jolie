@@ -29,13 +29,18 @@ import java.io.OutputStream;
 import jolie.net.CommMessage;
 
 import io.netty.channel.ChannelPipeline;
+import java.util.HashMap;
 import jolie.ExecutionThread;
 import jolie.net.CommCore;
 
 public abstract class AsyncCommProtocol extends CommProtocol {
 
+	private final HashMap<Long, ExecutionThread> threadCollection;
+	private ExecutionThread initExecutionThread = null;
+	
   public AsyncCommProtocol( VariablePath configurationPath ) {
     super( configurationPath );
+		this.threadCollection = new HashMap<>();
   }
 
   abstract public void setupPipeline( ChannelPipeline pipeline );
@@ -44,8 +49,8 @@ public abstract class AsyncCommProtocol extends CommProtocol {
     setupPipeline( pipeline );
   }
 	
-	protected void setExecutionThread( ExecutionThread t ){
-		 (( CommCore.ExecutionContextThread ) Thread.currentThread() )
+	public void setExecutionThread( ExecutionThread t ){
+		 ( ( CommCore.ExecutionContextThread ) Thread.currentThread() )
 			 .executionThread( t );
 	}
 
@@ -58,5 +63,44 @@ public abstract class AsyncCommProtocol extends CommProtocol {
   public CommMessage recv( InputStream istream, OutputStream ostream ) throws IOException {
     throw new UnsupportedOperationException( "Should not be called." );
   }
+	
+	public void addExecutionThread( Long id, ExecutionThread t ){
+		threadCollection.put( id, t );
+	}
+	
+	public boolean hasExecutionThread( Long id ){
+		return threadCollection.containsKey( id );
+	}
+		
+		/**
+	Returns the Thread associated with the @id.
+	@param id
+	@return Thread
+	*/
+	public ExecutionThread peekExecutionThread( Long id ){
+		return threadCollection.get( id );
+	}
+		
+	/**
+	Returns the Thread associated with the @id and removes it from the collection.
+	@param id
+	@return Thread
+	*/
+	public ExecutionThread getExecutionThread( Long id ){
+		return threadCollection.remove( id );
+	}
+	
+	public void setInitExecutionThread( ExecutionThread t ){
+		initExecutionThread = t;
+	}
+	
+	public ExecutionThread getInitExecutionThread(){
+		return initExecutionThread;
+	}
+	
+	public ExecutionThread getThreadUnsafeExecutionThread(){
+		Long id = threadCollection.keySet().stream().findFirst().get();
+		return getExecutionThread( id );
+	}
 
 }

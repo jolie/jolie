@@ -400,6 +400,7 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
+	@Override
 	public final Value evaluate()
 	{
 		final Value v = getValueOrNull();

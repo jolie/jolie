@@ -23,6 +23,7 @@ package jolie.embedding.js;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.script.Invocable;
@@ -45,6 +46,16 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	private final Invocable invocable;
 	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
 	private final Object json;
+
+	@Override
+	public URI getLocation() {
+		throw new UnsupportedOperationException( "JavascriptCommChannels are not supposed to be queried for their location." );
+	}
+
+	@Override
+	protected boolean isThreadSafe() {
+		return false;
+	}
 	
 	private final static class JsonMethods {
 		private final static String STRINGIFY = "stringify", PARSE = "parse";
