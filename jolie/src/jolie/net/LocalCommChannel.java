@@ -22,6 +22,7 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +34,17 @@ import jolie.Interpreter;
  */
 public class LocalCommChannel extends CommChannel implements PollableCommChannel
 {
+	private final URI location;
+
+	@Override
+	public URI getLocation() {
+		return this.location;
+	}
+
+	@Override
+	protected boolean isThreadSafe() {
+		return true;
+	}
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
@@ -60,11 +72,13 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
-			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
-			if ( f == null ) {
-				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
-			}
-			f.complete( message );
+			System.out.println( this.senderChannel.toString() + " Sending back the response to the caller " + message.value().strValue() );
+			Interpreter.getInstance().commCore().receiveResponse( message );
+//			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
+//			if ( f == null ) {
+//				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
+//			}
+//			f.complete( message );
 		}
 
 		@Override
@@ -82,6 +96,16 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		@Override
 		protected void closeImpl()
 		{}
+
+		@Override
+		public URI getLocation() {
+			throw new UnsupportedOperationException( "LocalCommChannels are not supposed to be queried on their location." );
+		}
+
+		@Override
+		protected boolean isThreadSafe() {
+			throw new UnsupportedOperationException( "LocalCommChannels are not supposed to be queried on whether they are threadsafe or not." );
+		}
 	}
 
 	private final Interpreter interpreter;
@@ -92,6 +116,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	{
 		this.interpreter = interpreter;
 		this.listener = listener;
+		this.location = listener.inputPort().location();
 	}
 
 	@Override

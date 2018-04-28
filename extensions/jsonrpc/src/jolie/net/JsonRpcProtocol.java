@@ -120,7 +120,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol {
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) throws Exception {
-			setExecutionThread( message.getExecutionThread() );
+			setExecutionThread( message.executionThread() );
 			EncodedJsonRpcContent content = buildJsonRpcMessage( message );
 			out.add( content );
 		}

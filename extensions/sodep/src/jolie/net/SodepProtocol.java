@@ -24,11 +24,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageCodec;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -74,16 +76,15 @@ public class SodepProtocol extends AsyncCommProtocol {
 		pipeline.addLast( new SodepCommMessageCodec() );
 	}
 
-	public class SodepCommMessageCodec extends ByteToMessageCodec< CommMessage > {
+	public class SodepCommMessageCodec extends ByteToMessageCodec< CommMessage> {
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage in, ByteBuf out ) throws Exception {
 
-//            (( CommCore.ExecutionContextThread ) Thread.currentThread()).executionThread(
-//                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-				in.getExecutionThread()
-			);
+			if ( in.executionThread() != null && !in.hasGenericId() ) {
+				setExecutionThread( in.executionThread() );
+				addExecutionThread( in.id(), in.executionThread() );
+			}
 			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 			updateCharset();
 			writeMessage( out, in );
@@ -283,8 +284,28 @@ public class SodepProtocol extends AsyncCommProtocol {
 	}
 
 	private CommMessage readMessage( ByteBuf in )
-		throws IndexOutOfBoundsException {
+		throws IndexOutOfBoundsException, IOException {
 		Long id = in.readLong();
+		// IF WE ARE RECEIVING A RESPONSE TO A REQUEST
+		if ( this.channel().parentPort() instanceof OutputPort ) {
+			if ( this.isThreadSafe() ) {
+				// then we can find the execution thread by pairing it with the message ID
+				if ( this.hasExecutionThread( id ) ) {
+					this.setExecutionThread( this.getExecutionThread( id ) );
+				} else {
+					throw new IOException(
+						"Found no matching sender for message id: " + id
+						+ " for threadSafe channel on location: '" + this.channel().getLocation().toString()
+						+ "' protocol: '" + this.name() + "'" );
+				}
+			} else {
+				// ACTUALLY THIS WILL NEVER BE USED IN SODEP SINCE IT'S A THREAD-SAFE PROTOCOL
+				this.setExecutionThread( this.getThreadUnsafeExecutionThread() );
+			}
+		} else {
+			this.setExecutionThread( getInitExecutionThread() );
+		}
+
 		String resourcePath = readString( in );
 		String operationName = readString( in );
 		FaultException fault = null;

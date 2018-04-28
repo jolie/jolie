@@ -22,6 +22,7 @@
 package joliex.rmi;
 
 import java.io.IOException;
+import java.net.URI;
 import jolie.Interpreter;
 import jolie.net.AbstractCommChannel;
 import jolie.net.PollableCommChannel;
@@ -76,5 +77,15 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 		throws IOException
 	{
 		Interpreter.getInstance().commCore().registerForPolling( this );
+	}
+
+	@Override
+	public URI getLocation() {
+		throw new UnsupportedOperationException( "RMICommChannels are not supposed to be queried for their location." );
+	}
+
+	@Override
+	protected boolean isThreadSafe() {
+		return false;
 	}
 }

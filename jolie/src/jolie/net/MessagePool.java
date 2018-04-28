@@ -1,6 +1,5 @@
 /*******************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>              *
- *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *   Copyright (C) 2018 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                             *
  *   This program is free software; you can redistribute it and/or modify      *
  *   it under the terms of the GNU Library General Public License as           *
@@ -30,9 +29,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jolie.Interpreter;
 
-public abstract class AbstractCommChannel extends CommChannel {
+public class MessagePool {
 
 	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
@@ -54,10 +52,9 @@ public abstract class AbstractCommChannel extends CommChannel {
 		return genericMap.get( operation );
 	}
 
-	@Override
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException {
-
+		
 		CompletableFuture< CommMessage> futureResponse = null;
 		CommMessage response = null;
 
@@ -121,17 +118,13 @@ public abstract class AbstractCommChannel extends CommChannel {
 		return response;
 	}
 
-	protected void receiveResponse( CommMessage response ){
-		Interpreter.getInstance().commCore().receiveResponse( response );
+	protected void receiveResponse( CommMessage response ) {
+		if ( response.hasGenericId() ) {
+			handleGenericMessage( response );
+		} else {
+			handleMessage( response );
+		}
 	}
-	
-//	protected void receiveResponse( CommMessage response ) {
-//		if ( response.hasGenericId() ) {
-//			handleGenericMessage( response );
-//		} else {
-//			handleMessage( response );
-//		}
-//	}
 
 	private void handleGenericMessage( CommMessage response ) {
 
@@ -160,7 +153,7 @@ public abstract class AbstractCommChannel extends CommChannel {
 	}
 
 	private void handleMessage( CommMessage response ) {
-
+		
 		String operation = response.operationName();
 		Long id = response.id();
 		CompletableFuture< CommMessage> future = null;
