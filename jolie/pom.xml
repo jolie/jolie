@@ -3,8 +3,8 @@
        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>Jolie</groupId>
-  <artifactId>LibJolie</artifactId>
-  <name>LibJolie</name>
+  <artifactId>Jolie</artifactId>
+  <name>Jolie</name>
   <version>1.0</version>
   <build>
         <sourceDirectory>src/</sourceDirectory>
@@ -24,6 +24,6 @@
         </plugins>
   </build>
   <properties>
-        <sonar.dynamicAnalysis>true</sonar.dynamicAnalysis>
+        <sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
   </properties>
 </project>

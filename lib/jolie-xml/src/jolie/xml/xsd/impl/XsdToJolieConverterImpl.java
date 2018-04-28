@@ -43,7 +43,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -466,15 +465,13 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 
 	}
 
-	private TypeDefinition createSimpleType( XSType type, XSElementDecl element, Range range )
+	private TypeInlineDefinition createSimpleType( XSType type, XSElementDecl element, Range range )
 	{
 		checkType( type );
-		TypeInlineDefinition right = new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), XsdUtils.xsdToNativeType( type.getName() ), range );
 		if ( element.isNillable() ) {
-			TypeInlineDefinition left = new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), NativeType.VOID, range );
-			return new TypeChoiceDefinition( parsingContext, element.getName().replace("-","_"), range, left, right );
+			return new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), NativeType.ANY, range );
 		} else {
-			return right;
+			return new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), XsdUtils.xsdToNativeType( type.getName() ), range );
 		}
 
 

@@ -49,13 +49,6 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 		path = new ArrayList<>();
 		this.type = type;
 	}
-	
-	public VariablePathNode( ParsingContext context, Type type, int size )
-	{
-		super( context );
-		path = new ArrayList<>( size );
-		this.type = type;
-	}
 
 	public Type type()
 	{

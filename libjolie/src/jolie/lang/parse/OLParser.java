@@ -680,6 +680,19 @@ public class OLParser extends AbstractParser
 			String includeStr = token.content();
 			includeFile = null;
 
+			// Try the same directory of the program file first.
+			/* if ( includePaths.length > 1 ) {
+				includeFile = retrieveIncludeFile( includePaths[0], includeStr );
+			} */
+
+			/* if ( includeFile == null ) {
+				URL includeURL = classLoader.getResource( includeStr );
+				if ( includeURL != null ) {
+					File f = new File( includeURL.toString() );
+					includeFile = new IncludeFile( includeURL.openStream(), f.getParent(), f.toURI() );
+				}
+			} */
+
 			for ( int i = 0; i < includePaths.length && includeFile == null; i++ ) {
 				includeFile = retrieveIncludeFile( includePaths[i], includeStr );
 			}
