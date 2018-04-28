@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="wsdl4j">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../lib/wsdl4j/wsdl4j.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

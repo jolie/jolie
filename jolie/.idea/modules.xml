@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Jolie.iml" filepath="$PROJECT_DIR$/Jolie.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/auto/auto.iml" filepath="$PROJECT_DIR$/../extensions/auto/auto.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/btl2cap/btl2cap.iml" filepath="$PROJECT_DIR$/../extensions/btl2cap/btl2cap.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../javaServices/coreJavaServices/coreJavaServices.iml" filepath="$PROJECT_DIR$/../javaServices/coreJavaServices/coreJavaServices.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/http/http.iml" filepath="$PROJECT_DIR$/../extensions/http/http.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/https/https.iml" filepath="$PROJECT_DIR$/../extensions/https/https.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/javascript/javascript.iml" filepath="$PROJECT_DIR$/../extensions/javascript/javascript.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../support/jolie-gwt/jolie-gwt.iml" filepath="$PROJECT_DIR$/../support/jolie-gwt/jolie-gwt.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../lib/jolie-js/jolie-js.iml" filepath="$PROJECT_DIR$/../lib/jolie-js/jolie-js.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../lib/jolie-ssl/jolie-ssl.iml" filepath="$PROJECT_DIR$/../lib/jolie-ssl/jolie-ssl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../lib/jolie-xml/jolie-xml.iml" filepath="$PROJECT_DIR$/../lib/jolie-xml/jolie-xml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/jsonrpc/jsonrpc.iml" filepath="$PROJECT_DIR$/../extensions/jsonrpc/jsonrpc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../libjolie/libjolie.iml" filepath="$PROJECT_DIR$/../libjolie/libjolie.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/local/local.iml" filepath="$PROJECT_DIR$/../extensions/local/local.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/localsocket/localsocket.iml" filepath="$PROJECT_DIR$/../extensions/localsocket/localsocket.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../javaServices/monitorJavaServices/monitorJavaServices.iml" filepath="$PROJECT_DIR$/../javaServices/monitorJavaServices/monitorJavaServices.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/rmi/rmi.iml" filepath="$PROJECT_DIR$/../extensions/rmi/rmi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/soap/soap.iml" filepath="$PROJECT_DIR$/../extensions/soap/soap.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/sodep/sodep.iml" filepath="$PROJECT_DIR$/../extensions/sodep/sodep.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/sodeps/sodeps.iml" filepath="$PROJECT_DIR$/../extensions/sodeps/sodeps.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../extensions/xmlrpc/xmlrpc.iml" filepath="$PROJECT_DIR$/../extensions/xmlrpc/xmlrpc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../lib/xsom/xsom.iml" filepath="$PROJECT_DIR$/../lib/xsom/xsom.iml" />
+    </modules>
+  </component>
+</project>

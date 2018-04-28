@@ -34,8 +34,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,7 +46,6 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
-import java.util.regex.Pattern;
 import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
@@ -58,8 +59,7 @@ import jolie.util.Helpers;
  */
 public class CommandLineParser implements Closeable
 {
-	private final static Pattern PATH_SEPARATOR_PATTERN = Pattern.compile( jolie.lang.Constants.pathSeparator );
-	private final static Pattern OPTION_SEPARATOR_PATTERN = Pattern.compile( " " );
+	private final static String OPTION_SEPARATOR = " ";
 
 	private final int connectionsLimit;
 	private final int connectionsCache;
@@ -71,12 +71,12 @@ public class CommandLineParser implements Closeable
 	private String charset = null;
 	private final File programFilepath;
 	private final String[] arguments;
-	private final Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
+	private final Map< String, Scanner.Token > constants = new HashMap<>();
 	private final JolieClassLoader jolieClassLoader;
 	private final boolean isProgramCompiled;
 	private final boolean typeCheck;
 	private final boolean tracer;
-        private final boolean check;
+	private final boolean check;
 	private final Level logLevel;
 	private File programDirectory = null;
 	
@@ -362,8 +362,7 @@ public class CommandLineParser implements Closeable
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler, boolean ignoreFile )
 		throws CommandLineException, IOException
 	{
-		List< String > argsList = new ArrayList<>( args.length );
-		Collections.addAll( argsList, args );
+		List< String > argsList = Arrays.asList( args );
 
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList<>();
@@ -372,7 +371,7 @@ public class CommandLineParser implements Closeable
 		boolean bTypeCheck = false; // Default for typecheck
 		Level lLogLevel = Level.INFO;
 		List< String > programArgumentsList = new ArrayList<>();
-		LinkedList< String > includeList = new LinkedList<>();
+		Deque< String > includeList = new LinkedList<>();
 		List< String > libList = new ArrayList<>();
 		int cLimit = -1;
 		int cCache = 100;
@@ -404,8 +403,7 @@ public class CommandLineParser implements Closeable
 				if ( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				String[] tmp = PATH_SEPARATOR_PATTERN.split( argsList.get( i ) );
-				Collections.addAll( includeList, tmp );
+				Collections.addAll( includeList, argsList.get( i ).split( jolie.lang.Constants.pathSeparator ) );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "-l".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -413,7 +411,7 @@ public class CommandLineParser implements Closeable
 				if ( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				String[] tmp = PATH_SEPARATOR_PATTERN.split( argsList.get( i ) );
+				String[] tmp = argsList.get( i ).split( jolie.lang.Constants.pathSeparator );
 				Collections.addAll( libList, tmp );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--connlimit".equals( argsList.get( i ) ) ) {
@@ -697,7 +695,7 @@ public class CommandLineParser implements Closeable
 			Attributes attrs = manifest.getMainAttributes();
 			String options = attrs.getValue(Constants.Manifest.OPTIONS );
 			if ( options != null ) {
-				String[] tmp = OPTION_SEPARATOR_PATTERN.split( options );
+				String[] tmp = options.split( OPTION_SEPARATOR );
 				Collections.addAll( optionList, tmp );
 			}
 		}
@@ -709,7 +707,7 @@ public class CommandLineParser implements Closeable
 		private InputStream stream;
 	}
 	
-	private GetOLStreamResult getOLStream( String olFilepath, LinkedList< String > includePaths, ClassLoader classLoader )
+	private GetOLStreamResult getOLStream( String olFilepath, Deque< String > includePaths, ClassLoader classLoader )
 		throws FileNotFoundException, IOException
 	{
 		GetOLStreamResult result = new GetOLStreamResult();
@@ -721,19 +719,21 @@ public class CommandLineParser implements Closeable
 			result.source = f.toURI().getSchemeSpecificPart();
 			programDirectory = f.getParentFile();
 		} else {
-			for( int i = 0; i < includePaths.size() && result.stream == null; i++ ) {
+			for( String includePath : includePaths ) {
 				f = new File(
-							includePaths.get( i ) +
-							jolie.lang.Constants.fileSeparator +
-							olFilepath
-						);
+					includePath +
+					jolie.lang.Constants.fileSeparator +
+					olFilepath
+				);
 				if ( f.exists() ) {
 					f = f.getAbsoluteFile();
 					result.stream = new FileInputStream( f );
 					result.source = f.toURI().getSchemeSpecificPart();
 					programDirectory = f.getParentFile();
+					break;
 				}
 			}
+			
 			if ( result.stream == null ) {
 				try {
 					olURL = new URL( olFilepath );

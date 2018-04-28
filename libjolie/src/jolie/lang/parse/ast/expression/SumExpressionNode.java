@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast.expression;
 
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
@@ -39,7 +39,7 @@ public class SumExpressionNode extends OLSyntaxNode
 	public SumExpressionNode( ParsingContext context )
 	{
 		super( context );
-		operands = new LinkedList<>();
+		operands = new ArrayList<>();
 	}
 	
 	public void add( OLSyntaxNode expression )

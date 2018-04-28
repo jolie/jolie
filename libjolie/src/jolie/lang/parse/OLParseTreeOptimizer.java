@@ -401,7 +401,7 @@ public class OLParseTreeOptimizer
 		@Override
 		public void visit( VariablePathNode n )
 		{
-			VariablePathNode varPath = new VariablePathNode( n.context(), n.type() );
+			VariablePathNode varPath = new VariablePathNode( n.context(), n.type(), n.path().size() );
 			for( Pair< OLSyntaxNode, OLSyntaxNode > node : n.path() ) {
 				varPath.append( new Pair<>( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
 			}
