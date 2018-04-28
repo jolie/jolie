@@ -89,7 +89,7 @@ public class CommMessage implements Serializable
 	* Returns the execution thread that is expected to handle this CommMessage
 	* @return the execution thread
 	*/
-	public ExecutionThread getExecutionThread(){
+	public ExecutionThread executionThread(){
 		return this.thread;
 	}
 	
@@ -237,8 +237,6 @@ public class CommMessage implements Serializable
 	{
 		return value;
 	}
-  
-  
 
 	/**
 	 * The operation name of this message.
