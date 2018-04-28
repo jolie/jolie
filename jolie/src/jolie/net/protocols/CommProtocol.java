@@ -190,6 +190,20 @@ public abstract class CommProtocol {
 		}
 		return "";
 	}
+	
+	protected boolean getOperationSpecificBooleanParameter( String operationName, String parameterName )
+	{
+		if ( hasParameter( Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
+			Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+			if ( osc.hasChildren( operationName ) ) {
+				Value opConfig = osc.getFirstChild( operationName );
+				if ( opConfig.hasChildren( parameterName ) ) {
+					return opConfig.getFirstChild( parameterName ).boolValue();
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Shortcut for getOperationSpecificParameterVector( id ).first()

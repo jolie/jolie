@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="relaxngDatatype">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../lib/relaxngDatatype/relaxngDatatype.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

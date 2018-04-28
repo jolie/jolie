@@ -297,9 +297,9 @@ public class SessionThread extends ExecutionThread
 	
 	private void initMessageQueues()
 	{
-		interpreter().correlationSets().forEach(
-			cset -> messageQueues.put( cset, new ArrayDeque<>() )
-		);
+		for( CorrelationSet cset : interpreter().correlationSets() ) {
+			messageQueues.put( cset, new ArrayDeque<>() );
+		}
 	}
 	
 	/**

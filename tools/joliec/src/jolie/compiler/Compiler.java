@@ -38,14 +38,12 @@ import jolie.lang.parse.util.ParsingUtils;
  */
 public class Compiler
 {
-	private final ClassLoader classLoader;
 	private final CommandLineParser cmdParser;
 	
 	public Compiler( String[] args )
 		throws CommandLineException, IOException
 	{
 		cmdParser = new CommandLineParser( args, Compiler.class.getClassLoader() );
-		classLoader = Compiler.class.getClassLoader();
 	}
 	
 	public void compile( OutputStream ostream )

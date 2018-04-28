@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="ini4j">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../lib/ini4j/ini4j.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
