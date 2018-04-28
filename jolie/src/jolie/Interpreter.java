@@ -275,8 +275,8 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
-	private boolean check = false;
-	private Timer timer;
+        private boolean check = false;
+	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
@@ -332,7 +332,9 @@ public class Interpreter
 				do {
 					response = channel.recvResponseFor( m );
 				} while( response == null );
-			} catch( URISyntaxException | IOException e ) {
+			} catch( URISyntaxException e ) {
+				logWarning( e );
+			} catch( IOException e ) {
 				logWarning( e );
 			} finally {
 				if ( channel != null ) {
@@ -355,19 +357,11 @@ public class Interpreter
 	{
 		return correlationEngine;
 	}
-	
-	private Timer timer()
-	{
-		if ( timer == null ) {
-			timer = new Timer( programFilename + "-Timer" );
-		}
-		return timer;
-	}
 
 	public void schedule( TimerTask task, long delay )
 	{
 		if ( exiting == false ) {
-			timer().schedule( task, delay );
+			timer.schedule( task, delay );
 		}
 	}
 
@@ -640,9 +634,7 @@ public class Interpreter
 		} finally {
 			exitingLock.unlock();
 		}
-		if ( timer != null ) {
-			timer.cancel();
-		}
+		timer.cancel();
 		checkForExpiredTimeoutHandlers();
 		processExecutorService.shutdown();
 		nativeExecutorService.shutdown();
@@ -876,6 +868,7 @@ public class Interpreter
 		
 		logger.setLevel( cmdParser.logLevel() );
 		
+		timer = new Timer( programFilename + "-Timer" );
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
 

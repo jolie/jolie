@@ -21,8 +21,9 @@
 
 package jolie.lang.parse.ast.expression;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
@@ -36,7 +37,7 @@ public class OrConditionNode extends OLSyntaxNode
 	public OrConditionNode( ParsingContext context )
 	{
 		super( context );
-		children = new ArrayList<>();
+		children = new LinkedList<>();
 	}
 	
 	public List< OLSyntaxNode > children()

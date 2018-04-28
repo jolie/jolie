@@ -21,8 +21,9 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
@@ -35,7 +36,7 @@ public class SequenceStatement extends OLSyntaxNode
 	public SequenceStatement( ParsingContext context )
 	{
 		super( context );
-		children = new ArrayList<>();
+		children = new LinkedList<>();
 	}
 	
 	public List< OLSyntaxNode > children()
