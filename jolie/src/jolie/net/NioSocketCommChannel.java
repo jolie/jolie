@@ -41,7 +41,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.AttributeKey;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
@@ -49,13 +48,11 @@ import jolie.net.ports.Port;
 public class NioSocketCommChannel extends StreamingCommChannel {
 
 	public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
-	public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf( "ExecutionContext" );
 
 	private Bootstrap bootstrap;
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
-	private ChannelPipeline pipeline;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol ) {
 		super( location, protocol );
@@ -80,10 +77,8 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 						channel.setParentOutputPort( ( OutputPort ) port );
 					}
 					protocol.setChannel( channel );
-					channel.setChannelPipeline(p);
 					protocol.setupPipeline( p );
 					p.addLast( CHANNEL_HANDLER_NAME, channel.commChannelHandler );
-//					ch.attr( EXECUTION_CONTEXT ).set( ethread );
 				}
 			}
 			);
@@ -99,11 +94,6 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		return bootstrap.register();
 	}
 
-	@Override
-	public StreamingCommChannelHandler getChannelHandler() {
-		return commChannelHandler;
-	}
-	
 	@Override
 	protected CommMessage recvImpl() throws IOException {
 		// This is blocking to integrate with existing CommCore and ExecutionThreads.
@@ -148,14 +138,6 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		} catch ( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
-	}
-
-	public ChannelPipeline getChannelPipeline() {
-		return this.pipeline;
-	}
-
-	private void setChannelPipeline( ChannelPipeline p ) {
-		this.pipeline = p;
 	}
 
 }
