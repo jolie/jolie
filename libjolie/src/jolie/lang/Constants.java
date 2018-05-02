@@ -33,8 +33,8 @@ import jolie.util.Range;
 public final class Constants
 {
 	// Release information
-	public static final String VERSION = "Jolie 1.6.2";
-	public static final String COPYRIGHT = "(C) 2006-2017 the Jolie team";
+	public static final String VERSION = "Jolie 1.6.3";
+	public static final String COPYRIGHT = "(C) 2006-2018 the Jolie team";
 	
 	public interface Manifest
 	{
