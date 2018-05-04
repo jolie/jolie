@@ -26,7 +26,6 @@ import io.netty.channel.ChannelPipeline;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-import jolie.ExecutionThread;
 
 import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
@@ -70,7 +69,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
 	@Override
 	public boolean isThreadSafe() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -116,11 +115,6 @@ public class CoapProtocol extends AsyncCommProtocol {
 		return super.getSendType( message );
 	}
 
-	@Override
-	protected void setExecutionThread( ExecutionThread t ) {
-		super.setExecutionThread( t );
-	}
-	
 	/**
 	 * Given the <code>alias</code> for an operation, it searches iteratively in
 	 * the <code>configurationPath</code> of the {@link AsyncCommProtocol} to find
