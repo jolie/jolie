@@ -64,7 +64,7 @@ public class OutputPortHandler
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
 
-		mp.setExecutionThread(in.getExecutionThread());
+		mp.setExecutionThread(in.executionThread());
     init(ctx);
     // we start by connecting to the broker
     out.add(mp.connectMsg());
