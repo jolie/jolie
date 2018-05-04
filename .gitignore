@@ -35,6 +35,7 @@
 /tools/joliedoc/nbproject/private/
 dist
 build
+/extensions/coap/nbproject/private/
 /extensions/serial/nbproject/private/
 /extensions/modbus/nbproject/private/
 /extensions/mqtt/nbproject/private/
