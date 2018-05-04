@@ -110,7 +110,7 @@ public class CoapToCommMessageCodec
 	protected void encode( ChannelHandlerContext ctx, CommMessage in,
 		List<Object> out ) throws Exception {
 
-		protocol.setExecutionThread( in.getExecutionThread() );
+		protocol.setExecutionThread( in.executionThread() );
 		out.add( encode_internal( ctx, in ) );
 	}
 
