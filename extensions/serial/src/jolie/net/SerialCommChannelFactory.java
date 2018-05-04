@@ -35,7 +35,7 @@ import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"jSerialComm.jar"})
+@AndJarDeps( { "jSerialComm.jar" } )
 public class SerialCommChannelFactory extends CommChannelFactory {
 
 	protected final EventLoopGroup workerGroup;
@@ -43,7 +43,7 @@ public class SerialCommChannelFactory extends CommChannelFactory {
 	public SerialCommChannelFactory( CommCore commCore ) {
 
 		super( commCore );
-		this.workerGroup = new OioEventLoopGroup( 4, commCore.getNewExecutionContextThreadFactory() );
+		this.workerGroup = new OioEventLoopGroup( 4 );
 	}
 
 	@Override
@@ -76,7 +76,8 @@ public class SerialCommChannelFactory extends CommChannelFactory {
 	}
 
 	@Override
-	public CommChannel createInputChannel( URI location, InputPort inputPort, CommProtocol protocol ) throws IOException {
+	public CommChannel createInputChannel( URI location, InputPort inputPort,
+		 CommProtocol protocol ) throws IOException {
 
 		if ( !( protocol instanceof AsyncCommProtocol ) ) {
 			throw new UnsupportedCommProtocolException( "Use an async protocol" );

@@ -39,7 +39,7 @@ public class SerialListenerFactory extends CommListenerFactory {
 	public SerialListenerFactory( CommCore commCore ) {
 
 		super( commCore );
-		this.workerGroup = new OioEventLoopGroup( 4, commCore.getNewExecutionContextThreadFactory() );
+		this.workerGroup = new OioEventLoopGroup( 4 );
 	}
 
 	@Override
