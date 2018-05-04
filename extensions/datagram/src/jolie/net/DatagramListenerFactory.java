@@ -37,8 +37,7 @@ public class DatagramListenerFactory extends CommListenerFactory {
   public DatagramListenerFactory(CommCore commCore) {
 
     super(commCore);
-    this.workerGroup = new NioEventLoopGroup(4,
-        commCore.getNewExecutionContextThreadFactory());
+    this.workerGroup = new NioEventLoopGroup(4);
   }
 
   @Override

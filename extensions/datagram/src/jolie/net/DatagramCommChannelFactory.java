@@ -40,8 +40,7 @@ public class DatagramCommChannelFactory extends CommChannelFactory {
 
   public DatagramCommChannelFactory(CommCore commCore) {
     super(commCore);
-    this.workerGroup = new NioEventLoopGroup(4,
-        commCore.getNewExecutionContextThreadFactory());
+    this.workerGroup = new NioEventLoopGroup(4);
   }
 
   @Override
