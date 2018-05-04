@@ -35,3 +35,8 @@
 /tools/joliedoc/nbproject/private/
 dist
 build
+/extensions/serial/nbproject/private/
+/extensions/modbus/nbproject/private/
+/extensions/mqtt/nbproject/private/
+/extensions/pubsubchannel/nbproject/private/
+/extensions/datagram/nbproject/private/
