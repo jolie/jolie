@@ -254,8 +254,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 
 	@Override
 	public boolean isThreadSafe() {
-
-		return false;
+		return true;
 	}
 
 	/**
