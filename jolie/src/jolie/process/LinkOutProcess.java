@@ -34,7 +34,7 @@ public class LinkOutProcess implements Process
 		this.link = link;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new LinkOutProcess( link );
 	}

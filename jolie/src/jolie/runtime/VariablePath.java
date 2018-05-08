@@ -32,11 +32,11 @@ import jolie.util.Pair;
  * for referring to the object pointed by it.
  * @author Fabrizio Montesi
  */
-public class VariablePath implements Expression, Cloneable
+public class VariablePath implements Expression
 {
 	public static class EmptyPathLazyHolder {
 		private EmptyPathLazyHolder() {}
-		public static final Pair< Expression, Expression >[] emptyPath = new Pair[0];
+		public static final Pair< Expression, Expression >[] EMPTY_PATH = new Pair[0];
 	}
 
 	private final Pair< Expression, Expression >[] path; // Right Expression may be null
@@ -55,7 +55,7 @@ public class VariablePath implements Expression, Cloneable
 	{
 		Pair< Expression, Expression >[] clonedPath = new Pair[ path.length ];
 		for( int i = 0; i < path.length; i++ ) {
-			clonedPath[i] = new Pair< Expression, Expression >(
+			clonedPath[i] = new Pair<>(
 				path[i].key().cloneExpression( reason ),
 				( path[i].value() == null ) ? null : path[i].value().cloneExpression( reason )
 			);
@@ -63,12 +63,12 @@ public class VariablePath implements Expression, Cloneable
 		return clonedPath;
 	}
 
-	@Override
-	public VariablePath clone()
+	public VariablePath copy()
 	{
 		return new VariablePath( path );
 	}
 	
+	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path, reason );
@@ -133,8 +133,8 @@ public class VariablePath implements Expression, Cloneable
 	
 	public final void undef()
 	{
-		Pair< Expression, Expression > pair = null;
-		ValueVector currVector = null;
+		Pair< Expression, Expression > pair;
+		ValueVector currVector;
 		Value currValue = getRootValue();
 		int index;
 		String keyStr;
@@ -400,6 +400,7 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
+	@Override
 	public final Value evaluate()
 	{
 		final Value v = getValueOrNull();

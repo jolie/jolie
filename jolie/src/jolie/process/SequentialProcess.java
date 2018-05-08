@@ -38,12 +38,12 @@ public class SequentialProcess implements Process
 		this.children = children;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		Process[] p = new Process[ children.length ];
 		int i = 0;
 		for( Process child : children ) {
-			p[ i++ ] = child.clone( reason );
+			p[ i++ ] = child.copy( reason );
 		}
 		return new SequentialProcess( p );
 	}

@@ -89,13 +89,13 @@ public class RequestResponseProcess implements InputOperationProcess
 		return true;
 	}
 
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new RequestResponseProcess(
 					operation,
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
 					( outputExpression == null ) ? null : (VariablePath)outputExpression.cloneExpression( reason ),
-					process.clone( reason )
+					process.copy( reason )
 				);
 	}
 	
@@ -117,7 +117,7 @@ public class RequestResponseProcess implements InputOperationProcess
 				runBehaviour( sessionMessage.channel(), sessionMessage.message() );
 			}
 
-			public Process clone( TransformationReason reason )
+			public Process copy( TransformationReason reason )
 			{
 				return this;
 			}

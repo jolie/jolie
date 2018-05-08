@@ -38,13 +38,13 @@ public final class ForProcess implements Process
 	}
 	
 	@Override
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new ForProcess(
-			init.clone( reason ),
+			init.copy( reason ),
 			condition.cloneExpression( reason ),
-			post.clone( reason ),
-			process.clone( reason )
+			post.copy( reason ),
+			process.copy( reason )
 		);
 	}
 	

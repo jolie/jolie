@@ -39,7 +39,7 @@ public class CurrentHandlerProcess implements Process
 		return CurrentHandlerProcess.LazyHolder.instance;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		Process ret = getInstance();
 		if ( reason instanceof HandlerInstallationReason ) {

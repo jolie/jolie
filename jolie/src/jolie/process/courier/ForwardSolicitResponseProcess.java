@@ -67,7 +67,7 @@ public class ForwardSolicitResponseProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new ForwardSolicitResponseProcess(
 			operationName,
