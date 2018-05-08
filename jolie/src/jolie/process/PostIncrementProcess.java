@@ -34,7 +34,7 @@ public class PostIncrementProcess implements Process, Expression
 	}
 	
 	@Override
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new PostIncrementProcess( (VariablePath)path.cloneExpression( reason ) );
 	}

@@ -58,7 +58,7 @@ public class NotificationProcess implements Process
 		this.oneWayDescription = outputType;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new NotificationProcess(
 					operationId,

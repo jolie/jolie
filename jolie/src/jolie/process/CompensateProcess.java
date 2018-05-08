@@ -35,7 +35,7 @@ public class CompensateProcess implements Process
 		this.id = id;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new CompensateProcess( id );
 	}

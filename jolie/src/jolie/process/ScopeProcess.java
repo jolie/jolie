@@ -105,9 +105,9 @@ public class ScopeProcess implements Process
 		this( id, process, true );
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
-		return new ScopeProcess( id, process.clone( reason ), autoPop );
+		return new ScopeProcess( id, process.copy( reason ), autoPop );
 	}
 	
 	public void run()

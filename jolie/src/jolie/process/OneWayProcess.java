@@ -57,7 +57,7 @@ public class OneWayProcess implements InputOperationProcess
 		return operation;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new OneWayProcess( operation, varPath );
 	}

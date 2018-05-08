@@ -49,7 +49,7 @@ public class AddAssignmentProcess implements Process, Expression
 		this.expression = expression;
 	}
 
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new AddAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),

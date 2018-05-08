@@ -35,7 +35,7 @@ public class PostDecrementProcess implements Process, Expression
 		this.path = varPath;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new PostDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
 	}

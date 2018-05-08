@@ -35,7 +35,7 @@ public class PreDecrementProcess implements Process, Expression
 		this.path = varPath;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new PreDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
 	}
