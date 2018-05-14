@@ -72,7 +72,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
-			System.out.println( this.senderChannel.toString() + " Sending back the response to the caller " + message.value().strValue() );
+			//System.out.println( this.senderChannel.toString() + " Sending back the response to the caller " + message.value().strValue() );
 			Interpreter.getInstance().commCore().receiveResponse( message );
 //			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
 //			if ( f == null ) {
