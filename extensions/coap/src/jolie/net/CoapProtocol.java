@@ -24,6 +24,8 @@ package jolie.net;
 import io.netty.channel.ChannelPipeline;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -31,6 +33,7 @@ import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
@@ -123,9 +126,13 @@ public class CoapProtocol extends AsyncCommProtocol {
 	 * @param alias the alias for the wanted operation
 	 * @return The operation name String
 	 */
-	public String getOperationFromOperationSpecificStringParameter( String parameter,
-		String parameterStringValue ) {
+	public String getOperationFromOSC( String parameter, String parameterStringValue ) {
 
+		System.out.println( valueToPrettyString( configurationPath().getValue() ) );
+		System.out.println( "The parameter to consider: " + parameter );
+		System.out.println( "The " + parameter + " value is " + parameterStringValue );
+		// parameterStringValue = "/Adafruit/93/ESP8266"
+		// parameter = ".osc.actOnTemperature.alias"
 		for ( Map.Entry<String, ValueVector> first : configurationPath().getValue().children().entrySet() ) {
 			String first_level_key = first.getKey();
 			ValueVector first_level_valueVector = first.getValue();
@@ -146,6 +153,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 										Value third_value = third_iterator.next();
 										sb.append( third_value.strValue() );
 									}
+									System.out.println( "The entire alias should be: " + sb.toString() );
 									if ( sb.toString().equals( parameterStringValue ) ) {
 										return second_level_key;
 									}
@@ -157,5 +165,16 @@ public class CoapProtocol extends AsyncCommProtocol {
 			}
 		}
 		return parameterStringValue;
+	}
+
+	private String valueToPrettyString( Value request ) {
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( request, writer, "" );
+		try {
+			printer.run();
+		} catch ( IOException e ) {
+		} // Should never happen
+		return writer.toString();
+
 	}
 }
