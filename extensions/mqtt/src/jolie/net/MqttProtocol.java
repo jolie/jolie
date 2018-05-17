@@ -615,14 +615,26 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @return
 	 */
 	public String extractTopicResponse( MqttPublishMessage m ) {
-		String msg = Unpooled.wrappedBuffer( m.payload() ).toString( charset );
-
-		if ( msg.indexOf( Parameters.BOUNDARY )
-			== 0 && msg.indexOf( Parameters.BOUNDARY, 1 ) > 0 ) {
-			return msg.substring( 1, msg.indexOf( Parameters.BOUNDARY, 1 ) );
+		
+		// mew logic of response topic
+		String topic = m.variableHeader().topicName();
+		String operation = operation( topic );
+		String aliasReponse = getOperationSpecificStringParameter( operation, Parameters.ALIAS_RESPONSE);
+		
+		if ( aliasReponse.isEmpty()) {
+			return topic  + "/response";
 		} else {
-			return null;
+			return aliasReponse;
 		}
+		
+//		String msg = Unpooled.wrappedBuffer( m.payload() ).toString( charset );
+//
+//		if ( msg.indexOf( Parameters.BOUNDARY )
+//			== 0 && msg.indexOf( Parameters.BOUNDARY, 1 ) > 0 ) {
+//			return msg.substring( 1, msg.indexOf( Parameters.BOUNDARY, 1 ) );
+//		} else {
+//			return null;
+//		}
 	}
 
 	@Override
@@ -689,7 +701,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 				throw new FaultException( "Format " + format + " not "
 					+ "supported for operation " + in.operationName() );
 		}
-		message = topicResponsePrefix + message;
+//		message = topicResponsePrefix + message;
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			Interpreter.getInstance().logInfo( "Sending " + format.toUpperCase()
 				+ " message: " + message );
