@@ -66,7 +66,6 @@ import jolie.net.coap.message.options.ContentFormat;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
 import jolie.net.coap.message.options.Option;
-import jolie.net.coap.message.options.StringOptionValue;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -230,6 +229,10 @@ public class CoapToCommMessageCodec
 			}
 
 			String operationName = getOperationName( coapMessage );
+			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "The Operation name for the Message is: "
+					+ operationName );
+			}
 			Value v = Value.create();
 			if ( MessageCode.allowsContent( coapMessage.getMessageCode() )
 				&& !coapMessage.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
@@ -776,16 +779,19 @@ public class CoapToCommMessageCodec
 		List<OptionValue> options = in.getOptions( Option.URI_PATH );
 		sb.append( "/" );
 		for ( OptionValue option : options ) {
-			StringOptionValue stringOption = ( StringOptionValue ) option;
 			if ( i < options.size() ) {
-				sb.append( stringOption.getDecodedValue() ).append( "/" );
+				sb.append( option.getDecodedValue() ).append( "/" );
 			} else {
-				sb.append( stringOption.getDecodedValue() );
+				sb.append( option.getDecodedValue() );
 			}
 			i++;
 		}
 		String URIPath = sb.toString();
-		String operationName = protocol.getOperationFromOperationSpecificStringParameter( Parameters.ALIAS, URIPath.substring( 1 ) );
+		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+			Interpreter.getInstance().logInfo( "The URI Path is: "
+				+ URIPath );
+		}
+		String operationName = protocol.getOperationFromOSC( Parameters.ALIAS, URIPath );
 
 		return operationName;
 	}
