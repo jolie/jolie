@@ -128,11 +128,6 @@ public class CoapProtocol extends AsyncCommProtocol {
 	 */
 	public String getOperationFromOSC( String parameter, String parameterStringValue ) {
 
-		System.out.println( valueToPrettyString( configurationPath().getValue() ) );
-		System.out.println( "The parameter to consider: " + parameter );
-		System.out.println( "The " + parameter + " value is " + parameterStringValue );
-		// parameterStringValue = "/Adafruit/93/ESP8266"
-		// parameter = ".osc.actOnTemperature.alias"
 		for ( Map.Entry<String, ValueVector> first : configurationPath().getValue().children().entrySet() ) {
 			String first_level_key = first.getKey();
 			ValueVector first_level_valueVector = first.getValue();
@@ -153,7 +148,6 @@ public class CoapProtocol extends AsyncCommProtocol {
 										Value third_value = third_iterator.next();
 										sb.append( third_value.strValue() );
 									}
-									System.out.println( "The entire alias should be: " + sb.toString() );
 									if ( sb.toString().equals( parameterStringValue ) ) {
 										return second_level_key;
 									}
