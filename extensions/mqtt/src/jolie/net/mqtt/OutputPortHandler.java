@@ -64,8 +64,7 @@ public class OutputPortHandler
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
 
-		mp.setExecutionThread(in.executionThread());
-    init(ctx);
+		init(ctx, in);
     // we start by connecting to the broker
     out.add(mp.connectMsg());
     // we store the message and wait to receive a CONNACK
@@ -104,7 +103,7 @@ public class OutputPortHandler
         // SINCE WE SUBSCRIBED, WE HAVE A REQUEST-RESPONSE TO SEND
         cc.write(pendingMpm);
         if (MqttProtocol.getQoS(pendingMpm).equals(MqttQoS.AT_MOST_ONCE)) {
-          mp.releaseMessage(MqttProtocol.getMessageID(pendingMpm));
+          mp.releaseMessage(MqttProtocol.gePacketId(pendingMpm));
         }
         break;
       case PUBACK:
@@ -154,8 +153,9 @@ public class OutputPortHandler
     }
   }
 
-  private void init(ChannelHandlerContext ctx) {
+  private void init(ChannelHandlerContext ctx, CommMessage cm) {
     cc = ctx.channel();
+		mp.setExecutionThread(cm.executionThread());
     mp.checkDebug(ctx.pipeline());
 
   }

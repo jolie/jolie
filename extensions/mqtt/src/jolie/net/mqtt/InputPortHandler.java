@@ -101,7 +101,7 @@ public class InputPortHandler
 				mp.handlePubrel( cc, in );
 				// we get the message to be handled (handleReceivedMessage will take care of the removal)
 				MqttPublishMessage pendigPublishReception
-					= qos2pendingPublish.get( MqttProtocol.getMessageID( in ) );
+					= qos2pendingPublish.get( MqttProtocol.gePacketId( in ) );
 				if ( pendigPublishReception != null ) {
 					handleReceptionPolicy( ctx, out, pendigPublishReception );
 				}
@@ -125,14 +125,14 @@ public class InputPortHandler
 		MqttPublishMessage m )
 		throws InterruptedException, Exception {
 		if ( MqttProtocol.getQoS( m ).equals( MqttQoS.EXACTLY_ONCE ) ) {
-			if ( qos2pendingPublish.containsKey( MqttProtocol.getMessageID( m ) ) ) {
+			if ( qos2pendingPublish.containsKey( MqttProtocol.gePacketId( m ) ) ) {
 				// we can remove it because we are handling the PUBREL
-				qos2pendingPublish.remove( MqttProtocol.getMessageID( m ) );
+				qos2pendingPublish.remove( MqttProtocol.gePacketId( m ) );
 				// and we handle the reception of the message
 				handleMessageReception( ctx, out, m );
 			} else {
 				// we store the message, it will be release by a PUBREL
-				qos2pendingPublish.put( MqttProtocol.getMessageID( m ), m );
+				qos2pendingPublish.put( MqttProtocol.gePacketId( m ), m );
 			}
 		} else {
 			// it is either QoS 0 or 1 and we can handle it direcly

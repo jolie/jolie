@@ -182,7 +182,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 					List<Object> list ) throws Exception {
 					String logLine = "";
 					try {
-						logLine = "#" + getMessageID( i ) + " ";
+						logLine = "#" + gePacketId( i ) + " ";
 					} catch ( Exception e ) {
 					}
 					MqttMessageType t = i.fixedHeader().messageType();
@@ -208,7 +208,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 					List list ) throws Exception {
 					String logLine = "";
 					try {
-						logLine = "#" + getMessageID( i ) + " ";
+						logLine = "#" + gePacketId( i ) + " ";
 					} catch ( Exception e ) {
 					}
 					MqttMessageType t = i.fixedHeader().messageType();
@@ -285,7 +285,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 					MqttFixedHeader f = new MqttFixedHeader(
 						MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0 );
 					respMessage = new MqttPubAckMessage(
-						f, MqttMessageIdVariableHeader.from( getMessageID( mpm ) )
+						f, MqttMessageIdVariableHeader.from( gePacketId( mpm ) )
 					);
 					break;
 				case EXACTLY_ONCE:
@@ -293,7 +293,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 					f = new MqttFixedHeader(
 						MqttMessageType.PUBREC, false, MqttQoS.AT_MOST_ONCE, false, 0 );
 					respMessage = new MqttMessage(
-						f, MqttMessageIdVariableHeader.from( getMessageID( mpm ) )
+						f, MqttMessageIdVariableHeader.from( gePacketId( mpm ) )
 					);
 					break;
 			}
@@ -312,9 +312,9 @@ public class MqttProtocol extends PubSubCommProtocol {
 		}
 	}
 
-	public static int getMessageID( MqttMessage m ) {
+	public static int gePacketId( MqttMessage m ) {
 		if ( m instanceof MqttPublishMessage ) {
-			return ( ( MqttPublishMessage ) m ).variableHeader().messageId();
+			return ( ( MqttPublishMessage ) m ).variableHeader().packetId();
 		} else {
 			return ( ( MqttMessageIdVariableHeader ) m.variableHeader() ).messageId();
 		}
@@ -615,18 +615,18 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @return
 	 */
 	public String extractTopicResponse( MqttPublishMessage m ) {
-		
+
 		// mew logic of response topic
 		String topic = m.variableHeader().topicName();
 		String operation = operation( topic );
-		String aliasReponse = getOperationSpecificStringParameter( operation, Parameters.ALIAS_RESPONSE);
-		
-		if ( aliasReponse.isEmpty()) {
-			return topic  + "/response";
+		String aliasReponse = getOperationSpecificStringParameter( operation, Parameters.ALIAS_RESPONSE );
+
+		if ( aliasReponse.isEmpty() ) {
+			return topic + "/response";
 		} else {
 			return aliasReponse;
 		}
-		
+
 //		String msg = Unpooled.wrappedBuffer( m.payload() ).toString( charset );
 //
 //		if ( msg.indexOf( Parameters.BOUNDARY )
