@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
+ *   Copyright (C) 2018 by Saverio Giallorenzo                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -20,17 +21,49 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
+include "console.iol"
 
 include "private/weatherService.iol"
+include "private/WS-testService.iol"
+
+define testLocally {
+  with ( command ){
+    .args[#.args] = "-jar";
+    .args[#.args] = "extensions/private/WS-test.jar";
+    .args[#.args] = "http://localhost:14000/";
+    .waitFor = 0
+  };
+  command = "java";
+  exec@Exec( command )();
+  sleep@Time( 500 )();
+  req.x = 6;
+  req.y = 11;
+  sum@CalcServicePort( req )( res );
+  if ( res.return != 6+11 ) {
+    throw( TestFailed, "Wrong response from the SOAP Service" )
+  };
+  prod@CalcServicePort( req )( res );
+  if ( res.return != 6*11 ) {
+    throw( TestFailed, "Wrong response from the SOAP Service" )
+  };
+  close@CalcServicePort()()
+}
 
 define doTest
 {
-	with( request ) {
-	    .CityName = "Bolzano";
-	    .CountryName = "Italy"
-	};
-	GetWeather@GlobalWeatherSoap( request )( response );
-	if ( !is_defined( response.GetWeatherResult ) ) {
-		throw( TestFailed, "No webservice response" )
-	}
+	scope( testRemoteServe )
+  {
+    install( IOException => 
+      print@Console( "Couldn't find the SOAP server, testing locally\n\t\t\t" )(); 
+      testLocally
+    );
+    with( request ) {
+      .CityName = "Bolzano";
+      .CountryName = "Italy"
+    };
+    GetWeather@GlobalWeatherSoap( request )( response );
+    if ( !is_defined( response.GetWeatherResult ) ) {
+      throw( TestFailed, "No webservice response" )
+    }
+  }
 }
