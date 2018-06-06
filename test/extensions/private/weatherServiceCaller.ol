@@ -25,19 +25,8 @@ include "console.iol"
 include "private/weatherService.iol"
 
 
-define testLocally {
-  // embed
-  // include interface
-  // call port
-  // check
-}
-
 define doTest
 {
-	install( IOException => 
-    println@Console( "Couldn't find the SOAP server, testing locally" )(); 
-    testLocally
-  );
   with( request ) {
 	    .CityName = "Bolzano";
 	    .CountryName = "Italy"
