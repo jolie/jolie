@@ -643,14 +643,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			List<ExtensibilityElement> listExt;
 			Message soapMessage;
 			if ( received ) {
-        // We are sending a response
-        if ( operation.getStyle().equals( OperationType.ONE_WAY ) ) {
-          soapMessage = operation.getInput().getMessage();
-          listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingInput().getExtensibilityElements();
-        } else {
-          soapMessage = operation.getOutput().getMessage();
-          listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingOutput().getExtensibilityElements();
-        }
+                // We are sending a response
+                if ( operation.getStyle().equals( OperationType.ONE_WAY ) ) {
+                    soapMessage = operation.getInput().getMessage();
+                    listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingInput().getExtensibilityElements();
+                } else {
+                    soapMessage = operation.getOutput().getMessage();
+                    listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingOutput().getExtensibilityElements();
+                }
 			} else {
 				// We are sending a request
 				soapMessage = operation.getInput().getMessage();
