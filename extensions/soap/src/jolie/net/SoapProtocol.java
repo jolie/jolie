@@ -174,7 +174,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
      *	}
      * }
 	 */
-
 	public String name()
 	{
 		return "soap";
@@ -603,11 +602,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				if ( received ) {
 					// We are sending a response
 					soapMessage = operation.getOutput().getMessage();
-					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null).getBindingOutput().getExtensibilityElements();
+					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingOutput().getExtensibilityElements();
 				} else {
 					// We are sending a request
 					soapMessage = operation.getInput().getMessage();
-					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null).getBindingInput().getExtensibilityElements();
+					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingInput().getExtensibilityElements();
 				}
 				for( ExtensibilityElement element : listExt ) {
 					if ( element instanceof SOAPBodyImpl ) {
@@ -619,10 +618,10 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							Part part = ((Entry<String, Part>) soapMessage.getParts().entrySet().iterator().next()).getValue();
 							elementName = part.getElementName().getLocalPart();
 						}
-						
+
 					}
 				}
-				
+
 			} catch( Exception e ) {
 			}
 		}
@@ -643,18 +642,18 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			List<ExtensibilityElement> listExt;
 			Message soapMessage;
 			if ( received ) {
-                // We are sending a response
-                if ( operation.getStyle().equals( OperationType.ONE_WAY ) ) {
-                    soapMessage = operation.getInput().getMessage();
-                    listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingInput().getExtensibilityElements();
-                } else {
-                    soapMessage = operation.getOutput().getMessage();
-                    listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingOutput().getExtensibilityElements();
-                }
+				// We are sending a response
+				if ( operation.getStyle().equals( OperationType.ONE_WAY ) ) {
+					soapMessage = operation.getInput().getMessage();
+					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingInput().getExtensibilityElements();
+				} else {
+					soapMessage = operation.getOutput().getMessage();
+					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingOutput().getExtensibilityElements();
+				}
 			} else {
 				// We are sending a request
 				soapMessage = operation.getInput().getMessage();
-				listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null).getBindingInput().getExtensibilityElements();
+				listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null ).getBindingInput().getExtensibilityElements();
 			}
 			for( ExtensibilityElement element : listExt ) {
 				if ( element instanceof SOAPBodyImpl ) {
@@ -783,7 +782,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				XSSchemaSet sSet = getSchemaSet();
 				XSElementDecl elementDecl;
 				String messageRootElementName = getOutputMessageRootElementName( message.operationName() );
-			
+
 				if ( sSet == null
 					|| (elementDecl = sSet.getElementDecl( messageNamespace, messageRootElementName )) == null ) {
 					Name operationName;
@@ -795,7 +794,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						soapEnvelope.addNamespaceDeclaration( "jolieMessage", messageNamespace );
 						operationName = soapEnvelope.createName( messageRootElementName, "jolieMessage", messageNamespace );
 					}
-					
+
 					/*if( hasParameter( "header") ) {
 						if ( getParameterFirstValue( "header" ).hasChildren() ) {
 							// Prepare SOAP Header getting data from parameter .header
@@ -803,7 +802,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							
 						}
 					}*/
-
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 					String[] parameters = getParameterOrder( message.operationName() );
 					if ( parameters == null ) {
@@ -835,39 +833,39 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					if ( wrapped ) {
 						List<ExtensibilityElement> listExt;
 						if ( received ) {
-							listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null).getBindingOutput().getExtensibilityElements();
+							listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null ).getBindingOutput().getExtensibilityElements();
 						} else {
-							listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null).getBindingInput().getExtensibilityElements();
+							listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null ).getBindingInput().getExtensibilityElements();
 						}
-						
+
 						for( ExtensibilityElement extElement : listExt ) {
 							if ( extElement instanceof SOAPHeaderImpl ) {
 								SOAPHeaderImpl soapHeaderImpl = (SOAPHeaderImpl) extElement;
-								if ( valueToSend.getChildren(soapHeaderImpl.getPart() ).size() > 0 ) {
+								if ( valueToSend.getChildren( soapHeaderImpl.getPart() ).size() > 0 ) {
 									Definition definition = getWSDLDefinition();
-								
-									Message wsdlMessage = definition.getMessage( soapHeaderImpl.getMessage());
-									XSElementDecl partElementDeclaration = sSet.getElementDecl( 
-										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getNamespaceURI(), 
+
+									Message wsdlMessage = definition.getMessage( soapHeaderImpl.getMessage() );
+									XSElementDecl partElementDeclaration = sSet.getElementDecl(
+										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getNamespaceURI(),
 										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getLocalPart() );
-									SOAPHeaderElement headerElement = soapHeader.addHeaderElement( soapEnvelope.createName( 
-										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getLocalPart(), 
-										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getPrefix(), 
-										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getNamespaceURI() ));
-									valueToTypedSOAP( 
-											valueToSend.getFirstChild( soapHeaderImpl.getPart() ), 
-											partElementDeclaration, 
-											headerElement, 
-											soapEnvelope, 
-											!wrapped, 
-											sSet, 
-											partElementDeclaration.getTargetNamespace() );
+									SOAPHeaderElement headerElement = soapHeader.addHeaderElement( soapEnvelope.createName(
+										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getLocalPart(),
+										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getPrefix(),
+										wsdlMessage.getPart( soapHeaderImpl.getPart() ).getElementName().getNamespaceURI() ) );
+									valueToTypedSOAP(
+										valueToSend.getFirstChild( soapHeaderImpl.getPart() ),
+										partElementDeclaration,
+										headerElement,
+										soapEnvelope,
+										!wrapped,
+										sSet,
+										partElementDeclaration.getTargetNamespace() );
 									valueToSend.children().remove( soapHeaderImpl.getPart() );
 								}
 							}
 						}
 						opBody = soapBody.addBodyElement(
-						soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
+							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
 						// adding forced attributes to operation
 						if ( hasParameter( Parameters.ADD_ATTRIBUTE ) ) {
 							Value add_parameter = getParameterFirstValue( Parameters.ADD_ATTRIBUTE );
@@ -896,11 +894,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					if ( received ) {
 						// We are sending a response
 						wsdlMessage = operation.getOutput().getMessage();
-						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null).getBindingOutput().getExtensibilityElements();
+						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null ).getBindingOutput().getExtensibilityElements();
 					} else {
 						// We are sending a request
 						wsdlMessage = operation.getInput().getMessage();
-						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null).getBindingInput().getExtensibilityElements();
+						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null ).getBindingInput().getExtensibilityElements();
 					}
 					boolean partsInBody = false;
 					String partName = "";
@@ -910,7 +908,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							if ( sBodyImpl.getParts() != null && sBodyImpl.getParts().size() > 0 ) {
 								partName = sBodyImpl.getParts().get( 0 ).toString();
 								partsInBody = true;
-							} 
+							}
 						}
 					}
 					if ( !partsInBody ) {
@@ -954,7 +952,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				/*
 				* soapAction = "SOAPAction: \"" + messageNamespace + "/" +
 				* message.operationName() + '\"' + HttpUtils.CRLF;
-				*/
+				 */
 				soapAction = "SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + '\"' + HttpUtils.CRLF;
 
 				if ( checkBooleanParameter( "compression", true ) ) {
@@ -1057,14 +1055,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					break;
 			}
 		}
-		
+
 		// the content of the root of a mixed element is not extracted
 		if ( !foundSubElements && !nil ) {
 			if ( !isRecRoot ) {
 				value.setValue( tmpNodeValue.toString() );
 			}
 		}
-
 
 		if ( "xsd:int".equals( type ) ) {
 			value.setValue( value.intValue() );
@@ -1100,7 +1097,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	* XMLConstants.W3C_XML_SCHEMA_NS_URI ); try { return
 	* schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
 	* } catch( SAXException e ) { throw new IOException( e ); } }
-	*/
+	 */
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -1133,7 +1130,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				* messageSchema != null ) {
 				* factory.setIgnoringElementContentWhitespace( true );
 				* factory.setSchema( messageSchema ); }
-				*/
+				 */
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
@@ -1148,19 +1145,19 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				* ByteArrayOutputStream(); soapMessage.writeTo( tmpStream );
 				* interpreter.logInfo( "[SOAP debug] Receiving:\n" +
 				* tmpStream.toString() ); }
-				*/
+				 */
 				SOAPFault soapFault = soapMessage.getSOAPBody().getFault();
 				if ( soapFault == null ) {
 					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
 					messageId = soapValueElement.getLocalName();
 
-				if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
-					String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
-					messageId = soapAction[ soapAction.length - 1 ];
+					if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
+						String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll( "\"", "" ).split( "/" );
+						messageId = soapAction[ soapAction.length - 1 ];
 						if ( checkBooleanParameter( "debug" ) ) {
-							interpreter.logInfo( "Operation from SoapAction:" + messageId  );
+							interpreter.logInfo( "Operation from SoapAction:" + messageId );
 						}
-				}
+					}
 
 					// explanation: https://github.com/jolie/jolie/issues/5
 					xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );
