@@ -72,7 +72,7 @@ public class WSTest {
 			try {
 				Thread.sleep( 250 );
 			} catch ( InterruptedException e ){
-			e.printStackTrace();
+				e.printStackTrace();
 			}
 				e.stop();
 			}
@@ -82,6 +82,5 @@ public class WSTest {
 		String url = args.length >0 ? args[0] : "http://localhost:14000/";
 		e = Endpoint.publish( url, new WSTest() );
 	}
-	
 
 }
