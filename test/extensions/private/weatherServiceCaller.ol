@@ -20,14 +20,15 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
+include "console.iol"
 
 include "private/weatherService.iol"
 
 define doTest
 {
 	with( request ) {
-	    .CityName = "Bolzano";
-	    .CountryName = "Italy"
+			.CityName = "Bolzano";
+			.CountryName = "Italy"
 	};
 	GetWeather@GlobalWeatherSoap( request )( response );
 	if ( !is_defined( response.GetWeatherResult ) ) {
