@@ -79,9 +79,8 @@ public class WSTest {
 	}
 
 	public static void main( String[] args ) {
-		String url = args.length > 0 ? args[0] : "http://localhost:8000/";
+		String url = args.length >0 ? args[0] : "http://localhost:14000/";
 		e = Endpoint.publish( url, new WSTest() );
-		System.out.println( "Local SOAP service started" );
 	}
 	
 
