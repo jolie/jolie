@@ -66,7 +66,6 @@ public class WSTest extends JavaService
 		return Calculator.prod( x, y );
 	}
 
-
 	private static Endpoint e;
 
 	@RequestResponse
