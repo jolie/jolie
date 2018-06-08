@@ -246,6 +246,7 @@ Please make sure that:
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.tests.ws-test}/build.xml" inheritall="false" target="jar"/>
 	</target>
 	<target name="clean" depends="-init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
@@ -279,6 +280,7 @@ Please make sure that:
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.tests.ws-test}/build.xml" inheritall="false" target="clean"/>
 	</target>
 
 	<target name="dist" depends="-init,jar">
@@ -360,21 +362,25 @@ Please make sure that:
     </target>
 
     <target name="-test-unix" unless="isWindows">
-    	<exec executable="sh" dir="test">
-    		<env key="JOLIE_HOME" file="dist/jolie" />
-    		<arg value="../dist/launchers/unix/jolie" />
-    		<arg value="test.ol" />
-    	</exec>
-    </target>
+			<exec executable="sh" dir="test">
+				<env key="JOLIE_HOME" file="dist/jolie" />
+				<arg value="../dist/launchers/unix/jolie" />
+				<arg value="-l" />
+				<arg value="extensions/private/WS-test/dist/WS-test.jar" />
+				<arg value="test.ol" />
+			</exec>
+		</target>
 
     <target name="-test-windows" if="isWindows">
-        <exec executable="cmd" dir="test">
-            <env key="JOLIE_HOME" file="dist\jolie" />
-            <arg value="/c" />
-            <arg value='..\dist\launchers\windows\jolie.bat --charset "utf-8"' />
-            <arg value="test.ol" />
-        </exec>
-    </target>
+			<exec executable="cmd" dir="test">
+				<env key="JOLIE_HOME" file="dist\jolie" />
+				<arg value="/c" />
+				<arg value='..\dist\launchers\windows\jolie.bat --charset "utf-8"' />
+				<arg value="/l" />
+				<arg value="extensions\private\WS-test\dist\WS-test.jar" />
+				<arg value="test.ol" />
+			</exec>
+		</target>
 
     <target name="test"><!-- depends="dist"> -->
     	<antcall target="-test-unix" />
