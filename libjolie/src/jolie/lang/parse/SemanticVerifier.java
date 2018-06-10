@@ -277,7 +277,7 @@ public class SemanticVerifier implements OLVisitor
 	private void error( OLSyntaxNode node, String message )
 	{
 		valid = false;
-		semanticException.addSemanticError( node, message);		
+		semanticException.addSemanticError( node, message );		
 	}
 
 	private void resolveLazyLinks()

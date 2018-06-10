@@ -123,12 +123,23 @@ import jolie.util.Range;
  *
  * @author Fabrizio Montesi
  */
-public class FormatterVisitor implements OLVisitor
+public class Formatter implements OLVisitor
 {
+	public static void format( Program program, PrettyPrinter printer )
+		throws FormattingException
+	{
+		Formatter formatter = new Formatter( printer );
+		formatter.prettyPrint( program );
+		if ( !formatter.formattingException.getErrorList().isEmpty() ) {
+			throw formatter.formattingException;
+		}
+	}
+	
 	private final PrettyPrinter printer;
 	private boolean shouldPrintQuotes = true;
+	private final FormattingException formattingException = new FormattingException();
 
-	public FormatterVisitor( PrettyPrinter printer )
+	private Formatter( PrettyPrinter printer )
 	{
 		this.printer = printer;
 	}
@@ -140,7 +151,7 @@ public class FormatterVisitor implements OLVisitor
 		}
 	}
 	
-	private void prettyPrint( Scanner.TokenType tokenType )
+	private void prettyPrint( Scanner.TokenType tokenType, OLSyntaxNode n )
 	{
 		String s = "";
 		switch( tokenType ) {
@@ -157,10 +168,15 @@ public class FormatterVisitor implements OLVisitor
 			s = ">";
 			break;
 		default:
-			JolieFormatter.LOGGER.severe( "Could not print " + tokenType.toString() );
+			error( n, "Could not print " + tokenType.toString() );
 			break;
 		}
 		printer.write( s );
+	}
+	
+	private void error( OLSyntaxNode node, String message )
+	{
+		formattingException.addError( node, message );		
 	}
 	
 	@Override
@@ -406,7 +422,7 @@ public class FormatterVisitor implements OLVisitor
 	{
 		prettyPrint( n.leftExpression() );
 		printer.write( " " );
-		prettyPrint( n.opType() );
+		prettyPrint( n.opType(), n );
 		printer.write( " " );
 		prettyPrint( n.rightExpression() );
 	}

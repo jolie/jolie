@@ -72,11 +72,13 @@ public class JolieFormatter
 			}
 			try( Writer sourceWriter = Files.newBufferedWriter( sourceFile ) ) {
 				PrettyPrinter printer = new PrettyPrinter( sourceWriter );
-				new FormatterVisitor( printer ).visit( program );
+				Formatter.format( program, printer );
 				printer.flush();
 			}
 		} catch( IOException | ParserException e ) {
 			LOGGER.log( Level.SEVERE, "an exception was thrown", e );
+		} catch( FormattingException e ) {
+			LOGGER.severe( e.getErrorMessages() );
 		}
 	}
 }
