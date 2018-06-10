@@ -58,6 +58,11 @@ java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libj
 java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2java.jar;%JOLIE_HOME%\lib\jolie-gwt.jar joliex.java.Jolie2Java -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %*
 		</echo>
 
+		<echo message="Creating jofmt Windows launcher script..." />
+		<echo file="${dist.launchers.windows}/jofmt.bat">@echo off
+java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jofmt.jar joliex.formatter.JolieFormatter %*
+		</echo>
+
 		<echo message="Creating Jolie2Surface Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie2surface.bat">@echo off
 java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2surface.jar joliex.surface.GetSurface -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %*
@@ -105,6 +110,13 @@ jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %*
 java -ea:jolie... -ea:joliex... -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -cp $JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/jolie.jar jolie.Jolie -l ./lib/*:$JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie" perm="a+x"/>
+
+		<echo message="Creating jofmt Unix launcher script..." />
+		<echo file="${dist.launchers.unix}/jofmt">#!/bin/sh
+
+java -ea:jolie... -ea:joliex... -cp $JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jofmt.jar joliex.formatter.JolieFormatter "$@"
+		</echo>
+		<chmod file="${dist.launchers.unix}/jofmt" perm="a+x"/>
 
 		<echo message="Creating MetaService Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/metaservice">#!/bin/sh
@@ -243,6 +255,7 @@ Please make sure that:
 		<ant antfile="${project.jolie2dummy}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2surface}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2wsdl}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jofmt}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="jar"/>
@@ -256,6 +269,7 @@ Please make sure that:
 		<ant antfile="${project.jolie-ssl}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-java}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jofmt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.auto}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="clean"/>
@@ -333,6 +347,7 @@ Please make sure that:
 				<file file="${project.jolie2surface}/dist/jolie2surface.jar"/>
 				<file file="${project.jolie2dummy}/dist/jolie2dummy.jar"/>
 				<file file="${project.jolie2wsdl}/dist/jolie2wsdl.jar"/>
+				<file file="${project.jofmt}/dist/jofmt.jar"/>
 				<file file="${project.joliec}/dist/joliec.jar"/>
 				<file file="${project.jolie2java}/dist/jolie2java.jar"/>
 				<file file="${project.joliedoc}/dist/joliedoc.jar"/>

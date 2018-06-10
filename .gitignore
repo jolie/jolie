@@ -36,3 +36,4 @@ build/
 /lib/xsom/build
 /jolie/.idea/workspace.xml
 /jolie/.idea/tasks.xml
+/tools/jofmt/nbproject/private/
