@@ -36,9 +36,9 @@ public class SynchronizedProcess implements Process
 		this.process = process;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
-		return new SynchronizedProcess( id, process.clone( reason ) );
+		return new SynchronizedProcess( id, process.copy( reason ) );
 	}
 	
 	public void run()

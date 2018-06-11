@@ -45,13 +45,13 @@ public class SpawnProcess implements Process
 		this.process = process;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new SpawnProcess(
 					(VariablePath) indexPath.cloneExpression( reason ),
 					upperBound.cloneExpression( reason ),
 					( inPath == null ) ? null : (VariablePath) inPath.cloneExpression( reason ),
-					process.clone( reason )
+					process.copy( reason )
 				);
 	}
 	

@@ -19,7 +19,11 @@
 
 package jolie.process;
 
-import jolie.runtime.*;
+import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
 import jolie.util.Pair;
 
 public class ForEachArrayItemProcess implements Process
@@ -37,12 +41,12 @@ public class ForEachArrayItemProcess implements Process
 		this.process = process;
 	}
 
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new ForEachArrayItemProcess(
-			keyPath.clone(),
-			targetPath.clone(),
-			process.clone( reason )
+			keyPath.copy(),
+			targetPath.copy(),
+			process.copy( reason )
 		);
 	}
 
@@ -51,7 +55,7 @@ public class ForEachArrayItemProcess implements Process
 	{
 		ValueVector targetVector = targetPath.getValueVector();
 		int size = targetVector.size();
-		VariablePath target = targetPath.clone();
+		VariablePath target = targetPath.copy();
 		int length = target.path().length;
 
 		for( int i = 0; i < size; i++ ) {
@@ -61,6 +65,7 @@ public class ForEachArrayItemProcess implements Process
 		}
 	}
 
+	@Override
 	public boolean isKillable()
 	{
 		return true;

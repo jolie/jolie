@@ -76,12 +76,12 @@ public class NDChoiceProcess implements Process
 		return inputOperationsMap;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
 		int i = 0;
 		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {
-			b[ i++ ] = new Pair< InputOperationProcess, Process >( pair.key(), pair.value().clone( reason ) );
+			b[ i++ ] = new Pair< InputOperationProcess, Process >( pair.key(), pair.value().copy( reason ) );
 		}
 		return new NDChoiceProcess( b );
 	}

@@ -37,7 +37,7 @@ public class ExitProcess implements Process
 	}
 	
 	@Override
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return getInstance();
 	}

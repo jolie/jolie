@@ -37,7 +37,7 @@ public class InstallProcess implements Process
 		this.pairs = pairs;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new InstallProcess( pairs );
 	}
@@ -46,7 +46,7 @@ public class InstallProcess implements Process
 	{
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Pair< String, Process > pair : pairs ) {
-			final Process handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
+			final Process handler = pair.value().copy( new HandlerInstallationReason( pair.key() ) );
 			if ( pair.key() == null ) {
 				ethread.installCompensation( handler );
 			} else {

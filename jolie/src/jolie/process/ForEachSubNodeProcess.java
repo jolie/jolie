@@ -42,12 +42,12 @@ public class ForEachSubNodeProcess implements Process
 		this.process = process;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new ForEachSubNodeProcess(
 					(VariablePath) keyPath.cloneExpression( reason ),
 					(VariablePath) targetPath.cloneExpression( reason ),
-					process.clone( reason )
+					process.copy( reason )
 				);
 	}
 	

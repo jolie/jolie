@@ -44,7 +44,7 @@ public class CallProcess implements Process
 		this.definitionName = definitionName;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new CallProcess( definitionName );
 	}

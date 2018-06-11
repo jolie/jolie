@@ -67,14 +67,14 @@ public class SolicitResponseProcess implements Process
 		this.types = types;
 	}
 
-	public Process clone( TransformationReason reason )
+	public Process copy( TransformationReason reason )
 	{
 		return new SolicitResponseProcess(
 					operationId,
 					outputPort,
 					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
-					( installProcess == null ) ? null : installProcess.clone( reason ),
+					( installProcess == null ) ? null : installProcess.copy( reason ),
 					types
 				);
 	}
