@@ -66,16 +66,22 @@ public class AutoListenerFactory extends CommListenerFactory
 		}
 
 		AutoHelper.assertIOException( location == null, "internal error: location is null" );
-		AutoHelper.assertIOException( location.equals( Constants.LOCAL_LOCATION_KEYWORD ), "autoconf does not support local locations" );
+		//AutoHelper.assertIOException( location.equals( Constants.LOCAL_LOCATION_KEYWORD ), "autoconf does not support local locations" );
 		
-		try {
-			URI uri = new URI( location );
+		if ( location.equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+			interpreter.commCore().addLocalInputPort( inputPort );
 			inputPort.setLocation( location );
-			CommListenerFactory factory = interpreter.commCore().getCommListenerFactory( uri.getScheme() );
-			Helpers.condThrow( factory == null, new UnsupportedCommMediumException( uri.getScheme() ) );
-			return factory.createListener( interpreter, protocolFactory, inputPort );
-		} catch( URISyntaxException e ) {
-			throw new IOException( e );
+			return interpreter.commCore().localListener();
+		} else {
+			try {
+				URI uri = new URI( location );
+				inputPort.setLocation( location );
+				CommListenerFactory factory = interpreter.commCore().getCommListenerFactory( uri.getScheme() );
+				Helpers.condThrow( factory == null, new UnsupportedCommMediumException( uri.getScheme() ) );
+				return factory.createListener( interpreter, protocolFactory, inputPort );
+			} catch( URISyntaxException e ) {
+				throw new IOException( e );
+			}
 		}
 	}
 }
