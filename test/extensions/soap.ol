@@ -23,10 +23,10 @@
 include "../AbstractTestUnit.iol"
 include "console.iol"
 
-include "private/weatherService.iol"
 include "private/WS-test/lib/WS-testService.iol"
 
-define testLocally {
+define doTest
+{
 	loadLocalService;
 	start@CalcServiceJoliePort( "http://localhost:14000/" )();
 	req.x = 6;
@@ -40,23 +40,4 @@ define testLocally {
 		throw( TestFailed, "Wrong response from the SOAP Service" )
 	};
 	close@CalcServiceJoliePort()()
-}
-
-define doTest
-{
-	scope( testRemoteServe )
-	{
-		install( IOException => 
-			print@Console( "Couldn't find the SOAP server, testing locally\n\t\t\t" )(); 
-			testLocally
-			);
-		with( request ) {
-			.CityName = "Bolzano";
-			.CountryName = "Italy"
-		};
-		GetWeather@GlobalWeatherSoap( request )( response );
-		if ( !is_defined( response.GetWeatherResult ) ) {
-			throw( TestFailed, "No webservice response" )
-		}
-	}
 }
