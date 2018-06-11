@@ -365,8 +365,6 @@ Please make sure that:
 			<exec executable="sh" dir="test">
 				<env key="JOLIE_HOME" file="dist/jolie" />
 				<arg value="../dist/launchers/unix/jolie" />
-				<arg value="-l" />
-				<arg value="extensions/private/WS-test/dist/WS-test.jar" />
 				<arg value="test.ol" />
 			</exec>
 		</target>
@@ -376,8 +374,6 @@ Please make sure that:
 				<env key="JOLIE_HOME" file="dist\jolie" />
 				<arg value="/c" />
 				<arg value='..\dist\launchers\windows\jolie.bat --charset "utf-8"' />
-				<arg value="/l" />
-				<arg value="extensions\private\WS-test\dist\WS-test.jar" />
 				<arg value="test.ol" />
 			</exec>
 		</target>

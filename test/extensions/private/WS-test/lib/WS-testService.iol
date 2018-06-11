@@ -1,5 +1,4 @@
-include "exec.iol"
-include "time.iol"
+include "runtime.iol"
 
 type RequestType:void {
   .x?:int
@@ -26,11 +25,15 @@ outputPort CalcServicePort {
 }
 
 outputPort CalcServiceJoliePort { 
-  RequestResponse: 
-    start( string )( void ), 
+  RequestResponse:
+    start( string )( void ),
     close( void )( void ) 
 }
 
-embedded {
-  Java: "ws.test.WSTest" in CalcServiceJoliePort
+define loadLocalService
+{
+  loadLibrary@Runtime( "extensions/private/WS-test/dist/WS-test.jar" )();
+  loadEmbeddedService@Runtime
+    ( { .filepath = "ws.test.WSTest", .type = "Java" } )
+    ( CalcServiceJoliePort.location )
 }

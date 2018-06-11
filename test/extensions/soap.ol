@@ -27,6 +27,7 @@ include "private/weatherService.iol"
 include "private/WS-test/lib/WS-testService.iol"
 
 define testLocally {
+	loadLocalService;
 	start@CalcServiceJoliePort( "http://localhost:14000/" )();
 	req.x = 6;
 	req.y = 11;
