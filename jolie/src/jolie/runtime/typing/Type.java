@@ -391,9 +391,17 @@ public abstract class Type implements Cloneable
 	{
 		final Type copy = t1.copy();
 		if ( t2 instanceof TypeImpl == false ) {
+			if ( t2 instanceof TypeLink ) {
+				// extension supports one level of link redirection by now. To be extended for supporting type recursion in general
+				TypeLink tl = (TypeLink) t2;
+				if ( tl.linkedType instanceof TypeImpl ) {
+					copy.extend( (TypeImpl) tl.linkedType );
+				}
+			}
 			throw new UnsupportedOperationException( "type links and choices are not supported in type extenders yet" );
+		} else {
+			copy.extend( (TypeImpl) t2 );
 		}
-		copy.extend( (TypeImpl) t2 );
 		return copy;
 	}
 
@@ -457,7 +465,7 @@ public abstract class Type implements Cloneable
 		protected Type copy()
 		{
 			final TypeLink copy = new TypeLink( linkedTypeName, cardinality );
-			copy.setLinkedType( linkedType.copy() );
+			copy.setLinkedType( linkedType );
 			return copy;
 		}
 

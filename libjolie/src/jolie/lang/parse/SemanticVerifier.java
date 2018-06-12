@@ -545,12 +545,12 @@ public class SemanticVerifier implements OLVisitor
 								opDecl instanceof OneWayOperationDeclaration
 								? ((OneWayOperationDeclaration)opDecl).requestType()
 								: ((RequestResponseOperationDeclaration)opDecl).requestType();
-							if ( requestType instanceof TypeInlineDefinition == false ) {
+							/*if ( requestType instanceof TypeInlineDefinition == false ) {
 								error( n, "input port " + n.id()
 									+ " is trying to extend the type of operation " + opDecl.id()
 									+ " in output port " + outputPort.id()
 									+ " but such operation has an unsupported type structure (type reference or type choice)" );
-							} else if ( ((TypeInlineDefinition)requestType).untypedSubTypes() ) {
+							} */if ( requestType instanceof TypeInlineDefinition && ((TypeInlineDefinition)requestType).untypedSubTypes() ) {
 								error( n,
 									"input port " + n.id()
 									+ " is trying to extend the type of operation " + opDecl.id()
