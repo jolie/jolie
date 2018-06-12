@@ -555,12 +555,10 @@ public class CommandLineParser implements Closeable
 						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + '/' + jarPath + "!/" ) );
 					}
 				}
-			} else {
+			} else if ( path.contains( ":" ) ) { // Try to avoid unnecessary MalformedURLExceptions, filling up the stack trace eats time.
 				try {
 					urls.add( new URL( path ) );
-				} catch( MalformedURLException e ) {
-//					e.printStackTrace();
-				}
+				} catch( MalformedURLException e ) {}
 			}
 		}
 		urls.add( new URL( "file:/" ) );
