@@ -38,13 +38,13 @@ RequestResponse:
 
 interface MyInterface {
   RequestResponse:
-    test( MyFirstType )( MyFirstType )
+    testInterfaceExtender( MyFirstType )( MyFirstType )
 }
 
 
 interface OtherInterface {
   RequestResponse:
-    test2( MyMessageType )( MyFirstType )
+    test2InterfaceExtender( MyMessageType )( MyFirstType )
 }
 
 
@@ -57,4 +57,8 @@ inputPort MyPort {
   Protocol: sodep
   Interfaces: MyInterface
   Aggregates: MyOPort with InterfaceExtender
+}
+
+define doTest {
+  nullProcess 
 }
