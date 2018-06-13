@@ -43,14 +43,8 @@ class TypeImpl extends Type
 	) {
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
-		if ( undefinedSubTypes ) {
-			this.subTypes = null;
-		} else {
-			this.subTypes = subTypes;
-		}
+		this.subTypes = undefinedSubTypes ? null : subTypes;
 	}
-	
-
 	
 	@Override
 	public Type findSubType( String key )
@@ -69,12 +63,10 @@ class TypeImpl extends Type
 		return subTypes;
 	}
 	
-
 	protected NativeType nativeType()
 	{
 		return nativeType;
 	}
-	
 	
 	@Override
 	public void cutChildrenFromValue( Value value )
@@ -179,55 +171,63 @@ class TypeImpl extends Type
 	{
 		if ( checkNativeType( value, nativeType ) == false ) {
 			// ANY is not handled, because checkNativeType returns true for it anyway
-			if ( nativeType == NativeType.DOUBLE ) {
+			switch( nativeType ) {
+			case DOUBLE:
 				try {
 					value.setValue( value.doubleValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.INT ) {
+				break;
+			case INT:
 				try {
 					value.setValue( value.intValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.LONG ) {
+				break;
+			case LONG:
 				try {
 					value.setValue( value.longValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.BOOL ) {
+				break;
+			case BOOL:
 				try {
 					value.setValue( value.boolValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.STRING ) {
+				break;
+			case STRING:
 				try {
 					value.setValue( value.strValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.VOID ) {
+				break;
+			case VOID:
 				if ( value.valueObject() != null ) {
 					throw new TypeCastingException(
 						"Expected " + NativeType.VOID.id() + ", found " +
-						value.valueObject().getClass().getSimpleName() +
-						": " + pathBuilder.toString()
+							value.valueObject().getClass().getSimpleName() +
+							": " + pathBuilder.toString()
 					);
 				}
-			} else if ( nativeType == NativeType.RAW ) {
+				break;
+			case RAW:
 				try {
 					value.setValue( value.byteArrayValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
-			} else {
+				break;
+			default:
 				throw new TypeCastingException(
 					"Expected " + nativeType.id() + ", found " +
-					value.valueObject().getClass().getSimpleName() +
-					": " + pathBuilder.toString()
+						value.valueObject().getClass().getSimpleName() +
+						": " + pathBuilder.toString()
 				);
 			}
 		}
@@ -317,12 +317,14 @@ class TypeChoice extends Type
 		}
 		
 	}
-	
-	protected Type getLeft() {
+
+	protected Type left()
+	{
 		return left;
 	}
-	
-	protected Type getRight() {
+
+	protected Type right()
+	{
 		return right;
 	}
 }
@@ -355,66 +357,80 @@ public abstract class Type implements Cloneable
 		return new TypeChoice( cardinality, left, right );
 	}
 	
+	/**
+	 * Returns a type that extends t1 with t2.
+	 * @param t1
+	 * @param t2
+	 * @return a new type that extends t1 with t2.
+	 * @throws UnsupportedOperationException 
+	 */
 	public static Type extend( Type t1, Type t2 )
 		throws UnsupportedOperationException
 	{
-		Type returnType = null;
+		final Type returnType;
 		if ( t2 instanceof TypeImpl ) {
 			returnType = extend( t1, (TypeImpl) t2 );
 		} else if ( t2 instanceof TypeChoice ) {
 			returnType = extend( t1, (TypeChoice) t2 );
 		} else if ( t2 instanceof TypeLink ) {
 			returnType = extend( t1, (TypeLink) t2 );
+		} else {
+			throw new UnsupportedOperationException( "extension not supported between " + t1.getClass().getSimpleName() + " and " + t2.getClass().getSimpleName() );
 		}
 		return returnType;
 	}
-	
-	private static Type extend( Type t1, TypeImpl t2 ) {
-		Type returnType = null;
+
+	private static Type extend( Type t1, TypeImpl t2 )
+	{
+		final Type returnType;
 		if ( t1 instanceof TypeImpl ) {
-			returnType = extend( (TypeImpl)  t1, t2 );
+			returnType = extend( (TypeImpl) t1, t2 );
 		} else if ( t1 instanceof TypeChoice ) {
 			returnType = extend( (TypeChoice) t1, t2 );
 		} else if ( t1 instanceof TypeLink ) {
 			returnType = extend( (TypeLink) t1, t2 );
+		} else {
+			throw new UnsupportedOperationException( "extension not supported between " + t1.getClass().getSimpleName() + " and " + t2.getClass().getSimpleName() );
 		}
 		return returnType;
 	}
-	
-	private static Type extend( TypeLink t1, TypeImpl t2 ) {
+
+	private static Type extend( TypeLink t1, TypeImpl t2 )
+	{
 		return extend( t1.linkedType, t2 );
 	}
-	
-		private static Type extend( TypeChoice t1, TypeImpl t2 ) {
-		return new TypeChoice(t1.cardinality(), extend( t1.getLeft(), t2), extend( t1.getRight(), t2));
+
+	private static Type extend( TypeChoice t1, TypeImpl t2 )
+	{
+		return new TypeChoice( t1.cardinality(), extend( t1.left(), t2 ), extend( t1.right(), t2 ) );
 	}
 
-	private static Type extend( Type t1, TypeLink t2 ) {
+	private static Type extend( Type t1, TypeLink t2 )
+	{
 		return extend( t1, t2.linkedType );
 	}
-	
 
-	private static Type extend( Type t1, TypeChoice t2 ) {
-		return new TypeChoice(t1.cardinality(), extend( t1, t2.getLeft()), extend( t1, t2.getRight()));
+	private static Type extend( Type t1, TypeChoice t2 )
+	{
+		return new TypeChoice( t1.cardinality(), extend( t1, t2.left() ), extend( t1, t2.right() ) );
 	}
-	
-		private static Type extend( TypeImpl t1, TypeImpl t2 ) {
-		
+
+	private static Type extend( TypeImpl t1, TypeImpl t2 )
+	{
 		NativeType nativeType = t1.nativeType();
 		Range cardinality = t1.cardinality();
 		Map< String, Type > subTypes = new HashMap<>();
-		t1.subTypes().entrySet().stream().forEach( ( entry ) -> {
-			subTypes.put( entry.getKey(), entry.getValue() );
-		} );
+		t1.subTypes().entrySet().forEach( entry ->
+			subTypes.put( entry.getKey(), entry.getValue() )
+		);
 		if ( t2 != null ) {
-			t2.subTypes().entrySet().stream().forEach( ( entry ) -> {
-				subTypes.put( entry.getKey(), entry.getValue() );
-			} );
+			t2.subTypes().entrySet().forEach( entry ->
+				subTypes.put( entry.getKey(), entry.getValue() )
+			);
 		}
 		return create( nativeType, cardinality, false, subTypes );
 	}
-	
-	
+
 	public void check( Value value )
 		throws TypeCheckingException
 	{
@@ -452,17 +468,6 @@ public abstract class Type implements Cloneable
 		{
 			return linkedType.findSubType( key );
 		}
-		
-		/* public Map< String, Type > subTypes()
-		{
-			return linkedType.subTypes();
-		}
-		
-		public NativeType nativeType()
-		{
-			return linkedType.nativeType();
-		} */
-		
 
 		public String linkedTypeName()
 		{
