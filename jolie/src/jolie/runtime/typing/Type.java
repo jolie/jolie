@@ -34,7 +34,7 @@ class TypeImpl extends Type
 	private final Range cardinality;
 	private final NativeType nativeType;
 	private final Map< String, Type > subTypes;
-
+	
 	public TypeImpl(
 		NativeType nativeType,
 		Range cardinality,
@@ -44,29 +44,30 @@ class TypeImpl extends Type
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
 		this.subTypes = undefinedSubTypes ? null : subTypes;
-
+	}
+	
 	@Override
 	public Type findSubType( String key )
 	{
 		return ( subTypes != null ) ? subTypes.get( key ) : null;
 	}
-
+		
 	@Override
 	public Range cardinality()
 	{
 		return cardinality;
 	}
-
+	
 	protected Map< String, Type > subTypes()
 	{
 		return subTypes;
 	}
-
+	
 	protected NativeType nativeType()
 	{
 		return nativeType;
 	}
-
+	
 	@Override
 	public void cutChildrenFromValue( Value value )
 	{
@@ -87,7 +88,7 @@ class TypeImpl extends Type
 				castSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
 			}
 		}
-
+		
 		return value;
 	}
 
@@ -130,7 +131,7 @@ class TypeImpl extends Type
 				checkSubType( entry.getKey(), entry.getValue(), value, pathBuilder );
 				pathBuilder.setLength( l );
 			}
-
+			
 			// TODO make this more performant
 			for( String childName : value.children().keySet() ) {
 				if ( subTypes.containsKey( childName ) == false ) {
@@ -252,7 +253,7 @@ class TypeImpl extends Type
 		case RAW:
 			return value.isByteArray();
 		}
-
+		
 		return false;
 	}
 }
@@ -269,15 +270,15 @@ class TypeChoice extends Type
 		this.left = left;
 		this.right = right;
 	}
-
+	
 	@Override
 	public Type findSubType( String key )
 	{
 		Type ret = left.findSubType( key );
 		return ( ret != null ) ? ret : right.findSubType( key );
 	}
-
-
+	
+	
 	@Override
 	public void cutChildrenFromValue( Value value )
 	{
@@ -314,7 +315,7 @@ class TypeChoice extends Type
 		} catch( TypeCastingException e ) {
 			return right.cast( value );
 		}
-
+		
 	}
 
 	protected Type left()
@@ -350,18 +351,18 @@ public abstract class Type implements Cloneable
 	{
 		return new TypeLink( linkedTypeName, cardinality );
 	}
-
+	
 	public static Type createChoice( Range cardinality, Type left, Type right )
 	{
 		return new TypeChoice( cardinality, left, right );
 	}
-
+	
 	/**
 	 * Returns a type that extends t1 with t2.
 	 * @param t1
 	 * @param t2
 	 * @return a new type that extends t1 with t2.
-	 * @throws UnsupportedOperationException
+	 * @throws UnsupportedOperationException 
 	 */
 	public static Type extend( Type t1, Type t2 )
 		throws UnsupportedOperationException
@@ -430,40 +431,6 @@ public abstract class Type implements Cloneable
 		return create( nativeType, cardinality, false, subTypes );
 	}
 
-	private static Type extend( TypeLink t1, TypeImpl t2 ) {
-		return extend( t1.linkedType, t2 );
-	}
-
-		private static Type extend( TypeChoice t1, TypeImpl t2 ) {
-		return new TypeChoice(t1.cardinality(), extend( t1.getLeft(), t2), extend( t1.getRight(), t2));
-	}
-
-	private static Type extend( Type t1, TypeLink t2 ) {
-		return extend( t1, t2.linkedType );
-	}
-
-
-	private static Type extend( Type t1, TypeChoice t2 ) {
-		return new TypeChoice(t1.cardinality(), extend( t1, t2.getLeft()), extend( t1, t2.getRight()));
-	}
-
-		private static Type extend( TypeImpl t1, TypeImpl t2 ) {
-
-		NativeType nativeType = t1.nativeType();
-		Range cardinality = t1.cardinality();
-		Map< String, Type > subTypes = new HashMap<>();
-		t1.subTypes().entrySet().stream().forEach( ( entry ) -> {
-			subTypes.put( entry.getKey(), entry.getValue() );
-		} );
-		if ( t2 != null ) {
-			t2.subTypes().entrySet().stream().forEach( ( entry ) -> {
-				subTypes.put( entry.getKey(), entry.getValue() );
-			} );
-		}
-		return create( nativeType, cardinality, false, subTypes );
-	}
-
-
 	public void check( Value value )
 		throws TypeCheckingException
 	{
@@ -495,7 +462,7 @@ public abstract class Type implements Cloneable
 			this.linkedTypeName = linkedTypeName;
 			this.cardinality = cardinality;
 		}
-
+		
 		@Override
 		public Type findSubType( String key )
 		{
@@ -511,7 +478,7 @@ public abstract class Type implements Cloneable
 		{
 			this.linkedType = linkedType;
 		}
-
+		
 		@Override
 		public void cutChildrenFromValue( Value value )
 		{
