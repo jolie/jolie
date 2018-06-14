@@ -23,19 +23,12 @@
 include "../AbstractTestUnit.iol"
 include "console.iol"
 
-include "private/weatherService.iol"
-include "private/WS-testService.iol"
+include "private/WS-test/lib/WS-testService.iol"
 
-define testLocally {
-	with ( command ){
-		.args[#.args] = "-jar";
-		.args[#.args] = "extensions/private/WS-test.jar";
-		.args[#.args] = "http://localhost:14000/";
-		.waitFor = 0
-	};
-	command = "java";
-	exec@Exec( command )();
-	sleep@Time( 500 )();
+define doTest
+{
+	loadLocalService;
+	start@CalcServiceJoliePort( "http://localhost:14000/" )();
 	req.x = 6;
 	req.y = 11;
 	sum@CalcServicePort( req )( res );
@@ -46,24 +39,5 @@ define testLocally {
 	if ( res.return != 6*11 ) {
 		throw( TestFailed, "Wrong response from the SOAP Service" )
 	};
-	close@CalcServicePort()()
-}
-
-define doTest
-{
-	scope( testRemoteServe )
-	{
-		install( IOException => 
-			print@Console( "Couldn't find the SOAP server, testing locally\n\t\t\t" )(); 
-			testLocally
-			);
-		with( request ) {
-			.CityName = "Bolzano";
-			.CountryName = "Italy"
-		};
-		GetWeather@GlobalWeatherSoap( request )( response );
-		if ( !is_defined( response.GetWeatherResult ) ) {
-			throw( TestFailed, "No webservice response" )
-		}
-	}
+	close@CalcServiceJoliePort()()
 }
