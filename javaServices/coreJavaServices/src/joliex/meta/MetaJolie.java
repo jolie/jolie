@@ -985,6 +985,9 @@ public class MetaJolie extends JavaService
 		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "string_type" ).size() > 0 ) {
 			response.setValue( message.strValue() );
 		}
+		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "bool_type" ).size() > 0 ) {
+			response.setValue( message.boolValue() );
+		}
 		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "int_type" ).size() > 0 ) {
 			response.setValue( message.intValue() );
 		}
