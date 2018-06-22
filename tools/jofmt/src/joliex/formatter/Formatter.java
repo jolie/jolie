@@ -158,6 +158,9 @@ public class Formatter implements OLVisitor
 		case EQUAL:
 			s = "==";
 			break;
+		case NOT:
+			s = "!";
+			break;
 		case NOT_EQUAL:
 			s = "!=";
 			break;
@@ -166,6 +169,12 @@ public class Formatter implements OLVisitor
 			break;
 		case RANGLE:
 			s = ">";
+			break;
+		case LPAREN:
+			s = "(";
+			break;
+		case RPAREN:
+			s = ")";
 			break;
 		default:
 			error( n, "Could not print " + tokenType.toString() );
@@ -242,6 +251,15 @@ public class Formatter implements OLVisitor
 		prettyPrint( n.variablePath() );
 		printer.write( " = " );
 		prettyPrint( n.expression() );
+	}
+	
+	@Override
+	public void visit( NotExpressionNode n )
+	{
+		prettyPrint( Scanner.TokenType.NOT, n );
+		prettyPrint( Scanner.TokenType.LPAREN, n );
+		prettyPrint( n.expression() );
+		prettyPrint( Scanner.TokenType.RPAREN, n );
 	}
 	
 	public void visit( TypeChoiceDefinition n )	{}
@@ -409,14 +427,6 @@ public class Formatter implements OLVisitor
 			prettyPrint( n.children().get( i ) );
 		}
 	}
-
-	
-	public void visit( NotExpressionNode n )
-	{
-		// TODO Auto-generated method stub
-
-	}
-
 	
 	public void visit( CompareConditionNode n )
 	{
