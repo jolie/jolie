@@ -105,7 +105,9 @@ public class SchedulerJavaService extends JavaService
 	}
 	
 	@RequestResponse
-	public void deleteCronJob( String jobName, String groupName ) {
+	public Value deleteCronJob( Value request ) {
+		String jobName = request.getFirstChild( "jobName" ).strValue();
+		String groupName = request.getFirstChild( "groupName" ).strValue();
 		try {
 			if ( scheduler.checkExists(triggerKey( jobName,  groupName )) ) {
 				scheduler.unscheduleJob(triggerKey( jobName,  groupName ));
@@ -114,7 +116,7 @@ public class SchedulerJavaService extends JavaService
 		} catch( SchedulerException ex ) {
 			Logger.getLogger(SchedulerJavaService.class.getName() ).log( Level.SEVERE, null, ex );
 		}
-		
+		return Value.create();
 	}
 
 }
