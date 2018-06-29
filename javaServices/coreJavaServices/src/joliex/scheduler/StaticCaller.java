@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2011 by F. Bullini <fbullini@italianasoftware.com>      *
+ *   Copyright (C) by Claudio Guidi       *
+ *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,33 +19,29 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-package joliex.scheduler.impl;
+package joliex.scheduler;
 
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
-import joliex.scheduler.SchedulerService;
-import org.quartz.Job;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 
 /**
  *
- * @author Francesco Bullini
+ * @author claudio
  */
-public class JolieSchedulerDefaultJob implements Job
+public class StaticCaller
 {
-	@Override
-	public void execute( JobExecutionContext context )
-		throws JobExecutionException
-	{
-
-		JobDataMap data = context.getMergedJobDataMap();
-		String callbackOperation = data.getString( "operation" );
-		SchedulerService jsched = (SchedulerService) data.get( "javaSchedulerService" );
-		//System.out.println("callbackOperation = " + );
-		Value callbackValue = Value.create();
-		jsched.sendMessage( CommMessage.createRequest( callbackOperation, "/", callbackValue ) );
+	public static SchedulerJavaService service = null;
+	public static String operationName = "";
+	
+	public static void addService( SchedulerJavaService srv, String oName ) {
+		service = srv;
+		operationName = oName;
+	}
+	
+	public static void makeCall( String jobName, String groupName ) {
+		Value toSend = Value.create();
+		toSend.getFirstChild( "jobName" ).setValue( jobName );
+		toSend.getFirstChild( "groupName" ).setValue( groupName );
+		service.sendMessage( CommMessage.createRequest( operationName, "/", toSend));
 	}
 }

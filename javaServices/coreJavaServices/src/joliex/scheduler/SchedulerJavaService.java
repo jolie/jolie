@@ -1,0 +1,120 @@
+/***************************************************************************
+ *   Copyright (C) by Francesco Bullini, refactored by Claudio Guidi       *
+ *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+package joliex.scheduler;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jolie.runtime.AndJarDeps;
+import jolie.runtime.FaultException;
+import jolie.runtime.JavaService;
+import jolie.runtime.Value;
+import jolie.runtime.embedding.RequestResponse;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import static org.quartz.TriggerBuilder.newTrigger;
+import org.quartz.impl.StdSchedulerFactory;
+import static org.quartz.CronScheduleBuilder.cronSchedule;
+import static org.quartz.JobBuilder.newJob;
+import static org.quartz.JobKey.jobKey;
+import static org.quartz.TriggerKey.triggerKey;
+/**
+ *
+ * @author claudio guidi
+ */
+@AndJarDeps({"quartz-2.2.1.jar","quartz-jobs-2.2.1.jar","slf4j-api-1.6.6.jar","c3p0-0.9.1.1.jar"})
+public class SchedulerJavaService extends JavaService
+{
+	private Scheduler scheduler;
+	private SchedulerJavaService myself = this;
+	private String operationName = "__scheduler_callback";
+	
+	public SchedulerJavaService()
+	{
+		try {
+			StaticCaller.addService( this, operationName );
+			scheduler = StdSchedulerFactory.getDefaultScheduler();
+			scheduler.start();
+		} catch( Exception e ) {
+			e.printStackTrace();
+		}
+	}
+	
+	@RequestResponse
+	public Value setCallbackOperation( Value request ) {
+		operationName = request.getFirstChild( "operationName" ).strValue();
+		return Value.create();
+	}
+
+	@RequestResponse
+	public Value setCronJob( Value request ) throws FaultException {
+		
+		String jobName = request.getFirstChild( "jobName").strValue();
+		String groupName = request.getFirstChild( "groupName" ).strValue();
+		String seconds = request.getFirstChild( "cronSpecs" ).getFirstChild( "second" ).strValue();
+		String minutes = request.getFirstChild( "cronSpecs" ).getFirstChild( "minute" ).strValue();
+		String hours = request.getFirstChild( "cronSpecs" ).getFirstChild( "hour" ).strValue();
+		String dayOfMonth = request.getFirstChild( "cronSpecs" ).getFirstChild( "dayOfMonth" ).strValue();
+		String month = request.getFirstChild( "cronSpecs" ).getFirstChild( "month" ).strValue();
+		String dayOfWeek = request.getFirstChild( "cronSpecs" ).getFirstChild( "dayOfWeek" ).strValue();
+		String year = "";
+		if ( request.getFirstChild( "cronSpecs").getFirstChild( "year").isDefined() ) {
+			year = " " + request.getFirstChild( "cronSpecs" ).getFirstChild( "year" ).strValue();
+		}
+
+
+		JobDetail job = newJob(SchedulerJavaServiceJob.class)
+			.withIdentity(jobName, groupName).build();
+				
+		Trigger trigger = newTrigger()
+			.withIdentity( jobName, groupName )
+			.startNow().withSchedule( cronSchedule(
+				seconds + " " + minutes + " " + hours + " " + dayOfMonth + " " + month + " " + dayOfWeek + year
+			)).forJob( jobName, groupName ).build();
+		
+
+		try {
+			if ( scheduler.checkExists( trigger.getJobKey() ) ) {
+				throw new FaultException("JobAlreadyExists");
+			}
+			scheduler.scheduleJob(job, trigger);
+		} catch( SchedulerException ex ) {
+			Logger.getLogger(SchedulerJavaService.class.getName() ).log( Level.SEVERE, null, ex );
+		}
+		return Value.create();
+	}
+	
+	@RequestResponse
+	public void deleteCronJob( String jobName, String groupName ) {
+		try {
+			if ( scheduler.checkExists(triggerKey( jobName,  groupName )) ) {
+				scheduler.unscheduleJob(triggerKey( jobName,  groupName ));
+				scheduler.deleteJob(jobKey( jobName, groupName ));
+			}
+		} catch( SchedulerException ex ) {
+			Logger.getLogger(SchedulerJavaService.class.getName() ).log( Level.SEVERE, null, ex );
+		}
+		
+	}
+
+}

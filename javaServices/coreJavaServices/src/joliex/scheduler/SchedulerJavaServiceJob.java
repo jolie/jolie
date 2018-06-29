@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi <famontesi@gmail.com>          *
- *								 2018 by Claudio Guidi <cguidi@italianasoftware.com>     *
+ *   Copyright (C) by Francesco Bullini, refactored by Claudio Guidi       *
+ *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,50 +19,26 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+package joliex.scheduler;
 
-type DeleteCronJobRequest: void {
-		.jobName: string
-		.groupName: string
-}
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
-type SetCallBackOperationRequest: void {
-		.operationName: string
-}
+/**
+ *
+ * @author claudio guidi
+ */
+public class SchedulerJavaServiceJob implements org.quartz.Job
+{
 
-type SetCronJobRequest: void {
-		.jobName: string
-		.groupName: string
-		.cronSpecs: void {
-			  /* see here for creating correct specs:
-				   http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/tutorial-lesson-06.html
-					 or http://www.cronmaker.com/
-				*/
-				.second: string   		/* 0-59 */
-				.minute: string				/* 0-59 */
-				.hour: string					/* 0-23 */
-				.dayOfMonth: string		/* 1-31 */
-				.month: string				/* 0-11 */
-				.dayOfWeek: string		/* 1-7 (1=Sunday) */
-				.year?: string
-		}
-}
+	public SchedulerJavaServiceJob() 
+	{
+	}
 
+	@Override
+	public void execute( JobExecutionContext context ) throws JobExecutionException
+	{
+		StaticCaller.makeCall( context.getJobDetail().getKey().getName(), context.getJobDetail().getKey().getGroup() );
+	}
 
-interface SchedulerInterface{
-	RequestResponse:
-		deleteCronJob( DeleteCronJobRequest )( void ),
-
-		setCronJob( SetCronJobRequest )( void )
-			throws JobAlreadyExists,
-
-		setCallbackOperation( SetCallBackOperationRequest )( void )
-}
-
-outputPort SchedulerPort {
-	Interfaces: SchedulerInterface
-}
-
-embedded {
-Java:
-	"joliex.scheduler.SchedulerJavaService" in SchedulerPort
 }
