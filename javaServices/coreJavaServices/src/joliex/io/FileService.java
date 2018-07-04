@@ -434,6 +434,12 @@ public class FileService extends JavaService
 			return; // TODO: perhaps we should erase the content of the file before returning.
 		}
 		String rootName = value.children().keySet().iterator().next();
+		Value root = value.children().get( rootName ).get( 0 );
+		String rootNameSpace = "";
+		if ( root.getFirstChild( "@NameSpace").isDefined() ) {
+			rootNameSpace = root.getFirstChild( "@NameSpace").strValue();
+		}
+		
 		try {
 			XSType type = null;
 			if ( schemaFilename != null ) {
@@ -441,8 +447,10 @@ public class FileService extends JavaService
 					XSOMParser parser = new XSOMParser();
 					parser.parse( schemaFilename );
 					XSSchemaSet schemaSet = parser.getResult();
-					if ( schemaSet != null ) {
-						type = schemaSet.getElementDecl( "", rootName ).getType();
+					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
+						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
+					} else if ( schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
 					}
 				} catch( SAXException e ) {
 					throw new IOException( e );

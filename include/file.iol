@@ -45,7 +45,7 @@ type WriteFileRequest:void {
 	.content:undefined
 	.format?:string { // "text", "binary", "xml", "xml_store" (a type-annotated XML format) or "json" (defaults to "binary" if contents' base value is raw, "text" otherwise)
 		.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
-		.schema*:string
+		.schema*:string   // in order to enable root element identification in the schema, specify the namespace of the root into the subnode "@NameSpace" of the root of the value
 		.indent?:bool // if true, indentation is applied to file (default: false)
 		.encoding?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or format's default (for XML and JSON UTF-8)
 	}
