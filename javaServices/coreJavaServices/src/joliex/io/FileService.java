@@ -421,6 +421,7 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
+	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
 	private void writeXML(
 		File file, Value value,
 		boolean append,
@@ -436,8 +437,8 @@ public class FileService extends JavaService
 		String rootName = value.children().keySet().iterator().next();
 		Value root = value.children().get( rootName ).get( 0 );
 		String rootNameSpace = "";
-		if ( root.getFirstChild( "@NameSpace").isDefined() ) {
-			rootNameSpace = root.getFirstChild( "@NameSpace").strValue();
+		if ( root.hasChildren(NAMESPACE_ATTRIBUTE_NAME ) ) {
+			rootNameSpace = root.getFirstChild(  NAMESPACE_ATTRIBUTE_NAME ).strValue();
 		}
 		
 		try {
