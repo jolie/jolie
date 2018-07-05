@@ -28,13 +28,20 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSModelGroup;
 import com.sun.xml.xsom.XSModelGroupDecl;
 import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.parser.XSOMParser;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import jolie.lang.Constants;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -43,6 +50,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Utilities for interactions and transformations with XML.
@@ -53,6 +61,9 @@ public class XmlUtils
 	private static final String JOLIE_TYPE_ATTRIBUTE = "_jolie_type";
 	private static final String FORCE_ATTRIBUTE = "@ForceAttribute";
 	private static final String PREFIX = "@Prefix";
+	private static final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	
+	public static final String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance preserving types.
@@ -108,6 +119,74 @@ public class XmlUtils
 				element.setAttribute( key, vec.get( 0 ).strValue() );
 			};
 			value.getFirstChild( FORCE_ATTRIBUTE ).children().forEach( action );
+		}
+	}
+	
+	public static Transformer valueToDocument( 
+		Value value,  
+		Document document, 
+		String schemaFilename, 
+		boolean indent,
+		String doctypeSystem,
+		String encoding ) throws IOException {
+		
+	
+		String rootName = value.children().keySet().iterator().next();
+		Value root = value.children().get( rootName ).get( 0 );
+		String rootNameSpace = "";
+		if ( root.hasChildren( jolie.xml.XmlUtils.NAMESPACE_ATTRIBUTE_NAME ) ) {
+			rootNameSpace = root.getFirstChild(  jolie.xml.XmlUtils.NAMESPACE_ATTRIBUTE_NAME ).strValue();
+		}
+		
+		try {
+			XSType type = null;
+			if ( schemaFilename != null ) {
+				try {
+					XSOMParser parser = new XSOMParser();
+					parser.parse( schemaFilename );
+					XSSchemaSet schemaSet = parser.getResult();
+					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
+						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
+					} else if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
+					}
+				} catch( SAXException e ) {
+					throw new IOException( e );
+				}
+			}
+
+
+			if ( type == null ) {
+				valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					document );
+			} else {
+				valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					document,
+					type );
+			}
+			
+			Transformer transformer = transformerFactory.newTransformer();
+			if ( indent ) {
+				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+			} else {
+				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			}
+
+			if ( doctypeSystem != null ) {
+				transformer.setOutputProperty( "doctype-system", doctypeSystem );
+			}
+
+			if ( encoding != null ) {
+				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
+			}
+			
+			return transformer;
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
 		}
 	}
 	/**

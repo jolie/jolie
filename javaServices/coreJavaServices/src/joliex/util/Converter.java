@@ -22,15 +22,30 @@
 package joliex.util;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Base64;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
+import org.w3c.dom.Document;
 
 public class Converter extends JavaService
 {
+	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	
+	public Converter() {
+		super();
+		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
+	}
+	
 	@RequestResponse
 	public String rawToBase64( Value value )
 	{
@@ -89,5 +104,48 @@ public class Converter extends JavaService
 		} catch ( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
+	}
+	
+	@RequestResponse
+	public String valueToXml( Value request ) throws FaultException {
+		String schemaFilename = null;
+		Value value = request.getFirstChild( "value" );
+		if ( request.hasChildren( "schema" ) ) {
+			schemaFilename = request.getFirstChild( "schema" ).strValue();
+		}
+		boolean indent = false;
+		if ( request.hasChildren( "indent" ) ) {
+			indent = request.getFirstChild( "indent" ).boolValue();
+		}
+
+		String doctypeSystem = null;
+		if ( request.hasChildren( "doctype_system" ) ) {
+			doctypeSystem = request.getFirstChild( "doctype_system" ).strValue();
+		}
+		
+		String encoding = null;
+		if ( request.hasChildren( "encoding" ) ) {
+			encoding = request.getFirstChild( "encoding" ).strValue();
+		}
+		
+		if ( value.children().isEmpty() ) {
+			return new String(); // TODO: perhaps we should erase the content of the file before returning.
+		}
+		
+		
+		try {
+			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
+			Transformer transformer = jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename, indent, doctypeSystem, encoding );
+			
+			StringWriter outWriter = new StringWriter();
+			StreamResult result = new StreamResult( outWriter );
+			transformer.transform( new DOMSource( doc ), result );
+			StringBuffer sb = outWriter.getBuffer(); 
+			return sb.toString();
+			
+		} catch( IOException | ParserConfigurationException | TransformerException e ) {
+			throw new FaultException( "ConversionError", e.getMessage() );
+		}
+		
 	}
 }

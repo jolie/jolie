@@ -421,7 +421,7 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
-	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
+	
 	private void writeXML(
 		File file, Value value,
 		boolean append,
@@ -434,67 +434,17 @@ public class FileService extends JavaService
 		if ( value.children().isEmpty() ) {
 			return; // TODO: perhaps we should erase the content of the file before returning.
 		}
-		String rootName = value.children().keySet().iterator().next();
-		Value root = value.children().get( rootName ).get( 0 );
-		String rootNameSpace = "";
-		if ( root.hasChildren(NAMESPACE_ATTRIBUTE_NAME ) ) {
-			rootNameSpace = root.getFirstChild(  NAMESPACE_ATTRIBUTE_NAME ).strValue();
-		}
 		
 		try {
-			XSType type = null;
-			if ( schemaFilename != null ) {
-				try {
-					XSOMParser parser = new XSOMParser();
-					parser.parse( schemaFilename );
-					XSSchemaSet schemaSet = parser.getResult();
-					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
-						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
-					} else if ( schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
-						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
-					}
-				} catch( SAXException e ) {
-					throw new IOException( e );
-				}
-			}
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-
-			if ( type == null ) {
-				jolie.xml.XmlUtils.valueToDocument(
-					value.getFirstChild( rootName ),
-					rootName,
-					doc );
-			} else {
-				jolie.xml.XmlUtils.valueToDocument(
-					value.getFirstChild( rootName ),
-					rootName,
-					doc,
-					type );
-			}
-			Transformer transformer = transformerFactory.newTransformer();
-			if ( indent ) {
-				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-			} else {
-				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
-			}
-
-			if ( doctypeSystem != null ) {
-				transformer.setOutputProperty( "doctype-system", doctypeSystem );
-			}
-
-			if ( encoding != null ) {
-				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
-			}
+			Transformer transformer = jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename, indent, doctypeSystem, encoding );
 
 			try( Writer writer = new FileWriter( file, append ) ) {
 				StreamResult result = new StreamResult( writer );
 				transformer.transform( new DOMSource( doc ), result );
+				
 			}
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerException e ) {
+		} catch( ParserConfigurationException | TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
