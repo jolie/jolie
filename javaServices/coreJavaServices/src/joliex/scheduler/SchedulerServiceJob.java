@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Claudio Guidi       *
+ *   Copyright (C) by Francesco Bullini, refactored by Claudio Guidi       *
  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,27 +21,39 @@
  ***************************************************************************/
 package joliex.scheduler;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.SchedulerContext;
+import org.quartz.SchedulerException;
 
 /**
  *
- * @author claudio
+ * @author claudio guidi
  */
-public class StaticCaller
+public class SchedulerServiceJob implements org.quartz.Job
 {
-	public static SchedulerJavaService service = null;
-	public static String operationName = "";
-	
-	public static void addService( SchedulerJavaService srv, String oName ) {
-		service = srv;
-		operationName = oName;
+
+	public SchedulerServiceJob() 
+	{
 	}
-	
-	public static void makeCall( String jobName, String groupName ) {
-		Value toSend = Value.create();
-		toSend.getFirstChild( "jobName" ).setValue( jobName );
-		toSend.getFirstChild( "groupName" ).setValue( groupName );
-		service.sendMessage( CommMessage.createRequest( operationName, "/", toSend));
+
+	@Override
+	public void execute( JobExecutionContext context ) throws JobExecutionException
+	{
+		try {
+			SchedulerContext schedulerContext = context.getScheduler().getContext();
+			SchedulerService service = (SchedulerService) schedulerContext.get( "schedulerService" );
+			Value toSend = Value.create();
+			toSend.getFirstChild( "jobName" ).setValue( context.getJobDetail().getKey().getName() );
+			toSend.getFirstChild( "groupName" ).setValue( context.getJobDetail().getKey().getGroup() );
+			service.sendMessage( CommMessage.createRequest( service.getOperationName(), "/", toSend ));
+		} catch( SchedulerException ex ) {
+			Logger.getLogger(SchedulerServiceJob.class.getName() ).log( Level.SEVERE, null, ex );
+		}
 	}
+
 }

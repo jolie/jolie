@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
+import javax.xml.transform.TransformerFactory;
 import jolie.lang.Constants;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -51,8 +52,11 @@ import org.w3c.dom.NodeList;
 public class XmlUtils
 {
 	private static final String JOLIE_TYPE_ATTRIBUTE = "_jolie_type";
-	private static final String FORCE_ATTRIBUTE = "@ForceAttribute";
+	private static final String FORCE_ATTRIBUTE = "@ForcedAttributes";
 	private static final String PREFIX = "@Prefix";
+	private static final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	public static final String NAMESPACE_ATTRIBUTE_NAME = "@Namespace";
+
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance preserving types.
