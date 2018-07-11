@@ -3,6 +3,15 @@ include "converter.iol"
 include "string_utils.iol"
 include "file.iol"
 
+type MyType: void {
+  .a: void {
+    .b: string {
+        .c: string
+        .d: int
+    }
+  }
+}
+
 define doTest
 {
 	// plain strings
@@ -76,5 +85,23 @@ define doTest
 	getSize@File(1.0)(size);
 	if (size != 8) {
 		throw( TestFailed, "double invalid size" )
+	}
+	;
+	/* xml conversion  */
+	with( xml.value ) {
+		.a.b.c = "ciao";
+		.a.b.d = 2;
+		.a.b = "homer"
+	};
+	valueToXml@Converter( xml )( result.xmlString );
+	xmlStringToValue@Converter( result )( value );
+	if( !( value instanceof MyType ) ) {
+			throw( TestFailed, "xml comversion failed" )
+	}
+	;
+	if ( (xml.value.a.b.c != value.a.b.c)
+			|| (xml.value.a.b.d != value.a.b.d)
+			|| (xml.value.a.b != value.a.b) ) {
+			throw( TestFailed, "xml comversion failed" )
 	}
 }

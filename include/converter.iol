@@ -33,8 +33,15 @@ type ValueToXmlRequest: void {
 	.value: undefined
 	.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
 	.schema*:string
+	.xml_format?: bool
 	.indent?:bool // if true, indentation is applied to file (default: false)
 	.encoding?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or format's default (for XML and JSON UTF-8)
+}
+
+type XmlStringToValueRequest: void {
+	.charset?: string
+	.xml_format?: bool
+	.xmlString: string
 }
 
 interface ConverterInterface {
@@ -42,10 +49,11 @@ RequestResponse:
 	rawToBase64( raw )( string ),
 	base64ToRaw( string )( raw ) throws IOException(IOExceptionType),
 
-	// string <-> raw (byte arrays) conversion methods
+	/* string <-> raw (byte arrays) conversion methods */
 	rawToString( RawToStringRequest )( string ) throws IOException(IOExceptionType),
 	stringToRaw( StringToRawRequest )( raw ) throws IOException(IOExceptionType),
-	valueToXml( ValueToXmlRequest )( string ) throws ConversionError( string )
+	valueToXml( ValueToXmlRequest )( string ) throws ConversionError( string ),
+	xmlStringToValue( XmlStringToValueRequest )( undefined ) throws ConversionError( string )
 }
 
 outputPort Converter {
