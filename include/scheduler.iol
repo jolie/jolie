@@ -53,7 +53,7 @@ interface SchedulerInterface{
 		deleteCronJob( DeleteCronJobRequest )( void ),
 
 		setCronJob( SetCronJobRequest )( void )
-			throws JobAlreadyExists,
+			throws JobAlreadyExists( void ),
 
 		setCallbackOperation( SetCallBackOperationRequest )( void )
 }

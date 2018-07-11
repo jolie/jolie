@@ -59,11 +59,10 @@ import org.xml.sax.SAXException;
 public class XmlUtils
 {
 	private static final String JOLIE_TYPE_ATTRIBUTE = "_jolie_type";
-	private static final String FORCE_ATTRIBUTE = "@ForceAttribute";
+	private static final String FORCE_ATTRIBUTE = "@ForcedAttributes";
 	private static final String PREFIX = "@Prefix";
 	private static final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-	
-	public static final String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
+	public static final String NAMESPACE_ATTRIBUTE_NAME = "@Namespace";
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance preserving types.

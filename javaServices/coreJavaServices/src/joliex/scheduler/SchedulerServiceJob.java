@@ -21,24 +21,39 @@
  ***************************************************************************/
 package joliex.scheduler;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jolie.net.CommMessage;
+import jolie.runtime.Value;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.SchedulerContext;
+import org.quartz.SchedulerException;
 
 /**
  *
  * @author claudio guidi
  */
-public class SchedulerJavaServiceJob implements org.quartz.Job
+public class SchedulerServiceJob implements org.quartz.Job
 {
 
-	public SchedulerJavaServiceJob() 
+	public SchedulerServiceJob() 
 	{
 	}
 
 	@Override
 	public void execute( JobExecutionContext context ) throws JobExecutionException
 	{
-		StaticCaller.makeCall( context.getJobDetail().getKey().getName(), context.getJobDetail().getKey().getGroup() );
+		try {
+			SchedulerContext schedulerContext = context.getScheduler().getContext();
+			SchedulerService service = (SchedulerService) schedulerContext.get( "schedulerService" );
+			Value toSend = Value.create();
+			toSend.getFirstChild( "jobName" ).setValue( context.getJobDetail().getKey().getName() );
+			toSend.getFirstChild( "groupName" ).setValue( context.getJobDetail().getKey().getGroup() );
+			service.sendMessage( CommMessage.createRequest( service.getOperationName(), "/", toSend ));
+		} catch( SchedulerException ex ) {
+			Logger.getLogger(SchedulerServiceJob.class.getName() ).log( Level.SEVERE, null, ex );
+		}
 	}
 
 }

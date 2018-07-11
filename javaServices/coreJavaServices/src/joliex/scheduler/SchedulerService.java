@@ -43,21 +43,24 @@ import static org.quartz.TriggerKey.triggerKey;
  * @author claudio guidi
  */
 @AndJarDeps({"quartz-2.2.1.jar","quartz-jobs-2.2.1.jar","slf4j-api-1.6.6.jar","c3p0-0.9.1.1.jar"})
-public class SchedulerJavaService extends JavaService
+public class SchedulerService extends JavaService
 {
 	private Scheduler scheduler;
-	private SchedulerJavaService myself = this;
 	private String operationName = "__scheduler_callback";
 	
-	public SchedulerJavaService()
+	public SchedulerService()
 	{
 		try {
-			StaticCaller.addService( this, operationName );
 			scheduler = StdSchedulerFactory.getDefaultScheduler();
+			scheduler.getContext().put( "schedulerService", this );
 			scheduler.start();
 		} catch( Exception e ) {
 			e.printStackTrace();
 		}
+	}
+	
+	public String getOperationName() {
+		return operationName;
 	}
 	
 	@RequestResponse
@@ -83,7 +86,7 @@ public class SchedulerJavaService extends JavaService
 		}
 
 
-		JobDetail job = newJob(SchedulerJavaServiceJob.class)
+		JobDetail job = newJob(SchedulerServiceJob.class)
 			.withIdentity(jobName, groupName).build();
 				
 		Trigger trigger = newTrigger()
@@ -99,7 +102,7 @@ public class SchedulerJavaService extends JavaService
 			}
 			scheduler.scheduleJob(job, trigger);
 		} catch( SchedulerException ex ) {
-			Logger.getLogger(SchedulerJavaService.class.getName() ).log( Level.SEVERE, null, ex );
+			Logger.getLogger(SchedulerService.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 		return Value.create();
 	}
@@ -114,7 +117,7 @@ public class SchedulerJavaService extends JavaService
 				scheduler.deleteJob(jobKey( jobName, groupName ));
 			}
 		} catch( SchedulerException ex ) {
-			Logger.getLogger(SchedulerJavaService.class.getName() ).log( Level.SEVERE, null, ex );
+			Logger.getLogger(SchedulerService.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 		return Value.create();
 	}
