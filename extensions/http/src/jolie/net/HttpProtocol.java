@@ -932,7 +932,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 				src.setEncoding( charset );
 				Document doc = builder.parse( src );
-				XmlUtils.documentToValue( doc, value );
+				XmlUtils.documentToValue( doc, value, false );
 			}
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
