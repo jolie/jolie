@@ -82,7 +82,7 @@ public class XmlUtils extends JavaService
 			
 			boolean indent = false;
 			if ( request.hasChildren( "indent" ) ) {
-				indent = !request.getFirstChild( "indent" ).boolValue();
+				indent = request.getFirstChild( "indent" ).boolValue();
 			}
 			
 			boolean isApplySchema = false;
