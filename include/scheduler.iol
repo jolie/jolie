@@ -64,5 +64,5 @@ outputPort SchedulerPort {
 
 embedded {
 Java:
-	"joliex.scheduler.SchedulerJavaService" in SchedulerPort
+	"joliex.scheduler.SchedulerService" in SchedulerPort
 }
