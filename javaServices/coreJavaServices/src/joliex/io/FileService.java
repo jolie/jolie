@@ -155,7 +155,7 @@ public class FileService extends JavaService
 		JsUtils.parseJsonIntoValue( isr, value, strictEncoding );
 	}
 
-	private void readXMLIntoValue( InputStream istream, Value value, Charset charset )
+	private void readXMLIntoValue( InputStream istream, Value value, Charset charset, boolean skipMixedElement )
 		throws IOException
 	{
 		try {
@@ -166,7 +166,7 @@ public class FileService extends JavaService
 			}
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.documentToValue( doc, value );
+			jolie.xml.XmlUtils.documentToValue( doc, value, skipMixedElement );
 		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
@@ -293,6 +293,7 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		Value filenameValue = request.getFirstChild( "filename" );
+		boolean skipMixedElements = false;
 
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
@@ -301,7 +302,10 @@ public class FileService extends JavaService
 		if ( formatValue.hasChildren( "charset" ) ) {
 			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 		}
-
+		
+		if ( formatValue.hasChildren( "skipMixedElements" ) ) {
+			skipMixedElements = formatValue.getFirstChild( "skipMixedElements").boolValue();
+		}
 		final File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
 		long size;
@@ -340,7 +344,7 @@ public class FileService extends JavaService
 						break;
 					case "xml":
 						istream = new BufferedInputStream( istream );
-						readXMLIntoValue( istream, retValue, charset );
+						readXMLIntoValue( istream, retValue, charset, skipMixedElements );
 						break;
 					case "xml_store":
 						istream = new BufferedInputStream( istream );

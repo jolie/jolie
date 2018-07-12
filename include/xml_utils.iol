@@ -31,11 +31,13 @@ type XMLTransformationRequest:void {
 }
 
 type XMLToValueRequest:any {
-	.options?:void {
-		.includeAttributes?:bool // Default: false
-		.schemaUrl?:string // Default: none
-		.schemaLanguage?:string // Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
-		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
+	.options?:void {							// if no options are specified, the xml_store format will be used for processing the document
+		.includeAttributes?:bool 		// Default: false
+		.includeRoot?: bool 				// include root into the conversion
+		.schemaUrl?:string 					// Default: none
+		.schemaLanguage?:string 		// Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
+		.charset?:string 						// set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
+		.skipMixedElements?: bool 	// skip the mixed elements, default false
 	}
 }
 

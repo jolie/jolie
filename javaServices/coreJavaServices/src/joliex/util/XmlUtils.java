@@ -117,7 +117,16 @@ public class XmlUtils extends JavaService
 			}
 
 			boolean includeAttributes = false;
+			boolean skipMixedElements = false;
+			boolean includeRoot = false;
+			boolean options = false;
 			if ( request.hasChildren( "options" ) ){
+				if ( request.getFirstChild( "options").hasChildren() ) {
+					options = true;
+				}
+				if ( request.getFirstChild( "options" ).hasChildren( "includeRoot" ) ){
+					includeRoot = request.getFirstChild( "options" ).getFirstChild( "includeRoot" ).boolValue();
+				}
 				if ( request.getFirstChild( "options" ).hasChildren( "includeAttributes" ) ){
 					includeAttributes = request.getFirstChild( "options" ).getFirstChild( "includeAttributes" ).boolValue();
 				}
@@ -130,18 +139,32 @@ public class XmlUtils extends JavaService
 					Schema schema = schemaFactory.newSchema(new URL(
 					  request.getFirstChild( "options" ).getFirstChild( "schemaUrl" ).strValue()
 					));
-					documentBuilderFactory.setSchema(schema); // set schema
+					documentBuilderFactory.setSchema( schema ); // set schema
 				}
 				if ( request.getFirstChild( "options" ).hasChildren( "charset" ) ) {
 					src.setEncoding( request.getFirstChild( "options" ).getFirstChild( "charset" ).strValue() );
 				}
+				if ( request.getFirstChild( "options" ).hasChildren( "skipMixedElements" ) ) {
+					skipMixedElements = request.getFirstChild( "options" ).getFirstChild( "skipMixedElements" ).boolValue();
+				}
 			}
-
-			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-			Document doc = builder.parse( src );
-			if ( includeAttributes ) {
-				jolie.xml.XmlUtils.documentToValue( doc, result, includeAttributes );
+			
+			if ( options ) {
+				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+				dbFactory.setNamespaceAware( true );
+				DocumentBuilder builder = dbFactory.newDocumentBuilder();
+				Document doc = builder.parse( src );
+				Value value = result;
+				if ( includeRoot ) {
+					value = result.getFirstChild( doc.getDocumentElement().getLocalName() == null ? doc.getDocumentElement().getNodeName() : doc.getDocumentElement().getLocalName() );
+					if ( doc.getDocumentElement().getPrefix() != null ) {
+						value.getFirstChild( jolie.xml.XmlUtils.PREFIX ).setValue(  doc.getDocumentElement().getPrefix() );
+					}
+				}
+				jolie.xml.XmlUtils.documentToValue( doc, value, includeAttributes, skipMixedElements );
 			} else {
+				DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+				Document doc = builder.parse( src );
 				jolie.xml.XmlUtils.storageDocumentToValue( doc, result );
 			}
 			return result;

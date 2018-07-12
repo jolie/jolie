@@ -60,7 +60,7 @@ public class XmlUtils
 {
 	private static final String JOLIE_TYPE_ATTRIBUTE = "_jolie_type";
 	private static final String FORCE_ATTRIBUTE = "@ForcedAttributes";
-	private static final String PREFIX = "@Prefix";
+	public static final String PREFIX = "@Prefix";
 	private static final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 	public static final String NAMESPACE_ATTRIBUTE_NAME = "@Namespace";
 
@@ -270,9 +270,9 @@ public class XmlUtils
 		}
 	}
 
-	public static void documentToValue( Document document, Value value )
+	public static void documentToValue( Document document, Value value, boolean skipMixedElement )
 	{
-		documentToValue( document, value, true );
+		documentToValue( document, value, true, skipMixedElement );
 	}
 	
 	private static void _valueToDocument( Value value, Element element, Document doc, XSType type )
@@ -415,20 +415,22 @@ public class XmlUtils
 	 * @param document the source XML document
 	 * @param value the Value receiving the JOLIE representation of document
 	 */
-	public static void documentToValue( Document document, Value value, boolean includeAttributes )
+	public static void documentToValue( Document document, Value value, boolean includeAttributes, boolean skipMixedElements )
 	{ 
 		if ( includeAttributes ) {
 			setAttributes( value, document.getDocumentElement() );
 			elementsToSubValues(
 				value,
 				document.getDocumentElement().getChildNodes(),
-				true
+				true,
+				skipMixedElements
 			);
 		} else {
 			elementsToSubValues(
 				value,
 				document.getDocumentElement().getChildNodes(),
-				false
+				false,
+				skipMixedElements
 			);
 		}
 	}
@@ -545,11 +547,12 @@ public class XmlUtils
 		}
 	}
 
-	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes )
+	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes, boolean skipMixedElements )
 	{
 		Node node;
 		Value childValue;
 		StringBuilder builder = new StringBuilder();
+		boolean hasSubNodes = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			node = list.item( i );
 			switch( node.getNodeType() ) {
@@ -561,9 +564,13 @@ public class XmlUtils
 			case Node.ELEMENT_NODE:
 				childValue = value.getNewChild( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
 				if ( includeAttributes ){
+					if ( node.getPrefix() != null ) {
+						childValue.getFirstChild( PREFIX ).setValue( node.getPrefix() );
+					}
 					setAttributes( childValue, node );
 				}
-				elementsToSubValues( childValue, node.getChildNodes(), includeAttributes );
+				elementsToSubValues( childValue, node.getChildNodes(), includeAttributes, skipMixedElements );
+				hasSubNodes = true;
 				break;
 			case Node.CDATA_SECTION_NODE:
 			case Node.TEXT_NODE:
@@ -572,7 +579,9 @@ public class XmlUtils
 			}
 		}
 		if ( builder.length() > 0 ) {
-			value.setValue( builder.toString() );
+			if ( !(skipMixedElements && hasSubNodes) ) {
+				value.setValue( builder.toString() );
+			}
 		}
 	}
 }
