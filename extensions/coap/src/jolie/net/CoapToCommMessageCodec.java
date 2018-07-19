@@ -225,12 +225,12 @@ public class CoapToCommMessageCodec
 
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Receiving a request from a client coap "
-					+ "--> forwarding it to the comm core" );
+					+ "--> forwarding it to the comm core\n" + coapMessage );
 			}
 
 			String operationName = getOperationName( coapMessage );
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "The Operation name for the Message is: "
+				Interpreter.getInstance().logInfo( "The Operation name is: "
 					+ operationName );
 			}
 			Value v = Value.create();
@@ -710,21 +710,31 @@ public class CoapToCommMessageCodec
 
 		// 6. let resource name be empty, for each uri path option append / and the option
 		StringBuilder resource_name = new StringBuilder();
+		
 		if ( protocol.hasOperationSpecificParameter( in.operationName(),
 			Parameters.ALIAS ) ) {
-
-			for ( Value v : protocol.getOperationSpecificParameterVector( in.operationName(), Parameters.ALIAS ) ) {
+			int i = 0;
+			ValueVector aliasVector
+				= protocol.getOperationSpecificParameterVector( in.operationName(), Parameters.ALIAS );
+			for ( Value v : aliasVector ) {
 				String path = getDynamicAlias( v.strValue(), in.value() );
+				if ( !path.startsWith( "/" ) ) {
+					resource_name.append( "/" );
+				}
 				resource_name.append( path );
+				if ( i < aliasVector.size() - 1 ) {
+					resource_name.append( "/" );
+				}
+				i++;
 			}
 		} else {
-			resource_name.append( location.getPath() );
-		}
-
-		// 7. if resource name is empty append a single backslash and the operation name
-		if ( resource_name.length() == 0 ) {
-			resource_name.append( "/" );
-			resource_name.append( in.operationName() );
+			// 7. if location path is empty append a single backslash and the operation name
+			if ( location.getPath().isEmpty() ) {
+				resource_name.append( "/" );
+				resource_name.append( in.operationName() );
+			} else {
+				resource_name.append( location.getPath() );
+			}
 		}
 
 		if ( location.getQuery() != null ) {
@@ -777,7 +787,7 @@ public class CoapToCommMessageCodec
 		StringBuilder sb = new StringBuilder();
 		int i = 1;
 		List<OptionValue> options = in.getOptions( Option.URI_PATH );
-		sb.append( "/" );
+
 		for ( OptionValue option : options ) {
 			if ( i < options.size() ) {
 				sb.append( option.getDecodedValue() ).append( "/" );
@@ -791,9 +801,12 @@ public class CoapToCommMessageCodec
 			Interpreter.getInstance().logInfo( "The URI Path is: "
 				+ URIPath );
 		}
-		String operationName = protocol.getOperationFromOSC( Parameters.ALIAS, URIPath );
 
-		return operationName;
+		if ( protocol.hasOperation( URIPath ) ) {
+			return URIPath;
+		} else {
+			return protocol.getOperationFromOSC( Parameters.ALIAS, URIPath );
+		}
 	}
 
 	private String valueToPrettyString( Value request ) {

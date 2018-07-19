@@ -22,6 +22,8 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -170,5 +172,9 @@ public class CoapProtocol extends AsyncCommProtocol {
 		} // Should never happen
 		return writer.toString();
 
+	}
+
+	boolean hasOperation( String operationName ) {
+		return super.isOneWay( operationName ) || super.isRequestResponse( operationName );
 	}
 }
