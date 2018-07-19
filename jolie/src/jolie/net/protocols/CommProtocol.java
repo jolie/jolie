@@ -218,6 +218,11 @@ public abstract class CommProtocol {
 		return channel().parentPort().getInterface()
 			.oneWayOperations().containsKey( operationName );
 	}
+	
+	protected boolean isRequestResponse( String operationName ) {
+		return channel().parentPort().getInterface()
+			.requestResponseOperations().containsKey( operationName );
+	}
 
 	protected Type operationType( String on, boolean isRequest ) {
 
