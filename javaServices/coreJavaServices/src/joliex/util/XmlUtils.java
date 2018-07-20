@@ -48,7 +48,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-@AndJarDeps({"jolie-xml.jar","relaxngDatatype.jar"})
+@AndJarDeps({"jolie-xml.jar","xsom.jar","relaxngDatatype.jar"})
 public class XmlUtils extends JavaService
 {
 	private final DocumentBuilderFactory documentBuilderFactory;
