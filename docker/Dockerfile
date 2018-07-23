@@ -22,6 +22,5 @@ RUN jolie release.ol ../jolie-git
 FROM openjdk:alpine
 WORKDIR /
 COPY --from=JolieBuild /release_tools/release/jolie_installer.jar .
-RUN java -jar jolie_installer.jar -jh /usr/lib/jolie -jl /usr/bin
-RUN rm jolie_installer.jar
+RUN java -jar jolie_installer.jar -jh /usr/lib/jolie -jl /usr/bin && rm jolie_installer.jar
 ENV JOLIE_HOME /usr/lib/jolie
