@@ -128,6 +128,7 @@ public class Reflection extends JavaService
 		try {
 			OutputPort port = interpreter.getOutputPort( request.getFirstChild( "outputPort").strValue() );
 			OperationTypeDescription opDesc = port.getOperationTypeDescription( operation, resourcePath );
+			System.out.println( opDesc.toString() );
 			if ( opDesc == null ) {
 				throw new InvalidIdException( operation );
 			} else if ( opDesc instanceof RequestResponseTypeDescription ) {
