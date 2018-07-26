@@ -719,7 +719,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			userpass = encoder.encodeToString( userpass.getBytes() );
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
 			message.value().removeChild( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content()  );
-			
 		}
 	}
 
