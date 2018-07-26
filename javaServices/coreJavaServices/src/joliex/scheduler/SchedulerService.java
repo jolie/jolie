@@ -66,7 +66,7 @@ public class SchedulerService extends JavaService
 			scheduler = StdSchedulerFactory.getDefaultScheduler();
 			scheduler.getContext().put( "schedulerService", this );
 			scheduler.start();
-		} catch( Exception e ) {
+		} catch( SchedulerException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -76,9 +76,8 @@ public class SchedulerService extends JavaService
 	}
 	
 	@RequestResponse
-	public Value setCallbackOperation( Value request ) {
+	public void setCallbackOperation( Value request ) {
 		operationName = request.getFirstChild( "operationName" ).strValue();
-		return Value.create();
 	}
 
 	@RequestResponse
