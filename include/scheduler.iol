@@ -53,9 +53,9 @@ interface SchedulerInterface{
 		deleteCronJob( DeleteCronJobRequest )( void ),
 
 		setCronJob( SetCronJobRequest )( void )
-			throws JobAlreadyExists( void ),
-
-		setCallbackOperation( SetCallBackOperationRequest )( void )
+			throws JobAlreadyExists( void )
+	OneWay:
+		setCallbackOperation( SetCallBackOperationRequest )
 }
 
 outputPort SchedulerPort {
