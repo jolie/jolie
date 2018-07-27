@@ -1,4 +1,5 @@
-/***************************************************************************
+/**
+ * *************************************************************************
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,20 +18,46 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+ **************************************************************************
+ */
 package joliex.util;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.Base64;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+@AndJarDeps({"jolie-xml.jar"})
 public class Converter extends JavaService
 {
+	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+
+	public Converter()
+	{
+		super();
+		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
+	}
+
 	@RequestResponse
 	public String rawToBase64( Value value )
 	{
@@ -65,7 +92,7 @@ public class Converter extends JavaService
 			} else {
 				return new String( buffer );
 			}
-		} catch ( IOException e ) {
+		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
 	}
@@ -86,7 +113,7 @@ public class Converter extends JavaService
 			} else {
 				return new ByteArray( str.getBytes() );
 			}
-		} catch ( IOException e ) {
+		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
 	}

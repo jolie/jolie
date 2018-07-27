@@ -95,7 +95,7 @@ public class XmlStorage extends AbstractStorageService
 					src.setEncoding( charset.name() );
 				}
 				Document doc = builder.parse( src );
-				jolie.xml.XmlUtils.documentToValue( doc, value );
+				jolie.xml.XmlUtils.documentToValue( doc, value, false );
 			} finally {
 				istream.close();
 			}
