@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+import javax.xml.transform.TransformerFactory;
 import jolie.lang.Constants;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -50,6 +52,11 @@ import org.w3c.dom.NodeList;
 public class XmlUtils
 {
 	private static final String JOLIE_TYPE_ATTRIBUTE = "_jolie_type";
+	private static final String FORCE_ATTRIBUTE = "@ForcedAttributes";
+	private static final String PREFIX = "@Prefix";
+	private static final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	public static final String NAMESPACE_ATTRIBUTE_NAME = "@Namespace";
+
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance preserving types.
@@ -91,6 +98,22 @@ public class XmlUtils
 		_valueToDocument( value, element, document );
 	}
 
+	private static String getElementNameWithPrefix( Value value, String startingName ) {
+		String prefix = "";
+		if ( value.hasChildren( PREFIX ) ) {
+			prefix = value.getFirstChild( PREFIX ).strValue();
+		}
+		return prefix.equals( "" ) ? startingName : prefix + ":" + startingName;
+	}
+	
+	private static void addForcedAttribute( Value value, Element element ) {
+		if ( value.hasChildren( FORCE_ATTRIBUTE) ) {
+			BiConsumer<? super String, ? super ValueVector> action = (key,vec) -> {
+				element.setAttribute( key, vec.get( 0 ).strValue() );
+			};
+			value.getFirstChild( FORCE_ATTRIBUTE ).children().forEach( action );
+		}
+	}
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance following a given XML Type Definition.
 	 * @see Document
@@ -101,7 +124,8 @@ public class XmlUtils
 	 */
 	public static void valueToDocument( Value value, String rootNodeName, Document document, XSType type )
 	{
-		Element root = document.createElement( rootNodeName );
+		Element root = document.createElement( getElementNameWithPrefix( value, rootNodeName ) );
+		addForcedAttribute( value, root );
 		document.appendChild( root );
 		_valueToDocument( value, root, document, type );
 	}
@@ -130,7 +154,7 @@ public class XmlUtils
 							(children[i].getMaxOccurs() == XSParticle.UNBOUNDED ||
 								children[i].getMaxOccurs() > k)
 						) {
-							childElement = doc.createElement( name );
+							childElement = doc.createElement( getElementNameWithPrefix( vec.get(0), name) );
 							element.appendChild( childElement );
 							v = vec.remove( 0 );
 							_valueToDocument( v, childElement, doc, currElementDecl.getType() );
@@ -159,7 +183,7 @@ public class XmlUtils
 					name = currElementDecl.getName();
 					Element childElement = null;
 					if ( (vec=value.children().get( name )) != null ) {
-						childElement = doc.createElement( name );
+						childElement = doc.createElement( getElementNameWithPrefix( vec.get(0), name) );
 						element.appendChild( childElement );
 						found = true;
 						v = vec.remove( 0 );
@@ -179,6 +203,7 @@ public class XmlUtils
 	
 	private static void _valueToDocument( Value value, Element element, Document doc, XSType type )
 	{
+		addForcedAttribute( value, element );
 		if ( type.isSimpleType() ) {
 			element.appendChild( doc.createTextNode( value.strValue() ) );
 		} else if ( type.isComplexType() ) {
