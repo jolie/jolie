@@ -885,6 +885,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
+			send_appendHeader( headerBuilder );
+			
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";

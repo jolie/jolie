@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2011 by F. Bullini <fbullini@italianasoftware.com>      *
+ *   Copyright (C) by Francesco Bullini, refactored by Claudio Guidi       *
+ *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,33 +19,41 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+package joliex.scheduler;
 
-package joliex.scheduler.impl;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
-import joliex.scheduler.SchedulerService;
-import org.quartz.Job;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.SchedulerContext;
+import org.quartz.SchedulerException;
 
 /**
  *
- * @author Francesco Bullini
+ * @author claudio guidi
  */
-public class JolieSchedulerDefaultJob implements Job
+public class SchedulerServiceJob implements org.quartz.Job
 {
-	@Override
-	public void execute( JobExecutionContext context )
-		throws JobExecutionException
-	{
 
-		JobDataMap data = context.getMergedJobDataMap();
-		String callbackOperation = data.getString( "operation" );
-		SchedulerService jsched = (SchedulerService) data.get( "javaSchedulerService" );
-		//System.out.println("callbackOperation = " + );
-		Value callbackValue = Value.create();
-		jsched.sendMessage( CommMessage.createRequest( callbackOperation, "/", callbackValue ) );
+	public SchedulerServiceJob() 
+	{
 	}
+
+	@Override
+	public void execute( JobExecutionContext context ) throws JobExecutionException
+	{
+		try {
+			SchedulerContext schedulerContext = context.getScheduler().getContext();
+			SchedulerService service = (SchedulerService) schedulerContext.get( "schedulerService" );
+			Value toSend = Value.create();
+			toSend.getFirstChild( "jobName" ).setValue( context.getJobDetail().getKey().getName() );
+			toSend.getFirstChild( "groupName" ).setValue( context.getJobDetail().getKey().getGroup() );
+			service.sendMessage( CommMessage.createRequest( service.getOperationName(), "/", toSend ));
+		} catch( SchedulerException ex ) {
+			Logger.getLogger(SchedulerServiceJob.class.getName() ).log( Level.SEVERE, null, ex );
+		}
+	}
+
 }

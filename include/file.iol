@@ -137,6 +137,11 @@ RequestResponse:
 	 * Child values: text and binary only consider the content's (WriteFileRequest.content) base value, the other formats look at the child values as well.
 	 * - xml, xml_store: the XML root node will costitute the content's only child value, the rest gets read out recursively
 	 * - json: each child value corresponds to an attribute, the base values are saved as the default values (attribute "$" or singular value), the "_" helper childs disappear (e.g. a._[i]._[j] -> a[i][j]), the rest gets read out recursively
+	 *
+	 *	when format is xml and a schema is defined, the resulting xml follows the schema constraints.
+	 *  Use "@NameSpace" in order to enable root element identification in the schema by specifing the namespace of the root.
+	 *  Use "@Prefix" for forcing a prefix in an element.
+	 *  Use "@ForceAttribute" for forcing an attribute in an element even if it is not defined in the corresponding schema
 	 */
 	writeFile(WriteFileRequest)(void) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 

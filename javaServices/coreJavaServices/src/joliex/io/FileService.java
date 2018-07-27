@@ -421,6 +421,7 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
+	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
 	private void writeXML(
 		File file, Value value,
 		boolean append,
@@ -434,6 +435,12 @@ public class FileService extends JavaService
 			return; // TODO: perhaps we should erase the content of the file before returning.
 		}
 		String rootName = value.children().keySet().iterator().next();
+		Value root = value.children().get( rootName ).get( 0 );
+		String rootNameSpace = "";
+		if ( root.hasChildren(NAMESPACE_ATTRIBUTE_NAME ) ) {
+			rootNameSpace = root.getFirstChild(  NAMESPACE_ATTRIBUTE_NAME ).strValue();
+		}
+		
 		try {
 			XSType type = null;
 			if ( schemaFilename != null ) {
@@ -441,8 +448,10 @@ public class FileService extends JavaService
 					XSOMParser parser = new XSOMParser();
 					parser.parse( schemaFilename );
 					XSSchemaSet schemaSet = parser.getResult();
-					if ( schemaSet != null ) {
-						type = schemaSet.getElementDecl( "", rootName ).getType();
+					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
+						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
+					} else if ( schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
 					}
 				} catch( SAXException e ) {
 					throw new IOException( e );
