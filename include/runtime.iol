@@ -100,6 +100,8 @@ type Stats:void {
 	}
 }
 
+type MaybeString:void | string
+
 interface RuntimeInterface {
 RequestResponse:
 	getLocalLocation(void)(any),
@@ -124,9 +126,9 @@ RequestResponse:
 	*	it returns the list of definitions of all the available outputPorts of the service
 	*/
 	getOutputPorts( void )( GetOutputPortsResponse ),
-	
+
 	getProcessId( void )( string ),
-	
+
 	halt(HaltRequest)(void),
 
 	removeOutputPort(string)(void),
@@ -136,7 +138,10 @@ RequestResponse:
 	/**!
 	 * Get information about the runtime state of the Jolie interpreter.
 	 */
-	stats(void)(Stats)
+	stats(void)(Stats),
+
+	/**! Get the value of an environment variable */
+	getenv(string)(MaybeString)
 }
 
 outputPort Runtime {

@@ -19,7 +19,7 @@ RUN apk add zip
 RUN jolie release.ol ../jolie-git
 
 # Start from scratch, copy the installer, install, remove the installer.
-FROM openjdk:alpine
+FROM openjdk:jre-alpine
 WORKDIR /
 COPY --from=JolieBuild /release_tools/release/jolie_installer.jar .
 RUN java -jar jolie_installer.jar -jh /usr/lib/jolie -jl /usr/bin && rm jolie_installer.jar
