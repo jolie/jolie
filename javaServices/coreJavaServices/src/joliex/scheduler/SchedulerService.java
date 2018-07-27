@@ -45,12 +45,14 @@ import org.quartz.impl.StdSchedulerFactory;
 @AndJarDeps({"quartz-2.2.1.jar","quartz-jobs-2.2.1.jar","slf4j-api-1.6.6.jar","c3p0-0.9.1.1.jar"})
 public class SchedulerService extends JavaService
 {
+
 	private final Scheduler scheduler;
 	private String operationName = "schedulerCallback";
 	
 	public SchedulerService()
 	{
 		super();
+
 		try {
 			scheduler = StdSchedulerFactory.getDefaultScheduler();
 			scheduler.getContext().put( "schedulerService", this );
