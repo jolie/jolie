@@ -28,16 +28,27 @@ import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
+<<<<<<< HEAD
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
+=======
+>>>>>>> converter_valueToXml
 import org.quartz.JobDetail;
 import static org.quartz.JobKey.jobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import static org.quartz.TriggerBuilder.newTrigger;
+<<<<<<< HEAD
 import static org.quartz.TriggerKey.triggerKey;
 import org.quartz.impl.StdSchedulerFactory;
+=======
+import org.quartz.impl.StdSchedulerFactory;
+import static org.quartz.CronScheduleBuilder.cronSchedule;
+import static org.quartz.JobBuilder.newJob;
+import static org.quartz.JobKey.jobKey;
+import static org.quartz.TriggerKey.triggerKey;
+>>>>>>> converter_valueToXml
 /**
  *
  * @author claudio guidi
@@ -45,6 +56,7 @@ import org.quartz.impl.StdSchedulerFactory;
 @AndJarDeps({"quartz-2.2.1.jar","quartz-jobs-2.2.1.jar","slf4j-api-1.6.6.jar","c3p0-0.9.1.1.jar"})
 public class SchedulerService extends JavaService
 {
+<<<<<<< HEAD
 
 	private final Scheduler scheduler;
 	private String operationName = "schedulerCallback";
@@ -53,12 +65,23 @@ public class SchedulerService extends JavaService
 	{
 		super();
 
+=======
+	private Scheduler scheduler;
+	private String operationName = "__scheduler_callback";
+	
+	public SchedulerService()
+	{
+>>>>>>> converter_valueToXml
 		try {
 			scheduler = StdSchedulerFactory.getDefaultScheduler();
 			scheduler.getContext().put( "schedulerService", this );
 			scheduler.start();
 		} catch( SchedulerException e ) {
+<<<<<<< HEAD
 			throw new RuntimeException( e );
+=======
+			e.printStackTrace();
+>>>>>>> converter_valueToXml
 		}
 	}
 	

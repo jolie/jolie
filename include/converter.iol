@@ -34,7 +34,7 @@ RequestResponse:
 	rawToBase64( raw )( string ),
 	base64ToRaw( string )( raw ) throws IOException(IOExceptionType),
 
-	// string <-> raw (byte arrays) conversion methods
+	/* string <-> raw (byte arrays) conversion methods */
 	rawToString( RawToStringRequest )( string ) throws IOException(IOExceptionType),
 	stringToRaw( StringToRawRequest )( raw ) throws IOException(IOExceptionType)
 }
