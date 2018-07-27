@@ -718,6 +718,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			Base64.Encoder encoder = Base64.getEncoder();
 			userpass = encoder.encodeToString( userpass.getBytes() );
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
+			message.value().removeChild( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content()  );
 		}
 	}
 
@@ -885,6 +886,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
+			send_appendHeader( headerBuilder );
+			
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";
@@ -930,7 +933,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 				src.setEncoding( charset );
 				Document doc = builder.parse( src );
-				XmlUtils.documentToValue( doc, value );
+				XmlUtils.documentToValue( doc, value, false );
 			}
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );

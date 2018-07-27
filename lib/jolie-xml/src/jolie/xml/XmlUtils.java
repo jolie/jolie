@@ -28,12 +28,20 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSModelGroup;
 import com.sun.xml.xsom.XSModelGroupDecl;
 import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.parser.XSOMParser;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import jolie.lang.Constants;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -42,6 +50,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Utilities for interactions and transformations with XML.
@@ -50,6 +59,10 @@ import org.w3c.dom.NodeList;
 public class XmlUtils
 {
 	private static final String JOLIE_TYPE_ATTRIBUTE = "_jolie_type";
+	private static final String FORCE_ATTRIBUTE = "@ForcedAttributes";
+	public static final String PREFIX = "@Prefix";
+	private static final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	public static final String NAMESPACE_ATTRIBUTE_NAME = "@Namespace";
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance preserving types.
@@ -91,6 +104,90 @@ public class XmlUtils
 		_valueToDocument( value, element, document );
 	}
 
+	private static String getElementNameWithPrefix( Value value, String startingName ) {
+		String prefix = "";
+		if ( value.hasChildren( PREFIX ) ) {
+			prefix = value.getFirstChild( PREFIX ).strValue();
+		}
+		return prefix.equals( "" ) ? startingName : prefix + ":" + startingName;
+	}
+	
+	private static void addForcedAttribute( Value value, Element element ) {
+		if ( value.hasChildren( FORCE_ATTRIBUTE) ) {
+			BiConsumer<? super String, ? super ValueVector> action = (key,vec) -> {
+				element.setAttribute( key, vec.get( 0 ).strValue() );
+			};
+			value.getFirstChild( FORCE_ATTRIBUTE ).children().forEach( action );
+		}
+	}
+	
+	public static Transformer valueToDocument( 
+		Value value,  
+		Document document, 
+		String schemaFilename, 
+		boolean indent,
+		String doctypeSystem,
+		String encoding ) throws IOException {
+		
+	
+		String rootName = value.children().keySet().iterator().next();
+		Value root = value.children().get( rootName ).get( 0 );
+		String rootNameSpace = "";
+		if ( root.hasChildren( jolie.xml.XmlUtils.NAMESPACE_ATTRIBUTE_NAME ) ) {
+			rootNameSpace = root.getFirstChild(  jolie.xml.XmlUtils.NAMESPACE_ATTRIBUTE_NAME ).strValue();
+		}
+		
+		try {
+			XSType type = null;
+			if ( schemaFilename != null ) {
+				try {
+					XSOMParser parser = new XSOMParser();
+					parser.parse( schemaFilename );
+					XSSchemaSet schemaSet = parser.getResult();
+					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
+						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
+					} else if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
+					}
+				} catch( SAXException e ) {
+					throw new IOException( e );
+				}
+			}
+
+
+			if ( type == null ) {
+				valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					document );
+			} else {
+				valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					document,
+					type );
+			}
+			
+			Transformer transformer = transformerFactory.newTransformer();
+			if ( indent ) {
+				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+			} else {
+				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			}
+
+			if ( doctypeSystem != null ) {
+				transformer.setOutputProperty( "doctype-system", doctypeSystem );
+			}
+
+			if ( encoding != null ) {
+				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
+			}
+			
+			return transformer;
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		}
+	}
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance following a given XML Type Definition.
 	 * @see Document
@@ -101,7 +198,8 @@ public class XmlUtils
 	 */
 	public static void valueToDocument( Value value, String rootNodeName, Document document, XSType type )
 	{
-		Element root = document.createElement( rootNodeName );
+		Element root = document.createElement( getElementNameWithPrefix( value, rootNodeName ) );
+		addForcedAttribute( value, root );
 		document.appendChild( root );
 		_valueToDocument( value, root, document, type );
 	}
@@ -130,7 +228,7 @@ public class XmlUtils
 							(children[i].getMaxOccurs() == XSParticle.UNBOUNDED ||
 								children[i].getMaxOccurs() > k)
 						) {
-							childElement = doc.createElement( name );
+							childElement = doc.createElement( getElementNameWithPrefix( vec.get(0), name) );
 							element.appendChild( childElement );
 							v = vec.remove( 0 );
 							_valueToDocument( v, childElement, doc, currElementDecl.getType() );
@@ -159,7 +257,7 @@ public class XmlUtils
 					name = currElementDecl.getName();
 					Element childElement = null;
 					if ( (vec=value.children().get( name )) != null ) {
-						childElement = doc.createElement( name );
+						childElement = doc.createElement( getElementNameWithPrefix( vec.get(0), name) );
 						element.appendChild( childElement );
 						found = true;
 						v = vec.remove( 0 );
@@ -172,13 +270,14 @@ public class XmlUtils
 		}
 	}
 
-	public static void documentToValue( Document document, Value value )
+	public static void documentToValue( Document document, Value value, boolean skipMixedElement )
 	{
-		documentToValue( document, value, true );
+		documentToValue( document, value, true, skipMixedElement );
 	}
 	
 	private static void _valueToDocument( Value value, Element element, Document doc, XSType type )
 	{
+		addForcedAttribute( value, element );
 		if ( type.isSimpleType() ) {
 			element.appendChild( doc.createTextNode( value.strValue() ) );
 		} else if ( type.isComplexType() ) {
@@ -316,20 +415,22 @@ public class XmlUtils
 	 * @param document the source XML document
 	 * @param value the Value receiving the JOLIE representation of document
 	 */
-	public static void documentToValue( Document document, Value value, boolean includeAttributes )
+	public static void documentToValue( Document document, Value value, boolean includeAttributes, boolean skipMixedElements )
 	{ 
 		if ( includeAttributes ) {
 			setAttributes( value, document.getDocumentElement() );
 			elementsToSubValues(
 				value,
 				document.getDocumentElement().getChildNodes(),
-				true
+				true,
+				skipMixedElements
 			);
 		} else {
 			elementsToSubValues(
 				value,
 				document.getDocumentElement().getChildNodes(),
-				false
+				false,
+				skipMixedElements
 			);
 		}
 	}
@@ -446,11 +547,12 @@ public class XmlUtils
 		}
 	}
 
-	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes )
+	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes, boolean skipMixedElements )
 	{
 		Node node;
 		Value childValue;
 		StringBuilder builder = new StringBuilder();
+		boolean hasSubNodes = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			node = list.item( i );
 			switch( node.getNodeType() ) {
@@ -462,9 +564,13 @@ public class XmlUtils
 			case Node.ELEMENT_NODE:
 				childValue = value.getNewChild( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
 				if ( includeAttributes ){
+					if ( node.getPrefix() != null ) {
+						childValue.getFirstChild( PREFIX ).setValue( node.getPrefix() );
+					}
 					setAttributes( childValue, node );
 				}
-				elementsToSubValues( childValue, node.getChildNodes(), includeAttributes );
+				elementsToSubValues( childValue, node.getChildNodes(), includeAttributes, skipMixedElements );
+				hasSubNodes = true;
 				break;
 			case Node.CDATA_SECTION_NODE:
 			case Node.TEXT_NODE:
@@ -473,7 +579,9 @@ public class XmlUtils
 			}
 		}
 		if ( builder.length() > 0 ) {
-			value.setValue( builder.toString() );
+			if ( !(skipMixedElements && hasSubNodes) ) {
+				value.setValue( builder.toString() );
+			}
 		}
 	}
 }

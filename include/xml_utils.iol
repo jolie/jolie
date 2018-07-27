@@ -31,20 +31,29 @@ type XMLTransformationRequest:void {
 }
 
 type XMLToValueRequest:any {
-	.options?:void {
-		.includeAttributes?:bool // Default: false
-		.schemaUrl?:string // Default: none
-		.schemaLanguage?:string // Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
-		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
+	.isXmlStore?: bool 						// if true, set xml_store format, xml otherwise. Default: true if no options are specified, false otherwise
+	.options?:void {							// if no options are specified, the xml_store format will be used for processing the document
+		.includeAttributes?:bool 		// Default: false
+		.includeRoot?: bool 				// include root into the conversion
+		.schemaUrl?:string 					// Default: none
+		.schemaLanguage?:string 		// Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
+		.charset?:string 						// set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
+		.skipMixedElements?: bool 	// skip the mixed elements, default false
 	}
 }
 
 type ValueToXmlRequest: void {
-	.root: any { ? }
-	.rootNodeName: string
-	.plain?:bool // Default: false (= storage XML)
+	.root: any { ? }					// the value to be converted
+	.rootNodeName?: string    // if not specified, the first child of node root will be considered as the final xml root
+	.isXmlStore?: bool				// if true xml_store format will be used, xml otherwise. Default: true
+	.plain?:bool 							// DEPRECATED: Default: false (= storage XML)
 	.omitXmlDeclaration?:bool // Default: false (with XML declaration)
-	.indent?:bool // Default: false
+	.indent?:bool 						// Default: false
+	.apply_schema?: void {
+			.schema: string					// set the schema to use, skipped if isXmlStore = true
+			.doctype_system?: string
+			.encoding?: string
+	}
 }
 
 interface XmlUtilsInterface{

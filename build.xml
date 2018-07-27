@@ -226,6 +226,7 @@ Please make sure that:
 		<ant antfile="${project.auto}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="jar"/>
+    <ant antfile="${project.soaps}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
@@ -310,6 +311,7 @@ Please make sure that:
 				<file file="${project.auto}/dist/auto.jar"/>
 				<file file="${project.http}/dist/http.jar"/>
 				<file file="${project.https}/dist/https.jar"/>
+        <file file="${project.soaps}/dist/soaps.jar"/>
 				<file file="${project.javascript}/dist/javascript.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
 				<file file="${project.rmi}/dist/rmi.jar"/>
@@ -356,6 +358,10 @@ Please make sure that:
 		<copy file="${libs.smackx}" tofile="${dist.jolie}/lib/smackx.jar"/>
 		<copy file="${libs.commons-lang3}" tofile="${dist.jolie}/lib/commons-lang3.jar"/>
 		<copy file="${libs.uri-templates}" tofile="${dist.jolie}/lib/uri-templates.jar"/>
+    <copy file="${libs.c3p0-0.9.1.1}" tofile="${dist.jolie}/lib/c3p0-0.9.1.1.jar"/>
+    <copy file="${libs.quartz-2.2.1}" tofile="${dist.jolie}/lib/quartz-2.2.1.jar"/>
+    <copy file="${libs.quartz-jobs-2.2.1}" tofile="${dist.jolie}/lib/quartz-jobs-2.2.1.jar"/>
+    <copy file="${libs.slf4j-api-1.6.6}" tofile="${dist.jolie}/lib/slf4j-api-1.6.6.jar"/>
 
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
+ *   Copyright (C) 2018 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,32 +18,46 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+package jolie.net;
 
-include "types/IOException.iol"
+import java.io.IOException;
+import java.net.URI;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.protocols.CommProtocol;
+import jolie.net.ssl.SSLProtocol;
+import jolie.runtime.AndJarDeps;
+import jolie.runtime.VariablePath;
 
-type RawToStringRequest:raw {
-	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8)
-}
+@AndJarDeps({"jolie-ssl.jar"})
+public class SoapsProtocolFactory extends CommProtocolFactory
+{
+	public SoapsProtocolFactory( CommCore commCore )
+		throws ParserConfigurationException, TransformerConfigurationException
+	{
+		super( commCore );
+	}
 
-type StringToRawRequest:string {
-	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8)
-}
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		return new SSLProtocol(
+			configurationPath,
+			location,
+			commCore().createOutputCommProtocol( "soap", configurationPath, location ),
+			true
+		);
+	}
 
-interface ConverterInterface {
-RequestResponse:
-	rawToBase64( raw )( string ),
-	base64ToRaw( string )( raw ) throws IOException(IOExceptionType),
-
-	/* string <-> raw (byte arrays) conversion methods */
-	rawToString( RawToStringRequest )( string ) throws IOException(IOExceptionType),
-	stringToRaw( StringToRawRequest )( raw ) throws IOException(IOExceptionType)
-}
-
-outputPort Converter {
-Interfaces: ConverterInterface
-}
-
-embedded {
-Java:
-	"joliex.util.Converter" in Converter
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		return new SSLProtocol(
+			configurationPath,
+			location,
+			commCore().createInputCommProtocol( "soap", configurationPath, location ),
+			false
+		);
+	}
 }
