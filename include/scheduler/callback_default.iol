@@ -4,11 +4,11 @@ type SchedulerCallBackRequest: void {
 }
 
 interface SchedulerCallBackInterface {
-  OneWay:
-    __scheduler_callback( SchedulerCallBackRequest )
+OneWay:
+  schedulerCallback( SchedulerCallBackRequest )
 }
 
 inputPort SchedulerCallBack {
-  Location:"local"
-  Interfaces: SchedulerCallBackInterface
+Location:"local"
+Interfaces: SchedulerCallBackInterface
 }
