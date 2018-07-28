@@ -21,13 +21,10 @@
 
 package jolie.embedding.js;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -45,32 +42,28 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 {
 	private final ScriptEngine engine;
 
-	public JavaScriptServiceLoader( Expression channelDest, String jsPath )
+	public JavaScriptServiceLoader( Expression channelDest, String jsPathString )
 		throws EmbeddedServiceLoaderCreationException
 	{
 		super( channelDest );
-		final ScriptEngineManager manager = new ScriptEngineManager();
-		this.engine = manager.getEngineByName( "JavaScript" );
-		if ( engine == null ) {
-			throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
-		}
-
-		final Compilable compilable = (Compilable)engine;
 		try {
-			final Reader reader = new BufferedReader( new FileReader( jsPath ) );
+			final Path jsPath = Paths.get( jsPathString ).toAbsolutePath();
+			if ( !Files.isRegularFile( jsPath ) ) {
+				throw new EmbeddedServiceLoaderCreationException( jsPathString + " is not a regular file" );
+			}
+
+			final ScriptEngineManager manager = new ScriptEngineManager();
+			this.engine = manager.getEngineByName( "JavaScript" );
+			if ( engine == null ) {
+				throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
+			}
+			
 			try {
-				final CompiledScript compiledScript = compilable.compile( reader );
-				compiledScript.eval();
+				engine.eval( "load('" + jsPath.toString() + "');" );
 			} catch( ScriptException e ) {
 				throw new EmbeddedServiceLoaderCreationException( e );
-			} finally {
-				try {
-					reader.close();
-				} catch( IOException e ) {
-					throw new EmbeddedServiceLoaderCreationException( e );
-				}
 			}
-		} catch( FileNotFoundException e ) {
+		} catch( InvalidPathException e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
 		}
 	}
