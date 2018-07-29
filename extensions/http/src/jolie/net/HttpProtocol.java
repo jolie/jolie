@@ -682,7 +682,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		String path = uri.getRawPath();
-		if ( uri.getScheme().equals( "localsocket") || path == null || path.isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
+		if ( uri.getScheme().equals( "localsocket" ) || path == null || path.isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
 			headerBuilder.append( '/' );
 		} else {
 			if ( path.charAt( 0 ) != '/' ) {
@@ -872,6 +872,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
+	@Override
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
@@ -1227,8 +1228,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if ( m.find() ) {
 				int resourceStart = m.end();
 				if ( m.find() ) {
-					decodedMessage.resourcePath = requestPath.substring( resourceStart - 1, m.start() );
-					decodedMessage.operationName = requestPath.substring( m.end(), requestPath.length() );
+					decodedMessage.resourcePath = requestPath.substring( resourceStart, m.start() + 1 );
+					decodedMessage.operationName = requestPath.substring( m.end() + 1, requestPath.length() );
 				}
 			}
 		}
@@ -1301,6 +1302,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
+	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
