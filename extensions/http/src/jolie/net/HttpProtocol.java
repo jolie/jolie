@@ -211,6 +211,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private static class Headers {
 		private static final String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
+		private static final String JOLIE_RESOURCE_PATH = "X-Jolie-ServicePath";
 	}
 
 	private static class ContentTypes {
@@ -688,7 +689,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if ( path.charAt( 0 ) != '/' ) {
 				headerBuilder.append( '/' );
 			}
-			headerBuilder.append( path );
+			headerBuilder.append( LocationParser.RESOURCE_SEPARATOR_PATTERN.split( path )[0] );
 		}
 
 		if ( hasOperationSpecificParameter( message.operationName(), Parameters.ALIAS ) ) {
@@ -807,11 +808,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		if ( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
-			headerBuilder.append( "Connection: close" + HttpUtils.CRLF );
+			headerBuilder.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
 		if ( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
 			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( HttpUtils.CRLF );
 		}
+		
+		headerBuilder.append( Headers.JOLIE_RESOURCE_PATH ).append( ": " ).append( message.resourcePath() ).append( HttpUtils.CRLF );
 
 		String contentType = getStringParameter( Parameters.CONTENT_TYPE );
 		if ( contentType.length() > 0 ) {
@@ -1224,13 +1227,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( decodedMessage.operationName == null ) {
 			String requestPath = message.requestPath().split( "\\?", 2 )[0];
 			decodedMessage.operationName = requestPath.substring( 1 );
-			Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( decodedMessage.operationName );
-			if ( m.find() ) {
-				int resourceStart = m.end();
-				if ( m.find() ) {
-					decodedMessage.resourcePath = requestPath.substring( resourceStart, m.start() + 1 );
-					decodedMessage.operationName = requestPath.substring( m.end() + 1, requestPath.length() );
-				}
+			decodedMessage.resourcePath = message.getProperty( Headers.JOLIE_RESOURCE_PATH );
+			if ( decodedMessage.resourcePath == null ) {
+				decodedMessage.resourcePath = "/";
 			}
 		}
 
