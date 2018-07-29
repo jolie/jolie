@@ -34,7 +34,7 @@ type XMLToValueRequest:any {
 	.isXmlStore?: bool 						// if true, set xml_store format, xml otherwise. Default: true if no options are specified, false otherwise
 	.options?:void {							// if no options are specified, the xml_store format will be used for processing the document
 		.includeAttributes?:bool 		// Default: false
-		.includeRoot?: bool 				// include root into the conversion
+		.includeRoot?: bool 				// Default: false, include root into the conversion
 		.schemaUrl?:string 					// Default: none
 		.schemaLanguage?:string 		// Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
 		.charset?:string 						// set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
@@ -49,9 +49,9 @@ type ValueToXmlRequest: void {
 	.plain?:bool 							// DEPRECATED: Default: false (= storage XML)
 	.omitXmlDeclaration?:bool // Default: false (with XML declaration)
 	.indent?:bool 						// Default: false
-	.apply_schema?: void {
+	.applySchema?: void {
 			.schema: string					// set the schema to use, skipped if isXmlStore = true
-			.doctype_system?: string
+			.doctypeSystem?: string
 			.encoding?: string
 	}
 }

@@ -42,6 +42,7 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
+import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -149,7 +150,7 @@ public class XmlUtils
 					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
 						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
 					} else if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
-						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
+						Interpreter.getInstance().logWarning( "Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
 					}
 				} catch( SAXException e ) {
 					throw new IOException( e );

@@ -22,31 +22,18 @@
  */
 package joliex.util;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
 import java.util.Base64;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-@AndJarDeps({"jolie-xml.jar"})
+
 public class Converter extends JavaService
 {
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();

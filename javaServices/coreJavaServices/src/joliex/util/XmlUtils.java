@@ -89,15 +89,15 @@ public class XmlUtils extends JavaService
 			String schemaFilename = null;
 			String encoding = null;
 			String doctypeSystem = null;
-			if ( request.hasChildren( "apply_schema" ) ) {
+			if ( request.hasChildren( "applySchema" ) ) {
 				isApplySchema = true;
-				Value applySchema = request.getFirstChild( "apply_schema" );
+				Value applySchema = request.getFirstChild( "applySchema" );
 				schemaFilename = applySchema.getFirstChild( "schema" ).strValue();
 				if ( applySchema.hasChildren( "encoding" ) ) {
 					encoding = applySchema.getFirstChild( "encoding" ).strValue();
 				}
-				if ( applySchema.hasChildren( "doctype_system" ) ) {
-					doctypeSystem = applySchema.getFirstChild( "doctype_system" ).strValue();
+				if ( applySchema.hasChildren( "doctypeSystem" ) ) {
+					doctypeSystem = applySchema.getFirstChild( "doctypeSystem" ).strValue();
 				}
 			} 
 			
