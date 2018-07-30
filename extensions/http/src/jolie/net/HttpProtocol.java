@@ -648,6 +648,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		} else if ( hasParameter( Parameters.REDIRECT ) ) {
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
+		} else if ( message.isFault() ) {
+			statusCode = 500;
 		}
 
 		if ( statusDescription == null ) {
