@@ -53,15 +53,17 @@ public class ForEachArrayItemProcess implements Process
 	public void run()
 		throws FaultException, ExitingException
 	{
-		ValueVector targetVector = targetPath.getValueVector();
-		int size = targetVector.size();
-		VariablePath target = targetPath.copy();
-		int length = target.path().length;
+		final ValueVector targetVector = targetPath.getValueVectorOrNull();
+		if ( targetVector != null ) {
+			int size = targetVector.size();
+			VariablePath target = targetPath.copy();
+			int length = target.path().length;
 
-		for( int i = 0; i < size; i++ ) {
-			target.path()[ length - 1 ] = new Pair<>( target.path()[ length - 1 ].key(), Value.create( i ) );
-			keyPath.makePointer( target );
-			process.run();
+			for( int i = 0; i < size; i++ ) {
+				target.path()[ length - 1 ] = new Pair<>( target.path()[ length - 1 ].key(), Value.create( i ) );
+				keyPath.makePointer( target );
+				process.run();
+			}
 		}
 	}
 
