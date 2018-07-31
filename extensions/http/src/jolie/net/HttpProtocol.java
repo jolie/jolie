@@ -691,7 +691,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if ( path.charAt( 0 ) != '/' ) {
 				headerBuilder.append( '/' );
 			}
-			headerBuilder.append( LocationParser.RESOURCE_SEPARATOR_PATTERN.split( path )[0] );
+			headerBuilder.append( path );
+			final Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( path );
+			if ( m.find() ) {
+				if ( !m.find() ) {
+					headerBuilder.append( LocationParser.RESOURCE_SEPARATOR );
+				}
+			}
 		}
 
 		if ( hasOperationSpecificParameter( message.operationName(), Parameters.ALIAS ) ) {
@@ -1227,11 +1233,22 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
 	{
 		if ( decodedMessage.operationName == null ) {
-			String requestPath = message.requestPath().split( "\\?", 2 )[0];
-			decodedMessage.operationName = requestPath.substring( 1 );
-			decodedMessage.resourcePath = message.getProperty( Headers.JOLIE_RESOURCE_PATH );
-			if ( decodedMessage.resourcePath == null ) {
-				decodedMessage.resourcePath = "/";
+			final String requestPath = message.requestPath().split( "\\?", 2 )[0].substring( 1 );
+			if ( requestPath.startsWith( LocationParser.RESOURCE_SEPARATOR ) ) {
+				final String compositePath = requestPath.substring( LocationParser.RESOURCE_SEPARATOR.length() - 1 );
+				final Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( compositePath );
+				if ( m.find() ) {
+					decodedMessage.resourcePath = compositePath.substring( 0, m.start() );
+					decodedMessage.operationName = compositePath.substring( m.end(), compositePath.length() );
+				} else {
+					decodedMessage.resourcePath = compositePath;
+				}
+			} else {
+				decodedMessage.operationName = requestPath;
+				decodedMessage.resourcePath = message.getProperty( Headers.JOLIE_RESOURCE_PATH );
+				if ( decodedMessage.resourcePath == null ) {
+					decodedMessage.resourcePath = "/";
+				}
 			}
 		}
 
