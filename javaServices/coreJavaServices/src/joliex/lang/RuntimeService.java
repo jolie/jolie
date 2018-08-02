@@ -263,6 +263,16 @@ public class RuntimeService extends JavaService
 			throw new FaultException( "RuntimeException", e );
 		}
 	}
+	
+	public Value getenv( String name )
+	{
+		final Value retVal = Value.create();
+		final String env = System.getenv( name );
+		if ( env != null ) {
+			retVal.setValue( env );
+		}
+		return retVal;
+	}
 
 	@RequestResponse
 	public void loadLibrary( String libraryPath )

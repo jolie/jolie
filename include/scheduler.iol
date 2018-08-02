@@ -58,11 +58,11 @@ interface SchedulerInterface{
 		setCallbackOperation( SetCallBackOperationRequest )
 }
 
-outputPort SchedulerPort {
+outputPort Scheduler {
 	Interfaces: SchedulerInterface
 }
 
 embedded {
 Java:
-	"joliex.scheduler.SchedulerService" in SchedulerPort
+	"joliex.scheduler.SchedulerService" in Scheduler
 }

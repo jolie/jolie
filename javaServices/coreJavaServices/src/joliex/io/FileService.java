@@ -293,7 +293,7 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		Value filenameValue = request.getFirstChild( "filename" );
-		boolean skipMixedElements = false;
+		boolean skipMixedText = false;
 
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
@@ -303,8 +303,8 @@ public class FileService extends JavaService
 			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 		}
 		
-		if ( formatValue.hasChildren( "skipMixedElements" ) ) {
-			skipMixedElements = formatValue.getFirstChild( "skipMixedElements").boolValue();
+		if ( formatValue.hasChildren( "skipMixedText" ) ) {
+			skipMixedText = formatValue.getFirstChild( "skipMixedText").boolValue();
 		}
 		final File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
@@ -344,7 +344,7 @@ public class FileService extends JavaService
 						break;
 					case "xml":
 						istream = new BufferedInputStream( istream );
-						readXMLIntoValue( istream, retValue, charset, skipMixedElements );
+						readXMLIntoValue(istream, retValue, charset, skipMixedText );
 						break;
 					case "xml_store":
 						istream = new BufferedInputStream( istream );
@@ -425,7 +425,8 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
-	
+	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
+
 	private void writeXML(
 		File file, Value value,
 		boolean append,
@@ -438,10 +439,35 @@ public class FileService extends JavaService
 		if ( value.children().isEmpty() ) {
 			return; // TODO: perhaps we should erase the content of the file before returning.
 		}
+
+		String rootName = value.children().keySet().iterator().next();
+		Value root = value.children().get( rootName ).get( 0 );
+		String rootNameSpace = "";
+		if ( root.hasChildren(NAMESPACE_ATTRIBUTE_NAME ) ) {
+			rootNameSpace = root.getFirstChild(  NAMESPACE_ATTRIBUTE_NAME ).strValue();
+		}
 		
 		try {
+			XSType type = null;
+			if ( schemaFilename != null ) {
+				try {
+					XSOMParser parser = new XSOMParser();
+					parser.parse( schemaFilename );
+					XSSchemaSet schemaSet = parser.getResult();
+					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
+						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
+					} else if ( schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
+					}
+				} catch( SAXException e ) {
+					throw new IOException( e );
+				}
+			}
+
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-			Transformer transformer = jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename, indent, doctypeSystem, encoding );
+			Transformer transformer = transformerFactory.newTransformer();
+			jolie.xml.XmlUtils.configTransformer( transformer, encoding, doctypeSystem, indent );
+			jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename );
 
 			try( Writer writer = new FileWriter( file, append ) ) {
 				StreamResult result = new StreamResult( writer );

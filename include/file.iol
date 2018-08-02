@@ -37,7 +37,7 @@ type ReadFileRequest:void {
 	.filename:string
 	.format?:string { // "text" (default), "base64" (same as "binary" but afterwards base64-encoded), "binary", "xml" (a type-annotated XML format), "xml_store", "properties" (Java properties file) or "json"
 		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8), header specification (XML) or format's default (for XML and JSON UTF-8)
-		.skipMixedElements?: bool // in case of format xml, it skips the mixed elements
+		.skipMixedText?: bool // in case of format xml, it skips the mixed elements
 	}
 }
 

@@ -70,6 +70,10 @@ public class XmlUtils extends JavaService
 			String rootNodeName = value.children().keySet().iterator().next();
 			if ( request.hasChildren( "rootNodeName" ) ) {
 				rootNodeName = request.getFirstChild( "rootNodeName" ).strValue();
+			} else {
+				if ( value.children().size() != 1 ) {
+					new FaultException( "IllegalArgumentException", "Too many root nodes" );
+				}
 			}
 				
 			boolean isXmlStore = true;
@@ -89,21 +93,23 @@ public class XmlUtils extends JavaService
 			String schemaFilename = null;
 			String encoding = null;
 			String doctypeSystem = null;
-			if ( request.hasChildren( "apply_schema" ) ) {
+			if ( request.hasChildren( "applySchema" ) ) {
 				isApplySchema = true;
-				Value applySchema = request.getFirstChild( "apply_schema" );
+				Value applySchema = request.getFirstChild( "applySchema" );
 				schemaFilename = applySchema.getFirstChild( "schema" ).strValue();
 				if ( applySchema.hasChildren( "encoding" ) ) {
 					encoding = applySchema.getFirstChild( "encoding" ).strValue();
 				}
-				if ( applySchema.hasChildren( "doctype_system" ) ) {
-					doctypeSystem = applySchema.getFirstChild( "doctype_system" ).strValue();
+				if ( applySchema.hasChildren( "doctypeSystem" ) ) {
+					doctypeSystem = applySchema.getFirstChild( "doctypeSystem" ).strValue();
 				}
 			} 
 			
 			if ( !isXmlStore ) {
 				if ( isApplySchema ) {
-					transformer = jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename, indent, doctypeSystem, encoding );
+					transformer = transformerFactory.newTransformer();
+					jolie.xml.XmlUtils.configTransformer( transformer, encoding, doctypeSystem, indent );
+					jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename );
 				} else {
 					jolie.xml.XmlUtils.valueToDocument(
 						value,
@@ -161,7 +167,7 @@ public class XmlUtils extends JavaService
 			}
 
 			boolean includeAttributes = false;
-			boolean skipMixedElements = false;
+			boolean skipMixedText = false;
 			boolean includeRoot = false;
 			boolean xmlStore = true;
 			if ( request.hasChildren( "options" ) ){
@@ -188,8 +194,8 @@ public class XmlUtils extends JavaService
 				if ( request.getFirstChild( "options" ).hasChildren( "charset" ) ) {
 					src.setEncoding( request.getFirstChild( "options" ).getFirstChild( "charset" ).strValue() );
 				}
-				if ( request.getFirstChild( "options" ).hasChildren( "skipMixedElements" ) ) {
-					skipMixedElements = request.getFirstChild( "options" ).getFirstChild( "skipMixedElements" ).boolValue();
+				if ( request.getFirstChild( "options" ).hasChildren( "skipMixedText" ) ) {
+					skipMixedText = request.getFirstChild( "options" ).getFirstChild( "skipMixedText" ).boolValue();
 				}
 			}
 			if ( request.hasChildren( "isXmlStore") ) {
@@ -208,7 +214,7 @@ public class XmlUtils extends JavaService
 						value.getFirstChild( jolie.xml.XmlUtils.PREFIX ).setValue(  doc.getDocumentElement().getPrefix() );
 					}
 				}
-				jolie.xml.XmlUtils.documentToValue( doc, value, includeAttributes, skipMixedElements );
+				jolie.xml.XmlUtils.documentToValue(doc, value, includeAttributes, skipMixedText );
 			} else {
 				DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 				Document doc = builder.parse( src );

@@ -3,15 +3,6 @@ include "converter.iol"
 include "string_utils.iol"
 include "file.iol"
 
-type MyType: void {
-  .a: void {
-    .b: string {
-        .c: string
-        .d: int
-    }
-  }
-}
-
 define doTest
 {
 	// plain strings
@@ -86,5 +77,5 @@ define doTest
 	if (size != 8) {
 		throw( TestFailed, "double invalid size" )
 	}
-	
+
 }

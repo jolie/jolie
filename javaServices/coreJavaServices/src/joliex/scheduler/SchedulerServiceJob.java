@@ -21,8 +21,7 @@
  ***************************************************************************/
 package joliex.scheduler;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import jolie.Interpreter;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import org.quartz.JobExecutionContext;
@@ -52,7 +51,7 @@ public class SchedulerServiceJob implements org.quartz.Job
 			toSend.getFirstChild( "groupName" ).setValue( context.getJobDetail().getKey().getGroup() );
 			service.sendMessage( CommMessage.createRequest( service.getOperationName(), "/", toSend ));
 		} catch( SchedulerException ex ) {
-			Logger.getLogger(SchedulerServiceJob.class.getName() ).log( Level.SEVERE, null, ex );
+			Interpreter.getInstance().logSevere( ex );
 		}
 	}
 
