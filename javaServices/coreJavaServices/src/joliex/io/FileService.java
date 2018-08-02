@@ -293,7 +293,7 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		Value filenameValue = request.getFirstChild( "filename" );
-		boolean skipMixedElements = false;
+		boolean skipMixedText = false;
 
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
@@ -303,8 +303,8 @@ public class FileService extends JavaService
 			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 		}
 		
-		if ( formatValue.hasChildren( "skipMixedElements" ) ) {
-			skipMixedElements = formatValue.getFirstChild( "skipMixedElements").boolValue();
+		if ( formatValue.hasChildren( "skipMixedText" ) ) {
+			skipMixedText = formatValue.getFirstChild( "skipMixedText").boolValue();
 		}
 		final File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
@@ -344,7 +344,7 @@ public class FileService extends JavaService
 						break;
 					case "xml":
 						istream = new BufferedInputStream( istream );
-						readXMLIntoValue( istream, retValue, charset, skipMixedElements );
+						readXMLIntoValue(istream, retValue, charset, skipMixedText );
 						break;
 					case "xml_store":
 						istream = new BufferedInputStream( istream );
@@ -465,7 +465,9 @@ public class FileService extends JavaService
 			}
 
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-			Transformer transformer = jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename, indent, doctypeSystem, encoding );
+			Transformer transformer = transformerFactory.newTransformer();
+			jolie.xml.XmlUtils.configTransformer( transformer, encoding, doctypeSystem, indent );
+			jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename );
 
 			try( Writer writer = new FileWriter( file, append ) ) {
 				StreamResult result = new StreamResult( writer );

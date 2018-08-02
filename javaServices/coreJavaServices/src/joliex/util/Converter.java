@@ -24,9 +24,6 @@ package joliex.util;
 
 import java.io.IOException;
 import java.util.Base64;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.TransformerFactory;
-import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -36,14 +33,6 @@ import jolie.runtime.embedding.RequestResponse;
 
 public class Converter extends JavaService
 {
-	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-
-	public Converter()
-	{
-		super();
-		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
-	}
 
 	@RequestResponse
 	public String rawToBase64( Value value )

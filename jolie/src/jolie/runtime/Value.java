@@ -87,10 +87,6 @@ class ValueLink extends Value implements Cloneable
 		getLinkedValue().erase();
 	}
 	
-	@Override
-	public void removeChild( String child ) {
-		getLinkedValue().removeChild( child );
-	}
 	
 	@Override
 	public ValueLink clone()
@@ -166,14 +162,6 @@ class ValueImpl extends Value implements Cloneable, Serializable
 		children.set( null );
 	}
 	
-	@Override
-	public void removeChild( String child ) {
-		ValueVector vect = children.get().get( child );
-		for( int i = 0; i < vect.size(); i++ ) {
-			vect.get( i ).erase();
-		}
-		children.get().remove( child );
-	}
 	
 	protected ValueImpl() {}
 	
@@ -298,14 +286,6 @@ class RootValueImpl extends Value implements Cloneable
 		children.clear();
 	}
 	
-	@Override
-	public void removeChild( String child ) {
-		ValueVector vect = children.get( child );
-		for( int i = 0; i < vect.size(); i++ ) {
-			vect.get( i ).erase();
-		}
-		children.remove( child );
-	}
 
 	public boolean isLink()
 	{
@@ -494,7 +474,6 @@ public abstract class Value implements Expression, Cloneable
 
 	protected abstract void _refCopy( Value value );
 	public abstract void erase();
-	public abstract void removeChild( String child );
 	protected abstract void _deepCopy( Value value, boolean copyLinks );
 	public abstract Map< String, ValueVector > children();
 	public abstract Object valueObject();
