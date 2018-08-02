@@ -29,7 +29,8 @@ public final class LocationParser
 {
 	private LocationParser() {}
 
-	public final static Pattern RESOURCE_SEPARATOR_PATTERN = Pattern.compile( "!/" );
+	public final static String RESOURCE_SEPARATOR = "!/";
+	public final static Pattern RESOURCE_SEPARATOR_PATTERN = Pattern.compile( RESOURCE_SEPARATOR );
 
 	public static String getResourcePath( URI uri )
 	{
