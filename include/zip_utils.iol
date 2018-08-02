@@ -29,11 +29,15 @@ type ListEntriesResponse: void {
 	.entry*: string
 }
 
-type ReadEntryRequest:void {
-	.filename?:string			/* read archive from file */
-	.archive?: raw				
-	.entry:string
+type ReadEntryRawRequest: void {
+		.archive: raw
+		.entry:string
 }
+type ReadEntryStringRequest: void {
+		.filename:string
+		.entry:string
+}
+type ReadEntryRequest: ReadEntryStringRequest | ReadEntryRawRequest
 
 type ZipRequest:void { ? }
 
