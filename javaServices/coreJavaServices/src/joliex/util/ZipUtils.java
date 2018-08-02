@@ -22,6 +22,7 @@
 package joliex.util;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,19 +65,44 @@ public class ZipUtils extends JavaService
 		throws FaultException
 	{
 		Value response = Value.create();
+		String entryName = request.getFirstChild( "entry" ).strValue();
+		ZipEntry entry = null;
 		try {
-			ZipFile file = new ZipFile(
-				request.getFirstChild( "filename" ).strValue()
-			);
+			if ( request.hasChildren( "filename" ) ) {
+				ZipFile file = new ZipFile(
+					request.getFirstChild( "filename" ).strValue()
+				);
 			
-			ZipEntry entry = file.getEntry(
-				request.getFirstChild( "entry" ).strValue()
-			);
-			if ( entry != null ) {
+				entry = file.getEntry( entryName );
+				if ( entry != null ) {
 				response.setValue(
 					inputStreamToByteArray( new BufferedInputStream( file.getInputStream( entry ) ) )
 				);
 			}
+			} else {
+				ByteArray archive = request.getFirstChild( "archive" ).byteArrayValue();
+		
+				byte[] archiveBytes = archive.getBytes();
+				ZipInputStream zipInputStream = new ZipInputStream( new ByteArrayInputStream( archiveBytes ) );
+				ZipEntry zipEntry = zipInputStream.getNextEntry();
+				boolean found = false;
+				while( zipEntry != null && !found ) {
+					if ( zipEntry.getName().equals( entryName ) ) {
+						found = true;
+						byte[] buffer = new byte[ BUFFER_SIZE ];
+						ByteArrayOutputStream bos = new ByteArrayOutputStream();
+						int len;
+						while ((len = zipInputStream.read(buffer)) > 0) {
+								bos.write(buffer, 0, len);
+						}
+						response.setValue( new ByteArray( bos.toByteArray() ) );
+					} else {
+						zipEntry = zipInputStream.getNextEntry();
+					}
+				}
+				
+			}
+			
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
@@ -114,7 +140,7 @@ public class ZipUtils extends JavaService
 		byte[] buffer = new byte[ BUFFER_SIZE ];
 		ZipInputStream zipInputStream;
 		try {
-			zipInputStream = new ZipInputStream(new FileInputStream( filename ));				
+			zipInputStream = new ZipInputStream(new FileInputStream( filename ));		
 			ZipEntry zipEntry = zipInputStream.getNextEntry();
 			int entryCounter = 0;
 			while( zipEntry != null ) {
@@ -137,6 +163,28 @@ public class ZipUtils extends JavaService
 			zipInputStream.close();
 		} catch( FileNotFoundException ex ) {
 			throw new FaultException("FileNotFound");
+		} catch( IOException ex ) {
+			throw new FaultException("IOException");
+		}
+		return response;
+	}
+	
+	public Value listEntries( Value request ) throws FaultException {
+		ByteArray archive = request.getFirstChild( "archive" ).byteArrayValue();
+		Value response = Value.create();
+		
+		byte[] archiveBytes = archive.getBytes();
+		ZipInputStream zipInputStream = new ZipInputStream( new ByteArrayInputStream( archiveBytes ) );
+		try {
+			ZipEntry zipEntry = zipInputStream.getNextEntry();
+			int entryCounter = 0;
+			while( zipEntry != null ) {
+				response.getChildren( "entry" ).get( entryCounter ).setValue( zipEntry.getName() );
+				zipEntry = zipInputStream.getNextEntry();	
+				entryCounter++;
+			}
+			zipInputStream.closeEntry();
+			zipInputStream.close();
 		} catch( IOException ex ) {
 			throw new FaultException("IOException");
 		}

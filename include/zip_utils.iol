@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Fabrizio Montesi                                *
+ * 	 2018 - extended by Claudio Guidi                                      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,10 +22,22 @@
 
 include "types/IOException.iol"
 
-type ReadEntryRequest:void {
-	.filename:string
-	.entry:string
+type ListEntriesRequest: void {
+	.archive:raw
 }
+type ListEntriesResponse: void {
+	.entry*: string
+}
+
+type ReadEntryRawRequest: void {
+		.archive: raw
+		.entry:string
+}
+type ReadEntryStringRequest: void {
+		.filename:string
+		.entry:string
+}
+type ReadEntryRequest: ReadEntryStringRequest | ReadEntryRawRequest
 
 type ZipRequest:void { ? }
 
@@ -39,9 +52,18 @@ type UnzipResponse: void {
 
 interface ZipUtilsInterface {
 RequestResponse:
-	readEntry(ReadEntryRequest)(any) throws IOException(IOExceptionType),
-	zip(ZipRequest)(raw) throws IOException(IOExceptionType),
-	unzip( UnzipRequest )( UnzipResponse ) throws FileNotFound, IOException
+	/* it returns all the entries of an archive */
+  listEntries( ListEntriesRequest )( ListEntriesResponse )
+		throws IOException,
+
+	readEntry( ReadEntryRequest )( any )
+		throws IOException( IOExceptionType ),
+
+	zip( ZipRequest )( raw )
+		throws IOException(IOExceptionType),
+
+	unzip( UnzipRequest )( UnzipResponse )
+		throws FileNotFound, IOException
 }
 
 outputPort ZipUtils {

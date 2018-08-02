@@ -21,7 +21,6 @@
  ***************************************************************************/
 package joliex.scheduler;
 
-
 import jolie.Interpreter;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
