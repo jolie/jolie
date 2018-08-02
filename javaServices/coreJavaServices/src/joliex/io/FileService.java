@@ -155,7 +155,7 @@ public class FileService extends JavaService
 		JsUtils.parseJsonIntoValue( isr, value, strictEncoding );
 	}
 
-	private void readXMLIntoValue( InputStream istream, Value value, Charset charset )
+	private void readXMLIntoValue( InputStream istream, Value value, Charset charset, boolean skipMixedElement )
 		throws IOException
 	{
 		try {
@@ -166,7 +166,7 @@ public class FileService extends JavaService
 			}
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.documentToValue( doc, value );
+			jolie.xml.XmlUtils.documentToValue( doc, value, skipMixedElement );
 		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
@@ -293,6 +293,7 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		Value filenameValue = request.getFirstChild( "filename" );
+		boolean skipMixedText = false;
 
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
@@ -301,7 +302,10 @@ public class FileService extends JavaService
 		if ( formatValue.hasChildren( "charset" ) ) {
 			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 		}
-
+		
+		if ( formatValue.hasChildren( "skipMixedText" ) ) {
+			skipMixedText = formatValue.getFirstChild( "skipMixedText").boolValue();
+		}
 		final File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
 		long size;
@@ -340,7 +344,7 @@ public class FileService extends JavaService
 						break;
 					case "xml":
 						istream = new BufferedInputStream( istream );
-						readXMLIntoValue( istream, retValue, charset );
+						readXMLIntoValue(istream, retValue, charset, skipMixedText );
 						break;
 					case "xml_store":
 						istream = new BufferedInputStream( istream );
@@ -422,6 +426,7 @@ public class FileService extends JavaService
 	}
 
 	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
+
 	private void writeXML(
 		File file, Value value,
 		boolean append,
@@ -434,6 +439,7 @@ public class FileService extends JavaService
 		if ( value.children().isEmpty() ) {
 			return; // TODO: perhaps we should erase the content of the file before returning.
 		}
+
 		String rootName = value.children().keySet().iterator().next();
 		Value root = value.children().get( rootName ).get( 0 );
 		String rootNameSpace = "";
@@ -457,44 +463,18 @@ public class FileService extends JavaService
 					throw new IOException( e );
 				}
 			}
+
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-
-			if ( type == null ) {
-				jolie.xml.XmlUtils.valueToDocument(
-					value.getFirstChild( rootName ),
-					rootName,
-					doc );
-			} else {
-				jolie.xml.XmlUtils.valueToDocument(
-					value.getFirstChild( rootName ),
-					rootName,
-					doc,
-					type );
-			}
 			Transformer transformer = transformerFactory.newTransformer();
-			if ( indent ) {
-				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-			} else {
-				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
-			}
-
-			if ( doctypeSystem != null ) {
-				transformer.setOutputProperty( "doctype-system", doctypeSystem );
-			}
-
-			if ( encoding != null ) {
-				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
-			}
+			jolie.xml.XmlUtils.configTransformer( transformer, encoding, doctypeSystem, indent );
+			jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename );
 
 			try( Writer writer = new FileWriter( file, append ) ) {
 				StreamResult result = new StreamResult( writer );
 				transformer.transform( new DOMSource( doc ), result );
+				
 			}
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerException e ) {
+		} catch( ParserConfigurationException | TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
