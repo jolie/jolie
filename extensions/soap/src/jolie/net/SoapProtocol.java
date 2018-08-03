@@ -43,6 +43,7 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -153,6 +154,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		private static final String ENVELOPE = "envelope";
 		private static final String OPERATION = "operation";
 		private static final String STYLE = "style";
+		private static final String HTTP_BASIC_AUTHENTICATION = "HttpBasicAuthentication";
 	}
 
 	/*
@@ -730,6 +732,24 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			SOAPBody soapBody = soapEnvelope.getBody();
 			SOAPHeader soapHeader = soapEnvelope.getHeader();
 			Value valueToSend = message.value();
+			boolean basicAuthentication = false;
+			String userpass = "";
+			
+			if ( hasOperationSpecificParameter( message.operationName(), Parameters.HTTP_BASIC_AUTHENTICATION ) || hasParameter( Parameters.HTTP_BASIC_AUTHENTICATION ) ) {
+				Value basicAuthValue = null;
+				if ( hasOperationSpecificParameter( message.operationName(), Parameters.HTTP_BASIC_AUTHENTICATION ) ) {
+					 basicAuthValue = getOperationSpecificParameterFirstValue(  message.operationName(), Parameters.HTTP_BASIC_AUTHENTICATION );
+				} else {
+					 basicAuthValue = getParameterFirstValue( Parameters.HTTP_BASIC_AUTHENTICATION );		
+				};
+				userpass =
+					basicAuthValue.getFirstChild( "userid" ).strValue() + ":" +
+					basicAuthValue.getFirstChild( "password" ).strValue();
+				Base64.Encoder encoder = Base64.getEncoder();
+				userpass = encoder.encodeToString( userpass.getBytes() );
+				basicAuthentication = true;
+			}
+
 
 			if ( checkBooleanParameter( "wsAddressing" ) ) {
 				// WS-Addressing namespace
@@ -949,6 +969,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
 				httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+				/* basic authentication: code replication from HttpProtocol. Refactoring is needed */
+				if ( basicAuthentication ) {
+					httpMessage.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
+				}
+				
+				
 				/*
 				* soapAction = "SOAPAction: \"" + messageNamespace + "/" +
 				* message.operationName() + '\"' + HttpUtils.CRLF;
