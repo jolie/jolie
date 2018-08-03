@@ -87,6 +87,7 @@ class ValueLink extends Value implements Cloneable
 		getLinkedValue().erase();
 	}
 	
+	
 	@Override
 	public ValueLink clone()
 	{
@@ -160,6 +161,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 		valueObject = null;
 		children.set( null );
 	}
+	
 	
 	protected ValueImpl() {}
 	
@@ -283,6 +285,7 @@ class RootValueImpl extends Value implements Cloneable
 	{
 		children.clear();
 	}
+	
 
 	public boolean isLink()
 	{
