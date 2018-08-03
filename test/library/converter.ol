@@ -77,4 +77,5 @@ define doTest
 	if (size != 8) {
 		throw( TestFailed, "double invalid size" )
 	}
+
 }
