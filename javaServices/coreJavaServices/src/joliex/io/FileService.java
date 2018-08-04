@@ -39,9 +39,9 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
-import java.nio.file.Path;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Enumeration;
@@ -495,6 +495,7 @@ public class FileService extends JavaService
 			Transformer transformer = transformerFactory.newTransformer();
 			if ( indent ) {
 				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+				transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
 			} else {
 				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 			}
