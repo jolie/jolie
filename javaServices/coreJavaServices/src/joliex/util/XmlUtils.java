@@ -32,7 +32,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -72,8 +71,9 @@ public class XmlUtils extends JavaService
 				rootNodeName = request.getFirstChild( "rootNodeName" ).strValue();
 			} else {
 				if ( value.children().size() != 1 ) {
-					new FaultException( "IllegalArgumentException", "Too many root nodes" );
+					throw new FaultException( "IllegalArgumentException", "Too many root nodes" );
 				}
+				value = value.getFirstChild( rootNodeName );
 			}
 				
 			boolean isXmlStore = true;
@@ -142,14 +142,7 @@ public class XmlUtils extends JavaService
 			StringBuffer sb = outWriter.getBuffer();
 			return sb.toString();
 	
-		} catch( ParserConfigurationException | IOException e ) {
-			e.printStackTrace();
-			throw new FaultException( e );
-		} catch( TransformerConfigurationException e ) {
-			e.printStackTrace();
-			throw new FaultException( e );
-		} catch( TransformerException e ) {
-			e.printStackTrace();
+		} catch( ParserConfigurationException | IOException | TransformerException e ) {
 			throw new FaultException( e );
 		}
 	}
