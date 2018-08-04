@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.BiConsumer;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -115,20 +114,16 @@ public class XmlUtils
 	
 	private static void addForcedAttribute( Value value, Element element ) {
 		if ( value.hasChildren( FORCE_ATTRIBUTE) ) {
-			BiConsumer<? super String, ? super ValueVector> action = (key,vec) -> {
-				element.setAttribute( key, vec.get( 0 ).strValue() );
-			};
-			value.getFirstChild( FORCE_ATTRIBUTE ).children().forEach( action );
+			value.getFirstChild( FORCE_ATTRIBUTE ).children().forEach( (key,vec) ->
+				element.setAttribute( key, vec.get( 0 ).strValue() )
+			);
 		}
 	}
 	
-	public static void configTransformer( Transformer transformer, String encoding, String doctypeSystem, boolean indent ) {
-		if ( indent ) {
-			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-		} else {
-			transformer.setOutputProperty( OutputKeys.INDENT, "no" );
-		}
-
+	public static void configTransformer( Transformer transformer, String encoding, String doctypeSystem, boolean indent )
+	{
+		transformer.setOutputProperty( OutputKeys.INDENT, indent ? "yes" : "no" );
+		
 		if ( doctypeSystem != null ) {
 			transformer.setOutputProperty( "doctype-system", doctypeSystem );
 		}
