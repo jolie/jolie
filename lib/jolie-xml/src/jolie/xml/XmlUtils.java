@@ -123,6 +123,9 @@ public class XmlUtils
 	public static void configTransformer( Transformer transformer, String encoding, String doctypeSystem, boolean indent )
 	{
 		transformer.setOutputProperty( OutputKeys.INDENT, indent ? "yes" : "no" );
+		if ( indent ) {
+			transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
+		}
 		
 		if ( doctypeSystem != null ) {
 			transformer.setOutputProperty( "doctype-system", doctypeSystem );

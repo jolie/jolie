@@ -117,8 +117,12 @@ public class XmlUtils extends JavaService
 						doc
 					);
 					transformer = transformerFactory.newTransformer();
-					if ( indent ) { transformer.setOutputProperty( OutputKeys.INDENT, "yes" ); } 
-						else { transformer.setOutputProperty( OutputKeys.INDENT, "no" ); }
+					if ( indent ) {
+						transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+						transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
+					} else {
+						transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+					}
 				}
 			} else {
 				jolie.xml.XmlUtils.valueToStorageDocument(
@@ -127,8 +131,12 @@ public class XmlUtils extends JavaService
 					doc
 				);
 				transformer = transformerFactory.newTransformer();
-				if ( indent ) { transformer.setOutputProperty( OutputKeys.INDENT, "yes" ); } 
-					else { transformer.setOutputProperty( OutputKeys.INDENT, "no" ); }
+				if ( indent ) {
+					transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+					transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
+				} else {
+					transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+				}
 			}
 		
 			
