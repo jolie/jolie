@@ -215,7 +215,7 @@ public class XmlUtils extends JavaService
 						value.getFirstChild( jolie.xml.XmlUtils.PREFIX ).setValue(  doc.getDocumentElement().getPrefix() );
 					}
 				}
-				jolie.xml.XmlUtils.documentToValue(doc, value, includeAttributes, skipMixedText );
+				jolie.xml.XmlUtils.documentToValue( doc, value, includeAttributes, skipMixedText );
 			} else {
 				DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 				Document doc = builder.parse( src );
