@@ -63,6 +63,7 @@ public class SSLProtocol extends SequentialCommProtocol
 	private static final int INITIAL_BUFFER_SIZE = 8192;
 
 	private final boolean isClient;
+	private final URI location;
 	private boolean firstTime;
 	private final CommProtocol wrappedProtocol;
 	private SSLEngine sslEngine;
@@ -228,6 +229,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		this.wrappedProtocol = wrappedProtocol;
 		this.isClient = isClient;
 		this.firstTime = true;
+		this.location = uri;
 	}
 
 	@Override
@@ -293,6 +295,7 @@ public class SSLProtocol extends SequentialCommProtocol
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance( "SunX509" );
 			kmf.init( ks, passphrase );
 
+			
 			if ( trustStorePassword != null ) {
 				passphrase = trustStorePassword.toCharArray();
 			} else {
@@ -305,7 +308,11 @@ public class SSLProtocol extends SequentialCommProtocol
 
 			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
 
-			sslEngine = context.createSSLEngine();
+			if ( location.getHost() != null && location.getPort() != -1 ) {
+				sslEngine = context.createSSLEngine( location.getHost(), location.getPort() );
+			} else {
+				sslEngine = context.createSSLEngine();
+			}
 			sslEngine.setEnabledProtocols( new String[]{ protocol } );
 			sslEngine.setUseClientMode( isClient );
 			if ( isClient == false ) {
