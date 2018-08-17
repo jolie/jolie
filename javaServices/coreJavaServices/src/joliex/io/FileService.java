@@ -81,7 +81,7 @@ import org.xml.sax.SAXException;
  * @author Fabrizio Montesi
  */
 @AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
-@CanUseJars( { "javax.activation.jar" } )
+@CanUseJars( { "jaf.jar" } )
 public class FileService extends JavaService
 {
 	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );
