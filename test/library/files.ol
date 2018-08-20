@@ -25,5 +25,13 @@ define doTest
 
 	// XML file
 	readFile@File( { .filename = "../build.xml", .format = "xml" } )( data );
-	checkResult
+	checkResult;
+
+	getServiceDirectory@File()( dir );
+	getFileSeparator@File()( fs );
+	setMimeTypeFile@File( dir + fs + "private" + fs + "mime.types" )();
+	getMimeType@File( dir + fs + "private" + fs + "text.txt" )( mime );
+	if ( mime != "text/plain" ) {
+		throw( TestFailed, "Wrong mime type " + mime + " (expected text/plain)" )
+	}
 }

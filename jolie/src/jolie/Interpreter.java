@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -84,6 +85,7 @@ import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
@@ -256,7 +258,7 @@ public class Interpreter
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
 	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
-	private static final Logger logger = Logger.getLogger( "Jolie" );
+	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 	
 	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
 	private final Map< String, OutputPort > outputPorts = new HashMap<>();
@@ -672,7 +674,13 @@ public class Interpreter
 	 */
 	public void logUnhandledFault( FaultException fault )
 	{
-		logInfo( "Thrown unhandled fault: " + fault.faultName() );
+		StringWriter writer = new StringWriter();
+		try {
+			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() ).run();
+			logInfo( writer.toString() );
+		} catch( IOException e ) {
+			logInfo( "Thrown unhandled fault: " + fault.faultName() );
+		}
 	}
 
 	/**

@@ -163,6 +163,7 @@ public class CommandLineParser implements Closeable
 	/**
 	 * Closes the underlying {@link InputStream} to the target Jolie program.
 	 */
+	@Override
 	public void close()
 		throws IOException
 	{
@@ -792,12 +793,8 @@ public class CommandLineParser implements Closeable
 		 * Default {@link ArgumentHandler}. It just throws a {@link CommandLineException} when it finds an unrecognised option.
 		 */
 		public static ArgumentHandler DEFAULT_ARGUMENT_HANDLER =
-			new ArgumentHandler() {
-				public int onUnrecognizedArgument( List< String > argumentsList, int index )
-					throws CommandLineException
-				{
-					throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
-				}
+			( List< String > argumentsList, int index ) -> {
+				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
 			};
 	}
 }

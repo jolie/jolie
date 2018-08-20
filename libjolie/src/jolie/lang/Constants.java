@@ -33,7 +33,7 @@ import jolie.util.Range;
 public final class Constants
 {
 	// Release information
-	public static final String VERSION = "Jolie 1.6.5-git";
+	public static final String VERSION = "Jolie 1.7.0";
 	public static final String COPYRIGHT = "(C) 2006-2018 the Jolie team";
 	
 	public interface Manifest
@@ -119,6 +119,7 @@ public final class Constants
 	public static final String GLOBAL = "global";
 	public static final String CSETS = "csets";
 	public static final String ROOT_RESOURCE_PATH = "/";
+	public static final String JOLIE_LOGGER_NAME = "Jolie";
 
 	public enum EmbeddedServiceType
 	{
