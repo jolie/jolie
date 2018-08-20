@@ -351,9 +351,16 @@ Please make sure that:
 		<copy file="${libs.libmatthew.unix}" tofile="${dist.jolie}/lib/unix.jar"/>
 		<copy file="${libs.relaxngDatatype}" tofile="${dist.jolie}/lib/relaxngDatatype.jar"/>
 		<copy file="${libs.ini4j}" tofile="${dist.jolie}/lib/ini4j.jar"/>
-		<copy file="${libs.jaf}" tofile="${dist.jolie}/lib/jaf.jar"/>
+		<copy file="${libs.jaf}" tofile="${dist.jolie}/lib/javax.activation.jar"/>
 		<copy file="${libs.json}" tofile="${dist.jolie}/lib/json_simple.jar"/>
 		<copy file="${libs.servletapi5}" tofile="${dist.jolie}/lib/servletapi5.jar"/>
+		<copy file="${libs.jaxb-core}" tofile="${dist.jolie}/lib/jaxb-core.jar"/>
+		<copy file="${libs.jaxb-api}" tofile="${dist.jolie}/lib/jaxb-api.jar"/>
+		<copy file="${libs.jaxp-api}" tofile="${dist.jolie}/lib/jaxp-api.jar"/>
+		<copy file="${libs.jaxb-impl}" tofile="${dist.jolie}/lib/jaxb-impl.jar"/>
+		<copy todir="${dist.jolie}/lib/jaxws">
+			<fileset dir="${libs.jaxws}"/>
+		</copy>
 		<copy file="${libs.wsdl4j}" tofile="${dist.jolie}/lib/wsdl4j.jar"/>
 		<copy file="${libs.smack}" tofile="${dist.jolie}/lib/smack.jar"/>
 		<copy file="${libs.smackx}" tofile="${dist.jolie}/lib/smackx.jar"/>

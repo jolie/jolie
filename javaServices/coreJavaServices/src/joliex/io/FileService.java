@@ -65,7 +65,6 @@ import jolie.jap.JapURLConnection;
 import jolie.js.JsUtils;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
-import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -80,8 +79,7 @@ import org.xml.sax.SAXException;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
-@CanUseJars( { "jaf.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar", "javax.activation.jar" } )
 public class FileService extends JavaService
 {
 	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );

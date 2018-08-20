@@ -1,4 +1,5 @@
 include "runtime.iol"
+include "file.iol"
 
 type RequestType:void {
   .x?:int
@@ -32,8 +33,13 @@ outputPort CalcServiceJoliePort {
 
 define loadLocalService
 {
-  loadLibrary@Runtime( "extensions/private/WS-test/dist/WS-test.jar" )();
-  loadEmbeddedService@Runtime
-    ( { .filepath = "ws.test.WSTest", .type = "Java" } )
-    ( CalcServiceJoliePort.location )
+	list@File( { .directory = "../lib/jaxws" } )( list );
+	for( path in list.result ) {
+		toAbsolutePath@File( "../lib/jaxws/" + path )( path );
+		loadLibrary@Runtime( path )()
+	};
+	loadLibrary@Runtime( "extensions/private/WS-test/dist/WS-test.jar" )();
+	loadEmbeddedService@Runtime
+		( { .filepath = "ws.test.WSTest", .type = "Java" } )
+		( CalcServiceJoliePort.location )
 }
