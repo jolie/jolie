@@ -25,10 +25,10 @@ outputPort CalcServicePort {
   Interfaces: CalcService
 }
 
-outputPort CalcServiceJoliePort { 
+outputPort CalcServiceJoliePort {
   RequestResponse:
     start( string )( void ),
-    close( void )( void ) 
+    close( void )( void )
 }
 
 define loadLocalService
@@ -38,7 +38,7 @@ define loadLocalService
 		toAbsolutePath@File( "../lib/jaxws/" + path )( path );
 		loadLibrary@Runtime( path )()
 	};
-	loadLibrary@Runtime( "extensions/private/WS-test/dist/WS-test.jar" )();
+	loadLibrary@Runtime( "extensions/private/WS-test.jar" )();
 	loadEmbeddedService@Runtime
 		( { .filepath = "ws.test.WSTest", .type = "Java" } )
 		( CalcServiceJoliePort.location )
