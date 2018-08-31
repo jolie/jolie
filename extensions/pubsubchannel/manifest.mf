@@ -1,3 +1,0 @@
-Manifest-Version: 1.0
-X-JOLIE-ChannelExtension: pubsubchannel:jolie.net.PubSubCommChannelFactory
-X-JOLIE-ListenerExtension: pubsubchannel:jolie.net.PubSubListenerFactory

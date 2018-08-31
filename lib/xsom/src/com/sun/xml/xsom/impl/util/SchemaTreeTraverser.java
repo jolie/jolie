@@ -82,7 +82,7 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
          * A simple constructor. Is made private to allow creating the root node
          * first.
          *
-         *  root The root node.
+         * @param root The root node.
          */
         private SchemaTreeModel(SchemaRootNode root) {
             super(root);
@@ -127,8 +127,8 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
         /**
          * Simple constructor.
          *
-         *  artifactName Artifact name.
-         *  locator      Artifact locator.
+         * @param artifactName Artifact name.
+         * @param locator      Artifact locator.
          */
         public SchemaTreeNode(String artifactName, Locator locator) {
             this.artifactName = artifactName;
@@ -165,7 +165,7 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
         }
 
         /**
-         *  fileName The file name of the corresponding schema artifact to
+         * @param fileName The file name of the corresponding schema artifact to
          *                 set.
          */
         public void setFileName(String fileName) {
@@ -181,7 +181,7 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
         }
 
         /**
-         *  lineNumber The line number of the corresponding schema
+         * @param lineNumber The line number of the corresponding schema
          *                   artifact to set.
          */
         public void setLineNumber(int lineNumber) {
@@ -290,9 +290,9 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
         /**
          * Sets values for the icon and text of <code>this</code> renderer.
          *
-         *  icon     Icon to show.
-         *  caption  Text to show.
-         *  selected Selection indicator. If <code>true</code>, the
+         * @param icon     Icon to show.
+         * @param caption  Text to show.
+         * @param selected Selection indicator. If <code>true</code>, the
          *                 renderer will be shown with different background and
          *                 border settings.
          */
@@ -348,7 +348,7 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
     /**
      * Visits the root schema set.
      *
-     *  s Root schema set.
+     * @param s Root schema set.
      */
     public void visit(XSSchemaSet s) {
         for (XSSchema schema : s.getSchemas()) {
@@ -422,7 +422,7 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
     /**
      * Creates node of attribute group decalration reference.
      *
-     *  decl Attribute group decalration reference.
+     * @param decl Attribute group decalration reference.
      */
     public void dumpRef(XSAttGroupDecl decl) {
         SchemaTreeNode newNode = new SchemaTreeNode("Attribute group ref \"{"
@@ -476,8 +476,8 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
     /**
      * Creates node for attribute declaration with additional attributes.
      *
-     *  decl           Attribute declaration.
-     *  additionalAtts Additional attributes.
+     * @param decl           Attribute declaration.
+     * @param additionalAtts Additional attributes.
      */
     private void dump(XSAttributeDecl decl, String additionalAtts) {
         XSSimpleType type = decl.getType();
@@ -777,7 +777,7 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
     /**
      * Creates node for complex type.
      *
-     *  type Complex type.
+     * @param type Complex type.
      */
     private void dumpComplexTypeAttribute(XSComplexType type) {
         Iterator itr;
@@ -803,8 +803,8 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
     /**
      * Creates node for element declaration with additional attributes.
      *
-     *  decl      Element declaration.
-     *  extraAtts Additional attributes.
+     * @param decl      Element declaration.
+     * @param extraAtts Additional attributes.
      */
     private void elementDecl(XSElementDecl decl, String extraAtts) {
         XSType type = decl.getType();
@@ -856,8 +856,8 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
     /**
      * Creates node for model group with additional attributes.
      *
-     *  group     Model group.
-     *  extraAtts Additional attributes.
+     * @param group     Model group.
+     * @param extraAtts Additional attributes.
      */
     private void modelGroup(XSModelGroup group, String extraAtts) {
         SchemaTreeNode newNode = new SchemaTreeNode(MessageFormat.format(
@@ -944,8 +944,8 @@ public class SchemaTreeTraverser implements XSVisitor, XSSimpleTypeVisitor {
     /**
      * Creates node for wild card with additional attributes.
      *
-     *  wc        Wild card.
-     *  extraAtts Additional attributes.
+     * @param wc        Wild card.
+     * @param extraAtts Additional attributes.
      */
     private void wildcard(XSWildcard wc, String extraAtts) {
         // TODO

@@ -24,13 +24,13 @@ include "TestUnit.iol"
 execution { single }
 
 inputPort TestUnitInput {
-    Location: "local"
-    Interfaces: TestUnitInterface
+Location: "local"
+Interfaces: TestUnitInterface
 }
 
 main
 {
-    test()() {
-        doTest
-    }
+	test()() {
+		doTest
+	}
 }

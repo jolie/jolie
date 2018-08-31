@@ -108,7 +108,6 @@ define test
 	echoPerson@SODEPServer( person )( response );
 	identity@SODEPServer( reqVal )( response2 );
 	checkResponse;
-
 	echoPerson@SODEPSServer( person )( response );
 	identity@SODEPSServer( reqVal )( response2 );
 	checkResponse;

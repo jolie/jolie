@@ -31,8 +31,6 @@ import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.ServiceRecord;
 import javax.microedition.io.Connector;
 import jolie.net.ext.CommChannelFactory;
-import jolie.net.ports.InputPort;
-import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 
 @AndJarDeps({"bluetooth.jar"})
@@ -89,10 +87,5 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		} catch( NullPointerException e ) {
 			throw new IOException( e );
 		} 
-	}
-
-	@Override
-	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
-		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 }

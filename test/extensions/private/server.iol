@@ -1,7 +1,5 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
- *   Copyright (C) 2017                                                    *
- *      by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,11 +20,11 @@
  ***************************************************************************/
 
 constants {
-	Location_SODEPServer = "socket://localhost:10111",
-	Location_SODEPSServer = "socket://localhost:10110",
-	Location_SOAPServer = "socket://localhost:10109",
-	Location_JSONRPCServer = "socket://localhost:10108",
-	Location_HTTPServer = "socket://localhost:10107",
+	Location_SODEPServer = "socket://localhost:10101",
+	Location_SODEPSServer = "socket://localhost:10102",
+	Location_SOAPServer = "socket://localhost:10103",
+	Location_JSONRPCServer = "socket://localhost:10104",
+	Location_HTTPServer = "socket://localhost:10105",
 	Location_HTTPSServer = "socket://localhost:10106",
 
 	KeystorePassword = "superjolie"

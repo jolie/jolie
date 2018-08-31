@@ -37,68 +37,68 @@ public abstract class AsyncCommProtocol extends CommProtocol {
 
 	private final HashMap<Long, ExecutionThread> threadCollection;
 	private ExecutionThread initExecutionThread = null;
-
-	public AsyncCommProtocol( VariablePath configurationPath ) {
-		super( configurationPath );
+	
+  public AsyncCommProtocol( VariablePath configurationPath ) {
+    super( configurationPath );
 		this.threadCollection = new HashMap<>();
+  }
+
+  abstract public void setupPipeline( ChannelPipeline pipeline );
+
+  public void setupWrappablePipeline( ChannelPipeline pipeline ) {
+    setupPipeline( pipeline );
+  }
+	
+	public void setExecutionThread( ExecutionThread t ){
+		 ( ( CommCore.ExecutionContextThread ) Thread.currentThread() )
+			 .executionThread( t );
 	}
 
-	abstract public void setupPipeline( ChannelPipeline pipeline );
+  @Override
+  public void send( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException {
+    throw new UnsupportedOperationException( "Should not be called." );
+  }
 
-	public void setupWrappablePipeline( ChannelPipeline pipeline ) {
-		setupPipeline( pipeline );
-	}
-
-	public void setExecutionThread( ExecutionThread t ) {
-		( ( CommCore.ExecutionContextThread ) Thread.currentThread() )
-			.executionThread( t );
-	}
-
-	@Override
-	public void send( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException {
-		throw new UnsupportedOperationException( "Should not be called." );
-	}
-
-	@Override
-	public CommMessage recv( InputStream istream, OutputStream ostream ) throws IOException {
-		throw new UnsupportedOperationException( "Should not be called." );
-	}
-
-	public void addExecutionThread( Long id, ExecutionThread t ) {
+  @Override
+  public CommMessage recv( InputStream istream, OutputStream ostream ) throws IOException {
+    throw new UnsupportedOperationException( "Should not be called." );
+  }
+	
+	public void addExecutionThread( Long id, ExecutionThread t ){
 		threadCollection.put( id, t );
 	}
-
-	public boolean hasExecutionThread( Long id ) {
+	
+	public boolean hasExecutionThread( Long id ){
 		return threadCollection.containsKey( id );
 	}
-
-	/**
+		
+		/**
 	Returns the Thread associated with the @id.
 	@param id
 	@return Thread
-	 */
-	public ExecutionThread peekExecutionThread( Long id ) {
+	*/
+	public ExecutionThread peekExecutionThread( Long id ){
 		return threadCollection.get( id );
 	}
-
+		
 	/**
 	Returns the Thread associated with the @id and removes it from the collection.
 	@param id
 	@return Thread
-	 */
-	public ExecutionThread getExecutionThread( Long id ) {
+	*/
+	public ExecutionThread getExecutionThread( Long id ){
 		return threadCollection.remove( id );
 	}
-
-	public void setInitExecutionThread( ExecutionThread t ) {
+	
+	public void setInitExecutionThread( ExecutionThread t ){
 		initExecutionThread = t;
 	}
-
-	public ExecutionThread getInitExecutionThread() {
+	
+	public ExecutionThread getInitExecutionThread(){
 		return initExecutionThread;
 	}
-
-	public ExecutionThread getThreadUnsafeExecutionThread() {
+	
+	public ExecutionThread getThreadUnsafeExecutionThread(){
 		Long id = threadCollection.keySet().stream().findFirst().get();
 		return getExecutionThread( id );
 	}

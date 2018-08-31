@@ -186,7 +186,7 @@ public class NGCCRuntime implements ContentHandler, NGCCEventSource {
      * follow an end tag, then they must be either whitespaces or
      * must match to &lt;text/>.
      * 
-     *    possiblyWhitespace
+     * @param   possiblyWhitespace
      *      True if the buffered character can be ignorabale. False if
      *      it needs to be consumed.
      */
@@ -418,7 +418,7 @@ public class NGCCRuntime implements ContentHandler, NGCCEventSource {
      * Currently active NGCCHandler will only receive the leaveElement
      * event of the newly started element.
      * 
-     *    uri,local,qname
+     * @param   uri,local,qname
      *      Parameters passed to the enter element event. Used to
      *      simulate the startElement event for the new ContentHandler.
      */

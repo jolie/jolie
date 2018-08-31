@@ -39,9 +39,9 @@ public abstract class SCD {
      * <p>
      * If you want to evaluate SCD just once, use {@link XSComponent#select} methods.
      *
-     *  path
+     * @param path
      *      the string representation of SCD, such as "/foo/bar".
-     *  nsContext
+     * @param nsContext
      *      Its {@link NamespaceContext#getNamespaceURI(String)} is used
      *      to resolve prefixes in the SCD to the namespace URI.
      */
@@ -120,7 +120,7 @@ public abstract class SCD {
      * Evaluates the SCD against the given set of context nodes and
      * returns the matched nodes.
      *
-     *  contextNodes
+     * @param contextNodes
      *      {@link XSComponent}s that represent the context node against
      *      which {@link SCD} is evaluated.
      *
@@ -133,7 +133,7 @@ public abstract class SCD {
      * Evaluates the SCD against the given set of context nodes and
      * returns the matched nodes.
      *
-     *  contextNodes
+     * @param contextNodes
      *      {@link XSComponent}s that represent the context node against
      *      which {@link SCD} is evaluated.
      *

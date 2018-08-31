@@ -9,7 +9,7 @@ import java.util.Comparator;
  */
 public final class UName {
     /**
-     *  _nsUri
+     * @param _nsUri
      *      Use "" to indicate the no namespace.
      */
     public UName( String _nsUri, String _localName, String _qname ) {

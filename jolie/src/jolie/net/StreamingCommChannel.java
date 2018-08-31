@@ -61,26 +61,6 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 	public URI getLocation(){
 		return this.location;
 	}
-	
-	/*
-	to integrate with JIoT
-	*/
-	
-	public void sendRelease( long in ) {
-		throw new UnsupportedOperationException( "sendRelease not supported yet." );
-	}
-
-	public StreamingCommChannelHandler getChannelHandler() {
-		throw new UnsupportedOperationException( "commChannelHandler not supported yet." );
-	}
-
-	public StreamingCommChannel createWithSideChannel( CommChannel channel ) {
-		throw new UnsupportedOperationException( "createWithSideChannel not supported yet." );
-	}
-	
-	/*
-	to integrate with JIoT
-	*/
 
 	@Override
 	protected void releaseImpl()
