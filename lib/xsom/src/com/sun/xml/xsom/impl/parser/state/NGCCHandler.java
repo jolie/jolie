@@ -49,12 +49,12 @@ public abstract class NGCCHandler implements NGCCEventReceiver {
     /**
      * Notifies the completion of a child object.
      * 
-     *  result
+     * @param result
      *      The parsing result of the child state.
-     *  cookie
+     * @param cookie
      *      The cookie value passed to the child object
      *      when it is created.
-     *  needAttCheck
+     * @param needAttCheck
      *      This flag is true when the callee needs to call the
      *      processAttribute method to check attribute transitions.
      *      This flag is set to false when this method is triggered by

@@ -50,347 +50,270 @@ import com.sun.xml.xsom.parser.SchemaDocument;
 import com.sun.xml.xsom.visitor.XSFunction;
 import com.sun.xml.xsom.visitor.XSVisitor;
 
-public class SchemaImpl implements XSSchema {
-
-  private boolean elementFormDefault, attributeFormDefault;
-
-  public SchemaImpl(SchemaSetImpl _parent, Locator loc, String tns, boolean elementFormDefault, boolean attributeFormDefault) {
-    if (tns == null) // the empty string must be used.
+public class SchemaImpl implements XSSchema
+{
+	private boolean elementFormDefault, attributeFormDefault;
+	
+    public SchemaImpl(SchemaSetImpl _parent, Locator loc, String tns, boolean elementFormDefault, boolean attributeFormDefault) {
+        if (tns == null)
+            // the empty string must be used.
+            throw new IllegalArgumentException();
+        this.targetNamespace = tns;
+        this.parent = _parent;
+        this.locator = loc;
+        this.elementFormDefault = elementFormDefault;
+        this.attributeFormDefault = attributeFormDefault;
+    }
+    
+    public boolean elementFormDefault()
     {
-      throw new IllegalArgumentException();
+    	return elementFormDefault;
     }
-    this.targetNamespace = tns;
-    this.parent = _parent;
-    this.locator = loc;
-    this.elementFormDefault = elementFormDefault;
-    this.attributeFormDefault = attributeFormDefault;
-  }
-
-  @Override
-  public boolean elementFormDefault() {
-    return elementFormDefault;
-  }
-
-  @Override
-  public boolean attributeFormDefault() {
-    return attributeFormDefault;
-  }
-
-  @Override
-  public SchemaDocument getSourceDocument() {
-    return null;
-  }
-
-  @Override
-  public SchemaSetImpl getRoot() {
-    return parent;
-  }
-
-  protected final SchemaSetImpl parent;
-
-  private final String targetNamespace;
-
-  @Override
-  public String getTargetNamespace() {
-    return targetNamespace;
-  }
-
-  @Override
-  public XSSchema getOwnerSchema() {
-    return this;
-  }
-
-  private XSAnnotation annotation;
-
-  public void setAnnotation(XSAnnotation a) {
-    annotation = a;
-  }
-
-  @Override
-  public XSAnnotation getAnnotation() {
-    return annotation;
-  }
-
-  @Override
-  public XSAnnotation getAnnotation(boolean createIfNotExist) {
-    if (createIfNotExist && annotation == null) {
-      annotation = new AnnotationImpl();
+    
+    public boolean attributeFormDefault()
+    {
+    	return attributeFormDefault;
     }
-    return annotation;
-  }
 
-  // it's difficult to determine the source location for the schema
-  // component as one schema can be defined across multiple files.
-  // so this locator might not correctly reflect all the locations
-  // where the schema is defined.
-  // but partial information would be better than nothing.
-  private final Locator locator;
-
-  @Override
-  public Locator getLocator() {
-    return locator;
-  }
-
-  private final Map<String, XSAttributeDecl> atts = new HashMap<String, XSAttributeDecl>();
-  private final Map<String, XSAttributeDecl> attsView = Collections.unmodifiableMap(atts);
-
-  public void addAttributeDecl(XSAttributeDecl newDecl) {
-    atts.put(newDecl.getName(), newDecl);
-  }
-
-  @Override
-  public Map<String, XSAttributeDecl> getAttributeDecls() {
-    return attsView;
-  }
-
-  @Override
-  public XSAttributeDecl getAttributeDecl(String name) {
-    return atts.get(name);
-  }
-
-  @Override
-  public Iterator<XSAttributeDecl> iterateAttributeDecls() {
-    return atts.values().iterator();
-  }
-
-  private final Map<String, XSElementDecl> elems = new HashMap<String, XSElementDecl>();
-  private final Map<String, XSElementDecl> elemsView = Collections.unmodifiableMap(elems);
-
-  public void addElementDecl(XSElementDecl newDecl) {
-    elems.put(newDecl.getName(), newDecl);
-  }
-
-  @Override
-  public Map<String, XSElementDecl> getElementDecls() {
-    return elemsView;
-  }
-
-  @Override
-  public XSElementDecl getElementDecl(String name) {
-    return elems.get(name);
-  }
-
-  @Override
-  public Iterator<XSElementDecl> iterateElementDecls() {
-    return elems.values().iterator();
-  }
-
-  private final Map<String, XSAttGroupDecl> attGroups = new HashMap<String, XSAttGroupDecl>();
-  private final Map<String, XSAttGroupDecl> attGroupsView = Collections.unmodifiableMap(attGroups);
-
-  public void addAttGroupDecl(XSAttGroupDecl newDecl, boolean overwrite) {
-    if (overwrite || !attGroups.containsKey(newDecl.getName())) {
-      attGroups.put(newDecl.getName(), newDecl);
+    public SchemaDocument getSourceDocument() {
+        return null;
     }
-  }
 
-  @Override
-  public Map<String, XSAttGroupDecl> getAttGroupDecls() {
-    return attGroupsView;
-  }
-
-  @Override
-  public XSAttGroupDecl getAttGroupDecl(String name) {
-    return attGroups.get(name);
-  }
-
-  @Override
-  public Iterator<XSAttGroupDecl> iterateAttGroupDecls() {
-    return attGroups.values().iterator();
-  }
-
-  private final Map<String, XSNotation> notations = new HashMap<String, XSNotation>();
-  private final Map<String, XSNotation> notationsView = Collections.unmodifiableMap(notations);
-
-  public void addNotation(XSNotation newDecl) {
-    notations.put(newDecl.getName(), newDecl);
-  }
-
-  @Override
-  public Map<String, XSNotation> getNotations() {
-    return notationsView;
-  }
-
-  @Override
-  public XSNotation getNotation(String name) {
-    return notations.get(name);
-  }
-
-  @Override
-  public Iterator<XSNotation> iterateNotations() {
-    return notations.values().iterator();
-  }
-
-  private final Map<String, XSModelGroupDecl> modelGroups = new HashMap<String, XSModelGroupDecl>();
-  private final Map<String, XSModelGroupDecl> modelGroupsView = Collections.unmodifiableMap(modelGroups);
-
-  public void addModelGroupDecl(XSModelGroupDecl newDecl, boolean overwrite) {
-    if (overwrite || !modelGroups.containsKey(newDecl.getName())) {
-      modelGroups.put(newDecl.getName(), newDecl);
+    public SchemaSetImpl getRoot() {
+        return parent;
     }
-  }
 
-  @Override
-  public Map<String, XSModelGroupDecl> getModelGroupDecls() {
-    return modelGroupsView;
-  }
+    protected final SchemaSetImpl parent;
 
-  @Override
-  public XSModelGroupDecl getModelGroupDecl(String name) {
-    return modelGroups.get(name);
-  }
-
-  @Override
-  public Iterator<XSModelGroupDecl> iterateModelGroupDecls() {
-    return modelGroups.values().iterator();
-  }
-
-  private final Map<String, XSIdentityConstraint> idConstraints = new HashMap<String, XSIdentityConstraint>();
-  private final Map<String, XSIdentityConstraint> idConstraintsView = Collections.unmodifiableMap(idConstraints);
-
-  protected void addIdentityConstraint(IdentityConstraintImpl c) {
-    idConstraints.put(c.getName(), c);
-  }
-
-  @Override
-  public Map<String, XSIdentityConstraint> getIdentityConstraints() {
-    return idConstraintsView;
-  }
-
-  @Override
-  public XSIdentityConstraint getIdentityConstraint(String localName) {
-    return idConstraints.get(localName);
-  }
-
-  private final Map<String, XSType> allTypes = new HashMap<String, XSType>();
-  private final Map<String, XSType> allTypesView = Collections.unmodifiableMap(allTypes);
-
-  private final Map<String, XSSimpleType> simpleTypes = new HashMap<String, XSSimpleType>();
-  private final Map<String, XSSimpleType> simpleTypesView = Collections.unmodifiableMap(simpleTypes);
-
-  public void addSimpleType(XSSimpleType newDecl, boolean overwrite) {
-    if (overwrite || !simpleTypes.containsKey(newDecl.getName())) {
-      simpleTypes.put(newDecl.getName(), newDecl);
-      allTypes.put(newDecl.getName(), newDecl);
+    private final String targetNamespace;
+    public String getTargetNamespace() {
+        return targetNamespace;
     }
-  }
 
-  @Override
-  public Map<String, XSSimpleType> getSimpleTypes() {
-    return simpleTypesView;
-  }
-
-  @Override
-  public XSSimpleType getSimpleType(String name) {
-    return simpleTypes.get(name);
-  }
-
-  @Override
-  public Iterator<XSSimpleType> iterateSimpleTypes() {
-    return simpleTypes.values().iterator();
-  }
-
-  private final Map<String, XSComplexType> complexTypes = new HashMap<String, XSComplexType>();
-  private final Map<String, XSComplexType> complexTypesView = Collections.unmodifiableMap(complexTypes);
-
-  public void addComplexType(XSComplexType newDecl, boolean overwrite) {
-    if (overwrite || !complexTypes.containsKey(newDecl.getName())) {
-      complexTypes.put(newDecl.getName(), newDecl);
-      allTypes.put(newDecl.getName(), newDecl);
+    public XSSchema getOwnerSchema() {
+        return this;
     }
-  }
 
-  @Override
-  public Map<String, XSComplexType> getComplexTypes() {
-    return complexTypesView;
-  }
-
-  @Override
-  public XSComplexType getComplexType(String name) {
-    return complexTypes.get(name);
-  }
-
-  @Override
-  public Iterator<XSComplexType> iterateComplexTypes() {
-    return complexTypes.values().iterator();
-  }
-
-  @Override
-  public Map<String, XSType> getTypes() {
-    return allTypesView;
-  }
-
-  @Override
-  public XSType getType(String name) {
-    return allTypes.get(name);
-  }
-
-  @Override
-  public Iterator<XSType> iterateTypes() {
-    return allTypes.values().iterator();
-  }
-
-  @Override
-  public void visit(XSVisitor visitor) {
-    visitor.schema(this);
-  }
-
-  @Override
-  public <T> T apply(XSFunction<T> function) {
-    return function.schema(this);
-  }
-
-  /**
-   * Lazily created list of {@link ForeignAttributesImpl}s.
-   */
-  private List<ForeignAttributes> foreignAttributes = null;
-  private List<ForeignAttributes> readOnlyForeignAttributes = null;
-
-  public void addForeignAttributes(ForeignAttributesImpl fa) {
-    if (foreignAttributes == null) {
-      foreignAttributes = new ArrayList<ForeignAttributes>();
+    private XSAnnotation annotation;
+    public void setAnnotation(XSAnnotation a) {
+        annotation = a;
     }
-    foreignAttributes.add(fa);
-  }
-
-  @Override
-  public List<ForeignAttributes> getForeignAttributes() {
-    if (readOnlyForeignAttributes == null) {
-      if (foreignAttributes == null) {
-        readOnlyForeignAttributes = Collections.emptyList();
-      } else {
-        readOnlyForeignAttributes = Collections.unmodifiableList(foreignAttributes);
-      }
+    public XSAnnotation getAnnotation() {
+        return annotation;
     }
-    return readOnlyForeignAttributes;
-  }
 
-  @Override
-  public String getForeignAttribute(String nsUri, String localName) {
-    for (ForeignAttributes fa : getForeignAttributes()) {
-      String v = fa.getValue(nsUri, localName);
-      if (v != null) {
-        return v;
-      }
+    public XSAnnotation getAnnotation(boolean createIfNotExist) {
+        if(createIfNotExist && annotation==null)
+            annotation = new AnnotationImpl();
+        return annotation;
     }
-    return null;
-  }
 
-  @Override
-  public Collection<XSComponent> select(String scd, NamespaceContext nsContext) {
-    try {
-      return SCD.create(scd, nsContext).select(this);
-    } catch (ParseException e) {
-      throw new IllegalArgumentException(e);
-    }
-  }
+    // it's difficult to determine the source location for the schema
+    // component as one schema can be defined across multiple files.
+    // so this locator might not correctly reflect all the locations
+    // where the schema is defined.
+    // but partial information would be better than nothing.
 
-  @Override
-  public XSComponent selectSingle(String scd, NamespaceContext nsContext) {
-    try {
-      return SCD.create(scd, nsContext).selectSingle(this);
-    } catch (ParseException e) {
-      throw new IllegalArgumentException(e);
+    private final Locator locator;
+    public Locator getLocator() {
+        return locator;
     }
-  }
+
+
+    private final Map<String,XSAttributeDecl> atts = new HashMap<String,XSAttributeDecl>();
+    private final Map<String,XSAttributeDecl> attsView = Collections.unmodifiableMap(atts);
+    public void addAttributeDecl(XSAttributeDecl newDecl) {
+        atts.put(newDecl.getName(), newDecl);
+    }
+    public Map<String,XSAttributeDecl> getAttributeDecls() {
+        return attsView;
+    }
+    public XSAttributeDecl getAttributeDecl(String name) {
+        return atts.get(name);
+    }
+    public Iterator<XSAttributeDecl> iterateAttributeDecls() {
+        return atts.values().iterator();
+    }
+
+    private final Map<String,XSElementDecl> elems = new HashMap<String,XSElementDecl>();
+    private final Map<String,XSElementDecl> elemsView = Collections.unmodifiableMap(elems);
+    public void addElementDecl(XSElementDecl newDecl) {
+        elems.put(newDecl.getName(), newDecl);
+    }
+    public Map<String,XSElementDecl> getElementDecls() {
+        return elemsView;
+    }
+    public XSElementDecl getElementDecl(String name) {
+        return elems.get(name);
+    }
+    public Iterator<XSElementDecl> iterateElementDecls() {
+        return elems.values().iterator();
+    }
+
+    private final Map<String,XSAttGroupDecl> attGroups = new HashMap<String,XSAttGroupDecl>();
+    private final Map<String,XSAttGroupDecl> attGroupsView = Collections.unmodifiableMap(attGroups);
+    public void addAttGroupDecl(XSAttGroupDecl newDecl, boolean overwrite) {
+        if(overwrite || !attGroups.containsKey(newDecl.getName()))
+            attGroups.put(newDecl.getName(), newDecl);
+    }
+    public Map<String,XSAttGroupDecl> getAttGroupDecls() {
+        return attGroupsView;
+    }
+    public XSAttGroupDecl getAttGroupDecl(String name) {
+        return attGroups.get(name);
+    }
+    public Iterator<XSAttGroupDecl> iterateAttGroupDecls() {
+        return attGroups.values().iterator();
+    }
+
+
+    private final Map<String,XSNotation> notations = new HashMap<String,XSNotation>();
+    private final Map<String,XSNotation> notationsView = Collections.unmodifiableMap(notations);
+    public void addNotation( XSNotation newDecl ) {
+        notations.put( newDecl.getName(), newDecl );
+    }
+    public Map<String,XSNotation> getNotations() {
+        return notationsView;
+    }
+    public XSNotation getNotation( String name ) {
+        return notations.get(name);
+    }
+    public Iterator<XSNotation> iterateNotations() {
+        return notations.values().iterator();
+    }
+
+    private final Map<String,XSModelGroupDecl> modelGroups = new HashMap<String,XSModelGroupDecl>();
+    private final Map<String,XSModelGroupDecl> modelGroupsView = Collections.unmodifiableMap(modelGroups);
+    public void addModelGroupDecl(XSModelGroupDecl newDecl, boolean overwrite) {
+        if(overwrite || !modelGroups.containsKey(newDecl.getName()))
+            modelGroups.put(newDecl.getName(), newDecl);
+    }
+    public Map<String,XSModelGroupDecl> getModelGroupDecls() {
+        return modelGroupsView;
+    }
+    public XSModelGroupDecl getModelGroupDecl(String name) {
+        return modelGroups.get(name);
+    }
+    public Iterator<XSModelGroupDecl> iterateModelGroupDecls() {
+        return modelGroups.values().iterator();
+    }
+
+
+    private final Map<String,XSIdentityConstraint> idConstraints = new HashMap<String,XSIdentityConstraint>();
+    private final Map<String,XSIdentityConstraint> idConstraintsView = Collections.unmodifiableMap(idConstraints);
+
+    protected void addIdentityConstraint(IdentityConstraintImpl c) {
+        idConstraints.put(c.getName(),c);
+    }
+
+    public Map<String, XSIdentityConstraint> getIdentityConstraints() {
+        return idConstraintsView;
+    }
+
+    public XSIdentityConstraint getIdentityConstraint(String localName) {
+        return idConstraints.get(localName);
+    }
+
+    private final Map<String,XSType> allTypes = new HashMap<String,XSType>();
+    private final Map<String,XSType> allTypesView = Collections.unmodifiableMap(allTypes);
+
+    private final Map<String,XSSimpleType> simpleTypes = new HashMap<String,XSSimpleType>();
+    private final Map<String,XSSimpleType> simpleTypesView = Collections.unmodifiableMap(simpleTypes);
+    public void addSimpleType(XSSimpleType newDecl, boolean overwrite) {
+        if(overwrite || !simpleTypes.containsKey(newDecl.getName())) {
+            simpleTypes.put(newDecl.getName(), newDecl);
+            allTypes.put(newDecl.getName(), newDecl);
+        }
+    }
+    public Map<String,XSSimpleType> getSimpleTypes() {
+        return simpleTypesView;
+    }
+    public XSSimpleType getSimpleType(String name) {
+        return simpleTypes.get(name);
+    }
+    public Iterator<XSSimpleType> iterateSimpleTypes() {
+        return simpleTypes.values().iterator();
+    }
+
+    private final Map<String,XSComplexType> complexTypes = new HashMap<String,XSComplexType>();
+    private final Map<String,XSComplexType> complexTypesView = Collections.unmodifiableMap(complexTypes);
+    public void addComplexType(XSComplexType newDecl, boolean overwrite) {
+        if(overwrite || !complexTypes.containsKey(newDecl.getName())) {
+            complexTypes.put(newDecl.getName(), newDecl);
+            allTypes.put(newDecl.getName(), newDecl);
+        }
+    }
+    public Map<String,XSComplexType> getComplexTypes() {
+        return complexTypesView;
+    }
+    public XSComplexType getComplexType(String name) {
+        return complexTypes.get(name);
+    }
+    public Iterator<XSComplexType> iterateComplexTypes() {
+        return complexTypes.values().iterator();
+    }
+
+    public Map<String,XSType> getTypes() {
+        return allTypesView;
+    }
+    public XSType getType(String name) {
+        return allTypes.get(name);
+    }
+    public Iterator<XSType> iterateTypes() {
+        return allTypes.values().iterator();
+    }
+
+    public void visit(XSVisitor visitor) {
+        visitor.schema(this);
+    }
+
+    public <T> T apply(XSFunction<T> function) {
+        return function.schema(this);
+    }
+
+    /**
+     * Lazily created list of {@link ForeignAttributesImpl}s.
+     */
+    private List<ForeignAttributes> foreignAttributes = null;
+    private List<ForeignAttributes> readOnlyForeignAttributes = null;
+
+    public void addForeignAttributes(ForeignAttributesImpl fa) {
+        if(foreignAttributes==null)
+            foreignAttributes = new ArrayList<ForeignAttributes>();
+        foreignAttributes.add(fa);
+    }
+
+    public List<ForeignAttributes> getForeignAttributes() {
+        if(readOnlyForeignAttributes==null) {
+            if(foreignAttributes==null)
+                readOnlyForeignAttributes = Collections.emptyList();
+            else
+                readOnlyForeignAttributes = Collections.unmodifiableList(foreignAttributes);
+        }
+        return readOnlyForeignAttributes;
+    }
+
+    public String getForeignAttribute(String nsUri, String localName) {
+        for( ForeignAttributes fa : getForeignAttributes() ) {
+            String v = fa.getValue(nsUri,localName);
+            if(v!=null) return v;
+        }
+        return null;
+    }
+
+    public Collection<XSComponent> select(String scd, NamespaceContext nsContext) {
+        try {
+            return SCD.create(scd,nsContext).select(this);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    public XSComponent selectSingle(String scd, NamespaceContext nsContext) {
+        try {
+            return SCD.create(scd,nsContext).selectSingle(this);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
 }

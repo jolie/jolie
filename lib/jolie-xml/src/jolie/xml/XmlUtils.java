@@ -54,9 +54,9 @@ public class XmlUtils
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance preserving types.
 	 * @see Document
-	 *  value the source Value
-	 *  rootNodeName the name to give to the root node of the document
-	 *  document the XML document receiving the transformation
+	 * @param value the source Value
+	 * @param rootNodeName the name to give to the root node of the document
+	 * @param document the XML document receiving the transformation
 	 * @author Claudio Guidi 7/1/2011
 	 */
 	public static void valueToStorageDocument( Value value, String rootNodeName, Document document )
@@ -69,9 +69,9 @@ public class XmlUtils
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance.
 	 * @see Document
-	 *  value the source Value
-	 *  rootNodeName the name to give to the root node of the document
-	 *  document the XML document receiving the transformation
+	 * @param value the source Value
+	 * @param rootNodeName the name to give to the root node of the document
+	 * @param document the XML document receiving the transformation
 	 */
 	public static void valueToDocument( Value value, String rootNodeName, Document document )
 	{
@@ -83,9 +83,9 @@ public class XmlUtils
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance.
 	 * @see Document
-	 *  value the source Value
-	 *  element the root element where to start
-	 *  document the XML document receiving the transformation
+	 * @param value the source Value
+	 * @param element the root element where to start
+	 * @param document the XML document receiving the transformation
 	 */
 	public static void valueToDocument( Value value, Element element, Document document ) {
 		_valueToDocument( value, element, document );
@@ -94,10 +94,10 @@ public class XmlUtils
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance following a given XML Type Definition.
 	 * @see Document
-	 *  value the source Value
-	 *  rootNodeName the name to give to the root node of the document.
-	 *  document the XML document receiving the transformation.
-	 *  type the XML type definition to follow in writing the XML document.
+	 * @param value the source Value
+	 * @param rootNodeName the name to give to the root node of the document.
+	 * @param document the XML document receiving the transformation.
+	 * @param type the XML type definition to follow in writing the XML document.
 	 */
 	public static void valueToDocument( Value value, String rootNodeName, Document document, XSType type )
 	{
@@ -313,8 +313,8 @@ public class XmlUtils
 	/**
 	 * Transforms an XML Document to a Value representation
 	 * @see Document
-	 *  document the source XML document
-	 *  value the Value receiving the JOLIE representation of document
+	 * @param document the source XML document
+	 * @param value the Value receiving the JOLIE representation of document
 	 */
 	public static void documentToValue( Document document, Value value, boolean includeAttributes )
 	{ 

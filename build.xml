@@ -205,7 +205,7 @@ Jolie has been installed.
 Please make sure that:
 	- the environment variable JOLIE_HOME is set to ${private.install.dir}
 	- the directory ${private.install.launcher_dir} is in your environment variable PATH
-		</echo>
+</echo>
 	</target>
 
 	<target name="dist-install" depends="dist,install" />
@@ -226,8 +226,6 @@ Please make sure that:
 		<ant antfile="${project.auto}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.mqtt}/build.xml" inheritall="false" target="jar"/>
-    	<ant antfile="${project.coap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
@@ -238,9 +236,6 @@ Please make sure that:
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.local}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.datagram}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.serial}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.pubsubchannel}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="jar"/>
@@ -264,8 +259,6 @@ Please make sure that:
 		<ant antfile="${project.auto}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="clean"/>
-    	<ant antfile="${project.mqtt}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.coap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
@@ -282,9 +275,6 @@ Please make sure that:
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.datagram}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.serial}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.pubsubchannel}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.local}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
@@ -318,9 +308,7 @@ Please make sure that:
 				<file file="${project.auto}/dist/auto.jar"/>
 				<file file="${project.http}/dist/http.jar"/>
 				<file file="${project.https}/dist/https.jar"/>
-        		<file file="${project.mqtt}/dist/mqtt.jar"/>
-				<file file="${project.coap}/dist/coap.jar"/>
-	      		<file file="${project.javascript}/dist/javascript.jar"/>
+				<file file="${project.javascript}/dist/javascript.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
 				<file file="${project.rmi}/dist/rmi.jar"/>
 				<file file="${project.soap}/dist/soap.jar"/>
@@ -329,9 +317,6 @@ Please make sure that:
 				<file file="${project.sodeps}/dist/sodeps.jar"/>
 				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
-				<file file="${project.datagram}/dist/datagram.jar"/>
-				<file file="${project.serial}/dist/serial.jar"/>
-				<file file="${project.pubsubchannel}/dist/pubsubchannel.jar"/>
 				<file file="${project.local}/dist/local.jar"/>
 			</resources>
 		</copy>
@@ -370,7 +355,6 @@ Please make sure that:
 		<copy file="${libs.commons-lang3}" tofile="${dist.jolie}/lib/commons-lang3.jar"/>
 		<copy file="${libs.uri-templates}" tofile="${dist.jolie}/lib/uri-templates.jar"/>
 		<copy file="${libs.netty}" tofile="${dist.jolie}/lib/netty.jar"/>
-		<copy file="${libs.serial}" tofile="${dist.jolie}/lib/jssc.jar"/>
 
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />

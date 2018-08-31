@@ -34,7 +34,7 @@ public abstract class TypeSet {
      * Concrete implementations of this method determine what it
      * means for the TypeSet to "contain" a type.
      *  
-     *  type the type
+     * @param type the type
      * @return true iff this TypeSet contains the specified type
      */
     public abstract boolean contains(XSType type);
@@ -43,8 +43,8 @@ public abstract class TypeSet {
      * Calculate the TypeSet formed by the intersection of two
      * other TypeSet objects.
      * 
-     *  a a TypeSet
-     *  b another TypeSet
+     * @param a a TypeSet
+     * @param b another TypeSet
      * @return the intersection of a and b
      */
     public static TypeSet intersection(final TypeSet a, final TypeSet b) {
@@ -59,8 +59,8 @@ public abstract class TypeSet {
      * Calculate the TypeSet formed by the union of two
      * other TypeSet objects.
      * 
-     *  a a TypeSet
-     *  b another TypeSet
+     * @param a a TypeSet
+     * @param b another TypeSet
      * @return the union of a and b
      */
     public static TypeSet union(final TypeSet a, final TypeSet b) {

@@ -28,8 +28,6 @@ import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import jolie.net.ext.CommChannelFactory;
-import jolie.net.ports.InputPort;
-import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 
 @AndJarDeps({"unix.jar"})
@@ -55,10 +53,5 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory
 			throw new IOException( e );
 		}
 		return ret;
-	}
-
-	@Override
-	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
-		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 }

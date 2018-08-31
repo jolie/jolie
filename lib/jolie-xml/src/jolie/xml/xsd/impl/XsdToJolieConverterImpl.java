@@ -82,8 +82,8 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 
 	/*
 	 * Constructor.
-	 *  schemaSet the schema set to convert.
-	 *  strict {@code true} if encountering elements unsupported by JOLIE should raise an exception, {@code false} if they should just raise a warning message.
+	 * @param schemaSet the schema set to convert.
+	 * @param strict {@code true} if encountering elements unsupported by JOLIE should raise an exception, {@code false} if they should just raise a warning message.
 	 */
 	public XsdToJolieConverterImpl( XSSchemaSet schemaSet, boolean strict, Logger logger )
 	{

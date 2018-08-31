@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * Axis of traversal.
  *
- *  <T>
+ * @param <T>
  *      The kind of components that this axis may return.
  *
  * @author Kohsuke Kawaguchi

@@ -1,3 +1,0 @@
-Manifest-Version: 1.0
-X-JOLIE-ChannelExtension: datagram:jolie.net.DatagramCommChannelFactory
-X-JOLIE-ListenerExtension: datagram:jolie.net.DatagramListenerFactory

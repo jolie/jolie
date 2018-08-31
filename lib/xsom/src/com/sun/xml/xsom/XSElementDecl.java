@@ -50,7 +50,7 @@ public interface XSElementDecl extends XSDeclaration, XSTerm
      * IOW, this checks the value of the <code>final</code> attribute
      * (plus <code>finalDefault</code>).
      * 
-     *  method
+     * @param method
      *      Possible values are {@link XSType.EXTENSION} or 
      *      <code>XSType.RESTRICTION</code>.
      */
@@ -62,7 +62,7 @@ public interface XSElementDecl extends XSDeclaration, XSTerm
      * IOW, this checks the value of the <code>block</code> attribute
      * (plus <code>blockDefault</code>).
      * 
-     *  method
+     * @param method
      *      Possible values are {@link XSType.EXTENSION},
      *      <code>XSType.RESTRICTION</code>, or <code>XSType.SUBSTITUTION</code>
      */

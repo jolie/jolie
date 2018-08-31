@@ -43,7 +43,7 @@ public interface XSComponent
      * Works like {@link #getAnnotation()}, but allow a new empty {@link XSAnnotation} to be created
      * if not exist.
      *
-     *  createIfNotExist
+     * @param createIfNotExist
      *      true to create a new {@link XSAnnotation} if it doesn't exist already.
      *      false to make this method behavel like {@link #getAnnotation()}.
      *
@@ -127,9 +127,9 @@ public interface XSComponent
      * @throws IllegalArgumentException
      *      if SCD is syntactically incorrect.
      *
-     *  scd
+     * @param scd
      *      Schema component designator. See {@link SCD} for more details.
-     *  nsContext
+     * @param nsContext
      *      The namespace context in which SCD is evaluated. Cannot be null.
      * @return
      *      Can be empty but never null.
@@ -143,9 +143,9 @@ public interface XSComponent
      * @throws IllegalArgumentException
      *      if SCD is syntactically incorrect.
      *
-     *  scd
+     * @param scd
      *      Schema component designator. See {@link SCD} for more details.
-     *  nsContext
+     * @param nsContext
      *      The namespace context in which SCD is evaluated. Cannot be null.
      * @return
      *      null if the SCD didn't match anything. If the SCD matched more than one node,

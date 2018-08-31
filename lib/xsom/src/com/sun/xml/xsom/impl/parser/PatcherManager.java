@@ -32,7 +32,7 @@ public interface PatcherManager {
     /**
      * Reports an error during the parsing.
      * 
-     *  source
+     * @param source
      *      location of the error in the source file, or null if
      *      it's unavailable.
      */
