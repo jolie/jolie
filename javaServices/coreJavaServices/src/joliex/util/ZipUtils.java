@@ -22,6 +22,7 @@
 package joliex.util;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,18 +65,64 @@ public class ZipUtils extends JavaService
 		throws FaultException
 	{
 		Value response = Value.create();
+		String entryName = request.getFirstChild( "entry" ).strValue();
 		try {
-			ZipFile file = new ZipFile(
-				request.getFirstChild( "filename" ).strValue()
-			);
+			ZipInputStream zIStream = null;
+			if ( request.getChildren( "filename" ).size() > 0 ) {
+				zIStream = new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) );
+			} else if ( request.getChildren( "archive" ).size() > 0 ) {
+				zIStream = new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) );
+			}
 			
-			ZipEntry entry = file.getEntry(
-				request.getFirstChild( "entry" ).strValue()
-			);
-			if ( entry != null ) {
-				response.setValue(
-					inputStreamToByteArray( new BufferedInputStream( file.getInputStream( entry ) ) )
-				);
+			
+			ZipEntry zipEntry = null;
+			boolean found = false;
+			zipEntry = zIStream.getNextEntry();
+			while ( zipEntry != null && !found ) {
+				if ( zipEntry.getName().equals( entryName ) ) {
+					found = true;
+				} else {
+					zipEntry = zIStream.getNextEntry();
+				}
+			}
+			
+			if ( found ) {
+				byte[] buffer = new byte[ BUFFER_SIZE ];
+				int size;
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				while ((size = zIStream.read( buffer, 0, buffer.length ) ) != -1) {
+					baos.write( buffer, 0, size );
+				}
+				response.setValue( new ByteArray( baos.toByteArray() ) );
+			} else {
+				throw new FaultException( "EntryNotFound" );
+			}
+		} catch( IOException e ) {
+			throw new FaultException( e );
+		}
+		return response;
+	}
+	
+	public Value listEntries( Value request )
+		throws FaultException
+	{
+		Value response = Value.create();
+		try {
+			ZipInputStream zIStream = null;
+			if ( request.getChildren( "filename" ).size() > 0 ) {
+				zIStream = new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) );
+			} else if ( request.getChildren( "archive" ).size() > 0 ) {
+				zIStream = new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) );
+			}
+			
+			
+			ZipEntry zipEntry = null;
+			zipEntry = zIStream.getNextEntry();
+			int count = 0;
+			while ( zipEntry != null ) {
+				response.getChildren( "entry" ).get( count ).setValue(  zipEntry.getName() );
+				zipEntry = zIStream.getNextEntry();
+				count++;
 			}
 		} catch( IOException e ) {
 			throw new FaultException( e );
