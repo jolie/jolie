@@ -342,7 +342,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						if ( counter < numberParameters - 1 ) {
 							headerBuilder.append( '&' );
 						}
-						++counter;
+						
+						++counter; 
 
 					}
 				}
