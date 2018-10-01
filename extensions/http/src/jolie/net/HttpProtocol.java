@@ -1,24 +1,13 @@
- /**************************************************************************
- *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+/** ************************************************************************
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com> * * This program is free software; you can redistribute it and/or
+ * modify * it under the terms of the GNU Library General Public License as * published by the Free Software Foundation; either version 2 of
+ * the * License, or (at your option) any later version. * * This program is distributed in the hope that it will be useful, * but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU General Public
+ * License for more details. * * You should have received a copy of the GNU Library General Public * License along with this program; if
+ * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. * * For details about the
+ * authors of this software, see the AUTHORS file. *
+ **************************************************************************
+ */
 package jolie.net;
 
 import com.google.gwt.user.client.rpc.SerializationException;
@@ -86,8 +75,8 @@ import org.xml.sax.SAXException;
 
 /**
  * HTTP protocol implementation
- * @author Fabrizio Montesi
- * 14 Nov 2012 - Saverio Giallorenzo - Fabrizio Montesi: support for status codes
+ *
+ * @author Fabrizio Montesi 14 Nov 2012 - Saverio Giallorenzo - Fabrizio Montesi: support for status codes
  */
 public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 {
@@ -95,9 +84,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC 2616#7.2.1
 	private static final String DEFAULT_FORMAT = "xml";
-	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
-	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
-	
+	private static final Map< Integer, String> statusCodeDescriptions = new HashMap< Integer, String>();
+	private static final Set< Integer> locationRequiredStatusCodes = new HashSet< Integer>();
+
 	static {
 		locationRequiredStatusCodes.add( 301 );
 		locationRequiredStatusCodes.add( 302 );
@@ -105,72 +94,73 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		locationRequiredStatusCodes.add( 307 );
 		locationRequiredStatusCodes.add( 308 );
 	}
-	
+
 	static {
 		// Initialise the HTTP Status code map.
-		statusCodeDescriptions.put( 100,"Continue" );
-		statusCodeDescriptions.put( 101,"Switching Protocols" );
-		statusCodeDescriptions.put( 102,"Processing" );
-		statusCodeDescriptions.put( 200,"OK" );
-		statusCodeDescriptions.put( 201,"Created" );
-		statusCodeDescriptions.put( 202,"Accepted" );
-		statusCodeDescriptions.put( 203,"Non-Authoritative Information" );
-		statusCodeDescriptions.put( 204,"No Content" );
-		statusCodeDescriptions.put( 205,"Reset Content" );
-		statusCodeDescriptions.put( 206,"Partial Content" );
-		statusCodeDescriptions.put( 207,"Multi-Status" );
-		statusCodeDescriptions.put( 208,"Already Reported" );
-		statusCodeDescriptions.put( 226,"IM Used" );
-		statusCodeDescriptions.put( 300,"Multiple Choices" );
-		statusCodeDescriptions.put( 301,"Moved Permanently" );
-		statusCodeDescriptions.put( 302,"Found" );
-		statusCodeDescriptions.put( 303,"See Other" );
-		statusCodeDescriptions.put( 304,"Not Modified" );
-		statusCodeDescriptions.put( 305,"Use Proxy" );
-		statusCodeDescriptions.put( 306,"Reserved" );
-		statusCodeDescriptions.put( 307,"Temporary Redirect" );
-		statusCodeDescriptions.put( 308,"Permanent Redirect" );
-		statusCodeDescriptions.put( 400,"Bad Request" );
-		statusCodeDescriptions.put( 401,"Unauthorized" );
-		statusCodeDescriptions.put( 402,"Payment Required" );
-		statusCodeDescriptions.put( 403,"Forbidden" );
-		statusCodeDescriptions.put( 404,"Not Found" );
-		statusCodeDescriptions.put( 405,"Method Not Allowed" );
-		statusCodeDescriptions.put( 406,"Not Acceptable" );
-		statusCodeDescriptions.put( 407,"Proxy Authentication Required" );
-		statusCodeDescriptions.put( 408,"Request Timeout" );
-		statusCodeDescriptions.put( 409,"Conflict" );
-		statusCodeDescriptions.put( 410,"Gone" );
-		statusCodeDescriptions.put( 411,"Length Required" );
-		statusCodeDescriptions.put( 412,"Precondition Failed" );
-		statusCodeDescriptions.put( 413,"Request Entity Too Large" );
-		statusCodeDescriptions.put( 414,"Request-URI Too Long" );
-		statusCodeDescriptions.put( 415,"Unsupported Media Type" );
-		statusCodeDescriptions.put( 416,"Requested Range Not Satisfiable" );
-		statusCodeDescriptions.put( 417,"Expectation Failed" );
-		statusCodeDescriptions.put( 422,"Unprocessable Entity" );
-		statusCodeDescriptions.put( 423,"Locked" );
-		statusCodeDescriptions.put( 424,"Failed Dependency" );
-		statusCodeDescriptions.put( 426,"Upgrade Required" );
-		statusCodeDescriptions.put( 427,"Unassigned" );
-		statusCodeDescriptions.put( 428,"Precondition Required" );
-		statusCodeDescriptions.put( 429,"Too Many Requests" );
-		statusCodeDescriptions.put( 430,"Unassigned" );
-		statusCodeDescriptions.put( 431,"Request Header Fields Too Large" );
-		statusCodeDescriptions.put( 500,"Internal Server Error" );
-		statusCodeDescriptions.put( 501,"Not Implemented" );
-		statusCodeDescriptions.put( 502,"Bad Gateway" );
-		statusCodeDescriptions.put( 503,"Service Unavailable" );
-		statusCodeDescriptions.put( 504,"Gateway Timeout" );
-		statusCodeDescriptions.put( 505,"HTTP Version Not Supported" );
-		statusCodeDescriptions.put( 507,"Insufficient Storage" );
-		statusCodeDescriptions.put( 508,"Loop Detected" );
-		statusCodeDescriptions.put( 509,"Unassigned" );
-		statusCodeDescriptions.put( 510,"Not Extended" );
-		statusCodeDescriptions.put( 511,"Network Authentication Required" );
+		statusCodeDescriptions.put( 100, "Continue" );
+		statusCodeDescriptions.put( 101, "Switching Protocols" );
+		statusCodeDescriptions.put( 102, "Processing" );
+		statusCodeDescriptions.put( 200, "OK" );
+		statusCodeDescriptions.put( 201, "Created" );
+		statusCodeDescriptions.put( 202, "Accepted" );
+		statusCodeDescriptions.put( 203, "Non-Authoritative Information" );
+		statusCodeDescriptions.put( 204, "No Content" );
+		statusCodeDescriptions.put( 205, "Reset Content" );
+		statusCodeDescriptions.put( 206, "Partial Content" );
+		statusCodeDescriptions.put( 207, "Multi-Status" );
+		statusCodeDescriptions.put( 208, "Already Reported" );
+		statusCodeDescriptions.put( 226, "IM Used" );
+		statusCodeDescriptions.put( 300, "Multiple Choices" );
+		statusCodeDescriptions.put( 301, "Moved Permanently" );
+		statusCodeDescriptions.put( 302, "Found" );
+		statusCodeDescriptions.put( 303, "See Other" );
+		statusCodeDescriptions.put( 304, "Not Modified" );
+		statusCodeDescriptions.put( 305, "Use Proxy" );
+		statusCodeDescriptions.put( 306, "Reserved" );
+		statusCodeDescriptions.put( 307, "Temporary Redirect" );
+		statusCodeDescriptions.put( 308, "Permanent Redirect" );
+		statusCodeDescriptions.put( 400, "Bad Request" );
+		statusCodeDescriptions.put( 401, "Unauthorized" );
+		statusCodeDescriptions.put( 402, "Payment Required" );
+		statusCodeDescriptions.put( 403, "Forbidden" );
+		statusCodeDescriptions.put( 404, "Not Found" );
+		statusCodeDescriptions.put( 405, "Method Not Allowed" );
+		statusCodeDescriptions.put( 406, "Not Acceptable" );
+		statusCodeDescriptions.put( 407, "Proxy Authentication Required" );
+		statusCodeDescriptions.put( 408, "Request Timeout" );
+		statusCodeDescriptions.put( 409, "Conflict" );
+		statusCodeDescriptions.put( 410, "Gone" );
+		statusCodeDescriptions.put( 411, "Length Required" );
+		statusCodeDescriptions.put( 412, "Precondition Failed" );
+		statusCodeDescriptions.put( 413, "Request Entity Too Large" );
+		statusCodeDescriptions.put( 414, "Request-URI Too Long" );
+		statusCodeDescriptions.put( 415, "Unsupported Media Type" );
+		statusCodeDescriptions.put( 416, "Requested Range Not Satisfiable" );
+		statusCodeDescriptions.put( 417, "Expectation Failed" );
+		statusCodeDescriptions.put( 422, "Unprocessable Entity" );
+		statusCodeDescriptions.put( 423, "Locked" );
+		statusCodeDescriptions.put( 424, "Failed Dependency" );
+		statusCodeDescriptions.put( 426, "Upgrade Required" );
+		statusCodeDescriptions.put( 427, "Unassigned" );
+		statusCodeDescriptions.put( 428, "Precondition Required" );
+		statusCodeDescriptions.put( 429, "Too Many Requests" );
+		statusCodeDescriptions.put( 430, "Unassigned" );
+		statusCodeDescriptions.put( 431, "Request Header Fields Too Large" );
+		statusCodeDescriptions.put( 500, "Internal Server Error" );
+		statusCodeDescriptions.put( 501, "Not Implemented" );
+		statusCodeDescriptions.put( 502, "Bad Gateway" );
+		statusCodeDescriptions.put( 503, "Service Unavailable" );
+		statusCodeDescriptions.put( 504, "Gateway Timeout" );
+		statusCodeDescriptions.put( 505, "HTTP Version Not Supported" );
+		statusCodeDescriptions.put( 507, "Insufficient Storage" );
+		statusCodeDescriptions.put( 508, "Loop Detected" );
+		statusCodeDescriptions.put( 509, "Unassigned" );
+		statusCodeDescriptions.put( 510, "Not Extended" );
+		statusCodeDescriptions.put( 511, "Network Authentication Required" );
 	}
-	
-	private static class Parameters {
+
+	private static class Parameters
+	{
 		private static final String KEEP_ALIVE = "keepAlive";
 		private static final String DEBUG = "debug";
 		private static final String COOKIES = "cookies";
@@ -197,12 +187,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String DROP_URI_PATH = "dropURIPath";
 		private static final String CACHE_CONTROL = "cacheControl";
 
-		private static class MultiPartHeaders {
+		private static class MultiPartHeaders
+		{
 			private static final String FILENAME = "filename";
 		}
 	}
 
-	private static class Headers {
+	private static class Headers
+	{
 		private static final String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
 	}
 
@@ -213,7 +205,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private final URI uri;
 	private final boolean inInputPort;
 	private MultiPartFormDataParser multiPartFormDataParser = null;
-	
+
 	public String name()
 	{
 		return "http";
@@ -259,9 +251,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 		return null;
 	}
-	
+
 	private final static String BOUNDARY = "----Jol13H77p77Bound4r155";
-	
+
 	private void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
 	{
 		Value cookieParam = null;
@@ -274,7 +266,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			Value cookieConfig;
 			String domain;
 			StringBuilder cookieSB = new StringBuilder();
-			for( Entry< String, ValueVector > entry : cookieParam.children().entrySet() ) {
+			for( Entry< String, ValueVector> entry : cookieParam.children().entrySet() ) {
 				cookieConfig = entry.getValue().first();
 				if ( message.value().hasChildren( cookieConfig.strValue() ) ) {
 					domain = cookieConfig.hasChildren( "domain" ) ? cookieConfig.getFirstChild( "domain" ).strValue() : "";
@@ -295,7 +287,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		}
 	}
-	
+
 	private void send_appendSetCookieHeader( CommMessage message, StringBuilder headerBuilder )
 	{
 		Value cookieParam = null;
@@ -306,7 +298,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 		if ( cookieParam != null ) {
 			Value cookieConfig;
-			for( Entry< String, ValueVector > entry : cookieParam.children().entrySet() ) {
+			for( Entry< String, ValueVector> entry : cookieParam.children().entrySet() ) {
 				cookieConfig = entry.getValue().first();
 				if ( message.value().hasChildren( cookieConfig.strValue() ) ) {
 					headerBuilder
@@ -327,7 +319,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		}
 	}
-	
+
 	private String encoding = null;
 	private String responseFormat = null;
 	private boolean headRequest = false;
@@ -337,18 +329,28 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		if ( !value.children().isEmpty() ) {
 			headerBuilder.append( '?' );
-			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+			int counter = 0;
+			int numberParameters = value.children().entrySet().size();
+
+			for( Entry< String, ValueVector> entry : value.children().entrySet() ) {
 				for( Value v : entry.getValue() ) {
-					headerBuilder
-						.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
-						.append( '=' )
-						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) )
-						.append( '&' );
+					if ( counter < numberParameters - 1 ) {
+						headerBuilder
+							.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
+							.append( '=' )
+							.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
+						if ( counter < numberParameters - 1 ) {
+							headerBuilder.append( '&' );
+						}
+						++counter;
+
+					}
 				}
 			}
 		}
-	}
         
+	}
+
 	private void send_appendJsonQueryString( CommMessage message, StringBuilder headerBuilder )
 		throws IOException
 	{
@@ -359,7 +361,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
 		}
 	}
-	
+
 	private static void send_appendParsedAlias( String alias, Value value, StringBuilder headerBuilder )
 		throws IOException
 	{
@@ -413,8 +415,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 		return format;
 	}
-	
-	private static class EncodedContent {
+
+	private static class EncodedContent
+	{
 		private ByteArray content = null;
 		private String contentType = DEFAULT_CONTENT_TYPE;
 		private String contentDisposition = "";
@@ -432,7 +435,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( "xml".equals( format ) ) {
 			ret.contentType = "text/xml";
 			Document doc = docBuilder.newDocument();
-			Element root = doc.createElement( message.operationName() + (( inInputPort ) ? "Response" : "") );
+			Element root = doc.createElement( message.operationName() + ((inInputPort) ? "Response" : "") );
 			doc.appendChild( root );
 			if ( message.isFault() ) {
 				Element faultElement = doc.createElement( message.fault().faultName() );
@@ -470,8 +473,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if ( "multipart/form-data".equals( format ) ) {
 			ret.contentType = "multipart/form-data; boundary=" + BOUNDARY;
 			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-                        StringBuilder builder = new StringBuilder();
-			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
+			StringBuilder builder = new StringBuilder();
+			for( Entry< String, ValueVector> entry : message.value().children().entrySet() ) {
 				if ( !entry.getKey().startsWith( "@" ) ) {
 					builder.append( "--" ).append( BOUNDARY ).append( HttpUtils.CRLF );
 					builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' );
@@ -508,12 +511,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				}
 			}
 			builder.append( "--" + BOUNDARY + "--" );
-			bStream.write( builder.toString().getBytes( charset ));
+			bStream.write( builder.toString().getBytes( charset ) );
 			ret.content = new ByteArray( bStream.toByteArray() );
 		} else if ( "x-www-form-urlencoded".equals( format ) ) {
 			ret.contentType = "application/x-www-form-urlencoded";
-			Iterator< Entry< String, ValueVector > > it =
-				message.value().children().entrySet().iterator();
+			Iterator< Entry< String, ValueVector>> it
+				= message.value().children().entrySet().iterator();
 			StringBuilder builder = new StringBuilder();
 			if ( message.isFault() ) {
 				builder.append( "faultName=" );
@@ -521,7 +524,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				builder.append( "&data=" );
 				builder.append( URLEncoder.encode( message.fault().value().strValue(), HttpUtils.URL_DECODER_ENC ) );
 			} else {
-				Entry< String, ValueVector > entry;
+				Entry< String, ValueVector> entry;
 				while( it.hasNext() ) {
 					entry = it.next();
 					builder.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
@@ -538,13 +541,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			try {
 				if ( message.isFault() ) {
 					ret.content = new ByteArray(
-						RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], JolieGWTConverter.jolieToGwtFault( message.fault() ) ).getBytes( charset )
+						RPC.encodeResponseForFailure( JolieService.class.getMethods()[ 0 ], JolieGWTConverter.jolieToGwtFault( message.fault() ) ).getBytes( charset )
 					);
 				} else {
 					joliex.gwt.client.Value v = new joliex.gwt.client.Value();
 					JolieGWTConverter.jolieToGwtValue( message.value(), v );
 					ret.content = new ByteArray(
-						RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v ).getBytes( charset )
+						RPC.encodeResponseForSuccess( JolieService.class.getMethods()[ 0 ], v ).getBytes( charset )
 					);
 				}
 			} catch( SerializationException e ) {
@@ -580,27 +583,27 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
-	{		
+	{
 		int statusCode = DEFAULT_STATUS_CODE;
 		String statusDescription = null;
 
-		if( hasParameter( Parameters.STATUS_CODE ) ) {
+		if ( hasParameter( Parameters.STATUS_CODE ) ) {
 			statusCode = getIntParameter( Parameters.STATUS_CODE );
 			if ( !statusCodeDescriptions.containsKey( statusCode ) ) {
-				Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
-					message.operationName() +
-					" is sending a message with status code " +
-					statusCode +
-					", which is not in the HTTP specifications."
+				Interpreter.getInstance().logWarning( "HTTP protocol for operation "
+					+ message.operationName()
+					+ " is sending a message with status code "
+					+ statusCode
+					+ ", which is not in the HTTP specifications."
 				);
 				statusDescription = "Internal Server Error";
 			} else if ( isLocationNeeded( statusCode ) && !hasParameter( Parameters.REDIRECT ) ) {
 				// if statusCode is a redirection code, location parameter is needed
-				Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
-					message.operationName() +
-					" is sending a message with status code " +
-					statusCode +
-					", which expects a redirect parameter but the latter is not set."
+				Interpreter.getInstance().logWarning( "HTTP protocol for operation "
+					+ message.operationName()
+					+ " is sending a message with status code "
+					+ statusCode
+					+ ", which expects a redirect parameter but the latter is not set."
 				);
 			}
 		} else if ( hasParameter( Parameters.REDIRECT ) ) {
@@ -611,12 +614,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			statusDescription = statusCodeDescriptions.get( statusCode );
 		}
 		headerBuilder.append( "HTTP/1.1 " + statusCode + " " + statusDescription + HttpUtils.CRLF );
-		
+
 		// if redirect has been set, the redirect location parameter is set
 		if ( hasParameter( Parameters.REDIRECT ) ) {
 			headerBuilder.append( "Location: " + getStringParameter( Parameters.REDIRECT ) + HttpUtils.CRLF );
 		}
-		
+
 		send_appendSetCookieHeader( message, headerBuilder );
 		headerBuilder.append( "Server: Jolie" ).append( HttpUtils.CRLF );
 		StringBuilder cacheControlHeader = new StringBuilder();
@@ -630,12 +633,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headerBuilder.append( "Cache-Control: " ).append( cacheControlHeader ).append( HttpUtils.CRLF );
 		}
 	}
-	
+
 	private static void send_appendRequestMethod( Method method, StringBuilder headerBuilder )
 	{
 		headerBuilder.append( method.id() );
 	}
-	
+
 	private void send_appendRequestPath( CommMessage message, Method method, StringBuilder headerBuilder )
 		throws IOException
 	{
@@ -669,49 +672,48 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		}
 	}
-	
+
 	private static void send_appendAuthorizationHeader( CommMessage message, StringBuilder headerBuilder )
 	{
 		if ( message.value().hasChildren( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() ) ) {
 			Value v = message.value().getFirstChild( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() );
 			//String realm = v.getFirstChild( "realm" ).strValue();
-			String userpass =
-				v.getFirstChild( "userid" ).strValue() + ":" +
-				v.getFirstChild( "password" ).strValue();
+			String userpass
+				= v.getFirstChild( "userid" ).strValue() + ":"
+				+ v.getFirstChild( "password" ).strValue();
 			sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
 			userpass = encoder.encode( userpass.getBytes() );
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
 		}
 	}
-        
-        private void send_appendHeader( CommMessage message, StringBuilder headerBuilder )
+
+	private void send_appendHeader( CommMessage message, StringBuilder headerBuilder )
 	{
-                Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
+		Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
 		if ( v != null ) {
-                    if ( v.hasChildren("header") ) {
-                        for( Value head : v.getChildren("header") ) {
-                                String header =
-                                        head.strValue() + ": " +
-                                        head.getFirstChild( "value" ).strValue();
-                                headerBuilder.append( header ).append( HttpUtils.CRLF );
-                        }
-                    }
+			if ( v.hasChildren( "header" ) ) {
+				for( Value head : v.getChildren( "header" ) ) {
+					String header
+						= head.strValue() + ": "
+						+ head.getFirstChild( "value" ).strValue();
+					headerBuilder.append( header ).append( HttpUtils.CRLF );
+				}
+			}
 		}
 	}
 
 	private Method send_getRequestMethod( CommMessage message )
 		throws IOException
 	{
-		Method method =
-			hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ?
-				Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ) )
-			: hasParameter( Parameters.METHOD ) ?
-				Method.fromString( getStringParameter( Parameters.METHOD ) )
-			:
-				Method.POST;
+		Method method
+			= hasOperationSpecificParameter( message.operationName(), Parameters.METHOD )
+			? Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ) )
+			: hasParameter( Parameters.METHOD )
+			? Method.fromString( getStringParameter( Parameters.METHOD ) )
+			: Method.POST;
 		return method;
 	}
-	
+
 	private void send_appendRequestHeaders( CommMessage message, Method method, StringBuilder headerBuilder )
 		throws IOException
 	{
@@ -733,7 +735,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 		send_appendHeader( message, headerBuilder );
 	}
-	
+
 	private void send_appendGenericHeaders(
 		CommMessage message,
 		EncodedContent encodedContent,
@@ -757,7 +759,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 			encodedContent.contentType = encodedContent.contentType.toLowerCase();
 
- 			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
+			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
 			if ( charset != null ) {
 				headerBuilder.append( "; charset=" + charset.toLowerCase() );
 			}
@@ -767,13 +769,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if ( transferEncoding.length() > 0 ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + transferEncoding + HttpUtils.CRLF );
 			}
-			
+
 			String contentDisposition = getStringParameter( Parameters.CONTENT_DISPOSITION );
 			if ( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
 				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + HttpUtils.CRLF );
 			}
-			
+
 			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
@@ -791,7 +793,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headerBuilder.append( "Content-Length: 0" + HttpUtils.CRLF );
 		}
 	}
-	
+
 	private void send_logDebugInfo( CharSequence header, EncodedContent encodedContent, String charset )
 		throws IOException
 	{
@@ -799,16 +801,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			StringBuilder debugSB = new StringBuilder();
 			debugSB.append( "[HTTP debug] Sending:\n" );
 			debugSB.append( header );
-			if (
-				getParameterVector( Parameters.DEBUG ).first().getFirstChild( "showContent" ).intValue() > 0
-				&& encodedContent.content != null
-				) {
+			if ( getParameterVector( Parameters.DEBUG ).first().getFirstChild( "showContent" ).intValue() > 0
+				&& encodedContent.content != null ) {
 				debugSB.append( encodedContent.content.toString( charset ) );
 			}
 			Interpreter.getInstance().logInfo( debugSB.toString() );
 		}
 	}
-	
+
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
@@ -827,10 +827,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
-		
+
 		send_logDebugInfo( headerBuilder, encodedContent, charset );
 		inputId = message.operationName();
-		
+
 		ostream.write( headerBuilder.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
 		if ( encodedContent.content != null && !headRequest ) {
 			ostream.write( encodedContent.content.getBytes() );
@@ -867,7 +867,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
 	}
-	
+
 	private static void parseForm( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
@@ -876,28 +876,28 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		for( String item : line.split( "&" ) ) {
 			pair = item.split( "=", 2 );
 			if ( pair.length > 1 ) {
-				value.getChildren( URLDecoder.decode( pair[0], HttpUtils.URL_DECODER_ENC ) ).first().setValue( URLDecoder.decode( pair[1], HttpUtils.URL_DECODER_ENC ) );
+				value.getChildren( URLDecoder.decode( pair[ 0 ], HttpUtils.URL_DECODER_ENC ) ).first().setValue( URLDecoder.decode( pair[ 1 ], HttpUtils.URL_DECODER_ENC ) );
 			}
-		}		
+		}
 	}
-	
+
 	private void parseMultiPartFormData( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
 		multiPartFormDataParser = new MultiPartFormDataParser( message, value, charset );
 		multiPartFormDataParser.parse();
 	}
-	
+
 	private static String parseGWTRPC( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
 		RPCRequest request = RPC.decodeRequest( new String( message.content(), charset ) );
-		String operationName = (String)request.getParameters()[0];
-		joliex.gwt.client.Value requestValue = (joliex.gwt.client.Value)request.getParameters()[1];
+		String operationName = (String) request.getParameters()[ 0 ];
+		joliex.gwt.client.Value requestValue = (joliex.gwt.client.Value) request.getParameters()[ 1 ];
 		JolieGWTConverter.gwtToJolieValue( requestValue, value );
 		return operationName;
 	}
-	
+
 	private void recv_checkForSetCookie( HttpMessage message, Value value )
 		throws IOException
 	{
@@ -911,11 +911,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					cookieConfig = cookies.getFirstChild( cookie.name() );
 					if ( cookieConfig.isString() ) {
 						v = value.getFirstChild( cookieConfig.strValue() );
-						type =
-							cookieConfig.hasChildren( "type" ) ?
-								cookieConfig.getFirstChild( "type" ).strValue()
-							:
-								"string";
+						type
+							= cookieConfig.hasChildren( "type" )
+							? cookieConfig.getFirstChild( "type" ).strValue()
+							: "string";
 						recv_assignCookieValue( cookie.value(), v, type );
 					}
 				}
@@ -975,7 +974,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( cookies != null ) {
 			Value v;
 			String type;
-			for( Entry< String, String > entry : message.cookies().entrySet() ) {
+			for( Entry< String, String> entry : message.cookies().entrySet() ) {
 				if ( cookies.hasChildren( entry.getKey() ) ) {
 					Value cookieConfig = cookies.getFirstChild( entry.getKey() );
 					if ( cookieConfig.isString() ) {
@@ -1013,24 +1012,24 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static void recv_parseQueryString( HttpMessage message, Value value )
 		throws IOException
 	{
-		Map< String, Integer > indexes = new HashMap< String, Integer >();
+		Map< String, Integer> indexes = new HashMap< String, Integer>();
 		String queryString = message.requestPath();
 		String[] kv = queryString.split( "\\?", 2 );
 		Integer index;
 		if ( kv.length > 1 ) {
-			queryString = kv[1];
+			queryString = kv[ 1 ];
 			String[] params = queryString.split( "&" );
 			for( String param : params ) {
 				kv = param.split( "=", 2 );
 				if ( kv.length > 1 ) {
-					index = indexes.get( kv[0] );
+					index = indexes.get( kv[ 0 ] );
 					if ( index == null ) {
 						index = 0;
-						indexes.put( kv[0], index );
+						indexes.put( kv[ 0 ], index );
 					}
 					// the query string was already URL decoded by the HttpParser
-					value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
-					indexes.put( kv[0], index + 1 );
+					value.getChildren( kv[ 0 ] ).get( index ).setValue( kv[ 1 ] );
+					indexes.put( kv[ 0 ], index + 1 );
 				}
 			}
 		}
@@ -1039,12 +1038,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static void recv_parseJsonQueryString( HttpMessage message, Value value, boolean strictEncoding )
 		throws IOException
 	{
-		Map< String, Integer > indexes = new HashMap< String, Integer >();
+		Map< String, Integer> indexes = new HashMap< String, Integer>();
 		String queryString = message.requestPath();
 		String[] kv = queryString.split( "\\?=", 2 );
 		if ( kv.length > 1 ) {
 			// the query string was already URL decoded by the HttpParser
-			queryString = kv[1];
+			queryString = kv[ 1 ];
 			JsUtils.parseJsonIntoValue( new StringReader( queryString ), value, strictEncoding );
 		}
 	}
@@ -1060,19 +1059,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		debugSB.append( "HTTP Code: " + message.statusCode() + "\n" );
 		debugSB.append( "Resource: " + message.requestPath() + "\n" );
 		debugSB.append( "--> Header properties\n" );
-		for( Entry< String, String > entry : message.properties() ) {
+		for( Entry< String, String> entry : message.properties() ) {
 			debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
 		}
 		for( HttpMessage.Cookie cookie : message.setCookies() ) {
 			debugSB.append( "\tset-cookie: " + cookie.toString() + '\n' );
 		}
-		for( Entry< String, String > entry : message.cookies().entrySet() ) {
+		for( Entry< String, String> entry : message.cookies().entrySet() ) {
 			debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
 		}
-		if (
-			getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
-			&& message.size() > 0
-		) {
+		if ( getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
+			&& message.size() > 0 ) {
 			debugSB.append( "--> Message content\n" );
 			debugSB.append( new String( message.content(), charset ) );
 		}
@@ -1083,7 +1080,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		responseFormat = null;
-		
+
 		if ( "text/xml".equals( type ) ) {
 			responseFormat = "xml";
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
@@ -1092,7 +1089,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			responseFormat = "json";
 		}
 	}
-	
+
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
@@ -1106,10 +1103,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value, charset );
 		} else if ( "multipart/form-data".equals( type ) ) {
 			parseMultiPartFormData( message, decodedMessage.value, charset );
-		} else if (
-			"application/octet-stream".equals( type ) || type.startsWith( "image/" )
-			|| "application/zip".equals( type )
-		) {
+		} else if ( "application/octet-stream".equals( type ) || type.startsWith( "image/" )
+			|| "application/zip".equals( type ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) || type.contains( "json" ) ) {
 			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
@@ -1118,7 +1113,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		}
 	}
-	
+
 	private String getDefaultOperation( HttpMessage.Type t )
 	{
 		if ( hasParameter( Parameters.DEFAULT_OPERATION ) ) {
@@ -1130,14 +1125,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				return dParam.getFirstChild( method ).strValue();
 			}
 		}
-		
+
 		return null;
 	}
 
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
 	{
 		if ( decodedMessage.operationName == null ) {
-			String requestPath = message.requestPath().split( "\\?", 2 )[0];
+			String requestPath = message.requestPath().split( "\\?", 2 )[ 0 ];
 			decodedMessage.operationName = requestPath;
 			Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( decodedMessage.operationName );
 			if ( m.find() ) {
@@ -1161,7 +1156,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					decodedMessage.value.getFirstChild( Parameters.USER_AGENT ).setValue( message.userAgent() );
 				}
 				Value cookies = decodedMessage.value.getFirstChild( "cookies" );
-				for( Entry< String, String > cookie : message.cookies().entrySet() ) {
+				for( Entry< String, String> cookie : message.cookies().entrySet() ) {
 					cookies.getFirstChild( cookie.getKey() ).setValue( cookie.getValue() );
 				}
 				decodedMessage.operationName = defaultOpId;
@@ -1173,7 +1168,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		if ( multiPartFormDataParser != null ) {
 			String target;
-			for( Entry< String, MultiPartFormDataParser.PartProperties > entry : multiPartFormDataParser.getPartPropertiesSet() ) {
+			for( Entry< String, MultiPartFormDataParser.PartProperties> entry : multiPartFormDataParser.getPartPropertiesSet() ) {
 				if ( entry.getValue().filename() != null ) {
 					target = getMultipartHeaderForPart( decodedMessage.operationName, entry.getKey() );
 					if ( target != null ) {
@@ -1184,39 +1179,38 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			multiPartFormDataParser = null;
 		}
 	}
-	
+
 	private void recv_checkForMessageProperties( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
 		recv_checkForCookies( message, decodedMessage );
 		recv_checkForGenericHeader( message, decodedMessage );
 		recv_checkForMultiPartHeaders( decodedMessage );
-		if (
-			message.userAgent() != null &&
-			hasParameter( Parameters.USER_AGENT )
-		) {
-			getParameterFirstValue( Parameters.USER_AGENT ).setValue( message.userAgent() );     
+		if ( message.userAgent() != null
+			&& hasParameter( Parameters.USER_AGENT ) ) {
+			getParameterFirstValue( Parameters.USER_AGENT ).setValue( message.userAgent() );
 		}
-		
+
 		if ( getParameterVector( Parameters.HOST ) != null ) {
 			getParameterFirstValue( Parameters.HOST ).setValue( message.getPropertyOrEmptyString( Parameters.HOST ) );
 		}
 	}
 
-	private static class DecodedMessage {
+	private static class DecodedMessage
+	{
 		private String operationName = null;
 		private Value value = Value.create();
 		private String resourcePath = "/";
 		private long id = CommMessage.GENERIC_ID;
 	}
-	
+
 	private void recv_checkForStatusCode( HttpMessage message )
 	{
 		if ( hasParameter( Parameters.STATUS_CODE ) ) {
 			getParameterFirstValue( Parameters.STATUS_CODE ).setValue( message.statusCode() );
 		}
 	}
-	
+
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -1232,7 +1226,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		recv_checkForStatusCode( message );
-		
+
 		encoding = message.getProperty( "accept-encoding" );
 		headRequest = inInputPort && message.isHead();
 
@@ -1252,7 +1246,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			// body parsing
 			String contentType = DEFAULT_CONTENT_TYPE;
 			if ( message.getProperty( "content-type" ) != null ) {
-				contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
+				contentType = message.getProperty( "content-type" ).split( ";", 2 )[ 0 ].toLowerCase();
 			}
 
 			recv_parseRequestFormat( message, contentType );
@@ -1266,7 +1260,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if ( messageId != null ) {
 				try {
 					decodedMessage.id = Long.parseLong( messageId );
-				} catch( NumberFormatException e ) {}
+				} catch( NumberFormatException e ) {
+				}
 			}
 		}
 
@@ -1350,13 +1345,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( channel().parentPort() == null ) {
 			throw new IOException( "Could not retrieve communication port for HTTP protocol" );
 		}
-		
+
 		OperationTypeDescription opDesc = channel().parentPort().getOperationTypeDescription( message.operationName(), Constants.ROOT_RESOURCE_PATH );
-		
+
 		if ( opDesc == null ) {
 			return null;
 		}
-		
+
 		if ( opDesc.asOneWayTypeDescription() != null ) {
 			if ( message.isFault() ) {
 				ret = Type.UNDEFINED;
@@ -1372,7 +1367,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					ret = Type.UNDEFINED;
 				}
 			} else {
-				ret = ( inInputPort ) ? rr.responseType() : rr.requestType();
+				ret = (inInputPort) ? rr.responseType() : rr.requestType();
 			}
 		}
 
