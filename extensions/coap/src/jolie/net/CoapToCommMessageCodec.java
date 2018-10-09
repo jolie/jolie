@@ -117,8 +117,8 @@ public class CoapToCommMessageCodec
 	protected void encode( ChannelHandlerContext ctx, CommMessage in,
 		List<Object> out ) throws Exception {
 
-		this.protocol.setExecutionThread( in.getExecutionThread() );
-			out.add( this.encode_internal( ctx, in ) );
+		this.protocol.setExecutionThread( in.executionThread() );
+		out.add( this.encode_internal( ctx, in ) );
 	}
 
 	private CoapMessage encode_internal( ChannelHandlerContext ctx,
