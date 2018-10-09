@@ -17,16 +17,11 @@
  * MA 02110-1301  USA
  */
 
-include "coap_server.iol"
-
-execution{ sequential }
-
-inputPort  Server {
-    Location: CoAP_ServerLocation
-    Protocol: coap
-    Interfaces: ServerInterface
+constants {
+    CoAP_ServerLocation = "datagram://localhost:5683",
 }
 
-main {
-    twice( x )( x * 2 )
+interface ServerInterface {
+    RequestResponse: 
+        twice( int )( int )
 }

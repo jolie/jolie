@@ -18,32 +18,17 @@
  */
 
 include "../AbstractTestUnit.iol"
-include "console.iol"
-include "private/thermostatService.iol"
+include "private/coap_server.iol"
 
 outputPort Server {
     Location: CoAP_ServerLocation
     Protocol: coap {
-        .debug = false;
-        .proxy = false;
-        .osc.getTmp << {
-            .alias = "/%!{id}/getTemperature",
-            .messageCode = "GET",
-            .messageType = "CON"
-        };
-        .osc.setTmp << {
-            .contentFormat = "text/plain",
-            .alias = "/%!{id}/setTemperature",
-            .messageCode = "POST",
-            .messageType = "CON"
-        };
-        .osc.core << {
-            .alias = "/.well-known/core",
-            .messageCode = "GET",
-            .messageType = "CON"
-        }
+        .osc.twice.alias = "twice";
+        .osc.twice.contentFormat -> fmt;
+        .osc.twice.messageCode -> mcd;
+        .osc.twice.messageType -> mtp
     }
-    Interfaces: ThermostatInterface
+    Interfaces: ServerInterface
 }
 
 embedded {
@@ -51,20 +36,32 @@ Jolie:
     "private/coap_server.ol"
 }
 
+define checkResponse
+{
+    if ( x != 10 ) {
+        throw( TestFailed, "Unexpected result" )
+    }
+}
+
 define doTest
 {
-    println@Console( "Resources available @ Thermostat are:\n" )( ) | {
-        core@Server( )( response );
-        println@Console( response )()
-    };
-
-    getTmp@Server( { .id = "42" } )( response );
-    println@Console( "\nThermostat n.42 forwarded temperature " + response + " C" )();
+    ls = "twice" ;
     
-    t_confort = 21;
-    if (response < t_confort) {
-        setTmp@Server( 21 { .id = "42" } )
-        |
-        println@Console( "\nSet Temperature of Thermostat n.42 to 21 C" )()
-    }
+    fmt = "text/plain" ;
+    mcd = "POST" ;
+    mtp = "NON" ;
+    twice@Server( 5 )( x ) ;
+    checkResponse ;
+    
+    fmt = "text/plain" ;
+    mcd = "POST" ;
+    mtp = "CON" ;
+    twice@Server( 5 )( x ) ;
+    checkResponse ;
+
+    fmt = "application/json" ;
+    mcd = "POST" ;
+    mtp = "CON" ;
+    twice@Server( 5 )( x ) ;
+    checkResponse
 }
