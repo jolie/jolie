@@ -21,19 +21,19 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.CommProtocol;
 
-public class LocalCommChannelFactory extends CommChannelFactory
-{
-	public LocalCommChannelFactory( CommCore commCore )
-	{
+public class LocalCommChannelFactory extends CommChannelFactory {
+
+	public LocalCommChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		LocalListener localListener = LocalListenerFactory.getListener( location.getHost() );
 		if ( localListener == null ) {
 			throw new IOException( "Channel does not exist." );
@@ -41,5 +41,10 @@ public class LocalCommChannelFactory extends CommChannelFactory
 		LocalCommChannel l = new LocalCommChannel( localListener.interpreter(), localListener );
 		l.setParentOutputPort( port );
 		return l;
+	}
+
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 }

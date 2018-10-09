@@ -34,10 +34,8 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 
 import java.util.List;
 
-import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
-import jolie.net.NioSocketCommChannel;
 import jolie.net.protocols.AsyncCommProtocol;
 
 public class InputResponseHandler
@@ -67,7 +65,7 @@ public class InputResponseHandler
   @Override
   protected void encode(ChannelHandlerContext ctx, CommMessage in,
       List<Object> out) throws Exception {
-		mp.setExecutionThread( in.getExecutionThread() );
+		mp.setExecutionThread( in.executionThread() );
     init(ctx);
     cmResp = in;
     out.add(mp.connectMsg());

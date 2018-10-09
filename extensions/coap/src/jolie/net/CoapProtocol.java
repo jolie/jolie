@@ -22,13 +22,10 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-import jolie.ExecutionThread;
 
 import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
@@ -118,10 +115,10 @@ public class CoapProtocol extends AsyncCommProtocol {
 		return super.getSendType( message );
 	}
 
-	@Override
-	protected void setExecutionThread( ExecutionThread t ) {
-		super.setExecutionThread( t );
-	}
+//	@Override
+//	protected void setExecutionThread( ExecutionThread t ) {
+//		super.setExecutionThread( t );
+//	}
 
 	/**
 	 * Given the <code>alias</code> for an operation, it searches iteratively in

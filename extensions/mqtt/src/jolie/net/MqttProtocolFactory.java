@@ -30,7 +30,7 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"jolie-js.jar", "json_simple.jar", "jolie-xml.jar"})
+@AndJarDeps( { "jolie-js.jar", "json_simple.jar", "jolie-xml.jar" } )
 public class MqttProtocolFactory extends PubSubCommProtocolFactory {
 
 	public MqttProtocolFactory( CommCore commCore ) {

@@ -246,6 +246,10 @@ Please make sure that:
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.mqtt}/build.xml" inheritall="false" target="jar"/>
+    <ant antfile="${project.coap}/build.xml" inheritall="false" target="jar"/>
+    <ant antfile="${project.datagram}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.pubsubchannel}/build.xml" inheritall="false" target="jar"/>
 	</target>
 	<target name="clean" depends="-init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
@@ -279,6 +283,10 @@ Please make sure that:
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.mqtt}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.coap}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.datagram}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.pubsubchannel}/build.xml" inheritall="false" target="clean"/>
 	</target>
 
 	<target name="dist" depends="-init,jar">
@@ -318,6 +326,10 @@ Please make sure that:
 				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
 				<file file="${project.local}/dist/local.jar"/>
+    		<file file="${project.mqtt}/dist/mqtt.jar"/>
+				<file file="${project.coap}/dist/coap.jar"/>
+				<file file="${project.datagram}/dist/datagram.jar"/>
+				<file file="${project.pubsubchannel}/dist/pubsubchannel.jar"/>
 			</resources>
 		</copy>
 		<copy todir="${dist.jolie}/javaServices" flatten="true">

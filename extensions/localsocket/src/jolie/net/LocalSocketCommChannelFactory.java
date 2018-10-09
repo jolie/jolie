@@ -28,19 +28,19 @@ import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.InputPort;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"unix.jar"})
-public class LocalSocketCommChannelFactory extends CommChannelFactory
-{
-	public LocalSocketCommChannelFactory( CommCore commCore )
-	{
+@AndJarDeps( { "unix.jar" } )
+public class LocalSocketCommChannelFactory extends CommChannelFactory {
+
+	public LocalSocketCommChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		String path = location.getPath();
 		if ( path == null || path.isEmpty() ) {
 			throw new FileNotFoundException( "Local socket path not specified!" );
@@ -49,9 +49,14 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory
 		CommChannel ret = null;
 		try {
 			ret = new LocalSocketCommChannel( socket, location, port.getProtocol() );
-		} catch( URISyntaxException e ) {
+		} catch ( URISyntaxException e ) {
 			throw new IOException( e );
 		}
 		return ret;
+	}
+
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 }
