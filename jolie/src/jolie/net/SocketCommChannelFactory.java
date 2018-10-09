@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Stefano Pio Zingaro																*
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,7 +19,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -27,29 +27,34 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.CommProtocol;
 
 /**
  * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
  * @author Fabrizio Montesi
  */
-public class SocketCommChannelFactory extends CommChannelFactory
-{
-	public SocketCommChannelFactory( CommCore commCore )
-	{
+public class SocketCommChannelFactory extends CommChannelFactory {
+
+	public SocketCommChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
 		SocketCommChannel ret = null;
 		try {
 			ret = new SocketCommChannel( channel, location, port.getProtocol() );
-		} catch( URISyntaxException e ) {
+		} catch ( URISyntaxException e ) {
 			throw new IOException( e );
 		}
 		return ret;
+	}
+
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 }

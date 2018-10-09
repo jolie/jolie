@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
+ *		 Copyright (C) by Stefano Pio Zingaro                     
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,40 +19,50 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ext;
 
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.CommProtocol;
 
 /**
  * A factory for delegating the creation of output communication channels to extensions.
  * @author Fabrizio Montesi
  */
-public abstract class CommChannelFactory
-{
+public abstract class CommChannelFactory {
+
 	final private CommCore commCore;
 
-	protected CommChannelFactory( CommCore commCore )
-	{
+	protected CommChannelFactory( CommCore commCore ) {
 		this.commCore = commCore;
 	}
 
-	final protected CommCore commCore()
-	{
+	final protected CommCore commCore() {
 		return commCore;
 	}
 
 	/**
-	 * Creates and returns a communication channel.
+	 * Creates and returns a communication outbound channel.
 	 * @param location the location URI to use
 	 * @param port the output port to refer to in the creation of the channel
 	 * @return a valid communication channel
 	 * @throws java.io.IOException if the channel could not be created
 	 */
 	abstract public CommChannel createChannel( URI location, OutputPort port )
+		throws IOException;
+
+	/**
+	Creates and returns a communication inbound channel.
+	@param location
+	@param port
+	@param protocol
+	@return
+	@throws IOException 
+	 */
+	abstract public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol )
 		throws IOException;
 }
