@@ -34,5 +34,7 @@
 /tools/jolie2wsdl/nbproject/private/
 /tools/joliec/nbproject/private/
 /tools/joliedoc/nbproject/private/
+/tools/jolie2dummy/nbproject/private/
+/tools/jolie2surface/nbproject/private/
 dist
 build
