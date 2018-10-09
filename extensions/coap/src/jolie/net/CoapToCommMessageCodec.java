@@ -121,6 +121,12 @@ public class CoapToCommMessageCodec
 		out.add( this.encode_internal( ctx, in ) );
 	}
 
+	@Override
+	protected void decode( ChannelHandlerContext ctx, CoapMessage in,
+		List<Object> out ) throws Exception {
+		out.add( this.decode_internal( in ) );
+	}
+
 	private CoapMessage encode_internal( ChannelHandlerContext ctx,
 		CommMessage commMessage ) {
 
@@ -238,12 +244,6 @@ public class CoapToCommMessageCodec
 
 			return msg;
 		}
-	}
-
-	@Override
-	protected void decode( ChannelHandlerContext ctx, CoapMessage in,
-		List<Object> out ) throws Exception {
-		out.add( this.decode_internal( in ) );
 	}
 
 	private CommMessage decode_internal( CoapMessage coapMessage )
