@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 Claudio Guidi <guidiclaudio@gmail.com>
+ * Copyright (C) 2018 Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,49 +36,49 @@ import jolie.runtime.AndJarDeps;
  *
  * @author Claudio Guidi
  */
-@AndJarDeps({
-    "ini4j.jar"
-})
+@AndJarDeps( {
+	"ini4j.jar"
+} )
 public class AutoChannelFactory extends CommChannelFactory {
 
-    private final CommCore commCore;
-    private final HashMap<URI, String> locationMap = new HashMap<>();
+	private final CommCore commCore;
+	private final HashMap<URI, String> locationMap = new HashMap<>();
 
-    public AutoChannelFactory(CommCore commCore) {
-        super(commCore);
-        this.commCore = commCore;
-    }
+	public AutoChannelFactory( CommCore commCore ) {
+		super( commCore );
+		this.commCore = commCore;
+	}
 
-    @Override
-    public CommChannel createChannel(URI locationURI, OutputPort port) throws IOException {
+	@Override
+	public CommChannel createChannel( URI locationURI, OutputPort port ) throws IOException {
 
-        String location = null;
-        if (!this.locationMap.containsKey(locationURI)) {
-            String[] ss = locationURI.getSchemeSpecificPart().split(":", 2);
-            if ("ini".equals(ss[0])) {
-                location = AutoHelper.getLocationFromIni(ss[1]);
-                locationMap.put(locationURI, location);
-            } else {
-                AutoHelper.throwIOException("unsupported scheme: " + locationURI.getScheme());
-            }
-        } else {
-            location = locationMap.get(locationURI);
-        }
+		String location = null;
+		if ( !this.locationMap.containsKey( locationURI ) ) {
+			String[] ss = locationURI.getSchemeSpecificPart().split( ":", 2 );
+			if ( "ini".equals( ss[ 0 ] ) ) {
+				location = AutoHelper.getLocationFromIni( ss[ 1 ] );
+				locationMap.put( locationURI, location );
+			} else {
+				AutoHelper.throwIOException( "unsupported scheme: " + locationURI.getScheme() );
+			}
+		} else {
+			location = locationMap.get( locationURI );
+		}
 
-        AutoHelper.assertIOException(location == null, "internal error: location is null");
-        AutoHelper.assertIOException(location.equals(Constants.LOCAL_LOCATION_KEYWORD), "autoconf does not support local locations");
+		AutoHelper.assertIOException( location == null, "internal error: location is null" );
+		AutoHelper.assertIOException( location.equals( Constants.LOCAL_LOCATION_KEYWORD ), "autoconf does not support local locations" );
 
-        try {
-            URI uri = new URI(location);
-            return commCore.createCommChannel(uri, port);
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
-        }
-    }
+		try {
+			URI uri = new URI( location );
+			return commCore.createCommChannel( uri, port );
+		} catch ( URISyntaxException e ) {
+			throw new IOException( e );
+		}
+	}
 
-    @Override
-    public CommChannel createInputChannel(URI location, InputPort port, CommProtocol protocol) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
 
 }
