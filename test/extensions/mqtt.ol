@@ -19,7 +19,7 @@
 
 include "../AbstractTestUnit.iol"
 include "console.iol"
-include "private/ThermostatInterface.iol"
+include "private/thermostatService.iol"
 
 outputPort Server {
     Location: MQTT_BrokerLocation
