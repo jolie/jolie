@@ -53,6 +53,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
+	private ChannelPipeline pipeline;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol ) {
 		super( location, protocol );
@@ -60,7 +61,6 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	}
 
 	public static NioSocketCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
-//		ExecutionThread ethread = ExecutionThread.currentThread();
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
 		channel.bootstrap = new Bootstrap();
 		channel.bootstrap.group( workerGroup )
@@ -70,6 +70,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 				@Override
 				protected void initChannel( Channel ch ) throws Exception {
 					ChannelPipeline p = ch.pipeline();
+					channel.setChannelPipeline( p );
 					if ( port instanceof InputPort ) {
 						channel.setParentInputPort( ( InputPort ) port );
 					}
@@ -140,4 +141,19 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		}
 	}
 
+	/**
+	Return the current working pipeline of this (netty) channel.
+	@return the current pipeline
+	 */
+	public ChannelPipeline getChannelPipeline() {
+		return this.pipeline;
+	}
+
+	/**
+	Set the current channel pipeline to one passed as a parameter from the user.
+	@param newPipeline 
+	 */
+	public void setChannelPipeline( ChannelPipeline newPipeline ) {
+		this.pipeline = newPipeline;
+	}
 }
