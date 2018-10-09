@@ -18,41 +18,37 @@
  */
 
 include "../AbstractTestUnit.iol"
-include "console.iol"
-include "private/thermostatService.iol"
+include "private/coap_server.iol"
 
 outputPort Server {
-    Location: MQTT_BrokerLocation
-    Protocol: mqtt {
-        .debug = false;
-        .osc.getTmp << {
-            .format = "raw",
-            .alias = "%!{id}/getTemperature",
-            .QoS = 2
-        };
-        .osc.test << {
-            .format = "raw",
-            .alias = "test/getTemperature",
-            .QoS = 2
+    Location: CoAP_ServerLocation
+    Protocol: coap {
+        .osc.twice << {
+            .alias -> ls,
+            .contentFormat -> fmt
+            .messageCode -> mcd,
+            .messageType -> mtp
         }
     }
-    Interfaces: ThermostatInterface
+    Interfaces: ServerInterface
 }
 
 embedded {
 Jolie:
-    "private/mqtt_server.ol"
+    "private/coap_server.ol"
+}
+
+define checkResponse
+{
+    if ( x != 10 ) {
+        throw( TestFailed, "Unexpected result" )
+    }
 }
 
 define doTest
 {
-    getTmp@Server( { .id = "42" } )( response );
-    println@Console( "\nThermostat n.42 forwarded temperature " + response + " C" )();
+    ls = "twice" ;
+    contentFormat = "text/plain" ;
+    twice@Server( 5 )( x );
     
-    t_confort = 21;
-    if (response < t_confort) {
-        setTmp@Server( 21 { .id = "42" } )
-        |
-        println@Console( "\nSet Temperature of Thermostat n.42 to 21 C" )()
-    }
 }

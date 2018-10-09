@@ -18,23 +18,11 @@
  */
 
 constants {
-    CoAP_ServerLocation = "datagram://localhost:5683",
     MQTT_ServerLocation = "socket://localhost:9001",
     MQTT_BrokerLocation = "socket://iot.eclipse.org:1883"
 }
 
-type setRequestType: int { 
-    .id? : string 
-}
-
-type getRequestType: void { 
-    .id? : string 
-}
-
-interface ThermostatInterface {
-    OneWay: 
-        setTmp( setRequestType ),
+interface ServerInterface {
     RequestResponse: 
-        getTmp( getRequestType )( int ),
-        core( void )( string )
+        twice( int )( int )
 }
