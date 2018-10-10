@@ -7,7 +7,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -71,6 +70,7 @@ public class DatagramListener extends CommListener {
 								DatagramCommChannel outboundChannel = DatagramCommChannel.createChannel( location, protocol, group, inputPort() );
 								outboundChannel.bind( new InetSocketAddress( 0 ) ).sync();
 								pipeline.addLast( outboundChannel.commChannelHandler );
+//								protocol.setInitExecutionThread( interpreter().initThread() );
 								ctx.fireChannelRead( Unpooled.copiedBuffer( msg ) );
 							}
 						} );

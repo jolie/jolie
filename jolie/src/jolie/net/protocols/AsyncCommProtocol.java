@@ -36,7 +36,7 @@ import jolie.net.CommCore;
 public abstract class AsyncCommProtocol extends CommProtocol {
 
 	private final HashMap<Long, ExecutionThread> threadCollection;
-	private ExecutionThread initExecutionThread = null;
+//	private ExecutionThread initExecutionThread = null;
 	
   public AsyncCommProtocol( VariablePath configurationPath ) {
     super( configurationPath );
@@ -90,13 +90,13 @@ public abstract class AsyncCommProtocol extends CommProtocol {
 		return threadCollection.remove( id );
 	}
 	
-	public void setInitExecutionThread( ExecutionThread t ){
-		initExecutionThread = t;
-	}
-	
-	public ExecutionThread getInitExecutionThread(){
-		return initExecutionThread;
-	}
+//	public void setInitExecutionThread( ExecutionThread t ){
+//		initExecutionThread = t;
+//	}
+//	
+//	public ExecutionThread getInitExecutionThread(){
+//		return initExecutionThread;
+//	}
 	
 	public ExecutionThread getThreadUnsafeExecutionThread(){
 		Long id = threadCollection.keySet().stream().findFirst().get();
