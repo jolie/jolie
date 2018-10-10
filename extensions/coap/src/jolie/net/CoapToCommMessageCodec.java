@@ -26,9 +26,8 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.timeout.ReadTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -58,6 +57,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import jolie.ExecutionThread;
 
 import jolie.Interpreter;
 import jolie.net.coap.message.CoapMessage;
@@ -78,7 +78,6 @@ import jolie.net.coap.application.linkformat.LinkValueList;
 import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.communication.dispatching.Token;
 import jolie.net.coap.message.options.OptionValue;
-import jolie.net.coap.message.options.UintOptionValue;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.xml.XmlUtils;
@@ -100,6 +99,7 @@ public class CoapToCommMessageCodec
 	private int correlationID;
 	private Token correlationToken;
 	private CommMessage commMessageRequest;
+	private ExecutionThread eThread;
 
 	public CoapToCommMessageCodec( CoapProtocol protocol ) {
 		this.correlationID = -1;
@@ -109,15 +109,28 @@ public class CoapToCommMessageCodec
 
 	@Override
 	public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception {
-		Interpreter.getInstance().logSevere( cause.getMessage() );
+		if ( cause instanceof ReadTimeoutException ) {
+			throw new IOException(
+				"The set timeout for Acknowledgment message expired"
+				+ " for channel on location: '" + this.protocol.channel().getLocation().toString()
+				+ "' protocol: '" + this.protocol.name() + "'" );
+		} else {
+			Interpreter.getInstance().logSevere( cause.getMessage() );
+		}
 		ctx.close();
 	}
 
 	@Override
 	protected void encode( ChannelHandlerContext ctx, CommMessage in,
 		List<Object> out ) throws Exception {
-
-		this.protocol.setExecutionThread( in.executionThread() );
+		if ( in.executionThread() != null && !in.hasGenericId() ) {
+			this.eThread = in.executionThread();
+			this.protocol.setExecutionThread( this.eThread );
+			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Setting the Thread to be the "
+					+ "Execution Thread " + this.eThread );
+			}
+		}
 		out.add( this.encode_internal( ctx, in ) );
 	}
 
@@ -134,13 +147,17 @@ public class CoapToCommMessageCodec
 		int messageType = this.messageType( operationName );
 
 		if ( this.isInput ) {
+
 			if ( this.isOneWay( operationName ) ) {
+
 				if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 					Interpreter.getInstance().logInfo( "Receiving an ack from jolie "
 						+ "--> forward it to the client" );
 				}
 				return CoapMessage.createEmptyAcknowledgement( this.correlationID );
+
 			} else {
+
 				if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 					Interpreter.getInstance().logInfo( "Receiving a response from jolie "
 						+ "--> forwarding it to the client" );
@@ -148,8 +165,9 @@ public class CoapToCommMessageCodec
 
 				int messageCode = this.getMessageCode( operationName, true );
 				CoapMessage msg = new CoapResponse( MessageType.NON, messageCode );
+				msg.setMessageId( this.correlationID );
 				msg.setToken( this.correlationToken );
-				msg.setRandomMessageID();
+
 				if ( MessageCode.allowsContent( messageCode ) ) {
 					ByteBuf content;
 					try {
@@ -201,6 +219,12 @@ public class CoapToCommMessageCodec
 			}
 
 			msg.setRandomMessageID();
+			this.protocol.addExecutionThread( new Long( msg.getMessageID() ), this.eThread );
+			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Adding the ExecutionThread "
+					+ this.eThread + " to the map, having key " + msg.getMessageID() );
+			}
+
 			this.correlationID = msg.getMessageID();
 
 			if ( !this.isOneWay( operationName ) ) {
@@ -220,6 +244,17 @@ public class CoapToCommMessageCodec
 				}
 			}
 
+			if ( messageType == MessageType.CON ) {
+				if ( this.protocol.hasParameter( Parameters.TIMEOUT ) ) {
+					int timeout = this.protocol.getIntParameter( Parameters.TIMEOUT );
+					ctx.channel().pipeline().addLast( "readTimeoutHandler", new ReadTimeoutHandler( timeout ) );
+				}
+			}
+
+			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Sending CoapRequest\n" + msg );
+			}
+
 			if ( this.isOneWay( operationName ) && messageType == MessageType.NON ) {
 				CommMessage ack = new CommMessage(
 					commMessage.id(),
@@ -229,17 +264,6 @@ public class CoapToCommMessageCodec
 					null
 				);
 				ctx.fireChannelRead( ack );
-			}
-
-			if ( messageType == MessageType.CON ) {
-				if ( this.protocol.hasOperationSpecificParameter( operationName, Parameters.TIMEOUT ) ) {
-					int timeout = this.protocol.getOperationSpecificParameterFirstValue( operationName, Parameters.TIMEOUT ).intValue();
-					ctx.pipeline().addBefore( "CODEC", "IDLESTATE", new IdleStateHandler( timeout, 0, 0 ) );
-				}
-			}
-
-			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Sending CoapRequest\n" + msg );
 			}
 
 			return msg;
@@ -253,6 +277,13 @@ public class CoapToCommMessageCodec
 		TypeCheckingException {
 
 		if ( this.isInput ) {
+
+			this.eThread = this.protocol.getInitExecutionThread();
+			this.protocol.setExecutionThread( this.eThread );
+			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Setting the Thread to be the "
+					+ "Init Execution Thread: " + this.eThread );
+			}
 
 			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Receiving a request from a client coap "
@@ -275,6 +306,11 @@ public class CoapToCommMessageCodec
 			}
 
 			this.correlationID = coapMessage.getMessageID();
+			this.protocol.addExecutionThread( new Long( this.correlationID ), this.eThread );
+			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Adding the ExecutionThread "
+					+ this.eThread + " to the map, having key " + this.correlationID );
+			}
 			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Storing id for later correlation: " + this.correlationID );
 			}
@@ -289,15 +325,25 @@ public class CoapToCommMessageCodec
 
 		} else {
 
-			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "receiving a response form a server coap "
-					+ "--> forwarding it to the comm core" );
-				Interpreter.getInstance().logInfo( coapMessage.toString() );
+			if ( this.protocol.hasExecutionThread( new Long( coapMessage.getMessageID() ) ) ) {
+				this.eThread = this.protocol.getExecutionThread( new Long( coapMessage.getMessageID() ) );
+				this.protocol.setExecutionThread( this.eThread );
+				if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Setting the Thread to be the "
+						+ " Execution Thread " + this.eThread + ", extraceted from the map with key "
+						+ coapMessage.getMessageID() );
+				}
+			} else {
+				throw new IOException(
+					"Found no matching sender for message id: " + coapMessage.getMessageID()
+					+ " for threadSafe channel on location: '" + this.protocol.channel().getLocation().toString()
+					+ "' protocol: '" + this.protocol.name() + "'" );
 			}
 
-			if ( coapMessage instanceof CoapResponse
-				&& coapMessage.getBlock2Szx() != UintOptionValue.UNDEFINED ) {
-
+			if ( this.protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Receiving a response form a server coap "
+					+ "--> forwarding it to the comm core" );
+				Interpreter.getInstance().logInfo( coapMessage.toString() );
 			}
 
 			String operationName = this.commMessageRequest.operationName();
@@ -366,17 +412,6 @@ public class CoapToCommMessageCodec
 						);
 					}
 				}
-			}
-		}
-	}
-
-	@Override
-	public void userEventTriggered( ChannelHandlerContext ctx, Object evt ) throws Exception {
-		if ( evt instanceof IdleStateEvent ) {
-			IdleStateEvent e = ( IdleStateEvent ) evt;
-			if ( e.state() == IdleState.READER_IDLE ) {
-				ctx.fireChannelRead( CommMessage.createFaultResponse( this.commMessageRequest, new FaultException( "Timeout for Ack expired", Value.create( "Timeout for Ack expired" ) ) ) );
-				ctx.close();
 			}
 		}
 	}
@@ -544,10 +579,16 @@ public class CoapToCommMessageCodec
 		return messageType;
 	}
 
+	/**
+	Default Code is Integer 	for POST in request and Integer for CONTENT for responses.
+	@param operationName
+	@param isResponse
+	@return The Integer rapresentation of the Message Code as listed in {@link MessageCode}
+	 */
 	private int getMessageCode( String operationName, boolean isResponse ) {
-		int messageCode = 2;
+		int messageCode = MessageCode.POST;
 		if ( isResponse ) {
-			messageCode = 69;
+			messageCode = MessageCode.CONTENT_205;
 		}
 		if ( this.protocol.hasOperationSpecificParameter( operationName,
 			Parameters.MESSAGE_CODE ) ) {
