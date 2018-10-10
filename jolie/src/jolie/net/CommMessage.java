@@ -18,10 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.net;
-
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
@@ -51,48 +48,65 @@ import jolie.runtime.Value;
  *
  * @author Fabrizio Montesi
  */
-public class CommMessage implements Serializable
-{
+public class CommMessage implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 
 	private static final AtomicLong idCounter = new AtomicLong( 1L );
 	public static final long GENERIC_ID = 0L;
 	public static final CommMessage UNDEFINED_MESSAGE = new CommMessage( GENERIC_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
-	
+
 	private final long id;
 	private final String operationName;
 	private final String resourcePath;
 	private final Value value;
 	private final FaultException fault;
+	private Token token;
 	private ExecutionThread thread;
+
+	/**
+	Rapresent a {@link Token} used for correlation in cases the  ID is not enough.
+	@param token
+	@return the {@link CommMessage} itself with the new token set, for chaining purpose
+	 */
+	public CommMessage token( Token token ) {
+		this.token = token;
+		return this;
+	}
+
+	/**
+	Get the {@link Token} of the specific {@link CommMessage} is called on.
+	@return the {@link Token} of this {@link CommMessage}
+	 */
+	public Token token() {
+		return this.token;
+	}
 
 	/**
 	 * Returns the resource path of this message.
 	 * @return the resource path of this message
 	 */
-	public String resourcePath()
-	{
+	public String resourcePath() {
 		return resourcePath;
 	}
-	
+
 	/**
-	* Sets the execution thread that is expected to handle this CommMessage
-	* @param t
-	* @return this CommMessage, for chaining
-	*/
-	public CommMessage setExecutionThread( ExecutionThread t ){
+	 * Sets the execution thread that is expected to handle this CommMessage
+	 * @param t
+	 * @return this CommMessage, for chaining
+	 */
+	public CommMessage setExecutionThread( ExecutionThread t ) {
 		this.thread = t;
 		return this;
 	}
-	
+
 	/**
-	* Returns the execution thread that is expected to handle this CommMessage
-	* @return the execution thread
-	*/
-	public ExecutionThread executionThread(){
+	 * Returns the execution thread that is expected to handle this CommMessage
+	 * @return the execution thread
+	 */
+	public ExecutionThread executionThread() {
 		return this.thread;
 	}
-	
 
 	/**
 	 * Returns <code>true</code> if this message has a generic identifier, <code>false</code> otherwise.
@@ -104,8 +118,7 @@ public class CommMessage implements Serializable
 	 * messages equipped with a generic identifier every time.
 	 * @return <code>true</code> if this message has a generic identifier, <code>false</code> otherwise
 	 */
-	public boolean hasGenericId()
-	{
+	public boolean hasGenericId() {
 		return id == GENERIC_ID;
 	}
 
@@ -113,13 +126,11 @@ public class CommMessage implements Serializable
 	 * Returns the identifier of this message.
 	 * @return the identifier of this message
 	 */
-	public long id()
-	{
+	public long id() {
 		return id;
 	}
 
-	public static long getNewMessageId()
-	{
+	public static long getNewMessageId() {
 		return idCounter.getAndIncrement();
 	}
 
@@ -130,8 +141,7 @@ public class CommMessage implements Serializable
 	 * @param value the message data
 	 * @return a request message as per specified by the parameters
 	 */
-	public static CommMessage createRequest( String operationName, String resourcePath, Value value )
-	{
+	public static CommMessage createRequest( String operationName, String resourcePath, Value value ) {
 		return new CommMessage( getNewMessageId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
 	}
 
@@ -140,8 +150,7 @@ public class CommMessage implements Serializable
 	 * @param request the request message that caused this response
 	 * @return an empty response for the passed request
 	 */
-	public static CommMessage createEmptyResponse( CommMessage request )
-	{
+	public static CommMessage createEmptyResponse( CommMessage request ) {
 		return createResponse( request, Value.create() );
 	}
 
@@ -151,8 +160,7 @@ public class CommMessage implements Serializable
 	 * @param value the data to equip the response with
 	 * @return a response for the passed request
 	 */
-	public static CommMessage createResponse( CommMessage request, Value value )
-	{
+	public static CommMessage createResponse( CommMessage request, Value value ) {
 		//TODO support resourcePath
 		return new CommMessage( request.id, request.operationName, "/", Value.createDeepCopy( value ), null );
 	}
@@ -163,8 +171,7 @@ public class CommMessage implements Serializable
 	 * @param fault the fault to equip the response with
 	 * @return a response message equipped with the specified fault
 	 */
-	public static CommMessage createFaultResponse( CommMessage request, FaultException fault )
-	{
+	public static CommMessage createFaultResponse( CommMessage request, FaultException fault ) {
 		//TODO support resourcePath
 		return new CommMessage( request.id, request.operationName, "/", Value.create(), fault );
 	}
@@ -177,8 +184,7 @@ public class CommMessage implements Serializable
 	 * @param value the message data to equip the message with
 	 * @param fault the fault to equip the message with
 	 */
-	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault )
-	{
+	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault ) {
 		this.id = id;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
@@ -197,7 +203,6 @@ public class CommMessage implements Serializable
 	{
 		this( GENERIC_ID, operationName, resourcePath, value, f );
 	}*/
-
 	/**
 	 * Constructor. The identifier of this message will be generic.
 	 * @param operationName the operation name of this message
@@ -217,7 +222,6 @@ public class CommMessage implements Serializable
 	{
 		this( id, operationName, resourcePath, Value.create(), fault );
 	}*/
-
 	/**
 	 * Constructor. The identifier of this message will be generic.
 	 * @param operationName the operation name for this message
@@ -228,13 +232,11 @@ public class CommMessage implements Serializable
 	{
 		this( GENERIC_ID, operationName, resourcePath, value, null );
 	}*/
-
 	/**
 	 * Returns the value representing the data contained in this message.
 	 * @return the value representing the data contained in this message
 	 */
-	public Value value()
-	{
+	public Value value() {
 		return value;
 	}
 
@@ -242,8 +244,7 @@ public class CommMessage implements Serializable
 	 * The operation name of this message.
 	 * @return the operation name of this message
 	 */
-	public String operationName()
-	{
+	public String operationName() {
 		return operationName;
 	}
 
@@ -251,8 +252,7 @@ public class CommMessage implements Serializable
 	 * Returns <code>true</code> if this message contains a fault, <code>false</code> otherwise.
 	 * @return <code>true</code> if this message contains a fault, <code>false</code> otherwise
 	 */
-	public boolean isFault()
-	{
+	public boolean isFault() {
 		return ( fault != null );
 	}
 
@@ -262,8 +262,7 @@ public class CommMessage implements Serializable
 	 * If this message does not contain a fault, <code>null</code> is returned.
 	 * @return the fault contained in this message
 	 */
-	public FaultException fault()
-	{
+	public FaultException fault() {
 		return fault;
 	}
 }
