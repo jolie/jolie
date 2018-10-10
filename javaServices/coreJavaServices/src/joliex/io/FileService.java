@@ -42,6 +42,7 @@ import java.nio.charset.Charset;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Enumeration;
@@ -285,6 +286,29 @@ public class FileService extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( "IOException" );
 		}
+		return retValue;
+	}
+	
+	private void navigateTree( File file, ValueVector result ) {
+		if ( file.isDirectory() ) {
+			File[] files = file.listFiles();
+			for( File f : files ) {
+				navigateTree( f, result );
+			}
+		}
+		Value path = Value.create();
+		path.setValue( file.getAbsolutePath() );
+		result.add( path );
+		
+	}
+	
+	
+	@RequestResponse
+	public Value fileTree( Value request ) {
+		Value retValue = Value.create();
+		ValueVector result = retValue.getChildren( "result" );
+		File startingDirectory = new File( request.strValue() );
+		navigateTree( startingDirectory, result );
 		return retValue;
 	}
 
