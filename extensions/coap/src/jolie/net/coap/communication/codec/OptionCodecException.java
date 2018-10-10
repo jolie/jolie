@@ -22,7 +22,7 @@
 package jolie.net.coap.communication.codec;
 
 import java.net.InetSocketAddress;
-import jolie.net.coap.communication.dispatching.Token;
+import jolie.net.Token;
 import jolie.net.coap.message.options.Option;
 
 /**
@@ -35,122 +35,122 @@ import jolie.net.coap.message.options.Option;
  */
 public class OptionCodecException extends Exception {
 
-  private static final String message = "Unsupported or misplaced critical "
-      + "option %s";
+	private static final String message = "Unsupported or misplaced critical "
+		+ "option %s";
 
-  private int optionNumber;
-  private int messageID;
-  private Token token;
-  private InetSocketAddress remoteSocket;
-  private int messageType;
+	private int optionNumber;
+	private int messageID;
+	private Token token;
+	private InetSocketAddress remoteSocket;
+	private int messageType;
 
-  /**
-   * @param optionNumber the option number of the {@link OptionValue} that
-   * caused this exception
-   */
-  public OptionCodecException(int optionNumber) {
-    super();
-    this.optionNumber = optionNumber;
-  }
+	/**
+	 * @param optionNumber the option number of the {@link OptionValue} that
+	 * caused this exception
+	 */
+	public OptionCodecException( int optionNumber ) {
+		super();
+		this.optionNumber = optionNumber;
+	}
 
-  /**
-   * Returns the number of the option that caused this exception
-   *
-   * @return the number of the option that caused this exception
-   */
-  public int getOptionNumber() {
-    return optionNumber;
-  }
+	/**
+	 * Returns the number of the option that caused this exception
+	 *
+	 * @return the number of the option that caused this exception
+	 */
+	public int getOptionNumber() {
+		return optionNumber;
+	}
 
-  /**
-   * Method to set the message ID of the message that caused this exception
-   *
-   * @param messageID the message ID of the message that caused this exception
-   */
-  public void setMessageID(int messageID) {
-    this.messageID = messageID;
-  }
+	/**
+	 * Method to set the message ID of the message that caused this exception
+	 *
+	 * @param messageID the message ID of the message that caused this exception
+	 */
+	public void setMessageID( int messageID ) {
+		this.messageID = messageID;
+	}
 
-  /**
-   * Returns the message ID of the message that caused this exception
-   *
-   * @return the message ID of the message that caused this exception
-   */
-  public int getMessageID() {
-    return messageID;
-  }
+	/**
+	 * Returns the message ID of the message that caused this exception
+	 *
+	 * @return the message ID of the message that caused this exception
+	 */
+	public int getMessageID() {
+		return messageID;
+	}
 
-  /**
-   * Method to set the {@link Token} of the message that caused this exception
-   *
-   * @param token the {@link Token} of the message that caused this exception
-   */
-  public void setToken(Token token) {
-    this.token = token;
-  }
+	/**
+	 * Method to set the {@link Token} of the message that caused this exception
+	 *
+	 * @param token the {@link Token} of the message that caused this exception
+	 */
+	public void setToken( Token token ) {
+		this.token = token;
+	}
 
-  /**
-   * Returns the {@link Token} of the message that caused this exception
-   *
-   * @return the {@link Token} of the message that caused this exception
-   */
-  public Token getToken() {
-    return token;
-  }
+	/**
+	 * Returns the {@link Token} of the message that caused this exception
+	 *
+	 * @return the {@link Token} of the message that caused this exception
+	 */
+	public Token getToken() {
+		return token;
+	}
 
-  /**
-   * Method to set the remote CoAP endpoints of the message that caused this
-   * exception (the remote CoAP endpoints is either the message origin if this
-   * exception was thrown by the {@link CoapMessageDecoder} or he desired
-   * recipient if this exception was thrown by the {@link CoapMessageEncoder}.
-   *
-   * @param remoteSocket the remote CoAP endpoints of the message that caused
-   * this exception
-   */
-  public void setremoteSocket(InetSocketAddress remoteSocket) {
-    this.remoteSocket = remoteSocket;
-  }
+	/**
+	 * Method to set the remote CoAP endpoints of the message that caused this
+	 * exception (the remote CoAP endpoints is either the message origin if this
+	 * exception was thrown by the {@link CoapMessageDecoder} or he desired
+	 * recipient if this exception was thrown by the {@link CoapMessageEncoder}.
+	 *
+	 * @param remoteSocket the remote CoAP endpoints of the message that caused
+	 * this exception
+	 */
+	public void setremoteSocket( InetSocketAddress remoteSocket ) {
+		this.remoteSocket = remoteSocket;
+	}
 
-  /**
-   * Returns the remote CoAP endpoints of the message that caused this exception
-   * (the remote CoAP endpoints is either the message origin if this exception
-   * was thrown by the {@link CoapMessageDecoder} or he desired recipient if
-   * this exception was thrown by the {@link CoapMessageEncoder}.
-   *
-   * @return the remote CoAP endpoints of the message that caused this exception
-   */
-  public InetSocketAddress getremoteSocket() {
-    return remoteSocket;
-  }
+	/**
+	 * Returns the remote CoAP endpoints of the message that caused this exception
+	 * (the remote CoAP endpoints is either the message origin if this exception
+	 * was thrown by the {@link CoapMessageDecoder} or he desired recipient if
+	 * this exception was thrown by the {@link CoapMessageEncoder}.
+	 *
+	 * @return the remote CoAP endpoints of the message that caused this exception
+	 */
+	public InetSocketAddress getremoteSocket() {
+		return remoteSocket;
+	}
 
-  /**
-   * Returns the number refering to the
-   * {@link jolie.net.coap.message.MessageType} of the message that caused
-   * this exception
-   *
-   * @return the number refering to the
-   * {@link jolie.net.coap.message.MessageType} of the message that caused
-   * this exception
-   */
-  public int getMessageType() {
-    return messageType;
-  }
+	/**
+	 * Returns the number refering to the
+	 * {@link jolie.net.coap.message.MessageType} of the message that caused
+	 * this exception
+	 *
+	 * @return the number refering to the
+	 * {@link jolie.net.coap.message.MessageType} of the message that caused
+	 * this exception
+	 */
+	public int getMessageType() {
+		return messageType;
+	}
 
-  /**
-   * Method to set the number refering to the
-   * {@link jolie.net.coap.message.MessageType} of the message that caused
-   * this exception
-   *
-   * @param messageType the number refering to the
-   * {@link jolie.net.coap.message.MessageType} of the message that caused
-   * this exception
-   */
-  public void setMessageType(int messageType) {
-    this.messageType = messageType;
-  }
+	/**
+	 * Method to set the number refering to the
+	 * {@link jolie.net.coap.message.MessageType} of the message that caused
+	 * this exception
+	 *
+	 * @param messageType the number refering to the
+	 * {@link jolie.net.coap.message.MessageType} of the message that caused
+	 * this exception
+	 */
+	public void setMessageType( int messageType ) {
+		this.messageType = messageType;
+	}
 
-  @Override
-  public String getMessage() {
-    return String.format(message, Option.asString(this.optionNumber));
-  }
+	@Override
+	public String getMessage() {
+		return String.format( message, Option.asString( this.optionNumber ) );
+	}
 }
