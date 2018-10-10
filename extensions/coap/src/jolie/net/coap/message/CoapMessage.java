@@ -21,7 +21,6 @@
  */
 package jolie.net.coap.message;
 
-import jolie.net.coap.communication.dispatching.Token;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
@@ -31,6 +30,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import jolie.Interpreter;
+import jolie.net.Token;
 import jolie.net.coap.communication.blockwise.BlockSize;
 import jolie.net.coap.message.options.EmptyOptionValue;
 import jolie.net.coap.message.options.OpaqueOptionValue;
@@ -97,8 +97,8 @@ public class CoapMessage {
     this.setMessageType(messageType);
     this.setMessageCode(messageCode);
 
-    this.setMessageId(messageID);
-    this.setToken(token);
+    this.messageID(messageID);
+    this.token(token);
 
     this.options = new HashMap<>();
     this.content = Unpooled.EMPTY_BUFFER;
@@ -210,11 +210,11 @@ public class CoapMessage {
   }
 
   public boolean isRequest() {
-    return MessageCode.isRequest(this.getMessageCode());
+    return MessageCode.isRequest(this.messageCode());
   }
 
   public boolean isResponse() {
-    return MessageCode.isResponse(this.getMessageCode());
+    return MessageCode.isResponse(this.messageCode());
   }
 
   public boolean isAck() {
@@ -386,7 +386,7 @@ public class CoapMessage {
    *
    */
   public void setRandomMessageID() {
-    this.setMessageId(new Random().nextInt(65535));
+    this.messageID(new Random().nextInt(65535));
   }
 
   /**
@@ -396,7 +396,7 @@ public class CoapMessage {
    *
    * @param messageID the message ID for the message
    */
-  public void setMessageId(int messageID) throws IllegalArgumentException {
+  public void messageID(int messageID) throws IllegalArgumentException {
 
     if (messageID < -1 || messageID > 65535) {
       throw new IllegalArgumentException("Message ID "
@@ -413,7 +413,7 @@ public class CoapMessage {
    * @return the message ID (or {@link CoapMessage#UNDEFINED_MESSAGE_ID} if not
    * set)
    */
-  public int getMessageID() {
+  public int messageID() {
     return this.messageId;
   }
 
@@ -424,7 +424,7 @@ public class CoapMessage {
    * @return the number representing the {@link MessageType} of this
    * {@link CoapMessage}
    */
-  public int getMessageType() {
+  public int messageType() {
     return this.messageType;
   }
 
@@ -446,7 +446,7 @@ public class CoapMessage {
    * @return the number representing the {@link MessageCode} of this
    * {@link CoapMessage}
    */
-  public int getMessageCode() {
+  public int messageCode() {
     return this.messageCode;
   }
 
@@ -468,7 +468,7 @@ public class CoapMessage {
    *
    * @param token the {@link Token} for this {@link CoapMessage}
    */
-  public void setToken(Token token) {
+  public void token(Token token) {
     this.token = token;
   }
 
@@ -487,7 +487,7 @@ public class CoapMessage {
    *
    * @return the {@link Token} of this {@link CoapMessage}
    */
-  public Token getToken() {
+  public Token token() {
     return this.token;
   }
 
@@ -962,19 +962,19 @@ public class CoapMessage {
       return false;
     }
 
-    if (this.getMessageType() != other.getMessageType()) {
+    if (this.messageType() != other.messageType()) {
       return false;
     }
 
-    if (this.getMessageCode() != other.getMessageCode()) {
+    if (this.messageCode() != other.messageCode()) {
       return false;
     }
 
-    if (this.getMessageID() != other.getMessageID()) {
+    if (this.messageID() != other.messageID()) {
       return false;
     }
 
-    if (!this.getToken().equals(other.getToken())) {
+    if (!this.token().equals(other.token())) {
       return false;
     }
 
@@ -1003,8 +1003,8 @@ public class CoapMessage {
     result.append("[Header: (V) ").append(getProtocolVersion())
         .append(", (T) ").append(getMessageTypeName())
         .append(", (TKL) ").append(token.getBytes().length)
-        .append(", (C) ").append(getMessageCode())
-        .append(", (ID) ").append(getMessageID())
+        .append(", (C) ").append(messageCode())
+        .append(", (ID) ").append(messageID())
         .append(" | (Token) ").append(token).append(" | ");
 
     //Options

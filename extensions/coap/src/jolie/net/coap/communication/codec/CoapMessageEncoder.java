@@ -62,12 +62,12 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
     ByteBuf msg = Unpooled.buffer();
 
     //write encoded header
-    byte[] token = coapMessage.getToken().getBytes();
+    byte[] token = coapMessage.token().getBytes();
     int encodedHeader = ((coapMessage.getProtocolVersion() & 0x03) << 30)
-        | ((coapMessage.getMessageType() & 0x03) << 28)
+        | ((coapMessage.messageType() & 0x03) << 28)
         | ((token.length & 0x0F) << 24)
-        | ((coapMessage.getMessageCode() & 0xFF) << 16)
-        | ( (coapMessage.getMessageID() & 0xFFFF));
+        | ((coapMessage.messageCode() & 0xFF) << 16)
+        | ( (coapMessage.messageID() & 0xFFFF));
 
     msg.writeInt(encodedHeader);
     if (token.length > 0) {
