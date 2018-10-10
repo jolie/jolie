@@ -23,6 +23,10 @@ package jolie.net.coap.message;
 
 import java.util.HashMap;
 
+/**
+Class utility for CoAP Message Codes handling.
+@author stefanopiozingaro
+*/
 public class MessageCode {
 
   public static final int EMPTY = 0;

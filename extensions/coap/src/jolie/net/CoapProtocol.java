@@ -22,6 +22,8 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -69,7 +71,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
 	@Override
 	public boolean isThreadSafe() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -106,6 +108,16 @@ public class CoapProtocol extends AsyncCommProtocol {
 	}
 
 	@Override
+	protected boolean hasParameter( String id ) {
+		return super.hasParameter( id ); 
+	}
+	
+	@Override
+	protected int getIntParameter( String id ) {
+		return super.getIntParameter( id ); 
+	}
+	
+	@Override
 	protected CommChannel channel() {
 		return super.channel();
 	}
@@ -119,7 +131,6 @@ public class CoapProtocol extends AsyncCommProtocol {
 //	protected void setExecutionThread( ExecutionThread t ) {
 //		super.setExecutionThread( t );
 //	}
-
 	/**
 	 * Given the <code>alias</code> for an operation, it searches iteratively in
 	 * the <code>configurationPath</code> of the {@link AsyncCommProtocol} to
