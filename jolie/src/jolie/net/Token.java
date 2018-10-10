@@ -19,15 +19,15 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap.communication.dispatching;
+package jolie.net;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
 /**
- * A {@link Token} is the identifier to relate {@link CoapRequest}s with
- * {@link CoapResponse}s. It consists of a byte array with a size between 0 and
+ * A {@link Token} is the identifier to relate Requests with
+ * Responses. It consists of a byte array with a size between 0 and
  * 8 (both inclusive). So, {@link Token} basically is a wrapper class for a byte
  * array.
  *
