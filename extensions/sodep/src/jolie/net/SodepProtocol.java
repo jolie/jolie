@@ -302,9 +302,10 @@ public class SodepProtocol extends AsyncCommProtocol {
 				// ACTUALLY THIS WILL NEVER BE USED IN SODEP SINCE IT'S A THREAD-SAFE PROTOCOL
 				this.setExecutionThread( this.getThreadUnsafeExecutionThread() );
 			}
-		} else {
-			this.setExecutionThread( getInitExecutionThread() );
-		}
+		} 
+//		else {
+//			this.setExecutionThread( getInitExecutionThread() );
+//		}
 
 		String resourcePath = readString( in );
 		String operationName = readString( in );
