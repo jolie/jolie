@@ -38,9 +38,22 @@ import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
 
 /**
- * Implementations of {@link AsyncCommProtocol} CoAP for Jolie.
- *
- * @author stefanopiozingaro
+Implementations of {@link AsyncCommProtocol} CoAP for Jolie.
+-------------------------------------------------------------------------------------
+1. COAP MESSAGE INBOUND						CoapDecoder
+2. COAP MESSAGE OUTBOUND					CoapEncoder
+3. COAP MESSAGE INBOUND/OUTBOUND	CoapToCommMessageCodec
+4. COMM MESSAGE INBOUND						StreamingCommChannelHandler
+5. TIMEOUT INBOUND/OUTBOUND				ReadTimeoutHandler
+6. ERROR INBOUND									CoapToCommMessageCodec
+-------------------------------------------------------------------------------------
+INBOUND read( 1 -> 3 -> 4 -> 5 -> 6 )
+	ByteBuf	->		CoapMessage	->		CommMessage	-> CommMessage
+-------------------------------------------------------------------------------------
+OUTBOUND write( 3 -> 2 -> 5 )
+	CommMessage	->		CoapMessage	->		ByteBuf
+-------------------------------------------------------------------------------------
+@author stefanopiozingaro
  */
 public class CoapProtocol extends AsyncCommProtocol {
 
@@ -58,10 +71,10 @@ public class CoapProtocol extends AsyncCommProtocol {
 
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline ) {
-//		pipeline.addLast( "LOGGER", new LoggingHandler( LogLevel.INFO ) );
-		pipeline.addLast( "DECODER", new CoapMessageDecoder() );
-		pipeline.addLast( "ENCODER", new CoapMessageEncoder() );
-		pipeline.addLast( "CODEC", new CoapToCommMessageCodec( this ) );
+		pipeline.addLast( "LOGGER", new LoggingHandler( LogLevel.INFO ) );
+		pipeline.addLast( "COAP MESSAGE INBOUND", new CoapMessageDecoder() );
+		pipeline.addLast( "COAP MESSAGE OUTBOUND", new CoapMessageEncoder() );
+		pipeline.addLast( "COAP MESSAGE INBOUND/OUTBOUND", new CoapToCommMessageCodec( this ) );
 	}
 
 	@Override
@@ -109,14 +122,14 @@ public class CoapProtocol extends AsyncCommProtocol {
 
 	@Override
 	protected boolean hasParameter( String id ) {
-		return super.hasParameter( id ); 
+		return super.hasParameter( id );
 	}
-	
+
 	@Override
 	protected int getIntParameter( String id ) {
-		return super.getIntParameter( id ); 
+		return super.getIntParameter( id );
 	}
-	
+
 	@Override
 	protected CommChannel channel() {
 		return super.channel();
