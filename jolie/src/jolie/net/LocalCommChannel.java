@@ -72,13 +72,15 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
-			System.out.println( this.senderChannel.toString() + " Sending back the response to the caller " + message.value().strValue() );
-			Interpreter.getInstance().commCore().receiveResponse( message );
-//			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
-//			if ( f == null ) {
-//				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
-//			}
-//			f.complete( message );
+			if( senderChannel.responseInterpreter != null ){
+				senderChannel.responseInterpreter.commCore().receiveResponse( message );
+			} else {
+				CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
+				if ( f == null ) {
+					throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
+				}
+				f.complete( message );
+			}
 		}
 
 		@Override
@@ -109,6 +111,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	private final Interpreter interpreter;
+	private final Interpreter responseInterpreter;
 	private final CommListener listener;
 	private final Map< Long, CompletableFuture< CommMessage > > responseWaiters = new ConcurrentHashMap<>();
 	
@@ -117,6 +120,14 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		this.interpreter = interpreter;
 		this.listener = listener;
 		this.location = listener.inputPort().location();
+		this.responseInterpreter = null;
+	}
+	
+	public LocalCommChannel( Interpreter interpreter, CommListener listener, Interpreter responseInterpreter ){
+		this.interpreter = interpreter;
+		this.listener = listener;
+		this.location = listener.inputPort().location();
+		this.responseInterpreter = responseInterpreter;
 	}
 
 	@Override
@@ -140,7 +151,9 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	@Override
 	protected void sendImpl( CommMessage message )
 	{
-		responseWaiters.put( message.id(), new CompletableFuture<>() );
+		if ( this.responseInterpreter == null ){
+			responseWaiters.put( message.id(), new CompletableFuture<>() );
+		}
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
