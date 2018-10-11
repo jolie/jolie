@@ -11,19 +11,21 @@ define checkResult
 
 define doTest
 {
+	getServiceDirectory@File()( dir ) ;
+
 	// INI file
-	parseIniFile@IniUtils( "library/private/odbc.ini" )( data );
+	parseIniFile@IniUtils( dir + "/" + "private/odbc.ini" )( data );
 	checkResult;
 
 	// Plain
-	readFile@File( { .filename = "../README.md", .format = "text" } )( data );
+	readFile@File( { .filename = dir + "/../" + "../README.md", .format = "text" } )( data );
 	checkResult;
 
 	// Properties file
-	readFile@File( { .filename = "../buildconfig/build.properties", .format = "properties" } )( data );
+	readFile@File( { .filename = dir + "/../" + "../buildconfig/build.properties", .format = "properties" } )( data );
 	checkResult;
 
 	// XML file
-	readFile@File( { .filename = "../build.xml", .format = "xml" } )( data );
+	readFile@File( { .filename = dir + "/../" + "../build.xml", .format = "xml" } )( data );
 	checkResult
 }

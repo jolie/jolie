@@ -31,9 +31,10 @@ Interfaces: TestUnitInterface
 
 init
 {
-	dirs[0] = "primitives";
-	dirs[1] = "library";
-	dirs[2] = "extensions"
+	getServiceDirectory@File()( dir ) ;
+	dirs[0] = dir + "/" + "primitives";
+	dirs[1] = dir + "/" + "library";
+	dirs[2] = dir + "/" + "extensions"
 }
 
 define calcMaxLength
