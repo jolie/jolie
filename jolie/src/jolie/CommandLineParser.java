@@ -33,6 +33,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +48,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
@@ -535,9 +540,12 @@ public class CommandLineParser implements Closeable
 	
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
+		
+		// lib paths pre-processor
+		
         
 		List< URL > urls = new ArrayList<>();
-		for( String path : libList ) {
+		for( String path : expandPaths( libList ) ) {
 			if ( path.contains( "!/" ) && !path.startsWith( "jap:" ) && !path.startsWith( "jar:" ) ) {
 				path = "jap:file:" + path;
 			}
@@ -617,6 +625,31 @@ public class CommandLineParser implements Closeable
 		}
 	} */
 
+	private List<String> expandPaths( List<String> libList ){
+		List<String> expLibList = new ArrayList<>();
+		String exp_path = Constants.fileSeparator + "*" + Constants.fileSeparator;
+		for( String path : libList ) {
+			if ( path.contains( exp_path ) ){ // if contains "/*/"
+				String left = path.substring( 0, path.indexOf( exp_path ) );
+				String right = path.substring( path.indexOf( exp_path ) + exp_path.length(), path.length() );
+				try {
+					List<String> subpathList = new ArrayList<>();
+					DirectoryStream<Path> subElements = Files.newDirectoryStream( Paths.get( left ), "*" );
+					for ( Path subElement : subElements ) {
+						if( Files.isDirectory( subElement ) )
+							subpathList.add( left + Constants.fileSeparator + subElement.getFileName() + Constants.fileSeparator + right );
+					}
+					expLibList.addAll( expandPaths( subpathList ) );
+				} catch( IOException ex ) {
+					Logger.getLogger( CommandLineParser.class.getName() ).log( Level.SEVERE, null, ex );
+				}
+			} else {
+				expLibList.add(  path );
+			}
+		}
+		return expLibList;
+	}
+	
 	/**
 	 * Returns the directory in which the main program is located.
 	 * @return the directory in which the main program is located.
