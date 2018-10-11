@@ -25,6 +25,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
@@ -104,9 +106,9 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	protected void decode( ChannelHandlerContext ctx, CoapMessage in,
 		List<Object> out ) throws Exception {
 		if ( isInput ) {
-			out.add( decode_internal_inbound( in ) );
+			out.add( decode_internal_inbound( ctx, in ) );
 		} else {
-			out.add( deconde_internal_outbound( in ) );
+			out.add( decode_internal_outbound( in ) );
 		}
 	}
 
@@ -558,8 +560,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 		protocol.setExecutionThread( commMessage.executionThread() );
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-			Interpreter.getInstance().logInfo( "Setting the Thread to be the "
-				+ "Execution Thread " + commMessage.executionThread() );
+			Interpreter.getInstance().logInfo( "Setting the Thread to be the Execution Thread "
+				+ commMessage.executionThread() );
 		}
 		protocol.addExecutionThread( commMessage.id(), commMessage.executionThread() );
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -616,55 +618,52 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		}
 
 		if ( ( !isOneWay( operationName ) || msg.messageType() == MessageType.CON ) && protocol.hasParameter( Parameters.TIMEOUT ) ) {
-			ctx.channel().pipeline().addLast( new ReadTimeoutHandler( protocol.getIntParameter( Parameters.TIMEOUT ) ) );
+			ctx.pipeline().addLast( "TIMEOUT INBOUND/OUTBOUND", new ReadTimeoutHandler( protocol.getIntParameter( Parameters.TIMEOUT ) ) {
+				@Override
+				public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception {
+					System.out.println( "this should result in a reset" );
+				}
+			} );
 		}
 
 		return msg;
 	}
 
-	private CommMessage decode_internal_inbound( CoapMessage coapMessage ) {
+	private CommMessage decode_internal_inbound( ChannelHandlerContext ctx, CoapMessage coapMessage ) {
 
-		CommMessage msg = null;
+		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+			Interpreter.getInstance().logInfo( "Receiving a request from a client coap "
+				+ "--> forwarding it to the comm core" );
+		}
 
-		if ( coapMessage.messageType() != MessageType.ACK || coapMessage.messageType() != MessageType.RST ) {
-
+		String operationName = getOperationName( coapMessage );
+		Value v = Value.create();
+		if ( MessageCode.allowsContent( coapMessage.messageCode() )
+			&& !coapMessage.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
+			String format = ContentFormat.CONTENT_FORMAT.get(
+				( ( long ) coapMessage.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue() )
+			);
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Receiving a request from a client coap "
-					+ "--> forwarding it to the comm core" );
+				Interpreter.getInstance().logInfo( "The Message has a content in the format: " + format );
 			}
-
-			String operationName = getOperationName( coapMessage );
-			Value v = Value.create();
-			if ( MessageCode.allowsContent( coapMessage.messageCode() )
-				&& !coapMessage.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
-				String format = ContentFormat.CONTENT_FORMAT.get(
-					( ( long ) coapMessage.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue() )
-				);
-				if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "The Message has a content in the format: " + format );
-				}
-				try {
-					v = byteBufToValue( coapMessage.getContent(), protocol.getSendType( operationName ), format );
-				} catch ( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
-					Interpreter.getInstance().logSevere( ex.getMessage() );
-				}
-			}
-
-			if ( coapMessage.messageType() == MessageType.CON ) {
-				msg = new CommMessage( coapMessage.messageID(), operationName, "/", v, null );
-				if ( !coapMessage.token().equals( new Token( new byte[ 0 ] ) ) ) {
-					msg.token( coapMessage.token() );
-				}
-			}
-
-			if ( coapMessage.messageType() == MessageType.NON ) {
-				msg = CommMessage.createRequest( operationName, "/", v );
-				if ( !coapMessage.token().equals( new Token( new byte[ 0 ] ) ) ) {
-					msg.token( coapMessage.token() );
-				}
+			try {
+				v = byteBufToValue( coapMessage.getContent(), protocol.getSendType( operationName ), format );
+			} catch ( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
+				Interpreter.getInstance().logSevere( ex.getMessage() );
 			}
 		}
-		return msg;
+
+		if ( isOneWay( operationName ) && coapMessage.messageType() == MessageType.CON ) {
+			CommMessage ack = new CommMessage(
+				coapMessage.messageID(),
+				operationName,
+				"/",
+				Value.create(),
+				null
+			);
+			ctx.fireChannelRead( ack );
+		}
+		return new CommMessage( coapMessage.messageID(), operationName, "/", v, null ).token( coapMessage.token() );
 	}
 
 	private CoapMessage encode_internal_inbound( CommMessage commMessage ) {
@@ -722,14 +721,14 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		}
 	}
 
-	private CommMessage deconde_internal_outbound( CoapMessage coapMessage ) {
+	private CommMessage decode_internal_outbound( CoapMessage coapMessage ) {
 
 		if ( protocol.hasExecutionThread( new Long( coapMessage.messageID() ) ) ) {
 			protocol.setExecutionThread( protocol.getExecutionThread( new Long( coapMessage.messageID() ) ) );
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Setting the Thread to be the "
-					+ " Execution Thread " + protocol.getExecutionThread( new Long( coapMessage.messageID() ) )
-					+ ", extraceted from the map with key "
+				Interpreter.getInstance().logInfo( "Setting the Thread to be the"
+					+ " Execution Thread " + protocol.peekExecutionThread( new Long( coapMessage.messageID() ) )
+					+ ", extracted from the map with key "
 					+ new Long( coapMessage.messageID() ) );
 			}
 		} else {
@@ -742,10 +741,10 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 			Interpreter.getInstance().logInfo( "Receiving a response form a server coap "
 				+ "--> forwarding it to the comm core" );
-			Interpreter.getInstance().logInfo( coapMessage.toString() );
 		}
 
 		String operationName = getOperationName( coapMessage );
+
 		Value v = Value.create();
 		if ( MessageCode.allowsContent( coapMessage.messageCode() )
 			&& !coapMessage.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
@@ -762,8 +761,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				Interpreter.getInstance().logSevere( ex );
 			}
 		}
-
 		return new CommMessage( new Long( coapMessage.messageID() ), "/", operationName, v, null );
+
 	}
 
 	private static class Parameters {
