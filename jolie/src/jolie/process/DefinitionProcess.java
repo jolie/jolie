@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.process;
 
 import jolie.runtime.ExitingException;
@@ -33,7 +31,7 @@ public class DefinitionProcess implements Process
 	{
 		this.process = process;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new DefinitionProcess( process.clone( reason ) );
@@ -46,7 +44,7 @@ public class DefinitionProcess implements Process
 			process.run();
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		if ( process != null ) {

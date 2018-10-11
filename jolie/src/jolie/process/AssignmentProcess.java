@@ -18,13 +18,11 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.VariablePath;
-import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 
 /** Assigns an expression value to a VariablePath.
@@ -47,38 +45,39 @@ public class AssignmentProcess implements Process, Expression
 		this.varPath = varPath;
 		this.expression = expression;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new AssignmentProcess(
-					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason )
-				);
+			(VariablePath) varPath.cloneExpression( reason ),
+			expression.cloneExpression( reason )
+		);
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new AssignmentProcess(
-					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason )
-				);
+			(VariablePath) varPath.cloneExpression( reason ),
+			expression.cloneExpression( reason )
+		);
 	}
-	
+
 	/** Evaluates the expression and stores its value in the variable. */
 	public void run()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 		varPath.getValue().assignValue( expression.evaluate() );
 	}
-	
+
 	public Value evaluate()
 	{
 		Value val = varPath.getValue();
 		val.assignValue( expression.evaluate() );
 		return val;
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

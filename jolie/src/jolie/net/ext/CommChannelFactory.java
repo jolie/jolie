@@ -33,15 +33,18 @@ import jolie.net.protocols.CommProtocol;
  * A factory for delegating the creation of output communication channels to extensions.
  * @author Fabrizio Montesi
  */
-public abstract class CommChannelFactory {
+public abstract class CommChannelFactory
+{
 
 	final private CommCore commCore;
 
-	protected CommChannelFactory( CommCore commCore ) {
+	protected CommChannelFactory( CommCore commCore )
+	{
 		this.commCore = commCore;
 	}
 
-	final protected CommCore commCore() {
+	final protected CommCore commCore()
+	{
 		return commCore;
 	}
 

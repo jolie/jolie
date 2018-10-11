@@ -18,29 +18,28 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
-import jolie.runtime.FaultException;
 import jolie.Interpreter;
 import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
 
 public class SynchronizedProcess implements Process
 {
 	final private String id;
 	final private Process process;
-	
+
 	public SynchronizedProcess( String id, Process process )
 	{
 		this.id = id;
 		this.process = process;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new SynchronizedProcess( id, process.clone( reason ) );
 	}
-	
+
 	public void run()
 		throws FaultException, ExitingException
 	{
@@ -48,7 +47,7 @@ public class SynchronizedProcess implements Process
 			process.run();
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return process.isKillable();

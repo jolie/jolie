@@ -18,13 +18,12 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 public class PostDecrementProcess implements Process, Expression
 {
@@ -34,25 +33,26 @@ public class PostDecrementProcess implements Process, Expression
 	{
 		this.path = varPath;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
-		return new PostDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
+		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
-	
+
 	public void run()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 		Value val = path.getValue();
 		val.setValue( val.intValue() - 1 );
 	}
-	
+
 	public Value evaluate()
 	{
 		Value val = path.getValue();
@@ -60,7 +60,7 @@ public class PostDecrementProcess implements Process, Expression
 		val.setValue( val.intValue() - 1 );
 		return orig;
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

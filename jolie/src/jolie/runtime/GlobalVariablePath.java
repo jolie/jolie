@@ -18,21 +18,19 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
-
-import jolie.runtime.expression.Expression;
 import jolie.Interpreter;
 import jolie.process.TransformationReason;
+import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
 /**
  * @author Fabrizio Montesi
  */
 public class GlobalVariablePath extends VariablePath
-{	
-	public GlobalVariablePath( Pair< Expression, Expression >[] path )
+{
+	public GlobalVariablePath( Pair< Expression, Expression>[] path )
 	{
 		super( path );
 	}
@@ -44,7 +42,7 @@ public class GlobalVariablePath extends VariablePath
 	}
 
 	@Override
-	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path )
+	protected VariablePath _createVariablePath( Pair< Expression, Expression>[] path )
 	{
 		return new GlobalVariablePath( path );
 	}
@@ -52,7 +50,7 @@ public class GlobalVariablePath extends VariablePath
 	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path(), reason );
+		Pair< Expression, Expression>[] clonedPath = cloneExpressionHelper( path(), reason );
 		return new GlobalVariablePath( clonedPath );
 	}
 

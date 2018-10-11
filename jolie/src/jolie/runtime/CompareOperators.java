@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
 import java.util.function.BiPredicate;
@@ -29,47 +28,51 @@ import java.util.function.BiPredicate;
  */
 public final class CompareOperators
 {
-	public final static BiPredicate< Value, Value > EQUAL =
-		( left, right ) -> left.equals( right );
-	public final static BiPredicate< Value, Value > NOT_EQUAL = EQUAL.negate();
-	public final static BiPredicate< Value, Value > MINOR =
-		( left, right ) -> {
+	public final static BiPredicate< Value, Value> EQUAL
+		= ( left, right ) -> left.equals( right );
+	public final static BiPredicate< Value, Value> NOT_EQUAL = EQUAL.negate();
+	public final static BiPredicate< Value, Value> MINOR
+		= ( left, right ) -> {
 			if ( left.isDouble() ) {
-				return ( left.doubleValue() < right.doubleValue() );
-			} if ( left.isLong() ) {
-				return ( left.longValue() < right.longValue() );
+				return (left.doubleValue() < right.doubleValue());
+			}
+			if ( left.isLong() ) {
+				return (left.longValue() < right.longValue());
 			} else {
-				return ( left.intValue() < right.intValue() );
+				return (left.intValue() < right.intValue());
 			}
 		};
-	public final static BiPredicate< Value, Value > MAJOR =
-		( left, right ) -> {
+	public final static BiPredicate< Value, Value> MAJOR
+		= ( left, right ) -> {
 			if ( left.isDouble() ) {
-				return ( left.doubleValue() > right.doubleValue() );
-			} if ( left.isLong() ) {
-				return ( left.longValue() > right.longValue() );
+				return (left.doubleValue() > right.doubleValue());
+			}
+			if ( left.isLong() ) {
+				return (left.longValue() > right.longValue());
 			} else {
-				return ( left.intValue() > right.intValue() );
+				return (left.intValue() > right.intValue());
 			}
 		};
-	public final static BiPredicate< Value, Value > MINOR_OR_EQUAL =
-		( left, right ) -> {
+	public final static BiPredicate< Value, Value> MINOR_OR_EQUAL
+		= ( left, right ) -> {
 			if ( left.isDouble() ) {
-				return ( left.doubleValue() <= right.doubleValue() );
-			} if ( left.isLong() ) {
-				return ( left.longValue() <= right.longValue() );
+				return (left.doubleValue() <= right.doubleValue());
+			}
+			if ( left.isLong() ) {
+				return (left.longValue() <= right.longValue());
 			} else {
-				return ( left.intValue() <= right.intValue() );
+				return (left.intValue() <= right.intValue());
 			}
 		};
-	public final static BiPredicate< Value, Value > MAJOR_OR_EQUAL =
-		( left, right ) -> {
+	public final static BiPredicate< Value, Value> MAJOR_OR_EQUAL
+		= ( left, right ) -> {
 			if ( left.isDouble() ) {
-				return ( left.doubleValue() >= right.doubleValue() );
-			} if ( left.isLong() ) {
-				return ( left.longValue() >= right.longValue() );
+				return (left.doubleValue() >= right.doubleValue());
+			}
+			if ( left.isLong() ) {
+				return (left.longValue() >= right.longValue());
 			} else {
-				return ( left.intValue() >= right.intValue() );
+				return (left.intValue() >= right.intValue());
 			}
 		};
 }

@@ -18,27 +18,25 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
-import java.util.Arrays;
-
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 public class ByteArray
 {
 	final private byte[] buffer;
-	
+
 	public ByteArray( byte[] buffer )
 	{
 		this.buffer = buffer;
 	}
-	
+
 	public int size()
 	{
 		return buffer.length;
 	}
-	
+
 	public byte[] getBytes()
 	{
 		return buffer;
@@ -48,7 +46,7 @@ public class ByteArray
 	{
 		return Arrays.equals( buffer, other.buffer );
 	}
-	
+
 	@Override
 	public String toString()
 	{

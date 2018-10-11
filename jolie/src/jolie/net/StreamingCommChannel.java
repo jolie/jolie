@@ -32,48 +32,57 @@ import jolie.util.Helpers;
  * @author Fabrizio Montesi
  * @see SelectableStreamingCommChannel
  */
-public abstract class StreamingCommChannel extends AbstractCommChannel {
+public abstract class StreamingCommChannel extends AbstractCommChannel
+{
 
 	private final URI location;
 	private final CommProtocol protocol;
 	private final boolean isThreadSafe;
 
-	public StreamingCommChannel( URI location, CommProtocol protocol ) {
+	public StreamingCommChannel( URI location, CommProtocol protocol )
+	{
 		this.location = location;
 		this.protocol = protocol;
 		protocol.setChannel( this );
 		isThreadSafe = protocol.isThreadSafe();
 	}
 
-	protected CommProtocol protocol() {
+	protected CommProtocol protocol()
+	{
 		return protocol;
 	}
 
-	public void sendRelease( long in ) {
+	public void sendRelease( long in )
+	{
 		throw new UnsupportedOperationException( "sendRelease not supported yet." );
 	}
 
-	public StreamingCommChannelHandler getChannelHandler() {
+	public StreamingCommChannelHandler getChannelHandler()
+	{
 		throw new UnsupportedOperationException( "commChannelHandler not supported yet." );
 	}
 
-	public StreamingCommChannel createWithSideChannel( CommChannel channel ) {
+	public StreamingCommChannel createWithSideChannel( CommChannel channel )
+	{
 		throw new UnsupportedOperationException( "createWithSideChannel not supported yet." );
 	}
 
 	@Override
-	protected boolean isThreadSafe() {
+	protected boolean isThreadSafe()
+	{
 		return isThreadSafe;
 	}
 
 	@Override
-	public URI getLocation() {
+	public URI getLocation()
+	{
 		return this.location;
 	}
 
 	@Override
 	protected void releaseImpl()
-		throws IOException {
+		throws IOException
+	{
 		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this ) );
 	}
 }

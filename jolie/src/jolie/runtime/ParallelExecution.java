@@ -18,9 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
-
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -50,8 +48,8 @@ public class ParallelExecution
 			}
 		}
 	}
-	
-	final private Collection< ParallelThread > threads = new HashSet< ParallelThread >();
+
+	final private Collection< ParallelThread> threads = new HashSet< ParallelThread>();
 	private FaultException fault = null;
 	private boolean isKilled = false;
 
@@ -61,7 +59,7 @@ public class ParallelExecution
 			threads.add( new ParallelThread( proc ) );
 		}
 	}
-	
+
 	public void run()
 		throws FaultException
 	{
@@ -71,7 +69,7 @@ public class ParallelExecution
 			}
 
 			ExecutionThread ethread;
-			while ( fault == null && !threads.isEmpty() ) {
+			while( fault == null && !threads.isEmpty() ) {
 				ethread = ExecutionThread.currentThread();
 				try {
 					ethread.setCanBeInterrupted( true );
@@ -86,7 +84,8 @@ public class ParallelExecution
 							}
 							try {
 								wait();
-							} catch( InterruptedException ie ) {}
+							} catch( InterruptedException ie ) {
+							}
 						}
 					}
 				}
@@ -96,28 +95,28 @@ public class ParallelExecution
 				for( ParallelThread t : threads ) {
 					t.kill( fault );
 				}
-				while ( !threads.isEmpty() ) {
+				while( !threads.isEmpty() ) {
 					try {
 						wait();
-					} catch( InterruptedException e ) {}
+					} catch( InterruptedException e ) {
+					}
 				}
 				throw fault;
 			}
 		}
 	}
-	
+
 	private void terminationNotify( ParallelThread thread )
 	{
 		synchronized( this ) {
 			threads.remove( thread );
-			
+
 			if ( threads.isEmpty() ) {
 				notify();
 			}
 		}
 	}
-	
-		
+
 	private void signalFault( ParallelThread thread, FaultException f )
 	{
 		synchronized( this ) {

@@ -18,13 +18,12 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie;
 
 public class NativeJolieThread extends Thread implements InterpreterThread
 {
 	private final Interpreter interpreter;
-	
+
 	/**
 	 * Constructor
 	 */
@@ -55,7 +54,7 @@ public class NativeJolieThread extends Thread implements InterpreterThread
 	{
 		this( interpreter, JolieThread.createThreadName() );
 	}
-	
+
 	/**
 	 * Constructor
 	 */
@@ -64,7 +63,7 @@ public class NativeJolieThread extends Thread implements InterpreterThread
 		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
 		this.interpreter = interpreter;
 	}
-	
+
 	/**
 	 * Returns the interpreter that this thread refers to.
 	 */

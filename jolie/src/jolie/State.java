@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,13 +33,13 @@ import jolie.runtime.Value;
 public final class State implements Cloneable
 {
 	private final Value root;
-	private final ConcurrentHashMap< String, InternalLink > linksMap = new ConcurrentHashMap<>();
-	
+	private final ConcurrentHashMap< String, InternalLink> linksMap = new ConcurrentHashMap<>();
+
 	private State( Value root )
 	{
 		this.root = root;
 	}
-	
+
 	/**
 	 * Returns the InternalLink identified by id in this State scope.
 	 * @param id the identifier of the requested InternalLink
@@ -50,7 +49,7 @@ public final class State implements Cloneable
 	{
 		return linksMap.computeIfAbsent( id, k -> new InternalLink( k ) );
 	}
-	
+
 	/**
 	 * Constructs a new State, using a fresh memory state.
 	 */
@@ -58,13 +57,13 @@ public final class State implements Cloneable
 	{
 		this.root = Value.createRootValue();
 	}
-	
+
 	@Override
 	public State clone()
 	{
 		return new State( Value.createClone( root ) );
 	}
-	
+
 	/**
 	 * Returns the root Value of this State.
 	 * @return the root Value of this State

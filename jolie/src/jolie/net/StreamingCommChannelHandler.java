@@ -23,12 +23,15 @@
  *******************************************************************************/
 package jolie.net;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
-
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.ports.OutputPort;
@@ -39,51 +42,54 @@ import jolie.runtime.OneWayOperation;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.typing.TypeCheckingException;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-
 @ChannelHandler.Sharable
 public class StreamingCommChannelHandler
-	extends SimpleChannelInboundHandler<CommMessage> {
+	extends SimpleChannelInboundHandler<CommMessage>
+{
 
 	private ChannelHandlerContext ctx;
 	private StreamingCommChannel outChannel;  // TOWARDS THE NETWORK
 	private StreamingCommChannel inChannel;   // TOWARDS JOLIE
 	private final Interpreter interpreter;
 
-	public StreamingCommChannelHandler( StreamingCommChannel channel ) {
+	public StreamingCommChannelHandler( StreamingCommChannel channel )
+	{
 		this.inChannel = channel;
 		this.outChannel = channel;
 		this.interpreter = Interpreter.getInstance();
 	}
 
-	public void setOutChannel( StreamingCommChannel c ) {
+	public void setOutChannel( StreamingCommChannel c )
+	{
 		this.outChannel = c;
 	}
 
-	public void setInChannel( StreamingCommChannel c ) {
+	public void setInChannel( StreamingCommChannel c )
+	{
 		this.inChannel = c;
 	}
 
-	public StreamingCommChannel getOutChannel() {
+	public StreamingCommChannel getOutChannel()
+	{
 		return this.outChannel;
 	}
 
-	public StreamingCommChannel getInChannel() {
+	public StreamingCommChannel getInChannel()
+	{
 		return this.inChannel;
 	}
 
 	@Override
-	public void channelRegistered( ChannelHandlerContext ctx ) throws Exception {
+	public void channelRegistered( ChannelHandlerContext ctx ) throws Exception
+	{
 		super.channelRegistered( ctx );
 		this.ctx = ctx;
 	}
 
 	@Override
 	protected void channelRead0( ChannelHandlerContext ctx, CommMessage msg )
-		throws Exception {
+		throws Exception
+	{
 		if ( inChannel.parentPort() instanceof OutputPort ) {
 			Interpreter.getInstance().commCore().receiveResponse( msg );
 			//this.inChannel.receiveResponse( msg );
@@ -94,18 +100,21 @@ public class StreamingCommChannelHandler
 
 	@Override
 	public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause )
-		throws Exception {
+		throws Exception
+	{
 		ctx.close();
 		throw new Exception( cause );
 	}
 
 	public ChannelFuture write( CommMessage msg )
-		throws InterruptedException {
+		throws InterruptedException
+	{
 		ChannelFuture f = this.ctx.writeAndFlush( msg );
 		return f;
 	}
 
-	public ChannelFuture close() {
+	public ChannelFuture close()
+	{
 		return this.ctx.close();
 	}
 
@@ -113,7 +122,8 @@ public class StreamingCommChannelHandler
 		= new ReentrantReadWriteLock( true );
 
 	private void forwardResponse( CommMessage message )
-		throws IOException {
+		throws IOException
+	{
 		message = new CommMessage(
 			inChannel.redirectionMessageId(),
 			message.operationName(),
@@ -141,14 +151,15 @@ public class StreamingCommChannelHandler
 	}
 
 	private void handleRedirectionInput( CommMessage message, String[] ss )
-		throws IOException, URISyntaxException {
+		throws IOException, URISyntaxException
+	{
 		// Redirection
 		String rPath;
 		if ( ss.length <= 2 ) {
 			rPath = "/";
 		} else {
 			StringBuilder builder = new StringBuilder();
-			for ( int i = 2; i < ss.length; i++ ) {
+			for( int i = 2; i < ss.length; i++ ) {
 				builder.append( '/' );
 				builder.append( ss[ i ] );
 			}
@@ -176,7 +187,7 @@ public class StreamingCommChannelHandler
 			oChannel.send( rMessage );
 			oChannel.setToBeClosed( false );
 			oChannel.disposeForInput();
-		} catch ( IOException e ) {
+		} catch( IOException e ) {
 			outChannel.send( CommMessage.createFaultResponse( message,
 				new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
 			outChannel.disposeForInput();
@@ -186,12 +197,14 @@ public class StreamingCommChannelHandler
 
 	private void handleAggregatedInput( CommMessage message,
 		AggregatedOperation operation )
-		throws IOException, URISyntaxException {
+		throws IOException, URISyntaxException
+	{
 		operation.runAggregationBehaviour( message, inChannel );
 	}
 
 	private void handleDirectMessage( CommMessage message )
-		throws IOException {
+		throws IOException
+	{
 		try {
 			InputOperation operation
 				= interpreter.getInputOperation( message.operationName() );
@@ -203,17 +216,17 @@ public class StreamingCommChannelHandler
 					outChannel.send( CommMessage.createEmptyResponse( message ) );
 					//outChannel.release();
 				}
-			} catch ( TypeCheckingException e ) {
+			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "Received message TypeMismatch (input operation "
 					+ operation.id() + "): " + e.getMessage() );
 				try {
 					outChannel.send( CommMessage.createFaultResponse( message,
 						new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME,
 							e.getMessage() ) ) );
-				} catch ( IOException ioe ) {
+				} catch( IOException ioe ) {
 					Interpreter.getInstance().logSevere( ioe );
 				}
-			} catch ( CorrelationError e ) {
+			} catch( CorrelationError e ) {
 				interpreter.logWarning( "Received a non correlating message "
 					+ "for operation " + message.operationName() + ". Sending "
 					+ "CorrelationError to the caller." );
@@ -222,7 +235,7 @@ public class StreamingCommChannelHandler
 						+ "can not be correlated with any session and can not be "
 						+ "used to start a new session." ) ) );
 			}
-		} catch ( InvalidIdException e ) {
+		} catch( InvalidIdException e ) {
 			interpreter.logWarning( "Received a message for undefined operation "
 				+ message.operationName() + ". Sending IOException to the caller." );
 			outChannel.send( CommMessage.createFaultResponse( message,
@@ -236,7 +249,8 @@ public class StreamingCommChannelHandler
 	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
 
 	private void handleMessage( CommMessage message )
-		throws IOException {
+		throws IOException
+	{
 		try {
 			String[] ss = pathSplitPattern.split( message.resourcePath() );
 			if ( ss.length > 1 ) {
@@ -265,30 +279,31 @@ public class StreamingCommChannelHandler
 					handleAggregatedInput( message, operation );
 				}
 			}
-		} catch ( URISyntaxException e ) {
+		} catch( URISyntaxException e ) {
 			interpreter.logSevere( e );
 		}
 	}
 
-	private void messageRecv( CommMessage message ) {
+	private void messageRecv( CommMessage message )
+	{
 		inChannel.lock.lock();
 		channelHandlersLock.readLock().lock();
 		try {
 			if ( inChannel.redirectionChannel() == null ) {
-				assert ( inChannel.parentInputPort() != null );
+				assert (inChannel.parentInputPort() != null);
 				if ( message != null ) {
 					handleMessage( message );
 				} else {
 					inChannel.disposeForInput();
 				}
 			}
-		} catch ( ChannelClosingException e ) {
+		} catch( ChannelClosingException e ) {
 			interpreter.logFine( e );
-		} catch ( IOException e ) {
+		} catch( IOException e ) {
 			interpreter.logSevere( e );
 			try {
 				inChannel.closeImpl();
-			} catch ( IOException e2 ) {
+			} catch( IOException e2 ) {
 				interpreter.logSevere( e2 );
 			}
 		} finally {

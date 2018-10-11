@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
 import java.util.LinkedList;
@@ -32,20 +31,20 @@ import jolie.util.Pair;
  */
 public final class VariablePathBuilder
 {
-	private final List< Pair< Expression, Expression > > list = new LinkedList<>();
+	private final List< Pair< Expression, Expression>> list = new LinkedList<>();
 	private final boolean global;
-	
+
 	public VariablePathBuilder( boolean global )
 	{
 		this.global = global;
 	}
-	
+
 	public VariablePathBuilder add( String id, int index )
 	{
 		list.add( new Pair<>( Value.create( id ), Value.create( index ) ) );
 		return this;
 	}
-	
+
 	public VariablePath toVariablePath()
 	{
 		if ( global ) {

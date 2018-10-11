@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.net;
 
 import java.io.BufferedOutputStream;
@@ -36,7 +34,6 @@ import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;
 
-
 /**
  * A CommChannel using a socket to implement communications.
  * @author Fabrizio Montesi
@@ -46,9 +43,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	private final SocketChannel socketChannel;
 	private final PreBufferedInputStream istream;
 	private final OutputStream ostream;
-	
+
 	private static final int SO_LINGER = 10000;
-	
+
 	/** Constructor.
 	 * 
 	 * @param socketChannel the SocketChannel underlying this SocketCommChannel
@@ -69,7 +66,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		this.ostream = new BufferedOutputStream( Channels.newOutputStream( socketChannel ) );
 		setToBeClosed( false ); // Socket connections are kept open by default
 	}
-	
+
 	/**
 	 * Returns the SocketChannel underlying this SocketCommChannel
 	 * @return the SocketChannel underlying this SocketCommChannel
@@ -79,13 +76,13 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	{
 		return socketChannel;
 	}
-	
+
 	@Override
 	public InputStream inputStream()
 	{
 		return istream;
 	}
-	
+
 	/**
 	 * Receives a message from the channel.
 	 * @return the received CommMessage
@@ -102,7 +99,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			throw new IOException( e );
 		}
 	}
-	
+
 	/**
 	 * Sends a message through the channel.
 	 * @param message the CommMessage to send
@@ -120,7 +117,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			throw new IOException( e );
 		}
 	}
-	
+
 	@Override
 	protected void closeImpl()
 		throws IOException
@@ -131,16 +128,16 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		}
 		socketChannel.close();
 	}
-	
+
 	private final ByteBuffer buffer = ByteBuffer.allocateDirect( 1024 );
-	
+
 	private boolean _isOpenImpl()
 		throws IOException
 	{
 		buffer.clear();
-		
+
 		final boolean wasBlocking = socketChannel.isBlocking();
-		
+
 		if ( wasBlocking ) {
 			socketChannel.configureBlocking( false );
 		}

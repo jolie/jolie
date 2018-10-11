@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.embedding;
 
 import jolie.runtime.ByteArray;
@@ -35,12 +33,12 @@ public class JavaServiceHelpers
 	{
 		return value;
 	}
-	
+
 	public static Long valueToLong( Value value )
 	{
 		return value.longValue();
 	}
-	
+
 	public static Boolean valueToBoolean( Value value )
 	{
 		return value.boolValue();

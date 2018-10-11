@@ -22,21 +22,21 @@
  *******************************************************************************/
 package jolie.net;
 
+import io.netty.channel.EventLoopGroup;
 import java.io.IOException;
-
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
-import io.netty.channel.EventLoopGroup;
-
-public class NioSocketListenerFactory extends CommListenerFactory {
+public class NioSocketListenerFactory extends CommListenerFactory
+{
 
 	protected final EventLoopGroup bossGroup;
 	protected final EventLoopGroup workerGroup;
 
-	public NioSocketListenerFactory( CommCore commCore, EventLoopGroup bossGroup, EventLoopGroup workerGroup ) {
+	public NioSocketListenerFactory( CommCore commCore, EventLoopGroup bossGroup, EventLoopGroup workerGroup )
+	{
 		super( commCore );
 		this.bossGroup = bossGroup;
 		this.workerGroup = workerGroup;
@@ -49,7 +49,8 @@ public class NioSocketListenerFactory extends CommListenerFactory {
 		CommProtocolFactory protocolFactory,
 		InputPort inputPort
 	)
-		throws IOException {
+		throws IOException
+	{
 		return new NioSocketListener( interpreter, protocolFactory, inputPort, bossGroup, workerGroup );
 	}
 }

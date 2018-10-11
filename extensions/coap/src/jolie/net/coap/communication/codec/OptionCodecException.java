@@ -33,7 +33,8 @@ import jolie.net.coap.message.options.Option;
  *
  * @author Oliver Kleine
  */
-public class OptionCodecException extends Exception {
+public class OptionCodecException extends Exception
+{
 
 	private static final String message = "Unsupported or misplaced critical "
 		+ "option %s";
@@ -48,7 +49,8 @@ public class OptionCodecException extends Exception {
 	 * @param optionNumber the option number of the {@link OptionValue} that
 	 * caused this exception
 	 */
-	public OptionCodecException( int optionNumber ) {
+	public OptionCodecException( int optionNumber )
+	{
 		super();
 		this.optionNumber = optionNumber;
 	}
@@ -58,7 +60,8 @@ public class OptionCodecException extends Exception {
 	 *
 	 * @return the number of the option that caused this exception
 	 */
-	public int getOptionNumber() {
+	public int getOptionNumber()
+	{
 		return optionNumber;
 	}
 
@@ -67,7 +70,8 @@ public class OptionCodecException extends Exception {
 	 *
 	 * @param messageID the message ID of the message that caused this exception
 	 */
-	public void setMessageID( int messageID ) {
+	public void setMessageID( int messageID )
+	{
 		this.messageID = messageID;
 	}
 
@@ -76,7 +80,8 @@ public class OptionCodecException extends Exception {
 	 *
 	 * @return the message ID of the message that caused this exception
 	 */
-	public int getMessageID() {
+	public int getMessageID()
+	{
 		return messageID;
 	}
 
@@ -85,7 +90,8 @@ public class OptionCodecException extends Exception {
 	 *
 	 * @param token the {@link Token} of the message that caused this exception
 	 */
-	public void setToken( Token token ) {
+	public void setToken( Token token )
+	{
 		this.token = token;
 	}
 
@@ -94,7 +100,8 @@ public class OptionCodecException extends Exception {
 	 *
 	 * @return the {@link Token} of the message that caused this exception
 	 */
-	public Token getToken() {
+	public Token getToken()
+	{
 		return token;
 	}
 
@@ -107,7 +114,8 @@ public class OptionCodecException extends Exception {
 	 * @param remoteSocket the remote CoAP endpoints of the message that caused
 	 * this exception
 	 */
-	public void setremoteSocket( InetSocketAddress remoteSocket ) {
+	public void setremoteSocket( InetSocketAddress remoteSocket )
+	{
 		this.remoteSocket = remoteSocket;
 	}
 
@@ -119,7 +127,8 @@ public class OptionCodecException extends Exception {
 	 *
 	 * @return the remote CoAP endpoints of the message that caused this exception
 	 */
-	public InetSocketAddress getremoteSocket() {
+	public InetSocketAddress getremoteSocket()
+	{
 		return remoteSocket;
 	}
 
@@ -132,7 +141,8 @@ public class OptionCodecException extends Exception {
 	 * {@link jolie.net.coap.message.MessageType} of the message that caused
 	 * this exception
 	 */
-	public int getMessageType() {
+	public int getMessageType()
+	{
 		return messageType;
 	}
 
@@ -145,12 +155,14 @@ public class OptionCodecException extends Exception {
 	 * {@link jolie.net.coap.message.MessageType} of the message that caused
 	 * this exception
 	 */
-	public void setMessageType( int messageType ) {
+	public void setMessageType( int messageType )
+	{
 		this.messageType = messageType;
 	}
 
 	@Override
-	public String getMessage() {
+	public String getMessage()
+	{
 		return String.format( message, Option.asString( this.optionNumber ) );
 	}
 }

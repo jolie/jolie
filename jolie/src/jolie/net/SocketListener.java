@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -41,10 +40,10 @@ public class SocketListener extends CommListener
 	private final ServerSocketChannel serverChannel;
 
 	public SocketListener(
-				Interpreter interpreter,
-				CommProtocolFactory protocolFactory,
-				InputPort inputPort
-			)
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort
+	)
 		throws IOException
 	{
 		super(
@@ -52,7 +51,7 @@ public class SocketListener extends CommListener
 			protocolFactory,
 			inputPort
 		);
-		
+
 		serverChannel = ServerSocketChannel.open();
 		final ServerSocket socket = serverChannel.socket();
 		try {
@@ -70,20 +69,21 @@ public class SocketListener extends CommListener
 		if ( serverChannel.isOpen() ) {
 			try {
 				serverChannel.close();
-			} catch( IOException e ) {}
+			} catch( IOException e ) {
+			}
 		}
 	}
-	
+
 	@Override
 	public void run()
 	{
 		try {
 			SocketChannel socketChannel;
-			while ( (socketChannel = serverChannel.accept()) != null ) {
+			while( (socketChannel = serverChannel.accept()) != null ) {
 				final CommChannel channel = new SocketCommChannel(
-							socketChannel,
-							inputPort().location(),
-							createProtocol() );
+					socketChannel,
+					inputPort().location(),
+					createProtocol() );
 				channel.setParentInputPort( inputPort() );
 				interpreter().commCore().scheduleReceive( channel, inputPort() );
 			}

@@ -24,11 +24,9 @@ package jolie.net;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-
 import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
 import jolie.net.protocols.AsyncCommProtocol;
@@ -55,7 +53,8 @@ OUTBOUND write( 3 -> 2 -> 5 )
 -------------------------------------------------------------------------------------
 @author stefanopiozingaro
  */
-public class CoapProtocol extends AsyncCommProtocol {
+public class CoapProtocol extends AsyncCommProtocol
+{
 
 	public boolean isInput;
 
@@ -64,13 +63,15 @@ public class CoapProtocol extends AsyncCommProtocol {
 	 * @param configurationPath
 	 * @param isInput
 	 */
-	public CoapProtocol( VariablePath configurationPath, boolean isInput ) {
+	public CoapProtocol( VariablePath configurationPath, boolean isInput )
+	{
 		super( configurationPath );
 		this.isInput = isInput;
 	}
 
 	@Override
-	public void setupPipeline( ChannelPipeline pipeline ) {
+	public void setupPipeline( ChannelPipeline pipeline )
+	{
 		pipeline.addLast( "LOGGER", new LoggingHandler( LogLevel.INFO ) );
 		pipeline.addLast( "COAP MESSAGE INBOUND", new CoapMessageDecoder() );
 		pipeline.addLast( "COAP MESSAGE OUTBOUND", new CoapMessageEncoder() );
@@ -78,65 +79,77 @@ public class CoapProtocol extends AsyncCommProtocol {
 	}
 
 	@Override
-	public String name() {
+	public String name()
+	{
 		return "coap";
 	}
 
 	@Override
-	public boolean isThreadSafe() {
+	public boolean isThreadSafe()
+	{
 		return true;
 	}
 
 	@Override
-	protected boolean checkBooleanParameter( String param ) {
+	protected boolean checkBooleanParameter( String param )
+	{
 		return super.checkBooleanParameter( param );
 	}
 
 	@Override
-	protected boolean hasOperationSpecificParameter( String on, String p ) {
+	protected boolean hasOperationSpecificParameter( String on, String p )
+	{
 		return super.hasOperationSpecificParameter( on, p );
 	}
 
 	@Override
 	protected ValueVector getOperationSpecificParameterVector( String operationName,
-		String parameterName ) {
+		String parameterName )
+	{
 		return super.getOperationSpecificParameterVector( operationName,
 			parameterName );
 	}
 
 	@Override
-	protected String getOperationSpecificStringParameter( String on, String p ) {
+	protected String getOperationSpecificStringParameter( String on, String p )
+	{
 		return super.getOperationSpecificStringParameter( on, p );
 	}
 
 	@Override
 	protected Value getOperationSpecificParameterFirstValue( String on,
-		String p ) {
+		String p )
+	{
 		return super.getOperationSpecificParameterFirstValue( on, p );
 	}
 
 	@Override
-	protected boolean checkStringParameter( String id, String value ) {
+	protected boolean checkStringParameter( String id, String value )
+	{
 		return super.checkStringParameter( id, value );
 	}
 
 	@Override
-	protected boolean hasParameter( String id ) {
+	protected boolean hasParameter( String id )
+	{
 		return super.hasParameter( id );
 	}
 
 	@Override
-	protected int getIntParameter( String id ) {
+	protected int getIntParameter( String id )
+	{
 		return super.getIntParameter( id );
 	}
 
 	@Override
-	protected CommChannel channel() {
+	protected CommChannel channel()
+	{
 		return super.channel();
 	}
 
 	@Override
-	protected Type getSendType( String message ) throws IOException {
+	protected Type getSendType( String message ) throws IOException
+	{
 		return super.getSendType( message );
 	}
 
@@ -154,25 +167,26 @@ public class CoapProtocol extends AsyncCommProtocol {
 	 * @return The operation name String
 	 */
 	public String getOperationFromOperationSpecificStringParameter( String parameter,
-		String parameterStringValue ) {
+		String parameterStringValue )
+	{
 
-		for ( Map.Entry<String, ValueVector> first : configurationPath().getValue().children().entrySet() ) {
+		for( Map.Entry<String, ValueVector> first : configurationPath().getValue().children().entrySet() ) {
 			String first_level_key = first.getKey();
 			ValueVector first_level_valueVector = first.getValue();
 			if ( first_level_key.equals( "osc" ) ) {
-				for ( Iterator<Value> first_iterator = first_level_valueVector.iterator(); first_iterator.hasNext(); ) {
+				for( Iterator<Value> first_iterator = first_level_valueVector.iterator(); first_iterator.hasNext(); ) {
 					Value fisrt_value = first_iterator.next();
-					for ( Map.Entry<String, ValueVector> second : fisrt_value.children().entrySet() ) {
+					for( Map.Entry<String, ValueVector> second : fisrt_value.children().entrySet() ) {
 						String second_level_key = second.getKey();
 						ValueVector second_level_valueVector = second.getValue();
-						for ( Iterator<Value> second_iterator = second_level_valueVector.iterator(); second_iterator.hasNext(); ) {
+						for( Iterator<Value> second_iterator = second_level_valueVector.iterator(); second_iterator.hasNext(); ) {
 							Value second_value = second_iterator.next();
-							for ( Map.Entry<String, ValueVector> third : second_value.children().entrySet() ) {
+							for( Map.Entry<String, ValueVector> third : second_value.children().entrySet() ) {
 								String third_level_key = third.getKey();
 								ValueVector third_level_valueVector = third.getValue();
 								if ( third_level_key.equals( parameter ) ) {
 									StringBuilder sb = new StringBuilder( "" );
-									for ( Iterator<Value> third_iterator = third_level_valueVector.iterator(); third_iterator.hasNext(); ) {
+									for( Iterator<Value> third_iterator = third_level_valueVector.iterator(); third_iterator.hasNext(); ) {
 										Value third_value = third_iterator.next();
 										sb.append( third_value.strValue() );
 									}

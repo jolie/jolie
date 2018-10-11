@@ -16,7 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -32,28 +31,29 @@ public class PostIncrementProcess implements Process, Expression
 	{
 		this.path = varPath;
 	}
-	
+
 	@Override
 	public Process clone( TransformationReason reason )
 	{
-		return new PostIncrementProcess( (VariablePath)path.cloneExpression( reason ) );
+		return new PostIncrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
-	
+
 	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new PostIncrementProcess( (VariablePath)path.cloneExpression( reason ) );
+		return new PostIncrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
-	
+
 	@Override
 	public void run()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 		final Value val = path.getValue();
 		val.setValue( val.intValue() + 1 );
 	}
-	
+
 	@Override
 	public Value evaluate()
 	{
@@ -62,7 +62,7 @@ public class PostIncrementProcess implements Process, Expression
 		val.setValue( val.intValue() + 1 );
 		return orig;
 	}
-	
+
 	@Override
 	public boolean isKillable()
 	{

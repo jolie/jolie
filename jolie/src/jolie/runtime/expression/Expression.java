@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
 
 import jolie.lang.Constants;
@@ -29,24 +27,25 @@ import jolie.runtime.Value;
 public interface Expression
 {
 	public Value evaluate();
+
 	public Expression cloneExpression( TransformationReason reason );
-	
+
 	public class Operand
 	{
 		private final Constants.OperandType type;
 		private final Expression expression;
-						
+
 		public Operand( Constants.OperandType type, Expression expression )
 		{
 			this.type = type;
 			this.expression = expression;
 		}
-		
+
 		public Expression expression()
 		{
 			return expression;
 		}
-		
+
 		public Constants.OperandType type()
 		{
 			return type;

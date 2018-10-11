@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.typing;
 
 import jolie.lang.Constants;
@@ -36,4 +35,3 @@ public class TypeCheckingException extends Exception
 		super( message );
 	}
 }
-

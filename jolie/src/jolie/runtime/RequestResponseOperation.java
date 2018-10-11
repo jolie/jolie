@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 import jolie.runtime.typing.RequestResponseTypeDescription;
@@ -32,7 +30,8 @@ public class RequestResponseOperation extends InputOperation
 	public RequestResponseOperation(
 		String id,
 		RequestResponseTypeDescription typeDescription
-	) {
+	)
+	{
 		super( id );
 		this.typeDescription = typeDescription;
 	}

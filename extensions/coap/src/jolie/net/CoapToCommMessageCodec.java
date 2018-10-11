@@ -25,8 +25,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
@@ -79,7 +77,8 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, CommMessage> {
+public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, CommMessage>
+{
 
 	private static final Charset charset = CharsetUtil.UTF_8;
 	private static final String DEFAULT_CONTENT_FORMAT = "application/json";
@@ -87,14 +86,16 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	private final boolean isInput;
 	private final CoapProtocol protocol;
 
-	public CoapToCommMessageCodec( CoapProtocol protocol ) {
+	public CoapToCommMessageCodec( CoapProtocol protocol )
+	{
 		this.protocol = protocol;
 		this.isInput = protocol.isInput;
 	}
 
 	@Override
 	protected void encode( ChannelHandlerContext ctx, CommMessage in,
-		List<Object> out ) throws Exception {
+		List<Object> out ) throws Exception
+	{
 		if ( isInput ) {
 			out.add( encode_internal_inbound( in ) );
 		} else {
@@ -104,7 +105,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 	@Override
 	protected void decode( ChannelHandlerContext ctx, CoapMessage in,
-		List<Object> out ) throws Exception {
+		List<Object> out ) throws Exception
+	{
 		if ( isInput ) {
 			out.add( decode_internal_inbound( ctx, in ) );
 		} else {
@@ -124,12 +126,13 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	 */
 	private ByteBuf valueToByteBuf( CommMessage commMessage ) throws IOException,
 		ParserConfigurationException, TransformerConfigurationException,
-		TransformerException {
+		TransformerException
+	{
 
 		ByteBuf byteBuf = Unpooled.buffer();
 		String format = ContentFormat.CONTENT_FORMAT.get( getContentFormat( commMessage.operationName() ) );
 		Value v = commMessage.isFault() ? Value.create( commMessage.fault().getMessage() ) : commMessage.value();
-		switch ( format ) {
+		switch( format ) {
 			case "application/link-format": // TODO support it!
 				break;
 			case "application/xml":
@@ -166,7 +169,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return byteBuf;
 	}
 
-	private String getFormat( String operationName ) {
+	private String getFormat( String operationName )
+	{
 		String format = DEFAULT_CONTENT_FORMAT;
 		if ( protocol.hasOperationSpecificParameter( operationName, Parameters.CONTENT_FORMAT ) ) {
 			format = protocol.getOperationSpecificStringParameter( operationName, Parameters.CONTENT_FORMAT ).toLowerCase();
@@ -176,7 +180,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				Interpreter.getInstance().logSevere( "The specified content format "
 					+ format + " is not supported! \"text/plain\" format will be used instead."
 					+ "Currently supported formats are: " );
-				for ( Map.Entry<String, Long> f : ContentFormat.JOLIE_ALLOWED_CONTENT_FORMAT.entrySet() ) {
+				for( Map.Entry<String, Long> f : ContentFormat.JOLIE_ALLOWED_CONTENT_FORMAT.entrySet() ) {
 					String key = f.getKey();
 					Interpreter.getInstance().logSevere( key );
 				}
@@ -185,7 +189,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return format;
 	}
 
-	private long getContentFormat( String operationName ) {
+	private long getContentFormat( String operationName )
+	{
 		String format = getFormat( operationName );
 		Long contentFormat = ContentFormat.APP_JSON;
 
@@ -195,7 +200,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			Interpreter.getInstance().logSevere( "The specified content format "
 				+ format + " is not supported! \"application/json\" format will be used instead."
 				+ "Currently supported formats are: " );
-			for ( Map.Entry<String, Long> f : ContentFormat.JOLIE_ALLOWED_CONTENT_FORMAT.entrySet() ) {
+			for( Map.Entry<String, Long> f : ContentFormat.JOLIE_ALLOWED_CONTENT_FORMAT.entrySet() ) {
 				String key = f.getKey();
 				Interpreter.getInstance().logSevere( key );
 			}
@@ -204,27 +209,29 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return contentFormat;
 	}
 
-	private String valueToPlainText( Value value ) {
+	private String valueToPlainText( Value value )
+	{
 		Object valueObject = value.valueObject();
 		String str = "";
 		if ( valueObject instanceof String ) {
-			str = ( ( String ) valueObject );
+			str = ((String) valueObject);
 		} else if ( valueObject instanceof Integer ) {
-			str = ( ( Integer ) valueObject ).toString();
+			str = ((Integer) valueObject).toString();
 		} else if ( valueObject instanceof Double ) {
-			str = ( ( Double ) valueObject ).toString();
+			str = ((Double) valueObject).toString();
 		} else if ( valueObject instanceof ByteArray ) {
-			str = ( ( ByteArray ) valueObject ).toString();
+			str = ((ByteArray) valueObject).toString();
 		} else if ( valueObject instanceof Boolean ) {
-			str = ( ( Boolean ) valueObject ).toString();
+			str = ((Boolean) valueObject).toString();
 		} else if ( valueObject instanceof Long ) {
-			str = ( ( Long ) valueObject ).toString();
+			str = ((Long) valueObject).toString();
 		}
 
 		return str;
 	}
 
-	private int messageType( String operationName ) {
+	private int messageType( String operationName )
+	{
 		int messageType = MessageType.NON;
 		if ( protocol.hasOperationSpecificParameter( operationName,
 			Parameters.MESSAGE_TYPE ) ) {
@@ -241,7 +248,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			} else {
 				if ( messageTypeValue.isString() ) {
 					String messageTypeString = messageTypeValue.strValue();
-					switch ( messageTypeString ) {
+					switch( messageTypeString ) {
 						case "CON": {
 							messageType = MessageType.CON;
 							break;
@@ -281,7 +288,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	@param isResponse
 	@return The Integer rapresentation of the Message Code as listed in {@link MessageCode}
 	 */
-	private int messageCode( String operationName, boolean isResponse ) {
+	private int messageCode( String operationName, boolean isResponse )
+	{
 		int messageCode = MessageCode.POST;
 		if ( isResponse ) {
 			messageCode = MessageCode.CONTENT_205;
@@ -304,7 +312,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 							+ "Assuming default message code "
 							+ MessageCode.asString( messageCode ) + " instead."
 							+ "Supported message codes are:" );
-						for ( Map.Entry<String, Integer> f : MessageCode.JOLIE_ALLOWED_MESSAGE_CODE.entrySet() ) {
+						for( Map.Entry<String, Integer> f : MessageCode.JOLIE_ALLOWED_MESSAGE_CODE.entrySet() ) {
 							String key = f.getKey();
 							Interpreter.getInstance().logSevere( key );
 						}
@@ -317,14 +325,15 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 	private Value byteBufToValue( ByteBuf in, Type type, String format )
 		throws IOException, ParserConfigurationException,
-		SAXException, TypeCheckingException {
+		SAXException, TypeCheckingException
+	{
 
 		ByteBuf byteBuf = Unpooled.copiedBuffer( in );
 		Value value = Value.create();
 		String message = Unpooled.copiedBuffer( byteBuf ).toString( charset );
 
 		if ( message.length() > 0 ) {
-			switch ( format ) {
+			switch( format ) {
 				case "application/xml":
 					DocumentBuilderFactory docBuilderFactory
 						= DocumentBuilderFactory.newInstance();
@@ -351,7 +360,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			// for XML format
 			try {
 				value = type.cast( value );
-			} catch ( TypeCastingException e ) {
+			} catch( TypeCastingException e ) {
 				// do nothing
 			}
 
@@ -360,15 +369,15 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			value = Value.create();
 			try {
 				type.check( value );
-			} catch ( TypeCheckingException ex1 ) {
+			} catch( TypeCheckingException ex1 ) {
 				value = Value.create( "" );
 				try {
 					type.check( value );
-				} catch ( TypeCheckingException ex2 ) {
+				} catch( TypeCheckingException ex2 ) {
 					value = Value.create( new ByteArray( new byte[ 0 ] ) );
 					try {
 						type.check( value );
-					} catch ( TypeCheckingException ex3 ) {
+					} catch( TypeCheckingException ex3 ) {
 						value = Value.create();
 					}
 				}
@@ -379,12 +388,13 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	}
 
 	private void parsePlainText( String message, Value value, Type type )
-		throws TypeCheckingException {
+		throws TypeCheckingException
+	{
 
 		try {
 			type.check( Value.create( message ) );
 			value.setValue( message );
-		} catch ( TypeCheckingException e1 ) {
+		} catch( TypeCheckingException e1 ) {
 			if ( isNumeric( message ) ) {
 				try {
 					if ( message.equals( "0" ) ) {
@@ -398,16 +408,16 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 							throw new TypeCheckingException( "" );
 						}
 					}
-				} catch ( TypeCheckingException e ) {
+				} catch( TypeCheckingException e ) {
 					try {
 						value.setValue( Integer.parseInt( message ) );
-					} catch ( NumberFormatException nfe ) {
+					} catch( NumberFormatException nfe ) {
 						try {
 							value.setValue( Long.parseLong( message ) );
-						} catch ( NumberFormatException nfe1 ) {
+						} catch( NumberFormatException nfe1 ) {
 							try {
 								value.setValue( Double.parseDouble( message ) );
-							} catch ( NumberFormatException nfe2 ) {
+							} catch( NumberFormatException nfe2 ) {
 							}
 						}
 					}
@@ -416,20 +426,21 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				try {
 					type.check( Value.create( new ByteArray( message.getBytes() ) ) );
 					value.setValue( new ByteArray( message.getBytes() ) );
-				} catch ( TypeCheckingException e ) {
+				} catch( TypeCheckingException e ) {
 					value.setValue( message );
 				}
 			}
 		}
 	}
 
-	private boolean isNumeric( final CharSequence cs ) {
+	private boolean isNumeric( final CharSequence cs )
+	{
 
 		if ( cs.length() == 0 ) {
 			return false;
 		}
 		final int sz = cs.length();
-		for ( int i = 0; i < sz; i++ ) {
+		for( int i = 0; i < sz; i++ ) {
 			if ( !Character.isDigit( cs.charAt( i ) ) ) {
 				return false;
 			}
@@ -443,13 +454,15 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	 * @param operationName
 	 * @return
 	 */
-	public boolean isOneWay( String operationName ) {
+	public boolean isOneWay( String operationName )
+	{
 		return protocol.channel().parentPort().getInterface()
 			.oneWayOperations().containsKey( operationName );
 	}
 
 	private URI getTargetURI( CommMessage in )
-		throws URISyntaxException {
+		throws URISyntaxException
+	{
 
 		URI location;
 		if ( protocol.isInput ) {
@@ -477,7 +490,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		if ( protocol.hasOperationSpecificParameter( in.operationName(),
 			Parameters.ALIAS ) ) {
 
-			for ( Value v : protocol.getOperationSpecificParameterVector( in.operationName(), Parameters.ALIAS ) ) {
+			for( Value v : protocol.getOperationSpecificParameterVector( in.operationName(), Parameters.ALIAS ) ) {
 				String path = getDynamicAlias( v.strValue(), in.value() );
 				resource_name.append( path );
 			}
@@ -504,7 +517,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return new URI( uri );
 	}
 
-	private String getDynamicAlias( String start, Value value ) {
+	private String getDynamicAlias( String start, Value value )
+	{
 
 		Set<String> aliasKeys = new TreeSet<>();
 		String pattern = "%(!)?\\{[^\\}]*\\}";
@@ -517,7 +531,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		Matcher m = Pattern.compile( pattern ).matcher( start );
 
 		// substitute in alias
-		while ( m.find() ) {
+		while( m.find() ) {
 			currKey = start.substring( m.start() + 3, m.end() - 1 );
 			currStrValue = value.getFirstChild( currKey ).strValue();
 			aliasKeys.add( currKey );
@@ -529,20 +543,21 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		}
 
 		// remove from the value
-		for ( String aliasKey : aliasKeys ) {
+		for( String aliasKey : aliasKeys ) {
 			value.children().remove( aliasKey );
 		}
 
 		return result.toString();
 	}
 
-	private String getOperationName( CoapMessage in ) {
+	private String getOperationName( CoapMessage in )
+	{
 
 		StringBuilder sb = new StringBuilder();
 		int i = 1;
 		List<OptionValue> options = in.getOptions( Option.URI_PATH );
 		sb.append( "/" );
-		for ( OptionValue option : options ) {
+		for( OptionValue option : options ) {
 			if ( i < options.size() ) {
 				sb.append( option.getDecodedValue() ).append( "/" );
 			} else {
@@ -556,7 +571,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return operationName;
 	}
 
-	private CoapMessage encode_internal_outbound( ChannelHandlerContext ctx, CommMessage commMessage ) {
+	private CoapMessage encode_internal_outbound( ChannelHandlerContext ctx, CommMessage commMessage )
+	{
 
 		protocol.setExecutionThread( commMessage.executionThread() );
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -582,11 +598,11 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				messageCode( operationName, false ),
 				getTargetURI( commMessage )
 			);
-		} catch ( IllegalArgumentException | URISyntaxException ex ) {
+		} catch( IllegalArgumentException | URISyntaxException ex ) {
 			Interpreter.getInstance().logSevere( ex.getMessage() );
 		}
 
-		msg.messageID( ( int ) commMessage.id() );
+		msg.messageID( (int) commMessage.id() );
 		if ( !isOneWay( operationName ) && msg.messageType() != MessageType.CON ) {
 			msg.setRandomToken();
 		}
@@ -597,7 +613,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 					valueToByteBuf( commMessage ),
 					getContentFormat( operationName )
 				);
-			} catch ( IOException | ParserConfigurationException | TransformerException ex ) {
+			} catch( IOException | ParserConfigurationException | TransformerException ex ) {
 				Interpreter.getInstance().logSevere( ex.getMessage() );
 			}
 		}
@@ -617,10 +633,12 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			ctx.fireChannelRead( ack );
 		}
 
-		if ( ( !isOneWay( operationName ) || msg.messageType() == MessageType.CON ) && protocol.hasParameter( Parameters.TIMEOUT ) ) {
-			ctx.pipeline().addLast( "TIMEOUT INBOUND/OUTBOUND", new ReadTimeoutHandler( protocol.getIntParameter( Parameters.TIMEOUT ) ) {
+		if ( (!isOneWay( operationName ) || msg.messageType() == MessageType.CON) && protocol.hasParameter( Parameters.TIMEOUT ) ) {
+			ctx.pipeline().addLast( "TIMEOUT INBOUND/OUTBOUND", new ReadTimeoutHandler( protocol.getIntParameter( Parameters.TIMEOUT ) )
+			{
 				@Override
-				public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception {
+				public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
+				{
 					System.out.println( "this should result in a reset" );
 				}
 			} );
@@ -629,7 +647,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return msg;
 	}
 
-	private CommMessage decode_internal_inbound( ChannelHandlerContext ctx, CoapMessage coapMessage ) {
+	private CommMessage decode_internal_inbound( ChannelHandlerContext ctx, CoapMessage coapMessage )
+	{
 
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 			Interpreter.getInstance().logInfo( "Receiving a request from a client coap "
@@ -641,14 +660,14 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		if ( MessageCode.allowsContent( coapMessage.messageCode() )
 			&& !coapMessage.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
 			String format = ContentFormat.CONTENT_FORMAT.get(
-				( ( long ) coapMessage.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue() )
+				((long) coapMessage.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue())
 			);
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "The Message has a content in the format: " + format );
 			}
 			try {
 				v = byteBufToValue( coapMessage.getContent(), protocol.getSendType( operationName ), format );
-			} catch ( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
+			} catch( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
 				Interpreter.getInstance().logSevere( ex.getMessage() );
 			}
 		}
@@ -666,7 +685,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return new CommMessage( coapMessage.messageID(), operationName, "/", v, null ).token( coapMessage.token() );
 	}
 
-	private CoapMessage encode_internal_inbound( CommMessage commMessage ) {
+	private CoapMessage encode_internal_inbound( CommMessage commMessage )
+	{
 
 		protocol.setExecutionThread( commMessage.executionThread() );
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -686,7 +706,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				Interpreter.getInstance().logInfo( "Receiving an ack from jolie "
 					+ "--> forward it to the client" );
 			}
-			return CoapMessage.createEmptyAcknowledgement( ( int ) commMessage.id() );
+			return CoapMessage.createEmptyAcknowledgement( (int) commMessage.id() );
 
 		} else {
 
@@ -699,7 +719,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				messageType( operationName ),
 				messageCode( operationName, true ) );
 
-			msg.messageID( ( int ) commMessage.id() );
+			msg.messageID( (int) commMessage.id() );
 			if ( commMessage.token() != null ) {
 				msg.token( commMessage.token() );
 			}
@@ -709,7 +729,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				try {
 					content = valueToByteBuf( commMessage );
 					msg.setContent( content, getContentFormat( operationName ) );
-				} catch ( IOException | ParserConfigurationException | TransformerException ex ) {
+				} catch( IOException | ParserConfigurationException | TransformerException ex ) {
 					Interpreter.getInstance().logSevere( ex.getMessage() );
 				}
 			}
@@ -721,7 +741,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		}
 	}
 
-	private CommMessage decode_internal_outbound( CoapMessage coapMessage ) {
+	private CommMessage decode_internal_outbound( CoapMessage coapMessage )
+	{
 
 		if ( protocol.hasExecutionThread( new Long( coapMessage.messageID() ) ) ) {
 			protocol.setExecutionThread( protocol.getExecutionThread( new Long( coapMessage.messageID() ) ) );
@@ -749,7 +770,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		if ( MessageCode.allowsContent( coapMessage.messageCode() )
 			&& !coapMessage.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
 			String format = ContentFormat.CONTENT_FORMAT.get(
-				( ( long ) coapMessage.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue() )
+				((long) coapMessage.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue())
 			);
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "The Message has a content in the format: "
@@ -757,7 +778,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			}
 			try {
 				v = byteBufToValue( coapMessage.getContent(), protocol.getSendType( operationName ), format );
-			} catch ( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
+			} catch( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
 				Interpreter.getInstance().logSevere( ex );
 			}
 		}
@@ -765,7 +786,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 	}
 
-	private static class Parameters {
+	private static class Parameters
+	{
 
 		private static final String DEBUG = "debug";
 		private static final String CONTENT_FORMAT = "contentFormat";

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.monitoring;
 
 import jolie.runtime.JavaService.ValueConverter;
@@ -35,7 +34,7 @@ public class MonitoringEvent implements ValueConverter
 	private final long timestamp;
 	private final long memory;
 	private final Value data;
-	
+
 	public MonitoringEvent( String type, Value data )
 	{
 		this(
@@ -45,7 +44,7 @@ public class MonitoringEvent implements ValueConverter
 			data
 		);
 	}
-	
+
 	private MonitoringEvent( String type, long timestamp, long memory, Value data )
 	{
 		this.type = type;
@@ -53,12 +52,12 @@ public class MonitoringEvent implements ValueConverter
 		this.memory = memory;
 		this.data = data;
 	}
-	
+
 	public String type()
 	{
 		return type;
 	}
-	
+
 	public long timestamp()
 	{
 		return timestamp;
@@ -68,12 +67,12 @@ public class MonitoringEvent implements ValueConverter
 	{
 		return memory;
 	}
-	
+
 	public Value data()
 	{
 		return data;
 	}
-	
+
 	public static MonitoringEvent fromValue( Value value )
 	{
 		return new MonitoringEvent(
@@ -83,7 +82,7 @@ public class MonitoringEvent implements ValueConverter
 			value.getFirstChild( "data" )
 		);
 	}
-	
+
 	public static Value toValue( MonitoringEvent e )
 	{
 		Value ret = Value.create();

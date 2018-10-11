@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.typing;
 
 import java.util.Map;
@@ -31,7 +30,7 @@ public class RequestResponseTypeDescription implements OperationTypeDescription
 {
 	private final Type requestType;
 	private final Type responseType;
-	private final Map< String, Type > faultTypes;
+	private final Map< String, Type> faultTypes;
 
 	public RequestResponseTypeDescription( Type requestType, Type responseType, Map<String, Type> faultTypes )
 	{
@@ -55,16 +54,16 @@ public class RequestResponseTypeDescription implements OperationTypeDescription
 		return faultTypes.get( faultName );
 	}
 
-	public Map< String, Type > faults()
+	public Map< String, Type> faults()
 	{
 		return faultTypes;
 	}
-	
+
 	public OneWayTypeDescription asOneWayTypeDescription()
 	{
 		return null;
 	}
-	
+
 	public RequestResponseTypeDescription asRequestResponseTypeDescription()
 	{
 		return this;

@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie;
 
 /**
@@ -29,12 +27,12 @@ package jolie;
 public class JolieExecutorThread extends Thread implements InterpreterThread
 {
 	private ExecutionThread executionThread;
-	
+
 	public JolieExecutorThread( Runnable r, Interpreter interpreter )
 	{
 		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
 	}
-	
+
 	/**
 	 * Sets the <code>ExecutionThread</code> this thread must refer to.
 	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state resolution
@@ -52,16 +50,16 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 	{
 		return executionThread;
 	}
-	
+
 	@Override
 	public Interpreter interpreter()
 	{
 		return executionThread.interpreter();
 	}
-	
+
 	public static JolieExecutorThread currentThread()
 	{
 		final Thread t = Thread.currentThread();
-		return ( t instanceof JolieExecutorThread ) ? ( JolieExecutorThread ) t : null;
+		return (t instanceof JolieExecutorThread) ? (JolieExecutorThread) t : null;
 	}
 }

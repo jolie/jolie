@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.tracer;
 
 /**
@@ -28,31 +26,32 @@ package jolie.tracer;
  */
 public class EmbeddingTraceAction implements TraceAction
 {
-	public static enum Type {
+	public static enum Type
+	{
 		SERVICE_LOAD
 	}
-	
+
 	private final Type type;
 	private final String name;
 	private final String description;
-	
+
 	public EmbeddingTraceAction( Type type, String name, String description )
 	{
 		this.type = type;
 		this.name = name;
 		this.description = description;
 	}
-	
+
 	public Type type()
 	{
 		return type;
 	}
-	
+
 	public String name()
 	{
 		return name;
 	}
-	
+
 	public String description()
 	{
 		return description;

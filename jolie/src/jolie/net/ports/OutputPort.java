@@ -50,7 +50,8 @@ import jolie.util.LocationParser;
  *
  * @author Fabrizio Montesi
  */
-public class OutputPort extends AbstractIdentifiableObject implements Port {
+public class OutputPort extends AbstractIdentifiableObject implements Port
+{
 
 	private final Interpreter interpreter;
 	private final Process configurationProcess;
@@ -62,10 +63,11 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	/* To be called at runtime, after main is run.
 	 * Requires the caller to set the variables by itself.
 	 */
-	public OutputPort( Interpreter interpreter, String id ) {
+	public OutputPort( Interpreter interpreter, String id )
+	{
 		super( id );
 		this.interpreter = interpreter;
-		
+
 		this.protocolVariablePath
 			= new VariablePathBuilder( false )
 				.add( id(), 0 )
@@ -93,7 +95,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		VariablePath protocolVariablePath,
 		Interface iface,
 		boolean isConstant
-	) {
+	)
+	{
 		super( id );
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
@@ -122,7 +125,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		URI locationURI,
 		Interface iface,
 		boolean isConstant
-	) {
+	)
+	{
 		super( id );
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
@@ -141,13 +145,12 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 				.toVariablePath();
 
 		this.locationExpression = locationVariablePath;
-		
+
 		// Create the configuration Process
-		Process a = ( locationURI == null ) ? NullProcess.getInstance()
+		Process a = (locationURI == null) ? NullProcess.getInstance()
 			: new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ) );
 
 		// LOOK INTO HOW FROM A locationURI string we get a local channel into locationVariablePath
-		
 		List< Process> children = new LinkedList<>();
 		children.add( a );
 		if ( protocolId != null ) {
@@ -165,7 +168,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * @throws java.net.URISyntaxException
 	 */
 	public CommMessage createAggregatedRequest( CommMessage message )
-		throws URISyntaxException {
+		throws URISyntaxException
+	{
 		return new CommMessage(
 			CommMessage.getNewMessageId(),
 			message.operationName(),
@@ -176,18 +180,21 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	}
 
 	@Override
-	public Interface getInterface() {
+	public Interface getInterface()
+	{
 		return iface;
 	}
 
-	public void optimizeLocation() {
+	public void optimizeLocation()
+	{
 		if ( isConstant ) {
 			locationExpression = locationVariablePath.getValue();
 		}
 	}
 
 	@Override
-	public VariablePath protocolConfigurationPath() {
+	public VariablePath protocolConfigurationPath()
+	{
 		return protocolVariablePath;
 	}
 
@@ -198,7 +205,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * @throws java.net.URISyntaxException
 	 */
 	public CommProtocol getProtocol()
-		throws IOException, URISyntaxException {
+		throws IOException, URISyntaxException
+	{
 		String protocolId = protocolVariablePath.getValue().strValue();
 		if ( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
@@ -210,7 +218,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		);
 	}
 
-	public CommChannel send( CommMessage message ) throws IOException, URISyntaxException {
+	public CommChannel send( CommMessage message ) throws IOException, URISyntaxException
+	{
 		Value loc = locationExpression.evaluate();
 		if ( loc.isChannel() ) {
 			loc.channelValue().send( message );
@@ -221,14 +230,15 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 				getLocation( loc ),
 				this,
 				// if we did not define a protocol, then we assume the threadSafe parameter to be true
-				( protocolVariablePath.getValue().strValue().isEmpty() ? true : getProtocol().isThreadSafe() )
+				(protocolVariablePath.getValue().strValue().isEmpty() ? true : getProtocol().isThreadSafe())
 			);
 			return null;
 		}
 	}
 
 	private CommChannel getCommChannel( boolean forceNew )
-		throws URISyntaxException, IOException {
+		throws URISyntaxException, IOException
+	{
 		CommChannel ret;
 		Value loc = locationExpression.evaluate();
 		if ( loc.isChannel() ) {
@@ -256,9 +266,11 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		return ret;
 	}
 
-	private static class LazyLocalUriHolder {
+	private static class LazyLocalUriHolder
+	{
 
-		private LazyLocalUriHolder() {
+		private LazyLocalUriHolder()
+		{
 		}
 		private static final URI uri = URI.create( "local" );
 	}
@@ -271,7 +283,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * @throws java.net.URISyntaxException
 	 */
 	public String getResourcePath()
-		throws URISyntaxException {
+		throws URISyntaxException
+	{
 		Value location = locationExpression.evaluate();
 		if ( location.isChannel() ) {
 			return "/";
@@ -280,14 +293,15 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	}
 
 	private URI getLocation( Value location )
-		throws URISyntaxException {
+		throws URISyntaxException
+	{
 		if ( location.isChannel() ) {
 			return LazyLocalUriHolder.uri;
 		}
 		String s = location.strValue();
 		URI ret;
-		synchronized ( uriCache ) {
-			if ( ( ret = uriCache.get( s ) ) == null ) {
+		synchronized( uriCache ) {
+			if ( (ret = uriCache.get( s )) == null ) {
 				ret = new URI( s );
 				uriCache.put( s, ret );
 			}
@@ -302,7 +316,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * @throws java.io.IOException
 	 */
 	public final CommChannel getNewCommChannel()
-		throws URISyntaxException, IOException {
+		throws URISyntaxException, IOException
+	{
 		return getCommChannel( true );
 	}
 
@@ -314,7 +329,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * @throws java.io.IOException
 	 */
 	public final CommChannel getCommChannel()
-		throws URISyntaxException, IOException {
+		throws URISyntaxException, IOException
+	{
 		return getCommChannel( false );
 	}
 
@@ -322,7 +338,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * Returns the location variable path of this output port.
 	 * @return the location variable path of this output port
 	 */
-	public VariablePath locationVariablePath() {
+	public VariablePath locationVariablePath()
+	{
 		return locationVariablePath;
 	}
 
@@ -330,12 +347,14 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * Returns the protocol configuration process of this output port.
 	 * @return the protocol configuration process of this output port
 	 */
-	public Process configurationProcess() {
+	public Process configurationProcess()
+	{
 		return configurationProcess;
 	}
 
 	@Override
-	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath ) {
+	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath )
+	{
 		OperationTypeDescription ret = iface.oneWayOperations().get( operationName );
 		if ( ret == null ) {
 			ret = iface.requestResponseOperations().get( operationName );

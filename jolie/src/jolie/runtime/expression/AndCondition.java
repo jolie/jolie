@@ -18,10 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
-
 
 import java.util.concurrent.locks.Condition;
 import jolie.process.TransformationReason;
@@ -35,18 +32,18 @@ import jolie.runtime.Value;
 public class AndCondition implements Expression
 {
 	private final Expression[] children;
-	
+
 	/** Constructor */
 	public AndCondition( Expression[] children )
 	{
 		this.children = children;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new AndCondition( children );
 	}
-	
+
 	/** Applies the "logical and" rule.
 	 * Implemented as short and: starting from left, the first condition that
 	 * evaluates as false makes this "logical and" condition 

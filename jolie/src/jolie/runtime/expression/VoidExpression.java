@@ -18,22 +18,22 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
 public class VoidExpression implements Expression
-{	
-	public VoidExpression() {}
-	
+{
+	public VoidExpression()
+	{
+	}
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new VoidExpression();
 	}
-	
+
 	public Value evaluate()
 	{
 		return Value.create();

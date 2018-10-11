@@ -18,10 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
-
 
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
@@ -29,17 +26,17 @@ import jolie.runtime.Value;
 public class OrCondition implements Expression
 {
 	final private Expression[] children;
-	
+
 	public OrCondition( Expression[] children )
 	{
 		this.children = children;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new OrCondition( children );
 	}
-	
+
 	public Value evaluate()
 	{
 		for( Expression cond : children ) {

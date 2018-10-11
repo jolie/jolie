@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 /** Generic abstract class for an univocally identifiable object (among its kind).
@@ -40,7 +38,7 @@ abstract public class AbstractIdentifiableObject
 	{
 		this.id = id;
 	}
-	
+
 	/** Returns this object identifier.
 	 * @return the identifier of this object
 	 */

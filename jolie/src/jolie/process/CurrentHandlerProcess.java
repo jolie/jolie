@@ -18,50 +18,55 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.HandlerInstallationReason;
 
-
 public class CurrentHandlerProcess implements Process
 {
-	private CurrentHandlerProcess(){}
-	
-	private static class LazyHolder {
-		private LazyHolder() {}
+	private CurrentHandlerProcess()
+	{
+	}
+
+	private static class LazyHolder
+	{
+		private LazyHolder()
+		{
+		}
 		static final CurrentHandlerProcess instance = new CurrentHandlerProcess();
 	}
-	
+
 	static public CurrentHandlerProcess getInstance()
 	{
 		return CurrentHandlerProcess.LazyHolder.instance;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		Process ret = getInstance();
 		if ( reason instanceof HandlerInstallationReason ) {
-			HandlerInstallationReason r = (HandlerInstallationReason)reason;
-			if ( r.handlerId() == null )
+			HandlerInstallationReason r = (HandlerInstallationReason) reason;
+			if ( r.handlerId() == null ) {
 				ret = ExecutionThread.currentThread().getCurrentScopeCompensation();
-			else
+			} else {
 				ret = ExecutionThread.currentThread().getFaultHandler( r.handlerId(), false );
-			
-			if ( ret == null )
+			}
+
+			if ( ret == null ) {
 				ret = NullProcess.getInstance();
+			}
 		}
-		
+
 		return ret;
 	}
-	
+
 	public void run()
 	{
 		// We should never execute this process node.
-		assert( false );
+		assert (false);
 	}
-	
+
 	public boolean isKillable()
 	{
 		// TODO: check this

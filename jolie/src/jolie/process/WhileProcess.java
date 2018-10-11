@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -36,15 +35,15 @@ public class WhileProcess implements Process
 		this.condition = condition;
 		this.process = process;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new WhileProcess(
-					condition.cloneExpression( reason ),
-					process.clone( reason )
-				);
+			condition.cloneExpression( reason ),
+			process.clone( reason )
+		);
 	}
-	
+
 	public void run()
 		throws FaultException, ExitingException
 	{
@@ -58,7 +57,7 @@ public class WhileProcess implements Process
 			}
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

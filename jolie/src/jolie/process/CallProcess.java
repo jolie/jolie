@@ -18,13 +18,12 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
+
 import jolie.Interpreter;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
-
 
 /** Executes a sub-routine.
  * 
@@ -34,7 +33,7 @@ import jolie.runtime.InvalidIdException;
 public class CallProcess implements Process
 {
 	private final String definitionName;
-	
+
 	/** Constructor
 	 * 
 	 * @param definitionName the name of the definition to execute.
@@ -43,12 +42,12 @@ public class CallProcess implements Process
 	{
 		this.definitionName = definitionName;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new CallProcess( definitionName );
 	}
-	
+
 	/** Executes the definition. */
 	public void run()
 		throws FaultException, ExitingException
@@ -60,7 +59,7 @@ public class CallProcess implements Process
 			throw new FaultException( "FatalError", "Definition not found: " + definitionName );
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		try {

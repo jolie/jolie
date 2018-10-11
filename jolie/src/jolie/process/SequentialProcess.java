@@ -18,9 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
-
 
 import jolie.ExecutionThread;
 import jolie.runtime.ExitingException;
@@ -29,7 +27,7 @@ import jolie.runtime.FaultException;
 public class SequentialProcess implements Process
 {
 	final private Process[] children;
-	
+
 	public SequentialProcess( Process[] children )
 	{
 		if ( children.length < 1 ) {
@@ -37,7 +35,7 @@ public class SequentialProcess implements Process
 		}
 		this.children = children;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		Process[] p = new Process[ children.length ];
@@ -47,19 +45,19 @@ public class SequentialProcess implements Process
 		}
 		return new SequentialProcess( p );
 	}
-	
+
 	public void run()
 		throws FaultException, ExitingException
 	{
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Process proc : children ) {
-			if ( ethread.isKilled() && proc.isKillable() ){
+			if ( ethread.isKilled() && proc.isKillable() ) {
 				return;
 			}
 			proc.run();
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return children[ 0 ].isKillable();

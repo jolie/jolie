@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -36,13 +35,13 @@ public class ScopeProcess implements Process
 		final private ExecutionThread ethread;
 		private boolean shouldMerge = true;
 		private FaultException fault = null;
-		
+
 		public Execution( ScopeProcess parent )
 		{
 			this.parent = parent;
 			this.ethread = ExecutionThread.currentThread();
 		}
-		
+
 		public void run()
 			throws FaultException, ExitingException
 		{
@@ -55,7 +54,7 @@ public class ScopeProcess implements Process
 				throw fault;
 			}
 		}
-		
+
 		private void runScope( Process p )
 			throws ExitingException
 		{
@@ -74,13 +73,13 @@ public class ScopeProcess implements Process
 			} catch( FaultException f ) {
 				p = ethread.getFaultHandler( f.faultName(), true );
 				if ( p != null ) {
-					Value scopeValue =
-							new VariablePathBuilder( false )
+					Value scopeValue
+						= new VariablePathBuilder( false )
 							.add( ethread.currentScopeId(), 0 )
 							.toVariablePath()
 							.getValue();
 					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
-                                        scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
+					scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
 					this.runScope( p );
 				} else {
 					fault = f;
@@ -88,11 +87,11 @@ public class ScopeProcess implements Process
 			}
 		}
 	}
-	
+
 	private final String id;
 	private final Process process;
 	private final boolean autoPop;
-	
+
 	public ScopeProcess( String id, Process process, boolean autoPop )
 	{
 		this.id = id;
@@ -104,18 +103,18 @@ public class ScopeProcess implements Process
 	{
 		this( id, process, true );
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new ScopeProcess( id, process.clone( reason ), autoPop );
 	}
-	
+
 	public void run()
 		throws FaultException, ExitingException
 	{
 		(new Execution( this )).run();
 	}
-	
+
 	public boolean isKillable()
 	{
 		return process.isKillable();

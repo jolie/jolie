@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.net;
 
 import java.io.IOException;
@@ -50,17 +48,17 @@ public abstract class CommListener extends NativeJolieThread
 	 * @param inputPort the {@link InputPort} for this listener
 	 */
 	public CommListener(
-				Interpreter interpreter,
-				CommProtocolFactory protocolFactory,
-				InputPort inputPort
-			)
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort
+	)
 	{
 		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
 		this.protocolFactory = protocolFactory;
 		this.inputPort = inputPort;
 	}
-	
-	protected CommListener(	Interpreter interpreter, InputPort inputPort )
+
+	protected CommListener( Interpreter interpreter, InputPort inputPort )
 	{
 		super( interpreter );
 		this.protocolFactory = null;

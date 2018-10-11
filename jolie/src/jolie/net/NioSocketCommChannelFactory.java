@@ -23,73 +23,75 @@
  *******************************************************************************/
 package jolie.net;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.EventLoopGroup;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.EventLoopGroup;
-import jolie.net.ports.InputPort;
-
-public class NioSocketCommChannelFactory extends CommChannelFactory {
+public class NioSocketCommChannelFactory extends CommChannelFactory
+{
 
 	EventLoopGroup workerGroup;
 
-	public NioSocketCommChannelFactory( CommCore commCore, EventLoopGroup workerGroup ) {
+	public NioSocketCommChannelFactory( CommCore commCore, EventLoopGroup workerGroup )
+	{
 		super( commCore );
 		this.workerGroup = workerGroup;
 	}
 
 	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException {
+		throws IOException
+	{
 		CommProtocol protocol;
 		try {
 			protocol = port.getProtocol();
-		} catch ( URISyntaxException e ) {
+		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}
 
-		if ( !( protocol instanceof AsyncCommProtocol ) ) {
+		if ( !(protocol instanceof AsyncCommProtocol) ) {
 			throw new UnsupportedCommProtocolException( "Use an async protocol" );
 		}
 
 		NioSocketCommChannel channel = NioSocketCommChannel.
-			createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, port );
+			createChannel( location, (AsyncCommProtocol) protocol, workerGroup, port );
 
 		try {
 			ChannelFuture f = channel.connect( location );
 			f.sync();
 			if ( !f.isSuccess() ) {
-				throw ( IOException ) f.cause();
+				throw (IOException) f.cause();
 			}
-		} catch ( InterruptedException e ) {
+		} catch( InterruptedException e ) {
 			throw new IOException( e );
 		}
 		return channel;
 	}
 
 	@Override
-	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
-		if ( !( protocol instanceof AsyncCommProtocol ) ) {
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException
+	{
+		if ( !(protocol instanceof AsyncCommProtocol) ) {
 			throw new UnsupportedCommProtocolException( "Use an async protocol" );
 		}
 
 		NioSocketCommChannel channel = NioSocketCommChannel.
-			createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, port );
+			createChannel( location, (AsyncCommProtocol) protocol, workerGroup, port );
 
 		try {
 			ChannelFuture f = channel.connect( location );
 			f.sync();
 			if ( !f.isSuccess() ) {
-				throw ( IOException ) f.cause();
+				throw (IOException) f.cause();
 			}
-		} catch ( InterruptedException e ) {
+		} catch( InterruptedException e ) {
 			throw new IOException( e );
 		}
 		return channel;
