@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
@@ -35,18 +33,18 @@ public class InstanceOfExpression implements Expression
 {
 	private final Expression expression;
 	private final Type type;
-	
+
 	public InstanceOfExpression( Expression expression, Type type )
 	{
 		this.expression = expression;
 		this.type = type;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new InstanceOfExpression( expression, type );
 	}
-	
+
 	public Value evaluate()
 	{
 		boolean ret = true;

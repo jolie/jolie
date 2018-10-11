@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
@@ -29,17 +27,17 @@ import jolie.runtime.VariablePath;
 public class IsDefinedExpression implements Expression
 {
 	final private VariablePath path;
-	
+
 	public IsDefinedExpression( VariablePath path )
 	{
 		this.path = path;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new IsDefinedExpression( path );
 	}
-	
+
 	public Value evaluate()
 	{
 		Value v = path.getValueOrNull();

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.runtime.FaultException;
@@ -34,27 +33,28 @@ public class SpawnProcess implements Process
 	private final Process process;
 
 	public SpawnProcess(
-			VariablePath indexPath,
-			Expression upperBound,
-			VariablePath inPath,
-			Process process
-	) {
+		VariablePath indexPath,
+		Expression upperBound,
+		VariablePath inPath,
+		Process process
+	)
+	{
 		this.indexPath = indexPath;
 		this.inPath = inPath;
 		this.upperBound = upperBound;
 		this.process = process;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new SpawnProcess(
-					(VariablePath) indexPath.cloneExpression( reason ),
-					upperBound.cloneExpression( reason ),
-					( inPath == null ) ? null : (VariablePath) inPath.cloneExpression( reason ),
-					process.clone( reason )
-				);
+			(VariablePath) indexPath.cloneExpression( reason ),
+			upperBound.cloneExpression( reason ),
+			(inPath == null) ? null : (VariablePath) inPath.cloneExpression( reason ),
+			process.clone( reason )
+		);
 	}
-	
+
 	public void run()
 		throws FaultException
 	{
@@ -80,7 +80,7 @@ public class SpawnProcess implements Process
 	{
 		return process;
 	}
-	
+
 	public boolean isKillable()
 	{
 		return process.isKillable();

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ports;
 
 import java.util.Collection;
@@ -37,38 +36,39 @@ import jolie.runtime.typing.Type;
 public class Interface
 {
 	private static final class UndefinedOneWayOperationsMap
-		implements Map< String, OneWayTypeDescription >
+		implements Map< String, OneWayTypeDescription>
 	{
-		private static final Set< Entry< String, OneWayTypeDescription > > entrySet =
-			Collections.EMPTY_SET;
-		private static final Collection< OneWayTypeDescription > values = Collections.EMPTY_LIST;
-		private static final Set< String > keySet = Collections.EMPTY_SET;
+		private static final Set< Entry< String, OneWayTypeDescription>> entrySet
+			= Collections.EMPTY_SET;
+		private static final Collection< OneWayTypeDescription> values = Collections.EMPTY_LIST;
+		private static final Set< String> keySet = Collections.EMPTY_SET;
 		private static final OneWayTypeDescription value = new OneWayTypeDescription( Type.UNDEFINED );
 
 		@Override
-		public Set< Entry< String, OneWayTypeDescription > > entrySet()
+		public Set< Entry< String, OneWayTypeDescription>> entrySet()
 		{
 			return entrySet;
 		}
 
 		@Override
-		public Collection< OneWayTypeDescription > values()
+		public Collection< OneWayTypeDescription> values()
 		{
 			return values;
 		}
 
 		@Override
-		public Set< String > keySet()
+		public Set< String> keySet()
 		{
 			return keySet;
 		}
 
 		@Override
 		public void clear()
-		{}
+		{
+		}
 
 		@Override
-		public void putAll( Map< ? extends String, ? extends OneWayTypeDescription > map )
+		public void putAll( Map< ? extends String, ? extends OneWayTypeDescription> map )
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -117,38 +117,39 @@ public class Interface
 	}
 
 	private static final class UndefinedRequestResponseOperationsMap
-		implements Map< String, RequestResponseTypeDescription >
+		implements Map< String, RequestResponseTypeDescription>
 	{
-		private static final Set< Entry< String, RequestResponseTypeDescription > > entrySet = Collections.EMPTY_SET;
-		private static final Collection< RequestResponseTypeDescription > values = Collections.EMPTY_LIST;
-		private static final Set< String > keySet = Collections.EMPTY_SET;
-		private static final RequestResponseTypeDescription value =
-			new RequestResponseTypeDescription( Type.UNDEFINED, Type.UNDEFINED, Collections.EMPTY_MAP );
+		private static final Set< Entry< String, RequestResponseTypeDescription>> entrySet = Collections.EMPTY_SET;
+		private static final Collection< RequestResponseTypeDescription> values = Collections.EMPTY_LIST;
+		private static final Set< String> keySet = Collections.EMPTY_SET;
+		private static final RequestResponseTypeDescription value
+			= new RequestResponseTypeDescription( Type.UNDEFINED, Type.UNDEFINED, Collections.EMPTY_MAP );
 
 		@Override
-		public Set< Entry< String, RequestResponseTypeDescription > > entrySet()
+		public Set< Entry< String, RequestResponseTypeDescription>> entrySet()
 		{
 			return entrySet;
 		}
 
 		@Override
-		public Collection< RequestResponseTypeDescription > values()
+		public Collection< RequestResponseTypeDescription> values()
 		{
 			return values;
 		}
 
 		@Override
-		public Set< String > keySet()
+		public Set< String> keySet()
 		{
 			return keySet;
 		}
 
 		@Override
 		public void clear()
-		{}
+		{
+		}
 
 		@Override
-		public void putAll( Map< ? extends String, ? extends RequestResponseTypeDescription > map )
+		public void putAll( Map< ? extends String, ? extends RequestResponseTypeDescription> map )
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -197,8 +198,8 @@ public class Interface
 	}
 
 	public static final Interface UNDEFINED;
-	private static final Map< String, OneWayTypeDescription > UNDEFINED_ONE_WAY_MAP;
-	private static final Map< String, RequestResponseTypeDescription > UNDEFINED_REQUEST_RESPONSE_MAP;
+	private static final Map< String, OneWayTypeDescription> UNDEFINED_ONE_WAY_MAP;
+	private static final Map< String, RequestResponseTypeDescription> UNDEFINED_REQUEST_RESPONSE_MAP;
 
 	static {
 		UNDEFINED_ONE_WAY_MAP = new UndefinedOneWayOperationsMap();
@@ -206,23 +207,24 @@ public class Interface
 		UNDEFINED = new Interface( UNDEFINED_ONE_WAY_MAP, UNDEFINED_REQUEST_RESPONSE_MAP );
 	}
 
-	private final Map< String, RequestResponseTypeDescription > requestResponseOperations;
-	private final Map< String, OneWayTypeDescription > oneWayOperations;
+	private final Map< String, RequestResponseTypeDescription> requestResponseOperations;
+	private final Map< String, OneWayTypeDescription> oneWayOperations;
 
 	public Interface(
-		Map< String, OneWayTypeDescription > oneWayOperations,
-		Map< String, RequestResponseTypeDescription > requestResponseOperations
-	) {
+		Map< String, OneWayTypeDescription> oneWayOperations,
+		Map< String, RequestResponseTypeDescription> requestResponseOperations
+	)
+	{
 		this.oneWayOperations = oneWayOperations;
 		this.requestResponseOperations = requestResponseOperations;
 	}
 
-	public Map< String, OneWayTypeDescription > oneWayOperations()
+	public Map< String, OneWayTypeDescription> oneWayOperations()
 	{
 		return oneWayOperations;
 	}
 
-	public Map< String, RequestResponseTypeDescription > requestResponseOperations()
+	public Map< String, RequestResponseTypeDescription> requestResponseOperations()
 	{
 		return requestResponseOperations;
 	}
@@ -235,7 +237,7 @@ public class Interface
 
 	public boolean containsOperation( String operationName )
 	{
-		return oneWayOperations.containsKey( operationName ) ||
-			requestResponseOperations.containsKey( operationName );
+		return oneWayOperations.containsKey( operationName )
+			|| requestResponseOperations.containsKey( operationName );
 	}
 }

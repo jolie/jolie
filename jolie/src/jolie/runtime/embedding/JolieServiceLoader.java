@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.embedding;
 
 import java.io.IOException;
@@ -29,22 +27,21 @@ import jolie.CommandLineException;
 import jolie.Interpreter;
 import jolie.runtime.expression.Expression;
 
-
 public class JolieServiceLoader extends EmbeddedServiceLoader
 {
 	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
 	private final Interpreter interpreter;
-	
+
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
 		throws IOException, CommandLineException
 	{
 		super( channelDest );
 		final String[] ss = servicePathSplitPattern.split( servicePath );
 		final String[] options = currInterpreter.optionArgs();
-				
+
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
-		newArgs[0] = "-i";
-		newArgs[1] = currInterpreter.programDirectory().getAbsolutePath();
+		newArgs[ 0 ] = "-i";
+		newArgs[ 1 ] = currInterpreter.programDirectory().getAbsolutePath();
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		interpreter = new Interpreter(
@@ -57,7 +54,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
-		Future< Exception > f = interpreter.start();
+		Future< Exception> f = interpreter.start();
 		try {
 			Exception e = f.get();
 			if ( e == null ) {

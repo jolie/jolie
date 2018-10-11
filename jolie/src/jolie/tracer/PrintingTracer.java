@@ -18,9 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
-
 package jolie.tracer;
 
 import java.io.IOException;
@@ -40,14 +37,14 @@ public class PrintingTracer implements Tracer
 {
 	private int actionCounter = 0;
 	private final Interpreter interpreter;
-	
+
 	public PrintingTracer( Interpreter interpreter )
 	{
 		this.interpreter = interpreter;
 	}
 
 	@Override
-	public synchronized void trace( Supplier< ? extends TraceAction > supplier )
+	public synchronized void trace( Supplier< ? extends TraceAction> supplier )
 	{
 		final TraceAction action = supplier.get();
 		actionCounter++;
@@ -57,7 +54,7 @@ public class PrintingTracer implements Tracer
 			trace( (EmbeddingTraceAction) action );
 		}
 	}
-	
+
 	private void trace( EmbeddingTraceAction action )
 	{
 		StringBuilder stBuilder = new StringBuilder();
@@ -75,7 +72,7 @@ public class PrintingTracer implements Tracer
 			.append( "\t\t\t" ).append( action.description() );
 		System.out.println( stBuilder.toString() );
 	}
-	
+
 	private void trace( MessageTraceAction action )
 	{
 		StringBuilder stBuilder = new StringBuilder();
@@ -122,7 +119,8 @@ public class PrintingTracer implements Tracer
 			printer.setIndentationOffset( 6 );
 			try {
 				printer.run();
-			} catch( IOException e ) {} // Should never happen
+			} catch( IOException e ) {
+			} // Should never happen
 			stBuilder.append( writer.toString() );
 		}
 		System.out.println( stBuilder.toString() );

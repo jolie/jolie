@@ -16,8 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-
-
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
@@ -28,20 +26,20 @@ import jolie.runtime.VariablePath;
 public class ValueVectorSizeExpression implements Expression
 {
 	private final VariablePath path;
-	
+
 	public ValueVectorSizeExpression( VariablePath path )
 	{
 		this.path = path;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new ValueVectorSizeExpression( path );
 	}
-	
+
 	public Value evaluate()
 	{
 		ValueVector vector = path.getValueVectorOrNull();
-		return Value.create( ( vector == null ) ? 0 : vector.size() );
+		return Value.create( (vector == null) ? 0 : vector.size() );
 	}
 }

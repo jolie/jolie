@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.Interpreter;
@@ -36,7 +35,7 @@ public class InitDefinitionProcess extends DefinitionProcess
 	{
 		super( process );
 	}
-	
+
 	@Override
 	public void run()
 		throws FaultException
@@ -48,13 +47,13 @@ public class InitDefinitionProcess extends DefinitionProcess
 					outputPort.configurationProcess().run();
 				} catch( FaultException fe ) {
 					// If this happens, it's been caused by a bug in the SemanticVerifier
-					assert( false );
+					assert (false);
 				} catch( ExitingException e ) {
 					interpreter.logSevere( e );
 					assert false;
 				}
 			}
-			
+
 			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
 				loader.load();
 			}
@@ -64,7 +63,7 @@ public class InitDefinitionProcess extends DefinitionProcess
 			}
 
 			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
-			
+
 			for( Process p : interpreter.commCore().protocolConfigurations() ) {
 				try {
 					p.run();
@@ -73,23 +72,25 @@ public class InitDefinitionProcess extends DefinitionProcess
 					assert false;
 				}
 			}
-			
+
 			// If an internal service, copy over the output port locations from the parent service
 			if ( interpreter.parentInterpreter() != null ) {
 				Value parentInitRoot = interpreter.parentInterpreter().initThread().state().root();
-				for ( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
+				for( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
 					try {
 						OutputPort port = interpreter.getOutputPort( parentPort.id() );
 						port.locationVariablePath().setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
 						port.protocolConfigurationPath().setValue( parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
 						port.optimizeLocation();
-					} catch( InvalidIdException e ) {}
+					} catch( InvalidIdException e ) {
+					}
 				}
 			}
 
 			try {
 				super.run();
-			} catch( ExitingException e ) {}
+			} catch( ExitingException e ) {
+			}
 		} catch( EmbeddedServiceLoadingException e ) {
 			interpreter.logSevere( e );
 		}

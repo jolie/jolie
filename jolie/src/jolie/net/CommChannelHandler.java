@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.net;
 
 import jolie.ExecutionThread;
@@ -37,12 +35,12 @@ import jolie.JolieThread;
 public class CommChannelHandler extends Thread implements InterpreterThread
 {
 	private ExecutionThread executionThread;
-	
+
 	public CommChannelHandler( Runnable r )
 	{
 		super( r );
 	}
-	
+
 	/**
 	 * Returns the current <code>CommChannelHandler</code> thread.
 	 * This method must be called only if the caller is sure that the current
@@ -51,7 +49,7 @@ public class CommChannelHandler extends Thread implements InterpreterThread
 	 */
 	public static CommChannelHandler currentThread()
 	{
-		return ((CommChannelHandler)Thread.currentThread());
+		return ((CommChannelHandler) Thread.currentThread());
 	}
 
 	/**
@@ -63,12 +61,12 @@ public class CommChannelHandler extends Thread implements InterpreterThread
 	{
 		executionThread = thread;
 	}
-	
+
 	public ExecutionThread executionThread()
 	{
 		return executionThread;
 	}
-	
+
 	public Interpreter interpreter()
 	{
 		return executionThread.interpreter();

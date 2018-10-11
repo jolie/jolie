@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.embedding;
 
 import java.io.IOException;
@@ -32,17 +31,15 @@ import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 
-
 // TODO: this should not be polled
-
 /**
  * @author Fabrizio Montesi
  */
 public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	private final JavaService javaService;
-	private final Map< Long, CommMessage > messages = new ConcurrentHashMap<>();
-	
+	private final Map< Long, CommMessage> messages = new ConcurrentHashMap<>();
+
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
@@ -102,15 +99,18 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 
 	@Override
 	protected void closeImpl()
-	{}
+	{
+	}
 
 	@Override
-	public URI getLocation() {
+	public URI getLocation()
+	{
 		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	protected boolean isThreadSafe() {
+	protected boolean isThreadSafe()
+	{
 		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 }

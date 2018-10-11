@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -39,15 +38,16 @@ public class DeepCopyProcess implements Process
 	public Process clone( TransformationReason reason )
 	{
 		return new DeepCopyProcess(
-					(VariablePath)leftPath.cloneExpression( reason ),
-					rightExpression.cloneExpression( reason )
-				);
+			(VariablePath) leftPath.cloneExpression( reason ),
+			rightExpression.cloneExpression( reason )
+		);
 	}
 
 	public void run()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 
 		if ( rightExpression instanceof VariablePath ) {
 			leftPath.deepCopy( (VariablePath) rightExpression );
@@ -55,7 +55,7 @@ public class DeepCopyProcess implements Process
 			leftPath.getValue().deepCopy( rightExpression.evaluate() );
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -48,28 +47,30 @@ import jolie.runtime.typing.TypeCheckingException;
  */
 public abstract class AggregatedOperation
 {
-	private static class CourierOneWayAggregatedOperation extends AggregatedOperation {
+	private static class CourierOneWayAggregatedOperation extends AggregatedOperation
+	{
 		private final OneWayOperation operation;
 		private final Process courierProcess;
 		private final VariablePath inputVariablePath;
-		
+
 		public CourierOneWayAggregatedOperation(
 			OneWayOperation operation,
 			VariablePath inputVariablePath,
 			Process courierProcess
-		) {
+		)
+		{
 			super( operation.id() );
 			this.operation = operation;
 			this.inputVariablePath = inputVariablePath;
 			this.courierProcess = courierProcess;
 		}
-		
+
 		@Override
 		public OperationType type()
 		{
 			return OperationType.ONE_WAY;
 		}
-		
+
 		@Override
 		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
@@ -86,18 +87,20 @@ public abstract class AggregatedOperation
 				}
 
 				State state = initThread.state().clone();
-				Process p = new SequentialProcess( new Process[] {
+				Process p = new SequentialProcess( new Process[]{
 					new OneWayProcess( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), state ),
 					courierProcess
-				});
+				} );
 				SessionThread t = new SessionThread( p, state, initThread );
-				
-				final FaultException[] f = new FaultException[1];
-				f[0] = null;
-				t.addSessionListener( new SessionListener() {
+
+				final FaultException[] f = new FaultException[ 1 ];
+				f[ 0 ] = null;
+				t.addSessionListener( new SessionListener()
+				{
 					@Override
 					public void onSessionExecuted( SessionThread session )
-					{}
+					{
+					}
 
 					@Override
 					public void onSessionError( SessionThread session, FaultException fault )
@@ -105,15 +108,14 @@ public abstract class AggregatedOperation
 						// We need to send the acknowledgement
 						if ( fault.faultName().equals( "CorrelationError" )
 							|| fault.faultName().equals( "IOException" )
-							|| fault.faultName().equals( "TypeMismatch" )
-							) {
+							|| fault.faultName().equals( "TypeMismatch" ) ) {
 							synchronized( f ) {
-								f[0] = fault;
+								f[ 0 ] = fault;
 							}
 						} else {
 							Interpreter.getInstance().logSevere( "Courier session for operation " + operation.id() + " has thrown fault " + fault.faultName() + ", which cannot be forwarded to the caller. Forwarding IOException." );
 							synchronized( f ) {
-								f[0] = new FaultException( jolie.lang.Constants.IO_EXCEPTION_FAULT_NAME, fault.faultName() );
+								f[ 0 ] = new FaultException( jolie.lang.Constants.IO_EXCEPTION_FAULT_NAME, fault.faultName() );
 							}
 						}
 					}
@@ -121,14 +123,15 @@ public abstract class AggregatedOperation
 				t.start();
 				try {
 					t.join();
-				} catch( InterruptedException e ) {}
-				
+				} catch( InterruptedException e ) {
+				}
+
 				synchronized( f ) {
-					if ( f[0] == null ) {
+					if ( f[ 0 ] == null ) {
 						// We need to send the acknowledgement
 						channel.send( CommMessage.createEmptyResponse( requestMessage ) );
 					} else {
-						channel.send( CommMessage.createFaultResponse( requestMessage, f[0] ) );
+						channel.send( CommMessage.createFaultResponse( requestMessage, f[ 0 ] ) );
 					}
 				}
 			} catch( TypeCheckingException e ) {
@@ -142,39 +145,41 @@ public abstract class AggregatedOperation
 				channel.disposeForInput();
 			}
 		}
-		
+
 		@Override
 		public OperationTypeDescription getOperationTypeDescription()
 		{
 			return operation.getOneWayTypeDescription();
 		}
 	}
-	
-	private static class CourierRequestResponseAggregatedOperation extends AggregatedOperation {
+
+	private static class CourierRequestResponseAggregatedOperation extends AggregatedOperation
+	{
 		private final RequestResponseOperation operation;
 		private final Process courierProcess;
 		private final VariablePath inputVariablePath;
 		private final VariablePath outputVariablePath;
-		
+
 		public CourierRequestResponseAggregatedOperation(
 			RequestResponseOperation operation,
 			VariablePath inputVariablePath,
 			VariablePath outputVariablePath,
 			Process courierProcess
-		) {
+		)
+		{
 			super( operation.id() );
 			this.operation = operation;
 			this.inputVariablePath = inputVariablePath;
 			this.outputVariablePath = outputVariablePath;
 			this.courierProcess = courierProcess;
 		}
-		
+
 		@Override
 		public OperationType type()
 		{
 			return OperationType.REQUEST_RESPONSE;
 		}
-		
+
 		@Override
 		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
@@ -192,7 +197,7 @@ public abstract class AggregatedOperation
 
 				State state = initThread.state().clone();
 				Process p = new RequestResponseProcess( operation, inputVariablePath, outputVariablePath, courierProcess )
-								.receiveMessage( new SessionMessage( requestMessage, channel ), state );
+					.receiveMessage( new SessionMessage( requestMessage, channel ), state );
 				new SessionThread( p, state, initThread ).start();
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
@@ -212,12 +217,13 @@ public abstract class AggregatedOperation
 			return operation.typeDescription();
 		}
 	}
-	
-	private static class DirectAggregatedOperation extends AggregatedOperation {
+
+	private static class DirectAggregatedOperation extends AggregatedOperation
+	{
 		private final OutputPort outputPort;
 		private final Constants.OperationType type;
 		private final String name;
-		
+
 		public DirectAggregatedOperation( String name, Constants.OperationType type, OutputPort outputPort )
 		{
 			super( name );
@@ -225,13 +231,13 @@ public abstract class AggregatedOperation
 			this.outputPort = outputPort;
 			this.name = name;
 		}
-		
+
 		@Override
 		public OperationType type()
 		{
 			return type;
 		}
-		
+
 		@Override
 		public void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException
@@ -265,34 +271,36 @@ public abstract class AggregatedOperation
 	}
 
 	private final String name;
-	
+
 	private AggregatedOperation( String name )
 	{
 		this.name = name;
 	}
-	
+
 	public static AggregatedOperation createDirect( String name, Constants.OperationType type, OutputPort outputPort )
 	{
 		return new DirectAggregatedOperation( name, type, outputPort );
 	}
-	
+
 	public static AggregatedOperation createWithCourier(
 		OneWayOperation operation,
 		VariablePath inputVariablePath,
 		Process courierProcess
-	) {
+	)
+	{
 		return new CourierOneWayAggregatedOperation( operation, inputVariablePath, courierProcess );
 	}
-	
+
 	public static AggregatedOperation createWithCourier(
 		RequestResponseOperation operation,
 		VariablePath inputVariablePath,
 		VariablePath outputVariablePath,
 		Process courierProcess
-	) {
+	)
+	{
 		return new CourierRequestResponseAggregatedOperation( operation, inputVariablePath, outputVariablePath, courierProcess );
 	}
-	
+
 	/**
 	 * Returns the operation type of this operation
 	 * @return the operation type of this operation
@@ -310,7 +318,7 @@ public abstract class AggregatedOperation
 	{
 		return name;
 	}
-        
+
 	public abstract void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
 		throws IOException, URISyntaxException;
 }

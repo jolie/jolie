@@ -43,35 +43,44 @@ import jolie.runtime.typing.Type;
  * This class should not be extended directly; see {@link ConcurrentCommProtocol ConcurrentCommProtocol} and {@link SequentialCommProtocol SequentialCommProtocol} instead.
  * @author Fabrizio Montesi
  */
-public abstract class CommProtocol {
+public abstract class CommProtocol
+{
 
-	private final static class LazyDummyChannelHolder {
+	private final static class LazyDummyChannelHolder
+	{
 
-		private LazyDummyChannelHolder() {
+		private LazyDummyChannelHolder()
+		{
 		}
 
-		private static class DummyChannel extends AbstractCommChannel {
+		private static class DummyChannel extends AbstractCommChannel
+		{
 
 			@Override
-			public void closeImpl() {
+			public void closeImpl()
+			{
 			}
 
 			@Override
-			public void sendImpl( CommMessage message ) {
+			public void sendImpl( CommMessage message )
+			{
 			}
 
 			@Override
-			public CommMessage recvImpl() {
+			public CommMessage recvImpl()
+			{
 				return CommMessage.UNDEFINED_MESSAGE;
 			}
 
 			@Override
-			public URI getLocation() {
+			public URI getLocation()
+			{
 				throw new UnsupportedOperationException( "DummyChannels are not supposed to be queried for their location." );
 			}
 
 			@Override
-			protected boolean isThreadSafe() {
+			protected boolean isThreadSafe()
+			{
 				return false;
 			}
 		}
@@ -79,7 +88,8 @@ public abstract class CommProtocol {
 		private final static DummyChannel dummyChannel = new DummyChannel();
 	}
 
-	private static class Parameters {
+	private static class Parameters
+	{
 
 		private static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
 	}
@@ -87,32 +97,38 @@ public abstract class CommProtocol {
 	private final VariablePath configurationPath;
 	private CommChannel channel = null;
 
-	protected VariablePath configurationPath() {
+	protected VariablePath configurationPath()
+	{
 		return configurationPath;
 	}
 
 	public abstract String name();
 
-	public CommProtocol( VariablePath configurationPath ) {
+	public CommProtocol( VariablePath configurationPath )
+	{
 		this.configurationPath = configurationPath;
 	}
 
-	public void setChannel( CommChannel channel ) {
+	public void setChannel( CommChannel channel )
+	{
 		this.channel = channel;
 	}
 
-	protected CommChannel channel() {
+	protected CommChannel channel()
+	{
 		if ( this.channel == null ) {
 			return LazyDummyChannelHolder.dummyChannel;
 		}
 		return this.channel;
 	}
 
-	protected ValueVector getParameterVector( String id ) {
+	protected ValueVector getParameterVector( String id )
+	{
 		return configurationPath.getValue().getChildren( id );
 	}
 
-	protected boolean hasParameter( String id ) {
+	protected boolean hasParameter( String id )
+	{
 		if ( configurationPath.getValue().hasChildren( id ) ) {
 			Value v = configurationPath.getValue().getFirstChild( id );
 			return v.isDefined() || v.hasChildren();
@@ -120,7 +136,8 @@ public abstract class CommProtocol {
 		return false;
 	}
 
-	protected boolean hasParameterValue( String id ) {
+	protected boolean hasParameterValue( String id )
+	{
 		if ( configurationPath.getValue().hasChildren( id ) ) {
 			Value v = configurationPath.getValue().getFirstChild( id );
 			return v.isDefined();
@@ -131,7 +148,8 @@ public abstract class CommProtocol {
 	/**
 	 * Shortcut for getParameterVector( id ).first()
 	 */
-	protected Value getParameterFirstValue( String id ) {
+	protected Value getParameterFirstValue( String id )
+	{
 		return getParameterVector( id ).first();
 	}
 
@@ -139,7 +157,8 @@ public abstract class CommProtocol {
 	 * Shortcut for checking if a parameter intValue() equals 1
 	 * @param id the parameter identifier
 	 */
-	protected boolean checkBooleanParameter( String id ) {
+	protected boolean checkBooleanParameter( String id )
+	{
 		return hasParameter( id ) && getParameterFirstValue( id ).boolValue();
 	}
 
@@ -147,7 +166,8 @@ public abstract class CommProtocol {
 	 * Shortcut for checking if a parameter intValue() equals 1
 	 * @param id the parameter identifier
 	 */
-	protected boolean checkBooleanParameter( String id, boolean defaultValue ) {
+	protected boolean checkBooleanParameter( String id, boolean defaultValue )
+	{
 		if ( hasParameter( id ) ) {
 			return getParameterFirstValue( id ).boolValue();
 		} else {
@@ -161,7 +181,8 @@ public abstract class CommProtocol {
 	 * @param value the value for checking the parameter with
 	 * @return {@code true} if the parameter has the expected value, {@code false} otherwise
 	 */
-	protected boolean checkStringParameter( String id, String value ) {
+	protected boolean checkStringParameter( String id, String value )
+	{
 		if ( hasParameter( id ) ) {
 			return getParameterFirstValue( id ).strValue().equals( value );
 		} else {
@@ -173,15 +194,18 @@ public abstract class CommProtocol {
 	 * Shortcut for <code>getParameterFirstValue( id ).strValue()</code>
 	 * @param id the parameter identifier
 	 */
-	protected String getStringParameter( String id ) {
+	protected String getStringParameter( String id )
+	{
 		return getStringParameter( id, "" );
 	}
 
-	protected String getStringParameter( String id, String defaultValue ) {
-		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : defaultValue );
+	protected String getStringParameter( String id, String defaultValue )
+	{
+		return (hasParameter( id ) ? getParameterFirstValue( id ).strValue() : defaultValue);
 	}
 
-	protected boolean hasOperationSpecificParameter( String operationName, String parameterName ) {
+	protected boolean hasOperationSpecificParameter( String operationName, String parameterName )
+	{
 		if ( hasParameter( Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 			Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 			if ( osc.hasChildren( operationName ) ) {
@@ -191,7 +215,8 @@ public abstract class CommProtocol {
 		return false;
 	}
 
-	protected String getOperationSpecificStringParameter( String operationName, String parameterName ) {
+	protected String getOperationSpecificStringParameter( String operationName, String parameterName )
+	{
 		if ( hasParameter( Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 			Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 			if ( osc.hasChildren( operationName ) ) {
@@ -207,21 +232,25 @@ public abstract class CommProtocol {
 	/**
 	 * Shortcut for getOperationSpecificParameterVector( id ).first()
 	 */
-	protected Value getOperationSpecificParameterFirstValue( String operationName, String parameterName ) {
+	protected Value getOperationSpecificParameterFirstValue( String operationName, String parameterName )
+	{
 		return getOperationSpecificParameterVector( operationName, parameterName ).first();
 	}
 
-	protected ValueVector getOperationSpecificParameterVector( String operationName, String parameterName ) {
+	protected ValueVector getOperationSpecificParameterVector( String operationName, String parameterName )
+	{
 		Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 		return osc.getFirstChild( operationName ).getChildren( parameterName );
 	}
 
-	protected boolean isOneWay( String operationName ) {
+	protected boolean isOneWay( String operationName )
+	{
 		return channel().parentPort().getInterface()
 			.oneWayOperations().containsKey( operationName );
 	}
 
-	protected Type operationType( String on, boolean isRequest ) {
+	protected Type operationType( String on, boolean isRequest )
+	{
 
 		OperationTypeDescription otd = channel().parentPort()
 			.getOperationTypeDescription( on, "/" );
@@ -233,7 +262,8 @@ public abstract class CommProtocol {
 	}
 
 	protected Type getSendType( CommMessage message )
-		throws IOException {
+		throws IOException
+	{
 		Type ret = null;
 
 		if ( channel().parentPort() == null ) {
@@ -262,14 +292,15 @@ public abstract class CommProtocol {
 					ret = Type.UNDEFINED;
 				}
 			} else {
-				ret = ( channel().parentInputPort() != null ) ? rr.responseType() : rr.requestType();
+				ret = (channel().parentInputPort() != null) ? rr.responseType() : rr.requestType();
 			}
 		}
 
 		return ret;
 	}
 
-	protected OperationTypeDescription getOperationTypeDescription( String message ) throws IOException {
+	protected OperationTypeDescription getOperationTypeDescription( String message ) throws IOException
+	{
 		if ( channel().parentPort() == null ) {
 			throw new IOException( "Could not retrieve communication port for current protocol" );
 		}
@@ -277,7 +308,8 @@ public abstract class CommProtocol {
 	}
 
 	protected Type getSendType( String message )
-		throws IOException {
+		throws IOException
+	{
 		OperationTypeDescription opDesc = getOperationTypeDescription( message );
 
 		if ( opDesc == null ) {
@@ -289,7 +321,7 @@ public abstract class CommProtocol {
 			return ow.requestType();
 		} else if ( opDesc.asRequestResponseTypeDescription() != null ) {
 			RequestResponseTypeDescription rr = opDesc.asRequestResponseTypeDescription();
-			return ( channel().parentInputPort() != null ) ? rr.responseType() : rr.requestType();
+			return (channel().parentInputPort() != null) ? rr.responseType() : rr.requestType();
 		} else {
 			return null;
 		}
@@ -299,8 +331,9 @@ public abstract class CommProtocol {
 	 * Shortcut for <code>getParameterFirstValue( id ).intValue()</code>
 	 * @param id the parameter identifier
 	 */
-	protected int getIntParameter( String id ) {
-		return ( hasParameter( id ) ? getParameterFirstValue( id ).intValue() : 0 );
+	protected int getIntParameter( String id )
+	{
+		return (hasParameter( id ) ? getParameterFirstValue( id ).intValue() : 0);
 	}
 
 	abstract public CommMessage recv( InputStream istream, OutputStream ostream )

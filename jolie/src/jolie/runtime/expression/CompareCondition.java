@@ -18,14 +18,11 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
 
 import java.util.function.BiPredicate;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
-
 
 /**
  * @author Fabrizio Montesi
@@ -35,24 +32,24 @@ import jolie.runtime.Value;
 public class CompareCondition implements Expression
 {
 	private final Expression leftExpression, rightExpression;
-	private final BiPredicate< Value, Value > compareOperator;
-	
-	public CompareCondition( Expression left, Expression right, BiPredicate< Value, Value > compareOperator )
+	private final BiPredicate< Value, Value> compareOperator;
+
+	public CompareCondition( Expression left, Expression right, BiPredicate< Value, Value> compareOperator )
 	{
 		this.leftExpression = left;
 		this.rightExpression = right;
 		this.compareOperator = compareOperator;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new CompareCondition(
-					leftExpression.cloneExpression( reason ),
-					rightExpression.cloneExpression( reason ),
-					compareOperator
-				);
+			leftExpression.cloneExpression( reason ),
+			rightExpression.cloneExpression( reason ),
+			compareOperator
+		);
 	}
-	
+
 	public Value evaluate()
 	{
 		return Value.create( compareOperator.test( leftExpression.evaluate(), rightExpression.evaluate() ) );

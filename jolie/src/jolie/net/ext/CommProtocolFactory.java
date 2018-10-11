@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ext;
 
 import java.io.IOException;
@@ -34,7 +33,7 @@ import jolie.runtime.VariablePath;
 abstract public class CommProtocolFactory
 {
 	final private CommCore commCore;
-	
+
 	/**
 	 * Constructor
 	 * @param commCore the CommCore to refer to for creating CommProtocol instances.
@@ -48,7 +47,7 @@ abstract public class CommProtocolFactory
 	{
 		return commCore;
 	}
-	
+
 	/**
 	 * Creates a CommProtocol instance meant for an input port.
 	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to

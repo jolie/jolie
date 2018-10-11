@@ -35,26 +35,30 @@ import jolie.net.protocols.CommProtocol;
  * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
  * @author Fabrizio Montesi
  */
-public class SocketCommChannelFactory extends CommChannelFactory {
+public class SocketCommChannelFactory extends CommChannelFactory
+{
 
-	public SocketCommChannelFactory( CommCore commCore ) {
+	public SocketCommChannelFactory( CommCore commCore )
+	{
 		super( commCore );
 	}
 
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException {
+		throws IOException
+	{
 		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
 		SocketCommChannel ret = null;
 		try {
 			ret = new SocketCommChannel( channel, location, port.getProtocol() );
-		} catch ( URISyntaxException e ) {
+		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}
 		return ret;
 	}
 
 	@Override
-	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException
+	{
 		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 }

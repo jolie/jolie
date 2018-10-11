@@ -18,12 +18,13 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
 public class ExitingException extends Exception
 {
 	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
-	
-	private ExitingException() {}
+
+	private ExitingException()
+	{
+	}
 }

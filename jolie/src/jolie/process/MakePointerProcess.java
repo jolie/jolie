@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -33,23 +32,24 @@ public class MakePointerProcess implements Process
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new MakePointerProcess(
-				(VariablePath)leftPath.cloneExpression( reason ),
-				(VariablePath)rightPath.cloneExpression( reason )
-				);
+			(VariablePath) leftPath.cloneExpression( reason ),
+			(VariablePath) rightPath.cloneExpression( reason )
+		);
 	}
-	
+
 	public void run()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 
 		leftPath.makePointer( rightPath );
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.embedding;
 
 import java.lang.annotation.Retention;
@@ -29,6 +28,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * @author Fabrizio Montesi
  */
-@Retention(RetentionPolicy.RUNTIME)
+@Retention( RetentionPolicy.RUNTIME )
 public @interface RequestResponse
-{}
+{
+}

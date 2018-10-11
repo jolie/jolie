@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
 import java.lang.ref.WeakReference;
@@ -40,12 +39,12 @@ public abstract class TimeoutHandler implements Runnable
 	{
 		return time;
 	}
-	
+
 	public void cancel()
 	{
 		cancelled = true;
 	}
-	
+
 	public void run()
 	{
 		if ( !cancelled ) {
@@ -58,21 +57,20 @@ public abstract class TimeoutHandler implements Runnable
 	/**
 	 * Note: this comparator imposes orderings that are inconsistent with equals.
 	 */
-	public static class Comparator implements java.util.Comparator< WeakReference< TimeoutHandler > >
+	public static class Comparator implements java.util.Comparator< WeakReference< TimeoutHandler>>
 	{
 		@Override
-		public int compare( WeakReference< TimeoutHandler > wt1, WeakReference< TimeoutHandler > wt2 )
+		public int compare( WeakReference< TimeoutHandler> wt1, WeakReference< TimeoutHandler> wt2 )
 		{
-			TimeoutHandler t1 = ( wt1 != null ) ? wt1.get() : null;
-			TimeoutHandler t2 = ( wt2 != null ) ? wt2.get() : null;
+			TimeoutHandler t1 = (wt1 != null) ? wt1.get() : null;
+			TimeoutHandler t2 = (wt2 != null) ? wt2.get() : null;
 			if ( t1 == null ) {
 				return -1;
 			} else if ( t2 == null ) {
 				return 1;
 			}
-			
-			// Both are not null after this
 
+			// Both are not null after this
 			if ( t1.time < t2.time ) {
 				return -1;
 			} else if ( t1.time == t2.time ) {

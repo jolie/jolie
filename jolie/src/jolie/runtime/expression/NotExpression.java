@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
@@ -28,19 +26,19 @@ import jolie.runtime.Value;
 public class NotExpression implements Expression
 {
 	private final Expression expression;
-	
+
 	public NotExpression( Expression expression )
 	{
 		this.expression = expression;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new NotExpression( expression.cloneExpression( reason ) );
 	}
-	
+
 	public Value evaluate()
 	{
-		return Value.create( !( expression.evaluate().boolValue() ) );
+		return Value.create( !(expression.evaluate().boolValue()) );
 	}
 }

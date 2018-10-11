@@ -18,10 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
-
 
 import java.util.LinkedList;
 import java.util.List;
@@ -30,24 +27,23 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.process.LinkInProcess;
 
-
 /** Internal synchronization link for parallel processes.
  * 
  * @author Fabrizio Montesi
  */
 public class InternalLink extends AbstractIdentifiableObject
 {
-	private final List< LinkInProcess.Execution > procsList =
-					new LinkedList< LinkInProcess.Execution > ();
+	private final List< LinkInProcess.Execution> procsList
+		= new LinkedList< LinkInProcess.Execution>();
 	private int signals = 0;
 	private final CommMessage linkMessage;
-	
+
 	public InternalLink( String id )
 	{
 		super( id );
 		linkMessage = new CommMessage( CommMessage.GENERIC_ID, id, "/", Value.UNDEFINED_VALUE, null );
 	}
-	
+
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )
 	{
 		for( int i = 0; i < procsList.size(); i++ ) {
@@ -67,7 +63,7 @@ public class InternalLink extends AbstractIdentifiableObject
 			procsList.add( process );
 		}
 	}
-	
+
 	public synchronized void cancelWaiting( LinkInProcess.Execution process )
 	{
 		procsList.remove( process );
@@ -75,6 +71,6 @@ public class InternalLink extends AbstractIdentifiableObject
 
 	public static InternalLink getById( String id )
 	{
-		return ExecutionThread.currentThread().state().getLink( id ); 
+		return ExecutionThread.currentThread().state().getLink( id );
 	}
 }

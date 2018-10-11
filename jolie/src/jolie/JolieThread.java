@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,7 +39,7 @@ public abstract class JolieThread implements Runnable
 	{
 		return "JolieThread-" + counter.getAndIncrement();
 	}
-	
+
 	public String name()
 	{
 		return name;
@@ -67,7 +66,7 @@ public abstract class JolieThread implements Runnable
 	{
 		this( interpreter, createThreadName() );
 	}
-	
+
 	/**
 	 * Returns the interpreter that this thread refers to.
 	 */

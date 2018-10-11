@@ -28,36 +28,35 @@ import jolie.Interpreter;
 import jolie.lang.parse.ast.Program;
 import jolie.runtime.expression.Expression;
 
-
 public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 {
 	private final Interpreter interpreter;
-	
-	public InternalJolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String serviceName, Program program)
+
+	public InternalJolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String serviceName, Program program )
 		throws IOException, CommandLineException
 	{
 		super( channelDest );
-        
-		List< String > newArgs = new LinkedList< String >();
+
+		List< String> newArgs = new LinkedList< String>();
 		newArgs.add( "-i" );
 		newArgs.add( currInterpreter.programDirectory().getAbsolutePath() );
-		
+
 		String[] options = currInterpreter.optionArgs();
 		newArgs.addAll( Arrays.asList( options ) );
-        newArgs.add( "#" + serviceName + ".ol" );
+		newArgs.add( "#" + serviceName + ".ol" );
 		interpreter = new Interpreter(
 			newArgs.toArray( new String[ newArgs.size() ] ),
 			currInterpreter.getClassLoader(),
 			currInterpreter.programDirectory(),
 			currInterpreter,
-            program
+			program
 		);
 	}
 
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
-		Future< Exception > f = interpreter.start();
+		Future< Exception> f = interpreter.start();
 		try {
 			Exception e = f.get();
 			if ( e == null ) {
@@ -74,5 +73,5 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 	{
 		return interpreter;
 	}
-    
+
 }

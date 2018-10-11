@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process.courier;
 
 import java.io.IOException;
@@ -52,13 +51,14 @@ public class ForwardSolicitResponseProcess implements Process
 	private final RequestResponseTypeDescription aggregatedTypeDescription, extenderTypeDescription;
 
 	public ForwardSolicitResponseProcess(
-			String operationName,
-			OutputPort outputPort,
-			VariablePath outputVariablePath,
-			VariablePath inputVariablePath,
-			RequestResponseTypeDescription aggregatedTypeDescription,
-			RequestResponseTypeDescription extenderTypeDescription
-	) {
+		String operationName,
+		OutputPort outputPort,
+		VariablePath outputVariablePath,
+		VariablePath inputVariablePath,
+		RequestResponseTypeDescription aggregatedTypeDescription,
+		RequestResponseTypeDescription extenderTypeDescription
+	)
+	{
 		this.operationName = operationName;
 		this.outputPort = outputPort;
 		this.outputVariablePath = outputVariablePath;
@@ -66,7 +66,7 @@ public class ForwardSolicitResponseProcess implements Process
 		this.aggregatedTypeDescription = aggregatedTypeDescription;
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new ForwardSolicitResponseProcess(
@@ -78,7 +78,7 @@ public class ForwardSolicitResponseProcess implements Process
 			extenderTypeDescription
 		);
 	}
-	
+
 	private void log( String log, CommMessage message )
 	{
 		Tracer tracer = Interpreter.getInstance().tracer();
@@ -107,9 +107,9 @@ public class ForwardSolicitResponseProcess implements Process
 			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
 			channel = outputPort.getCommChannel();
-			
+
 			log( "SENDING", message );
-			
+
 			channel.send( message );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
@@ -118,11 +118,11 @@ public class ForwardSolicitResponseProcess implements Process
 				response = channel.recvResponseFor( message );
 			} while( response == null );
 			log( "RECEIVED", message );
-			
-			if ( inputVariablePath != null )	 {
+
+			if ( inputVariablePath != null ) {
 				inputVariablePath.setValue( response.value() );
 			}
-			
+
 			if ( response.isFault() ) {
 				Type faultType = aggregatedTypeDescription.getFaultType( response.fault().faultName() );
 				if ( faultType != null ) {
@@ -162,7 +162,7 @@ public class ForwardSolicitResponseProcess implements Process
 			}
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

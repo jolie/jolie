@@ -28,22 +28,26 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"jolie-js.jar", "json_simple.jar", "jolie-xml.jar"})
-public class CoapProtocolFactory extends CommProtocolFactory {
+@AndJarDeps( { "jolie-js.jar", "json_simple.jar", "jolie-xml.jar" } )
+public class CoapProtocolFactory extends CommProtocolFactory
+{
 
-  public CoapProtocolFactory(CommCore commCore) {
-    super(commCore);
-  }
+	public CoapProtocolFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
 
-  @Override
-  public CommProtocol createInputProtocol(VariablePath configurationPath,
-      URI location) throws IOException {
-    return new CoapProtocol(configurationPath, true);
-  }
+	@Override
+	public CommProtocol createInputProtocol( VariablePath configurationPath,
+		URI location ) throws IOException
+	{
+		return new CoapProtocol( configurationPath, true );
+	}
 
-  @Override
-  public CommProtocol createOutputProtocol(VariablePath configurationPath,
-      URI location) throws IOException {
-    return new CoapProtocol(configurationPath, false);
-  }
+	@Override
+	public CommProtocol createOutputProtocol( VariablePath configurationPath,
+		URI location ) throws IOException
+	{
+		return new CoapProtocol( configurationPath, false );
+	}
 }

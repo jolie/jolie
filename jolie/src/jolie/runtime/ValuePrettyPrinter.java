@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 import java.io.IOException;
@@ -55,7 +53,7 @@ public class ValuePrettyPrinter
 	{
 		indentation--;
 	}
-	
+
 	public void setByteTruncation( int truncation )
 	{
 		this.byteTruncation = truncation;
@@ -70,7 +68,7 @@ public class ValuePrettyPrinter
 		writeChildren( root );
 		unindent();
 	}
-	
+
 	public void setIndentationOffset( int offset )
 	{
 		this.indentation = offset;
@@ -100,7 +98,7 @@ public class ValuePrettyPrinter
 		throws IOException
 	{
 		Integer i;
-		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+		for( Entry< String, ValueVector> entry : value.children().entrySet() ) {
 			if ( entry.getValue().isEmpty() ) {
 				writeIndented( "." );
 				writer.write( entry.getKey() );

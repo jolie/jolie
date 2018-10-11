@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import java.util.List;
@@ -26,17 +25,16 @@ import jolie.ExecutionThread;
 import jolie.runtime.HandlerInstallationReason;
 import jolie.util.Pair;
 
-
 public class InstallProcess implements Process
 {
 	// The compensation is identified by an empty string
-	private final List< Pair< String, Process > > pairs;
+	private final List< Pair< String, Process>> pairs;
 
-	public InstallProcess( List< Pair< String, Process > > pairs )
+	public InstallProcess( List< Pair< String, Process>> pairs )
 	{
 		this.pairs = pairs;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new InstallProcess( pairs );
@@ -45,7 +43,7 @@ public class InstallProcess implements Process
 	public void run()
 	{
 		final ExecutionThread ethread = ExecutionThread.currentThread();
-		for( Pair< String, Process > pair : pairs ) {
+		for( Pair< String, Process> pair : pairs ) {
 			final Process handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
 			if ( pair.key() == null ) {
 				ethread.installCompensation( handler );
@@ -54,7 +52,7 @@ public class InstallProcess implements Process
 			}
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return false;

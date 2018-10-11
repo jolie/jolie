@@ -24,9 +24,11 @@ package jolie.net.protocols;
 import io.netty.channel.ChannelPipeline;
 import jolie.runtime.VariablePath;
 
-public abstract class PubSubCommProtocol extends AsyncCommProtocol {
+public abstract class PubSubCommProtocol extends AsyncCommProtocol
+{
 
-	public PubSubCommProtocol( VariablePath configurationPath ) {
+	public PubSubCommProtocol( VariablePath configurationPath )
+	{
 		super( configurationPath );
 	}
 

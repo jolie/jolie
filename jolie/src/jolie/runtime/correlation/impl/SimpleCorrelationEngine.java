@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.correlation.impl;
 
 import java.util.Collections;
@@ -45,7 +44,7 @@ import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
  */
 public class SimpleCorrelationEngine extends CorrelationEngine
 {
-	private final Set< SessionThread > sessions = Collections.newSetFromMap( new ConcurrentHashMap<>() );
+	private final Set< SessionThread> sessions = Collections.newSetFromMap( new ConcurrentHashMap<>() );
 
 	public SimpleCorrelationEngine( Interpreter interpreter )
 	{
@@ -88,9 +87,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 	{
 		if ( (interpreter().correlationSets().isEmpty()
 			&& interpreter().executionMode() == ExecutionMode.SINGLE)
-			||
-			session.isInitialisingThread()
-		) {
+			|| session.isInitialisingThread() ) {
 			return true;
 		}
 
@@ -98,7 +95,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 		if ( cset == null ) {
 			return interpreter().executionMode() == ExecutionMode.SINGLE; // It must be a session starter.
 		}
-		final List< CorrelationPair > pairs = cset.getOperationCorrelationPairs( message.operationName() );
+		final List< CorrelationPair> pairs = cset.getOperationCorrelationPairs( message.operationName() );
 		for( CorrelationPair cpair : pairs ) {
 			final Value sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
 			if ( sessionValue == null ) {
