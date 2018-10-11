@@ -57,7 +57,6 @@ import jolie.lang.Constants;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.PubSubCommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
@@ -75,8 +74,7 @@ import jolie.runtime.typing.TypeCheckingException;
 /**
  * Handles the communications mechanisms for an Interpreter instance.
  *
- * Each CommCore is related to an Interpreter, and each Interpreter owns one and
- * only CommCore instance.
+ * Each CommCore is related to an Interpreter, and each Interpreter owns one and only CommCore instance.
  *
  * @author Fabrizio Montesi
  */
@@ -232,10 +230,8 @@ public class CommCore
 	/**
 	 * Constructor.
 	 *
-	 * @param interpreter the Interpreter to refer to for this CommCore
-	 * operations
-	 * @param connectionsLimit if more than zero, specifies an upper bound to
-	 * the connections handled in parallel.
+	 * @param interpreter the Interpreter to refer to for this CommCore operations
+	 * @param connectionsLimit if more than zero, specifies an upper bound to the connections handled in parallel.
 	 * @throws java.io.IOException
 	 */
 	public CommCore( Interpreter interpreter, int connectionsLimit /*, int connectionsCacheSize */ )
@@ -369,7 +365,7 @@ public class CommCore
 				}
 				if ( ret == null || !ret.isOpen() ) {
 					// We create a fresh channel
-					ret = interpreter.commCore().createCommChannel( loc, out );
+					ret = createCommChannel( loc, out );
 					//Interpreter.getInstance().logInfo( "created a new channel " + ret.toString() );
 				}
 				// else {
@@ -413,58 +409,6 @@ public class CommCore
 		} else {
 			throw new IOException( "Cannot release a channel without an OutputPort" );
 		}
-	}
-
-	/**
-	 * Returns the Logger used by this CommCore.
-	 *
-	 * @return the Logger used by this CommCore
-	 */
-	public Logger logger()
-	{
-		return logger;
-	}
-
-	/**
-	 * Returns the connectionsLimit of this CommCore.
-	 *
-	 * @return the connectionsLimit of this CommCore
-	 */
-	public int connectionsLimit()
-	{
-		return connectionsLimit;
-	}
-
-	public ThreadGroup threadGroup()
-	{
-		return threadGroup;
-	}
-
-	private final Collection< Process> protocolConfigurations = new LinkedList<>();
-
-	public Collection< Process> protocolConfigurations()
-	{
-		return protocolConfigurations;
-	}
-
-	public CommListener getListenerByInputPortName( String serviceName )
-	{
-		return listenersMap.get( serviceName );
-	}
-
-	private final Map< String, CommChannelFactory> channelFactories = new HashMap<>();
-
-	private CommChannelFactory getCommChannelFactory( String name )
-		throws IOException
-	{
-		CommChannelFactory factory = channelFactories.get( name );
-		if ( factory == null ) {
-			factory = interpreter.getClassLoader().createCommChannelFactory( name, this );
-			if ( factory != null ) {
-				channelFactories.put( name, factory );
-			}
-		}
-		return factory;
 	}
 
 	public CommChannel createCommChannel( URI uri, OutputPort port )
@@ -516,6 +460,53 @@ public class CommCore
 			factory = interpreter.getClassLoader().createCommProtocolFactory( name, this );
 			if ( factory != null ) {
 				protocolFactories.put( name, factory );
+			}
+		}
+		return factory;
+	}
+
+	public Logger logger()
+	{
+		return logger;
+	}
+
+	/**
+	 * Returns the connectionsLimit of this CommCore.
+	 *
+	 * @return the connectionsLimit of this CommCore
+	 */
+	public int connectionsLimit()
+	{
+		return connectionsLimit;
+	}
+
+	public ThreadGroup threadGroup()
+	{
+		return threadGroup;
+	}
+
+	private final Collection< Process> protocolConfigurations = new LinkedList<>();
+
+	public Collection< Process> protocolConfigurations()
+	{
+		return protocolConfigurations;
+	}
+
+	public CommListener getListenerByInputPortName( String serviceName )
+	{
+		return listenersMap.get( serviceName );
+	}
+
+	private final Map< String, CommChannelFactory> channelFactories = new HashMap<>();
+
+	private CommChannelFactory getCommChannelFactory( String name )
+		throws IOException
+	{
+		CommChannelFactory factory = channelFactories.get( name );
+		if ( factory == null ) {
+			factory = interpreter.getClassLoader().createCommChannelFactory( name, this );
+			if ( factory != null ) {
+				channelFactories.put( name, factory );
 			}
 		}
 		return factory;
@@ -585,16 +576,12 @@ public class CommCore
 	}
 
 	/**
-	 * Adds an input port to this <code>CommCore</code>. This method is not
-	 * thread-safe.
+	 * Adds an input port to this <code>CommCore</code>. This method is not thread-safe.
 	 *
 	 * @param inputPort the {@link InputPort} to add
-	 * @param protocolFactory the <code>CommProtocolFactory</code> to use for
-	 * the input port
-	 * @param protocolConfigurationProcess the protocol configuration process to
-	 * execute for configuring the created protocols
-	 * @throws java.io.IOException in case of some underlying implementation
-	 * error
+	 * @param protocolFactory the <code>CommProtocolFactory</code> to use for the input port
+	 * @param protocolConfigurationProcess the protocol configuration process to execute for configuring the created protocols
+	 * @throws java.io.IOException in case of some underlying implementation error
 	 * @see URI
 	 * @see CommProtocolFactory
 	 */
@@ -608,9 +595,6 @@ public class CommCore
 		protocolConfigurations.add( protocolConfigurationProcess );
 
 		String medium = inputPort.location().getScheme();
-		if ( protocolFactory instanceof PubSubCommProtocolFactory ) {
-			medium = "pubsubchannel";
-		}
 		CommListenerFactory factory = getCommListenerFactory( medium );
 		if ( factory == null ) {
 			throw new UnsupportedCommMediumException( medium );
@@ -840,11 +824,9 @@ public class CommCore
 	}
 
 	/**
-	 * Schedules the receiving of a message on this <code>CommCore</code>
-	 * instance.
+	 * Schedules the receiving of a message on this <code>CommCore</code> instance.
 	 *
-	 * @param channel the <code>CommChannel</code> to use for receiving the
-	 * message
+	 * @param channel the <code>CommChannel</code> to use for receiving the message
 	 * @param port the <code>Port</code> responsible for the message receiving
 	 */
 	public void scheduleReceive( CommChannel channel, InputPort port )
@@ -868,15 +850,11 @@ public class CommCore
 	}
 
 	/**
-	 * Initializes the communication core, starting its communication listeners.
-	 * This method is asynchronous. When it returns, every communication
-	 * listener has been issued to start, but they are not guaranteed to be
-	 * ready to receive messages. This method throws an exception if some
-	 * listener cannot be issued to start; other errors will be logged by the
-	 * listener through the interpreter logger.
+	 * Initializes the communication core, starting its communication listeners. This method is asynchronous. When it returns, every
+	 * communication listener has been issued to start, but they are not guaranteed to be ready to receive messages. This method throws an
+	 * exception if some listener cannot be issued to start; other errors will be logged by the listener through the interpreter logger.
 	 *
-	 * @throws IOException in case of some underlying <code>CommListener</code>
-	 * initialization error
+	 * @throws IOException in case of some underlying <code>CommListener</code> initialization error
 	 * @see CommListener
 	 */
 	public void init()
@@ -973,13 +951,11 @@ public class CommCore
 	}
 
 	/**
-	 * Registers a <code>CommChannel</code> for input polling. The registered
-	 * channel must implement the {@link PollableCommChannel
+	 * Registers a <code>CommChannel</code> for input polling. The registered channel must implement the {@link PollableCommChannel
 	 * <code>PollableCommChannel</code>} interface.
 	 *
 	 * @param channel the channel to register for polling
-	 * @throws java.io.IOException in case the channel could not be registered
-	 * for polling
+	 * @throws java.io.IOException in case the channel could not be registered for polling
 	 * @see CommChannel
 	 * @see PollableCommChannel
 	 */

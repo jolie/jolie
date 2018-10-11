@@ -20,6 +20,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+import jolie.Interpreter;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
@@ -38,7 +39,7 @@ public class LocalCommChannelFactory extends CommChannelFactory {
 		if ( localListener == null ) {
 			throw new IOException( "Channel does not exist." );
 		}
-		LocalCommChannel l = new LocalCommChannel( localListener.interpreter(), localListener );
+		LocalCommChannel l = new LocalCommChannel( localListener.interpreter(), localListener, Interpreter.getInstance() );
 		l.setParentOutputPort( port );
 		return l;
 	}
