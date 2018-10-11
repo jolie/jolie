@@ -133,9 +133,6 @@ public class SolicitResponseProcess implements Process
 
 			CommMessage response = null;
 			do {
-				if ( channel != null ) {
-					Interpreter.getInstance().logSevere( "Trying to receive a response from " + channel.toString() );
-				}
 				response = Interpreter.getInstance().commCore().recvResponseFor( channel, message );
 //			response = channel.recvResponseFor( message );
 			} while( response == null );
