@@ -22,12 +22,7 @@ include "private/coap_server.iol"
 
 outputPort Server {
     Location: CoAP_ServerLocation
-    Protocol: coap {
-        .osc.twice.alias = "twice";
-        .osc.twice.contentFormat -> fmt;
-        .osc.twice.messageCode -> mcd;
-        .osc.twice.messageType -> mtp
-    }
+    Protocol: coap 
     Interfaces: ServerInterface
 }
 
@@ -45,23 +40,6 @@ define checkResponse
 
 define doTest
 {
-    ls = "twice" ;
-    
-    fmt = "text/plain" ;
-    mcd = "POST" ;
-    mtp = "NON" ;
     twice@Server( 5 )( x ) ;
-    checkResponse ;
-    
-    fmt = "text/plain" ;
-    mcd = "POST" ;
-    mtp = "CON" ;
-    twice@Server( 5 )( x ) ;
-    checkResponse ;
-
-    fmt = "application/json" ;
-    mcd = "POST" ;
-    mtp = "CON" ;
-    twice@Server( 5 )( x ) ;
-    checkResponse
+    checkResponse 
 }

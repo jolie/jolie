@@ -52,6 +52,8 @@ execution { single }
 inputPort ServerInput {
 Location: Location_HTTPServer
 Protocol: http {
+	.contentType = "None"; 
+	.format = "xml"; 
 	.headers.Authorization = "Authorization";
 	.statusCode -> statusCode
 }
