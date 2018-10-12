@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.http;
 
 import java.io.IOException;
@@ -35,8 +34,7 @@ public class HttpScanner
 	private int currInt;
 	private char ch;
 	private static final int OVERFLOW_NET = 8192;
-	
-	
+
 	public HttpScanner( InputStream stream, URI source )
 		throws IOException
 	{
@@ -56,9 +54,9 @@ public class HttpScanner
 		if ( readChar ) {
 			readChar();
 		}
-		
+
 		resetTokenBuilder();
-		
+
 		while( !Scanner.isNewLineChar( ch ) ) {
 			tokenBuilder.append( ch );
 			readChar();
@@ -72,7 +70,7 @@ public class HttpScanner
 		}
 		return tokenBuilder.toString();
 	}
-	
+
 	/*
 	 * TODO: remove code duplication from jolie.lang.Scanner
 	 */
@@ -81,14 +79,14 @@ public class HttpScanner
 	{
 		return readWord( true );
 	}
-	
+
 	public String readWord( boolean readChar )
 		throws IOException
 	{
 		if ( readChar ) {
 			readChar();
 		}
-		
+
 		resetTokenBuilder();
 
 		do {
@@ -97,7 +95,7 @@ public class HttpScanner
 		} while( !Scanner.isSeparator( ch ) );
 		return tokenBuilder.toString();
 	}
-	
+
 	public void eatSeparators()
 		throws IOException
 	{
@@ -105,7 +103,7 @@ public class HttpScanner
 			readChar();
 		}
 	}
-	
+
 	public void eatSeparatorsUntilEOF()
 		throws IOException
 	{
@@ -113,38 +111,38 @@ public class HttpScanner
 			readChar();
 		}
 	}
-	
+
 	public char currentCharacter()
 	{
 		return ch;
 	}
-	
+
 	public InputStream inputStream()
 	{
 		return stream;
 	}
-	
+
 	public final void readChar()
 		throws IOException
 	{
 		currInt = stream.read();
-		ch = (char)currInt;            
+		ch = (char) currInt;
 	}
-	
+
 	private final StringBuilder tokenBuilder = new StringBuilder( 64 );
 
 	private void resetTokenBuilder()
 	{
 		tokenBuilder.setLength( 0 );
 	}
-	
+
 	public Token getToken()
 		throws IOException
 	{
 		state = 1;
-		
+
 		tokenBuilder.append( ch );
-		while ( currInt != -1 && Scanner.isSeparator( ch ) ) {
+		while( currInt != -1 && Scanner.isSeparator( ch ) ) {
 			readChar();
 			tokenBuilder.append( ch );
 
@@ -153,14 +151,15 @@ public class HttpScanner
 			}
 		}
 
-		if ( currInt == -1 )
+		if ( currInt == -1 ) {
 			return new Token( TokenType.EOF );
+		}
 
 		boolean stopOneChar = false;
 		Token retval = null;
 		resetTokenBuilder();
 
-		while ( currInt != -1 && retval == null ) {
+		while( currInt != -1 && retval == null ) {
 			switch( state ) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
@@ -168,73 +167,75 @@ public class HttpScanner
 				 */
 
 				case 1:	// First character
-					if ( Character.isLetter( ch ) )
+					if ( Character.isLetter( ch ) ) {
 						state = 2;
-					else if ( Character.isDigit( ch ) )
+					} else if ( Character.isDigit( ch ) ) {
 						state = 3;
-					else if ( ch == '"' )
+					} else if ( ch == '"' ) {
 						state = 4;
-					else if ( ch == '+' )
+					} else if ( ch == '+' ) {
 						state = 5;
-					else if ( ch == '=' )
+					} else if ( ch == '=' ) {
 						state = 6;
-					else if ( ch == '|' )
+					} else if ( ch == '|' ) {
 						state = 7;
-					else if ( ch == '&' )
+					} else if ( ch == '&' ) {
 						state = 8;
-					else if ( ch == '<' )
+					} else if ( ch == '<' ) {
 						state = 9;
-					else if ( ch == '>' )
+					} else if ( ch == '>' ) {
 						state = 10;
-					else if ( ch == '!' )
+					} else if ( ch == '!' ) {
 						state = 11;
-					else if ( ch == '/' )
+					} else if ( ch == '/' ) {
 						state = 12;
-					else if ( ch == '-' )
+					} else if ( ch == '-' ) {
 						state = 14;
-					else {	// ONE CHARACTER TOKEN
-						if ( ch == '(' )							
+					} else {	// ONE CHARACTER TOKEN
+						if ( ch == '(' ) {
 							retval = new Token( TokenType.LPAREN );
-						else if ( ch == ')' )
+						} else if ( ch == ')' ) {
 							retval = new Token( TokenType.RPAREN );
-						else if ( ch == '[' )
+						} else if ( ch == '[' ) {
 							retval = new Token( TokenType.LSQUARE );
-						else if ( ch == ']' )
+						} else if ( ch == ']' ) {
 							retval = new Token( TokenType.RSQUARE );
-						else if ( ch == '{' )
+						} else if ( ch == '{' ) {
 							retval = new Token( TokenType.LCURLY );
-						else if ( ch == '}' )
+						} else if ( ch == '}' ) {
 							retval = new Token( TokenType.RCURLY );
-						else if ( ch == '*' )
+						} else if ( ch == '*' ) {
 							retval = new Token( TokenType.ASTERISK );
-						else if ( ch == '@' )
+						} else if ( ch == '@' ) {
 							retval = new Token( TokenType.AT );
-						else if ( ch == ':' )
+						} else if ( ch == ':' ) {
 							retval = new Token( TokenType.COLON );
-						else if ( ch == ',' )
+						} else if ( ch == ',' ) {
 							retval = new Token( TokenType.COMMA );
-						else if ( ch == ';' )
+						} else if ( ch == ';' ) {
 							retval = new Token( TokenType.SEQUENCE );
-						else if ( ch == '.' )
+						} else if ( ch == '.' ) {
 							retval = new Token( TokenType.DOT );
-						else if ( ch == '/' )
+						} else if ( ch == '/' ) {
 							retval = new Token( TokenType.DIVIDE );
-						
+						}
+
 						readChar();
 					}
-					
+
 					break;
 				case 2:	// ID
-					if ( !Character.isLetterOrDigit( ch ) &&
-							ch != '_' &&
-							ch != '-' &&
-							ch != '+' ) {
+					if ( !Character.isLetterOrDigit( ch )
+						&& ch != '_'
+						&& ch != '-'
+						&& ch != '+' ) {
 						retval = new Token( TokenType.ID, tokenBuilder.toString() );
 					}
-					break;	
+					break;
 				case 3: // INT
-					if ( !Character.isDigit( ch ) )
+					if ( !Character.isDigit( ch ) ) {
 						retval = new Token( TokenType.INT, tokenBuilder.toString() );
+					}
 					break;
 				case 4:	// STRING
 					if ( ch == '"' ) {
@@ -242,41 +243,45 @@ public class HttpScanner
 						readChar();
 					} else if ( ch == '\\' ) { // Parse special characters
 						readChar();
-						if ( ch == '\\' )
+						if ( ch == '\\' ) {
 							tokenBuilder.append( '\\' );
-						else if ( ch == 'n' )
+						} else if ( ch == 'n' ) {
 							tokenBuilder.append( '\n' );
-						else if ( ch == 't' )
+						} else if ( ch == 't' ) {
 							tokenBuilder.append( '\t' );
-						else if ( ch == '"' )
+						} else if ( ch == '"' ) {
 							tokenBuilder.append( '"' );
-						else
+						} else {
 							throw new IOException( "malformed string: bad \\ usage" );
-						
+						}
+
 						stopOneChar = true;
 						readChar();
 					}
-					break;		
+					break;
 				case 5:	// PLUS OR CHOICE
 					if ( ch == '+' ) {
 						retval = new Token( TokenType.INCREMENT );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.PLUS );
+					}
 					break;
 				case 6:	// ASSIGN OR EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.EQUAL );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.ASSIGN );
+					}
 					break;
 				case 7:	// PARALLEL OR LOGICAL OR
 					if ( ch == '|' ) {
 						retval = new Token( TokenType.OR );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.PARALLEL );
+					}
 					break;
 				case 8:	// LOGICAL AND
 					if ( ch == '&' ) {
@@ -288,22 +293,25 @@ public class HttpScanner
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MINOR_OR_EQUAL );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.LANGLE );
+					}
 					break;
 				case 10: // RANGLE OR MINOR_OR_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MAJOR_OR_EQUAL );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.RANGLE );
+					}
 					break;
 				case 11: // NOT OR NOT_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.NOT_EQUAL );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.NOT );
+					}
 					break;
 				case 12: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
 					/*if ( ch == '*' ) {
@@ -313,7 +321,7 @@ public class HttpScanner
 						state = 15;
 						readChar();
 					} else*/
-						retval = new Token( TokenType.DIVIDE );
+					retval = new Token( TokenType.DIVIDE );
 					break;
 				case 13: // WAITING FOR END_COMMENT
 					if ( ch == '*' ) {
@@ -326,10 +334,11 @@ public class HttpScanner
 					}
 					break;
 				case 14: // MINUS OR (negative) INT
-					if ( Character.isDigit( ch ) )
+					if ( Character.isDigit( ch ) ) {
 						state = 3;
-					else
+					} else {
 						retval = new Token( TokenType.MINUS );
+					}
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
 					if ( ch == '\n' ) {
@@ -341,7 +350,7 @@ public class HttpScanner
 					retval = new Token( TokenType.ERROR );
 					break;
 			}
-			
+
 			if ( retval == null ) {
 				if ( stopOneChar ) {
 					stopOneChar = false;
@@ -349,8 +358,8 @@ public class HttpScanner
 					if ( tokenBuilder.length() > OVERFLOW_NET ) {
 						throw new IOException(
 							"Token length exceeds maximum allowed limit ("
-							+ OVERFLOW_NET +
-							" bytes). First 10 characters: "
+							+ OVERFLOW_NET
+							+ " bytes). First 10 characters: "
 							+ tokenBuilder.toString().substring( 0, 10 )
 							+ " Last 10 characters: " + tokenBuilder.toString().substring( tokenBuilder.length() - 10, tokenBuilder.length() )
 						);
@@ -361,10 +370,10 @@ public class HttpScanner
 			}
 		}
 
-		if ( retval == null )
+		if ( retval == null ) {
 			retval = new Token( TokenType.ERROR );
+		}
 
 		return retval;
-	}	
+	}
 }
-

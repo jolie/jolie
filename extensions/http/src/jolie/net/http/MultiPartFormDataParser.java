@@ -18,50 +18,48 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.http;
 
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLDecoder;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
-
-import io.netty.handler.codec.http.FullHttpMessage;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 public class MultiPartFormDataParser
 {
 	private final String boundary;
 	private final Value value;
 	private final FullHttpMessage message;
-	private final Map< String, PartProperties > partPropertiesMap = new HashMap<>();
+	private final Map< String, PartProperties> partPropertiesMap = new HashMap<>();
 
 	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
 	private static final Pattern keyValueSplitPattern = Pattern.compile( "=" );
 
-	public class PartProperties {
+	public class PartProperties
+	{
 		private String filename = null;
+
 		private void setFilename( String filename )
 		{
 			this.filename = filename;
 		}
+
 		public String filename()
 		{
 			return filename;
 		}
 	}
-	
+
 	public MultiPartFormDataParser( FullHttpMessage message, Value value )
 		throws IOException
 	{
@@ -71,7 +69,7 @@ public class MultiPartFormDataParser
 			for( String param : params ) {
 				param = param.trim();
 				if ( param.startsWith( "boundary" ) ) {
-					b = "--" + keyValueSplitPattern.split( param, 2 )[1];
+					b = "--" + keyValueSplitPattern.split( param, 2 )[ 1 ];
 				}
 			}
 			if ( b == null ) {
@@ -80,7 +78,7 @@ public class MultiPartFormDataParser
 		} catch( ArrayIndexOutOfBoundsException e ) {
 			throw new IOException( "Invalid boundary in multipart/form-data http message" );
 		}
-		
+
 		this.value = value;
 		this.boundary = b;
 		this.message = message;
@@ -96,32 +94,32 @@ public class MultiPartFormDataParser
 		return ret;
 	}
 
-	public Collection< Entry< String, PartProperties > > getPartPropertiesSet()
+	public Collection< Entry< String, PartProperties>> getPartPropertiesSet()
 	{
 		return partPropertiesMap.entrySet();
 	}
-	
+
 	private void parsePart( String part, int offset )
 		throws IOException
 	{
 		boolean hasContentType;
 		// Split header from content
 		String[] hc = part.split( HttpUtils.CRLF + HttpUtils.CRLF, 2 );
-		BufferedReader reader =
-			new BufferedReader(
-			new StringReader( hc[0] ) );
+		BufferedReader reader
+			= new BufferedReader(
+				new StringReader( hc[ 0 ] ) );
 		String line, name = null, filename = null;
 		String[] params;
 
 		// Parse part header
 		hasContentType = false;
-		while( (line=reader.readLine()) != null && !line.isEmpty() ) {
+		while( (line = reader.readLine()) != null && !line.isEmpty() ) {
 			params = parametersSplitPattern.split( line );
 			for( String param : params ) {
 				param = param.trim();
 				if ( param.startsWith( "name" ) ) {
 					try {
-						name = keyValueSplitPattern.split( param, 2 )[1];
+						name = keyValueSplitPattern.split( param, 2 )[ 1 ];
 						// Names are surronded by "": cut them.
 						name = URLDecoder.decode( name.substring( 1, name.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
@@ -129,7 +127,7 @@ public class MultiPartFormDataParser
 					}
 				} else if ( param.startsWith( "filename" ) ) {
 					try {
-						filename = keyValueSplitPattern.split( param, 2 )[1];
+						filename = keyValueSplitPattern.split( param, 2 )[ 1 ];
 						// Filenames are surronded by quotes "": cut them.
 						filename = URLDecoder.decode( filename.substring( 1, filename.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
@@ -144,17 +142,17 @@ public class MultiPartFormDataParser
 		if ( name == null ) {
 			throw new IOException( "Invalid multipart form data element: missing name" );
 		}
-		
-		offset += hc[0].length() + 4;
-		
+
+		offset += hc[ 0 ].length() + 4;
+
 		Value child = value.getNewChild( name );
 		if ( hc.length > 1 ) {
 			if ( hasContentType == true ) {
-				child.setValue( new ByteArray( 
-                                        message.content().copy( offset, offset + hc[1].length() ).array() 
-                                ) );
+				child.setValue( new ByteArray(
+					message.content().copy( offset, offset + hc[ 1 ].length() ).array()
+				) );
 			} else {
-				child.setValue( new String( message.content().copy( offset, offset + hc[1].length() ).array() ) );
+				child.setValue( new String( message.content().copy( offset, offset + hc[ 1 ].length() ).array() ) );
 			}
 		}/* else {
 			value.getNewChild( name ).setValue( new ByteArray( new byte[0] ) );
@@ -169,16 +167,14 @@ public class MultiPartFormDataParser
 		throws IOException
 	{
 		// this needs to be strictly parsed with US-ASCII, since we are dealing with raw data
-		String[] parts = ( 
-                            HttpUtils.CRLF + message.content().toString( StandardCharsets.US_ASCII ) 
-                        ).split( boundary + "--" );
-		parts = (parts[0] + boundary + HttpUtils.CRLF).split( HttpUtils.CRLF + boundary + HttpUtils.CRLF );
+		String[] parts = (HttpUtils.CRLF + message.content().toString( StandardCharsets.US_ASCII )).split( boundary + "--" );
+		parts = (parts[ 0 ] + boundary + HttpUtils.CRLF).split( HttpUtils.CRLF + boundary + HttpUtils.CRLF );
 
 		// The first one is always empty, so we start from 1
 		int offset = boundary.length() + 2;
 		for( int i = 1; i < parts.length; i++ ) {
-			parsePart( parts[i], offset );
-			offset += parts[i].length() + boundary.length() + 4;
+			parsePart( parts[ i ], offset );
+			offset += parts[ i ].length() + boundary.length() + 4;
 		}
 	}
 }
