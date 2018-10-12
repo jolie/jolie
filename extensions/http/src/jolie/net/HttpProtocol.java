@@ -239,8 +239,16 @@ public class HttpProtocol extends AsyncCommProtocol
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
 			throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
-				message.executionThread() );
+			setExecutionThread( message.executionThread() );
+			if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Setting the Thread to be the "
+					+ "Execution Thread " + message.executionThread() );
+			}
+			addExecutionThread( message.id(), message.executionThread() );
+			if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Adding the ExecutionThread "
+					+ message.executionThread() + " to the map, having key " + message.id() );
+			}
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
 		}
@@ -249,6 +257,21 @@ public class HttpProtocol extends AsyncCommProtocol
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
 			throws Exception
 		{
+			System.out.println( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) );
+			if ( hasExecutionThread( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) ) ) {
+				setExecutionThread( getExecutionThread( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) ) );
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Setting the Thread to be the"
+						+ " Execution Thread " + peekExecutionThread( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) )
+						+ ", extracted from the map with key "
+						+ new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) );
+				}
+			} else {
+				Interpreter.getInstance().logSevere(
+					"Found no matching sender for message id: " + msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID )
+					+ " for threadSafe channel on location: '" + channel().getLocation().toString()
+					+ "' protocol: '" + name() + "'" );
+			}
 			CommMessage message = recv_internal( msg );
 			out.add( message );
 		}
