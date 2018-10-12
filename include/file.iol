@@ -84,6 +84,10 @@ type ListResponse:void {
 	}
 }
 
+type FileTreeResponse: void {
+	.result*: string
+}
+
 interface FileInterface {
 RequestResponse:
 	/**!
@@ -183,6 +187,10 @@ RequestResponse:
 	* it tests if the specified file or directory exists or not.
 	*/
 	exists( string )( bool ),
+	/**!
+		it returns a vector containing all the paths in a given directory
+	*/
+	fileTree( string )( FileTreeResponse ),
 	getServiceDirectory(void)(string) throws IOException(IOExceptionType),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),
