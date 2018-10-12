@@ -883,7 +883,7 @@ public class HttpProtocol extends AsyncCommProtocol
 		headers.add( HttpHeaderNames.HOST, uri.getHost() );
 		send_appendCookies( message, uri.getHost(), headers );
 		send_appendAuthorizationHeader( message, headers );
-		if ( checkBooleanParameter( Parameters.COMPRESSION, true ) ) {
+		if ( checkBooleanParameter( Parameters.COMPRESSION, false ) ) {
 			String requestCompression = getStringParameter( Parameters.REQUEST_COMPRESSION );
 			if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 				encoding = requestCompression;
@@ -932,7 +932,7 @@ public class HttpProtocol extends AsyncCommProtocol
 				headers.add( HttpHeaderNames.CONTENT_DISPOSITION, encodedContent.contentDisposition );
 			}
 
-			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
+			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, false );
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
 				"text/html text/css text/plain text/xml text/x-js text/x-gwt-rpc application/json "
