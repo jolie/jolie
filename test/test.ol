@@ -74,7 +74,7 @@ main
 	for( i = 0, i < #dirs, i++ ) {
 		list@File( listRequest )( list );
 		for( k = 0, k < #list.result, k++ ) {
-			testName = dirs + "/" + list.result[k];
+			testName = dirs[i] + "/" + list.result[k];
 			printTestName;
 			loadRequest.filepath = listRequest.directory + "/" + list.result[k];
 			scope( s ) {

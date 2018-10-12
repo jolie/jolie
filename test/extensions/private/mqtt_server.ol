@@ -17,33 +17,18 @@
  * MA 02110-1301  USA
  */
 
-include "thermostatService.iol"
+include "mqtt_server.iol"
 
-execution{ single }
+execution{ sequential }
 
-inputPort Thermostat {
+inputPort  Server {
     Location: MQTT_ServerLocation
     Protocol: mqtt {
-        .debug = false;
-        .broker = MQTT_BrokerLocation;
-        .osc.getTmp << {
-            .format = "raw",
-            .alias = "42/getTemperature",
-            .QoS = 2
-        };
-        .osc.setTmp << {
-            .format = "raw",
-            .alias = "42/setTemperature",
-            .QoS = 2
-        }
+        .broker = MQTT_BrokerLocation
     }
-    Interfaces: ThermostatInterface
+    Interfaces: ServerInterface
 }
 
 main {
-    [ getTmp( request )( response ) { 
-        response = 19
-    } ]
-    |
-    [ setTmp( request ) ]
+    twice( x )( x * 2 )
 }

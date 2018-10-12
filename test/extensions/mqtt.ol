@@ -18,24 +18,17 @@
  */
 
 include "../AbstractTestUnit.iol"
-include "private/coap_server.iol"
+include "private/mqtt_server.iol"
 
-outputPort Server {
-    Location: CoAP_ServerLocation
-    Protocol: coap {
-        .osc.twice << {
-            .alias -> ls,
-            .contentFormat -> fmt
-            .messageCode -> mcd,
-            .messageType -> mtp
-        }
-    }
+outputPort Broker {
+    Location: MQTT_BrokerLocation
+    Protocol: mqtt
     Interfaces: ServerInterface
 }
 
 embedded {
 Jolie:
-    "private/coap_server.ol"
+    "private/mqtt_server.ol"
 }
 
 define checkResponse
@@ -47,8 +40,6 @@ define checkResponse
 
 define doTest
 {
-    ls = "twice" ;
-    contentFormat = "text/plain" ;
-    twice@Server( 5 )( x );
-    
+    twice@Broker( 5 )( x ) ;
+    checkResponse  
 }
