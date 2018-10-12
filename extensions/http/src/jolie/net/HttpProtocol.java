@@ -348,14 +348,19 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		if ( !value.children().isEmpty() ) {
+			int counter = 0;
+			int numberParameters = value.children().entrySet().size();
 			headerBuilder.append( '?' );
-			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+			for( Entry< String, ValueVector> entry : value.children().entrySet() ) {
 				for( Value v : entry.getValue() ) {
 					headerBuilder
 						.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
 						.append( '=' )
-						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) )
-						.append( '&' );
+						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
+					if ( counter < numberParameters - 1 ) {
+						headerBuilder.append( '&' );
+					}
+					++counter;
 				}
 			}
 		}
