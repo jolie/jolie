@@ -63,7 +63,7 @@ public class ValuePrettyPrinter
 		throws IOException
 	{
 		writeIndented( header );
-		writeNativeValue( root );
+		writeNativeValue( root, true );
 		indent();
 		writeChildren( root );
 		unindent();
@@ -74,7 +74,7 @@ public class ValuePrettyPrinter
 		this.indentation = offset;
 	}
 
-	private void writeNativeValue( Value value )
+	private void writeNativeValue( Value value, boolean isLast )
 		throws IOException
 	{
 		if ( value.isUsedInCorrelation() ) {
@@ -91,7 +91,9 @@ public class ValuePrettyPrinter
 			writer.write( " : " );
 			writer.write( value.valueObject().getClass().getName() );
 		}
-		writer.write( '\n' );
+		if ( !isLast ) {
+			writer.write( '\n' );
+		}
 	}
 
 	private void writeChildren( Value value )
@@ -111,7 +113,7 @@ public class ValuePrettyPrinter
 					writer.write( '[' );
 					writer.write( i.toString() );
 					writer.write( ']' );
-					writeNativeValue( child );
+					writeNativeValue( child, false );
 					indent();
 					writeChildren( child );
 					unindent();

@@ -20,12 +20,16 @@
  ***************************************************************************/
 package jolie.net;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.concurrent.atomic.AtomicLong;
 import jolie.ExecutionThread;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 
 /**
  * A <code>CommMessage</code> represents a generic communication message.
@@ -199,6 +203,7 @@ public class CommMessage implements Serializable
 	 */
 	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault )
 	{
+		this.token = new Token( new byte[ 0 ] );
 		this.id = id;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
@@ -283,4 +288,40 @@ public class CommMessage implements Serializable
 	{
 		return fault;
 	}
+
+	private String valueToPrettyString( Value v )
+	{
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( v, writer, "" );
+		try {
+			printer.run();
+		} catch( IOException e ) {
+		} // Should never happen
+		return writer.toString();
+	}
+
+	@Override
+	public String toString()
+	{
+
+		StringBuilder result = new StringBuilder();
+
+		//Header + Token
+		result.append( "[Header: (ID) " ).append( id() )
+			.append( ", (Operation) " ).append( operationName() )
+			.append( ", (Thread) " ).append( executionThread() )
+			.append( " | (Token) " ).append( token().toString() ).append( " | " );
+
+		//Value
+		result.append( "Value: " );
+		if ( !value.isDefined() || value == Value.UNDEFINED_VALUE ) {
+			result.append( "<no value>]" );
+		} else {
+			result.append( valueToPrettyString( value ) ).append( "]" );
+		}
+
+		return result.toString();
+
+	}
+
 }
