@@ -30,6 +30,7 @@ import java.util.*;
 import jolie.Interpreter;
 import jolie.net.Token;
 import jolie.net.coap.communication.blockwise.BlockSize;
+import jolie.net.coap.message.options.ContentFormat;
 import jolie.net.coap.message.options.EmptyOptionValue;
 import jolie.net.coap.message.options.OpaqueOptionValue;
 import jolie.net.coap.message.options.Option;
@@ -433,7 +434,7 @@ public class CoapMessage
 	 * @return the message ID (or {@link CoapMessage#UNDEFINED_MESSAGE_ID} if not
 	 * set)
 	 */
-	public int messageID()
+	public int id()
 	{
 		return this.messageId;
 	}
@@ -987,6 +988,35 @@ public class CoapMessage
 		return this.options.get( optionNumber );
 	}
 
+	private void checkOptionPermission( int optionNumber ) throws IllegalArgumentException
+	{
+
+		Option.Occurence permittedOccurence = Option.getPermittedOccurence( optionNumber, this.messageCode );
+		if ( permittedOccurence == Option.Occurence.NONE ) {
+			throw new IllegalArgumentException( String.format( OPTION_NOT_ALLOWED_WITH_MESSAGE_TYPE,
+				optionNumber, Option.asString( optionNumber ), this.getMessageCodeName() ) );
+		} else if ( options.containsKey( optionNumber ) && permittedOccurence == Option.Occurence.ONCE ) {
+			throw new IllegalArgumentException( String.format( OPTION_ALREADY_SET, optionNumber ) );
+		}
+	}
+
+	private static long extractBits( final long value, final int bits, final int offset )
+	{
+		final long shifted = value >>> offset;
+		final long masked = (1L << bits) - 1L;
+		return shifted & masked;
+	}
+
+	/**
+	This method retrieves the current message content format as a string.
+	@return the String version of the { @link ContentFormat } of this { @link CoapMessage }
+	 */
+	public String contentFormat()
+	{
+		return ContentFormat.toString( (long) this.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue() );
+
+	}
+
 	/**
 	 * Returns <code>true</code> if an option with the given number is contained
 	 * in this {@link CoapMessage} and <code>false</code> otherwise.
@@ -1030,7 +1060,7 @@ public class CoapMessage
 			return false;
 		}
 
-		if ( this.messageID() != other.messageID() ) {
+		if ( this.id() != other.id() ) {
 			return false;
 		}
 
@@ -1065,7 +1095,7 @@ public class CoapMessage
 			.append( ", (T) " ).append( getMessageTypeName() )
 			.append( ", (TKL) " ).append( token.getBytes().length )
 			.append( ", (C) " ).append( messageCode() )
-			.append( ", (ID) " ).append( messageID() )
+			.append( ", (ID) " ).append(id() )
 			.append( " | (Token) " ).append( token ).append( " | " );
 
 		//Options
@@ -1100,22 +1130,8 @@ public class CoapMessage
 
 	}
 
-	private void checkOptionPermission( int optionNumber ) throws IllegalArgumentException
+	public String operationName()
 	{
-
-		Option.Occurence permittedOccurence = Option.getPermittedOccurence( optionNumber, this.messageCode );
-		if ( permittedOccurence == Option.Occurence.NONE ) {
-			throw new IllegalArgumentException( String.format( OPTION_NOT_ALLOWED_WITH_MESSAGE_TYPE,
-				optionNumber, Option.asString( optionNumber ), this.getMessageCodeName() ) );
-		} else if ( options.containsKey( optionNumber ) && permittedOccurence == Option.Occurence.ONCE ) {
-			throw new IllegalArgumentException( String.format( OPTION_ALREADY_SET, optionNumber ) );
-		}
-	}
-
-	private static long extractBits( final long value, final int bits, final int offset )
-	{
-		final long shifted = value >>> offset;
-		final long masked = (1L << bits) - 1L;
-		return shifted & masked;
+		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 }

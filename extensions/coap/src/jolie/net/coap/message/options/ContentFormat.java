@@ -98,4 +98,9 @@ public class ContentFormat
 		JOLIE_ALLOWED_CONTENT_FORMAT.put( "application/json", APP_JSON );
 		JOLIE_ALLOWED_CONTENT_FORMAT.put( "json", APP_JSON );
 	}
+
+	public static String toString( long key )
+	{
+		return CONTENT_FORMAT.get( key );
+	}
 }
