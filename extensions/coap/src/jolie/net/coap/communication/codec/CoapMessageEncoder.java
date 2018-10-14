@@ -68,7 +68,7 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage>
 			| ((coapMessage.messageType() & 0x03) << 28)
 			| ((token.length & 0x0F) << 24)
 			| ((coapMessage.messageCode() & 0xFF) << 16)
-			| ((coapMessage.messageID() & 0xFFFF));
+			| ((coapMessage.id() & 0xFFFF));
 
 		msg.writeInt( encodedHeader );
 		if ( token.length > 0 ) {
