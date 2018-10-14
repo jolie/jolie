@@ -44,7 +44,7 @@ import jolie.net.coap.message.options.UintOptionValue;
  * {@link CoapRequest} with {@link MessageType#CON} and the framework did not
  * yet send an empty {@link CoapMessage} with {@link MessageType#ACK}. Then the
  * framework will ensure the {@link MessageType} of this {@link CoapResponse} to
- * be set to {@link de.uzl.itm.ncoap.message.MessageType#ACK} to make it a
+ * be set to {@link MessageType#ACK} to make it a
  * piggy-backed response.</p>
  *
  * @author Oliver Kleine

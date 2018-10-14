@@ -126,7 +126,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf>
 			coapMessage.setMessageType( messageType );
 		}
 
-		coapMessage.messageID( messageId );
+		coapMessage.id( messageId );
 		coapMessage.token( new Token( token ) );
 
 		if ( in.readableBytes() > 0 ) {
