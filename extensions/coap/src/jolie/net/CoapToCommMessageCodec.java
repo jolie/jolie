@@ -25,9 +25,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -161,7 +159,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			Interpreter.getInstance().logSevere( ex.getMessage() );
 		}
 
-		out.messageID( (int) in.id() );
+		out.id( (int) in.id() );
 
 		// separate response
 		if ( isRequestResponse( operationName ) && out.messageType() == MessageType.NON ) {
@@ -196,27 +194,26 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 			}
 		}
 
-		if ( out.messageType() == MessageType.CON ) {
-			int timeout = Parameters.DEFAULT_TIMEOUT;
-			if ( protocol.hasParameter( Parameters.TIMEOUT ) ) {
-				timeout = protocol.getIntParameter( Parameters.TIMEOUT );
-			}
-			ctx.pipeline().addLast( "TIMEOUT INBOUND/OUTBOUND", new ReadTimeoutHandler( timeout ) );
-			ctx.pipeline().addLast( "ERROR INBOUND", new ChannelInboundHandlerAdapter()
-			{
-				@Override
-				public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
-				{
-					CoapMessage out = CoapMessage.createEmptyReset( (int) in.id() );
-					if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Sending a CoAP RST to the Client:\n"
-							+ out );
-					}
-					ctx.fireChannelRead( out );
-				}
-			} );
-		}
-
+//		if ( out.messageType() == MessageType.CON ) {
+//			int timeout = Parameters.DEFAULT_TIMEOUT;
+//			if ( protocol.hasParameter( Parameters.TIMEOUT ) ) {
+//				timeout = protocol.getIntParameter( Parameters.TIMEOUT );
+//			}
+//			ctx.pipeline().addLast( "TIMEOUT INBOUND/OUTBOUND", new ReadTimeoutHandler( timeout ) );
+//			ctx.pipeline().addLast( "ERROR INBOUND", new ChannelInboundHandlerAdapter()
+//			{
+//				@Override
+//				public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
+//				{
+//					CoapMessage out = CoapMessage.createEmptyReset( (int) in.id() );
+//					if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+//						Interpreter.getInstance().logInfo( "Sending a CoAP RST to the Client:\n"
+//							+ out );
+//					}
+//					ctx.fireChannelRead( out );
+//				}
+//			} );
+//		}
 		if ( isRequestResponse( operationName ) ) {
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Sending a CoAP Solicit Response:\n"
@@ -288,11 +285,14 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				Interpreter.getInstance().logInfo( "Receiving a Comm Message Response from Comm Core:\n"
 					+ in );
 			}
+
+			// THIS MESSAGE HAS NO INFORMATION ABOUT THE OPERATION IT BELONGS !! NOT READABLE AT DESTINATION !!
+			// IT IS NOT POSSIBLE TO SET THE URI PATH MANUALLY BECAUSE COAP RESPONSE DOES NOT PERMIT IT
 			CoapMessage out = new CoapResponse(
 				messageTypeProtocolParameter( operationName ),
 				messageCodeProtocolParameter( operationName, true ) );
 
-			out.messageID( (int) in.id() );
+			out.id( (int) in.id() );
 			if ( in.token().getBytes().length != 0 ) {
 				out.token( in.token() );
 			}
@@ -316,7 +316,11 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				Interpreter.getInstance().logInfo( "Receiving a Comm Message Ack from Comm Core:\n"
 					+ in );
 			}
-			CoapMessage out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
+
+			// THIS MESSAGE HAS NO INFORMATION ABOUT THE OPERATION IT BELONGS !! NOT READABLE AT DESTINATION !!
+			// IT IS NOT POSSIBLE TO SET THE URI PATH MANUALLY BECAUSE COAP ACK DOES NOT PERMIT IT
+			CoapMessage out = new CoapMessage( MessageType.ACK, MessageCode.EMPTY, (int) in.id(), new Token( new byte[ 0 ] ) );
+
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Sending a CoAP Ack to the Client:\n"
 					+ out );
@@ -327,9 +331,8 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 	private CommMessage decode_outbound( CoapMessage in )
 	{
-		System.out.println( in );
-
 		String operationName = operationName( in );
+
 		if ( isRequestResponse( operationName ) ) {
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
 				Interpreter.getInstance().logInfo( "Receiving a CoAP Response from the Server:\n"
@@ -356,34 +359,34 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 					+ out.toString() );
 			}
 			return out;
-		} else {
-			if ( in.messageType() == MessageType.ACK ) {
-				if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Receiving CoAP Ack from the Server:\n"
-						+ in );
-				}
-				CommMessage ack = new CommMessage(
-					in.id(),
-					in.operationName(),
-					"/",
-					Value.create(),
-					null
-				);
-				if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Sending a Comm Message Ack to Comm Core:\n"
-						+ ack.toString() );
-				}
-				return ack;
+		} else if ( in.messageType() == MessageType.ACK ) {
+
+			// INT THIS CASE THE MESSAGE CONTAINS NO REFERENCE TO THE OPERATION IT BELONGS, NOT READABLE !!
+			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Receiving CoAP Ack from the Server:\n"
+					+ in );
 			}
+			CommMessage ack = new CommMessage(
+				in.id(),
+				operationName( in ),
+				"/",
+				Value.create(),
+				null
+			);
+			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Sending a Comm Message Ack to Comm Core:\n"
+					+ ack.toString() );
+			}
+			return ack;
 		}
+
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-			Interpreter.getInstance().logInfo( "Receiving CoAP RST from the Server:\n"
-				+ in );
+			Interpreter.getInstance().logInfo( "Receiving CoAP RST from the Server:\n" + in );
 		}
 		CommMessage fault
 			= new CommMessage( in.id(), operationName, "/", Value.create(), new FaultException( "Received a RESET from the Client for Timeout exceeding!" ) );
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-			Interpreter.getInstance().logInfo( "Sending a Comm Message Ack to Comm Core:\n"
+			Interpreter.getInstance().logInfo( "Sending a Comm Message Fault to Comm Core:\n"
 				+ fault.toString() );
 		}
 		return fault;
@@ -993,30 +996,17 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	 */
 	public boolean isRequestResponse( String operationName )
 	{
-		return protocol
-			.channel().parentPort().getInterface()
-			.requestResponseOperations().containsKey( operationName
-			);
+		return protocol.channel().parentPort().getInterface().requestResponseOperations().containsKey( operationName );
 
 	}
 
 	private URI targetURI( CommMessage in ) throws URISyntaxException
-
 	{
-
 		URI location;
-
 		if ( protocol.isInput ) {
-			location
-				= protocol
-					.channel().parentInputPort().location();
-
+			location = protocol.channel().parentInputPort().location();
 		} else {
-			location
-				= new URI( protocol
-					.channel().parentOutputPort()
-					.locationVariablePath().evaluate().strValue() );
-
+			location = new URI( protocol.channel().parentOutputPort().locationVariablePath().evaluate().strValue() );
 		}
 
 		// 1. build the string for uri resource let url be coap://
@@ -1177,44 +1167,23 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	private String operationName( CoapMessage in )
 	{
 
-		StringBuilder sb
-			= new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 
-		int i
-			= 1;
-		List<OptionValue> options
-			= in
-				.getOptions( Option.URI_PATH
-				);
-		sb
-			.append( "/" );
+		int i = 1;
+		List<OptionValue> options = in.getOptions( Option.URI_PATH );
+		sb.append( "/" );
 
-		for( OptionValue option
-			: options ) {
-			if ( i
-				< options
-					.size() ) {
-				sb
-					.append( option
-						.getDecodedValue() ).append( "/" );
-
+		for( OptionValue option : options ) {
+			if ( i < options.size() ) {
+				sb.append( option.getDecodedValue() ).append( "/" );
 			} else {
-				sb
-					.append( option
-						.getDecodedValue() );
-
+				sb.append( option.getDecodedValue() );
 			}
 			i++;
-
 		}
-		String URIPath
-			= sb
-				.toString();
-		String operationName
-			= protocol
-				.getOperationFromOperationSpecificStringParameter( Parameters.ALIAS,
-					URIPath
-						.substring( 1 ) );
+		String URIPath = sb.toString();
+		String operationName = protocol.getOperationFromOperationSpecificStringParameter( Parameters.ALIAS,
+			URIPath.substring( 1 ) );
 
 		return operationName;
 

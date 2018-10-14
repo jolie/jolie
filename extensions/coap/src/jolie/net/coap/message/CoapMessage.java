@@ -98,7 +98,7 @@ public class CoapMessage
 		this.setMessageType( messageType );
 		this.setMessageCode( messageCode );
 
-		this.messageID( messageID );
+		this.id( messageID );
 		this.token( token );
 
 		this.options = new HashMap<>();
@@ -406,7 +406,7 @@ public class CoapMessage
 	 */
 	public void setRandomMessageID()
 	{
-		this.messageID( new Random().nextInt( 65535 ) );
+		this.id( new Random().nextInt( 65535 ) );
 	}
 
 	/**
@@ -416,7 +416,7 @@ public class CoapMessage
 	 *
 	 * @param messageID the message ID for the message
 	 */
-	public void messageID( int messageID ) throws IllegalArgumentException
+	public void id( int messageID ) throws IllegalArgumentException
 	{
 
 		if ( messageID < -1 || messageID > 65535 ) {
@@ -1095,7 +1095,7 @@ public class CoapMessage
 			.append( ", (T) " ).append( getMessageTypeName() )
 			.append( ", (TKL) " ).append( token.getBytes().length )
 			.append( ", (C) " ).append( messageCode() )
-			.append( ", (ID) " ).append(id() )
+			.append( ", (ID) " ).append( id() )
 			.append( " | (Token) " ).append( token ).append( " | " );
 
 		//Options
