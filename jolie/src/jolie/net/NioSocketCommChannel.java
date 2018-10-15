@@ -22,17 +22,6 @@
  *******************************************************************************/
 package jolie.net;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import jolie.ExecutionThread;
-import jolie.net.protocols.AsyncCommProtocol;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -41,9 +30,17 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
+import jolie.net.protocols.AsyncCommProtocol;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
 
@@ -125,7 +122,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	@Override
 	protected void sendImpl( CommMessage message ) throws IOException {
 		try {
-			commChannelHandler.write( message.setExecutionThread( ExecutionThread.currentThread() ) ).sync();
+			commChannelHandler.write( message ).sync();
 		} catch ( InterruptedException ex ) {
 			throw new IOException( ex );
 		}

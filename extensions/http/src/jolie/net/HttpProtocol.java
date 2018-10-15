@@ -22,6 +22,34 @@
  *******************************************************************************/
 package jolie.net;
 
+import com.google.gwt.user.client.rpc.SerializationException;
+import com.google.gwt.user.server.rpc.RPC;
+import com.google.gwt.user.server.rpc.RPCRequest;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.netty.util.AsciiString;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,7 +68,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -53,7 +80,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.NativeType;
@@ -73,44 +99,10 @@ import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
 import joliex.gwt.client.JolieService;
 import joliex.gwt.server.JolieGWTConverter;
-
-import com.google.gwt.user.client.rpc.SerializationException;
-import com.google.gwt.user.server.rpc.RPC;
-import com.google.gwt.user.server.rpc.RPCRequest;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpMessage;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpContentDecompressor;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.DefaultCookie;
-import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.netty.util.AsciiString;
 
 /**
  * HTTP protocol implementation
@@ -225,10 +217,10 @@ public class HttpProtocol extends AsyncCommProtocol {
 	public void setupPipeline( ChannelPipeline pipeline ) {
 		if ( inInputPort ) {
 			pipeline.addLast( new HttpServerCodec() );
-			pipeline.addLast( new HttpContentCompressor() );
+//			pipeline.addLast( new HttpContentCompressor() );
 		} else {
 			pipeline.addLast( new HttpClientCodec() );
-			pipeline.addLast( new HttpContentDecompressor() );
+			//pipeline.addLast( new HttpContentDecompressor() );
 		}
 
 		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
@@ -240,10 +232,9 @@ public class HttpProtocol extends AsyncCommProtocol {
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
 			throws Exception {
-			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
-				message.executionThread() );
-			FullHttpMessage msg = buildHttpMessage( message );
-			out.add( msg );
+				setSendExecutionThread( message.id() );
+				FullHttpMessage msg = buildHttpMessage( message );
+				out.add( msg );
 		}
 
 		@Override
@@ -1350,8 +1341,12 @@ public class HttpProtocol extends AsyncCommProtocol {
 		if ( messageId != null ) {
 			try {
 				decodedMessage.id = Long.parseLong( messageId );
+				setReceiveExecutionThread( decodedMessage.id );
 			} catch ( NumberFormatException e ) {
 			}
+		} else {
+			setReceiveExecutionThread( channel() );
+			if( isThreadSafe() ){ throw new IOException( "Received message without ID in threadSafe protocol" ); }
 		}
 		//}
 

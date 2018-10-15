@@ -52,8 +52,8 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import jolie.Interpreter;
+import jolie.js.JsUtils;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
@@ -61,7 +61,6 @@ import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
-import jolie.js.JsUtils;
 import jolie.runtime.typing.Type;
 
 public class JsonRpcProtocol extends AsyncCommProtocol {
@@ -120,7 +119,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol {
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) throws Exception {
-			setExecutionThread( message.executionThread() );
+			setSendExecutionThread( message.id() );
 			EncodedJsonRpcContent content = buildJsonRpcMessage( message );
 			out.add( content );
 		}
@@ -176,6 +175,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol {
 
 	private CommMessage recv_internal( EncodedJsonRpcContent content )
 		throws IOException {
+		
 		Value value = Value.create();
 
 		JsUtils.parseJsonIntoValue(
@@ -191,13 +191,14 @@ public class JsonRpcProtocol extends AsyncCommProtocol {
 			if ( checkBooleanParameter( "debug", false ) ) {
 				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + content.text() );
 			}
-
+			
 			return new CommMessage(
 				CommMessage.GENERIC_ID,
 				value.getFirstChild( "method" ).strValue(),
 				"/",
 				value.getFirstChild( "params" ),
 				null );
+			
 		}
 
 		String jsonRpcId = value.getFirstChild( "id" ).strValue();

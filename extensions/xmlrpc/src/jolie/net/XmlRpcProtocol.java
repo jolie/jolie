@@ -161,7 +161,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol {
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
 			throws Exception {
-			setExecutionThread( message.executionThread() );
+			setSendExecutionThread( message.id() );
 			FullHttpMessage msg = buildXmlRpcMessage( message );
 			out.add( msg );
 		}
@@ -544,8 +544,16 @@ public class XmlRpcProtocol extends AsyncCommProtocol {
 				//TODO support resourcePath
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
 				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault );
-
 			}
+			
+			if ( isThreadSafe() ){
+				// for future compatibility, when adding CONCURRENT to XML/RPC
+				// right now we will always end in the "else" branch
+				setReceiveExecutionThread( retVal.id() );
+			} else {
+				setReceiveExecutionThread( channel() );
+			}
+			
 		}
 
 		received = true;

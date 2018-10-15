@@ -85,6 +85,7 @@ public class CommCore
 	private final ThreadGroup threadGroup;
 	private final ChannelPool channelPool = new ChannelPool();
 	private final MessagePool messagePool = new MessagePool();
+	private final ThreadRegistry threadRegistry = new ThreadRegistry();
 
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 
@@ -276,75 +277,40 @@ public class CommCore
 			return c.recvResponseFor( message );
 		}
 	}
-
-	private class ChannelPool
-	{
-
-		private final Map<String, Map<String, Set<CommChannel>>> threadSafeChannelPool = new HashMap<>();
-		private final Map<String, Map<String, Set<CommChannel>>> nonThreadSafeChannelPool = new HashMap<>();
-
-		public ChannelPool()
-		{
+	
+	public <C> ExecutionThread pickExecutionThread( C k ){
+		if( k == null ){
+			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
+		} else if( k instanceof CommProtocol ){
+			return threadRegistry.pickThread( (CommChannel) k );
+		} else if ( k instanceof Long ){
+			return threadRegistry.pickThread( (Long) k );
+		} else {
+			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
 		}
-
-		private Map<String, Map<String, Set<CommChannel>>> getPool( boolean threadSafe )
-		{
-			if ( threadSafe ) {
-				return threadSafeChannelPool;
-			} else {
-				return nonThreadSafeChannelPool;
-			}
+	}
+	
+	public <C> ExecutionThread getExecutionThread( C k ){
+		if( k == null ){
+			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
+		} else if( k instanceof CommProtocol ){
+			return threadRegistry.getThread( (CommChannel) k );
+		} else if ( k instanceof Long ){
+			return threadRegistry.getThread( (Long) k );
+		} else {
+			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
 		}
-
-		public CommChannel getChannel( boolean threadSafe, URI loc, OutputPort out ) throws IOException, URISyntaxException
-		{
-			Map< String, Map< String, Set< CommChannel>>> pool = getPool( threadSafe );
-			synchronized( pool ) {
-				CommChannel ret = null;
-				String location = loc.toString();
-				String protocol = "none";
-				try {
-					protocol = out.getProtocol().name();
-				} catch( IOException e ) {
-				}
-				if ( !pool.containsKey( location ) ) {
-					pool.put( location, new HashMap<>() );
-				}
-				if ( !pool.get( location ).containsKey( protocol ) ) {
-					pool.get( location ).put( protocol, new HashSet<>() );
-				}
-				if ( !pool.get( location ).get( protocol ).isEmpty() ) {
-					ret = pool.get( location ).get( protocol ).stream().findFirst().get();
-					pool.get( location ).get( protocol ).remove( ret );
-				}
-				if ( ret == null || !ret.isOpen() ) {
-					// We create a fresh channel
-					ret = createCommChannel( loc, out );
-					//Interpreter.getInstance().logInfo( "created a new channel " + ret.toString() );
-				}
-				// else {
-				//	Interpreter.getInstance().logInfo( "reusing the existing channel " + ret.toString() );
-				// }
-				return ret;
-			}
-
-		}
-
-		public void releaseChannel( boolean threadSafe, URI location, String protocol, CommChannel c )
-		{
-			Map< String, Map< String, Set< CommChannel>>> pool = getPool( threadSafe );
-			synchronized( pool ) {
-				pool.get( location.toString() ).get( protocol ).add( c );
-			}
-		}
-
 	}
 
-	// Remove sync here, needed only to test channel re-use
 	public void sendCommMessage( CommMessage message, URI location, OutputPort out, boolean threadSafe )
 		throws IOException, URISyntaxException
 	{
 		CommChannel c = channelPool.getChannel( threadSafe, location, out );
+		// we always add the thread associated to the message (this is consumed when encoding to message to be sent)
+		threadRegistry.addThread( message, ExecutionThread.currentThread() );
+		// we also add the thread associated to the channel (this is consumed when decoding the response message) 
+		if( !threadSafe )
+			threadRegistry.addThread( c, ExecutionThread.currentThread() );
 		c.send( message );
 		if ( threadSafe ) {
 			releaseChannel( c );

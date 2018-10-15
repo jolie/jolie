@@ -25,7 +25,6 @@ package jolie.net;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
-import jolie.ExecutionThread;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -64,7 +63,6 @@ public class CommMessage implements Serializable
 	private final String resourcePath;
 	private final Value value;
 	private final FaultException fault;
-	private ExecutionThread thread;
 
 	/**
 	 * Returns the resource path of this message.
@@ -75,25 +73,6 @@ public class CommMessage implements Serializable
 		return resourcePath;
 	}
 	
-	/**
-	* Sets the execution thread that is expected to handle this CommMessage
-	* @param t
-	* @return this CommMessage, for chaining
-	*/
-	public CommMessage setExecutionThread( ExecutionThread t ){
-		this.thread = t;
-		return this;
-	}
-	
-	/**
-	* Returns the execution thread that is expected to handle this CommMessage
-	* @return the execution thread
-	*/
-	public ExecutionThread executionThread(){
-		return this.thread;
-	}
-	
-
 	/**
 	 * Returns <code>true</code> if this message has a generic identifier, <code>false</code> otherwise.
 	 *
