@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ public class ChannelClosingException extends IOException
 	{
 		super();
 	}
-	
+
 	/**
 	 * Constructor.
 	 * @param message the message for this exception

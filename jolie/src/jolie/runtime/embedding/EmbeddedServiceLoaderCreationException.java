@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.embedding;
 
 import jolie.lang.Constants;
@@ -26,12 +25,12 @@ import jolie.lang.Constants;
 public class EmbeddedServiceLoaderCreationException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+
 	public EmbeddedServiceLoaderCreationException( String message )
 	{
 		super( message );
 	}
-	
+
 	public EmbeddedServiceLoaderCreationException( Exception e )
 	{
 		super( e );

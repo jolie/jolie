@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 import jolie.lang.Constants;

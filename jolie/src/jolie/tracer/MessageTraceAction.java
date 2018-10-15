@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.tracer;
 
 import jolie.net.CommMessage;
@@ -30,7 +28,8 @@ import jolie.net.CommMessage;
  */
 public class MessageTraceAction implements TraceAction
 {
-	public static enum Type {
+	public static enum Type
+	{
 		SOLICIT_RESPONSE,
 		NOTIFICATION,
 		ONE_WAY,
@@ -38,12 +37,12 @@ public class MessageTraceAction implements TraceAction
 		COURIER_NOTIFICATION,
 		COURIER_SOLICIT_RESPONSE
 	}
-	
+
 	private final Type type;
 	private final String name;
 	private final String description;
 	private final CommMessage message;
-	
+
 	public MessageTraceAction( Type type, String name, String description, CommMessage message )
 	{
 		this.type = type;
@@ -51,22 +50,22 @@ public class MessageTraceAction implements TraceAction
 		this.description = description;
 		this.message = message;
 	}
-	
+
 	public Type type()
 	{
 		return type;
 	}
-	
+
 	public String name()
 	{
 		return name;
 	}
-	
+
 	public String description()
 	{
-		return description;	
+		return description;
 	}
-	
+
 	public CommMessage message()
 	{
 		return message;

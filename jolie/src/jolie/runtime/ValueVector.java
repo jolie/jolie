@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
 import java.io.Serializable;
@@ -55,40 +54,40 @@ class ValueVectorLink extends ValueVector implements Cloneable
 	{
 		return true;
 	}
-	
+
 	private ValueVector getLinkedValueVector()
 	{
 		return linkPath.getValueVector();
 	}
-	
-	protected List< Value > values()
+
+	protected List< Value> values()
 	{
 		return getLinkedValueVector().values();
 	}
-	
-	public List< Value > valuesCopy()
+
+	public List< Value> valuesCopy()
 	{
 		return getLinkedValueVector().valuesCopy();
 	}
-	
+
 	@Override
 	public int size()
 	{
 		ValueVector vector = linkPath.getValueVectorOrNull();
-		return ( vector == null ) ? 0 : vector.size();
+		return (vector == null) ? 0 : vector.size();
 	}
 }
 
 class ValueVectorImpl extends ValueVector implements Serializable
 {
-	private final ArrayList< Value > values;
-	
+	private final ArrayList< Value> values;
+
 	@Override
-	protected List< Value > values()
+	protected List< Value> values()
 	{
 		return values;
 	}
-	
+
 	@Override
 	public synchronized int size()
 	{
@@ -124,83 +123,85 @@ class ValueVectorImpl extends ValueVector implements Serializable
 			values.set( i, value );
 		}
 	}
-	
+
 	@Override
 	public boolean isLink()
 	{
 		return false;
 	}
-	
-	public synchronized List< Value > valuesCopy()
+
+	public synchronized List< Value> valuesCopy()
 	{
-		return (List< Value >)values.clone();
+		return (List< Value>) values.clone();
 	}
-	
+
 	public ValueVectorImpl()
 	{
 		values = new ArrayList<>( 1 );
 	}
 }
 
-public abstract class ValueVector implements Iterable< Value >
+public abstract class ValueVector implements Iterable< Value>
 {
 	public static ValueVector create()
 	{
 		return new ValueVectorImpl();
 	}
-	
+
 	public synchronized Value remove( int i )
 	{
 		return values().remove( i );
 	}
-	
+
 	public static ValueVector createLink( VariablePath path )
 	{
 		return new ValueVectorLink( path );
 	}
-	
+
 	public static ValueVector createClone( ValueVector vec )
 	{
 		ValueVector retVec;
-		
+
 		if ( vec.isLink() ) {
-			retVec = ((ValueVectorLink)vec).clone();
+			retVec = ((ValueVectorLink) vec).clone();
 		} else {
 			retVec = create();
 			for( Value v : vec ) {
 				retVec.add( Value.createClone( v ) );
 			}
 		}
-		
+
 		return retVec;
 	}
-	
+
 	public synchronized Value first()
 	{
 		return get( 0 );
 	}
-	
+
 	public synchronized boolean isEmpty()
 	{
 		return values().isEmpty();
 	}
-	
-	public synchronized Iterator< Value > iterator()
+
+	public synchronized Iterator< Value> iterator()
 	{
 		return values().iterator();
 	}
-	
+
 	public abstract Value get( int i );
+
 	public abstract void set( int i, Value value );
+
 	public abstract int size();
-	public abstract List< Value > valuesCopy();
-	
-	
+
+	public abstract List< Value> valuesCopy();
+
 	public synchronized void add( Value value )
 	{
 		values().add( value );
 	}
-	
+
 	// TODO: improve performance
 	public synchronized void deepCopy( ValueVector vec )
 	{
@@ -209,6 +210,7 @@ public abstract class ValueVector implements Iterable< Value >
 		}
 	}
 
-	protected abstract List< Value > values();
+	protected abstract List< Value> values();
+
 	public abstract boolean isLink();
 }

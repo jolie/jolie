@@ -23,12 +23,6 @@
  *******************************************************************************/
 package jolie.net;
 
-import jolie.Interpreter;
-import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ports.InputPort;
-import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -41,12 +35,16 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-
 import java.net.InetSocketAddress;
-
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import jolie.Interpreter;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ports.InputPort;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.net.protocols.CommProtocol;
 
-public class NioSocketListener extends CommListener {
+public class NioSocketListener extends CommListener
+{
 
 	private final ServerBootstrap bootstrap;
 	private Channel serverChannel;
@@ -61,7 +59,8 @@ public class NioSocketListener extends CommListener {
 		InputPort inputPort,
 		EventLoopGroup bossGroup,
 		EventLoopGroup workerGroup
-	) {
+	)
+	{
 		super( interpreter, protocolFactory, inputPort );
 		bootstrap = new ServerBootstrap();
 		this.bossGroup = bossGroup;
@@ -70,7 +69,8 @@ public class NioSocketListener extends CommListener {
 	}
 
 	@Override
-	public void shutdown() {
+	public void shutdown()
+	{
 		if ( serverChannel != null ) {
 			responseChannels.writeLock().lock();
 			try {
@@ -89,59 +89,66 @@ public class NioSocketListener extends CommListener {
 //    responseChannels.readLock().unlock();
 //  }
 	@Override
-	public void run() {
+	public void run()
+	{
 
 		try {
 			bootstrap.group( bossGroup, workerGroup )
 				.channel( NioServerSocketChannel.class )
 				.option( ChannelOption.SO_BACKLOG, 100 )
 				//.handler( new LoggingHandler( LogLevel.INFO ) )
-				.childHandler( new ChannelInitializer<SocketChannel>() {
+				.childHandler( new ChannelInitializer<SocketChannel>()
+				{
 
 					@Override
-					protected void initChannel( SocketChannel ch ) throws Exception {
+					protected void initChannel( SocketChannel ch ) throws Exception
+					{
 //              addResponseChannel();
 						CommProtocol protocol = createProtocol();
-						assert ( protocol instanceof AsyncCommProtocol );
+						assert (protocol instanceof AsyncCommProtocol);
 
-						NioSocketCommChannel channel = new NioSocketCommChannel( null, ( AsyncCommProtocol ) protocol );
+						NioSocketCommChannel channel = new NioSocketCommChannel( null, (AsyncCommProtocol) protocol );
 						protocol.setChannel( channel );
 						channel.setParentInputPort( inputPort() );
 
 						//interpreter().commCore().scheduleReceive(channel, inputPort());
 						ChannelPipeline p = ch.pipeline();
-						( ( AsyncCommProtocol ) protocol ).setupPipeline( p );
+						((AsyncCommProtocol) protocol).setupPipeline( p );
 
 						// the pipeline is an inbound one, hence outbound traffic goes
 						// from bottom-up into the pipeline. We add the outbound adapter
 						// as first to observe the ultimate send as the response from the
 						// nioSocketCommChannelHandler.
-						p.addFirst( new ChannelOutboundHandlerAdapter() {
+						p.addFirst( new ChannelOutboundHandlerAdapter()
+						{
 
 							@Override
-							public void flush( ChannelHandlerContext ctx ) throws Exception {
+							public void flush( ChannelHandlerContext ctx ) throws Exception
+							{
 								ctx.flush();
 //              removeResponseChannel();
 							}
 						} );
 						p.addLast( channel.commChannelHandler );
-						p.addLast( new ChannelInboundHandlerAdapter() {
+						p.addLast( new ChannelInboundHandlerAdapter()
+						{
 
 							@Override
-							public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception {
+							public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
+							{
 								cause.printStackTrace();
 								ctx.close();
 								serverChannel.close();
 							}
 
 						} );
-						( ( AsyncCommProtocol ) protocol ).setInitExecutionThread( interpreter().initThread() );
+						((AsyncCommProtocol) protocol).setInitExecutionThread( interpreter().initThread() );
 					}
 				} );
 			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();
 			serverChannel = f.channel();
 			serverChannel.closeFuture().sync();
-		} catch ( InterruptedException ioe ) {
+		} catch( InterruptedException ioe ) {
 			interpreter().logWarning( ioe );
 		} finally {
 			bossGroup.shutdownGracefully();

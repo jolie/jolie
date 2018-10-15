@@ -30,7 +30,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MessagePool {
+public class MessagePool
+{
 
 	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
@@ -38,13 +39,15 @@ public class MessagePool {
 	private final Map< Long, CompletableFuture< CommMessage>> specificMap = new ConcurrentHashMap<>();
 	private final Map< String, GenericMessages> genericMap = new ConcurrentHashMap<>();
 
-	private class GenericMessages {
+	private class GenericMessages
+	{
 
 		public final Queue< CompletableFuture< CommMessage>> responses = new ConcurrentLinkedQueue<>();
 		public final Queue< CompletableFuture< CommMessage>> requests = new ConcurrentLinkedQueue<>();
 	}
 
-	private GenericMessages getGenericMessages( String operation ) {
+	private GenericMessages getGenericMessages( String operation )
+	{
 		assert operation != null;
 		if ( !genericMap.containsKey( operation ) ) {
 			genericMap.put( operation, new GenericMessages() );
@@ -53,15 +56,16 @@ public class MessagePool {
 	}
 
 	public CommMessage recvResponseFor( CommMessage request )
-		throws IOException {
-		
+		throws IOException
+	{
+
 		CompletableFuture< CommMessage> futureResponse = null;
 		CommMessage response = null;
 
 		Long id = request.id();
 		String operation = request.operationName();
 
-		synchronized ( this ) {
+		synchronized( this ) {
 			if ( request.hasGenericId() ) {
 				if ( operation != null ) {
 					GenericMessages gm = getGenericMessages( operation );
@@ -105,12 +109,12 @@ public class MessagePool {
 				// DO WE HAVE TO CHANGE THE ID OF A GENERIC RESPONSE TO THE ONE OF THIS REQUEST?
 				response = futureResponse.get();
 				// if we polled a generic response, we remove the specific request
-				synchronized ( this ) {
+				synchronized( this ) {
 					if ( !request.hasGenericId() ) {
 						specificMap.remove( id );
 					}
 				}
-			} catch ( InterruptedException | ExecutionException ex ) {
+			} catch( InterruptedException | ExecutionException ex ) {
 				Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
 			}
 		}
@@ -118,7 +122,8 @@ public class MessagePool {
 		return response;
 	}
 
-	protected void receiveResponse( CommMessage response ) {
+	protected void receiveResponse( CommMessage response )
+	{
 		if ( response.hasGenericId() ) {
 			handleGenericMessage( response );
 		} else {
@@ -126,7 +131,8 @@ public class MessagePool {
 		}
 	}
 
-	private void handleGenericMessage( CommMessage response ) {
+	private void handleGenericMessage( CommMessage response )
+	{
 
 		String operation = response.operationName();
 		CompletableFuture future = null;
@@ -136,7 +142,7 @@ public class MessagePool {
 					new Exception( "Requested handling of generic response without operation. "
 						+ "Impossible to handle." ) );
 		} else {
-			synchronized ( this ) {
+			synchronized( this ) {
 				GenericMessages gm = getGenericMessages( operation );
 				if ( gm.requests.isEmpty() ) {
 					future = new CompletableFuture();
@@ -152,13 +158,14 @@ public class MessagePool {
 		}
 	}
 
-	private void handleMessage( CommMessage response ) {
-		
+	private void handleMessage( CommMessage response )
+	{
+
 		String operation = response.operationName();
 		Long id = response.id();
 		CompletableFuture< CommMessage> future = null;
 
-		synchronized ( this ) {
+		synchronized( this ) {
 			if ( specificMap.containsKey( id ) ) {
 				if ( !specificMap.get( id ).isDone() ) {
 					// if it is not done, the future has been put by a recvResponseFor

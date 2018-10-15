@@ -19,7 +19,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
@@ -34,7 +33,7 @@ public class IsDoubleExpression implements Expression
 	{
 		this.path = path;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new IsDoubleExpression( path );

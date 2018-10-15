@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 import jolie.lang.Constants;
@@ -27,12 +25,12 @@ import jolie.lang.Constants;
 public class InvalidIdException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+
 	public InvalidIdException( String id )
 	{
 		super( "invalid identifier: " + id );
 	}
-	
+
 	@Override
 	public Throwable fillInStackTrace()
 	{

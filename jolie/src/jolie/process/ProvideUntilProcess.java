@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import java.util.Collections;
@@ -41,9 +40,9 @@ import jolie.util.Pair;
 public class ProvideUntilProcess implements Process
 {
 	private final NDChoiceProcess provide, until;
-	private Map< String, InputOperation > inputOperationsMap =
-		new HashMap< String, InputOperation >();
-	
+	private Map< String, InputOperation> inputOperationsMap
+		= new HashMap< String, InputOperation>();
+
 	public ProvideUntilProcess( NDChoiceProcess provide, NDChoiceProcess until )
 	{
 		this.provide = provide;
@@ -52,10 +51,10 @@ public class ProvideUntilProcess implements Process
 		this.inputOperationsMap.putAll( until.inputOperations() );
 		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
-		return new ProvideUntilProcess( (NDChoiceProcess)provide.clone( reason ), (NDChoiceProcess)until.clone( reason ) );
+		return new ProvideUntilProcess( (NDChoiceProcess) provide.clone( reason ), (NDChoiceProcess) until.clone( reason ) );
 	}
 
 	public void run()
@@ -65,15 +64,15 @@ public class ProvideUntilProcess implements Process
 		if ( ethread.isKilled() ) {
 			return;
 		}
-		
+
 		boolean keepRun = true;
 
 		try {
 			while( keepRun ) {
-				Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
+				Future< SessionMessage> f = ethread.requestMessage( inputOperationsMap, ethread );
 
 				SessionMessage m = f.get();
-				Pair< InputOperationProcess, Process > branch = provide.branches().get( m.message().operationName() );
+				Pair< InputOperationProcess, Process> branch = provide.branches().get( m.message().operationName() );
 				if ( branch == null ) {
 					// It is an until branch
 					branch = until.branches().get( m.message().operationName() );
@@ -90,7 +89,7 @@ public class ProvideUntilProcess implements Process
 			Interpreter.getInstance().logSevere( e );
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

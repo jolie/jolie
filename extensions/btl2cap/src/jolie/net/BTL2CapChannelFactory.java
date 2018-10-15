@@ -31,61 +31,65 @@ import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.ServiceRecord;
 import javax.microedition.io.Connector;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.InputPort;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"bluetooth.jar"})
-public class BTL2CapChannelFactory extends CommChannelFactory
-{
-	private final static int cacheLimit = 1000; // Must be > 0
-	private final Map< String, Map< String, ServiceRecord > > serviceCache =
-						new HashMap< String, Map< String, ServiceRecord > > ();
+@AndJarDeps( { "bluetooth.jar" } )
+public class BTL2CapChannelFactory extends CommChannelFactory {
 
-	public BTL2CapChannelFactory( CommCore commCore )
-	{
+	private final static int cacheLimit = 1000; // Must be > 0
+	private final Map< String, Map< String, ServiceRecord>> serviceCache
+		= new HashMap< String, Map< String, ServiceRecord>>();
+
+	public BTL2CapChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
-	public ServiceRecord getFromServiceCache( String btAddr, String uuidStr )
-	{
+	public ServiceRecord getFromServiceCache( String btAddr, String uuidStr ) {
 		ServiceRecord r = null;
 		try {
 			r = serviceCache.get( btAddr ).get( uuidStr );
-		} catch( NullPointerException e ) {}
+		} catch ( NullPointerException e ) {
+		}
 		return r;
 	}
-	
-	public void putInServiceCache( String btAddr, String uuidStr, ServiceRecord record )
-	{
+
+	public void putInServiceCache( String btAddr, String uuidStr, ServiceRecord record ) {
 		if ( serviceCache.size() > cacheLimit ) {
 			serviceCache.remove( serviceCache.keySet().iterator().next() );
 		}
-		Map< String, ServiceRecord > map = serviceCache.get( btAddr );
+		Map< String, ServiceRecord> map = serviceCache.get( btAddr );
 		if ( map == null ) {
-			map = new HashMap< String, ServiceRecord > ();
+			map = new HashMap< String, ServiceRecord>();
 			serviceCache.put( btAddr, map );
 		}
 		if ( map.size() > cacheLimit ) {
 			map.remove( map.keySet().iterator().next() );
 		}
-		map.put( uuidStr, record);
+		map.put( uuidStr, record );
 	}
-	
+
 	public CommChannel createChannel( URI uri, OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		if ( uri.getHost() != null && uri.getHost().equals( "localhost" ) ) {
 			throw new IOException( "Malformed output btl2cap location: " + uri.toString() );
 		}
 		try {
 			String connectionURL = BTL2CapHelper.getConnectionURL( uri, this );
-			L2CAPConnection conn = (L2CAPConnection)Connector.open( connectionURL );
+			L2CAPConnection conn = ( L2CAPConnection ) Connector.open( connectionURL );
 			return new BTL2CapCommChannel( conn, uri, port.getProtocol() );
-		} catch( ClassCastException e ) {
+		} catch ( ClassCastException e ) {
 			throw new IOException( "CastException: malformed output btl2cap location: " + uri.toString() );
-		} catch( URISyntaxException e ) {
+		} catch ( URISyntaxException e ) {
 			throw new IOException( e );
-		} catch( NullPointerException e ) {
+		} catch ( NullPointerException e ) {
 			throw new IOException( e );
-		} 
+		}
+	}
+
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 }

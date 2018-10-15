@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.tracer;
 
 import java.util.function.Supplier;
@@ -30,6 +29,7 @@ import java.util.function.Supplier;
 public class DummyTracer implements Tracer
 {
 	@Override
-	public void trace( Supplier< ? extends TraceAction > action )
-	{}
+	public void trace( Supplier< ? extends TraceAction> action )
+	{
+	}
 }

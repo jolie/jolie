@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.http;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class UnsupportedMethodException extends IOException
 	 */
 	public UnsupportedMethodException( String message )
 	{
-		this( message, (Method[])null );
+		this( message, (Method[]) null );
 	}
 
 	/**

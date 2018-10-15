@@ -18,9 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
-
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -56,14 +54,15 @@ public class SpawnExecution
 			parentSpawnProcess.indexPath().getValue().setValue( index );
 			try {
 				process().run();
-			} catch( FaultException f ) {}
-			catch( ExitingException e ) {}
-			
+			} catch( FaultException f ) {
+			} catch( ExitingException e ) {
+			}
+
 			terminationNotify( this );
 		}
 	}
-	
-	private final Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
+
+	private final Collection< SpawnedThread> threads = new HashSet< SpawnedThread>();
 	private final SpawnProcess parentSpawnProcess;
 	private final ExecutionThread ethread;
 	private CountDownLatch latch;
@@ -73,17 +72,17 @@ public class SpawnExecution
 		this.parentSpawnProcess = parent;
 		this.ethread = ExecutionThread.currentThread();
 	}
-	
+
 	public void run()
 		throws FaultException
-	{		
+	{
 		if ( parentSpawnProcess.inPath() != null ) {
 			parentSpawnProcess.inPath().undef();
 		}
 		int upperBound = parentSpawnProcess.upperBound().evaluate().intValue();
 		latch = new CountDownLatch( upperBound );
 		SpawnedThread thread;
-		
+
 		for( int i = 0; i < upperBound; i++ ) {
 			thread = new SpawnedThread(
 				ethread,
@@ -98,14 +97,14 @@ public class SpawnExecution
 			// We start threads in this other cycle to avoid race conditions on inPath
 			t.start();
 		}
-		
+
 		try {
 			latch.await();
 		} catch( InterruptedException e ) {
 			Interpreter.getInstance().logWarning( e );
 		}
 	}
-	
+
 	private void terminationNotify( SpawnedThread thread )
 	{
 		synchronized( this ) {
@@ -113,7 +112,7 @@ public class SpawnExecution
 				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( thread.index )
 					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
 			}
-			
+
 			latch.countDown();
 		}
 	}

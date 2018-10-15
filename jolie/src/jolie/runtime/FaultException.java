@@ -18,11 +18,9 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
 import java.io.ByteArrayOutputStream;
-
 import java.io.PrintStream;
 
 /**
@@ -34,7 +32,7 @@ public class FaultException extends Exception
 	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 	private final String faultName;
 	private final Value value;
-	
+
 	/**
 	 * Constructor.
 	 * This constructor behaves as
@@ -94,7 +92,7 @@ public class FaultException extends Exception
 	{
 		this( faultName, Value.create() );
 	}
-	
+
 	@Override
 	public String getMessage()
 	{

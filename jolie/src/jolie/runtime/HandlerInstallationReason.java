@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 import jolie.process.TransformationReason;
@@ -27,11 +25,12 @@ import jolie.process.TransformationReason;
 public class HandlerInstallationReason implements TransformationReason
 {
 	final private String handlerId;
-	
+
 	public HandlerInstallationReason( String handlerId )
 	{
 		this.handlerId = handlerId;
 	}
+
 	public String handlerId()
 	{
 		return handlerId;

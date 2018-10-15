@@ -18,19 +18,17 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 
-
 public class ThrowProcess implements Process
 {
 	final private String faultName;
 	final private Expression expression;
-	
+
 	public ThrowProcess( String faultName, Expression expression )
 	{
 		this.faultName = faultName;
@@ -41,20 +39,21 @@ public class ThrowProcess implements Process
 	{
 		return new ThrowProcess( faultName, expression );
 	}
-	
+
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
-		
+		}
+
 		if ( expression == null ) {
 			throw new FaultException( faultName );
 		} else {
 			throw new FaultException( faultName, expression.evaluate() );
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

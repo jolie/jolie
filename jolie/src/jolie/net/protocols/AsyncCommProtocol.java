@@ -35,7 +35,6 @@ import jolie.runtime.VariablePath;
 
 public abstract class AsyncCommProtocol extends CommProtocol
 {
-
 	private ExecutionThread initExecutionThread = null;
 
 	public AsyncCommProtocol( VariablePath configurationPath )

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import java.util.concurrent.Future;
@@ -51,17 +50,17 @@ public class OneWayProcess implements InputOperationProcess
 	{
 		this.isSessionStarter = isSessionStarter;
 	}
-	
+
 	public InputOperation inputOperation()
 	{
 		return operation;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new OneWayProcess( operation, varPath );
 	}
-	
+
 	public VariablePath inputVarPath()
 	{
 		return varPath;
@@ -70,7 +69,7 @@ public class OneWayProcess implements InputOperationProcess
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
 		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id() ).toString(), sessionMessage.message().value() ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
@@ -89,7 +88,7 @@ public class OneWayProcess implements InputOperationProcess
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( operation, ethread );
+		Future< SessionMessage> f = ethread.requestMessage( operation, ethread );
 		try {
 			SessionMessage m = f.get();
 			if ( m != null ) { // If it is null, we got killed by a fault
@@ -119,7 +118,6 @@ public class OneWayProcess implements InputOperationProcess
 		) );
 	}
 
-	
 	public boolean isKillable()
 	{
 		return true;

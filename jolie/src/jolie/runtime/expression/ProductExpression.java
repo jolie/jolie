@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
@@ -27,41 +26,41 @@ import jolie.runtime.Value;
 public class ProductExpression implements Expression
 {
 	private final Operand[] children;
-	
+
 	public ProductExpression( Operand[] children )
 	{
 		this.children = children;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		Operand[] cc = new Operand[ children.length ];
-		
+
 		int i = 0;
 		for( Operand operand : children ) {
-			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
+			cc[ i++ ] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
 		}
 		return new ProductExpression( cc );
 	}
-	
+
 	@Override
 	public Value evaluate()
 	{
-		Value val = Value.create( children[0].expression().evaluate() );
+		Value val = Value.create( children[ 0 ].expression().evaluate() );
 		for( int i = 1; i < children.length; i++ ) {
-			switch( children[i].type() ) {
-			case MULTIPLY:
-				val.multiply( children[i].expression().evaluate() );
-				break;
-			case DIVIDE:
-				val.divide( children[i].expression().evaluate() );
-				break;
-			case MODULUS:
-				val.modulo( children[i].expression().evaluate() );
-				break;
+			switch( children[ i ].type() ) {
+				case MULTIPLY:
+					val.multiply( children[ i ].expression().evaluate() );
+					break;
+				case DIVIDE:
+					val.divide( children[ i ].expression().evaluate() );
+					break;
+				case MODULUS:
+					val.modulo( children[ i ].expression().evaluate() );
+					break;
 			}
 		}
-		
+
 		return val;
 	}
 }

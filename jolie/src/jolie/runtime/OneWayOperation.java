@@ -18,13 +18,10 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.Type;
-
 
 public class OneWayOperation extends InputOperation
 {
@@ -40,8 +37,9 @@ public class OneWayOperation extends InputOperation
 	{
 		return requestType;
 	}
-        
-        public OneWayTypeDescription getOneWayTypeDescription() {
-                return new OneWayTypeDescription(requestType);
-        }
+
+	public OneWayTypeDescription getOneWayTypeDescription()
+	{
+		return new OneWayTypeDescription( requestType );
+	}
 }

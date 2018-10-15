@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ports;
 
 import java.util.Map;
@@ -33,13 +32,14 @@ public class InterfaceExtender extends Interface
 {
 	private final OneWayTypeDescription defaultOneWayTypeDescription;
 	private final RequestResponseTypeDescription defaultRequestResponseTypeDescription;
-	
+
 	public InterfaceExtender(
-		Map< String, OneWayTypeDescription > oneWayOperations,
-		Map< String, RequestResponseTypeDescription > requestResponseOperations,
+		Map< String, OneWayTypeDescription> oneWayOperations,
+		Map< String, RequestResponseTypeDescription> requestResponseOperations,
 		OneWayTypeDescription defaultOneWayTypeDescription,
 		RequestResponseTypeDescription defaultRequestResponseTypeDescription
-	) {
+	)
+	{
 		super( oneWayOperations, requestResponseOperations );
 		this.defaultOneWayTypeDescription = defaultOneWayTypeDescription;
 		this.defaultRequestResponseTypeDescription = defaultRequestResponseTypeDescription;
@@ -54,7 +54,7 @@ public class InterfaceExtender extends Interface
 	{
 		return defaultRequestResponseTypeDescription;
 	}
-	
+
 	public OneWayTypeDescription getOneWayTypeDescription( String operationName )
 	{
 		OneWayTypeDescription ret = oneWayOperations().get( operationName );
@@ -63,7 +63,7 @@ public class InterfaceExtender extends Interface
 		}
 		return ret;
 	}
-	
+
 	public RequestResponseTypeDescription getRequestResponseTypeDescription( String operationName )
 	{
 		RequestResponseTypeDescription ret = requestResponseOperations().get( operationName );

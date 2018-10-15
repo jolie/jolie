@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime.embedding;
 
 import jolie.Interpreter;
@@ -28,12 +26,11 @@ import jolie.runtime.JavaService;
 import jolie.runtime.expression.Expression;
 import jolie.tracer.EmbeddingTraceAction;
 
-
 public class JavaServiceLoader extends EmbeddedServiceLoader
 {
 	private final String servicePath;
 	private final Interpreter interpreter;
-	
+
 	public JavaServiceLoader( Expression channelDest, String servicePath, Interpreter interpreter )
 	{
 		super( channelDest );
@@ -51,11 +48,11 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			if ( !(obj instanceof JavaService) ) {
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
 			}
-			final JavaService service = (JavaService)obj;
+			final JavaService service = (JavaService) obj;
 			service.setInterpreter( interpreter );
-			setChannel(	new JavaCommChannel( service ) );
-			
-			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
+			setChannel( new JavaCommChannel( service ) );
+
+			interpreter.tracer().trace( () -> new EmbeddingTraceAction(
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
 				"Java Service Loader",
 				c.getCanonicalName()

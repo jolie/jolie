@@ -42,7 +42,8 @@ import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
 import jolie.net.protocols.AsyncCommProtocol;
 
-public class NioSocketCommChannel extends StreamingCommChannel {
+public class NioSocketCommChannel extends StreamingCommChannel
+{
 
 	public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
 
@@ -50,28 +51,33 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
+	private ChannelPipeline pipeline;
 
-	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol ) {
+	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol )
+	{
 		super( location, protocol );
 		this.commChannelHandler = new StreamingCommChannelHandler( this );
 	}
 
-	public static NioSocketCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
-//		ExecutionThread ethread = ExecutionThread.currentThread();
+	public static NioSocketCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port )
+	{
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
 		channel.bootstrap = new Bootstrap();
 		channel.bootstrap.group( workerGroup )
 			.channel( NioSocketChannel.class )
 			.option( ChannelOption.SO_LINGER, SO_LINGER )
-			.handler( new ChannelInitializer() {
+			.handler( new ChannelInitializer()
+			{
 				@Override
-				protected void initChannel( Channel ch ) throws Exception {
+				protected void initChannel( Channel ch ) throws Exception
+				{
 					ChannelPipeline p = ch.pipeline();
+					channel.setChannelPipeline( p );
 					if ( port instanceof InputPort ) {
-						channel.setParentInputPort( ( InputPort ) port );
+						channel.setParentInputPort( (InputPort) port );
 					}
 					if ( port instanceof OutputPort ) {
-						channel.setParentOutputPort( ( OutputPort ) port );
+						channel.setParentOutputPort( (OutputPort) port );
 					}
 					protocol.setChannel( channel );
 					protocol.setupPipeline( p );
@@ -82,17 +88,20 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		return channel;
 	}
 
-	public ChannelFuture connect( URI location ) throws InterruptedException {
+	public ChannelFuture connect( URI location ) throws InterruptedException
+	{
 		return bootstrap
 			.connect( new InetSocketAddress( location.getHost(), location.getPort() ) );
 	}
 
-	public ChannelFuture initChannel() {
+	public ChannelFuture initChannel()
+	{
 		return bootstrap.register();
 	}
 
 	@Override
-	protected CommMessage recvImpl() throws IOException {
+	protected CommMessage recvImpl() throws IOException
+	{
 		// This is blocking to integrate with existing CommCore and ExecutionThreads.
 		try {
 			if ( waitingForMsg != null ) {
@@ -102,14 +111,15 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 			CommMessage msg = waitingForMsg.get();
 			waitingForMsg = null;
 			return msg;
-		} catch ( InterruptedException | ExecutionException ex ) {
+		} catch( InterruptedException | ExecutionException ex ) {
 			Logger.getLogger( NioSocketCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 		return null;
 	}
 
-	protected void completeRead( CommMessage message ) {
-		while ( waitingForMsg == null ) {
+	protected void completeRead( CommMessage message )
+	{
+		while( waitingForMsg == null ) {
 			// spinlock
 		}
 		if ( waitingForMsg == null ) {
@@ -120,7 +130,8 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message ) throws IOException {
+	protected void sendImpl( CommMessage message ) throws IOException
+	{
 		try {
 			commChannelHandler.write( message ).sync();
 		} catch ( InterruptedException ex ) {
@@ -129,12 +140,30 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	}
 
 	@Override
-	protected void closeImpl() throws IOException {
+	protected void closeImpl() throws IOException
+	{
 		try {
 			commChannelHandler.close().sync();
-		} catch ( InterruptedException ex ) {
+		} catch( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
 	}
 
+	/**
+	Return the current working pipeline of this (netty) channel.
+	@return the current pipeline
+	 */
+	public ChannelPipeline getChannelPipeline()
+	{
+		return this.pipeline;
+	}
+
+	/**
+	Set the current channel pipeline to one passed as a parameter from the user.
+	@param newPipeline 
+	 */
+	public void setChannelPipeline( ChannelPipeline newPipeline )
+	{
+		this.pipeline = newPipeline;
+	}
 }

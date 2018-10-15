@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -40,10 +39,10 @@ public class SocketListenerFactory extends CommListenerFactory
 	}
 
 	public CommListener createListener(
-					Interpreter interpreter,
-					CommProtocolFactory protocolFactory,
-					InputPort inputPort
-				)
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort
+	)
 		throws IOException
 	{
 		return new SocketListener( interpreter, protocolFactory, inputPort );

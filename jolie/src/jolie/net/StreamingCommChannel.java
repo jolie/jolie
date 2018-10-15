@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
- *                                                                         *
+ *		 Copyright (C) by Stefano Pio Zingaro                     
+ *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
  *   published by the Free Software Foundation; either version 2 of the    *
@@ -18,7 +19,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -34,29 +34,46 @@ import jolie.util.Helpers;
  */
 public abstract class StreamingCommChannel extends AbstractCommChannel
 {
+
 	private final URI location;
 	private final CommProtocol protocol;
-	
+
 	public StreamingCommChannel( URI location, CommProtocol protocol )
 	{
 		this.location = location;
 		this.protocol = protocol;
 //		protocol.setChannel( this );
 	}
-	
+
 	protected CommProtocol protocol()
 	{
 		return protocol;
 	}
-	
+
+	public void sendRelease( long in )
+	{
+		throw new UnsupportedOperationException( "sendRelease not supported yet." );
+	}
+
+	public StreamingCommChannelHandler getChannelHandler()
+	{
+		throw new UnsupportedOperationException( "commChannelHandler not supported yet." );
+	}
+
+	public StreamingCommChannel createWithSideChannel( CommChannel channel )
+	{
+		throw new UnsupportedOperationException( "createWithSideChannel not supported yet." );
+	}
+
 	@Override
 	protected boolean isThreadSafe()
 	{
 		return protocol.isThreadSafe();
 	}
-	
+
 	@Override
-	public URI getLocation(){
+	public URI getLocation()
+	{
 		return this.location;
 	}
 

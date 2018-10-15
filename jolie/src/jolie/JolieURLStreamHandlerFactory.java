@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie;
 
 import java.net.URL;
@@ -37,7 +36,7 @@ public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory
 {
 	private final static AtomicBoolean registered = new AtomicBoolean( false );
 
-	private final Map< String, URLStreamHandler > handlers = new HashMap< String, URLStreamHandler >();
+	private final Map< String, URLStreamHandler> handlers = new HashMap< String, URLStreamHandler>();
 
 	public JolieURLStreamHandlerFactory()
 	{
@@ -47,7 +46,7 @@ public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory
 	public URLStreamHandler createURLStreamHandler( String protocol )
 	{
 		URLStreamHandler handler;
-		if ( (handler=handlers.get( protocol )) != null ) {
+		if ( (handler = handlers.get( protocol )) != null ) {
 			return handler;
 		}
 		return null;

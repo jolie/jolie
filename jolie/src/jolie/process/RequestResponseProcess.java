@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import java.io.IOException;
@@ -50,19 +49,19 @@ public class RequestResponseProcess implements InputOperationProcess
 	private final Expression outputExpression; // may be null
 	private final Process process;
 	private boolean isSessionStarter = false;
-	
+
 	public RequestResponseProcess(
-			RequestResponseOperation operation,
-			VariablePath inputVarPath,
-			Expression outputExpression,
-			Process process )
+		RequestResponseOperation operation,
+		VariablePath inputVarPath,
+		Expression outputExpression,
+		Process process )
 	{
 		this.operation = operation;
 		this.inputVarPath = inputVarPath;
 		this.process = process;
 		this.outputExpression = outputExpression;
 	}
-	
+
 	public void setSessionStarter( boolean isSessionStarter )
 	{
 		this.isSessionStarter = isSessionStarter;
@@ -83,7 +82,7 @@ public class RequestResponseProcess implements InputOperationProcess
 			message
 		) );
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;
@@ -92,17 +91,17 @@ public class RequestResponseProcess implements InputOperationProcess
 	public Process clone( TransformationReason reason )
 	{
 		return new RequestResponseProcess(
-					operation,
-					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
-					( outputExpression == null ) ? null : (VariablePath)outputExpression.cloneExpression( reason ),
-					process.clone( reason )
-				);
+			operation,
+			(inputVarPath == null) ? null : (VariablePath) inputVarPath.cloneExpression( reason ),
+			(outputExpression == null) ? null : (VariablePath) outputExpression.cloneExpression( reason ),
+			process.clone( reason )
+		);
 	}
-	
+
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
 		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id() ).toString(), sessionMessage.message().value() ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
@@ -110,7 +109,8 @@ public class RequestResponseProcess implements InputOperationProcess
 			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
 		}
 
-		return new Process() {
+		return new Process()
+		{
 			public void run()
 				throws FaultException, ExitingException
 			{
@@ -137,7 +137,7 @@ public class RequestResponseProcess implements InputOperationProcess
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( operation, ethread );
+		Future< SessionMessage> f = ethread.requestMessage( operation, ethread );
 		try {
 			SessionMessage m = f.get();
 			if ( m != null ) { // If it is null, we got killed by a fault
@@ -151,7 +151,7 @@ public class RequestResponseProcess implements InputOperationProcess
 			Interpreter.getInstance().logSevere( e );
 		}
 	}
-	
+
 	public VariablePath inputVarPath()
 	{
 		return inputVarPath;
@@ -165,15 +165,15 @@ public class RequestResponseProcess implements InputOperationProcess
 			if ( faultType != null ) {
 				faultType.check( f.value() );
 			}
-		} else {			
+		} else {
 			Interpreter.getInstance().logSevere(
-				"Request-Response process for " + operation.id() +
-				" threw an undeclared fault for that operation (" + f.faultName() + "), throwing TypeMismatch" );
+				"Request-Response process for " + operation.id()
+				+ " threw an undeclared fault for that operation (" + f.faultName() + "), throwing TypeMismatch" );
 			f = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error" );
 		}
 		return CommMessage.createFaultResponse( request, f );
 	}
-	
+
 	private void runBehaviour( CommChannel channel, CommMessage message )
 		throws FaultException
 	{
@@ -187,7 +187,8 @@ public class RequestResponseProcess implements InputOperationProcess
 		try {
 			try {
 				process.run();
-			} catch( ExitingException e ) {}
+			} catch( ExitingException e ) {
+			}
 			ExecutionThread ethread = ExecutionThread.currentThread();
 			if ( ethread.isKilled() ) {
 				try {
@@ -201,21 +202,21 @@ public class RequestResponseProcess implements InputOperationProcess
 					details = typeMismatch.faultName();
 				}
 			} else {
-				response =
-					CommMessage.createResponse(
+				response
+					= CommMessage.createResponse(
 						message,
-						( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
+						(outputExpression == null) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
 					);
-					responseStatus = OperationEndedEvent.SUCCESS;
-					details = "";
+				responseStatus = OperationEndedEvent.SUCCESS;
+				details = "";
 				if ( operation.typeDescription().responseType() != null ) {
 					try {
 						operation.typeDescription().responseType().check( response.value() );
-					} catch( TypeCheckingException e ) {						
-						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );						
+					} catch( TypeCheckingException e ) {
+						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );
 						response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 						responseStatus = OperationEndedEvent.ERROR;
-						details =  Constants.TYPE_MISMATCH_FAULT_NAME;
+						details = Constants.TYPE_MISMATCH_FAULT_NAME;
 					}
 				}
 			}
@@ -225,7 +226,7 @@ public class RequestResponseProcess implements InputOperationProcess
 				responseStatus = OperationEndedEvent.FAULT;
 				details = f.faultName();
 			} catch( TypeCheckingException e ) {
-				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );				
+				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
 				response = CommMessage.createFaultResponse( message, typeMismatch );
 				responseStatus = OperationEndedEvent.ERROR;
 				details = typeMismatch.faultName();
@@ -237,14 +238,14 @@ public class RequestResponseProcess implements InputOperationProcess
 			channel.send( response );
 			Value monitorValue;
 			if ( response.isFault() ) {
-				log( "SENT FAULT", response );					
+				log( "SENT FAULT", response );
 				monitorValue = response.fault().value();
 			} else {
 				log( "SENT", response );
 				monitorValue = response.value();
 			}
 			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.toString( response.id() ), responseStatus, details, monitorValue ));
+				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.toString( response.id() ), responseStatus, details, monitorValue ) );
 			}
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );

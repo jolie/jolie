@@ -16,7 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -36,7 +35,7 @@ public final class ForProcess implements Process
 		this.post = post;
 		this.process = process;
 	}
-	
+
 	@Override
 	public Process clone( TransformationReason reason )
 	{
@@ -47,7 +46,7 @@ public final class ForProcess implements Process
 			process.clone( reason )
 		);
 	}
-	
+
 	@Override
 	public void run()
 		throws FaultException, ExitingException
@@ -56,16 +55,17 @@ public final class ForProcess implements Process
 		if ( ethread.isKilled() ) {
 			return;
 		}
-		
+
 		init.run();
-		while ( condition.evaluate().boolValue() ) {
+		while( condition.evaluate().boolValue() ) {
 			process.run();
-			if ( ethread.isKilled() )
+			if ( ethread.isKilled() ) {
 				return;
+			}
 			post.run();
 		}
 	}
-	
+
 	@Override
 	public boolean isKillable()
 	{

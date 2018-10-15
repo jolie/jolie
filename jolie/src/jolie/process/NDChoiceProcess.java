@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import java.util.Collections;
@@ -50,42 +49,42 @@ import jolie.util.Pair;
  */
 public class NDChoiceProcess implements Process
 {
-	private Map< String, Pair< InputOperationProcess, Process > > branches = new HashMap<>();
-	private Map< String, InputOperation > inputOperationsMap = new HashMap<>();
-	
+	private Map< String, Pair< InputOperationProcess, Process>> branches = new HashMap<>();
+	private Map< String, InputOperation> inputOperationsMap = new HashMap<>();
+
 	/** Constructor
 	 * @param branches
 	 */
-	public NDChoiceProcess( Pair< InputOperationProcess, Process >[] branches )
+	public NDChoiceProcess( Pair< InputOperationProcess, Process>[] branches )
 	{
-		for( Pair< InputOperationProcess, Process > pair : branches ) {
+		for( Pair< InputOperationProcess, Process> pair : branches ) {
 			this.branches.put( pair.key().inputOperation().id(), pair );
 			this.inputOperationsMap.put( pair.key().inputOperation().id(), pair.key().inputOperation() );
 		}
 		this.branches = Collections.unmodifiableMap( this.branches );
 		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
 	}
-	
-	protected Map< String, Pair< InputOperationProcess, Process > > branches()
+
+	protected Map< String, Pair< InputOperationProcess, Process>> branches()
 	{
 		return branches;
 	}
-	
-	protected Map< String, InputOperation > inputOperations()
+
+	protected Map< String, InputOperation> inputOperations()
 	{
 		return inputOperationsMap;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
-		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
+		Pair< InputOperationProcess, Process>[] b = new Pair[ branches.values().size() ];
 		int i = 0;
-		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {
-			b[ i++ ] = new Pair< InputOperationProcess, Process >( pair.key(), pair.value().clone( reason ) );
+		for( Pair< InputOperationProcess, Process> pair : branches.values() ) {
+			b[ i++ ] = new Pair< InputOperationProcess, Process>( pair.key(), pair.value().clone( reason ) );
 		}
 		return new NDChoiceProcess( b );
 	}
-	
+
 	/** Runs the non-deterministic choice behaviour.
 	 * @throws jolie.runtime.FaultException
 	 * @throws jolie.runtime.ExitingException
@@ -98,17 +97,17 @@ public class NDChoiceProcess implements Process
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
+		Future< SessionMessage> f = ethread.requestMessage( inputOperationsMap, ethread );
 		try {
 			SessionMessage m = f.get();
-			Pair< InputOperationProcess, Process > branch = branches.get( m.message().operationName() );
+			Pair< InputOperationProcess, Process> branch = branches.get( m.message().operationName() );
 			branch.key().receiveMessage( m, ethread.state() ).run();
 			branch.value().run();
 		} catch( CancellationException | ExecutionException | InterruptedException e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

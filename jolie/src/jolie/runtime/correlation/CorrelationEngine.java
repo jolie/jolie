@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.correlation;
 
 import jolie.Interpreter;
@@ -36,16 +35,21 @@ import jolie.runtime.correlation.impl.SimpleCorrelationEngine;
  */
 public abstract class CorrelationEngine implements SessionListener
 {
-	public enum Type {
-		SIMPLE {
+	public enum Type
+	{
+		SIMPLE
+		{
 			@Override
-			public CorrelationEngine createInstance( Interpreter interpreter ) {
+			public CorrelationEngine createInstance( Interpreter interpreter )
+			{
 				return new SimpleCorrelationEngine( interpreter );
 			}
 		},
-		HASH {
+		HASH
+		{
 			@Override
-			public CorrelationEngine createInstance( Interpreter interpreter ) {
+			public CorrelationEngine createInstance( Interpreter interpreter )
+			{
 				//return new HashCorrelationEngine( interpreter );
 				return null;
 			}
@@ -56,18 +60,20 @@ public abstract class CorrelationEngine implements SessionListener
 		public static Type fromString( String name )
 		{
 			switch( name ) {
-			case "simple":
-				return SIMPLE;
-			case "hash":
-				return HASH;
-			default:
-				return null;
+				case "simple":
+					return SIMPLE;
+				case "hash":
+					return HASH;
+				default:
+					return null;
 			}
 		}
 	}
 
 	public abstract void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message );
+
 	public abstract void onSingleExecutionSessionStart( SessionThread session );
+
 	protected abstract boolean routeMessage( CommMessage message, CommChannel channel );
 
 	private final Interpreter interpreter;

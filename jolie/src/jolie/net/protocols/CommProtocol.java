@@ -1,25 +1,25 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
-
+/*
+ *   Copyright (C) 2017 by Fabrizio Montesi  
+ *   Copyright (C) 2017 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>  
+ *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>
+ *                                                                             
+ *   This program is free software; you can redistribute it and/or modify      
+ *   it under the terms of the GNU Library General Public License as           
+ *   published by the Free Software Foundation; either version 2 of the        
+ *   License, or (at your option) any later version.                           
+ *                                                                             
+ *   This program is distributed in the hope that it will be useful,           
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             
+ *   GNU General Public License for more details.                              
+ *                                                                             
+ *   You should have received a copy of the GNU Library General Public         
+ *   License along with this program; if not, write to the                     
+ *   Free Software Foundation, Inc.,                                           
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 
+ *                                                                             
+ *   For details about the authors of this software, see the AUTHORS file.     
+ */
 package jolie.net.protocols;
 
 import java.io.IOException;
@@ -45,32 +45,54 @@ import jolie.runtime.typing.Type;
  */
 public abstract class CommProtocol
 {
-	private final static class LazyDummyChannelHolder {
-		private LazyDummyChannelHolder() {}
-		private static class DummyChannel extends AbstractCommChannel {
-                        @Override
-			public void closeImpl() {}
-                        @Override
-			public void sendImpl( CommMessage message ) {}
-                        @Override
-			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
+
+	private final static class LazyDummyChannelHolder
+	{
+
+		private LazyDummyChannelHolder()
+		{
+		}
+
+		private static class DummyChannel extends AbstractCommChannel
+		{
 
 			@Override
-			public URI getLocation() {
+			public void closeImpl()
+			{
+			}
+
+			@Override
+			public void sendImpl( CommMessage message )
+			{
+			}
+
+			@Override
+			public CommMessage recvImpl()
+			{
+				return CommMessage.UNDEFINED_MESSAGE;
+			}
+
+			@Override
+			public URI getLocation()
+			{
 				throw new UnsupportedOperationException( "DummyChannels are not supposed to be queried for their location." );
 			}
 
 			@Override
-			protected boolean isThreadSafe() { return false; }
+			protected boolean isThreadSafe()
+			{
+				return false;
+			}
 		}
 
 		private final static DummyChannel dummyChannel = new DummyChannel();
 	}
 
-	private static class Parameters {
+	private static class Parameters
+	{
+
 		private static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
 	}
-
 
 	private final VariablePath configurationPath;
 	private CommChannel channel = null;
@@ -81,12 +103,12 @@ public abstract class CommProtocol
 	}
 
 	public abstract String name();
-	
+
 	public CommProtocol( VariablePath configurationPath )
 	{
 		this.configurationPath = configurationPath;
 	}
-	
+
 	public void setChannel( CommChannel channel )
 	{
 		this.channel = channel;
@@ -99,12 +121,12 @@ public abstract class CommProtocol
 		}
 		return this.channel;
 	}
-	
+
 	protected ValueVector getParameterVector( String id )
 	{
 		return configurationPath.getValue().getChildren( id );
 	}
-	
+
 	protected boolean hasParameter( String id )
 	{
 		if ( configurationPath.getValue().hasChildren( id ) ) {
@@ -113,7 +135,7 @@ public abstract class CommProtocol
 		}
 		return false;
 	}
-	
+
 	protected boolean hasParameterValue( String id )
 	{
 		if ( configurationPath.getValue().hasChildren( id ) ) {
@@ -122,7 +144,7 @@ public abstract class CommProtocol
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Shortcut for getParameterVector( id ).first()
 	 */
@@ -130,7 +152,7 @@ public abstract class CommProtocol
 	{
 		return getParameterVector( id ).first();
 	}
-	
+
 	/**
 	 * Shortcut for checking if a parameter intValue() equals 1
 	 * @param id the parameter identifier
@@ -152,7 +174,7 @@ public abstract class CommProtocol
 			return defaultValue;
 		}
 	}
-	
+
 	/**
 	 * Shortcut for checking if a string parameter has a given value
 	 * @param id the parameter identifier
@@ -167,7 +189,7 @@ public abstract class CommProtocol
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Shortcut for <code>getParameterFirstValue( id ).strValue()</code>
 	 * @param id the parameter identifier
@@ -176,10 +198,10 @@ public abstract class CommProtocol
 	{
 		return getStringParameter( id, "" );
 	}
-	
+
 	protected String getStringParameter( String id, String defaultValue )
 	{
-		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : defaultValue );
+		return (hasParameter( id ) ? getParameterFirstValue( id ).strValue() : defaultValue);
 	}
 
 	protected boolean hasOperationSpecificParameter( String operationName, String parameterName )
@@ -220,13 +242,15 @@ public abstract class CommProtocol
 		Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 		return osc.getFirstChild( operationName ).getChildren( parameterName );
 	}
-	
-	protected boolean isOneWay( String operationName ) {
+
+	protected boolean isOneWay( String operationName )
+	{
 		return channel().parentPort().getInterface()
 			.oneWayOperations().containsKey( operationName );
 	}
 
-	protected Type operationType( String on, boolean isRequest ) {
+	protected Type operationType( String on, boolean isRequest )
+	{
 
 		OperationTypeDescription otd = channel().parentPort()
 			.getOperationTypeDescription( on, "/" );
@@ -238,7 +262,8 @@ public abstract class CommProtocol
 	}
 
 	protected Type getSendType( CommMessage message )
-		throws IOException {
+		throws IOException
+	{
 		Type ret = null;
 
 		if ( channel().parentPort() == null ) {
@@ -267,11 +292,39 @@ public abstract class CommProtocol
 					ret = Type.UNDEFINED;
 				}
 			} else {
-				ret = ( channel().parentInputPort() != null ) ? rr.responseType() : rr.requestType();
+				ret = (channel().parentInputPort() != null) ? rr.responseType() : rr.requestType();
 			}
 		}
 
 		return ret;
+	}
+
+	protected OperationTypeDescription getOperationTypeDescription( String message ) throws IOException
+	{
+		if ( channel().parentPort() == null ) {
+			throw new IOException( "Could not retrieve communication port for current protocol" );
+		}
+		return channel().parentPort().getOperationTypeDescription( message, Constants.ROOT_RESOURCE_PATH );
+	}
+
+	protected Type getSendType( String message )
+		throws IOException
+	{
+		OperationTypeDescription opDesc = getOperationTypeDescription( message );
+
+		if ( opDesc == null ) {
+			return null;
+		}
+
+		if ( opDesc.asOneWayTypeDescription() != null ) {
+			OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
+			return ow.requestType();
+		} else if ( opDesc.asRequestResponseTypeDescription() != null ) {
+			RequestResponseTypeDescription rr = opDesc.asRequestResponseTypeDescription();
+			return (channel().parentInputPort() != null) ? rr.responseType() : rr.requestType();
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -280,9 +333,9 @@ public abstract class CommProtocol
 	 */
 	protected int getIntParameter( String id )
 	{
-		return ( hasParameter( id ) ? getParameterFirstValue( id ).intValue() : 0 );
+		return (hasParameter( id ) ? getParameterFirstValue( id ).intValue() : 0);
 	}
-	
+
 	abstract public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException;
 

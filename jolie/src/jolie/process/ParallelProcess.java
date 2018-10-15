@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.runtime.FaultException;
@@ -38,12 +37,12 @@ public class ParallelProcess implements Process
 	{
 		(new ParallelExecution( children )).run();
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new ParallelProcess( children );
 	}
-	
+
 	public boolean isKillable()
 	{
 		for( Process child : children ) {
@@ -51,7 +50,7 @@ public class ParallelProcess implements Process
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 }

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.jap;
 
 import java.io.File;
@@ -50,7 +49,7 @@ public class JapURLConnection extends URLConnection
 	private static final Pattern urlPattern = Pattern.compile( "([^!]*!/[^!]*)(?:!/)?(.*)?" );
 	public static final Pattern nestingSeparatorPattern = Pattern.compile( "!/" );
 
-	private static final Map< URL, JarFile > japCache = new ConcurrentHashMap<>();
+	private static final Map< URL, JarFile> japCache = new ConcurrentHashMap<>();
 
 	private InputStream inputStream;
 	private long entrySize = 0L;
@@ -77,7 +76,7 @@ public class JapURLConnection extends URLConnection
 		JarFile jar = getFromCache( url );
 		if ( jar == null ) {
 			try {
-				jar = AccessController.doPrivileged( (PrivilegedExceptionAction< JarFile >) () -> {
+				jar = AccessController.doPrivileged( (PrivilegedExceptionAction< JarFile>) () -> {
 					File tmpFile = null;
 					OutputStream out = null;
 					try {
@@ -86,7 +85,7 @@ public class JapURLConnection extends URLConnection
 						out = new FileOutputStream( tmpFile );
 						int read;
 						byte[] buf = new byte[ BUF_SIZE ];
-						while( (read = in.read(buf)) != -1 ) {
+						while( (read = in.read( buf )) != -1 ) {
 							out.write( buf, 0, read );
 						}
 						out.close();
@@ -105,7 +104,7 @@ public class JapURLConnection extends URLConnection
 							out.close();
 						}
 					}
-				});
+				} );
 				putInCache( url, jar );
 			} catch( PrivilegedActionException e ) {
 				throw new IOException( e );
@@ -143,7 +142,7 @@ public class JapURLConnection extends URLConnection
 						builder.append( "!/" ).append( nodes[ i ] );
 						jar = retrieve( new URL( builder.toString() ), inputStream );
 					}
-					final ZipEntry entry = jar.getEntry( nodes[i] );
+					final ZipEntry entry = jar.getEntry( nodes[ i ] );
 					entrySize = entry.getSize();
 					inputStream = jar.getInputStream( entry );
 				}
@@ -161,5 +160,5 @@ public class JapURLConnection extends URLConnection
 	{
 		connect();
 		return inputStream;
-    }
+	}
 }

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ports;
 
 import java.net.URI;
@@ -37,8 +36,8 @@ public class InputPort implements Port
 	private final String name;
 	private final Interface iface;
 	private final VariablePath protocolConfigurationPath;
-	private final Map< String, AggregatedOperation > aggregationMap;
-	private final Map< String, OutputPort > redirectionMap;
+	private final Map< String, AggregatedOperation> aggregationMap;
+	private final Map< String, OutputPort> redirectionMap;
 	private final VariablePath locationVariablePath;
 
 	/**
@@ -55,9 +54,10 @@ public class InputPort implements Port
 		VariablePath locationVariablePath,
 		VariablePath protocolConfigurationPath,
 		Interface iface,
-		Map< String, AggregatedOperation > aggregationMap,
-		Map< String, OutputPort > redirectionMap
-	) {
+		Map< String, AggregatedOperation> aggregationMap,
+		Map< String, OutputPort> redirectionMap
+	)
+	{
 		this.name = name;
 		this.locationVariablePath = locationVariablePath;
 		this.iface = iface;
@@ -65,7 +65,7 @@ public class InputPort implements Port
 		this.redirectionMap = redirectionMap;
 		this.protocolConfigurationPath = protocolConfigurationPath;
 	}
-	
+
 	/**
 	 * Returns the name of this input port
 	 * @return the name of this input port
@@ -99,7 +99,7 @@ public class InputPort implements Port
 	 * The keys of the map are the names of the aggregated operations.
 	 * @return the aggregation map for this input port.
 	 */
-	public Map< String, AggregatedOperation > aggregationMap()
+	public Map< String, AggregatedOperation> aggregationMap()
 	{
 		return aggregationMap;
 	}
@@ -108,7 +108,7 @@ public class InputPort implements Port
 	 * Returns the redirection map of this input port.
 	 * @return the redirection map of this input port
 	 */
-	public Map< String, OutputPort > redirectionMap()
+	public Map< String, OutputPort> redirectionMap()
 	{
 		return redirectionMap;
 	}
@@ -121,7 +121,7 @@ public class InputPort implements Port
 	{
 		return URI.create( locationVariablePath.getValue().strValue() );
 	}
-	
+
 	public void setLocation( String location )
 	{
 		locationVariablePath.getValue().setValue( location );
@@ -160,11 +160,11 @@ public class InputPort implements Port
 	{
 		return aggregationMap.get( operationName );
 	}
-	
+
 	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath )
 	{
 		OperationTypeDescription ret = null;
-		
+
 		if ( resourcePath.equals( Constants.ROOT_RESOURCE_PATH ) ) {
 			if ( aggregationMap.containsKey( operationName ) ) {
 				ret = aggregationMap.get( operationName ).getOperationTypeDescription();
@@ -174,8 +174,9 @@ public class InputPort implements Port
 					ret = iface.requestResponseOperations().get( operationName );
 				}
 			}
-		} /* TODO: implement code for handling redirections */
-		
+		}
+		/* TODO: implement code for handling redirections */
+
 		return ret;
 	}
 }

@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
 import java.io.IOException;
@@ -55,7 +53,7 @@ public class ValuePrettyPrinter
 	{
 		indentation--;
 	}
-	
+
 	public void setByteTruncation( int truncation )
 	{
 		this.byteTruncation = truncation;
@@ -65,18 +63,18 @@ public class ValuePrettyPrinter
 		throws IOException
 	{
 		writeIndented( header );
-		writeNativeValue( root );
+		writeNativeValue( root, true );
 		indent();
 		writeChildren( root );
 		unindent();
 	}
-	
+
 	public void setIndentationOffset( int offset )
 	{
 		this.indentation = offset;
 	}
 
-	private void writeNativeValue( Value value )
+	private void writeNativeValue( Value value, boolean isLast )
 		throws IOException
 	{
 		if ( value.isUsedInCorrelation() ) {
@@ -93,14 +91,16 @@ public class ValuePrettyPrinter
 			writer.write( " : " );
 			writer.write( value.valueObject().getClass().getName() );
 		}
-		writer.write( '\n' );
+		if ( !isLast ) {
+			writer.write( '\n' );
+		}
 	}
 
 	private void writeChildren( Value value )
 		throws IOException
 	{
 		Integer i;
-		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+		for( Entry< String, ValueVector> entry : value.children().entrySet() ) {
 			if ( entry.getValue().isEmpty() ) {
 				writeIndented( "." );
 				writer.write( entry.getKey() );
@@ -113,7 +113,7 @@ public class ValuePrettyPrinter
 					writer.write( '[' );
 					writer.write( i.toString() );
 					writer.write( ']' );
-					writeNativeValue( child );
+					writeNativeValue( child, false );
 					indent();
 					writeChildren( child );
 					unindent();

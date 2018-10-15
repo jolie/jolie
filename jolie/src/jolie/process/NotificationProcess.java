@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import java.io.IOException;
@@ -46,26 +45,26 @@ public class NotificationProcess implements Process
 	private final OneWayTypeDescription oneWayDescription; // may be null
 
 	public NotificationProcess(
-			String operationId,
-			OutputPort outputPort,
-			Expression outputExpression,
-			OneWayTypeDescription outputType
-			)
+		String operationId,
+		OutputPort outputPort,
+		Expression outputExpression,
+		OneWayTypeDescription outputType
+	)
 	{
 		this.operationId = operationId;
 		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
 		this.oneWayDescription = outputType;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new NotificationProcess(
-					operationId,
-					outputPort,
-					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
-					oneWayDescription
-				);
+			operationId,
+			outputPort,
+			(outputExpression == null) ? null : outputExpression.cloneExpression( reason ),
+			oneWayDescription
+		);
 	}
 
 	private void log( String log, CommMessage message )
@@ -88,45 +87,44 @@ public class NotificationProcess implements Process
 
 		CommChannel channel = null;
 		try {
-			CommMessage message =
-				( outputExpression == null ) ?
-						CommMessage.createRequest( operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE ) :
-						CommMessage.createRequest( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
+			CommMessage message
+				= (outputExpression == null)
+					? CommMessage.createRequest( operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE )
+					: CommMessage.createRequest( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
 			if ( oneWayDescription != null ) {
-				try  {
-				oneWayDescription.requestType().check( message.value() );
+				try {
+					oneWayDescription.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
 					if ( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
-					throw( e );
+					throw (e);
 				}
 			}
 			//channel = outputPort.getCommChannel();
 
 			log( "SENDING", message );
-			
+
 			//channel.send( message );
 			channel = outputPort.send( message );
-			
+
 			log( "SENT", message );
 			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+				Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id() ).toString(), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
 			}
-			
+
 			CommMessage response = null;
 			do {
 				//response = channel.recvResponseFor( message );
 				response = Interpreter.getInstance().commCore().recvResponseFor( channel, message );
 			} while( response == null );
-			
+
 			log( "RECEIVED ACK", response );
-			
+
 			if ( response.isFault() ) {
 				if ( response.fault().faultName().equals( "CorrelationError" )
 					|| response.fault().faultName().equals( "IOException" )
-					|| response.fault().faultName().equals( "TypeMismatch" )
-					) {
+					|| response.fault().faultName().equals( "TypeMismatch" ) ) {
 					throw response.fault();
 				} else {
 					Interpreter.getInstance().logSevere( "Notification process for operation " + operationId + " received an unexpected fault: " + response.fault().faultName() );
@@ -148,7 +146,7 @@ public class NotificationProcess implements Process
 			}
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

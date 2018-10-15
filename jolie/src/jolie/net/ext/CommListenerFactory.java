@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ext;
 
 import java.io.IOException;
@@ -54,9 +53,9 @@ public abstract class CommListenerFactory
 	 * @throws java.io.IOException if the listener could not be created
 	 */
 	abstract public CommListener createListener(
-									Interpreter interpreter,
-									CommProtocolFactory protocolFactory,
-									InputPort inputPort
-								)
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort
+	)
 		throws IOException;
 }

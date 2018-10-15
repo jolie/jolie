@@ -16,7 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -30,33 +29,33 @@ public final class IfProcess implements Process
 	{
 		private final Expression condition;
 		private final Process process;
-		
+
 		public CPPair( Expression condition, Process process )
 		{
 			this.condition = condition;
 			this.process = process;
 		}
-		
+
 		public Expression condition()
 		{
 			return condition;
 		}
-		
+
 		public Process process()
 		{
 			return process;
 		}
 	}
-	
+
 	private final CPPair[] pairs;
 	private final Process elseProcess;
-	
+
 	public IfProcess( CPPair[] pairs, Process elseProcess )
 	{
 		this.pairs = pairs;
 		this.elseProcess = elseProcess;
 	}
-	
+
 	@Override
 	public Process clone( TransformationReason reason )
 	{
@@ -69,10 +68,10 @@ public final class IfProcess implements Process
 		}
 		return new IfProcess(
 			pairsCopy,
-			( elseProcess == null ) ? null : elseProcess.clone( reason )
+			(elseProcess == null) ? null : elseProcess.clone( reason )
 		);
 	}
-	
+
 	@Override
 	public void run()
 		throws FaultException, ExitingException
@@ -83,7 +82,7 @@ public final class IfProcess implements Process
 
 		boolean keepRun = true;
 		int i = 0;
-	
+
 		while( keepRun && i < pairs.length ) {
 			final CPPair pair = pairs[ i ];
 			if ( pair.condition().evaluate().boolValue() ) {
@@ -98,7 +97,7 @@ public final class IfProcess implements Process
 			elseProcess.run();
 		}
 	}
-	
+
 	@Override
 	public boolean isKillable()
 	{

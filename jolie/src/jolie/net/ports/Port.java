@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.ports;
 
 import jolie.runtime.VariablePath;
@@ -42,7 +41,7 @@ public interface Port
 	 * @return the {@link Interface} exposed directly by this port.
 	 */
 	public Interface getInterface();
-	
+
 	/**
 	 * Returns the {@link OperationTypeDescription} of the named operation,
 	 * also considering the type modifications given by eventual aggregations.
