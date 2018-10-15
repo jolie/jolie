@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package jolie.monitoring.events;
 
 import jolie.monitoring.MonitoringEvent;
@@ -16,8 +15,9 @@ import jolie.runtime.Value;
  * ending states:
  *
  */
-public class SessionEndedEvent extends MonitoringEvent {
-	
+public class SessionEndedEvent extends MonitoringEvent
+{
+
 	public SessionEndedEvent( String operationName, String processId )
 	{
 		super( "SessionEnded", Value.create() );

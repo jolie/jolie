@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie;
 
 import java.io.ByteArrayOutputStream;
@@ -27,7 +26,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -55,18 +53,18 @@ public abstract class ExecutionThread extends JolieThread
 	 * A Scope object represents a fault handling scope,
 	 * containing mappings for fault handlers and termination/compensation handlers.
 	 */
-	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
-		private final Map< String, Process > faultMap;
-		private final Map< String, Process > compMap;
+	protected class Scope extends AbstractIdentifiableObject implements Cloneable
+	{
+		private final Map< String, Process> faultMap;
+		private final Map< String, Process> compMap;
 
-		
 		@Override
 		public Scope clone()
 		{
 			return new Scope( id, new HashMap<>( faultMap ), new HashMap<>( compMap ) );
 		}
-		
-		private Scope( String id, Map< String, Process > faultMap, Map< String, Process > compMap )
+
+		private Scope( String id, Map< String, Process> faultMap, Map< String, Process> compMap )
 		{
 			super( id );
 			this.faultMap = faultMap;
@@ -123,7 +121,7 @@ public abstract class ExecutionThread extends JolieThread
 					faultMap.remove( faultName );
 				}
 			}
-				
+
 			return p;
 		}
 
@@ -146,8 +144,9 @@ public abstract class ExecutionThread extends JolieThread
 		public Process getCompensation( String scopeName )
 		{
 			Process p = compMap.get( scopeName );
-			if ( p != null )
+			if ( p != null ) {
 				compMap.remove( scopeName );
+			}
 			return p;
 		}
 
@@ -162,18 +161,18 @@ public abstract class ExecutionThread extends JolieThread
 	}
 
 	protected final Process process;
-	protected final Deque< Scope > scopeStack = new ArrayDeque<>();
+	protected final Deque< Scope> scopeStack = new ArrayDeque<>();
 	protected final ExecutionThread parent;
-	private final Deque< WeakReference< Future< ? > > > futureToCancel = new ArrayDeque<>();
+	private final Deque< WeakReference< Future< ?>>> futureToCancel = new ArrayDeque<>();
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	private Future<?> taskFuture;
-	
+
 	private void setTaskFuture( Future<?> taskFuture )
 	{
 		this.taskFuture = taskFuture;
 	}
-	
+
 	/**
 	 * Sets if this thread can be interrupted by a fault signal or not.
 	 */
@@ -181,7 +180,7 @@ public abstract class ExecutionThread extends JolieThread
 	{
 		canBeInterrupted = b;
 	}
-	
+
 	/**
 	 * Constructor
 	 * @param process the Process to be executed by this thread
@@ -193,7 +192,7 @@ public abstract class ExecutionThread extends JolieThread
 		this.process = process;
 		this.parent = parent;
 	}
-	
+
 	/**
 	 * Constructor
 	 * @param interpreter the Interpreter this thread should refer to
@@ -215,17 +214,17 @@ public abstract class ExecutionThread extends JolieThread
 		killerFault = fault;
 
 		while( !futureToCancel.isEmpty() ) {
-			final WeakReference< Future< ? > > ref = futureToCancel.poll();
+			final WeakReference< Future< ?>> ref = futureToCancel.poll();
 			if ( ref.get() != null ) {
 				ref.get().cancel( true );
 			}
 		}
-		
-		if( canBeInterrupted ) {
+
+		if ( canBeInterrupted ) {
 			taskFuture.cancel( canBeInterrupted );
 		}
 	}
-	
+
 	/**
 	 * Returns the fault which killed this thread, if any. null otherwise.
 	 * @return the fault which killed this thread, if any. null otherwise.
@@ -258,13 +257,13 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized Process getCurrentScopeCompensation()
 	{
-		if( scopeStack.isEmpty() && parent != null ) {
+		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.getCurrentScopeCompensation();
 		}
-		
+
 		return scopeStack.peek().getSelfCompensation();
 	}
-	
+
 	/**
 	 * Returns the compensator for scope name id.
 	 * @param id the scope name owning the compensator to retrieve
@@ -275,10 +274,10 @@ public abstract class ExecutionThread extends JolieThread
 		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.getCompensation( id );
 		}
-		
+
 		return scopeStack.peek().getCompensation( id );
 	}
-	
+
 	/**
 	 * Returns true if this thread is executing inside a scope.
 	 * Use this method to check if calling a variant of popScope is safe.
@@ -290,25 +289,25 @@ public abstract class ExecutionThread extends JolieThread
 	{
 		return !scopeStack.isEmpty();
 	}
-	
+
 	/**
 	 * Returns the id of the current executing scope.
 	 * @return the id of the current executing scope.
 	 */
 	public synchronized String currentScopeId()
 	{
-		if( scopeStack.isEmpty() && parent != null ) {
+		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.currentScopeId();
 		}
-		
+
 		return scopeStack.peek().id();
 	}
-	
+
 	/**
 	 * Registers a future to be cancelled when this thread is killed.
 	 * @param f the future to cancel
 	 */
-	public synchronized void cancelIfKilled( Future< ? > f )
+	public synchronized void cancelIfKilled( Future< ?> f )
 	{
 		cleanFuturesToKill();
 		if ( isKilled() ) {
@@ -316,12 +315,12 @@ public abstract class ExecutionThread extends JolieThread
 		}
 		futureToCancel.add( new WeakReference<>( f ) );
 	}
-	
+
 	private void cleanFuturesToKill()
 	{
 		boolean keepAlive = true;
 		while( !futureToCancel.isEmpty() && keepAlive ) {
-			final WeakReference< Future< ? > > ref = futureToCancel.peek();
+			final WeakReference< Future< ?>> ref = futureToCancel.peek();
 			if ( ref.get() == null ) {
 				futureToCancel.removeFirst();
 			} else {
@@ -342,10 +341,10 @@ public abstract class ExecutionThread extends JolieThread
 		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.getFaultHandler( id, erase );
 		}
-		
+
 		return scopeStack.peek().getFaultHandler( id, erase );
 	}
-	
+
 	/**
 	 * Pushes scope id as the new current executing scope in the scope stack of this thread.
 	 * @param id the id of the scope to push.
@@ -354,7 +353,7 @@ public abstract class ExecutionThread extends JolieThread
 	{
 		scopeStack.push( new Scope( id ) );
 	}
-	
+
 	/**
 	 * Pops the current executing scope from the scope stack of this thread.
 	 * @param merge <code>true</code> if the popped scope compensators
@@ -367,7 +366,7 @@ public abstract class ExecutionThread extends JolieThread
 			mergeCompensations( s );
 		}
 	}
-	
+
 	/**
 	 * Pops the current executing scope from the scope stack of this thread.
 	 * This method is a shortcut for <code>popScope(true)</code>.
@@ -376,7 +375,7 @@ public abstract class ExecutionThread extends JolieThread
 	{
 		popScope( true );
 	}
-	
+
 	private synchronized void mergeCompensations( Scope s )
 	{
 		if ( scopeStack.isEmpty() ) {
@@ -387,7 +386,7 @@ public abstract class ExecutionThread extends JolieThread
 			scopeStack.peek().mergeCompensations( s );
 		}
 	}
-	
+
 	/**
 	 * Installs process as the compensator for the current scope.
 	 * @param process the process to install as compensator for the current scope
@@ -400,7 +399,7 @@ public abstract class ExecutionThread extends JolieThread
 			scopeStack.peek().installCompensation( process );
 		}
 	}
-	
+
 	/**
 	 * Installs process as the fault handler for fault id.
 	 * @param id the fault to be handled by process
@@ -414,7 +413,7 @@ public abstract class ExecutionThread extends JolieThread
 			scopeStack.peek().installFaultHandler( id, process );
 		}
 	}
-	
+
 	/**
 	 * Returns the ExecutionThread the current thread should refer to.
 	 * This method can be useful, e.g., for resolving VariablePaths outside the
@@ -423,21 +422,20 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public static ExecutionThread currentThread()
 	{
-        Thread currThread = Thread.currentThread();
-              
-        
-        if ( currThread instanceof JolieExecutorThread ) {
-            return ( ( JolieExecutorThread ) currThread  ).executionThread();
-        }
-        
-        if( currThread instanceof  CommChannelHandler ) {
-            return ( ( CommChannelHandler ) currThread  ).executionThread();
-        }
-        
-        if( currThread instanceof CommCore.ExecutionContextThread ){
-            return ( ( CommCore.ExecutionContextThread ) currThread  ).executionThread();
-        }
-        
+		Thread currThread = Thread.currentThread();
+
+		if ( currThread instanceof JolieExecutorThread ) {
+			return ((JolieExecutorThread) currThread).executionThread();
+		}
+
+		if ( currThread instanceof CommChannelHandler ) {
+			return ((CommChannelHandler) currThread).executionThread();
+		}
+
+		if ( currThread instanceof CommCore.ExecutionContextThread ) {
+			return ((CommCore.ExecutionContextThread) currThread).executionThread();
+		}
+
 		return null;
 	}
 
@@ -453,24 +451,24 @@ public abstract class ExecutionThread extends JolieThread
 	 * @param operation the operation on which the process wants to receive the message
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread );
+	public abstract Future< SessionMessage> requestMessage( InputOperation operation, ExecutionThread ethread );
 
 	/**
 	 * Requests a message from the currently executing session.
 	 * @param operations the map of possible operations on which the process wants to receive the message
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread );
-	
+	public abstract Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ExecutionThread ethread );
+
 	protected Process process()
 	{
 		return process;
 	}
 
 	public abstract String getSessionId();
-	
+
 	public abstract void runProcess();
-	
+
 	@Override
 	public final void run()
 	{
@@ -479,12 +477,12 @@ public abstract class ExecutionThread extends JolieThread
 		t.setContextClassLoader( interpreter().getClassLoader() );
 		runProcess();
 	}
-	
+
 	public void start()
 	{
 		setTaskFuture( interpreter().runJolieThread( this ) );
 	}
-	
+
 	public void join()
 		throws InterruptedException
 	{

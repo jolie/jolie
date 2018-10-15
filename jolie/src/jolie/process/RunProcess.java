@@ -18,27 +18,25 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
-
-import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
+import jolie.runtime.expression.Expression;
 
 public class RunProcess implements Process
 {
 	private final Expression expression;
-	
+
 	public RunProcess( Expression expression )
 	{
 		this.expression = expression;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new RunProcess( expression.cloneExpression( reason ) );
 	}
-	
+
 	public void run()
 		throws FaultException
 	{
@@ -76,7 +74,7 @@ public class RunProcess implements Process
 		} else
 			throw new FaultException( "fInvalidCode" );*/
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

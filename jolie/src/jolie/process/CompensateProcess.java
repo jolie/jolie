@@ -18,40 +18,39 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
-
 public class CompensateProcess implements Process
 {
 	final private String id;
-	
+
 	public CompensateProcess( String id )
 	{
 		this.id = id;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new CompensateProcess( id );
 	}
-	
+
 	public void run()
 		throws FaultException, ExitingException
 	{
 		ExecutionThread t = ExecutionThread.currentThread();
-		if ( t.isKilled() )
+		if ( t.isKilled() ) {
 			return;
-		Process c = t.getCompensation( id ); 
+		}
+		Process c = t.getCompensation( id );
 		if ( c != null ) {
 			c.run();
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

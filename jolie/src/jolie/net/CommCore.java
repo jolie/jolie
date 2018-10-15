@@ -2,6 +2,7 @@
  *   Copyright (C) 2006-2017 by Fabrizio Montesi <famontesi@gmail.com>         *
  *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk>     *
  *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
  *                                                                             *
  *   This program is free software; you can redistribute it and/or modify      *
  *   it under the terms of the GNU Library General Public License as           *
@@ -264,6 +265,51 @@ public class CommCore
 		channelFactories.put( "socket", channelFactory );
 	}
 
+	public ExecutionContextThreadFactory getNewExecutionContextThreadFactory()
+	{
+		return new ExecutionContextThreadFactory();
+	}
+
+	public class ExecutionContextThread extends Thread
+	{
+
+		private Interpreter interpreter;
+		private ExecutionThread executionThread = null;
+
+		private ExecutionContextThread( Runnable r, Interpreter interpreter )
+		{
+			super( r );
+			this.interpreter = interpreter;
+		}
+
+		public void executionThread( ExecutionThread ethread )
+		{
+			executionThread = ethread;
+		}
+
+		public ExecutionThread executionThread()
+		{
+			return executionThread;
+		}
+
+		public Interpreter interpreter()
+		{
+			return interpreter;
+		}
+
+	}
+
+	public class ExecutionContextThreadFactory implements ThreadFactory
+	{
+
+		@Override
+		public Thread newThread( Runnable r )
+		{
+			return new ExecutionContextThread( r, interpreter() );
+		}
+
+	}
+
 	public void receiveResponse( CommMessage m )
 	{
 		messagePool.receiveResponse( m );
@@ -331,51 +377,60 @@ public class CommCore
 		}
 	}
 
-	public class ExecutionContextThread extends Thread
+	public CommChannel createCommChannel( URI uri, OutputPort port )
+		throws IOException
 	{
-
-		private Interpreter interpreter;
-		private ExecutionThread executionThread = null;
-
-		private ExecutionContextThread( Runnable r, Interpreter interpreter )
-		{
-			super( r );
-			this.interpreter = interpreter;
+		String medium = uri.getScheme();
+		CommChannelFactory factory = getCommChannelFactory( medium );
+		if ( factory == null ) {
+			throw new UnsupportedCommMediumException( medium );
 		}
-
-		public void executionThread( ExecutionThread ethread )
-		{
-			executionThread = ethread;
-		}
-
-		public ExecutionThread executionThread()
-		{
-			return executionThread;
-		}
-
-		public Interpreter interpreter()
-		{
-			return interpreter;
-		}
-
+		return factory.createChannel( uri, port );
 	}
 
-	public class ExecutionContextThreadFactory implements ThreadFactory
+	public CommChannel createInputCommChannel( URI uri, InputPort port ) throws IOException
 	{
-
-		@Override
-		public Thread newThread( Runnable r )
-		{
-			return new ExecutionContextThread( r, interpreter() );
+		String medium = uri.getScheme();
+		CommChannelFactory channelFactory = getCommChannelFactory( medium );
+		if ( channelFactory == null ) {
+			throw new UnsupportedCommMediumException( medium );
 		}
-
+		String protocolName = port.protocolConfigurationPath().getValue().strValue();
+		CommProtocolFactory protocolFactory
+			= interpreter.commCore().getCommProtocolFactory( protocolName );
+		if ( protocolFactory == null ) {
+			throw new UnsupportedCommProtocolException( protocolName );
+		}
+		CommProtocol protocol = protocolFactory.createInputProtocol( port.protocolConfigurationPath(), uri );
+		return channelFactory.createInputChannel( uri, port, protocol );
 	}
 
-	/**
-	 * Returns the Logger used by this CommCore.
-	 *
-	 * @return the Logger used by this CommCore
-	 */
+	public CommChannel createPubSubCommChannel( URI uri, OutputPort port )
+		throws IOException
+	{
+		CommChannelFactory factory = getCommChannelFactory( "pubsubchannel" );
+		if ( factory == null ) {
+			throw new UnsupportedCommMediumException( "pubsubchannel" );
+		}
+
+		return factory.createChannel( uri, port );
+	}
+
+	private final Map< String, CommProtocolFactory> protocolFactories = new HashMap<>();
+
+	public CommProtocolFactory getCommProtocolFactory( String name )
+		throws IOException
+	{
+		CommProtocolFactory factory = protocolFactories.get( name );
+		if ( factory == null ) {
+			factory = interpreter.getClassLoader().createCommProtocolFactory( name, this );
+			if ( factory != null ) {
+				protocolFactories.put( name, factory );
+			}
+		}
+		return factory;
+	}
+
 	public Logger logger()
 	{
 		return logger;
@@ -418,32 +473,6 @@ public class CommCore
 			factory = interpreter.getClassLoader().createCommChannelFactory( name, this );
 			if ( factory != null ) {
 				channelFactories.put( name, factory );
-			}
-		}
-		return factory;
-	}
-
-	public CommChannel createCommChannel( URI uri, OutputPort port )
-		throws IOException
-	{
-		String medium = uri.getScheme();
-		CommChannelFactory factory = getCommChannelFactory( medium );
-		if ( factory == null ) {
-			throw new UnsupportedCommMediumException( medium );
-		}
-		return factory.createChannel( uri, port );
-	}
-
-	private final Map< String, CommProtocolFactory> protocolFactories = new HashMap<>();
-
-	public CommProtocolFactory getCommProtocolFactory( String name )
-		throws IOException
-	{
-		CommProtocolFactory factory = protocolFactories.get( name );
-		if ( factory == null ) {
-			factory = interpreter.getClassLoader().createCommProtocolFactory( name, this );
-			if ( factory != null ) {
-				protocolFactories.put( name, factory );
 			}
 		}
 		return factory;
@@ -1105,7 +1134,8 @@ public class CommCore
 	}
 
 	/**
-	 * Shutdowns the communication core, interrupting every communication-related thread.
+	 * Shutdowns the communication core, interrupting every
+	 * communication-related thread.
 	 */
 	public synchronized void shutdown()
 	{

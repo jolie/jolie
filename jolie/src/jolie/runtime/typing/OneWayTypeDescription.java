@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.typing;
 
 /**
@@ -38,12 +37,12 @@ public class OneWayTypeDescription implements OperationTypeDescription
 	{
 		return requestType;
 	}
-	
+
 	public OneWayTypeDescription asOneWayTypeDescription()
 	{
 		return this;
 	}
-	
+
 	public RequestResponseTypeDescription asRequestResponseTypeDescription()
 	{
 		return null;

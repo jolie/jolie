@@ -18,8 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.tracer;
 
 /**
@@ -28,5 +26,5 @@ package jolie.tracer;
  */
 public interface TraceAction
 {
-	
+
 }

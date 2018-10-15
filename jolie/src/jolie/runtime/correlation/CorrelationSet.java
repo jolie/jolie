@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.correlation;
 
 import java.util.List;
@@ -55,10 +54,10 @@ public class CorrelationSet
 	}
 
 	// Maps operation names to their correlation pairs.
-	private final MultiMap< String, CorrelationPair > correlationMap;
-	private final List< VariablePath > correlationVariablePaths;
+	private final MultiMap< String, CorrelationPair> correlationMap;
+	private final List< VariablePath> correlationVariablePaths;
 
-	public CorrelationSet( List< VariablePath > correlationVariablePaths, MultiMap< String, CorrelationPair > correlationMap )
+	public CorrelationSet( List< VariablePath> correlationVariablePaths, MultiMap< String, CorrelationPair> correlationMap )
 	{
 		this.correlationMap = correlationMap;
 		this.correlationVariablePaths = correlationVariablePaths;
@@ -69,17 +68,17 @@ public class CorrelationSet
 	 * @param operationName the operation name the list is defined for.
 	 * @return the list of {@link CorrelationPair} defined for the operation, or {@code null} if no such list is defined.
 	 */
-	public List< CorrelationPair > getOperationCorrelationPairs( String operationName )
+	public List< CorrelationPair> getOperationCorrelationPairs( String operationName )
 	{
-		return (List< CorrelationPair >)correlationMap.get( operationName );
+		return (List< CorrelationPair>) correlationMap.get( operationName );
 	}
 
-	public List< VariablePath > correlationVariablePaths()
+	public List< VariablePath> correlationVariablePaths()
 	{
 		return correlationVariablePaths;
 	}
 
-	public Set< String > correlatingOperations()
+	public Set< String> correlatingOperations()
 	{
 		return correlationMap.keySet();
 	}

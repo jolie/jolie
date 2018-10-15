@@ -16,10 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-
-
 package jolie;
-
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -234,31 +231,33 @@ public class OOITBuilder implements OLVisitor
 	private final Interpreter interpreter;
 	private String currentOutputPort = null;
 	private Interface currentPortInterface = null;
-	private final Map< String, Boolean > isConstantMap;
-	private final Map< String, InputPort > inputPorts = new HashMap<>();
-	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new ArrayList<>();
+	private final Map< String, Boolean> isConstantMap;
+	private final Map< String, InputPort> inputPorts = new HashMap<>();
+	private final List< Pair< Type.TypeLink, TypeDefinition>> typeLinks = new ArrayList<>();
 	private final CorrelationFunctionInfo correlationFunctionInfo;
 	private ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private boolean registerSessionStarters = false;
 	private InputPort currCourierInputPort = null;
 	private String currCourierOperationName = null;
-	private final Map< String, Map< String, AggregationConfiguration > > aggregationConfigurations =
-		new HashMap<>(); // Input port name -> (operation name -> aggregation configuration)
-	private final Map< String, InterfaceExtender > interfaceExtenders =
-		new HashMap<>();
-	private final Deque< OLSyntaxNode > lazyVisits = new LinkedList<>();	
+	private final Map< String, Map< String, AggregationConfiguration>> aggregationConfigurations
+		= new HashMap<>(); // Input port name -> (operation name -> aggregation configuration)
+	private final Map< String, InterfaceExtender> interfaceExtenders
+		= new HashMap<>();
+	private final Deque< OLSyntaxNode> lazyVisits = new LinkedList<>();
 	private boolean firstPass = true;
 
-	private static class AggregationConfiguration {
+	private static class AggregationConfiguration
+	{
 		private final OutputPort defaultOutputPort;
 		private final Interface aggregatedInterface;
 		private final InterfaceExtender interfaceExtender;
-		
+
 		public AggregationConfiguration(
 			OutputPort defaultOutputPort,
 			Interface aggregatedInterface,
 			InterfaceExtender interfaceExtender
-		) {
+		)
+		{
 			this.defaultOutputPort = defaultOutputPort;
 			this.aggregatedInterface = aggregatedInterface;
 			this.interfaceExtender = interfaceExtender;
@@ -276,33 +275,34 @@ public class OOITBuilder implements OLVisitor
 	public OOITBuilder(
 		Interpreter interpreter,
 		Program program,
-		Map< String, Boolean > isConstantMap,
+		Map< String, Boolean> isConstantMap,
 		CorrelationFunctionInfo correlationFunctionInfo
-	) {
+	)
+	{
 		this.interpreter = interpreter;
 		this.program = new Program( program.context() );
 		this.isConstantMap = isConstantMap;
 		this.correlationFunctionInfo = correlationFunctionInfo;
 
-		Map< String, TypeDefinition > builtInTypes = OLParser.createTypeDeclarationMap( program.context() );
+		Map< String, TypeDefinition> builtInTypes = OLParser.createTypeDeclarationMap( program.context() );
 		this.program.children().addAll( builtInTypes.values() );
 		this.program.children().addAll( program.children() );
 	}
-	
+
 	private void error( ParsingContext context, String message )
 	{
 		valid = false;
 		String s = context.sourceName() + ":" + context.line() + ": " + message;
 		interpreter.logSevere( s );
 	}
-	
+
 	private void error( ParsingContext context, Exception e )
 	{
 		valid = false;
 		e.printStackTrace();
 		error( context, e.getMessage() );
 	}
-	
+
 	/**
 	 * Launches the build process.
 	 * 
@@ -313,15 +313,15 @@ public class OOITBuilder implements OLVisitor
 	 */
 	public boolean build()
 	{
-        visit( program );
+		visit( program );
 		checkForInit();
 		resolveTypeLinks();
 		lazyVisits();
 		buildCorrelationSets();
-		
-        return valid;
+
+		return valid;
 	}
-	
+
 	private void lazyVisits()
 	{
 		firstPass = false;
@@ -330,7 +330,7 @@ public class OOITBuilder implements OLVisitor
 			node.accept( this );
 		}
 	}
-	
+
 	private void visitLater( OLSyntaxNode n )
 	{
 		lazyVisits.add( n );
@@ -342,16 +342,16 @@ public class OOITBuilder implements OLVisitor
 			interpreter.getDefinition( "init" );
 		} catch( InvalidIdException e ) {
 			interpreter.register( "init",
-			new InitDefinitionProcess(
-				new ScopeProcess( "main", new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false )
-			));
+				new InitDefinitionProcess(
+					new ScopeProcess( "main", new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false )
+				) );
 		}
 	}
 
 	private void resolveTypeLinks()
 	{
 		Type type;
-		for( Pair< Type.TypeLink, TypeDefinition > pair : typeLinks ) {
+		for( Pair< Type.TypeLink, TypeDefinition> pair : typeLinks ) {
 			type = types.get( pair.key().linkedTypeName() );
 			pair.key().setLinkedType( type );
 			if ( type == null ) {
@@ -363,13 +363,13 @@ public class OOITBuilder implements OLVisitor
 	private void buildCorrelationSets()
 	{
 		Interpreter.SessionStarter starter;
-		Collection< String > operations;
+		Collection< String> operations;
 		VariablePath sessionVariablePath;
 		VariablePath messageVariablePath;
 		CorrelationSet currCorrelationSet;
-		Set< Interpreter.SessionStarter > starters = new HashSet<>();
-		List< VariablePath > correlationVariablePaths;
-		MultiMap< String, CorrelationPair > correlationMap;
+		Set< Interpreter.SessionStarter> starters = new HashSet<>();
+		List< VariablePath> correlationVariablePaths;
+		MultiMap< String, CorrelationPair> correlationMap;
 
 		for( CorrelationSetInfo csetInfo : correlationFunctionInfo.correlationSets() ) {
 			correlationVariablePaths = new ArrayList<>();
@@ -403,7 +403,7 @@ public class OOITBuilder implements OLVisitor
 			starters.clear();
 		}
 	}
-	
+
 	public void visit( ExecutionInfo n )
 	{
 		executionMode = n.mode();
@@ -411,8 +411,9 @@ public class OOITBuilder implements OLVisitor
 	}
 
 	public void visit( VariablePathNode n )
-	{}
-	
+	{
+	}
+
 	public void visit( CorrelationSetInfo n )
 	{
 //		correlationSetInfoList.add( n );
@@ -420,10 +421,10 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( OutputPortInfo n )
 	{
-		final Process protocolConfigurationProcess =
-			( n.protocolConfiguration() != null ) ? buildProcess( n.protocolConfiguration() )
+		final Process protocolConfigurationProcess
+			= (n.protocolConfiguration() != null) ? buildProcess( n.protocolConfiguration() )
 			: NullProcess.getInstance();
-		
+
 		final boolean isConstant = isConstantMap.computeIfAbsent( n.id(), k -> false );
 
 		currentOutputPort = n.id();
@@ -435,39 +436,39 @@ public class OOITBuilder implements OLVisitor
 		currentOutputPort = null;
 
 		interpreter.register( n.id(), new OutputPort(
-				interpreter,
-				n.id(),
-				n.protocolId(),
-				protocolConfigurationProcess,
-				n.location(),
-				getOutputPortInterface( n.id() ),
-				isConstant
-			)
+			interpreter,
+			n.id(),
+			n.protocolId(),
+			protocolConfigurationProcess,
+			n.location(),
+			getOutputPortInterface( n.id() ),
+			isConstant
+		)
 		);
 	}
 
 	private Interface getOutputPortInterface( String outputPortName )
 	{
-		Map< String, OneWayTypeDescription > oneWayMap = notificationTypes.get( outputPortName );
+		Map< String, OneWayTypeDescription> oneWayMap = notificationTypes.get( outputPortName );
 		if ( oneWayMap == null ) {
-			oneWayMap = new HashMap< String, OneWayTypeDescription >();
+			oneWayMap = new HashMap< String, OneWayTypeDescription>();
 		}
-		Map< String, RequestResponseTypeDescription > rrMap = solicitResponseTypes.get( outputPortName );
+		Map< String, RequestResponseTypeDescription> rrMap = solicitResponseTypes.get( outputPortName );
 		if ( rrMap == null ) {
-			rrMap = new HashMap< String, RequestResponseTypeDescription >();
+			rrMap = new HashMap< String, RequestResponseTypeDescription>();
 		}
 		return new Interface( oneWayMap, rrMap );
 	}
-	
+
 	public void visit( EmbeddedServiceNode n )
 	{
 		try {
-			final VariablePath path =
-				n.portId() == null ? null
+			final VariablePath path
+				= n.portId() == null ? null
 				: interpreter.getOutputPort( n.portId() ).locationVariablePath();
 
-			final EmbeddedServiceConfiguration embeddedServiceConfiguration =
-				n.type().equals( Constants.EmbeddedServiceType.INTERNAL )
+			final EmbeddedServiceConfiguration embeddedServiceConfiguration
+				= n.type().equals( Constants.EmbeddedServiceType.INTERNAL )
 				? new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration( n.servicePath(), (Program) n.program() )
 				: new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath() );
 
@@ -483,21 +484,21 @@ public class OOITBuilder implements OLVisitor
 			error( n.context(), "could not find port " + n.portId() );
 		}
 	}
-	
+
 	private AggregationConfiguration getAggregationConfiguration( String inputPortName, String operationName )
 	{
-		Map< String, AggregationConfiguration > map = aggregationConfigurations.get( inputPortName );
+		Map< String, AggregationConfiguration> map = aggregationConfigurations.get( inputPortName );
 		if ( map == null ) {
 			return null;
 		}
 		return map.get( operationName );
 	}
-	
+
 	private void putAggregationConfiguration( String inputPortName, String operationName, AggregationConfiguration configuration )
 	{
-		Map< String, AggregationConfiguration > map = aggregationConfigurations.get( inputPortName );
+		Map< String, AggregationConfiguration> map = aggregationConfigurations.get( inputPortName );
 		if ( map == null ) {
-			map = new HashMap< String, AggregationConfiguration >();
+			map = new HashMap< String, AggregationConfiguration>();
 			aggregationConfigurations.put( inputPortName, map );
 		}
 		map.put( operationName, configuration );
@@ -506,17 +507,17 @@ public class OOITBuilder implements OLVisitor
 	public void visit( InputPortInfo n )
 	{
 		currentPortInterface = new Interface(
-			new HashMap< String, OneWayTypeDescription >(),
-			new HashMap< String, RequestResponseTypeDescription >()
+			new HashMap< String, OneWayTypeDescription>(),
+			new HashMap< String, RequestResponseTypeDescription>()
 		);
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
 		}
-		
-		Map< String, OutputPort > redirectionMap =
-			new HashMap< String, OutputPort > ();
+
+		Map< String, OutputPort> redirectionMap
+			= new HashMap< String, OutputPort>();
 		OutputPort oPort = null;
-		for( Entry< String, String > entry : n.redirectionMap().entrySet() ) {
+		for( Entry< String, String> entry : n.redirectionMap().entrySet() ) {
 			try {
 				oPort = interpreter.getOutputPort( entry.getValue() );
 			} catch( InvalidIdException e ) {
@@ -526,12 +527,12 @@ public class OOITBuilder implements OLVisitor
 		}
 
 		OutputPort outputPort;
-		Map< String, OneWayTypeDescription > outputPortNotificationTypes;
-		Map< String, RequestResponseTypeDescription > outputPortSolicitResponseTypes;
-		Map< String, AggregatedOperation > aggregationMap = new HashMap< String, AggregatedOperation >();
+		Map< String, OneWayTypeDescription> outputPortNotificationTypes;
+		Map< String, RequestResponseTypeDescription> outputPortSolicitResponseTypes;
+		Map< String, AggregatedOperation> aggregationMap = new HashMap< String, AggregatedOperation>();
 		InterfaceExtender extender;
 		for( InputPortInfo.AggregationItemInfo item : n.aggregationList() ) {
-			String outputPortName = item.outputPortList()[0];
+			String outputPortName = item.outputPortList()[ 0 ];
 			if ( item.interfaceExtender() == null ) {
 				extender = null;
 			} else {
@@ -555,40 +556,40 @@ public class OOITBuilder implements OLVisitor
 				error( n.context(), e );
 			}
 		}
-		
+
 		String pId = n.protocolId();
 		CommProtocolFactory protocolFactory = null;
 
-		VariablePath protocolConfigurationPath =
-			new VariablePathBuilder( true )
-			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-			.add( n.id(), 0 )
-			.add( Constants.PROTOCOL_NODE_NAME, 0 )
-			.toVariablePath();
+		VariablePath protocolConfigurationPath
+			= new VariablePathBuilder( true )
+				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( n.id(), 0 )
+				.add( Constants.PROTOCOL_NODE_NAME, 0 )
+				.toVariablePath();
 		try {
 			protocolFactory = interpreter.commCore().getCommProtocolFactory( pId );
 		} catch( IOException e ) {
 			error( n.context(), e );
 		}
 
-		VariablePath locationPath =
-			new VariablePathBuilder( true )
-			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-			.add( n.id(), 0 )
-			.add( Constants.LOCATION_NODE_NAME, 0 )
-			.toVariablePath();
+		VariablePath locationPath
+			= new VariablePathBuilder( true )
+				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( n.id(), 0 )
+				.add( Constants.LOCATION_NODE_NAME, 0 )
+				.toVariablePath();
 		locationPath = new ClosedVariablePath( locationPath, interpreter.globalValue() );
 		// Process assignLocation = new AssignmentProcess( locationPath, Value.create( n.location().toString() ) );
 		locationPath.getValue().setValue( n.location().toString() );
 
-		VariablePath protocolPath =
-			new VariablePathBuilder( true )
-			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-			.add( n.id(), 0 )
-			.add( Constants.PROTOCOL_NODE_NAME, 0 )
-			.toVariablePath();
+		VariablePath protocolPath
+			= new VariablePathBuilder( true )
+				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( n.id(), 0 )
+				.add( Constants.PROTOCOL_NODE_NAME, 0 )
+				.toVariablePath();
 		Process assignProtocol = new AssignmentProcess( protocolPath, Value.create( n.protocolId() ) );
-		Process[] confChildren = new Process[] { assignProtocol, buildProcess( n.protocolConfiguration() ) };
+		Process[] confChildren = new Process[]{ assignProtocol, buildProcess( n.protocolConfiguration() ) };
 		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
 
 		InputPort inputPort = new InputPort(
@@ -599,7 +600,7 @@ public class OOITBuilder implements OLVisitor
 			aggregationMap,
 			redirectionMap
 		);
-		
+
 		if ( n.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			try {
 				interpreter.commCore().addLocalInputPort( inputPort );
@@ -628,12 +629,12 @@ public class OOITBuilder implements OLVisitor
 	private Expression currExpression;
 	private Type currType;
 	boolean insideType = false;
-	
-	private final Map< String, Type > types = new HashMap< String, Type >();
-	private final Map< String, Map< String, OneWayTypeDescription > > notificationTypes =
-		new HashMap< String, Map< String, OneWayTypeDescription > >(); // Maps output ports to their OW operation types
-	private final Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
-		new HashMap< String, Map< String, RequestResponseTypeDescription > >(); // Maps output ports to their RR operation types
+
+	private final Map< String, Type> types = new HashMap< String, Type>();
+	private final Map< String, Map< String, OneWayTypeDescription>> notificationTypes
+		= new HashMap< String, Map< String, OneWayTypeDescription>>(); // Maps output ports to their OW operation types
+	private final Map< String, Map< String, RequestResponseTypeDescription>> solicitResponseTypes
+		= new HashMap< String, Map< String, RequestResponseTypeDescription>>(); // Maps output ports to their RR operation types
 
 	public void visit( TypeInlineDefinition n )
 	{
@@ -643,9 +644,9 @@ public class OOITBuilder implements OLVisitor
 		if ( n.untypedSubTypes() ) {
 			currType = Type.create( n.nativeType(), n.cardinality(), true, null );
 		} else {
-			Map< String, Type > subTypes = new HashMap< String, Type >();
+			Map< String, Type> subTypes = new HashMap< String, Type>();
 			if ( n.subTypes() != null ) {
-				for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
+				for( Entry< String, TypeDefinition> entry : n.subTypes() ) {
 					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
 				}
 			}
@@ -677,35 +678,36 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( Program p )
 	{
-		for( OLSyntaxNode node : p.children() )
+		for( OLSyntaxNode node : p.children() ) {
 			node.accept( this );
+		}
 	}
 
 	private boolean insideOperationDeclaration = false;
-	
+
 	private OneWayTypeDescription buildOneWayTypeDescription( OneWayOperationDeclaration decl )
 	{
 		if ( decl == null ) {
 			return null;
 		}
-		
+
 		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
 			return new OneWayTypeDescription( types.get( decl.requestType().id() ) );
 		} else {
 			return new OneWayTypeDescription( buildType( decl.requestType() ) );
 		}
 	}
-	
+
 	private RequestResponseTypeDescription buildRequestResponseTypeDescription( RequestResponseOperationDeclaration decl )
 	{
 		if ( decl == null ) {
 			return null;
 		}
-		
+
 		RequestResponseTypeDescription typeDescription;
-		Map< String, Type > faults = new HashMap< String, Type >();
+		Map< String, Type> faults = new HashMap< String, Type>();
 		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
-			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
+			for( Entry< String, TypeDefinition> entry : decl.faults().entrySet() ) {
 				faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
 			}
 			typeDescription = new RequestResponseTypeDescription(
@@ -714,7 +716,7 @@ public class OOITBuilder implements OLVisitor
 				faults
 			);
 		} else {
-			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
+			for( Entry< String, TypeDefinition> entry : decl.faults().entrySet() ) {
 				faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
 			}
 			typeDescription = new RequestResponseTypeDescription(
@@ -775,36 +777,36 @@ public class OOITBuilder implements OLVisitor
 			currentPortInterface.requestResponseOperations().put( decl.id(), typeDescription );
 		}
 	}
-	
+
 	public void visit( DefinitionNode n )
 	{
 		final DefinitionProcess def;
-		
+
 		switch( n.id() ) {
-		case "main":
-			switch( executionMode ) {
-			case SINGLE:
-				// We are a single-session service, so we will not spawn sessions
-				registerSessionStarters = false;
-				def = new DefinitionProcess( buildProcess( n.body() ) );
+			case "main":
+				switch( executionMode ) {
+					case SINGLE:
+						// We are a single-session service, so we will not spawn sessions
+						registerSessionStarters = false;
+						def = new DefinitionProcess( buildProcess( n.body() ) );
+						break;
+					default:
+						registerSessionStarters = true;
+						def = new DefinitionProcess( buildProcess( n.body() ) );
+						registerSessionStarters = false;
+						break;
+				}
+				break;
+			case "init":
+				final Process[] initChildren = {
+					new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
+					buildProcess( n.body() )
+				};
+				def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
 				break;
 			default:
-				registerSessionStarters = true;
 				def = new DefinitionProcess( buildProcess( n.body() ) );
-				registerSessionStarters = false;
 				break;
-			}
-			break;
-		case "init":
-			final Process[] initChildren = {
-				new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
-				buildProcess( n.body() )
-			};
-			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
-			break;
-		default:
-			def = new DefinitionProcess( buildProcess( n.body() ) );
-			break;
 		}
 
 		interpreter.register( n.id(), def );
@@ -820,7 +822,7 @@ public class OOITBuilder implements OLVisitor
 		}
 		currProcess = new ParallelProcess( children );
 	}
-	
+
 	public void visit( SynchronizedStatement n )
 	{
 		n.body().accept( this );
@@ -833,18 +835,18 @@ public class OOITBuilder implements OLVisitor
 		final boolean origRegisterSessionStarters = registerSessionStarters;
 		registerSessionStarters = false;
 
-		final List< Process > children = new ArrayList<>( n.children().size() );
+		final List< Process> children = new ArrayList<>( n.children().size() );
 		n.children().forEach( ( child ) -> {
 			children.add( buildProcess( child ) );
 		} );
-		currProcess = new SequentialProcess( children.toArray( new Process[0] ) );
+		currProcess = new SequentialProcess( children.toArray( new Process[ 0 ] ) );
 
 		if ( origRegisterSessionStarters && children.get( 0 ) instanceof InputOperationProcess ) {
 			// We must register this sequence as a starter guarded by the first input process
 			InputOperationProcess first = (InputOperationProcess) children.remove( 0 );
 			registerSessionStarter(
 				first,
-				new SequentialProcess( children.toArray( new Process[0] ) )
+				new SequentialProcess( children.toArray( new Process[ 0 ] ) )
 			);
 		}
 
@@ -862,16 +864,16 @@ public class OOITBuilder implements OLVisitor
 		boolean origRegisterSessionStarters = registerSessionStarters;
 		registerSessionStarters = false;
 
-		List< Pair< InputOperationProcess, Process > > branches =
-					new ArrayList<>( n.children().size() );
+		List< Pair< InputOperationProcess, Process>> branches
+			= new ArrayList<>( n.children().size() );
 		InputOperationProcess guard;
-		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
+		for( Pair< OLSyntaxNode, OLSyntaxNode> pair : n.children() ) {
 			pair.key().accept( this );
 			try {
 				guard = (InputOperationProcess) currProcess;
 				pair.value().accept( this );
 				branches.add(
-					new Pair< InputOperationProcess, Process >( guard, currProcess )
+					new Pair< InputOperationProcess, Process>( guard, currProcess )
 				);
 				if ( origRegisterSessionStarters ) {
 					registerSessionStarter( guard, currProcess );
@@ -880,12 +882,12 @@ public class OOITBuilder implements OLVisitor
 				e.printStackTrace();
 			}
 		}
-		
-		currProcess = new NDChoiceProcess( branches.toArray( new Pair[0] ) );
-		
+
+		currProcess = new NDChoiceProcess( branches.toArray( new Pair[ 0 ] ) );
+
 		registerSessionStarters = origRegisterSessionStarters;
 	}
-		
+
 	public void visit( OneWayOperationStatement n )
 	{
 		boolean origRegisterSessionStarters = registerSessionStarters;
@@ -893,8 +895,8 @@ public class OOITBuilder implements OLVisitor
 
 		try {
 			InputOperationProcess inputProcess;
-			currProcess = inputProcess =
-				new OneWayProcess(
+			currProcess = inputProcess
+				= new OneWayProcess(
 					interpreter.getOneWayOperation( n.id() ),
 					buildVariablePath( n.inputVarPath() )
 				);
@@ -902,7 +904,7 @@ public class OOITBuilder implements OLVisitor
 				registerSessionStarter( inputProcess, NullProcess.getInstance() );
 			}
 		} catch( InvalidIdException e ) {
-			error( n.context(), e ); 
+			error( n.context(), e );
 		}
 
 		registerSessionStarters = origRegisterSessionStarters;
@@ -912,7 +914,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		boolean origRegisterSessionStarters = registerSessionStarters;
 		registerSessionStarters = false;
-		
+
 		Expression outputExpression = null;
 		if ( n.outputExpression() != null ) {
 			n.outputExpression().accept( this );
@@ -920,23 +922,23 @@ public class OOITBuilder implements OLVisitor
 		}
 		try {
 			InputOperationProcess inputProcess;
-			currProcess = inputProcess =
-				new RequestResponseProcess(
-						interpreter.getRequestResponseOperation( n.id() ),
-						buildVariablePath( n.inputVarPath() ),
-						outputExpression,
-						buildProcess( n.process() )
-						);
+			currProcess = inputProcess
+				= new RequestResponseProcess(
+					interpreter.getRequestResponseOperation( n.id() ),
+					buildVariablePath( n.inputVarPath() ),
+					outputExpression,
+					buildProcess( n.process() )
+				);
 			if ( origRegisterSessionStarters ) {
 				registerSessionStarter( inputProcess, NullProcess.getInstance() );
 			}
 		} catch( InvalidIdException e ) {
-			error( n.context(), e ); 
+			error( n.context(), e );
 		}
 
 		registerSessionStarters = origRegisterSessionStarters;
 	}
-		
+
 	public void visit( NotificationOperationStatement n )
 	{
 		Expression outputExpression = null;
@@ -945,48 +947,49 @@ public class OOITBuilder implements OLVisitor
 			outputExpression = currExpression;
 		}
 		try {
-			currProcess =
-				new NotificationProcess(
-						n.id(),
-						interpreter.getOutputPort( n.outputPortId() ),
-						outputExpression,
-						notificationTypes.get( n.outputPortId() ).get( n.id() )
-					);
+			currProcess
+				= new NotificationProcess(
+					n.id(),
+					interpreter.getOutputPort( n.outputPortId() ),
+					outputExpression,
+					notificationTypes.get( n.outputPortId() ).get( n.id() )
+				);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
 	}
-		
+
 	public void visit( SolicitResponseOperationStatement n )
 	{
 		try {
 			Process installProcess = NullProcess.getInstance();
-			if ( n.handlersFunction() != null )
+			if ( n.handlersFunction() != null ) {
 				installProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
-			currProcess =
-				new SolicitResponseProcess(
-						n.id(),
-						interpreter.getOutputPort( n.outputPortId() ),
-						buildExpression( n.outputExpression() ),
-						buildVariablePath( n.inputVarPath() ),
-						installProcess,
-						solicitResponseTypes.get( n.outputPortId() ).get( n.id() )
-					);
+			}
+			currProcess
+				= new SolicitResponseProcess(
+					n.id(),
+					interpreter.getOutputPort( n.outputPortId() ),
+					buildExpression( n.outputExpression() ),
+					buildVariablePath( n.inputVarPath() ),
+					installProcess,
+					solicitResponseTypes.get( n.outputPortId() ).get( n.id() )
+				);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
 	}
-		
+
 	public void visit( LinkInStatement n )
 	{
 		currProcess = new LinkInProcess( n.id() );
 	}
-	
+
 	public void visit( LinkOutStatement n )
 	{
 		currProcess = new LinkOutProcess( n.id() );
 	}
-	
+
 	public void visit( ThrowStatement n )
 	{
 		Expression expression = null;
@@ -996,42 +999,42 @@ public class OOITBuilder implements OLVisitor
 		}
 		currProcess = new ThrowProcess( n.id(), expression );
 	}
-	
+
 	public void visit( CompensateStatement n )
 	{
 		currProcess = new CompensateProcess( n.id() );
 	}
-		
+
 	public void visit( Scope n )
 	{
 		n.body().accept( this );
 		currProcess = new ScopeProcess( n.id(), currProcess );
 	}
-		
+
 	public void visit( InstallStatement n )
 	{
 		currProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
 	}
-	
-	private List< Pair< String, Process > > getHandlersFunction( InstallFunctionNode n )
+
+	private List< Pair< String, Process>> getHandlersFunction( InstallFunctionNode n )
 	{
-		List< Pair< String, Process > > pairs = new ArrayList<>( n.pairs().length );
-		for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
+		List< Pair< String, Process>> pairs = new ArrayList<>( n.pairs().length );
+		for( Pair< String, OLSyntaxNode> pair : n.pairs() ) {
 			pair.value().accept( this );
-			pairs.add( new Pair< String, Process >( pair.key(), currProcess ) );
+			pairs.add( new Pair< String, Process>( pair.key(), currProcess ) );
 		}
 		return pairs;
 	}
-			
+
 	public void visit( AssignStatement n )
 	{
 		n.expression().accept( this );
-			
-		AssignmentProcess p = 
-			new AssignmentProcess(
+
+		AssignmentProcess p
+			= new AssignmentProcess(
 				buildVariablePath( n.variablePath() ),
 				currExpression
-				);
+			);
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1040,10 +1043,10 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		AddAssignmentProcess p =
-			new AddAssignmentProcess(
-			buildVariablePath( n.variablePath() ),
-			currExpression );
+		AddAssignmentProcess p
+			= new AddAssignmentProcess(
+				buildVariablePath( n.variablePath() ),
+				currExpression );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1052,10 +1055,10 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		SubtractAssignmentProcess p =
-			new SubtractAssignmentProcess(
-			buildVariablePath( n.variablePath() ),
-			currExpression );
+		SubtractAssignmentProcess p
+			= new SubtractAssignmentProcess(
+				buildVariablePath( n.variablePath() ),
+				currExpression );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1064,10 +1067,10 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		MultiplyAssignmentProcess p =
-			new MultiplyAssignmentProcess(
-			buildVariablePath( n.variablePath() ),
-			currExpression );
+		MultiplyAssignmentProcess p
+			= new MultiplyAssignmentProcess(
+				buildVariablePath( n.variablePath() ),
+				currExpression );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1076,10 +1079,10 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		DivideAssignmentProcess p =
-			new DivideAssignmentProcess(
-			buildVariablePath( n.variablePath() ),
-			currExpression );
+		DivideAssignmentProcess p
+			= new DivideAssignmentProcess(
+				buildVariablePath( n.variablePath() ),
+				currExpression );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1090,21 +1093,22 @@ public class OOITBuilder implements OLVisitor
 		csetVarPathNode.append( new Pair<OLSyntaxNode, OLSyntaxNode>(
 			new ConstantStringExpression( path.context(), Constants.CSETS ),
 			new ConstantIntegerExpression( path.context(), 0 )
-		));
+		) );
 		csetVarPathNode.path().addAll( path.path() );
 		return buildVariablePath( csetVarPathNode );
 	}
-	
+
 	private VariablePath buildVariablePath( VariablePathNode path )
 	{
-		if ( path == null )
+		if ( path == null ) {
 			return null;
+		}
 
 		final Expression backupExpr = currExpression;
 
-		Pair< Expression, Expression >[] internalPath = new Pair[ path.path().size() ];
+		Pair< Expression, Expression>[] internalPath = new Pair[ path.path().size() ];
 		int i = 0;
-		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
+		for( Pair< OLSyntaxNode, OLSyntaxNode> pair : path.path() ) {
 			pair.key().accept( this );
 			Expression keyExpr = currExpression;
 			if ( pair.value() != null ) {
@@ -1114,20 +1118,18 @@ public class OOITBuilder implements OLVisitor
 			}
 			internalPath[ i++ ] = new Pair<>( keyExpr, currExpression );
 		}
-		
+
 		currExpression = backupExpr;
 
-		return
-			path.isGlobal() ?
-				new GlobalVariablePath( internalPath )
-			:
-				new VariablePath( internalPath );
+		return path.isGlobal()
+			? new GlobalVariablePath( internalPath )
+			: new VariablePath( internalPath );
 	}
 
 	public void visit( PointerStatement n )
 	{
-		currProcess =
-			new MakePointerProcess(
+		currProcess
+			= new MakePointerProcess(
 				buildVariablePath( n.leftPath() ),
 				buildVariablePath( n.rightPath() )
 			);
@@ -1135,8 +1137,8 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( DeepCopyStatement n )
 	{
-		currProcess =
-			new DeepCopyProcess(
+		currProcess
+			= new DeepCopyProcess(
 				buildVariablePath( n.leftPath() ),
 				buildExpression( n.rightExpression() )
 			);
@@ -1149,18 +1151,18 @@ public class OOITBuilder implements OLVisitor
 
 		Expression condition;
 		int i = 0;
-		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
+		for( Pair< OLSyntaxNode, OLSyntaxNode> pair : n.children() ) {
 			pair.key().accept( this );
 			condition = currExpression;
 			pair.value().accept( this );
 			pairs[ i++ ] = new IfProcess.CPPair( condition, currProcess );
 		}
-		
+
 		if ( n.elseProcess() != null ) {
 			n.elseProcess().accept( this );
 			elseProcess = currProcess;
 		}
-		
+
 		currProcess = new IfProcess( pairs, elseProcess );
 	}
 
@@ -1187,7 +1189,7 @@ public class OOITBuilder implements OLVisitor
 		n.body().accept( this );
 		currProcess = new WhileProcess( condition, currProcess );
 	}
-	
+
 	public void visit( OrConditionNode n )
 	{
 		Expression[] children = new Expression[ n.children().size() ];
@@ -1198,7 +1200,7 @@ public class OOITBuilder implements OLVisitor
 		}
 		currExpression = new OrCondition( children );
 	}
-	
+
 	public void visit( AndConditionNode n )
 	{
 		Expression[] children = new Expression[ n.children().size() ];
@@ -1209,13 +1211,13 @@ public class OOITBuilder implements OLVisitor
 		}
 		currExpression = new AndCondition( children );
 	}
-	
+
 	public void visit( NotExpressionNode n )
 	{
 		n.expression().accept( this );
 		currExpression = new NotExpression( currExpression );
 	}
-	
+
 	public void visit( CompareConditionNode n )
 	{
 		n.leftExpression().accept( this );
@@ -1223,14 +1225,14 @@ public class OOITBuilder implements OLVisitor
 		n.rightExpression().accept( this );
 		Scanner.TokenType opType = n.opType();
 
-		final BiPredicate< Value, Value > operator =
-			opType == Scanner.TokenType.EQUAL ? CompareOperators.EQUAL
-			: opType == Scanner.TokenType.NOT_EQUAL ? CompareOperators.NOT_EQUAL
-			: opType == Scanner.TokenType.LANGLE ? CompareOperators.MINOR
-			: opType == Scanner.TokenType.RANGLE ? CompareOperators.MAJOR
-			: opType == Scanner.TokenType.MINOR_OR_EQUAL ? CompareOperators.MINOR_OR_EQUAL
-			: opType == Scanner.TokenType.MAJOR_OR_EQUAL ? CompareOperators.MAJOR_OR_EQUAL
-			: null;
+		final BiPredicate< Value, Value> operator
+			= opType == Scanner.TokenType.EQUAL ? CompareOperators.EQUAL
+				: opType == Scanner.TokenType.NOT_EQUAL ? CompareOperators.NOT_EQUAL
+					: opType == Scanner.TokenType.LANGLE ? CompareOperators.MINOR
+						: opType == Scanner.TokenType.RANGLE ? CompareOperators.MAJOR
+							: opType == Scanner.TokenType.MINOR_OR_EQUAL ? CompareOperators.MINOR_OR_EQUAL
+								: opType == Scanner.TokenType.MAJOR_OR_EQUAL ? CompareOperators.MAJOR_OR_EQUAL
+									: null;
 		Objects.requireNonNull( operator );
 		currExpression = new CompareCondition( left, currExpression, operator );
 	}
@@ -1239,51 +1241,51 @@ public class OOITBuilder implements OLVisitor
 	{
 		currExpression = FreshValueExpression.getInstance();
 	}
-	
+
 	public void visit( ConstantIntegerExpression n )
 	{
 		currExpression = Value.create( n.value() );
 	}
-	
+
 	public void visit( ConstantLongExpression n )
 	{
 		currExpression = Value.create( n.value() );
 	}
-	
+
 	public void visit( ConstantBoolExpression n )
 	{
 		currExpression = Value.create( n.value() );
 	}
-	
+
 	public void visit( ConstantDoubleExpression n )
 	{
 		currExpression = Value.create( n.value() );
 	}
-	
+
 	public void visit( ConstantStringExpression n )
 	{
 		currExpression = Value.create( n.value() );
 	}
-	
+
 	public void visit( ProductExpressionNode n )
 	{
 		Operand[] operands = new Operand[ n.operands().size() ];
 		int i = 0;
-		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
+		for( Pair< OperandType, OLSyntaxNode> pair : n.operands() ) {
 			pair.value().accept( this );
-			operands[i++] = new Operand( pair.key(), currExpression );
+			operands[ i++ ] = new Operand( pair.key(), currExpression );
 		}
 
 		currExpression = new ProductExpression( operands );
 	}
-	
+
 	public void visit( SumExpressionNode n )
 	{
 		Operand[] operands = new Operand[ n.operands().size() ];
 		int i = 0;
-		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
+		for( Pair< OperandType, OLSyntaxNode> pair : n.operands() ) {
 			pair.value().accept( this );
-			operands[i++] = new Operand( pair.key(), currExpression );
+			operands[ i++ ] = new Operand( pair.key(), currExpression );
 		}
 
 		currExpression = new SumExpression( operands );
@@ -1293,134 +1295,134 @@ public class OOITBuilder implements OLVisitor
 	{
 		currExpression = buildVariablePath( n.variablePath() );
 	}
-	
+
 	public void visit( InstallFixedVariableExpressionNode n )
 	{
-		currExpression =
-				new InstallFixedVariablePath(
-					buildVariablePath( n.variablePath() )
-				);
+		currExpression
+			= new InstallFixedVariablePath(
+				buildVariablePath( n.variablePath() )
+			);
 	}
-	
+
 	public void visit( NullProcessStatement n )
 	{
 		currProcess = NullProcess.getInstance();
 	}
-	
+
 	public void visit( ExitStatement n )
 	{
 		currProcess = ExitProcess.getInstance();
 	}
-	
+
 	public void visit( VoidExpressionNode n )
 	{
 		currExpression = new VoidExpression();
 	}
-	
+
 	public void visit( ValueVectorSizeExpressionNode n )
 	{
 		currExpression = new ValueVectorSizeExpression( buildVariablePath( n.variablePath() ) );
 	}
-	
+
 	public void visit( PreDecrementStatement n )
 	{
-		PreDecrementProcess p =
-			new PreDecrementProcess( buildVariablePath( n.variablePath() ) );
-		currProcess = p;
-		currExpression = p; 
-	}
-	
-	public void visit( PostDecrementStatement n )
-	{
-		PostDecrementProcess p =
-			new PostDecrementProcess( buildVariablePath( n.variablePath() ) );
+		PreDecrementProcess p
+			= new PreDecrementProcess( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p;
 	}
-	
+
+	public void visit( PostDecrementStatement n )
+	{
+		PostDecrementProcess p
+			= new PostDecrementProcess( buildVariablePath( n.variablePath() ) );
+		currProcess = p;
+		currExpression = p;
+	}
+
 	public void visit( IsTypeExpressionNode n )
 	{
 		IsTypeExpressionNode.CheckType type = n.type();
 		if ( type == IsTypeExpressionNode.CheckType.DEFINED ) {
-			currExpression =
-				new IsDefinedExpression( buildVariablePath( n.variablePath() ) );
+			currExpression
+				= new IsDefinedExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.INT ) {
-			currExpression =
-				new IsIntExpression( buildVariablePath( n.variablePath() ) );
+			currExpression
+				= new IsIntExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.DOUBLE ) {
-			currExpression =
-				new IsDoubleExpression( buildVariablePath( n.variablePath() ) );
+			currExpression
+				= new IsDoubleExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.BOOL ) {
-			currExpression =
-				new IsBoolExpression( buildVariablePath( n.variablePath() ) );
+			currExpression
+				= new IsBoolExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.LONG ) {
-			currExpression =
-				new IsLongExpression( buildVariablePath( n.variablePath() ) );
+			currExpression
+				= new IsLongExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.STRING ) {
-			currExpression =
-				new IsStringExpression( buildVariablePath( n.variablePath() ) );
+			currExpression
+				= new IsStringExpression( buildVariablePath( n.variablePath() ) );
 		}
 	}
-	
+
 	public void visit( InlineTreeExpressionNode n )
 	{
 		Expression rootExpression = buildExpression( n.rootExpression() );
 
-		Pair< VariablePath, Expression >[] assignments = new Pair[ n.assignments().length ];
+		Pair< VariablePath, Expression>[] assignments = new Pair[ n.assignments().length ];
 		int i = 0;
-		for( Pair< VariablePathNode, OLSyntaxNode > pair : n.assignments() ) {
-			assignments[ i++ ] = new Pair< VariablePath, Expression >(
+		for( Pair< VariablePathNode, OLSyntaxNode> pair : n.assignments() ) {
+			assignments[ i++ ] = new Pair< VariablePath, Expression>(
 				buildVariablePath( pair.key() ),
 				buildExpression( pair.value() )
 			);
 		}
-		
+
 		currExpression = new InlineTreeExpression( rootExpression, assignments );
 	}
-	
+
 	public void visit( InstanceOfExpressionNode n )
 	{
 		currExpression = new InstanceOfExpression( buildExpression( n.expression() ), buildType( n.type() ) );
 	}
-	
+
 	public void visit( TypeCastExpressionNode n )
 	{
 		n.expression().accept( this );
 		switch( n.type() ) {
-		case INT:
-			currExpression = new CastIntExpression( currExpression );
-			break;
-		case DOUBLE:
-			currExpression = new CastDoubleExpression( currExpression );
-			break;
-		case STRING:
-			currExpression = new CastStringExpression( currExpression );
-			break;
-		case BOOL:
-			currExpression = new CastBoolExpression( currExpression );
-			break;
-		case LONG:
-			currExpression = new CastLongExpression( currExpression );
-			break;
+			case INT:
+				currExpression = new CastIntExpression( currExpression );
+				break;
+			case DOUBLE:
+				currExpression = new CastDoubleExpression( currExpression );
+				break;
+			case STRING:
+				currExpression = new CastStringExpression( currExpression );
+				break;
+			case BOOL:
+				currExpression = new CastBoolExpression( currExpression );
+				break;
+			case LONG:
+				currExpression = new CastLongExpression( currExpression );
+				break;
 		}
 	}
-	
+
 	public void visit( PreIncrementStatement n )
 	{
-		PreIncrementProcess p =
-			new PreIncrementProcess( buildVariablePath( n.variablePath() ) );
-		currProcess = p;
-		currExpression = p; 
-	}
-	
-	public void visit( PostIncrementStatement n )
-	{
-		PostIncrementProcess p =
-			new PostIncrementProcess( buildVariablePath( n.variablePath() ) );
+		PreIncrementProcess p
+			= new PreIncrementProcess( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p;
 	}
-	
+
+	public void visit( PostIncrementStatement n )
+	{
+		PostIncrementProcess p
+			= new PostIncrementProcess( buildVariablePath( n.variablePath() ) );
+		currProcess = p;
+		currExpression = p;
+	}
+
 	public void visit( ForStatement n )
 	{
 		n.init().accept( this );
@@ -1433,21 +1435,22 @@ public class OOITBuilder implements OLVisitor
 		currProcess = new ForProcess( init, condition, post, currProcess );
 	}
 
-	public void visit( ForEachArrayItemStatement n ) {
+	public void visit( ForEachArrayItemStatement n )
+	{
 		n.body().accept( this );
-		currProcess =
-			new ForEachArrayItemProcess(
-					buildVariablePath( n.keyPath() ),
-					buildVariablePath( n.targetPath() ),
-					currProcess
+		currProcess
+			= new ForEachArrayItemProcess(
+				buildVariablePath( n.keyPath() ),
+				buildVariablePath( n.targetPath() ),
+				currProcess
 			);
 	}
 
 	public void visit( ForEachSubNodeStatement n )
 	{
 		n.body().accept( this );
-		currProcess =
-			new ForEachSubNodeProcess(
+		currProcess
+			= new ForEachSubNodeProcess(
 				buildVariablePath( n.keyPath() ),
 				buildVariablePath( n.targetPath() ),
 				currProcess
@@ -1483,7 +1486,7 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( SpawnStatement n )
 	{
-		Process[] children = new Process[2];
+		Process[] children = new Process[ 2 ];
 		children[ 0 ] = new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) );
 		children[ 1 ] = buildProcess( n.body() );
 		currProcess = new SpawnProcess(
@@ -1493,34 +1496,39 @@ public class OOITBuilder implements OLVisitor
 			new SequentialProcess( children )
 		);
 	}
-	
+
 	public void visit( UndefStatement n )
 	{
 		currProcess = new UndefProcess( buildVariablePath( n.variablePath() ) );
 	}
 
-	public void visit( InterfaceDefinition n ) {}
-	public void visit( DocumentationComment n ) {}
-	
+	public void visit( InterfaceDefinition n )
+	{
+	}
+
+	public void visit( DocumentationComment n )
+	{
+	}
+
 	public void visit( InterfaceExtenderDefinition n )
 	{
-		Map< String, OneWayTypeDescription > oneWayDescs = new HashMap< String, OneWayTypeDescription >();
-		Map< String, RequestResponseTypeDescription > rrDescs = new HashMap< String, RequestResponseTypeDescription >();
-		for( Entry< String, OperationDeclaration > entry : n.operationsMap().entrySet() ) {
+		Map< String, OneWayTypeDescription> oneWayDescs = new HashMap< String, OneWayTypeDescription>();
+		Map< String, RequestResponseTypeDescription> rrDescs = new HashMap< String, RequestResponseTypeDescription>();
+		for( Entry< String, OperationDeclaration> entry : n.operationsMap().entrySet() ) {
 			if ( entry.getValue() instanceof OneWayOperationDeclaration ) {
-				oneWayDescs.put( entry.getKey(), buildOneWayTypeDescription( (OneWayOperationDeclaration)entry.getValue() ) );
+				oneWayDescs.put( entry.getKey(), buildOneWayTypeDescription( (OneWayOperationDeclaration) entry.getValue() ) );
 			} else { // Request-Response
-				rrDescs.put( entry.getKey(), buildRequestResponseTypeDescription( (RequestResponseOperationDeclaration)entry.getValue() ) );
+				rrDescs.put( entry.getKey(), buildRequestResponseTypeDescription( (RequestResponseOperationDeclaration) entry.getValue() ) );
 			}
 		}
-		
+
 		InterfaceExtender extender = new InterfaceExtender(
 			oneWayDescs,
 			rrDescs,
 			buildOneWayTypeDescription( n.defaultOneWayOperation() ),
 			buildRequestResponseTypeDescription( n.defaultRequestResponseOperation() )
 		);
-		
+
 		interfaceExtenders.put( n.name(), extender );
 	}
 
@@ -1541,7 +1549,7 @@ public class OOITBuilder implements OLVisitor
 			currCourierInputPort = null;
 		}
 	}
-	
+
 	private OneWayOperation getExtendedOneWayOperation( String inputPortName, String operationName )
 	{
 		AggregationConfiguration conf = getAggregationConfiguration( inputPortName, operationName );
@@ -1556,21 +1564,21 @@ public class OOITBuilder implements OLVisitor
 
 		return new OneWayOperation(
 			operationName,
-			( extenderType == null ) ? desc.requestType() : Type.extend( desc.requestType(), extenderType )
+			(extenderType == null) ? desc.requestType() : Type.extend( desc.requestType(), extenderType )
 		);
 	}
-	
+
 	private RequestResponseOperation getExtendedRequestResponseOperation( String inputPortName, String operationName )
 	{
 		AggregationConfiguration conf = getAggregationConfiguration( inputPortName, operationName );
 		RequestResponseTypeDescription desc = conf.aggregatedInterface.requestResponseOperations().get( operationName );
 
-		Map< String, Type > extendedFaultMap = new HashMap< String, Type >();
+		Map< String, Type> extendedFaultMap = new HashMap< String, Type>();
 		extendedFaultMap.putAll( desc.faults() );
-		
+
 		Type requestExtenderType = null;
 		Type responseExtenderType = null;
-		
+
 		if ( conf.interfaceExtender != null ) {
 			RequestResponseTypeDescription extenderDesc = conf.interfaceExtender.getRequestResponseTypeDescription( operationName );
 			if ( extenderDesc != null ) {
@@ -1579,16 +1587,14 @@ public class OOITBuilder implements OLVisitor
 				extendedFaultMap.putAll( extenderDesc.faults() );
 			}
 		}
-		
-		
-		
+
 		return new RequestResponseOperation(
 			operationName,
 			new RequestResponseTypeDescription(
-				( requestExtenderType == null ) ?
-					desc.requestType() : Type.extend( desc.requestType(), requestExtenderType ),
-				( responseExtenderType == null ) ?
-					desc.responseType() : Type.extend( desc.responseType(), responseExtenderType ),
+				(requestExtenderType == null)
+					? desc.requestType() : Type.extend( desc.requestType(), requestExtenderType ),
+				(responseExtenderType == null)
+					? desc.responseType() : Type.extend( desc.responseType(), responseExtenderType ),
 				extendedFaultMap
 			)
 		);
@@ -1597,7 +1603,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( CourierChoiceStatement n )
 	{
 		for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
-			for( Map.Entry< String, OperationDeclaration > entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
+			for( Map.Entry< String, OperationDeclaration> entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
 				if ( entry.getValue() instanceof OneWayOperationDeclaration ) {
 					currCourierOperationName = entry.getKey();
 					currCourierInputPort.aggregationMap().put(
@@ -1611,9 +1617,9 @@ public class OOITBuilder implements OLVisitor
 				}
 			}
 		}
-		
+
 		for( CourierChoiceStatement.InterfaceRequestResponseBranch branch : n.interfaceRequestResponseBranches() ) {
-			for( Map.Entry< String, OperationDeclaration > entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
+			for( Map.Entry< String, OperationDeclaration> entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
 				if ( entry.getValue() instanceof RequestResponseOperationDeclaration ) {
 					currCourierOperationName = entry.getKey();
 					currCourierInputPort.aggregationMap().put(
@@ -1627,7 +1633,7 @@ public class OOITBuilder implements OLVisitor
 				}
 			}
 		}
-		
+
 		for( CourierChoiceStatement.OperationOneWayBranch branch : n.operationOneWayBranches() ) {
 			currCourierOperationName = branch.operation;
 			currCourierInputPort.aggregationMap().put(
@@ -1639,7 +1645,7 @@ public class OOITBuilder implements OLVisitor
 				)
 			);
 		}
-		
+
 		for( CourierChoiceStatement.OperationRequestResponseBranch branch : n.operationRequestResponseBranches() ) {
 			currCourierOperationName = branch.operation;
 			currCourierInputPort.aggregationMap().put(
@@ -1651,7 +1657,7 @@ public class OOITBuilder implements OLVisitor
 				)
 			);
 		}
-		
+
 		currCourierOperationName = null;
 	}
 
@@ -1676,10 +1682,10 @@ public class OOITBuilder implements OLVisitor
 			error( n.context(), e );
 		}
 	}
-	
+
 	public void visit( ProvideUntilStatement n )
 	{
-		currProcess = new ProvideUntilProcess( (NDChoiceProcess)buildProcess( n.provide() ), (NDChoiceProcess)buildProcess( n.until() ) );
+		currProcess = new ProvideUntilProcess( (NDChoiceProcess) buildProcess( n.provide() ), (NDChoiceProcess) buildProcess( n.until() ) );
 	}
 
 	@Override
@@ -1687,10 +1693,10 @@ public class OOITBuilder implements OLVisitor
 	{
 		final boolean wasInsideType = insideType;
 		insideType = true;
-		
+
 		currType = Type.createChoice( n.cardinality(), buildType( n.left() ), buildType( n.right() ) );
-		
-		insideType = wasInsideType;		
+
+		insideType = wasInsideType;
 		if ( insideType == false && insideOperationDeclaration == false ) {
 			types.put( n.id(), currType );
 		}
@@ -1719,4 +1725,3 @@ public class OOITBuilder implements OLVisitor
 		}
 	}
 }
-

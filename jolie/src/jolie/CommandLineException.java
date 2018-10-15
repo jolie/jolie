@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie;
 
 import jolie.lang.Constants;
@@ -35,7 +34,7 @@ import jolie.lang.Constants;
 public class CommandLineException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+
 	/**
 	 * Constructor
 	 * @param message The exception message.

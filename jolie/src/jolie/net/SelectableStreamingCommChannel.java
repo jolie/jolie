@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -39,20 +38,20 @@ import jolie.util.Helpers;
 public abstract class SelectableStreamingCommChannel extends StreamingCommChannel
 {
 	private static final long LIFETIME = 5000; // 5 secs
-	
+
 	private final long creationTime = System.currentTimeMillis();
 	private int selectorIndex;
-	
+
 	public int selectorIndex()
 	{
 		return selectorIndex;
 	}
-	
+
 	public void setSelectorIndex( int selectorIndex )
 	{
 		this.selectorIndex = selectorIndex;
 	}
-	
+
 	public SelectableStreamingCommChannel( URI location, CommProtocol protocol )
 	{
 		super( location, protocol );

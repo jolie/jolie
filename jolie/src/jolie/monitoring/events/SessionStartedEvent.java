@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.monitoring.events;
 
 import jolie.monitoring.MonitoringEvent;
@@ -29,13 +28,14 @@ import jolie.runtime.Value;
  * 
  * @author Fabrizio Montesi
  */
-public class SessionStartedEvent extends MonitoringEvent {
+public class SessionStartedEvent extends MonitoringEvent
+{
 
 	public SessionStartedEvent( String operationName, String processId )
 	{
 		super( "SessionStarted", Value.create() );
 
-		data().getFirstChild( "processId").setValue( processId );
+		data().getFirstChild( "processId" ).setValue( processId );
 		data().getFirstChild( "operationName" ).setValue( operationName );
 
 	}

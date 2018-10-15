@@ -16,39 +16,42 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-
 package jolie.process;
 
 import jolie.Interpreter;
 
-
 public class ExitProcess implements Process
 {
-	private ExitProcess(){}
-	
-	private static class LazyHolder {
-		private LazyHolder() {}
+	private ExitProcess()
+	{
+	}
+
+	private static class LazyHolder
+	{
+		private LazyHolder()
+		{
+		}
 		private static final ExitProcess instance = new ExitProcess();
 	}
-	
+
 	static public ExitProcess getInstance()
 	{
 		return ExitProcess.LazyHolder.instance;
 	}
-	
+
 	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return getInstance();
 	}
-	
+
 	@Override
 	public void run()
 	{
 		final Interpreter interpreter = Interpreter.getInstance();
 		interpreter.execute( () -> interpreter.exit() );
 	}
-	
+
 	@Override
 	public boolean isKillable()
 	{

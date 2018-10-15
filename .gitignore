@@ -16,6 +16,7 @@
 /jolie/build/
 /jolie/dist/
 /jolie/nbproject/private/
+/jolie/nbproject/configs/
 /lib/jolie-js/nbproject/private/
 /lib/jolie-ssl/nbproject/private/
 /lib/jolie-xml/nbproject/private/
@@ -33,5 +34,10 @@
 /tools/jolie2wsdl/nbproject/private/
 /tools/joliec/nbproject/private/
 /tools/joliedoc/nbproject/private/
+/tools/jolie2dummy/nbproject/private/
+/tools/jolie2surface/nbproject/private/
 dist
 build
+/extensions/datagram/nbproject/private/
+/extensions/mqtt/nbproject/private/
+/extensions/pubsubchannel/nbproject/private//extensions/coap/nbproject/private/

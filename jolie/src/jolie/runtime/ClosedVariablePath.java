@@ -18,11 +18,10 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime;
 
-import jolie.runtime.expression.Expression;
 import jolie.process.TransformationReason;
+import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
 /**
@@ -32,19 +31,19 @@ public class ClosedVariablePath extends VariablePath
 {
 	private final Value rootValue;
 
-	public ClosedVariablePath( Pair< Expression, Expression >[] path, Value rootValue )
+	public ClosedVariablePath( Pair< Expression, Expression>[] path, Value rootValue )
 	{
 		super( path );
 		this.rootValue = rootValue;
 	}
-	
+
 	public ClosedVariablePath( VariablePath otherPath, Value rootValue )
 	{
 		this( otherPath.path(), rootValue );
 	}
 
 	@Override
-	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path )
+	protected VariablePath _createVariablePath( Pair< Expression, Expression>[] path )
 	{
 		return new ClosedVariablePath( path, rootValue );
 	}
@@ -52,7 +51,7 @@ public class ClosedVariablePath extends VariablePath
 	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path(), reason );
+		Pair< Expression, Expression>[] clonedPath = cloneExpressionHelper( path(), reason );
 		return new ClosedVariablePath( clonedPath, rootValue );
 	}
 

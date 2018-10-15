@@ -18,13 +18,12 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /**
  * Subtract an expression value from a VariablePath's value, assigning the resulting

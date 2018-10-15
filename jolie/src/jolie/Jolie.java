@@ -18,13 +18,11 @@
  *                                                                               *
  *   For details about the authors of this software, see the AUTHORS file.       *
  *********************************************************************************/
-
 package jolie;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import jolie.lang.parse.ParserException;
-
 
 /** Starter class of the Interpreter.
  * @author Fabrizio Montesi
@@ -34,9 +32,11 @@ public class Jolie
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
 	}
-	
-	private Jolie() {}
-	
+
+	private Jolie()
+	{
+	}
+
 	private static final long TERMINATION_TIMEOUT = 500; // 0.5 seconds
 
 	/** 
@@ -50,7 +50,8 @@ public class Jolie
 		try {
 			final Interpreter interpreter = new Interpreter( args, Jolie.class.getClassLoader(), null );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
-			Runtime.getRuntime().addShutdownHook( new Thread() {
+			Runtime.getRuntime().addShutdownHook( new Thread()
+			{
 				@Override
 				public void run()
 				{

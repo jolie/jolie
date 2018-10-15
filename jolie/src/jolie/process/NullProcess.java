@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 /**
@@ -27,25 +26,29 @@ package jolie.process;
  */
 public class NullProcess implements Process
 {
-	private NullProcess() {}
-	
-	private static class LazyHolder {
+	private NullProcess()
+	{
+	}
+
+	private static class LazyHolder
+	{
 		private static final NullProcess instance = new NullProcess();
 	}
-	
+
 	static public NullProcess getInstance()
 	{
 		return NullProcess.LazyHolder.instance;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return this;
 	}
-	
+
 	public void run()
-	{}
-	
+	{
+	}
+
 	public boolean isKillable()
 	{
 		return true;

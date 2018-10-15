@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
@@ -37,14 +36,17 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	private final URI location;
 
 	@Override
-	public URI getLocation() {
+	public URI getLocation()
+	{
 		return this.location;
 	}
 
 	@Override
-	protected boolean isThreadSafe() {
+	protected boolean isThreadSafe()
+	{
 		return true;
 	}
+
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
@@ -93,19 +95,23 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		@Override
 		protected void disposeForInputImpl()
 			throws IOException
-		{}
+		{
+		}
 
 		@Override
 		protected void closeImpl()
-		{}
+		{
+		}
 
 		@Override
-		public URI getLocation() {
+		public URI getLocation()
+		{
 			throw new UnsupportedOperationException( "LocalCommChannels are not supposed to be queried on their location." );
 		}
 
 		@Override
-		protected boolean isThreadSafe() {
+		protected boolean isThreadSafe()
+		{
 			throw new UnsupportedOperationException( "LocalCommChannels are not supposed to be queried on whether they are threadsafe or not." );
 		}
 	}
@@ -113,8 +119,8 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	private final Interpreter interpreter;
 	private final Interpreter responseInterpreter;
 	private final CommListener listener;
-	private final Map< Long, CompletableFuture< CommMessage > > responseWaiters = new ConcurrentHashMap<>();
-	
+	private final Map< Long, CompletableFuture< CommMessage>> responseWaiters = new ConcurrentHashMap<>();
+
 	public LocalCommChannel( Interpreter interpreter, CommListener listener )
 	{
 		this.interpreter = interpreter;
@@ -161,26 +167,26 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		final CompletableFuture< CommMessage > f = responseWaiters.get( request.id() );
+		final CompletableFuture< CommMessage> f = responseWaiters.get( request.id() );
 		final CommMessage m;
-		
-		try { 
+
+		try {
 			m = f.get();
 		} catch( ExecutionException | InterruptedException e ) {
 			throw new IOException( e );
 		} finally {
 			responseWaiters.remove( request.id() );
 		}
-			
+
 		return m;
 	}
-	
+
 	@Override
 	public boolean isReady()
 	{
 		return responseWaiters.isEmpty() == false;
 	}
-	
+
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
@@ -190,5 +196,6 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	@Override
 	protected void closeImpl()
-	{}
+	{
+	}
 }

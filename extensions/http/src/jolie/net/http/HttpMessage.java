@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net.http;
 
 import java.util.ArrayList;
@@ -28,29 +27,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
 public class HttpMessage
 {
-	public enum Type {
+	public enum Type
+	{
 		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, UNSUPPORTED, ERROR
 	}
-	
-	public enum Version {
+
+	public enum Version
+	{
 		HTTP_1_0, HTTP_1_1
 	}
-	
-	static public class Cookie {
+
+	static public class Cookie
+	{
 		private final String name, value, domain, path, expirationDate;
 		private final boolean secure;
-		
+
 		public Cookie(
-				String name,
-				String value,
-				String domain,
-				String path,
-				String expirationDate,
-				boolean secure
-			)
+			String name,
+			String value,
+			String domain,
+			String path,
+			String expirationDate,
+			boolean secure
+		)
 		{
 			this.name = name;
 			this.value = value;
@@ -59,44 +60,42 @@ public class HttpMessage
 			this.expirationDate = expirationDate;
 			this.secure = secure;
 		}
-		
+
 		@Override
 		public String toString()
 		{
-			return(
-				name + "=" + value + "; " +
-				"expires=" + expirationDate + "; " +
-				"domain=" + domain + "; " +
-				"path=" + path +
-				( ( secure ) ? ( "; secure" ) : "" )
-			);
+			return (name + "=" + value + "; "
+				+ "expires=" + expirationDate + "; "
+				+ "domain=" + domain + "; "
+				+ "path=" + path
+				+ ((secure) ? ("; secure") : ""));
 		}
-		
+
 		public String name()
 		{
 			return name;
 		}
-		
+
 		public String value()
 		{
 			return value;
 		}
-		
+
 		public String path()
 		{
 			return path;
 		}
-		
+
 		public String domain()
 		{
 			return domain;
 		}
-		
+
 		public String expirationDate()
 		{
 			return expirationDate;
 		}
-		
+
 		public boolean secure()
 		{
 			return secure;
@@ -106,11 +105,11 @@ public class HttpMessage
 	private Version version;
 	private final Type type;
 	private byte[] content = null;
-	final private Map< String, String > propMap = new HashMap<> ();
-	final private List< Cookie > setCookies = new ArrayList<> ();
-	
-	final private Map< String, String > cookies = new HashMap<>();
-	
+	final private Map< String, String> propMap = new HashMap<>();
+	final private List< Cookie> setCookies = new ArrayList<>();
+
+	final private Map< String, String> cookies = new HashMap<>();
+
 	private int statusCode;
 	private String requestPath;
 	private String reason;
@@ -138,49 +137,49 @@ public class HttpMessage
 
 	public void addCookie( String name, String value )
 	{
-		cookies.put( name, value);
+		cookies.put( name, value );
 	}
-	
-	public Map< String, String > cookies()
+
+	public Map< String, String> cookies()
 	{
 		return cookies;
 	}
-	
+
 	public void addSetCookie( Cookie cookie )
 	{
 		setCookies.add( cookie );
 	}
-	
-	public List< Cookie > setCookies()
+
+	public List< Cookie> setCookies()
 	{
 		return setCookies;
 	}
-	
+
 	public HttpMessage( Type type )
 	{
 		this.type = type;
 	}
-	
+
 	protected void setVersion( Version version )
 	{
 		this.version = version;
 	}
-	
+
 	public Version version()
 	{
 		return version;
 	}
-	
+
 	public void setContent( byte[] content )
 	{
 		this.content = content;
 	}
-	
-	public Collection< Entry< String, String > > properties()
+
+	public Collection< Entry< String, String>> properties()
 	{
 		return propMap.entrySet();
 	}
-	
+
 	public void setRequestPath( String path )
 	{
 		requestPath = path;
@@ -195,35 +194,36 @@ public class HttpMessage
 	{
 		propMap.put( name.toLowerCase(), value );
 	}
-	
+
 	public String getProperty( String name )
 	{
 		return propMap.get( name.toLowerCase() );
 	}
-	
+
 	public String getPropertyOrEmptyString( String name )
 	{
 		String ret = propMap.get( name.toLowerCase() );
-		return ( ret == null ) ? "" : ret;
+		return (ret == null) ? "" : ret;
 	}
-	
+
 	public String reason()
 	{
 		return reason;
 	}
-	
+
 	public void setReason( String reason )
 	{
 		this.reason = reason;
 	}
-	
+
 	public int size()
 	{
-		if ( content == null )
+		if ( content == null ) {
 			return 0;
+		}
 		return content.length;
 	}
-	
+
 	public String requestPath()
 	{
 		return requestPath;
@@ -238,27 +238,27 @@ public class HttpMessage
 	{
 		return type;
 	}
-	
+
 	public boolean isResponse()
 	{
 		return type == Type.RESPONSE;
 	}
-	
+
 	public boolean isError()
 	{
 		return type == Type.ERROR;
 	}
-	
+
 	public int statusCode()
 	{
 		return statusCode;
 	}
-	
+
 	public void setStatusCode( int code )
 	{
 		statusCode = code;
 	}
-	
+
 	public byte[] content()
 	{
 		return content;

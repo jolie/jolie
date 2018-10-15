@@ -18,18 +18,17 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public interface Process
-{	
+{
 	public void run()
 		throws FaultException, ExitingException;
-	
+
 	public Process clone( TransformationReason reason );
-	
+
 	public boolean isKillable();
 }

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.runtime.expression;
 
 import java.util.UUID;
@@ -27,23 +26,28 @@ import jolie.runtime.Value;
 
 public class FreshValueExpression implements Expression
 {
-	private FreshValueExpression() {}
-	
-	private static class LazyHolder {
-		private LazyHolder() {}
+	private FreshValueExpression()
+	{
+	}
+
+	private static class LazyHolder
+	{
+		private LazyHolder()
+		{
+		}
 		static final FreshValueExpression instance = new FreshValueExpression();
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return this;
 	}
-	
+
 	public static FreshValueExpression getInstance()
 	{
 		return FreshValueExpression.LazyHolder.instance;
 	}
-	
+
 	public Value evaluate()
 	{
 		return Value.create( UUID.randomUUID().toString() );

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -35,7 +34,7 @@ public class LinkInProcess implements Process
 	{
 		private CommMessage message = null;
 		private final LinkInProcess parent;
-		
+
 		public Execution( LinkInProcess parent )
 		{
 			this.parent = parent;
@@ -48,7 +47,7 @@ public class LinkInProcess implements Process
 			try {
 				link.signForMessage( this );
 				synchronized( this ) {
-					if( message == null && !Interpreter.getInstance().exiting() ) {
+					if ( message == null && !Interpreter.getInstance().exiting() ) {
 						ExecutionThread ethread = ExecutionThread.currentThread();
 						ethread.setCanBeInterrupted( true );
 						this.wait();
@@ -66,20 +65,20 @@ public class LinkInProcess implements Process
 			this.notify();
 			return true;
 		}
-		
+
 		public boolean isKillable()
 		{
 			return true;
 		}
 	}
-	
+
 	private final String linkId;
-	
+
 	public LinkInProcess( String link )
 	{
 		this.linkId = link;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new LinkInProcess( linkId );
@@ -94,7 +93,7 @@ public class LinkInProcess implements Process
 
 		(new Execution( this )).run();
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process;
 
 import jolie.ExecutionThread;
@@ -32,20 +31,21 @@ public class UndefProcess implements Process
 	{
 		this.varPath = varPath;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
-		return new UndefProcess( (VariablePath)varPath.cloneExpression( reason ) );
+		return new UndefProcess( (VariablePath) varPath.cloneExpression( reason ) );
 	}
-	
+
 	public void run()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
-		
+		}
+
 		varPath.undef();
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

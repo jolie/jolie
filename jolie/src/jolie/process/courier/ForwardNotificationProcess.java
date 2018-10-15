@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.process.courier;
 
 import java.io.IOException;
@@ -51,19 +50,20 @@ public class ForwardNotificationProcess implements Process
 	private final OneWayTypeDescription aggregatedTypeDescription, extenderTypeDescription;
 
 	public ForwardNotificationProcess(
-			String operationName,
-			OutputPort outputPort,
-			VariablePath outputVariablePath,
-			OneWayTypeDescription aggregatedTypeDescription,
-			OneWayTypeDescription extenderTypeDescription
-	) {
+		String operationName,
+		OutputPort outputPort,
+		VariablePath outputVariablePath,
+		OneWayTypeDescription aggregatedTypeDescription,
+		OneWayTypeDescription extenderTypeDescription
+	)
+	{
 		this.operationName = operationName;
 		this.outputPort = outputPort;
 		this.outputVariablePath = outputVariablePath;
 		this.aggregatedTypeDescription = aggregatedTypeDescription;
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
 		return new ForwardNotificationProcess(
@@ -74,7 +74,7 @@ public class ForwardNotificationProcess implements Process
 			extenderTypeDescription
 		);
 	}
-	
+
 	private void log( String log, CommMessage message )
 	{
 		Tracer tracer = Interpreter.getInstance().tracer();
@@ -103,25 +103,24 @@ public class ForwardNotificationProcess implements Process
 			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
 			channel = outputPort.getCommChannel();
-			
+
 			log( "SENDING", message );
-			
+
 			channel.send( message );
-			
+
 			log( "SENT", message );
-			
+
 			CommMessage response = null;
 			do {
 				response = channel.recvResponseFor( message );
 			} while( response == null );
-			
+
 			log( "RECEIVED ACK", response );
-			
+
 			if ( response.isFault() ) {
 				if ( response.fault().faultName().equals( "CorrelationError" )
 					|| response.fault().faultName().equals( "IOException" )
-					|| response.fault().faultName().equals( "TypeMismatch" )
-					) {
+					|| response.fault().faultName().equals( "TypeMismatch" ) ) {
 					throw response.fault();
 				} else {
 					Interpreter.getInstance().logSevere( "Forward notification process for operation " + operationName + " received an unexpected fault: " + response.fault().faultName() );
@@ -143,7 +142,7 @@ public class ForwardNotificationProcess implements Process
 			}
 		}
 	}
-	
+
 	public boolean isKillable()
 	{
 		return true;

@@ -19,19 +19,16 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.net;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 public class PreBufferedInputStream extends BufferedInputStream
 {
 	private final static int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
-	
+
 	public PreBufferedInputStream( InputStream istream )
 	{
 		super( istream );
@@ -49,7 +46,7 @@ public class PreBufferedInputStream extends BufferedInputStream
 		b.get( buf, count, bufferSize );
 		count += bufferSize;
 	}
-	
+
 	private void enlargeIfNecessary( int toBeWritten )
 	{
 		if ( count + toBeWritten >= buf.length ) {
@@ -61,8 +58,8 @@ public class PreBufferedInputStream extends BufferedInputStream
 					throw new OutOfMemoryError( "Required array size too large" );
 				}
 			}
-			
-			final byte nbuf[] = new byte[tentative];
+
+			final byte nbuf[] = new byte[ tentative ];
 			final int remaining = count - pos;
 			System.arraycopy( buf, pos, nbuf, 0, remaining );
 			buf = nbuf;
@@ -70,7 +67,7 @@ public class PreBufferedInputStream extends BufferedInputStream
 			count = remaining;
 		}
 	}
-	
+
 	public void append( byte b )
 	{
 		enlargeIfNecessary( 1 );

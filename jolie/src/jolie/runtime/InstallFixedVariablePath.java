@@ -18,12 +18,10 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
-
 package jolie.runtime;
 
-import jolie.runtime.expression.Expression;
 import jolie.process.TransformationReason;
+import jolie.runtime.expression.Expression;
 
 public class InstallFixedVariablePath implements Expression
 {
@@ -35,22 +33,22 @@ public class InstallFixedVariablePath implements Expression
 		this.path = path;
 		this.fixedEvaluation = null;
 	}
-	
+
 	private InstallFixedVariablePath( Value fixedEvaluation )
 	{
 		this.path = null;
 		this.fixedEvaluation = fixedEvaluation;
 	}
-	
+
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		if ( reason instanceof HandlerInstallationReason ) {
 			return new InstallFixedVariablePath( Value.createDeepCopy( path.getValue() ) );
 		}
-		
+
 		return new InstallFixedVariablePath( path );
 	}
-	
+
 	public Value evaluate()
 	{
 		return fixedEvaluation;
