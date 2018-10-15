@@ -26,22 +26,20 @@ import io.netty.channel.ChannelPipeline;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
+import jolie.net.ports.InputPort;
 import jolie.runtime.VariablePath;
 
 public abstract class AsyncCommProtocol extends CommProtocol
 {
-
-	private final HashMap<Long, ExecutionThread> threadCollection;
-//	private ExecutionThread initExecutionThread = null;
+	private ExecutionThread initExecutionThread = null;
 
 	public AsyncCommProtocol( VariablePath configurationPath )
 	{
 		super( configurationPath );
-		this.threadCollection = new HashMap<>();
 	}
 
 	abstract public void setupPipeline( ChannelPipeline pipeline );
@@ -50,11 +48,35 @@ public abstract class AsyncCommProtocol extends CommProtocol
 	{
 		setupPipeline( pipeline );
 	}
-
-	public void setExecutionThread( ExecutionThread t )
+		
+	protected void setSendExecutionThread( Long k ){
+		//if we send a response
+		if ( channel().parentPort() instanceof InputPort ){
+			setExecutionThread_internal( initExecutionThread );
+		}
+		// if we send a request
+		else {
+			// this is a long
+			setExecutionThread_internal( Interpreter.getInstance().commCore().pickExecutionThread( k ) );
+			// once we set the ExecutionThread, we can check if the channel is threadSafe (we need the Values in the protocol)
+			// If the protocol is not threadSafe, we will use the CommChannel to retrieve the ExecutionThread in the response
+			// and we can remove the mapping to that ExecutionThread associated to the message ID
+			if ( !isThreadSafe() )
+				Interpreter.getInstance().commCore().getExecutionThread( k );
+		}
+	}
+	
+	protected <K> void setReceiveExecutionThread( K k ){
+		if ( channel().parentPort() instanceof InputPort ){
+				setExecutionThread_internal( initExecutionThread );
+		} else {
+			setExecutionThread_internal( Interpreter.getInstance().commCore().getExecutionThread( k ) );
+		}
+	}
+	
+	private void setExecutionThread_internal( ExecutionThread t )
 	{
-		((CommCore.ExecutionContextThread) Thread.currentThread())
-			.executionThread( t );
+		( (CommCore.ExecutionContextThread) Thread.currentThread() ).executionThread( t );
 	}
 
 	@Override
@@ -69,47 +91,9 @@ public abstract class AsyncCommProtocol extends CommProtocol
 		throw new UnsupportedOperationException( "Should not be called." );
 	}
 
-	public void addExecutionThread( Long id, ExecutionThread t )
+	public void setInitExecutionThread( ExecutionThread t )
 	{
-		threadCollection.put( id, t );
-	}
-
-	public boolean hasExecutionThread( Long id )
-	{
-		return threadCollection.containsKey( id );
-	}
-
-	/**
-	Returns the Thread associated with the @id.
-	@param id
-	@return Thread
-	 */
-	public ExecutionThread peekExecutionThread( Long id )
-	{
-		return threadCollection.get( id );
-	}
-
-	/**
-	Returns the Thread associated with the @id and removes it from the collection.
-	@param id
-	@return Thread
-	 */
-	public ExecutionThread getExecutionThread( Long id )
-	{
-		return threadCollection.remove( id );
-	}
-
-//	public void setInitExecutionThread( ExecutionThread t ){
-//		initExecutionThread = t;
-//	}
-//	
-//	public ExecutionThread getInitExecutionThread(){
-//		return initExecutionThread;
-//	}
-	public ExecutionThread getThreadUnsafeExecutionThread()
-	{
-		Long id = threadCollection.keySet().stream().findFirst().get();
-		return getExecutionThread( id );
+		initExecutionThread = t;
 	}
 
 }

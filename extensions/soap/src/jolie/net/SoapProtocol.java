@@ -217,7 +217,7 @@ public class SoapProtocol extends AsyncCommProtocol {
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out )
 			throws Exception {
-			setExecutionThread( message.executionThread() );
+			setSendExecutionThread( message.id() );
 			FullHttpMessage msg = buildSoapMessage( message );
 			out.add( msg );
 		}
@@ -1115,6 +1115,14 @@ public class SoapProtocol extends AsyncCommProtocol {
 //			if ( message instanceof FullHttpRequest ) {
 //				retVal.setRequest();
 //			}
+		}
+		
+		if ( isThreadSafe() ){
+			// for future compatibility, when adding CONCURRENT to SOAP
+			// right now we will always end in the "else" branch
+			setReceiveExecutionThread( retVal.id() );
+		} else {
+			setReceiveExecutionThread( channel() );
 		}
 
 		received = true;

@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -81,10 +80,7 @@ public class SodepProtocol extends AsyncCommProtocol {
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage in, ByteBuf out ) throws Exception {
 
-			if ( in.executionThread() != null && !in.hasGenericId() ) {
-				setExecutionThread( in.executionThread() );
-				addExecutionThread( in.id(), in.executionThread() );
-			}
+			setSendExecutionThread( in.id() );
 			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 			updateCharset();
 			writeMessage( out, in );
@@ -286,26 +282,13 @@ public class SodepProtocol extends AsyncCommProtocol {
 	private CommMessage readMessage( ByteBuf in )
 		throws IndexOutOfBoundsException, IOException {
 		Long id = in.readLong();
-		// IF WE ARE RECEIVING A RESPONSE TO A REQUEST
-		if ( this.channel().parentPort() instanceof OutputPort ) {
-			if ( this.isThreadSafe() ) {
-				// then we can find the execution thread by pairing it with the message ID
-				if ( this.hasExecutionThread( id ) ) {
-					this.setExecutionThread( this.getExecutionThread( id ) );
-				} else {
-					throw new IOException(
-						"Found no matching sender for message id: " + id
-						+ " for threadSafe channel on location: '" + this.channel().getLocation().toString()
-						+ "' protocol: '" + this.name() + "'" );
-				}
-			} else {
-				// ACTUALLY THIS WILL NEVER BE USED IN SODEP SINCE IT'S A THREAD-SAFE PROTOCOL
-				this.setExecutionThread( this.getThreadUnsafeExecutionThread() );
-			}
-		} 
-//		else {
-//			this.setExecutionThread( getInitExecutionThread() );
-//		}
+		if ( this.isThreadSafe() ) {
+			// then we can find the execution thread by pairing it with the message ID
+			setReceiveExecutionThread( id );
+		} else {
+			// ACTUALLY THIS WILL NEVER BE USED IN SODEP SINCE IT'S A THREAD-SAFE PROTOCOL
+			setReceiveExecutionThread( channel() );
+		}
 
 		String resourcePath = readString( in );
 		String operationName = readString( in );
