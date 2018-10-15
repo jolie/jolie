@@ -237,20 +237,10 @@ public class HttpProtocol extends AsyncCommProtocol
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
-			throws Exception
-		{
-			setExecutionThread( message.executionThread() );
-			if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Setting the Thread to be the "
-					+ "Execution Thread " + message.executionThread() );
-			}
-			addExecutionThread( message.id(), message.executionThread() );
-			if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Adding the ExecutionThread "
-					+ message.executionThread() + " to the map, having key " + message.id() );
-			}
-			FullHttpMessage msg = buildHttpMessage( message );
-			out.add( msg );
+			throws Exception {
+				setSendExecutionThread( message.id() );
+				FullHttpMessage msg = buildHttpMessage( message );
+				out.add( msg );
 		}
 
 		@Override
@@ -1435,8 +1425,12 @@ public class HttpProtocol extends AsyncCommProtocol
 		if ( messageId != null ) {
 			try {
 				decodedMessage.id = Long.parseLong( messageId );
-			} catch( NumberFormatException e ) {
+				setReceiveExecutionThread( decodedMessage.id );
+			} catch ( NumberFormatException e ) {
 			}
+		} else {
+			setReceiveExecutionThread( channel() );
+			if( isThreadSafe() ){ throw new IOException( "Received message without ID in threadSafe protocol" ); }
 		}
 		//}
 

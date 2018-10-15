@@ -37,7 +37,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jolie.ExecutionThread;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
@@ -134,8 +133,8 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	protected void sendImpl( CommMessage message ) throws IOException
 	{
 		try {
-			commChannelHandler.write( message.setExecutionThread( ExecutionThread.currentThread() ) ).sync();
-		} catch( InterruptedException ex ) {
+			commChannelHandler.write( message ).sync();
+		} catch ( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
 	}
