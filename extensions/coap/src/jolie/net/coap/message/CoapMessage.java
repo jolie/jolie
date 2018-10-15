@@ -228,9 +228,22 @@ public class CoapMessage
 		return MessageCode.isResponse( this.messageCode() );
 	}
 
+	/**
+	Check if the message is and Acknowledgment one.
+	@return true if this message is an { @link MessageType.ACK }, false otherwise
+	 */
 	public boolean isAck()
 	{
 		return MessageType.isMessageType( MessageType.ACK );
+	}
+
+	/**
+	Check if the message is and Empty Acknowledgment one.
+	@return true if this message is an { @link MessageType.ACK } and { @link MessageCode.EMPTY }, false otherwise
+	 */
+	public boolean isEmptyAck()
+	{
+		return MessageType.isMessageType( MessageType.ACK ) && MessageCode.isMessageCode( MessageCode.EMPTY );
 	}
 
 	/**
