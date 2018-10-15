@@ -31,94 +31,99 @@ import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
-
 import java.util.List;
-
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.protocols.AsyncCommProtocol;
 
 public class InputResponseHandler
-    extends MessageToMessageCodec<MqttMessage, CommMessage> {
+	extends MessageToMessageCodec<MqttMessage, CommMessage>
+{
 
-  private final MqttProtocol mp;
-  private Channel cc;
-  private String topicResponse;
-  private CommMessage cmResp;
-  private CommMessage cmReq;
+	private final MqttProtocol mp;
+	private Channel cc;
+	private String topicResponse;
+	private CommMessage cmResp;
+	private CommMessage cmReq;
 
-  public InputResponseHandler(AsyncCommProtocol mp) {
-    this.topicResponse = "";
-    this.mp = (MqttProtocol) mp;
-  }
+	public InputResponseHandler( AsyncCommProtocol mp )
+	{
+		this.topicResponse = "";
+		this.mp = (MqttProtocol) mp;
+	}
 
-  public InputResponseHandler setTopicResponse(String topicResponse) {
-    this.topicResponse = topicResponse;
-    return this;
-  }
+	public InputResponseHandler setTopicResponse( String topicResponse )
+	{
+		this.topicResponse = topicResponse;
+		return this;
+	}
 
-  public InputResponseHandler setRequestCommMessage(CommMessage m) {
-    this.cmReq = m;
-    return this;
-  }
+	public InputResponseHandler setRequestCommMessage( CommMessage m )
+	{
+		this.cmReq = m;
+		return this;
+	}
 
-  @Override
-  protected void encode(ChannelHandlerContext ctx, CommMessage in,
-      List<Object> out) throws Exception {
-		mp.setExecutionThread( in.executionThread() );
-    init(ctx);
-    cmResp = in;
-    out.add(mp.connectMsg());
-  }
+	@Override
+	protected void encode( ChannelHandlerContext ctx, CommMessage in,
+		List<Object> out ) throws Exception
+	{
+		mp.setSendExecutionThread( in.id() );
+		init( ctx );
+		cmResp = in;
+		out.add( mp.connectMsg() );
+	}
 
-  @Override
-  protected void decode(ChannelHandlerContext ctx, MqttMessage in,
-      List<Object> out) throws Exception {
+	@Override
+	protected void decode( ChannelHandlerContext ctx, MqttMessage in,
+		List<Object> out ) throws Exception
+	{
 
-    switch (in.fixedHeader().messageType()) {
-      case CONNACK:
-        MqttConnectReturnCode crc = ((MqttConnAckMessage) in)
-            .variableHeader().connectReturnCode();
-        if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
-          try {
-            mp.startPing(cc.pipeline());
-            MqttPublishMessage mpm = mp.send_response(
-                new CommMessage(
-                    cmReq.id(),
-                    cmResp.operationName(),
-                    cmResp.resourcePath(),
-                    cmResp.value(),
-                    cmResp.fault()), topicResponse);
-            // if the response has QoS = 0 we can directly mark the message as sent
-            cc.writeAndFlush(mpm);
-            if (MqttProtocol.getQoS(mpm).equals(MqttQoS.AT_MOST_ONCE)) {
-              mp.markAsSentAndStopPing(cc, (int) cmResp.id());
-            }
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-        break;
-      case PUBLISH:
-        System.out.println("InputResponseHandlers should not receive PUBLISHs");
-        break;
-      case PUBREC:
-        mp.handlePubrec(cc, in);
-        break;
-      case PUBREL:
-        System.out.println("InputResponseHandlers should not receive PUBRELs");
-        break;
-      case PUBACK:
-      case PUBCOMP:
-        // WE MARK THE MESSAGE with QoS = 1 as sent
-        mp.markAsSentAndStopPing(cc, (int) cmResp.id());
-        break;
-    }
-  }
+		switch( in.fixedHeader().messageType() ) {
+			case CONNACK:
+				MqttConnectReturnCode crc = ((MqttConnAckMessage) in)
+					.variableHeader().connectReturnCode();
+				if ( crc.equals( MqttConnectReturnCode.CONNECTION_ACCEPTED ) ) {
+					try {
+						mp.startPing( cc.pipeline() );
+						MqttPublishMessage mpm = mp.send_response(
+							new CommMessage(
+								cmReq.id(),
+								cmResp.operationName(),
+								cmResp.resourcePath(),
+								cmResp.value(),
+								cmResp.fault() ), topicResponse );
+						// if the response has QoS = 0 we can directly mark the message as sent
+						cc.writeAndFlush( mpm );
+						if ( MqttProtocol.getQoS( mpm ).equals( MqttQoS.AT_MOST_ONCE ) ) {
+							mp.markAsSentAndStopPing( cc, (int) cmResp.id() );
+						}
+					} catch( Exception e ) {
+						e.printStackTrace();
+					}
+				}
+				break;
+			case PUBLISH:
+				System.out.println( "InputResponseHandlers should not receive PUBLISHs" );
+				break;
+			case PUBREC:
+				mp.handlePubrec( cc, in );
+				break;
+			case PUBREL:
+				System.out.println( "InputResponseHandlers should not receive PUBRELs" );
+				break;
+			case PUBACK:
+			case PUBCOMP:
+				// WE MARK THE MESSAGE with QoS = 1 as sent
+				mp.markAsSentAndStopPing( cc, (int) cmResp.id() );
+				break;
+		}
+	}
 
-  public void init(ChannelHandlerContext ctx) throws Exception {
-    cc = ctx.channel();
-    mp.checkDebug(cc.pipeline());
-  }
+	public void init( ChannelHandlerContext ctx ) throws Exception
+	{
+		cc = ctx.channel();
+		mp.checkDebug( cc.pipeline() );
+	}
 
 }

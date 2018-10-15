@@ -88,7 +88,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	@Override
 	protected void encode( ChannelHandlerContext ctx, CommMessage in, List<Object> out ) throws Exception
 	{
-//		setSendExecutionThread( in.id() );
+		protocol.setSendExecutionThread( in.id() );
 
 		if ( isInput ) {
 			out.add( encode_inbound( in ) );
@@ -100,10 +100,11 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	@Override
 	protected void decode( ChannelHandlerContext ctx, CoapMessage in, List<Object> out ) throws Exception
 	{
+		protocol.setReceiveExecutionThread( (long) in.id() );
+
 		if ( isInput ) {
 			out.add( decode_inbound( in ) );
 		} else {
-			// setReceiveExecutionThread( (long) in.id() );
 			out.add( decode_outbound( in ) );
 		}
 	}

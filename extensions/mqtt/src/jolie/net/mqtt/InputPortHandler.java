@@ -33,20 +33,18 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import java.net.URI;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
-
-import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
 import jolie.net.StreamingCommChannel;
 import jolie.net.protocols.AsyncCommProtocol;
 
-public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMessage> {
+public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMessage>
+{
 
 	private final MqttProtocol mp;
 	private final Map<Integer, MqttPublishMessage> qos2pendingPublish;
@@ -54,7 +52,8 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 
 	private Channel cc;
 
-	public InputPortHandler( MqttProtocol mp, CommChannel cm ) {
+	public InputPortHandler( MqttProtocol mp, CommChannel cm )
+	{
 		this.mp = mp;
 		this.commChannel = cm;
 		this.qos2pendingPublish = new HashMap<>();
@@ -62,9 +61,9 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 
 	@Override
 	protected void encode( ChannelHandlerContext ctx, CommMessage in,
-		List<Object> out ) throws Exception {
-		( ( CommCore.ExecutionContextThread ) Thread.currentThread() )
-			.executionThread( in.executionThread() );
+		List<Object> out ) throws Exception
+	{
+		mp.setSendExecutionThread( in.id() );
 		// THE ACK TO A ONE-WAY COMING FROM COMMCORE, RELEASING AND SENDING PING INSTEAD
 		out.add( MqttProtocol.getPingMessage() );
 	}
@@ -72,11 +71,12 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 	@Override
 	protected void decode( ChannelHandlerContext ctx, MqttMessage in,
 		List<Object> out )
-		throws Exception {
-		switch ( in.fixedHeader().messageType() ) {
+		throws Exception
+	{
+		switch( in.fixedHeader().messageType() ) {
 			case CONNACK:
 				MqttConnectReturnCode crc
-					= ( ( MqttConnAckMessage ) in ).variableHeader().connectReturnCode();
+					= ((MqttConnAckMessage) in).variableHeader().connectReturnCode();
 				if ( crc.equals( MqttConnectReturnCode.CONNECTION_ACCEPTED ) ) {
 					// WE ARE CONNECTED, WE CAN PROCEED TO SUBSCRIBE TO ALL MAPPED TOPICS IN THE INPUTPORT
 					// AND START PINGING
@@ -85,7 +85,7 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 				break;
 			case PUBLISH:
 				// TODO support wildcards and variables
-				MqttPublishMessage mpmIn = ( ( MqttPublishMessage ) in ).copy();
+				MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
 				// we send back the appropriate response (PUBACK, PUBREC)
 				mp.recv_pub( cc, mpmIn );
 				// we handle the reception of the message (and possibly wait for message release)
@@ -112,7 +112,8 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 	}
 
 	@Override
-	public void channelActive( ChannelHandlerContext ctx ) throws Exception {
+	public void channelActive( ChannelHandlerContext ctx ) throws Exception
+	{
 		cc = ctx.channel();
 		mp.checkDebug( ctx.pipeline() );
 		cc.writeAndFlush( mp.connectMsg() );
@@ -122,7 +123,8 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 		ChannelHandlerContext ctx,
 		List<Object> out,
 		MqttPublishMessage m )
-		throws InterruptedException, Exception {
+		throws InterruptedException, Exception
+	{
 		if ( MqttProtocol.getQoS( m ).equals( MqttQoS.EXACTLY_ONCE ) ) {
 			if ( qos2pendingPublish.containsKey( MqttProtocol.getMessageID( m ) ) ) {
 				// we can remove it because we are handling the PUBREL
@@ -140,7 +142,8 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 	}
 
 	private void handleMessageReception( ChannelHandlerContext ctx,
-		List<Object> out, MqttPublishMessage m ) throws Exception {
+		List<Object> out, MqttPublishMessage m ) throws Exception
+	{
 		CommMessage cm = mp.recv_request( m );
 		// if it is a one-way, we handle it directly
 		if ( mp.isOneWay( cm.operationName() ) ) {
@@ -153,7 +156,7 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 				);
 
 			AsyncCommProtocol newMP
-				= ( AsyncCommProtocol ) Interpreter.getInstance().commCore()
+				= (AsyncCommProtocol) Interpreter.getInstance().commCore()
 					.getCommProtocolFactory( mp.name() ).createInputProtocol(
 					commChannel.parentInputPort().protocolConfigurationPath(),
 					location );
@@ -172,7 +175,7 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 			newMP.setChannel( sideChannel );
 
 			StreamingCommChannel inChannel
-				= ( ( NioSocketCommChannel ) commChannel ).getChannelHandler()
+				= ((NioSocketCommChannel) commChannel).getChannelHandler()
 					.getInChannel().createWithSideChannel( sideChannel );
 
 			inChannel.setParentInputPort( commChannel.parentInputPort() );

@@ -153,10 +153,18 @@ public class CoapProtocol extends AsyncCommProtocol
 		return super.getSendType( message );
 	}
 
-//	@Override
-//	protected void setExecutionThread( ExecutionThread t ) {
-//		super.setExecutionThread( t );
-//	}
+	@Override
+	protected void setSendExecutionThread( Long k )
+	{
+		super.setSendExecutionThread( k ); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	protected <K> void setReceiveExecutionThread( K k )
+	{
+		super.setReceiveExecutionThread( k ); //To change body of generated methods, choose Tools | Templates.
+	}
+
 	/**
 	 * Given the <code>alias</code> for an operation, it searches iteratively in
 	 * the <code>configurationPath</code> of the {@link AsyncCommProtocol} to
