@@ -66,28 +66,7 @@ public class CommMessage implements Serializable
 	private final String resourcePath;
 	private final Value value;
 	private final FaultException fault;
-	private Token token;
 	private ExecutionThread thread;
-
-	/**
-	Rapresent a {@link Token} used for correlation in cases the  ID is not enough.
-	@param token
-	@return the {@link CommMessage} itself with the new token set, for chaining purpose
-	 */
-	public CommMessage token( Token token )
-	{
-		this.token = token;
-		return this;
-	}
-
-	/**
-	Get the {@link Token} of the specific {@link CommMessage} is called on.
-	@return the {@link Token} of this {@link CommMessage}
-	 */
-	public Token token()
-	{
-		return this.token;
-	}
 
 	/**
 	 * Returns the resource path of this message.
@@ -203,7 +182,6 @@ public class CommMessage implements Serializable
 	 */
 	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault )
 	{
-		this.token = new Token( new byte[ 0 ] );
 		this.id = id;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
@@ -309,8 +287,7 @@ public class CommMessage implements Serializable
 		//Header + Token
 		result.append( "[Header: (ID) " ).append( id() )
 			.append( ", (Operation) " ).append( operationName() )
-			.append( ", (Thread) " ).append( executionThread() )
-			.append( " | (Token) " ).append( token().toString() ).append( " | " );
+			.append( " | (Thread) " ).append( executionThread() ).append( " | " );
 
 		//Value
 		result.append( "Value: " );
