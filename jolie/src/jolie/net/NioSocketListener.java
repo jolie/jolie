@@ -142,7 +142,7 @@ public class NioSocketListener extends CommListener
 							}
 
 						} );
-//						( ( AsyncCommProtocol ) protocol ).setInitExecutionThread( interpreter().initThread() );
+						((AsyncCommProtocol) protocol).setInitExecutionThread( interpreter().initThread() );
 					}
 				} );
 			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();

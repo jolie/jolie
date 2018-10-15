@@ -21,34 +21,31 @@
  */
 package jolie.net;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import jolie.ExecutionThread;
-import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.ports.InputPort;
-import jolie.net.ports.OutputPort;
-import jolie.net.ports.Port;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.codec.MessageToMessageEncoder;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
+import jolie.net.ports.Port;
+import jolie.net.protocols.AsyncCommProtocol;
 
-public class DatagramCommChannel extends StreamingCommChannel {
+public class DatagramCommChannel extends StreamingCommChannel
+{
 
 	public final static String CHANNEL_HANDLER_NAME
 		= "STREAMING-CHANNEL-HANDLER";
@@ -58,13 +55,15 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	protected StreamingCommChannelHandler commChannelHandler;
 	private ChannelPipeline channelPipeline;
 
-	public DatagramCommChannel( URI location, AsyncCommProtocol protocol ) {
+	public DatagramCommChannel( URI location, AsyncCommProtocol protocol )
+	{
 		super( location, protocol );
 		this.commChannelHandler = new StreamingCommChannelHandler( this );
 	}
 
 	@Override
-	public StreamingCommChannelHandler getChannelHandler() {
+	public StreamingCommChannelHandler getChannelHandler()
+	{
 		return commChannelHandler;
 	}
 
@@ -72,7 +71,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	 *
 	 * @param channelPipeline
 	 */
-	public void setChannelPipeline( ChannelPipeline channelPipeline ) {
+	public void setChannelPipeline( ChannelPipeline channelPipeline )
+	{
 		this.channelPipeline = channelPipeline;
 	}
 
@@ -80,7 +80,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	 *
 	 * @return
 	 */
-	public ChannelPipeline getChannelPipeline() {
+	public ChannelPipeline getChannelPipeline()
+	{
 		return channelPipeline;
 	}
 
@@ -93,7 +94,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	 * @return
 	 */
 	public static DatagramCommChannel createChannel( URI location,
-		AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port ) {
+		AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port )
+	{
 
 //    ExecutionThread ethread = ExecutionThread.currentThread();
 		DatagramCommChannel c = new DatagramCommChannel( location, protocol );
@@ -101,29 +103,35 @@ public class DatagramCommChannel extends StreamingCommChannel {
 		c.b = new Bootstrap();
 		c.b.group( workerGroup );
 		c.b.channel( NioDatagramChannel.class );
-		c.b.handler( new ChannelInitializer<NioDatagramChannel>() {
+		c.b.handler( new ChannelInitializer<NioDatagramChannel>()
+		{
 			@Override
-			protected void initChannel( NioDatagramChannel ch ) throws Exception {
+			protected void initChannel( NioDatagramChannel ch ) throws Exception
+			{
 				ChannelPipeline p = ch.pipeline();
 				if ( port instanceof InputPort ) {
-					c.setParentInputPort( ( InputPort ) port );
+					c.setParentInputPort( (InputPort) port );
 				}
 				if ( port instanceof OutputPort ) {
-					c.setParentOutputPort( ( OutputPort ) port );
+					c.setParentOutputPort( (OutputPort) port );
 				}
 				protocol.setChannel( c );
 				c.setChannelPipeline( p );
 				// inbound handler per datagram packet 
-				p.addLast( new SimpleChannelInboundHandler<DatagramPacket>() {
+				p.addLast( new SimpleChannelInboundHandler<DatagramPacket>()
+				{
 					@Override
-					protected void channelRead0( ChannelHandlerContext ctx, DatagramPacket msg ) throws Exception {
+					protected void channelRead0( ChannelHandlerContext ctx, DatagramPacket msg ) throws Exception
+					{
 						ctx.fireChannelRead( Unpooled.copiedBuffer( msg.content() ) );
 					}
 				} );
-				p.addLast( new MessageToMessageEncoder<ByteBuf>() {
+				p.addLast( new MessageToMessageEncoder<ByteBuf>()
+				{
 					@Override
-					protected void encode( ChannelHandlerContext ctx, ByteBuf msg, List<Object> out ) throws Exception {
-						out.add( new DatagramPacket( Unpooled.copiedBuffer( ( ByteBuf ) msg ), new InetSocketAddress( location.getHost(), location.getPort() ) ) );
+					protected void encode( ChannelHandlerContext ctx, ByteBuf msg, List<Object> out ) throws Exception
+					{
+						out.add( new DatagramPacket( Unpooled.copiedBuffer( (ByteBuf) msg ), new InetSocketAddress( location.getHost(), location.getPort() ) ) );
 					}
 
 				} );
@@ -142,7 +150,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	 * @throws InterruptedException
 	 */
 	public ChannelFuture connect( URI location )
-		throws InterruptedException {
+		throws InterruptedException
+	{
 
 		return b.bind( new InetSocketAddress( 0 ) );
 	}
@@ -154,7 +163,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	 * @throws InterruptedException
 	 */
 	public ChannelFuture bind( InetSocketAddress location )
-		throws InterruptedException {
+		throws InterruptedException
+	{
 
 		return b.bind( location );
 	}
@@ -166,7 +176,8 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	 * @throws IOException
 	 */
 	@Override
-	protected CommMessage recvImpl() throws IOException {
+	protected CommMessage recvImpl() throws IOException
+	{
 		try {
 			if ( waitingForMsg != null ) {
 				throw new UnsupportedOperationException( "Waiting for multiple "
@@ -176,13 +187,14 @@ public class DatagramCommChannel extends StreamingCommChannel {
 			CommMessage msg = waitingForMsg.get();
 			waitingForMsg = null;
 			return msg;
-		} catch ( InterruptedException | ExecutionException ex ) {
+		} catch( InterruptedException | ExecutionException ex ) {
 			throw new IOException( ex );
 		}
 	}
 
-	protected void completeRead( CommMessage message ) {
-		while ( waitingForMsg == null ) {
+	protected void completeRead( CommMessage message )
+	{
+		while( waitingForMsg == null ) {
 			// spinlock
 		}
 		if ( waitingForMsg == null ) {
@@ -193,19 +205,21 @@ public class DatagramCommChannel extends StreamingCommChannel {
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message ) throws IOException {
+	protected void sendImpl( CommMessage message ) throws IOException
+	{
 		try {
-			commChannelHandler.write( message.setExecutionThread( ExecutionThread.currentThread() ) ).sync();
-		} catch ( InterruptedException ex ) {
+			commChannelHandler.write( message ).sync();
+		} catch( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
 	}
 
 	@Override
-	protected void closeImpl() throws IOException {
+	protected void closeImpl() throws IOException
+	{
 		try {
 			commChannelHandler.close().sync();
-		} catch ( InterruptedException ex ) {
+		} catch( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
 	}

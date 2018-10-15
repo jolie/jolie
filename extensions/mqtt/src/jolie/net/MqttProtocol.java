@@ -23,25 +23,6 @@
  */
 package jolie.net;
 
-import jolie.net.mqtt.InputPortHandler;
-import jolie.net.mqtt.OutputPortHandler;
-import jolie.net.ports.InputPort;
-import jolie.net.ports.OutputPort;
-import jolie.net.protocols.PubSubCommProtocol;
-
-import jolie.js.JsUtils;
-import jolie.xml.XmlUtils;
-
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.Type;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.VariablePath;
-import jolie.runtime.Value;
-import jolie.runtime.FaultException;
-import jolie.runtime.ValueVector;
-import jolie.runtime.typing.OneWayTypeDescription;
-import jolie.runtime.typing.RequestResponseTypeDescription;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
@@ -72,13 +53,10 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-
 import java.nio.charset.Charset;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -90,7 +68,6 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -100,16 +77,30 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import jolie.ExecutionThread;
-import org.xml.sax.InputSource;
-
 import jolie.Interpreter;
+import jolie.js.JsUtils;
+import jolie.net.mqtt.InputPortHandler;
+import jolie.net.mqtt.OutputPortHandler;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
+import jolie.net.protocols.PubSubCommProtocol;
+import jolie.runtime.ByteArray;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
-
+import jolie.runtime.typing.TypeCheckingException;
+import jolie.xml.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
-public class MqttProtocol extends PubSubCommProtocol {
+public class MqttProtocol extends PubSubCommProtocol
+{
 
 	private final Set<String> aliasKeys;
 	private final Charset charset;
@@ -121,7 +112,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 *
 	 * @param configurationPath
 	 */
-	public MqttProtocol( VariablePath configurationPath ) {
+	public MqttProtocol( VariablePath configurationPath )
+	{
 
 		super( configurationPath );
 		this.nextMessageId = new AtomicInteger( 1 );
@@ -129,7 +121,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 		this.aliasKeys = new TreeSet<>();
 	}
 
-	public static MqttMessage getPingMessage() {
+	public static MqttMessage getPingMessage()
+	{
 		return new MqttMessage(
 			new MqttFixedHeader(
 				MqttMessageType.PINGREQ,
@@ -141,20 +134,23 @@ public class MqttProtocol extends PubSubCommProtocol {
 	}
 
 	@Override
-	public void setupPipeline( ChannelPipeline p ) {
+	public void setupPipeline( ChannelPipeline p )
+	{
 
 		//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 		p.addLast( "ENCODER", MqttEncoder.INSTANCE );
 		p.addLast( "DECODER", new MqttDecoder() );
 
-		p.addLast( "PING", new ChannelInboundHandlerAdapter() {
+		p.addLast( "PING", new ChannelInboundHandlerAdapter()
+		{
 			@Override
 			public void userEventTriggered( ChannelHandlerContext ctx,
-				Object evt ) throws Exception {
+				Object evt ) throws Exception
+			{
 
 				if ( evt instanceof IdleStateEvent ) {
-					IdleStateEvent event = ( IdleStateEvent ) evt;
-					switch ( event.state() ) {
+					IdleStateEvent event = (IdleStateEvent) evt;
+					switch( event.state() ) {
 						case READER_IDLE:
 							break;
 						case WRITER_IDLE:
@@ -173,61 +169,66 @@ public class MqttProtocol extends PubSubCommProtocol {
 		// else we do not add a specific handler, we will add it after channel registation (see InputResponseHandler)
 	}
 
-	public void checkDebug( ChannelPipeline p ) {
+	public void checkDebug( ChannelPipeline p )
+	{
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			p.addAfter( "DECODER", "DBDecode",
-				new MessageToMessageDecoder<MqttMessage>() {
+				new MessageToMessageDecoder<MqttMessage>()
+			{
 				@Override
 				protected void decode( ChannelHandlerContext chc, MqttMessage i,
-					List<Object> list ) throws Exception {
+					List<Object> list ) throws Exception
+				{
 					String logLine = "";
 					try {
 						logLine = "#" + getMessageID( i ) + " ";
-					} catch ( Exception e ) {
+					} catch( Exception e ) {
 					}
 					MqttMessageType t = i.fixedHeader().messageType();
-					if ( !( t.equals( MqttMessageType.PINGRESP )
-						|| t.equals( MqttMessageType.PINGREQ ) ) ) {
+					if ( !(t.equals( MqttMessageType.PINGRESP )
+						|| t.equals( MqttMessageType.PINGREQ )) ) {
 						logLine += " <- " + t;
 						if ( t.equals( MqttMessageType.PUBLISH ) ) {
-							logLine += "\t  " + ( ( MqttPublishMessage ) i )
+							logLine += "\t  " + ((MqttPublishMessage) i)
 								.variableHeader().topicName();
 						}
 						Interpreter.getInstance().logInfo( logLine );
 					}
 					if ( t.equals( MqttMessageType.PUBLISH ) ) {
-						( ( MqttPublishMessage ) i ).retain();
+						((MqttPublishMessage) i).retain();
 					}
 					list.add( i );
 				}
 			} );
 			p.addAfter( "DECODER", "DBEncode",
-				new MessageToMessageEncoder<MqttMessage>() {
+				new MessageToMessageEncoder<MqttMessage>()
+			{
 				@Override
 				protected void encode( ChannelHandlerContext chc, MqttMessage i,
-					List list ) throws Exception {
+					List list ) throws Exception
+				{
 					String logLine = "";
 					try {
 						logLine = "#" + getMessageID( i ) + " ";
-					} catch ( Exception e ) {
+					} catch( Exception e ) {
 					}
 					MqttMessageType t = i.fixedHeader().messageType();
 					logLine += t + " ->";
 					if ( t.equals( MqttMessageType.PUBLISH ) ) {
-						logLine += "\t topic: " + ( ( MqttPublishMessage ) i )
+						logLine += "\t topic: " + ((MqttPublishMessage) i)
 							.variableHeader().topicName();
 					}
 					if ( t.equals( MqttMessageType.SUBSCRIBE ) ) {
 						logLine += "\t topics: ";
-						for ( MqttTopicSubscription topic : ( ( MqttSubscribeMessage ) i )
+						for( MqttTopicSubscription topic : ((MqttSubscribeMessage) i)
 							.payload().topicSubscriptions() ) {
 							logLine += topic.topicName() + ", ";
 						}
 						logLine = logLine.substring( 0, logLine.length() - 2 ); // removes the trailing ", "
 					}
 
-					if ( !( t.equals( MqttMessageType.PINGRESP )
-						|| t.equals( MqttMessageType.PINGREQ ) ) ) {
+					if ( !(t.equals( MqttMessageType.PINGRESP )
+						|| t.equals( MqttMessageType.PINGREQ )) ) {
 						Interpreter.getInstance().logInfo( logLine );
 					}
 
@@ -238,7 +239,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 					} else {
 						if ( channel().parentPort() instanceof InputPort
 							&& t.equals( MqttMessageType.PUBLISH ) ) {
-							( ( MqttPublishMessage ) i ).retain();
+							((MqttPublishMessage) i).retain();
 						}
 						list.add( i );
 					}
@@ -248,13 +249,14 @@ public class MqttProtocol extends PubSubCommProtocol {
 	}
 
 	@Override
-	public String name() {
+	public String name()
+	{
 		return "mqtt";
 	}
 
 	@Override
-	public boolean isThreadSafe() {
-
+	public boolean isThreadSafe()
+	{
 		return false;
 	}
 
@@ -263,7 +265,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param operationName
 	 * @return boolean
 	 */
-	public boolean isOneWay( String operationName ) {
+	public boolean isOneWay( String operationName )
+	{
 		return channel().parentPort().getInterface()
 			.oneWayOperations().containsKey( operationName );
 	}
@@ -274,13 +277,14 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param ch - The channel where to write the eventual Comm Message
 	 * @param mpm - The publish message received.
 	 */
-	public void recv_pub( Channel ch, MqttPublishMessage mpm ) {
-		if ( !( mpm.variableHeader().messageId() == -1
+	public void recv_pub( Channel ch, MqttPublishMessage mpm )
+	{
+		if ( !(mpm.variableHeader().packetId() == -1
 			// we just manage QoS 1 and 2 as QoS 0 needs no response back
-			|| getQoS( mpm ).equals( MqttQoS.AT_MOST_ONCE ) ) ) {
+			|| getQoS( mpm ).equals( MqttQoS.AT_MOST_ONCE )) ) {
 			MqttMessage respMessage = null;
 			// WE OBTAIN THE APPROPRIATE HEADER ...
-			switch ( getQoS( mpm ) ) {
+			switch( getQoS( mpm ) ) {
 				case AT_LEAST_ONCE:
 					// ... A PUBACK
 					MqttFixedHeader f = new MqttFixedHeader(
@@ -303,35 +307,41 @@ public class MqttProtocol extends PubSubCommProtocol {
 		}
 	}
 
-	public void startPing( ChannelPipeline p ) {
+	public void startPing( ChannelPipeline p )
+	{
 		p.addAfter( "DECODER", "IDLE_STATE", new IdleStateHandler( 0, 2, 0 ) );
 	}
 
-	public void stopPing( ChannelPipeline p ) {
+	public void stopPing( ChannelPipeline p )
+	{
 		if ( p.get( "IDLE_STATE" ) != null ) {
 			p.remove( "IDLE_STATE" );
 		}
 	}
 
-	public static int getMessageID( MqttMessage m ) {
+	public static int getMessageID( MqttMessage m )
+	{
 		if ( m instanceof MqttPublishMessage ) {
-			return ( ( MqttPublishMessage ) m ).variableHeader().messageId();
+			return ((MqttPublishMessage) m).variableHeader().messageId();
 		} else {
-			return ( ( MqttMessageIdVariableHeader ) m.variableHeader() ).messageId();
+			return ((MqttMessageIdVariableHeader) m.variableHeader()).messageId();
 		}
 	}
 
-	public static MqttQoS getQoS( MqttMessage m ) {
+	public static MqttQoS getQoS( MqttMessage m )
+	{
 		return m.fixedHeader().qosLevel();
 	}
 
-	public void releaseMessage( int messageID ) throws IOException {
-		( ( StreamingCommChannel ) ( ( NioSocketCommChannel ) channel() )
-			.getChannelHandler().getInChannel() ).sendRelease( ( long ) messageID );
+	public void releaseMessage( int messageID ) throws IOException
+	{
+		((StreamingCommChannel) ((NioSocketCommChannel) channel())
+			.getChannelHandler().getInChannel()).sendRelease( (long) messageID );
 	}
 
 	public void markAsSentAndStopPing( Channel cc, int messageID )
-		throws IOException {
+		throws IOException
+	{
 		releaseMessage( messageID );
 		stopPing( cc.pipeline() );
 	}
@@ -343,7 +353,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param toBeChecked MqttQoS
 	 * @return boolean - True if the QoS is the same, False otherwise.
 	 */
-	public boolean checkQoS( CommMessage cm, MqttQoS toBeChecked ) {
+	public boolean checkQoS( CommMessage cm, MqttQoS toBeChecked )
+	{
 		return getOperationQoS( cm.operationName() ).equals( toBeChecked );
 	}
 
@@ -351,15 +362,16 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 *
 	 * @return List of String - The list of topics for port interface
 	 */
-	public List<String> topics() {
+	public List<String> topics()
+	{
 
 		List<String> opL = new ArrayList<>();
-		for ( Map.Entry<String, OneWayTypeDescription> owon
+		for( Map.Entry<String, OneWayTypeDescription> owon
 			: channel().parentPort().getInterface().oneWayOperations()
 				.entrySet() ) {
 			opL.add( alias( owon.getKey() ) );
 		}
-		for ( Map.Entry<String, RequestResponseTypeDescription> rron
+		for( Map.Entry<String, RequestResponseTypeDescription> rron
 			: channel().parentPort().getInterface()
 				.requestResponseOperations()
 				.entrySet() ) {
@@ -368,14 +380,15 @@ public class MqttProtocol extends PubSubCommProtocol {
 		return opL;
 	}
 
-	public MqttConnectMessage connectMsg() {
+	public MqttConnectMessage connectMsg()
+	{
 
 		Random random = new Random();
 		String clientId = "jolie/";
 		String[] options
-			= ( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456"
-				+ "789" ).split( "" );
-		for ( int i = 0; i < 4; i++ ) {
+			= ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456"
+				+ "789").split( "" );
+		for( int i = 0; i < 4; i++ ) {
 			clientId += options[ random.nextInt( options.length ) ];
 		}
 
@@ -411,12 +424,13 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param message
 	 * @return ChannelFuture
 	 */
-	public ChannelFuture handlePubrec( Channel channel, MqttMessage message ) {
+	public ChannelFuture handlePubrec( Channel channel, MqttMessage message )
+	{
 
 		MqttFixedHeader fixedHeader = new MqttFixedHeader(
 			MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false, 0 );
 		MqttMessageIdVariableHeader variableHeader
-			= ( MqttMessageIdVariableHeader ) message.variableHeader();
+			= (MqttMessageIdVariableHeader) message.variableHeader();
 
 		return channel.writeAndFlush(
 			new MqttMessage( fixedHeader, variableHeader ) );
@@ -428,14 +442,15 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param message
 	 * @return ChannelFuture
 	 */
-	public ChannelFuture handlePubrel( Channel channel, MqttMessage message ) {
+	public ChannelFuture handlePubrel( Channel channel, MqttMessage message )
+	{
 
 		MqttFixedHeader fixedHeader
 			= new MqttFixedHeader( MqttMessageType.PUBCOMP,
 				false, MqttQoS.AT_MOST_ONCE, false, 0 );
 		MqttMessageIdVariableHeader variableHeader
 			= MqttMessageIdVariableHeader.from(
-				( ( MqttMessageIdVariableHeader ) message.variableHeader() )
+				((MqttMessageIdVariableHeader) message.variableHeader())
 					.messageId() );
 
 		return channel.writeAndFlush(
@@ -448,7 +463,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param cm CommMessage
 	 * @return the topic response
 	 */
-	public String getRespTopic( CommMessage cm ) {
+	public String getRespTopic( CommMessage cm )
+	{
 
 		// bookkeeping variables for topic-to-operation correlation
 		operationResponse = cm.operationName();
@@ -473,12 +489,13 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @throws java.lang.Exception
 	 */
 	public MqttPublishMessage send_response( CommMessage in, String t )
-		throws Exception {
+		throws Exception
+	{
 
 		ByteBuf bb = Unpooled.copiedBuffer( valueToByteBuf( in ) );
 		MqttQoS q = getOperationQoS( in.operationName() );
 
-		return publishMsg( t, bb, q, ( int ) in.id() );
+		return publishMsg( t, bb, q, (int) in.id() );
 	}
 
 	/**
@@ -487,7 +504,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @return
 	 * @throws java.lang.Exception
 	 */
-	public CommMessage recv_request( MqttPublishMessage in ) throws Exception {
+	public CommMessage recv_request( MqttPublishMessage in ) throws Exception
+	{
 
 		String on = operation( in.variableHeader().topicName() );
 		Value v = byteBufToValue( on, in.payload() );
@@ -499,7 +517,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 *
 	 * @param ch
 	 */
-	public void send_subRequest( Channel ch ) {
+	public void send_subRequest( Channel ch )
+	{
 		startPing( ch.pipeline() );
 		ch.writeAndFlush( subscribeMsg( topics(), qos() ) );
 	}
@@ -510,7 +529,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @return
 	 * @throws Exception
 	 */
-	public MqttPublishMessage pubOneWayRequest( CommMessage in ) throws Exception {
+	public MqttPublishMessage pubOneWayRequest( CommMessage in ) throws Exception
+	{
 
 		String a = in.operationName();
 
@@ -521,7 +541,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 		}
 
 		return publishMsg( topic( in, a, true ), valueToByteBuf( in ),
-			getOperationQoS( in.operationName() ), ( int ) in.id() );
+			getOperationQoS( in.operationName() ), (int) in.id() );
 	}
 
 	/**
@@ -529,7 +549,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param in
 	 * @return
 	 */
-	public MqttSubscribeMessage subRequestResponseRequest( CommMessage in ) {
+	public MqttSubscribeMessage subRequestResponseRequest( CommMessage in )
+	{
 
 		String a = in.operationName() + "/response";
 
@@ -549,7 +570,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @throws Exception
 	 */
 	public MqttPublishMessage pubRequestResponseRequest( CommMessage in )
-		throws Exception {
+		throws Exception
+	{
 
 		String a = in.operationName();
 
@@ -560,10 +582,11 @@ public class MqttProtocol extends PubSubCommProtocol {
 		}
 
 		return publishMsg( topic( in, a, false ), valueToByteBuf( in ),
-			getOperationQoS( in.operationName() ), ( int ) in.id() );
+			getOperationQoS( in.operationName() ), (int) in.id() );
 	}
 
-	private String operation( String topic ) {
+	private String operation( String topic )
+	{
 
 		if ( channel().parentPort() instanceof OutputPort ) {
 			if ( topic.equals( topicResponse ) ) {
@@ -573,10 +596,10 @@ public class MqttProtocol extends PubSubCommProtocol {
 			}
 		} else {
 			if ( configurationPath().getValue().hasChildren( "osc" ) ) {
-				for ( Map.Entry<String, ValueVector> i : configurationPath()
+				for( Map.Entry<String, ValueVector> i : configurationPath()
 					.getValue()
 					.getFirstChild( "osc" ).children().entrySet() ) {
-					for ( Map.Entry<String, ValueVector> j : i.getValue().first()
+					for( Map.Entry<String, ValueVector> j : i.getValue().first()
 						.children().entrySet() ) {
 						if ( j.getKey().equals( "alias" ) && j.getValue().first()
 							.strValue().equals( topic ) ) {
@@ -590,7 +613,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 		}
 	}
 
-	private MqttMessageIdVariableHeader getNewMessageId() {
+	private MqttMessageIdVariableHeader getNewMessageId()
+	{
 		nextMessageId.compareAndSet( 0xffff, 1 );
 		return MqttMessageIdVariableHeader.from(
 			nextMessageId.getAndIncrement() );
@@ -604,7 +628,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @throws Exception
 	 */
 	public CommMessage recv_pubReqResp( MqttPublishMessage mpm,
-		CommMessage req ) throws Exception {
+		CommMessage req ) throws Exception
+	{
 		return new CommMessage( req.id(),//CommMessage.GENERIC_ID,
 			req.operationName(), "/", byteBufToValue( req.operationName(),
 			mpm.retain().payload() ), null );
@@ -615,7 +640,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	 * @param m
 	 * @return
 	 */
-	public String extractTopicResponse( MqttPublishMessage m ) {
+	public String extractTopicResponse( MqttPublishMessage m )
+	{
 		String msg = Unpooled.wrappedBuffer( m.payload() ).toString( charset );
 
 		if ( msg.indexOf( Parameters.BOUNDARY )
@@ -627,11 +653,19 @@ public class MqttProtocol extends PubSubCommProtocol {
 	}
 
 	@Override
-	public void setExecutionThread( ExecutionThread t ) {
-		super.setExecutionThread( t ); //To change body of generated methods, choose Tools | Templates.
+	public void setSendExecutionThread( Long k )
+	{
+		super.setSendExecutionThread( k ); //To change body of generated methods, choose Tools | Templates.
 	}
 
-	private static class Parameters {
+	@Override
+	public <K> void setReceiveExecutionThread( K k )
+	{
+		super.setReceiveExecutionThread( k ); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	private static class Parameters
+	{
 
 		private static final String BROKER = "broker";
 		private static final String ALIAS = "alias";
@@ -649,7 +683,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 
 	}
 
-	private ByteBuf valueToByteBuf( CommMessage in ) throws Exception {
+	private ByteBuf valueToByteBuf( CommMessage in ) throws Exception
+	{
 
 		ByteBuf bb = Unpooled.buffer();
 		String format = format( in.operationName() );
@@ -660,7 +695,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 			&& channel().parentPort() instanceof OutputPort ) {
 			topicResponsePrefix = getRespTopic( in );
 		}
-		switch ( format ) {
+		switch( format ) {
 			case "json":
 				StringBuilder jsonStringBuilder = new StringBuilder();
 				JsUtils.valueToJsonString( v, true, getSendType( in ),
@@ -699,7 +734,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 		return bb;
 	}
 
-	private String format( String operationName ) {
+	private String format( String operationName )
+	{
 		/*
 	We suppose in advance that raw format stands if nothing else
 	is specified.
@@ -710,29 +746,31 @@ public class MqttProtocol extends PubSubCommProtocol {
 					Parameters.FORMAT ) : "raw";
 	}
 
-	private String valueToRaw( Value value ) {
+	private String valueToRaw( Value value )
+	{
 		// TODO handle bytearray
 		Object valueObject = value.valueObject();
 		String str = "";
 		if ( valueObject instanceof String ) {
-			str = ( ( String ) valueObject );
+			str = ((String) valueObject);
 		} else if ( valueObject instanceof Integer ) {
-			str = ( ( Integer ) valueObject ).toString();
+			str = ((Integer) valueObject).toString();
 		} else if ( valueObject instanceof Double ) {
-			str = ( ( Double ) valueObject ).toString();
+			str = ((Double) valueObject).toString();
 		} else if ( valueObject instanceof ByteArray ) {
-			str = ( ( ByteArray ) valueObject ).toString();
+			str = ((ByteArray) valueObject).toString();
 		} else if ( valueObject instanceof Boolean ) {
-			str = ( ( Boolean ) valueObject ).toString();
+			str = ((Boolean) valueObject).toString();
 		} else if ( valueObject instanceof Long ) {
-			str = ( ( Long ) valueObject ).toString();
+			str = ((Long) valueObject).toString();
 		}
 
 		return str;
 	}
 
 	private Value byteBufToValue( String operationName, ByteBuf payload )
-		throws Exception {
+		throws Exception
+	{
 
 		String msg = Unpooled.wrappedBuffer( payload ).toString( charset );
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -743,7 +781,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 			try {
 				msg = msg.substring( msg.indexOf( Parameters.BOUNDARY, 1 ) + 1,
 					msg.length() );
-			} catch ( IndexOutOfBoundsException ex ) {
+			} catch( IndexOutOfBoundsException ex ) {
 			}
 		}
 
@@ -754,7 +792,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 
 		if ( msg.length() > 0 ) {
 			String format = format( operationName );
-			switch ( format ) {
+			switch( format ) {
 				case "xml":
 					DocumentBuilderFactory docBuilderFactory
 						= DocumentBuilderFactory.newInstance();
@@ -783,21 +821,21 @@ public class MqttProtocol extends PubSubCommProtocol {
 			// for XML format
 			try {
 				v = type.cast( v );
-			} catch ( TypeCastingException e ) {
+			} catch( TypeCastingException e ) {
 			}
 		} else {
 			v = Value.create();
 			try {
 				type.check( v );
-			} catch ( TypeCheckingException ex1 ) {
+			} catch( TypeCheckingException ex1 ) {
 				v = Value.create( "" );
 				try {
 					type.check( v );
-				} catch ( TypeCheckingException ex2 ) {
+				} catch( TypeCheckingException ex2 ) {
 					v = Value.create( new ByteArray( new byte[ 0 ] ) );
 					try {
 						type.check( v );
-					} catch ( TypeCheckingException ex3 ) {
+					} catch( TypeCheckingException ex3 ) {
 						v = Value.create();
 					}
 				}
@@ -808,12 +846,13 @@ public class MqttProtocol extends PubSubCommProtocol {
 	}
 
 	private void parseRaw( String message, Value value, Type type )
-		throws TypeCheckingException {
+		throws TypeCheckingException
+	{
 
 		try {
 			type.check( Value.create( message ) );
 			value.setValue( message );
-		} catch ( TypeCheckingException e1 ) {
+		} catch( TypeCheckingException e1 ) {
 			if ( isNumeric( message ) ) {
 				try {
 					if ( message.equals( "0" ) ) {
@@ -827,16 +866,16 @@ public class MqttProtocol extends PubSubCommProtocol {
 							throw new TypeCheckingException( "" );
 						}
 					}
-				} catch ( TypeCheckingException e ) {
+				} catch( TypeCheckingException e ) {
 					try {
 						value.setValue( Integer.parseInt( message ) );
-					} catch ( NumberFormatException nfe ) {
+					} catch( NumberFormatException nfe ) {
 						try {
 							value.setValue( Long.parseLong( message ) );
-						} catch ( NumberFormatException nfe1 ) {
+						} catch( NumberFormatException nfe1 ) {
 							try {
 								value.setValue( Double.parseDouble( message ) );
-							} catch ( NumberFormatException nfe2 ) {
+							} catch( NumberFormatException nfe2 ) {
 							}
 						}
 					}
@@ -845,20 +884,21 @@ public class MqttProtocol extends PubSubCommProtocol {
 				try {
 					type.check( Value.create( new ByteArray( message.getBytes() ) ) );
 					value.setValue( new ByteArray( message.getBytes() ) );
-				} catch ( TypeCheckingException e ) {
+				} catch( TypeCheckingException e ) {
 					value.setValue( message );
 				}
 			}
 		}
 	}
 
-	private boolean isNumeric( final CharSequence cs ) {
+	private boolean isNumeric( final CharSequence cs )
+	{
 
 		if ( cs.length() == 0 ) {
 			return false;
 		}
 		final int sz = cs.length();
-		for ( int i = 0; i < sz; i++ ) {
+		for( int i = 0; i < sz; i++ ) {
 			if ( !Character.isDigit( cs.charAt( i ) ) ) {
 				return false;
 			}
@@ -866,9 +906,10 @@ public class MqttProtocol extends PubSubCommProtocol {
 		return true;
 	}
 
-	private String alias( String operationName ) {
+	private String alias( String operationName )
+	{
 
-		for ( Iterator<Map.Entry<String, ValueVector>> it = configurationPath()
+		for( Iterator<Map.Entry<String, ValueVector>> it = configurationPath()
 			.getValue().getFirstChild( "osc" ).children().entrySet()
 			.iterator();
 			it.hasNext(); ) {
@@ -880,7 +921,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 		return operationName;
 	}
 
-	public MqttQoS getOperationQoS( String operationName ) {
+	public MqttQoS getOperationQoS( String operationName )
+	{
 
 		return hasOperationSpecificParameter( operationName, Parameters.QOS )
 			? MqttQoS.valueOf( getOperationSpecificParameterFirstValue(
@@ -888,13 +930,15 @@ public class MqttProtocol extends PubSubCommProtocol {
 			: MqttQoS.AT_LEAST_ONCE;
 	}
 
-	private MqttQoS qos() {
+	private MqttQoS qos()
+	{
 
 		return hasParameter( Parameters.QOS ) ? MqttQoS.valueOf(
 			getIntParameter( Parameters.QOS ) ) : MqttQoS.AT_LEAST_ONCE;
 	}
 
-	private String topic( CommMessage cm, String alias, boolean removeKeys ) {
+	private String topic( CommMessage cm, String alias, boolean removeKeys )
+	{
 
 		String pattern = "%(!)?\\{[^\\}]*\\}";
 
@@ -906,7 +950,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 		Matcher m = Pattern.compile( pattern ).matcher( alias );
 
 		// substitute in alias
-		while ( m.find() ) {
+		while( m.find() ) {
 			currKey = alias.substring( m.start() + 3, m.end() - 1 );
 			currStrValue = cm.value().getFirstChild( currKey ).strValue();
 			aliasKeys.add( currKey );
@@ -918,7 +962,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 		}
 
 		if ( removeKeys ) {
-			for ( String aliasKey : aliasKeys ) {
+			for( String aliasKey : aliasKeys ) {
 				cm.value().children().remove( aliasKey );
 			}
 		}
@@ -927,10 +971,11 @@ public class MqttProtocol extends PubSubCommProtocol {
 	}
 
 	private MqttSubscribeMessage subscribeMsg( List<String> topics,
-		MqttQoS subQos ) {
+		MqttQoS subQos )
+	{
 
 		List<MqttTopicSubscription> tmsL = new ArrayList<>();
-		for ( String t : topics ) {
+		for( String t : topics ) {
 			tmsL.add( new MqttTopicSubscription( t, MqttQoS.EXACTLY_ONCE ) );
 		}
 		MqttFixedHeader mfh = new MqttFixedHeader(
@@ -942,7 +987,8 @@ public class MqttProtocol extends PubSubCommProtocol {
 	}
 
 	private MqttPublishMessage publishMsg( String topic, ByteBuf payload,
-		MqttQoS pubQos, int messageID ) {
+		MqttQoS pubQos, int messageID )
+	{
 
 		MqttFixedHeader mfh = new MqttFixedHeader(
 			MqttMessageType.PUBLISH,

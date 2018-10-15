@@ -237,31 +237,17 @@ public class HttpProtocol extends AsyncCommProtocol
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
-			throws Exception {
-				setSendExecutionThread( message.id() );
-				FullHttpMessage msg = buildHttpMessage( message );
-				out.add( msg );
+			throws Exception
+		{
+			setSendExecutionThread( message.id() );
+			FullHttpMessage msg = buildHttpMessage( message );
+			out.add( msg );
 		}
 
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
 			throws Exception
 		{
-			System.out.println( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) );
-			if ( hasExecutionThread( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) ) ) {
-				setExecutionThread( getExecutionThread( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) ) );
-				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Setting the Thread to be the"
-						+ " Execution Thread " + peekExecutionThread( new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) )
-						+ ", extracted from the map with key "
-						+ new Long( msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID ) ) );
-				}
-			} else {
-				Interpreter.getInstance().logSevere(
-					"Found no matching sender for message id: " + msg.headers().getAsString( Headers.JOLIE_MESSAGE_ID )
-					+ " for threadSafe channel on location: '" + channel().getLocation().toString()
-					+ "' protocol: '" + name() + "'" );
-			}
 			CommMessage message = recv_internal( msg );
 			out.add( message );
 		}
@@ -1426,11 +1412,13 @@ public class HttpProtocol extends AsyncCommProtocol
 			try {
 				decodedMessage.id = Long.parseLong( messageId );
 				setReceiveExecutionThread( decodedMessage.id );
-			} catch ( NumberFormatException e ) {
+			} catch( NumberFormatException e ) {
 			}
 		} else {
 			setReceiveExecutionThread( channel() );
-			if( isThreadSafe() ){ throw new IOException( "Received message without ID in threadSafe protocol" ); }
+			if ( isThreadSafe() ) {
+				throw new IOException( "Received message without ID in threadSafe protocol" );
+			}
 		}
 		//}
 
