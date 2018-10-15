@@ -74,11 +74,10 @@ import org.xml.sax.SAXException;
 
 public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, CommMessage>
 {
-
 	private static final Charset DEFAULT_CHARSET = CharsetUtil.UTF_8;
 
-	private final boolean isInput;
 	private final CoapProtocol protocol;
+	private final boolean isInput;
 
 	public CoapToCommMessageCodec( CoapProtocol protocol )
 	{
@@ -89,8 +88,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	@Override
 	protected void encode( ChannelHandlerContext ctx, CommMessage in, List<Object> out ) throws Exception
 	{
-		protocol.setExecutionThread( in.executionThread() );
-		protocol.addExecutionThread( in.id(), in.executionThread() );
+//		setSendExecutionThread( in.id() );
 
 		if ( isInput ) {
 			out.add( encode_inbound( in ) );
@@ -105,15 +103,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		if ( isInput ) {
 			out.add( decode_inbound( in ) );
 		} else {
-			if ( protocol.hasExecutionThread( (long) in.id() ) ) {
-				protocol.setExecutionThread( protocol.getExecutionThread( (long) in.id() ) );
-			} else {
-				String faultMessage = "DECODE -- Found no matching sender for message id: " + in.id()
-					+ " for threadSafe channel on location: '" + protocol.channel().getLocation().toString()
-					+ "' protocol: '" + protocol.name() + "'";
-				Interpreter.getInstance().logSevere( faultMessage );
-				throw new IOException( faultMessage );
-			}
+			// setReceiveExecutionThread( (long) in.id() );
 			out.add( decode_outbound( in ) );
 		}
 	}
@@ -170,7 +160,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		if ( MessageCode.allowsContent( out.messageCode() ) ) {
 			try {
 				out.setContent(
-					valueToByteBuf( in ),
+					valueToByteBuf( in, ContentFormat.CONTENT_FORMAT.get( getLongContentFormatProtocolParameter( in.operationName() ) ) ),
 					getLongContentFormatProtocolParameter( operationName )
 				);
 			} catch( IOException | ParserConfigurationException | TransformerException ex ) {
@@ -250,17 +240,13 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 			String format = in.contentFormat();
 			try {
-				v = byteBufToValue( in.getContent(), protocol.getSendType( operationName ), format );
+				v = byteBufToValue( in.getContent(), protocol.getSendType( operationName ), format, DEFAULT_CHARSET, protocol.checkStringParameter( Parameters.JSON_ENCODING, "strict" ) );
 			} catch( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
 				Interpreter.getInstance().logSevere( ex.getMessage() );
 			}
 		}
 
 		CommMessage out = new CommMessage( in.id(), operationName, "/", v, null );
-
-		if ( isRequestResponse( operationName ) && in.messageType() == MessageType.NON ) {
-			out = out.token( in.token() );
-		}
 
 		if ( isRequestResponse( operationName ) ) {
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -293,14 +279,11 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				messageCodeProtocolParameter( operationName, true ) );
 
 			out.id( (int) in.id() );
-			if ( in.token().getBytes().length != 0 ) {
-				out.token( in.token() );
-			}
 
 			if ( MessageCode.allowsContent( out.messageCode() ) ) {
 				ByteBuf content;
 				try {
-					content = valueToByteBuf( in );
+					content = valueToByteBuf( in, ContentFormat.CONTENT_FORMAT.get( getLongContentFormatProtocolParameter( in.operationName() ) ) );
 					out.setContent( content, getLongContentFormatProtocolParameter( operationName ) );
 				} catch( IOException | ParserConfigurationException | TransformerException ex ) {
 					Interpreter.getInstance().logSevere( ex.getMessage() );
@@ -317,12 +300,10 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 					+ in );
 			}
 
-			// THIS MESSAGE HAS NO INFORMATION ABOUT THE OPERATION IT BELONGS !! NOT READABLE AT DESTINATION !!
-			// IT IS NOT POSSIBLE TO SET THE URI PATH MANUALLY BECAUSE COAP ACK DOES NOT PERMIT IT
-			CoapMessage out = new CoapMessage( MessageType.ACK, MessageCode.EMPTY, (int) in.id(), new Token( new byte[ 0 ] ) );
+			CoapMessage out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
 
 			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Sending a CoAP Ack to the Client:\n"
+				Interpreter.getInstance().logInfo( "Sending a CoAP Empty Ack to the Client:\n"
 					+ out );
 			}
 			return out;
@@ -331,6 +312,17 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 	private CommMessage decode_outbound( CoapMessage in )
 	{
+		if ( in.isEmptyAck() ) {
+			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Receiving CoAP Ack from the Server:\n" + in );
+			}
+			CommMessage ack = new CommMessage( in.id(), null, "/", Value.create(), null );
+			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+				Interpreter.getInstance().logInfo( "Sending a Comm Message Ack to Comm Core:\n" + ack.toString() );
+			}
+			return ack;
+		}
+
 		String operationName = operationName( in );
 
 		if ( isRequestResponse( operationName ) ) {
@@ -347,7 +339,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				);
 
 				try {
-					v = byteBufToValue( in.getContent(), protocol.getSendType( operationName ), format );
+					v = byteBufToValue( in.getContent(), protocol.getSendType( operationName ), format, DEFAULT_CHARSET, protocol.checkStringParameter( Parameters.JSON_ENCODING, "strict" ) );
 				} catch( IOException | ParserConfigurationException | SAXException | TypeCheckingException ex ) {
 					Interpreter.getInstance().logSevere( ex );
 				}
@@ -359,25 +351,6 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 					+ out.toString() );
 			}
 			return out;
-		} else if ( in.messageType() == MessageType.ACK ) {
-
-			// INT THIS CASE THE MESSAGE CONTAINS NO REFERENCE TO THE OPERATION IT BELONGS, NOT READABLE !!
-			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Receiving CoAP Ack from the Server:\n"
-					+ in );
-			}
-			CommMessage ack = new CommMessage(
-				in.id(),
-				operationName( in ),
-				"/",
-				Value.create(),
-				null
-			);
-			if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
-				Interpreter.getInstance().logInfo( "Sending a Comm Message Ack to Comm Core:\n"
-					+ ack.toString() );
-			}
-			return ack;
 		}
 
 		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -402,114 +375,223 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	 * @throws TransformerConfigurationException
 	 * @throws TransformerException
 	 */
-	private ByteBuf valueToByteBuf( CommMessage commMessage )
+	private ByteBuf valueToByteBuf( CommMessage commMessage, String format )
 		throws IOException, ParserConfigurationException, TransformerConfigurationException, TransformerException
 	{
-
-		ByteBuf byteBuf
-			= Unpooled
-				.buffer();
-		String format
-			= ContentFormat.CONTENT_FORMAT
-				.get( getLongContentFormatProtocolParameter( commMessage
-					.operationName() ) );
-		Value v
-			= commMessage
-				.isFault() ? Value
-					.create( commMessage
-						.fault().getMessage() ) : commMessage
-					.value();
+		ByteBuf byteBuf = Unpooled.buffer();
+		Value v = commMessage.isFault() ? Value.create( commMessage.fault().getMessage() ) : commMessage.value();
 
 		switch( format ) {
 			case "application/link-format": // TODO support it!
 				break;
-
 			case "application/xml":
-				DocumentBuilder db
-					= DocumentBuilderFactory
-						.newInstance()
-						.newDocumentBuilder();
-				Document doc
-					= db
-						.newDocument();
-				Element root
-					= doc
-						.createElement( commMessage
-							.operationName() );
-				doc
-					.appendChild( root
-					);
-				XmlUtils
-					.valueToDocument( v,
-						root,
-						doc
-					);
-				Source src
-					= new DOMSource( doc
-					);
-				ByteArrayOutputStream strm
-					= new ByteArrayOutputStream();
-				Result dest
-					= new StreamResult( strm
-					);
-				Transformer trf
-					= TransformerFactory
-						.newInstance().newTransformer();
-				trf
-					.setOutputProperty( OutputKeys.ENCODING,
-						DEFAULT_CHARSET
-							.name() );
-				trf
-					.transform( src,
-						dest
-					);
-				byteBuf
-					.writeBytes( strm
-						.toByteArray() );
-
+				DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+				Document doc = db.newDocument();
+				Element root = doc.createElement( commMessage.operationName() );
+				doc.appendChild( root );
+				XmlUtils.valueToDocument( v, root, doc );
+				Source src = new DOMSource( doc );
+				ByteArrayOutputStream strm = new ByteArrayOutputStream();
+				Result dest = new StreamResult( strm );
+				Transformer trf = TransformerFactory.newInstance().newTransformer();
+				trf.setOutputProperty( OutputKeys.ENCODING, DEFAULT_CHARSET.name() );
+				trf.transform( src, dest );
+				byteBuf.writeBytes( strm.toByteArray() );
 				break;
-
 			case "application/octet-stream":
 			case "application/exi":
 			case "text/plain":
-				byteBuf
-					.writeBytes( valueToPlainText( v
-					).getBytes( DEFAULT_CHARSET
-					) );
-
+				byteBuf.writeBytes( valueToPlainText( v ).getBytes( DEFAULT_CHARSET ) );
 				break;
-
 			case "application/json":
-				StringBuilder jsonStringBuilder
-					= new StringBuilder();
-				JsUtils
-					.valueToJsonString( v,
-						true, protocol
-							.getSendType( commMessage
-								.operationName() ),
-						jsonStringBuilder
-					);
-				byteBuf
-					.writeBytes( jsonStringBuilder
-						.toString().getBytes( DEFAULT_CHARSET
-						) );
-
+				StringBuilder jsonStringBuilder = new StringBuilder();
+				JsUtils.valueToJsonString( v, true, protocol.getSendType( commMessage.operationName() ), jsonStringBuilder );
+				byteBuf.writeBytes( jsonStringBuilder.toString().getBytes( DEFAULT_CHARSET ) );
 				break;
-
 		}
-		if ( protocol
-			.checkBooleanParameter( Parameters.DEBUG
-			) ) {
-			Interpreter
-				.getInstance().logInfo( "Sending " + format
-					.toUpperCase()
-					+ " message: " + Unpooled
-						.wrappedBuffer( byteBuf
-						).toString( DEFAULT_CHARSET
-						) );
-
+		if ( protocol.checkBooleanParameter( Parameters.DEBUG ) ) {
+			Interpreter.getInstance().logInfo(
+				"Sending " + format.toUpperCase() + " message: " + Unpooled.wrappedBuffer( byteBuf ).toString( DEFAULT_CHARSET ) );
 		}
 		return byteBuf;
+
+	}
+
+	private Value byteBufToValue( ByteBuf in, Type type, String format, Charset charset, boolean jsonEncoding )
+		throws IOException, ParserConfigurationException, SAXException, TypeCheckingException
+	{
+		ByteBuf byteBuf = Unpooled.copiedBuffer( in );
+		Value value = Value.create();
+		String message = Unpooled.copiedBuffer( byteBuf ).toString( charset );
+
+		if ( message.length() > 0 ) {
+			switch( format ) {
+				case "application/xml":
+					DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+					DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
+					InputSource src = new InputSource( new ByteBufInputStream( byteBuf ) );
+					src.setEncoding( charset.name() );
+					Document doc = builder.parse( src );
+					XmlUtils.documentToValue( doc, value );
+					break;
+				case "application/link-format":
+				case "application/octet-stream":
+				case "application/exi":
+				case "text/plain":
+					parsePlainText( message, value, type );
+					break;
+				case "application/json":
+					JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteBufInputStream( byteBuf ) ), value, jsonEncoding );
+					break;
+			}
+
+			// for XML format
+			try {
+				value = type.cast( value );
+			} catch( TypeCastingException e ) {
+				// do nothing
+			}
+
+		} else {
+			value = Value.create();
+			try {
+				type.check( value );
+			} catch( TypeCheckingException ex1 ) {
+				value = Value.create( "" );
+				try {
+					type.check( value );
+				} catch( TypeCheckingException ex2 ) {
+					value = Value.create( new ByteArray( new byte[ 0 ] ) );
+					try {
+						type.check( value );
+					} catch( TypeCheckingException ex3 ) {
+						value = Value.create();
+					}
+				}
+			}
+		}
+		return value;
+	}
+
+	private void parsePlainText( String message, Value value, Type type ) throws TypeCheckingException
+	{
+
+		try {
+			type
+				.check( Value
+					.create( message
+					) );
+			value
+				.setValue( message
+				);
+
+		} catch( TypeCheckingException e1 ) {
+			if ( isNumeric( message
+			) ) {
+				try {
+					if ( message
+						.equals( "0" ) ) {
+						type
+							.check( Value
+								.create( false ) );
+						value
+							.setValue( false );
+
+					} else {
+						if ( message
+							.equals( "1" ) ) {
+							type
+								.check( Value
+									.create( true ) );
+							value
+								.setValue( true );
+
+						} else {
+							throw new TypeCheckingException( "" );
+
+						}
+					}
+				} catch( TypeCheckingException e ) {
+					try {
+						value
+							.setValue( Integer
+								.parseInt( message
+								) );
+
+					} catch( NumberFormatException nfe ) {
+						try {
+							value
+								.setValue( Long
+									.parseLong( message
+									) );
+
+						} catch( NumberFormatException nfe1 ) {
+							try {
+								value
+									.setValue( Double
+										.parseDouble( message
+										) );
+
+							} catch( NumberFormatException nfe2 ) {
+							}
+						}
+					}
+				}
+			} else {
+				try {
+					type
+						.check( Value
+							.create( new ByteArray( message
+								.getBytes() ) ) );
+					value
+						.setValue( new ByteArray( message
+							.getBytes() ) );
+
+				} catch( TypeCheckingException e ) {
+					value
+						.setValue( message
+						);
+
+				}
+			}
+		}
+	}
+
+	private String valueToPlainText( Value value )
+	{
+		Object valueObject
+			= value
+				.valueObject();
+		String str
+			= "";
+
+		if ( valueObject instanceof String ) {
+			str
+				= ((String) valueObject);
+
+		} else if ( valueObject instanceof Integer ) {
+			str
+				= ((Integer) valueObject).toString();
+
+		} else if ( valueObject instanceof Double ) {
+			str
+				= ((Double) valueObject).toString();
+
+		} else if ( valueObject instanceof ByteArray ) {
+			str
+				= ((ByteArray) valueObject).toString();
+
+		} else if ( valueObject instanceof Boolean ) {
+			str
+				= ((Boolean) valueObject).toString();
+
+		} else if ( valueObject instanceof Long ) {
+			str
+				= ((Long) valueObject).toString();
+
+		}
+
+		return str;
 
 	}
 
@@ -555,44 +637,6 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 				+ " is not allowed!" );
 
 		}
-	}
-
-	private String valueToPlainText( Value value )
-	{
-		Object valueObject
-			= value
-				.valueObject();
-		String str
-			= "";
-
-		if ( valueObject instanceof String ) {
-			str
-				= ((String) valueObject);
-
-		} else if ( valueObject instanceof Integer ) {
-			str
-				= ((Integer) valueObject).toString();
-
-		} else if ( valueObject instanceof Double ) {
-			str
-				= ((Double) valueObject).toString();
-
-		} else if ( valueObject instanceof ByteArray ) {
-			str
-				= ((ByteArray) valueObject).toString();
-
-		} else if ( valueObject instanceof Boolean ) {
-			str
-				= ((Boolean) valueObject).toString();
-
-		} else if ( valueObject instanceof Long ) {
-			str
-				= ((Long) valueObject).toString();
-
-		}
-
-		return str;
-
 	}
 
 	private int messageTypeProtocolParameter( String operationName )
@@ -735,242 +779,19 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 	}
 
-	private Value byteBufToValue( ByteBuf in, Type type, String format )
-		throws IOException, ParserConfigurationException, SAXException, TypeCheckingException
-	{
-
-		ByteBuf byteBuf
-			= Unpooled
-				.copiedBuffer( in
-				);
-		Value value
-			= Value
-				.create();
-		String message
-			= Unpooled
-				.copiedBuffer( byteBuf
-				).toString( DEFAULT_CHARSET
-				);
-
-		if ( message
-			.length() > 0 ) {
-			switch( format ) {
-				case "application/xml":
-					DocumentBuilderFactory docBuilderFactory
-						= DocumentBuilderFactory
-							.newInstance();
-					DocumentBuilder builder
-						= docBuilderFactory
-							.newDocumentBuilder();
-					InputSource src
-						= new InputSource( new ByteBufInputStream( byteBuf
-						) );
-					src
-						.setEncoding( DEFAULT_CHARSET
-							.name() );
-					Document doc
-						= builder
-							.parse( src
-							);
-					XmlUtils
-						.documentToValue( doc,
-							value
-						);
-
-					break;
-
-				case "application/link-format":
-				case "application/octet-stream":
-				case "application/exi":
-				case "text/plain":
-					parsePlainText( message,
-						value,
-						type
-					);
-
-					break;
-
-				case "application/json":
-					JsUtils
-						.parseJsonIntoValue( new InputStreamReader(
-							new ByteBufInputStream( byteBuf
-							) ), value,
-							protocol
-								.checkStringParameter( Parameters.JSON_ENCODING,
-									"strict" ) );
-
-					break;
-
-			}
-
-			// for XML format
-			try {
-				value
-					= type
-						.cast( value
-						);
-
-			} catch( TypeCastingException e ) {
-				// do nothing
-			}
-
-		} else {
-
-			value
-				= Value
-					.create();
-
-			try {
-				type
-					.check( value
-					);
-
-			} catch( TypeCheckingException ex1 ) {
-				value
-					= Value
-						.create( "" );
-
-				try {
-					type
-						.check( value
-						);
-
-				} catch( TypeCheckingException ex2 ) {
-					value
-						= Value
-							.create( new ByteArray( new byte[ 0 ] ) );
-
-					try {
-						type
-							.check( value
-							);
-
-					} catch( TypeCheckingException ex3 ) {
-						value
-							= Value
-								.create();
-
-					}
-				}
-			}
-		}
-
-		return value;
-
-	}
-
-	private void parsePlainText( String message, Value value, Type type )
-		throws TypeCheckingException
-
-	{
-
-		try {
-			type
-				.check( Value
-					.create( message
-					) );
-			value
-				.setValue( message
-				);
-
-		} catch( TypeCheckingException e1 ) {
-			if ( isNumeric( message
-			) ) {
-				try {
-					if ( message
-						.equals( "0" ) ) {
-						type
-							.check( Value
-								.create( false ) );
-						value
-							.setValue( false );
-
-					} else {
-						if ( message
-							.equals( "1" ) ) {
-							type
-								.check( Value
-									.create( true ) );
-							value
-								.setValue( true );
-
-						} else {
-							throw new TypeCheckingException( "" );
-
-						}
-					}
-				} catch( TypeCheckingException e ) {
-					try {
-						value
-							.setValue( Integer
-								.parseInt( message
-								) );
-
-					} catch( NumberFormatException nfe ) {
-						try {
-							value
-								.setValue( Long
-									.parseLong( message
-									) );
-
-						} catch( NumberFormatException nfe1 ) {
-							try {
-								value
-									.setValue( Double
-										.parseDouble( message
-										) );
-
-							} catch( NumberFormatException nfe2 ) {
-							}
-						}
-					}
-				}
-			} else {
-				try {
-					type
-						.check( Value
-							.create( new ByteArray( message
-								.getBytes() ) ) );
-					value
-						.setValue( new ByteArray( message
-							.getBytes() ) );
-
-				} catch( TypeCheckingException e ) {
-					value
-						.setValue( message
-						);
-
-				}
-			}
-		}
-	}
-
 	private boolean isNumeric( final CharSequence cs )
 	{
-
-		if ( cs
-			.length() == 0 ) {
+		if ( cs.length() == 0 ) {
 			return false;
-
 		}
-		final int sz
-			= cs
-				.length();
+		final int sz = cs.length();
 
-		for( int i
-			= 0; i
-			< sz;
-			i++ ) {
-			if ( !Character
-				.isDigit( cs
-					.charAt( i
-					) ) ) {
+		for( int i = 0; i < sz; i++ ) {
+			if ( !Character.isDigit( cs.charAt( i ) ) ) {
 				return false;
-
 			}
 		}
 		return true;
-
 	}
 
 	/**
@@ -981,11 +802,7 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	 */
 	public boolean isOneWay( String operationName )
 	{
-		return protocol
-			.channel().parentPort().getInterface()
-			.oneWayOperations().containsKey( operationName
-			);
-
+		return protocol.channel().parentPort().getInterface().oneWayOperations().containsKey( operationName );
 	}
 
 	/**
@@ -997,7 +814,6 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 	public boolean isRequestResponse( String operationName )
 	{
 		return protocol.channel().parentPort().getInterface().requestResponseOperations().containsKey( operationName );
-
 	}
 
 	private URI targetURI( CommMessage in ) throws URISyntaxException
@@ -1096,77 +912,44 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 
 	}
 
+	private String getDynamicAlias( Value value )
+	{
+		return getDynamicAlias( "", value );
+	}
+
 	private String getDynamicAlias( String start, Value value )
 	{
-
-		Set<String> aliasKeys
-			= new TreeSet<>();
-		String pattern
-			= "%(!)?\\{[^\\}]*\\}";
+		Set<String> aliasKeys = new TreeSet<>();
+		String pattern = "%(!)?\\{[^\\}]*\\}";
 
 		// find pattern
-		int offset
-			= 0;
+		int offset = 0;
 		String currStrValue;
 
 		String currKey;
 
-		StringBuilder result
-			= new StringBuilder( start
-			);
-		Matcher m
-			= Pattern
-				.compile( pattern
-				).matcher( start
-				);
+		StringBuilder result = new StringBuilder( start );
+		Matcher m = Pattern.compile( pattern ).matcher( start );
 
 		// substitute in alias
-		while( m
-			.find() ) {
-			currKey
-				= start
-					.substring( m
-						.start() + 3, m
-							.end() - 1 );
-			currStrValue
-				= value
-					.getFirstChild( currKey
-					).strValue();
-			aliasKeys
-				.add( currKey
-				);
-			result
-				.replace(
-					m
-						.start() + offset,
-					m
-						.end() + offset,
-					currStrValue
-				);
-			offset
-				+= currStrValue
-					.length() - 3 - currKey
-					.length();
-
+		while( m.find() ) {
+			currKey = start.substring( m.start() + 3, m.end() - 1 );
+			currStrValue = value.getFirstChild( currKey ).strValue();
+			aliasKeys.add( currKey );
+			result.replace( m.start() + offset, m.end() + offset, currStrValue );
+			offset += currStrValue.length() - 3 - currKey.length();
 		}
 
 		// remove from the value
-		for( String aliasKey
-			: aliasKeys ) {
-			value
-				.children().remove( aliasKey
-				);
-
+		for( String aliasKey : aliasKeys ) {
+			value.children().remove( aliasKey );
 		}
 
-		return result
-			.toString();
-
+		return result.toString();
 	}
 
 	private String operationName( CoapMessage in )
 	{
-
 		StringBuilder sb = new StringBuilder();
 
 		int i = 1;
@@ -1188,5 +971,4 @@ public class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, C
 		return operationName;
 
 	}
-
 }
