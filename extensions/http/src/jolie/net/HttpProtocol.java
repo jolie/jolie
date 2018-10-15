@@ -36,6 +36,8 @@ import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -217,10 +219,10 @@ public class HttpProtocol extends AsyncCommProtocol {
 	public void setupPipeline( ChannelPipeline pipeline ) {
 		if ( inInputPort ) {
 			pipeline.addLast( new HttpServerCodec() );
-//			pipeline.addLast( new HttpContentCompressor() );
+			pipeline.addLast( new HttpContentCompressor() );
 		} else {
 			pipeline.addLast( new HttpClientCodec() );
-			//pipeline.addLast( new HttpContentDecompressor() );
+			pipeline.addLast( new HttpContentDecompressor() );
 		}
 
 		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
