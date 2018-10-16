@@ -27,10 +27,6 @@ include "private/http_server.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	// .debug = true;
-	.compression = true; 
-	.contentType = "None"; 
-	.format = "xml"; 
 	.method = "post";
 	.addHeader.header[0] -> header;
 	.statusCode -> statusCode
