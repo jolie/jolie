@@ -101,6 +101,7 @@ public final class JolieClassLoader extends URLClassLoader
 		+ "|jolie\\.runtime\\."
 		+ "|jolie\\.process\\."
 		+ "|jolie\\.util\\."
+		+ "|io\\.netty\\."
 		+ ").*"
 	);
 
