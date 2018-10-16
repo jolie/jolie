@@ -20,6 +20,7 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
+
 package jolie.net;
 
 import io.netty.channel.EventLoopGroup;
