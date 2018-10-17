@@ -78,12 +78,12 @@ define doTest
 			echoPerson@Server( person )( response );
 			checkResponse;
 			if ( statusCode != 200 ) { // OK
-				throw( TestFailed, "Wrong HTTP status code" )
+				throw( TestFailed, "echoPerson wrong HTTP status code, expected 200, returned " + statusCode )
 			};
 			identity@Server( reqVal )( response2 );
 			checkResponse2;
 			if ( statusCode != 200 ) { // OK
-				throw( TestFailed, "Wrong HTTP status code" )
+				throw( TestFailed, "identity wrong HTTP status code, expected 200, returned " + statusCode )
 			}
 		};
 
@@ -96,17 +96,17 @@ define doTest
 			}
 		};
 		if ( statusCode != 403 ) { // Forbidden
-			throw( TestFailed, "Wrong HTTP status code" )
+			throw( TestFailed, "echoPerson wrong HTTP status code, expected 403, returned " + statusCode )
 		};
 		scope( s ) {
 			install( TypeMismatch => nullProcess );
 			identity@Server( reqVal )( response2 );
 			if ( is_defined( response2 ) ) {
-				throw( TestFailed, "Should not return data" )
+				throw( TestFailed, "response should not contain any response data" )
 			}
 		};
 		if ( statusCode != 403 ) { // Forbidden
-			throw( TestFailed, "Wrong HTTP status code" )
+			throw( TestFailed, "identity wrong HTTP status code, expected 403, returned " + statusCode )
 		};
 
 		shutdown@Server()

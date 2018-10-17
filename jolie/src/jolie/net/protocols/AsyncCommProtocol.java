@@ -49,11 +49,12 @@ public abstract class AsyncCommProtocol extends CommProtocol
 	{
 		setupPipeline( pipeline );
 	}
-		
+	
 	protected void setSendExecutionThread( Long k ){
 		//if we send a response
 		if ( channel().parentPort() instanceof InputPort ){
-			setExecutionThread_internal( initExecutionThread );
+			ExecutionThread t = Interpreter.getInstance().commCore().getExecutionThread( channel() );
+			setExecutionThread_internal( t != null ? t : initExecutionThread );
 		}
 		// if we send a request
 		else {
