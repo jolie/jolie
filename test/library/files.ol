@@ -12,7 +12,7 @@ define checkResult
 define doTest
 {
 	// INI file
-	parseIniFile@IniUtils( "private/odbc.ini" )( data );
+	parseIniFile@IniUtils( "library/private/odbc.ini" )( data );
 	checkResult;
 
 	// Plain

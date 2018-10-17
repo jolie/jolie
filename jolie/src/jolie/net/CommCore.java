@@ -328,7 +328,7 @@ public class CommCore
 	public <C> ExecutionThread pickExecutionThread( C k ){
 		if( k == null ){
 			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
-		} else if( k instanceof CommProtocol ){
+		} else if( k instanceof CommChannel ){
 			return threadRegistry.pickThread( (CommChannel) k );
 		} else if ( k instanceof Long ){
 			return threadRegistry.pickThread( (Long) k );
@@ -340,13 +340,17 @@ public class CommCore
 	public <C> ExecutionThread getExecutionThread( C k ){
 		if( k == null ){
 			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
-		} else if( k instanceof CommProtocol ){
+		} else if( k instanceof CommChannel ){
 			return threadRegistry.getThread( (CommChannel) k );
 		} else if ( k instanceof Long ){
 			return threadRegistry.getThread( (Long) k );
 		} else {
 			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
 		}
+	}
+	
+	public CommMessage retrieveSynchronousRequest( CommChannel c ){
+		return messagePool.retrieveSynchronousRequest( c );
 	}
 
 	public void sendCommMessage( CommMessage message, URI location, OutputPort out, boolean threadSafe )
@@ -356,8 +360,10 @@ public class CommCore
 		// we always add the thread associated to the message (this is consumed when encoding to message to be sent)
 		threadRegistry.addThread( message, ExecutionThread.currentThread() );
 		// we also add the thread associated to the channel (this is consumed when decoding the response message) 
-		if( !threadSafe )
+		if( !threadSafe ) {
 			threadRegistry.addThread( c, ExecutionThread.currentThread() );
+			messagePool.registerForSynchronousResponse( c, message );
+		}
 		c.send( message );
 		if ( threadSafe ) {
 			releaseChannel( c );
@@ -1145,7 +1151,7 @@ public class CommCore
 			listenersMap.entrySet().forEach( ( entry ) -> {
 				entry.getValue().shutdown();
 			} );
-
+			
 			for( SelectorThread t : selectorThreads ) {
 				t.selector.wakeup();
 				try {

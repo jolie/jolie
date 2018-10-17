@@ -30,6 +30,7 @@ class ThreadRegistry
 	private final ConcurrentMap<String, ExecutionThread> registry = new ConcurrentHashMap<>();
 	
 	private void addThread( String k, ExecutionThread t  ){
+//		System.out.println( Interpreter.getInstance().toString() + " adding thread " + t.toString() + " on key " + k );
 		registry.put( k, t );
 	}
 	
@@ -46,6 +47,7 @@ class ThreadRegistry
 	
 	// GET REMOVES THE THREAD
 	private ExecutionThread getThread( String k ){
+//		System.out.println( Interpreter.getInstance().toString() + " removing thread on key " + k );
 		return registry.remove( k );
 	}
 	
@@ -62,6 +64,7 @@ class ThreadRegistry
 	
 	// PICK FETCHS BUT DOES NOT REMOVE THE THREAD
 	private ExecutionThread pickThread( String k ){
+//		System.out.println( Interpreter.getInstance().toString() + " picking thread on key " + k );
 		return registry.get( k );
 	}
 	

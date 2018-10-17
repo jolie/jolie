@@ -68,42 +68,47 @@ define doTest
 	reqVal = "Döner";
 	statusCode = 0; // important: initialise statusCode, otherwise it does not get set
 
-	header << "Authorization" { .value = "TOP_SECRET" };
-	scope( s ) {
-		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
-		echoPerson@Server( person )( response );
-		checkResponse;
-		if ( statusCode != 200 ) { // OK
+	scope( m ){
+
+		install( TestFailed => shutdown@Server(); throw( TestFailed, m.TestFailed ) );
+
+		header << "Authorization" { .value = "TOP_SECRET" };
+		scope( s ) {
+			install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+			echoPerson@Server( person )( response );
+			checkResponse;
+			if ( statusCode != 200 ) { // OK
+				throw( TestFailed, "Wrong HTTP status code" )
+			};
+			identity@Server( reqVal )( response2 );
+			checkResponse2;
+			if ( statusCode != 200 ) { // OK
+				throw( TestFailed, "Wrong HTTP status code" )
+			}
+		};
+
+		header << "Authorization" { .value = "WRONG_KEY" };
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			echoPerson@Server( person )( response );
+			if ( is_defined( response ) ) {
+				throw( TestFailed, "Should not return data" )
+			}
+		};
+		if ( statusCode != 403 ) { // Forbidden
 			throw( TestFailed, "Wrong HTTP status code" )
 		};
-		identity@Server( reqVal )( response2 );
-		checkResponse2;
-		if ( statusCode != 200 ) { // OK
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			identity@Server( reqVal )( response2 );
+			if ( is_defined( response2 ) ) {
+				throw( TestFailed, "Should not return data" )
+			}
+		};
+		if ( statusCode != 403 ) { // Forbidden
 			throw( TestFailed, "Wrong HTTP status code" )
-		}
-	};
+		};
 
-	header << "Authorization" { .value = "WRONG_KEY" };
-	scope( s ) {
-		install( TypeMismatch => nullProcess );
-		echoPerson@Server( person )( response );
-		if ( is_defined( response ) ) {
-			throw( TestFailed, "Should not return data" )
-		}
-	};
-	if ( statusCode != 403 ) { // Forbidden
-		throw( TestFailed, "Wrong HTTP status code" )
-	};
-	scope( s ) {
-		install( TypeMismatch => nullProcess );
-		identity@Server( reqVal )( response2 );
-		if ( is_defined( response2 ) ) {
-			throw( TestFailed, "Should not return data" )
-		}
-	};
-	if ( statusCode != 403 ) { // Forbidden
-		throw( TestFailed, "Wrong HTTP status code" )
-	};
-
-	shutdown@Server()
+		shutdown@Server()
+	}
 }

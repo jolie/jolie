@@ -71,13 +71,15 @@ public class NioSocketListener extends CommListener
 	@Override
 	public void shutdown()
 	{
-		if ( serverChannel != null ) {
-			responseChannels.writeLock().lock();
-			try {
+		responseChannels.writeLock().lock();
+		try {
+			if ( serverChannel != null ) {
 				serverChannel.close();
-			} finally {
-				responseChannels.writeLock().unlock();
 			}
+		} finally {
+			bossGroup.shutdownGracefully();
+			workerGroup.shutdownGracefully();
+			responseChannels.writeLock().unlock();
 		}
 	}
 
@@ -151,8 +153,7 @@ public class NioSocketListener extends CommListener
 		} catch( InterruptedException ioe ) {
 			interpreter().logWarning( ioe );
 		} finally {
-			bossGroup.shutdownGracefully();
-			workerGroup.shutdownGracefully();
+			shutdown();
 		}
 	}
 }

@@ -326,7 +326,7 @@ public class HttpProtocol extends AsyncCommProtocol
 	@Override
 	public boolean isThreadSafe()
 	{
-		return checkBooleanParameter( Parameters.CONCURRENT );
+		return checkBooleanParameter( Parameters.CONCURRENT, false );
 	}
 
 	public String getMultipartHeaderForPart( String operationName, String partName )
@@ -826,7 +826,6 @@ public class HttpProtocol extends AsyncCommProtocol
 		if ( v != null ) {
 			if ( v.hasChildren( "header" ) ) {
 				for( Value head : v.getChildren( "header" ) ) {
-					System.err.println( "LOOKING FOR " + head.strValue() );
 					headers.add( head.strValue(), head.getFirstChild( "value" ).strValue() );
 				}
 			}
@@ -906,7 +905,7 @@ public class HttpProtocol extends AsyncCommProtocol
 			channel().setToBeClosed( true );
 			headers.add( HttpHeaderNames.CONNECTION, "close" );
 		}
-		if ( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
+		if ( isThreadSafe() ) {
 			headers.add( Headers.JOLIE_MESSAGE_ID, message.id() );
 		}
 
@@ -1403,16 +1402,18 @@ public class HttpProtocol extends AsyncCommProtocol
 	public CommMessage recv_internal( FullHttpMessage message )
 		throws IOException
 	{
+		
 		String charset = HttpUtils.getCharset( null, message );
 		DecodedMessage decodedMessage = new DecodedMessage();
 
-		//if ( checkBooleanParameter( ctx, Parameters.CONCURRENT ) ) {
 		String messageId = message.headers().get( Headers.JOLIE_MESSAGE_ID );
 		if ( messageId != null ) {
 			try {
 				decodedMessage.id = Long.parseLong( messageId );
 				setReceiveExecutionThread( decodedMessage.id );
-			} catch( NumberFormatException e ) {
+			} catch( NullPointerException e ) {
+				Interpreter.getInstance().logWarning( "Could not correlate message number " + messageId + " with any existing instance, trying correlating on channel" );
+				setReceiveExecutionThread( channel() );
 			}
 		} else {
 			setReceiveExecutionThread( channel() );
@@ -1420,7 +1421,6 @@ public class HttpProtocol extends AsyncCommProtocol
 				throw new IOException( "Received message without ID in threadSafe protocol" );
 			}
 		}
-		//}
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
@@ -1461,11 +1461,18 @@ public class HttpProtocol extends AsyncCommProtocol
 			}
 		}
 
-		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
+		if ( !isThreadSafe() ) {
 			decodedMessage.id = CommMessage.GENERIC_ID;
 		}
 
 		if ( message instanceof FullHttpResponse ) {
+			
+			if ( !isThreadSafe() ){
+				CommMessage request = retrieveSynchonousRequest( channel() );
+				decodedMessage.id = request.id();
+				decodedMessage.operationName = request.operationName();
+			}
+			
 			String responseHeader = "";
 			if ( hasParameter( Parameters.RESPONSE_HEADER )
 				|| hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
@@ -1478,21 +1485,18 @@ public class HttpProtocol extends AsyncCommProtocol
 					decodedMessage.value.getFirstChild( responseHeader )
 						.getFirstChild( param.getKey() ).setValue( param.getValue() );
 				}
-				if ( message instanceof FullHttpResponse ) {
-					decodedMessage.value.getFirstChild( responseHeader )
-						.getFirstChild( Parameters.STATUS_CODE )
-						.setValue( ((FullHttpResponse) message).status().code() );
-				}
+				decodedMessage.value.getFirstChild( responseHeader )
+					.getFirstChild( Parameters.STATUS_CODE )
+					.setValue( ((FullHttpResponse) message).status().code() );
 			}
 			recv_checkForSetCookie( (FullHttpResponse) message, decodedMessage.value );
 
 		} else {
 			/* message.isError() == false */ // TODO message 
-
 			recv_checkReceivingOperation( (FullHttpRequest) message, decodedMessage );
 			recv_checkForMessageProperties( (FullHttpRequest) message, decodedMessage );
 		}
-
+		
 		CommMessage retVal = new CommMessage(
 			decodedMessage.id,
 			decodedMessage.operationName,
@@ -1556,7 +1560,7 @@ public class HttpProtocol extends AsyncCommProtocol
 				// TODO: do something here?
 			}
 		}
-
+		
 		return retVal;
 
 	}

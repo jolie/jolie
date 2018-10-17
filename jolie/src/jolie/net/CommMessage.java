@@ -240,5 +240,9 @@ public class CommMessage implements Serializable
 	{
 		return fault;
 	}
+	
+	public String toPrettyString(){
+		return "ID: " + id + "\nOPERATION: " + operationName + "\nVALUE: " + value.toPrettyString( "MessageValue" );
+	}
 
 }
