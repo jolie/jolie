@@ -369,6 +369,10 @@ public class CommCore
 			releaseChannel( c );
 		}
 	}
+	
+	public void registerResponseThread( CommChannel c, ExecutionThread t ){
+		threadRegistry.addThread( c, t );
+	}
 
 	public void releaseChannel( CommChannel c ) throws IOException, URISyntaxException
 	{

@@ -756,7 +756,6 @@ public class HttpProtocol extends AsyncCommProtocol
 		} else if ( hasParameter( Parameters.REDIRECT ) ) {
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
 		}
-
 		return statusCode;
 	}
 
@@ -977,7 +976,7 @@ public class HttpProtocol extends AsyncCommProtocol
 		throws IOException
 	{
 		HttpMethod method = send_getRequestMethod( message );
-		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "utf-8" ), null );
+		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "iso-8859-1" ), null );
 		String format = send_getFormat();
 		AsciiString contentType = null;
 		// EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
@@ -1431,9 +1430,6 @@ public class HttpProtocol extends AsyncCommProtocol
 		recv_checkForStatusCode( message );
 
 		encoding = message.headers().get( HttpHeaderNames.ACCEPT_ENCODING );
-		//if ( message instanceof FullHttpRequest ) {
-		//	headRequest = inInputPort && ((FullHttpRequest) message).method() == HttpMethod.HEAD;
-		//}
 
 		String contentType = DEFAULT_CONTENT_TYPE.toString();
 		if ( message.headers().contains( HttpHeaderNames.CONTENT_TYPE ) ) {
