@@ -26,6 +26,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -954,5 +956,18 @@ public abstract class Value implements Expression, Cloneable
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return Value.createClone( this );
+	}
+	
+	public String toPrettyString( String rootName ){
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( this, writer, rootName != null ? rootName : "" );
+		try {
+			printer.run();
+		} catch( IOException e ) {} // Should never happen
+		return writer.toString();
+	}
+	
+	public String toPrettyString(){
+		return toPrettyString( null );
 	}
 }

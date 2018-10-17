@@ -22,16 +22,12 @@
 package joliex.util;
 
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 
 public class StringUtils extends JavaService
@@ -299,12 +295,7 @@ public class StringUtils extends JavaService
 
 	public String valueToPrettyString( Value request )
 	{
-		Writer writer = new StringWriter();
-		ValuePrettyPrinter printer = new ValuePrettyPrinter( request, writer, "Value" );
-		try {
-			printer.run();
-		} catch( IOException e ) {} // Should never happen
-		return writer.toString();
+		return request.toPrettyString( "Value" );
 	}
 	
 	public Value indexOf( Value request )

@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.ports.InputPort;
@@ -68,10 +69,14 @@ public abstract class AsyncCommProtocol extends CommProtocol
 	
 	protected <K> void setReceiveExecutionThread( K k ){
 		if ( channel().parentPort() instanceof InputPort ){
-				setExecutionThread_internal( initExecutionThread );
+			setExecutionThread_internal( initExecutionThread );
 		} else {
 			setExecutionThread_internal( Interpreter.getInstance().commCore().getExecutionThread( k ) );
 		}
+	}
+	
+	protected CommMessage retrieveSynchonousRequest( CommChannel c ){
+		return Interpreter.getInstance().commCore().retrieveSynchronousRequest( c );
 	}
 	
 	private void setExecutionThread_internal( ExecutionThread t )
