@@ -1191,7 +1191,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		final String operationName = message.isResponse() ? inputId : decodedMessage.operationName;
 		if ( getOperationSpecificStringParameter( operationName, Parameters.FORCE_CONTENT_DECODING ).equals( "string" ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
-		} else if ( "text/html".equals( type ) ) {
+		} else if ( getOperationSpecificStringParameter( operationName, Parameters.FORCE_CONTENT_DECODING ).equals( "raw" )){
+		   decodedMessage.value.setValue( new ByteArray( message.content() ) );
+		}else if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value, charset );
