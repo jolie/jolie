@@ -57,7 +57,7 @@ public class MessageType
 	 * @param number
 	 * @return boolean
 	 */
-	public static boolean isMessageType( int number )
+	public static boolean isValidMessageType( int number )
 	{
 		return MESSAGE_TYPES.containsKey( number );
 	}

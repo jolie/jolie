@@ -28,7 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
 import jolie.Interpreter;
-import jolie.net.Token;
 import jolie.net.coap.communication.blockwise.BlockSize;
 import jolie.net.coap.message.options.ContentFormat;
 import jolie.net.coap.message.options.EmptyOptionValue;
@@ -85,12 +84,12 @@ public class CoapMessage
 		Token token ) throws IllegalArgumentException
 	{
 
-		if ( !MessageType.isMessageType( messageType ) ) {
+		if ( !MessageType.isValidMessageType( messageType ) ) {
 			Interpreter.getInstance().logSevere( "No. " + messageType
 				+ " is not corresponding to any message type." );
 		}
 
-		if ( !MessageCode.isMessageCode( messageCode ) ) {
+		if ( !MessageCode.isValidMessageCode( messageCode ) ) {
 			Interpreter.getInstance().logSevere( "No. " + messageCode
 				+ " is not corresponding to any message code." );
 		}
@@ -203,7 +202,7 @@ public class CoapMessage
 	public void setMessageType( int messageType )
 		throws IllegalArgumentException
 	{
-		if ( !MessageType.isMessageType( messageType ) ) {
+		if ( !MessageType.isValidMessageType( messageType ) ) {
 			throw new IllegalArgumentException( "Invalid message type ("
 				+ messageType
 				+ "). Only numbers 0-3 are allowed." );
@@ -234,7 +233,7 @@ public class CoapMessage
 	 */
 	public boolean isAck()
 	{
-		return MessageType.isMessageType( MessageType.ACK );
+		return this.messageType == MessageType.ACK;
 	}
 
 	/**
@@ -243,7 +242,7 @@ public class CoapMessage
 	 */
 	public boolean isEmptyAck()
 	{
-		return MessageType.isMessageType( MessageType.ACK ) && MessageCode.isMessageCode( MessageCode.EMPTY );
+		return this.messageType == MessageType.ACK && this.messageCode == MessageCode.EMPTY;
 	}
 
 	/**
@@ -417,7 +416,7 @@ public class CoapMessage
 	 * automatically by the nCoAP framework.
 	 *
 	 */
-	public void setRandomMessageID()
+	public void randomId()
 	{
 		this.id( new Random().nextInt( 65535 ) );
 	}
@@ -965,7 +964,7 @@ public class CoapMessage
 	public void setMessageCode( int messageCode )
 		throws IllegalArgumentException
 	{
-		if ( !MessageCode.isMessageCode( messageCode ) ) {
+		if ( !MessageCode.isValidMessageCode( messageCode ) ) {
 			throw new IllegalArgumentException( "Invalid message code no. "
 				+ messageCode );
 		}
