@@ -179,7 +179,7 @@ public class MessageCode
 	 * @param number
 	 * @return boolean
 	 */
-	public static boolean isMessageCode( int number )
+	public static boolean isValidMessageCode( int number )
 	{
 		return MESSAGE_CODES.containsKey( number );
 	}
