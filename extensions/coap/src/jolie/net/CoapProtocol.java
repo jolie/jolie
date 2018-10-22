@@ -28,8 +28,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
 import java.io.ByteArrayOutputStream;
@@ -68,6 +66,7 @@ import jolie.net.coap.message.options.Option;
 import jolie.net.coap.message.options.OptionValue;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.ByteArray;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
@@ -103,6 +102,7 @@ public class CoapProtocol extends AsyncCommProtocol
 	private static final Charset DEFAULT_CHARSET = CharsetUtil.UTF_8;
 	private boolean isInput;
 	private CommMessageCorrelator commMessageCorrelator;
+	private CoapMessageCorrelator coapMessageCorrelator;
 
 	/**
 	 *
@@ -114,12 +114,13 @@ public class CoapProtocol extends AsyncCommProtocol
 		super( configurationPath );
 		this.isInput = isInput;
 		commMessageCorrelator = new CommMessageCorrelator();
+		coapMessageCorrelator = new CoapMessageCorrelator();
 	}
 
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline )
 	{
-		pipeline.addLast( "LOGGER", new LoggingHandler( LogLevel.INFO ) );
+//		pipeline.addLast( "LOGGER", new LoggingHandler( LogLevel.INFO ) );
 		pipeline.addLast( "COAP MESSAGE INBOUND", new CoapMessageDecoder() );
 		pipeline.addLast( "COAP MESSAGE OUTBOUND", new CoapMessageEncoder() );
 		pipeline.addLast( "COAP MESSAGE INBOUND/OUTBOUND", new CoapToCommMessageCodec() );
@@ -258,6 +259,7 @@ public class CoapProtocol extends AsyncCommProtocol
 		private CommMessage decode_inbound( CoapMessage in )
 			throws TypeCastingException, IOException
 		{
+
 			String operationName = operationName( in );
 			long id = (long) in.id();
 			if ( isRequestResponse( operationName ) ) {
@@ -287,6 +289,7 @@ public class CoapProtocol extends AsyncCommProtocol
 				);
 			}
 
+			coapMessageCorrelator.receiveProtocolRequest( (int) id, in );
 			CommMessage out = new CommMessage( id, operationName, Constants.ROOT_RESOURCE_PATH, v, null );
 
 			if ( isRequestResponse( operationName ) ) {
@@ -304,8 +307,9 @@ public class CoapProtocol extends AsyncCommProtocol
 			return out;
 		}
 
-		private CoapMessage encode_inbound( CommMessage in )
+		private CoapMessage encode_inbound( CommMessage in ) throws IOException
 		{
+			CoapMessage request = coapMessageCorrelator.sendProtocolResponse( (int) in.id() );
 			CoapMessage out = null;
 			String operationName = in.operationName();
 
@@ -338,14 +342,21 @@ public class CoapProtocol extends AsyncCommProtocol
 				}
 
 			} else {
-				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Receiving a Comm Message Ack from Comm Core:\n"
-						+ in.toPrettyString() );
+				// the first case: this is an ack from comm core for a CON message (handle !)
+				if ( request.messageType() == MessageType.CON ) {
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Receiving a Comm Message Ack from Comm Core:\n"
+							+ in.toPrettyString() );
+					}
+					out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Sending the CoAP Empty Ack to the Client:\n"
+							+ out );
+					}
 				}
-				out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
-				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Sending the CoAP Empty Ack to the Client:\n"
-						+ out );
+				// the second case: this is just a comm message flowing from comm core for NON message (not handle!)
+				if ( request.messageType() == MessageType.NON ) {
+					throw new IOException( "this is an ack message for NON request!" );
 				}
 			}
 			return out;
@@ -359,7 +370,7 @@ public class CoapProtocol extends AsyncCommProtocol
 				key = ByteBuffer.wrap( in.token().getBytes() ).getLong();
 				commMessageRequest = commMessageCorrelator.receiveProtocolResponse( key );
 				if ( commMessageCorrelator == null ) {
-					throw new IOException( "WTF!" );
+					throw new IOException( "Non correlating comm message with any requests" );
 				}
 			}
 
@@ -371,7 +382,7 @@ public class CoapProtocol extends AsyncCommProtocol
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 						Interpreter.getInstance().logInfo( "Receiving the CoAP Empty Ack of a Solicit Reponse from the Server:\n" + in );
 					}
-					// handle no message produced, hence null pointer exception
+					throw new IOException( "this is an ack message that Jolie does not have to handle!" );
 				} else {
 					if ( in.isAck() ) {
 						if ( checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -417,14 +428,10 @@ public class CoapProtocol extends AsyncCommProtocol
 				}
 			}
 
-//			if ( in.messageType() == MessageType.RST ) {
-//				out = new CommMessage(
-//					in.id(),
-//					operationName,
-//					Constants.ROOT_RESOURCE_PATH,
-//					Value.create(),
-//					new FaultException( "Received a RESET from the Client!" ) );
-//			}
+			if ( in.messageType() == MessageType.RST ) {
+				out = CommMessage.createFaultResponse( commMessageRequest, new FaultException( "Received a RESET from a CoAP Client!" ) );
+			}
+			
 			return out;
 		}
 
@@ -1112,7 +1119,6 @@ public class CoapProtocol extends AsyncCommProtocol
 		private static final String TIMEOUT = "timeout";
 		private static final int DEFAULT_TIMEOUT = 2;
 		private static final String SEPARATE_RESPONSE = "separateResponse";
-		private static final String OPTION = "option";
 	}
 
 }
