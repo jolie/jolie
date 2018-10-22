@@ -19,12 +19,12 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -48,10 +48,9 @@ import jolie.net.protocols.AsyncCommProtocol;
 public class DatagramCommChannel extends StreamingCommChannel
 {
 
-	public final static String CHANNEL_HANDLER_NAME
-		= "STREAMING-CHANNEL-HANDLER";
+	public final static String CHANNEL_HANDLER_NAME = "STREAMING-CHANNEL-HANDLER";
 
-	private Bootstrap b;
+	private Bootstrap bootstrap;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
 	private ChannelPipeline channelPipeline;
@@ -94,54 +93,50 @@ public class DatagramCommChannel extends StreamingCommChannel
 	 * @param port
 	 * @return
 	 */
-	public static DatagramCommChannel createChannel( URI location,
-		AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port )
+	public static DatagramCommChannel createChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port )
 	{
-
-//    ExecutionThread ethread = ExecutionThread.currentThread();
-		DatagramCommChannel c = new DatagramCommChannel( location, protocol );
-
-		c.b = new Bootstrap();
-		c.b.group( workerGroup );
-		c.b.channel( NioDatagramChannel.class );
-		c.b.handler( new ChannelInitializer<NioDatagramChannel>()
-		{
-			@Override
-			protected void initChannel( NioDatagramChannel ch ) throws Exception
+		DatagramCommChannel channel = new DatagramCommChannel( location, protocol );
+		channel.bootstrap = new Bootstrap();
+		channel.bootstrap.group( workerGroup )
+			.channel( NioDatagramChannel.class )
+			.handler( new ChannelInitializer()
 			{
-				ChannelPipeline p = ch.pipeline();
-				if ( port instanceof InputPort ) {
-					c.setParentInputPort( (InputPort) port );
-				}
-				if ( port instanceof OutputPort ) {
-					c.setParentOutputPort( (OutputPort) port );
-				}
-				protocol.setChannel( c );
-				c.setChannelPipeline( p );
-				// inbound handler per datagram packet 
-				p.addLast( new SimpleChannelInboundHandler<DatagramPacket>()
+				@Override
+				protected void initChannel( Channel ch ) throws Exception
 				{
-					@Override
-					protected void channelRead0( ChannelHandlerContext ctx, DatagramPacket msg ) throws Exception
-					{
-						ctx.fireChannelRead( Unpooled.copiedBuffer( msg.content() ) );
+					ChannelPipeline p = ch.pipeline();
+					channel.setChannelPipeline( p );
+					if ( port instanceof InputPort ) {
+						channel.setParentInputPort( (InputPort) port );
 					}
-				} );
-				p.addLast( new MessageToMessageEncoder<ByteBuf>()
-				{
-					@Override
-					protected void encode( ChannelHandlerContext ctx, ByteBuf msg, List<Object> out ) throws Exception
-					{
-						out.add( new DatagramPacket( Unpooled.copiedBuffer( (ByteBuf) msg ), new InetSocketAddress( location.getHost(), location.getPort() ) ) );
+					if ( port instanceof OutputPort ) {
+						channel.setParentOutputPort( (OutputPort) port );
 					}
+					protocol.setChannel( channel );
+					// inbound handler per datagram packet 
+					p.addLast( new SimpleChannelInboundHandler<DatagramPacket>()
+					{
+						@Override
+						protected void channelRead0( ChannelHandlerContext ctx, DatagramPacket msg ) throws Exception
+						{
+							ctx.fireChannelRead( Unpooled.copiedBuffer( msg.content() ) );
+						}
+					} );
+					p.addLast( new MessageToMessageEncoder<ByteBuf>()
+					{
+						@Override
+						protected void encode( ChannelHandlerContext ctx, ByteBuf msg, List<Object> out ) throws Exception
+						{
+							out.add( new DatagramPacket( Unpooled.copiedBuffer( (ByteBuf) msg ), new InetSocketAddress( location.getHost(), location.getPort() ) ) );
+						}
 
-				} );
-				protocol.setupPipeline( p );
-				p.addLast( CHANNEL_HANDLER_NAME, c.commChannelHandler );
-			}
-		} );
+					} );
+					protocol.setupPipeline( p );
+					p.addLast( CHANNEL_HANDLER_NAME, channel.commChannelHandler );
+				}
+			} );
 
-		return c;
+		return channel;
 	}
 
 	/**
@@ -153,8 +148,7 @@ public class DatagramCommChannel extends StreamingCommChannel
 	public ChannelFuture connect( URI location )
 		throws InterruptedException
 	{
-
-		return b.bind( new InetSocketAddress( 0 ) );
+		return bootstrap.bind( new InetSocketAddress( 0 ) );
 	}
 
 	/**
@@ -166,8 +160,7 @@ public class DatagramCommChannel extends StreamingCommChannel
 	public ChannelFuture bind( InetSocketAddress location )
 		throws InterruptedException
 	{
-
-		return b.bind( location );
+		return bootstrap.bind( location );
 	}
 
 	/**
