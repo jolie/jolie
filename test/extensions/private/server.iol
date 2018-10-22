@@ -20,35 +20,36 @@
  ***************************************************************************/
 
 constants {
-	Location_SODEPServer = "socket://localhost:10101",
-	Location_SODEPSServer = "socket://localhost:10102",
-	Location_SOAPServer = "socket://localhost:10103",
-	Location_JSONRPCServer = "socket://localhost:10104",
-	Location_HTTPServer = "socket://localhost:10105",
-	Location_HTTPSServer = "socket://localhost:10106",
+  Location_SODEPServer = "socket://localhost:10101",
+  Location_SODEPSServer = "socket://localhost:10102",
+  Location_SOAPServer = "socket://localhost:10103",
+  Location_JSONRPCServer = "socket://localhost:10104",
+  Location_HTTPServer = "socket://localhost:10105",
+  Location_HTTPSServer = "socket://localhost:10106",
+  Location_CoAPServer = "datagram://localhost:5683",
 
-	KeystorePassword = "superjolie"
+  KeystorePassword = "superjolie"
 }
 
 type Person:void {
-	.id:long
-	.firstName:string
-	.lastName:string
-	.age:int
-	.size:double
-	.male:bool
-	.unknown:any
-	.unknown2:undefined
-	.array*:any
-	.object:void {
-		.data:any
-	}
+  .id:long
+  .firstName:string
+  .lastName:string
+  .age:int
+  .size:double
+  .male:bool
+  .unknown:any
+  .unknown2:undefined
+  .array*:any
+  .object:void {
+    .data:any
+  }
 }
 
 interface ServerInterface {
 OneWay:
-	shutdown(void)
+  shutdown(void)
 RequestResponse:
-	echoPerson(Person)(Person),
-	identity(any)(any)
+  echoPerson(Person)(Person),
+  identity(any)(any)
 }

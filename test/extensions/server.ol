@@ -24,6 +24,28 @@ include "../AbstractTestUnit.iol"
 
 include "private/server.iol"
 
+outputPort CoAPServer {
+Location: Location_CoAPServer
+Protocol: coap {
+  // .json_encoding = "strict";
+  .osc.echoPerson << {
+    // .separateResponse = true,
+    // .timeout = 2,
+    // .alias = "echoPerson",
+    .messageType = "CON",
+    .contentFormat = "application/json"
+  };
+  .osc.identity << {
+    // .separateResponse = true,
+    // .timeout = 2,
+    // .alias = "echoPerson",
+    .messageType = "CON",
+    .contentFormat = "application/json"
+  }
+}
+Interfaces: ServerInterface
+}
+
 outputPort SODEPServer {
 Location: Location_SODEPServer
 Protocol: sodep
@@ -33,8 +55,8 @@ Interfaces: ServerInterface
 outputPort SODEPSServer {
 Location: Location_SODEPSServer
 Protocol: sodeps {
-	.ssl.trustStore = "extensions/private/client.jks";
-	.ssl.trustStorePassword = KeystorePassword
+  .ssl.trustStore = "extensions/private/client.jks";
+  .ssl.trustStorePassword = KeystorePassword
 }
 Interfaces: ServerInterface
 }
@@ -42,8 +64,8 @@ Interfaces: ServerInterface
 outputPort SOAPServer {
 Location: Location_SOAPServer
 Protocol: soap {
-	.compression -> compression;
-	.requestCompression -> requestCompression
+  .compression -> compression;
+  .requestCompression -> requestCompression
 }
 Interfaces: ServerInterface
 }
@@ -51,8 +73,8 @@ Interfaces: ServerInterface
 outputPort JSONRPCServer {
 Location: Location_JSONRPCServer
 Protocol: jsonrpc {
-	.compression -> compression;
-	.requestCompression -> requestCompression
+  .compression -> compression;
+  .requestCompression -> requestCompression
 }
 Interfaces: ServerInterface
 }
@@ -60,11 +82,11 @@ Interfaces: ServerInterface
 outputPort HTTPServer {
 Location: Location_HTTPServer
 Protocol: http {
-	.method -> method;
-	.method.queryFormat = "json";
-	.format -> format;
-	.compression -> compression;
-	.requestCompression -> requestCompression
+  .method -> method;
+  .method.queryFormat = "json";
+  .format -> format;
+  .compression -> compression;
+  .requestCompression -> requestCompression
 }
 Interfaces: ServerInterface
 }
@@ -72,124 +94,132 @@ Interfaces: ServerInterface
 outputPort HTTPSServer {
 Location: Location_HTTPSServer
 Protocol: https {
-	.method -> method;
-	.method.queryFormat = "json";
-	.format -> format;
-	.compression -> compression;
-	.requestCompression -> requestCompression;
-	.ssl.trustStore = "extensions/private/client.jks";
-	.ssl.trustStorePassword = KeystorePassword
+  .method -> method;
+  .method.queryFormat = "json";
+  .format -> format;
+  .compression -> compression;
+  .requestCompression -> requestCompression;
+  .ssl.trustStore = "extensions/private/client.jks";
+  .ssl.trustStorePassword = KeystorePassword
 }
 Interfaces: ServerInterface
 }
 
 embedded {
 Jolie:
-	"private/sodep_server.ol",
-	"private/sodeps_server.ol",
-	"private/soap_server.ol",
-	"private/jsonrpc_server.ol",
-	"private/http_server2.ol",
-	"private/https_server.ol"
+  "private/coap_server.ol",
+  "private/sodep_server.ol",
+  "private/sodeps_server.ol",
+  "private/soap_server.ol",
+  "private/jsonrpc_server.ol",
+  "private/http_server2.ol",
+  "private/https_server.ol"
 }
 
 define checkResponse
 {
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void || #response.array != 3 || response.array[0] != 0 || response.array[1] != "Ho" || response.array[2] != 3.14 || response.object.data != 10L ) {
-		throw( TestFailed, "Data <=> Query value mismatch" )
-	};
-	if ( response2 != reqVal ) {
-		throw( TestFailed, "Data <=> Query value mismatch" )
-	}
+  if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void || #response.array != 3 || response.array[0] != 0 || response.array[1] != "Ho" || response.array[2] != 3.14 || response.object.data != 10L ) {
+    throw( TestFailed, "Data <=> Query value mismatch" )
+  };
+  if ( response2 != reqVal ) {
+    throw( TestFailed, "Data <=> Query value mismatch" )
+  }
 }
 
 define test
 {
-	echoPerson@SODEPServer( person )( response );
-	identity@SODEPServer( reqVal )( response2 );
-	checkResponse;
-	echoPerson@SODEPSServer( person )( response );
-	identity@SODEPSServer( reqVal )( response2 );
-	checkResponse;
+  echoPerson@CoAPServer( person )( response );
+  identity@CoAPServer( reqVal )( response2 );
+  checkResponse;
 
-	echoPerson@SOAPServer( person )( response );
-	identity@SOAPServer( reqVal )( response2 );
-	checkResponse;
+  echoPerson@SODEPServer( person )( response );
+  identity@SODEPServer( reqVal )( response2 );
+  checkResponse;
+  echoPerson@SODEPSServer( person )( response );
+  identity@SODEPSServer( reqVal )( response2 );
+  checkResponse;
 
-	echoPerson@JSONRPCServer( person )( response );
-	identity@JSONRPCServer( reqVal )( response2 );
-	checkResponse;
+  echoPerson@SOAPServer( person )( response );
+  identity@SOAPServer( reqVal )( response2 );
+  checkResponse;
 
-	method = "post";
-	format = "xml";
-	echoPerson@HTTPServer( person )( response );
-	identity@HTTPServer( reqVal )( response2 );
-	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
-	checkResponse;
-	format = "json";
-	echoPerson@HTTPServer( person )( response );
-	identity@HTTPServer( reqVal )( response2 );
-	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
-	checkResponse;
-	method = "get"; // JSON-ified
-	echoPerson@HTTPServer( person )( response );
-	identity@HTTPServer( reqVal )( response2 );
-	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
-	checkResponse
+  echoPerson@JSONRPCServer( person )( response );
+  identity@JSONRPCServer( reqVal )( response2 );
+  checkResponse;
+
+  method = "post";
+  format = "xml";
+  echoPerson@HTTPServer( person )( response );
+  identity@HTTPServer( reqVal )( response2 );
+  checkResponse;
+  echoPerson@HTTPSServer( person )( response );
+  identity@HTTPSServer( reqVal )( response2 );
+  checkResponse;
+  format = "json";
+  echoPerson@HTTPServer( person )( response );
+  identity@HTTPServer( reqVal )( response2 );
+  checkResponse;
+  echoPerson@HTTPSServer( person )( response );
+  identity@HTTPSServer( reqVal )( response2 );
+  checkResponse;
+  method = "get"; // JSON-ified
+  echoPerson@HTTPServer( person )( response );
+  identity@HTTPServer( reqVal )( response2 );
+  checkResponse;
+  echoPerson@HTTPSServer( person )( response );
+  identity@HTTPSServer( reqVal )( response2 );
+  checkResponse
 }
 
 define shutdown
 {
-	shutdown@SODEPServer()
-	|
-	shutdown@SODEPSServer()
-	|
-	shutdown@SOAPServer()
-	|
-	shutdown@JSONRPCServer()
-	|
-	shutdown@HTTPServer()
-	|
-	shutdown@HTTPSServer()
+  shutdown@
+  shutdown@CoAPServer()
+  |
+  shutdown@SODEPServer()
+  |
+  shutdown@SODEPSServer()
+  |
+  shutdown@SOAPServer()
+  |
+  shutdown@JSONRPCServer()
+  |
+  shutdown@HTTPServer()
+  |
+  shutdown@HTTPSServer()
 }
 
 define doTest
 {
-	with( person ) {
-		.id = 123456789123456789L;
-		.firstName = "John";
-		.lastName = "Döner";
-		.age = 30;
-		.size = 90.5;
-		.male = true;
-		.unknown = "Hey";
-		.unknown2 = void;
-		.array[0] = 0;
-		.array[1] = "Ho";
-		.array[2] = 3.14;
-		.object.data = 10L
-	};
-	reqVal = "Döner";
-	scope( s ) {
-		install( TypeMismatch => shutdown; throw( TestFailed, s.TypeMismatch ) );
+  with( person ) {
+    .id = 123456789123456789L;
+    .firstName = "John";
+    .lastName = "Döner";
+    .age = 30;
+    .size = 90.5;
+    .male = true;
+    .unknown = "Hey";
+    .unknown2 = void;
+    .array[0] = 0;
+    .array[1] = "Ho";
+    .array[2] = 3.14;
+    .object.data = 10L
+  };
+  reqVal = "Döner";
+  scope( s ) {
+    install( TypeMismatch => shutdown; throw( TestFailed, s.TypeMismatch ) );
 
-		// compression on (default), but no request compression
-		test;
-		// request compression
-		requestCompression = "deflate";
-		test;
-		requestCompression = "gzip";
-		test;
-		// no compression at all
-		compression = false;
-		test;
+    // compression on (default), but no request compression
+    test;
+    // request compression
+    requestCompression = "deflate";
+    test;
+    requestCompression = "gzip";
+    test;
+    // no compression at all
+    compression = false;
+    test;
 
-		shutdown
-	}
+    shutdown
+  }
 }
