@@ -19,7 +19,6 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
-
 package jolie.net;
 
 import io.netty.buffer.ByteBuf;
@@ -160,7 +159,11 @@ public class CoapProtocol extends AsyncCommProtocol
 		protected void decode( ChannelHandlerContext ctx, CoapMessage in, List<Object> out )
 			throws Exception
 		{
-			setReceiveExecutionThread( (long) in.id() );
+			long id = (long) in.id();
+			if ( in.token().getBytes().length != 0 ) {
+				id = ByteBuffer.wrap( in.token().getBytes() ).getLong();
+			}
+			setReceiveExecutionThread( id );
 			this.ctx = ctx;
 
 			if ( isInput ) {
