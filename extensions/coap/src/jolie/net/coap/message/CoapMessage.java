@@ -94,7 +94,7 @@ public class CoapMessage
 				+ " is not corresponding to any message code." );
 		}
 
-		this.setMessageType( messageType );
+		this.messageType( messageType );
 		this.setMessageCode( messageCode );
 
 		this.id( messageID );
@@ -199,7 +199,7 @@ public class CoapMessage
 	 * @throws java.lang.IllegalArgumentException if the given message type is not
 	 * supported.
 	 */
-	public void setMessageType( int messageType )
+	public void messageType( int messageType )
 		throws IllegalArgumentException
 	{
 		if ( !MessageType.isValidMessageType( messageType ) ) {

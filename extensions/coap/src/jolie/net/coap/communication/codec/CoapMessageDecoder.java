@@ -27,7 +27,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
-import jolie.net.Token;
+import jolie.net.coap.message.Token;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
 import jolie.net.coap.message.CoapResponse;
@@ -123,7 +123,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf>
 			coapMessage = new CoapRequest( messageType, messageCode );
 		} else {
 			coapMessage = new CoapResponse( messageType, messageCode );
-			coapMessage.setMessageType( messageType );
+			coapMessage.messageType( messageType );
 		}
 
 		coapMessage.id( messageId );

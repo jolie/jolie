@@ -22,7 +22,7 @@
 package jolie.net.coap.communication.codec;
 
 import java.net.InetSocketAddress;
-import jolie.net.Token;
+import jolie.net.coap.message.Token;
 import jolie.net.coap.message.options.Option;
 
 /**
