@@ -131,7 +131,7 @@ public class CommMessage implements Serializable
 	public static CommMessage createResponse( CommMessage request, Value value )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", Value.createDeepCopy( value ), null );
+		return new CommMessage( request.id, request.operationName, Constants.ROOT_RESOURCE_PATH, Value.createDeepCopy( value ), null );
 	}
 
 	/**
@@ -143,7 +143,7 @@ public class CommMessage implements Serializable
 	public static CommMessage createFaultResponse( CommMessage request, FaultException fault )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", Value.create(), fault );
+		return new CommMessage( request.id, request.operationName, Constants.ROOT_RESOURCE_PATH, Value.create(), fault );
 	}
 
 	/**
@@ -239,6 +239,25 @@ public class CommMessage implements Serializable
 	public FaultException fault()
 	{
 		return fault;
+	}
+
+	public String toPrettyString()
+	{
+		StringBuilder result = new StringBuilder();
+		//Header + Token
+		result.append( "[Header: (ID) " )
+			.append( id() )
+			.append( ", (Operation) " )
+			.append( operationName() )
+			.append( " | " );
+		//Value
+		result.append( "Value: " );
+		if ( !value.isDefined() || value == Value.UNDEFINED_VALUE ) {
+			result.append( "<no value>]" );
+		} else {
+			result.append( value.valueToPrettyString() ).append( "]" );
+		}
+		return result.toString();
 	}
 
 }
