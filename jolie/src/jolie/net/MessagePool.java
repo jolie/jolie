@@ -36,8 +36,9 @@ public class MessagePool
 	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
 	// TODO: add some cleaning routine to remove outdated mappings
-	private final Map< Long, CompletableFuture< CommMessage>> specificMap = new ConcurrentHashMap<>();
-	private final Map< String, GenericMessages> genericMap = new ConcurrentHashMap<>();
+	private final Map< Long, CompletableFuture< CommMessage > > specificMap = new ConcurrentHashMap<>();
+	private final Map< String, GenericMessages > genericMap = new ConcurrentHashMap<>();
+	private final Map< String, CommMessage > synchronousResponseMap = new ConcurrentHashMap<>();
 
 	private class GenericMessages
 	{
@@ -191,24 +192,12 @@ public class MessagePool
 
 	}
 
-//    private void throwIOExceptionFault( IOException e ) {
-//        System.out.println( "throwIOException " + e.getMessage() );
-//        if ( !waiters.isEmpty() ) {
-//            ResponseContainer monitor;
-//            for ( Entry< Long, ResponseContainer> entry : waiters.entrySet() ) {
-//                monitor = entry.getValue();
-//                synchronized ( monitor ) {
-//                    monitor.response = new CommMessage(
-//                      entry.getKey(),
-//                      "",
-//                      Constants.ROOT_RESOURCE_PATH,
-//                      Value.create(),
-//                      new FaultException( "IOException", e )
-//                    );
-//                    monitor.notify();
-//                }
-//            }
-//        }
-//        waiters.clear();
-//    }
+	public void registerForSynchronousResponse( CommChannel channel, CommMessage request ) {
+		synchronousResponseMap.put( channel.toString(), request );
+	}
+	
+	public CommMessage retrieveSynchronousRequest( CommChannel channel ) {
+		return synchronousResponseMap.remove( channel.toString() );
+	}
+
 }

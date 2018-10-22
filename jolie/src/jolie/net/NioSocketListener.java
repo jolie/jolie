@@ -71,23 +71,18 @@ public class NioSocketListener extends CommListener
 	@Override
 	public void shutdown()
 	{
-		if ( serverChannel != null ) {
-			responseChannels.writeLock().lock();
-			try {
+		responseChannels.writeLock().lock();
+		try {
+			if ( serverChannel != null ) {
 				serverChannel.close();
-			} finally {
-				responseChannels.writeLock().unlock();
 			}
+		} finally {
+			bossGroup.shutdownGracefully();
+			workerGroup.shutdownGracefully();
+			responseChannels.writeLock().unlock();
 		}
 	}
 
-//  public void addResponseChannel() {
-//    responseChannels.readLock().lock();
-//  }
-//
-//  public void removeResponseChannel() {
-//    responseChannels.readLock().unlock();
-//  }
 	@Override
 	public void run()
 	{
@@ -103,7 +98,6 @@ public class NioSocketListener extends CommListener
 					@Override
 					protected void initChannel( SocketChannel ch ) throws Exception
 					{
-//              addResponseChannel();
 						CommProtocol protocol = createProtocol();
 						assert (protocol instanceof AsyncCommProtocol);
 
@@ -111,7 +105,6 @@ public class NioSocketListener extends CommListener
 						protocol.setChannel( channel );
 						channel.setParentInputPort( inputPort() );
 
-						//interpreter().commCore().scheduleReceive(channel, inputPort());
 						ChannelPipeline p = ch.pipeline();
 						((AsyncCommProtocol) protocol).setupPipeline( p );
 
@@ -126,7 +119,6 @@ public class NioSocketListener extends CommListener
 							public void flush( ChannelHandlerContext ctx ) throws Exception
 							{
 								ctx.flush();
-//              removeResponseChannel();
 							}
 						} );
 						p.addLast( channel.commChannelHandler );
@@ -151,8 +143,7 @@ public class NioSocketListener extends CommListener
 		} catch( InterruptedException ioe ) {
 			interpreter().logWarning( ioe );
 		} finally {
-			bossGroup.shutdownGracefully();
-			workerGroup.shutdownGracefully();
+			shutdown();
 		}
 	}
 }

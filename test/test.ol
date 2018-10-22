@@ -31,10 +31,9 @@ Interfaces: TestUnitInterface
 
 init
 {
-	getServiceDirectory@File()( dir ) ;
-	dirs[0] = dir + "/" + "primitives";
-	dirs[1] = dir + "/" + "library";
-	dirs[2] = dir + "/" + "extensions"
+	dirs[0] = "primitives";
+	dirs[1] = "library";
+	dirs[2] = "extensions"
 }
 
 define calcMaxLength
@@ -74,7 +73,7 @@ main
 	for( i = 0, i < #dirs, i++ ) {
 		list@File( listRequest )( list );
 		for( k = 0, k < #list.result, k++ ) {
-			testName = dirs[i] + "/" + list.result[k];
+			testName = list.result[k];
 			printTestName;
 			loadRequest.filepath = listRequest.directory + "/" + list.result[k];
 			scope( s ) {

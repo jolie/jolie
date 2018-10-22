@@ -235,6 +235,7 @@ public class RequestResponseProcess implements InputOperationProcess
 		}
 
 		try {
+			Interpreter.getInstance().commCore().registerResponseThread( channel, ExecutionThread.currentThread() );
 			channel.send( response );
 			Value monitorValue;
 			if ( response.isFault() ) {
