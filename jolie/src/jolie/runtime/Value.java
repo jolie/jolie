@@ -957,16 +957,17 @@ public abstract class Value implements Expression, Cloneable
 	{
 		return Value.createClone( this );
 	}
-
-	public String valueToPrettyString()
-	{
+	
+	public String toPrettyString( String rootName ){
 		Writer writer = new StringWriter();
-		ValuePrettyPrinter printer = new ValuePrettyPrinter( this, writer, "" );
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( this, writer, rootName != null ? rootName : "" );
 		try {
 			printer.run();
-		} catch( IOException e ) {
-		} // Should never happen
+		} catch( IOException e ) {} // Should never happen
 		return writer.toString();
 	}
-
+	
+	public String toPrettyString(){
+		return toPrettyString( null );
+	}
 }

@@ -27,10 +27,6 @@ include "private/http_server.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	// .debug = true;
-	.compression = true; 
-	.contentType = "None"; 
-	.format = "xml"; 
 	.method = "post";
 	.addHeader.header[0] -> header;
 	.statusCode -> statusCode
@@ -72,42 +68,47 @@ define doTest
 	reqVal = "Döner";
 	statusCode = 0; // important: initialise statusCode, otherwise it does not get set
 
-	header << "Authorization" { .value = "TOP_SECRET" };
-	scope( s ) {
-		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
-		echoPerson@Server( person )( response );
-		checkResponse;
-		if ( statusCode != 200 ) { // OK
-			throw( TestFailed, "Wrong HTTP status code" )
+	scope( m ){
+
+		install( TestFailed => shutdown@Server(); throw( TestFailed, m.TestFailed ) );
+
+		header << "Authorization" { .value = "TOP_SECRET" };
+		scope( s ) {
+			install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+			echoPerson@Server( person )( response );
+			checkResponse;
+			if ( statusCode != 200 ) { // OK
+				throw( TestFailed, "echoPerson wrong HTTP status code, expected 200, returned " + statusCode )
+			};
+			identity@Server( reqVal )( response2 );
+			checkResponse2;
+			if ( statusCode != 200 ) { // OK
+				throw( TestFailed, "identity wrong HTTP status code, expected 200, returned " + statusCode )
+			}
 		};
-		identity@Server( reqVal )( response2 );
-		checkResponse2;
-		if ( statusCode != 200 ) { // OK
-			throw( TestFailed, "Wrong HTTP status code" )
-		}
-	};
 
-	header << "Authorization" { .value = "WRONG_KEY" };
-	scope( s ) {
-		install( TypeMismatch => nullProcess );
-		echoPerson@Server( person )( response );
-		if ( is_defined( response ) ) {
-			throw( TestFailed, "Should not return data" )
-		}
-	};
-	if ( statusCode != 403 ) { // Forbidden
-		throw( TestFailed, "Wrong HTTP status code" )
-	};
-	scope( s ) {
-		install( TypeMismatch => nullProcess );
-		identity@Server( reqVal )( response2 );
-		if ( is_defined( response2 ) ) {
-			throw( TestFailed, "Should not return data" )
-		}
-	};
-	if ( statusCode != 403 ) { // Forbidden
-		throw( TestFailed, "Wrong HTTP status code" )
-	};
+		header << "Authorization" { .value = "WRONG_KEY" };
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			echoPerson@Server( person )( response );
+			if ( is_defined( response ) ) {
+				throw( TestFailed, "Should not return data" )
+			}
+		};
+		if ( statusCode != 403 ) { // Forbidden
+			throw( TestFailed, "echoPerson wrong HTTP status code, expected 403, returned " + statusCode )
+		};
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			identity@Server( reqVal )( response2 );
+			if ( is_defined( response2 ) ) {
+				throw( TestFailed, "response should not contain any response data" )
+			}
+		};
+		if ( statusCode != 403 ) { // Forbidden
+			throw( TestFailed, "identity wrong HTTP status code, expected 403, returned " + statusCode )
+		};
 
-	shutdown@Server()
+		shutdown@Server()
+	}
 }
