@@ -240,10 +240,6 @@ public class CommMessage implements Serializable
 	{
 		return fault;
 	}
-	
-	public String toPrettyString(){
-		return "ID: " + id + "\nOPERATION: " + operationName + "\nVALUE: " + value.toPrettyString( "MessageValue" );
-	}
 
 	public String toPrettyString()
 	{
@@ -259,7 +255,7 @@ public class CommMessage implements Serializable
 		if ( !value.isDefined() || value == Value.UNDEFINED_VALUE ) {
 			result.append( "<no value>]" );
 		} else {
-			result.append( value.valueToPrettyString() ).append( "]" );
+			result.append( value.toPrettyString() ).append( "]" );
 		}
 		return result.toString();
 	}
