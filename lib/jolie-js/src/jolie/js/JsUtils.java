@@ -121,7 +121,51 @@ public class JsUtils
 			builder.append( '}' );
 		}
 	}
+	public static void valueToNdJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder ) throws IOException
+	{
+		Map<String, ValueVector> children = value.children();
+		for( Map.Entry<String, ValueVector> child : children.entrySet() ) {
+			for( Value v : child.getValue() ) {
+				if ( v.hasChildren( JSONARRAY_KEY ) ) {
+					valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
+					return;
+				}
+				int size = v.children().size();
+				if ( size == 0 ) {
+					if ( extendedRoot ) {
+						builder.append( '{' );
+						if ( v.isDefined() ) {
+							appendKeyColon( builder, ROOT_SIGN );
+							builder.append( nativeValueToJsonString( v ) );
+						}
+						builder.append( '}' );
+						builder.append( '\n' );
+					} else {
+						builder.append( nativeValueToJsonString( v ) );
+					}
+				} else {
+					builder.append( '{' );
+					if ( value.isDefined() ) {
+						appendKeyColon( builder, ROOT_SIGN );
+						builder.append( nativeValueToJsonString( value ) );
+						builder.append( ',' );
+					}
+					int i = 0;
+					for( Map.Entry<String, ValueVector> ndChild : v.children().entrySet() ) {
+						final Type subType = (type != null ? type.findSubType( ndChild.getKey() ) : null);
+						appendKeyColon( builder, ndChild.getKey() );
+						valueVectorToJsonString( ndChild.getValue(), builder, false, subType );
+						if ( i++ < size - 1 ) {
+							builder.append( ',' );
+						}
+					}
+					builder.append( '}' );
+					builder.append( '\n' );
+				}
+			}
+		}
 
+	}
 	public static void faultValueToJsonString( Value value, Type type, StringBuilder builder ) throws IOException
 	{
 		builder.append( "{\"error\":{\"message\":\"" );
