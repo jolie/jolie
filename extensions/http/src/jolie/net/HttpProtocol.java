@@ -584,6 +584,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "ndjson".equals( format ) ) {
+			ret.contentType = ContentTypes.APPLICATION_JSON;
 			StringBuilder ndJsonStringBuilder = new StringBuilder();
 			JsUtils.valueToNdJsonString( message.value(), true, getSendType( message ), ndJsonStringBuilder );
 			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );
