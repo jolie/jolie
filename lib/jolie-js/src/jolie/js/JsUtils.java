@@ -21,9 +21,13 @@
 
 package jolie.js;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.Map;
+import java.util.stream.Collectors;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.typing.Type;
@@ -267,5 +271,37 @@ public class JsUtils
 		} catch( ClassCastException e ) {
 			throw new IOException( e );
 		}
+	}
+	
+	public static void parseNdJsonIntoValue( Reader reader, Value value, boolean strictEncoding  )
+		throws IOException
+	{
+        
+	
+		String stringBuffer= new BufferedReader((InputStreamReader)reader).lines().collect( Collectors.joining("\n") );
+		String[] stringItemVector = stringBuffer.split("\n");
+		for( String stringItem : stringItemVector ) {
+			
+			StringReader itemReader = new StringReader( stringItem );
+			
+			try {
+				Value itemValue = Value.create();
+				Object obj = JSONValue.parseWithException( itemReader );
+				if ( obj instanceof JSONArray ) {
+					itemValue.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
+				} else if ( obj instanceof JSONObject ) {
+					jsonObjectToValue( (JSONObject) obj, itemValue, strictEncoding );
+				} else {
+					getBasicValue( obj, itemValue );
+				}
+				value.getChildren( "item" ).add( itemValue );
+			} catch( ParseException e ) {
+				throw new IOException( e );
+			} catch( ClassCastException e ) {
+				throw new IOException( e );
+			}
+
+		}
+
 	}
 }

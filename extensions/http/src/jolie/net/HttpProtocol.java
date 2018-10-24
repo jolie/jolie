@@ -215,6 +215,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private static class ContentTypes {
 		private static final String APPLICATION_JSON = "application/json";
+		private static final String APPLICATION_NDJSON = "application/x-ndjson";
 	}
 
 	private String inputId = null;
@@ -584,7 +585,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "ndjson".equals( format ) ) {
-			ret.contentType = ContentTypes.APPLICATION_JSON;
+			ret.contentType = ContentTypes.APPLICATION_NDJSON;
 			StringBuilder ndJsonStringBuilder = new StringBuilder();
 			JsUtils.valueToNdJsonString( message.value(), true, getSendType( message ), ndJsonStringBuilder );
 			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );
@@ -949,6 +950,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
 	}
+	
+	private static void parseNdJson( HttpMessage message, Value value, boolean strictEncoding, String charset )
+		throws IOException
+	{
+		JsUtils.parseNdJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
+	}
 
 	private static void parseForm( HttpMessage message, Value value, String charset )
 		throws IOException
@@ -1198,6 +1205,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			|| "application/zip".equals( type )
 		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
+		} else if ( ContentTypes.APPLICATION_NDJSON.equals( type ) || type.contains( "ndjson" ) ) {
+			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
+			parseNdJson( message, decodedMessage.value, strictEncoding, charset );
 		} else if ( ContentTypes.APPLICATION_JSON.equals( type ) || type.contains( "json" ) ) {
 			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 			parseJson( message, decodedMessage.value, strictEncoding, charset );
