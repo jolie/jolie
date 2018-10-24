@@ -273,17 +273,13 @@ public class JsUtils
 		}
 	}
 	
-	public static void parseNdJsonIntoValue( Reader reader, Value value, boolean strictEncoding  )
+	public static void parseNdJsonIntoValue( Reader reader, Value value, boolean strictEncoding )
 		throws IOException
 	{
-        
-	
-		String stringBuffer= new BufferedReader((InputStreamReader)reader).lines().collect( Collectors.joining("\n") );
-		String[] stringItemVector = stringBuffer.split("\n");
+		String stringBuffer = new BufferedReader( (InputStreamReader) reader ).lines().collect( Collectors.joining( "\n" ) );
+		String[] stringItemVector = stringBuffer.split( "\n" );
 		for( String stringItem : stringItemVector ) {
-			
 			StringReader itemReader = new StringReader( stringItem );
-			
 			try {
 				Value itemValue = Value.create();
 				Object obj = JSONValue.parseWithException( itemReader );
