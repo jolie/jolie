@@ -23,9 +23,9 @@ package jolie.js;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import jolie.runtime.Value;
@@ -130,46 +130,13 @@ public class JsUtils
 		Map<String, ValueVector> children = value.children();
 		for( Map.Entry<String, ValueVector> child : children.entrySet() ) {
 			for( Value v : child.getValue() ) {
-				if ( v.hasChildren( JSONARRAY_KEY ) ) {
-					valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
-					return;
-				}
-				int size = v.children().size();
-				if ( size == 0 ) {
-					if ( extendedRoot ) {
-						builder.append( '{' );
-						if ( v.isDefined() ) {
-							appendKeyColon( builder, ROOT_SIGN );
-							builder.append( nativeValueToJsonString( v ) );
-						}
-						builder.append( '}' );
-						builder.append( '\n' );
-					} else {
-						builder.append( nativeValueToJsonString( v ) );
-					}
-				} else {
-					builder.append( '{' );
-					if ( value.isDefined() ) {
-						appendKeyColon( builder, ROOT_SIGN );
-						builder.append( nativeValueToJsonString( value ) );
-						builder.append( ',' );
-					}
-					int i = 0;
-					for( Map.Entry<String, ValueVector> ndChild : v.children().entrySet() ) {
-						final Type subType = (type != null ? type.findSubType( ndChild.getKey() ) : null);
-						appendKeyColon( builder, ndChild.getKey() );
-						valueVectorToJsonString( ndChild.getValue(), builder, false, subType );
-						if ( i++ < size - 1 ) {
-							builder.append( ',' );
-						}
-					}
-					builder.append( '}' );
-					builder.append( '\n' );
+				valueToJsonString( v, extendedRoot, type, builder );
+				builder.append( '\n' );
 				}
 			}
-		}
-
 	}
+
+	
 	public static void faultValueToJsonString( Value value, Type type, StringBuilder builder ) throws IOException
 	{
 		builder.append( "{\"error\":{\"message\":\"" );
@@ -273,17 +240,13 @@ public class JsUtils
 		}
 	}
 	
-	public static void parseNdJsonIntoValue( Reader reader, Value value, boolean strictEncoding  )
+	public static void parseNdJsonIntoValue( BufferedReader reader, Value value, boolean strictEncoding )
 		throws IOException
 	{
-        
-	
-		String stringBuffer= new BufferedReader((InputStreamReader)reader).lines().collect( Collectors.joining("\n") );
-		String[] stringItemVector = stringBuffer.split("\n");
+		List<String> stringItemVector = reader.lines().collect( Collectors.toList() );
+		
 		for( String stringItem : stringItemVector ) {
-			
 			StringReader itemReader = new StringReader( stringItem );
-			
 			try {
 				Value itemValue = Value.create();
 				Object obj = JSONValue.parseWithException( itemReader );

@@ -24,6 +24,7 @@ package jolie.net;
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RPC;
 import com.google.gwt.user.server.rpc.RPCRequest;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -954,7 +955,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static void parseNdJson( HttpMessage message, Value value, boolean strictEncoding, String charset )
 		throws IOException
 	{
-		JsUtils.parseNdJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
+		JsUtils.parseNdJsonIntoValue( new BufferedReader( new InputStreamReader(new ByteArrayInputStream( message.content() ), charset )), value, strictEncoding );
 	}
 
 	private static void parseForm( HttpMessage message, Value value, String charset )
