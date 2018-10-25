@@ -21,49 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package jolie.net;
+package jolie.net.coap.correlator;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import jolie.net.coap.message.CoapMessage;
+import jolie.net.CommMessage;
 
-public class CoapMessageCorrelator
+public class CommMessageCorrelator
 {
 
 	// Ensure that ONLY ONE ConcurrentHashMap is used for every thread
-	private static final Map<Integer, CoapMessage> requests = new ConcurrentHashMap<>();
+	private static final Map<Long, CommMessage> requests = new ConcurrentHashMap<>();
 
 	/**
-	To be called in case of receiving a { @link CoapMessage } request.
-	This has to be sent to { @link CommCore }, hence stored in a { @link ConcurrentHashMap }.
+	To be called in case of receiving a { @link CommMessage } from 
+	the { @link CommCore } to be sent as an { @link AsyncCommProtocol }
+	request. It stores the { @link CommMessage } in a { @link ConcurrentHashMap }
+	securely.
 	@param in 
 	 */
-	public void receiveProtocolRequest( int key, CoapMessage in )
+	public void sendProtocolRequest( CommMessage in )
 	{
-		requests.putIfAbsent( key, in );
+		requests.putIfAbsent( in.id(), in );
 	}
 
 	/**
-	As soon as a response is received from the { @link CommCore },
-	the { @link CoapMessage } request is retrieved from the { @link ConcurrentHashMap }
-	and removed.
+	As soon as a response is received by the { @link AsyncCommProtocol } 
+	the { @link CommMessage } request is retrieved from the { @link ConcurrentHashMap }.
 	@param id
-	@return the { @link CoapMessage } from the { @link ConcurrentHashMap }
+	@return 
 	 */
-	public CoapMessage sendProtocolResponse( int key )
+	public CommMessage receiveProtocolResponse( long key )
 	{
-		return sendProtocolResponse( key, true );
+		return receiveProtocolResponse( key, true );
 	}
 
 	/**
-	As soon as a response is received from the { @link CommCore },
-	the { @link CoapMessage } request is retrieved from the { @link ConcurrentHashMap },
-	removed or not depending on the boolean parameter.
-	@param key
-	@param remove
-	@return the { @link CoapMessage } from the { @link ConcurrentHashMap }
+	As soon as a response is received by the { @link AsyncCommProtocol } 
+	the { @link CommMessage } request is retrieved from the { @link ConcurrentHashMap }
+	and <b>removed</b> from it.
+	@param id
+	@return 
 	 */
-	public CoapMessage sendProtocolResponse( int key, boolean remove )
+	public CommMessage receiveProtocolResponse( long key, boolean remove )
 	{
 		return remove ? requests.remove( key ) : requests.get( key );
 	}

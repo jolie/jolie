@@ -19,7 +19,6 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
-
 package jolie.net.coap.message;
 
 import io.netty.buffer.ByteBuf;
@@ -86,12 +85,12 @@ public class CoapMessage
 	{
 
 		if ( !MessageType.isValidMessageType( messageType ) ) {
-			Interpreter.getInstance().logSevere( "No. " + messageType
+			throw new IllegalArgumentException( "No. " + messageType
 				+ " is not corresponding to any message type." );
 		}
 
 		if ( !MessageCode.isValidMessageCode( messageCode ) ) {
-			Interpreter.getInstance().logSevere( "No. " + messageCode
+			throw new IllegalArgumentException( "No. " + messageCode
 				+ " is not corresponding to any message code." );
 		}
 
@@ -929,7 +928,6 @@ public class CoapMessage
 		} catch( IllegalArgumentException e ) {
 			this.content = Unpooled.EMPTY_BUFFER;
 			this.removeOptions( Option.CONTENT_FORMAT );
-			Interpreter.getInstance().logSevere( e );
 		}
 	}
 

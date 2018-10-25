@@ -25,8 +25,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
@@ -55,6 +55,8 @@ import jolie.js.JsUtils;
 import jolie.lang.Constants;
 import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
+import jolie.net.coap.correlator.CoapMessageCorrelator;
+import jolie.net.coap.correlator.CommMessageCorrelator;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
 import jolie.net.coap.message.CoapResponse;
@@ -143,17 +145,35 @@ public class CoapProtocol extends AsyncCommProtocol
 		private ChannelHandlerContext ctx;
 
 		@Override
+		public void write( ChannelHandlerContext ctx, Object msg, ChannelPromise promise ) throws Exception
+		{
+			System.out.println( "Message is instance of " + msg.getClass().getSimpleName() );
+			super.write( ctx, msg, promise );
+		}
+
+		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage in, List<Object> out )
 			throws Exception
 		{
 			setSendExecutionThread( in.id() );
 			this.ctx = ctx;
 
+			CoapMessage msg = null;
+
 			if ( isInput ) {
-				out.add( encode_inbound( in ) );
+				msg = encode_inbound( in );
 			} else {
-				out.add( encode_outbound( in ) );
+				msg = encode_outbound( in );
 			}
+
+			if ( msg != null ) {
+				out.add( msg );
+			}
+//			else {
+//				throw new IOException( "\nNo CoapMessage has been encoded for the CommMessage\n"
+//					+ in.toPrettyString()
+//					+ "\nAnyway, this is an internal error and should not affect the service behaviour.\n" );
+//			}
 		}
 
 		@Override
@@ -167,10 +187,20 @@ public class CoapProtocol extends AsyncCommProtocol
 			setReceiveExecutionThread( id );
 			this.ctx = ctx;
 
+			CommMessage msg = null;
+
 			if ( isInput ) {
-				out.add( decode_inbound( in ) );
+				msg = decode_inbound( in );
 			} else {
-				out.add( decode_outbound( in ) );
+				msg = decode_outbound( in );
+			}
+
+			if ( msg != null ) {
+				out.add( msg );
+			} else {
+				throw new IOException( "No CommMessage has been decoded for the CoapMessage\n"
+					+ in
+					+ "\nAnyway, this is an internal error and should not affect the service behaviour." );
 			}
 		}
 
@@ -218,19 +248,6 @@ public class CoapProtocol extends AsyncCommProtocol
 						timeout = getIntParameter( Parameters.TIMEOUT );
 					}
 					ctx.pipeline().addLast( "TIMEOUT INBOUND/OUTBOUND", new ReadTimeoutHandler( timeout ) );
-					ctx.pipeline().addLast( "ERROR INBOUND", new ChannelInboundHandlerAdapter()
-					{
-						@Override
-						public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
-						{
-							CoapMessage out = CoapMessage.createEmptyReset( (int) in.id() );
-							if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-								Interpreter.getInstance().logInfo( "Sending a CoAP RST to the Client:\n"
-									+ out );
-							}
-//							ctx.fireChannelRead( out );
-						}
-					} );
 				}
 				if ( out.messageType() == MessageType.NON ) {
 					CommMessage ack = new CommMessage(
@@ -259,7 +276,6 @@ public class CoapProtocol extends AsyncCommProtocol
 		private CommMessage decode_inbound( CoapMessage in )
 			throws TypeCastingException, IOException
 		{
-
 			String operationName = operationName( in );
 			long id = (long) in.id();
 			if ( isRequestResponse( operationName ) ) {
@@ -307,7 +323,8 @@ public class CoapProtocol extends AsyncCommProtocol
 			return out;
 		}
 
-		private CoapMessage encode_inbound( CommMessage in ) throws IOException
+		private CoapMessage encode_inbound( CommMessage in )
+			throws IOException
 		{
 			CoapMessage request = coapMessageCorrelator.sendProtocolResponse( (int) in.id() );
 			CoapMessage out = null;
@@ -356,13 +373,14 @@ public class CoapProtocol extends AsyncCommProtocol
 				}
 				// the second case: this is just a comm message flowing from comm core for NON message (not handle!)
 				if ( request.messageType() == MessageType.NON ) {
-					throw new IOException( "this is an ack message for NON request!" );
+					return null;
 				}
 			}
 			return out;
 		}
 
-		private CommMessage decode_outbound( CoapMessage in ) throws IOException, TypeCastingException
+		private CommMessage decode_outbound( CoapMessage in )
+			throws IOException, TypeCastingException
 		{
 			long key = (long) in.id();
 			CommMessage commMessageRequest = commMessageCorrelator.receiveProtocolResponse( key, false );
@@ -431,7 +449,7 @@ public class CoapProtocol extends AsyncCommProtocol
 			if ( in.messageType() == MessageType.RST ) {
 				out = CommMessage.createFaultResponse( commMessageRequest, new FaultException( "Received a RESET from a CoAP Client!" ) );
 			}
-			
+
 			return out;
 		}
 
@@ -518,11 +536,10 @@ public class CoapProtocol extends AsyncCommProtocol
 								.intValue();
 
 					} else {
-						Interpreter
-							.getInstance().logSevere( "Coap Message Type "
-								+ messageTypeValue
-									.intValue() + " is not allowed! "
-								+ "Assuming default message type \"NON\"." );
+						throw new IllegalArgumentException( "Coap Message Type "
+							+ messageTypeValue
+								.intValue() + " is not allowed! "
+							+ "Assuming default message type \"NON\"." );
 
 					}
 				} else {
@@ -562,21 +579,16 @@ public class CoapProtocol extends AsyncCommProtocol
 
 							}
 							default: {
-								Interpreter
-									.getInstance().logSevere( "Coap Message Type "
-										+ messageTypeString
-										+ " is not allowed! "
-										+ "Assuming default message type \"NON\"." );
-
-								break;
-
+								throw new IllegalArgumentException( "Coap Message Type "
+									+ messageTypeString
+									+ " is not allowed! "
+									+ "Assuming default message type \"NON\"." );
 							}
 						}
 					} else {
-						Interpreter
-							.getInstance().logSevere( "Coap Message Type "
-								+ "cannot  be read as an integer nor as a string! "
-								+ "Check the message type." );
+						throw new IllegalArgumentException( "Coap Message Type "
+							+ "cannot  be read as an integer nor as a string! "
+							+ "Check the message type." );
 
 					}
 				}
@@ -816,128 +828,61 @@ public class CoapProtocol extends AsyncCommProtocol
 	private Value byteBufToValue( ByteBuf in, Type type, String format, Charset charset, boolean jsonEncoding )
 		throws TypeCastingException
 	{
-		ByteBuf byteBuf
-			= Unpooled
-				.copiedBuffer( in
-				);
-		Value value
-			= Value
-				.create();
-		String message
-			= Unpooled
-				.copiedBuffer( byteBuf
-				).toString( charset
-				);
+		ByteBuf byteBuf = Unpooled.copiedBuffer( in );
+		Value value = Value.create();
+		String message = Unpooled.copiedBuffer( byteBuf ).toString( charset );
 
 		try {
-			if ( message
-				.length() > 0 ) {
+			if ( message.length() > 0 ) {
 				switch( format ) {
 					case "application/xml":
-						DocumentBuilderFactory docBuilderFactory
-							= DocumentBuilderFactory
-								.newInstance();
-						DocumentBuilder builder
-							= docBuilderFactory
-								.newDocumentBuilder();
-						InputSource src
-							= new InputSource( new ByteBufInputStream( byteBuf
-							) );
-						src
-							.setEncoding( charset
-								.name() );
-						Document doc
-							= builder
-								.parse( src
-								);
-						XmlUtils
-							.documentToValue( doc,
-								value
-							);
-
+						DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+						DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
+						InputSource src = new InputSource( new ByteBufInputStream( byteBuf ) );
+						src.setEncoding( charset.name() );
+						Document doc = builder.parse( src );
+						XmlUtils.documentToValue( doc, value );
 						break;
-
 					case "application/link-format":
 					case "application/octet-stream":
 					case "application/exi":
 					case "text/plain": {
-						parsePlainText( message,
-							value,
-							type
-						);
-
+						parsePlainText( message, value, type );
 					}
 					break;
-
 					case "application/json":
-						JsUtils
-							.parseJsonIntoValue( new InputStreamReader( new ByteBufInputStream( byteBuf
-							) ), value,
-								jsonEncoding
-							);
-
+						JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteBufInputStream( byteBuf ) ), value, jsonEncoding );
 						break;
-
 				}
 
 				// for XML format
 				try {
-					value
-						= type
-							.cast( value
-							);
-
+					value = type.cast( value );
 				} catch( TypeCastingException e ) {
 					// do nothing
 				}
-
 			} else {
-				value
-					= Value
-						.create();
-
+				value = Value.create();
 				try {
-					type
-						.check( value
-						);
-
+					type.check( value );
 				} catch( TypeCheckingException ex1 ) {
-					value
-						= Value
-							.create( "" );
-
+					value = Value.create( "" );
 					try {
-						type
-							.check( value
-							);
-
+						type.check( value );
 					} catch( TypeCheckingException ex2 ) {
-						value
-							= Value
-								.create( new ByteArray( new byte[ 0 ] ) );
-
+						value = Value.create( new ByteArray( new byte[ 0 ] ) );
 						try {
-							type
-								.check( value
-								);
-
+							type.check( value );
 						} catch( TypeCheckingException ex3 ) {
-							value
-								= Value
-									.create();
-
+							value = Value.create();
 						}
 					}
 				}
 			}
-		} catch( IOException
-			| ParserConfigurationException
-			| TypeCheckingException
-			| SAXException ex ) {
+		} catch( IOException | ParserConfigurationException | TypeCheckingException | SAXException ex ) {
 			// do nothing
 		}
 		return value;
-
 	}
 
 	/**
@@ -1120,5 +1065,4 @@ public class CoapProtocol extends AsyncCommProtocol
 		private static final int DEFAULT_TIMEOUT = 2;
 		private static final String SEPARATE_RESPONSE = "separateResponse";
 	}
-
 }
