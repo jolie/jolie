@@ -240,11 +240,12 @@ public class JsUtils
 		}
 	}
 	
+
 	public static void parseNdJsonIntoValue( BufferedReader reader, Value value, boolean strictEncoding )
 		throws IOException
 	{
 		List<String> stringItemVector = reader.lines().collect( Collectors.toList() );
-		
+	
 		for( String stringItem : stringItemVector ) {
 			StringReader itemReader = new StringReader( stringItem );
 			try {
