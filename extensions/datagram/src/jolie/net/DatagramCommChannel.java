@@ -40,6 +40,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
@@ -53,36 +55,12 @@ public class DatagramCommChannel extends StreamingCommChannel
 	private Bootstrap bootstrap;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected StreamingCommChannelHandler commChannelHandler;
-	private ChannelPipeline channelPipeline;
+	private ChannelPipeline pipeline;
 
 	public DatagramCommChannel( URI location, AsyncCommProtocol protocol )
 	{
 		super( location, protocol );
 		this.commChannelHandler = new StreamingCommChannelHandler( this );
-	}
-
-	@Override
-	public StreamingCommChannelHandler getChannelHandler()
-	{
-		return commChannelHandler;
-	}
-
-	/**
-	 *
-	 * @param channelPipeline
-	 */
-	public void setChannelPipeline( ChannelPipeline channelPipeline )
-	{
-		this.channelPipeline = channelPipeline;
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public ChannelPipeline getChannelPipeline()
-	{
-		return channelPipeline;
 	}
 
 	/**
@@ -113,7 +91,6 @@ public class DatagramCommChannel extends StreamingCommChannel
 						channel.setParentOutputPort( (OutputPort) port );
 					}
 					protocol.setChannel( channel );
-					// inbound handler per datagram packet 
 					p.addLast( new SimpleChannelInboundHandler<DatagramPacket>()
 					{
 						@Override
@@ -163,27 +140,27 @@ public class DatagramCommChannel extends StreamingCommChannel
 		return bootstrap.bind( location );
 	}
 
-	/**
-	 * This is blocking to integrate with existing CommCore and ExecutionThreads.
-	 *
-	 * @return
-	 * @throws IOException
-	 */
+	public ChannelFuture initChannel()
+	{
+		return bootstrap.register();
+	}
+
 	@Override
 	protected CommMessage recvImpl() throws IOException
 	{
+		// This is blocking to integrate with existing CommCore and ExecutionThreads.
 		try {
 			if ( waitingForMsg != null ) {
-				throw new UnsupportedOperationException( "Waiting for multiple "
-					+ "messages is currently not supported!" );
+				throw new UnsupportedOperationException( "Waiting for multiple messages is currently not supported!" );
 			}
 			waitingForMsg = new CompletableFuture<>();
 			CommMessage msg = waitingForMsg.get();
 			waitingForMsg = null;
 			return msg;
 		} catch( InterruptedException | ExecutionException ex ) {
-			throw new IOException( ex );
+			Logger.getLogger( NioSocketCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
 		}
+		return null;
 	}
 
 	protected void completeRead( CommMessage message )
@@ -216,5 +193,29 @@ public class DatagramCommChannel extends StreamingCommChannel
 		} catch( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
+	}
+
+	/**
+	Return the current working pipeline of this (netty) channel.
+	@return the current pipeline
+	 */
+	public ChannelPipeline getChannelPipeline()
+	{
+		return this.pipeline;
+	}
+
+	/**
+	Set the current channel pipeline to one passed as a parameter from the user.
+	@param newPipeline 
+	 */
+	public void setChannelPipeline( ChannelPipeline newPipeline )
+	{
+		this.pipeline = newPipeline;
+	}
+
+	@Override
+	public StreamingCommChannelHandler getChannelHandler()
+	{
+		return commChannelHandler;
 	}
 }

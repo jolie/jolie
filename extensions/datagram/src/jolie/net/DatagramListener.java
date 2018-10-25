@@ -117,7 +117,7 @@ public class DatagramListener extends CommListener
 							@Override
 							public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
 							{
-								//cause.printStackTrace();
+								cause.printStackTrace();
 								ctx.close();
 								serverChannel.close();
 							}
@@ -127,7 +127,7 @@ public class DatagramListener extends CommListener
 				} );
 
 			ChannelFuture f = bootstrap.bind( inboundAddress, inboundPort ).syncUninterruptibly();
-			this.serverChannel = f.channel();
+			serverChannel = f.channel();
 			serverChannel.closeFuture().sync();
 		} catch( InterruptedException ioe ) {
 			interpreter().logWarning( ioe );
