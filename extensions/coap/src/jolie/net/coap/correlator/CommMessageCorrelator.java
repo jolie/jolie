@@ -32,6 +32,9 @@ public class CommMessageCorrelator
 
 	// Ensure that ONLY ONE ConcurrentHashMap is used for every thread
 	private static final Map<Long, CommMessage> requests = new ConcurrentHashMap<>();
+	
+	// Ensure that ONLY ONE ConcurrentLinkedQueue is used for every thread
+	public static CommMessage request;
 
 	/**
 	To be called in case of receiving a { @link CommMessage } from 
@@ -67,5 +70,4 @@ public class CommMessageCorrelator
 	{
 		return remove ? requests.remove( key ) : requests.get( key );
 	}
-
 }
