@@ -26,10 +26,10 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -89,9 +89,8 @@ Implementations of {@link AsyncCommProtocol} CoAP for Jolie.
 3. COAP MESSAGE INBOUND/OUTBOUND			CoapToCommMessageCodec
 4. COMM MESSAGE INBOUND					StreamingCommChannelHandler
 5. TIMEOUT INBOUND/OUTBOUND				ReadTimeoutHandler
-6. ERROR INBOUND							CoapToCommMessageCodec
 -------------------------------------------------------------------------------------
-INBOUND read( 1 -> 3 -> 4 -> 5 -> 6 )
+INBOUND read( 1 -> 3 -> 4 -> 5 )
 	ByteBuf	->		CoapMessage	->		CommMessage	-> CommMessage
 -------------------------------------------------------------------------------------
 OUTBOUND write( 3 -> 2 -> 5 )
@@ -145,10 +144,19 @@ public class CoapProtocol extends AsyncCommProtocol
 		private ChannelHandlerContext ctx;
 
 		@Override
-		public void write( ChannelHandlerContext ctx, Object msg, ChannelPromise promise ) throws Exception
+		public void channelRead( ChannelHandlerContext ctx, Object msg ) throws Exception
 		{
-			System.out.println( "Message is instance of " + msg.getClass().getSimpleName() );
-			super.write( ctx, msg, promise );
+			if ( isInput && msg instanceof CoapMessage && ((CoapMessage) msg).isEmptyAck() ) {
+				CoapMessage request = coapMessageCorrelator.sendProtocolResponse( ((CoapMessage) msg).id() );
+				if ( request.messageType() == MessageType.NON ) {
+					// the special case: this is a comm message ack flowing from comm core for NON coap message and we shall release it
+					ReferenceCountUtil.release( msg );
+				} else {
+					super.channelRead( ctx, msg );
+				}
+			} else {
+				super.channelRead( ctx, msg );
+			}
 		}
 
 		@Override
@@ -158,22 +166,11 @@ public class CoapProtocol extends AsyncCommProtocol
 			setSendExecutionThread( in.id() );
 			this.ctx = ctx;
 
-			CoapMessage msg = null;
-
 			if ( isInput ) {
-				msg = encode_inbound( in );
+				out.add( encode_inbound( in ) );
 			} else {
-				msg = encode_outbound( in );
+				out.add( encode_outbound( in ) );
 			}
-
-			if ( msg != null ) {
-				out.add( msg );
-			}
-//			else {
-//				throw new IOException( "\nNo CoapMessage has been encoded for the CommMessage\n"
-//					+ in.toPrettyString()
-//					+ "\nAnyway, this is an internal error and should not affect the service behaviour.\n" );
-//			}
 		}
 
 		@Override
@@ -187,20 +184,10 @@ public class CoapProtocol extends AsyncCommProtocol
 			setReceiveExecutionThread( id );
 			this.ctx = ctx;
 
-			CommMessage msg = null;
-
 			if ( isInput ) {
-				msg = decode_inbound( in );
+				out.add( decode_inbound( in ) );
 			} else {
-				msg = decode_outbound( in );
-			}
-
-			if ( msg != null ) {
-				out.add( msg );
-			} else {
-				throw new IOException( "No CommMessage has been decoded for the CoapMessage\n"
-					+ in
-					+ "\nAnyway, this is an internal error and should not affect the service behaviour." );
+				out.add( decode_outbound( in ) );
 			}
 		}
 
@@ -326,7 +313,6 @@ public class CoapProtocol extends AsyncCommProtocol
 		private CoapMessage encode_inbound( CommMessage in )
 			throws IOException
 		{
-			CoapMessage request = coapMessageCorrelator.sendProtocolResponse( (int) in.id() );
 			CoapMessage out = null;
 			String operationName = in.operationName();
 
@@ -359,22 +345,17 @@ public class CoapProtocol extends AsyncCommProtocol
 				}
 
 			} else {
-				// the first case: this is an ack from comm core for a CON message (handle !)
-				if ( request.messageType() == MessageType.CON ) {
-					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Receiving a Comm Message Ack from Comm Core:\n"
-							+ in.toPrettyString() );
-					}
-					out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
-					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Sending the CoAP Empty Ack to the Client:\n"
-							+ out );
-					}
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Receiving a Comm Message Ack from Comm Core:\n"
+						+ in.toPrettyString() );
 				}
-				// the second case: this is just a comm message flowing from comm core for NON message (not handle!)
-				if ( request.messageType() == MessageType.NON ) {
-					return null;
+				out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Sending a CoAP Empty Ack, "
+						+ "in case of a NON request, this message will not be deliverd to the Client:\n"
+						+ out );
 				}
+
 			}
 			return out;
 		}
