@@ -27,6 +27,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
@@ -84,17 +85,10 @@ import org.xml.sax.SAXException;
 /**
 Implementations of {@link AsyncCommProtocol} CoAP for Jolie.
 -------------------------------------------------------------------------------------
-1. COAP MESSAGE INBOUND					CoapDecoder
-2. COAP MESSAGE OUTBOUND					CoapEncoder
-3. COAP MESSAGE INBOUND/OUTBOUND			CoapToCommMessageCodec
-4. COMM MESSAGE INBOUND					StreamingCommChannelHandler
-5. TIMEOUT INBOUND/OUTBOUND				ReadTimeoutHandler
--------------------------------------------------------------------------------------
-INBOUND read( 1 -> 3 -> 4 -> 5 )
-	ByteBuf	->		CoapMessage	->		CommMessage	-> CommMessage
--------------------------------------------------------------------------------------
-OUTBOUND write( 3 -> 2 -> 5 )
-	CommMessage	->		CoapMessage	->		ByteBuf
+1. COAP MESSAGE INBOUND				CoapDecoder
+2. COAP MESSAGE OUTBOUND				CoapEncoder
+3. COAP MESSAGE INBOUND/OUTBOUND		CoapToCommMessageCodec
+4. COMM MESSAGE INBOUND				StreamingCommChannelHandler
 -------------------------------------------------------------------------------------
 @author stefanopiozingaro
  */
@@ -141,21 +135,45 @@ public class CoapProtocol extends AsyncCommProtocol
 
 	private class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, CommMessage>
 	{
+		private static final String TIMEOUT_HANLDER_NAME = "READ TIMEOUT INBOUND/OUTBOUND";
 		private ChannelHandlerContext ctx;
+
+		@Override
+		public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
+		{
+			if ( cause instanceof ReadTimeoutException ) {
+				CommMessage msg = null;
+				if ( CommMessageCorrelator.request != null ) {
+					msg = CommMessageCorrelator.request;
+					// fault message to comm core
+					CommMessage fault = CommMessage.createFaultResponse( msg, new FaultException( cause ) );
+					ctx.fireChannelRead( fault );
+					// reset message to server
+					CoapMessage reset = CoapMessage.createEmptyReset( (int) msg.id() );
+					ctx.writeAndFlush( reset );
+					CommMessageCorrelator.request = null;
+				}
+				ctx.pipeline().remove( TIMEOUT_HANLDER_NAME );
+			} else {
+				super.exceptionCaught( ctx, cause );
+			}
+		}
 
 		@Override
 		public void channelRead( ChannelHandlerContext ctx, Object msg ) throws Exception
 		{
-			if ( isInput && msg instanceof CoapMessage && ((CoapMessage) msg).isEmptyAck() ) {
-				CoapMessage request = coapMessageCorrelator.sendProtocolResponse( ((CoapMessage) msg).id() );
-				if ( request.messageType() == MessageType.NON ) {
-					// the special case: this is a comm message ack flowing from comm core for NON coap message and we shall release it
-					ReferenceCountUtil.release( msg );
-				} else {
-					super.channelRead( ctx, msg );
+			if ( acceptInboundMessage( msg ) ) {
+				if ( isInput && ((CoapMessage) msg).isEmptyAck() ) {
+					CoapMessage request = coapMessageCorrelator.sendProtocolResponse( ((CoapMessage) msg).id() );
+					if ( request.messageType() == MessageType.NON ) {
+						// the special case: this is a comm message ack flowing from comm core for NON coap message and we shall release it
+						ReferenceCountUtil.release( msg );
+					}
+					return;
 				}
-			} else {
 				super.channelRead( ctx, msg );
+			} else {
+				ctx.fireChannelRead( msg ); // maybe retain maybe not
 			}
 		}
 
@@ -212,6 +230,10 @@ public class CoapProtocol extends AsyncCommProtocol
 			}
 
 			out.id( (int) in.id() );
+			int timeout = Parameters.DEFAULT_TIMEOUT;
+			if ( hasParameter( Parameters.TIMEOUT ) ) {
+				timeout = getIntParameter( Parameters.TIMEOUT );
+			}
 			if ( isRequestResponse( operationName ) ) {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 					Interpreter.getInstance().logInfo( "Receiving a Comm Message Request for a CoAP Solicit Response:\n"
@@ -223,18 +245,20 @@ public class CoapProtocol extends AsyncCommProtocol
 					Interpreter.getInstance().logInfo( "Sending the CoAP Solicit Response:\n"
 						+ out );
 				}
+				CommMessageCorrelator.request = in;
+				if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
+					ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new ReadTimeoutHandler( timeout ) );
+				}
 			} else {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 					Interpreter.getInstance().logInfo( "Receiving a Comm Message Request for a CoAP Notification:\n"
 						+ in.toPrettyString() );
 				}
 				if ( out.messageType() == MessageType.CON ) {
-					commMessageCorrelator.sendProtocolRequest( in );
-					int timeout = Parameters.DEFAULT_TIMEOUT;
-					if ( hasParameter( Parameters.TIMEOUT ) ) {
-						timeout = getIntParameter( Parameters.TIMEOUT );
+					CommMessageCorrelator.request = in;
+					if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
+						ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new ReadTimeoutHandler( timeout ) );
 					}
-					ctx.pipeline().addLast( "TIMEOUT INBOUND/OUTBOUND", new ReadTimeoutHandler( timeout ) );
 				}
 				if ( out.messageType() == MessageType.NON ) {
 					CommMessage ack = new CommMessage(
@@ -352,7 +376,7 @@ public class CoapProtocol extends AsyncCommProtocol
 				out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 					Interpreter.getInstance().logInfo( "Sending a CoAP Empty Ack, "
-						+ "in case of a NON request, this message will not be deliverd to the Client:\n"
+						+ "in case of a NON request, this message will not be delivered to the Client:\n"
 						+ out );
 				}
 
@@ -366,7 +390,11 @@ public class CoapProtocol extends AsyncCommProtocol
 			long key = (long) in.id();
 			CommMessage commMessageRequest = commMessageCorrelator.receiveProtocolResponse( key, false );
 			if ( commMessageRequest == null ) {
-				key = ByteBuffer.wrap( in.token().getBytes() ).getLong();
+				try {
+					key = ByteBuffer.wrap( in.token().getBytes() ).getLong();
+				} catch( Exception ex ) {
+
+				}
 				commMessageRequest = commMessageCorrelator.receiveProtocolResponse( key );
 				if ( commMessageCorrelator == null ) {
 					throw new IOException( "Non correlating comm message with any requests" );
