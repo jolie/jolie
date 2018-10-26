@@ -191,7 +191,7 @@ public class CoapProtocol extends AsyncCommProtocol
 			}
 		}
 
-		private CoapMessage encode_outbound( CommMessage in )
+		private CoapMessage encode_outbound( CommMessage in ) throws URISyntaxException
 		{
 			String operationName = in.operationName();
 
@@ -624,17 +624,13 @@ public class CoapProtocol extends AsyncCommProtocol
 
 		}
 
-		private URI targetURI( CommMessage in )
+		private URI targetURI( CommMessage in ) throws URISyntaxException
 		{
 			URI location = null;
 			if ( isInput ) {
 				location = channel().parentInputPort().location();
 			} else {
-				try {
-					location = new URI( channel().parentOutputPort().locationVariablePath().evaluate().strValue() );
-				} catch( URISyntaxException ex ) {
-					// do nothing
-				}
+				location = new URI( channel().parentOutputPort().locationVariablePath().evaluate().strValue() );
 			}
 
 			// 1. build the string for uri resource let url be coap://
@@ -650,6 +646,7 @@ public class CoapProtocol extends AsyncCommProtocol
 			// 6. let resource name be empty, for each uri path option append / and the option
 			StringBuilder resource_name = new StringBuilder();
 			if ( hasOperationSpecificParameter( in.operationName(), Parameters.ALIAS ) ) {
+				resource_name.append( '/' );
 				for( Value v : getOperationSpecificParameterVector( in.operationName(), Parameters.ALIAS ) ) {
 					String path = dynamicAlias( v.strValue(), in.value() );
 					resource_name.append( path );
