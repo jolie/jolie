@@ -27,8 +27,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.timeout.ReadTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import java.io.ByteArrayOutputStream;
@@ -56,14 +54,16 @@ import jolie.js.JsUtils;
 import jolie.lang.Constants;
 import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
-import jolie.net.coap.correlator.CoapMessageCorrelator;
-import jolie.net.coap.correlator.CommMessageCorrelator;
+import jolie.net.coap.communication.timeout.CoapMessageReadTimeoutException;
+import jolie.net.coap.communication.timeout.CoapMessageReadTimeoutHandler;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
 import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
 import jolie.net.coap.message.Token;
+import jolie.net.coap.message.correlators.CoapMessageCorrelator;
+import jolie.net.coap.message.correlators.CommMessageCorrelator;
 import jolie.net.coap.message.options.ContentFormat;
 import jolie.net.coap.message.options.Option;
 import jolie.net.coap.message.options.OptionValue;
@@ -141,18 +141,18 @@ public class CoapProtocol extends AsyncCommProtocol
 		@Override
 		public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
 		{
-			if ( cause instanceof ReadTimeoutException ) {
-				CommMessage msg = null;
-				if ( CommMessageCorrelator.request != null ) {
-					msg = CommMessageCorrelator.request;
-					// fault message to comm core
-					CommMessage fault = CommMessage.createFaultResponse( msg, new FaultException( cause ) );
-					ctx.fireChannelRead( fault );
-					// reset message to server
-					CoapMessage reset = CoapMessage.createEmptyReset( (int) msg.id() );
-					ctx.writeAndFlush( reset );
-					CommMessageCorrelator.request = null;
-				}
+			if ( cause instanceof CoapMessageReadTimeoutException ) {
+				CommMessage msg = commMessageCorrelator.receiveProtocolResponse( ((CoapMessageReadTimeoutException) cause).getId() );
+				String errorMsg = "The CoAP endpoint did not sent the ACK within the set \"timeout\" of "
+					+ ((CoapMessageReadTimeoutException) cause).getTimeout()
+					+ "sec!\n"
+					+ "Try with a longer timeout or check the CoAP endpoint availability.";
+				// fault message to comm core
+				CommMessage fault = CommMessage.createFaultResponse( msg, new FaultException( "CoapMessageReadTimeoutException", errorMsg ) );
+				ctx.fireChannelRead( fault );
+				// reset message to server
+				CoapMessage reset = CoapMessage.createEmptyReset( (int) msg.id() );
+				ctx.writeAndFlush( reset );
 				ctx.pipeline().remove( TIMEOUT_HANLDER_NAME );
 			} else {
 				super.exceptionCaught( ctx, cause );
@@ -245,9 +245,8 @@ public class CoapProtocol extends AsyncCommProtocol
 					Interpreter.getInstance().logInfo( "Sending the CoAP Solicit Response:\n"
 						+ out );
 				}
-				CommMessageCorrelator.request = in;
 				if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
-					ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new ReadTimeoutHandler( timeout ) );
+					ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new CoapMessageReadTimeoutHandler( timeout, in ) );
 				}
 			} else {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -255,9 +254,9 @@ public class CoapProtocol extends AsyncCommProtocol
 						+ in.toPrettyString() );
 				}
 				if ( out.messageType() == MessageType.CON ) {
-					CommMessageCorrelator.request = in;
+					commMessageCorrelator.sendProtocolRequest( in );
 					if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
-						ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new ReadTimeoutHandler( timeout ) );
+						ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new CoapMessageReadTimeoutHandler( timeout, in ) );
 					}
 				}
 				if ( out.messageType() == MessageType.NON ) {
@@ -393,12 +392,16 @@ public class CoapProtocol extends AsyncCommProtocol
 				try {
 					key = ByteBuffer.wrap( in.token().getBytes() ).getLong();
 				} catch( Exception ex ) {
+					System.out.println( "Exception raised in finding the token of coap messages "
+						+ in );
 
 				}
 				commMessageRequest = commMessageCorrelator.receiveProtocolResponse( key );
 				if ( commMessageCorrelator == null ) {
 					throw new IOException( "Non correlating comm message with any requests" );
 				}
+			} else { // remove it form the requests queue
+				commMessageCorrelator.receiveProtocolResponse( key );
 			}
 
 			String operationName = commMessageRequest.operationName();
@@ -607,7 +610,7 @@ public class CoapProtocol extends AsyncCommProtocol
 		}
 
 		/**
-	Default Code is Integer for POST in request and Integer for CONTENT for responses.
+	Default Code is Integer for POST in getRequest and Integer for CONTENT for responses.
 	@param operationName
 	@param isResponse
 	@return The Integer rapresentation of the Message Code as listed in {@link MessageCode}
