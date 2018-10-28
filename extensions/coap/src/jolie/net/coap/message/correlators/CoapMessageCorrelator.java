@@ -38,7 +38,7 @@ public class CoapMessageCorrelator
 	This has to be sent to { @link CommCore }, hence stored in a { @link ConcurrentHashMap }.
 	@param in 
 	 */
-	public void receiveProtocolRequest( int key, CoapMessage in )
+	public void receiveRequest( int key, CoapMessage in )
 	{
 		requests.putIfAbsent( key, in );
 	}
@@ -50,9 +50,9 @@ public class CoapMessageCorrelator
 	@param id
 	@return the { @link CoapMessage } from the { @link ConcurrentHashMap }
 	 */
-	public CoapMessage sendProtocolResponse( int key )
+	public CoapMessage sendResponse( int key )
 	{
-		return sendProtocolResponse( key, true );
+		return sendResponse( key, true );
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class CoapMessageCorrelator
 	@param remove
 	@return the { @link CoapMessage } from the { @link ConcurrentHashMap }
 	 */
-	public CoapMessage sendProtocolResponse( int key, boolean remove )
+	public CoapMessage sendResponse( int key, boolean remove )
 	{
 		return remove ? requests.remove( key ) : requests.get( key );
 	}
