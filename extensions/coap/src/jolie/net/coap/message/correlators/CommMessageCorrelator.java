@@ -32,7 +32,7 @@ public class CommMessageCorrelator
 
 	// Ensure that ONLY ONE ConcurrentHashMap is used for every thread
 	private static final Map<Long, CommMessage> requests = new ConcurrentHashMap<>();
-	
+
 	/**
 	To be called in case of receiving a { @link CommMessage } from 
 	the { @link CommCore } to be sent as an { @link AsyncCommProtocol }
@@ -40,7 +40,7 @@ public class CommMessageCorrelator
 	securely.
 	@param in 
 	 */
-	public void sendProtocolRequest( CommMessage in )
+	public void sendRequest( CommMessage in )
 	{
 		requests.putIfAbsent( in.id(), in );
 	}
@@ -51,7 +51,7 @@ public class CommMessageCorrelator
 	@param id
 	@return 
 	 */
-	public CommMessage receiveProtocolResponse( long key )
+	public CommMessage receiveResponse( long key )
 	{
 		return receiveProtocolResponse( key, true );
 	}
