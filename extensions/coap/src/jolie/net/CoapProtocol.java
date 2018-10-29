@@ -326,7 +326,7 @@ public class CoapProtocol extends AsyncCommProtocol
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 					Interpreter.getInstance().logInfo( "Forwading the Fault to Comm Core:\n"
 						+ fault.toPrettyString() );
-				}
+				} // needs to be investigated, if it is a fault, it should not be handled as a response from comm core
 				return fault;
 			}
 
