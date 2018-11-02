@@ -589,6 +589,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			ret.contentType = ContentTypes.APPLICATION_NDJSON;
 			StringBuilder ndJsonStringBuilder = new StringBuilder();
 			JsUtils.valueToNdJsonString( message.value(), true, getSendType( message ), ndJsonStringBuilder );
+			if ( ndJsonStringBuilder.toString().isEmpty() ) {
+				Interpreter.getInstance().logWarning( "ndJson requires at least one child node 'item'" );
+			}
 			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
 			ret.contentType = "text/plain";

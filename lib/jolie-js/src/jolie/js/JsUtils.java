@@ -129,11 +129,15 @@ public class JsUtils
 	{
 		Map<String, ValueVector> children = value.children();
 		for( Map.Entry<String, ValueVector> child : children.entrySet() ) {
-			for( Value v : child.getValue() ) {
-				valueToJsonString( v, extendedRoot, type, builder );
-				builder.append( '\n' );
+			if ( "item".equals( child.getKey() ) ) {
+				for( Value v : child.getValue() ) {
+					valueToJsonString( v, extendedRoot, type, builder );
+					builder.append( '\n' );
 				}
 			}
+
+		}
+	
 	}
 
 	
