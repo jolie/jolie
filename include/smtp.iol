@@ -49,6 +49,11 @@ type SendMailRequest:void {
 	 * defaults to "text/plain"
 	 */
 	.contentType?:string
+	.attachment*:void{
+		.content:raw
+		.filename:string
+		.contentType:string
+	}
 }
 
 interface SMTPInterface {
@@ -64,4 +69,3 @@ embedded {
 Java:
 	"joliex.mail.SMTPService" in SMTP
 }
-

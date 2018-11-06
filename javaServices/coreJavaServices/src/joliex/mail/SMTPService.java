@@ -30,13 +30,17 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.mail.Address;
 import javax.mail.Authenticator;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -108,37 +112,49 @@ public class SMTPService extends JavaService
 			/*
 			 * Content
 			 */
-			final String contentText = request.getFirstChild( "content" ).strValue();
+			Multipart multipart = new MimeMultipart();
+			BodyPart messagePart = new MimeBodyPart();
 			String type = "text/plain";
 			if ( request.hasChildren( "contentType" ) ) {
 				type = request.getFirstChild( "contentType" ).strValue();
 			}
-			final String contentType = type;
-			DataHandler dh = new DataHandler( new DataSource()
-			{
-				public InputStream getInputStream()
-					throws IOException
-				{
-					return new ByteArrayInputStream( contentText.getBytes() );
-				}
+			messagePart.setContent( request.getFirstChild( "content" ).strValue(), type );
+			multipart.addBodyPart( messagePart );
 
-				public OutputStream getOutputStream()
-					throws IOException
+			for( int counter = 0; counter < request.getChildren( "attachment" ).size(); counter++ ) {
+				final String contentType = request.getChildren( "attachment" ).get( counter ).getFirstChild( "contentType" ).strValue();
+				final byte[] content = request.getChildren( "attachment" ).get( counter ).getFirstChild( "content" ).byteArrayValue().getBytes();
+				DataHandler dh = new DataHandler( new DataSource()
 				{
-					throw new IOException( "Operation not supported" );
-				}
+					public InputStream getInputStream()
+						throws IOException
+					{
+						return new ByteArrayInputStream( content );
+					}
 
-				public String getContentType()
-				{
-					return contentType;
-				}
+					public OutputStream getOutputStream()
+						throws IOException
+					{
+						throw new IOException( "Operation not supported" );
+					}
 
-				public String getName()
-				{
-					return "mail content";
-				}
-			} );
-			msg.setDataHandler( dh );
+					public String getContentType()
+					{
+						return contentType;
+					}
+
+					public String getName()
+					{
+						return "mail attachemt";
+					}
+				} );
+				BodyPart attachmentPart = new MimeBodyPart();
+				attachmentPart.setDataHandler( dh );
+				attachmentPart.setFileName( request.getChildren( "attachment" ).get( counter ).getFirstChild( "filename" ).strValue() );
+				multipart.addBodyPart( attachmentPart );
+			}
+
+			msg.setContent( multipart );
 
 			/*
 			 * Reply To
