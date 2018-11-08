@@ -127,17 +127,10 @@ public class JsUtils
 	}
 	public static void valueToNdJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder ) throws IOException
 	{
-		Map<String, ValueVector> children = value.children();
-		for( Map.Entry<String, ValueVector> child : children.entrySet() ) {
-			if ( "item".equals( child.getKey() ) ) {
-				for( Value v : child.getValue() ) {
-					valueToJsonString( v, extendedRoot, type, builder );
-					builder.append( '\n' );
-				}
-			}
-
+		for( Value item : value.getChildren( "item" ) ) {
+			valueToJsonString( item, extendedRoot, type, builder );
+			builder.append( '\n' );
 		}
-	
 	}
 
 	

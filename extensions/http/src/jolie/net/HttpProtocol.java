@@ -587,9 +587,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if ( "ndjson".equals( format ) ) {
 			ret.contentType = ContentTypes.APPLICATION_NDJSON;
 			StringBuilder ndJsonStringBuilder = new StringBuilder();
-			JsUtils.valueToNdJsonString( message.value(), true, getSendType( message ), ndJsonStringBuilder );
-			if ( ndJsonStringBuilder.toString().isEmpty() ) {
-				Interpreter.getInstance().logWarning( "ndJson requires at least one child node 'item'" );
+			if ( message.isFault() ) {
+				Value error = message.value().getFirstChild( "error" );
+				error.getFirstChild( "code" ).setValue( -32000 );
+				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
+				error.getChildren( "data" ).set( 0, message.fault().value() );
+				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), ndJsonStringBuilder );
+			} else {
+				if ( !message.value().hasChildren( "item" ) ) {
+					Interpreter.getInstance().logWarning( "ndJson requires at least one child node 'item'" );
+				}
+				JsUtils.valueToNdJsonString( message.value(), true, getSendType( message ), ndJsonStringBuilder );
 			}
 			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
