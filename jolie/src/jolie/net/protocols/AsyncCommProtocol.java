@@ -49,22 +49,18 @@ public abstract class AsyncCommProtocol extends CommProtocol
 	{
 		setupPipeline( pipeline );
 	}
-	
+		
 	protected void setSendExecutionThread( Long k ){
 		//if we send a response
 		if ( channel().parentPort() instanceof InputPort ){
-			ExecutionThread t = Interpreter.getInstance().commCore().getExecutionThread( channel() );
+			ExecutionThread t = Interpreter.getInstance().commCore().getResponseExecutionThread( channel() );
 			setExecutionThread_internal( t != null ? t : initExecutionThread );
+//			Interpreter.getInstance().commCore().removeResponseExecutionThread( k );
+			Interpreter.getInstance().commCore().removeResponseExecutionThread( channel() );
 		}
 		// if we send a request
 		else {
-			// this is a long
-			setExecutionThread_internal( Interpreter.getInstance().commCore().pickExecutionThread( k ) );
-			// once we set the ExecutionThread, we can check if the channel is threadSafe (we need the Values in the protocol)
-			// If the protocol is not threadSafe, we will use the CommChannel to retrieve the ExecutionThread in the response
-			// and we can remove the mapping to that ExecutionThread associated to the message ID
-			if ( !isThreadSafe() )
-				Interpreter.getInstance().commCore().getExecutionThread( k );
+			setExecutionThread_internal( Interpreter.getInstance().commCore().getRequestExecutionThread( k ) );
 		}
 	}
 	
@@ -72,7 +68,7 @@ public abstract class AsyncCommProtocol extends CommProtocol
 		if ( channel().parentPort() instanceof InputPort ){
 			setExecutionThread_internal( initExecutionThread );
 		} else {
-			setExecutionThread_internal( Interpreter.getInstance().commCore().getExecutionThread( k ) );
+			setExecutionThread_internal( Interpreter.getInstance().commCore().getRequestExecutionThread( k ) );
 		}
 	}
 	
@@ -101,5 +97,4 @@ public abstract class AsyncCommProtocol extends CommProtocol
 	{
 		initExecutionThread = t;
 	}
-
 }

@@ -45,10 +45,25 @@ class ThreadRegistry
 		addThread( Long.toString( c.id() ), t );
 	}
 	
-	// GET REMOVES THE THREAD
-	private ExecutionThread getThread( String k ){
+	private void removeThread( String k ){
 //		System.out.println( Interpreter.getInstance().toString() + " removing thread on key " + k );
-		return registry.remove( k );
+		registry.remove( k );
+	}
+	
+	public void removeThread( Long id ){
+		if( CommMessage.GENERIC_ID == id ){
+			throw new UnsupportedOperationException( "Requested retrieval of execution thread under a generic message ID." );
+		}
+		removeThread( Long.toString( id ) );
+	}
+	
+	public void removeThread( CommChannel c ){
+		removeThread( c.toString() );
+	}
+	
+	private ExecutionThread getThread( String k ){
+//		System.out.println( Interpreter.getInstance().toString() + " picking thread on key " + k );
+		return registry.get( k );
 	}
 	
 	public ExecutionThread getThread( Long id ){
@@ -60,22 +75,5 @@ class ThreadRegistry
 	
 	public ExecutionThread getThread( CommChannel c ){
 		return getThread( c.toString() );
-	}
-	
-	// PICK FETCHS BUT DOES NOT REMOVE THE THREAD
-	private ExecutionThread pickThread( String k ){
-//		System.out.println( Interpreter.getInstance().toString() + " picking thread on key " + k );
-		return registry.get( k );
-	}
-	
-	public ExecutionThread pickThread( Long id ){
-		if( CommMessage.GENERIC_ID == id ){
-			throw new UnsupportedOperationException( "Requested retrieval of execution thread under a generic message ID." );
-		}
-		return pickThread( Long.toString( id ) );
-	}
-	
-	public ExecutionThread pickThread( CommChannel c ){
-		return pickThread( c.toString() );
 	}
 }

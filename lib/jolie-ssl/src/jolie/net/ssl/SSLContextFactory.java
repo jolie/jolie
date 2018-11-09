@@ -1,5 +1,6 @@
 /*******************************************************************************
  *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
+ *   Copyright (C) 2018 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                             *
  *   This program is free software; you can redistribute it and/or modify      *
  *   it under the terms of the GNU Library General Public License as           *
@@ -25,22 +26,15 @@ import io.netty.util.internal.SystemPropertyUtil;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyManagementException;
-
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-/**
- * Creates a SSL context both for client and server accordingly.
- *
- * @author spz
- */
 public final class SSLContextFactory {
 
 	private final String protocol;
@@ -62,21 +56,41 @@ public final class SSLContextFactory {
 		if ( algorithm == null ) {
 			algorithm = "SunX509";
 		}
-		char[] keyPassphrase = this.keyStorePassword.toCharArray();
-		char[] trustPassphrase = this.trustStorePassword.toCharArray();
 
 		try {
-			KeyStore ks = KeyStore.getInstance( this.keyStoreFormat );
-			ks.load( new FileInputStream( this.keyStoreFile ), keyPassphrase );
+			SSLContext context = SSLContext.getInstance( protocol );
+			KeyStore ks = KeyStore.getInstance( keyStoreFormat );
+			KeyStore ts = KeyStore.getInstance( trustStoreFormat );
 
-			KeyStore ts = KeyStore.getInstance( this.trustStoreFormat );
-			ts.load( new FileInputStream( this.trustStoreFile ), trustPassphrase );
+			char[] passphrase;
+			if ( keyStorePassword != null ) {
+				passphrase = keyStorePassword.toCharArray();
+			} else {
+				passphrase = null;
+			}
 
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance( algorithm );
-			kmf.init( ks, keyPassphrase );
+			if ( keyStoreFile != null ) {
+				ks.load( new FileInputStream( keyStoreFile ), passphrase );
+			} else {
+				ks.load( null, null );
+			}
+
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance( "SunX509" );
+			kmf.init( ks, passphrase );
+
+			
+			if ( trustStorePassword != null ) {
+				passphrase = trustStorePassword.toCharArray();
+			} else {
+				passphrase = null;
+			}
+			ts.load( new FileInputStream( trustStoreFile ), passphrase );
 
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance( "SunX509" );
 			tmf.init( ts );
+
+
+			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
 
 			sslCtx = SSLContext.getInstance( this.protocol );
 			sslCtx.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
@@ -90,48 +104,54 @@ public final class SSLContextFactory {
 		return keyStoreFormat;
 	}
 
-	public void setKeyStoreFormat( String keyStoreFormat ) {
+	public SSLContextFactory setKeyStoreFormat( String keyStoreFormat ) {
 		this.keyStoreFormat = keyStoreFormat;
+		return this;
 	}
 
 	public String getKeyStoreFile() {
 		return keyStoreFile;
 	}
 
-	public void setKeyStoreFile( String keyStoreFile ) {
+	public SSLContextFactory setKeyStoreFile( String keyStoreFile ) {
 		this.keyStoreFile = keyStoreFile;
+		return this;
 	}
 
 	public String getKeyStorePassword() {
 		return keyStorePassword;
 	}
 
-	public void setKeyStorePassword( String keyStorePassword ) {
+	public SSLContextFactory setKeyStorePassword( String keyStorePassword ) {
 		this.keyStorePassword = keyStorePassword;
+		return this;
 	}
 
 	public String getTrustStoreFormat() {
 		return trustStoreFormat;
 	}
 
-	public void setTrustStoreFormat( String trustStoreFormat ) {
+	public SSLContextFactory setTrustStoreFormat( String trustStoreFormat ) {
 		this.trustStoreFormat = trustStoreFormat;
+		return this;
 	}
 
 	public String getTrustStoreFile() {
 		return trustStoreFile;
 	}
 
-	public void setTrustStoreFile( String trustStoreFile ) {
+	public SSLContextFactory setTrustStoreFile( String trustStoreFile ) {
 		this.trustStoreFile = trustStoreFile;
+		return this;
 	}
 
 	public String getTrustStorePassword() {
 		return trustStorePassword;
 	}
 
-	public void setTrustStorePassword( String trustStorePassword ) {
+	public SSLContextFactory setTrustStorePassword( String trustStorePassword ) {
 		this.trustStorePassword = trustStorePassword;
+		return this;
 	}
 
 }

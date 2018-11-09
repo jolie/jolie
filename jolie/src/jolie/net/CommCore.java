@@ -87,7 +87,8 @@ public class CommCore
 	private final ThreadGroup threadGroup;
 	private final ChannelPool channelPool = new ChannelPool();
 	private final MessagePool messagePool = new MessagePool();
-	private final ThreadRegistry threadRegistry = new ThreadRegistry();
+	private final ThreadRegistry requestThreadRegistry = new ThreadRegistry();
+	private final ThreadRegistry responseThreadRegistry = new ThreadRegistry();
 
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 
@@ -325,25 +326,41 @@ public class CommCore
 		}
 	}
 	
-	public <C> ExecutionThread pickExecutionThread( C k ){
-		if( k == null ){
-			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
-		} else if( k instanceof CommChannel ){
-			return threadRegistry.pickThread( (CommChannel) k );
-		} else if ( k instanceof Long ){
-			return threadRegistry.pickThread( (Long) k );
-		} else {
-			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
-		}
+	public <C> ExecutionThread getRequestExecutionThread( C k ){
+		return getExecutionThread( k, requestThreadRegistry );
 	}
 	
-	public <C> ExecutionThread getExecutionThread( C k ){
+		public <C> void removeRequestExecutionThread( C k ){
+		removeExecutionThread( k, requestThreadRegistry );
+	}
+		
+	public <C> ExecutionThread getResponseExecutionThread( C k ){
+		return getExecutionThread( k, responseThreadRegistry );
+	}
+	
+	public <C> void removeResponseExecutionThread( C k ){
+		removeExecutionThread( k, responseThreadRegistry );
+	}
+	
+	private <C> ExecutionThread getExecutionThread( C k, ThreadRegistry threadRegistry ){
 		if( k == null ){
 			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
 		} else if( k instanceof CommChannel ){
 			return threadRegistry.getThread( (CommChannel) k );
 		} else if ( k instanceof Long ){
 			return threadRegistry.getThread( (Long) k );
+		} else {
+			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
+		}
+	}
+	
+	private <C> void removeExecutionThread( C k, ThreadRegistry threadRegistry ){
+		if( k == null ){
+			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
+		} else if( k instanceof CommChannel ){
+			threadRegistry.removeThread( (CommChannel) k );
+		} else if ( k instanceof Long ){
+			threadRegistry.removeThread( (Long) k );
 		} else {
 			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
 		}
@@ -358,10 +375,11 @@ public class CommCore
 	{
 		CommChannel c = channelPool.getChannel( threadSafe, location, out );
 		// we always add the thread associated to the message (this is consumed when encoding to message to be sent)
-		threadRegistry.addThread( message, ExecutionThread.currentThread() );
+		// THIS IS A REQUEST
+		requestThreadRegistry.addThread( message, ExecutionThread.currentThread() );
 		// we also add the thread associated to the channel (this is consumed when decoding the response message) 
 		if( !threadSafe ) {
-			threadRegistry.addThread( c, ExecutionThread.currentThread() );
+			requestThreadRegistry.addThread( c, ExecutionThread.currentThread() );
 			messagePool.registerForSynchronousResponse( c, message );
 		}
 		c.send( message );
@@ -371,7 +389,7 @@ public class CommCore
 	}
 	
 	public void registerResponseThread( CommChannel c, ExecutionThread t ){
-		threadRegistry.addThread( c, t );
+		responseThreadRegistry.addThread( c, t );
 	}
 
 	public void releaseChannel( CommChannel c ) throws IOException, URISyntaxException

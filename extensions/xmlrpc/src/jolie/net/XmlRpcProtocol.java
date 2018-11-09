@@ -539,11 +539,16 @@ public class XmlRpcProtocol extends AsyncCommProtocol {
 			if ( message instanceof FullHttpResponse ) {
 				//fault = new FaultException( "InternalServerError", "" );
 				//TODO support resourcePath
-				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", value, fault );
+				CommMessage request = retrieveSynchonousRequest( channel() );
+				// WE GET RID OF GENERIC ID. HERE WE PAIR THE RESPONSE TO THE REQUEST ID
+//				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", value, fault );
+				retVal = new CommMessage( request.id(), inputId, "/", value, fault );
 			} else /* if ( !message.isError() ) */ { // TODO: it appears that a message of type ERROR cannot be returned from the old parser
 				//TODO support resourcePath
+				// HERE WE ASSIGN A FAKE ID to the message
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
-				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault );
+//				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault );
+				retVal = new CommMessage( CommMessage.getNewMessageId(), opname, "/", value, fault );
 			}
 			
 			if ( isThreadSafe() ){
