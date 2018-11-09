@@ -24,7 +24,6 @@
 package jolie.net;
 
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import java.io.IOException;
@@ -42,7 +41,6 @@ import jolie.runtime.OneWayOperation;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.typing.TypeCheckingException;
 
-@ChannelHandler.Sharable
 public class StreamingCommChannelHandler
 	extends SimpleChannelInboundHandler<CommMessage>
 {
@@ -91,6 +89,8 @@ public class StreamingCommChannelHandler
 		throws Exception
 	{
 		if ( inChannel.parentPort() instanceof OutputPort ) {
+			Interpreter.getInstance().commCore().removeRequestExecutionThread( msg.id() );
+			Interpreter.getInstance().commCore().removeRequestExecutionThread( inChannel );
 			Interpreter.getInstance().commCore().receiveResponse( msg );
 			//this.inChannel.receiveResponse( msg );
 		} else {
@@ -109,8 +109,7 @@ public class StreamingCommChannelHandler
 	public ChannelFuture write( CommMessage msg )
 		throws InterruptedException
 	{
-		ChannelFuture f = this.ctx.writeAndFlush( msg );
-		return f;
+		return this.ctx.writeAndFlush( msg );
 	}
 
 	public ChannelFuture close()

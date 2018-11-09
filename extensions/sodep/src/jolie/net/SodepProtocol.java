@@ -75,7 +75,7 @@ public class SodepProtocol extends AsyncCommProtocol {
 		pipeline.addLast( new SodepCommMessageCodec() );
 	}
 
-	public class SodepCommMessageCodec extends ByteToMessageCodec< CommMessage> {
+	public class SodepCommMessageCodec extends ByteToMessageCodec<CommMessage> {
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage in, ByteBuf out ) throws Exception {
@@ -88,11 +88,11 @@ public class SodepProtocol extends AsyncCommProtocol {
 
 		@Override
 		protected void decode( ChannelHandlerContext ctx, ByteBuf in, List<Object> out ) throws Exception {
-
 			CommMessage msg;
 			in.markReaderIndex();
 			try {
 				msg = readMessage( in );
+				channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 				out.add( msg );
 			} catch ( IndexOutOfBoundsException e ) {
 				/*
@@ -105,8 +105,6 @@ public class SodepProtocol extends AsyncCommProtocol {
 				 */
 				in.resetReaderIndex();
 			}
-			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
-
 		}
 
 	}
