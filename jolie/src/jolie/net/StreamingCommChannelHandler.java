@@ -26,6 +26,7 @@ package jolie.net;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -49,12 +50,18 @@ public class StreamingCommChannelHandler
 	private StreamingCommChannel outChannel;  // TOWARDS THE NETWORK
 	private StreamingCommChannel inChannel;   // TOWARDS JOLIE
 	private final Interpreter interpreter;
+	private ReadWriteLock channelLock;
 
 	public StreamingCommChannelHandler( StreamingCommChannel channel )
 	{
 		this.inChannel = channel;
 		this.outChannel = channel;
 		this.interpreter = Interpreter.getInstance();
+	}
+	
+	public StreamingCommChannelHandler setChannelLock( ReadWriteLock channelLock ){
+		this.channelLock = channelLock;
+		return this;
 	}
 
 	public void setOutChannel( StreamingCommChannel c )
@@ -105,11 +112,25 @@ public class StreamingCommChannelHandler
 		ctx.close();
 		throw new Exception( cause );
 	}
-
+	
+	private void addSendLock(){
+		if( channelLock != null ){
+			channelLock.readLock().lock();
+		}
+	}
+	
+	private void removeSendLock(){
+		if( channelLock != null ){
+			channelLock.readLock().unlock();
+		}
+	}
+	
 	public ChannelFuture write( CommMessage msg )
 		throws InterruptedException
 	{
-		return this.ctx.writeAndFlush( msg );
+		addSendLock();
+		return this.ctx.writeAndFlush( msg )
+			.addListener( ( Future<? super Void> f ) -> { removeSendLock(); });
 	}
 
 	public ChannelFuture close()
