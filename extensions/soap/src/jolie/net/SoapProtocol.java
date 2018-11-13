@@ -902,7 +902,7 @@ public class SoapProtocol extends AsyncCommProtocol {
 			httpMessage.headers().add( HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=utf-8" );
 			httpMessage.headers().add( HttpHeaderNames.CONTENT_LENGTH, content.size() );
 			if ( soapAction != null ) {
-				httpMessage.headers().add( "SOAPAction", soapAction );
+				httpMessage.headers().add( "SOAPAction", "\"" + soapAction + "\"" );
 			}
 
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
