@@ -133,13 +133,16 @@ public class CoapProtocol extends AsyncCommProtocol
 		return true;
 	}
 
-	private class CoapToCommMessageCodec extends MessageToMessageCodec<CoapMessage, CommMessage>
+	private class CoapToCommMessageCodec
+		extends MessageToMessageCodec<CoapMessage, CommMessage>
 	{
-		private static final String TIMEOUT_HANLDER_NAME = "READ TIMEOUT INBOUND/OUTBOUND";
+		private static final String TIMEOUT_HANLDER_NAME
+			= "READ TIMEOUT INBOUND/OUTBOUND";
 		private ChannelHandlerContext ctx;
 
 		@Override
-		public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
+		public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause )
+			throws Exception
 		{
 			if ( cause instanceof CoapMessageReadTimeoutException ) {
 				CoapMessage coapRequest = coapMessageCorrelator.sendResponse(
@@ -164,7 +167,7 @@ public class CoapProtocol extends AsyncCommProtocol
 				CoapMessage reset = CoapMessage.createEmptyReset( coapRequest.id() );
 				ctx.writeAndFlush( reset );
 
-				// pretty boy remember to remove timeout, it will be added again, eventually
+				// remember to remove timeout, it will be added again, eventually
 				ctx.pipeline().remove( TIMEOUT_HANLDER_NAME );
 
 			} else {
@@ -173,30 +176,18 @@ public class CoapProtocol extends AsyncCommProtocol
 		}
 
 		@Override
-		public void channelRead( ChannelHandlerContext ctx, Object msg ) throws Exception
+		public void channelRead( ChannelHandlerContext ctx, Object msg )
+			throws Exception
 		{
-			if ( acceptInboundMessage( msg ) ) {
-				if ( isInput ) {
-					if ( ((CoapMessage) msg).isEmptyAck() ) {
-						CoapMessage request = coapMessageCorrelator.sendResponse( ((CoapMessage) msg).id() );
-						if ( request == null ) { // this is internal, for interrupting communication with end point
-							ReferenceCountUtil.release( msg );
-							return;
-						}
-						if ( request.messageType() == MessageType.NON ) {
-							// the special case: this is a comm message ack flowing from comm core for NON coap message and we shall release it
-							ReferenceCountUtil.release( msg );
-							return;
-						}
-					}
-					if ( ((CoapMessage) msg).messageType() == MessageType.RST ) {
-						super.channelRead( ctx, msg );
-						return;
-					}
+			if ( msg instanceof CoapMessage ) {
+				CoapMessage in = (CoapMessage) msg;
+				CoapMessage request = coapMessageCorrelator.sendResponse( in.id() );
+				if ( isInput && in.isEmptyAck()
+					&& (request == null || request.messageType() == MessageType.NON) ) {
+					ReferenceCountUtil.release( msg );
+				} else {
 					super.channelRead( ctx, msg );
-					return;
 				}
-				super.channelRead( ctx, msg );
 			} else {
 				ctx.fireChannelRead( msg );
 			}
@@ -234,7 +225,8 @@ public class CoapProtocol extends AsyncCommProtocol
 			}
 		}
 
-		private CoapMessage encode_outbound( CommMessage in ) throws URISyntaxException
+		private CoapMessage encode_outbound( CommMessage in )
+			throws URISyntaxException
 		{
 			String operationName = in.operationName();
 
@@ -248,7 +240,8 @@ public class CoapProtocol extends AsyncCommProtocol
 				out.setContent(
 					valueToByteBuf(
 						in,
-						ContentFormat.CONTENT_FORMAT.get( longContentFormatProtocolParameter( in.operationName() ) ),
+						ContentFormat.CONTENT_FORMAT.get(
+							longContentFormatProtocolParameter( in.operationName() ) ),
 						DEFAULT_CHARSET ),
 					longContentFormatProtocolParameter( operationName )
 				);
@@ -261,28 +254,34 @@ public class CoapProtocol extends AsyncCommProtocol
 			}
 			if ( isRequestResponse( operationName ) ) {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Receiving a Comm Message Request for a CoAP Solicit Response:\n"
+					Interpreter.getInstance().logInfo( "Receiving a Comm Message "
+						+ "Request for a CoAP Solicit Response:\n"
 						+ in.toPrettyString() );
 				}
 				commMessageCorrelator.sendRequest( in );
-				out.token( new Token( ByteBuffer.allocate( 8 ).putLong( in.id() ).array() ) );
+				out.token( new Token( ByteBuffer.allocate( 8 )
+					.putLong( in.id() ).array() ) );
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Sending the CoAP Solicit Response:\n"
+					Interpreter.getInstance().logInfo( "Sending the CoAP Solicit "
+						+ "Response:\n"
 						+ out );
 				}
 				if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
-					ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new CoapMessageReadTimeoutHandler( timeout, in ) );
+					ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME,
+						new CoapMessageReadTimeoutHandler( timeout, in ) );
 				}
 				coapMessageCorrelator.receiveRequest( (int) in.id(), out );
 			} else {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Receiving a Comm Message Request for a CoAP Notification:\n"
+					Interpreter.getInstance().logInfo( "Receiving a Comm Message "
+						+ "Request for a CoAP Notification:\n"
 						+ in.toPrettyString() );
 				}
 				if ( out.messageType() == MessageType.CON ) {
 					commMessageCorrelator.sendRequest( in );
 					if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
-						ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new CoapMessageReadTimeoutHandler( timeout, in ) );
+						ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME,
+							new CoapMessageReadTimeoutHandler( timeout, in ) );
 					}
 					coapMessageCorrelator.receiveRequest( (int) in.id(), out );
 				}
@@ -314,19 +313,23 @@ public class CoapProtocol extends AsyncCommProtocol
 			throws TypeCastingException, IOException
 		{
 			if ( in.messageType() == MessageType.RST ) {
-				CoapMessage coapRequest = coapMessageCorrelator.sendResponse( in.id() );
-				CommMessage commRequest = commMessageCorrelator.receiveResponse( (long) in.id() );
+				CoapMessage coapRequest
+					= coapMessageCorrelator.sendResponse( in.id() );
+				CommMessage commRequest
+					= commMessageCorrelator.receiveResponse( (long) in.id() );
 				CommMessage fault = CommMessage.createFaultResponse(
 					commRequest,
-					new FaultException( "Received a CoAP Message REST for a operation "
+					new FaultException( "Received a CoAP Message RST for"
+						+ " a operation "
 						+ commRequest.operationName()
 						+ ".\nCommunication with EndPoint CoAP closed "
 						+ "No response will be produced for CoAP Message\n"
 						+ coapRequest ) );
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Forwading the Fault to Comm Core:\n"
+					Interpreter.getInstance().logInfo( "Forwading the Fault"
+						+ "to Comm Core:\n"
 						+ fault.toPrettyString() );
-				} // needs to be investigated, if it is a fault, it should not be handled as a response from comm core
+				}
 				return fault;
 			}
 
@@ -334,7 +337,8 @@ public class CoapProtocol extends AsyncCommProtocol
 			long id = (long) in.id();
 			if ( isRequestResponse( operationName ) ) {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Receiving a CoAP Solicit Response:\n"
+					Interpreter.getInstance().logInfo( "Receiving a "
+						+ "CoAP Solicit Response:\n"
 						+ in );
 				}
 				if ( in.token().getBytes().length != 0 ) {
@@ -342,13 +346,15 @@ public class CoapProtocol extends AsyncCommProtocol
 				}
 			} else {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Receiving a CoAP Notification:\n"
+					Interpreter.getInstance().logInfo( "Receiving a "
+						+ "CoAP Notification:\n"
 						+ in );
 				}
 			}
 
 			Value v = Value.create();
-			if ( MessageCode.allowsContent( in.messageCode() ) && !in.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
+			if ( MessageCode.allowsContent( in.messageCode() )
+				&& !in.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
 				String format = in.contentFormat();
 				v = byteBufToValue(
 					in.getContent(),
@@ -360,17 +366,20 @@ public class CoapProtocol extends AsyncCommProtocol
 			}
 
 			coapMessageCorrelator.receiveRequest( (int) id, in );
-			CommMessage out = new CommMessage( id, operationName, Constants.ROOT_RESOURCE_PATH, v, null );
+			CommMessage out = new CommMessage( id, operationName,
+				Constants.ROOT_RESOURCE_PATH, v, null );
 			commMessageCorrelator.sendRequest( out );
 
 			if ( isRequestResponse( operationName ) ) {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Forwading the CoAP Solicit Response to Comm Core:\n"
+					Interpreter.getInstance().logInfo( "Forwading the CoAP Solicit "
+						+ "Response to Comm Core:\n"
 						+ out.toPrettyString() );
 				}
 			} else {
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Forwading the CoAP Notification to Comm Core:\n"
+					Interpreter.getInstance().logInfo( "Forwading the CoAP "
+						+ "Notification to Comm Core:\n"
 						+ out.toPrettyString() );
 				}
 			}
@@ -394,26 +403,34 @@ public class CoapProtocol extends AsyncCommProtocol
 				String operationName = in.operationName();
 				if ( isRequestResponse( operationName ) ) {
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Receiving a Comm Message Response from Comm Core:\n"
+						Interpreter.getInstance().logInfo( "Receiving a Comm "
+							+ "Message Response from Comm Core:\n"
 							+ in.toPrettyString() );
 					}
 
 					out = new CoapResponse(
 						MessageType.ACK,
 						messageCodeProtocolParameter( operationName, true ) );
+
 					out.id( (int) in.id() );
-					if ( getOperationSpecificBooleanParameter( operationName, Parameters.SEPARATE_RESPONSE ) ) {
+
+					if ( getOperationSpecificBooleanParameter( operationName,
+						Parameters.SEPARATE_RESPONSE )
+						|| coapRequest.messageType() == MessageType.NON ) {
 						out.messageType( messageTypeProtocolParameter( operationName ) );
 						out.randomId();
-						out.token( new Token( ByteBuffer.allocate( 8 ).putLong( in.id() ).array() ) ); // id of the message ;-)
+						out.token( new Token( ByteBuffer.allocate( 8 )
+							.putLong( in.id() ).array() ) ); // id of the message ;-)
 					}
+
 					if ( out.messageType() == MessageType.CON ) {
 						int timeout = Parameters.DEFAULT_TIMEOUT;
 						if ( hasParameter( Parameters.TIMEOUT ) ) {
 							timeout = getIntParameter( Parameters.TIMEOUT );
 						}
 						if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
-							ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME, new CoapMessageReadTimeoutHandler( timeout, in ) );
+							ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME,
+								new CoapMessageReadTimeoutHandler( timeout, in ) );
 						}
 					}
 
@@ -421,26 +438,33 @@ public class CoapProtocol extends AsyncCommProtocol
 					if ( MessageCode.allowsContent( out.messageCode() ) ) {
 						ByteBuf content = valueToByteBuf( in,
 							ContentFormat.CONTENT_FORMAT.get(
-								longContentFormatProtocolParameter( in.operationName() ) ), DEFAULT_CHARSET );
-						out.setContent( content, longContentFormatProtocolParameter( operationName ) );
+								longContentFormatProtocolParameter(
+									in.operationName() ) ), DEFAULT_CHARSET );
+						out.setContent( content,
+							longContentFormatProtocolParameter( operationName ) );
 					}
+
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Sending the CoAP Response to the Client:\n"
+						Interpreter.getInstance().logInfo( "Sending the CoAP "
+							+ "Response to the Client:\n"
 							+ out );
 					}
 
 				} else {
+
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Receiving a Comm Message Ack from Comm Core:\n"
+						Interpreter.getInstance().logInfo( "Receiving a "
+							+ "Comm Message Ack from Comm Core:\n"
 							+ in.toPrettyString() );
 					}
+
 					out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
+
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Sending a CoAP Empty Ack, "
-							+ "in case of a NON request, this message will not be delivered to the Client:\n"
+						Interpreter.getInstance().logInfo( "Sending a CoAP "
+							+ "Empty Ack:\n"
 							+ out );
 					}
-
 				}
 			}
 			return out;
@@ -450,14 +474,16 @@ public class CoapProtocol extends AsyncCommProtocol
 			throws IOException, TypeCastingException
 		{
 			long key = (long) in.id();
-			CommMessage commMessageRequest = commMessageCorrelator.receiveProtocolResponse( key, false );
+			CommMessage commMessageRequest
+				= commMessageCorrelator.receiveProtocolResponse( key, false );
 			if ( commMessageRequest == null ) {
 				key = ByteBuffer.wrap( in.token().getBytes() ).getLong();
 				commMessageRequest = commMessageCorrelator.receiveResponse( key );
 				if ( commMessageCorrelator == null ) {
-					throw new IOException( "Non correlating comm message with any requests" );
+					throw new IOException( "Non correlating "
+						+ "comm message with any requests" );
 				}
-			} else { // remove it form the requests queue
+			} else { // remove it from the requests queue
 				commMessageCorrelator.receiveResponse( key );
 			}
 
@@ -467,26 +493,32 @@ public class CoapProtocol extends AsyncCommProtocol
 			if ( isRequestResponse( operationName ) ) {
 				if ( in.isEmptyAck() ) {
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Receiving the CoAP Empty Ack of a Solicit Reponse from the Server:\n" + in );
+						Interpreter.getInstance().logInfo( "Receiving the "
+							+ "CoAP Empty Ack of a Solicit Reponse from "
+							+ "the Server:\n" + in );
 					}
-					throw new IOException( "this is an ack message that Jolie does not have to handle!" );
+					throw new IOException( "this is an ack message that Jolie "
+						+ "does not have to handle!" );
 				} else {
-					if ( in.isAck() ) {
-						if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-							Interpreter.getInstance().logInfo( "Receiving the CoAP Piggyback Response from the Server:\n" + in );
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						if ( in.isAck() ) {
+							Interpreter.getInstance().logInfo( "Receiving the "
+								+ "CoAP Piggyback Response from the Server:\n" + in );
+							// so the comm message matches with the id
+						} else {
+							Interpreter.getInstance().logInfo( "Receiving the "
+								+ "CoAP Separate Response from the Server:\n" + in );
+							// so the comm message matches with the token
 						}
-						// so the comm message matches with the id
-					} else {
-						if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-							Interpreter.getInstance().logInfo( "Receiving the CoAP Separate Response from the Server:\n" + in );
-						}
-						// so the comm message matches with the token
 					}
 					Value v = Value.create();
-					if ( MessageCode.allowsContent( in.messageCode() ) && !in.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
+					if ( MessageCode.allowsContent( in.messageCode() )
+						&& !in.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
 
 						String format = ContentFormat.CONTENT_FORMAT.get(
-							((long) in.getOptions( Option.CONTENT_FORMAT ).get( 0 ).getDecodedValue())
+							((long) in.getOptions( Option.CONTENT_FORMAT )
+								.get( 0 )
+								.getDecodedValue())
 						);
 
 						v = byteBufToValue(
@@ -499,18 +531,22 @@ public class CoapProtocol extends AsyncCommProtocol
 					}
 					out = CommMessage.createResponse( commMessageRequest, v );
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Sending a Comm Message Response to Comm Core:\n"
+						Interpreter.getInstance().logInfo( "Sending a "
+							+ "Comm Message Response to Comm Core:\n"
 							+ out.toPrettyString() );
 					}
 				}
 			} else {
 				if ( in.isEmptyAck() ) {
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Receiving the CoAP Empty Ack of a Notification from the Server:\n" + in );
+						Interpreter.getInstance().logInfo( "Receiving the "
+							+ "CoAP Empty Ack of a Notification "
+							+ "from the Server:\n" + in );
 					}
 					out = CommMessage.createEmptyResponse( commMessageRequest );
 					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-						Interpreter.getInstance().logInfo( "Sending a Comm Message Ack to Comm Core:\n" + out.toPrettyString() );
+						Interpreter.getInstance().logInfo( "Sending a Comm "
+							+ "Message Ack to Comm Core:\n" + out.toPrettyString() );
 					}
 				}
 			}
