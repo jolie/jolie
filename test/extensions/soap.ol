@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
+ *   Copyright (C) 2018 by Saverio Giallorenzo                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -20,17 +21,23 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
+include "console.iol"
 
-include "private/weatherService.iol"
+include "private/WS-test/lib/WS-testService.iol"
 
 define doTest
 {
-	with( request ) {
-	    .CityName = "Bolzano";
-	    .CountryName = "Italy"
+	loadLocalService;
+	start@CalcServiceJoliePort( "http://localhost:14000/" )();
+	req.x = 6;
+	req.y = 11;
+	sum@CalcServicePort( req )( res );
+	if ( res.return != 6+11 ) {
+		throw( TestFailed, "Wrong response from the SOAP Service" )
 	};
-	GetWeather@GlobalWeatherSoap( request )( response );
-	if ( !is_defined( response.GetWeatherResult ) ) {
-		throw( TestFailed, "No webservice response" )
-	}
+	prod@CalcServicePort( req )( res );
+	if ( res.return != 6*11 ) {
+		throw( TestFailed, "Wrong response from the SOAP Service" )
+	};
+	close@CalcServiceJoliePort()()
 }
