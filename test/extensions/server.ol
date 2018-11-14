@@ -27,26 +27,7 @@ include "private/server.iol"
 outputPort CoAPServer {
   Location: Location_CoAPServer
   Protocol: coap {
-    // .debug = true;
-    // .json_encoding = "strict";
-    .timeout = 2;
-    .osc.echoPerson << {
-      .alias = "echoPerson",
-      .messageType = "CON",
-      .messageCode = "POST",
-      .contentFormat = "application/json"
-    };
-    .osc.identity << {
-      .alias = "identity",
-      .messageType = "CON",
-      .messageCode = "POST",
-      .contentFormat = "application/json"
-    };
-    .osc.shutdown << {
-      .alias = "shutdown",
-      .messageType = "NON",
-      .messageCode = "GET"
-    }
+    .osc.shutdown.messageType = "CON"
   }
   Interfaces: ServerInterface
 }
@@ -178,7 +159,6 @@ define test
 
 define shutdown
 {
-  shutdown@
   shutdown@CoAPServer()
   |
   shutdown@SODEPServer()

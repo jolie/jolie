@@ -24,6 +24,7 @@
 package jolie.net;
 
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.Future;
@@ -42,6 +43,7 @@ import jolie.runtime.OneWayOperation;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.typing.TypeCheckingException;
 
+@ChannelHandler.Sharable
 public class StreamingCommChannelHandler
 	extends SimpleChannelInboundHandler<CommMessage>
 {

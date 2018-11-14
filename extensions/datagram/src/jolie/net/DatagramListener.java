@@ -27,12 +27,12 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
@@ -45,7 +45,7 @@ public class DatagramListener extends CommListener
 	private final int inboundPort;
 	private final String inboundAddress;
 	private final EventLoopGroup workerGroup;
-	private final ReentrantReadWriteLock responseChannels;
+	private final ReadWriteLock sendingResponse;
 
 	private Channel serverChannel;
 
@@ -57,7 +57,7 @@ public class DatagramListener extends CommListener
 	)
 	{
 		super( interpreter, protocolFactory, inputPort );
-		this.responseChannels = new ReentrantReadWriteLock();
+		this.sendingResponse = new StampedLock().asReadWriteLock();
 		this.inboundPort = inputPort.location().getPort();
 		this.inboundAddress = inputPort.location().getHost();
 		this.workerGroup = workerGroup;
@@ -66,14 +66,14 @@ public class DatagramListener extends CommListener
 	@Override
 	public void shutdown()
 	{
-		responseChannels.writeLock().lock();
+		sendingResponse.writeLock().lock();
 		try {
 			if ( serverChannel != null ) {
 				serverChannel.close();
 			}
 		} finally {
 			workerGroup.shutdownGracefully();
-			responseChannels.writeLock().unlock();
+			sendingResponse.writeLock().unlock();
 		}
 	}
 
@@ -91,27 +91,19 @@ public class DatagramListener extends CommListener
 					{
 						CommProtocol protocol = createProtocol();
 						assert (protocol instanceof AsyncCommProtocol);
-
-						ChannelPipeline p = ch.pipeline();
-						((AsyncCommProtocol) protocol).setupPipeline( p );
+						((AsyncCommProtocol) protocol).setInitExecutionThread( interpreter().initThread() );
 
 						InetSocketAddress isa = (InetSocketAddress) ch.remoteAddress();
 						URI location = new URI( "datagram", null, isa.getHostName(), isa.getPort(), null, null, null );
 						DatagramCommChannel channel = DatagramCommChannel.createChannel( location, ((AsyncCommProtocol) protocol), workerGroup, inputPort() );
-
 						protocol.setChannel( channel );
 						channel.setParentInputPort( inputPort() );
-
 						channel.bind( new InetSocketAddress( 0 ) ).sync();
-						p.addFirst( new ChannelOutboundHandlerAdapter()
-						{
-							@Override
-							public void flush( ChannelHandlerContext ctx ) throws Exception
-							{
-								ctx.flush();
-							}
-						} );
-						p.addLast( "COMM MESSAGE INBOUND", channel.commChannelHandler );
+
+						ChannelPipeline p = ch.pipeline();
+						((AsyncCommProtocol) protocol).setupPipeline( p );
+
+						p.addLast( "COMM MESSAGE INBOUND", channel.commChannelHandler.setChannelLock( sendingResponse ) );
 						p.addLast( new ChannelInboundHandlerAdapter()
 						{
 							@Override
@@ -122,7 +114,6 @@ public class DatagramListener extends CommListener
 								serverChannel.close();
 							}
 						} );
-						((AsyncCommProtocol) protocol).setInitExecutionThread( interpreter().initThread() );
 					}
 				} );
 
@@ -130,7 +121,7 @@ public class DatagramListener extends CommListener
 			serverChannel = f.channel();
 			serverChannel.closeFuture().sync();
 		} catch( InterruptedException ioe ) {
-			interpreter().logWarning( ioe );
+//			interpreter().logWarning( ioe );
 		} finally {
 			shutdown();
 		}
