@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.List;
 import javax.net.ssl.SSLEngine;
 import jolie.ExecutionThread;
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
@@ -116,7 +117,13 @@ public class SSLProtocol extends AsyncCommProtocol {
 		wrappedProtocol.setInitExecutionThread( t );
 		super.setInitExecutionThread( t );
 	}
-	
+
+	@Override
+	public void setChannel( CommChannel channel )
+	{
+		wrappedProtocol.setChannel( channel );
+		super.setChannel( channel );
+	}
 	
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline ) {
