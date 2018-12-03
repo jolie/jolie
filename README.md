@@ -6,5 +6,5 @@ See [this page](http://jolie-lang.org/downloads.html) for the installation instr
 
 ## Build Status
 
-![Travis-CI](https://travis-ci.org/jolie/jolie.svg)
+[![Build Status](https://travis-ci.org/saltgz/jolie.svg?branch=next)](https://travis-ci.org/saltgz/jolie)
 
