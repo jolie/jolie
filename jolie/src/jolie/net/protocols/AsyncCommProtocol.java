@@ -76,6 +76,10 @@ public abstract class AsyncCommProtocol extends CommProtocol
 		return Interpreter.getInstance().commCore().retrieveSynchronousRequest( c );
 	}
 	
+	protected String retrieveAsynchronousRequest( long id ){
+		return Interpreter.getInstance().commCore().retrieveAsynchronousRequest( id );
+	}
+	
 	private void setExecutionThread_internal( ExecutionThread t )
 	{
 		( (CommCore.ExecutionContextThread) Thread.currentThread() ).executionThread( t );

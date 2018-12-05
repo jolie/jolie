@@ -327,7 +327,9 @@ public abstract class CommProtocol
 			return null;
 		}
 	}
-
+	
+	abstract public String getConfigurationHash();
+	
 	/**
 	 * Shortcut for <code>getParameterFirstValue( id ).intValue()</code>
 	 * @param id the parameter identifier

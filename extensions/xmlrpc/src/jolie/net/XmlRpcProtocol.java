@@ -190,7 +190,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol {
 
 	@Override
 	public boolean isThreadSafe() {
-		return false;
+		return false && checkBooleanParameter( "keepAlive", true ); // for future compatibility when XMLRPC will have a threadSafe modality
 	}
 
 	private static Element getFirstElement( Element element, String name )
@@ -564,4 +564,12 @@ public class XmlRpcProtocol extends AsyncCommProtocol {
 		received = true;
 		return retVal;
 	}
+
+	@Override
+	public String getConfigurationHash()
+	{
+		return name();
+	}
+	
+	
 }

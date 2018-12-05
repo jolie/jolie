@@ -39,11 +39,11 @@ import jolie.runtime.typing.Type;
 /**
 Implementations of {@link AsyncCommProtocol} CoAP for Jolie.
 -------------------------------------------------------------------------------------
-1. COAP MESSAGE INBOUND					CoapDecoder
+1. COAP MESSAGE INBOUND						CoapDecoder
 2. COAP MESSAGE OUTBOUND					CoapEncoder
 3. COAP MESSAGE INBOUND/OUTBOUND			CoapToCommMessageCodec
-4. COMM MESSAGE INBOUND					StreamingCommChannelHandler
-5. TIMEOUT INBOUND/OUTBOUND				ReadTimeoutHandler
+4. COMM MESSAGE INBOUND						StreamingCommChannelHandler
+5. TIMEOUT INBOUND/OUTBOUND					ReadTimeoutHandler
 6. ERROR INBOUND							CoapToCommMessageCodec
 -------------------------------------------------------------------------------------
 INBOUND read( 1 -> 3 -> 4 -> 5 -> 6 )
@@ -91,6 +91,12 @@ public class CoapProtocol extends AsyncCommProtocol
 		return true;
 	}
 
+	@Override
+	public String getConfigurationHash()
+	{
+		return name();
+	}
+	
 	@Override
 	protected boolean checkBooleanParameter( String param )
 	{
