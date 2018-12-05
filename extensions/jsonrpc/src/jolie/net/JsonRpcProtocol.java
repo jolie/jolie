@@ -343,7 +343,17 @@ public class JsonRpcProtocol extends AsyncCommProtocol {
 
 	@Override
 	public boolean isThreadSafe() {
-		return false;
+		return false && checkBooleanParameter( "keepAlive", true ); // used in future implementation where JSONRPC has a threadSafe modality
 	}
+
+	@Override
+	public String getConfigurationHash()
+	{
+		return name();
+	}
+	
+	
+	
+	
 
 }

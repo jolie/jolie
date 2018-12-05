@@ -48,6 +48,14 @@ public class ChannelPool
 				return nonThreadSafeChannelPool;
 			}
 		}
+		
+		private String getProtocolHash( OutputPort out ){
+			String protocolHash = "none";
+			try {
+				protocolHash = out.getProtocol().getConfigurationHash();
+			} catch( IOException | URISyntaxException ex ) {}
+			return protocolHash;
+		}
 
 		public CommChannel getChannel( boolean threadSafe, URI loc, OutputPort out ) throws IOException, URISyntaxException
 		{
@@ -55,39 +63,34 @@ public class ChannelPool
 			synchronized( pool ) {
 				CommChannel ret = null;
 				String location = loc.toString();
-				String protocol = "none";
-				try {
-					protocol = out.getProtocol().name();
-				} catch( IOException e ) {
-				}
+				String protocolHash = getProtocolHash( out );
 				if ( !pool.containsKey( location ) ) {
 					pool.put( location, new HashMap<>() );
 				}
-				if ( !pool.get( location ).containsKey( protocol ) ) {
-					pool.get( location ).put( protocol, new HashSet<>() );
+				if ( !pool.get( location ).containsKey( protocolHash ) ) {
+					pool.get( location ).put( protocolHash, new HashSet<>() );
 				}
-				if ( !pool.get( location ).get( protocol ).isEmpty() ) {
-					ret = pool.get( location ).get( protocol ).stream().findFirst().get();
-					pool.get( location ).get( protocol ).remove( ret );
+				if ( !pool.get( location ).get( protocolHash ).isEmpty() ) {
+					ret = pool.get( location ).get( protocolHash ).stream().findFirst().get();
+					pool.get( location ).get( protocolHash ).remove( ret );
 				}
 				if ( ret == null || !ret.isOpen() ) {
 					// We create a fresh channel
 					ret = Interpreter.getInstance().commCore().createCommChannel( loc, out );
-					//Interpreter.getInstance().logInfo( "created a new channel " + ret.toString() );
+//					Interpreter.getInstance().logInfo( "created a new channel " + ret.toString() );
 				}
-				// else {
-				//	Interpreter.getInstance().logInfo( "reusing the existing channel " + ret.toString() );
-				// }
+				 else {
+//					Interpreter.getInstance().logInfo( "reusing the existing channel " + ret.toString() );
+				 }
 				return ret;
 			}
-
 		}
 
-		public void releaseChannel( boolean threadSafe, URI location, String protocol, CommChannel c )
+		public void releaseChannel( boolean threadSafe, URI location, OutputPort out, CommChannel c )
 		{
 			Map< String, Map< String, Set< CommChannel>>> pool = getPool( threadSafe );
 			synchronized( pool ) {
-				pool.get( location.toString() ).get( protocol ).add( c );
+				pool.get( location.toString() ).get( getProtocolHash( out ) ).add( c );
 			}
 		}
 
