@@ -204,7 +204,11 @@ public abstract class CommChannel
 	public CommMessage recv()
 		throws IOException
 	{
-		return Helpers.lockAndThen( lock, () -> recvImpl() );
+		return 
+//			Helpers.lockAndThen( lock, () -> 
+			recvImpl() 
+//		);
+			;
 	}
 
 	/**
@@ -228,7 +232,8 @@ public abstract class CommChannel
 		throws IOException
 	{
 		try {
-			Helpers.lockAndThen( lock, () -> sendImpl( message ) );
+//			Helpers.lockAndThen( lock, () -> sendImpl( message ) );
+			sendImpl( message );
 		} catch( IOException e ) {
 			setToBeClosed( true );
 			throw e;
@@ -251,13 +256,13 @@ public abstract class CommChannel
 	public final void release()
 		throws IOException
 	{
-		Helpers.lockAndThen( lock, () -> {
+//		Helpers.lockAndThen( lock, () -> {
 			if ( toBeClosed() ) {
 				close();
 			} else {
 				releaseImpl();
 			}
-		} );
+//		} );
 	}
 
 	protected void releaseImpl()
