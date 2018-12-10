@@ -87,17 +87,12 @@ public class SSLProtocol extends AsyncCommProtocol {
 		protected void encode( ChannelHandlerContext chc, CommMessage msg, List<Object> out ) throws Exception
 		{
 			if ( parent.channel().parentPort() instanceof OutputPort ) {
+				// we replace the placeholder only the first time (first message) we send
 				if( !chc.pipeline().names().contains( SSL_HANDLER_NAME ) ){
 					chc.pipeline().replace(
 						SSL_HANDLER_PLACEHOLDER_NAME,
 						SSL_HANDLER_NAME, 
-						new SslHandler( parent.engine( msg.id() ) )			
-					);
-				} else {
-					chc.pipeline().replace(
-						SSL_HANDLER_PLACEHOLDER_NAME,
-						SSL_HANDLER_NAME, 
-						new SslHandler( parent.engine( msg.id() ) )			
+						new SslHandler( parent.engine( msg.id() ) )		
 					);
 				}
 			}
@@ -131,7 +126,10 @@ public class SSLProtocol extends AsyncCommProtocol {
 			pipeline.addLast( SSL_HANDLER_NAME, new SslHandler( engine( 0L ) ) );
 			this.wrappedProtocol.setupPipeline( pipeline );
 		} else {
-			pipeline.addLast( SSL_HANDLER_PLACEHOLDER_NAME, sslHandlerPlaceholder );
+			pipeline.addLast( SSL_HANDLER_PLACEHOLDER_NAME, sslHandlerPlaceholder ); // we don't have the thread that requested to 
+																					  // initialise the channel, so we just put a place-holder
+																					  // handler which will be replaced with the actual one, 
+																					  // when we get the message we need to send
 			this.wrappedProtocol.setupPipeline( pipeline );
 			pipeline.addLast( new SSLStartHandler( this ) );	
 		}
@@ -139,9 +137,23 @@ public class SSLProtocol extends AsyncCommProtocol {
 
 	@Override
 	public boolean isThreadSafe() {
-		return false;
-//		return this.wrappedProtocol.isThreadSafe();
+		return this.wrappedProtocol.isThreadSafe();
 	}
+
+	@Override
+	public String getConfigurationHash()
+	{
+		String SSLConfigHash =
+			getSSLStringParameter( Parameters.KEY_STORE_FORMAT,		DefaultParameters.KEY_STORE_FORMAT )
+			+ getSSLStringParameter( Parameters.KEY_STORE_FILE,		DefaultParameters.KEY_STORE_FILE )
+			+ getSSLStringParameter( Parameters.KEY_STORE_PASSWORD,	DefaultParameters.KEY_STORE_PASSWORD )
+			+ getSSLStringParameter( Parameters.TRUST_STORE_FORMAT,	DefaultParameters.TRUST_STORE_FORMAT )
+			+ getSSLStringParameter( Parameters.TRUST_STORE_FILE,		DefaultParameters.TRUST_STORE_FILE )
+			+ getSSLStringParameter( Parameters.TRUST_STORE_PASSWORD,	DefaultParameters.TRUST_STORE_PASSWORD );
+		return this.wrappedProtocol.getConfigurationHash() + SSLConfigHash.hashCode();
+	}
+	
+	
 
 	@Override
 	public String name() {

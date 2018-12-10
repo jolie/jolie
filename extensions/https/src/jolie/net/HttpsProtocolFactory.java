@@ -39,6 +39,7 @@ public class HttpsProtocolFactory extends CommProtocolFactory
 		super( commCore );
 	}
 
+	@Override
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
@@ -50,6 +51,7 @@ public class HttpsProtocolFactory extends CommProtocolFactory
 		);
 	}
 
+	@Override
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{

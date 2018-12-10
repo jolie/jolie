@@ -133,6 +133,12 @@ public class CoapProtocol extends AsyncCommProtocol
 		return true;
 	}
 
+	@Override
+	public String getConfigurationHash()
+	{
+		return name();
+	}
+
 	private class CoapToCommMessageCodec
 		extends MessageToMessageCodec<CoapMessage, CommMessage>
 	{
@@ -151,14 +157,17 @@ public class CoapProtocol extends AsyncCommProtocol
 					((CoapMessageReadTimeoutException) cause).getId() );
 
 				// fault message to comm core
-				String errorMsg = "The CoAP endpoint did not sent the ACK within the set \"timeout\" of "
+				String errorMsg = "The CoAP endpoint did not sent the ACK within "
+					+ "the set \"timeout\" of "
 					+ ((CoapMessageReadTimeoutException) cause).getTimeout()
 					+ "sec!\n"
-					+ "Try with a longer timeout or check the CoAP endpoint availability.";
+					+ "Try with a longer timeout or check the CoAP endpoint "
+					+ "availability.";
 				CommMessage fault = CommMessage.createFaultResponse( commRequest,
 					new FaultException( "CoapMessageReadTimeoutException", errorMsg ) );
 				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-					Interpreter.getInstance().logInfo( "Forwading the Fault to Comm Core:\n"
+					Interpreter.getInstance().logInfo( "Forwading the Fault to "
+						+ "Comm Core:\n"
 						+ fault.toPrettyString() );
 				}
 				ctx.fireChannelRead( fault );
@@ -1124,29 +1133,18 @@ public class CoapProtocol extends AsyncCommProtocol
 	 */
 	private boolean isNumeric( final CharSequence cs )
 	{
-		if ( cs
-			.length() == 0 ) {
+		if ( cs.length() == 0 ) {
 			return false;
-
 		}
-		final int sz
-			= cs
-				.length();
 
-		for( int i
-			= 0; i
-			< sz;
-			i++ ) {
-			if ( !Character
-				.isDigit( cs
-					.charAt( i
-					) ) ) {
+		final int sz = cs.length();
+
+		for( int i = 0; i < sz; i++ ) {
+			if ( !Character.isDigit( cs.charAt( i ) ) ) {
 				return false;
-
 			}
 		}
 		return true;
-
 	}
 
 	private static class Parameters

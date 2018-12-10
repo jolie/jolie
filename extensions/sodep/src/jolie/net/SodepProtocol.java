@@ -67,7 +67,7 @@ public class SodepProtocol extends AsyncCommProtocol {
 
 	@Override
 	public final boolean isThreadSafe() {
-		return true;
+		return true && checkBooleanParameter( "keepAlive", true ); // if the channel is set to be closed, then it is not threadSafe
 	}
 
 	@Override
@@ -301,5 +301,13 @@ public class SodepProtocol extends AsyncCommProtocol {
 		Value value = readValue( in );
 		return new CommMessage( id, operationName, resourcePath, value, fault );
 	}
+
+	@Override
+	public String getConfigurationHash()
+	{
+		return name();
+	}
+	
+	
 
 }
