@@ -21,7 +21,6 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net;
 
 import io.netty.channel.EventLoopGroup;
@@ -48,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.ExecutionThread;
@@ -327,52 +325,60 @@ public class CommCore
 			return c.recvResponseFor( message );
 		}
 	}
-	
-	public <C> ExecutionThread getRequestExecutionThread( C k ){
+
+	public <C> ExecutionThread getRequestExecutionThread( C k )
+	{
 		return getExecutionThread( k, requestThreadRegistry );
 	}
-	
-		public <C> void removeRequestExecutionThread( C k ){
+
+	public <C> void removeRequestExecutionThread( C k )
+	{
 		removeExecutionThread( k, requestThreadRegistry );
 	}
-		
-	public <C> ExecutionThread getResponseExecutionThread( C k ){
+
+	public <C> ExecutionThread getResponseExecutionThread( C k )
+	{
 		return getExecutionThread( k, responseThreadRegistry );
 	}
-	
-	public <C> void removeResponseExecutionThread( C k ){
+
+	public <C> void removeResponseExecutionThread( C k )
+	{
 		removeExecutionThread( k, responseThreadRegistry );
 	}
-	
-	private <C> ExecutionThread getExecutionThread( C k, ThreadRegistry threadRegistry ){
-		if( k == null ){
+
+	private <C> ExecutionThread getExecutionThread( C k, ThreadRegistry threadRegistry )
+	{
+		if ( k == null ) {
 			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
-		} else if( k instanceof CommChannel ){
+		} else if ( k instanceof CommChannel ) {
 			return threadRegistry.getThread( (CommChannel) k );
-		} else if ( k instanceof Long ){
+		} else if ( k instanceof Long ) {
 			return threadRegistry.getThread( (Long) k );
 		} else {
 			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
 		}
 	}
-	
-	private <C> void removeExecutionThread( C k, ThreadRegistry threadRegistry ){
-		if( k == null ){
+
+	private <C> void removeExecutionThread( C k, ThreadRegistry threadRegistry )
+	{
+		if ( k == null ) {
 			throw new UnsupportedOperationException( "Null object passed to look for ExecutionThread" );
-		} else if( k instanceof CommChannel ){
+		} else if ( k instanceof CommChannel ) {
 			threadRegistry.removeThread( (CommChannel) k );
-		} else if ( k instanceof Long ){
+		} else if ( k instanceof Long ) {
 			threadRegistry.removeThread( (Long) k );
 		} else {
 			throw new UnsupportedOperationException( "Wrong Class " + k.getClass().toString() + " passed to look for ExecutionThread" );
 		}
 	}
-	
-	public CommMessage retrieveSynchronousRequest( CommChannel c ){
+
+	public CommMessage retrieveSynchronousRequest( CommChannel c )
+	{
 		return messagePool.retrieveSynchronousRequest( c );
 	}
-	
-	public String retrieveAsynchronousRequest( long id ){
+
+	public String retrieveAsynchronousRequest( long id )
+	{
 		return messagePool.retrieveAsynchronousRequest( id );
 	}
 
@@ -384,7 +390,7 @@ public class CommCore
 		// THIS IS A REQUEST
 		requestThreadRegistry.addThread( message, ExecutionThread.currentThread() );
 		// we also add the thread associated to the channel (this is consumed when decoding the response message) 
-		if( !threadSafe ) {
+		if ( !threadSafe ) {
 			requestThreadRegistry.addThread( c, ExecutionThread.currentThread() );
 			messagePool.registerForSynchronousResponse( c, message );
 		} else {
@@ -395,8 +401,9 @@ public class CommCore
 			releaseChannel( c );
 		}
 	}
-	
-	public void registerResponseThread( CommChannel c, ExecutionThread t ){
+
+	public void registerResponseThread( CommChannel c, ExecutionThread t )
+	{
 		responseThreadRegistry.addThread( c, t );
 	}
 
@@ -411,29 +418,28 @@ public class CommCore
 	}
 
 	public CommChannel createCommChannel( URI uri, OutputPort port )
-		throws IOException
+		throws IOException, URISyntaxException
 	{
 		String medium = uri.getScheme();
 		CommProtocolFactory fetchedFactory = null;
-		try {
+		if ( !port.protocolConfigurationPath().getValue().strValue().isEmpty() ) {
 			fetchedFactory = getCommProtocolFactory( port.getProtocol().name() );
-		} catch( URISyntaxException ex ) {
-			Logger.getLogger( CommCore.class.getName() ).log( Level.SEVERE, null, ex );
 		}
-		if( fetchedFactory != null && fetchedFactory instanceof PubSubCommProtocolFactory ){
+		if ( fetchedFactory != null && fetchedFactory instanceof PubSubCommProtocolFactory ) {
 			return createPubSubCommChannel( uri, port );
 		} else {
 			return createEndToEndCommChannel( uri, port );
 		}
 	}
-	
-	public CommChannel createEndToEndCommChannel( URI uri, OutputPort port ) throws IOException{
+
+	public CommChannel createEndToEndCommChannel( URI uri, OutputPort port ) throws IOException
+	{
 		String medium = uri.getScheme();
 		CommChannelFactory factory = getCommChannelFactory( medium );
-			if ( factory == null ) {
-				throw new UnsupportedCommMediumException( medium );
-			}
-			return factory.createChannel( uri, port );
+		if ( factory == null ) {
+			throw new UnsupportedCommMediumException( medium );
+		}
+		return factory.createChannel( uri, port );
 	}
 
 	public CommChannel createInputCommChannel( URI uri, InputPort port ) throws IOException
@@ -604,11 +610,12 @@ public class CommCore
 		CommProtocolFactory protocolFactory,
 		Process protocolConfigurationProcess
 	)
-		throws IOException {
+		throws IOException
+	{
 		protocolConfigurations.add( protocolConfigurationProcess );
 
 		String medium = inputPort.location().getScheme();
-		if( protocolFactory instanceof PubSubCommProtocolFactory ){
+		if ( protocolFactory instanceof PubSubCommProtocolFactory ) {
 			medium = PubSubCommProtocolFactory.getMedium();
 		}
 		CommListenerFactory factory = getCommListenerFactory( medium );
@@ -1194,7 +1201,7 @@ public class CommCore
 			listenersMap.entrySet().forEach( ( entry ) -> {
 				entry.getValue().shutdown();
 			} );
-			
+
 			for( SelectorThread t : selectorThreads ) {
 				t.selector.wakeup();
 				try {
