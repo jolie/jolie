@@ -52,6 +52,7 @@ public class PubSubCommChannelFactory extends CommChannelFactory {
 
 		try {
 			ret = new PubSubCommChannel( location, port.getProtocol(), channel, sendRelease );
+			ret.setParentOutputPort( port );
 			channel.getChannelHandler().setInChannel( ret );
 		} catch ( URISyntaxException e ) {
 			throw new IOException( e );
