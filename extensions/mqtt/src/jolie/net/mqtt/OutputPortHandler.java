@@ -21,7 +21,6 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net.mqtt;
 
 import io.netty.channel.Channel;
@@ -44,12 +43,14 @@ import jolie.runtime.Value;
 public class OutputPortHandler
 	extends MessageToMessageCodec<MqttMessage, CommMessage>
 {
-
 	private final MqttProtocol mp;
 	private Channel cc;
 	private MqttPublishMessage pendingMpm;
-	private CommMessage cmReq;
 	private MqttPublishMessage qos2pendingPublish;
+//	private boolean hasSentConnect;
+//	private boolean isConnected;
+//	private Queue<CommMessage> outputMessageQueue;
+	private CommMessage cmReq;
 
 	/**
 	 *
@@ -57,7 +58,10 @@ public class OutputPortHandler
 	 */
 	public OutputPortHandler( MqttProtocol mp )
 	{
+//		this.hasSentConnect = false;
+//		this.isConnected = false;
 		this.mp = mp;
+//		this.outputMessageQueue = new LinkedList<>();
 	}
 
 	@Override
@@ -67,9 +71,16 @@ public class OutputPortHandler
 		mp.setSendExecutionThread( in.id() );
 		init( ctx );
 		// we start by connecting to the broker
-		out.add( mp.connectMsg() );
+//		if ( !hasSentConnect ) {
+			out.add( mp.connectMsg() );
+//			hasSentConnect = true;
+//		}
 		// we store the message and wait to receive a CONNACK
+//		outputMessageQueue.add( in );
 		cmReq = in;
+//		if ( isConnected ) {
+//			handleMessageSend();
+//		}
 	}
 
 	@Override
@@ -83,8 +94,9 @@ public class OutputPortHandler
 					.variableHeader().connectReturnCode();
 				if ( crc.equals( MqttConnectReturnCode.CONNECTION_ACCEPTED ) ) {
 					mp.startPing( cc.pipeline() );
-					handleMessageSend();
 				}
+				handleMessageSend();
+//				isConnected = true;
 				break;
 			case PUBLISH:
 				// TODO support wildcards and variables
@@ -135,31 +147,32 @@ public class OutputPortHandler
 
 	private void handleMessageSend() throws Exception
 	{
-		if ( mp.isOneWay( cmReq.operationName() ) ) {
-			// SENDING THE ONE-WAY REQUEST
-			cc.writeAndFlush( mp.pubOneWayRequest( cmReq ) );
-			// IF QoS = 0
-			if ( mp.checkQoS( cmReq, MqttQoS.AT_MOST_ONCE ) ) {
-				// SEND THE ACK back to CommCore
-				cc.pipeline().fireChannelRead( new CommMessage(
-					cmReq.id(),
-					cmReq.operationName(), "/",
-					Value.create(), null ) );
-				// AND WE CLOSE THE CHANNEL
-				mp.markAsSentAndStopPing( cc, (int) cmReq.id() );
+//		for( CommMessage out : outputMessageQueue ) {
+			if ( mp.isOneWay( cmReq.operationName() ) ) {
+				// SENDING THE ONE-WAY REQUEST
+				cc.writeAndFlush( mp.pubOneWayRequest( cmReq ) );
+				// IF QoS = 0
+				if ( mp.checkQoS( cmReq, MqttQoS.AT_MOST_ONCE ) ) {
+					// SEND THE ACK back to CommCore
+					cc.pipeline().fireChannelRead( new CommMessage(
+						cmReq.id(),
+						cmReq.operationName(), "/",
+						Value.create(), null ) );
+					// AND WE CLOSE THE CHANNEL
+					mp.markAsSentAndStopPing( cc, (int) cmReq.id() );
+				}
+			} else {
+				// WE ARE SENDING A Req-Res, we first subscribe to the response topic
+				cc.writeAndFlush( mp.subRequestResponseRequest( cmReq ) );
+				// and we save the message for later submission (at SUBACK)
+				pendingMpm = mp.pubRequestResponseRequest( cmReq );
 			}
-		} else {
-			// WE ARE SENDING A Req-Res, we first subscribe to the response topic
-			cc.writeAndFlush( mp.subRequestResponseRequest( cmReq ) );
-			// and we save the message for later submission (at SUBACK)
-			pendingMpm = mp.pubRequestResponseRequest( cmReq );
-		}
+//		}
 	}
 
 	private void init( ChannelHandlerContext ctx )
 	{
 		cc = ctx.channel();
 		mp.checkDebug( ctx.pipeline() );
-
 	}
 }
