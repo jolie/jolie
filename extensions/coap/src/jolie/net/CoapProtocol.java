@@ -579,19 +579,14 @@ public class CoapProtocol extends AsyncCommProtocol
 				i++;
 			}
 			String URIPath = sb.toString();
-			String operationName = getOperationFromOperationSpecificStringParameter( Parameters.ALIAS,
-				URIPath );
+			String operationName
+				= getOperationFromOperationSpecificStringParameter( Parameters.ALIAS,
+					URIPath );
 
 			return operationName;
 
 		}
 
-		/**
-	This method is used to retrieve the content format of the current protocol parameter setting.
-	If you mean to get the content format of the Coap Message, please use {@link CoapMessage} method
-	@param operationName
-	@return 
-		 */
 		private String stringContentFormatProtocolParameter( String operationName )
 		{
 			String stringContentFormat

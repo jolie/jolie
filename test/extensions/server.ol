@@ -1,36 +1,29 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
- *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+  Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          
+  Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it> 
+  Copyright (C) 2015 by Matthias Dieter Wallnöfer                       
+                                                                       
+  This program is free software; you can redistribute it and/or modify  
+  it under the terms of the GNU Library General Public License as       
+  published by the Free Software Foundation; either version 2 of the    
+  License, or (at your option) any later version.                       
+                                                                        
+  This program is distributed in the hope that it will be useful,       
+  but WITHOUT ANY WARRANTY; without even the implied warranty of        
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
+  GNU General Public License for more details.                          
+                                                                        
+  You should have received a copy of the GNU Library General Public     
+  License along with this program; if not, write to the                 
+  Free Software Foundation, Inc.,                                       
+  59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+                                                                        
+  For details about the authors of this software, see the AUTHORS file. 
+*/ 
 
 include "../AbstractTestUnit.iol"
 
 include "private/server.iol"
-
-outputPort CoAPServer {
-  Location: Location_CoAPServer
-  Protocol: coap {
-    .osc.shutdown.messageType = "CON"
-  }
-  Interfaces: ServerInterface
-}
 
 outputPort SODEPServer {
 Location: Location_SODEPServer
@@ -93,7 +86,6 @@ Interfaces: ServerInterface
 
 embedded {
 Jolie:
-  "private/coap_server.ol",
   "private/sodep_server.ol",
   "private/sodeps_server.ol",
   "private/soap_server.ol",
@@ -114,10 +106,6 @@ define checkResponse
 
 define test
 {
-  echoPerson@CoAPServer( person )( response );
-  identity@CoAPServer( reqVal )( response2 );
-  checkResponse;
-
   echoPerson@SODEPServer( person )( response );
   identity@SODEPServer( reqVal )( response2 );
   checkResponse;
@@ -159,8 +147,6 @@ define test
 
 define shutdown
 {
-  shutdown@CoAPServer()
-  |
   shutdown@SODEPServer()
   |
   shutdown@SODEPSServer()

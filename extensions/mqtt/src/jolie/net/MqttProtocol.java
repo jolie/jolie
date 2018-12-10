@@ -1,27 +1,26 @@
-/*******************************************************************************
- *   Copyright (C) 2017 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
- *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
- *   Copyright (C) 2017 by Ivan Lanese <ivan.lanese@unibo.com>                 *
- *   Copyright (C) 2017 by Maurizio Gabbrielli <maurizio.gabbrielli@unibo.com> *
- *                                                                             *
- *   This program is free software; you can redistribute it and/or modify      *
- *   it under the terms of the GNU Library General Public License as           *
- *   published by the Free Software Foundation; either version 2 of the        *
- *   License, or (at your option) any later version.                           *
- *                                                                             *
- *   This program is distributed in the hope that it will be useful,           *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
- *   GNU General Public License for more details.                              *
- *                                                                             *
- *   You should have received a copy of the GNU Library General Public         *
- *   License along with this program; if not, write to the                     *
- *   Free Software Foundation, Inc.,                                           *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
- *                                                                             *
- *   For details about the authors of this software, see the AUTHORS file.     *
- *******************************************************************************/
+/*
+	Copyright (C) 2017 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   
+	Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> 
+	Copyright (C) 2017 by Ivan Lanese <ivan.lanese@unibo.com>                 
+	Copyright (C) 2017 by Maurizio Gabbrielli <maurizio.gabbrielli@unibo.com> 
 
+	This program is free software; you can redistribute it and/or modify      
+	it under the terms of the GNU Library General Public License as           
+	published by the Free Software Foundation; either version 2 of the        
+	License, or (at your option) any later version.                           
+
+	This program is distributed in the hope that it will be useful,           
+	but WITHOUT ANY WARRANTY; without even the implied warranty of            
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             
+	GNU General Public License for more details.                              
+
+	You should have received a copy of the GNU Library General Public         
+	License along with this program; if not, write to the                     
+	Free Software Foundation, Inc.,                                           
+	59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 
+
+	For details about the authors of this software, see the AUTHORS file.     
+ */
 package jolie.net;
 
 import io.netty.buffer.ByteBuf;
@@ -266,8 +265,6 @@ public class MqttProtocol extends PubSubCommProtocol
 	{
 		return name();
 	}
-	
-	
 
 	/**
 	 *
@@ -331,7 +328,7 @@ public class MqttProtocol extends PubSubCommProtocol
 	public static int getMessageID( MqttMessage m )
 	{
 		if ( m instanceof MqttPublishMessage ) {
-			return ((MqttPublishMessage) m).variableHeader().messageId();
+			return ((MqttPublishMessage) m).variableHeader().packetId();
 		} else {
 			return ((MqttMessageIdVariableHeader) m.variableHeader()).messageId();
 		}
