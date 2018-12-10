@@ -26,6 +26,10 @@ import jolie.net.CommCore;
 public abstract class PubSubCommProtocolFactory extends CommProtocolFactory
 {
 
+	public static String getMedium(){
+		return "pubsubchannel";
+	}
+	
 	public PubSubCommProtocolFactory( CommCore commCore )
 	{
 		super( commCore );
