@@ -30,7 +30,6 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
 import jolie.runtime.TimeoutHandler;
-import jolie.util.Helpers;
 
 /**
  * <code>CommChannel</code> allows for the sending and receiving of
@@ -288,13 +287,13 @@ public abstract class CommChannel
 	public final void disposeForInput()
 		throws IOException
 	{
-		Helpers.lockAndThen( lock, () -> {
+//		Helpers.lockAndThen( lock, () -> {
 			if ( toBeClosed() == false ) {
 				disposeForInputImpl();
 			}/* else {
 				close();
 			}*/
-		} );
+//		} );
 	}
 
 	protected void disposeForInputImpl()
