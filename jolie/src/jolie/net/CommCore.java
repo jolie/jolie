@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.ExecutionThread;
@@ -58,6 +59,7 @@ import jolie.lang.Constants;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ext.PubSubCommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
@@ -412,11 +414,26 @@ public class CommCore
 		throws IOException
 	{
 		String medium = uri.getScheme();
-		CommChannelFactory factory = getCommChannelFactory( medium );
-		if ( factory == null ) {
-			throw new UnsupportedCommMediumException( medium );
+		CommProtocolFactory fetchedFactory = null;
+		try {
+			fetchedFactory = getCommProtocolFactory( port.getProtocol().name() );
+		} catch( URISyntaxException ex ) {
+			Logger.getLogger( CommCore.class.getName() ).log( Level.SEVERE, null, ex );
 		}
-		return factory.createChannel( uri, port );
+		if( fetchedFactory != null && fetchedFactory instanceof PubSubCommProtocolFactory ){
+			return createPubSubCommChannel( uri, port );
+		} else {
+			return createEndToEndCommChannel( uri, port );
+		}
+	}
+	
+	public CommChannel createEndToEndCommChannel( URI uri, OutputPort port ) throws IOException{
+		String medium = uri.getScheme();
+		CommChannelFactory factory = getCommChannelFactory( medium );
+			if ( factory == null ) {
+				throw new UnsupportedCommMediumException( medium );
+			}
+			return factory.createChannel( uri, port );
 	}
 
 	public CommChannel createInputCommChannel( URI uri, InputPort port ) throws IOException

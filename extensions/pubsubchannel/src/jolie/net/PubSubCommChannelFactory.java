@@ -21,7 +21,6 @@
  *****************************************************************************/
 package jolie.net;
 
-import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
 
 public class PubSubCommChannelFactory extends CommChannelFactory {
@@ -43,7 +43,7 @@ public class PubSubCommChannelFactory extends CommChannelFactory {
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException {
 
-		StreamingCommChannel channel = ( ( StreamingCommChannel ) Interpreter.getInstance().commCore().createCommChannel( location, port ) );
+		StreamingCommChannel channel = ( ( StreamingCommChannel ) Interpreter.getInstance().commCore().createEndToEndCommChannel( location, port ) );
 		channel.setParentOutputPort( port );
 
 		Map< Long, CompletableFuture<Void>> sendRelease = new ConcurrentHashMap<>();
