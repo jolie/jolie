@@ -604,11 +604,13 @@ public class CommCore
 		CommProtocolFactory protocolFactory,
 		Process protocolConfigurationProcess
 	)
-		throws IOException
-	{
+		throws IOException {
 		protocolConfigurations.add( protocolConfigurationProcess );
 
 		String medium = inputPort.location().getScheme();
+		if( protocolFactory instanceof PubSubCommProtocolFactory ){
+			medium = PubSubCommProtocolFactory.getMedium();
+		}
 		CommListenerFactory factory = getCommListenerFactory( medium );
 		if ( factory == null ) {
 			throw new UnsupportedCommMediumException( medium );
