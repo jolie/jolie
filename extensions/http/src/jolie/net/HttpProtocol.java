@@ -249,6 +249,7 @@ public class HttpProtocol extends AsyncCommProtocol
 			throws Exception
 		{
 			CommMessage message = recv_internal( msg );
+//			System.out.println( Interpreter.getInstance().programFilename() + " received: " + message.toPrettyString() );
 			out.add( message );
 		}
 
@@ -326,7 +327,9 @@ public class HttpProtocol extends AsyncCommProtocol
 	@Override
 	public boolean isThreadSafe()
 	{
-		return checkBooleanParameter( Parameters.CONCURRENT, false );
+		return 
+			checkBooleanParameter( Parameters.CONCURRENT, false ) &&
+			checkBooleanParameter( Parameters.KEEP_ALIVE, true  ); // if the channel is set to be closed, then it is not threadSafe
 	}
 
 	public String getMultipartHeaderForPart( String operationName, String partName )
@@ -900,14 +903,17 @@ public class HttpProtocol extends AsyncCommProtocol
 	)
 		throws IOException
 	{
-		if ( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false || channel().toBeClosed() ) {
+		if ( !checkBooleanParameter( Parameters.KEEP_ALIVE, true ) ) {
 			channel().setToBeClosed( true );
 			headers.add( HttpHeaderNames.CONNECTION, "close" );
+		} else {
+			channel().setToBeClosed( false );
 		}
+
 		if ( isThreadSafe() ) {
 			headers.add( Headers.JOLIE_MESSAGE_ID, message.id() );
 		}
-
+		
 		AsciiString contentType = new AsciiString( getStringParameter( Parameters.CONTENT_TYPE ) );
 		if ( contentType.length() > 0 ) {
 			encodedContent.contentType = contentType.toLowerCase();
@@ -1416,8 +1422,18 @@ public class HttpProtocol extends AsyncCommProtocol
 			}
 		} else {
 			setReceiveExecutionThread( channel() );
-			if ( isThreadSafe() ) {
-				throw new IOException( "Received message without ID in threadSafe protocol" );
+
+			try {
+				if ( isThreadSafe() ) {
+					// the receiver is threadSafe, so we add a fresh id to the message
+					decodedMessage.id = CommMessage.getNewMessageId();
+				}
+			} catch ( NullPointerException e ){
+				throw new IOException( "Could not correlate incoming message"
+					+ "\n=========================================\n"
+					+ message.toString()
+					+ "\n=========================================\n"
+					+ "with any thread (no ID, no channel association). Check protocol settings (concurrent) between client and server." );
 			}
 		}
 
@@ -1457,9 +1473,9 @@ public class HttpProtocol extends AsyncCommProtocol
 			}
 		}
 
-		if ( !isThreadSafe() ) {
-			decodedMessage.id = CommMessage.GENERIC_ID;
-		}
+//		if ( !isThreadSafe() ) {
+//			decodedMessage.id = CommMessage.GENERIC_ID;
+//		}
 
 		if ( message instanceof FullHttpResponse ) {
 			
@@ -1467,6 +1483,8 @@ public class HttpProtocol extends AsyncCommProtocol
 				CommMessage request = retrieveSynchonousRequest( channel() );
 				decodedMessage.id = request.id();
 				decodedMessage.operationName = request.operationName();
+			} else {
+				decodedMessage.operationName = retrieveAsynchronousRequest( decodedMessage.id );
 			}
 			
 			String responseHeader = "";
@@ -1559,6 +1577,12 @@ public class HttpProtocol extends AsyncCommProtocol
 		
 		return retVal;
 
+	}
+
+	@Override
+	public String getConfigurationHash()
+	{
+		return name();
 	}
 
 }

@@ -38,7 +38,10 @@ public class MessagePool
 	// TODO: add some cleaning routine to remove outdated mappings
 	private final Map< Long, CompletableFuture< CommMessage > > specificMap = new ConcurrentHashMap<>();
 	private final Map< String, GenericMessages > genericMap = new ConcurrentHashMap<>();
-	private final Map< String, CommMessage > synchronousResponseMap = new ConcurrentHashMap<>();
+	private final Map< CommChannel, CommMessage > synchronousResponseMap = new ConcurrentHashMap<>();
+	private final Map< Long, String > asynchronousResponseMap = new ConcurrentHashMap<>();
+
+
 
 	private class GenericMessages
 	{
@@ -193,11 +196,22 @@ public class MessagePool
 	}
 
 	public void registerForSynchronousResponse( CommChannel channel, CommMessage request ) {
-		synchronousResponseMap.put( channel.toString(), request );
+		synchronousResponseMap.put( channel, request );
 	}
 	
 	public CommMessage retrieveSynchronousRequest( CommChannel channel ) {
-		return synchronousResponseMap.remove( channel.toString() );
+		return synchronousResponseMap.remove( channel );
 	}
-
+	
+	public void registerForAsynchronousResponse( long id, String operationName )
+	{
+		asynchronousResponseMap.put( id, operationName );
+	}
+	 
+	public String retrieveAsynchronousRequest( long id )
+	{
+		return asynchronousResponseMap.remove( id );
+	}
+	
+	
 }

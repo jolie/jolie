@@ -167,6 +167,7 @@ public class SoapProtocol extends AsyncCommProtocol {
 		private static final String ENVELOPE = "envelope";
 		private static final String OPERATION = "operation";
 		private static final String STYLE = "style";
+		private static final String KEEP_ALIVE = "keepAlive";
 	}
 
 	/*
@@ -195,7 +196,7 @@ public class SoapProtocol extends AsyncCommProtocol {
 
 	@Override
 	public boolean isThreadSafe() {
-		return false;
+		return false && checkBooleanParameter( Parameters.KEEP_ALIVE, true ); // for future usage, when SOAP is implemented threadSafe
 	}
 
 	public SoapProtocol(
@@ -1166,4 +1167,12 @@ public class SoapProtocol extends AsyncCommProtocol {
 		}
 		return "/";
 	}
+
+	@Override
+	public String getConfigurationHash()
+	{
+		return name();
+	}
+	
+	
 }

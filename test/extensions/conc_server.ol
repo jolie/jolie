@@ -1,0 +1,138 @@
+/********************************************************************************
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>               *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       		  *
+ *   Copyright (C) 2018 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ *                                                                              *
+ *   This program is free software; you can redistribute it and/or modify       *
+ *   it under the terms of the GNU Library General Public License as            *
+ *   published by the Free Software Foundation; either version 2 of the         *
+ *   License, or (at your option) any later version.                            *
+ *                                                                              *
+ *   This program is distributed in the hope that it will be useful,            *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ *   GNU General Public License for more details.                               *
+ *                                                                              *
+ *   You should have received a copy of the GNU Library General Public          *
+ *   License along with this program; if not, write to the                      *
+ *   Free Software Foundation, Inc.,                                            *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                  *
+ *                                                                              *
+ *   For details about the authors of this software, see the AUTHORS file.      *
+ ********************************************************************************/
+
+include "../AbstractTestUnit.iol"
+
+include "private/server.iol"
+
+outputPort HTTPServer {
+Location: Location_HTTPServer
+Protocol: http {
+	.concurrent = true;
+	.method -> method;
+	.method.queryFormat = "json";
+	.format -> format;
+	.compression -> compression;
+	.requestCompression -> requestCompression
+}
+Interfaces: ServerInterface
+}
+
+outputPort HTTPSServer {
+Location: Location_HTTPSServer
+Protocol: https {
+	.concurrent = true;
+	.method -> method;
+	.method.queryFormat = "json";
+	.format -> format;
+	.compression -> compression;
+	.requestCompression -> requestCompression;
+	.ssl.trustStore = "extensions/private/client.jks";
+	.ssl.trustStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
+embedded {
+Jolie:
+	"private/conc_http_server2.ol",
+	"private/conc_https_server.ol"
+}
+
+define checkResponse
+{
+	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void || #response.array != 3 || response.array[0] != 0 || response.array[1] != "Ho" || response.array[2] != 3.14 || response.object.data != 10L ) {
+		throw( TestFailed, "Data <=> Query value mismatch" )
+	};
+	if ( response2 != reqVal ) {
+		throw( TestFailed, "Data <=> Query value mismatch" )
+	}
+}
+
+define test
+{
+	method = "post";
+	format = "xml";
+	echoPerson@HTTPServer( person )( response );
+	identity@HTTPServer( reqVal )( response2 );
+	checkResponse;
+	echoPerson@HTTPSServer( person )( response );
+	identity@HTTPSServer( reqVal )( response2 );
+	checkResponse;
+	format = "json";
+	echoPerson@HTTPServer( person )( response );
+	identity@HTTPServer( reqVal )( response2 );
+	checkResponse;
+	echoPerson@HTTPSServer( person )( response );
+	identity@HTTPSServer( reqVal )( response2 );
+	checkResponse;
+	method = "get"; // JSON-ified
+	echoPerson@HTTPServer( person )( response );
+	identity@HTTPServer( reqVal )( response2 );
+	checkResponse;
+	echoPerson@HTTPSServer( person )( response );
+	identity@HTTPSServer( reqVal )( response2 );
+	checkResponse
+}
+
+define shutdown
+{
+	shutdown@HTTPServer()
+	|
+	shutdown@HTTPSServer()
+}
+
+define doTest
+{
+	with( person ) {
+		.id = 123456789123456789L;
+		.firstName = "John";
+		.lastName = "Döner";
+		.age = 30;
+		.size = 90.5;
+		.male = true;
+		.unknown = "Hey";
+		.unknown2 = void;
+		.array[0] = 0;
+		.array[1] = "Ho";
+		.array[2] = 3.14;
+		.object.data = 10L
+	};
+	reqVal = "Döner";
+	scope( s ) {
+		install( TypeMismatch => shutdown; throw( TestFailed, s.TypeMismatch ) );
+
+		// compression on (default), but no request compression
+		test;
+		// request compression
+		requestCompression = "deflate";
+		test;
+		requestCompression = "gzip";
+		test;
+		// no compression at all
+		compression = false;
+		test;
+
+		shutdown
+	}
+}

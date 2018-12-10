@@ -459,8 +459,10 @@ public class Scanner
 	 * @return <code>true</code> if <code>c</code> is a separator (whitespace)
 	 */
 	public static boolean isSeparator( char c )
-	{
-		return isNewLineChar( c ) || c == '\t' || c == ' ';
+	{		
+		// Character.isWhitespace( c ) caputures ISO-LATIN-1/UNICO white space '\t', '\n', '\f', '\r', '&nbsp;'
+		// Character.isSpaceChar( c )  captures UNICODE categories SPACE_SEPARATOR "Zs", LINE_SEPARATOR "Zl", and PARAGRAPH_SEPARATOR "Zp" 
+		return isNewLineChar( c ) || Character.isWhitespace( c ) || Character.isSpaceChar( c );
 	}
     
 	/**

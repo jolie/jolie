@@ -369,6 +369,10 @@ public class CommCore
 	public CommMessage retrieveSynchronousRequest( CommChannel c ){
 		return messagePool.retrieveSynchronousRequest( c );
 	}
+	
+	public String retrieveAsynchronousRequest( long id ){
+		return messagePool.retrieveAsynchronousRequest( id );
+	}
 
 	public void sendCommMessage( CommMessage message, URI location, OutputPort out, boolean threadSafe )
 		throws IOException, URISyntaxException
@@ -381,6 +385,8 @@ public class CommCore
 		if( !threadSafe ) {
 			requestThreadRegistry.addThread( c, ExecutionThread.currentThread() );
 			messagePool.registerForSynchronousResponse( c, message );
+		} else {
+			messagePool.registerForAsynchronousResponse( message.id(), message.operationName() );
 		}
 		c.send( message );
 		if ( threadSafe ) {
@@ -392,15 +398,11 @@ public class CommCore
 		responseThreadRegistry.addThread( c, t );
 	}
 
-	public void releaseChannel( CommChannel c ) throws IOException, URISyntaxException
+	public void releaseChannel( CommChannel c ) throws IOException
 	{
 		if ( c.parentOutputPort() != null ) {
 			String protocol = "none";
-			try {
-				protocol = c.parentOutputPort().getProtocol().name();
-			} catch( IOException e ) {
-			}
-			channelPool.releaseChannel( c.isThreadSafe(), c.getLocation(), protocol, c );
+			channelPool.releaseChannel( c.isThreadSafe(), c.getLocation(), c.parentOutputPort(), c );
 		} else {
 			throw new IOException( "Cannot release a channel without an OutputPort" );
 		}
