@@ -425,11 +425,11 @@ public class CommCore
 		String name = null;
 		try {
 			name = port.getProtocol().name();
-		} catch ( IOException ex ){
+		} catch( IOException ex ) {
 			// we do nothing, simply the port has no specified protocol, which will be handled by createEndToEndCommChannel
 		}
-		if (name != null) {				
-			fetchedFactory = getCommProtocolFactory( name );		
+		if ( name != null ) {
+			fetchedFactory = getCommProtocolFactory( name );
 		}
 		if ( fetchedFactory != null && fetchedFactory instanceof PubSubCommProtocolFactory ) {
 			return createPubSubCommChannel( uri, port );
