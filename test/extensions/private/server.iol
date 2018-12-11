@@ -26,7 +26,7 @@ constants {
 	Location_JSONRPCServer = "socket://localhost:10104",
 	Location_HTTPServer = "socket://localhost:10105",
 	Location_HTTPSServer = "socket://localhost:10106",
-	
+
 	KeystorePassword = "superjolie"
 }
 
