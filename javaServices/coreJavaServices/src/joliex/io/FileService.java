@@ -39,9 +39,9 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
-import java.nio.file.Path;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Enumeration;
@@ -79,7 +79,7 @@ import org.xml.sax.SAXException;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar", "javax.activation.jar" } )
 public class FileService extends JavaService
 {
 	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );
