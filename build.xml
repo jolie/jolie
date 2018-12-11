@@ -242,6 +242,7 @@ Please make sure that:
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.tqueryJavaServices}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2dummy}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2surface}/build.xml" inheritall="false" target="jar"/>
@@ -285,6 +286,7 @@ Please make sure that:
 		<ant antfile="${project.local}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.tqueryJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.mqtt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coap}/build.xml" inheritall="false" target="clean"/>
@@ -339,6 +341,7 @@ Please make sure that:
 			<resources>
 				<file file="${project.coreJavaServices}/dist/coreJavaServices.jar"/>
 				<file file="${project.monitorJavaServices}/dist/monitorJavaServices.jar"/>
+				<file file="${project.tqueryJavaServices}/dist/tqueryJavaServices.jar"/>
 			</resources>
 		</copy>
 
