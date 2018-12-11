@@ -19,7 +19,6 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net;
 
 import io.netty.channel.EventLoopGroup;
@@ -28,19 +27,20 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import jolie.Interpreter;
-
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
 
-public class DatagramCommChannelFactory extends CommChannelFactory {
+public class DatagramCommChannelFactory extends CommChannelFactory
+{
 
 	private final EventLoopGroup workerGroup;
 	private CommProtocol protocol;
 
-	public DatagramCommChannelFactory( CommCore commCore ) {
+	public DatagramCommChannelFactory( CommCore commCore )
+	{
 		super( commCore );
 		this.workerGroup = new NioEventLoopGroup( 4,
 			commCore.getNewExecutionContextThreadFactory() );
@@ -48,20 +48,21 @@ public class DatagramCommChannelFactory extends CommChannelFactory {
 
 	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException {
+		throws IOException
+	{
 
 		try {
 			this.protocol = port.getProtocol();
-		} catch ( URISyntaxException e ) {
+		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}
 
 		DatagramCommChannel channel = DatagramCommChannel.createChannel(
-			location, ( AsyncCommProtocol ) protocol, workerGroup, port );
+			location, (AsyncCommProtocol) protocol, workerGroup, port );
 
 		try {
 			channel.connect( location ).sync();
-		} catch ( InterruptedException ex ) {
+		} catch( InterruptedException ex ) {
 			Interpreter.getInstance().logWarning( ex );
 		}
 
@@ -70,14 +71,15 @@ public class DatagramCommChannelFactory extends CommChannelFactory {
 
 	@Override
 	public CommChannel createInputChannel( URI location, InputPort port,
-		CommProtocol protocol ) throws IOException {
+		CommProtocol protocol ) throws IOException
+	{
 
 		DatagramCommChannel channel = DatagramCommChannel.createChannel(
-			location, ( AsyncCommProtocol ) protocol, workerGroup, port );
+			location, (AsyncCommProtocol) protocol, workerGroup, port );
 
 		try {
 			channel.connect( location ).sync();
-		} catch ( InterruptedException ex ) {
+		} catch( InterruptedException ex ) {
 			Interpreter.getInstance().logWarning( ex );
 		}
 

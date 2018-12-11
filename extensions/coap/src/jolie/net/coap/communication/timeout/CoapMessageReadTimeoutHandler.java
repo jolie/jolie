@@ -1,5 +1,6 @@
 /**********************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>                 *  
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -19,36 +20,43 @@
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
 
-constants {
-	Location_SODEPServer = "socket://localhost:10101",
-	Location_SODEPSServer = "socket://localhost:10102",
-	Location_SOAPServer = "socket://localhost:10103",
-	Location_JSONRPCServer = "socket://localhost:10104",
-	Location_HTTPServer = "socket://localhost:10105",
-	Location_HTTPSServer = "socket://localhost:10106",
+package jolie.net.coap.communication.timeout;
 
-	KeystorePassword = "superjolie"
-}
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import jolie.net.CommMessage;
 
-type Person:void {
-	.id:long
-	.firstName:string
-	.lastName:string
-	.age:int
-	.size:double
-	.male:bool
-	.unknown:any
-	.unknown2:undefined
-	.array*:any
-	.object:void {
-		.data:any
+public class CoapMessageReadTimeoutHandler extends ReadTimeoutHandler
+{
+	private boolean closed;
+	private final CommMessage request;
+	private final int timeout;
+
+	public CoapMessageReadTimeoutHandler( int timeout, CommMessage in )
+	{
+		super( timeout );
+		this.timeout = timeout;
+		this.request = in;
 	}
-}
 
-interface ServerInterface {
-	OneWay:
-		shutdown(void)
-	RequestResponse:
-		echoPerson(Person)(Person),
-		identity(any)(any)
+	public CommMessage getRequest()
+	{
+		return request;
+	}
+
+	public int getTimeout()
+	{
+		return timeout;
+	}
+
+	@Override
+	protected void readTimedOut( ChannelHandlerContext ctx ) throws Exception
+	{
+		if ( !closed ) {
+			ctx.fireExceptionCaught( new CoapMessageReadTimeoutException( request.id(), timeout ) );
+			ctx.close();
+			closed = true;
+		}
+	}
+
 }

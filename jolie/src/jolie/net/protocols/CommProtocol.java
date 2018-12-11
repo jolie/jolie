@@ -27,6 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import jolie.lang.Constants;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
@@ -244,10 +250,117 @@ public abstract class CommProtocol
 		return osc.getFirstChild( operationName ).getChildren( parameterName );
 	}
 
+	/**
+	Shortcut for getOperationSpecificParameterVector( operationName, parameterName ).first().boolValue()
+	@param operationName
+	@param parameterName
+	@return 
+	 */
+	protected boolean getOperationSpecificBooleanParameter( String operationName, String parameterName )
+	{
+		if ( hasOperationSpecificParameter( operationName, parameterName ) ) {
+			return getOperationSpecificParameterVector( operationName, parameterName ).first().boolValue();
+		}
+		return false;
+	}
+
+	/**
+	@param start
+	@param value
+	@return 
+	 */
+	protected String dynamicAlias( String start, Value value )
+	{
+		Set<String> aliasKeys = new TreeSet<>();
+		String pattern = "%(!)?\\{[^\\}]*\\}";
+
+		// find pattern
+		int offset = 0;
+		String currStrValue;
+
+		String currKey;
+
+		StringBuilder result = new StringBuilder( start );
+		Matcher m = Pattern.compile( pattern ).matcher( start );
+
+		// substitute in alias
+		while( m.find() ) {
+			currKey = start.substring( m.start() + 3, m.end() - 1 );
+			currStrValue = value.getFirstChild( currKey ).strValue();
+			aliasKeys.add( currKey );
+			result.replace( m.start() + offset, m.end() + offset, currStrValue );
+			offset += currStrValue.length() - 3 - currKey.length();
+		}
+
+		// remove from the value
+		for( String aliasKey : aliasKeys ) {
+			value.children().remove( aliasKey );
+		}
+
+		return result.toString();
+	}
+
+	/**
+	Given the <code>aliasStringParameter</code> ( e.g. \"alias\") for an operation, 
+	it searches iteratively in the <code>configurationPath</code> of the 
+	{@link AsyncCommProtocol} to find the corresponsding <code>operationName</code>.
+	@param aliasParameter
+	@param alias
+	@return 
+	 */
+	protected String getOperationFromOperationSpecificStringParameter( String aliasParameter, String alias )
+	{
+		for( Map.Entry<String, ValueVector> first : configurationPath().getValue().children().entrySet() ) {
+			String first_level_key = first.getKey();
+			ValueVector first_level_valueVector = first.getValue();
+			if ( first_level_key.equals( "osc" ) ) {
+				for( Iterator<Value> first_iterator = first_level_valueVector.iterator(); first_iterator.hasNext(); ) {
+					Value fisrt_value = first_iterator.next();
+					for( Map.Entry<String, ValueVector> second : fisrt_value.children().entrySet() ) {
+						String operationName = second.getKey();
+						ValueVector second_level_valueVector = second.getValue();
+						for( Iterator<Value> second_iterator = second_level_valueVector.iterator(); second_iterator.hasNext(); ) {
+							Value second_value = second_iterator.next();
+							for( Map.Entry<String, ValueVector> third : second_value.children().entrySet() ) {
+								String third_level_key = third.getKey();
+								ValueVector third_level_valueVector = third.getValue();
+								if ( third_level_key.equals( aliasParameter ) ) {
+									StringBuilder sb = new StringBuilder( "" );
+									for( Iterator<Value> third_iterator = third_level_valueVector.iterator(); third_iterator.hasNext(); ) {
+										Value third_value = third_iterator.next();
+										sb.append( third_value.strValue() );
+									}
+									if ( sb.toString().equals( alias ) ) {
+										return operationName;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return alias;
+	}
+
+	/**
+	Shortcut for Parent Port lookup in the OneWay interface.
+	@param operationName
+	@return 
+	 */
 	protected boolean isOneWay( String operationName )
 	{
-		return channel().parentPort().getInterface()
-			.oneWayOperations().containsKey( operationName );
+		return channel().parentPort().getInterface().oneWayOperations().containsKey( operationName );
+	}
+
+	/**
+	Shortcut for Parent Port lookup in the RequestResponse interface.
+	@param operationName
+	@return 
+	 */
+	protected boolean isRequestResponse( String operationName )
+	{
+		return channel().parentPort().getInterface().requestResponseOperations().containsKey( operationName );
 	}
 
 	protected Type operationType( String on, boolean isRequest )
@@ -268,7 +381,8 @@ public abstract class CommProtocol
 		Type ret = null;
 
 		if ( channel().parentPort() == null ) {
-			throw new IOException( "Could not retrieve communication port for HTTP protocol" );
+			throw new IOException( "Could not retrieve communication port for:\n"
+				+ message.toPrettyString() );
 		}
 
 		OperationTypeDescription opDesc = channel().parentPort()
@@ -300,18 +414,18 @@ public abstract class CommProtocol
 		return ret;
 	}
 
-	protected OperationTypeDescription getOperationTypeDescription( String message ) throws IOException
+	protected OperationTypeDescription getOperationTypeDescription( String operationName ) throws IOException
 	{
 		if ( channel().parentPort() == null ) {
 			throw new IOException( "Could not retrieve communication port for current protocol" );
 		}
-		return channel().parentPort().getOperationTypeDescription( message, Constants.ROOT_RESOURCE_PATH );
+		return channel().parentPort().getOperationTypeDescription( operationName, Constants.ROOT_RESOURCE_PATH );
 	}
 
-	protected Type getSendType( String message )
+	protected Type getSendType( String operationName )
 		throws IOException
 	{
-		OperationTypeDescription opDesc = getOperationTypeDescription( message );
+		OperationTypeDescription opDesc = getOperationTypeDescription( operationName );
 
 		if ( opDesc == null ) {
 			return null;

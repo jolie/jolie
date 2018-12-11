@@ -1,4 +1,5 @@
 /**********************************************************************************
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
  *   Copyright (C) 2017-18 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
  *   Copyright (C) 2017-18 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                                *
@@ -19,45 +20,85 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
-
 package jolie.net;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import jolie.Interpreter;
+import jolie.js.JsUtils;
+import jolie.lang.Constants;
 import jolie.net.coap.communication.codec.CoapMessageDecoder;
 import jolie.net.coap.communication.codec.CoapMessageEncoder;
+import jolie.net.coap.communication.timeout.CoapMessageReadTimeoutException;
+import jolie.net.coap.communication.timeout.CoapMessageReadTimeoutHandler;
+import jolie.net.coap.message.CoapMessage;
+import jolie.net.coap.message.CoapRequest;
+import jolie.net.coap.message.CoapResponse;
+import jolie.net.coap.message.MessageCode;
+import jolie.net.coap.message.MessageType;
+import jolie.net.coap.message.Token;
+import jolie.net.coap.message.correlators.CoapMessageCorrelator;
+import jolie.net.coap.message.correlators.CommMessageCorrelator;
+import jolie.net.coap.message.options.ContentFormat;
+import jolie.net.coap.message.options.Option;
+import jolie.net.coap.message.options.OptionValue;
 import jolie.net.protocols.AsyncCommProtocol;
+import jolie.runtime.ByteArray;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCastingException;
+import jolie.runtime.typing.TypeCheckingException;
+import jolie.xml.XmlUtils;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
 Implementations of {@link AsyncCommProtocol} CoAP for Jolie.
 -------------------------------------------------------------------------------------
-1. COAP MESSAGE INBOUND						CoapDecoder
-2. COAP MESSAGE OUTBOUND					CoapEncoder
-3. COAP MESSAGE INBOUND/OUTBOUND			CoapToCommMessageCodec
-4. COMM MESSAGE INBOUND						StreamingCommChannelHandler
-5. TIMEOUT INBOUND/OUTBOUND					ReadTimeoutHandler
-6. ERROR INBOUND							CoapToCommMessageCodec
--------------------------------------------------------------------------------------
-INBOUND read( 1 -> 3 -> 4 -> 5 -> 6 )
-	ByteBuf	->		CoapMessage	->		CommMessage	-> CommMessage
--------------------------------------------------------------------------------------
-OUTBOUND write( 3 -> 2 -> 5 )
-	CommMessage	->		CoapMessage	->		ByteBuf
+1. COAP MESSAGE INBOUND				CoapDecoder
+2. COAP MESSAGE OUTBOUND				CoapEncoder
+3. COAP MESSAGE INBOUND/OUTBOUND		CoapToCommMessageCodec
+4. COMM MESSAGE INBOUND				StreamingCommChannelHandler
 -------------------------------------------------------------------------------------
 @author stefanopiozingaro
  */
 public class CoapProtocol extends AsyncCommProtocol
 {
-
-	public boolean isInput;
+	private static final Charset DEFAULT_CHARSET = CharsetUtil.UTF_8;
+	private boolean isInput;
+	private CommMessageCorrelator commMessageCorrelator;
+	private CoapMessageCorrelator coapMessageCorrelator;
 
 	/**
 	 *
@@ -68,15 +109,17 @@ public class CoapProtocol extends AsyncCommProtocol
 	{
 		super( configurationPath );
 		this.isInput = isInput;
+		commMessageCorrelator = new CommMessageCorrelator();
+		coapMessageCorrelator = new CoapMessageCorrelator();
 	}
 
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline )
 	{
-		pipeline.addLast( "LOGGER", new LoggingHandler( LogLevel.INFO ) );
+//		pipeline.addLast( "LOGGER", new LoggingHandler( LogLevel.INFO ) );
 		pipeline.addLast( "COAP MESSAGE INBOUND", new CoapMessageDecoder() );
 		pipeline.addLast( "COAP MESSAGE OUTBOUND", new CoapMessageEncoder() );
-		pipeline.addLast( "COAP MESSAGE INBOUND/OUTBOUND", new CoapToCommMessageCodec( this ) );
+		pipeline.addLast( "COAP MESSAGE INBOUND/OUTBOUND", new CoapToCommMessageCodec() );
 	}
 
 	@Override
@@ -96,125 +139,1022 @@ public class CoapProtocol extends AsyncCommProtocol
 	{
 		return name();
 	}
-	
-	@Override
-	protected boolean checkBooleanParameter( String param )
-	{
-		return super.checkBooleanParameter( param );
-	}
 
-	@Override
-	protected boolean hasOperationSpecificParameter( String on, String p )
+	private class CoapToCommMessageCodec
+		extends MessageToMessageCodec<CoapMessage, CommMessage>
 	{
-		return super.hasOperationSpecificParameter( on, p );
-	}
+		private static final String TIMEOUT_HANLDER_NAME
+			= "READ TIMEOUT INBOUND/OUTBOUND";
+		private ChannelHandlerContext ctx;
 
-	@Override
-	protected ValueVector getOperationSpecificParameterVector( String operationName,
-		String parameterName )
-	{
-		return super.getOperationSpecificParameterVector( operationName,
-			parameterName );
-	}
+		@Override
+		public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause )
+			throws Exception
+		{
+			if ( cause instanceof CoapMessageReadTimeoutException ) {
+				CoapMessage coapRequest = coapMessageCorrelator.sendResponse(
+					(int) ((CoapMessageReadTimeoutException) cause).getId() );
+				CommMessage commRequest = commMessageCorrelator.receiveResponse(
+					((CoapMessageReadTimeoutException) cause).getId() );
 
-	@Override
-	protected String getOperationSpecificStringParameter( String on, String p )
-	{
-		return super.getOperationSpecificStringParameter( on, p );
-	}
+				// fault message to comm core
+				String errorMsg = "The CoAP endpoint did not sent the ACK within "
+					+ "the set \"timeout\" of "
+					+ ((CoapMessageReadTimeoutException) cause).getTimeout()
+					+ "sec!\n"
+					+ "Try with a longer timeout or check the CoAP endpoint "
+					+ "availability.";
+				CommMessage fault = CommMessage.createFaultResponse( commRequest,
+					new FaultException( "CoapMessageReadTimeoutException", errorMsg ) );
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Forwading the Fault to "
+						+ "Comm Core:\n"
+						+ fault.toPrettyString() );
+				}
+				ctx.fireChannelRead( fault );
 
-	@Override
-	protected Value getOperationSpecificParameterFirstValue( String on,
-		String p )
-	{
-		return super.getOperationSpecificParameterFirstValue( on, p );
-	}
+				// reset message to server
+				CoapMessage reset = CoapMessage.createEmptyReset( coapRequest.id() );
+				ctx.writeAndFlush( reset );
 
-	@Override
-	protected boolean checkStringParameter( String id, String value )
-	{
-		return super.checkStringParameter( id, value );
-	}
+				// remember to remove timeout, it will be added again, eventually
+				ctx.pipeline().remove( TIMEOUT_HANLDER_NAME );
 
-	@Override
-	protected boolean hasParameter( String id )
-	{
-		return super.hasParameter( id );
-	}
+			} else {
+				super.exceptionCaught( ctx, cause );
+			}
+		}
 
-	@Override
-	protected int getIntParameter( String id )
-	{
-		return super.getIntParameter( id );
-	}
+		@Override
+		public void channelRead( ChannelHandlerContext ctx, Object msg )
+			throws Exception
+		{
+			if ( msg instanceof CoapMessage ) {
+				CoapMessage in = (CoapMessage) msg;
+				CoapMessage request = coapMessageCorrelator.sendResponse( in.id() );
+				if ( isInput && in.isEmptyAck()
+					&& (request == null || request.messageType() == MessageType.NON) ) {
+					ReferenceCountUtil.release( msg );
+				} else {
+					super.channelRead( ctx, msg );
+				}
+			} else {
+				ctx.fireChannelRead( msg );
+			}
+		}
 
-	@Override
-	protected CommChannel channel()
-	{
-		return super.channel();
-	}
+		@Override
+		protected void encode( ChannelHandlerContext ctx, CommMessage in, List<Object> out )
+			throws Exception
+		{
+			setSendExecutionThread( in.id() );
+			this.ctx = ctx;
 
-	@Override
-	protected Type getSendType( String message ) throws IOException
-	{
-		return super.getSendType( message );
-	}
+			if ( isInput ) {
+				out.add( encode_inbound( in ) );
+			} else {
+				out.add( encode_outbound( in ) );
+			}
+		}
 
-	@Override
-	protected void setSendExecutionThread( Long k )
-	{
-		super.setSendExecutionThread( k ); //To change body of generated methods, choose Tools | Templates.
-	}
+		@Override
+		protected void decode( ChannelHandlerContext ctx, CoapMessage in, List<Object> out )
+			throws Exception
+		{
+			long id = (long) in.id();
+			if ( in.token().getBytes().length != 0 ) {
+				id = ByteBuffer.wrap( in.token().getBytes() ).getLong();
+			}
+			setReceiveExecutionThread( id );
+			this.ctx = ctx;
 
-	@Override
-	protected <K> void setReceiveExecutionThread( K k )
-	{
-		super.setReceiveExecutionThread( k ); //To change body of generated methods, choose Tools | Templates.
+			if ( isInput ) {
+				out.add( decode_inbound( in ) );
+			} else {
+				out.add( decode_outbound( in ) );
+			}
+		}
+
+		private CoapMessage encode_outbound( CommMessage in )
+			throws URISyntaxException
+		{
+			String operationName = in.operationName();
+
+			CoapRequest out = new CoapRequest(
+				messageTypeProtocolParameter( operationName ),
+				messageCodeProtocolParameter( operationName, false ),
+				targetURI( in )
+			);
+
+			if ( MessageCode.allowsContent( out.messageCode() ) ) {
+				out.setContent(
+					valueToByteBuf(
+						in,
+						ContentFormat.CONTENT_FORMAT.get(
+							longContentFormatProtocolParameter( in.operationName() ) ),
+						DEFAULT_CHARSET ),
+					longContentFormatProtocolParameter( operationName )
+				);
+			}
+
+			out.id( (int) in.id() );
+			int timeout = Parameters.DEFAULT_TIMEOUT;
+			if ( hasParameter( Parameters.TIMEOUT ) ) {
+				timeout = getIntParameter( Parameters.TIMEOUT );
+			}
+			if ( isRequestResponse( operationName ) ) {
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Receiving a Comm Message "
+						+ "Request for a CoAP Solicit Response:\n"
+						+ in.toPrettyString() );
+				}
+				commMessageCorrelator.sendRequest( in );
+				out.token( new Token( ByteBuffer.allocate( 8 )
+					.putLong( in.id() ).array() ) );
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Sending the CoAP Solicit "
+						+ "Response:\n"
+						+ out );
+				}
+				if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
+					ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME,
+						new CoapMessageReadTimeoutHandler( timeout, in ) );
+				}
+				coapMessageCorrelator.receiveRequest( (int) in.id(), out );
+			} else {
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Receiving a Comm Message "
+						+ "Request for a CoAP Notification:\n"
+						+ in.toPrettyString() );
+				}
+				if ( out.messageType() == MessageType.CON ) {
+					commMessageCorrelator.sendRequest( in );
+					if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
+						ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME,
+							new CoapMessageReadTimeoutHandler( timeout, in ) );
+					}
+					coapMessageCorrelator.receiveRequest( (int) in.id(), out );
+				}
+				if ( out.messageType() == MessageType.NON ) {
+					CommMessage ack = new CommMessage(
+						in.id(),
+						in.operationName(),
+						Constants.ROOT_RESOURCE_PATH,
+						Value.create(),
+						null
+					);
+					ctx.fireChannelRead( ack );
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "NON confirmable CoAP Notifications!\n"
+							+ "Sending ACK to the Comm Core:\n"
+							+ ack.toPrettyString() );
+					}
+				}
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Sending the CoAP Notification:\n"
+						+ out );
+				}
+			}
+
+			return out;
+		}
+
+		private CommMessage decode_inbound( CoapMessage in )
+			throws TypeCastingException, IOException
+		{
+			if ( in.messageType() == MessageType.RST ) {
+				CoapMessage coapRequest
+					= coapMessageCorrelator.sendResponse( in.id() );
+				CommMessage commRequest
+					= commMessageCorrelator.receiveResponse( (long) in.id() );
+				CommMessage fault = CommMessage.createFaultResponse(
+					commRequest,
+					new FaultException( "Received a CoAP Message RST for"
+						+ " a operation "
+						+ commRequest.operationName()
+						+ ".\nCommunication with EndPoint CoAP closed "
+						+ "No response will be produced for CoAP Message\n"
+						+ coapRequest ) );
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Forwading the Fault"
+						+ "to Comm Core:\n"
+						+ fault.toPrettyString() );
+				}
+				return fault;
+			}
+
+			String operationName = operationName( in );
+			long id = (long) in.id();
+			if ( isRequestResponse( operationName ) ) {
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Receiving a "
+						+ "CoAP Solicit Response:\n"
+						+ in );
+				}
+				if ( in.token().getBytes().length != 0 ) {
+					id = ByteBuffer.wrap( in.token().getBytes() ).getLong();
+				}
+			} else {
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Receiving a "
+						+ "CoAP Notification:\n"
+						+ in );
+				}
+			}
+
+			Value v = Value.create();
+			if ( MessageCode.allowsContent( in.messageCode() )
+				&& !in.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
+				String format = in.contentFormat();
+				v = byteBufToValue(
+					in.getContent(),
+					getSendType( operationName ),
+					format,
+					DEFAULT_CHARSET,
+					checkStringParameter( Parameters.JSON_ENCODING, "strict" )
+				);
+			}
+
+			coapMessageCorrelator.receiveRequest( (int) id, in );
+			CommMessage out = new CommMessage( id, operationName,
+				Constants.ROOT_RESOURCE_PATH, v, null );
+			commMessageCorrelator.sendRequest( out );
+
+			if ( isRequestResponse( operationName ) ) {
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Forwading the CoAP Solicit "
+						+ "Response to Comm Core:\n"
+						+ out.toPrettyString() );
+				}
+			} else {
+				if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+					Interpreter.getInstance().logInfo( "Forwading the CoAP "
+						+ "Notification to Comm Core:\n"
+						+ out.toPrettyString() );
+				}
+			}
+
+			return out;
+		}
+
+		private CoapMessage encode_inbound( CommMessage in )
+			throws IOException
+		{
+			CoapMessage coapRequest = coapMessageCorrelator.sendResponse( (int) in.id() );
+			CommMessage commRequest = commMessageCorrelator.receiveResponse( in.id() );
+
+			CoapMessage out = null;
+			if ( coapRequest == null && commRequest == null ) {
+
+				out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
+
+			} else {
+
+				String operationName = in.operationName();
+				if ( isRequestResponse( operationName ) ) {
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Receiving a Comm "
+							+ "Message Response from Comm Core:\n"
+							+ in.toPrettyString() );
+					}
+
+					out = new CoapResponse(
+						MessageType.ACK,
+						messageCodeProtocolParameter( operationName, true ) );
+
+					out.id( (int) in.id() );
+
+					if ( getOperationSpecificBooleanParameter( operationName,
+						Parameters.SEPARATE_RESPONSE )
+						|| coapRequest.messageType() == MessageType.NON ) {
+						out.messageType( messageTypeProtocolParameter( operationName ) );
+						out.randomId();
+						out.token( new Token( ByteBuffer.allocate( 8 )
+							.putLong( in.id() ).array() ) ); // id of the message ;-)
+					}
+
+					if ( out.messageType() == MessageType.CON ) {
+						int timeout = Parameters.DEFAULT_TIMEOUT;
+						if ( hasParameter( Parameters.TIMEOUT ) ) {
+							timeout = getIntParameter( Parameters.TIMEOUT );
+						}
+						if ( !ctx.pipeline().names().contains( TIMEOUT_HANLDER_NAME ) ) {
+							ctx.pipeline().addFirst( TIMEOUT_HANLDER_NAME,
+								new CoapMessageReadTimeoutHandler( timeout, in ) );
+						}
+					}
+
+					// content
+					if ( MessageCode.allowsContent( out.messageCode() ) ) {
+						ByteBuf content = valueToByteBuf( in,
+							ContentFormat.CONTENT_FORMAT.get(
+								longContentFormatProtocolParameter(
+									in.operationName() ) ), DEFAULT_CHARSET );
+						out.setContent( content,
+							longContentFormatProtocolParameter( operationName ) );
+					}
+
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Sending the CoAP "
+							+ "Response to the Client:\n"
+							+ out );
+					}
+
+				} else {
+
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Receiving a "
+							+ "Comm Message Ack from Comm Core:\n"
+							+ in.toPrettyString() );
+					}
+
+					out = CoapMessage.createEmptyAcknowledgement( (int) in.id() );
+
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Sending a CoAP "
+							+ "Empty Ack:\n"
+							+ out );
+					}
+				}
+			}
+			return out;
+		}
+
+		private CommMessage decode_outbound( CoapMessage in )
+			throws IOException, TypeCastingException
+		{
+			long key = (long) in.id();
+			CommMessage commMessageRequest
+				= commMessageCorrelator.receiveProtocolResponse( key, false );
+			if ( commMessageRequest == null ) {
+				key = ByteBuffer.wrap( in.token().getBytes() ).getLong();
+				commMessageRequest = commMessageCorrelator.receiveResponse( key );
+				if ( commMessageCorrelator == null ) {
+					throw new IOException( "Non correlating "
+						+ "comm message with any requests" );
+				}
+			} else { // remove it from the requests queue
+				commMessageCorrelator.receiveResponse( key );
+			}
+
+			String operationName = commMessageRequest.operationName();
+			CommMessage out = null;
+
+			if ( isRequestResponse( operationName ) ) {
+				if ( in.isEmptyAck() ) {
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Receiving the "
+							+ "CoAP Empty Ack of a Solicit Reponse from "
+							+ "the Server:\n" + in );
+					}
+					throw new IOException( "this is an ack message that Jolie "
+						+ "does not have to handle!" );
+				} else {
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						if ( in.isAck() ) {
+							Interpreter.getInstance().logInfo( "Receiving the "
+								+ "CoAP Piggyback Response from the Server:\n" + in );
+							// so the comm message matches with the id
+						} else {
+							Interpreter.getInstance().logInfo( "Receiving the "
+								+ "CoAP Separate Response from the Server:\n" + in );
+							// so the comm message matches with the token
+						}
+					}
+					Value v = Value.create();
+					if ( MessageCode.allowsContent( in.messageCode() )
+						&& !in.getContent().equals( Unpooled.EMPTY_BUFFER ) ) {
+
+						String format = ContentFormat.CONTENT_FORMAT.get(
+							((long) in.getOptions( Option.CONTENT_FORMAT )
+								.get( 0 )
+								.getDecodedValue())
+						);
+
+						v = byteBufToValue(
+							in.getContent(),
+							getSendType( operationName ),
+							format,
+							DEFAULT_CHARSET,
+							checkStringParameter( Parameters.JSON_ENCODING, "strict" )
+						);
+					}
+					out = CommMessage.createResponse( commMessageRequest, v );
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Sending a "
+							+ "Comm Message Response to Comm Core:\n"
+							+ out.toPrettyString() );
+					}
+				}
+			} else {
+				if ( in.isEmptyAck() ) {
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Receiving the "
+							+ "CoAP Empty Ack of a Notification "
+							+ "from the Server:\n" + in );
+					}
+					out = CommMessage.createEmptyResponse( commMessageRequest );
+					if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+						Interpreter.getInstance().logInfo( "Sending a Comm "
+							+ "Message Ack to Comm Core:\n" + out.toPrettyString() );
+					}
+				}
+			}
+
+			return out;
+		}
+
+		private String operationName( CoapMessage in )
+		{
+			StringBuilder sb = new StringBuilder();
+
+			int i = 1;
+			List<OptionValue> options = in.getOptions( Option.URI_PATH );
+
+			for( OptionValue option : options ) {
+				if ( i < options.size() ) {
+					sb.append( option.getDecodedValue() ).append( '/' );
+				} else {
+					sb.append( option.getDecodedValue() );
+				}
+				i++;
+			}
+			String URIPath = sb.toString();
+			String operationName
+				= getOperationFromOperationSpecificStringParameter( Parameters.ALIAS,
+					URIPath );
+
+			return operationName;
+
+		}
+
+		private String stringContentFormatProtocolParameter( String operationName )
+		{
+			String stringContentFormat
+				= Parameters.DEFAULT_CONTENT_FORMAT;
+
+			if ( hasOperationSpecificParameter( operationName,
+				Parameters.CONTENT_FORMAT
+			) ) {
+				return getOperationSpecificStringParameter( operationName,
+					Parameters.CONTENT_FORMAT
+				).toLowerCase();
+
+			}
+			return stringContentFormat;
+
+		}
+
+		private long longContentFormatProtocolParameter( String operationName )
+		{
+			String stringContentFormat = stringContentFormatProtocolParameter( operationName );
+
+			try {
+				return ContentFormat.JOLIE_ALLOWED_CONTENT_FORMAT.get( stringContentFormat );
+
+			} catch( NullPointerException ex ) {
+				Interpreter.getInstance().logSevere( "Content format " + stringContentFormat
+					+ " is not allowed! JSON will be used instead." );
+			}
+			return ContentFormat.APP_JSON;
+		}
+
+		private int messageTypeProtocolParameter( String operationName )
+		{
+			int messageType
+				= Parameters.DEFAULT_MESSAGE_TYPE;
+
+			if ( hasOperationSpecificParameter( operationName,
+				Parameters.MESSAGE_TYPE
+			) ) {
+				Value messageTypeValue
+					= getOperationSpecificParameterFirstValue( operationName,
+						Parameters.MESSAGE_TYPE
+					);
+
+				if ( messageTypeValue
+					.isInt() ) {
+					if ( MessageType
+						.isValidMessageType( messageTypeValue
+							.intValue() ) ) {
+						messageType
+							= messageTypeValue
+								.intValue();
+
+					} else {
+						throw new IllegalArgumentException( "Coap Message Type "
+							+ messageTypeValue
+								.intValue() + " is not allowed! "
+							+ "Assuming default message type \"NON\"." );
+
+					}
+				} else {
+					if ( messageTypeValue
+						.isString() ) {
+						String messageTypeString
+							= messageTypeValue
+								.strValue();
+
+						switch( messageTypeString ) {
+							case "CON": {
+								messageType
+									= MessageType.CON;
+
+								break;
+
+							}
+							case "NON": {
+								messageType
+									= MessageType.NON;
+
+								break;
+
+							}
+							case "RST": {
+								messageType
+									= MessageType.RST;
+
+								break;
+
+							}
+							case "ACK": {
+								messageType
+									= MessageType.ACK;
+
+								break;
+
+							}
+							default: {
+								throw new IllegalArgumentException( "Coap Message Type "
+									+ messageTypeString
+									+ " is not allowed! "
+									+ "Assuming default message type \"NON\"." );
+							}
+						}
+					} else {
+						throw new IllegalArgumentException( "Coap Message Type "
+							+ "cannot  be read as an integer nor as a string! "
+							+ "Check the message type." );
+
+					}
+				}
+			}
+			return messageType;
+
+		}
+
+		/**
+	Default Code is Integer for POST in getRequest and Integer for CONTENT for responses.
+	@param operationName
+	@param isResponse
+	@return The Integer rapresentation of the Message Code as listed in {@link MessageCode}
+		 */
+		private int messageCodeProtocolParameter( String operationName, boolean isResponse )
+		{
+			int messageCode
+				= MessageCode.POST;
+
+			if ( isResponse ) {
+				messageCode
+					= MessageCode.CONTENT_205;
+
+			}
+			if ( hasOperationSpecificParameter( operationName,
+				Parameters.MESSAGE_CODE
+			) ) {
+				Value messageCodeValue
+					= getOperationSpecificParameterFirstValue( operationName,
+						Parameters.MESSAGE_CODE
+					);
+
+				if ( messageCodeValue
+					.isInt() ) {
+					messageCode
+						= messageCodeValue
+							.intValue();
+
+				} else if ( messageCodeValue
+					.isString() ) {
+					String messageCodeValueString
+						= messageCodeValue
+							.strValue().toUpperCase();
+					messageCode
+						= MessageCode.JOLIE_ALLOWED_MESSAGE_CODE
+							.get( messageCodeValueString
+							);
+
+				}
+			}
+			return messageCode;
+
+		}
+
+		private URI targetURI( CommMessage in ) throws URISyntaxException
+		{
+			URI location = null;
+			if ( isInput ) {
+				location = channel().parentInputPort().location();
+			} else {
+				location = new URI( channel().parentOutputPort().locationVariablePath().evaluate().strValue() );
+			}
+
+			// 1. build the string for uri resource let url be coap://
+			StringBuilder url = new StringBuilder( "coap://" );
+			// 2. let host be the location host or the option uri-host specified
+			String host = location.getHost();
+			// 3. append url to host
+			url.append( host );
+			// 4. let port be the location port or the uri port option
+			int port = location.getPort();
+			// 5. append colon followed by the decimal representation of port
+			url.append( ":" ).append( port );
+			// 6. let resource name be empty, for each uri path option append / and the option
+			StringBuilder resource_name = new StringBuilder();
+			if ( hasOperationSpecificParameter( in.operationName(), Parameters.ALIAS ) ) {
+				resource_name.append( '/' );
+				for( Value v : getOperationSpecificParameterVector( in.operationName(), Parameters.ALIAS ) ) {
+					String path = dynamicAlias( v.strValue(), in.value() );
+					resource_name.append( path );
+				}
+			} else {
+				resource_name.append( location.getPath() );
+			}
+			// 7. if resource name is empty append a single backslash and the operation name
+			if ( resource_name.length() == 0 ) {
+				resource_name.append( '/' );
+				resource_name.append( in.operationName() );
+			}
+			if ( location.getQuery() != null ) {
+				resource_name.append( "?" ).append( location.getQuery() );
+			}
+			// 8. append resource name to url
+			url.append( resource_name );
+
+			// 9. set the string without percents or not allowed chars 
+			String uri = null;
+			try {
+				uri = new URI( url.toString() ).toASCIIString();
+			} catch( URISyntaxException ex ) {
+				// do nothing
+			}
+
+			try {
+				return new URI( uri );
+			} catch( URISyntaxException ex ) {
+				// do nothing
+			}
+			return null;
+		}
 	}
 
 	/**
-	 * Given the <code>alias</code> for an operation, it searches iteratively in
-	 * the <code>configurationPath</code> of the {@link AsyncCommProtocol} to
-	 * find the corresponsding <code>operationName</code>.
-	 *
-	 * @param parameter
-	 * @param parameterStringValue
-	 * @return The operation name String
+	TODO Promote to {@link AsyncCommProtocol}
+	@param commMessage
+	@param format
+	@return
+	@throws IOException
+	@throws ParserConfigurationException
+	@throws TransformerConfigurationException
+	@throws TransformerException 
 	 */
-	public String getOperationFromOperationSpecificStringParameter( String parameter,
-		String parameterStringValue )
+	private ByteBuf valueToByteBuf( CommMessage commMessage, String format, Charset charset )
 	{
+		ByteBuf byteBuf
+			= Unpooled
+				.buffer();
+		Value v
+			= commMessage
+				.isFault() ? Value
+					.create( commMessage
+						.fault().getMessage() ) : commMessage
+					.value();
 
-		for( Map.Entry<String, ValueVector> first : configurationPath().getValue().children().entrySet() ) {
-			String first_level_key = first.getKey();
-			ValueVector first_level_valueVector = first.getValue();
-			if ( first_level_key.equals( "osc" ) ) {
-				for( Iterator<Value> first_iterator = first_level_valueVector.iterator(); first_iterator.hasNext(); ) {
-					Value fisrt_value = first_iterator.next();
-					for( Map.Entry<String, ValueVector> second : fisrt_value.children().entrySet() ) {
-						String second_level_key = second.getKey();
-						ValueVector second_level_valueVector = second.getValue();
-						for( Iterator<Value> second_iterator = second_level_valueVector.iterator(); second_iterator.hasNext(); ) {
-							Value second_value = second_iterator.next();
-							for( Map.Entry<String, ValueVector> third : second_value.children().entrySet() ) {
-								String third_level_key = third.getKey();
-								ValueVector third_level_valueVector = third.getValue();
-								if ( third_level_key.equals( parameter ) ) {
-									StringBuilder sb = new StringBuilder( "" );
-									for( Iterator<Value> third_iterator = third_level_valueVector.iterator(); third_iterator.hasNext(); ) {
-										Value third_value = third_iterator.next();
-										sb.append( third_value.strValue() );
-									}
-									if ( sb.toString().equals( parameterStringValue ) ) {
-										return second_level_key;
-									}
-								}
-							}
+		try {
+			switch( format ) {
+				case "application/link-format": // TODO support it!
+					break;
+
+				case "application/xml":
+					DocumentBuilder db
+						= DocumentBuilderFactory
+							.newInstance().newDocumentBuilder();
+					Document doc
+						= db
+							.newDocument();
+					Element root
+						= doc
+							.createElement( commMessage
+								.operationName() );
+					doc
+						.appendChild( root
+						);
+					XmlUtils
+						.valueToDocument( v,
+							root,
+							doc
+						);
+					Source src
+						= new DOMSource( doc
+						);
+					ByteArrayOutputStream strm
+						= new ByteArrayOutputStream();
+					Result dest
+						= new StreamResult( strm
+						);
+					Transformer trf
+						= TransformerFactory
+							.newInstance().newTransformer();
+					trf
+						.setOutputProperty( OutputKeys.ENCODING,
+							charset
+								.name() );
+					trf
+						.transform( src,
+							dest
+						);
+					byteBuf
+						.writeBytes( strm
+							.toByteArray() );
+
+					break;
+
+				case "application/octet-stream":
+				case "application/exi":
+				case "text/plain":
+					byteBuf
+						.writeBytes( valueToPlainText( v
+						).getBytes( charset
+						) );
+
+					break;
+
+				case "application/json":
+					StringBuilder jsonStringBuilder
+						= new StringBuilder();
+					JsUtils
+						.valueToJsonString( v,
+							true, getSendType( commMessage
+								.operationName() ), jsonStringBuilder
+						);
+					byteBuf
+						.writeBytes( jsonStringBuilder
+							.toString().getBytes( charset
+							) );
+
+					break;
+
+			}
+		} catch( IOException
+			| IllegalArgumentException
+			| ParserConfigurationException
+			| TransformerException
+			| DOMException ex ) {
+
+		}
+		return byteBuf;
+
+	}
+
+	/**
+	TODO Promote to {@link AsyncCommProtocol}
+	@param in
+	@param type
+	@param format
+	@param charset
+	@param jsonEncoding
+	@return
+	@throws IOException
+	@throws ParserConfigurationException
+	@throws SAXException
+	@throws TypeCheckingException 
+	 */
+	private Value byteBufToValue( ByteBuf in, Type type, String format, Charset charset, boolean jsonEncoding )
+		throws TypeCastingException
+	{
+		ByteBuf byteBuf = Unpooled.copiedBuffer( in );
+		Value value = Value.create();
+		String message = Unpooled.copiedBuffer( byteBuf ).toString( charset );
+
+		try {
+			if ( message.length() > 0 ) {
+				switch( format ) {
+					case "application/xml":
+						DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+						DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
+						InputSource src = new InputSource( new ByteBufInputStream( byteBuf ) );
+						src.setEncoding( charset.name() );
+						Document doc = builder.parse( src );
+						XmlUtils.documentToValue( doc, value );
+						break;
+					case "application/link-format":
+					case "application/octet-stream":
+					case "application/exi":
+					case "text/plain": {
+						parsePlainText( message, value, type );
+					}
+					break;
+					case "application/json":
+						JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteBufInputStream( byteBuf ) ), value, jsonEncoding );
+						break;
+				}
+
+				// for XML format
+				try {
+					value = type.cast( value );
+				} catch( TypeCastingException e ) {
+					// do nothing
+				}
+			} else {
+				value = Value.create();
+				try {
+					type.check( value );
+				} catch( TypeCheckingException ex1 ) {
+					value = Value.create( "" );
+					try {
+						type.check( value );
+					} catch( TypeCheckingException ex2 ) {
+						value = Value.create( new ByteArray( new byte[ 0 ] ) );
+						try {
+							type.check( value );
+						} catch( TypeCheckingException ex3 ) {
+							value = Value.create();
 						}
 					}
 				}
 			}
+		} catch( IOException | ParserConfigurationException | TypeCheckingException | SAXException ex ) {
+			// do nothing
 		}
-		return parameterStringValue;
+		return value;
+	}
+
+	/**
+	TODO Promote to {@link AsyncCommProtocol}
+	@param message
+	@param value
+	@param type
+	@throws TypeCheckingException 
+	 */
+	private void parsePlainText( String message, Value value, Type type )
+		throws TypeCheckingException
+	{
+		try {
+			type
+				.check( Value
+					.create( message
+					) );
+			value
+				.setValue( message
+				);
+
+		} catch( TypeCheckingException e1 ) {
+			if ( isNumeric( message
+			) ) {
+				try {
+					if ( message
+						.equals( "0" ) ) {
+						type
+							.check( Value
+								.create( false ) );
+						value
+							.setValue( false );
+
+					} else {
+						if ( message
+							.equals( "1" ) ) {
+							type
+								.check( Value
+									.create( true ) );
+							value
+								.setValue( true );
+
+						} else {
+							throw new TypeCheckingException( "" );
+
+						}
+					}
+				} catch( TypeCheckingException e ) {
+					try {
+						value
+							.setValue( Integer
+								.parseInt( message
+								) );
+
+					} catch( NumberFormatException nfe ) {
+						try {
+							value
+								.setValue( Long
+									.parseLong( message
+									) );
+
+						} catch( NumberFormatException nfe1 ) {
+							try {
+								value
+									.setValue( Double
+										.parseDouble( message
+										) );
+
+							} catch( NumberFormatException nfe2 ) {
+							}
+						}
+					}
+				}
+			} else {
+				try {
+					type
+						.check( Value
+							.create( new ByteArray( message
+								.getBytes() ) ) );
+					value
+						.setValue( new ByteArray( message
+							.getBytes() ) );
+
+				} catch( TypeCheckingException e ) {
+					value
+						.setValue( message
+						);
+
+				}
+			}
+		}
+	}
+
+	/**
+	TODO Promote to {@link AsyncCommProtocol}
+	@param value
+	@return 
+	 */
+	private String valueToPlainText( Value value )
+	{
+		Object valueObject
+			= value
+				.valueObject();
+		String str
+			= "";
+
+		if ( valueObject instanceof String ) {
+			str
+				= ((String) valueObject);
+
+		} else if ( valueObject instanceof Integer ) {
+			str
+				= ((Integer) valueObject).toString();
+
+		} else if ( valueObject instanceof Double ) {
+			str
+				= ((Double) valueObject).toString();
+
+		} else if ( valueObject instanceof ByteArray ) {
+			str
+				= ((ByteArray) valueObject).toString();
+
+		} else if ( valueObject instanceof Boolean ) {
+			str
+				= ((Boolean) valueObject).toString();
+
+		} else if ( valueObject instanceof Long ) {
+			str
+				= ((Long) valueObject).toString();
+
+		}
+
+		return str;
+
+	}
+
+	/**
+	TODO Promote to {@link AsyncCommProtocol}
+	@param cs
+	@return 
+	 */
+	private boolean isNumeric( final CharSequence cs )
+	{
+		if ( cs.length() == 0 ) {
+			return false;
+		}
+
+		final int sz = cs.length();
+
+		for( int i = 0; i < sz; i++ ) {
+			if ( !Character.isDigit( cs.charAt( i ) ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static class Parameters
+	{
+		private static final String DEBUG = "debug";
+		private static final String CONTENT_FORMAT = "contentFormat";
+		private static final String DEFAULT_CONTENT_FORMAT = "application/json";
+		private static final String MESSAGE_TYPE = "messageType";
+		private static final int DEFAULT_MESSAGE_TYPE = MessageType.NON;
+		private static final String MESSAGE_CODE = "messageCode";
+		private static final String JSON_ENCODING = "json_encoding";
+		private static final String ALIAS = "alias";
+		private static final String TIMEOUT = "timeout";
+		private static final int DEFAULT_TIMEOUT = 2;
+		private static final String SEPARATE_RESPONSE = "separateResponse";
 	}
 }

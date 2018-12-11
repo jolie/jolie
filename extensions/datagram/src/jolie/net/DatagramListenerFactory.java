@@ -19,23 +19,23 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.IOException;
-
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
-public class DatagramListenerFactory extends CommListenerFactory {
+public class DatagramListenerFactory extends CommListenerFactory
+{
 
 	protected final EventLoopGroup workerGroup;
 
-	public DatagramListenerFactory( CommCore commCore ) {
+	public DatagramListenerFactory( CommCore commCore )
+	{
 
 		super( commCore );
 		this.workerGroup = new NioEventLoopGroup( 4,
@@ -45,7 +45,8 @@ public class DatagramListenerFactory extends CommListenerFactory {
 	@Override
 	public CommListener createListener( Interpreter interpreter,
 		CommProtocolFactory protocolFactory, InputPort inputPort )
-		throws IOException {
+		throws IOException
+	{
 
 		return new DatagramListener( interpreter, protocolFactory, inputPort, workerGroup );
 	}

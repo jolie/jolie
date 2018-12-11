@@ -1,5 +1,6 @@
 /**********************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>                 *  
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -18,37 +19,50 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
+package jolie.net.coap.message.correlators;
 
-constants {
-	Location_SODEPServer = "socket://localhost:10101",
-	Location_SODEPSServer = "socket://localhost:10102",
-	Location_SOAPServer = "socket://localhost:10103",
-	Location_JSONRPCServer = "socket://localhost:10104",
-	Location_HTTPServer = "socket://localhost:10105",
-	Location_HTTPSServer = "socket://localhost:10106",
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import jolie.net.CommMessage;
 
-	KeystorePassword = "superjolie"
-}
+public class CommMessageCorrelator
+{
 
-type Person:void {
-	.id:long
-	.firstName:string
-	.lastName:string
-	.age:int
-	.size:double
-	.male:bool
-	.unknown:any
-	.unknown2:undefined
-	.array*:any
-	.object:void {
-		.data:any
+	// Ensure that ONLY ONE ConcurrentHashMap is used for every thread
+	private static final Map<Long, CommMessage> requests = new ConcurrentHashMap<>();
+
+	/**
+	To be called in case of receiving a { @link CommMessage } from 
+	the { @link CommCore } to be sent as an { @link AsyncCommProtocol }
+	request. It stores the { @link CommMessage } in a { @link ConcurrentHashMap }
+	securely.
+	@param in 
+	 */
+	public void sendRequest( CommMessage in )
+	{
+		requests.putIfAbsent( in.id(), in );
 	}
-}
 
-interface ServerInterface {
-	OneWay:
-		shutdown(void)
-	RequestResponse:
-		echoPerson(Person)(Person),
-		identity(any)(any)
+	/**
+	As soon as a response is received by the { @link AsyncCommProtocol } 
+	the { @link CommMessage } request is retrieved from the { @link ConcurrentHashMap }.
+	@param id
+	@return 
+	 */
+	public CommMessage receiveResponse( long key )
+	{
+		return receiveProtocolResponse( key, true );
+	}
+
+	/**
+	As soon as a response is received by the { @link AsyncCommProtocol } 
+	the { @link CommMessage } request is retrieved from the { @link ConcurrentHashMap }
+	and <b>removed</b> from it.
+	@param id
+	@return 
+	 */
+	public CommMessage receiveProtocolResponse( long key, boolean remove )
+	{
+		return remove ? requests.remove( key ) : requests.get( key );
+	}
 }

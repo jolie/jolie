@@ -1,5 +1,5 @@
 /**********************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>                 *  
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -20,14 +20,10 @@
  **********************************************************************************/
 
 constants {
-	Location_SODEPServer = "socket://localhost:10101",
-	Location_SODEPSServer = "socket://localhost:10102",
-	Location_SOAPServer = "socket://localhost:10103",
-	Location_JSONRPCServer = "socket://localhost:10104",
-	Location_HTTPServer = "socket://localhost:10105",
-	Location_HTTPSServer = "socket://localhost:10106",
-
-	KeystorePassword = "superjolie"
+	Location_CoAPServer = "datagram://localhost:5683",
+	Location_MQTTServer = "socket://localhost:9001",
+	Location_MQTTBrokerRemote = "socket://iot.eclipse.org:1883",
+	Location_MQTTBrokerLocal = "socket://localhost:1883"
 }
 
 type Person:void {
@@ -45,7 +41,7 @@ type Person:void {
 	}
 }
 
-interface ServerInterface {
+interface IoTServerInterface {
 	OneWay:
 		shutdown(void)
 	RequestResponse:
