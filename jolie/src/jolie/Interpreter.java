@@ -1114,14 +1114,14 @@ public class Interpreter
 						mainSession.join();
 					}
 				} catch( InterruptedException e ) {
-					logSevere( e ); // why to log severe this ??
+					logSevere( e );
 				}
 			} else {
 				exitingLock.lock();
 				try {
 					exitingCondition.await();
 				} catch( InterruptedException e ) {
-					logSevere( e ); // why to log severe this ??
+					logSevere( e );
 				} finally {
 					exitingLock.unlock();
 				}
