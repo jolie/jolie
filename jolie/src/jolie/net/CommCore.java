@@ -422,8 +422,14 @@ public class CommCore
 	{
 		String medium = uri.getScheme();
 		CommProtocolFactory fetchedFactory = null;
-		if ( !port.protocolConfigurationPath().getValue().strValue().isEmpty() ) {
-			fetchedFactory = getCommProtocolFactory( port.getProtocol().name() );
+		String name = null;
+		try {
+			name = port.getProtocol().name();
+		} catch ( IOException ex ){
+			// we do nothing, simply the port has no specified protocol, which will be handled by createEndToEndCommChannel
+		}
+		if (name != null) {				
+			fetchedFactory = getCommProtocolFactory( name );		
 		}
 		if ( fetchedFactory != null && fetchedFactory instanceof PubSubCommProtocolFactory ) {
 			return createPubSubCommChannel( uri, port );
