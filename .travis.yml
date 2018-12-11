@@ -1,5 +1,9 @@
 language: java
 
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install ant
+
 script: ant dist && ant test
 
 sudo: false
