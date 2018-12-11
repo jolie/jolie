@@ -1,5 +1,5 @@
 /**********************************************************************************
- *   Copyright (C) 2016, Oliver Kleine, University of Luebeck											*
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
  *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
@@ -28,12 +28,12 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
-import jolie.net.coap.message.Token;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.CoapRequest;
 import jolie.net.coap.message.CoapResponse;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
+import jolie.net.coap.message.Token;
 import jolie.net.coap.message.options.EmptyOptionValue;
 import jolie.net.coap.message.options.OpaqueOptionValue;
 import jolie.net.coap.message.options.OptionValue;
