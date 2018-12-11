@@ -4,4 +4,4 @@ script: ant dist && ant test
 
 sudo: false
 
-jdk: openjdk8
+jdk: openjdk11
