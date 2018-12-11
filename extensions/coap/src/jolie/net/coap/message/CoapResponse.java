@@ -1,5 +1,5 @@
 /**********************************************************************************
- *   Copyright (C) 2016, Oliver Kleine, University of Luebeck											*
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
  *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *

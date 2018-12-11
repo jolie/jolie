@@ -1,5 +1,5 @@
 /**********************************************************************************
- *   Copyright (C) 2016, Oliver Kleine, University of Luebeck											*
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
  *   Copyright (C) 2017-18 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
  *   Copyright (C) 2017-18 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                                *
