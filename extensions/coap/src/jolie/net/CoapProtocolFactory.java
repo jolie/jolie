@@ -1,6 +1,5 @@
 /**********************************************************************************
  *   Copyright (C) 2017-18 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
- *   Copyright (C) 2017-18 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -19,6 +18,7 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
+
 
 package jolie.net;
 
