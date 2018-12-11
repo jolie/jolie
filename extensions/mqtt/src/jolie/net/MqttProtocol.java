@@ -21,7 +21,6 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net;
 
 import io.netty.buffer.ByteBuf;
@@ -180,11 +179,7 @@ public class MqttProtocol extends PubSubCommProtocol
 				protected void decode( ChannelHandlerContext chc, MqttMessage i,
 					List<Object> list ) throws Exception
 				{
-					String logLine = "";
-					try {
-						logLine = "#" + getMessageID( i ) + " ";
-					} catch( Exception e ) {
-					}
+					String logLine = getMessageIDLog( i );
 					MqttMessageType t = i.fixedHeader().messageType();
 					if ( !(t.equals( MqttMessageType.PINGRESP )
 						|| t.equals( MqttMessageType.PINGREQ )) ) {
@@ -199,6 +194,9 @@ public class MqttProtocol extends PubSubCommProtocol
 						((MqttPublishMessage) i).retain();
 					}
 					list.add( i );
+					if ( channel().parentPort() instanceof OutputPort ) {
+						chc.pipeline().remove( "DBDecode" );
+					}
 				}
 			} );
 			p.addAfter( "DECODER", "DBEncode",
@@ -208,12 +206,8 @@ public class MqttProtocol extends PubSubCommProtocol
 				protected void encode( ChannelHandlerContext chc, MqttMessage i,
 					List list ) throws Exception
 				{
-					String logLine = "";
-					try {
-						logLine = "#" + getMessageID( i ) + " ";
-					} catch( Exception e ) {
-					}
 					MqttMessageType t = i.fixedHeader().messageType();
+					String logLine = getMessageIDLog( i );
 					logLine += t + " ->";
 					if ( t.equals( MqttMessageType.PUBLISH ) ) {
 						logLine += "\t topic: " + ((MqttPublishMessage) i)
@@ -244,6 +238,9 @@ public class MqttProtocol extends PubSubCommProtocol
 						}
 						list.add( i );
 					}
+					if ( channel().parentPort() instanceof OutputPort ) {
+						chc.pipeline().remove( "DBEncode" );
+					}
 				}
 			} );
 		}
@@ -258,7 +255,7 @@ public class MqttProtocol extends PubSubCommProtocol
 	@Override
 	public boolean isThreadSafe()
 	{
-		return true;
+		return false;
 	}
 
 	@Override
@@ -266,8 +263,6 @@ public class MqttProtocol extends PubSubCommProtocol
 	{
 		return name();
 	}
-	
-	
 
 	/**
 	 *
@@ -328,10 +323,21 @@ public class MqttProtocol extends PubSubCommProtocol
 		}
 	}
 
+	public static String getMessageIDLog( MqttMessage m ) throws IOException
+	{
+		if ( m instanceof MqttPublishMessage ) {
+			return "#" + ((MqttPublishMessage) m).variableHeader().packetId() + " ";
+		} else if ( m.variableHeader() instanceof MqttMessageIdVariableHeader ) {
+			return "#" + ((MqttMessageIdVariableHeader) m.variableHeader()).messageId() + " ";
+		} else {
+			return "";
+		}
+	}
+
 	public static int getMessageID( MqttMessage m )
 	{
 		if ( m instanceof MqttPublishMessage ) {
-			return ((MqttPublishMessage) m).variableHeader().messageId();
+			return ((MqttPublishMessage) m).variableHeader().packetId();
 		} else {
 			return ((MqttMessageIdVariableHeader) m.variableHeader()).messageId();
 		}
@@ -417,7 +423,7 @@ public class MqttProtocol extends PubSubCommProtocol
 			checkBooleanParameter( Parameters.WILL_TOPIC ),
 			true,
 			2 );
-		MqttConnectPayload p = new MqttConnectPayload(
+		MqttConnectPayload p = new MqttConnectPayload( // TODO:check
 			clientId,
 			getStringParameter( Parameters.WILL_TOPIC ),
 			getStringParameter( Parameters.WILL_MESSAGE ),

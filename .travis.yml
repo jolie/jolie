@@ -1,7 +1,13 @@
 language: java
 
+before_install:
+  - wget --no-check-certificate https://www.apache.org/dist/ant/binaries/apache-ant-1.10.5-bin.tar.gz
+  - tar -xzvf apache-ant-1.10.5-bin.tar.gz
+  - export PATH=`pwd`/apache-ant-1.10.5/bin:$PATH
+  - echo $(ant -version)
+
 script: ant dist && ant test
 
 sudo: false
 
-jdk: oraclejdk8
+jdk: openjdk11

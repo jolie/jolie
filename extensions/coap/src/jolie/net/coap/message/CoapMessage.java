@@ -1,6 +1,6 @@
 /**********************************************************************************
- *   Copyright (C) 2017-18 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
- *   Copyright (C) 2017-18 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -19,7 +19,6 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
-
 package jolie.net.coap.message;
 
 import io.netty.buffer.ByteBuf;
@@ -29,7 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
 import jolie.Interpreter;
-import jolie.net.Token;
 import jolie.net.coap.communication.blockwise.BlockSize;
 import jolie.net.coap.message.options.ContentFormat;
 import jolie.net.coap.message.options.EmptyOptionValue;
@@ -86,17 +84,17 @@ public class CoapMessage
 		Token token ) throws IllegalArgumentException
 	{
 
-		if ( !MessageType.isMessageType( messageType ) ) {
-			Interpreter.getInstance().logSevere( "No. " + messageType
+		if ( !MessageType.isValidMessageType( messageType ) ) {
+			throw new IllegalArgumentException( "No. " + messageType
 				+ " is not corresponding to any message type." );
 		}
 
-		if ( !MessageCode.isMessageCode( messageCode ) ) {
-			Interpreter.getInstance().logSevere( "No. " + messageCode
+		if ( !MessageCode.isValidMessageCode( messageCode ) ) {
+			throw new IllegalArgumentException( "No. " + messageCode
 				+ " is not corresponding to any message code." );
 		}
 
-		this.setMessageType( messageType );
+		this.messageType( messageType );
 		this.setMessageCode( messageCode );
 
 		this.id( messageID );
@@ -201,10 +199,10 @@ public class CoapMessage
 	 * @throws java.lang.IllegalArgumentException if the given message type is not
 	 * supported.
 	 */
-	public void setMessageType( int messageType )
+	public void messageType( int messageType )
 		throws IllegalArgumentException
 	{
-		if ( !MessageType.isMessageType( messageType ) ) {
+		if ( !MessageType.isValidMessageType( messageType ) ) {
 			throw new IllegalArgumentException( "Invalid message type ("
 				+ messageType
 				+ "). Only numbers 0-3 are allowed." );
@@ -235,7 +233,7 @@ public class CoapMessage
 	 */
 	public boolean isAck()
 	{
-		return MessageType.isMessageType( MessageType.ACK );
+		return this.messageType == MessageType.ACK;
 	}
 
 	/**
@@ -244,7 +242,7 @@ public class CoapMessage
 	 */
 	public boolean isEmptyAck()
 	{
-		return MessageType.isMessageType( MessageType.ACK ) && MessageCode.isMessageCode( MessageCode.EMPTY );
+		return this.messageType == MessageType.ACK && this.messageCode == MessageCode.EMPTY;
 	}
 
 	/**
@@ -418,7 +416,7 @@ public class CoapMessage
 	 * automatically by the nCoAP framework.
 	 *
 	 */
-	public void setRandomMessageID()
+	public void randomId()
 	{
 		this.id( new Random().nextInt( 65535 ) );
 	}
@@ -930,7 +928,6 @@ public class CoapMessage
 		} catch( IllegalArgumentException e ) {
 			this.content = Unpooled.EMPTY_BUFFER;
 			this.removeOptions( Option.CONTENT_FORMAT );
-			Interpreter.getInstance().logSevere( e );
 		}
 	}
 
@@ -966,7 +963,7 @@ public class CoapMessage
 	public void setMessageCode( int messageCode )
 		throws IllegalArgumentException
 	{
-		if ( !MessageCode.isMessageCode( messageCode ) ) {
+		if ( !MessageCode.isValidMessageCode( messageCode ) ) {
 			throw new IllegalArgumentException( "Invalid message code no. "
 				+ messageCode );
 		}

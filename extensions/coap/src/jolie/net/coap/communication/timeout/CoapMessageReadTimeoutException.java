@@ -1,5 +1,6 @@
 /**********************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>                 *  
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -18,37 +19,43 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
+package jolie.net.coap.communication.timeout;
 
-constants {
-	Location_SODEPServer = "socket://localhost:10101",
-	Location_SODEPSServer = "socket://localhost:10102",
-	Location_SOAPServer = "socket://localhost:10103",
-	Location_JSONRPCServer = "socket://localhost:10104",
-	Location_HTTPServer = "socket://localhost:10105",
-	Location_HTTPSServer = "socket://localhost:10106",
+import io.netty.channel.ChannelException;
 
-	KeystorePassword = "superjolie"
-}
+public final class CoapMessageReadTimeoutException extends ChannelException
+{
 
-type Person:void {
-	.id:long
-	.firstName:string
-	.lastName:string
-	.age:int
-	.size:double
-	.male:bool
-	.unknown:any
-	.unknown2:undefined
-	.array*:any
-	.object:void {
-		.data:any
+	private static final long serialVersionUID = 169287984113283421L;
+
+	public static final CoapMessageReadTimeoutException INSTANCE = new CoapMessageReadTimeoutException();
+	private long id;
+	private int timeout;
+
+	private CoapMessageReadTimeoutException()
+	{
 	}
-}
 
-interface ServerInterface {
-	OneWay:
-		shutdown(void)
-	RequestResponse:
-		echoPerson(Person)(Person),
-		identity(any)(any)
+	CoapMessageReadTimeoutException( long id, int timeout )
+	{
+		this.id = id;
+		this.timeout = timeout;
+	}
+
+	@Override
+	public Throwable fillInStackTrace()
+	{
+		return this;
+	}
+
+	public long getId()
+	{
+		return id;
+	}
+
+	public int getTimeout()
+	{
+		return timeout;
+	}
+
 }

@@ -1,5 +1,6 @@
 /**********************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>                 *  
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -18,37 +19,51 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
+package jolie.net.coap.message.correlators;
 
-constants {
-	Location_SODEPServer = "socket://localhost:10101",
-	Location_SODEPSServer = "socket://localhost:10102",
-	Location_SOAPServer = "socket://localhost:10103",
-	Location_JSONRPCServer = "socket://localhost:10104",
-	Location_HTTPServer = "socket://localhost:10105",
-	Location_HTTPSServer = "socket://localhost:10106",
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import jolie.net.coap.message.CoapMessage;
 
-	KeystorePassword = "superjolie"
-}
+public class CoapMessageCorrelator
+{
 
-type Person:void {
-	.id:long
-	.firstName:string
-	.lastName:string
-	.age:int
-	.size:double
-	.male:bool
-	.unknown:any
-	.unknown2:undefined
-	.array*:any
-	.object:void {
-		.data:any
+	// Ensure that ONLY ONE ConcurrentHashMap is used for every thread
+	private static final Map<Integer, CoapMessage> requests = new ConcurrentHashMap<>();
+
+	/**
+	To be called in case of receiving a { @link CoapMessage } request.
+	This has to be sent to { @link CommCore }, hence stored in a { @link ConcurrentHashMap }.
+	@param in 
+	 */
+	public void receiveRequest( int key, CoapMessage in )
+	{
+		requests.putIfAbsent( key, in );
 	}
-}
 
-interface ServerInterface {
-	OneWay:
-		shutdown(void)
-	RequestResponse:
-		echoPerson(Person)(Person),
-		identity(any)(any)
+	/**
+	As soon as a response is received from the { @link CommCore },
+	the { @link CoapMessage } request is retrieved from the { @link ConcurrentHashMap }
+	and removed.
+	@param id
+	@return the { @link CoapMessage } from the { @link ConcurrentHashMap }
+	 */
+	public CoapMessage sendResponse( int key )
+	{
+		return sendResponse( key, true );
+	}
+
+	/**
+	As soon as a response is received from the { @link CommCore },
+	the { @link CoapMessage } request is retrieved from the { @link ConcurrentHashMap },
+	removed or not depending on the boolean parameter.
+	@param key
+	@param remove
+	@return the { @link CoapMessage } from the { @link ConcurrentHashMap }
+	 */
+	public CoapMessage sendResponse( int key, boolean remove )
+	{
+		return remove ? requests.remove( key ) : requests.get( key );
+	}
+
 }

@@ -1,6 +1,6 @@
 /**********************************************************************************
- *   Copyright (C) 2017-18 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
- *   Copyright (C) 2017-18 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *   Copyright (C) 2016, Oliver Kleine, University of Luebeck                     *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>      *
  *                                                                                *
  *   This program is free software; you can redistribute it and/or modify         *
  *   it under the terms of the GNU Library General Public License as              *
@@ -19,7 +19,6 @@
  *                                                                                *
  *   For details about the authors of this software, see the AUTHORS file.        *
  **********************************************************************************/
-
 package jolie.net.coap.message.options;
 
 import java.util.Arrays;

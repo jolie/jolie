@@ -134,7 +134,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	{
 		try {
 			commChannelHandler.write( message ).sync();
-		} catch ( InterruptedException ex ) {
+		} catch( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
 	}
@@ -166,4 +166,11 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	{
 		this.pipeline = newPipeline;
 	}
+
+	@Override
+	public StreamingCommChannelHandler getChannelHandler()
+	{
+		return commChannelHandler;
+	}
+
 }
