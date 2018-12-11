@@ -20,7 +20,7 @@
  ***************************************************************************/
 
 constants {
-	Location_XMLRPCServer = "socket://localhost:10102"
+	Location_XMLRPCServer = "socket://localhost:10101"
 }
 
 type SumRequest:void {
