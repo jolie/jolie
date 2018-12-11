@@ -1,10 +1,10 @@
-FROM openjdk:alpine as JolieBuild
+FROM openjdk:slim as JolieBuild
 
-RUN apk update
-RUN apk add apache-ant
-RUN apk add git
-RUN git clone --depth=1 https://github.com/saltgz/jolie.git --branch next jolie-git
+RUN apt-get update
+RUN apt-get -y install ant
+RUN apt-get -y install git
+RUN git clone --depth=1 https://github.com/jolie/jolie.git --branch next jolie-git
 WORKDIR /jolie-git
-RUN ant -Dplatforms.JDK_1.8.home=/usr/lib/jvm/java-1.8-openjdk/ dist-install
+RUN ant dist-install
 ENV JOLIE_HOME /usr/local/lib/jolie
 WORKDIR /home
