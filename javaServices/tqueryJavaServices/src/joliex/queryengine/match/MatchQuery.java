@@ -1,10 +1,10 @@
-package joliex.queryengine;
+package joliex.queryengine.match;
 
 import java.util.HashMap;
 import java.util.Optional;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import static joliex.queryengine.Utils.Constants.*;
+import static joliex.queryengine.common.Utils.Constants.*;
 
 public final class MatchQuery {
 
