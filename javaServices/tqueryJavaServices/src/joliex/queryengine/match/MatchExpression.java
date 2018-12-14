@@ -1,41 +1,44 @@
-/*
- *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>
- *   Copyright (C) 2018 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of the
- *   License, or (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU Library General Public
- *   License along with this program; if not, write to the
- *   Free Software Foundation, Inc.,
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- *   For details about the authors of this software, see the AUTHORS file.
- */package joliex.queryengine.match;
+/*******************************************************************************
+ *   Copyright (C) 2018 by Larisa Safina <safina@imada.sdu.dk>                 *
+ *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
+ *   Copyright (C) 2018 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *                                                                             *
+ *   This program is free software; you can redistribute it and/or modify      *
+ *   it under the terms of the GNU Library General Public License as           *
+ *   published by the Free Software Foundation; either version 2 of the        *
+ *   License, or (at your option) any later version.                           *
+ *                                                                             *
+ *   This program is distributed in the hope that it will be useful,           *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+ *   GNU General Public License for more details.                              *
+ *                                                                             *
+ *   You should have received a copy of the GNU Library General Public         * 
+ *   License along with this program; if not, write to the                     *
+ *   Free Software Foundation, Inc.,                                           *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
+ *                                                                             *
+ *   For details about the authors of this software, see the AUTHORS file.     *
+ *******************************************************************************/
+
+package joliex.queryengine.match;
 
 import java.util.Optional;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.Utils;
 
-final class AndExp implements MatchExpression {
+final class AndExpression implements MatchExpression {
 
 	private BinaryExpression and;
 
-	AndExp(BinaryExpression and) {
+	AndExpression(BinaryExpression and) {
 		this.and = and;
 	}
 
 	@Override
-	public Optional<Value> interpret(Value data) {
-		return (and.getLeft().interpret(data).isPresent() && and.getRight().interpret(data).isPresent())
+	public Optional<Value> applyOn(Value data) {
+		return (and.getLeft().applyOn(data).isPresent() && and.getRight().applyOn(data).isPresent())
 				? Optional.of(data)
 				: Optional.empty();
 	}
@@ -88,7 +91,7 @@ final class EqualExp extends UnaryExpression {
 	}
 
 	@Override
-	public Optional<Value> interpret(Value data) {
+	public Optional<Value> applyOn(Value data) {
 		ValueVector values = Utils.evaluatePath(data, equal.getPath());
 
 		return ((values.size() == 1) && values.first().strValue().equals(equal.getValue()))
@@ -106,7 +109,7 @@ final class ExistsExp extends UnaryExpression {
 	}
 
 	@Override
-	public Optional<Value> interpret(Value data) {
+	public Optional<Value> applyOn(Value data) {
 		return (Utils.evaluatePath(data, exists).isEmpty())
 				? Optional.empty()
 				: Optional.of(data);
@@ -122,7 +125,7 @@ final class GreaterThenExp extends UnaryExpression {
 	}
 
 	@Override
-	public Optional<Value> interpret(Value data) {
+	public Optional<Value> applyOn(Value data) {
 		ValueVector values = Utils.evaluatePath(data, greaterThen.getPath());
 
 		if (values.size() == 1) {
@@ -144,7 +147,7 @@ final class LowerThenExp extends UnaryExpression {
 	}
 
 	@Override
-	public Optional<Value> interpret(Value data) {
+	public Optional<Value> applyOn(Value data) {
 		ValueVector values = Utils.evaluatePath(data, lowerThen.getPath());
 
 		if (values.size() == 1) {
@@ -166,8 +169,8 @@ final class NotExp implements MatchExpression {
 	}
 
 	@Override
-	public Optional<Value> interpret(Value data) {
-		return (not.interpret(data).isPresent())
+	public Optional<Value> applyOn(Value data) {
+		return (not.applyOn(data).isPresent())
 				? Optional.empty()
 				: Optional.of(data);
 	}
@@ -182,20 +185,15 @@ final class OrExp implements MatchExpression {
 	}
 
 	@Override
-	public Optional<Value> interpret(Value data) {
-		return (or.getLeft().interpret(data).isPresent() || or.getRight().interpret(data).isPresent())
+	public Optional<Value> applyOn(Value data) {
+		return (or.getLeft().applyOn(data).isPresent() || or.getRight().applyOn(data).isPresent())
 				? Optional.of(data)
 				: Optional.empty();
 	}
 }
 
-abstract class UnaryExpression implements MatchExpression {
-}
+abstract class UnaryExpression implements MatchExpression {}
 
 public interface MatchExpression {
-
-	Optional<Value> interpret(Value data);
+	Optional<Value> applyOn( ValueVector data );
 }
-
-
-//~ Formatted by Jindent --- http://www.jindent.com
