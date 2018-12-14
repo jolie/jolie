@@ -10,15 +10,15 @@ type MatchExp         : UnaryExp | ORExp | ANDExp | NOTExp
 type UnaryExp         : EQUALExp | GREATERTHENExp | LOWERTHENExp | EXISTSExp | bool
 
 type EQUALExp         : void {
-.equal                : CompareExp           
+.equal                : CompareExp
 }
 
 type GREATERTHENExp   : void {
-.greaterThen          : CompareExp           
+.greaterThen          : CompareExp
 }
 
 type LOWERTHENExp     : void {
-.lowerThen            : CompareExp           
+.lowerThen            : CompareExp
 }
 
 type CompareExp       : void {
@@ -97,11 +97,16 @@ type LookupRequest    : void {
 
 interface TQueryInterface {
   RequestResponse :
-    match   ( MatchRequestType  )( undefined ) throws MalformedQueryExpression( string ),
-    unwind  ( UnwindRequest     )( undefined ) throws MalformedQueryExpression( string ),
-    project ( ProjectRequest    )( undefined ) throws MalformedQueryExpression( string ),
-    group   ( GroupRequest      )( undefined ) throws MalformedQueryExpression( string ),
-    lookup  ( LookupRequest     )( undefined ) throws MalformedQueryExpression( string )
+    match   ( MatchRequestType  )( undefined )
+      throws MalformedQueryExpression( string ),
+    unwind  ( UnwindRequest     )( undefined )
+      throws MalformedQueryExpression( string ),
+    project ( ProjectRequest    )( undefined )
+      throws MalformedQueryExpression( string ),
+    group   ( GroupRequest      )( undefined )
+      throws MalformedQueryExpression( string ),
+    lookup  ( LookupRequest     )( undefined )
+      throws MalformedQueryExpression( string )
 }
 
 outputPort TQuery {

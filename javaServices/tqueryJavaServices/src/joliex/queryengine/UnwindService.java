@@ -21,32 +21,11 @@
  */
 package joliex.queryengine;
 
-import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
-/**
- *
- * @author Stefano Pio Zingaro <stefano.zingaro@icloud.com>
- */
-public class TQueryService extends JavaService {
+public final class UnwindService {
 
-	public Value group(Value request) {
-		return GroupService.group(request);
-	}
-
-	public Value lookup(Value request) {
-		return LookupService.lookup(request);
-	}
-
-	public Value match(Value request) {
-		return MatchService.match(request);
-	}
-
-	public Value project(Value request) {
-		return ProjectService.project(request);
-	}
-
-	public Value unwind(Value request) {
-		return UnwindService.unwind(request);
+	static Value unwind(Value request) {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }
