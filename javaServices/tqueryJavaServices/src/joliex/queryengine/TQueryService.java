@@ -26,10 +26,7 @@ package joliex.queryengine;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
-/**
- *
- * @author Stefano Pio Zingaro <stefano.zingaro@icloud.com>
- */
+
 public class TQueryService extends JavaService {
 
 	public Value group(Value request) {

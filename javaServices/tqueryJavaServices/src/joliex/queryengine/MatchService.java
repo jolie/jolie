@@ -24,14 +24,13 @@
 package joliex.queryengine;
 
 import jolie.runtime.Value;
+import joliex.queryengine.match.MatchQuery;
 
-/**
- * 
- * @author Stefano Pio Zingaro <stefano.zingaro@icloud.com>
- */
+
 public class MatchService {
 
 	static Value match(Value request) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		System.out.println( "Invoked Match" );
+		return MatchQuery.match( request );
 	}
 }

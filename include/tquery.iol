@@ -7,23 +7,10 @@ type MatchRequestType : void {
 
 type MatchExp         : UnaryExp | ORExp | ANDExp | NOTExp
 
-type UnaryExp         : EQUALExp | GREATERTHENExp | LOWERTHENExp | EXISTSExp | bool
+type UnaryExp         : EQUALExp | EXISTSExp | bool
 
 type EQUALExp         : void {
 .equal                : CompareExp
-}
-
-type GREATERTHENExp   : void {
-.greaterThen          : CompareExp
-}
-
-type LOWERTHENExp     : void {
-.lowerThen            : CompareExp
-}
-
-type CompareExp       : void {
-.path                 : Path
-.value[1,*]           : undefined
 }
 
 type EXISTSExp        : void {

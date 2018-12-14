@@ -26,21 +26,25 @@ package joliex.queryengine.match;
 import java.util.Optional;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.Utils;
 
 final class AndExpression implements MatchExpression {
 
 	private BinaryExpression and;
 
-	AndExpression(BinaryExpression and) {
+	AndExpression( BinaryExpression and ) {
 		this.and = and;
 	}
 
 	@Override
-	public Optional<Value> applyOn(Value data) {
-		return (and.getLeft().applyOn(data).isPresent() && and.getRight().applyOn(data).isPresent())
-				? Optional.of(data)
+	public Optional<ValueVector> applyOn(ValueVector data) {
+		return (and.getLeft().applyOn(data).isPresent() && and.getRight().applyOn(data).isPresent())? 
+				Optional.of(data)
 				: Optional.empty();
+	}
+
+	@Override
+	public Optional<ValueVector> applyOn(Value data) {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }
 
@@ -82,110 +86,111 @@ final class CompareExp {
 	}
 }
 
-final class EqualExp extends UnaryExpression {
+//final class EqualExp extends UnaryExpression {
+//
+//	private CompareExp equal;    // .equal: CompareExp
+//
+//	EqualExp(CompareExp equal) {
+//		this.equal = equal;
+//	}
+//
+//	@Override
+//	public Optional<ValueVector> applyOn(ValueVector data) {
+//		//ValueVector values = Utils.evaluatePath(data, equal.getPath());
+//
+//		return ((values.size() == 1) && values.first().strValue().equals(equal.getValue()))
+//				? Optional.of(data)
+//				: Optional.empty();
+//	}
+//}
 
-	private CompareExp equal;    // .equal: CompareExp
-
-	EqualExp(CompareExp equal) {
-		this.equal = equal;
-	}
-
-	@Override
-	public Optional<Value> applyOn(Value data) {
-		ValueVector values = Utils.evaluatePath(data, equal.getPath());
-
-		return ((values.size() == 1) && values.first().strValue().equals(equal.getValue()))
-				? Optional.of(data)
-				: Optional.empty();
-	}
-}
-
-final class ExistsExp extends UnaryExpression {
+final class ExistsExpression extends UnaryExpression {
 
 	private String exists;    // .exists: Path
 
-	ExistsExp(String exists) {
+	ExistsExpression( String exists ) {
 		this.exists = exists;
 	}
 
 	@Override
-	public Optional<Value> applyOn(Value data) {
-		return (Utils.evaluatePath(data, exists).isEmpty())
+	public Optional<ValueVector> applyOn( Value data ) {
+		return ( Utils.evaluatePath( data, exists ).isEmpty())
 				? Optional.empty()
 				: Optional.of(data);
 	}
 }
 
-final class GreaterThenExp extends UnaryExpression {
+//final class GreaterThenExp extends UnaryExpression {
+//
+//	private CompareExp greaterThen;    // .greaterThen: CompareExp
+//
+//	GreaterThenExp(CompareExp greaterThen) {
+//		this.greaterThen = greaterThen;
+//	}
+//
+//	@Override
+//	public Optional<ValueVector> applyOn(ValueVector data) {
+//		ValueVector values = Utils.evaluatePath(data, greaterThen.getPath());
+//
+//		if (values.size() == 1) {
+//			return Utils.isGreater(values.first(), greaterThen.getValue())
+//					? Optional.of(data)
+//					: Optional.empty();
+//		} else {
+//			return Optional.empty();
+//		}
+//	}
+//}
 
-	private CompareExp greaterThen;    // .greaterThen: CompareExp
+//final class LowerThenExp extends UnaryExpression {
+//
+//	private CompareExp lowerThen;    // .lowerThen: CompareExp
+//
+//	LowerThenExp(CompareExp lowerThen) {
+//		this.lowerThen = lowerThen;
+//	}
+//
+//	@Override
+//	public Optional<ValueVector> applyOn(ValueVector data) {
+//		
+//		ValueVector values = Utils.evaluatePath(data, lowerThen.getPath());
+//
+//		if (values.size() == 1) {
+//			return Utils.isGreater(values.first(), lowerThen.getValue())
+//					? Optional.empty()
+//					: Optional.of(data);
+//		} else {
+//			return Optional.empty();
+//		}
+//	}
+//}
 
-	GreaterThenExp(CompareExp greaterThen) {
-		this.greaterThen = greaterThen;
-	}
-
-	@Override
-	public Optional<Value> applyOn(Value data) {
-		ValueVector values = Utils.evaluatePath(data, greaterThen.getPath());
-
-		if (values.size() == 1) {
-			return Utils.isGreater(values.first(), greaterThen.getValue())
-					? Optional.of(data)
-					: Optional.empty();
-		} else {
-			return Optional.empty();
-		}
-	}
-}
-
-final class LowerThenExp extends UnaryExpression {
-
-	private CompareExp lowerThen;    // .lowerThen: CompareExp
-
-	LowerThenExp(CompareExp lowerThen) {
-		this.lowerThen = lowerThen;
-	}
-
-	@Override
-	public Optional<Value> applyOn(Value data) {
-		ValueVector values = Utils.evaluatePath(data, lowerThen.getPath());
-
-		if (values.size() == 1) {
-			return Utils.isGreater(values.first(), lowerThen.getValue())
-					? Optional.empty()
-					: Optional.of(data);
-		} else {
-			return Optional.empty();
-		}
-	}
-}
-
-final class NotExp implements MatchExpression {
+final class NotExpression implements MatchExpression {
 
 	private MatchExpression not;    // .not: BinaryExp
 
-	NotExp(MatchExpression not) {
+	NotExpression(MatchExpression not) {
 		this.not = not;
 	}
 
 	@Override
-	public Optional<Value> applyOn(Value data) {
+	public Optional<ValueVector> applyOn(ValueVector data) {
 		return (not.applyOn(data).isPresent())
 				? Optional.empty()
 				: Optional.of(data);
 	}
 }
 
-final class OrExp implements MatchExpression {
+final class OrExpression implements MatchExpression {
 
 	private BinaryExpression or;
 
-	OrExp(BinaryExpression or) {
+	OrExpression(BinaryExpression or) {
 		this.or = or;
 	}
 
 	@Override
-	public Optional<Value> applyOn(Value data) {
+	public Optional<ValueVector> applyOn(ValueVector data) {
 		return (or.getLeft().applyOn(data).isPresent() || or.getRight().applyOn(data).isPresent())
 				? Optional.of(data)
 				: Optional.empty();
@@ -195,5 +200,5 @@ final class OrExp implements MatchExpression {
 abstract class UnaryExpression implements MatchExpression {}
 
 public interface MatchExpression {
-	Optional<Value> applyOn( ValueVector data );
+	Value applyOn( ValueVector elements );
 }

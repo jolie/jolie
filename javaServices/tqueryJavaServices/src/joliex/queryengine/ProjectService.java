@@ -28,6 +28,6 @@ import jolie.runtime.Value;
 public class ProjectService {
 
 	static Value project(Value request) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return request;
 	}
 }
