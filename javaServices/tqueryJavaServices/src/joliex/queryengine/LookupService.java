@@ -28,6 +28,6 @@ import jolie.runtime.Value;
 public class LookupService {
 
 	static Value lookup(Value request) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return request;
 	}
 }

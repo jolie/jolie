@@ -27,7 +27,7 @@ import jolie.runtime.Value;
 
 public class GroupService {
 
-	static Value group(Value request) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	static Value group( Value request ) {
+		return request;
 	}
 }

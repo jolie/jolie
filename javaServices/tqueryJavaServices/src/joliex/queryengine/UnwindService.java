@@ -28,6 +28,6 @@ import jolie.runtime.Value;
 public final class UnwindService {
 
 	static Value unwind(Value request) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return request;
 	}
 }
