@@ -21,17 +21,31 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.match;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.match.MatchQuery;
+import jolie.runtime.ValueVector;
 
+public class NotExpression implements MatchExpression {
 
-public class MatchService {
-
-	static Value match(Value request) throws FaultException {
-		System.out.println( "Invoked match" );
-		return MatchQuery.match( request );
+	private final MatchExpression expression;
+	
+	public NotExpression( MatchExpression expression ){
+		this.expression = expression;
 	}
+	
+	@Override
+	public boolean[] applyOn( ValueVector elements ) {
+		boolean[] mask = MatchUtils.getMask( elements );
+		for ( int i = 0; i < mask.length; i++) {
+			mask[ i ] = applyOn( elements.get( i ) );
+		}
+		return mask;
+	}
+
+	@Override
+	public boolean applyOn( Value element ) {
+		return !expression.applyOn( element );
+	}
+	
 }

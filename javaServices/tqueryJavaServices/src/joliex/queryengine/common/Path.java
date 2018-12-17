@@ -25,6 +25,8 @@ package joliex.queryengine.common;
 
 import java.util.Optional;
 import jolie.Jolie;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 /**
  * This class implements {@link Path}s in {@link Jolie}. We use {@link Path}s in
@@ -59,6 +61,46 @@ public class Path {
 			return new Path( path.substring( 0, idx ), Optional.of( parsePath( path.substring( idx + 1 ) ) ) );
 		} else {
 			return new Path( path, Optional.empty() );
+		}
+	}
+	
+	public Optional<ValueVector> apply( Value value ) {
+		if ( value.hasChildren( node ) ){
+			if( continuation.isPresent() ){
+				Optional<ValueVector> childrenOptional = Optional.empty();
+				ValueVector children = ValueVector.create();
+				for ( Value child : value.getChildren( node ) ) {
+					Optional<ValueVector> grandchildren = continuation.get().apply( child );
+					if( grandchildren.isPresent() ){
+						if( childrenOptional.isEmpty() ){ childrenOptional = Optional.of( children ); }
+						for( Value grandchild : grandchildren.get() ){
+							children.add( grandchild );
+						}
+					}
+				}
+				return childrenOptional;
+			} else {
+				return Optional.of( value.getChildren( node ) );
+			}
+		} else {
+			return Optional.empty();
+		}
+	}
+	
+	public boolean exists( Value value ){
+		if ( value.hasChildren( node ) ){
+			if( continuation.isPresent() ) {
+				for ( Value child : value.getChildren( node ) ) {
+					if( continuation.get().exists( child ) ){
+						return true;
+					}
+				}
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
 		}
 	}
 

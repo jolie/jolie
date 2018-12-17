@@ -21,17 +21,37 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.match;
 
-import jolie.runtime.FaultException;
+import java.util.Optional;
 import jolie.runtime.Value;
-import joliex.queryengine.match.MatchQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
+import joliex.queryengine.common.Utils;
 
-
-public class MatchService {
-
-	static Value match(Value request) throws FaultException {
-		System.out.println( "Invoked match" );
-		return MatchQuery.match( request );
+public class EqualExpression implements MatchExpression {
+	
+	private final Path path;
+	private final ValueVector vector;
+	
+	public EqualExpression( Path path, ValueVector vector ){
+		this.path = path;
+		this.vector = vector;
 	}
+
+	@Override
+	public boolean[] applyOn( ValueVector elements ) {
+		boolean[] mask = MatchUtils.getMask( elements );
+		for ( int i = 0; i < mask.length; i++ ) {
+			mask[ i ] = applyOn( elements.get( i ) );
+		}
+		return mask;
+	}
+
+	@Override
+	public boolean applyOn( Value element ) {
+		Optional<ValueVector> pathApplication = path.apply( element );
+		return pathApplication.isEmpty() ? false : Utils.checkVectorEquality( pathApplication.get(), vector );
+	}
+	
 }

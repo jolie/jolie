@@ -23,20 +23,23 @@
 
 package joliex.queryengine.match;
 
+import java.util.Optional;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
 
 public final class MatchQuery {
-	
+
 	private static class RequestType {
-		
+
 		private static final String DATA = "data";
 		private static final String QUERY = "query";
+
 		private static class QuerySubtype {
+
 			private static final String NOT = "not";
 			private static final String EQUAL = "equal";
-			private static final String GREATERTHAN = "greaterThan";
-			private static final String LOWERTHAN = "lowerThan";
 			private static final String OR = "or";
 			private static final String AND = "and";
 			private static final String EXISTS = "exists";
@@ -44,171 +47,103 @@ public final class MatchQuery {
 			private static final String RIGHT = "right";
 			private static final String PATH = "path";
 			private static final String VALUE = "value";
-			private static String[] subNodes = { NOT, EQUAL, GREATERTHAN, LOWERTHAN, OR, AND, EXISTS };
 		}
 	}
-		
+
+	private static class ResponseType {
+
+		private static final String RESPONSE = "response";
+	}
+	
+	public static Value match( Value matchRequest ) throws FaultException {
+
+		Value query = matchRequest.getFirstChild( RequestType.QUERY );
+		System.out.println("query " + query.toPrettyString() );
+		ValueVector dataElements = matchRequest.getChildren( RequestType.DATA );
+		System.out.println("data " );
+		for( Value element : dataElements ){
+			System.out.println( element.toPrettyString() );
+		}
+		MatchExpression e = parseMatchExpression( query )
+				.orElseThrow( 
+						() -> new FaultException( "MatchQuerySyntaxException", "Could not parse query expression " + query.toPrettyString() ) 
+				);
+		boolean[] mask = e.applyOn( dataElements );
+		for (int i = 0; i < mask.length; i++) {
+			System.out.println( mask[ i ] );
+		}
+		Value response = Value.create();
+		ValueVector responseVector = ValueVector.create();
+		response.children().put( ResponseType.RESPONSE, responseVector );
+		for (int i = 0; i < mask.length; i++) {
+			if ( mask[i] ) {
+				response.add( dataElements.get(i) );
+			}
+		}
+		return response;
+	}
+	
+	public static Optional<MatchExpression> parseMatchExpression( Value query ){
+		MatchExpression e =  unsafeParseMatchExpression( query );
+		return ( e != null ) ? Optional.of( e ) : Optional.empty();
+	}
+
 	//type MatchRequestType : void {
 	//.data*                : undefined
 	//.query                : void {
 	//    .not                  : MatchExp
-	//    | .equal              : void { .path: Path, .value[1,*]: undefined }
 	//    | .or                 : void { .left: MatchExp, .right: MatchExp }
 	//    | .and                : void { .left: MatchExp, .right: MatchExp }
+	//    | .equal              : void { .path: Path, .value[1,*]: undefined }
 	//    | .exists             : Path
 	//    | bool
 		
-	public static Value match( Value matchRequest ) {
-
-		Value query = matchRequest.getChildren( RequestType.QUERY ).first();
-		ValueVector dataElements = matchRequest.getChildren( RequestType.DATA );
-
-		return parseMatchExpression( query ).applyOn( dataElements );
-
+		private static MatchExpression unsafeParseMatchExpression( Value query ) throws IllegalArgumentException {
+		if ( query.children().size() > 1 ) {
+			throw new IllegalArgumentException( query.toPrettyString() );
+		} else {
+			if ( query.isBool() ) {
+				return new BooleanExpression( query.boolValue() );
+			} else if ( query.hasChildren( RequestType.QuerySubtype.EQUAL ) ) {
+				return new EqualExpression(
+						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
+						query.getChildren( RequestType.QuerySubtype.VALUE )
+				);
+			} else if ( query.hasChildren( RequestType.QuerySubtype.EXISTS ) ) {
+				return new ExistsExpression(
+						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.PATH).strValue() )
+				);
+			} else if ( query.hasChildren( RequestType.QuerySubtype.OR ) ) {
+				return BinaryExpression.OrExpression(
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.LEFT ) )
+							.orElseThrow( 
+								() -> new IllegalArgumentException( "Could not parse left hand of " + query.toPrettyString() )
+						),
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.RIGHT ) )
+							.orElseThrow(
+								() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
+						)
+				);
+			} else if ( query.hasChildren(RequestType.QuerySubtype.AND ) ) {
+				return BinaryExpression.AndExpression(
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.LEFT ) )
+							.orElseThrow( 
+								() -> new IllegalArgumentException( "Could not parse left hand of " + query.toPrettyString() )
+						),
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.RIGHT ) )
+							.orElseThrow(
+								() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
+						)
+				);
+			} else if ( query.hasChildren( RequestType.QuerySubtype.NOT ) ){
+					return new NotExpression( parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.NOT ) )
+						.orElseThrow(
+							() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
+						)
+					);
+				}
+			}
+		return null;
 	}
 	
-	public static MatchExpression parseMatchExpression( Value query ) {
-		
-		// NOT -> MatchExpression
-		
-		
-		// OR -> BinaryExpression
-		
-		
-		// AND -> BinaryExpression
-		
-		
-		// EXISTS -> Path
-		
-		
-		// EQUAL -> Path, ValueVector
-		
-		
-		//.query                : void {
-		//    .not                  : MatchExp
-		//    | .equal              : void { .path: Path, .value[1,*]: undefined }
-		//    | .or                 : void { .left: MatchExp, .right: MatchExp }
-		//    | .and                : void { .left: MatchExp, .right: MatchExp }
-		//    | .exists             : Path
-		//    | bool
-		
-//		System.out.println( "Query: " + query.toPrettyString() );
-//		HashMap< String, BiFunction<Value,String,MatchExpression> > hashMap = new HashMap();
-//		hashMap.put(
-//				RequestType.QuerySubtype.AND,
-//				( Value q, String s ) -> new AndExpression( createBinaryExpression( q.getChildren( s ) ) ) 
-//		);
-//		hashMap.put(
-//				RequestType.QuerySubtype.OR,
-//				( Value q, String s ) -> new OrExpression( createBinaryExpression( q.getChildren( s ) ) ) 
-//		);
-//		hashMap.put(
-//				RequestType.QuerySubtype.NOT,
-//				( Value q, String s ) -> new NotExpression( parseMatchExpression( q.getFirstChild( s ) ) ) 
-//		);
-//		hashMap.put(
-//				RequestType.QuerySubtype.EXISTS,
-//				( Value q, String s ) -> new (createBinaryExpression( q.getChildren( s ) ) ) 
-//		);
-//		if ( query.hasChildren() ){
-//			String node = ( String ) query.children().keySet().toArray()[0];
-//			System.out.println( "Found: " + node );
-//		}
-//		return null;
-//		try {
-//				if( query.hasChildren( RequestType.MatchExpressionType.AND ) ) {
-//				return new AndExpression( createBinaryExpression( query.getChildren( RequestType.MatchExpressionType.AND ) ) );
-//			}
-//			
-//			}
-//
-//			if (query.hasChildren(or)) {
-//				ValueVector children = query.getChildren(or);
-//
-//				return new OrExp(createBinaryExpression(children));
-//			}
-//
-//			if (query.hasChildren(not)) {
-//				ValueVector children = query.getChildren(not);
-//
-//				assert (children.size() == 1);
-//
-//				return new NotExp(parseMatchExpression(children.first()));
-//			}
-//
-//			if (query.hasChildren(equal)) {
-//				ValueVector children = query.getChildren(equal);
-//
-//				return new EqualExp(createCompareExpression(children));
-//			}
-//
-//			if (query.hasChildren(greaterThen)) {
-//				ValueVector children = query.getChildren(greaterThen);
-//
-//				assert (children.size() == 1);
-//
-//				return new GreaterThenExp(createCompareExpression(children));
-//			}
-//
-//			if (query.hasChildren(lowerThen)) {
-//				ValueVector children = query.getChildren(lowerThen);
-//
-//				assert (children.size() == 1);
-//
-//				return new LowerThenExp(createCompareExpression(children));
-//			}
-//
-//			if (query.hasChildren(exists)) {
-//				ValueVector children = query.getChildren(exists);
-//
-//				assert (children.size() == 1);
-//
-//				return new ExistsExp(children.first().strValue());
-//			}
-//		} catch (Exception e) {
-//			System.out.println(e.getMessage());
-//		}
-//
-//		throw new IllegalArgumentException("Unsupported structure of a match request");
-	}
-	
-//	private static BinaryExpression createBinaryExpression(ValueVector children) {
-//		HashMap<String, ValueVector> leftRight = new HashMap<>();
-//
-//		children.forEach(
-//				value -> {
-//					if (value.hasChildren( RequestType.QuerySubtype.LEFT ) ) {
-//						leftRight.put(
-//								RequestType.QuerySubtype.LEFT, 
-//								value.getChildren( RequestType.QuerySubtype.LEFT ) );
-//					}
-//
-//					if (value.hasChildren( RequestType.QuerySubtype.RIGHT ) ) {
-//						leftRight.put( RequestType.QuerySubtype.RIGHT, value.getChildren( RequestType.QuerySubtype.RIGHT ) );
-//					}
-//				});
-//		assert (leftRight.containsKey( RequestType.QuerySubtype.LEFT ) && leftRight.containsKey( RequestType.QuerySubtype.RIGHT ) );
-//
-//		return new BinaryExpression(parseMatchExpression(leftRight.get( RequestType.QuerySubtype.LEFT ).first()),
-//			parseMatchExpression(leftRight.get( RequestType.QuerySubtype.RIGHT ).first()));
-//	}
-//
-//	private static CompareExp createCompareExpression(ValueVector children) {
-//		HashMap<String, ValueVector> pathValue = new HashMap<>();
-//
-//		children.forEach(
-//				value -> {
-//					if ( value.hasChildren( RequestType.QuerySubtype.PATH ) ) {
-//						pathValue.put( RequestType.QuerySubtype.PATH, value.getChildren( RequestType.QuerySubtype.PATH ));
-//					}
-//
-//					if (value.hasChildren( RequestType.QuerySubtype.VALUE )) {
-//						pathValue.put( RequestType.QuerySubtype.VALUE, value.getChildren( RequestType.QuerySubtype.VALUE ));
-//					}
-//				});
-//		assert ( pathValue.containsKey( RequestType.QuerySubtype.PATH ) && pathValue.containsKey( RequestType.QuerySubtype.VALUE ) );
-//		assert ( ( pathValue.get( RequestType.QuerySubtype.PATH ).size() == 1) && (pathValue.get( RequestType.QuerySubtype.VALUE ).size() == 1 ) );
-//
-//		return new CompareExp( pathValue.get( RequestType.QuerySubtype.PATH ).first().strValue(), pathValue.get( RequestType.QuerySubtype.VALUE ).first().strValue() );
-//	}
 }
