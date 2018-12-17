@@ -23,6 +23,7 @@
 
 package joliex.queryengine;
 
+import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
@@ -37,7 +38,7 @@ public class TQueryService extends JavaService {
 		return LookupService.lookup(request);
 	}
 
-	public Value match(Value request) {
+	public Value match(Value request) throws FaultException {
 		return MatchService.match(request);
 	}
 

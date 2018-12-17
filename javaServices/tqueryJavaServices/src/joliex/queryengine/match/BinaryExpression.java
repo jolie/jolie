@@ -21,17 +21,45 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.match;
 
-import jolie.runtime.FaultException;
+import java.util.function.Function;
 import jolie.runtime.Value;
-import joliex.queryengine.match.MatchQuery;
+import jolie.runtime.ValueVector;
 
+public class BinaryExpression implements MatchExpression {
 
-public class MatchService {
-
-	static Value match(Value request) throws FaultException {
-		System.out.println( "Invoked match" );
-		return MatchQuery.match( request );
+	final private Function<Value, Boolean> assembleResult;
+	
+	private BinaryExpression( Function assembleResult ){
+		this.assembleResult = assembleResult;
 	}
+	
+	public static BinaryExpression OrExpression( MatchExpression leftExpression, MatchExpression rightExpression ){
+		Function<Value, Boolean> assembleFunction = ( Value v ) -> leftExpression.applyOn( v ) || rightExpression.applyOn( v );
+		return new BinaryExpression( assembleFunction );
+	}
+	
+	public static BinaryExpression AndExpression( MatchExpression leftExpression, MatchExpression rightExpression ){
+		Function<Value, Boolean> assembleFunction = (Value v) -> {
+			System.out.println( v.toPrettyString() );
+			return leftExpression.applyOn( v ) && rightExpression.applyOn( v );
+		};
+		return new BinaryExpression( assembleFunction );
+	}
+
+	@Override
+	public boolean[] applyOn( ValueVector elements ) {
+		boolean[] mask = MatchUtils.getMask( elements );
+		for ( int i = 0; i < mask.length; i++ ) {
+			mask[ i ] = applyOn( elements.get( i ) );
+		}
+		return mask;
+	}
+
+	@Override
+	public boolean applyOn( Value element ) {
+		return this.assembleResult.apply( element );
+	}
+	
 }
