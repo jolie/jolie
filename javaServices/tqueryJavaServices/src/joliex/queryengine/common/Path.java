@@ -59,12 +59,15 @@ public class Path {
 		int idx = path.indexOf( PATH_SEPARATOR );
 		if(  idx > 0 ){
 			return new Path( path.substring( 0, idx ), Optional.of( parsePath( path.substring( idx + 1 ) ) ) );
-		} else {
+		} else if ( path.length() > 0 ) {
 			return new Path( path, Optional.empty() );
+		} else {
+			throw new IllegalArgumentException( "Could not parse path \"" + path + "\"" );
 		}
 	}
 	
 	public Optional<ValueVector> apply( Value value ) {
+		System.out.println( "Applying " + this.toPrettyString() + " to " +  value.toPrettyString() );
 		if ( value.hasChildren( node ) ){
 			if( continuation.isPresent() ){
 				Optional<ValueVector> childrenOptional = Optional.empty();

@@ -42,7 +42,6 @@ public class BinaryExpression implements MatchExpression {
 	
 	public static BinaryExpression AndExpression( MatchExpression leftExpression, MatchExpression rightExpression ){
 		Function<Value, Boolean> assembleFunction = (Value v) -> {
-			System.out.println( v.toPrettyString() );
 			return leftExpression.applyOn( v ) && rightExpression.applyOn( v );
 		};
 		return new BinaryExpression( assembleFunction );
