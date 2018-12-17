@@ -30,23 +30,23 @@ import jolie.runtime.Value;
 
 public class TQueryService extends JavaService {
 
-	public Value group(Value request) {
-		return GroupService.group(request);
+	public Value group( Value request ) {
+		return GroupService.group( request );
 	}
 
-	public Value lookup(Value request) {
-		return LookupService.lookup(request);
+	public Value lookup( Value request ) {
+		return LookupService.lookup( request );
 	}
 
-	public Value match(Value request) throws FaultException {
-		return MatchService.match(request);
+	public Value match( Value request ) throws FaultException {
+		return MatchService.match( request );
 	}
 
-	public Value project(Value request) {
-		return ProjectService.project(request);
+	public Value project( Value request ) {
+		return ProjectService.project( request );
 	}
 
-	public Value unwind(Value request) {
-		return UnwindService.unwind(request);
+	public Value unwind( Value request ) {
+		return UnwindService.unwind( request );
 	}
 }

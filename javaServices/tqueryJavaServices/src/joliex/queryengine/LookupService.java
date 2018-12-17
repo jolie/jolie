@@ -27,7 +27,7 @@ import jolie.runtime.Value;
 
 public class LookupService {
 
-	static Value lookup(Value request) {
+	static Value lookup( Value request ) {
 		return request;
 	}
 }
