@@ -58,26 +58,17 @@ public final class MatchQuery {
 	public static Value match( Value matchRequest ) throws FaultException {
 
 		Value query = matchRequest.getFirstChild( RequestType.QUERY );
-		System.out.println("query " + query.toPrettyString() );
 		ValueVector dataElements = matchRequest.getChildren( RequestType.DATA );
-		System.out.println("data " );
-		for( Value element : dataElements ){
-			System.out.println( element.toPrettyString() );
-		}
-		MatchExpression e = parseMatchExpression( query )
+		boolean[] mask = parseMatchExpression( query )
 				.orElseThrow( 
-						() -> new FaultException( "MatchQuerySyntaxException", "Could not parse query expression " + query.toPrettyString() ) 
-				);
-		boolean[] mask = e.applyOn( dataElements );
-		for (int i = 0; i < mask.length; i++) {
-			System.out.println( mask[ i ] );
-		}
+					() -> new FaultException( "MatchQuerySyntaxException", "Could not parse query expression " + query.toPrettyString() ) 
+				).applyOn( dataElements );
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
 		response.children().put( ResponseType.RESPONSE, responseVector );
 		for (int i = 0; i < mask.length; i++) {
 			if ( mask[i] ) {
-				response.add( dataElements.get(i) );
+				responseVector.add( dataElements.get( i ) );
 			}
 		}
 		return response;
@@ -106,31 +97,31 @@ public final class MatchQuery {
 				return new BooleanExpression( query.boolValue() );
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EQUAL ) ) {
 				return new EqualExpression(
-						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
-						query.getChildren( RequestType.QuerySubtype.VALUE )
+						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
+						 query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getChildren( RequestType.QuerySubtype.VALUE )
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EXISTS ) ) {
 				return new ExistsExpression(
-						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.PATH).strValue() )
+						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EXISTS ).strValue() )
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.OR ) ) {
 				return BinaryExpression.OrExpression(
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.LEFT ) )
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
 							.orElseThrow( 
 								() -> new IllegalArgumentException( "Could not parse left hand of " + query.toPrettyString() )
 						),
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.RIGHT ) )
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
 							.orElseThrow(
 								() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
 						)
 				);
-			} else if ( query.hasChildren(RequestType.QuerySubtype.AND ) ) {
+			} else if ( query.hasChildren( RequestType.QuerySubtype.AND ) ) {
 				return BinaryExpression.AndExpression(
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.LEFT ) )
-							.orElseThrow( 
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
+							.orElseThrow(
 								() -> new IllegalArgumentException( "Could not parse left hand of " + query.toPrettyString() )
 						),
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.RIGHT ) )
+						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
 							.orElseThrow(
 								() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
 						)

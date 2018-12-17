@@ -58,9 +58,8 @@ define match_equal_value_bis
     .data << bios;
     with( .query.equal ){
       .path = "contributions";
-      .value[0] = "Simula";
-      .value[1] = "OOP";
-      .value[2] = "Other"
+      .value[0] = "OOP";
+      .value[1] =  "Simula"
     }
   }
 }

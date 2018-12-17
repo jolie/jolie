@@ -31,7 +31,6 @@ import joliex.queryengine.match.MatchQuery;
 public class MatchService {
 
 	static Value match(Value request) throws FaultException {
-		System.out.println( "Invoked match" );
 		return MatchQuery.match( request );
 	}
 }
