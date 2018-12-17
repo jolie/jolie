@@ -27,7 +27,7 @@ import jolie.runtime.Value;
 
 public class ProjectService {
 
-	static Value project(Value request) {
+	static Value project( Value request ) {
 		return request;
 	}
 }

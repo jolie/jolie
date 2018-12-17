@@ -30,7 +30,7 @@ import joliex.queryengine.match.MatchQuery;
 
 public class MatchService {
 
-	static Value match(Value request) throws FaultException {
+	static Value match( Value request ) throws FaultException {
 		return MatchQuery.match( request );
 	}
 }

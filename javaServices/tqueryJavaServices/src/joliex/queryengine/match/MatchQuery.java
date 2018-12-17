@@ -66,7 +66,7 @@ public final class MatchQuery {
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
 		response.children().put( ResponseType.RESPONSE, responseVector );
-		for (int i = 0; i < mask.length; i++) {
+		for ( int i = 0; i < mask.length; i++ ) {
 			if ( mask[i] ) {
 				responseVector.add( dataElements.get( i ) );
 			}
@@ -98,7 +98,7 @@ public final class MatchQuery {
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EQUAL ) ) {
 				return new EqualExpression(
 						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
-						 query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getChildren( RequestType.QuerySubtype.VALUE )
+						query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getChildren( RequestType.QuerySubtype.VALUE )
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EXISTS ) ) {
 				return new ExistsExpression(
@@ -129,7 +129,7 @@ public final class MatchQuery {
 			} else if ( query.hasChildren( RequestType.QuerySubtype.NOT ) ){
 					return new NotExpression( parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.NOT ) )
 						.orElseThrow(
-							() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
+							() -> new IllegalArgumentException( "Could not parse " + query.toPrettyString() )
 						)
 					);
 				}

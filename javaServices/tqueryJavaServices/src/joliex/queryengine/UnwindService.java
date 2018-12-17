@@ -27,7 +27,7 @@ import jolie.runtime.Value;
 
 public final class UnwindService {
 
-	static Value unwind(Value request) {
+	static Value unwind( Value request ) {
 		return request;
 	}
 }
