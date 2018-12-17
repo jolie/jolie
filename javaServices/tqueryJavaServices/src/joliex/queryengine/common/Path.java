@@ -67,7 +67,6 @@ public class Path {
 	}
 	
 	public Optional<ValueVector> apply( Value value ) {
-		System.out.println( "Applying " + this.toPrettyString() + " to " +  value.toPrettyString() );
 		if ( value.hasChildren( node ) ){
 			if( continuation.isPresent() ){
 				Optional<ValueVector> childrenOptional = Optional.empty();
