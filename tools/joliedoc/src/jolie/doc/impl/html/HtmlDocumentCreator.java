@@ -23,7 +23,6 @@
 package jolie.doc.impl.html;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -51,9 +50,8 @@ import jolie.lang.parse.util.ProgramInspector;
 public class HtmlDocumentCreator
 {
 	private Writer writer;
-	private ProgramInspector inspector;
-	private URI directorySourceFile;
-	private String directorySOA;
+	private final ProgramInspector inspector;
+	private final URI directorySourceFile;
 	private JolieDocWriter jolieDocWriter;
 	private ArrayList<String> types;
 
@@ -67,7 +65,6 @@ public class HtmlDocumentCreator
 		throws IOException
 	{
 		int filenameIndex = directorySourceFile.getRawSchemeSpecificPart().lastIndexOf( "/" ) + 1;
-		directorySOA = new File( directorySourceFile ).toString().substring( 0, filenameIndex );
 //		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0, filenameIndex );
 
 		// scanning inputPorts. For each inputPort will be generated an html file

@@ -24,7 +24,6 @@ package jolie.doc;
 
 import java.io.IOException;
 import jolie.CommandLineException;
-import jolie.doc.impl.html.HtmlDocumentCreator;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
@@ -50,12 +49,14 @@ public class JolieDoc
 				cmdParser.jolieClassLoader(), 
 				cmdParser.definedConstants(),
 				configuration
-			);			
+			);
 			
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
-
-			HtmlDocumentCreator document = new HtmlDocumentCreator( inspector, program.context().source() );
-			document.ConvertDocument( cmdParser.outputPortEnabled(), cmdParser.inputPortName() );
+			System.out.println( JolieToValue.buildProgramInfo( inspector ).toPrettyString() );
+			
+//			HtmlDocumentCreator document = new HtmlDocumentCreator( inspector, program.context().source() );
+//			document.ConvertDocument( cmdParser.outputPortEnabled(), cmdParser.inputPortName() );
+			
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
 			// System.out.println( "Syntax is: joliedoc [jolie options] <jolie filename> [interface name list]" );
