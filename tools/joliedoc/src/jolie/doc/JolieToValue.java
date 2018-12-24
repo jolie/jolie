@@ -20,9 +20,12 @@
  *******************************************************************************/
 package jolie.doc;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Stream;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
@@ -34,18 +37,21 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 public class JolieToValue
 {
-	private static class ProgramInfoType {
+	private static class ProgramInfoType
+	{
 		private static final String PORT = "port";
 		private static final String SUBTYPE = "subtype";
 	}
 
-	private static class PortInfoType {
+	private static class PortInfoType
+	{
 		private static final String NAME = "name";
 		private static final String LOCATION = "location";
 		private static final String PROTOCOL = "protocol";
@@ -53,74 +59,80 @@ public class JolieToValue
 		private static final String IS_OUTPUT = "isOutput";
 		private static final String DOCUMENTATION = "documentation";
 	}
-	
-	private static class InterfaceInfoType {
+
+	private static class InterfaceInfoType
+	{
 		private static final String NAME = "name";
 		private static final String OPERATION = "operation";
 		private static final String DOCUMENTATION = "documentation";
 	}
-	
-	private static class OperationInfoType {
+
+	private static class OperationInfoType
+	{
 		private static final String NAME = "name";
 		private static final String REQUEST_TYPE = "requestType";
 		private static final String RESPONSE_TYPE = "responseType";
 		private static final String FAULT = "fault";
 		private static final String DOCUMENTATION = "documentation";
 	}
-	
-	private static class TypeInfoType {
+
+	private static class TypeInfoType
+	{
 		private static final String NAME = "name";
 		private static final String CODE = "code";
 		private static final String DOCUMENTATION = "documentation";
 	}
-	
-	private static class FaultInfoType {
+
+	private static class FaultInfoType
+	{
 		private static final String NAME = "name";
 		private static final String TYPE = "type";
 	}
-	
+
 	private static final String TYPE_DECLARATION_TOKEN = "type";
 	private static final String TYPE_DEFINITION_TOKEN = ":";
 	private static final String TYPE_CHOICE_TOKEN = "|";
 	private static final String TYPE_SUBTYPE_OPEN = "{";
 	private static final String TYPE_SUBTYPE_CLOSE = "}";
 	private static final String TYPE_SUBTYPE_DEFINITON = ".";
+	private static final String TYPE_CARDINALITY_OPEN = "[";
+	private static final String TYPE_CARDINALITY_CLOSE = "]";
+	private static final String TYPE_CARDINALITY_SEPARATOR = ",";
+	private static final String TYPE_CARDINALITY_ZERO_TO_ONE = "?";
+	private static final String TYPE_CARDINALITY_ZERO_TO_MANY = "*";
+	private static final String TAB = "\t";
+	private static final String NEW_LINE = "\n";
 
+	public static Value buildProgramInfo( ProgramInspector inspector )
+	{
 
-	public static Value buildProgramInfo( ProgramInspector inspector ){
-		
 		Value returnValue = Value.create();
-		
 		ValueVector ports = ValueVector.create();
-		ValueVector subtypes = ValueVector.create();
-		Set<String> subtypesSet = new HashSet<>();
-		returnValue.children().put ( ProgramInfoType.PORT, ports );
-		returnValue.children().put( ProgramInfoType.SUBTYPE, subtypes );
-		
-		for ( InputPortInfo	portInfo : inspector.getInputPorts() ) {
-			ports.add ( buildPortInfo( portInfo ) );
-			buildSubTypes( portInfo, subtypes, subtypesSet );
+		returnValue.children().put( ProgramInfoType.PORT, ports );
+
+		for ( InputPortInfo portInfo : inspector.getInputPorts() ) {
+			ports.add( buildPortInfo( portInfo, inspector ) );
 		}
-		
-		for ( OutputPortInfo portInfo : inspector.getOutputPorts() ){
-			ports.add ( buildPortInfo( portInfo ) );
-			buildSubTypes( portInfo, subtypes, subtypesSet );
+
+		for ( OutputPortInfo portInfo : inspector.getOutputPorts() ) {
+			ports.add( buildPortInfo( portInfo, inspector ) );
 		}
-		
+
 		return returnValue;
 	}
-	
-	private static Value buildPortInfo( InputPortInfo portInfo ){
+
+	private static Value buildPortInfo( InputPortInfo portInfo, ProgramInspector inspector )
+	{
 		Value returnValue = Value.create();
 		returnValue.setFirstChild( PortInfoType.NAME, portInfo.id() );
 		returnValue.setFirstChild( PortInfoType.IS_OUTPUT, false );
-		if ( portInfo.location() != null ){
+		if ( portInfo.location() != null ) {
 			returnValue.setFirstChild( PortInfoType.LOCATION, portInfo.location() );
 		}
-		if( portInfo.protocolId() != null ){
+		if ( portInfo.protocolId() != null ) {
 			returnValue.setFirstChild( PortInfoType.PROTOCOL, portInfo.protocolId() );
 		}
-		if( portInfo.getDocumentation() != null ){
+		if ( portInfo.getDocumentation() != null ) {
 			returnValue.setFirstChild( PortInfoType.DOCUMENTATION, portInfo.getDocumentation() );
 		}
 		ValueVector interfaces = ValueVector.create();
@@ -128,20 +140,47 @@ public class JolieToValue
 		portInfo.getInterfaceList().forEach( ( i ) -> {
 			interfaces.add( buildInterfaceInfo( i ) );
 		} );
+		getAggregatedInterfaces( portInfo, inspector ).forEach( ( i ) -> {
+			interfaces.add( buildInterfaceInfo( i ));
+		} );
+		ValueVector subtypes = ValueVector.create();
+		returnValue.children().put( ProgramInfoType.SUBTYPE, subtypes );
+		Set<String> subtypesSet = new HashSet<>();
+		buildSubTypes( portInfo, subtypes, subtypesSet, inspector );
+
 		return returnValue;
 	}
 	
-	private static Value buildPortInfo( OutputPortInfo portInfo ){
+	private static ArrayList<InterfaceDefinition> getAggregatedInterfaces( InputPortInfo portInfo, ProgramInspector inspector ){
+		ArrayList<InterfaceDefinition> returnList = new ArrayList<>();
+		for ( InputPortInfo.AggregationItemInfo aggregationItemInfo : portInfo.aggregationList() ) {
+			for ( String outputPortName : aggregationItemInfo.outputPortList() ) {
+				OutputPortInfo outputPortInfo
+					= Arrays.stream( inspector.getOutputPorts() )
+						.filter( ( outputPort ) -> outputPort.id().equals( outputPortName ) )
+						.findFirst().get();
+				outputPortInfo.getInterfaceList().forEach( ( aggregatedInterfaceInfo ) -> {
+					returnList.add(
+						Interfaces.extend( aggregatedInterfaceInfo, aggregationItemInfo.interfaceExtender(), portInfo.id() )
+					);
+				} );
+			}
+		}
+		return returnList;
+	}
+
+	private static Value buildPortInfo( OutputPortInfo portInfo, ProgramInspector inspector )
+	{
 		Value returnValue = Value.create();
-				returnValue.setFirstChild( PortInfoType.NAME, portInfo.id() );
-		returnValue.setFirstChild( PortInfoType.IS_OUTPUT, false );
-		if ( portInfo.location() != null ){
+		returnValue.setFirstChild( PortInfoType.NAME, portInfo.id() );
+		returnValue.setFirstChild( PortInfoType.IS_OUTPUT, true );
+		if ( portInfo.location() != null ) {
 			returnValue.setFirstChild( PortInfoType.LOCATION, portInfo.location() );
 		}
-		if( portInfo.protocolId() != null ){
+		if ( portInfo.protocolId() != null ) {
 			returnValue.setFirstChild( PortInfoType.PROTOCOL, portInfo.protocolId() );
 		}
-		if( portInfo.getDocumentation() != null ){
+		if ( portInfo.getDocumentation() != null ) {
 			returnValue.setFirstChild( PortInfoType.DOCUMENTATION, portInfo.getDocumentation() );
 		}
 		ValueVector interfaces = ValueVector.create();
@@ -149,13 +188,18 @@ public class JolieToValue
 		portInfo.getInterfaceList().forEach( ( i ) -> {
 			interfaces.add( buildInterfaceInfo( i ) );
 		} );
+		ValueVector subtypes = ValueVector.create();
+		returnValue.children().put( ProgramInfoType.SUBTYPE, subtypes );
+		Set<String> subtypesSet = new HashSet<>();
+		buildSubTypes( portInfo, subtypes, subtypesSet, inspector );
 		return returnValue;
 	}
-	
-	private static Value buildInterfaceInfo( InterfaceDefinition interfaceDefinition ){
+
+	private static Value buildInterfaceInfo( InterfaceDefinition interfaceDefinition )
+	{
 		Value returnValue = Value.create();
 		returnValue.setFirstChild( InterfaceInfoType.NAME, interfaceDefinition.name() );
-		if( interfaceDefinition.getDocumentation() != null ){
+		if ( interfaceDefinition.getDocumentation() != null ) {
 			returnValue.setFirstChild( InterfaceInfoType.DOCUMENTATION, interfaceDefinition.getDocumentation() );
 		}
 		ValueVector operations = ValueVector.create();
@@ -165,18 +209,19 @@ public class JolieToValue
 		} );
 		return returnValue;
 	}
-	
-	private static Value buildOperationInfo( OperationDeclaration operationDeclaration ){
+
+	private static Value buildOperationInfo( OperationDeclaration operationDeclaration )
+	{
 		Value returnValue = Value.create();
 		returnValue.setFirstChild( OperationInfoType.NAME, operationDeclaration.id() );
-		if( operationDeclaration.getDocumentation() != null ){
+		if ( operationDeclaration.getDocumentation() != null ) {
 			returnValue.setFirstChild( OperationInfoType.DOCUMENTATION, operationDeclaration.getDocumentation() );
 		}
-		if ( operationDeclaration instanceof RequestResponseOperationDeclaration ){
+		if ( operationDeclaration instanceof RequestResponseOperationDeclaration ) {
 			RequestResponseOperationDeclaration rrod = (RequestResponseOperationDeclaration) operationDeclaration;
 			returnValue.getChildren( OperationInfoType.REQUEST_TYPE ).add( buildTypeInfo( rrod.requestType() ) );
 			returnValue.getChildren( OperationInfoType.RESPONSE_TYPE ).add( buildTypeInfo( rrod.responseType() ) );
-			if ( rrod.faults().size() > 0 ){
+			if ( rrod.faults().size() > 0 ) {
 				ValueVector faults = ValueVector.create();
 				returnValue.children().put( OperationInfoType.FAULT, faults );
 				rrod.faults().entrySet().forEach( ( fault ) -> {
@@ -184,114 +229,158 @@ public class JolieToValue
 				} );
 			}
 		} else {
-			OneWayOperationDeclaration owd = ( OneWayOperationDeclaration ) operationDeclaration;
+			OneWayOperationDeclaration owd = (OneWayOperationDeclaration) operationDeclaration;
 			returnValue.getChildren( OperationInfoType.REQUEST_TYPE ).add( buildTypeInfo( owd.requestType() ) );
 		}
 		return returnValue;
 	}
-	
-	private static Value buildFaultInfo(  Entry<String,TypeDefinition> fault ){
+
+	private static Value buildFaultInfo( Entry<String, TypeDefinition> fault )
+	{
 		Value returnValue = Value.create();
 		returnValue.setFirstChild( FaultInfoType.NAME, fault.getKey() );
 		returnValue.getChildren( FaultInfoType.TYPE ).add( buildTypeInfo( fault.getValue() ) );
 		return returnValue;
 	}
-	
-	private static Value buildTypeInfo( TypeDefinition typeDefinition ){
+
+	private static Value buildTypeInfo( TypeDefinition typeDefinition )
+	{
 		Value returnValue = Value.create();
 		returnValue.setFirstChild( TypeInfoType.NAME, typeDefinition.id() );
-		if( typeDefinition.getDocumentation() != null ){
+		if ( typeDefinition.getDocumentation() != null ) {
 			returnValue.setFirstChild( TypeInfoType.DOCUMENTATION, typeDefinition.getDocumentation() );
 		}
 		returnValue.setFirstChild( TypeInfoType.CODE, buildTypeCode( typeDefinition ) );
 		return returnValue;
 	}
-	
-	private static String buildTypeCode( TypeDefinition typeDefinition ){
+
+	private static String buildTypeCode( TypeDefinition typeDefinition )
+	{
 		String returnString = "";
-		if( typeDefinition instanceof TypeChoiceDefinition
-			||
-			typeDefinition instanceof TypeDefinitionLink
-			||
-			( typeDefinition instanceof TypeInlineDefinition && ((TypeInlineDefinition) typeDefinition).hasSubTypes() ) ){
+		if ( typeDefinition instanceof TypeChoiceDefinition
+			|| typeDefinition instanceof TypeDefinitionLink
+			|| ( typeDefinition instanceof TypeInlineDefinition && ( (TypeInlineDefinition) typeDefinition ).hasSubTypes() ) ) {
 			returnString = TYPE_DECLARATION_TOKEN + " " + typeDefinition.id() + TYPE_DEFINITION_TOKEN + " " + buildSubTypeCode( typeDefinition );
 		} else {
 			returnString = typeDefinition.id();
 		}
 		return returnString;
 	}
-	
-	private static String buildSubTypeCode( TypeDefinition typeDefinition ){
+
+	private static String buildSubTypeCode( TypeDefinition typeDefinition )
+	{
 		String returnString = "";
-		if( typeDefinition instanceof TypeChoiceDefinition ){
-			returnString += buildTypeCode( ((TypeChoiceDefinition) typeDefinition).left() );
+		if ( typeDefinition instanceof TypeChoiceDefinition ) {
+			returnString += buildTypeCode( ( (TypeChoiceDefinition) typeDefinition ).left() );
 			returnString += TYPE_CHOICE_TOKEN;
-			returnString += buildTypeCode( ((TypeChoiceDefinition) typeDefinition).right() );
+			returnString += buildTypeCode( ( (TypeChoiceDefinition) typeDefinition ).right() );
 		}
-		if( typeDefinition instanceof TypeDefinitionLink ){
-			returnString += ( ( TypeDefinitionLink ) typeDefinition ).linkedTypeName();
+		if ( typeDefinition instanceof TypeDefinitionLink ) {
+			returnString += ( (TypeDefinitionLink) typeDefinition ).linkedTypeName();
 		}
-		if ( typeDefinition instanceof TypeInlineDefinition ){
-			TypeInlineDefinition tid = ( TypeInlineDefinition ) typeDefinition;
+		if ( typeDefinition instanceof TypeInlineDefinition ) {
+			TypeInlineDefinition tid = (TypeInlineDefinition) typeDefinition;
 			returnString += tid.nativeType().id();
-			if ( tid.hasSubTypes() ){
+			if ( tid.hasSubTypes() ) {
 				returnString += " " + TYPE_SUBTYPE_OPEN;
-				for ( Entry<String, TypeDefinition> subType : tid.subTypes() ) {
-					returnString += " " + TYPE_SUBTYPE_DEFINITON + subType.getKey() + TYPE_DEFINITION_TOKEN + " " + buildSubTypeCode( subType.getValue() );
-				}
-				returnString += " " + TYPE_SUBTYPE_CLOSE;
+				returnString = tid.subTypes().stream().map(
+					( subType )
+					-> NEW_LINE + TYPE_SUBTYPE_DEFINITON + subType.getKey()
+					+ getSubTypeCardinalityCode( subType.getValue() )
+					+ TYPE_DEFINITION_TOKEN + " "
+					+ buildSubTypeCode( subType.getValue() ) )
+					.reduce( returnString, String::concat )
+					.replaceAll( NEW_LINE, NEW_LINE + TAB );
+				returnString += NEW_LINE + TYPE_SUBTYPE_CLOSE;
 			}
 		}
 		return returnString;
 	}
-	
-	private static void buildSubTypes( PortInfo p, ValueVector v, Set<String> s ){
-		p.getInterfaceList().forEach( ( i ) -> { buildSubTypes( i, v, s ); 	} );
+
+	private static String getSubTypeCardinalityCode( TypeDefinition type )
+	{
+		switch( type.cardinality().min() ) {
+			case 0:
+				switch( type.cardinality().max() ) {
+					case Integer.MAX_VALUE:
+						return TYPE_CARDINALITY_ZERO_TO_MANY;
+					case 1:
+						return TYPE_CARDINALITY_ZERO_TO_ONE;
+					default:
+						return getCardinalityString( 0, type.cardinality().max() );
+				}
+			default:
+				return getCardinalityString( type.cardinality().min(), type.cardinality().max() );
+		}
 	}
-	
-	private static void buildSubTypes( InterfaceDefinition i, ValueVector v, Set<String> s ){
-		i.operationsMap().entrySet().forEach( ( Entry<String,OperationDeclaration> d ) -> { 
-			buildSubTypes( d.getValue(), v, s );
+
+	private static String getCardinalityString( int min, int max )
+	{
+		if ( min == max && min == 1 ) {
+			return "";
+		}
+		String returnString = TYPE_CARDINALITY_OPEN + min;
+		if ( min != max ) {
+			returnString += TYPE_CARDINALITY_SEPARATOR + max;
+		}
+		return returnString + TYPE_CARDINALITY_CLOSE;
+	}
+
+	private static void buildSubTypes( PortInfo p, ValueVector v, Set<String> s, ProgramInspector inspector )
+	{
+		p.getInterfaceList().forEach( ( i ) -> {
+			buildSubTypes( i, v, s, inspector );
+		} );
+		if ( p instanceof InputPortInfo ){
+			getAggregatedInterfaces( (InputPortInfo) p, inspector).forEach( ( i ) -> buildSubTypes( i, v, s, inspector ) );
+		}
+	}
+
+	private static void buildSubTypes( InterfaceDefinition i, ValueVector v, Set<String> s, ProgramInspector inspector )
+	{
+		i.operationsMap().entrySet().forEach( ( Entry<String, OperationDeclaration> d ) -> {
+			buildSubTypes( d.getValue(), v, s, inspector );
 		} );
 	}
-	
-	private static void buildSubTypes( OperationDeclaration o, ValueVector v, Set<String> s ){
-		if ( o instanceof OneWayOperationDeclaration ){
-			buildSubTypes( ((OneWayOperationDeclaration) o ).requestType(), v, s);
+
+	private static void buildSubTypes( OperationDeclaration o, ValueVector v, Set<String> s, ProgramInspector inspector )
+	{
+		if ( o instanceof OneWayOperationDeclaration ) {
+			buildSubTypes( ( (OneWayOperationDeclaration) o ).requestType(), v, s, inspector );
 		} else {
-			buildSubTypes( ((RequestResponseOperationDeclaration) o ).requestType(), v, s );
-			buildSubTypes( ((RequestResponseOperationDeclaration) o ).responseType(), v, s );
-			((RequestResponseOperationDeclaration) o ).faults().entrySet().forEach( ( f ) -> {
-				buildSubTypes( f.getValue(), v, s );
+			buildSubTypes( ( (RequestResponseOperationDeclaration) o ).requestType(), v, s, inspector );
+			buildSubTypes( ( (RequestResponseOperationDeclaration) o ).responseType(), v, s, inspector );
+			( (RequestResponseOperationDeclaration) o ).faults().entrySet().forEach( ( f ) -> {
+				buildSubTypes( f.getValue(), v, s, inspector );
 			} );
 		}
 	}
-	
-	private static void buildSubTypes( TypeDefinition d, ValueVector v, Set<String> s ){
-		if( d instanceof TypeChoiceDefinition ){
-			buildSubTypes( ((TypeChoiceDefinition) d).left(), v, s );
-			buildSubTypes( ((TypeChoiceDefinition) d).right(), v, s );
-		} else if ( d instanceof TypeDefinitionLink ){
+
+	private static void buildSubTypes( TypeDefinition d, ValueVector v, Set<String> s, ProgramInspector inspector )
+	{
+		if ( d instanceof TypeChoiceDefinition ) {
+			buildSubTypes( ( (TypeChoiceDefinition) d ).left(), v, s, inspector );
+			buildSubTypes( ( (TypeChoiceDefinition) d ).right(), v, s, inspector );
+		} else if ( d instanceof TypeDefinitionLink ) {
 			TypeDefinitionLink tdl = (TypeDefinitionLink) d;
-			if ( !s.contains( tdl.id() ) ){
+			if ( !s.contains( tdl.id() ) && Stream.of( inspector.getTypes() ).anyMatch( ( t ) -> t.id().equals( tdl.id() ) ) ) {
 				s.add( tdl.id() );
 				Value tv = Value.create();
 				tv.setFirstChild( TypeInfoType.NAME, tdl.id() );
 				tv.setFirstChild( TypeInfoType.CODE, buildTypeCode( tdl ) );
-				if ( tdl.getDocumentation() != null ){
+				if ( tdl.getDocumentation() != null ) {
 					tv.setFirstChild( TypeInfoType.DOCUMENTATION, tdl.getDocumentation() );
 				}
 				v.add( tv );
 			}
-		} else if ( d instanceof TypeInlineDefinition ){
+		} else if ( d instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition tid = (TypeInlineDefinition) d;
-			if ( tid.hasSubTypes() ){
+			if ( tid.hasSubTypes() ) {
 				tid.subTypes().forEach( ( td ) -> {
-					buildSubTypes( td.getValue() , v, s );
+					buildSubTypes( td.getValue(), v, s, inspector );
 				} );
 			}
 		}
 	}
-	
-	
+
 }
