@@ -39,16 +39,21 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.parsers.DocumentBuilder;
@@ -687,12 +692,14 @@ public class FileService extends JavaService
 
 	@RequestResponse
 	public Value list( Value request )
+		throws FaultException
 	{
-		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
-                boolean fileInfo = false;
-                if ( request.getFirstChild( "info" ).isDefined() ) {
-                    fileInfo = request.getFirstChild( "info" ).boolValue();
-                }
+		final Path dir = Paths.get( request.getFirstChild( "directory" ).strValue() );
+		final boolean fileInfo =
+			( request.getFirstChild( "info" ).isDefined() )
+			? request.getFirstChild( "info" ).boolValue()
+			: false;
+		
 		final String regex;
 		if ( request.hasChildren( "regex" ) ) {
 			regex = request.getFirstChild( "regex" ).strValue();
@@ -700,41 +707,58 @@ public class FileService extends JavaService
 			regex = ".*";
 		}
 
-		boolean dirsOnly;
+		final boolean dirsOnly;
 		if ( request.hasChildren( "dirsOnly" ) ) {
 			dirsOnly = request.getFirstChild( "dirsOnly" ).boolValue();
 		} else {
 			dirsOnly = false;
 		}
+		
+		final Pattern pattern = Pattern.compile( regex );
 
-		final String[] files = dir.list( new ListFilter( regex, dirsOnly ) );
+		final BiPredicate< Path, BasicFileAttributes > matcher = ( path, attrs ) -> {
+			return pattern.matcher( path.toString() ).matches() && (!dirsOnly || Files.isDirectory( path ));
+		};
+		
+		Stream< Path > dirStream;
+		try {
+			if ( request.hasChildren( "recursive" ) && request.getFirstChild( "recursive" ).boolValue() ) {
+				dirStream = Files.find( dir, Integer.MAX_VALUE, matcher );
+			} else {
+				dirStream = Files.find( dir, 1, matcher );
+			}
+		} catch( IOException e ) {
+			throw new FaultException( e );
+		}
+
+		final ArrayList< Value > results = new ArrayList<>();
+		dirStream.forEach( path -> {
+			Value fileValue = Value.create( path.toString() );
+			if( fileInfo ) {
+				Value info = fileValue.getFirstChild( "info" );
+				File currFile = path.toFile();
+				info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
+				info.getFirstChild( "size" ).setValue( currFile.length() );
+				info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
+				info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
+				info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
+			}
+			results.add( fileValue );
+		} );
+		
+		dirStream.close();
 		
 		if ( request.hasChildren( "order" ) ) {
 			Value order = request.getFirstChild( "order" );
 			
-			if ( files != null && order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
-				Arrays.sort( files );
+			if ( order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
+				Collections.sort( results, Comparator.comparing( Value::strValue ) );
 			}
 		}
-
+		
 		Value response = Value.create();
-		if ( files != null ) {
-			ValueVector results = response.getChildren( "result" );
-			for( String file : files ) {
-                                Value fileValue = Value.create( file );
-                                if( fileInfo ) {
-                                    Value info = fileValue.getFirstChild( "info" );
-                                    File currFile = new File ( dir + File.separator + file );
-                                    info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
-                                    info.getFirstChild( "size" ).setValue( currFile.length() );
-                                    info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
-                                    info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
-                                    info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
-                                    
-                                }
-				results.add( fileValue );
-			}
-		}
+		ValueVector responseResults = response.getChildren( "result" );
+		results.forEach( responseResults::add );
 		return response;
 	}
 
@@ -742,9 +766,7 @@ public class FileService extends JavaService
 	public Value isDirectory( Value request )
 	{
 		File dir = new File( request.strValue() );
-		Value response = Value.create();
-		response.setValue( dir.isDirectory() );
-		return response;
+		return Value.create( dir.isDirectory() );
 
 	}
 
