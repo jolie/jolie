@@ -716,11 +716,11 @@ public class FileService extends JavaService
 		
 		final Pattern pattern = Pattern.compile( regex );
 
-		final BiPredicate< Path, BasicFileAttributes > matcher = ( path, attrs ) -> {
-			return pattern.matcher( path.toString() ).matches() && (!dirsOnly || Files.isDirectory( path ));
-		};
+		final BiPredicate< Path, BasicFileAttributes > matcher =
+			( path, attrs ) ->
+			pattern.matcher( path.toString() ).matches() && (!dirsOnly || Files.isDirectory( path ));
 		
-		Stream< Path > dirStream;
+		final Stream< Path > dirStream;
 		try {
 			if ( request.hasChildren( "recursive" ) && request.getFirstChild( "recursive" ).boolValue() ) {
 				dirStream = Files.find( dir, Integer.MAX_VALUE, matcher );
@@ -733,10 +733,11 @@ public class FileService extends JavaService
 
 		final ArrayList< Value > results = new ArrayList<>();
 		dirStream.forEach( path -> {
-			Value fileValue = Value.create( path.subpath( 1, path.getNameCount() ).toString() );
+			final Path p = dir.relativize( path );
+			Value fileValue = Value.create( p.toString() );
 			if( fileInfo ) {
 				Value info = fileValue.getFirstChild( "info" );
-				File currFile = path.toFile();
+				File currFile = p.toFile();
 				info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
 				info.getFirstChild( "size" ).setValue( currFile.length() );
 				info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );

@@ -12,14 +12,14 @@ define testList
 		.directory = listDir,
 		.order.byname = true
 	} )( response );
-	if ( #response.result != 2 ) {
-		throw( TestFailed, "list@File: wrong number of results (expected 2, got " + #response.result + ")" )
+	if ( #response.result != 4 ) {
+		throw( TestFailed, "list@File: wrong number of results. Expected 4, got " + #response.result )
 	};
-	if ( response.result[0] != listDir + fs + "README" ) {
-		throw( TestFailed, "list@File: wrong result[0]. Expected " + listDir + fs + "README, got " + response.result[0] )
+	if ( response.result[1] != "README" ) {
+		throw( TestFailed, "list@File: wrong result[1]. Expected " + listDir + fs + "README, got " + response.result[1] )
 	};
-	if ( response.result[1] != listDir + fs + "text1.txt" ) {
-		throw( TestFailed, "list@File: wrong result[1]. Expected " + listDir + fs + "text1.txt, got " + response.result[1] )
+	if ( response.result[2] != "subdir1" ) {
+		throw( TestFailed, "list@File: wrong result[2]. Expected " + listDir + fs + "subdir1, got " + response.result[2] )
 	}
 }
 
@@ -54,7 +54,7 @@ define doTest
 	getMimeType@File( dir + fs + "private" + fs + "text.txt" )( mime );
 	if ( mime != "text/plain" ) {
 		throw( TestFailed, "Wrong mime type " + mime + " (expected text/plain)" )
-	}
+	};
 
 	testList
 }
