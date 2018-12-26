@@ -733,7 +733,7 @@ public class FileService extends JavaService
 
 		final ArrayList< Value > results = new ArrayList<>();
 		dirStream.forEach( path -> {
-			Value fileValue = Value.create( path.toString() );
+			Value fileValue = Value.create( path.subpath( 1, path.getNameCount() ).toString() );
 			if( fileInfo ) {
 				Value info = fileValue.getFirstChild( "info" );
 				File currFile = path.toFile();
