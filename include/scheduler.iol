@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *                 2018 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,66 +20,49 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
-type FullDate:void {
-	.msec:int
-	.sec:int
-	.min:int
-	.hour:int	
-	.day:int
-	.month:int
-	.year:int
+type DeleteCronJobRequest: void {
+		.jobName: string
+		.groupName: string
 }
 
-
-/**!
-* Configure the schedule with a repeat-period end a start time
-*/
-type ScheduleReq:void {
-
-	.format?:string    //If not specified, it defaults to "dd/MM/yyyy"
-	.operation?:string //if not specified, it defaults to timeout
-	.start_date:FullDate
-	.period:int
+type SetCallBackOperationRequest: void {
+		.operationName: string
 }
 
-/**!
-* Configure the schedule for once daily activation
-*/
-type DailyScheduleReq:void {
-
-	.operation?:string //if not specified, it defaults to timeout
-	.start_hour:int    //if not specified, it defaults to 21
-	.start_min?:int    //if not specified, it defaults to 0
+type SetCronJobRequest: void {
+		.jobName: string
+		.groupName: string
+		.cronSpecs: void {
+			  /* see here for creating correct specs:
+				   http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/tutorial-lesson-06.html
+					 or http://www.cronmaker.com/
+				*/
+				.second: string   		/* 0-59 */
+				.minute: string				/* 0-59 */
+				.hour: string					/* 0-23 */
+				.dayOfMonth: string		/* 1-31 */
+				.month: string				/* 0-11 */
+				.dayOfWeek: string		/* 1-7 (1=Sunday) */
+				.year?: string
+		}
 }
 
-/**!
-* Configure the schedule in chron style string
-*/
-
-/*
-*type CronScheduleReq:void {
-*
-*	.operation?:string   //if not specified, it defaults to timeout
-*	.chron_config:string //example "0 42 10 * * ?" ogni giorno alle 10:42
-*	.date_format?:string
-*	//.start_date?:FullDate //TODO if not specified, it defaults to now
-*	//.end_date?:FullDate   //TODO if not specified, it defaults to never
-*}
-*/
 
 interface SchedulerInterface{
+	RequestResponse:
+		deleteCronJob( DeleteCronJobRequest )( void ),
+
+		setCronJob( SetCronJobRequest )( void )
+			throws JobAlreadyExists( void )
 	OneWay:
-		setSchedule( ScheduleReq ),
-		//,setScheduleByCronFormat( ChronScheduleReq )
-		setDailySchedule( DailyScheduleReq )
+		setCallbackOperation( SetCallBackOperationRequest )
 }
 
-outputPort SchedulerPort {
+outputPort Scheduler {
 	Interfaces: SchedulerInterface
 }
 
 embedded {
 Java:
-	"joliex.scheduler.SchedulerService" in SchedulerPort
+	"joliex.scheduler.SchedulerService" in Scheduler
 }

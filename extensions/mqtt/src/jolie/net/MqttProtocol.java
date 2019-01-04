@@ -818,7 +818,7 @@ public class MqttProtocol extends PubSubCommProtocol
 							Unpooled.wrappedBuffer( msg.getBytes() ) ) );
 					src.setEncoding( charset.name() );
 					Document doc = builder.parse( src );
-					XmlUtils.documentToValue( doc, v );
+					XmlUtils.documentToValue( doc, v, false );
 					break;
 				case "json":
 					JsUtils.parseJsonIntoValue( new StringReader( msg ), v,

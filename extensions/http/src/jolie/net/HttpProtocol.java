@@ -1042,7 +1042,7 @@ public class HttpProtocol extends AsyncCommProtocol
 				InputSource src = new InputSource( new ByteBufInputStream( message.content() ) );
 				src.setEncoding( charset );
 				Document doc = builder.parse( src );
-				XmlUtils.documentToValue( doc, value );
+				XmlUtils.documentToValue( doc, value,false );
 			}
 		} catch( ParserConfigurationException | SAXException pce ) {
 			throw new IOException( pce );

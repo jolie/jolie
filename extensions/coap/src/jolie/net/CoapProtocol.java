@@ -944,7 +944,7 @@ public class CoapProtocol extends AsyncCommProtocol
 						InputSource src = new InputSource( new ByteBufInputStream( byteBuf ) );
 						src.setEncoding( charset.name() );
 						Document doc = builder.parse( src );
-						XmlUtils.documentToValue( doc, value );
+						XmlUtils.documentToValue( doc, value, true );
 						break;
 					case "application/link-format":
 					case "application/octet-stream":

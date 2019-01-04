@@ -1,5 +1,5 @@
 /*******************************************************************************
- *   Copyright (C) 2018 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *   Copyright (C) 2019 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                             *
  *   This program is free software; you can redistribute it and/or modify      *
  *   it under the terms of the GNU Library General Public License as           *
@@ -18,7 +18,7 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-package jolie.doc;
+package joliex.docs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,7 +86,7 @@ public class JolieToValue
 	private static final class FaultInfoType
 	{
 		private static final String NAME = "name";
-		private static final String TYPE = "type";
+		private static final String TYPE = "faultType";
 	}
 
 	private static final String TYPE_DECLARATION_TOKEN = "type";
