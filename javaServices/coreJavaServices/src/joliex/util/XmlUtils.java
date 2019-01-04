@@ -32,7 +32,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -48,7 +47,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-@AndJarDeps({"jolie-xml.jar"})
+@AndJarDeps({"jolie-xml.jar","xsom.jar","relaxngDatatype.jar"})
 public class XmlUtils extends JavaService
 {
 	private final DocumentBuilderFactory documentBuilderFactory;
@@ -64,42 +63,94 @@ public class XmlUtils extends JavaService
 		throws FaultException
 	{
 		try {
+			Transformer transformer;
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-			String rootNodeName = request.getFirstChild( "rootNodeName" ).strValue();
-			if ( request.getFirstChild( "plain" ).boolValue() ) {
-				jolie.xml.XmlUtils.valueToDocument(
-					request.getFirstChild( "root" ),
-					rootNodeName,
-					doc
-				);
+			Value value = request.getFirstChild( "root" );
+			String rootNodeName = value.children().keySet().iterator().next();
+			if ( request.hasChildren( "rootNodeName" ) ) {
+				rootNodeName = request.getFirstChild( "rootNodeName" ).strValue();
+			} else {
+				if ( value.children().size() != 1 ) {
+					throw new FaultException( "IllegalArgumentException", "Too many root nodes" );
+				}
+				value = value.getFirstChild( rootNodeName );
+			}
+				
+			boolean isXmlStore = true;
+			if ( request.hasChildren( "plain" ) ) {
+				isXmlStore = !request.getFirstChild( "plain" ).boolValue();
+			}
+			if ( request.hasChildren( "isXmlStore" ) ) {
+				isXmlStore = request.getFirstChild( "isXmlStore" ).boolValue();
+			}
+			
+			boolean indent = false;
+			if ( request.hasChildren( "indent" ) ) {
+				indent = request.getFirstChild( "indent" ).boolValue();
+			}
+			
+			boolean isApplySchema = false;
+			String schemaFilename = null;
+			String encoding = null;
+			String doctypeSystem = null;
+			if ( request.hasChildren( "applySchema" ) ) {
+				isApplySchema = true;
+				Value applySchema = request.getFirstChild( "applySchema" );
+				schemaFilename = applySchema.getFirstChild( "schema" ).strValue();
+				if ( applySchema.hasChildren( "encoding" ) ) {
+					encoding = applySchema.getFirstChild( "encoding" ).strValue();
+				}
+				if ( applySchema.hasChildren( "doctypeSystem" ) ) {
+					doctypeSystem = applySchema.getFirstChild( "doctypeSystem" ).strValue();
+				}
+			} 
+			
+			if ( !isXmlStore ) {
+				if ( isApplySchema ) {
+					transformer = transformerFactory.newTransformer();
+					jolie.xml.XmlUtils.configTransformer( transformer, encoding, doctypeSystem, indent );
+					jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename );
+				} else {
+					jolie.xml.XmlUtils.valueToDocument(
+						value,
+						rootNodeName,
+						doc
+					);
+					transformer = transformerFactory.newTransformer();
+					if ( indent ) {
+						transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+						transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
+					} else {
+						transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+					}
+				}
 			} else {
 				jolie.xml.XmlUtils.valueToStorageDocument(
-					request.getFirstChild( "root" ),
+					value,
 					rootNodeName,
 					doc
 				);
+				transformer = transformerFactory.newTransformer();
+				if ( indent ) {
+					transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+					transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
+				} else {
+					transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+				}
 			}
-			Transformer t = transformerFactory.newTransformer();
+		
+			
 			if ( request.getFirstChild( "omitXmlDeclaration" ).boolValue() ) {
-				t.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
+				transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
 			}
-			if ( request.getFirstChild( "indent" ).boolValue() ) {
-				t.setOutputProperty( OutputKeys.INDENT, "yes" );
-			} else {
-				t.setOutputProperty( OutputKeys.INDENT, "no" );
-			}
-			StringWriter writer = new StringWriter();
-			StreamResult result = new StreamResult( writer );
-			t.transform( new DOMSource( doc ), result );
-			return writer.toString();
-		} catch( ParserConfigurationException e ) {
-			e.printStackTrace();
-			throw new FaultException( e );
-		} catch( TransformerConfigurationException e ) {
-			e.printStackTrace();
-			throw new FaultException( e );
-		} catch( TransformerException e ) {
-			e.printStackTrace();
+			
+			StringWriter outWriter = new StringWriter();
+			StreamResult result = new StreamResult( outWriter );
+			transformer.transform( new DOMSource( doc ), result );
+			StringBuffer sb = outWriter.getBuffer();
+			return sb.toString();
+	
+		} catch( ParserConfigurationException | IOException | TransformerException e ) {
 			throw new FaultException( e );
 		}
 	}
@@ -117,7 +168,16 @@ public class XmlUtils extends JavaService
 			}
 
 			boolean includeAttributes = false;
+			boolean skipMixedText = false;
+			boolean includeRoot = false;
+			boolean xmlStore = true;
 			if ( request.hasChildren( "options" ) ){
+				if ( request.getFirstChild( "options").hasChildren() ) {
+					xmlStore = false;
+				}
+				if ( request.getFirstChild( "options" ).hasChildren( "includeRoot" ) ){
+					includeRoot = request.getFirstChild( "options" ).getFirstChild( "includeRoot" ).boolValue();
+				}
 				if ( request.getFirstChild( "options" ).hasChildren( "includeAttributes" ) ){
 					includeAttributes = request.getFirstChild( "options" ).getFirstChild( "includeAttributes" ).boolValue();
 				}
@@ -130,18 +190,35 @@ public class XmlUtils extends JavaService
 					Schema schema = schemaFactory.newSchema(new URL(
 					  request.getFirstChild( "options" ).getFirstChild( "schemaUrl" ).strValue()
 					));
-					documentBuilderFactory.setSchema(schema); // set schema
+					documentBuilderFactory.setSchema( schema ); // set schema
 				}
 				if ( request.getFirstChild( "options" ).hasChildren( "charset" ) ) {
 					src.setEncoding( request.getFirstChild( "options" ).getFirstChild( "charset" ).strValue() );
 				}
+				if ( request.getFirstChild( "options" ).hasChildren( "skipMixedText" ) ) {
+					skipMixedText = request.getFirstChild( "options" ).getFirstChild( "skipMixedText" ).boolValue();
+				}
 			}
-
-			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-			Document doc = builder.parse( src );
-			if ( includeAttributes ) {
-				jolie.xml.XmlUtils.documentToValue( doc, result, includeAttributes );
+			if ( request.hasChildren( "isXmlStore") ) {
+					xmlStore = request.getFirstChild( "isXmlStore" ).boolValue();
+			}
+			
+			if ( !xmlStore ) {
+				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+				dbFactory.setNamespaceAware( true );
+				DocumentBuilder builder = dbFactory.newDocumentBuilder();
+				Document doc = builder.parse( src );
+				Value value = result;
+				if ( includeRoot ) {
+					value = result.getFirstChild( doc.getDocumentElement().getLocalName() == null ? doc.getDocumentElement().getNodeName() : doc.getDocumentElement().getLocalName() );
+					if ( doc.getDocumentElement().getPrefix() != null ) {
+						value.getFirstChild( jolie.xml.XmlUtils.PREFIX ).setValue(  doc.getDocumentElement().getPrefix() );
+					}
+				}
+				jolie.xml.XmlUtils.documentToValue( doc, value, includeAttributes, skipMixedText );
 			} else {
+				DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+				Document doc = builder.parse( src );
 				jolie.xml.XmlUtils.storageDocumentToValue( doc, result );
 			}
 			return result;

@@ -22,11 +22,20 @@
 include "types/IOException.iol"
 
 type ReadEntryRequest:void {
-	.filename:string
+	.filename?:string
+	.archive?:raw
 	.entry:string
 }
 
 type ZipRequest:void { ? }
+
+type ListEntriesRequest: void {
+	.filename?:string
+	.archive?:raw
+}
+type ListEntriesResponse: void {
+	.entry*: string
+}
 
 type UnzipRequest: void {
 	.filename: string
@@ -39,6 +48,7 @@ type UnzipResponse: void {
 
 interface ZipUtilsInterface {
 RequestResponse:
+	listEntries(ListEntriesRequest)(ListEntriesResponse) throws IOException(IOExceptionType),
 	readEntry(ReadEntryRequest)(any) throws IOException(IOExceptionType),
 	zip(ZipRequest)(raw) throws IOException(IOExceptionType),
 	unzip( UnzipRequest )( UnzipResponse ) throws FileNotFound, IOException
