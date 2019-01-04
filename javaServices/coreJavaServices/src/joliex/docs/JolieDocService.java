@@ -72,7 +72,9 @@ public class JolieDocService extends JavaService
 				configuration
 			);
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
-			return JolieToValue.buildProgramInfo( inspector );
+			Value returnValue = JolieToValue.buildProgramInfo( inspector );
+			returnValue.setFirstChild( "filename", commandLineParser.programFilepath().getName() );
+			return returnValue;
 			
 		} catch( CommandLineException | IOException | ParserException | SemanticException e ) {
 			throw new FaultException( e.getClass().getName(), e );
