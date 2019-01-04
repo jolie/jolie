@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Stream;
+import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
@@ -79,6 +80,7 @@ public class JolieToValue
 	private static final class TypeInfoType
 	{
 		private static final String NAME = "name";
+		private static final String IS_NATIVE = "isNative";
 		private static final String CODE = "code";
 		private static final String DOCUMENTATION = "documentation";
 	}
@@ -247,6 +249,7 @@ public class JolieToValue
 	{
 		Value returnValue = Value.create();
 		returnValue.setFirstChild( TypeInfoType.NAME, typeDefinition.id() );
+		returnValue.setFirstChild( TypeInfoType.IS_NATIVE, NativeType.isNativeTypeKeyword( typeDefinition.id() ) );
 		if ( typeDefinition.getDocumentation() != null ) {
 			returnValue.setFirstChild( TypeInfoType.DOCUMENTATION, typeDefinition.getDocumentation() );
 		}
@@ -367,6 +370,7 @@ public class JolieToValue
 				s.add( tdl.id() );
 				Value tv = Value.create();
 				tv.setFirstChild( TypeInfoType.NAME, tdl.id() );
+				tv.setFirstChild( TypeInfoType.IS_NATIVE, NativeType.isNativeTypeKeyword( tdl.id() ) );
 				tv.setFirstChild( TypeInfoType.CODE, buildTypeCode( tdl ) );
 				if ( tdl.getDocumentation() != null ) {
 					tv.setFirstChild( TypeInfoType.DOCUMENTATION, tdl.getDocumentation() );

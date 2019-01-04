@@ -30,6 +30,7 @@ type JolieDocRequest: void {
 type TypeInfoType: void {
   .name: string
   .code: string
+  .isNative: bool
   .documentation?: string
 }
 
@@ -64,6 +65,7 @@ type PortInfoType : void {
 
 type ProgramInfoType: void {
   .port*: PortInfoType
+  .filename: string
 }
 
 interface JolieDocInterface {
