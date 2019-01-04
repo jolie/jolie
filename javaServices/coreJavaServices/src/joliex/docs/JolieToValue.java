@@ -92,6 +92,7 @@ public class JolieToValue
 	}
 
 	private static final String TYPE_DECLARATION_TOKEN = "type";
+	private static final String UNDEFINED_TYPE = "undefined";
 	private static final String TYPE_DEFINITION_TOKEN = ":";
 	private static final String TYPE_CHOICE_TOKEN = "|";
 	private static final String TYPE_SUBTYPE_OPEN = "{";
@@ -129,7 +130,7 @@ public class JolieToValue
 		returnValue.setFirstChild( PortInfoType.NAME, portInfo.id() );
 		returnValue.setFirstChild( PortInfoType.IS_OUTPUT, false );
 		if ( portInfo.location() != null ) {
-			returnValue.setFirstChild( PortInfoType.LOCATION, portInfo.location() );
+			returnValue.setFirstChild( PortInfoType.LOCATION, portInfo.location().toString() );
 		}
 		if ( portInfo.protocolId() != null ) {
 			returnValue.setFirstChild( PortInfoType.PROTOCOL, portInfo.protocolId() );
@@ -262,7 +263,9 @@ public class JolieToValue
 		String returnString = "";
 		if ( typeDefinition instanceof TypeChoiceDefinition
 			|| typeDefinition instanceof TypeDefinitionLink
-			|| ( typeDefinition instanceof TypeInlineDefinition && ( (TypeInlineDefinition) typeDefinition ).hasSubTypes() ) ) {
+			|| ( typeDefinition instanceof TypeInlineDefinition 
+				&& ( ( (TypeInlineDefinition) typeDefinition ).hasSubTypes() 
+				|| ( (TypeInlineDefinition) typeDefinition ).untypedSubTypes() ) ) )  {
 			returnString = TYPE_DECLARATION_TOKEN + " " + typeDefinition.id() + TYPE_DEFINITION_TOKEN + " " + buildSubTypeCode( typeDefinition );
 		} else {
 			returnString = typeDefinition.id();
@@ -283,18 +286,22 @@ public class JolieToValue
 		}
 		if ( typeDefinition instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition tid = (TypeInlineDefinition) typeDefinition;
-			returnString += tid.nativeType().id();
-			if ( tid.hasSubTypes() ) {
-				returnString += " " + TYPE_SUBTYPE_OPEN;
-				returnString = tid.subTypes().stream().map(
-					( subType )
-					-> NEW_LINE + TYPE_SUBTYPE_DEFINITON + subType.getKey()
-					+ getSubTypeCardinalityCode( subType.getValue() )
-					+ TYPE_DEFINITION_TOKEN + " "
-					+ buildSubTypeCode( subType.getValue() ) )
-					.reduce( returnString, String::concat )
-					.replaceAll( NEW_LINE, NEW_LINE + TAB );
-				returnString += NEW_LINE + TYPE_SUBTYPE_CLOSE;
+			if ( tid.untypedSubTypes() ){
+				returnString += UNDEFINED_TYPE;
+			} else {
+				returnString += tid.nativeType().id();
+				if ( tid.hasSubTypes() ) {
+					returnString += " " + TYPE_SUBTYPE_OPEN;
+					returnString = tid.subTypes().stream().map(
+						( subType )
+						-> NEW_LINE + TYPE_SUBTYPE_DEFINITON + subType.getKey()
+						+ getSubTypeCardinalityCode( subType.getValue() )
+						+ TYPE_DEFINITION_TOKEN + " "
+						+ buildSubTypeCode( subType.getValue() ) )
+						.reduce( returnString, String::concat )
+						.replaceAll( NEW_LINE, NEW_LINE + TAB );
+					returnString += NEW_LINE + TYPE_SUBTYPE_CLOSE;
+				}
 			}
 		}
 		return returnString;
