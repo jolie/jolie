@@ -21,15 +21,44 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.TQueryExpression;
+import joliex.queryengine.common.Path;
 
-public class ProjectService {
+public class PathProjectExpression implements TQueryExpression {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	private final Path path;
+	
+	public PathProjectExpression( String path ) {
+		this.path = Path.parsePath( path );
 	}
+	
+	private PathProjectExpression( Path path ){
+		this.path = path;
+	}
+
+	@Override
+	public ValueVector applyOn( ValueVector elements ) {
+		ValueVector returnVector = ValueVector.create();
+		for ( Value element : elements ) {
+			returnVector.add( this.applyOn( element ) );
+		}
+		return returnVector;
+	}
+
+	@Override
+	public Value applyOn( Value element ) {
+		Value returnValue = Value.create();
+		if( path.exists( element ) ) {
+			returnValue.setFirstChild( path.getCurrentNode(), Path.parsePath( path.getCurrentNode() ).apply( element ).get() );
+			if( path.getContinuation().isPresent() ){
+				returnValue = new PathProjectExpression( path.getContinuation().get() ).applyOn( returnValue );
+			}
+		}
+		return returnValue;
+	}
+	
 }

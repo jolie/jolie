@@ -21,15 +21,26 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.TQueryExpression;
 
-public class ProjectService {
+public class ValueToPathExpression implements TQueryExpression {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	ValueToPathExpression(Value firstChild, ValueVector children) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
+	
+	@Override
+	public ValueVector applyOn( ValueVector elements ) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public Value applyOn( Value element ) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+	
 }
