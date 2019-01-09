@@ -23,6 +23,10 @@
 
 package joliex.queryengine.common;
 
+import java.util.HashSet;
+import java.util.Set;
+import jolie.runtime.CompareOperators;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
@@ -55,6 +59,46 @@ public final class Utils {
 			return true;
 		} else {
 			return false;
+		}
+	}
+	
+	public static Value merge( Value v1, Value v2 ) throws FaultException {
+		if( CompareOperators.EQUAL.test( v1, v2 ) ){
+			Value returnValue = v1.clone();
+			// REMOVE THIS AND JUST USE CONDITIONALS
+			Set<String> keySetIntersection = new HashSet<>( v1.children().keySet() );
+			keySetIntersection.retainAll( v2.children().keySet() );
+			// we just need the unique set of keys for v2 since we already cloned the keys and children of V1
+			Set<String> uniqueKeySetV2 = new HashSet<>( v2.children().keySet() );
+			uniqueKeySetV2.removeAll( keySetIntersection );
+			for ( String key : keySetIntersection ) {
+				returnValue.children().put( key, merge( v1.getChildren( key ), v2.getChildren( key ) ) );
+			}
+			uniqueKeySetV2.forEach((key) -> {
+				returnValue.children().put( key, v2.getChildren( key ) );
+			});
+			return returnValue;
+		} else {
+			throw new FaultException(
+				"Incompatible Structure Exception", 
+				"Trees " + v1.toPrettyString() + "\n and \n" + v2.toPrettyString() + " cannot be merged"
+			);
+		}
+	}
+	
+	public static ValueVector merge( ValueVector v1, ValueVector v2 ) throws FaultException{
+		if( v1.size() >= v2.size() ){
+			ValueVector returnVector = ValueVector.create();
+			for ( int i = 0; i < v1.size(); i++ ) {
+				if( v2.size() > i ){
+					returnVector.add( merge( v1.get(i), v2.get( i ) ) );
+				} else {
+					returnVector.add( v1.get( i ) );
+				}
+			}
+			return returnVector;
+		} else {
+			return merge( v2, v1 ); 
 		}
 	}
 	

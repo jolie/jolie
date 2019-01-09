@@ -21,15 +21,54 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
+import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.TQueryExpression;
+import joliex.queryengine.common.Utils;
 
-public class ProjectService {
+public class ProjectExpressionChain implements TQueryExpression {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	private final LinkedList<TQueryExpression> expressions = new LinkedList<>();
+
+	public ProjectExpressionChain addExpression( TQueryExpression expression ){
+		expressions.add( expression );
+		return this;
 	}
+	
+	@Override
+	public ValueVector applyOn( ValueVector elements ){
+		ValueVector returnVector = ValueVector.create();
+		for ( Value element : elements ) {
+			returnVector.add( this.applyOn( element ) );
+		}
+		return returnVector;
+	};	
+	
+	@Override
+	public Value applyOn( Value element ){
+		if( expressions.isEmpty() ){
+			return element;
+		} else {
+			return applyOn( element, 0 );
+		}
+	}
+	
+	public Value applyOn( Value element, int index ) {
+		if( expressions.size() > index ){
+			try {
+				return Utils.merge( expressions.get( index ).applyOn( element ), applyOn(element, index++) );
+			} catch ( FaultException ex ) {
+				Logger.getLogger( ProjectExpressionChain.class.getName() ).log( Level.SEVERE, null, ex );
+				return Value.create();
+			}
+		} else {
+			return expressions.get( index ).applyOn( element );
+		}
+ 	}
 }

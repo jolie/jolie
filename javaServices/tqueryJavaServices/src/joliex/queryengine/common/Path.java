@@ -44,6 +44,14 @@ public class Path {
 		this.node = node;
 		this.continuation = continuation;
 	}
+	
+	public String getCurrentNode(){
+		return node;
+	}
+	
+	public Optional<Path> getContinuation(){
+		return continuation;
+	}
 
 	/**
 	 * It parses a
