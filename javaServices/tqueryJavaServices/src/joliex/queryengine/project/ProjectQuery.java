@@ -23,6 +23,7 @@
 
 package joliex.queryengine.project;
 
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.TQueryExpression;
@@ -38,27 +39,13 @@ public class ProjectQuery {
 			private static final String DESTINATION_PATH = "dstPath";
 			private static final String VALUE = "value";
 		}
-		
-//		private static class QuerySubtype {
-//
-//			private static final String NOT = "not";
-//			private static final String EQUAL = "equal";
-//			private static final String OR = "or";
-//			private static final String AND = "and";
-//			private static final String EXISTS = "exists";
-//			private static final String LEFT = "left";
-//			private static final String RIGHT = "right";
-//			private static final String PATH = "path";
-//			private static final String VALUE = "value";
-//		}
 	}
 
 	private static class ResponseType {
-
 		private static final String RESPONSE = "response";
 	}
 	
-	public static Value project( Value projectRequest ) {
+	public static Value project( Value projectRequest ) throws FaultException {
 		ValueVector query = projectRequest.getChildren( RequestType.QUERY );
 		ValueVector dataElements = projectRequest.getChildren( RequestType.DATA );
 		TQueryExpression projectExpression = parseProjectionChain( query );
@@ -71,17 +58,7 @@ public class ProjectQuery {
 		return response;
 	}
 	
-	
-	//type ProjectRequestType : void {
-	//.data*                : undefined
-	//.query                : void {
-	//    .not                  : MatchExp
-	//    | .or                 : void { .left: MatchExp, .right: MatchExp }
-	//    | .and                : void { .left: MatchExp, .right: MatchExp }
-	//    | .equal              : void { .path: Path, .value[1,*]: undefined }
-	//    | .exists             : Path
-	//    | bool
-	private static ProjectExpressionChain parseProjectionChain( ValueVector queries ) {
+	private static ProjectExpressionChain parseProjectionChain( ValueVector queries ) throws FaultException {
 		ProjectExpressionChain returnExpressionChain = new ProjectExpressionChain();
 		for ( Value query : queries ) {
 			returnExpressionChain.addExpression( parseProjectExpression( query ) );
@@ -89,13 +66,13 @@ public class ProjectQuery {
 		return returnExpressionChain;
 	}
 	
-	private static TQueryExpression parseProjectExpression( Value query ) {
-		// IF IT IS A PATH
+	private static TQueryExpression parseProjectExpression( Value query ) throws FaultException {
 		if ( query.isString() ){
 			return new PathProjectExpression( query.strValue() );
-		} else {
+		} 
+		else {
 			return new ValueToPathExpression( 
-					query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ), 
+					query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ).strValue(), 
 					query.getChildren( RequestType.ValueToPathExpression.VALUE ) 
 			);
 		}
