@@ -21,15 +21,25 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.match.MatchExpression;
 
-public class ProjectService {
+public class MatchValueDefinition implements ValueDefinition {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	private final MatchExpression matchExpression;
+	
+	public MatchValueDefinition( MatchExpression matchExpression ){
+		this.matchExpression = matchExpression;
 	}
+	
+	@Override
+	public ValueVector evaluate( Value value ) {
+		ValueVector returnVector = ValueVector.create();
+		returnVector.add( Value.create( matchExpression.applyOn( value ) ) );
+		return returnVector;
+	}
+	
 }

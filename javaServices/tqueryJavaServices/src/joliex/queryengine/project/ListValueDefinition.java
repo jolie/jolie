@@ -21,15 +21,29 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
-import jolie.runtime.FaultException;
+import java.util.List;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
 
-public class ProjectService {
+public class ListValueDefinition implements ValueDefinition {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	private final List<ValueDefinition> valueDefinitions;
+	
+	public ListValueDefinition( List<ValueDefinition> valueDefinitions ) {
+		this.valueDefinitions = valueDefinitions;
 	}
+
+	@Override
+	public ValueVector evaluate( Value value ) {
+		ValueVector returnVector = ValueVector.create();
+		valueDefinitions.forEach( ( valueDefinition ) -> {
+			valueDefinition.evaluate( value ).forEach( ( resultValue ) -> {
+				returnVector.add( resultValue );
+			});
+		});
+		return returnVector;
+	}
+	
 }

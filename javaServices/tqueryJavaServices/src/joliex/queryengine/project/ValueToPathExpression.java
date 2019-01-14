@@ -21,15 +21,55 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
+import joliex.queryengine.common.TQueryExpression;
 
-public class ProjectService {
+public class ValueToPathExpression implements TQueryExpression {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	private final Path destination_path;
+	private final ValueDefinition valueDefinition;
+	
+	ValueToPathExpression( String destination_path, ValueVector values ) throws FaultException {
+		this.destination_path = Path.parsePath( destination_path );
+		valueDefinition = ValueDefinitionParser.parseValues( values );
 	}
+	
+	private ValueToPathExpression( Path destination_path, ValueDefinition valueDefinition ) throws FaultException {
+		this.destination_path = destination_path;
+		this.valueDefinition = valueDefinition;
+	}
+	
+	@Override
+	public ValueVector applyOn( ValueVector elements ) {
+		ValueVector returnVector = ValueVector.create();
+		for ( Value element : elements ) {
+			returnVector.add( this.applyOn( element ) );
+		}
+		return returnVector;
+	}
+	
+	@Override
+	public Value applyOn( Value element ) {
+		Value returnValue = Value.create();
+		if( destination_path.getContinuation().isPresent() ){
+			try {
+				ValueVector v = ValueVector.create();
+				v.add( new ValueToPathExpression( destination_path.getContinuation().get(), valueDefinition ).applyOn( element ) );
+				returnValue.children().put( destination_path.getCurrentNode(), v );
+			} catch (FaultException ex) {
+				Logger.getLogger(ValueToPathExpression.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		} else {
+			returnValue.children().put( destination_path.getCurrentNode() , valueDefinition.evaluate( element ) );
+		}
+		return returnValue;
+	}
+	
 }

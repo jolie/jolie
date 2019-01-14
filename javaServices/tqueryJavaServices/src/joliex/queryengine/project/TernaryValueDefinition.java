@@ -21,15 +21,30 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.match.MatchExpression;
 
-public class ProjectService {
+public class TernaryValueDefinition implements ValueDefinition {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	private final MatchExpression condition;
+	private final ValueDefinition ifTrue, ifFalse;
+	
+	public TernaryValueDefinition( MatchExpression condition, ValueDefinition ifTrue, ValueDefinition ifFalse ) {
+		this.condition = condition;
+		this.ifTrue = ifTrue;
+		this.ifFalse = ifFalse;
 	}
+
+	@Override
+	public ValueVector evaluate( Value value ) {
+		if ( condition.applyOn( value ) ){
+			return ifTrue.evaluate( value );
+		} else {
+			return ifFalse.evaluate( value );
+		}
+	}
+	
 }

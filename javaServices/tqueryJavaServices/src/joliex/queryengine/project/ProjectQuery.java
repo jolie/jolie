@@ -21,32 +21,60 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
 import jolie.runtime.FaultException;
-import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.TQueryExpression;
 
+public class ProjectQuery {
 
-public class TQueryService extends JavaService {
+	private static class RequestType {
 
-	public Value group( Value request ) throws FaultException {
-		return GroupService.group( request );
+		private static final String DATA = "data";
+		private static final String QUERY = "query";
+
+		private static class ValueToPathExpression {
+			private static final String DESTINATION_PATH = "dstPath";
+			private static final String VALUE = "value";
+		}
 	}
 
-	public Value lookup( Value request ) throws FaultException {
-		return LookupService.lookup( request );
+	private static class ResponseType {
+		private static final String RESPONSE = "response";
 	}
-
-	public Value match( Value request ) throws FaultException {
-		return MatchService.match( request );
+	
+	public static Value project( Value projectRequest ) throws FaultException {
+		ValueVector query = projectRequest.getChildren( RequestType.QUERY );
+		ValueVector dataElements = projectRequest.getChildren( RequestType.DATA );
+		TQueryExpression projectExpression = parseProjectionChain( query );
+		Value response = Value.create();
+		ValueVector responseVector = ValueVector.create();
+		response.children().put( ProjectQuery.ResponseType.RESPONSE, responseVector );
+		for ( Value dataElement : dataElements ) {
+			responseVector.add( projectExpression.applyOn( dataElement ) );
+		}
+		return response;
 	}
-
-	public Value project( Value request ) throws FaultException {
-		return ProjectService.project( request );
+	
+	private static ProjectExpressionChain parseProjectionChain( ValueVector queries ) throws FaultException {
+		ProjectExpressionChain returnExpressionChain = new ProjectExpressionChain();
+		for ( Value query : queries ) {
+			returnExpressionChain.addExpression( parseProjectExpression( query ) );
+		}
+		return returnExpressionChain;
 	}
-
-	public Value unwind( Value request ) throws FaultException {
-		return UnwindService.unwind( request );
+	
+	private static TQueryExpression parseProjectExpression( Value query ) throws FaultException {
+		if ( query.isString() ){
+			return new PathProjectExpression( query.strValue() );
+		} 
+		else {
+			return new ValueToPathExpression( 
+					query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ).strValue(), 
+					query.getChildren( RequestType.ValueToPathExpression.VALUE ) 
+			);
+		}
 	}
 }
