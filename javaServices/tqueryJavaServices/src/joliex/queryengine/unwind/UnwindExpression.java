@@ -23,39 +23,58 @@
 
 package joliex.queryengine.unwind;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.Path;
+import joliex.queryengine.common.TQueryExpression;
 
-public class UnwindQuery {
+class UnwindExpression implements TQueryExpression {
 
-	public static Value unwind( Value request ) throws FaultException {
+	private final Path path;
 
-		String queryParameterString = UnwindQuery.RequestType.QUERY;
-		Value queryValue = request.getFirstChild( queryParameterString );
-		String queryString = queryValue.strValue();
-		Path queryPath = Path.parsePath( queryString );
-		
-		String dataParameterString = UnwindQuery.RequestType.DATA;
-		ValueVector dataElements = request.getChildren( dataParameterString );
-
-		ValueVector responseVector = unwindOperator( queryPath, dataElements );
-		Value responseValue = Value.create();
-		responseValue.children().put( "response", responseVector );
-		return responseValue;
+	UnwindExpression(Path p) {
+		this.path = p;
 	}
 
-	private static ValueVector unwindOperator( Path p, ValueVector a ) {
-		
-		UnwindExpression unwindExpression = new UnwindExpression( p );
-		return unwindExpression.applyOn( a );
+	@Override
+	public Value applyOn(Value element) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
-	private static class RequestType {
+	@Override
+	public ValueVector applyOn(ValueVector elements) {
 		
-		private static String QUERY = "query";
-		private static String DATA = "data";
+		ValueVector resultVector = ValueVector.create();
+		elements.forEach( ( element ) -> {
+			String node = path.getCurrentNode();
+			ValueVector elementsContinuation 
+					= Path.parsePath( node ).apply( element )
+							.orElse( ValueVector.create() );
+			if ( path.getContinuation().isPresent() ) {
+				expand( element, 
+						new UnwindExpression( 
+								path.getContinuation()
+									.get() )
+									.applyOn( elementsContinuation ), 
+						node )
+							.forEach( ( elementContinuation ) -> 
+									include( resultVector, elementContinuation ) 
+							);
+			} else {
+				elementsContinuation.forEach( ( elementContinuation ) -> 
+						include( resultVector, elementContinuation )
+				);
+			}
+		});
+		
+		return resultVector;
 	}
-	
+
+	private ValueVector expand( Value tree, ValueVector applyOn, String node ) {
+		return ValueVector.create();
+	}
+
+	private void include( ValueVector valueVector, Value value ) {
+		valueVector.add( value );
+	}
 }
