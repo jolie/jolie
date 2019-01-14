@@ -21,15 +21,24 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
 
-public class ProjectService {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+public class PathValueDefinition implements ValueDefinition {
+
+	private final Path path;
+	
+	public PathValueDefinition( String path ) {
+		this.path = Path.parsePath( path );
 	}
+	
+	@Override
+	public ValueVector evaluate( Value value ) {
+		return path.apply( value ).orElse( ValueVector.create() );
+	}
+	
 }

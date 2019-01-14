@@ -21,15 +21,24 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.project;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.project.ProjectQuery;
+import jolie.runtime.ValueVector;
 
-public class ProjectService {
+public class ConstantValueDefinition implements ValueDefinition {
 
-	static Value project( Value request ) throws FaultException {
-		return ProjectQuery.project( request );
+	private final ValueVector returnValue;
+	
+	public ConstantValueDefinition( Value value ){
+		ValueVector v = ValueVector.create();
+		v.add( value );
+		returnValue = v;
 	}
+	
+	@Override
+	public ValueVector evaluate( Value value ) {
+		return returnValue;
+	}
+	
 }
