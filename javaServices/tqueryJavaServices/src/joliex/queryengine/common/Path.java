@@ -66,6 +66,11 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param value
+	 * @return 
+	 */
 	public Optional<ValueVector> apply( Value value ) {
 		if ( value.hasChildren( node ) ){
 			if( continuation.isPresent() ){
@@ -89,6 +94,14 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Checks the presence of a given {@link Path} in a {@link Value}, it can 
+	 * be used for first sanity check on the query to look for
+	 * 
+	 * @param value
+	 * @return  <pre>true</pre> or <pre>false</pre> wether the entire path is 
+	 * present in the given {@link Value}
+	 */
 	public boolean exists( Value value ){
 		if ( value.hasChildren( node ) ){
 			if( continuation.isPresent() ) {

@@ -21,15 +21,45 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.unwind;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.unwind.UnwindQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
 
-public final class UnwindService {
+public class UnwindQuery {
 
-	static Value unwind( Value request ) throws FaultException{
-		return UnwindQuery.unwind( request );
+	public static Value unwind( Value request ) throws FaultException {
+
+		System.out.println( request.toPrettyString() );
+
+		String queryParameterString = UnwindQuery.RequestType.QUERY;
+		Value queryValue = request.getFirstChild( queryParameterString );
+		String queryString = queryValue.strValue();
+		Path queryPath = Path.parsePath( queryString );
+		
+		String dataParameterString = UnwindQuery.RequestType.DATA;
+		ValueVector dataElements = request.getChildren( dataParameterString );
+		
+		return unwindOperator( queryPath, dataElements );
 	}
+
+	private static Value unwindOperator( Path p, ValueVector data ) {
+		
+		Value response = Value.create();
+		return response;
+	}
+
+	private static ValueVector unwindExpansionOperator( ValueVector a, Path p, Value t ) {
+		
+		return a;
+	}
+
+	private static class RequestType {
+		
+		private static String QUERY = "query";
+		private static String DATA = "data";
+	}
+	
 }
