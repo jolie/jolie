@@ -31,12 +31,11 @@ class UnwindExpression {
 
 	private final Path path;
 
-	UnwindExpression( Path p ) {
-		this.path = p;
+	UnwindExpression( Path path ) {
+		this.path = path;
 	}
 
 	public ValueVector applyOn( ValueVector elements ) {
-		
 		ValueVector resultElements = ValueVector.create();
 		elements.forEach( ( element ) -> {
 			element = Value.createClone( element );
@@ -53,9 +52,9 @@ class UnwindExpression {
 											.apply( element )
 											.orElse( ValueVector.create() ) );
 			}
-			expand( element, elementsContinuation, node ).forEach( ( v ) -> 
-					resultElements.add( v )
-			);  			
+			
+			expand( element, elementsContinuation, node )
+					.forEach(resultElements::add);  			
 		});
 		
 		return resultElements;
@@ -74,7 +73,6 @@ class UnwindExpression {
 	}
 
 	private ValueVector getFreshValueVector( Value element ) {
-		
 		ValueVector result = ValueVector.create();
 		result.add( element );
 		

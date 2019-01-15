@@ -31,32 +31,30 @@ import joliex.queryengine.common.Path;
 public class UnwindQuery {
 
 	public static Value unwind( Value request ) throws FaultException {
-
-		System.out.println(request.toPrettyString());
-				
 		Value query = request.getFirstChild( UnwindQuery.RequestType.QUERY );
 		Path path = Path.parsePath( query.strValue() );
 		
 		ValueVector elements = request.getChildren( UnwindQuery.RequestType.DATA );
 
-		ValueVector responseVector = unwindOperator( path, elements );
 		Value responseValue = Value.create();
-		responseValue.children().put( "result", responseVector );
-		
-		System.out.println( responseValue.toPrettyString() );
+		responseValue.children().put( UnwindQuery.ResponseType.RESULT, unwindOperator( path, elements ) );
 		return responseValue;
 	}
 
-	private static ValueVector unwindOperator( Path p, ValueVector a ) {
-		
-		UnwindExpression unwindExpression = new UnwindExpression( p );
-		return unwindExpression.applyOn( a );
+	private static ValueVector unwindOperator( Path path, ValueVector elements ) {
+		UnwindExpression unwindExpression = new UnwindExpression( path );
+		return unwindExpression.applyOn( elements );
 	}
 
 	private static class RequestType {
 		
 		private static String QUERY = "query";
 		private static String DATA = "data";
+	}
+
+	private static class ResponseType {
+
+		private static String RESULT = "result";
 	}
 	
 }
