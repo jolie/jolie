@@ -19,10 +19,18 @@
  *  For details about the authors of this software, see the AUTHORS file.    *
  *****************************************************************************/
 
-define unwind
+define unwind_bios
 {
   with( unwindRequest ){
     .data << bios;
-    .query = "awards"
+    .query = "awards.year"
+  }
+}
+
+define unwind_logs
+{
+  with( unwindRequest ){
+    .data << logs;
+    .query = "M.D.L"
   }
 }

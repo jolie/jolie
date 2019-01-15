@@ -39,7 +39,8 @@ init
       .filename = file.info.absolutePath,
       .format = "json"
     } )( readFileResponse );
-    bios[ readFileResponse._id ] << readFileResponse
+    //bios[ readFileResponse._id ] << readFileResponse
+    logs[ readFileResponse._id ] << readFileResponse
   }
 }
 
@@ -77,12 +78,13 @@ define doTest
 
   scope( doUnwind )
   {
-    // install(
-    //   TypeMismatch =>
-    //     valueToPrettyString@StringUtils( doUnwind )( t );
-    //     println@Console( "TypeMismatch: " + t )()
-    // );
-    unwind;
+    install(
+      TypeMismatch =>
+        valueToPrettyString@StringUtils( doUnwind )( t );
+        println@Console( "TypeMismatch: " + t )()
+    );
+    // unwind_bios;
+    unwind_logs;
     unwind@TQuery( unwindRequest )( unwindResponse )
   }
 

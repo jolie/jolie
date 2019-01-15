@@ -31,55 +31,49 @@ class UnwindExpression {
 
 	private final Path path;
 
-	UnwindExpression(Path p) {
+	UnwindExpression( Path p ) {
 		this.path = p;
 	}
 
-	public ValueVector applyOn(ValueVector elements) {
+	public ValueVector applyOn( ValueVector elements ) {
 		
 		ValueVector resultElements = ValueVector.create();
 		elements.forEach( ( element ) -> {
+			element = Value.createClone( element );
 			String node = path.getCurrentNode();
-			ValueVector elementsContinuation 
-					= Path.parsePath( node ).apply( element )
-							.orElse( ValueVector.create() );
+			ValueVector elementsContinuation = Path.parsePath( node )
+					.apply( element )
+					.orElse( ValueVector.create() );
+			
 			if ( path.getContinuation().isPresent() ) {
-				expand( element, 
-						new UnwindExpression( 
+				elementsContinuation = new UnwindExpression( 
 								path.getContinuation()
 									.get() )
-									.applyOn( elementsContinuation ), 
-						node )
-							.forEach( ( elementContinuation ) -> 
-									include( resultElements, elementContinuation ) 
-							);
-			} else {
-				elementsContinuation.forEach( ( elementContinuation ) -> 
-						include( resultElements, elementContinuation )
-				);
+									.applyOn( Path.parsePath( node )
+											.apply( element )
+											.orElse( ValueVector.create() ) );
 			}
+			expand( element, elementsContinuation, node ).forEach( ( v ) -> 
+					resultElements.add( v )
+			);  			
 		});
 		
 		return resultElements;
 	}
 
 	private ValueVector expand( Value element, ValueVector elements, String node ) {
+		ValueVector returnVector = ValueVector.create();
 		
-		ValueVector resultElements = ValueVector.create();
-		resultElements.forEach( (elementContinuation) -> {
-			Value tmpElement = Value.createClone( elementContinuation );
-			tmpElement.children().put( node, getValueVector( element ) );
-			resultElements.add( tmpElement );
+		elements.forEach( (elementContinuation) -> {
+			Value thisElement = Value.createClone( element );
+			returnVector.add( thisElement );
+			thisElement.children().put( node, getFreshValueVector( elementContinuation ) );
 		});
 		
-		return resultElements;
+		return returnVector;
 	}
 
-	private void include( ValueVector valueVector, Value value ) {
-		valueVector.add( value );
-	}
-
-	private ValueVector getValueVector( Value element ) {
+	private ValueVector getFreshValueVector( Value element ) {
 		
 		ValueVector result = ValueVector.create();
 		result.add( element );
