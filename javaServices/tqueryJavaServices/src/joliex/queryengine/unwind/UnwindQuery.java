@@ -32,17 +32,18 @@ public class UnwindQuery {
 
 	public static Value unwind( Value request ) throws FaultException {
 
-		String queryParameterString = UnwindQuery.RequestType.QUERY;
-		Value queryValue = request.getFirstChild( queryParameterString );
-		String queryString = queryValue.strValue();
-		Path queryPath = Path.parsePath( queryString );
+		System.out.println(request.toPrettyString());
+				
+		Value query = request.getFirstChild( UnwindQuery.RequestType.QUERY );
+		Path path = Path.parsePath( query.strValue() );
 		
-		String dataParameterString = UnwindQuery.RequestType.DATA;
-		ValueVector dataElements = request.getChildren( dataParameterString );
+		ValueVector elements = request.getChildren( UnwindQuery.RequestType.DATA );
 
-		ValueVector responseVector = unwindOperator( queryPath, dataElements );
+		ValueVector responseVector = unwindOperator( path, elements );
 		Value responseValue = Value.create();
-		responseValue.children().put( "response", responseVector );
+		responseValue.children().put( "result", responseVector );
+		
+		System.out.println( responseValue.toPrettyString() );
 		return responseValue;
 	}
 
