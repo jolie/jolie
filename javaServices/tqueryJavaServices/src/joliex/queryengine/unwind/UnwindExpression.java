@@ -21,15 +21,61 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.queryengine.unwind;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.unwind.UnwindQuery;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
 
-public final class UnwindService {
+class UnwindExpression {
 
-	static Value unwind( Value request ) throws FaultException{
-		return UnwindQuery.unwind( request );
+	private final Path path;
+
+	UnwindExpression( Path path ) {
+		this.path = path;
+	}
+
+	public ValueVector applyOn( ValueVector elements ) {
+		ValueVector resultElements = ValueVector.create();
+		elements.forEach( ( element ) -> {
+			element = Value.createClone( element );
+			String node = path.getCurrentNode();
+			ValueVector elementsContinuation = Path.parsePath( node )
+					.apply( element )
+					.orElse( ValueVector.create() );
+			
+			if ( path.getContinuation().isPresent() ) {
+				elementsContinuation = new UnwindExpression( 
+								path.getContinuation()
+									.get() )
+									.applyOn( Path.parsePath( node )
+											.apply( element )
+											.orElse( ValueVector.create() ) );
+			}
+			
+			expand( element, elementsContinuation, node )
+					.forEach(resultElements::add);  			
+		});
+		
+		return resultElements;
+	}
+
+	private ValueVector expand( Value element, ValueVector elements, String node ) {
+		ValueVector returnVector = ValueVector.create();
+		
+		elements.forEach( (elementContinuation) -> {
+			Value thisElement = Value.createClone( element );
+			returnVector.add( thisElement );
+			thisElement.children().put( node, getFreshValueVector( elementContinuation ) );
+		});
+		
+		return returnVector;
+	}
+
+	private ValueVector getFreshValueVector( Value element ) {
+		ValueVector result = ValueVector.create();
+		result.add( element );
+		
+		return result;
 	}
 }

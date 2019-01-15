@@ -51,51 +51,77 @@ include "private/lookup.ol"
 
 define doTest
 {
-  // scope( doMatch )
-  // {
-  //  install(
-  //    IllegalArgumentException =>
-  //     valueToPrettyString@StringUtils( doMatch )( t );
-  //     println@Console( "IllegalArgumentException: " + t )()
-  //    );
-   //  match;
-   //  match@TQuery( matchRequest )( matchResponse );
-   //  undef( matchRequest );
-   //  match_bool;
-   //  match@TQuery( matchRequest )( matchResponse );
-   //  undef( matchRequest );
-   //  match_bool_bis;
-   //  match@TQuery( matchRequest )( matchResponse );
-   //  undef( matchRequest );
-   //  match_equal_value;
-   //  match@TQuery( matchRequest )( matchResponse );
-   //  undef( matchRequest );
-   //  match_equal_value_bis;
-   //  match@TQuery( matchRequest )( matchResponse )
+  scope( doMatch )
+  {
+   install(
+     IllegalArgumentException =>
+      valueToPrettyString@StringUtils( doMatch )( t );
+      println@Console( "IllegalArgumentException: " + t )()
+     );
+    match;
+    match@TQuery( matchRequest )( matchResponse );
+    undef( matchRequest );
+    match_bool;
+    match@TQuery( matchRequest )( matchResponse );
+    undef( matchRequest );
+    match_bool_bis;
+    match@TQuery( matchRequest )( matchResponse );
+    undef( matchRequest );
+    match_equal_value;
+    match@TQuery( matchRequest )( matchResponse );
+    undef( matchRequest );
+    match_equal_value_bis;
+    match@TQuery( matchRequest )( matchResponse )
 
-  // }
+  }
+  ;
 
   scope( doUnwind )
   {
-    // install(
-    //   TypeMismatch =>
-    //     valueToPrettyString@StringUtils( doUnwind )( t );
-    //     println@Console( "TypeMismatch: " + t )()
-    // );
-    unwind;
+    install(
+      TypeMismatch =>
+        valueToPrettyString@StringUtils( doUnwind )( t );
+        println@Console( "TypeMismatch: " + t )()
+    );
+    unwind_bios;
     unwind@TQuery( unwindRequest )( unwindResponse )
   }
+  ;
 
-  // project_path;
-  // project@TQuery( projectRequest )( projectResponse );
-  // undef( projectRequest );
-  // project_value;
-  // project@TQuery( projectRequest )( projectResponse );
-
-  // group;
-  // group@TQuery( groupRequest )( groupResponse );
-
-  // lookup;
-  // lookup@TQuery( lookupRequest )( lookupResponse )
-
+  scope( doProject )
+  {
+    install(
+      TypeMismatch =>
+        valueToPrettyString@StringUtils( doProject )( t );
+        println@Console( "TypeMismatch: " + t )()
+    );
+    project_path;
+    project@TQuery( projectRequest )( projectResponse );
+    undef( projectRequest );
+    project_value;
+    project@TQuery( projectRequest )( projectResponse )
+  }
+  // ;
+  //
+  // scope( doGroup )
+  // {
+  //   install(
+  //     TypeMismatch =>
+  //       valueToPrettyString@StringUtils( doGroup )( t );
+  //       println@Console( "TypeMismatch: " + t )()
+  //   );
+  //   group;
+  //   group@TQuery( groupRequest )( groupResponse )
+  // };
+  //
+  // scope( doLookup )
+  // {
+  //   install(
+  //     TypeMismatch =>
+  //       valueToPrettyString@StringUtils( doLookup )( t );
+  //       println@Console( "TypeMismatch: " + t )()
+  //   );
+  //   lookup;
+  //   lookup@TQuery( lookupRequest )( lookupResponse )
+  // }
 }
