@@ -26,9 +26,8 @@ package joliex.queryengine.unwind;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.Path;
-import joliex.queryengine.common.TQueryExpression;
 
-class UnwindExpression implements TQueryExpression {
+class UnwindExpression {
 
 	private final Path path;
 
@@ -36,15 +35,9 @@ class UnwindExpression implements TQueryExpression {
 		this.path = p;
 	}
 
-	@Override
-	public Value applyOn(Value element) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public ValueVector applyOn(ValueVector elements) {
 		
-		ValueVector resultVector = ValueVector.create();
+		ValueVector resultElements = ValueVector.create();
 		elements.forEach( ( element ) -> {
 			String node = path.getCurrentNode();
 			ValueVector elementsContinuation 
@@ -58,23 +51,39 @@ class UnwindExpression implements TQueryExpression {
 									.applyOn( elementsContinuation ), 
 						node )
 							.forEach( ( elementContinuation ) -> 
-									include( resultVector, elementContinuation ) 
+									include( resultElements, elementContinuation ) 
 							);
 			} else {
 				elementsContinuation.forEach( ( elementContinuation ) -> 
-						include( resultVector, elementContinuation )
+						include( resultElements, elementContinuation )
 				);
 			}
 		});
 		
-		return resultVector;
+		return resultElements;
 	}
 
-	private ValueVector expand( Value tree, ValueVector applyOn, String node ) {
-		return ValueVector.create();
+	private ValueVector expand( Value element, ValueVector elements, String node ) {
+		
+		ValueVector resultElements = ValueVector.create();
+		resultElements.forEach( (elementContinuation) -> {
+			Value tmpElement = Value.createClone( elementContinuation );
+			tmpElement.children().put( node, getValueVector( element ) );
+			resultElements.add( tmpElement );
+		});
+		
+		return resultElements;
 	}
 
 	private void include( ValueVector valueVector, Value value ) {
 		valueVector.add( value );
+	}
+
+	private ValueVector getValueVector( Value element ) {
+		
+		ValueVector result = ValueVector.create();
+		result.add( element );
+		
+		return result;
 	}
 }
