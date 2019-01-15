@@ -52,7 +52,7 @@ public final class MatchQuery {
 
 	private static class ResponseType {
 
-		private static final String RESPONSE = "response";
+		private static final String RESPONSE = "result";
 	}
 	
 	public static Value match( Value matchRequest ) throws FaultException {

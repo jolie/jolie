@@ -74,6 +74,7 @@ define doTest
     match@TQuery( matchRequest )( matchResponse )
 
   }
+  ;
 
   scope( doUnwind )
   {
@@ -85,6 +86,7 @@ define doTest
     unwind_bios;
     unwind@TQuery( unwindRequest )( unwindResponse )
   }
+  ;
 
   scope( doProject )
   {
@@ -97,28 +99,29 @@ define doTest
     project@TQuery( projectRequest )( projectResponse );
     undef( projectRequest );
     project_value;
-    project@TQuery( projectRequest )( projectResponse );
+    project@TQuery( projectRequest )( projectResponse )
   }
-
-  scope( doGroup )
-  {
-    install(
-      TypeMismatch =>
-        valueToPrettyString@StringUtils( doGroup )( t );
-        println@Console( "TypeMismatch: " + t )()
-    );
-    group;
-    group@TQuery( groupRequest )( groupResponse );
-  }
-
-  scope( doLookup )
-  {
-    install(
-      TypeMismatch =>
-        valueToPrettyString@StringUtils( doLookup )( t );
-        println@Console( "TypeMismatch: " + t )()
-    );
-    lookup;
-    lookup@TQuery( lookupRequest )( lookupResponse )
-  }
+  // ;
+  //
+  // scope( doGroup )
+  // {
+  //   install(
+  //     TypeMismatch =>
+  //       valueToPrettyString@StringUtils( doGroup )( t );
+  //       println@Console( "TypeMismatch: " + t )()
+  //   );
+  //   group;
+  //   group@TQuery( groupRequest )( groupResponse )
+  // };
+  //
+  // scope( doLookup )
+  // {
+  //   install(
+  //     TypeMismatch =>
+  //       valueToPrettyString@StringUtils( doLookup )( t );
+  //       println@Console( "TypeMismatch: " + t )()
+  //   );
+  //   lookup;
+  //   lookup@TQuery( lookupRequest )( lookupResponse )
+  // }
 }
