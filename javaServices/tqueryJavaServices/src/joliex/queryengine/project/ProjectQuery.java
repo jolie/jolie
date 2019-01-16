@@ -40,10 +40,6 @@ public class ProjectQuery {
 			private static final String VALUE = "value";
 		}
 	}
-
-	private static class ResponseType {
-		private static final String RESPONSE = "response";
-	}
 	
 	public static Value project( Value projectRequest ) throws FaultException {
 		ValueVector query = projectRequest.getChildren( RequestType.QUERY );
@@ -51,7 +47,7 @@ public class ProjectQuery {
 		TQueryExpression projectExpression = parseProjectionChain( query );
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
-		response.children().put( ProjectQuery.ResponseType.RESPONSE, responseVector );
+		response.children().put( TQueryExpression.ResponseType.RESULT, responseVector );
 		for ( Value dataElement : dataElements ) {
 			responseVector.add( projectExpression.applyOn( dataElement ) );
 		}
@@ -71,7 +67,7 @@ public class ProjectQuery {
 			return new PathProjectExpression( query.strValue() );
 		} 
 		else {
-			return new ValueToPathExpression( 
+			return new ValueToPathProjectExpression( 
 					query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ).strValue(), 
 					query.getChildren( RequestType.ValueToPathExpression.VALUE ) 
 			);

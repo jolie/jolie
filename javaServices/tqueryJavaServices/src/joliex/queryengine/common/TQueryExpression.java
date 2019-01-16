@@ -23,10 +23,15 @@
 
 package joliex.queryengine.common;
 
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 public interface TQueryExpression {
-	ValueVector applyOn( ValueVector elements );
-	Value		applyOn( Value element );
+	ValueVector applyOn( ValueVector elements ) throws FaultException;
+	Value		applyOn( Value element ) throws FaultException;
+	
+	public static class ResponseType {
+		public static final String RESULT = "result";
+	}
 }

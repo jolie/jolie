@@ -21,30 +21,30 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project;
+package joliex.queryengine.project.valuedefinition;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.match.MatchExpression;
 
-public class TernaryValueDefinition implements ValueDefinition {
+public class MatchValueDefinition implements ValueDefinition {
 
-	private final MatchExpression condition;
-	private final ValueDefinition ifTrue, ifFalse;
+	private final MatchExpression matchExpression;
 	
-	public TernaryValueDefinition( MatchExpression condition, ValueDefinition ifTrue, ValueDefinition ifFalse ) {
-		this.condition = condition;
-		this.ifTrue = ifTrue;
-		this.ifFalse = ifFalse;
+	public MatchValueDefinition( MatchExpression matchExpression ){
+		this.matchExpression = matchExpression;
+	}
+	
+	@Override
+	public ValueVector evaluate( Value value ) {
+		ValueVector returnVector = ValueVector.create();
+		returnVector.add( Value.create( matchExpression.applyOn( value ) ) );
+		return returnVector;
 	}
 
 	@Override
-	public ValueVector evaluate( Value value ) {
-		if ( condition.applyOn( value ) ){
-			return ifTrue.evaluate( value );
-		} else {
-			return ifFalse.evaluate( value );
-		}
+	public boolean isDefined( Value value ) {
+		return true;
 	}
 	
 }

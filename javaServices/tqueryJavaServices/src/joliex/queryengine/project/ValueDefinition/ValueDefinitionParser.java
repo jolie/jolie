@@ -21,7 +21,7 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project;
+package joliex.queryengine.project.valuedefinition;
 
 import java.util.ArrayList;
 import jolie.runtime.FaultException;
@@ -30,14 +30,14 @@ import jolie.runtime.ValueVector;
 import joliex.queryengine.match.MatchExpression;
 import joliex.queryengine.match.MatchQuery;
 
-class ValueDefinitionParser {
+public class ValueDefinitionParser {
 	
 	private static final class ValueDefinitionType {
 		private static final String PATH = "path";
 		private static final String MATCH = "match";
-		private static final String TERNARY = "elvis";
+		private static final String TERNARY = "ternary";
 		private static final class TernaryDefinitionSubtype {
-			private static final String CONDITION = "exp";
+			private static final String CONDITION = "condition";
 			private static final String IF_TRUE = "ifTrue";
 			private static final String IF_FALSE = "ifFalse";
 		}
@@ -73,10 +73,8 @@ class ValueDefinitionParser {
 					ValueDefinitionType.TernaryDefinitionSubtype.IF_FALSE )
 			);
 			return new TernaryValueDefinition( condition, ifTrue, ifFalse );
-		} else if ( value.isDefined() ) {
-			return new ConstantValueDefinition( value );
 		} else {
-			throw new IllegalArgumentException( "Could not parse project ValueDefinition " + value.toPrettyString() );
+			return new ConstantValueDefinition( value );
 		}
 	}
 	

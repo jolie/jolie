@@ -21,24 +21,39 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project;
+package joliex.queryengine.project.valuedefinition;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
 
-public class ConstantValueDefinition implements ValueDefinition {
 
-	private final ValueVector returnValue;
+public class PathValueDefinition implements ValueDefinition {
+
+	private final Path path;
 	
-	public ConstantValueDefinition( Value value ){
-		ValueVector v = ValueVector.create();
-		v.add( value );
-		returnValue = v;
+	public PathValueDefinition( String path ) {
+		this.path = Path.parsePath( path );
 	}
 	
 	@Override
 	public ValueVector evaluate( Value value ) {
-		return returnValue;
+		return path.apply( value ).orElseGet( () -> {
+			Logger.getLogger(PathValueDefinition.class.getName())
+					.log( Level.SEVERE, null, new FaultException( "IllegalEvaluation",
+							"Tried to apply path " + path.toPrettyString() + " on " + value.toPrettyString()));
+			ValueVector v = ValueVector.create();
+			v.add(Value.create());
+			return v;
+		});
+	}
+
+	@Override
+	public boolean isDefined( Value value ) {
+		return path.exists( value );
 	}
 	
 }

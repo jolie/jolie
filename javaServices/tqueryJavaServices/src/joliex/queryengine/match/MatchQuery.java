@@ -28,6 +28,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.Path;
+import joliex.queryengine.common.TQueryExpression;
 
 public final class MatchQuery {
 
@@ -50,11 +51,6 @@ public final class MatchQuery {
 		}
 	}
 
-	private static class ResponseType {
-
-		private static final String RESPONSE = "result";
-	}
-	
 	public static Value match( Value matchRequest ) throws FaultException {
 
 		Value query = matchRequest.getFirstChild( RequestType.QUERY );
@@ -65,7 +61,7 @@ public final class MatchQuery {
 				).applyOn( dataElements );
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
-		response.children().put( ResponseType.RESPONSE, responseVector );
+		response.children().put( TQueryExpression.ResponseType.RESULT, responseVector );
 		for ( int i = 0; i < mask.length; i++ ) {
 			if ( mask[i] ) {
 				responseVector.add( dataElements.get( i ) );

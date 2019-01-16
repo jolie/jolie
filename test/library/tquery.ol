@@ -25,24 +25,6 @@ include "console.iol"
 include "string_utils.iol"
 include "tquery.iol"
 
-init
-{
-  /* read from a directory containing json files that populate our database */
-  getServiceDirectory@File()( serviceDirectory );
-  list@File( {
-    .regex = ".*\\.json",
-    .directory = serviceDirectory + "/private/",
-    .info = true
-  } )( listResponse );
-  for ( file in listResponse.result ) {
-    readFile@File( {
-      .filename = file.info.absolutePath,
-      .format = "json"
-    } )( readFileResponse );
-    bios[ readFileResponse._id ] << readFileResponse
-  }
-}
-
 include "private/match.ol"
 include "private/unwind.ol"
 include "private/project.ol"
@@ -51,6 +33,22 @@ include "private/lookup.ol"
 
 define doTest
 {
+  install( default => valueToPrettyString@StringUtils( main )( t ); println@Console( t )() );
+  /* read from a directory containing json files that populate our database */
+  getServiceDirectory@File()( serviceDirectory );
+  getFileSeparator@File()( sep );
+  datafilesDirectory = serviceDirectory + sep + "private";
+  list@File( {
+    .regex = ".*\\.json",
+    .directory = datafilesDirectory
+  } )( listResponse );
+  for ( file in listResponse.result ) {
+    readFile@File( {
+      .filename = datafilesDirectory + sep + file,
+      .format = "json"
+    } )( readFileResponse );
+    bios[ readFileResponse._id ] << readFileResponse
+  };
   scope( doMatch )
   {
    install(
@@ -73,8 +71,7 @@ define doTest
     match_equal_value_bis;
     match@TQuery( matchRequest )( matchResponse )
 
-  }
-  ;
+  };
 
   scope( doUnwind )
   {
@@ -95,11 +92,48 @@ define doTest
         valueToPrettyString@StringUtils( doProject )( t );
         println@Console( "TypeMismatch: " + t )()
     );
+    projectRequest.data << bios;
+    resetQuery;
     project_path;
     project@TQuery( projectRequest )( projectResponse );
-    undef( projectRequest );
+    valueToPrettyString@StringUtils( projectResponse )( t );
+    println@Console( t )();
+    resetQuery;
     project_value;
-    project@TQuery( projectRequest )( projectResponse )
+    project@TQuery( projectRequest )( projectResponse );
+    valueToPrettyString@StringUtils( projectResponse )( t );
+    println@Console( t )();
+    resetQuery;
+    project_value_path;
+    project@TQuery( projectRequest )( projectResponse );
+    valueToPrettyString@StringUtils( projectResponse )( t );
+    println@Console( t )();
+    resetQuery;
+    project_value_match;
+    project@TQuery( projectRequest )( projectResponse );
+    valueToPrettyString@StringUtils( projectResponse )( t );
+    println@Console( t )();
+    resetQuery;
+    project_value_ternary;
+    project@TQuery( projectRequest )( projectResponse );
+    valueToPrettyString@StringUtils( projectResponse )( t );
+    println@Console( t )();
+    resetQuery;
+    scope( failing ){
+      install( MergeValueException => 
+      valueToPrettyString@StringUtils( failing )( t );
+        println@Console( "MergeValueException: " + t )()
+      );
+      failing_project_value_chain;
+      project@TQuery( projectRequest )( projectResponse );
+      valueToPrettyString@StringUtils( projectResponse )( t );
+      println@Console( t )()  
+    };
+    resetQuery;
+    successful_project_value_chain;
+    project@TQuery( projectRequest )( projectResponse );
+    valueToPrettyString@StringUtils( projectResponse )( t );
+    println@Console( t )()  
   }
   // ;
   //

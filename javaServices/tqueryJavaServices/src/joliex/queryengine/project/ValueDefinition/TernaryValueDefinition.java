@@ -21,24 +21,39 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project;
+package joliex.queryengine.project.valuedefinition;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.Path;
+import joliex.queryengine.match.MatchExpression;
 
+public class TernaryValueDefinition implements ValueDefinition {
 
-public class PathValueDefinition implements ValueDefinition {
-
-	private final Path path;
+	private final MatchExpression condition;
+	private final ValueDefinition ifTrue, ifFalse;
 	
-	public PathValueDefinition( String path ) {
-		this.path = Path.parsePath( path );
+	public TernaryValueDefinition( MatchExpression condition, ValueDefinition ifTrue, ValueDefinition ifFalse ) {
+		this.condition = condition;
+		this.ifTrue = ifTrue;
+		this.ifFalse = ifFalse;
 	}
-	
+
 	@Override
 	public ValueVector evaluate( Value value ) {
-		return path.apply( value ).orElse( ValueVector.create() );
+		if ( condition.applyOn( value ) ){
+			return ifTrue.evaluate( value );
+		} else {
+			return ifFalse.evaluate( value );
+		}
+	}
+
+	@Override
+	public boolean isDefined( Value value ) {
+		if ( condition.applyOn( value ) ){
+			return ifTrue.isDefined( value );
+		} else {
+			return ifFalse.isDefined( value );
+		}
 	}
 	
 }

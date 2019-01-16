@@ -21,25 +21,12 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project;
+package joliex.queryengine.project.valuedefinition;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.match.MatchExpression;
 
-public class MatchValueDefinition implements ValueDefinition {
-
-	private final MatchExpression matchExpression;
-	
-	public MatchValueDefinition( MatchExpression matchExpression ){
-		this.matchExpression = matchExpression;
-	}
-	
-	@Override
-	public ValueVector evaluate( Value value ) {
-		ValueVector returnVector = ValueVector.create();
-		returnVector.add( Value.create( matchExpression.applyOn( value ) ) );
-		return returnVector;
-	}
-	
+public interface ValueDefinition {
+	public ValueVector evaluate( Value value );
+	public boolean isDefined( Value value );
 }
