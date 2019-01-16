@@ -24,8 +24,6 @@
 package joliex.queryengine.project;
 
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -42,7 +40,7 @@ public class ProjectExpressionChain implements TQueryExpression {
 	}
 	
 	@Override
-	public ValueVector applyOn( ValueVector elements ){
+	public ValueVector applyOn( ValueVector elements ) throws FaultException{
 		ValueVector returnVector = ValueVector.create();
 		for ( Value element : elements ) {
 			returnVector.add( this.applyOn( element ) );
@@ -51,7 +49,7 @@ public class ProjectExpressionChain implements TQueryExpression {
 	};	
 	
 	@Override
-	public Value applyOn( Value element ){
+	public Value applyOn( Value element ) throws FaultException{
 		if( expressions.isEmpty() ){
 			return element;
 		} else {
@@ -59,14 +57,9 @@ public class ProjectExpressionChain implements TQueryExpression {
 		}
 	}
 	
-	public Value applyOn( Value element, int index ) {
-		if( expressions.size() > index ){
-			try {
-				return Utils.merge( expressions.get( index ).applyOn( element ), applyOn(element, index++) );
-			} catch ( FaultException ex ) {
-				Logger.getLogger( ProjectExpressionChain.class.getName() ).log( Level.SEVERE, null, ex );
-				return Value.create();
-			}
+	private Value applyOn( Value element, int index ) throws FaultException {
+		if( expressions.size()-1 > index ){
+			return Utils.merge( expressions.get( index ).applyOn( element ), applyOn( element, ++index ) );
 		} else {
 			return expressions.get( index ).applyOn( element );
 		}

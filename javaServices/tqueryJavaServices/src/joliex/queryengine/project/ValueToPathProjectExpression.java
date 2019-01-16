@@ -23,27 +23,51 @@
 
 package joliex.queryengine.project;
 
-import java.util.List;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Path;
+import joliex.queryengine.common.TQueryExpression;
+import joliex.queryengine.project.valuedefinition.ValueDefinition;
+import joliex.queryengine.project.valuedefinition.ValueDefinitionParser;
 
-public class ListValueDefinition implements ValueDefinition {
+public class ValueToPathProjectExpression implements TQueryExpression {
 
-	private final List<ValueDefinition> valueDefinitions;
+	private final Path destination_path;
+	private final ValueDefinition valueDefinition;
 	
-	public ListValueDefinition( List<ValueDefinition> valueDefinitions ) {
-		this.valueDefinitions = valueDefinitions;
+	public ValueToPathProjectExpression( String destination_path, ValueVector values ) throws FaultException {
+		this.destination_path = Path.parsePath( destination_path );
+		valueDefinition = ValueDefinitionParser.parseValues( values );
 	}
-
+	
+	private ValueToPathProjectExpression( Path destination_path, ValueDefinition valueDefinition ) throws FaultException {
+		this.destination_path = destination_path;
+		this.valueDefinition = valueDefinition;
+	}
+	
 	@Override
-	public ValueVector evaluate( Value value ) {
+	public ValueVector applyOn( ValueVector elements ) throws FaultException {
 		ValueVector returnVector = ValueVector.create();
-		valueDefinitions.forEach( ( valueDefinition ) -> {
-			valueDefinition.evaluate( value ).forEach( ( resultValue ) -> {
-				returnVector.add( resultValue );
-			});
-		});
+		for ( Value element : elements ) {
+			returnVector.add( this.applyOn( element ) );
+		}
 		return returnVector;
+	}
+	
+	@Override
+	public Value applyOn( Value element ) throws FaultException {
+		Value returnValue = Value.create();
+		if( valueDefinition.isDefined( element ) ){
+			if( destination_path.getContinuation().isPresent() ){
+				ValueVector v = ValueVector.create();
+				v.add(new ValueToPathProjectExpression( destination_path.getContinuation().get(), valueDefinition ).applyOn( element ) );
+				returnValue.children().put( destination_path.getCurrentNode(), v );
+		} else {
+			returnValue.children().put( destination_path.getCurrentNode() , valueDefinition.evaluate( element ) );
+			}
+		}
+		return returnValue;
 	}
 	
 }

@@ -54,12 +54,22 @@ type ValuesToPathExp    : void {
   .value[1,*]           : Value
 }
 
-type Value              : bool | Path | MatchExp | TernaryExp
+type Value              : any | ValuePath | ValueMatch | ValueTernary
 
-type TernaryExp         : void {
-  .exp                  : MatchExp
-  .ifTrue               : Value
-  .ifFalse              : Value
+type ValuePath          : void {
+  .path                 : Path
+}
+
+type ValueMatch         : void {
+  .match                : MatchExp
+}
+
+type ValueTernary         : void {
+  .ternary:             void {
+    .condition            : MatchExp
+    .ifTrue[1,*]          : Value
+    .ifFalse[1,*]         : Value  
+  }
 }
 
 type GroupRequest       : void {
@@ -93,7 +103,7 @@ interface TQueryInterface {
   RequestResponse :
   match   ( MatchRequestType  )( ResponseType ) throws MalformedQueryExpression( string ),
   unwind  ( UnwindRequest     )( ResponseType ) throws MalformedQueryExpression( string ),
-  project ( ProjectRequest    )( ResponseType ) throws MalformedQueryExpression( string ),
+  project ( ProjectRequest    )( ResponseType ) throws MalformedQueryExpression( string ) MergeValueException( string ),
   group   ( GroupRequest      )( ResponseType ) throws MalformedQueryExpression( string ),
   lookup  ( LookupRequest     )( ResponseType ) throws MalformedQueryExpression( string )
 }

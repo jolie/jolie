@@ -74,14 +74,14 @@ public final class Utils {
 			for ( String key : keySetIntersection ) {
 				returnValue.children().put( key, merge( v1.getChildren( key ), v2.getChildren( key ) ) );
 			}
-			uniqueKeySetV2.forEach((key) -> {
+			uniqueKeySetV2.forEach( ( key ) -> {
 				returnValue.children().put( key, v2.getChildren( key ) );
 			});
 			return returnValue;
 		} else {
 			throw new FaultException(
-				"Incompatible Structure Exception", 
-				"Trees " + v1.toPrettyString() + "\n and \n" + v2.toPrettyString() + " cannot be merged"
+				"MergeValueException",
+				"Values: \n" + v1.toPrettyString() + "\n and \n" + v2.toPrettyString() + "\n cannot be merged"
 			);
 		}
 	}

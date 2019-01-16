@@ -27,6 +27,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.Path;
+import joliex.queryengine.common.TQueryExpression;
 
 public class UnwindQuery {
 
@@ -37,7 +38,7 @@ public class UnwindQuery {
 		ValueVector elements = request.getChildren( UnwindQuery.RequestType.DATA );
 
 		Value responseValue = Value.create();
-		responseValue.children().put( UnwindQuery.ResponseType.RESULT, unwindOperator( path, elements ) );
+		responseValue.children().put(TQueryExpression.ResponseType.RESULT, unwindOperator( path, elements ) );
 		return responseValue;
 	}
 
@@ -52,9 +53,4 @@ public class UnwindQuery {
 		private static String DATA = "data";
 	}
 
-	private static class ResponseType {
-
-		private static String RESULT = "result";
-	}
-	
 }

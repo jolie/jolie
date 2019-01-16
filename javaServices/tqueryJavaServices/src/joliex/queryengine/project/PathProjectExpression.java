@@ -23,10 +23,11 @@
 
 package joliex.queryengine.project;
 
+import java.util.Optional;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.TQueryExpression;
 import joliex.queryengine.common.Path;
+import joliex.queryengine.common.TQueryExpression;
 
 public class PathProjectExpression implements TQueryExpression {
 
@@ -52,8 +53,9 @@ public class PathProjectExpression implements TQueryExpression {
 	@Override
 	public Value applyOn( Value element ) {
 		Value returnValue = Value.create();
-		if( path.exists( element ) ) {
-			returnValue.setFirstChild( path.getCurrentNode(), Path.parsePath( path.getCurrentNode() ).apply( element ).get() );
+		Optional<ValueVector> valueVector = Path.parsePath( path.getCurrentNode() ).apply( element );
+		if( valueVector.isPresent() ) {
+			returnValue.children().put( path.getCurrentNode(), valueVector.get() );
 			if( path.getContinuation().isPresent() ){
 				returnValue = new PathProjectExpression( path.getContinuation().get() ).applyOn( returnValue );
 			}

@@ -21,11 +21,41 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project;
+package joliex.queryengine.project.valuedefinition;
 
+import java.util.List;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
-public interface ValueDefinition {
-	public ValueVector evaluate( Value value );
+public class ListValueDefinition implements ValueDefinition {
+
+	private final List<ValueDefinition> valueDefinitions;
+	
+	public ListValueDefinition( List<ValueDefinition> valueDefinitions ) {
+		this.valueDefinitions = valueDefinitions;
+	}
+
+	@Override
+	public ValueVector evaluate( Value value ) {
+		ValueVector returnVector = ValueVector.create();
+		valueDefinitions.forEach( ( valueDefinition ) -> {
+			if( valueDefinition.isDefined( value ) ){
+				valueDefinition.evaluate( value ).forEach( ( resultValue ) -> {
+					returnVector.add( resultValue );
+				});
+			}
+		});
+		return returnVector;
+	}
+
+	@Override
+	public boolean isDefined( Value value ) {
+		for ( ValueDefinition valueDefinition : valueDefinitions ) {
+			if( valueDefinition.isDefined( value ) ){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }
