@@ -17,13 +17,13 @@ define project_path
 define project_value
 {
   println@Console( "= = = PROJECT VALUE = = = " )();
-  query << { .dstPath = "contributions", .value[0] = "C1", .value[1] = "C2", .value[2] = "C3" }
+  query << { .dstPath = "achievements", .value[0] = "C1", .value[1] = "C2", .value[2] = "C3" }
 }
 
 define project_value_path
 {
   println@Console( "= = = PROJECT VALUE PATH = = = " )();
-  query << { .dstPath = "contributions", .value.path = "awards" }
+  query << { .dstPath = "achievements", .value.path = "awards" }
 }
 
 define project_value_match
@@ -31,7 +31,7 @@ define project_value_match
   println@Console( "= = = PROJECT VALUE MATCH = = = " )();
   query << { .dstPath = "testValueMatch_isKristen", 
     .value.match.equal.path = "name.first", 
-    .value.match.equal.value = "Kristen" 
+    .value.match.equal.value = "Kristen"
   }
 }
 
@@ -45,7 +45,8 @@ define project_value_ternary
     .value.ternary.condition.and.left.equal.value = "Kristen",
     .value.ternary.condition.and.right.equal.value = "Nyygard",
     .value.ternary.ifTrue.path = "awards",
-    .value.ternary.ifFalse = "No Awards if it is not Kristen Nyygard"
+    .value.ternary.ifFalse[0] = "No Awards if it is not Kristen Nyygard",
+    .value.ternary.ifFalse[1].path = "name"
   }
 }
 
