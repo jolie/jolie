@@ -59,7 +59,8 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 			}
 			
 			try {
-				engine.eval( "load('" + jsPath.toString() + "');" );
+				// Nashorn (Java JS interpreter) on Windows requires '/' as a path separator. Hence use jsPath.toUri().toString() instead of jsPath().toString()
+				engine.eval( "load('" + jsPath.toUri().toString() + "');" );
 			} catch( ScriptException e ) {
 				throw new EmbeddedServiceLoaderCreationException( e );
 			}
