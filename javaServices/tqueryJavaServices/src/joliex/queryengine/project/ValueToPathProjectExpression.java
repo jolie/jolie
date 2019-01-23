@@ -41,7 +41,7 @@ public class ValueToPathProjectExpression implements TQueryExpression {
 		valueDefinition = ValueDefinitionParser.parseValues( values );
 	}
 	
-	private ValueToPathProjectExpression( Path destination_path, ValueDefinition valueDefinition ) throws FaultException {
+	public ValueToPathProjectExpression( Path destination_path, ValueDefinition valueDefinition ) throws FaultException {
 		this.destination_path = destination_path;
 		this.valueDefinition = valueDefinition;
 	}
