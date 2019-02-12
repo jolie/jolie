@@ -36,6 +36,10 @@ public class ConstantValueDefinition implements ValueDefinition {
 		returnValue = v;
 	}
 	
+	public ConstantValueDefinition( ValueVector valueVector ){
+		returnValue = valueVector;
+	}
+	
 	@Override
 	public ValueVector evaluate( Value value ) {
 		return returnValue;
