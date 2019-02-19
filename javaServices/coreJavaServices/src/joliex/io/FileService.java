@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2019 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -700,20 +700,18 @@ public class FileService extends JavaService
 			? request.getFirstChild( "info" ).boolValue()
 			: false;
 		
-		final String regex;
-		if ( request.hasChildren( "regex" ) ) {
-			regex = request.getFirstChild( "regex" ).strValue();
-		} else {
-			regex = ".*";
-		}
+		final String regex = request.firstChildOrDefault(
+			"regex",
+			Value::strValue,
+			s -> ".*"
+		);
 
-		final boolean dirsOnly;
-		if ( request.hasChildren( "dirsOnly" ) ) {
-			dirsOnly = request.getFirstChild( "dirsOnly" ).boolValue();
-		} else {
-			dirsOnly = false;
-		}
-		
+		final boolean dirsOnly = request.firstChildOrDefault(
+			"dirsOnly",
+			Value::boolValue,
+			s -> false
+		);
+				
 		final Pattern pattern = Pattern.compile( regex );
 
 		final BiPredicate< Path, BasicFileAttributes > matcher =
@@ -733,18 +731,20 @@ public class FileService extends JavaService
 
 		final ArrayList< Value > results = new ArrayList<>();
 		dirStream.forEach( path -> {
-			final Path p = dir.relativize( path );
-			Value fileValue = Value.create( p.toString() );
-			if( fileInfo ) {
-				Value info = fileValue.getFirstChild( "info" );
-				File currFile = p.toFile();
-				info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
-				info.getFirstChild( "size" ).setValue( currFile.length() );
-				info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
-				info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
-				info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
+			if ( !path.equals( dir ) ) {
+				final Path p = dir.relativize( path );
+				Value fileValue = Value.create( p.toString() );
+				if( fileInfo ) {
+					Value info = fileValue.getFirstChild( "info" );
+					File currFile = p.toFile();
+					info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
+					info.getFirstChild( "size" ).setValue( currFile.length() );
+					info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
+					info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
+					info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
+				}
+				results.add( fileValue );
 			}
-			results.add( fileValue );
 		} );
 		
 		dirStream.close();

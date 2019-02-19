@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
@@ -512,6 +513,15 @@ public abstract class Value implements Expression, Cloneable
 	public abstract boolean hasChildren();
 	public abstract boolean hasChildren( String childId );
 	public abstract ValueVector getChildren( String childId );
+	
+	public final<V> V firstChildOrDefault( String childId, Function< ? super Value, ? extends V > mappingFunction, Function< ? super String, ? extends V > defaultMappingFunction )
+	{
+		if ( hasChildren( childId ) ) {
+			return mappingFunction.apply( getFirstChild( childId ) );
+		} else {
+			return defaultMappingFunction.apply( childId );
+		}
+	}
 	
 	@Override
 	public abstract Value clone();
