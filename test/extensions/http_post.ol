@@ -27,7 +27,7 @@ include "private/http_server.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	.method = "post"; .debug = .debug.showContent = true;
+	.method = "post";
 	.format -> format;
 	.compression -> compression;
 	.requestCompression -> requestCompression
