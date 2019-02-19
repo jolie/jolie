@@ -27,7 +27,7 @@ include "private/http_server.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	.method = "post";
+	.method = "post"; .debug = .debug.showContent = true;
 	.format -> format;
 	.compression -> compression;
 	.requestCompression -> requestCompression
@@ -50,7 +50,7 @@ define checkResponse
 define checkResponse2
 {
 	if ( response2 != reqVal ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
+		throw( TestFailed, "Data (" + response2 + ") <=> Querystring (" + reqVal + ") value mismatch" )
 	}
 }
 
@@ -112,4 +112,3 @@ define doTest
 		shutdown@Server()
 	}
 }
-
