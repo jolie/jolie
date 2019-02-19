@@ -12,14 +12,14 @@ define testList
 		.directory = listDir,
 		.order.byname = true
 	} )( response );
-	if ( #response.result != 4 ) {
-		throw( TestFailed, "list@File: wrong number of results. Expected 4, got " + #response.result )
+	if ( #response.result != 3 ) {
+		throw( TestFailed, "list@File: wrong number of results. Expected 3, got " + #response.result )
 	};
-	if ( response.result[1] != "README" ) {
-		throw( TestFailed, "list@File: wrong result[1]. Expected " + listDir + fs + "README, got " + response.result[1] )
+	if ( response.result[0] != "README" ) {
+		throw( TestFailed, "list@File: wrong result[0]. Expected " + listDir + fs + "README, got " + response.result[1] )
 	};
-	if ( response.result[2] != "subdir1" ) {
-		throw( TestFailed, "list@File: wrong result[2]. Expected " + listDir + fs + "subdir1, got " + response.result[2] )
+	if ( response.result[1] != "subdir1" ) {
+		throw( TestFailed, "list@File: wrong result[1]. Expected " + listDir + fs + "subdir1, got " + response.result[2] )
 	}
 }
 
