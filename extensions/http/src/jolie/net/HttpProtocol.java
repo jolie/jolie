@@ -413,9 +413,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			offset += currStrValue.length() - displacement - currKey.length();
 		}
 		// removing used keys
-		for( String aliasKey : aliasKeys ) {
-			value.children().remove( aliasKey );
-		}
+		aliasKeys.forEach( value.children()::remove );
 		headerBuilder.append( result );
 	}
 
