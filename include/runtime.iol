@@ -141,7 +141,10 @@ RequestResponse:
 	stats(void)(Stats),
 
 	/**! Get the value of an environment variable */
-	getenv(string)(MaybeString)
+	getenv(string)(MaybeString),
+
+	/**! Get the version of Jolie running this service */
+	getVersion(void)(string)
 }
 
 outputPort Runtime {
