@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2018 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2019 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -33,8 +33,8 @@ import jolie.util.Range;
 public final class Constants
 {
 	// Release information
-	public static final String VERSION = "Jolie 1.6.4-git";
-	public static final String COPYRIGHT = "(C) 2006-2018 the Jolie team";
+	public static final String VERSION = "Jolie 1.7.2-git";
+	public static final String COPYRIGHT = "(C) 2006-2019 the Jolie team";
 	
 	public interface Manifest
 	{
@@ -119,6 +119,7 @@ public final class Constants
 	public static final String GLOBAL = "global";
 	public static final String CSETS = "csets";
 	public static final String ROOT_RESOURCE_PATH = "/";
+	public static final String JOLIE_LOGGER_NAME = "Jolie";
 
 	public enum EmbeddedServiceType
 	{

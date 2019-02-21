@@ -50,7 +50,7 @@ define checkResponse
 define checkResponse2
 {
 	if ( response2 != reqVal ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
+		throw( TestFailed, "Data (" + response2 + ") <=> Querystring (" + reqVal + ") value mismatch" )
 	}
 }
 
@@ -112,4 +112,3 @@ define doTest
 		shutdown@Server()
 	}
 }
-

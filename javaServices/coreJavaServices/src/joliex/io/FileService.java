@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2019 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -39,15 +39,21 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.parsers.DocumentBuilder;
@@ -79,7 +85,7 @@ import org.xml.sax.SAXException;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar", "javax.activation.jar" } )
 public class FileService extends JavaService
 {
 	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );
@@ -285,6 +291,29 @@ public class FileService extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( "IOException" );
 		}
+		return retValue;
+	}
+	
+	private void navigateTree( File file, ValueVector result ) {
+		if ( file.isDirectory() ) {
+			File[] files = file.listFiles();
+			for( File f : files ) {
+				navigateTree( f, result );
+			}
+		}
+		Value path = Value.create();
+		path.setValue( file.getAbsolutePath() );
+		result.add( path );
+		
+	}
+	
+	
+	@RequestResponse
+	public Value fileTree( Value request ) {
+		Value retValue = Value.create();
+		ValueVector result = retValue.getChildren( "result" );
+		File startingDirectory = new File( request.strValue() );
+		navigateTree( startingDirectory, result );
 		return retValue;
 	}
 
@@ -495,6 +524,7 @@ public class FileService extends JavaService
 			Transformer transformer = transformerFactory.newTransformer();
 			if ( indent ) {
 				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+				transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
 			} else {
 				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 			}
@@ -662,54 +692,74 @@ public class FileService extends JavaService
 
 	@RequestResponse
 	public Value list( Value request )
+		throws FaultException
 	{
-		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
-                boolean fileInfo = false;
-                if ( request.getFirstChild( "info" ).isDefined() ) {
-                    fileInfo = request.getFirstChild( "info" ).boolValue();
-                }
-		final String regex;
-		if ( request.hasChildren( "regex" ) ) {
-			regex = request.getFirstChild( "regex" ).strValue();
-		} else {
-			regex = ".*";
+		final Path dir = Paths.get( request.getFirstChild( "directory" ).strValue() );
+		final boolean fileInfo =
+			( request.getFirstChild( "info" ).isDefined() )
+			? request.getFirstChild( "info" ).boolValue()
+			: false;
+		
+		final String regex = request.firstChildOrDefault(
+			"regex",
+			Value::strValue,
+			s -> ".*"
+		);
+
+		final boolean dirsOnly = request.firstChildOrDefault(
+			"dirsOnly",
+			Value::boolValue,
+			s -> false
+		);
+				
+		final Pattern pattern = Pattern.compile( regex );
+
+		final BiPredicate< Path, BasicFileAttributes > matcher =
+			( path, attrs ) ->
+			pattern.matcher( path.toString() ).matches() && (!dirsOnly || Files.isDirectory( path ));
+		
+		final Stream< Path > dirStream;
+		try {
+			if ( request.hasChildren( "recursive" ) && request.getFirstChild( "recursive" ).boolValue() ) {
+				dirStream = Files.find( dir, Integer.MAX_VALUE, matcher );
+			} else {
+				dirStream = Files.find( dir, 1, matcher );
+			}
+		} catch( IOException e ) {
+			throw new FaultException( e );
 		}
 
-		boolean dirsOnly;
-		if ( request.hasChildren( "dirsOnly" ) ) {
-			dirsOnly = request.getFirstChild( "dirsOnly" ).boolValue();
-		} else {
-			dirsOnly = false;
-		}
-
-		final String[] files = dir.list( new ListFilter( regex, dirsOnly ) );
+		final ArrayList< Value > results = new ArrayList<>();
+		dirStream.forEach( path -> {
+			if ( !path.equals( dir ) ) {
+				final Path p = dir.relativize( path );
+				Value fileValue = Value.create( p.toString() );
+				if( fileInfo ) {
+					Value info = fileValue.getFirstChild( "info" );
+					File currFile = p.toFile();
+					info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
+					info.getFirstChild( "size" ).setValue( currFile.length() );
+					info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
+					info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
+					info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
+				}
+				results.add( fileValue );
+			}
+		} );
+		
+		dirStream.close();
 		
 		if ( request.hasChildren( "order" ) ) {
 			Value order = request.getFirstChild( "order" );
 			
-			if ( files != null && order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
-				Arrays.sort( files );
+			if ( order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
+				Collections.sort( results, Comparator.comparing( Value::strValue ) );
 			}
 		}
-
+		
 		Value response = Value.create();
-		if ( files != null ) {
-			ValueVector results = response.getChildren( "result" );
-			for( String file : files ) {
-                                Value fileValue = Value.create( file );
-                                if( fileInfo ) {
-                                    Value info = fileValue.getFirstChild( "info" );
-                                    File currFile = new File ( dir + File.separator + file );
-                                    info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
-                                    info.getFirstChild( "size" ).setValue( currFile.length() );
-                                    info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
-                                    info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
-                                    info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
-                                    
-                                }
-				results.add( fileValue );
-			}
-		}
+		ValueVector responseResults = response.getChildren( "result" );
+		results.forEach( responseResults::add );
 		return response;
 	}
 
@@ -717,9 +767,7 @@ public class FileService extends JavaService
 	public Value isDirectory( Value request )
 	{
 		File dir = new File( request.strValue() );
-		Value response = Value.create();
-		response.setValue( dir.isDirectory() );
-		return response;
+		return Value.create( dir.isDirectory() );
 
 	}
 

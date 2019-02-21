@@ -146,9 +146,7 @@ public class VariablePath implements Expression
 			if ( currVector == null ) {
 				return;
 			} else if ( currVector.size() < 1 ) {
-				if ( currVector.isLink() ) {
-					currValue.children().remove( keyStr );
-				}
+				currValue.children().remove( keyStr );
 				return;
 			}
 			if ( pair.value() == null ) {
