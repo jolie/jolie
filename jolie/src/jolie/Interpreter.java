@@ -676,7 +676,7 @@ public class Interpreter
 	{
 		StringWriter writer = new StringWriter();
 		try {
-			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() ).run();
+			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() + "\nContent" ).run();
 			logInfo( writer.toString() );
 		} catch( IOException e ) {
 			logInfo( "Thrown unhandled fault: " + fault.faultName() );
