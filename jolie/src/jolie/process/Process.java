@@ -29,7 +29,7 @@ public interface Process
 	public void run()
 		throws FaultException, ExitingException;
 	
-	public Process copy( TransformationReason reason );
+	public Process clone( TransformationReason reason );
 	
 	public boolean isKillable();
 }

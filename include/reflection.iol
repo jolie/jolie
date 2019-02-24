@@ -1,7 +1,7 @@
 include "types/Binding.iol"
 
 type InvokeRequest:void {
-	.operation:string 
+	.operation:string
 	.outputPort:string
 	.resourcePath?:string
 	.data?:undefined

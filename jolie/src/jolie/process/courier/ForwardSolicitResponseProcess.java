@@ -67,7 +67,7 @@ public class ForwardSolicitResponseProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new ForwardSolicitResponseProcess(
 			operationName,
@@ -83,10 +83,12 @@ public class ForwardSolicitResponseProcess implements Process
 	{
 		Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.COURIER_SOLICIT_RESPONSE,
 			operationName + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

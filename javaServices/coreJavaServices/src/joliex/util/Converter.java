@@ -1,5 +1,4 @@
-/**
- * *************************************************************************
+/***************************************************************************
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,8 +17,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- **************************************************************************
- */
+ ***************************************************************************/
+
 package joliex.util;
 
 import java.io.IOException;
@@ -30,10 +29,8 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
 
-
 public class Converter extends JavaService
 {
-
 	@RequestResponse
 	public String rawToBase64( Value value )
 	{
@@ -68,7 +65,7 @@ public class Converter extends JavaService
 			} else {
 				return new String( buffer );
 			}
-		} catch( IOException e ) {
+		} catch ( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
 	}
@@ -89,7 +86,7 @@ public class Converter extends JavaService
 			} else {
 				return new ByteArray( str.getBytes() );
 			}
-		} catch( IOException e ) {
+		} catch ( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
 	}

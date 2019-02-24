@@ -31,50 +31,37 @@ type XMLTransformationRequest:void {
 }
 
 type XMLToValueRequest:any {
-	.isXmlStore?: bool 						// if true, set xml_store format, xml otherwise. Default: true if no options are specified, false otherwise
-	.options?:void {							// if no options are specified, the xml_store format will be used for processing the document
-		.includeAttributes?:bool 		// Default: false
-		.includeRoot?: bool 				// Default: false, include root into the conversion
-		.schemaUrl?:string 					// Default: none
-		.schemaLanguage?:string 		// Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
-		.charset?:string 						// set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
-		.skipMixedText?: bool 	// skip the mixed elements, default false
+	.options?:void {
+		.includeAttributes?:bool // Default: false
+		.schemaUrl?:string // Default: none
+		.schemaLanguage?:string // Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
+		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
 	}
 }
 
 type ValueToXmlRequest: void {
-	.root: any { ? }					// the value to be converted
-	.rootNodeName?: string    // if not specified, there must be only one root node
-	.isXmlStore?: bool				// if true xml_store format will be used, xml otherwise. Default: true
-	.plain?:bool 							// DEPRECATED: Default: false (= storage XML)
+	.root: any { ? }
+	.rootNodeName: string
+	.plain?:bool // Default: false (= storage XML)
 	.omitXmlDeclaration?:bool // Default: false (with XML declaration)
-	.indent?:bool 						// Default: false
-	.applySchema?: void {
-			.schema: string					// set the schema to use, skipped if isXmlStore = true
-			.doctypeSystem?: string
-			.encoding?: string
-	}
+	.indent?:bool // Default: false
 }
 
 interface XmlUtilsInterface{
 	RequestResponse:
-		transform( XMLTransformationRequest )(string)
-				throws TransformerException( JavaExceptionType ),
+		transform( XMLTransformationRequest )(string) throws TransformerException(JavaExceptionType),
 		/**!
 		 * Transforms the value contained within the root node into an xml string.
 		 *
 		 * The base value of ValueToXmlRequest.root will be discarded, the rest gets converted recursively
 		 */
-		valueToXml( ValueToXmlRequest )(string)
-				throws IOException( IOExceptionType )
-				       IllegalArgumentException( string ),
+		valueToXml( ValueToXmlRequest )(string) throws IOException(IOExceptionType),
 		/**!
 		 * Transforms the base value in XML format (data types string, raw) into a Jolie value
 		 *
 		 * The XML root node will be discarded, the rest gets converted recursively
 		 */
-		xmlToValue( XMLToValueRequest )( undefined )
-				throws IOException( IOExceptionType )
+		xmlToValue( XMLToValueRequest )(undefined) throws IOException(IOExceptionType)
 }
 
 outputPort XmlUtils {

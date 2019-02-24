@@ -58,7 +58,7 @@ public class NotificationProcess implements Process
 		this.oneWayDescription = outputType;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new NotificationProcess(
 					operationId,
@@ -72,10 +72,12 @@ public class NotificationProcess implements Process
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.NOTIFICATION,
 			operationId + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

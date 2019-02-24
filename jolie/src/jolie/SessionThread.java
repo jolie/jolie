@@ -216,7 +216,7 @@ public class SessionThread extends ExecutionThread
 				}
 
 				@Override
-				public Process copy( TransformationReason reason )
+				public Process clone( TransformationReason reason )
 				{
 					return this;
 				}
@@ -238,7 +238,7 @@ public class SessionThread extends ExecutionThread
 				}
 
 				@Override
-				public Process copy( TransformationReason reason )
+				public Process clone( TransformationReason reason )
 				{
 					return this;
 				}

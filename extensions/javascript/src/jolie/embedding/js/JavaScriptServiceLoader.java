@@ -21,10 +21,13 @@
 
 package jolie.embedding.js;
 
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -42,29 +45,32 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 {
 	private final ScriptEngine engine;
 
-	public JavaScriptServiceLoader( Expression channelDest, String jsPathString )
+	public JavaScriptServiceLoader( Expression channelDest, String jsPath )
 		throws EmbeddedServiceLoaderCreationException
 	{
 		super( channelDest );
-		try {
-			final Path jsPath = Paths.get( jsPathString ).toAbsolutePath();
-			if ( !Files.isRegularFile( jsPath ) ) {
-				throw new EmbeddedServiceLoaderCreationException( jsPathString + " is not a regular file" );
-			}
+		final ScriptEngineManager manager = new ScriptEngineManager();
+		this.engine = manager.getEngineByName( "JavaScript" );
+		if ( engine == null ) {
+			throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
+		}
 
-			final ScriptEngineManager manager = new ScriptEngineManager();
-			this.engine = manager.getEngineByName( "JavaScript" );
-			if ( engine == null ) {
-				throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
-			}
-			
+		final Compilable compilable = (Compilable)engine;
+		try {
+			final Reader reader = new BufferedReader( new FileReader( jsPath ) );
 			try {
-				// Nashorn (Java JS interpreter) on Windows requires '/' as a path separator. Hence use jsPath.toUri().toString() instead of jsPath().toString()
-				engine.eval( "load('" + jsPath.toUri().toString() + "');" );
+				final CompiledScript compiledScript = compilable.compile( reader );
+				compiledScript.eval();
 			} catch( ScriptException e ) {
 				throw new EmbeddedServiceLoaderCreationException( e );
+			} finally {
+				try {
+					reader.close();
+				} catch( IOException e ) {
+					throw new EmbeddedServiceLoaderCreationException( e );
+				}
 			}
-		} catch( InvalidPathException e ) {
+		} catch( FileNotFoundException e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
 		}
 	}

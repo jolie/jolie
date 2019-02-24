@@ -54,7 +54,6 @@ import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InputPortInfo.AggregationItemInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -182,7 +181,6 @@ public class SemanticVerifier implements OLVisitor
 	private final Map< String, Boolean > isConstantMap = new HashMap<>();
 	
 	private OperationType insideCourierOperationType = null;
-	private InputPortInfo courierInputPort = null;
 
 	public SemanticVerifier( Program program, Configuration configuration )
 	{
@@ -545,12 +543,12 @@ public class SemanticVerifier implements OLVisitor
 								opDecl instanceof OneWayOperationDeclaration
 								? ((OneWayOperationDeclaration)opDecl).requestType()
 								: ((RequestResponseOperationDeclaration)opDecl).requestType();
-							/*if ( requestType instanceof TypeInlineDefinition == false ) {
+							if ( requestType instanceof TypeInlineDefinition == false ) {
 								error( n, "input port " + n.id()
 									+ " is trying to extend the type of operation " + opDecl.id()
 									+ " in output port " + outputPort.id()
 									+ " but such operation has an unsupported type structure (type reference or type choice)" );
-							} */if ( requestType instanceof TypeInlineDefinition && ((TypeInlineDefinition)requestType).untypedSubTypes() ) {
+							} else if ( ((TypeInlineDefinition)requestType).untypedSubTypes() ) {
 								error( n,
 									"input port " + n.id()
 									+ " is trying to extend the type of operation " + opDecl.id()
@@ -1196,32 +1194,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( inputPorts.containsKey( n.inputPortName() ) == false ) {
 			error( n, "undefined input port: " + n.inputPortName() );
 		}
-		
-		courierInputPort = inputPorts.get( n.inputPortName() );
 		verify( n.body() );
-		courierInputPort = null;
-	}
-	
-	private boolean isAggregated( String operation, InputPortInfo inputPort )
-	{
-		for( AggregationItemInfo item : inputPort.aggregationList() ) {
-			for( String outputPortName : item.outputPortList() ) {
-				final OutputPortInfo outputPort = outputPorts.get( outputPortName );
-				if ( outputPort != null ) {
-					if ( outputPort.operationsMap().containsKey( operation ) ) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-	
-	private void assertAggregated( OLSyntaxNode node, String operationName, InputPortInfo inputPort )
-	{
-		if ( !isAggregated( operationName, inputPort ) ) {
-			error( node, operationName + " is not an aggregated operation at input port " + inputPort.id() );
-		}
 	}
 	
 	@Override
@@ -1229,37 +1202,21 @@ public class SemanticVerifier implements OLVisitor
 	{
 		for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
 			insideCourierOperationType = OperationType.ONE_WAY;
-			branch.interfaceDefinition.operationsMap().forEach(
-				( opName, opDecl ) -> {
-					if ( opDecl instanceof OneWayOperationDeclaration ) {
-						assertAggregated( n, opName, courierInputPort );
-					}
-				}
-			);
 			verify( branch.body );
 		}
 		
 		for( CourierChoiceStatement.InterfaceRequestResponseBranch branch : n.interfaceRequestResponseBranches() ) {
 			insideCourierOperationType = OperationType.REQUEST_RESPONSE;
-			branch.interfaceDefinition.operationsMap().forEach(
-				( opName, opDecl ) -> {
-					if ( opDecl instanceof RequestResponseOperationDeclaration ) {
-						assertAggregated( n, opName, courierInputPort );
-					}
-				}
-			);
 			verify( branch.body );
 		}
 		
 		for( CourierChoiceStatement.OperationOneWayBranch branch : n.operationOneWayBranches() ) {
 			insideCourierOperationType = OperationType.ONE_WAY;
-			assertAggregated( n, branch.operation, courierInputPort );
 			verify( branch.body );
 		}
 		
 		for( CourierChoiceStatement.OperationRequestResponseBranch branch : n.operationRequestResponseBranches() ) {
 			insideCourierOperationType = OperationType.REQUEST_RESPONSE;
-			assertAggregated( n, branch.operation, courierInputPort );
 			verify( branch.body );
 		}
 		

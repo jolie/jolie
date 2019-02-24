@@ -22,11 +22,14 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePathBuilder;
+import jolie.tracer.FaultTraceAction;
+import jolie.tracer.Tracer;
 
 public class ScopeProcess implements Process
 {
@@ -74,6 +77,7 @@ public class ScopeProcess implements Process
 			} catch( FaultException f ) {
 				p = ethread.getFaultHandler( f.faultName(), true );
 				if ( p != null ) {
+                                    log("RUNNING HANDLER: " , f.faultName());
 					Value scopeValue =
 							new VariablePathBuilder( false )
 							.add( ethread.currentScopeId(), 0 )
@@ -88,6 +92,18 @@ public class ScopeProcess implements Process
 			}
 		}
 	}
+        
+          private void log(String message, String value)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace(() -> new FaultTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
+			FaultTraceAction.Type.FAULT_INSTALL,
+			message,
+                        value,
+                        System.currentTimeMillis()
+		) );
+	} 
 	
 	private final String id;
 	private final Process process;
@@ -105,9 +121,9 @@ public class ScopeProcess implements Process
 		this( id, process, true );
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
-		return new ScopeProcess( id, process.copy( reason ), autoPop );
+		return new ScopeProcess( id, process.clone( reason ), autoPop );
 	}
 	
 	public void run()

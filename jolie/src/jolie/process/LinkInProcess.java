@@ -80,7 +80,7 @@ public class LinkInProcess implements Process
 		this.linkId = link;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new LinkInProcess( linkId );
 	}

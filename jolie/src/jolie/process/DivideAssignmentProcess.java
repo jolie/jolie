@@ -49,7 +49,7 @@ public class DivideAssignmentProcess implements Process, Expression
 		this.expression = expression;
 	}
 
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new DivideAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),

@@ -29,27 +29,7 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"relaxngDatatype.jar","xsom.jar","wsdl4j.jar",
-	"jaxws/FastInfoset.jar",
-	"jaxws/gmbal-api-only.jar",
-	"jaxws/ha-api.jar",
-	"jaxws/javax.annotation-api.jar",
-	"jaxws/javax.xml.soap-api.jar",
-	"jaxws/jaxb-api.jar",
-	"jaxws/jaxb-core.jar",
-	"jaxws/jaxb-impl.jar",
-	"jaxws/jaxws-api.jar",
-	"jaxws/jaxws-rt.jar",
-	"jaxws/jsr181-api.jar",
-	"jaxws/management-api.jar",
-	"jaxws/mimepull.jar",
-	"jaxws/policy.jar",
-	"jaxws/saaj-impl.jar",
-	"jaxws/stax2-api.jar",
-	"jaxws/stax-ex.jar",
-	"jaxws/streambuffer.jar",
-	"jaxws/woodstox-core-asl.jar"
-})
+@AndJarDeps({"relaxngDatatype.jar","xsom.jar","wsdl4j.jar"})
 public class SoapProtocolFactory extends CommProtocolFactory
 {
 	public SoapProtocolFactory( CommCore commCore )

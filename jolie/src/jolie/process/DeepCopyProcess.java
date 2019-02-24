@@ -36,7 +36,7 @@ public class DeepCopyProcess implements Process
 		this.rightExpression = rightExpression;
 	}
 
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new DeepCopyProcess(
 					(VariablePath)leftPath.cloneExpression( reason ),

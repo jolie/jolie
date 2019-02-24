@@ -39,7 +39,7 @@ public class ParallelProcess implements Process
 		(new ParallelExecution( children )).run();
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new ParallelProcess( children );
 	}

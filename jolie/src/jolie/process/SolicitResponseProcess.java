@@ -67,14 +67,14 @@ public class SolicitResponseProcess implements Process
 		this.types = types;
 	}
 
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new SolicitResponseProcess(
 					operationId,
 					outputPort,
 					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
-					( installProcess == null ) ? null : installProcess.copy( reason ),
+					( installProcess == null ) ? null : installProcess.clone( reason ),
 					types
 				);
 	}
@@ -83,10 +83,12 @@ public class SolicitResponseProcess implements Process
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.SOLICIT_RESPONSE,
 			operationId + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

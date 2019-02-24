@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2019 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -39,21 +39,15 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
+import java.nio.file.Path;
+import java.nio.file.InvalidPathException;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
-import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.parsers.DocumentBuilder;
@@ -85,7 +79,7 @@ import org.xml.sax.SAXException;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar", "javax.activation.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
 public class FileService extends JavaService
 {
 	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );
@@ -161,7 +155,7 @@ public class FileService extends JavaService
 		JsUtils.parseJsonIntoValue( isr, value, strictEncoding );
 	}
 
-	private void readXMLIntoValue( InputStream istream, Value value, Charset charset, boolean skipMixedElement )
+	private void readXMLIntoValue( InputStream istream, Value value, Charset charset )
 		throws IOException
 	{
 		try {
@@ -172,7 +166,7 @@ public class FileService extends JavaService
 			}
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.documentToValue( doc, value, skipMixedElement );
+			jolie.xml.XmlUtils.documentToValue( doc, value );
 		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
@@ -293,36 +287,12 @@ public class FileService extends JavaService
 		}
 		return retValue;
 	}
-	
-	private void navigateTree( File file, ValueVector result ) {
-		if ( file.isDirectory() ) {
-			File[] files = file.listFiles();
-			for( File f : files ) {
-				navigateTree( f, result );
-			}
-		}
-		Value path = Value.create();
-		path.setValue( file.getAbsolutePath() );
-		result.add( path );
-		
-	}
-	
-	
-	@RequestResponse
-	public Value fileTree( Value request ) {
-		Value retValue = Value.create();
-		ValueVector result = retValue.getChildren( "result" );
-		File startingDirectory = new File( request.strValue() );
-		navigateTree( startingDirectory, result );
-		return retValue;
-	}
 
 	@RequestResponse
 	public Value readFile( Value request )
 		throws FaultException
 	{
 		Value filenameValue = request.getFirstChild( "filename" );
-		boolean skipMixedText = false;
 
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
@@ -331,10 +301,7 @@ public class FileService extends JavaService
 		if ( formatValue.hasChildren( "charset" ) ) {
 			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 		}
-		
-		if ( formatValue.hasChildren( "skipMixedText" ) ) {
-			skipMixedText = formatValue.getFirstChild( "skipMixedText").boolValue();
-		}
+
 		final File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
 		long size;
@@ -373,7 +340,7 @@ public class FileService extends JavaService
 						break;
 					case "xml":
 						istream = new BufferedInputStream( istream );
-						readXMLIntoValue(istream, retValue, charset, skipMixedText );
+						readXMLIntoValue( istream, retValue, charset );
 						break;
 					case "xml_store":
 						istream = new BufferedInputStream( istream );
@@ -454,8 +421,6 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
-	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
-
 	private void writeXML(
 		File file, Value value,
 		boolean append,
@@ -468,14 +433,7 @@ public class FileService extends JavaService
 		if ( value.children().isEmpty() ) {
 			return; // TODO: perhaps we should erase the content of the file before returning.
 		}
-
 		String rootName = value.children().keySet().iterator().next();
-		Value root = value.children().get( rootName ).get( 0 );
-		String rootNameSpace = "";
-		if ( root.hasChildren(NAMESPACE_ATTRIBUTE_NAME ) ) {
-			rootNameSpace = root.getFirstChild(  NAMESPACE_ATTRIBUTE_NAME ).strValue();
-		}
-		
 		try {
 			XSType type = null;
 			if ( schemaFilename != null ) {
@@ -483,27 +441,51 @@ public class FileService extends JavaService
 					XSOMParser parser = new XSOMParser();
 					parser.parse( schemaFilename );
 					XSSchemaSet schemaSet = parser.getResult();
-					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
-						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
-					} else if ( schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
-						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
+					if ( schemaSet != null ) {
+						type = schemaSet.getElementDecl( "", rootName ).getType();
 					}
 				} catch( SAXException e ) {
 					throw new IOException( e );
 				}
 			}
-
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
+
+			if ( type == null ) {
+				jolie.xml.XmlUtils.valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					doc );
+			} else {
+				jolie.xml.XmlUtils.valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					doc,
+					type );
+			}
 			Transformer transformer = transformerFactory.newTransformer();
-			jolie.xml.XmlUtils.configTransformer( transformer, encoding, doctypeSystem, indent );
-			jolie.xml.XmlUtils.valueToDocument( value, doc, schemaFilename );
+			if ( indent ) {
+				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+			} else {
+				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			}
+
+			if ( doctypeSystem != null ) {
+				transformer.setOutputProperty( "doctype-system", doctypeSystem );
+			}
+
+			if ( encoding != null ) {
+				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
+			}
 
 			try( Writer writer = new FileWriter( file, append ) ) {
 				StreamResult result = new StreamResult( writer );
 				transformer.transform( new DOMSource( doc ), result );
-				
 			}
-		} catch( ParserConfigurationException | TransformerException e ) {
+		} catch( ParserConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -524,7 +506,6 @@ public class FileService extends JavaService
 			Transformer transformer = transformerFactory.newTransformer();
 			if ( indent ) {
 				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-				transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
 			} else {
 				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 			}
@@ -692,74 +673,54 @@ public class FileService extends JavaService
 
 	@RequestResponse
 	public Value list( Value request )
-		throws FaultException
 	{
-		final Path dir = Paths.get( request.getFirstChild( "directory" ).strValue() );
-		final boolean fileInfo =
-			( request.getFirstChild( "info" ).isDefined() )
-			? request.getFirstChild( "info" ).boolValue()
-			: false;
-		
-		final String regex = request.firstChildOrDefault(
-			"regex",
-			Value::strValue,
-			s -> ".*"
-		);
-
-		final boolean dirsOnly = request.firstChildOrDefault(
-			"dirsOnly",
-			Value::boolValue,
-			s -> false
-		);
-				
-		final Pattern pattern = Pattern.compile( regex );
-
-		final BiPredicate< Path, BasicFileAttributes > matcher =
-			( path, attrs ) ->
-			pattern.matcher( path.toString() ).matches() && (!dirsOnly || Files.isDirectory( path ));
-		
-		final Stream< Path > dirStream;
-		try {
-			if ( request.hasChildren( "recursive" ) && request.getFirstChild( "recursive" ).boolValue() ) {
-				dirStream = Files.find( dir, Integer.MAX_VALUE, matcher );
-			} else {
-				dirStream = Files.find( dir, 1, matcher );
-			}
-		} catch( IOException e ) {
-			throw new FaultException( e );
+		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
+                boolean fileInfo = false;
+                if ( request.getFirstChild( "info" ).isDefined() ) {
+                    fileInfo = request.getFirstChild( "info" ).boolValue();
+                }
+		final String regex;
+		if ( request.hasChildren( "regex" ) ) {
+			regex = request.getFirstChild( "regex" ).strValue();
+		} else {
+			regex = ".*";
 		}
 
-		final ArrayList< Value > results = new ArrayList<>();
-		dirStream.forEach( path -> {
-			if ( !path.equals( dir ) ) {
-				final Path p = dir.relativize( path );
-				Value fileValue = Value.create( p.toString() );
-				if( fileInfo ) {
-					Value info = fileValue.getFirstChild( "info" );
-					File currFile = p.toFile();
-					info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
-					info.getFirstChild( "size" ).setValue( currFile.length() );
-					info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
-					info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
-					info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
-				}
-				results.add( fileValue );
-			}
-		} );
-		
-		dirStream.close();
+		boolean dirsOnly;
+		if ( request.hasChildren( "dirsOnly" ) ) {
+			dirsOnly = request.getFirstChild( "dirsOnly" ).boolValue();
+		} else {
+			dirsOnly = false;
+		}
+
+		final String[] files = dir.list( new ListFilter( regex, dirsOnly ) );
 		
 		if ( request.hasChildren( "order" ) ) {
 			Value order = request.getFirstChild( "order" );
 			
-			if ( order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
-				Collections.sort( results, Comparator.comparing( Value::strValue ) );
+			if ( files != null && order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
+				Arrays.sort( files );
 			}
 		}
-		
+
 		Value response = Value.create();
-		ValueVector responseResults = response.getChildren( "result" );
-		results.forEach( responseResults::add );
+		if ( files != null ) {
+			ValueVector results = response.getChildren( "result" );
+			for( String file : files ) {
+                                Value fileValue = Value.create( file );
+                                if( fileInfo ) {
+                                    Value info = fileValue.getFirstChild( "info" );
+                                    File currFile = new File ( dir + File.separator + file );
+                                    info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
+                                    info.getFirstChild( "size" ).setValue( currFile.length() );
+                                    info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
+                                    info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
+                                    info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
+                                    
+                                }
+				results.add( fileValue );
+			}
+		}
 		return response;
 	}
 
@@ -767,7 +728,9 @@ public class FileService extends JavaService
 	public Value isDirectory( Value request )
 	{
 		File dir = new File( request.strValue() );
-		return Value.create( dir.isDirectory() );
+		Value response = Value.create();
+		response.setValue( dir.isDirectory() );
+		return response;
 
 	}
 

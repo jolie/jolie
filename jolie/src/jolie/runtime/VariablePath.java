@@ -32,11 +32,11 @@ import jolie.util.Pair;
  * for referring to the object pointed by it.
  * @author Fabrizio Montesi
  */
-public class VariablePath implements Expression
+public class VariablePath implements Expression, Cloneable
 {
 	public static class EmptyPathLazyHolder {
 		private EmptyPathLazyHolder() {}
-		public static final Pair< Expression, Expression >[] EMPTY_PATH = new Pair[0];
+		public static final Pair< Expression, Expression >[] emptyPath = new Pair[0];
 	}
 
 	private final Pair< Expression, Expression >[] path; // Right Expression may be null
@@ -55,7 +55,7 @@ public class VariablePath implements Expression
 	{
 		Pair< Expression, Expression >[] clonedPath = new Pair[ path.length ];
 		for( int i = 0; i < path.length; i++ ) {
-			clonedPath[i] = new Pair<>(
+			clonedPath[i] = new Pair< Expression, Expression >(
 				path[i].key().cloneExpression( reason ),
 				( path[i].value() == null ) ? null : path[i].value().cloneExpression( reason )
 			);
@@ -63,12 +63,12 @@ public class VariablePath implements Expression
 		return clonedPath;
 	}
 
-	public VariablePath copy()
+	@Override
+	public VariablePath clone()
 	{
 		return new VariablePath( path );
 	}
 	
-	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path, reason );
@@ -130,11 +130,15 @@ public class VariablePath implements Expression
 	{
 		return ExecutionThread.currentThread().state().root();
 	}
+        
+        public String getStateIdentifier(){
+            return ExecutionThread.currentThread().getSessionId();
+        }
 	
 	public final void undef()
 	{
-		Pair< Expression, Expression > pair;
-		ValueVector currVector;
+		Pair< Expression, Expression > pair = null;
+		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
 		String keyStr;
@@ -146,7 +150,9 @@ public class VariablePath implements Expression
 			if ( currVector == null ) {
 				return;
 			} else if ( currVector.size() < 1 ) {
-				currValue.children().remove( keyStr );
+				if ( currVector.isLink() ) {
+					currValue.children().remove( keyStr );
+				}
 				return;
 			}
 			if ( pair.value() == null ) {
@@ -398,7 +404,6 @@ public class VariablePath implements Expression
 		}
 	}
 	
-	@Override
 	public final Value evaluate()
 	{
 		final Value v = getValueOrNull();

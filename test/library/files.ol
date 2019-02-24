@@ -2,27 +2,6 @@ include "../AbstractTestUnit.iol"
 include "file.iol"
 include "ini_utils.iol"
 
-define testList
-{
-	getServiceDirectory@File()( dir );
-	getFileSeparator@File()( fs );
-
-	listDir = dir + fs + "private" + fs + "file_list";
-	list@File( {
-		.directory = listDir,
-		.order.byname = true
-	} )( response );
-	if ( #response.result != 3 ) {
-		throw( TestFailed, "list@File: wrong number of results. Expected 3, got " + #response.result )
-	};
-	if ( response.result[0] != "README" ) {
-		throw( TestFailed, "list@File: wrong result[0]. Expected " + listDir + fs + "README, got " + response.result[1] )
-	};
-	if ( response.result[1] != "subdir1" ) {
-		throw( TestFailed, "list@File: wrong result[1]. Expected " + listDir + fs + "subdir1, got " + response.result[2] )
-	}
-}
-
 define checkResult
 {
 	if ( !is_defined( data ) ) {
@@ -46,15 +25,5 @@ define doTest
 
 	// XML file
 	readFile@File( { .filename = "../build.xml", .format = "xml" } )( data );
-	checkResult;
-
-	getServiceDirectory@File()( dir );
-	getFileSeparator@File()( fs );
-	setMimeTypeFile@File( dir + fs + "private" + fs + "mime.types" )();
-	getMimeType@File( dir + fs + "private" + fs + "text.txt" )( mime );
-	if ( mime != "text/plain" ) {
-		throw( TestFailed, "Wrong mime type " + mime + " (expected text/plain)" )
-	};
-
-	testList
+	checkResult
 }

@@ -34,7 +34,7 @@ public class MakePointerProcess implements Process
 		this.rightPath = rightPath;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new MakePointerProcess(
 				(VariablePath)leftPath.cloneExpression( reason ),

@@ -72,7 +72,9 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 			JsUtils.valueToJsonString( message.value(), true, Type.UNDEFINED, builder );
 			Object param = invocable.invokeMethod( json, JsonMethods.PARSE, builder.toString() );
 			returnValue = invocable.invokeFunction( message.operationName(), param );
-		} catch( ScriptException | NoSuchMethodException e ) {
+		} catch( ScriptException e ) {
+			throw new IOException( e );
+		} catch( NoSuchMethodException e ) {
 			throw new IOException( e );
 		}
 		

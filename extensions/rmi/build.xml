@@ -51,7 +51,8 @@
       -init-macrodef-junit:     defines macro for junit execution
       -init-macrodef-debug:     defines macro for class debugging
       -init-macrodef-java:      defines macro for class execution
-      -do-jar:                  JAR building
+      -do-jar-with-manifest:    JAR building (if you are using a manifest)
+      -do-jar-without-manifest: JAR building (if you are not using a manifest)
       run:                      execution of project 
       -javadoc-build:           Javadoc generation
       test-report:              JUnit report generation
@@ -70,4 +71,10 @@
     nbproject/build-impl.xml file. 
 
     -->
+	
+	<!-- fmontesi: Generate RMI stubs -->
+	<target name="-post-compile">
+		<rmic classname="joliex.rmi.JolieRemoteImpl" base="${build.dir}/classes" classpath="${javac.classpath}"/>
+		<rmic classname="joliex.rmi.RemoteBasicChannelImpl" base="${build.dir}/classes"  classpath="${javac.classpath}"/>
+	</target>
 </project>

@@ -29,19 +29,18 @@ public final class LocationParser
 {
 	private LocationParser() {}
 
-	public final static String RESOURCE_SEPARATOR = "!/";
-	public final static Pattern RESOURCE_SEPARATOR_PATTERN = Pattern.compile( RESOURCE_SEPARATOR );
+	public final static Pattern RESOURCE_SEPARATOR_PATTERN = Pattern.compile( "!/" );
 
 	public static String getResourcePath( URI uri )
 	{
 		String ret = "/";
 		String path = uri.getPath();
-		if ( path != null ) {
-			Matcher m = RESOURCE_SEPARATOR_PATTERN.matcher( path );
-			if ( m.find() ) {
-				ret += path.substring( m.end(), path.length() );
-			}
+	if ( path != null ) {
+		Matcher m = RESOURCE_SEPARATOR_PATTERN.matcher( path );
+		if ( m.find() ) {
+			ret += path.substring( m.end(), path.length() );
 		}
+	}
 		return ret;
 	}
 }

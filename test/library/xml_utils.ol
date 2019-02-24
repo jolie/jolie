@@ -60,7 +60,7 @@ define doTest
 	check;
 	valueToXml@XmlUtils( req )( str2 );
 	if ( str != str2 ) {
-		throw( TestFailed, "xmlToValue-Plain: XML strings should match" )
+		throw( TestFailed, "xmlToValue: XML strings should match" )
 	};
 
 	// Storage XML
@@ -73,6 +73,6 @@ define doTest
 	check;
 	valueToXml@XmlUtils( req )( str2 );
 	if ( str != str2 ) {
-		throw( TestFailed, "xmlToValue-Storage: XML strings should match" )
+		throw( TestFailed, "xmlToValue: XML strings should match" )
 	}
 }

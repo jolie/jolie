@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009-2019 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -25,7 +25,6 @@ package jolie.runtime;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map.Entry;
-import jolie.lang.NativeType;
 
 /**
  * Pretty printer for {@link Value} objects.
@@ -92,30 +91,9 @@ public class ValuePrettyPrinter
 				writer.write( value.valueObject().toString() );
 			}
 			writer.write( " : " );
-			writer.write( prettyNativeTypeName( value ) );
+			writer.write( value.valueObject().getClass().getName() );
 		}
 		writer.write( '\n' );
-	}
-	
-	private static String prettyNativeTypeName( Value v )
-	{
-		if ( v.isBool() ) {
-			return NativeType.BOOL.id();
-		} else if ( v.isByteArray() ) {
-			return NativeType.RAW.id();
-		} else if ( v.isChannel() ) {
-			return v.valueObject().getClass().getName();
-		} else if ( v.isDouble() ) {
-			return NativeType.DOUBLE.id();
-		} else if ( v.isInt() ) {
-			return NativeType.INT.id();
-		} else if ( v.isLong() ) {
-			return NativeType.LONG.id();
-		} else if ( v.isString() ) {
-			return NativeType.STRING.id();
-		} else {
-			return v.valueObject().getClass().getName();
-		}
 	}
 
 	private void writeChildren( Value value )

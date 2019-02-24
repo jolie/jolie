@@ -34,7 +34,7 @@ public class RunProcess implements Process
 		this.expression = expression;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new RunProcess( expression.cloneExpression( reason ) );
 	}

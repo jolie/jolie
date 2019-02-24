@@ -1,28 +1,29 @@
-/*
- * Copyright (C) 2008-2018 Fabrizio Montesi <famontesi@gmail.com>
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- */
+ /**************************************************************************
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
 
 package jolie.net;
 
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RPC;
 import com.google.gwt.user.server.rpc.RPCRequest;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -210,12 +211,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private static class Headers {
 		private static final String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
-		private static final String JOLIE_RESOURCE_PATH = "X-Jolie-ServicePath";
 	}
 
 	private static class ContentTypes {
 		private static final String APPLICATION_JSON = "application/json";
-		private static final String APPLICATION_NDJSON = "application/x-ndjson";
 	}
 
 	private String inputId = null;
@@ -413,7 +412,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			offset += currStrValue.length() - displacement - currKey.length();
 		}
 		// removing used keys
-		aliasKeys.forEach( value.children()::remove );
+		for( String aliasKey : aliasKeys ) {
+			value.children().remove( aliasKey );
+		}
 		headerBuilder.append( result );
 	}
 
@@ -582,22 +583,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				JsUtils.valueToJsonString( message.value(), true, getSendType( message ), jsonStringBuilder );
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
-		} else if ( "ndjson".equals( format ) ) {
-			ret.contentType = ContentTypes.APPLICATION_NDJSON;
-			StringBuilder ndJsonStringBuilder = new StringBuilder();
-			if ( message.isFault() ) {
-				Value error = message.value().getFirstChild( "error" );
-				error.getFirstChild( "code" ).setValue( -32000 );
-				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
-				error.getChildren( "data" ).set( 0, message.fault().value() );
-				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), ndJsonStringBuilder );
-			} else {
-				if ( !message.value().hasChildren( "item" ) ) {
-					Interpreter.getInstance().logWarning( "ndJson requires at least one child node 'item'" );
-				}
-				JsUtils.valueToNdJsonString( message.value(), true, getSendType( message ), ndJsonStringBuilder );
-			}
-			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
 			ret.contentType = "text/plain";
 			if ( message.isFault() ) {
@@ -662,8 +647,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		} else if ( hasParameter( Parameters.REDIRECT ) ) {
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
-		} else if ( message.isFault() ) {
-			statusCode = 500;
 		}
 
 		if ( statusDescription == null ) {
@@ -699,19 +682,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		String path = uri.getRawPath();
-		if ( uri.getScheme().equals( "localsocket" ) || path == null || path.isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
+		if ( uri.getScheme().equals( "localsocket") || path == null || path.isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
 			headerBuilder.append( '/' );
 		} else {
 			if ( path.charAt( 0 ) != '/' ) {
 				headerBuilder.append( '/' );
 			}
 			headerBuilder.append( path );
-			final Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( path );
-			if ( m.find() ) {
-				if ( !m.find() ) {
-					headerBuilder.append( LocationParser.RESOURCE_SEPARATOR );
-				}
-			}
 		}
 
 		if ( hasOperationSpecificParameter( message.operationName(), Parameters.ALIAS ) ) {
@@ -741,7 +718,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			Base64.Encoder encoder = Base64.getEncoder();
 			userpass = encoder.encodeToString( userpass.getBytes() );
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
-			message.value().children().remove( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content()  );
 		}
 	}
 
@@ -831,13 +807,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		if ( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
-			headerBuilder.append( "Connection: close" ).append( HttpUtils.CRLF );
+			headerBuilder.append( "Connection: close" + HttpUtils.CRLF );
 		}
 		if ( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
 			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( HttpUtils.CRLF );
 		}
-		
-		headerBuilder.append( Headers.JOLIE_RESOURCE_PATH ).append( ": " ).append( message.resourcePath() ).append( HttpUtils.CRLF );
 
 		String contentType = getStringParameter( Parameters.CONTENT_TYPE );
 		if ( contentType.length() > 0 ) {
@@ -898,7 +872,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	@Override
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
@@ -912,8 +885,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
-			send_appendHeader( headerBuilder );
-			
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";
@@ -959,7 +930,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 				src.setEncoding( charset );
 				Document doc = builder.parse( src );
-				XmlUtils.documentToValue( doc, value, false );
+				XmlUtils.documentToValue( doc, value );
 			}
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
@@ -972,12 +943,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
-	}
-	
-	private static void parseNdJson( HttpMessage message, Value value, boolean strictEncoding, String charset )
-		throws IOException
-	{
-		JsUtils.parseNdJsonIntoValue( new BufferedReader( new InputStreamReader(new ByteArrayInputStream( message.content() ), charset )), value, strictEncoding );
 	}
 
 	private static void parseForm( HttpMessage message, Value value, String charset )
@@ -1210,11 +1175,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
-		final String operationName = message.isResponse() ? inputId : decodedMessage.operationName;
-		if ( getOperationSpecificStringParameter( operationName, Parameters.FORCE_CONTENT_DECODING ).equals( NativeType.STRING.id() ) ) {
+		if ( getOperationSpecificStringParameter(inputId, Parameters.FORCE_CONTENT_DECODING ).equals("string") ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
-		} else if ( getOperationSpecificStringParameter( operationName, Parameters.FORCE_CONTENT_DECODING ).equals( NativeType.RAW.id() ) ){
-		   decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
@@ -1230,9 +1192,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			|| "application/zip".equals( type )
 		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
-		} else if ( ContentTypes.APPLICATION_NDJSON.equals( type ) || type.contains( "ndjson" ) ) {
-			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
-			parseNdJson( message, decodedMessage.value, strictEncoding, charset );
 		} else if ( ContentTypes.APPLICATION_JSON.equals( type ) || type.contains( "json" ) ) {
 			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 			parseJson( message, decodedMessage.value, strictEncoding, charset );
@@ -1259,21 +1218,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
 	{
 		if ( decodedMessage.operationName == null ) {
-			final String requestPath = message.requestPath().split( "\\?", 2 )[0].substring( 1 );
-			if ( requestPath.startsWith( LocationParser.RESOURCE_SEPARATOR ) ) {
-				final String compositePath = requestPath.substring( LocationParser.RESOURCE_SEPARATOR.length() - 1 );
-				final Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( compositePath );
+			String requestPath = message.requestPath().split( "\\?", 2 )[0];
+			decodedMessage.operationName = requestPath.substring( 1 );
+			Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( decodedMessage.operationName );
+			if ( m.find() ) {
+				int resourceStart = m.end();
 				if ( m.find() ) {
-					decodedMessage.resourcePath = compositePath.substring( 0, m.start() );
-					decodedMessage.operationName = compositePath.substring( m.end(), compositePath.length() );
-				} else {
-					decodedMessage.resourcePath = compositePath;
-				}
-			} else {
-				decodedMessage.operationName = requestPath;
-				decodedMessage.resourcePath = message.getProperty( Headers.JOLIE_RESOURCE_PATH );
-				if ( decodedMessage.resourcePath == null ) {
-					decodedMessage.resourcePath = "/";
+					decodedMessage.resourcePath = requestPath.substring( resourceStart - 1, m.start() );
+					decodedMessage.operationName = requestPath.substring( m.end(), requestPath.length() );
 				}
 			}
 		}
@@ -1346,7 +1298,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -1378,9 +1329,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		recv_parseRequestFormat( contentType );
-		if ( !message.isResponse() ) {
-			recv_checkReceivingOperation( message, decodedMessage );
-		}
 
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
 		if ( !message.isGet() && !message.isHead() && !message.isDelete() ) {
@@ -1416,6 +1364,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
+			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
 		}

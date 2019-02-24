@@ -58,18 +58,18 @@ public final class IfProcess implements Process
 	}
 	
 	@Override
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		CPPair[] pairsCopy = new CPPair[ pairs.length ];
 		for( int i = 0; i < pairs.length; i++ ) {
 			pairsCopy[ i ] = new CPPair(
 				pairs[ i ].condition.cloneExpression( reason ),
-				pairs[ i ].process.copy( reason )
+				pairs[ i ].process.clone( reason )
 			);
 		}
 		return new IfProcess(
 			pairsCopy,
-			( elseProcess == null ) ? null : elseProcess.copy( reason )
+			( elseProcess == null ) ? null : elseProcess.clone( reason )
 		);
 	}
 	

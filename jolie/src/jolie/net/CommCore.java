@@ -588,7 +588,7 @@ public class CommCore
 						if ( operation == null ) {
 							interpreter.logWarning(
 								"Received a message for operation " + message.operationName() +
-									", not specified in the input port " + port.name() + " at the receiving service. Sending IOException to the caller."
+									", not specified in the input port at the receiving service. Sending IOException to the caller."
 							);
 							try {
 								channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );

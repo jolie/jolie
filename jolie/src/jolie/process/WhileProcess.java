@@ -37,11 +37,11 @@ public class WhileProcess implements Process
 		this.process = process;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new WhileProcess(
 					condition.cloneExpression( reason ),
-					process.copy( reason )
+					process.clone( reason )
 				);
 	}
 	

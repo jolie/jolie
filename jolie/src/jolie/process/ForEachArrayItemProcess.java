@@ -19,11 +19,7 @@
 
 package jolie.process;
 
-import jolie.runtime.ExitingException;
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
+import jolie.runtime.*;
 import jolie.util.Pair;
 
 public class ForEachArrayItemProcess implements Process
@@ -41,33 +37,30 @@ public class ForEachArrayItemProcess implements Process
 		this.process = process;
 	}
 
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new ForEachArrayItemProcess(
-			keyPath.copy(),
-			targetPath.copy(),
-			process.copy( reason )
+			keyPath.clone(),
+			targetPath.clone(),
+			process.clone( reason )
 		);
 	}
 
 	public void run()
 		throws FaultException, ExitingException
 	{
-		final ValueVector targetVector = targetPath.getValueVectorOrNull();
-		if ( targetVector != null ) {
-			int size = targetVector.size();
-			VariablePath target = targetPath.copy();
-			int length = target.path().length;
+		ValueVector targetVector = targetPath.getValueVector();
+		int size = targetVector.size();
+		VariablePath target = targetPath.clone();
+		int length = target.path().length;
 
-			for( int i = 0; i < size; i++ ) {
-				target.path()[ length - 1 ] = new Pair<>( target.path()[ length - 1 ].key(), Value.create( i ) );
-				keyPath.makePointer( target );
-				process.run();
-			}
+		for( int i = 0; i < size; i++ ) {
+			target.path()[ length - 1 ] = new Pair<>( target.path()[ length - 1 ].key(), Value.create( i ) );
+			keyPath.makePointer( target );
+			process.run();
 		}
 	}
 
-	@Override
 	public boolean isKillable()
 	{
 		return true;

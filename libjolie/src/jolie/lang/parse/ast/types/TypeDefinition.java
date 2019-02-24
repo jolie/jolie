@@ -111,10 +111,6 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 				return false;
 			}
 			if ( left.hasSubTypes() ) {
-				if ( !right.hasSubTypes() ) {
-					return false;
-				}
-
 				if ( left.subTypes().size() != right.subTypes().size() ) {
 					return false;
 				}

@@ -57,7 +57,7 @@ public class OneWayProcess implements InputOperationProcess
 		return operation;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new OneWayProcess( operation, varPath );
 	}
@@ -72,7 +72,7 @@ public class OneWayProcess implements InputOperationProcess
 		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
 		}
-
+                
 		log( "RECEIVED", sessionMessage.message() );
 		if ( varPath != null ) {
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
@@ -112,10 +112,12 @@ public class OneWayProcess implements InputOperationProcess
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.ONE_WAY,
 			operation.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

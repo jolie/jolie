@@ -38,7 +38,7 @@ public class NullProcess implements Process
 		return NullProcess.LazyHolder.instance;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return this;
 	}

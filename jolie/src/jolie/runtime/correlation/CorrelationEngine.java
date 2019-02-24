@@ -97,19 +97,20 @@ public abstract class CorrelationEngine implements SessionListener
 			pair.sessionPath().getValue( session.state().root() ).assignValue( messageValue );
 		}
 	}
-	
-	public synchronized void onMessageReceive( final CommMessage message, final CommChannel channel )
+
+	public void onMessageReceive( final CommMessage message, final CommChannel channel )
 		throws CorrelationError
 	{
-		if ( !(
-			// We try to find a correlating process.
-			routeMessage( message, channel )
-			||
-			// If there is none, we must be able to start a new process with this message.
-			interpreter.startServiceSession( message, channel )
-		) ) {
-			// Otherwise, exception.
-			throw new CorrelationError();
+		if ( routeMessage( message, channel ) ) {
+			return;
 		}
+
+		// We did not find any correlating session
+		if ( interpreter.startServiceSession( message, channel ) ) {
+			return;
+		}
+
+		// We can not handle the message, send an error to the invoker
+		throw new CorrelationError();
 	}
 }

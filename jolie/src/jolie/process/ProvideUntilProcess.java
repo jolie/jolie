@@ -53,9 +53,9 @@ public class ProvideUntilProcess implements Process
 		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
-		return new ProvideUntilProcess( (NDChoiceProcess)provide.copy( reason ), (NDChoiceProcess)until.copy( reason ) );
+		return new ProvideUntilProcess( (NDChoiceProcess)provide.clone( reason ), (NDChoiceProcess)until.clone( reason ) );
 	}
 
 	public void run()

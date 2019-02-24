@@ -33,7 +33,7 @@ public class UndefProcess implements Process
 		this.varPath = varPath;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new UndefProcess( (VariablePath)varPath.cloneExpression( reason ) );
 	}

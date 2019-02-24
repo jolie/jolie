@@ -34,9 +34,9 @@ public class DefinitionProcess implements Process
 		this.process = process;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
-		return new DefinitionProcess( process.copy( reason ) );
+		return new DefinitionProcess( process.clone( reason ) );
 	}
 
 	public void run()

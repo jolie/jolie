@@ -77,10 +77,12 @@ public class RequestResponseProcess implements InputOperationProcess
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.REQUEST_RESPONSE,
 			operation.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 	
@@ -89,13 +91,13 @@ public class RequestResponseProcess implements InputOperationProcess
 		return true;
 	}
 
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new RequestResponseProcess(
 					operation,
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
 					( outputExpression == null ) ? null : (VariablePath)outputExpression.cloneExpression( reason ),
-					process.copy( reason )
+					process.clone( reason )
 				);
 	}
 	
@@ -117,7 +119,7 @@ public class RequestResponseProcess implements InputOperationProcess
 				runBehaviour( sessionMessage.channel(), sessionMessage.message() );
 			}
 
-			public Process copy( TransformationReason reason )
+			public Process clone( TransformationReason reason )
 			{
 				return this;
 			}

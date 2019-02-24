@@ -22,8 +22,11 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
+import jolie.tracer.FaultTraceAction;
+import jolie.tracer.Tracer;
 
 
 public class ThrowProcess implements Process
@@ -37,7 +40,7 @@ public class ThrowProcess implements Process
 		this.expression = expression;
 	}
 
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new ThrowProcess( faultName, expression );
 	}
@@ -49,8 +52,11 @@ public class ThrowProcess implements Process
 			return;
 		
 		if ( expression == null ) {
+                    log("THROWN" , faultName.toString());
 			throw new FaultException( faultName );
+                        
 		} else {
+                    log("THROWN" , faultName.toString()+" - "+expression.evaluate());
 			throw new FaultException( faultName, expression.evaluate() );
 		}
 	}
@@ -59,4 +65,15 @@ public class ThrowProcess implements Process
 	{
 		return true;
 	}
+        private void log(String message, String value)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace(() -> new FaultTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
+			FaultTraceAction.Type.FAULT_THROW,
+			message,
+                        value,
+                        System.currentTimeMillis()
+		) );
+	} 
 }

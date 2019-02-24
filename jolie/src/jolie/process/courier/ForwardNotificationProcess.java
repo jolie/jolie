@@ -64,7 +64,7 @@ public class ForwardNotificationProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
 	
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new ForwardNotificationProcess(
 			operationName,
@@ -79,10 +79,12 @@ public class ForwardNotificationProcess implements Process
 	{
 		Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.COURIER_NOTIFICATION,
 			operationName + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

@@ -45,15 +45,14 @@ public class InlineTreeExpression implements Expression
 		this.assignments = assignments;
 	}
 	
-	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		Pair< VariablePath, Expression >[] cloneAssignments = new Pair[ assignments.length ];
 		int i = 0;
 		for( Pair< VariablePath, Expression > pair : assignments ) {
 			cloneAssignments[ i++ ] =
-				new Pair<>(
-					pair.key().copy(),
+				new Pair< VariablePath, Expression >(
+					pair.key().clone(),
 					pair.value().cloneExpression( reason )
 				);
 		}
@@ -64,7 +63,6 @@ public class InlineTreeExpression implements Expression
 		);
 	}
 	
-	@Override
 	public Value evaluate()
 	{
 		Value inlineValue = Value.create();

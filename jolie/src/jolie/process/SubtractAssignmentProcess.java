@@ -49,7 +49,7 @@ public class SubtractAssignmentProcess implements Process, Expression
 		this.expression = expression;
 	}
 
-	public Process copy( TransformationReason reason )
+	public Process clone( TransformationReason reason )
 	{
 		return new AssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),

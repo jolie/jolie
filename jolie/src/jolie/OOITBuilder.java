@@ -218,6 +218,8 @@ import jolie.runtime.expression.VoidExpression;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
+import jolie.tracer.MessageTraceAction;
+import jolie.tracer.Tracer;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
@@ -497,9 +499,10 @@ public class OOITBuilder implements OLVisitor
 	{
 		Map< String, AggregationConfiguration > map = aggregationConfigurations.get( inputPortName );
 		if ( map == null ) {
-			map = new HashMap<>();
+			map = new HashMap< String, AggregationConfiguration >();
 			aggregationConfigurations.put( inputPortName, map );
 		}
+                //log();
 		map.put( operationName, configuration );
 	}
 
@@ -622,6 +625,18 @@ public class OOITBuilder implements OLVisitor
 			error( n.context(), "Communication protocol extension for protocol " + pId + " not found." );
 		}
 		currentPortInterface = null;
+	}
+        private void log()
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
+			MessageTraceAction.Type.AGGREGATION,
+                        interpreter.programFilename(),
+			"AGGR",
+			null,
+                        System.currentTimeMillis()
+		) );
 	}
 
 	private Process currProcess;

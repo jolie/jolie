@@ -230,11 +230,6 @@ public class RuntimeService extends JavaService
 		}
 		return ret;
 	}
-	
-	public String getVersion()
-	{
-		return Constants.VERSION;
-	}
 
 	public Value getIncludePaths()
 	{
@@ -267,16 +262,6 @@ public class RuntimeService extends JavaService
 		} catch ( EmbeddedServiceLoadingException e ) {
 			throw new FaultException( "RuntimeException", e );
 		}
-	}
-	
-	public Value getenv( String name )
-	{
-		final Value retVal = Value.create();
-		final String env = System.getenv( name );
-		if ( env != null ) {
-			retVal.setValue( env );
-		}
-		return retVal;
 	}
 
 	@RequestResponse
