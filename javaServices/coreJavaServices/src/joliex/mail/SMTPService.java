@@ -142,7 +142,7 @@ public class SMTPService extends JavaService
 
 				public String getName()
 				{
-					return "mail attachemt";
+					return "mail attachment";
 				}
 			} );
 			msg.setDataHandler( dh );
