@@ -65,6 +65,7 @@ type RenameRequest:void {
 type ListRequest:void {
 	.directory:string
 	.regex?:string
+	.recursive?:bool
 	.dirsOnly?:bool	// List only directories?
 	.order?: void {
 		.byname?: bool
@@ -82,10 +83,6 @@ type ListResponse:void {
 			.isDirectory: bool
 		}
 	}
-}
-
-type FileTreeResponse: void {
-	.result*: string
 }
 
 interface FileInterface {
@@ -175,7 +172,7 @@ RequestResponse:
 	getSize( any )( int ),
 
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
-	list(ListRequest)(ListResponse),
+	list(ListRequest)(ListResponse) throws IOException(IOExceptionType),
 	/**!
 	*
 	* it creates the directory specified in the request root. Returns true if the directory has been
@@ -187,10 +184,7 @@ RequestResponse:
 	* it tests if the specified file or directory exists or not.
 	*/
 	exists( string )( bool ),
-	/**!
-		it returns a vector containing all the paths in a given directory
-	*/
-	fileTree( string )( FileTreeResponse ),
+
 	getServiceDirectory(void)(string) throws IOException(IOExceptionType),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),

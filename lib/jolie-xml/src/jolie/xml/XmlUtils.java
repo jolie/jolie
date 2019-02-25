@@ -259,6 +259,10 @@ public class XmlUtils
 					} else if ( children[i].getMinOccurs() > 0 ) {
 						// TODO throw some error here
 					}
+				} else if ( currTerm.isModelGroupDecl() ) {
+					_valueToDocument( value, element, doc, currTerm.asModelGroupDecl().getModelGroup() );
+				} else if ( currTerm.isModelGroup() ) {
+					_valueToDocument( value, element, doc, currTerm.asModelGroup() );
 				}
 			}
 		}

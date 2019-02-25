@@ -230,6 +230,11 @@ public class RuntimeService extends JavaService
 		}
 		return ret;
 	}
+	
+	public String getVersion()
+	{
+		return Constants.VERSION;
+	}
 
 	public Value getIncludePaths()
 	{

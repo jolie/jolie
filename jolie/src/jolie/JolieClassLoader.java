@@ -21,6 +21,7 @@
 
 package jolie;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
@@ -332,7 +333,16 @@ public final class JolieClassLoader extends URLClassLoader
 	public void addJarResource( String jarName )
 		throws MalformedURLException, IOException
 	{
-		URL url = findResource( jarName );
+		URL url = null;
+		try {
+			url = findResource( jarName );
+		} catch ( IllegalArgumentException e ) {
+			// On Windows, paths don't get interpreted correctly
+			// due to drive letters and backslashes, hence make a
+			// second parsing attempt by constructing an URI
+			jarName = new File( jarName ).toURI().toString();
+			url = findResource( jarName );
+		}
 		if ( url == null ) {
 			throw new IOException( "Resource not found: " + jarName );
 		}
