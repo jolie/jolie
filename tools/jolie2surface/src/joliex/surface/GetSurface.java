@@ -22,11 +22,9 @@
 package joliex.surface;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.CommandLineException;
-import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -44,32 +42,17 @@ public class GetSurface
 	{
 		// TODO code application logic here
 		try {
-			boolean noOutputPort = false;
-			boolean noProtocol = false;
-			boolean noLocation = false;
-			for ( String arg : args )
-			{
-				if ( arg.equals( "-noOutputPort" ) ) noOutputPort = true;
-				if ( arg.equals( "-noLocation" ) ) noLocation = true;
-				if ( arg.equals( "-noProtocol" ) ) noProtocol = true;
-			}
-			CommandLineParser cmdParser = new CommandLineParser( args, GetSurface.class.getClassLoader() );
+			JolieToSurfaceCommandLineParser cmdParser = JolieToSurfaceCommandLineParser.create( args, GetSurface.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				cmdParser.programFilepath().toURI(), cmdParser.charset(),
 				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
-                       
-			document.ConvertDocument( cmdParser.arguments()[0], noOutputPort, noLocation, noProtocol );
-
-		} catch( CommandLineException ex ) {
-			Logger.getLogger( GetSurface.class.getName() ).log( Level.SEVERE, null, ex );
-		} catch( IOException e ) {
-			e.printStackTrace();
-		} catch( ParserException e ) {
+			document.ConvertDocument( cmdParser.arguments()[0], cmdParser.noOutputPort(), cmdParser.noLocation(), cmdParser.noProtocol() );
+		} catch( CommandLineException | ParserException e ) {
 			System.out.println( e.getMessage() );
-		} catch( Exception e ) {
+		} catch( IOException | SemanticException e ) {
 			e.printStackTrace();
 		}
 	}
