@@ -65,7 +65,6 @@ public class SurfaceCreator
 	}
 
 	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation, boolean noProtocol )
-		throws Exception
 	{
 
 		ArrayList<InterfaceDefinition> interface_vector = new ArrayList<InterfaceDefinition>();
@@ -85,7 +84,7 @@ public class SurfaceCreator
 			}
 		}
 		if ( inputPort == null ) {
-			throw (new Exception( "Error! inputPort not found!" ));
+			throw new IllegalArgumentException( "Error! inputPort not found!" );
 		}
 
 		// extracts the list of all the interfaces to be parsed

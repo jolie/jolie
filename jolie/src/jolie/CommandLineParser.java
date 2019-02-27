@@ -84,7 +84,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the arguments passed to the JOLIE program.
 	 * @return the arguments passed to the JOLIE program.
 	 */
-	public String[] arguments()
+	public final String[] arguments()
 	{
 		return arguments;
 	}
