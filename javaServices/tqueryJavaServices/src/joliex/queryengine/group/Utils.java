@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static jolie.js.JsUtils.parseJsonIntoValue;
+import jolie.js.JsUtils;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -76,7 +76,7 @@ public class Utils {
 			"  { \"a\": { \"d\": [ 1, 8, 7 ] }, \"c\": { \"f\": [  1 ] } }\n" +
 			"]}";
 		Value v = Value.create();
-		parseJsonIntoValue( new StringReader( jsonString ), v, false );
+		JsUtils.parseJsonIntoValue( new StringReader( jsonString ), v, false );
 		
 		// grouping request parsing, i.e., s_1 > r_1, ..., s_n > r_n
 		List<GroupPair> groupingList = new ArrayList<>();

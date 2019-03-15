@@ -1,14 +1,11 @@
 package joliex.queryengine.lookup;
 
+import java.io.IOException;
+import java.io.StringReader;
+import static jolie.js.JsUtils.parseJsonIntoValue;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-
-
-import java.io.IOException;
-import java.io.StringReader;
-
-import static jolie.js.JsUtils.parseJsonIntoValue;
 
 public class LookupQueryTest {
     public static void main(String[] args) throws IOException, FaultException {
@@ -77,11 +74,11 @@ public class LookupQueryTest {
         parseJsonIntoValue( new StringReader( ttw ), leftData, false );
 
         Value lookupRequest = Value.create();
-        lookupRequest.getNewChild("leftData").setValue(leftData);
-        lookupRequest.getNewChild("rightData").setValue(rightData);
-        lookupRequest.getNewChild("leftpath").setValue("p_id");
-        lookupRequest.getNewChild("rightPath").setValue("ref");
-        lookupRequest.getNewChild("dstPath").setValue("awards_info");
+        lookupRequest.children().put( "leftData", leftData.getChildren( "_" ) );
+		lookupRequest.children().put( "rightData", rightData.getChildren( "_" ) );
+        lookupRequest.setFirstChild( "leftPath", "p_id" );
+        lookupRequest.setFirstChild( "rightPath", "ref" );
+        lookupRequest.setFirstChild( "dstPath", "awards_info" );
 
         ValueVector lookup = LookupQuery.lookup(lookupRequest);
         lookup.forEach(it -> System.out.println(it.toPrettyString()));
