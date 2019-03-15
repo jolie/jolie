@@ -68,17 +68,19 @@ public class LookupQueryTest {
                 "  }\n" +
                 "]";
 
-        Value rightData = Value.create();
-        parseJsonIntoValue( new StringReader( tkb ), rightData, false );
+        Value lookupRequest = Value.create();
+
+		Value tkbValue = lookupRequest.getNewChild( "rightData" );
+        parseJsonIntoValue( new StringReader( tkb ), tkbValue, false );
         Value leftData = Value.create();
         parseJsonIntoValue( new StringReader( ttw ), leftData, false );
-
-        Value lookupRequest = Value.create();
-        lookupRequest.children().put( "leftData", leftData.getChildren( "_" ) );
-		lookupRequest.children().put( "rightData", rightData.getChildren( "_" ) );
+		
+		lookupRequest.children().put( "leftData", leftData.getChildren( "_" ) );
         lookupRequest.setFirstChild( "leftPath", "p_id" );
         lookupRequest.setFirstChild( "rightPath", "ref" );
         lookupRequest.setFirstChild( "dstPath", "awards_info" );
+		
+		System.out.println( lookupRequest.toPrettyString() );
 
         ValueVector lookup = LookupQuery.lookup(lookupRequest);
         lookup.forEach(it -> System.out.println(it.toPrettyString()));
