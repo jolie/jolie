@@ -37,20 +37,17 @@ public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory
 {
 	private final static AtomicBoolean registered = new AtomicBoolean( false );
 
-	private final Map< String, URLStreamHandler > handlers = new HashMap< String, URLStreamHandler >();
+	private final Map< String, URLStreamHandler > handlers = new HashMap<>();
 
 	public JolieURLStreamHandlerFactory()
 	{
 		handlers.put( "jap", new JapURLStreamHandler() );
 	}
 
+	@Override
 	public URLStreamHandler createURLStreamHandler( String protocol )
 	{
-		URLStreamHandler handler;
-		if ( (handler=handlers.get( protocol )) != null ) {
-			return handler;
-		}
-		return null;
+		return handlers.get( protocol );
 	}
 
 	public void putURLStreamHandler( String protocol, URLStreamHandler handler )
