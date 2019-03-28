@@ -37,14 +37,17 @@ public class MessageDigestService extends JavaService
 		MessageDigest md = null;
 		try {
 			md = MessageDigest.getInstance( "MD5" );
-			md.update( request.strValue().getBytes( "UTF8" ) );
-		} catch( UnsupportedEncodingException e ) {
-			throw new FaultException( "UnsupportedOperation", e );
-		} catch( NoSuchAlgorithmException e ) {
+			if ( request.isByteArray() ) {
+				md.update( request.byteArrayValue().getBytes() );
+			} else {
+				md.update( request.strValue().getBytes( "UTF8" ) );
+			}
+		} catch( UnsupportedEncodingException | NoSuchAlgorithmException e ) {
 			throw new FaultException( "UnsupportedOperation", e );
 		}
-		int radix;
-		if ( (radix=request.getFirstChild( "radix" ).intValue()) < 2 ) {
+		
+		int radix = request.getFirstChild( "radix" ).intValue();
+		if ( radix < 2 ) {
 			radix = 16;
 		}
 
