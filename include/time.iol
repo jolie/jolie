@@ -56,47 +56,47 @@ type CurrentDateTimeRequestType:void {
 }
 
 type DiffDateRequestType:void {
-	.format?:string
-	.date1:string
-	.date2:string
+	.format?:string //< defines date format using the JAVA date/time format https:// format.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html e.g YYYY-DD-MM
+	.date1:string //< date expressed as string 2019-02-01
+	.date2:string //< date expressed as string 2019-02-02
 }
 type GetTimeDiffRequest:void {
-	.time1:string
-	.time2:string
+	.time1:string //< time expressed as string using the JAVA date/time format https:// format.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html e.g HH:mm:ss
+	.time2:string //< time expressed as string using the JAVA date/time format https:// format.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html e.g HH:mm:ss
 }
 
-type GetTimestampFromStringRequest:string {
-	.format?:string
-	.language?: string
+type GetTimestampFromStringRequest:string {//< Timestamp expressed as string e.g. 2019-02-01 11:00:33
+	.format?://< defines Timestamp format using the JAVA date/time format https:// format.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html e.g YYYY-DD-MM HH:mm:ss
+	.language?: string//< language used in the string
 }
 
-type GetDateTimeRequest: long {
-  .format?: string
+type GetDateTimeRequest: long { //< timestamp expressed as long
+  .format?: string //< defines Timestamp format using the JAVA date/time format https:// format.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html e.g YYYY-DD-MM HH:mm:ss
 
 }
 
 type GetDateTimeResponse: string {
-	.day:int
-	.month:int
+	.day:int //< [1:31]
+	.month:int//< [1:12]
 	.year:int
-	.hour:int
-	.minute:int
-	.second:int
+	.hour:int//< [0:24]
+	.minute:int//<[0:59]
+	.second:int//<[0:59]
 }
 
 type DateTimeType:void{
-	.day:int
-	.month:int
+	.day:int //< [1:31]
+	.month:int//< [1:12]
 	.year:int
-	.hour:int
-	.minute:int
-	.second:int
+	.hour:int//< [0:24]
+	.minute:int//<[0:59]
+	.second:int//<[0:59]
 }
 
 
-type SetNextTimeOutRequest: int {
-	.operation?: string
-	.message?: undefined
+type SetNextTimeOutRequest: int { //< trigger time expressed in milliseconds
+	.operation?: string //< operation to be cqlleld
+	.message?: undefined // message to be sent to the operation
 }
 
 type ScheduleTimeOutRequest: int {
