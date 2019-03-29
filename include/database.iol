@@ -21,10 +21,10 @@
  ***************************************************************************/
 
 type ConnectionInfo:void {
-	.driver:string // http://docs.jolie-lang.org/#!documentation/databases/databases.html
-	.host:string
-	.port?:int
-	.database:string
+	.driver:string //< http://docs.jolie-lang.org/#!documentation/databases/databases.html
+	.host:string //< location of your db engine e.g 10.101.101.1
+	.port?:int //< DB engine TCP port listening port
+	.database:string //< DB name
 	.username:string
 	.password:string
 	.attributes?:string // further semicolon-separated JDBC connection string parameters
@@ -34,24 +34,24 @@ type ConnectionInfo:void {
 }
 
 type QueryResult:void {
-	.row[0,*]:void { ? }
+	.row[0,*]:void { ? }// the children node name correspond to the selected columns
 }
 
 type TransactionQueryResult:int {
-	.row[0,*]:void { ? }
+	.row[0,*]:void { ? } // the children node name correspond to the selected columns or the SQL result
 }
 
 type DatabaseTransactionRequest:void {
-	.statement[1,*]:string { ? }
+	.statement[1,*]:string { ? }  //< in statement node value insert any SQL command string using the child node to inject variable value into the SQL command
 }
 
 type DatabaseTransactionResult:void {
 	.result[0,*]:TransactionQueryResult
 }
 
-type QueryRequest:string { ? }
+type QueryRequest:string { ? } //< in the root node insert the query SQL command string  using the child node to inject variable value into the SQL command
 
-type UpdateRequest:string { ? }
+type UpdateRequest:string { ? } //< in the root node insert the insert, update, delete SQL command string using the child node to inject variable value into the SQL command
 
 interface DatabaseInterface {
 RequestResponse:
@@ -75,7 +75,7 @@ RequestResponse:
 	 * Database service, eg. when the enclosing program finishes.
 	 */
 	close(void)(void),
-	
+
 	/**!
 	 * Queries the database and returns a result set
 	 *
@@ -132,7 +132,7 @@ RequestResponse:
 	 */
 	checkConnection( void )( void ) throws ConnectionError,
 	/**!
-	 * Executes more than one database command in a single transaction
+	 * Executes more than one database command in a single transaction and if any of the statement fails it auto roll-back
 	 */
 	executeTransaction(DatabaseTransactionRequest)(DatabaseTransactionResult) throws SQLException ConnectionError
 }
