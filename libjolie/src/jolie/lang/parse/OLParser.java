@@ -1,21 +1,25 @@
-/*
- * Copyright (C) 2006-2016 Fabrizio Montesi <famontesi@gmail.com>
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- */
+/***********************************************************************************
+ *   Copyright (C) 2006-2016 by Fabrizio Montesi <famontesi@gmail.com>             *
+ *   Copyright (C) 2019 by Martin Wolf                                             *
+ *   Copyright (C) 2019 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>     *
+ *                                                                                 *
+ *   This program is free software; you can redistribute it and/or modify          *
+ *   it under the terms of the GNU Library General Public License as               *
+ *   published by the Free Software Foundation; either version 2 of the            *
+ *   License, or (at your option) any later version.                               *
+ *                                                                                 *
+ *   This program is distributed in the hope that it will be useful,               *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of                *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 *
+ *   GNU General Public License for more details.                                  *
+ *                                                                                 *
+ *   You should have received a copy of the GNU Library General Public             *
+ *   License along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                               *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                     *
+ *                                                                                 *
+ *   For details about the authors of this software, see the AUTHORS file.         *
+ ***********************************************************************************/
 
 package jolie.lang.parse;
 
@@ -208,8 +212,10 @@ public class OLParser extends AbstractParser
 			parseInclude();
 			parseCorrelationSets();
 			parseInclude();
-            parseTypes();
+			parseDocumentation();
+			parseType();
 			parseInclude();
+			parseDocumentation();
 			parseInterfaceOrPort();
 			parseInclude();
 			parseEmbedded();
@@ -223,43 +229,83 @@ public class OLParser extends AbstractParser
 			throwException( "Invalid token encountered" );
 		}
 	}
-
-	private void parseTypes()
-		throws IOException, ParserException
-	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
-		boolean keepRun = true;
-		boolean haveComment = false;
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				haveComment = true;
-				commentToken = token;
-				getToken();
-			} else if ( token.isKeyword( "type" ) ) {
-				String typeName;
-				TypeDefinition currentType;
-
-				getToken();
-				typeName = token.content();
-				eat( Scanner.TokenType.ID, "expected type name" );
-				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
-
-				currentType = parseType( typeName );
-				typeName = currentType.id();
-
-				definedTypes.put( typeName, currentType );
-				program.addChild( currentType );
+	
+	/**
+	 * Sets comment for a DocumentedNode.To call this method, make sure 
+ that the Scanner is not set to ignore documentation comments.
+	 * @param node the node to be documented
+	 * @param docToken the documentation token
+	 */
+	protected void registerDocumentationComment( DocumentedNode node, Scanner.Token docToken ){
+		node.setDocumentation( docToken.content() );
+	}
+	
+	private void parseDocumentation() throws IOException, ParserException {
+		Scanner.Token commentToken = parseForwardDocumentation();
+		if( commentToken != null ){
+			DocumentedNode node = parseType();
+			if( node != null ){
+				registerDocumentationComment( node, commentToken );
 			} else {
-				keepRun = false;
-				if ( haveComment ) {
-					addToken( commentToken );
-					addToken( token );
-					getToken();
+				node = parseInterfaceOrPort();
+				if( node != null ){
+					registerDocumentationComment( node, commentToken );
 				}
 			}
 		}
 	}
+	
+	private Scanner.Token parseForwardDocumentation() throws IOException {
+		if( !this.scanner().includeDocumentation() ){
+			return null;
+		}
+		
+		Scanner.Token commentToken = null; // null if no comment found
+		
+		// if it is a sequence of documentation comments, we just use the last
+		while( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {			
+			commentToken = token;
+			getToken();
+		}
+		return commentToken;
+	}
+	
+	private void parseBackwardDocumentation( DocumentedNode payload ) throws IOException, ParserException {
+		if( !this.scanner().includeDocumentation() ){
+			return;
+		}
+		
+		Scanner.Token documentation = null; // null if we find no comment
+		
+		// if it is a sequence of documentation comments, we just use the last
+		while( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD_COMMENT ) ) {			
+			documentation = token;
+			getToken();
+		}
+		if( documentation != null ){
+			registerDocumentationComment( payload, documentation );
+		}
 
+	}
+	
+	private TypeDefinition parseType() throws IOException, ParserException {
+		if ( token.isKeyword( "type" ) ){
+			getToken();
+			String typeName = token.content();
+			eat( Scanner.TokenType.ID, "expected type name" );
+			eat(  Scanner.TokenType.COLON, "expected COLON (cardinality now allowed in root type declaration (it is fixed to [1,1]).");
+			TypeDefinition currentType = parseType( typeName );
+			parseBackwardDocumentation( currentType );
+			
+			// register type declaration
+			definedTypes.put( currentType.id(), currentType );
+			program.addChild( currentType );
+			
+			return currentType;
+		}
+		return null;
+	}
+	
 	private TypeDefinition parseType( String typeName )
 			throws IOException, ParserException
 	{
@@ -269,9 +315,11 @@ public class OLParser extends AbstractParser
 		if ( nativeType == null ) { // It's a user-defined type
 			currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
 			getToken();
+			parseBackwardDocumentation( currentType );
 		} else {
 			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
 			getToken();
+			parseBackwardDocumentation( currentType );
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
@@ -291,6 +339,8 @@ public class OLParser extends AbstractParser
 			throws IOException, ParserException
 	{
 		eat( Scanner.TokenType.LCURLY, "expected {" );
+		
+		parseBackwardDocumentation( type );
 
 		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
 			type.setUntypedSubTypes( true );
@@ -298,6 +348,8 @@ public class OLParser extends AbstractParser
 		} else {
 			TypeDefinition currentSubType;
 			while( !token.is( Scanner.TokenType.RCURLY ) ) {
+				Scanner.Token comment = parseForwardDocumentation();
+				
 				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
 
 				// SubType id
@@ -311,10 +363,16 @@ public class OLParser extends AbstractParser
 				Range cardinality = parseCardinality();
 				eat( Scanner.TokenType.COLON, "expected COLON" );
 
-				currentSubType = parseSubType(id, cardinality);
+				currentSubType = parseSubType( id, cardinality );
 				if ( type.hasSubType( currentSubType.id() ) ) {
 					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
 				}
+				
+				if( comment != null ){
+					registerDocumentationComment( currentSubType, comment );
+				}
+				parseBackwardDocumentation( currentSubType );
+				
 				type.putSubType( currentSubType );
 			}
 		}
@@ -752,46 +810,25 @@ public class OLParser extends AbstractParser
 		return portInfo;
 	}
 
-	private void parseInterfaceOrPort()
+	private DocumentedNode parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
-		boolean keepRun = true;
 		DocumentedNode node = null;
-		boolean haveDocumentation = false;
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				haveDocumentation = true;
-				commentToken = token;
+		if( token.isKeyword( "interface" ) ){
+			getToken();
+			if( token.isKeyword( "extender" ) ){
 				getToken();
-			} else if ( token.isKeyword( "interface" ) ) {
-				getToken();
-				if ( token.isKeyword( "extender") ) {
-					getToken();
-					node = parseInterfaceExtender();
-				} else {
-					node = parseInterface();
-				}
-			} else if ( token.isKeyword( "inputPort" ) ) {
-				node = parsePort();
-			} else if ( token.isKeyword( "outputPort" ) ) {
-				node = parsePort();
+				node = parseInterfaceExtender();
 			} else {
-				keepRun = false;
-				
-				if ( haveDocumentation ) {
-					addToken( commentToken );
-					addToken( token );
-					getToken();
-				}
+				node = parseInterface();
 			}
-			
-			if ( haveDocumentation && node != null ) {
-				node.setDocumentation( commentToken.content() );
-				haveDocumentation = false;
-				node = null;
-			}
+		} 
+		else if ( token.isKeyword( "inputPort" ) ){
+			node = parsePort();
+		} else if ( token.isKeyword( "outputPort" ) ){
+			node = parsePort();
 		}
+		return node;
     }
 
     private OutputPortInfo createInternalServicePort( String name, List< InterfaceDefinition> interfaceList )
@@ -1260,17 +1297,13 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 
 		boolean keepRun = true;
-		boolean commentsPreset = false;
-		String comment = "";
 		String opId;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				commentsPreset = true;
-				comment = token.content();
-				getToken();
-			} else if ( token.is( Scanner.TokenType.ID ) || (
-				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
+			Scanner.Token comment = parseForwardDocumentation();
+			if( token.is( Scanner.TokenType.ID ) || ( 
+				currInterfaceExtender != null && 
+				token.is( Scanner.TokenType.ASTERISK )
 			) ) {
 				opId = token.content();
 				OneWayOperationDeclaration opDecl = new OneWayOperationDeclaration( getContext(), opId );
@@ -1286,9 +1319,8 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
 
-				if ( commentsPreset ) {
-					opDecl.setDocumentation( comment );
-					commentsPreset = false;
+				if ( comment != null ){
+					registerDocumentationComment( opDecl, comment );
 				}
 
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
@@ -1296,9 +1328,12 @@ public class OLParser extends AbstractParser
 				} else {
 					oc.addOperation( opDecl );
 				}
+				
+				parseBackwardDocumentation( opDecl );
 
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
+					parseBackwardDocumentation( opDecl );
 				} else {
 					keepRun = false;
 				}
@@ -1315,17 +1350,13 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.COLON, "expected :" );
 		boolean keepRun = true;
-		String comment = "";
 		String opId;
-		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				commentsPreset = true;
-				comment = token.content();
-				getToken();
-			} else if ( token.is( Scanner.TokenType.ID ) || (
-				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
+			Scanner.Token comment = parseForwardDocumentation();
+			if( token.is( Scanner.TokenType.ID ) || (
+				currInterfaceExtender != null && 
+				token.is( Scanner.TokenType.ASTERISK )
 			) ) {
 				opId = token.content();
 				getToken();
@@ -1382,9 +1413,8 @@ public class OLParser extends AbstractParser
 					);
 
 				// adding documentation
-				if ( commentsPreset ) {
-					opRR.setDocumentation( comment );
-					commentsPreset = false;
+				if( comment != null ){
+					registerDocumentationComment( opRR, comment );
 				}
 
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
@@ -1393,8 +1423,10 @@ public class OLParser extends AbstractParser
 					oc.addOperation( opRR );
 				}
 				
+				parseBackwardDocumentation( opRR );
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
+					parseBackwardDocumentation( opRR );
 				} else {
 					keepRun = false;
 				}

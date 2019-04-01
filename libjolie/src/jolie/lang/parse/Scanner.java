@@ -1,23 +1,25 @@
-/***************************************************************************
- *   Copyright (C) 2006-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/***********************************************************************************
+ *   Copyright (C) 2006-2012 by Fabrizio Montesi <famontesi@gmail.com>             *
+ *   Copyright (C) 2019 by Martin Wolf                                             *
+ *   Copyright (C) 2019 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>     *
+ *                                                                                 *
+ *   This program is free software; you can redistribute it and/or modify          *
+ *   it under the terms of the GNU Library General Public License as               *
+ *   published by the Free Software Foundation; either version 2 of the            *
+ *   License, or (at your option) any later version.                               *
+ *                                                                                 *
+ *   This program is distributed in the hope that it will be useful,               *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of                *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 *
+ *   GNU General Public License for more details.                                  *
+ *                                                                                 *
+ *   You should have received a copy of the GNU Library General Public             *
+ *   License along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                               *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                     *
+ *                                                                                 *
+ *   For details about the authors of this software, see the AUTHORS file.         *
+ ***********************************************************************************/
 
 package jolie.lang.parse;
 
@@ -37,6 +39,7 @@ import jolie.lang.NativeType;
  */
 public class Scanner
 {
+
 	/** Token types */
 	public enum TokenType {
 		EOF,				///< End Of File
@@ -93,6 +96,7 @@ public class Scanner
 		EXECUTION,			///< execution
 		THROW,				///< throw
 		DOCUMENTATION_COMMENT,
+		DOCUMENTATION_BACKWARD_COMMENT,
 		INSTALL,				///< install
 		SCOPE,				///< scope
 		SPAWN,				///< spawn
@@ -334,29 +338,40 @@ public class Scanner
 	}
 	
 
-	private final InputStream stream;		// input stream
-	private final InputStreamReader reader;			// data input
-	protected char ch;						// current character
-	protected int currInt;					// current stream int
-	protected int state;					// current state
-	private int line;						// current line
-	private final URI source;				// source name
+	private final InputStream stream;				// input stream
+	private final InputStreamReader reader;		// data input
+	protected char ch;							// current character
+	protected int currInt;						// current stream int
+	private States state;						// current state
+	private int line;							// current line
+	private final URI source;						// source name
+	final private boolean includeDocumentation;	// include documentation tokens
 
 	/**
 	 * Constructor
 	 * @param stream the <code>InputStream</code> to use for input reading
 	 * @param source the source URI of the stream
 	 * @param charset the character encoding
+	 * @param includeDocumentation if true, emit documentation tokens
 	 * @throws java.io.IOException if the input reading initialization fails
 	 */
-	public Scanner( InputStream stream, URI source, String charset )
+	public Scanner( InputStream stream, URI source, String charset, boolean includeDocumentation )
 		throws IOException
 	{
 		this.stream = stream;
 		this.reader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
 		this.source = source;
+		this.includeDocumentation = includeDocumentation;
 		line = 1;
 		readChar();
+	}
+	
+	public Scanner( InputStream stream, URI source, String charset ) throws IOException{
+		this( stream, source, charset, false );
+	}
+	
+	public boolean includeDocumentation(){
+		return this.includeDocumentation;
 	}
 
 	/* public String readWord()
@@ -509,6 +524,56 @@ public class Scanner
 	}
 	
 	/**
+	 * Checks whether the next sequence of characters will be new line.
+	 * 
+	 * Performs a readChar() itself. The global ch will be set to the last 
+	 * char of the newline sequence.
+	 * @return true if newline
+	 */
+	private boolean nextIsNewLine() throws IOException
+	{
+		readChar();
+		if( ch == '\r' ){
+			readChar();
+			if( ch == '\n' ){
+				return true;
+			}
+		}
+		
+		return ch == '\n';
+	}
+	
+	
+	private static enum States {	// RECALL TO STATE NUMBERS, FOR BACKWARD COMPATIBILITY
+		FIRST_CHARACTER,								// 1
+		ID,											// 2
+		INT_or_LONG_or_DOUBLE,								// 3
+		STRING,										// 4
+		PLUS_or_CHOICE,								// 5
+		MULTIPLY_or_MULTIPLY_ASSIGN,					// 23
+		ASSIGN_or_EQUAL,								// 6
+		PARALLEL_or_LOGIC_OR,							// 7
+		LOGIC_AND,									// 8
+		LANGLE_or_MINOR_OR_EQUAL_or_DEEP_COPY_LEFT,	// 9
+		RANGLE_or_MINOR_OR_EQUAL,						// 10
+		NOT_or_NOT_EQUAL,							// 11
+		DIVIDE_or_BEGIN_COMMENT_or_LINE_COMMENT,		// 12
+		WAITING_FOR_END_COMMENT,						// 13
+		MINUS_or_NUMBER_or_POINTS_TO,					// 14
+		LINE_COMMENT,								// 15
+		DOT,										// 16
+		REAL,										// 17
+		SCIENTIFIC_NOTATION_FIRST_AFTER_E,			// 18
+		SCIENTIFIC_NOTATION_FIRST_EXP_DIGIT,			// 19
+		SCIENTIFIC_NOTATION_SECOND_TO_END_DIGITS,		// 20
+		DOCUMENTATION_COMMENT,						// 21
+		DOCUMENTATION_LINE_COMMENT,
+		DOCUMENTATION_BACKWARD_COMMENT,
+		DOCUMENTATION_BACKWARD_COMMENT_LINE
+	}
+	
+	
+	/**
 	 * Consumes characters from the source text and returns its corresponding token.
 	 * @return the token corresponding to the consumed characters
 	 * @throws IOException if not enough characters can be read from the source
@@ -518,7 +583,7 @@ public class Scanner
 	{
         
 		boolean keepRun = true;
-		state = 1;
+		state = States.FIRST_CHARACTER;
         
 		while ( currInt != -1 && isSeparator( ch ) ) {
 			readChar();
@@ -542,35 +607,35 @@ public class Scanner
 				 * specific character (==) check.
 				 */
 
-				case 1:	// First character
+				case FIRST_CHARACTER:	// First character
 					if ( Character.isLetter( ch ) || ch == '_' ) {
-						state = 2;
+						state = States.ID;
 					} else if ( Character.isDigit( ch ) ) {
-						state = 3;
+						state = States.INT_or_LONG_or_DOUBLE;
 					} else if ( ch == '"' ) {
-						state = 4;
+						state = States.STRING;
 					} else if ( ch == '+' ) {
-						state = 5;
+						state = States.PLUS_or_CHOICE;
 					} else if ( ch == '*' ) {
-						state = 23;
+						state = States.MULTIPLY_or_MULTIPLY_ASSIGN;
 					} else if ( ch == '=' ) {
-						state = 6;
+						state = States.ASSIGN_or_EQUAL;
 					} else if ( ch == '|' ) {
-						state = 7;
+						state = States.PARALLEL_or_LOGIC_OR;
 					} else if ( ch == '&' ) {
-						state = 8;
+						state = States.LOGIC_AND;
 					} else if ( ch == '<' ) {
-						state = 9;
+						state = States.LANGLE_or_MINOR_OR_EQUAL_or_DEEP_COPY_LEFT;
 					} else if ( ch == '>' ) {
-						state = 10;
+						state = States.RANGLE_or_MINOR_OR_EQUAL;
 					} else if ( ch == '!' ) {
-						state = 11;
+						state = States.NOT_or_NOT_EQUAL;
 					} else if ( ch == '/' ) {
-						state = 12;
+						state = States.DIVIDE_or_BEGIN_COMMENT_or_LINE_COMMENT;
 					} else if ( ch == '-' ) {
-						state = 14;
-					} else if ( ch == '.') { // DOT or REAL
-						state = 16;
+						state = States.MINUS_or_NUMBER_or_POINTS_TO;
+					} else if ( ch == '.') { // DOT or REAL // <- not sure about the 'REAL' part
+						state = States.DOT;
 					} else {	// ONE CHARACTER TOKEN
 						if ( ch == '(' ) {
 							retval = new Token( TokenType.LPAREN );
@@ -602,6 +667,8 @@ public class Scanner
 							retval = new Token( TokenType.CARET );
 						} else if ( ch == '?' ) {
 							retval = new Token( TokenType.QUESTION_MARK );
+						} else {
+							stopOneChar = true;
 						}
 						/*else if ( ch == '$' )
 							retval = new Token( TokenType.DOLLAR );*/
@@ -610,7 +677,7 @@ public class Scanner
 					}
 					
 					break;
-				case 2:	// ID (or unreserved keyword)
+				case ID:	// ID (or unreserved keyword)
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
 						String str = tokenBuilder.toString();
 						TokenType tt = unreservedKeywords.get( str );
@@ -623,9 +690,9 @@ public class Scanner
 						}
 					}
 					break;	
-				case 3: // INT (or LONG, or DOUBLE)
+				case INT_or_LONG_or_DOUBLE: // INT (or LONG, or DOUBLE)
 					if ( ch == 'e'|| ch == 'E' ){
-						state = 19;
+						state = States.SCIENTIFIC_NOTATION_FIRST_EXP_DIGIT;
 					} else if ( !Character.isDigit( ch ) && ch != '.' ) {
 						if ( ch == 'l' || ch == 'L' ) {
 							retval = new Token( TokenType.LONG, tokenBuilder.toString() );
@@ -639,10 +706,10 @@ public class Scanner
 						if ( !Character.isDigit( ch ) ) {
 							retval =  new Token( TokenType.ERROR, tokenBuilder.toString() );
 						}
-						else state = 17; // recognized a DOUBLE
+						else state = States.REAL; // recognized a DOUBLE
 					}
 					break;
-				case 4:	// STRING
+				case STRING:	// STRING
 					if ( ch == '"' ) {
 						retval = new Token( TokenType.STRING, tokenBuilder.toString().substring( 1 ) );
 						readChar();
@@ -667,7 +734,7 @@ public class Scanner
 						readChar();
 					}
 					break;		
-				case 5:	// PLUS OR CHOICE
+				case PLUS_or_CHOICE:	// PLUS OR CHOICE
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.ADD_ASSIGN );
 						readChar();
@@ -678,7 +745,7 @@ public class Scanner
 						retval = new Token( TokenType.PLUS );
 					}
 					break;
-				case 23:	// MULTIPLY or MULTIPLY_ASSIGN
+				case MULTIPLY_or_MULTIPLY_ASSIGN:	// MULTIPLY or MULTIPLY_ASSIGN
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MULTIPLY_ASSIGN );
 						readChar();
@@ -686,7 +753,7 @@ public class Scanner
 						retval = new Token( TokenType.ASTERISK, "*" );
 					}
 					break;
-				case 6:	// ASSIGN OR EQUAL
+				case ASSIGN_or_EQUAL:	// ASSIGN OR EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.EQUAL );
 						readChar();
@@ -696,20 +763,20 @@ public class Scanner
 					} else
 						retval = new Token( TokenType.ASSIGN );
 					break;
-				case 7:	// PARALLEL OR LOGICAL OR
+				case PARALLEL_or_LOGIC_OR:	// PARALLEL OR LOGICAL OR
 					if ( ch == '|' ) {
 						retval = new Token( TokenType.OR );
 						readChar();
 					} else
 						retval = new Token( TokenType.PARALLEL );
 					break;
-				case 8:	// LOGICAL AND
+				case LOGIC_AND:	// LOGICAL AND
 					if ( ch == '&' ) {
 						retval = new Token( TokenType.AND );
 						readChar();
 					}
 					break;
-				case 9: // LANGLE OR MINOR_OR_EQUAL OR DEEP_COPY_LEFT
+				case LANGLE_or_MINOR_OR_EQUAL_or_DEEP_COPY_LEFT: // LANGLE OR MINOR_OR_EQUAL OR DEEP_COPY_LEFT
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MINOR_OR_EQUAL );
 						readChar();
@@ -719,48 +786,79 @@ public class Scanner
 					} else
 						retval = new Token( TokenType.LANGLE );
 					break;
-				case 10: // RANGLE OR MINOR_OR_EQUAL
+				case RANGLE_or_MINOR_OR_EQUAL: // RANGLE OR MINOR_OR_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MAJOR_OR_EQUAL );
 						readChar();
 					} else
 						retval = new Token( TokenType.RANGLE );
 					break;
-				case 11: // NOT OR NOT_EQUAL
+				case NOT_or_NOT_EQUAL: // NOT OR NOT_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.NOT_EQUAL );
 						readChar();
 					} else
 						retval = new Token( TokenType.NOT );
 					break;
-				case 12: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
-					if ( ch == '*' ) {
-						state = 13;
+				case DIVIDE_or_BEGIN_COMMENT_or_LINE_COMMENT: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
+					if ( ch == '*' ) { // BEGIN COMMENT
+						readChar();
+						stopOneChar = true;
+						
+						if( ch == '*' && includeDocumentation ) { // BEGIN DOCUMENTATION
+							readChar();
+							
+							if( ch == '!' ){ // IGNORE OLD DOCUMENTATION SIGN
+								readChar();
+							}
+							
+							resetTokenBuilder();
+							state = States.DOCUMENTATION_COMMENT;
+						} 
+						else if ( ch == '<' && includeDocumentation ){
+							readChar();
+							resetTokenBuilder();
+							state = States.DOCUMENTATION_BACKWARD_COMMENT;
+						} 
+						else {
+							state = States.WAITING_FOR_END_COMMENT;
+						}
 					} else if ( ch == '/' )  {
-						state = 15;
+						readChar();
+						stopOneChar = true;
+						
+						if( ch == '/' && includeDocumentation ){
+							readChar();
+							resetTokenBuilder();
+							state = States.DOCUMENTATION_LINE_COMMENT;
+						}
+						else if ( ch == '<' && includeDocumentation ){
+							readChar();
+							resetTokenBuilder();
+							state = States.DOCUMENTATION_BACKWARD_COMMENT_LINE; // BACKWARD DOCUMENTATION COMMENT
+						}
+						else {
+							state = States.LINE_COMMENT; // NORMAL DOCUMENTATION COMMENT
+						}
 					} else if( ch == '=' )  {
 						retval = new Token( TokenType.DIVIDE_ASSIGN );
 						readChar();
 					} else
 						retval = new Token( TokenType.DIVIDE );
 					break;
-				case 13: // WAITING FOR END_COMMENT
+				case WAITING_FOR_END_COMMENT: // WAITING FOR END_COMMENT
 					if ( ch == '*' ) {
 						readChar();
 						stopOneChar = true;
 						if ( ch == '/' ) {
 							readChar();
 							retval = getToken();
-						} else if ( ch == '!' ) {
-							resetTokenBuilder();
-							readChar();
-							state = 21;
 						}
 					}
 					break;
-				case 14: // MINUS OR (negative) NUMBER OR POINTS_TO
+				case MINUS_or_NUMBER_or_POINTS_TO: // MINUS OR (negative) NUMBER OR POINTS_TO
 					if ( Character.isDigit( ch ) )
-						state = 3;
+						state = States.INT_or_LONG_or_DOUBLE;
 					else if ( ch == '-' ) {
 						retval = new Token( TokenType.DECREMENT );
 						readChar();
@@ -776,53 +874,101 @@ public class Scanner
 						if ( !Character.isDigit( ch ) )
 							retval = new Token( TokenType.ERROR, "-." );
 						else 
-							state = 17;
+							state = States.REAL;
 					} else
 						retval = new Token( TokenType.MINUS );
 					break;
-				case 15: // LINE_COMMENT: waiting for end of line
+				case LINE_COMMENT: // LINE_COMMENT: waiting for end of line
 					if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
 						readChar();
 						retval = getToken();
 					}
 					break;
-				case 16: // DOT
+				case DOT: // DOT
 					if ( !Character.isDigit( ch ) )
 						retval = new Token( TokenType.DOT );
 					else
-						state = 17; // It's a REAL
+						state = States.REAL; // It's a REAL
 					break;
-				case 17: // REAL "."[0-9]+ 
+				case REAL: // REAL "."[0-9]+ 
 					if ( ch == 'E' || ch == 'e' )
-						state = 18;
+						state = States.SCIENTIFIC_NOTATION_FIRST_AFTER_E;
 					else if ( !Character.isDigit( ch ) )
 						retval = new Token( TokenType.DOUBLE, tokenBuilder.toString() );
 					break;
-				case 18: // Scientific notation, first char after 'E'
+				case SCIENTIFIC_NOTATION_FIRST_AFTER_E: // Scientific notation, first char after 'E'
 					if ( ch == '-' || ch == '+' )
-						state = 19;
+						state = States.SCIENTIFIC_NOTATION_FIRST_EXP_DIGIT;
 					else if ( Character.isDigit( ch ) )
-						state = 20;
+						state = States.SCIENTIFIC_NOTATION_SECOND_TO_END_DIGITS;
 					else
 						retval = new Token( TokenType.ERROR ); 
 					break;
-				case 19: // Scientific notation, first exp. digit
+				case SCIENTIFIC_NOTATION_FIRST_EXP_DIGIT: // Scientific notation, first exp. digit
 					if ( !Character.isDigit( ch ) )
 						retval = new Token( TokenType.ERROR );
 					else
-						state = 20;
+						state = States.SCIENTIFIC_NOTATION_SECOND_TO_END_DIGITS;
 					break;
-				case 20: // Scientific notation: from second digit to end
+				case SCIENTIFIC_NOTATION_SECOND_TO_END_DIGITS: // Scientific notation: from second digit to end
 					if ( !Character.isDigit( ch ) )
 						retval = new Token( TokenType.DOUBLE, tokenBuilder.toString() );
 					break;
-				case 21: // Documentation comment
+				case DOCUMENTATION_COMMENT: // Documentation comment end
 					if ( ch == '*' ) {
 						readChar();
 						stopOneChar = true;
 						if ( ch == '/' ) {
+							// IF WE FIND A BLANK LINE AFTER THE DOCUMENTATION, WE IGNORE IT
+							if( !includeDocumentation || ( nextIsNewLine() && nextIsNewLine() ) ){
+								readChar();
+								resetTokenBuilder();
+								state = States.FIRST_CHARACTER;
+							}
+							else {
+								retval = new Token(TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
+							}
+						}
+					}
+					break;
+				case DOCUMENTATION_LINE_COMMENT:
+					if( ch == '\r' ){ // IGNORE CARRIGE RETURN (WINDOWS) NEWLINES
+						readChar();
+					}
+					if( ch == '\n' || isOverflowChar( ch ) ){
+						if( !includeDocumentation || nextIsNewLine() ){ // IGNORE BECAUSE BEFORE BLANK LINE
 							readChar();
-							retval = new Token( TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
+							resetTokenBuilder();
+							state = States.FIRST_CHARACTER;
+						}
+						else { // RETURN THE DOCUMENTATION COMMENT
+							retval = new Token(TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
+						}
+					}
+					break;
+				case DOCUMENTATION_BACKWARD_COMMENT:
+					if ( ch == '*' ){
+						readChar();
+						stopOneChar = true;
+						if ( ch == '/' ){
+							readChar();
+							if( includeDocumentation ){
+								retval = new Token( TokenType.DOCUMENTATION_BACKWARD_COMMENT, tokenBuilder.toString() );
+							}
+							else {
+								resetTokenBuilder();
+								state = States.FIRST_CHARACTER;
+							}
+						}
+					}
+					break;
+				case DOCUMENTATION_BACKWARD_COMMENT_LINE:
+					if( isNewLineChar( ch ) || isOverflowChar( ch ) ){
+						if( includeDocumentation ){
+							retval = new Token( TokenType.DOCUMENTATION_BACKWARD_COMMENT, tokenBuilder.toString() );
+						} else {
+							resetTokenBuilder();
+							state = States.FIRST_CHARACTER;
 						}
 					}
 					break;
