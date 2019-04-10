@@ -44,6 +44,7 @@ public abstract class AbstractParser
 	private final StringBuilder stringBuilder = new StringBuilder( 256 );
 	private boolean backup = false;
 	private final List< Scanner.Token > backupTokens = new ArrayList<>();
+	private boolean metNewline = false;
 	
 	protected final String build( String... args )
 	{
@@ -73,11 +74,7 @@ public abstract class AbstractParser
 		this.tokens.add( token );
 	}
 	
-	/** Gets a new token.
-	 * 
-	 * @throws IOException If the internal scanner raises one.
-	 */
-	protected final void getToken()
+	private final void readToken()
 		throws IOException
 	{
 		if ( tokens.size() > 0 ) {
@@ -85,10 +82,31 @@ public abstract class AbstractParser
 		} else {
 			token = scanner.getToken();
 		}
+	}
+	
+	/** Gets a new token. Whitespace tokens are ignored, but the metNewline flag is set.
+	 * 
+	 * @throws IOException If the internal scanner raises one.
+	 */
+	protected final void getToken()
+		throws IOException
+	{
+		metNewline = false;
+		boolean run;
+		do {
+			readToken();
+			run = token.is( Scanner.TokenType.NEWLINE );
+			metNewline = metNewline || run;
+		} while( run );
 		
 		if ( backup ) {
 			backupTokens.add( token );
 		}
+	}
+	
+	protected final boolean hasMetNewline()
+	{
+		return metNewline;
 	}
 	
 	/** Recovers the backed up tokens. */
