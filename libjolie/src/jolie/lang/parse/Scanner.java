@@ -129,6 +129,7 @@ public class Scanner
 		CURRENT_HANDLER,	///< cH
 		INIT,				///< init
 		PROVIDE,			///< provide
+		NEWLINE,			///< a newline token
 		ERROR				///< Scanner error
 	}
 	
@@ -462,6 +463,16 @@ public class Scanner
 	{
 		return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
+	
+	/**
+	 * Checks whether a character is a horizontal separator (whitespace).
+	 * @param c the character to check
+	 * @return <code>true</code> if <code>c</code> is a horizontal separator (whitespace)
+	 */
+	private static boolean isHorizontalWhitespace( char c )
+	{
+		return c == '\t' || c == ' ';
+	}
     
 	/**
 	 * Checks whether a character is an overflow character.
@@ -516,11 +527,10 @@ public class Scanner
 	public Token getToken()
 		throws IOException
 	{
-        
 		boolean keepRun = true;
 		state = 1;
         
-		while ( currInt != -1 && isSeparator( ch ) ) {
+		while ( currInt != -1 && isHorizontalWhitespace( ch ) ) {
 			readChar();
 		}
         
@@ -602,6 +612,8 @@ public class Scanner
 							retval = new Token( TokenType.CARET );
 						} else if ( ch == '?' ) {
 							retval = new Token( TokenType.QUESTION_MARK );
+						} else if ( isNewLineChar( ch ) ) {
+							retval = new Token( TokenType.NEWLINE );
 						}
 						/*else if ( ch == '$' )
 							retval = new Token( TokenType.DOLLAR );*/
@@ -723,15 +735,17 @@ public class Scanner
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MAJOR_OR_EQUAL );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.RANGLE );
+					}
 					break;
 				case 11: // NOT OR NOT_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.NOT_EQUAL );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.NOT );
+					}
 					break;
 				case 12: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
 					if ( ch == '*' ) {
@@ -741,8 +755,9 @@ public class Scanner
 					} else if( ch == '=' )  {
 						retval = new Token( TokenType.DIVIDE_ASSIGN );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.DIVIDE );
+					}
 					break;
 				case 13: // WAITING FOR END_COMMENT
 					if ( ch == '*' ) {
@@ -750,7 +765,7 @@ public class Scanner
 						stopOneChar = true;
 						if ( ch == '/' ) {
 							readChar();
-							retval = getToken();
+							retval = new Token( TokenType.NEWLINE );
 						} else if ( ch == '!' ) {
 							resetTokenBuilder();
 							readChar();
@@ -777,13 +792,14 @@ public class Scanner
 							retval = new Token( TokenType.ERROR, "-." );
 						else 
 							state = 17;
-					} else
+					} else {
 						retval = new Token( TokenType.MINUS );
+					}
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
 					if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
 						readChar();
-						retval = getToken();
+						retval = new Token( TokenType.NEWLINE );
 					}
 					break;
 				case 16: // DOT
@@ -832,9 +848,9 @@ public class Scanner
 			}
 			
 			if ( retval == null ) {
-				if ( stopOneChar )
+				if ( stopOneChar ) {
 					stopOneChar = false;
-				else {
+				} else {
 					tokenBuilder.append( ch );
 					readChar();
 				}
