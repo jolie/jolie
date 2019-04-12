@@ -26,17 +26,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
+import javax.activation.CommandMap;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.activation.MailcapCommandMap;
 import javax.mail.Address;
 import javax.mail.Authenticator;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -108,12 +114,13 @@ public class SMTPService extends JavaService
 			/*
 			 * Content
 			 */
-			final String contentText = request.getFirstChild( "content" ).strValue();
+            final String contentText = request.getFirstChild( "content" ).strValue();
 			String type = "text/plain";
 			if ( request.hasChildren( "contentType" ) ) {
 				type = request.getFirstChild( "contentType" ).strValue();
 			}
 			final String contentType = type;
+			
 			DataHandler dh = new DataHandler( new DataSource()
 			{
 				public InputStream getInputStream()
@@ -135,10 +142,59 @@ public class SMTPService extends JavaService
 
 				public String getName()
 				{
-					return "mail content";
+					return "mail attachment";
 				}
 			} );
 			msg.setDataHandler( dh );
+			
+			if ( request.hasChildren( "attachment" ) ) {
+				MailcapCommandMap mailcapCommandMap = (MailcapCommandMap) CommandMap.getDefaultCommandMap(); 
+				mailcapCommandMap.addMailcap( "text/html;; x-java-content-handler=com.sun.mail.handlers.text_html" );
+				mailcapCommandMap.addMailcap( "text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml" );
+				mailcapCommandMap.addMailcap( "text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain" );
+				mailcapCommandMap.addMailcap( "multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed" );
+				mailcapCommandMap.addMailcap( "message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822" );
+				Multipart multipart = new MimeMultipart();
+				BodyPart messagePart = new MimeBodyPart();
+				messagePart.setContent( request.getFirstChild( "content" ).strValue(), type );
+				multipart.addBodyPart( messagePart );
+
+				for( int counter = 0; counter < request.getChildren( "attachment" ).size(); counter++ ) {
+					final String contentTypeMulti = request.getChildren( "attachment" ).get( counter ).getFirstChild( "contentType" ).strValue();
+					final byte[] content = request.getChildren( "attachment" ).get( counter ).getFirstChild( "content" ).byteArrayValue().getBytes();
+					dh = new DataHandler( new DataSource()
+					{
+						public InputStream getInputStream()
+							throws IOException
+						{
+							return new ByteArrayInputStream( content );
+						}
+
+						public OutputStream getOutputStream()
+							throws IOException
+						{
+							throw new IOException( "Operation not supported" );
+						}
+
+						public String getContentType()
+						{
+							return contentTypeMulti;
+						}
+
+						public String getName()
+						{
+							return "mail attachemt";
+						}
+					} );
+					BodyPart attachmentPart = new MimeBodyPart();
+					attachmentPart.setDataHandler( dh );
+					attachmentPart.setFileName( request.getChildren( "attachment" ).get( counter ).getFirstChild( "filename" ).strValue() );
+					multipart.addBodyPart( attachmentPart );
+				}
+
+				msg.setContent( multipart );
+
+			}
 
 			/*
 			 * Reply To

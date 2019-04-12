@@ -572,7 +572,7 @@ public class OLParser extends AbstractParser
 				if ( filename.startsWith( "../" ) ) {
 					String tmpPath = path;
 					String tmpFilename = filename;
-					if ( !tmpPath.contains( "/" ) && tmpPath.contains( "\\" ) ) {
+					if ( !tmpPath.contains( "/" ) && tmpPath.contains( "\\" ) ) { // Windows only
 						tmpPath = tmpPath.replace( "\\", "/" );
 					}
 					while( tmpFilename.startsWith( "../" ) ) {
@@ -656,7 +656,12 @@ public class OLParser extends AbstractParser
 					parent = path.getParent().toString();
 					uri = path.toUri();
 				} catch( FileSystemNotFoundException e ) {
-					parent = null;
+					if ( includeURL.toURI().getScheme().equals( "jap" ) ) {
+						parent = includeURL.toURI().toString();
+						parent = parent.substring( 0, parent.lastIndexOf( '/' ) );
+					} else {
+						parent = null;
+					}
 					uri = includeURL.toURI();
 				}
 				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), parent, uri );
@@ -1517,9 +1522,21 @@ public class OLParser extends AbstractParser
 		SequenceStatement stm = new SequenceStatement( getContext() );
 
 		stm.addChild( parseBasicStatement() );
-		while ( token.is( Scanner.TokenType.SEQUENCE ) ) {
-			getToken();
-			stm.addChild( parseBasicStatement() );
+		boolean run = true;
+		while ( run ) {
+			if ( token.is( Scanner.TokenType.SEQUENCE ) ) {
+				getToken();
+				stm.addChild( parseBasicStatement() );
+			} else if ( hasMetNewline() ) {
+				OLSyntaxNode basicStatement = parseBasicStatement( false );
+				if ( basicStatement == null ) {
+					run = false;
+				} else {
+					stm.addChild( basicStatement );
+				}
+			} else {
+				run = false;
+			}
 		}
 
 		return stm;
@@ -1563,6 +1580,12 @@ public class OLParser extends AbstractParser
 	}
 
 	private OLSyntaxNode parseBasicStatement()
+		throws IOException, ParserException
+	{
+		return parseBasicStatement( true );
+	}
+	
+	private OLSyntaxNode parseBasicStatement( boolean throwException )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode retVal = null;
@@ -1673,7 +1696,6 @@ public class OLParser extends AbstractParser
 				getToken();
 				VariablePathNode targetPath = parseVariablePath();
 				if ( targetPath.path().get( targetPath.path().size() - 1 ).value() != null ) {
-					System.out.println( targetPath.path().get( targetPath.path().size() - 1 ).value() );
 					throwException( "target in for ( elem -> array ) { ... } should be an array (cannot specify an index): " + targetPath.toPrettyString() );
 				}
 				eat( Scanner.TokenType.RPAREN, "expected )" );
@@ -1872,7 +1894,7 @@ public class OLParser extends AbstractParser
 			break;
 		}
 
-		if ( retVal == null ) {
+		if ( throwException && retVal == null ) {
 			throwException( "expected basic statement" );
 		}
 

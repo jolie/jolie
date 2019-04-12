@@ -21,12 +21,12 @@
 
 include "types/IOException.iol"
 
-type RawToStringRequest:raw {
-	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8)
+type RawToStringRequest:raw /*< The byte array to be converted */ {
+	.charset?:string //< set the encoding. Default: system (eg. for Unix-like OS UTF-8)
 }
 
 type StringToRawRequest:string {
-	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8)
+	.charset?:string //< set the encoding. Default: system (eg. for Unix-like OS UTF-8)
 }
 
 interface ConverterInterface {
