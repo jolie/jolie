@@ -1,5 +1,5 @@
  /****************************************************************************
-   Copyright 2010 by Claudio Guidi <cguidi@italianasoftware.com>      
+   Copyright 2010 by Claudio Guidi <cguidi@italianasoftware.com>
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -73,26 +73,11 @@ type Interface: void {
   .operations*: Operation
 }
 
-type Participant: void {
+type Port: void {
   .name: Name
   .protocol: string
   .location: any
   .interfaces*: Interface
-}
-
-type Conversation: void {
-  .operation: string
-  .participant_type: void {
-    .is_input?: int
-    .is_output?: int
-  }
-}
-
-type Role: void {
-  .name: Name
-  .input: Participant
-  .output?: Participant
-  .conversation*: Conversation 	
 }
 
 type Service: void {
