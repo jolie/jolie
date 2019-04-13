@@ -1,5 +1,5 @@
  /****************************************************************************
-   Copyright 2010 by Claudio Guidi <cguidi@italianasoftware.com>      
+   Copyright 2010 by Claudio Guidi <cguidi@italianasoftware.com>
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -58,9 +58,9 @@ define indentation_generation {
 }
 
 define indentify {
-  _indent = _indent + 1;	
+  _indent = _indent + 1;
   indentation_generation
-  
+
 }
 
 define de_indentify {
@@ -72,7 +72,7 @@ main
 {
 
 
-  [ getParticipantInput( request )( response ) {
+  [ getInputPort( request )( response ) {
 	response = response + "inputPort " + request.name.name + " {\n"
 	  + _indentation_token + "Protocol:" + request.protocol + "\n"
 	  + _indentation_token + "Location:\"" + request.location + "\"\n"
@@ -80,7 +80,7 @@ main
 	  + "}\n\n"
   }] { nullProcess }
 
-  [ getParticipantOutput( request )( response ) {
+  [ getOutputPort( request )( response ) {
 	response = response + "outputPort " + request.name.name + " {\n"
 	  + _indentation_token + "Protocol:" + request.protocol + "\n"
 	  + _indentation_token + "Location:\"" + request.location + "\"\n"
@@ -118,7 +118,7 @@ main
 	if ( rr_count > 0 ) {
 		response = response + "RequestResponse:\n";
 		for ( x = 0, x < rr_count, x++ ) {
-			with ( rr[ x ] ) { 
+			with ( rr[ x ] ) {
 				response = response + _indentation_string + .operation_name + "( " + .input.name + " )( " + .output.name + " )";
 				for ( f = 0, f < #.fault, f++ ) {
 					if ( f == 0 ) {
@@ -126,9 +126,9 @@ main
 					};
 					response = response + .fault[ f ].name.name;
 					if ( is_defined( .fault[ f ].type_name ) ) {
-						  response = response + "(" + .fault[ f ].type_name.name + ") " 
+						  response = response + "(" + .fault[ f ].type_name.name + ") "
 					};
-					response = response + " " 
+					response = response + " "
 				}
 				;
 				if ( x < ( rr_count - 1 ) ) {
@@ -137,12 +137,12 @@ main
 					response = response + "\n"
 				}
 			}
-		}		
+		}
 	};
 	if ( ow_count > 0 ) {
 	  response = response + "OneWay:";
 	  for ( x = 0, x < ow_count, x++ ) {
-	    with ( ow[ x ] ) { 
+	    with ( ow[ x ] ) {
 	      response = response + _indentation_string + .operation_name + "( " + .input.name + " )";
 	      if ( x < ( ow_count - 1 ) ) {
 		response = response + ",\n"
@@ -162,7 +162,7 @@ main
 	    + _indentation_token + "Interfaces:" + request.name.name + "Interface\n"
 	    + "}\n\n"
   }] { nullProcess }
-  
+
   [ getSurfaceWithoutOutputPort( request )( response ) {
 	// insert types
 	for( i = 0, i < #request.interfaces, i++ ) {
@@ -193,7 +193,7 @@ main
 	if ( rr_count > 0 ) {
 		response = response + "RequestResponse:\n";
 		for ( x = 0, x < rr_count, x++ ) {
-		      with ( rr[ x ] ) { 
+		      with ( rr[ x ] ) {
 				response = response + _indentation_string + .operation_name + "( " + .input.name + " )( " + .output.name + " )";
 				for ( f = 0, f < #.fault, f++ ) {
 					if ( f == 0 ) {
@@ -201,9 +201,9 @@ main
 					};
 					response = response + .fault[ f ].name.name;
 					if ( is_defined( .fault[ f ].type_name ) ) {
-						  response = response + "(" + .fault[ f ].type_name.name + ") " 
+						  response = response + "(" + .fault[ f ].type_name.name + ") "
 					};
-					response = response + " " 
+					response = response + " "
 				}
 				;
 				if ( x < ( rr_count - 1 ) ) {
@@ -217,7 +217,7 @@ main
 	if ( ow_count > 0 ) {
 	  response = response + "OneWay:";
 	  for ( x = 0, x < ow_count, x++ ) {
-	    with ( ow[ x ] ) { 
+	    with ( ow[ x ] ) {
 	      response = response + _indentation_string + .operation_name + "( " + .input.name + " )";
 	      if ( x < ( ow_count - 1 ) ) {
 		response = response + ",\n"
@@ -251,7 +251,7 @@ main
 	if ( rr_count > 0 ) {
 	  response = response + "RequestResponse:\n";
 	  for ( x = 0, x < rr_count, x++ ) {
-	    with ( rr[ x ] ) { 
+	    with ( rr[ x ] ) {
 	      response = response + _indentation_string + .operation_name + "( " + .input.name + " )( " + .output.name + " )";
 	      if ( x < ( rr_count - 1 ) ) {
 		response = response + ",\n"
@@ -264,7 +264,7 @@ main
 	if ( ow_count > 0 ) {
 	  response = response + "OneWay:";
 	  for ( x = 0, x < ow_count, x++ ) {
-	    with ( ow[ x ] ) { 
+	    with ( ow[ x ] ) {
 	      response = response + _indentation_string + .operation_name + "( " + .input.name + " )";
 	      if ( x < ( ow_count - 1 ) ) {
 		response = response + ",\n"
@@ -275,7 +275,7 @@ main
 	  }
 	};
 	response = response + "}\n\n";
-	de_indentify	
+	de_indentify
   } ] { nullProcess }
 
   [ getType( request )( response ) {
@@ -287,7 +287,7 @@ main
 	    getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
 	    response = response + _indentation_string + resp_sub_type + "\n"
 	  };
-	  response = response + _indentation_string + "}"     
+	  response = response + _indentation_string + "}"
 	};
 	response = response + "\n"
   } ] { nullProcess }
@@ -306,7 +306,7 @@ main
 	;
 	de_indentify
   } ] { nullProcess }
-  
+
   [ getTypeInLine( request )( response ) {
 	getNativeType@MySelf( request.root_type )( resp_root_type );
 	response = resp_root_type;
@@ -323,7 +323,7 @@ main
   [ getCardinality( request )( response ) {
 	response = "[" + request.min + ",";
 	if ( is_defined( request.max ) ) {
-	  response = response + request.max 
+	  response = response + request.max
 	} else {
 	  response = response + "*"
 	};

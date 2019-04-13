@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-include "types/role_types.iol"
+include "types/definition_types.iol"
 
 // FAULTS
 type InputPortMetaDataFault: void {
@@ -29,7 +29,7 @@ type InputPortMetaDataFault: void {
 // MESSAGE TYPES
 
 type CheckNativeTypeRequest: void {
-  .type_name: string
+  .type_name: string          //< the type name to check it is native
 }
 
 type CheckNativeTypeResponse: void {
@@ -37,42 +37,42 @@ type CheckNativeTypeResponse: void {
 }
 
 type GetMetaDataRequest: void {
-  .filename: string
-  .name: Name
+  .filename: string             //< the filename where the service definition is
+  .name: Name                   //< the name and the domain name to give to the service
 }
 
 type GetMetaDataResponse: void {
-  .service: Service
-  .input*: Participant
-  .output*: Participant
-  .interfaces*: Interface
-  .types*: Type
-  .embeddedServices*: void {
-	.type: string
-	.servicepath: string
-	.portId: string
+  .service: Service             //< the definition of the service
+  .input*: Port                 //< the definitions of all the input ports
+  .output*: Port                //< the definitions of all the output ports
+  .interfaces*: Interface       //< the definitions of all the interfaces
+  .types*: Type                 //< the definitions of all the types
+  .embeddedServices*: void {    //< the definitions of all the embedded services
+	    .type: string             //< type of the embedded service
+	    .servicepath: string      //< path where the service can be found
+	    .portId: string           //< target output port where the embedded service is bound
   }
 }
 
 type GetInputPortMetaDataRequest: void {
-  .filename: string
-  .name: Name
+  .filename: string             //< the filename where the service definition is
+  .name?: Name                  //< the absolute name to give to the resource. in this operation only .domain will be used. default .domain = "".
 }
 
 type GetInputPortMetaDataResponse: void {
-  .input*: Participant
+  .input*: Port                 //< the full description of each input port of the service definition
 }
 
 type MessageTypeCastRequest: void {
-  .message: undefined
-  .types: void {
-	.messageTypeName: Name
-	.types*: Type
+  .message: undefined           //< the message to be cast
+  .types: void {                //< the types to use for casting the message
+	     .messageTypeName: Name   //< starting type to user for casting
+	     .types*: Type            //< list of all the required types
   }
 }
 
 type MessageTypeCastResponse: void {
-  .message: undefined
+  .message: undefined            //< casted message
 }
 
 type ParserExceptionType: void {
@@ -89,29 +89,19 @@ type SemanticExceptionType: void {
   }
 }
 
-type ParseRoleRequest: void {
-  .rolename: Name
-  .filename: string
-}
 
-
-/**!
-WARNING: the API of this service is experimental. Use it at your own risk.
-*/
 interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
-	    throws ParserException( ParserExceptionType )
-		   SemanticException( SemanticExceptionType ),
+	    throws  ParserException( ParserExceptionType )
+		          SemanticException( SemanticExceptionType ),
 	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse )
-	    throws InputPortMetaDataFault
-		   ParserException( ParserExceptionType )
-		   SemanticException( SemanticExceptionType ),
+	    throws  InputPortMetaDataFault
+		          ParserException( ParserExceptionType )
+		          SemanticException( SemanticExceptionType ),
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )
-	    throws TypeMismatch,
-	parseRoles( ParseRoleRequest)( Role )
-	
+	    throws  TypeMismatch
 }
 
 outputPort MetaJolie {
