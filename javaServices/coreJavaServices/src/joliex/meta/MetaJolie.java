@@ -731,6 +731,7 @@ public class MetaJolie extends JavaService
 		return response;
 	}
 
+	/*
 	@RequestResponse
 	public Value parseRoles( Value request )
 	{
@@ -777,7 +778,7 @@ public class MetaJolie extends JavaService
 			e.printStackTrace();
 		}
 		return response;
-	}
+	}*/
 
 	@RequestResponse
 	public Value getMetaData( Value request )
@@ -889,6 +890,10 @@ public class MetaJolie extends JavaService
 
 			InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
 			ValueVector input = response.getChildren( "input" );
+			if ( !request.getFirstChild( "name" ).isDefined() ) {
+				request.getFirstChild( "name" ).getFirstChild( "name" ).setValue( new String() );
+				request.getFirstChild( "name" ).getFirstChild( "domain" ).setValue( new String() );
+			}
 			if ( inputPortList.length > 0 ) {
 				for( int ip = 0; ip < inputPortList.length; ip++ ) {
 					InputPortInfo inputPort = inputPortList[ ip ];

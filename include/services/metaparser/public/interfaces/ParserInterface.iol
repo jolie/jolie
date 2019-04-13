@@ -1,5 +1,5 @@
  /****************************************************************************
-   Copyright 2010 by Claudio Guidi <cguidi@italianasoftware.com>      
+   Copyright 2010 by Claudio Guidi <cguidi@italianasoftware.com>
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -13,15 +13,15 @@
    limitations under the License.
 ********************************************************************************/
 
-include "types/role_types.iol"
+include "types/definition_types.iol"
 
 interface ParserInterface {
   RequestResponse:
     getInterface( Interface )( string ),
-    getParticipantInput( Participant )( string ),
-    getParticipantOutput( Participant )( string ),
-    getSurface( Participant )( string ),
-    getSurfaceWithoutOutputPort( Participant )( string ),
+    getInputPort( Port )( string ),
+    getOutputPort( Port )( string ),
+    getSurface( Port )( string ),
+    getSurfaceWithoutOutputPort( Port )( string ),
     getType( Type )( string ),
     getTypeInLine( Type )( string ),
     getSubType( SubType )( string ),
