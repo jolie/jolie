@@ -979,7 +979,7 @@ public class CommCore
 	}
 
 	/** Shutdowns the communication core, interrupting every communication-related thread. */
-	public synchronized void shutdown()
+	public synchronized void shutdown( long timeout )
 	{
 		if ( active ) {
 			active = false;
