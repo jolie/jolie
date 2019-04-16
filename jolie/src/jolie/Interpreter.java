@@ -643,7 +643,7 @@ public class Interpreter
 		processExecutorService.shutdown();
 		nativeExecutorService.shutdown();
 		timeoutHandlerExecutor.shutdown();
-		commCore.shutdown();
+		commCore.shutdown( terminationTimeout );
 		try {
 			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}

@@ -37,7 +37,7 @@ public class Jolie
 	
 	private Jolie() {}
 	
-	private static final long TERMINATION_TIMEOUT = 500; // 0.5 seconds
+	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
 
 	/** 
 	 * Entry point of program execution.
