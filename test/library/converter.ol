@@ -10,17 +10,17 @@ define doTest
 	str = "Matthias Dieter Wallnöfer";
 	length@StringUtils(str)(len);
 	if (len != 25) {
-		throw( TestFailed, "strings invalid length/size" )
+		throw( TestFailed, "strings invalid length/size (1)" )
 	};
 	stringToRaw@Converter(str { .charset="latin1" })(buf);
 	getSize@File(buf)(size);
 	if (size != 25) {
-		throw( TestFailed, "strings invalid length/size" )
+		throw( TestFailed, "strings invalid length/size (2)" )
 	};
 	rawToString@Converter(buf { .charset="latin1" })(str2);
 	length@StringUtils(str2)(len);
 	if (len != 25) {
-		throw( TestFailed, "strings invalid length/size" )
+		throw( TestFailed, "strings invalid length/size (3)" )
 	};
 	if (str2 != str) {
 		throw( TestFailed, "strings do not match" )
