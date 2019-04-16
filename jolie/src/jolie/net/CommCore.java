@@ -662,15 +662,6 @@ public class CommCore
 		executorService.execute( new CommChannelHandlerRunnable( channel, port ) );
 	}
 
-	/**
-	 * Runs an asynchronous task in this CommCore internal thread pool.
-	 * @param r the Runnable object to execute
-	 */
-	public void execute( Runnable r )
-	{
-		executorService.execute( r );
-	}
-
 	protected void startCommChannelHandler( Runnable r )
 	{
 		executorService.execute( r );
