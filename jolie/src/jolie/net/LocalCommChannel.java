@@ -36,12 +36,14 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
-		private final LocalCommChannel senderChannel;
+		private final long requestId;
+		private final CompletableFuture<CommMessage> responseFut;
 
-		private CoLocalCommChannel( LocalCommChannel senderChannel, CommMessage request )
+		private CoLocalCommChannel( CommMessage request, CompletableFuture<CommMessage> responseFut )
 		{
-			this.senderChannel = senderChannel;
 			this.request = request;
+			this.responseFut = responseFut;
+			this.requestId = request.id();
 		}
 
 		@Override
@@ -60,11 +62,10 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
-			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
-			if ( f == null ) {
+			if ( message.id() != requestId) {
 				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
 			}
-			f.complete( message );
+			responseFut.complete( message );
 		}
 
 		@Override
@@ -117,15 +118,14 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	{
 		CompletableFuture f = new CompletableFuture<>();
 		responseWaiters.put( message.id(), f );
-		f.thenRun( () -> responseWaiters.remove( message.id() ) );
-		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
+		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );
 	}
 
 	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		return responseWaiters.get( request.id() );
+		return responseWaiters.remove( request.id() );
 	}
 	
 	@Override

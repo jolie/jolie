@@ -245,7 +245,7 @@ public abstract class AggregatedOperation
 				final CommMessage response = oChannel.recvResponseFor( requestToAggregated ).get();
 				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
 			} catch( InterruptedException | ExecutionException | IOException e ) {
-				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
 			} finally {
 				if ( oChannel != null ) {
 					oChannel.close();
