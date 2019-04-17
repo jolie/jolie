@@ -23,6 +23,9 @@ package jolie.process;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -112,7 +115,7 @@ public class SolicitResponseProcess implements Process
 					types.requestType().check( message.value() );
 				} catch ( TypeCheckingException e ) {
 					if ( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
 
 					throw( e );
@@ -129,11 +132,21 @@ public class SolicitResponseProcess implements Process
 
 			CommMessage response = null;
 			do {
-				response = channel.recvResponseFor( message );
+				try {
+					response = channel.recvResponseFor( message ).get( Interpreter.getInstance().responseTimeout(), TimeUnit.MILLISECONDS );
+				} catch( InterruptedException e ) {
+					throw new IOException( e );
+				} catch( ExecutionException e ) {
+					if ( e.getCause() instanceof IOException ) {
+						throw (IOException) e.getCause();
+					} else {
+						throw new IOException( e.getCause() );
+					}
+				}
 			} while( response == null );
 			log( "RECEIVED", response );
 
-			if ( inputVarPath != null )	 {
+			if ( inputVarPath != null ) {
 				inputVarPath.setValue( response.value() );
 			}
 
@@ -180,6 +193,8 @@ public class SolicitResponseProcess implements Process
 			try {
 				installProcess.run();
 			} catch( ExitingException e ) { assert false; }
+		} catch( TimeoutException e ) { // The response timed out
+			throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME );
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {

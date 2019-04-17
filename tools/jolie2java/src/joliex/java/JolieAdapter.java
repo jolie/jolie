@@ -22,6 +22,7 @@
 package joliex.java;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -49,12 +50,12 @@ public class JolieAdapter
 	{
 		CommMessage requestMesg = CommMessage.createRequest( operationName, resourcePath, request );
 		try {
-			CommMessage response = javaService.sendMessage( requestMesg ).recvResponseFor( requestMesg );
+			CommMessage response = javaService.sendMessage( requestMesg ).recvResponseFor( requestMesg ).get();
 			if ( response.isFault() ) {
 				throw response.fault();
 			}
 			return response.value();
-		} catch( IOException e ) {
+		} catch( InterruptedException | ExecutionException | IOException e ) {
 			return Value.create();
 		}
 	}

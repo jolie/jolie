@@ -23,9 +23,13 @@ package jolie.runtime.embedding;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
+import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
@@ -40,7 +44,7 @@ import jolie.runtime.JavaService;
 public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	private final JavaService javaService;
-	private final Map< Long, CommMessage > messages = new ConcurrentHashMap<>();
+	private final Map< Long, Future< CommMessage > > messages = new ConcurrentHashMap<>();
 	
 	public JavaCommChannel( JavaService javaService )
 	{
@@ -74,15 +78,23 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( final CommMessage message )
 		throws IOException
 	{
-		try {
-			final CommMessage response = javaService.callOperation( message );
-			messages.put( message.id(), response );
-		} catch( IllegalAccessException | InvalidIdException e ) {
-			throw new IOException( e );
-		}
+		final CompletableFuture<CommMessage> f = new CompletableFuture<>();
+		f.thenRun( () -> messages.remove( message.id() ) );
+		messages.put( message.id(), f );
+	
+		final ExecutionThread ethread = ExecutionThread.currentThread();
+		Interpreter.getInstance().commCore().executor().submit( () -> {
+			CommChannelHandler.currentThread().setExecutionThread( ethread );
+			try {
+				final CommMessage response = javaService.callOperation( message );
+				f.complete( response );
+			} catch( IllegalAccessException | InvalidIdException e ) {
+				f.completeExceptionally( new IOException( e ) );
+			}
+		} );
 	}
 
 	@Override
@@ -93,10 +105,10 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		return messages.remove( request.id() );
+		return messages.get( request.id() );
 	}
 
 	@Override

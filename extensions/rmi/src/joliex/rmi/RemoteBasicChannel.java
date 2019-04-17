@@ -24,6 +24,7 @@ package joliex.rmi;
 import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.concurrent.Future;
 import jolie.net.CommMessage;
 
 /**
@@ -32,7 +33,7 @@ import jolie.net.CommMessage;
  */
 public interface RemoteBasicChannel extends Remote
 {
-	public CommMessage recvResponseFor( CommMessage request )
+	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws RemoteException, IOException;
 	public CommMessage recv()
 		throws IOException;

@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import jolie.Interpreter;
 
 /**
@@ -68,7 +68,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		}
 
 		@Override
-		public CommMessage recvResponseFor( CommMessage request )
+		public Future< CommMessage > recvResponseFor( CommMessage request )
 			throws IOException
 		{
 			throw new IOException( "Unsupported operation" );
@@ -115,26 +115,17 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	@Override
 	protected void sendImpl( CommMessage message )
 	{
-		responseWaiters.put( message.id(), new CompletableFuture<>() );
+		CompletableFuture f = new CompletableFuture<>();
+		responseWaiters.put( message.id(), f );
+		f.thenRun( () -> responseWaiters.remove( message.id() ) );
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		final CompletableFuture< CommMessage > f = responseWaiters.get( request.id() );
-		final CommMessage m;
-		
-		try { 
-			m = f.get();
-		} catch( ExecutionException | InterruptedException e ) {
-			throw new IOException( e );
-		} finally {
-			responseWaiters.remove( request.id() );
-		}
-			
-		return m;
+		return responseWaiters.get( request.id() );
 	}
 	
 	@Override

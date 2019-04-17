@@ -69,6 +69,7 @@ public class CommChannelHandler extends Thread implements InterpreterThread
 		return executionThread;
 	}
 	
+	@Override
 	public Interpreter interpreter()
 	{
 		return executionThread.interpreter();
