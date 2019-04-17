@@ -22,10 +22,11 @@
 package joliex.rmi;
 
 import java.io.IOException;
+import java.util.concurrent.Future;
 import jolie.Interpreter;
 import jolie.net.AbstractCommChannel;
-import jolie.net.PollableCommChannel;
 import jolie.net.CommMessage;
+import jolie.net.PollableCommChannel;
 
 public class RMICommChannel extends AbstractCommChannel implements PollableCommChannel
 {
@@ -52,7 +53,7 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 		//return remoteChannel.recv();
 	}
 	
-	public CommMessage recvResponseFor( CommMessage request )
+	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException
 	{
 		return remoteChannel.recvResponseFor( request );

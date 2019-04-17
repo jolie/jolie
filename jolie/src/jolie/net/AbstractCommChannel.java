@@ -27,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -41,7 +43,7 @@ public abstract class AbstractCommChannel extends CommChannel
 	private final Map< Long, CommMessage > pendingResponses = new HashMap<>();
 	private final Map< Long, ResponseContainer > waiters = new HashMap<>();
 	private final List< CommMessage > pendingGenericResponses = new LinkedList<>();
-
+	private ResponseReceiver responseReceiver = null;
 	private final Object responseRecvMutex = new Object();
 
 	private static class ResponseContainer
@@ -51,48 +53,49 @@ public abstract class AbstractCommChannel extends CommChannel
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		CommMessage response;
-		ResponseContainer monitor = null;
-		synchronized( responseRecvMutex ) {
-			response = pendingResponses.remove( request.id() );
-			if ( response == null ) {
-				if ( pendingGenericResponses.isEmpty() ) {
-					assert( waiters.containsKey( request.id() ) == false );
-					monitor = new ResponseContainer();
-					waiters.put( request.id(), monitor );
-					//responseRecvMutex.notify();
-				} else {
-					response = pendingGenericResponses.remove( 0 );
-				}
-			}
-		}
-		if ( response == null ) {
+		final ExecutionThread ethread = ExecutionThread.currentThread();
+		return CompletableFuture.supplyAsync( () -> {
+			CommMessage response;
+			ResponseContainer monitor = null;
 			synchronized( responseRecvMutex ) {
-				if ( responseReceiver == null ) {
-					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
-					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
-				} else {
-					responseReceiver.wakeUp();
-				}
-			}
-			synchronized( monitor ) {
-				if ( monitor.response == null ) {
-					try {
-						monitor.wait();
-					} catch( InterruptedException e ) {
-						Interpreter.getInstance().logSevere( e );
+				response = pendingResponses.remove( request.id() );
+				if ( response == null ) {
+					if ( pendingGenericResponses.isEmpty() ) {
+						assert( waiters.containsKey( request.id() ) == false );
+						monitor = new ResponseContainer();
+						waiters.put( request.id(), monitor );
+						//responseRecvMutex.notify();
+					} else {
+						response = pendingGenericResponses.remove( 0 );
 					}
 				}
-				response = monitor.response;
 			}
-		}
-		return response;
+			if ( response == null ) {
+				synchronized( responseRecvMutex ) {
+					if ( responseReceiver == null ) {
+						responseReceiver = new ResponseReceiver( this, ethread );
+						ethread.interpreter().commCore().startCommChannelHandler( responseReceiver );
+					} else {
+						responseReceiver.wakeUp();
+					}
+				}
+				synchronized( monitor ) {
+					if ( monitor.response == null ) {
+						try {
+							monitor.wait();
+						} catch( InterruptedException e ) {
+							ethread.interpreter().logSevere( e );
+						}
+					}
+					response = monitor.response;
+				}
+			}
+			return response;
+		}, Interpreter.getInstance().commCore().executor() );
 	}
-
-	private ResponseReceiver responseReceiver = null;
 
 	private static class ResponseReceiver implements Runnable
 	{

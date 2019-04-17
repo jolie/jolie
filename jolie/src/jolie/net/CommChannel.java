@@ -23,6 +23,7 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
@@ -199,7 +200,7 @@ public abstract class CommChannel
 	 * @return the response for the specified request message
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	public abstract CommMessage recvResponseFor( CommMessage request )
+	public abstract Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException;
 
 	/**

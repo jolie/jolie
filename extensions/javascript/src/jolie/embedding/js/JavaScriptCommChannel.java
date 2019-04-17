@@ -24,7 +24,9 @@ package jolie.embedding.js;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 import jolie.Interpreter;
@@ -117,10 +119,10 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	}
 	
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		return messages.remove( request.id() );
+		return CompletableFuture.completedFuture( messages.remove( request.id() ) );
 	}
 
 	@Override

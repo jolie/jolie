@@ -79,7 +79,10 @@ main
 			scope( s ) {
 				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )() );
 				loadEmbeddedService@Runtime( loadRequest )( TestUnit.location );
-				install( TestFailed => println@Console( "failed. " + s.TestFailed )() );
+				install(
+					TestFailed => println@Console( "failed. " + s.TestFailed )(),
+					Timeout => println@Console( "timed out." )()
+				);
 				test@TestUnit()();
 				println@Console( "passed." )();
 				callExit@Runtime( TestUnit.location )()

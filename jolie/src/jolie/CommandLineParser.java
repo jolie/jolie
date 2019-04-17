@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2008-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2008-2019 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie;
 
@@ -77,6 +75,7 @@ public class CommandLineParser implements Closeable
 	private final boolean typeCheck;
 	private final boolean tracer;
 	private final boolean check;
+	private final long responseTimeout;
 	private final Level logLevel;
 	private File programDirectory = null;
 	
@@ -196,6 +195,16 @@ public class CommandLineParser implements Closeable
 	public int connectionsLimit()
 	{
 		return connectionsLimit;
+	}
+	
+	/**
+	 * Returns the response timeout parameter
+	 * passed by command line with the --responseTimeout option.
+	 * @return the response timeout parameter passed by command line
+	 */
+	public long responseTimeout()
+	{
+		return responseTimeout;
 	}
 
 	/**
@@ -376,6 +385,7 @@ public class CommandLineParser implements Closeable
 		List< String > libList = new ArrayList<>();
 		int cLimit = -1;
 		int cCache = 100;
+		long rTimeout = 10 * 1000; // 10 seconds
 		String pwd = new File( "" ).getCanonicalPath();
 		includeList.add( pwd );
 		includeList.add( "include" );
@@ -424,6 +434,11 @@ public class CommandLineParser implements Closeable
 				optionsList.add( argsList.get( i ) );
 				i++;
 				cCache = Integer.parseInt( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
+			} else if ( "--responseTimeout".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				rTimeout = Long.parseLong( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--correlationAlgorithm".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -534,6 +549,7 @@ public class CommandLineParser implements Closeable
 	
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
+		responseTimeout = rTimeout;
         
 		List< URL > urls = new ArrayList<>();
 		for( String path : libList ) {

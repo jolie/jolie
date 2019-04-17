@@ -29,6 +29,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
@@ -96,12 +97,12 @@ public abstract class JavaService
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
 				c.send( request );
-				CommMessage response = c.recvResponseFor( request );
+				CommMessage response = c.recvResponseFor( request ).get();
 				if ( response.isFault() ) {
 					throw response.fault();
 				}
 				return response.value();
-			} catch( IOException e ) {
+			} catch( ExecutionException | InterruptedException | IOException e ) {
 				throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 			}
 		}

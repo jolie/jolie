@@ -39,6 +39,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -245,6 +246,11 @@ public class CommCore
 		listenerFactories.put( "socket", listenerFactory );
 		CommChannelFactory channelFactory = new SocketCommChannelFactory( this );
 		channelFactories.put( "socket", channelFactory );
+	}
+	
+	public ExecutorService executor()
+	{
+		return executorService;
 	}
 	
 	private SelectorThread[] selectorThreads()
@@ -625,7 +631,9 @@ public class CommCore
 					channel.lock.unlock();
 					CommMessage response = null;
 					try {
-						response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+						response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) ).get();
+					} catch( InterruptedException | ExecutionException e ) {
+						interpreter.logFine( e );
 					} finally {
 						if ( response == null ) {
 							response = new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );
