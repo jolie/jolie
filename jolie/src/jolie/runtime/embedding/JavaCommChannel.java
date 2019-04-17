@@ -88,6 +88,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		Interpreter.getInstance().commCore().executor().submit( () -> {
 			CommChannelHandler.currentThread().setExecutionThread( ethread );
+			Thread.currentThread().setContextClassLoader( ethread.interpreter().getClassLoader() );
 			try {
 				final CommMessage response = javaService.callOperation( message );
 				f.complete( response );
