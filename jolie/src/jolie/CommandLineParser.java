@@ -257,6 +257,8 @@ public class CommandLineParser implements Closeable
 		helpBuilder.append(
 				getOptionString( "--conncache [number]", "Set the maximum number of cached persistent output connections" ) );
 		helpBuilder.append(
+				getOptionString( "--responseTimeout [number]", "Set the timeout for request-response invocations (in milliseconds)" ) );
+		helpBuilder.append(
 				getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
 		helpBuilder.append(
 				getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
