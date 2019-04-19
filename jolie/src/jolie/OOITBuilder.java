@@ -289,18 +289,24 @@ public class OOITBuilder implements OLVisitor
 		this.program.children().addAll( program.children() );
 	}
 	
+	private static String buildErrorMessage( ParsingContext context, String message )
+	{
+		return context.sourceName() + ":" + context.line() + ": " + message;
+	}
+	
 	private void error( ParsingContext context, String message )
 	{
 		valid = false;
-		String s = context.sourceName() + ":" + context.line() + ": " + message;
-		interpreter.logSevere( s );
+		interpreter.logSevere( buildErrorMessage( context, message ) );
 	}
 	
 	private void error( ParsingContext context, Exception e )
 	{
 		valid = false;
-		e.printStackTrace();
-		error( context, e.getMessage() );
+		interpreter.logSevere( new InterpreterException(
+			buildErrorMessage( context, e.getMessage() ),
+			e.getCause()
+		) );
 	}
 	
 	/**
