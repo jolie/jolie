@@ -190,6 +190,14 @@ public abstract class AbstractParser
 		getToken();
 	}
 	
+	protected final void maybeEat( Scanner.TokenType type )
+		throws ParserException, IOException
+	{
+		if ( token.is( type ) ) {
+			getToken();
+		}
+	}
+	
 	protected final void eatKeyword( String keyword, String errorMessage )
 		throws ParserException, IOException
 	{
