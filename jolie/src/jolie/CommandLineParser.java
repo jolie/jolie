@@ -264,7 +264,7 @@ public class CommandLineParser implements Closeable
 		helpBuilder.append(
 			getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
 		helpBuilder.append(
-			getOptionString( "--stacktraces", "Activate the printing of Java stack traces (default: false)" ) );
+			getOptionString( "--stacktraces [true|false]", "Activate the printing of Java stack traces (default: false)" ) );
 		helpBuilder.append(
 			getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
 		helpBuilder.append(
