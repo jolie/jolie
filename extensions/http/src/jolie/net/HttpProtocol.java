@@ -768,8 +768,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendHeader( StringBuilder headerBuilder )
 	{
-		Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
-		if ( v != null ) {
+		if ( hasParameter( Parameters.ADD_HEADERS ) ) {
+			Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
 			if ( v.hasChildren( "header" ) ) {
 				for( Value head : v.getChildren( "header" ) ) {
 					String header

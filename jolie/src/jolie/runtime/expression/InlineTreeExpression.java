@@ -25,7 +25,6 @@ package jolie.runtime.expression;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
-import jolie.util.Pair;
 
 
 /**
@@ -34,33 +33,103 @@ import jolie.util.Pair;
  */
 public class InlineTreeExpression implements Expression
 {
+	public static interface Operation {
+		public Operation cloneOperation( TransformationReason reason );
+		public void run( Value inlineValue );
+	}
+	
+	public static class DeepCopyOperation implements Operation {
+		private final VariablePath path;
+		private final Expression expression;
+		
+		public DeepCopyOperation( VariablePath path, Expression expression )
+		{
+			this.path = path;
+			this.expression = expression;
+		}
+		
+		@Override
+		public Operation cloneOperation( TransformationReason reason )
+		{
+			return new DeepCopyOperation( path.copy(), expression.cloneExpression( reason ) );
+		}
+		
+		@Override
+		public void run( Value inlineValue )
+		{
+			path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
+		}
+	}
+	
+	public static class AssignmentOperation implements Operation {
+		private final VariablePath path;
+		private final Expression expression;
+		
+		public AssignmentOperation( VariablePath path, Expression expression )
+		{
+			this.path = path;
+			this.expression = expression;
+		}
+		
+		@Override
+		public Operation cloneOperation( TransformationReason reason )
+		{
+			return new AssignmentOperation( path.copy(), expression.cloneExpression( reason ) );
+		}
+		
+		@Override
+		public void run( Value inlineValue )
+		{
+			path.getValue( inlineValue ).assignValue( expression.evaluate() );
+		}
+	}
+	
+	public static class PointsToOperation implements Operation {
+		private final VariablePath path;
+		private final VariablePath target;
+		
+		public PointsToOperation( VariablePath path, VariablePath target )
+		{
+			this.path = path;
+			this.target = target;
+		}
+		
+		@Override
+		public Operation cloneOperation( TransformationReason reason )
+		{
+			return new PointsToOperation( path.copy(), target.copy() );
+		}
+		
+		@Override
+		public void run( Value inlineValue )
+		{
+			path.makePointer( inlineValue, target );
+		}
+	}
+	
 	private final Expression rootExpression;
-	private final Pair< VariablePath, Expression >[] assignments;
+	private final Operation[] operations;
 	
 	public InlineTreeExpression(
 		Expression rootExpression,
-		Pair< VariablePath, Expression >[] assignments
+		Operation[] operations
 	) {
 		this.rootExpression = rootExpression;
-		this.assignments = assignments;
+		this.operations = operations;
 	}
 	
 	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		Pair< VariablePath, Expression >[] cloneAssignments = new Pair[ assignments.length ];
+		Operation[] clonedOperations = new Operation[ operations.length ];
 		int i = 0;
-		for( Pair< VariablePath, Expression > pair : assignments ) {
-			cloneAssignments[ i++ ] =
-				new Pair<>(
-					pair.key().copy(),
-					pair.value().cloneExpression( reason )
-				);
+		for( Operation operation : operations ) {
+			clonedOperations[ i++ ] = operation.cloneOperation( reason );
 		}
 		
 		return new InlineTreeExpression(
 			rootExpression.cloneExpression( reason ),
-			cloneAssignments
+			clonedOperations
 		);
 	}
 	
@@ -70,8 +139,8 @@ public class InlineTreeExpression implements Expression
 		Value inlineValue = Value.create();
 		inlineValue.assignValue( rootExpression.evaluate() );
 		
-		for( Pair< VariablePath, Expression > pair : assignments ) {
-			pair.key().getValue( inlineValue ).assignValue( pair.value().evaluate() );
+		for( Operation operation : operations ) {
+			operation.run( inlineValue );
 		}
 		
 		return inlineValue;

@@ -25,22 +25,86 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.util.Pair;
 
 
 public class InlineTreeExpressionNode extends OLSyntaxNode
 {
+	public static interface Operation {}
+	
+	public static class AssignmentOperation implements Operation {
+		private final VariablePathNode path;
+		private final OLSyntaxNode expression;
+		
+		public AssignmentOperation( VariablePathNode path, OLSyntaxNode expression )
+		{
+			this.path = path;
+			this.expression = expression;
+		}
+		
+		public VariablePathNode path()
+		{
+			return path;
+		}
+		
+		public OLSyntaxNode expression()
+		{
+			return expression;
+		}
+	}
+	
+	public static class DeepCopyOperation implements Operation {
+		private final VariablePathNode path;
+		private final OLSyntaxNode expression;
+		
+		public DeepCopyOperation( VariablePathNode path, OLSyntaxNode expression )
+		{
+			this.path = path;
+			this.expression = expression;
+		}
+		
+		public VariablePathNode path()
+		{
+			return path;
+		}
+		
+		public OLSyntaxNode expression()
+		{
+			return expression;
+		}
+	}
+	
+	public static class PointsToOperation implements Operation {
+		private final VariablePathNode path;
+		private final VariablePathNode target;
+		
+		public PointsToOperation( VariablePathNode path, VariablePathNode target )
+		{
+			this.path = path;
+			this.target = target;
+		}
+		
+		public VariablePathNode path()
+		{
+			return path;
+		}
+		
+		public VariablePathNode target()
+		{
+			return target;
+		}
+	}
+	
 	private final OLSyntaxNode rootExpression;
-	private final Pair< VariablePathNode, OLSyntaxNode >[] assignments;
+	private final Operation[] operations;
 
 	public InlineTreeExpressionNode(
 		ParsingContext context,
 		OLSyntaxNode rootExpression,
-		Pair< VariablePathNode, OLSyntaxNode >[] assignments
+		Operation[] operations
 	) {
 		super( context );
 		this.rootExpression = rootExpression;
-		this.assignments = assignments;
+		this.operations = operations;
 	}
 	
 	public OLSyntaxNode rootExpression()
@@ -48,9 +112,9 @@ public class InlineTreeExpressionNode extends OLSyntaxNode
 		return rootExpression;
 	}
 	
-	public Pair< VariablePathNode, OLSyntaxNode >[] assignments()
+	public Operation[] operations()
 	{
-		return assignments;
+		return operations;
 	}
 	
 	@Override

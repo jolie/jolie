@@ -105,6 +105,7 @@ public class Scanner
 		QUESTION_MARK,		///< ?
 		ARROW,				///< =>
 		DEEP_COPY_LEFT,		///< <<
+		DEEP_COPY_WITH_LINKS_LEFT,	///< <<-
 		RUN,				///< run
 		UNDEF,				///< undef
 		HASH,				///< #
@@ -721,13 +722,12 @@ public class Scanner
 						readChar();
 					}
 					break;
-				case 9: // LANGLE OR MINOR_OR_EQUAL OR DEEP_COPY_LEFT
+				case 9: // LANGLE OR MINOR_OR_EQUAL OR DEEP_COPY_LEFT OR DEEP_COPY_WITH_LINKS_LEFT
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MINOR_OR_EQUAL );
 						readChar();
 					} else if ( ch == '<' ) {
-						retval = new Token( TokenType.DEEP_COPY_LEFT );
-						readChar();
+						state = 22;
 					} else
 						retval = new Token( TokenType.LANGLE );
 					break;
@@ -840,6 +840,15 @@ public class Scanner
 							readChar();
 							retval = new Token( TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
 						}
+					}
+					break;
+				case 22: // << or <<-
+					readChar();
+					if ( ch == '-' ) {
+						retval = new Token( TokenType.DEEP_COPY_WITH_LINKS_LEFT );
+						readChar();
+					} else {
+						retval = new Token( TokenType.DEEP_COPY_LEFT );
 					}
 					break;
 				default:

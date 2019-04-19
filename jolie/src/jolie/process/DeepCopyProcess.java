@@ -29,19 +29,22 @@ public class DeepCopyProcess implements Process
 {
 	private final VariablePath leftPath;
 	private final Expression rightExpression;
+	private final boolean copyLinks;
 
-	public DeepCopyProcess( VariablePath leftPath, Expression rightExpression )
+	public DeepCopyProcess( VariablePath leftPath, Expression rightExpression, boolean copyLinks )
 	{
 		this.leftPath = leftPath;
 		this.rightExpression = rightExpression;
+		this.copyLinks = copyLinks;
 	}
 
 	public Process copy( TransformationReason reason )
 	{
 		return new DeepCopyProcess(
-					(VariablePath)leftPath.cloneExpression( reason ),
-					rightExpression.cloneExpression( reason )
-				);
+			(VariablePath)leftPath.cloneExpression( reason ),
+			rightExpression.cloneExpression( reason ),
+			copyLinks
+		);
 	}
 
 	public void run()
@@ -52,7 +55,11 @@ public class DeepCopyProcess implements Process
 		if ( rightExpression instanceof VariablePath ) {
 			leftPath.deepCopy( (VariablePath) rightExpression );
 		} else {
-			leftPath.getValue().deepCopy( rightExpression.evaluate() );
+			if ( copyLinks ) {
+				leftPath.getValue().deepCopyWithLinks( rightExpression.evaluate() );
+			} else {
+				leftPath.getValue().deepCopy( rightExpression.evaluate() );
+			}
 		}
 	}
 	

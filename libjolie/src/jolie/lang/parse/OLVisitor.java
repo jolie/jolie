@@ -50,6 +50,7 @@ import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
 import jolie.lang.parse.ast.NotificationOperationStatement;
 import jolie.lang.parse.ast.NullProcessStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OutputPortInfo;
@@ -102,6 +103,11 @@ import jolie.lang.parse.ast.types.TypeInlineDefinition;
 
 public interface OLVisitor
 {
+	public default void go( OLSyntaxNode n )
+	{
+		n.accept( this );
+	}
+	
 	public void visit( Program n );
 	public void visit( OneWayOperationDeclaration decl );
 	public void visit( RequestResponseOperationDeclaration decl );
@@ -179,5 +185,5 @@ public interface OLVisitor
 	public void visit( InlineTreeExpressionNode n );
 	public void visit( VoidExpressionNode n );
 	public void visit( ProvideUntilStatement n );
-	public void visit(TypeChoiceDefinition n);
+	public void visit( TypeChoiceDefinition n );
 }

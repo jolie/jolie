@@ -498,6 +498,11 @@ public abstract class Value implements Expression, Cloneable
 	{
 		_deepCopy( value, false );
 	}
+	
+	public final void deepCopyWithLinks( Value value )
+	{
+		_deepCopy( value, true );
+	}
 
 	public final void refCopy( Value value )
 	{

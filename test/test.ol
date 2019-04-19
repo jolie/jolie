@@ -26,7 +26,7 @@ include "runtime.iol"
 include "string_utils.iol"
 
 outputPort TestUnit {
-Interfaces: TestUnitInterface
+interfaces: TestUnitInterface
 }
 
 init

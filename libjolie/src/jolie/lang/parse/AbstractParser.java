@@ -196,11 +196,14 @@ public abstract class AbstractParser
 		getToken();
 	}
 	
-	protected final void maybeEat( Scanner.TokenType type )
+	protected final void maybeEat( Scanner.TokenType... types )
 		throws ParserException, IOException
 	{
-		if ( token.is( type ) ) {
-			getToken();
+		for( Scanner.TokenType type : types ) {
+			if ( token.is( type ) ) {
+				getToken();
+				break;
+			}
 		}
 	}
 	
