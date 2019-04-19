@@ -2693,7 +2693,7 @@ public class OLParser extends AbstractParser
 		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new ArrayList<>();
 		
 		while( keepRun ) {
-			eat( Scanner.TokenType.DOT, "expected ." );
+			maybeEat( Scanner.TokenType.DOT );
 			
 			path = parseVariablePath();
 			eat( Scanner.TokenType.ASSIGN, "expected =" );
