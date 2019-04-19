@@ -76,6 +76,7 @@ public class CommandLineParser implements Closeable
 	private final boolean tracer;
 	private final boolean check;
 	private final long responseTimeout;
+	private final boolean printStackTraces;
 	private final Level logLevel;
 	private File programDirectory = null;
 	
@@ -253,25 +254,27 @@ public class CommandLineParser implements Closeable
 							+ "-C ConstantIdentifier=ConstantValue".replaceAll("(.)"," ") + "\t\t\t"
 							+ "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) );
 		helpBuilder.append(
-				getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
+			getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
 		helpBuilder.append(
-				getOptionString( "--conncache [number]", "Set the maximum number of cached persistent output connections" ) );
+			getOptionString( "--conncache [number]", "Set the maximum number of cached persistent output connections" ) );
 		helpBuilder.append(
-				getOptionString( "--responseTimeout [number]", "Set the timeout for request-response invocations (in milliseconds)" ) );
+			getOptionString( "--responseTimeout [number]", "Set the timeout for request-response invocations (in milliseconds)" ) );
 		helpBuilder.append(
-				getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
+			getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
 		helpBuilder.append(
-				getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
+			getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
 		helpBuilder.append(
-				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
-                helpBuilder.append(
-				getOptionString( "--check", "Check for syntactic and semantic errors." ) );
+			getOptionString( "--stacktraces", "Activate the printing of Java stack traces (default: false)" ) );
 		helpBuilder.append(
-				getOptionString( "--trace", "Activate tracer" ) );
+			getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
 		helpBuilder.append(
-				getOptionString( "--charset [character encoding, eg. UTF-8]", "Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
+			getOptionString( "--check", "Check for syntactic and semantic errors." ) );
 		helpBuilder.append(
-				getOptionString( "--version", "Display this program version information" ) );
+			getOptionString( "--trace", "Activate tracer" ) );
+		helpBuilder.append(
+			getOptionString( "--charset [character encoding, e.g., UTF-8]", "Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
+		helpBuilder.append(
+			getOptionString( "--version", "Display this program version information" ) );
 		return helpBuilder.toString();
 	}
 
@@ -379,6 +382,7 @@ public class CommandLineParser implements Closeable
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList<>();
 		boolean bTracer = false;
+		boolean bStackTraces = false;
 		boolean bCheck = false;
 		boolean bTypeCheck = false; // Default for typecheck
 		Level lLogLevel = Level.INFO;
@@ -456,6 +460,16 @@ public class CommandLineParser implements Closeable
 					bTypeCheck = false;
 				} else if ( "true".equals( typeCheckStr ) ) {
 					bTypeCheck = true;
+				}
+			} else if ( "--stacktraces".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				String stackTracesStr = argsList.get( i );
+				optionsList.add( argsList.get( i ) );
+				if ( "false".equals( stackTracesStr ) ) {
+					bStackTraces = false;
+				} else if ( "true".equals( stackTracesStr ) ) {
+					bStackTraces = true;
 				}
 			} else if ( "--check".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -536,6 +550,7 @@ public class CommandLineParser implements Closeable
 
 		typeCheck = bTypeCheck;
 		logLevel = lLogLevel;
+		printStackTraces = bStackTraces;
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
 		if ( correlationAlgorithmType == null ) {
@@ -632,6 +647,11 @@ public class CommandLineParser implements Closeable
 		}
 	} */
 
+	public boolean printStackTraces()
+	{
+		return printStackTraces;
+	}
+	
 	/**
 	 * Returns the directory in which the main program is located.
 	 * @return the directory in which the main program is located.

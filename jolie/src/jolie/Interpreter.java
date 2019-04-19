@@ -681,11 +681,16 @@ public class Interpreter
 	{
 		StringWriter writer = new StringWriter();
 		try {
-			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() + "\nContent" ).run();
+			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() + "\nContent (if any)" ).run();
 			logInfo( writer.toString() );
 		} catch( IOException e ) {
 			logInfo( "Thrown unhandled fault: " + fault.faultName() );
 		}
+	}
+	
+	private String buildLogMessage( String message )
+	{
+		return logPrefix + message;
 	}
 
 	/**
@@ -694,7 +699,7 @@ public class Interpreter
 	 */
 	public void logInfo( String message )
 	{
-		logger.info( logPrefix + message );
+		logger.info( buildLogMessage( message ) );
 	}
 	
 	/**
@@ -703,7 +708,20 @@ public class Interpreter
 	 */
 	public void logFine( String message )
 	{
-		logger.fine( logPrefix + message );
+		logger.fine( buildLogMessage( message ) );
+	}
+	
+	private String buildLogMessage( Throwable t )
+	{
+		String ret;
+		if ( cmdParser.printStackTraces() ) {
+			ByteArrayOutputStream bs = new ByteArrayOutputStream();
+			t.printStackTrace( new PrintStream( bs ) );
+			ret = bs.toString();
+		} else {
+			ret = t.getMessage();
+		}
+		return ret;
 	}
 	
 	/**
@@ -712,9 +730,7 @@ public class Interpreter
 	 */
 	public void logFine( Throwable t )
 	{
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		logger.fine( logPrefix + bs.toString() );
+		logger.fine( buildLogMessage( t ) );
 	}
 
 	/**
@@ -723,7 +739,7 @@ public class Interpreter
 	 */
 	public void logSevere( String message )
 	{
-		logger.severe( logPrefix + message );
+		logger.severe( buildLogMessage( message ) );
 	}
 
 	/**
@@ -732,7 +748,7 @@ public class Interpreter
 	 */
 	public void logWarning( String message )
 	{
-		logger.warning( logPrefix + message );
+		logger.warning( buildLogMessage( message ) );
 	}
 
 	/**
@@ -742,9 +758,7 @@ public class Interpreter
 	 */
 	public void logSevere( Throwable t )
 	{
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		logger.severe( logPrefix + bs.toString() );
+		logger.severe( buildLogMessage( t ) );
 	}
 
 	/**
@@ -754,9 +768,7 @@ public class Interpreter
 	 */
 	public void logWarning( Throwable t )
 	{
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		logger.warning( logPrefix + bs.toString() );
+		logger.warning( buildLogMessage( t ) );
 	}
 	
 	/**

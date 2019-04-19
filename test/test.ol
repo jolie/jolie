@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009-2019 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -31,18 +31,18 @@ Interfaces: TestUnitInterface
 
 init
 {
-	dirs[0] = "primitives";
-	dirs[1] = "library";
+	dirs[0] = "primitives"
+	dirs[1] = "library"
 	dirs[2] = "extensions"
 }
 
 define calcMaxLength
 {
-	maxLength = 0;
+	maxLength = 0
 	for( i = 0, i < #dirs, i++ ) {
-		list@File( listRequest )( list );
+		list@File( listRequest )( list )
 		for( k = 0, k < #list.result, k++ ) {
-			length@StringUtils( list.result[k] )( len );
+			length@StringUtils( list.result[k] )( len )
 			if ( len > maxLength ) {
 				maxLength = len
 			}
@@ -52,11 +52,11 @@ define calcMaxLength
 
 define printTestName
 {
-	testName += "...";
-	length@StringUtils( testName )( len );
+	testName += "..."
+	length@StringUtils( testName )( len )
 	for( j = 0, j < maxLength + 5 - len, j++ ) {
 		testName += " "
-	};
+	}
 	print@Console( testName )()
 }
 
