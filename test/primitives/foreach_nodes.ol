@@ -3,14 +3,14 @@ include "../AbstractTestUnit.iol"
 define doTest
 {
 	greetings << {
-		.Hi = false,
-		.Hello = false,
-		.Howdy = false
-	};
+		Hi = false
+		Hello = false
+		Howdy = false
+	}
 
-	i = 0;
+	i = 0
 	foreach( k : greetings ) {
-		greetings.(k) = true;
+		greetings.(k) = true
 		i++
 	};
 

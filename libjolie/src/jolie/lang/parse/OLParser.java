@@ -245,7 +245,8 @@ public class OLParser extends AbstractParser
 				if ( token.is( Scanner.TokenType.COLON ) ) {
 					getToken();
 				} else {
-					addToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+					getToken();
 				}
 
 				currentType = parseType( typeName );
@@ -316,7 +317,8 @@ public class OLParser extends AbstractParser
 				if ( token.is( Scanner.TokenType.COLON ) ) {
 					getToken();
 				} else {
-					addToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+					getToken();
 				}
 
 				currentSubType = parseSubType( id, cardinality );
