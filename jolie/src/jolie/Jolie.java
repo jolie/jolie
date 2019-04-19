@@ -31,13 +31,18 @@ import jolie.lang.parse.ParserException;
  */
 public class Jolie
 {
+	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
+	
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
 	}
 	
 	private Jolie() {}
 	
-	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
+	private static void printErr( Throwable t )
+	{
+		System.err.println( t.getMessage() );
+	}
 
 	/** 
 	 * Entry point of program execution.
@@ -59,22 +64,22 @@ public class Jolie
 			} );
 			interpreter.run();
 		} catch( CommandLineException cle ) {
-			System.out.println( cle.getMessage() );
+			printErr( cle );
 		} catch( FileNotFoundException fe ) {
-			fe.printStackTrace();
+			printErr( fe );
 			exitCode = 1;
 		} catch( IOException ioe ) {
-			ioe.printStackTrace();
+			printErr( ioe );
 			exitCode = 2;
 		} catch( InterpreterException ie ) {
 			if ( ie.getCause() instanceof ParserException ) {
-				ie.getCause().printStackTrace();
+				printErr( ie.getCause() );
 			} else {
-				ie.printStackTrace();
+				printErr( ie );
 			}
 			exitCode = 3;
 		} catch( Exception e ) {
-			e.printStackTrace();
+			printErr( e );
 			exitCode = 4;
 		}
 		System.exit( exitCode );
