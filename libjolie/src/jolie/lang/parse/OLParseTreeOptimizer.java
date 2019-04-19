@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.lang.parse;
 
@@ -594,7 +592,8 @@ public class OLParseTreeOptimizer
 			currNode = new DeepCopyStatement(
 				n.context(),
 				optimizePath( n.leftPath() ),
-				optimizeNode( n.rightExpression() )
+				optimizeNode( n.rightExpression() ),
+				n.copyLinks()
 			);
 		}
 
@@ -911,16 +910,32 @@ public class OLParseTreeOptimizer
 		@Override
 		public void visit( InlineTreeExpressionNode n )
 		{
-			Pair< VariablePathNode, OLSyntaxNode >[] optAssignments = new Pair[ n.assignments().length ];
-			VariablePathNode currVarPath;
-			OLSyntaxNode currExpr;
+			OLSyntaxNode rootExpression = optimizeNode( n.rootExpression() );
+			InlineTreeExpressionNode.Operation operations[] = new InlineTreeExpressionNode.Operation[ n.operations().length ];
 			int i = 0;
-			for( Pair< VariablePathNode, OLSyntaxNode > pair : n.assignments() ) {
-				currVarPath = optimizePath( pair.key() );
-				currExpr = optimizeNode( pair.value() );
-				optAssignments[i++] = new Pair<>( currVarPath, currExpr );
+			for( InlineTreeExpressionNode.Operation operation : n.operations() ) {
+				if ( operation instanceof InlineTreeExpressionNode.AssignmentOperation ) {
+					InlineTreeExpressionNode.AssignmentOperation op = (InlineTreeExpressionNode.AssignmentOperation) operation;
+					operations[ i++ ] = new InlineTreeExpressionNode.AssignmentOperation(
+						optimizePath( op.path() ),
+						optimizeNode( op.expression() )
+					);
+				} else if ( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
+					InlineTreeExpressionNode.DeepCopyOperation op = (InlineTreeExpressionNode.DeepCopyOperation) operation;
+					operations[ i++ ] = new InlineTreeExpressionNode.DeepCopyOperation(
+						optimizePath( op.path() ),
+						optimizeNode( op.expression() )
+					);
+				} else if ( operation instanceof InlineTreeExpressionNode.PointsToOperation ) {
+					InlineTreeExpressionNode.PointsToOperation op = (InlineTreeExpressionNode.PointsToOperation) operation;
+					operations[ i++ ] = new InlineTreeExpressionNode.PointsToOperation(
+						optimizePath( op.path() ),
+						optimizePath( op.target() )
+					);
+				}
 			}
-			currNode = new InlineTreeExpressionNode( n.context(), optimizeNode( n.rootExpression() ), optAssignments );
+			
+			currNode = new InlineTreeExpressionNode( n.context(), rootExpression, operations );
 		}
 		
 		@Override

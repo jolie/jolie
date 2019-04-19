@@ -1037,10 +1037,12 @@ public class OLParser extends AbstractParser
 						new Scanner.Token( Scanner.TokenType.ID, inputPortName ),
 						new Scanner.Token( Scanner.TokenType.DOT ),
 						new Scanner.Token( Scanner.TokenType.ID, Constants.PROTOCOL_NODE_NAME ),
+						new Scanner.Token( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ),
 						token ) );
 					// Protocol configuration
 					getToken();
-					protocolConfiguration = parseInVariablePathProcess( false );
+					//protocolConfiguration = parseInVariablePathProcess( false );
+					protocolConfiguration = parseBasicStatement();
 				}
 			} else if ( token.isKeyword( "redirects" ) || token.isKeyword( "Redirects" ) ) {
 				getToken();
@@ -1251,10 +1253,11 @@ public class OLParser extends AbstractParser
 						new Scanner.Token( Scanner.TokenType.ID, p.id() ),
 						new Scanner.Token( Scanner.TokenType.DOT ),
 						new Scanner.Token( Scanner.TokenType.ID, "protocol" ),
+						new Scanner.Token( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ),
 						token ) );
 					// Protocol configuration
 					getToken();
-					p.setProtocolConfiguration( parseInVariablePathProcess( false ) );
+					p.setProtocolConfiguration( parseBasicStatement() );
 				}
 			} else {
 				keepRun = false;
@@ -1613,7 +1616,7 @@ public class OLParser extends AbstractParser
 			String id = token.content();
 			getToken();
 			
-			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
+			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
 			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
 				retVal = parseForwardStatement();
@@ -2024,7 +2027,10 @@ public class OLParser extends AbstractParser
 				new PointerStatement( getContext(), path, parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
 			getToken();
-			retVal = new DeepCopyStatement( getContext(), path, parseExpression() );
+			retVal = new DeepCopyStatement( getContext(), path, parseExpression(), false );
+		} else if ( token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) ) {
+			getToken();
+			retVal = new DeepCopyStatement( getContext(), path, parseExpression(), true );
 		} else {
 			throwException( "expected = or -> or << or -- or ++" );
 		}
@@ -2696,25 +2702,45 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		
 		VariablePathNode path;
-		OLSyntaxNode expression;
 		
-		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new ArrayList<>();
+		List< InlineTreeExpressionNode.Operation > operations = new ArrayList<>();
 		
 		while( !token.is( Scanner.TokenType.RCURLY ) ) {
 			maybeEat( Scanner.TokenType.DOT );
 			
 			path = parseVariablePath();
-			eat( Scanner.TokenType.ASSIGN, "expected =" );
-			expression = parseExpression();
 			
-			assignments.add( new Pair<>( path, expression ) );
+			InlineTreeExpressionNode.Operation operation = null;
+			switch( token.type() ) {
+			case DEEP_COPY_LEFT:
+				getToken();
+				operation = new InlineTreeExpressionNode.DeepCopyOperation( path, parseExpression() );
+				break;
+			case ASSIGN:
+				getToken();
+				operation = new InlineTreeExpressionNode.AssignmentOperation( path, parseExpression() );
+				break;
+			case POINTS_TO:
+				getToken();
+				operation = new InlineTreeExpressionNode.PointsToOperation( path, parseVariablePath() );
+				break;
+			default:
+				throwException( "expected =, <<, or ->" );
+				break;
+			}
 			
-			maybeEat( Scanner.TokenType.COMMA );
+			operations.add( operation );
+			
+			maybeEat( Scanner.TokenType.COMMA, Scanner.TokenType.SEQUENCE );
 		}
 		
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 		
-		return new InlineTreeExpressionNode( rootExpression.context(), rootExpression, assignments.toArray( new Pair[0] ) );
+		return new InlineTreeExpressionNode(
+			rootExpression.context(),
+			rootExpression,
+			operations.toArray( new InlineTreeExpressionNode.Operation[0] )
+		);
 	}
 
 	private OLSyntaxNode parseProductExpression()

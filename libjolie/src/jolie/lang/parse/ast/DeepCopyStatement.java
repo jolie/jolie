@@ -30,8 +30,9 @@ public class DeepCopyStatement extends OLSyntaxNode
 {
 	private final VariablePathNode leftPath;
 	private final OLSyntaxNode rightExpression;
+	private final boolean copyLinks;
 
-	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression )
+	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression, boolean copyLinks )
 	{
 		super( context );
 		if ( rightExpression instanceof VariableExpressionNode ) {
@@ -39,6 +40,7 @@ public class DeepCopyStatement extends OLSyntaxNode
 		}
 		this.leftPath = leftPath;
 		this.rightExpression = rightExpression;
+		this.copyLinks = copyLinks;
 	}
 	
 	public VariablePathNode leftPath()
@@ -49,6 +51,11 @@ public class DeepCopyStatement extends OLSyntaxNode
 	public OLSyntaxNode rightExpression()
 	{
 		return rightExpression;
+	}
+	
+	public boolean copyLinks()
+	{
+		return copyLinks;
 	}
 	
 	@Override

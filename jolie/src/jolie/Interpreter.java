@@ -272,6 +272,7 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
+	private final boolean printStackTraces;
 	private boolean check = false;
 	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
@@ -716,7 +717,7 @@ public class Interpreter
 	private String buildLogMessage( Throwable t )
 	{
 		String ret;
-		if ( cmdParser.printStackTraces() ) {
+		if ( printStackTraces ) {
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
 			t.printStackTrace( new PrintStream( bs ) );
 			ret = bs.toString();
@@ -882,6 +883,7 @@ public class Interpreter
 		optionArgs = cmdParser.optionArgs();
 		programFilename = cmdParser.programFilepath().getName();
 		arguments = cmdParser.arguments();
+		printStackTraces = cmdParser.printStackTraces();
 		
 		responseTimeout = cmdParser.responseTimeout();
         
