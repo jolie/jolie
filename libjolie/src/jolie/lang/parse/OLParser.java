@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2016 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -298,7 +298,8 @@ public class OLParser extends AbstractParser
 		} else {
 			TypeDefinition currentSubType;
 			while( !token.is( Scanner.TokenType.RCURLY ) ) {
-				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
+				maybeEat( Scanner.TokenType.DOT );
+//				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
 
 				// SubType id
 				String id = token.content();
@@ -311,7 +312,7 @@ public class OLParser extends AbstractParser
 				Range cardinality = parseCardinality();
 				eat( Scanner.TokenType.COLON, "expected COLON" );
 
-				currentSubType = parseSubType(id, cardinality);
+				currentSubType = parseSubType( id, cardinality );
 				if ( type.hasSubType( currentSubType.id() ) ) {
 					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
 				}
