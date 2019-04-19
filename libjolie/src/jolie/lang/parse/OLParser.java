@@ -242,7 +242,11 @@ public class OLParser extends AbstractParser
 				getToken();
 				typeName = token.content();
 				eat( Scanner.TokenType.ID, "expected type name" );
-				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
+				if ( token.is( Scanner.TokenType.COLON ) ) {
+					getToken();
+				} else {
+					addToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+				}
 
 				currentType = parseType( typeName );
 				typeName = currentType.id();
@@ -299,7 +303,6 @@ public class OLParser extends AbstractParser
 			TypeDefinition currentSubType;
 			while( !token.is( Scanner.TokenType.RCURLY ) ) {
 				maybeEat( Scanner.TokenType.DOT );
-//				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
 
 				// SubType id
 				String id = token.content();
@@ -310,7 +313,11 @@ public class OLParser extends AbstractParser
 				}
 				
 				Range cardinality = parseCardinality();
-				eat( Scanner.TokenType.COLON, "expected COLON" );
+				if ( token.is( Scanner.TokenType.COLON ) ) {
+					getToken();
+				} else {
+					addToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+				}
 
 				currentSubType = parseSubType( id, cardinality );
 				if ( type.hasSubType( currentSubType.id() ) ) {
