@@ -42,10 +42,20 @@ public class InterpreterException extends Exception
 
 	/**
 	 * Constructor
-	 * @param e the <code>Exception</code> that caused this <code>InterpreterException</code>
+	 * @param cause the <code>Throwable</code> that caused this <code>InterpreterException</code>
 	 */
-	public InterpreterException( Exception e )
+	public InterpreterException( Throwable cause )
 	{
-		super( e );
+		super( cause );
+	}
+	
+	/**
+	 * Constructor
+	 * @param message the message of this <code>InterpreterException</code>
+	 * @param cause the <code>Throwable</code> that caused this <code>InterpreterException</code>
+	 */	
+	public InterpreterException( String message, Throwable cause )
+	{
+		super( message, cause );
 	}
 }

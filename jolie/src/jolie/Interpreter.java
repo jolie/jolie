@@ -54,6 +54,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -240,6 +242,7 @@ public class Interpreter
 		}
 	}
 
+	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
 	private CommCore commCore;
 	private CommandLineParser cmdParser;
@@ -257,7 +260,6 @@ public class Interpreter
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
 	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
-	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 	
 	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
 	private final Map< String, OutputPort > outputPorts = new HashMap<>();
@@ -724,6 +726,13 @@ public class Interpreter
 		return ret;
 	}
 	
+	private LogRecord buildLogRecord( Level level, String message )
+	{
+		LogRecord record = new LogRecord( level, message );
+		record.setSourceClassName( this.programFilename );
+		return record;
+	}
+	
 	/**
 	 * Logs an information message using the logger of this interpreter (logger level: fine).
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
@@ -739,7 +748,7 @@ public class Interpreter
 	 */
 	public void logSevere( String message )
 	{
-		logger.severe( buildLogMessage( message ) );
+		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( message ) ) );
 	}
 
 	/**
@@ -758,7 +767,7 @@ public class Interpreter
 	 */
 	public void logSevere( Throwable t )
 	{
-		logger.severe( buildLogMessage( t ) );
+		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( t ) ) );
 	}
 
 	/**
@@ -1070,7 +1079,7 @@ public class Interpreter
              * 2 - initExec must be instantiated before we can receive communications.
              */
             if ( buildOOIT() == false && !check ) {
-                throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
+                throw new InterpreterException( "Error: service initialisation failed" );
             }
             if ( check ){
                 exit();
