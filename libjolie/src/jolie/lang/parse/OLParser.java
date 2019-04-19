@@ -975,12 +975,12 @@ public class OLParser extends AbstractParser
 				parseOneWayOperations( iface );
 			} else if ( token.is( Scanner.TokenType.OP_RR ) ) {
 				parseRequestResponseOperations( iface );
-			} else if ( token.isKeyword( "Location" ) ) {
+			} else if ( token.isKeyword( "location" ) || token.isKeyword( "Location" ) ) {
 				if ( inputPortLocation != null ) {
 					throwException( "Location already defined for service " + inputPortName );
 				}
 				getToken();
-				eat( Scanner.TokenType.COLON, "expected : after Location" );
+				eat( Scanner.TokenType.COLON, "expected : after location" );
 				checkConstant();
 				assertToken( Scanner.TokenType.STRING, "expected inputPort location string" );
 				try {
@@ -989,9 +989,9 @@ public class OLParser extends AbstractParser
 					throwException( e );
 				}
 				getToken();
-			} else if ( token.isKeyword( "Interfaces" ) ) {
+			} else if ( token.isKeyword( "interfaces" ) || token.isKeyword( "Interfaces" ) ) {
 				getToken();
-				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
+				eat( Scanner.TokenType.COLON, "expected : after interfaces" );
                 boolean keepRun = true;
                 while( keepRun ) {
                     assertToken( Scanner.TokenType.ID, "expected interface name" );
@@ -1009,7 +1009,7 @@ public class OLParser extends AbstractParser
                         keepRun = false;
                     }
                 }
-			} else if ( token.isKeyword( "Protocol" ) ) {
+			} else if ( token.isKeyword( "protocol" ) || token.isKeyword( "Protocol" ) ) {
 				if ( protocolId != null ) {
 					throwException( "Protocol already defined for inputPort " + inputPortName );
 				}
@@ -1033,7 +1033,7 @@ public class OLParser extends AbstractParser
 					getToken();
 					protocolConfiguration = parseInVariablePathProcess( false );
 				}
-			} else if ( token.isKeyword( "Redirects" ) ) {
+			} else if ( token.isKeyword( "redirects" ) || token.isKeyword( "Redirects" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected :" );
 				String subLocationName;
@@ -1050,7 +1050,7 @@ public class OLParser extends AbstractParser
 						break;
 					}
 				}
-			} else if ( token.isKeyword( "Aggregates" ) ) {
+			} else if ( token.isKeyword( "aggregates" ) || token.isKeyword( "Aggregates" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected :" );
 				parseAggregationList( aggregationList );
@@ -1185,7 +1185,7 @@ public class OLParser extends AbstractParser
 				parseOneWayOperations( p );
 			} else if ( token.is( Scanner.TokenType.OP_RR ) ) {
 				parseRequestResponseOperations( p );
-			} else if ( token.isKeyword( "Interfaces" ) ) {
+			} else if ( token.isKeyword( "interfaces" ) || token.isKeyword( "Interfaces" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
 				boolean r = true;
@@ -1205,7 +1205,7 @@ public class OLParser extends AbstractParser
 						r = false;
 					}
 				}
-			} else if ( token.isKeyword( "Location" ) ) {
+			} else if ( token.isKeyword( "location" ) || token.isKeyword( "Location" ) ) {
 				if ( p.location() != null ) {
 					throwException( "Location already defined for output port " + p.id() );
 				}
@@ -1224,7 +1224,7 @@ public class OLParser extends AbstractParser
 
 				p.setLocation( location );
 				getToken();
-			} else if ( token.isKeyword( "Protocol" ) ) {
+			} else if ( token.isKeyword( "protocol" ) || token.isKeyword( "Protocol" ) ) {
 				if ( p.protocolId() != null ) {
 					throwException( "Protocol already defined for output port " + p.id() );
 				}
