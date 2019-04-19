@@ -2686,13 +2686,12 @@ public class OLParser extends AbstractParser
 	{
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		
-		boolean keepRun = true;
 		VariablePathNode path;
 		OLSyntaxNode expression;
 		
 		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new ArrayList<>();
 		
-		while( keepRun ) {
+		while( !token.is( Scanner.TokenType.RCURLY ) ) {
 			maybeEat( Scanner.TokenType.DOT );
 			
 			path = parseVariablePath();
@@ -2701,11 +2700,7 @@ public class OLParser extends AbstractParser
 			
 			assignments.add( new Pair<>( path, expression ) );
 			
-			if ( token.is( Scanner.TokenType.COMMA ) ) {
-				getToken();
-			} else {
-				keepRun = false;
-			}
+			maybeEat( Scanner.TokenType.COMMA );
 		}
 		
 		eat( Scanner.TokenType.RCURLY, "expected }" );
