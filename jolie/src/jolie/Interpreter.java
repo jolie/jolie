@@ -701,7 +701,7 @@ public class Interpreter
 	 */
 	public void logInfo( String message )
 	{
-		logger.info( buildLogMessage( message ) );
+		logger.log( buildLogRecord( Level.INFO, buildLogMessage( message ) ) );
 	}
 	
 	/**
@@ -710,7 +710,7 @@ public class Interpreter
 	 */
 	public void logFine( String message )
 	{
-		logger.fine( buildLogMessage( message ) );
+		logger.log( buildLogRecord( Level.FINE, buildLogMessage( message ) ) );
 	}
 	
 	private String buildLogMessage( Throwable t )
@@ -729,7 +729,7 @@ public class Interpreter
 	private LogRecord buildLogRecord( Level level, String message )
 	{
 		LogRecord record = new LogRecord( level, message );
-		record.setSourceClassName( this.programFilename );
+		record.setSourceClassName( programFilename );
 		return record;
 	}
 	
@@ -739,7 +739,7 @@ public class Interpreter
 	 */
 	public void logFine( Throwable t )
 	{
-		logger.fine( buildLogMessage( t ) );
+		logger.log( buildLogRecord( Level.FINE, buildLogMessage( t ) ) );
 	}
 
 	/**
@@ -757,7 +757,7 @@ public class Interpreter
 	 */
 	public void logWarning( String message )
 	{
-		logger.warning( buildLogMessage( message ) );
+		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( message ) ) );
 	}
 
 	/**
@@ -777,7 +777,7 @@ public class Interpreter
 	 */
 	public void logWarning( Throwable t )
 	{
-		logger.warning( buildLogMessage( t ) );
+		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( t ) ) );
 	}
 	
 	/**
