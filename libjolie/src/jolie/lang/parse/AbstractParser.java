@@ -74,6 +74,12 @@ public abstract class AbstractParser
 		this.tokens.add( token );
 	}
 	
+	protected final void prependToken( Scanner.Token prefixToken )
+	{
+		addToken( prefixToken );
+		addToken( token );
+	}
+	
 	private final void readToken()
 		throws IOException
 	{
