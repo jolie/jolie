@@ -926,10 +926,7 @@ public class OLParser extends AbstractParser
 		for( OLSyntaxNode child : program.children() ) {
 			if ( child instanceof InterfaceDefinition
 				|| child instanceof OutputPortInfo
-				|| child instanceof TypeDefinition
-				|| child instanceof TypeInlineDefinition
-				|| child instanceof TypeDefinitionLink
-				|| child instanceof TypeDefinitionUndefined ) {
+				|| child instanceof TypeDefinition ) {
 				internalServiceProgram.addChild( child );
 			}
 		}
