@@ -487,8 +487,8 @@ public class FileService extends JavaService
 					XSSchemaSet schemaSet = parser.getResult();
 					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
 						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
-					} else if ( schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
-						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
+					} else if ( schemaSet == null || schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						System.out.println( "Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
 					}
 				} catch( SAXException e ) {
 					throw new IOException( e );
@@ -558,15 +558,14 @@ public class FileService extends JavaService
 	private static void writeText( File file, Value value, boolean append, String encoding )
 		throws IOException
 	{
-		OutputStreamWriter writer;
-		if ( encoding != null ) {
-			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
-		} else {
-			writer = new FileWriter( file, append );
+		try ( OutputStreamWriter writer = 
+			(encoding != null)
+			? new OutputStreamWriter( new FileOutputStream( file, append ), encoding )
+			: new FileWriter( file, append )
+		) {
+			writer.write( value.strValue() );
+			writer.flush();
 		}
-		writer.write( value.strValue() );
-		writer.flush();
-		writer.close();
 	}
 
 	private static void writeJson( File file, Value value, boolean append, String encoding )
@@ -575,16 +574,14 @@ public class FileService extends JavaService
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 
-		OutputStreamWriter writer;
-		if ( encoding != null ) {
-			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
-		} else {
-			// UTF-8 is JSON's default charset: https://tools.ietf.org/html/rfc7159#section-8.1
-			writer = new OutputStreamWriter( new FileOutputStream( file, append ), "UTF-8" );
+		try ( OutputStreamWriter writer = 
+			(encoding != null)
+			? new OutputStreamWriter( new FileOutputStream( file, append ), encoding )
+			: new OutputStreamWriter( new FileOutputStream( file, append ), "UTF-8" );
+		) {
+			writer.write( json.toString() );
+			writer.flush();
 		}
-		writer.write( json.toString() );
-		writer.flush();
-		writer.close();
 	}
 
 	@RequestResponse

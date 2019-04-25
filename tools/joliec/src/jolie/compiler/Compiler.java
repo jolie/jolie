@@ -58,13 +58,14 @@ public class Compiler
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( program );
 		ostream.flush();
-		ostream.close();
 		//gzipstream.close();
 	}
 	
 	public void compile()
 		throws IOException, ParserException, SemanticException
 	{
-		compile( new FileOutputStream( cmdParser.programFilepath() + "c" ) );
+		try( OutputStream os = new FileOutputStream( cmdParser.programFilepath() + "c" ) ) {
+			compile( os );
+		}
 	}
 }

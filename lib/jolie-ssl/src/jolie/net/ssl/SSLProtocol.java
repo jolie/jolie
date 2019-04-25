@@ -287,7 +287,9 @@ public class SSLProtocol extends SequentialCommProtocol
 			}
 
 			if ( keyStoreFile != null ) {
-				ks.load( new FileInputStream( keyStoreFile ), passphrase );
+				try( InputStream is = new FileInputStream( keyStoreFile ) ) {
+					ks.load( is, passphrase );
+				}
 			} else {
 				ks.load( null, null );
 			}
@@ -301,7 +303,9 @@ public class SSLProtocol extends SequentialCommProtocol
 			} else {
 				passphrase = null;
 			}
-			ts.load( new FileInputStream( trustStoreFile ), passphrase );
+			try( InputStream is = new FileInputStream( trustStoreFile ) ) {
+				ts.load( is, passphrase );
+			}
 
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance( "SunX509" );
 			tmf.init( ts );

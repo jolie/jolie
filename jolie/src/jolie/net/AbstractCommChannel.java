@@ -82,15 +82,18 @@ public abstract class AbstractCommChannel extends CommChannel
 						responseReceiver.wakeUp();
 					}
 				}
-				synchronized( monitor ) {
-					if ( monitor.response == null ) {
-						try {
-							monitor.wait();
-						} catch( InterruptedException e ) {
-							ethread.interpreter().logSevere( e );
+				
+				if ( monitor != null ) {
+					synchronized( monitor ) {
+						if ( monitor.response == null ) {
+							try {
+								monitor.wait();
+							} catch( InterruptedException e ) {
+								ethread.interpreter().logSevere( e );
+							}
 						}
+						response = monitor.response;
 					}
-					response = monitor.response;
 				}
 			}
 			return response;

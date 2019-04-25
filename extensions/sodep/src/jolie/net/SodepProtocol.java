@@ -246,7 +246,7 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	private CommMessage readMessage( DataInput in )
 		throws IOException
 	{
-		Long id = in.readLong();
+		long id = in.readLong();
 		String resourcePath = readString( in );
 		String operationName = readString( in );
 		FaultException fault = null;

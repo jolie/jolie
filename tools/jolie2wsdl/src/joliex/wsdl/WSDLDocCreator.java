@@ -211,7 +211,13 @@ public class WSDLDocCreator {
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             Logger.getLogger(WSDLDocCreator.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } finally {
+			try {
+				fw.close();
+			} catch( IOException e ) {
+				e.printStackTrace();
+			}
+		}
         System.out.println("Success: WSDL document generated!");
     }
 
@@ -598,18 +604,16 @@ public class WSDLDocCreator {
     }
 
     private Document createDOMdocument() {
-        Document document;
-        DocumentBuilder db = null;
+        Document document = null;
+        DocumentBuilder db;
         try {
-
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
             db = dbf.newDocumentBuilder();
-
+			document = db.newDocument();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        document = db.newDocument();
         return document;
     }
 

@@ -20,6 +20,7 @@ package jolie.net.auto;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import jolie.util.Helpers;
 import org.ini4j.Ini;
@@ -58,14 +59,17 @@ public class AutoHelper {
 		assertIOException( iniPath.length < 3, "path to ini content is not well-formed; the format is /Section/Key" );
 		
 		URL iniURL = new URL( ss[1] );
-		Ini ini = new Ini( new InputStreamReader( iniURL.openStream() ) );
 		
-		Ini.Section section = ini.get( iniPath[1] );
-		assertIOException( section == null, "could not find section " + iniPath[1] + " in ini" );
-		
-		String retLocation = section.get( iniPath[2] );
-		assertIOException( retLocation == null, "could not find key " + iniPath[2] + " in section " + iniPath[1] + " in ini" );
-		
-		return retLocation;
+		try( Reader reader = new InputStreamReader( iniURL.openStream() ) ) {
+			Ini ini = new Ini( reader );
+
+			Ini.Section section = ini.get( iniPath[1] );
+			assertIOException( section == null, "could not find section " + iniPath[1] + " in ini" );
+
+			String retLocation = section.get( iniPath[2] );
+			assertIOException( retLocation == null, "could not find key " + iniPath[2] + " in section " + iniPath[1] + " in ini" );
+
+			return retLocation;
+		}
 	}
 }
