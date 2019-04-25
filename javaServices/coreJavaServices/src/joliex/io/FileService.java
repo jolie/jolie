@@ -373,7 +373,7 @@ public class FileService extends JavaService
 						break;
 					case "xml":
 						istream = new BufferedInputStream( istream );
-						readXMLIntoValue(istream, retValue, charset, skipMixedText );
+						readXMLIntoValue( istream, retValue, charset, skipMixedText );
 						break;
 					case "xml_store":
 						istream = new BufferedInputStream( istream );
