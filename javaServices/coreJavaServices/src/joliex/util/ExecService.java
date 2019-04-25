@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -71,8 +72,9 @@ public class ExecService extends JavaService
 					int len = p.getInputStream().available();
 					if ( len > 0 ) {
 						char[] buffer = new char[ len ];
-						BufferedReader reader = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
-						reader.read( buffer, 0, len );
+						try( BufferedReader reader = new BufferedReader( new InputStreamReader( p.getInputStream() ) ) ) {
+							reader.read( buffer, 0, len );
+						}
 						response.setValue( new String( buffer ) );
 					}
 				}
@@ -80,8 +82,9 @@ public class ExecService extends JavaService
 					int len = p.getErrorStream().available();
 					if ( len > 0 ) {
 						char[] buffer = new char[ len ];
-						BufferedReader reader = new BufferedReader( new InputStreamReader( p.getErrorStream() ) );
-						reader.read( buffer, 0, len );
+						try( BufferedReader reader = new BufferedReader( new InputStreamReader( p.getErrorStream() ) ) ) {
+							reader.read( buffer, 0, len );
+						}
 						response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
 					}
 				}
@@ -93,8 +96,8 @@ public class ExecService extends JavaService
 				p.getOutputStream().close();
 			}
 			return response;
-		} catch( Exception e ) {
-			throw new FaultException( e );
+		} catch( IOException | InterruptedException e ) {
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		}
 	}
 

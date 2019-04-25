@@ -32,8 +32,10 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -117,10 +119,11 @@ public class XmlStorage extends AbstractStorageService
 			if ( charset != null ) {
 				transformer.setOutputProperty( OutputKeys.ENCODING, charset.name() );
 			}
-			Writer writer = new FileWriter( xmlFile );
-			StreamResult result = new StreamResult( writer );
-			transformer.transform( new DOMSource( doc ), result );
-		} catch( Exception e ) {
+			try( Writer writer = new FileWriter( xmlFile ) ) {
+				StreamResult result = new StreamResult( writer );
+				transformer.transform( new DOMSource( doc ), result );
+			}
+		} catch( IOException | IllegalArgumentException | ParserConfigurationException | TransformerException e ) {
 			throw new FaultException( "StorageFault", e.getMessage() );
 		}
 	}
@@ -134,6 +137,7 @@ public class XmlStorage extends AbstractStorageService
 	}
 
 	@RequestResponse
+	@Override
 	public Value load( LoadRequest request )
 		throws FaultException
 	{
@@ -147,6 +151,7 @@ public class XmlStorage extends AbstractStorageService
 	}
 
 	@RequestResponse
+	@Override
 	public void save( SaveRequest request )
 		throws FaultException
 	{

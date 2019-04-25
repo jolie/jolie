@@ -28,8 +28,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import jolie.net.CommListener;
 import jolie.Interpreter;
+import jolie.net.CommListener;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
@@ -85,6 +85,6 @@ public class RMIListener extends CommListener
 	{}
 
 	@Override
-	public void start()
+	public synchronized void start()
 	{}
 }

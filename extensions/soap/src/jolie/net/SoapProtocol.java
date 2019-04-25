@@ -1245,7 +1245,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 		received = true;
 
-		if ( "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
+		if ( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
 			&& channel().parentPort().getInterface().containsOperation( retVal.operationName() ) ) {
 			try {
 				// The message is for this service

@@ -34,7 +34,7 @@ public class InvalidIdException extends Exception
 	}
 	
 	@Override
-	public Throwable fillInStackTrace()
+	public synchronized Throwable fillInStackTrace()
 	{
 		return this;
 	}

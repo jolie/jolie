@@ -44,10 +44,10 @@ import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Range;
 import jolie.xml.xsd.XsdToJolieConverter;
@@ -335,19 +335,18 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				TypeDefinition jolieSimpleType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(), getRange( parentParticle ), simpleTypes.get( type.getName() + TYPE_SUFFIX ) );
 				jolieType.putSubType( jolieSimpleType );
 
-			} else {
-
+			} else if ( type != null ) {
 				checkDefaultAndFixed( currElementDecl );
 				if ( type.isSimpleType() ) {
 					checkForNativeType( type, WARNING_2 );
 					if ( (type.getName() != null) && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
 						jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( parentParticle ) ) );
 					}
-			if ( type.getName() == null && type.asSimpleType().isRestriction() ) {
-					XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
-					checkType( restriction.getBaseType() );
-					jolieType.putSubType( createSimpleType( restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE ) );
-			}
+					if ( type.getName() == null && type.asSimpleType().isRestriction() ) {
+						XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
+						checkType( restriction.getBaseType() );
+						jolieType.putSubType( createSimpleType( restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE ) );
+					}
 				} else if ( type.isComplexType() ) {
 					XSComplexType complexType = type.asComplexType();
 					XSParticle particle;

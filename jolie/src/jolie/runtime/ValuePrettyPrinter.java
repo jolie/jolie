@@ -121,19 +121,18 @@ public class ValuePrettyPrinter
 	private void writeChildren( Value value )
 		throws IOException
 	{
-		Integer i;
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			if ( entry.getValue().isEmpty() ) {
 				writeIndented( "." );
 				writer.write( entry.getKey() );
 				writer.write( " (empty)" );
 			} else {
-				i = 0;
+				int i = 0;
 				for( Value child : entry.getValue() ) {
 					writeIndented( "." );
 					writer.write( entry.getKey() );
 					writer.write( '[' );
-					writer.write( i.toString() );
+					writer.write( Integer.toString( i ) );
 					writer.write( ']' );
 					writeNativeValue( child );
 					indent();
