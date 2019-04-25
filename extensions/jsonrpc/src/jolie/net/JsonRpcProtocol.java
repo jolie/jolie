@@ -46,7 +46,6 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
 import jolie.js.JsUtils;
-import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * 
@@ -204,21 +203,17 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
             if(checkStringParameter(Parameters.TRANSPORT, LSP )) {
                 LSPParser parser = new LSPParser( istream );
                 LSPMessage message = parser.parse();
-                Charset charset = Charset.defaultCharset();
+                String charset = "utf-8";
                 //encoding = message.getProperty( "accept-encoding" );
 
                 Value value = Value.create();
-                System.out.println(StringEscapeUtils.escapeJava(new String(message.content())));
-                //message.setContent(Arrays.copyOfRange(message.content(), 2, message.content().length));
+
                 if ( message.size() > 0 ) {
                         if ( checkBooleanParameter( "debug", false ) ) {
                             interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
                         }
                 }
                 
-                
-                //System.out.println(new String(message.content()));
-                //JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
                 JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
 		if (!value.hasChildren("id")) {
                     // JSON-RPC notification mechanism (method call with dropped result)
