@@ -23,10 +23,7 @@ package joliex.rmi;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashSet;
-import java.util.Set;
 import jolie.Interpreter;
-import jolie.net.LocalCommChannel;
 import jolie.net.CommListener;
 
 /**
@@ -37,7 +34,6 @@ public class JolieRemoteImpl implements JolieRemote
 {
 	final private Interpreter interpreter;
 	final private CommListener listener;
-	final private Set< RemoteBasicChannel > channels = new HashSet< RemoteBasicChannel >();
 
 	public JolieRemoteImpl( Interpreter interpreter, CommListener listener )
 		throws RemoteException
@@ -46,16 +42,15 @@ public class JolieRemoteImpl implements JolieRemote
 		this.listener = listener;
 	}
 
+	@Override
 	public RemoteBasicChannel createRemoteBasicChannel()
 		throws RemoteException
 	{
 		RemoteBasicChannelImpl channel = new RemoteBasicChannelImpl( interpreter.commCore().getLocalCommChannel( listener ), this );
-		channels.add( channel );
 		return (RemoteBasicChannel)UnicastRemoteObject.exportObject( channel );
 	}
 
 	protected void disposeOf( RemoteBasicChannel channel )
 	{
-		channels.remove( channel );
 	}
 }
