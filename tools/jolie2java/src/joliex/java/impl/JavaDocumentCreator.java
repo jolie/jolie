@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -71,18 +70,16 @@ import org.w3c.dom.Element;
  */
 public class JavaDocumentCreator {
 
-    private Vector<TypeDefinition> subclass;
-    private boolean subtypePresent = false;
-    private String packageName;
-    private String targetPort;
-    private boolean addSource;
+    private final String packageName;
+    private final String targetPort;
+    private final boolean addSource;
     private String directoryPath;
     private LinkedHashMap<String, TypeDefinition> typeMap;
     private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
-    private static HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
-    private static HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
-    private static HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
+    private static final HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
+    private static final HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
+    private static final HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
 
     public JavaDocumentCreator(ProgramInspector inspector, String packageName, String targetPort, boolean addSource) {
 
@@ -118,9 +115,6 @@ public class JavaDocumentCreator {
     public void ConvertDocument() {
         typeMap = new LinkedHashMap<>();
         subTypeMap = new LinkedHashMap<>();
-        subclass = new Vector<>();
-        int counterSubClass;
-        TypeDefinition[] support = inspector.getTypes();
         InputPortInfo[] inputPorts = inspector.getInputPorts();
         OperationDeclaration operation;
         RequestResponseOperationDeclaration requestResponseOperation;
@@ -179,9 +173,6 @@ public class JavaDocumentCreator {
         while (typeMapIterator.hasNext()) {
             Entry<String, TypeDefinition> typeEntry = typeMapIterator.next();
             if (!(typeEntry.getKey().equals("undefined"))) {
-                subclass = new Vector<TypeDefinition>();
-                subtypePresent = false;
-                counterSubClass = 0;
                 String nameFile = directoryPath + Constants.fileSeparator + typeEntry.getKey() + ".java";
                 Writer writer;
                 try {
@@ -404,14 +395,11 @@ public class JavaDocumentCreator {
 
     private void importsCreate(StringBuilder stringBuilder, TypeDefinition type) {
 
-        String nameFile = type.context().sourceName();
         TypeDefinition supportType = type;
         //System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
         List<String> a = new LinkedList<String>();
-        boolean addListImport = false;
 
         if (Utils.hasSubTypes(supportType)) {
-            subtypePresent = true;
             stringBuilder.append("import java.util.List;\n");
             stringBuilder.append("import java.util.LinkedList;\n");
             stringBuilder.append("import jolie.runtime.Value;\n");
