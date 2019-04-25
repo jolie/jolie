@@ -1264,12 +1264,13 @@ public class Interpreter
 		try {
 			Program program;
 			if ( cmdParser.isProgramCompiled() ) {
-				final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
-				final Object o = istream.readObject();
-				if ( o instanceof Program ) {
-					program = (Program)o;
-				} else {
-					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
+				try ( final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() ) ) {
+					final Object o = istream.readObject();
+					if ( o instanceof Program ) {
+						program = (Program)o;
+					} else {
+						throw new InterpreterException( "Input compiled program is not a JOLIE program" );
+					}
 				}
 			} else {
 				if ( this.internalServiceProgram != null ) {
