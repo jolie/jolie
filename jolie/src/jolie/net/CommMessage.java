@@ -166,49 +166,6 @@ public class CommMessage implements Serializable
 	}
 
 	/**
-	 * Constructor. The identifier of this message will be generic.
-	 * @param operationName the operation name for this message
-	 * @param resourcePath the resource path for this message
-	 * @param value the message data to equip the message with
-	 * @param fault the fault to equip the message with
-	 */
-	/*private CommMessage( String operationName, String resourcePath, Value value, FaultException f )
-	{
-		this( GENERIC_ID, operationName, resourcePath, value, f );
-	}*/
-
-	/**
-	 * Constructor. The identifier of this message will be generic.
-	 * @param operationName the operation name of this message
-	 * @param resourcePath the resource path of this message
-	 */
-	/*private CommMessage( String operationName, String resourcePath )
-	{
-		this( GENERIC_ID, operationName, resourcePath, Value.create(), null );
-	}
-
-	private CommMessage( long id, String operationName, String resourcePath, Value value )
-	{
-		this( id, operationName, resourcePath, value, null );
-	}
-
-	private CommMessage( long id, String operationName, String resourcePath, FaultException fault )
-	{
-		this( id, operationName, resourcePath, Value.create(), fault );
-	}*/
-
-	/**
-	 * Constructor. The identifier of this message will be generic.
-	 * @param operationName the operation name for this message
-	 * @param resourcePath the resource path for this message
-	 * @param value the message data to equip the message with
-	 */
-	/*private CommMessage( String operationName, String resourcePath, Value value )
-	{
-		this( GENERIC_ID, operationName, resourcePath, value, null );
-	}*/
-
-	/**
 	 * Returns the value representing the data contained in this message.
 	 * @return the value representing the data contained in this message
 	 */
