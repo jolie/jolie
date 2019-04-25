@@ -191,7 +191,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	public boolean hasChildren()
 	{
 		Map< String, ValueVector > c = children.get();
-		return ( c == null ? false : !c.isEmpty() );
+		return ( c != null && !c.isEmpty() );
 	}
 
 	@Override
