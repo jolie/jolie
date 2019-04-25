@@ -105,16 +105,18 @@ import jolie.tracer.Tracer;
  */
 public class Interpreter
 {
-    private class InitSessionThread extends SessionThread
+    private final class InitSessionThread extends SessionThread
 	{
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
 		{
 			super( interpreter, process );
 			addSessionListener( new SessionListener() {
+				@Override
 				public void onSessionExecuted( SessionThread session )
 				{
 					onSuccessfulInitExecution();
 				}
+				@Override
 				public void onSessionError( SessionThread session, FaultException fault )
 				{
 					exit();
@@ -162,6 +164,7 @@ public class Interpreter
 					}
 				}
 
+				@Override
 				public void run()
 				{
 					for( Deque< SessionMessage > queue : messageQueues.values() ) {
@@ -185,6 +188,8 @@ public class Interpreter
 		{
 			this.interpreter = interpreter;
 		}
+		
+		@Override
 		public Thread newThread( Runnable r )
 		{
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
@@ -203,6 +208,7 @@ public class Interpreter
 			this.interpreter = interpreter;
 		}
 		
+		@Override
 		public Thread newThread( Runnable r )
 		{
 			return new NativeJolieThread( interpreter, r );
@@ -378,9 +384,10 @@ public class Interpreter
 	public void addTimeoutHandler( TimeoutHandler handler )
 	{
 		synchronized( timeoutHandlerQueue ) {
-			timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
+			timeoutHandlerQueue.add( new WeakReference<>( handler ) );
 			if ( timeoutHandlerQueue.size() == 1 ) {
 				schedule( new TimerTask() {
+					@Override
 					public void run()
 					{
 						synchronized( timeoutHandlerQueue ) {
@@ -924,6 +931,7 @@ public class Interpreter
 	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @param parentInterpreter
 	 * @param internalServiceProgram
 	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
@@ -1019,11 +1027,13 @@ public class Interpreter
 		private final CountDownLatch cl = new CountDownLatch( 1 );
 		private Exception result;
 
+		@Override
 		public boolean cancel( boolean mayInterruptIfRunning )
 		{
 			return false;
 		}
 		
+		@Override
 		public Exception get( long timeout, TimeUnit unit )
 			throws InterruptedException, TimeoutException
 		{
@@ -1033,6 +1043,7 @@ public class Interpreter
 			return result;
 		}
 		
+		@Override
 		public Exception get()
 			throws InterruptedException
 		{
@@ -1040,11 +1051,13 @@ public class Interpreter
 			return result;
 		}
 		
+		@Override
 		public boolean isCancelled()
 		{
 			return false;
 		}
 		
+		@Override
 		public boolean isDone()
 		{
 			return cl.getCount() == 0;
