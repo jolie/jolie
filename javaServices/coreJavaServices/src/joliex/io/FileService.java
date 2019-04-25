@@ -188,8 +188,10 @@ public class FileService extends JavaService
 				src.setEncoding( charset.name() );
 			}
 			Document doc = builder.parse( src );
-			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.storageDocumentToValue( doc, value );
+			jolie.xml.XmlUtils.storageDocumentToValue(
+				doc,
+				value.getFirstChild( doc.getDocumentElement().getNodeName() )
+			);
 		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
