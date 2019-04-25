@@ -349,15 +349,22 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static void send_appendQuerystring( Value value, StringBuilder headerBuilder )
 		throws IOException
 	{
-		if ( !value.children().isEmpty() ) {
+		if ( value.hasChildren() ) {
 			headerBuilder.append( '?' );
-			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-				for( Value v : entry.getValue() ) {
+			Iterator< Entry< String, ValueVector > > nodesIt = value.children().entrySet().iterator();
+			while( nodesIt.hasNext() ) {
+				Entry< String, ValueVector > entry = nodesIt.next();
+				Iterator< Value > vecIt = entry.getValue().iterator();
+				while( vecIt.hasNext() ) {
+					Value v = vecIt.next();
 					headerBuilder
 						.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
 						.append( '=' )
-						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) )
-						.append( '&' );
+						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
+					
+					if ( vecIt.hasNext() || nodesIt.hasNext() ) {
+						headerBuilder.append( '&' );
+					}
 				}
 			}
 		}
