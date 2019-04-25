@@ -21,7 +21,6 @@
 
 package jolie.lang.parse.util;
 
-import java.util.LinkedList;
 import java.util.Map.Entry;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.InterfaceExtenderDefinition;
@@ -40,8 +39,6 @@ public class Interfaces
 		InterfaceExtenderDefinition extender,
 		String namePrefix
 	) {
-		LinkedList<String> operationNameList = new LinkedList<>();
-		operationNameList.addAll( inputInterface.operationsMap().keySet() );
 		InterfaceDefinition outputInterface = inputInterface;
 		if ( extender != null ) {
 			outputInterface = new InterfaceDefinition( inputInterface.context(), inputInterface.name() );
@@ -73,7 +70,6 @@ public class Interfaces
 					OneWayOperationDeclaration newOp = Operations.extend( (OneWayOperationDeclaration) op.getValue(), extenderOperation, namePrefix );
 					outputInterface.addOperation( newOp );
 				}
-				operationNameList.remove( op.getKey() );
 			}
 		}
 		return outputInterface;
