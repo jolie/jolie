@@ -34,12 +34,11 @@ public abstract class GeneralDocumentCreator
 	private OutputPortInfo[] outputPortArray;
 	private InputPortInfo[] inputPortArray;
 	private InterfaceDefinition[] interfacesArray;
-	private Set<RequestResponseOperationDeclaration> requestResponseOperationsSet;
-	private Set<OneWayOperationDeclaration> oneWayOperationsSet;
-	private HashMap<String, InterfaceDefinition> interfaceMap;
-	private List<Map<String, TypeDefinition>> typeMap;
-	private List<String> filesNameList;
-	private GeneralProgramVisitor program;
+	private final Set<RequestResponseOperationDeclaration> requestResponseOperationsSet;
+	private final Set<OneWayOperationDeclaration> oneWayOperationsSet;
+	private final List<Map<String, TypeDefinition>> typeMap;
+	private final List<String> filesNameList;
+	private final GeneralProgramVisitor program;
 	private List<treeOLObject> olTree;
 
 	public GeneralDocumentCreator( GeneralProgramVisitor program )
@@ -48,7 +47,6 @@ public abstract class GeneralDocumentCreator
 		requestResponseOperationsSet = new HashSet<RequestResponseOperationDeclaration>();
 		typeMap = new Vector<Map<String, TypeDefinition>>();
 		filesNameList = new Vector<String>();
-		interfaceMap = new HashMap<String, InterfaceDefinition>();
 		this.program = program;
 		//this.program.run();
 		PopulateInterfaceLists();
@@ -387,15 +385,7 @@ public abstract class GeneralDocumentCreator
 
 	private void PopulateInterfaceLists()
 	{
-
 		interfacesArray = program.getInterfaceDefinitions();
-		for( InterfaceDefinition idef : interfacesArray ) {
-
-			interfaceMap.put( idef.name(), idef );
-
-
-		}
-
 	}
 
 	private void PopulateFilesList()
