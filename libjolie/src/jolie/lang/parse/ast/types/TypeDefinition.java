@@ -163,9 +163,9 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 			} else if ( right instanceof TypeDefinitionLink ) {
 				return checkTypeEqualness( left, ((TypeDefinitionLink)right).linkedType(), recursiveTypesChecked );
 			} else if ( right instanceof TypeChoiceDefinition ) {
-				final TypeChoiceDefinition choice = (TypeChoiceDefinition) left;
+				final TypeChoiceDefinition choice = (TypeChoiceDefinition) right;
 				return
-					checkTypeEqualness( right, choice.left(), recursiveTypesChecked )
+					checkTypeEqualness( left, choice.left(), recursiveTypesChecked )
 					&&
 					checkTypeEqualness( right, choice.right(), recursiveTypesChecked );
 			}
