@@ -554,7 +554,7 @@ public class CommandLineParser implements Closeable
 		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
 		// whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 		
-		if ( olFilepath == null && !ignoreFile) {
+		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
 		}
 	
@@ -593,7 +593,7 @@ public class CommandLineParser implements Closeable
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
-		GetOLStreamResult olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
+		GetOLStreamResult olResult = getOLStream( ignoreFile, olFilepath, includeList, jolieClassLoader );
 
 		if ( olResult.stream == null ) {
             if ( ignoreFile ) {
@@ -602,7 +602,7 @@ public class CommandLineParser implements Closeable
             } else if ( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
-				olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
+				olResult = getOLStream( ignoreFile, olFilepath, includeList, jolieClassLoader );
 				if ( olResult.stream == null ) {
 					throw new FileNotFoundException( olFilepath );
 				}
@@ -738,10 +738,13 @@ public class CommandLineParser implements Closeable
 		private InputStream stream;
 	}
 	
-	private GetOLStreamResult getOLStream( String olFilepath, Deque< String > includePaths, ClassLoader classLoader )
+	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths, ClassLoader classLoader )
 		throws FileNotFoundException, IOException
 	{
 		GetOLStreamResult result = new GetOLStreamResult();
+		if ( ignoreFile ) {
+			return result;
+		}
 
 		URL olURL = null;
 		File f = new File( olFilepath ).getAbsoluteFile();
