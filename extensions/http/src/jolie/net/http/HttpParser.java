@@ -51,6 +51,7 @@ public class HttpParser
 	private static final String CONNECT = "CONNECT";
 	private static final String OPTIONS = "OPTIONS";
 	private static final String PATCH = "PATCH";
+        private static final String LSP = "Content-Length";
 
 	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
 	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
@@ -174,22 +175,24 @@ public class HttpParser
 			message = new HttpMessage( HttpMessage.Type.PUT );
 		} else if ( token.isKeyword( OPTIONS ) ) {
 			message = new HttpMessage( HttpMessage.Type.OPTIONS );
-		} else if ( token.is( Scanner.TokenType.EOF ) ) {
+		} else if ( token.isKeywordLSP( LSP ) ) {
+                        message = new HttpMessage( HttpMessage.Type.LSP );
+                }  else if ( token.is( Scanner.TokenType.EOF ) ) {
 			throw new ChannelClosingException( "[http] Remote host closed connection." ); // It's not a real message, the client is just closing a connection.
 		} else {
-			throw new UnsupportedMethodException( "Unknown/Unsupported HTTP request type: "
+			throw new UnsupportedMethodException( "Unknown/Unsupported HTTP request type bla bla: "
 				+ token.content() + "(" + token.type() + ")" );
 		}
 
 		message.setRequestPath( URLDecoder.decode( scanner.readWord(), HttpUtils.URL_DECODER_ENC ) );
 
 		getToken();
-		if ( !token.isKeywordIgnoreCase( HTTP ) )
-			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
+                        if ( !token.isKeywordIgnoreCase( HTTP ) )
+                                throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
 
-		if ( scanner.currentCharacter() != '/' )
-			throw new UnsupportedHttpVersionException( "Expected HTTP version" );
-
+                        if ( scanner.currentCharacter() != '/' )
+                                throw new UnsupportedHttpVersionException( "Expected HTTP version" );
+                
 		String version = scanner.readWord();
 		if ( "1.0".equals( version ) )
 			message.setVersion( HttpMessage.Version.HTTP_1_0 );
@@ -197,7 +200,6 @@ public class HttpParser
 			message.setVersion( HttpMessage.Version.HTTP_1_1 );
 		else
 			throw new UnsupportedHttpVersionException( "Unsupported HTTP version specified: " + version );
-
 		return message;
 	}
 
@@ -214,14 +216,14 @@ public class HttpParser
 	private HttpMessage parseResponse()
 		throws IOException
 	{
-		HttpMessage message = new HttpMessage( HttpMessage.Type.RESPONSE );
-		if ( scanner.currentCharacter() != '/' )
-			throw new IOException( "Expected HTTP version" );
+                HttpMessage message = new HttpMessage( HttpMessage.Type.RESPONSE );
+            
+                if ( scanner.currentCharacter() != '/' )
+                        throw new IOException( "Expected HTTP version" );
 
-		String version = scanner.readWord();
-		if ( !( "1.1".equals( version ) || "1.0".equals( version ) ) )
-			throw new IOException( "Unsupported HTTP version specified: " + version );
-
+                String version = scanner.readWord();
+                if ( !( "1.1".equals( version ) || "1.0".equals( version ) ) )
+                        throw new IOException( "Unsupported HTTP version specified: " + version );
 		getToken();
 		tokenAssert( Scanner.TokenType.INT );
 		message.setStatusCode( Integer.parseInt( token.content() ) );

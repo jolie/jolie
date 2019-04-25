@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.Interpreter;
@@ -44,6 +46,7 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
 import jolie.js.JsUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * 
@@ -53,19 +56,24 @@ import jolie.js.JsUtils;
  *
  * 2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
  */
+
 public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
 {
 	private final URI uri;
 	private final Interpreter interpreter;
 	private final boolean inInputPort;
 	private String encoding;
-
+        private static class Parameters {
+            final private static String TRANSPORT = "transport";
+        }
+        private final static String LSP = "lsp"; 
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 	
 	private final Map< Long, String > jsonRpcIdMap;
 	private final Map< String, String > jsonRpcOpMap;
-	
+
+        
 	public String name()
 	{
 		return "jsonrpc";
@@ -88,7 +96,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		throws IOException
 	{
 		channel().setToBeClosed(!checkBooleanParameter("keepAlive", true));
-
+            if( !checkStringParameter(Parameters.TRANSPORT, LSP) ) {
 		if (!message.isFault() && message.hasGenericId() && inInputPort) {
 			// JSON-RPC notification mechanism (method call with dropped result)
 			// we just send HTTP status code 204
@@ -98,7 +106,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 			return;
 		}
-				
+            }
 		Value value = Value.create();
 		value.getFirstChild( "jsonrpc" ).setValue( "2.0" );
 		if ( message.isFault() ) {
@@ -126,7 +134,17 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
-				
+            if( checkStringParameter(Parameters.TRANSPORT, LSP)) {
+                StringBuilder LSPMessage = new StringBuilder();
+                LSPMessage.append("Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF);
+                
+                if (checkBooleanParameter("debug", false)) {
+			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + LSPMessage.toString() + content.toString( "utf-8" ));
+		}
+                
+                ostream.write( LSPMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
+		ostream.write( content.getBytes() );
+            } else {
 		StringBuilder httpMessage = new StringBuilder();
 		if (inInputPort) {
 			// We're responding to a request
@@ -171,6 +189,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 
 		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
 		ostream.write( content.getBytes() );
+            }
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
@@ -182,61 +201,112 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		HttpParser parser = new HttpParser( istream );
-		HttpMessage message = parser.parse();
-		String charset = HttpUtils.getCharset( null, message );
-		HttpUtils.recv_checkForChannelClosing( message, channel() );
+            if(checkStringParameter(Parameters.TRANSPORT, LSP )) {
+                LSPParser parser = new LSPParser( istream );
+                LSPMessage message = parser.parse();
+                Charset charset = Charset.defaultCharset();
+                //encoding = message.getProperty( "accept-encoding" );
 
-		if (message.isError()) {
-			throw new IOException("HTTP error: " + new String(message.content(), charset));
+                Value value = Value.create();
+                System.out.println(StringEscapeUtils.escapeJava(new String(message.content())));
+                //message.setContent(Arrays.copyOfRange(message.content(), 2, message.content().length));
+                if ( message.size() > 0 ) {
+                        if ( checkBooleanParameter( "debug", false ) ) {
+                            interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
+                        }
+                }
+                
+                
+                //System.out.println(new String(message.content()));
+                //JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
+                JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
+		if (!value.hasChildren("id")) {
+                    // JSON-RPC notification mechanism (method call with dropped result)
+                    if (!inInputPort) {
+			throw new IOException("A JSON-RPC notification (message without \"id\") needs to be a request, not a response!");
+                    }
+                    return new CommMessage(CommMessage.GENERIC_ID, value.getFirstChild("method").strValue(),
+                                            "/", value.getFirstChild("params"), null);
 		}
-		if (inInputPort && message.type() != HttpMessage.Type.POST) {
-			throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
-		}
-
-		encoding = message.getProperty( "accept-encoding" );
-
-		Value value = Value.create();
-		if ( message.size() > 0 ) {
-			if ( checkBooleanParameter( "debug", false ) ) {
-				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
-			}
-
-			JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
-
-			if (!value.hasChildren("id")) {
-				// JSON-RPC notification mechanism (method call with dropped result)
-				if (!inInputPort) {
-					throw new IOException("A JSON-RPC notification (message without \"id\") needs to be a request, not a response!");
-				}
-				return new CommMessage(CommMessage.GENERIC_ID, value.getFirstChild("method").strValue(),
-						    "/", value.getFirstChild("params"), null);
-			}
-			String jsonRpcId = value.getFirstChild("id").strValue();
-			if ( inInputPort ) {
-				jsonRpcIdMap.put((long)jsonRpcId.hashCode(), jsonRpcId);
-				return new CommMessage(jsonRpcId.hashCode(), value.getFirstChild("method").strValue(),
-						    "/", value.getFirstChild("params"), null);
-			} else if (value.hasChildren("error")) {
-				String operationName = jsonRpcOpMap.get(jsonRpcId);
-				return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
-					new FaultException(
-						value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
-						value.getFirstChild( "error" ).getFirstChild( "data" )
-					)
+		String jsonRpcId = value.getFirstChild("id").strValue();
+		if ( inInputPort ) {
+                    jsonRpcIdMap.put((long)jsonRpcId.hashCode(), jsonRpcId);
+                    return new CommMessage(jsonRpcId.hashCode(), value.getFirstChild("method").strValue(),
+                                            "/", value.getFirstChild("params"), null);
+                } else if (value.hasChildren("error")) {
+                    String operationName = jsonRpcOpMap.get(jsonRpcId);
+                    return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
+				new FaultException(
+                                    value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
+                                    value.getFirstChild( "error" ).getFirstChild( "data" )
+                                    )
 				);
-			} else {
+		} else {
+                    // Certain implementations do not provide a result if it is "void"
+                    String operationName = jsonRpcOpMap.get(jsonRpcId);
+                    return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null);
+                }
+            } else {
+                HttpParser parser = new HttpParser( istream );
+                HttpMessage message = parser.parse();
+                String charset = HttpUtils.getCharset( null, message );
+                HttpUtils.recv_checkForChannelClosing( message, channel() );
+
+                if (message.isError()) {
+            	throw new IOException("HTTP error: " + new String(message.content(), charset));
+                }
+                if (inInputPort && message.type() != HttpMessage.Type.POST) {
+                    throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
+                }
+               
+                encoding = message.getProperty( "accept-encoding" );
+
+                Value value = Value.create();
+                if ( message.size() > 0 ) {
+                    if ( checkBooleanParameter( "debug", false ) ) {
+			interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
+                    }
+
+                    JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
+
+                    if (!value.hasChildren("id")) {
+			// JSON-RPC notification mechanism (method call with dropped result)
+			if (!inInputPort) {
+                            throw new IOException("A JSON-RPC notification (message without \"id\") needs to be a request, not a response!");
+			}
+			return new CommMessage(CommMessage.GENERIC_ID, value.getFirstChild("method").strValue(),
+						    "/", value.getFirstChild("params"), null);
+                    }
+                    String jsonRpcId = value.getFirstChild("id").strValue();
+                    if ( inInputPort ) {
+			jsonRpcIdMap.put((long)jsonRpcId.hashCode(), jsonRpcId);
+                    	return new CommMessage(jsonRpcId.hashCode(), value.getFirstChild("method").strValue(),
+						    "/", value.getFirstChild("params"), null);
+                    } else if (value.hasChildren("error")) {
+			String operationName = jsonRpcOpMap.get(jsonRpcId);
+			return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
+				new FaultException(
+					value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
+					value.getFirstChild( "error" ).getFirstChild( "data" )
+				)
+			);
+                    } else {
 				// Certain implementations do not provide a result if it is "void"
 				String operationName = jsonRpcOpMap.get(jsonRpcId);
 				return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null);
-			}
-		}
-		return null; // error situation
-	}
-
+                    }
+                }
+            }
+            return null; // error situation
+        }
+        
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}
+        private String convertStreamToString(InputStream is) {
+                java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+                return s.hasNext() ? s.next() : "";
+        }
 }

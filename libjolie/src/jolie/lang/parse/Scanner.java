@@ -310,6 +310,10 @@ public class Scanner
 		{
 			return( type == TokenType.ID && content.equals( keyword ) ); 
 		}
+                
+                public boolean isKeywordLSP( String keyword ) {
+                        return( content.equals( keyword ) );
+                }
 		
 		/**
 		 * Returns <code>true</code> if this token has type <code>TokenType.ID</code>
