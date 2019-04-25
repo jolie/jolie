@@ -28,11 +28,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import jolie.lang.Constants;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -46,18 +48,6 @@ import jolie.runtime.ValueVector;
 public class ZipUtils extends JavaService
 {
 	private static final int BUFFER_SIZE = 1024;
-
-	private static ByteArray inputStreamToByteArray( InputStream istream )
-		throws IOException
-	{
-		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-		byte buffer[] = new byte[ BUFFER_SIZE ];
-		int read;
-		while( (read=istream.read( buffer )) >= 0 ) {
-			ostream.write( buffer, 0, read );
-		}
-		return new ByteArray( ostream.toByteArray() );
-	}
 
 	public Value readEntry( Value request )
 		throws FaultException
@@ -106,16 +96,17 @@ public class ZipUtils extends JavaService
 	{
 		Value response = Value.create();
 		try {
-			ZipInputStream zIStream = null;
-			if ( request.getChildren( "filename" ).size() > 0 ) {
+			ZipInputStream zIStream;
+			if ( request.hasChildren( "filename" ) ) {
 				zIStream = new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) );
-			} else if ( request.getChildren( "archive" ).size() > 0 ) {
+			} else if ( request.hasChildren( "archive" ) ) {
 				zIStream = new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) );
+			} else {
+				throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, "missing filename or archive" );
 			}
 			
 			
-			ZipEntry zipEntry = null;
-			zipEntry = zIStream.getNextEntry();
+			ZipEntry zipEntry = zIStream.getNextEntry();
 			int count = 0;
 			while ( zipEntry != null ) {
 				response.getChildren( "entry" ).get( count ).setValue(  zipEntry.getName() );
@@ -132,58 +123,63 @@ public class ZipUtils extends JavaService
 		throws FaultException
 	{
 		ByteArrayOutputStream bbstream = new ByteArrayOutputStream();
-		try {
-			ZipOutputStream zipStream = new ZipOutputStream( bbstream );
-			ZipEntry zipEntry;
+		try( ZipOutputStream zipStream = new ZipOutputStream( bbstream ) ) {
 			byte[] bb;
+			ZipEntry zipEntry;
 			for( Entry< String, ValueVector > entry : request.children().entrySet() ) {
-				zipEntry = new ZipEntry( entry.getKey() );
-				zipStream.putNextEntry( zipEntry );
-				bb = entry.getValue().first().byteArrayValue().getBytes();
-				zipStream.write( bb, 0, bb.length );
-				zipStream.closeEntry();
+				try {
+					zipEntry = new ZipEntry( entry.getKey() );
+					zipStream.putNextEntry( zipEntry );
+					bb = entry.getValue().first().byteArrayValue().getBytes();
+					zipStream.write( bb, 0, bb.length );
+				} finally {
+					zipStream.closeEntry();
+				}
 			}
-			zipStream.close();
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
 		return new ByteArray( bbstream.toByteArray() );
 	}
 	
-	public  Value unzip( Value request ) throws FaultException {
-		String targetPath = request.getFirstChild( "targetPath" ).strValue();
+	public  Value unzip( Value request )
+		throws FaultException
+	{
+		Path targetPath = Paths.get( request.getFirstChild( "targetPath" ).strValue() );
 		String filename = request.getFirstChild( "filename" ).strValue();
 		
 		Value response = Value.create();
 		
 		byte[] buffer = new byte[ BUFFER_SIZE ];
-		ZipInputStream zipInputStream;
-		try {
-			zipInputStream = new ZipInputStream(new FileInputStream( filename ));				
+		try( ZipInputStream zipInputStream = new ZipInputStream( new FileInputStream( filename ) ) ) {
 			ZipEntry zipEntry = zipInputStream.getNextEntry();
 			int entryCounter = 0;
 			while( zipEntry != null ) {
 				if ( !zipEntry.isDirectory() ) {
-					String fileName = zipEntry.getName();
-					response.getChildren( "entry" ).get( entryCounter ).setValue( fileName );
-					entryCounter++;
-					File newFile = new File(targetPath + File.separator + fileName);
-					new File(newFile.getParent()).mkdirs();
-					FileOutputStream fileOutputStream = new FileOutputStream(newFile);             
-					int len;
-					while ((len = zipInputStream.read(buffer)) > 0) {
-							fileOutputStream.write(buffer, 0, len);
+					String targetFilename = zipEntry.getName();
+					File newFile = new File( targetPath + File.separator + targetFilename );
+					if ( !newFile.toPath().normalize().startsWith( targetPath ) ) {
+						throw new IOException( "Bad zip entry: " + targetFilename );
 					}
-					fileOutputStream.close();   
+					response.getChildren( "entry" ).get( entryCounter ).setValue( targetFilename );
+					entryCounter++;
+					
+					new File(newFile.getParent()).mkdirs();
+					try ( FileOutputStream fileOutputStream = new FileOutputStream(newFile) ) {
+						int len;
+						while ((len = zipInputStream.read(buffer)) > 0) {
+							fileOutputStream.write(buffer, 0, len);
+						}
+					}
 				}
+				zipInputStream.closeEntry();
 				zipEntry = zipInputStream.getNextEntry();				
 			}
 			zipInputStream.closeEntry();
-			zipInputStream.close();
-		} catch( FileNotFoundException ex ) {
-			throw new FaultException("FileNotFound");
-		} catch( IOException ex ) {
-			throw new FaultException("IOException");
+		} catch( FileNotFoundException e ) {
+			throw new FaultException( "FileNotFound", e );
+		} catch( IOException e ) {
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		}
 		return response;
 	}
