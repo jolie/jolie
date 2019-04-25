@@ -519,7 +519,7 @@ public class WSDLDocCreator {
             soapBinding.setStyle("document");
             bind.addExtensibilityElement(soapBinding);
         } catch (WSDLException ex) {
-            System.out.println((ex.getStackTrace()));
+			System.err.println( ex.getMessage() );
         }
         def.addBinding(bind);
 
