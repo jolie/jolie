@@ -59,11 +59,13 @@ public class ConsoleService extends JavaService
 		@Override
 		public void run()
 		{
-			try( BufferedReader stdin
+			try(
+				FileInputStream fis = new FileInputStream( FileDescriptor.in );
+				BufferedReader stdin
 				= new BufferedReader(
 					new InputStreamReader(
 						Channels.newInputStream(
-							(new FileInputStream( FileDescriptor.in )).getChannel() ) ) ) )
+							fis.getChannel() ) ) ) )
 			{
 				String line;
 				while( keepRun ) {
