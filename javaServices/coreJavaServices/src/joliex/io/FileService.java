@@ -94,9 +94,11 @@ public class FileService extends JavaService
 	private FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
 
 	public FileService()
+		throws ParserConfigurationException
 	{
 		super();
 		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
+		documentBuilderFactory.setFeature( "http://apache.org/xml/features/disallow-doctype-decl", true );
 	}
 
 	@RequestResponse
@@ -171,8 +173,11 @@ public class FileService extends JavaService
 				src.setEncoding( charset.name() );
 			}
 			Document doc = builder.parse( src );
-			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.documentToValue( doc, value, skipMixedElement );
+			jolie.xml.XmlUtils.documentToValue(
+				doc,
+				value.getFirstChild( doc.getDocumentElement().getNodeName() ),
+				skipMixedElement
+			);
 		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
