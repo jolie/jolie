@@ -34,6 +34,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
@@ -563,11 +564,11 @@ public class FileService extends JavaService
 	private static void writeText( File file, Value value, boolean append, String encoding )
 		throws IOException
 	{
-		try ( OutputStreamWriter writer = 
-			(encoding != null)
-			? new OutputStreamWriter( new FileOutputStream( file, append ), encoding )
-			: new FileWriter( file, append )
-		) {
+		try( OutputStream fos = new FileOutputStream( file, append ) ) {
+			OutputStreamWriter writer =
+				(encoding != null)
+				? new OutputStreamWriter( fos, encoding )
+				: new OutputStreamWriter( fos );
 			writer.write( value.strValue() );
 			writer.flush();
 		}
@@ -579,11 +580,8 @@ public class FileService extends JavaService
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 
-		try ( OutputStreamWriter writer = 
-			(encoding != null)
-			? new OutputStreamWriter( new FileOutputStream( file, append ), encoding )
-			: new OutputStreamWriter( new FileOutputStream( file, append ), "UTF-8" );
-		) {
+		try( OutputStream fos = new FileOutputStream( file, append ) ) {
+			OutputStreamWriter writer = new OutputStreamWriter( fos, encoding != null ? encoding : "UTF-8" );
 			writer.write( json.toString() );
 			writer.flush();
 		}
