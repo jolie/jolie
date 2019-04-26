@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map.Entry;
@@ -99,10 +100,12 @@ public class ZipUtils extends JavaService
 		}
 		
 		Value response = Value.create();
-		try( ZipInputStream zIStream =
-			( request.hasChildren( "filename" ) )
-			? new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) )
-			: new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) )
+		try(
+			InputStream is =
+				( request.hasChildren( "filename" ) )
+				? new FileInputStream( request.getFirstChild( "filename" ).strValue() )
+				: new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() );
+			ZipInputStream zIStream = new ZipInputStream( is )
 		) {
 			ZipEntry zipEntry = zIStream.getNextEntry();
 			int count = 0;
@@ -149,7 +152,10 @@ public class ZipUtils extends JavaService
 		Value response = Value.create();
 		
 		byte[] buffer = new byte[ BUFFER_SIZE ];
-		try( ZipInputStream zipInputStream = new ZipInputStream( new FileInputStream( filename ) ) ) {
+		try(
+			FileInputStream fis = new FileInputStream( filename );
+			ZipInputStream zipInputStream = new ZipInputStream( fis )
+		) {
 			ZipEntry zipEntry = zipInputStream.getNextEntry();
 			int entryCounter = 0;
 			while( zipEntry != null ) {
