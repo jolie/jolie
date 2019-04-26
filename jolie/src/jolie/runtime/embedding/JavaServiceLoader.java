@@ -22,6 +22,7 @@
 
 package jolie.runtime.embedding;
 
+import java.lang.reflect.InvocationTargetException;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.runtime.JavaService;
@@ -41,13 +42,14 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 		this.servicePath = servicePath;
 	}
 
+	@Override
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
 		try {
 			final JolieClassLoader cl = interpreter.getClassLoader();
 			final Class<?> c = cl.loadClass( servicePath );
-			final Object obj = c.newInstance();
+			final Object obj = c.getDeclaredConstructor().newInstance();
 			if ( !(obj instanceof JavaService) ) {
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
 			}
@@ -60,7 +62,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 				"Java Service Loader",
 				c.getCanonicalName()
 			) );
-		} catch( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
+		} catch( InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}
 	}

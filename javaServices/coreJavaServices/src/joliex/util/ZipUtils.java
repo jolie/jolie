@@ -52,20 +52,20 @@ public class ZipUtils extends JavaService
 	public Value readEntry( Value request )
 		throws FaultException
 	{
+		if ( !request.hasChildren( "filename" ) && !request.hasChildren( "archive" ) ) {
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, "missing filename or archive" );
+		}
+		
 		Value response = Value.create();
 		String entryName = request.getFirstChild( "entry" ).strValue();
-		try {
-			ZipInputStream zIStream = null;
-			if ( request.getChildren( "filename" ).size() > 0 ) {
-				zIStream = new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) );
-			} else if ( request.getChildren( "archive" ).size() > 0 ) {
-				zIStream = new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) );
-			}
-			
-			
-			ZipEntry zipEntry = null;
+
+		try( ZipInputStream zIStream =
+			( request.hasChildren( "filename" ) )
+			? new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) )
+			: new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) )
+		) {	
 			boolean found = false;
-			zipEntry = zIStream.getNextEntry();
+			ZipEntry zipEntry = zIStream.getNextEntry();
 			while ( zipEntry != null && !found ) {
 				if ( zipEntry.getName().equals( entryName ) ) {
 					found = true;
@@ -94,18 +94,16 @@ public class ZipUtils extends JavaService
 	public Value listEntries( Value request )
 		throws FaultException
 	{
+		if ( !request.hasChildren( "filename" ) && !request.hasChildren( "archive" ) ) {
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, "missing filename or archive" );
+		}
+		
 		Value response = Value.create();
-		try {
-			ZipInputStream zIStream;
-			if ( request.hasChildren( "filename" ) ) {
-				zIStream = new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) );
-			} else if ( request.hasChildren( "archive" ) ) {
-				zIStream = new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) );
-			} else {
-				throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, "missing filename or archive" );
-			}
-			
-			
+		try( ZipInputStream zIStream =
+			( request.hasChildren( "filename" ) )
+			? new ZipInputStream( new FileInputStream( request.getFirstChild( "filename" ).strValue() ) )
+			: new ZipInputStream( new ByteArrayInputStream( request.getFirstChild( "archive").byteArrayValue().getBytes() ) )
+		) {
 			ZipEntry zipEntry = zIStream.getNextEntry();
 			int count = 0;
 			while ( zipEntry != null ) {
