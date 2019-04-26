@@ -130,9 +130,10 @@ public class WSDLDocCreator
 
 		initWsdl( null, filename );
 		
-		try( Writer fw =  new BufferedWriter(
-			filename != null ? new FileWriter( filename ) : new OutputStreamWriter( System.out )
-		) ) {
+		try(
+			Writer w = (filename != null) ? new FileWriter( filename ) : new OutputStreamWriter( System.out );
+			Writer fw =  new BufferedWriter( w )
+		) {
 			schemaDocument = this.createDOMdocument();
 			schemaRootElement = this.createSchemaRootElement( schemaDocument );
 
