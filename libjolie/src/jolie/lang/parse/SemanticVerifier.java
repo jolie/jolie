@@ -1204,11 +1204,13 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( CourierDefinitionNode n )
 	{
-		if ( inputPorts.containsKey( n.inputPortName() ) == false ) {
-			error( n, "undefined input port: " + n.inputPortName() );
-		}
-		
 		courierInputPort = inputPorts.get( n.inputPortName() );
+		
+		if ( courierInputPort == null ) {
+			error( n, "undefined input port: " + n.inputPortName() );
+			return;
+		}		
+		
 		verify( n.body() );
 		courierInputPort = null;
 	}
