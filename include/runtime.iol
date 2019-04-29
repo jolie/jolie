@@ -46,6 +46,8 @@ type RuntimeExceptionType:JavaExceptionType
 type SetOutputPortRequest:void {
 	.name:string //< The name of the output port
 	.location:any //< The location of the output port
+	.otherBranch: any	//< an insightful comment on a type node  
+	{ ? }
 	/// The protocol configuration of the output port
 	.protocol?:string //< The name of the protocol (e.g., sodep, http)
 		{ ? }

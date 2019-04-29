@@ -601,12 +601,13 @@ public class Scanner
 			if ( currInt == -1 && retval == null ) {
 				keepRun = false; // We *need* a token at this point
 			}
+//			System.out.println( ch );
 			switch( state ) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
 				 * specific character (==) check.
 				 */
-
+			
 				case FIRST_CHARACTER:	// First character
 					if ( Character.isLetter( ch ) || ch == '_' ) {
 						state = States.ID;
@@ -880,6 +881,11 @@ public class Scanner
 					break;
 				case LINE_COMMENT: // LINE_COMMENT: waiting for end of line
 					if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
+						if( isNewLineChar( ch ) ) {
+//							System.out.println( "closing comment, new line" );
+						} else {
+//							System.out.println( "closing comment, overflow" );
+						}
 						readChar();
 						retval = getToken();
 					}
