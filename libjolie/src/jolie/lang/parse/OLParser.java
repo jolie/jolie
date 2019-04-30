@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -761,47 +762,69 @@ public class OLParser extends AbstractParser
 		}
 		return portInfo;
 	}
+	
+	private Optional< Scanner.Token > parseForwardDocumentation()
+		throws IOException
+	{
+		Scanner.Token docToken = null;
+		while( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
+			docToken = token;
+			getToken();
+		}
+		return Optional.ofNullable( docToken );
+	}
+	
+	private Optional< Scanner.Token > parseBackwardDocumentation()
+		throws IOException
+	{
+		Scanner.Token docToken = null;
+		while( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD ) ) {
+			docToken = token;
+			getToken();
+		}
+		return Optional.ofNullable( docToken );
+	}
 
+	private void parseBackwardAndSetDocumentation( DocumentedNode node, Optional< Scanner.Token > forwardDocToken )
+		throws IOException
+	{
+		if ( node != null ) {
+			parseBackwardDocumentation().ifPresentOrElse(
+				doc -> node.setDocumentation( doc.content() ),
+				() -> node.setDocumentation(
+					(forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) )).content()
+				)
+			);
+		} else {
+			forwardDocToken.ifPresent( this::addToken );
+			addToken( token );
+			getToken();
+		}
+	}
+	
 	private void parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" );
-		boolean keepRun = true;
-		DocumentedNode node = null;
-		boolean haveDocumentation = false;
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
-				haveDocumentation = true;
-				commentToken = token;
+		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
+		
+		final DocumentedNode node;
+		if ( token.isKeyword( "interface" ) ) {
+			getToken();
+			if ( token.isKeyword( "extender") ) {
 				getToken();
-			} else if ( token.isKeyword( "interface" ) ) {
-				getToken();
-				if ( token.isKeyword( "extender") ) {
-					getToken();
-					node = parseInterfaceExtender();
-				} else {
-					node = parseInterface();
-				}
-			} else if ( token.isKeyword( "inputPort" ) ) {
-				node = parsePort();
-			} else if ( token.isKeyword( "outputPort" ) ) {
-				node = parsePort();
+				node = parseInterfaceExtender();
 			} else {
-				keepRun = false;
-				
-				if ( haveDocumentation ) {
-					addToken( commentToken );
-					addToken( token );
-					getToken();
-				}
+				node = parseInterface();
 			}
-			
-			if ( haveDocumentation && node != null ) {
-				node.setDocumentation( commentToken.content() );
-				haveDocumentation = false;
-				node = null;
-			}
+		} else if ( token.isKeyword( "inputPort" ) ) {
+			node = parsePort();
+		} else if ( token.isKeyword( "outputPort" ) ) {
+			node = parsePort();
+		} else {
+			node = null;
 		}
+		
+		parseBackwardAndSetDocumentation( node, forwardDocToken );
     }
 
     private OutputPortInfo createInternalServicePort( String name, List< InterfaceDefinition> interfaceList )
