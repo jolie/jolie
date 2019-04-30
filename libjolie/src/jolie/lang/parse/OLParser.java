@@ -227,11 +227,11 @@ public class OLParser extends AbstractParser
 	private void parseTypes()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
+		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" );
 		boolean keepRun = true;
 		boolean haveComment = false;
 		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				haveComment = true;
 				commentToken = token;
 				getToken();
@@ -765,12 +765,12 @@ public class OLParser extends AbstractParser
 	private void parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
+		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" );
 		boolean keepRun = true;
 		DocumentedNode node = null;
 		boolean haveDocumentation = false;
 		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				haveDocumentation = true;
 				commentToken = token;
 				getToken();
@@ -1275,7 +1275,7 @@ public class OLParser extends AbstractParser
 		String opId;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is(Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
@@ -1330,7 +1330,7 @@ public class OLParser extends AbstractParser
 		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is(Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
