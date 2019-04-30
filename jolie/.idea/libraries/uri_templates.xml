@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="uri-templates">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../lib/uri-templates/uri-templates.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

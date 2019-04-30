@@ -175,8 +175,6 @@ public class HttpParser
 			message = new HttpMessage( HttpMessage.Type.PUT );
 		} else if ( token.isKeyword( OPTIONS ) ) {
 			message = new HttpMessage( HttpMessage.Type.OPTIONS );
-		} else if ( token.isKeywordLSP( LSP ) ) {
-                        message = new HttpMessage( HttpMessage.Type.LSP );
                 }  else if ( token.is( Scanner.TokenType.EOF ) ) {
 			throw new ChannelClosingException( "[http] Remote host closed connection." ); // It's not a real message, the client is just closing a connection.
 		} else {

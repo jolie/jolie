@@ -1,0 +1,38 @@
+This file provides a list of the contributors to the JOLIE project.
+Fields are: name (N), email (E), web address (W), description (D).
+
+---
+
+N: Fabrizio Montesi
+E: famontesi@gmail.com
+E: fmontesi@italianasoftware.com
+W: http://www.jolie-lang.org/
+D: Creator and maintainer. Project lead.
+
+N: Claudio Guidi
+E: cguidi@italianasoftware.com
+W: http://www.cs.unibo.it/~cguidi/
+D: Language engineer, theoretical researcher, official JOLIE evangelist.
+D: Creator of SOCK, the theoretical orchestration calculus behind JOLIE.
+
+N: Elvis Ciotti
+D: Message types developer.
+
+N: Roberto La Maestra
+D: HTTPS protocol developer.
+
+N: Mauro Silvagni
+E: silvagni@csr.unibo.it
+D: HTTP/SOAP protocol integration developer.
+
+N: Valentina Tronconi
+E: vally.tratto@libero.it
+D: WSDL integration developer.
+D: JOLIE to WS-BPEL translator developer.
+
+---
+
+Sponsors:
+
+2006-2007-2008: University of Bologna - EU Integrated Project Sensoria, contract n. 016004.
+2008-today: italianaSoftware s.r.l. http://www.italianasoftware.com/
