@@ -300,8 +300,4 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	{
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}
-        private String convertStreamToString(InputStream is) {
-                java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-                return s.hasNext() ? s.next() : "";
-        }
 }

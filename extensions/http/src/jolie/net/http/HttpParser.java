@@ -51,7 +51,6 @@ public class HttpParser
 	private static final String CONNECT = "CONNECT";
 	private static final String OPTIONS = "OPTIONS";
 	private static final String PATCH = "PATCH";
-        private static final String LSP = "Content-Length";
 
 	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
 	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
@@ -178,7 +177,7 @@ public class HttpParser
                 }  else if ( token.is( Scanner.TokenType.EOF ) ) {
 			throw new ChannelClosingException( "[http] Remote host closed connection." ); // It's not a real message, the client is just closing a connection.
 		} else {
-			throw new UnsupportedMethodException( "Unknown/Unsupported HTTP request type bla bla: "
+			throw new UnsupportedMethodException( "Unknown/Unsupported HTTP request type: "
 				+ token.content() + "(" + token.type() + ")" );
 		}
 
