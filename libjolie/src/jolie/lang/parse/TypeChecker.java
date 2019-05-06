@@ -368,7 +368,7 @@ public class TypeChecker implements OLVisitor
 		typingResult = definitionTyping.get( "init" );
 		for( VariablePathNode path : right.providedCorrPaths ) {
 			if ( typingResult.providedCorrPaths.contains( path ) ) {
-				error( path, "Correlation variables can not be defined more than one time." );
+				error( path, "Correlation variables cannot be defined more than one time." );
 			} else {
 				typingResult.provide( path );
 			}
