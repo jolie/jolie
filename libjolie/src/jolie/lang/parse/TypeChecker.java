@@ -314,7 +314,7 @@ public class TypeChecker implements OLVisitor
 		check( program, new TypingResult() );
 		typingResult = definitionTyping.get( "main" );
 		if ( typingResult == null ) {
-			error( program, "Can not find the main entry point" );
+			error( program, "Cannot find the main entry point" );
 		} else {
 			checkMainTyping();
 		}
