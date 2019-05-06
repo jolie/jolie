@@ -789,12 +789,25 @@ public class OLParser extends AbstractParser
 		throws IOException
 	{
 		if ( node != null ) {
+			// <Java 8>
+			Optional< Scanner.Token > backwardDoc = parseBackwardDocumentation();
+			if ( backwardDoc.isPresent() ) {
+				node.setDocumentation( backwardDoc.get().content() );
+			} else {
+				node.setDocumentation(
+					forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) ).content()
+				);
+			}
+			// </Java 8>
+			
+			/* Java 9 version of the above
 			parseBackwardDocumentation().ifPresentOrElse(
 				doc -> node.setDocumentation( doc.content() ),
 				() -> node.setDocumentation(
 					(forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) )).content()
 				)
 			);
+			*/
 		} else {
 			forwardDocToken.ifPresent( this::addToken );
 			addToken( token );
