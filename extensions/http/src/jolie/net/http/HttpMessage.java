@@ -29,7 +29,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 
-public class HttpMessage
+
+public class HttpMessage 
 {
 	public enum Type {
 		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, UNSUPPORTED, ERROR
