@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>jolie</groupId>
-    <artifactId>libjolie</artifactId>
+    <artifactId>jolie</artifactId>
     <version>1.8.0</version>
     <packaging>jar</packaging>
     <properties>
@@ -10,6 +10,13 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-    <name>libjolie</name>
-    <description>The basic library used for Jolie code parsing and analysis.</description>
+    <name>jolie</name>
+    <description>The Jolie interpreter and runtime library.</description>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>libjolie</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
