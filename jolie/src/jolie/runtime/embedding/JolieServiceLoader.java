@@ -23,6 +23,7 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
@@ -54,6 +55,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		);
 	}
 
+	@Override
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
@@ -65,7 +67,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}
-		} catch( Exception e ) {
+		} catch( InterruptedException | ExecutionException | EmbeddedServiceLoadingException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}
 	}

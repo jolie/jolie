@@ -327,9 +327,13 @@ public class VariablePath implements Expression
 	
 	public final void makePointer( VariablePath rightPath )
 	{
+		makePointer( getRootValue(), rightPath );
+	}
+	
+	public final void makePointer( Value currValue, VariablePath rightPath )
+	{
 		Pair< Expression, Expression > pair;
 		ValueVector currVector;
-		Value currValue = getRootValue();
 		int index;
 		String keyStr;
 

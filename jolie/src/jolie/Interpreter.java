@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie;
 
@@ -44,6 +42,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,6 +54,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -104,16 +105,18 @@ import jolie.tracer.Tracer;
  */
 public class Interpreter
 {
-    private class InitSessionThread extends SessionThread
+    private final class InitSessionThread extends SessionThread
 	{
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
 		{
 			super( interpreter, process );
 			addSessionListener( new SessionListener() {
+				@Override
 				public void onSessionExecuted( SessionThread session )
 				{
 					onSuccessfulInitExecution();
 				}
+				@Override
 				public void onSessionError( SessionThread session, FaultException fault )
 				{
 					exit();
@@ -161,6 +164,7 @@ public class Interpreter
 					}
 				}
 
+				@Override
 				public void run()
 				{
 					for( Deque< SessionMessage > queue : messageQueues.values() ) {
@@ -184,6 +188,8 @@ public class Interpreter
 		{
 			this.interpreter = interpreter;
 		}
+		
+		@Override
 		public Thread newThread( Runnable r )
 		{
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
@@ -202,6 +208,7 @@ public class Interpreter
 			this.interpreter = interpreter;
 		}
 		
+		@Override
 		public Thread newThread( Runnable r )
 		{
 			return new NativeJolieThread( interpreter, r );
@@ -241,6 +248,7 @@ public class Interpreter
 		}
 	}
 
+	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
 	private CommCore commCore;
 	private CommandLineParser cmdParser;
@@ -258,7 +266,6 @@ public class Interpreter
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
 	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
-	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 	
 	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
 	private final Map< String, OutputPort > outputPorts = new HashMap<>();
@@ -271,11 +278,13 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
+	private final boolean printStackTraces;
 	private boolean check = false;
 	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
+	private final long responseTimeout;
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
@@ -326,9 +335,9 @@ public class Interpreter
 				channel.send( m );
 				CommMessage response;
 				do {
-					response = channel.recvResponseFor( m );
+					response = channel.recvResponseFor( m ).get();
 				} while( response == null );
-			} catch( URISyntaxException | IOException e ) {
+			} catch( URISyntaxException | InterruptedException | ExecutionException | IOException e ) {
 				logWarning( e );
 			} finally {
 				if ( channel != null ) {
@@ -345,6 +354,11 @@ public class Interpreter
 	public long persistentConnectionTimeout()
 	{
 		return persistentConnectionTimeout;
+	}
+	
+	public long responseTimeout()
+	{
+		return responseTimeout;
 	}
 
 	public CorrelationEngine correlationEngine()
@@ -370,9 +384,10 @@ public class Interpreter
 	public void addTimeoutHandler( TimeoutHandler handler )
 	{
 		synchronized( timeoutHandlerQueue ) {
-			timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
+			timeoutHandlerQueue.add( new WeakReference<>( handler ) );
 			if ( timeoutHandlerQueue.size() == 1 ) {
 				schedule( new TimerTask() {
+					@Override
 					public void run()
 					{
 						synchronized( timeoutHandlerQueue ) {
@@ -643,7 +658,7 @@ public class Interpreter
 		processExecutorService.shutdown();
 		nativeExecutorService.shutdown();
 		timeoutHandlerExecutor.shutdown();
-		commCore.shutdown();
+		commCore.shutdown( terminationTimeout );
 		try {
 			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
@@ -676,11 +691,16 @@ public class Interpreter
 	{
 		StringWriter writer = new StringWriter();
 		try {
-			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() + "\nContent" ).run();
+			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() + "\nContent (if any)" ).run();
 			logInfo( writer.toString() );
 		} catch( IOException e ) {
 			logInfo( "Thrown unhandled fault: " + fault.faultName() );
 		}
+	}
+	
+	private String buildLogMessage( String message )
+	{
+		return logPrefix + message;
 	}
 
 	/**
@@ -689,7 +709,7 @@ public class Interpreter
 	 */
 	public void logInfo( String message )
 	{
-		logger.info( logPrefix + message );
+		logger.log( buildLogRecord( Level.INFO, buildLogMessage( message ) ) );
 	}
 	
 	/**
@@ -698,7 +718,27 @@ public class Interpreter
 	 */
 	public void logFine( String message )
 	{
-		logger.fine( logPrefix + message );
+		logger.log( buildLogRecord( Level.FINE, buildLogMessage( message ) ) );
+	}
+	
+	private String buildLogMessage( Throwable t )
+	{
+		String ret;
+		if ( printStackTraces ) {
+			ByteArrayOutputStream bs = new ByteArrayOutputStream();
+			t.printStackTrace( new PrintStream( bs ) );
+			ret = bs.toString();
+		} else {
+			ret = t.getMessage();
+		}
+		return ret;
+	}
+	
+	private LogRecord buildLogRecord( Level level, String message )
+	{
+		LogRecord record = new LogRecord( level, message );
+		record.setSourceClassName( programFilename );
+		return record;
 	}
 	
 	/**
@@ -707,9 +747,7 @@ public class Interpreter
 	 */
 	public void logFine( Throwable t )
 	{
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		logger.fine( logPrefix + bs.toString() );
+		logger.log( buildLogRecord( Level.FINE, buildLogMessage( t ) ) );
 	}
 
 	/**
@@ -718,7 +756,7 @@ public class Interpreter
 	 */
 	public void logSevere( String message )
 	{
-		logger.severe( logPrefix + message );
+		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( message ) ) );
 	}
 
 	/**
@@ -727,7 +765,7 @@ public class Interpreter
 	 */
 	public void logWarning( String message )
 	{
-		logger.warning( logPrefix + message );
+		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( message ) ) );
 	}
 
 	/**
@@ -737,9 +775,7 @@ public class Interpreter
 	 */
 	public void logSevere( Throwable t )
 	{
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		logger.severe( logPrefix + bs.toString() );
+		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( t ) ) );
 	}
 
 	/**
@@ -749,9 +785,7 @@ public class Interpreter
 	 */
 	public void logWarning( Throwable t )
 	{
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		logger.warning( logPrefix + bs.toString() );
+		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( t ) ) );
 	}
 	
 	/**
@@ -856,6 +890,9 @@ public class Interpreter
 		optionArgs = cmdParser.optionArgs();
 		programFilename = cmdParser.programFilepath().getName();
 		arguments = cmdParser.arguments();
+		printStackTraces = cmdParser.printStackTraces();
+		
+		responseTimeout = cmdParser.responseTimeout();
         
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
 		
@@ -894,6 +931,7 @@ public class Interpreter
 	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @param parentInterpreter
 	 * @param internalServiceProgram
 	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
@@ -989,11 +1027,13 @@ public class Interpreter
 		private final CountDownLatch cl = new CountDownLatch( 1 );
 		private Exception result;
 
+		@Override
 		public boolean cancel( boolean mayInterruptIfRunning )
 		{
 			return false;
 		}
 		
+		@Override
 		public Exception get( long timeout, TimeUnit unit )
 			throws InterruptedException, TimeoutException
 		{
@@ -1003,6 +1043,7 @@ public class Interpreter
 			return result;
 		}
 		
+		@Override
 		public Exception get()
 			throws InterruptedException
 		{
@@ -1010,11 +1051,13 @@ public class Interpreter
 			return result;
 		}
 		
+		@Override
 		public boolean isCancelled()
 		{
 			return false;
 		}
 		
+		@Override
 		public boolean isDone()
 		{
 			return cl.getCount() == 0;
@@ -1051,7 +1094,7 @@ public class Interpreter
              * 2 - initExec must be instantiated before we can receive communications.
              */
             if ( buildOOIT() == false && !check ) {
-                throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
+                throw new InterpreterException( "Error: service initialisation failed" );
             }
             if ( check ){
                 exit();
@@ -1234,12 +1277,13 @@ public class Interpreter
 		try {
 			Program program;
 			if ( cmdParser.isProgramCompiled() ) {
-				final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
-				final Object o = istream.readObject();
-				if ( o instanceof Program ) {
-					program = (Program)o;
-				} else {
-					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
+				try ( final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() ) ) {
+					final Object o = istream.readObject();
+					if ( o instanceof Program ) {
+						program = (Program)o;
+					} else {
+						throw new InterpreterException( "Input compiled program is not a JOLIE program" );
+					}
 				}
 			} else {
 				if ( this.internalServiceProgram != null ) {

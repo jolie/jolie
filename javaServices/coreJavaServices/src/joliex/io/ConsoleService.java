@@ -59,18 +59,20 @@ public class ConsoleService extends JavaService
 		@Override
 		public void run()
 		{
-			BufferedReader stdin
+			try(
+				FileInputStream fis = new FileInputStream( FileDescriptor.in );
+				BufferedReader stdin
 				= new BufferedReader(
 					new InputStreamReader(
 						Channels.newInputStream(
-							(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );
-			try {
+							fis.getChannel() ) ) ) )
+			{
 				String line;
 				while( keepRun ) {
 					line = stdin.readLine();
 
 					if ( sessionListeners ) {
-						Iterator it = sessionTokens.keySet().iterator();
+						Iterator< String > it = sessionTokens.keySet().iterator();
 
 						while( it.hasNext() ) {
 							Value v = Value.create();
@@ -83,14 +85,8 @@ public class ConsoleService extends JavaService
 					}
 				}
 			} catch( ClosedByInterruptException ce ) {
-			} catch( Exception e ) {
-				e.printStackTrace();
-			} finally {
-				try {
-					stdin.close();
-				} catch( IOException e ) {
-					interpreter().logWarning( e );
-				}
+			} catch( IOException e ) {
+				interpreter().logWarning( e );
 			}
 		}
 	}

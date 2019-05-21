@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2016 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -227,11 +228,11 @@ public class OLParser extends AbstractParser
 	private void parseTypes()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
+		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" );
 		boolean keepRun = true;
 		boolean haveComment = false;
 		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				haveComment = true;
 				commentToken = token;
 				getToken();
@@ -242,7 +243,12 @@ public class OLParser extends AbstractParser
 				getToken();
 				typeName = token.content();
 				eat( Scanner.TokenType.ID, "expected type name" );
-				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
+				if ( token.is( Scanner.TokenType.COLON ) ) {
+					getToken();
+				} else {
+					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+					getToken();
+				}
 
 				currentType = parseType( typeName );
 				typeName = currentType.id();
@@ -298,7 +304,7 @@ public class OLParser extends AbstractParser
 		} else {
 			TypeDefinition currentSubType;
 			while( !token.is( Scanner.TokenType.RCURLY ) ) {
-				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
+				maybeEat( Scanner.TokenType.DOT );
 
 				// SubType id
 				String id = token.content();
@@ -309,9 +315,14 @@ public class OLParser extends AbstractParser
 				}
 				
 				Range cardinality = parseCardinality();
-				eat( Scanner.TokenType.COLON, "expected COLON" );
+				if ( token.is( Scanner.TokenType.COLON ) ) {
+					getToken();
+				} else {
+					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+					getToken();
+				}
 
-				currentSubType = parseSubType(id, cardinality);
+				currentSubType = parseSubType( id, cardinality );
 				if ( type.hasSubType( currentSubType.id() ) ) {
 					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
 				}
@@ -751,47 +762,82 @@ public class OLParser extends AbstractParser
 		}
 		return portInfo;
 	}
+	
+	private Optional< Scanner.Token > parseForwardDocumentation()
+		throws IOException
+	{
+		Scanner.Token docToken = null;
+		while( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
+			docToken = token;
+			getToken();
+		}
+		return Optional.ofNullable( docToken );
+	}
+	
+	private Optional< Scanner.Token > parseBackwardDocumentation()
+		throws IOException
+	{
+		Scanner.Token docToken = null;
+		while( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD ) ) {
+			docToken = token;
+			getToken();
+		}
+		return Optional.ofNullable( docToken );
+	}
 
+	private void parseBackwardAndSetDocumentation( DocumentedNode node, Optional< Scanner.Token > forwardDocToken )
+		throws IOException
+	{
+		if ( node != null ) {
+			// <Java 8>
+			Optional< Scanner.Token > backwardDoc = parseBackwardDocumentation();
+			if ( backwardDoc.isPresent() ) {
+				node.setDocumentation( backwardDoc.get().content() );
+			} else {
+				node.setDocumentation(
+					forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) ).content()
+				);
+			}
+			// </Java 8>
+			
+			/* Java 9 version of the above
+			parseBackwardDocumentation().ifPresentOrElse(
+				doc -> node.setDocumentation( doc.content() ),
+				() -> node.setDocumentation(
+					(forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) )).content()
+				)
+			);
+			*/
+		} else {
+			forwardDocToken.ifPresent( this::addToken );
+			addToken( token );
+			getToken();
+		}
+	}
+	
 	private void parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
-		boolean keepRun = true;
-		DocumentedNode node = null;
-		boolean haveDocumentation = false;
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				haveDocumentation = true;
-				commentToken = token;
+		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
+		
+		final DocumentedNode node;
+		if ( token.isKeyword( "interface" ) ) {
+			getToken();
+			if ( token.isKeyword( "extender") ) {
 				getToken();
-			} else if ( token.isKeyword( "interface" ) ) {
-				getToken();
-				if ( token.isKeyword( "extender") ) {
-					getToken();
-					node = parseInterfaceExtender();
-				} else {
-					node = parseInterface();
-				}
-			} else if ( token.isKeyword( "inputPort" ) ) {
-				node = parsePort();
-			} else if ( token.isKeyword( "outputPort" ) ) {
-				node = parsePort();
+				node = parseInterfaceExtender();
 			} else {
-				keepRun = false;
-				
-				if ( haveDocumentation ) {
-					addToken( commentToken );
-					addToken( token );
-					getToken();
-				}
+				node = parseInterface();
 			}
-			
-			if ( haveDocumentation && node != null ) {
-				node.setDocumentation( commentToken.content() );
-				haveDocumentation = false;
-				node = null;
-			}
+		} else if ( token.isKeyword( "inputPort" ) ) {
+			node = parsePort();
+		} else if ( token.isKeyword( "outputPort" ) ) {
+			node = parsePort();
+		} else {
+			node = null;
 		}
+		
+		parseBackwardAndSetDocumentation( node, forwardDocToken );
     }
 
     private OutputPortInfo createInternalServicePort( String name, List< InterfaceDefinition> interfaceList )
@@ -916,10 +962,7 @@ public class OLParser extends AbstractParser
 		for( OLSyntaxNode child : program.children() ) {
 			if ( child instanceof InterfaceDefinition
 				|| child instanceof OutputPortInfo
-				|| child instanceof TypeDefinition
-				|| child instanceof TypeInlineDefinition
-				|| child instanceof TypeDefinitionLink
-				|| child instanceof TypeDefinitionUndefined ) {
+				|| child instanceof TypeDefinition ) {
 				internalServiceProgram.addChild( child );
 			}
 		}
@@ -974,12 +1017,12 @@ public class OLParser extends AbstractParser
 				parseOneWayOperations( iface );
 			} else if ( token.is( Scanner.TokenType.OP_RR ) ) {
 				parseRequestResponseOperations( iface );
-			} else if ( token.isKeyword( "Location" ) ) {
+			} else if ( token.isKeyword( "location" ) || token.isKeyword( "Location" ) ) {
 				if ( inputPortLocation != null ) {
 					throwException( "Location already defined for service " + inputPortName );
 				}
 				getToken();
-				eat( Scanner.TokenType.COLON, "expected : after Location" );
+				eat( Scanner.TokenType.COLON, "expected : after location" );
 				checkConstant();
 				assertToken( Scanner.TokenType.STRING, "expected inputPort location string" );
 				try {
@@ -988,9 +1031,9 @@ public class OLParser extends AbstractParser
 					throwException( e );
 				}
 				getToken();
-			} else if ( token.isKeyword( "Interfaces" ) ) {
+			} else if ( token.isKeyword( "interfaces" ) || token.isKeyword( "Interfaces" ) ) {
 				getToken();
-				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
+				eat( Scanner.TokenType.COLON, "expected : after interfaces" );
                 boolean keepRun = true;
                 while( keepRun ) {
                     assertToken( Scanner.TokenType.ID, "expected interface name" );
@@ -1008,7 +1051,7 @@ public class OLParser extends AbstractParser
                         keepRun = false;
                     }
                 }
-			} else if ( token.isKeyword( "Protocol" ) ) {
+			} else if ( token.isKeyword( "protocol" ) || token.isKeyword( "Protocol" ) ) {
 				if ( protocolId != null ) {
 					throwException( "Protocol already defined for inputPort " + inputPortName );
 				}
@@ -1027,12 +1070,14 @@ public class OLParser extends AbstractParser
 						new Scanner.Token( Scanner.TokenType.ID, inputPortName ),
 						new Scanner.Token( Scanner.TokenType.DOT ),
 						new Scanner.Token( Scanner.TokenType.ID, Constants.PROTOCOL_NODE_NAME ),
+						new Scanner.Token( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ),
 						token ) );
 					// Protocol configuration
 					getToken();
-					protocolConfiguration = parseInVariablePathProcess( false );
+					//protocolConfiguration = parseInVariablePathProcess( false );
+					protocolConfiguration = parseBasicStatement();
 				}
-			} else if ( token.isKeyword( "Redirects" ) ) {
+			} else if ( token.isKeyword( "redirects" ) || token.isKeyword( "Redirects" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected :" );
 				String subLocationName;
@@ -1049,7 +1094,7 @@ public class OLParser extends AbstractParser
 						break;
 					}
 				}
-			} else if ( token.isKeyword( "Aggregates" ) ) {
+			} else if ( token.isKeyword( "aggregates" ) || token.isKeyword( "Aggregates" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected :" );
 				parseAggregationList( aggregationList );
@@ -1184,7 +1229,7 @@ public class OLParser extends AbstractParser
 				parseOneWayOperations( p );
 			} else if ( token.is( Scanner.TokenType.OP_RR ) ) {
 				parseRequestResponseOperations( p );
-			} else if ( token.isKeyword( "Interfaces" ) ) {
+			} else if ( token.isKeyword( "interfaces" ) || token.isKeyword( "Interfaces" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
 				boolean r = true;
@@ -1204,7 +1249,7 @@ public class OLParser extends AbstractParser
 						r = false;
 					}
 				}
-			} else if ( token.isKeyword( "Location" ) ) {
+			} else if ( token.isKeyword( "location" ) || token.isKeyword( "Location" ) ) {
 				if ( p.location() != null ) {
 					throwException( "Location already defined for output port " + p.id() );
 				}
@@ -1223,7 +1268,7 @@ public class OLParser extends AbstractParser
 
 				p.setLocation( location );
 				getToken();
-			} else if ( token.isKeyword( "Protocol" ) ) {
+			} else if ( token.isKeyword( "protocol" ) || token.isKeyword( "Protocol" ) ) {
 				if ( p.protocolId() != null ) {
 					throwException( "Protocol already defined for output port " + p.id() );
 				}
@@ -1241,10 +1286,11 @@ public class OLParser extends AbstractParser
 						new Scanner.Token( Scanner.TokenType.ID, p.id() ),
 						new Scanner.Token( Scanner.TokenType.DOT ),
 						new Scanner.Token( Scanner.TokenType.ID, "protocol" ),
+						new Scanner.Token( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ),
 						token ) );
 					// Protocol configuration
 					getToken();
-					p.setProtocolConfiguration( parseInVariablePathProcess( false ) );
+					p.setProtocolConfiguration( parseBasicStatement() );
 				}
 			} else {
 				keepRun = false;
@@ -1265,7 +1311,7 @@ public class OLParser extends AbstractParser
 		String opId;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is(Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
@@ -1320,7 +1366,7 @@ public class OLParser extends AbstractParser
 		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is(Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
@@ -1603,7 +1649,7 @@ public class OLParser extends AbstractParser
 			String id = token.content();
 			getToken();
 			
-			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
+			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
 			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
 				retVal = parseForwardStatement();
@@ -2014,7 +2060,10 @@ public class OLParser extends AbstractParser
 				new PointerStatement( getContext(), path, parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
 			getToken();
-			retVal = new DeepCopyStatement( getContext(), path, parseExpression() );
+			retVal = new DeepCopyStatement( getContext(), path, parseExpression(), false );
+		} else if ( token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) ) {
+			getToken();
+			retVal = new DeepCopyStatement( getContext(), path, parseExpression(), true );
 		} else {
 			throwException( "expected = or -> or << or -- or ++" );
 		}
@@ -2685,31 +2734,46 @@ public class OLParser extends AbstractParser
 	{
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		
-		boolean keepRun = true;
 		VariablePathNode path;
-		OLSyntaxNode expression;
 		
-		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new ArrayList<>();
+		List< InlineTreeExpressionNode.Operation > operations = new ArrayList<>();
 		
-		while( keepRun ) {
-			eat( Scanner.TokenType.DOT, "expected ." );
+		while( !token.is( Scanner.TokenType.RCURLY ) ) {
+			maybeEat( Scanner.TokenType.DOT );
 			
 			path = parseVariablePath();
-			eat( Scanner.TokenType.ASSIGN, "expected =" );
-			expression = parseExpression();
 			
-			assignments.add( new Pair<>( path, expression ) );
-			
-			if ( token.is( Scanner.TokenType.COMMA ) ) {
+			InlineTreeExpressionNode.Operation operation = null;
+			switch( token.type() ) {
+			case DEEP_COPY_LEFT:
 				getToken();
-			} else {
-				keepRun = false;
+				operation = new InlineTreeExpressionNode.DeepCopyOperation( path, parseExpression() );
+				break;
+			case ASSIGN:
+				getToken();
+				operation = new InlineTreeExpressionNode.AssignmentOperation( path, parseExpression() );
+				break;
+			case POINTS_TO:
+				getToken();
+				operation = new InlineTreeExpressionNode.PointsToOperation( path, parseVariablePath() );
+				break;
+			default:
+				throwException( "expected =, <<, or ->" );
+				break;
 			}
+			
+			operations.add( operation );
+			
+			maybeEat( Scanner.TokenType.COMMA, Scanner.TokenType.SEQUENCE );
 		}
 		
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 		
-		return new InlineTreeExpressionNode( rootExpression.context(), rootExpression, assignments.toArray( new Pair[0] ) );
+		return new InlineTreeExpressionNode(
+			rootExpression.context(),
+			rootExpression,
+			operations.toArray( new InlineTreeExpressionNode.Operation[0] )
+		);
 	}
 
 	private OLSyntaxNode parseProductExpression()

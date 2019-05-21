@@ -23,6 +23,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutionException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionListener;
@@ -241,10 +242,10 @@ public abstract class AggregatedOperation
 				oChannel = outputPort.getNewCommChannel();
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
 				oChannel.send( requestToAggregated );
-				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
+				final CommMessage response = oChannel.recvResponseFor( requestToAggregated ).get();
 				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
-			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+			} catch( InterruptedException | ExecutionException | IOException e ) {
+				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
 			} finally {
 				if ( oChannel != null ) {
 					oChannel.close();

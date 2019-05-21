@@ -150,10 +150,12 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 
 		List< Process > children = new LinkedList<>();
 		children.add( a );
+		if ( protocolConfigurationProcess != null ) {
+			children.add( protocolConfigurationProcess );
+		}
 		if ( protocolId != null ) {
 			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
 		}
-		children.add( protocolConfigurationProcess );
 		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
 	}
 	

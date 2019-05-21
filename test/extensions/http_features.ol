@@ -24,12 +24,15 @@ include "../AbstractTestUnit.iol"
 
 include "private/http_server.iol"
 
+include "string_utils.iol"
+include "console.iol"
+
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	.method = "post";
-	.addHeader.header[0] -> header;
-	.statusCode -> statusCode
+	method = "post"
+	addHeader.header[0] -> header
+	statusCode -> statusCode
 }
 Interfaces: ServerInterface
 }
@@ -68,7 +71,7 @@ define doTest
 	reqVal = "Döner";
 	statusCode = 0; // important: initialise statusCode, otherwise it does not get set
 
-	header << "Authorization" { .value = "TOP_SECRET" };
+	header << "Authorization" { value = "TOP_SECRET" };
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
 		echoPerson@Server( person )( response );

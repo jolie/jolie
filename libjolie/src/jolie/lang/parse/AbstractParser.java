@@ -74,6 +74,12 @@ public abstract class AbstractParser
 		this.tokens.add( token );
 	}
 	
+	protected final void prependToken( Scanner.Token prefixToken )
+	{
+		addToken( prefixToken );
+		addToken( token );
+	}
+	
 	private final void readToken()
 		throws IOException
 	{
@@ -188,6 +194,17 @@ public abstract class AbstractParser
 	{
 		assertToken( type, errorMessage );
 		getToken();
+	}
+	
+	protected final void maybeEat( Scanner.TokenType... types )
+		throws ParserException, IOException
+	{
+		for( Scanner.TokenType type : types ) {
+			if ( token.is( type ) ) {
+				getToken();
+				break;
+			}
+		}
 	}
 	
 	protected final void eatKeyword( String keyword, String errorMessage )

@@ -358,8 +358,7 @@ public class TimeService extends JavaService
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
 			final Date dt1 = sdf.parse( request.getFirstChild( "date1" ).strValue() );
 			final Date dt2 = sdf.parse( request.getFirstChild( "date2" ).strValue() );
-			Long result = (dt1.getTime() - dt2.getTime()) / (1000 * 60 * 60 * 24);
-			v.setValue( result.intValue() );
+			v.setValue( (int) ((dt1.getTime() - dt2.getTime()) / (1000 * 60 * 60 * 24)) );
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidDate", pe );
 		}

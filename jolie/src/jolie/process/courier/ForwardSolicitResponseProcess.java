@@ -23,6 +23,7 @@ package jolie.process.courier;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutionException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -115,7 +116,11 @@ public class ForwardSolicitResponseProcess implements Process
 			log( "SENT", message );
 			CommMessage response = null;
 			do {
-				response = channel.recvResponseFor( message );
+				try {
+					response = channel.recvResponseFor( message ).get();
+				} catch( InterruptedException | ExecutionException e ) {
+					Interpreter.getInstance().logFine( e );
+				}
 			} while( response == null );
 			log( "RECEIVED", message );
 			

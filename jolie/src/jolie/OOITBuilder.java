@@ -289,18 +289,24 @@ public class OOITBuilder implements OLVisitor
 		this.program.children().addAll( program.children() );
 	}
 	
+	private static String buildErrorMessage( ParsingContext context, String message )
+	{
+		return context.sourceName() + ":" + context.line() + ": " + message;
+	}
+	
 	private void error( ParsingContext context, String message )
 	{
 		valid = false;
-		String s = context.sourceName() + ":" + context.line() + ": " + message;
-		interpreter.logSevere( s );
+		interpreter.logSevere( buildErrorMessage( context, message ) );
 	}
 	
 	private void error( ParsingContext context, Exception e )
 	{
 		valid = false;
-		e.printStackTrace();
-		error( context, e.getMessage() );
+		interpreter.logSevere( new InterpreterException(
+			buildErrorMessage( context, e.getMessage() ),
+			e.getCause()
+		) );
 	}
 	
 	/**
@@ -588,7 +594,7 @@ public class OOITBuilder implements OLVisitor
 			.add( Constants.PROTOCOL_NODE_NAME, 0 )
 			.toVariablePath();
 		Process assignProtocol = new AssignmentProcess( protocolPath, Value.create( n.protocolId() ) );
-		Process[] confChildren = new Process[] { assignProtocol, buildProcess( n.protocolConfiguration() ) };
+		Process[] confChildren = new Process[] { buildProcess( n.protocolConfiguration() ), assignProtocol };
 		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
 
 		InputPort inputPort = new InputPort(
@@ -1138,7 +1144,8 @@ public class OOITBuilder implements OLVisitor
 		currProcess =
 			new DeepCopyProcess(
 				buildVariablePath( n.leftPath() ),
-				buildExpression( n.rightExpression() )
+				buildExpression( n.rightExpression() ),
+				n.copyLinks()
 			);
 	}
 
@@ -1362,20 +1369,44 @@ public class OOITBuilder implements OLVisitor
 		}
 	}
 	
+	private InlineTreeExpression.Operation buildOperation( ParsingContext context, InlineTreeExpressionNode.Operation operation )
+	{
+		if ( operation instanceof InlineTreeExpressionNode.AssignmentOperation ) {
+			InlineTreeExpressionNode.AssignmentOperation op = (InlineTreeExpressionNode.AssignmentOperation) operation;
+			return new InlineTreeExpression.AssignmentOperation(
+				buildVariablePath( op.path() ),
+				buildExpression( op.expression() )
+			);
+		} else if ( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
+			InlineTreeExpressionNode.DeepCopyOperation op = (InlineTreeExpressionNode.DeepCopyOperation) operation;
+			return new InlineTreeExpression.DeepCopyOperation(
+				buildVariablePath( op.path() ),
+				buildExpression( op.expression() )
+			);
+		} else if ( operation instanceof InlineTreeExpressionNode.PointsToOperation ) {
+			InlineTreeExpressionNode.PointsToOperation op = (InlineTreeExpressionNode.PointsToOperation) operation;
+			return new InlineTreeExpression.PointsToOperation(
+				buildVariablePath( op.path() ),
+				buildVariablePath( op.target() )
+			);
+		}
+		
+		error( context, "incomplete case analysis for inline tree operations" );
+		throw new IllegalStateException( "incomplete case analysis for inline tree operations" );
+	}
+	
 	public void visit( InlineTreeExpressionNode n )
 	{
 		Expression rootExpression = buildExpression( n.rootExpression() );
 
-		Pair< VariablePath, Expression >[] assignments = new Pair[ n.assignments().length ];
+		InlineTreeExpression.Operation[] operations = new InlineTreeExpression.Operation[ n.operations().length ];
+		
 		int i = 0;
-		for( Pair< VariablePathNode, OLSyntaxNode > pair : n.assignments() ) {
-			assignments[ i++ ] = new Pair< VariablePath, Expression >(
-				buildVariablePath( pair.key() ),
-				buildExpression( pair.value() )
-			);
+		for( InlineTreeExpressionNode.Operation operation : n.operations() ) {
+			operations[ i++ ] = buildOperation( n.context(), operation );
 		}
 		
-		currExpression = new InlineTreeExpression( rootExpression, assignments );
+		currExpression = new InlineTreeExpression( rootExpression, operations );
 	}
 	
 	public void visit( InstanceOfExpressionNode n )

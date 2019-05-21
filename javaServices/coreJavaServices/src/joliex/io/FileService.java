@@ -34,6 +34,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
@@ -94,9 +95,11 @@ public class FileService extends JavaService
 	private FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
 
 	public FileService()
+		throws ParserConfigurationException
 	{
 		super();
 		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
+		documentBuilderFactory.setFeature( "http://apache.org/xml/features/disallow-doctype-decl", true );
 	}
 
 	@RequestResponse
@@ -171,8 +174,11 @@ public class FileService extends JavaService
 				src.setEncoding( charset.name() );
 			}
 			Document doc = builder.parse( src );
-			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.documentToValue( doc, value, skipMixedElement );
+			jolie.xml.XmlUtils.documentToValue(
+				doc,
+				value.getFirstChild( doc.getDocumentElement().getNodeName() ),
+				skipMixedElement
+			);
 		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
@@ -188,8 +194,10 @@ public class FileService extends JavaService
 				src.setEncoding( charset.name() );
 			}
 			Document doc = builder.parse( src );
-			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.storageDocumentToValue( doc, value );
+			jolie.xml.XmlUtils.storageDocumentToValue(
+				doc,
+				value.getFirstChild( doc.getDocumentElement().getNodeName() )
+			);
 		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
@@ -373,7 +381,7 @@ public class FileService extends JavaService
 						break;
 					case "xml":
 						istream = new BufferedInputStream( istream );
-						readXMLIntoValue(istream, retValue, charset, skipMixedText );
+						readXMLIntoValue( istream, retValue, charset, skipMixedText );
 						break;
 					case "xml_store":
 						istream = new BufferedInputStream( istream );
@@ -485,8 +493,8 @@ public class FileService extends JavaService
 					XSSchemaSet schemaSet = parser.getResult();
 					if ( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
 						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
-					} else if ( schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
-						System.out.println("Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
+					} else if ( schemaSet == null || schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						System.out.println( "Root element " + rootName + " with namespace " + rootNameSpace + " not found in the schema " + schemaFilename );
 					}
 				} catch( SAXException e ) {
 					throw new IOException( e );
@@ -556,15 +564,14 @@ public class FileService extends JavaService
 	private static void writeText( File file, Value value, boolean append, String encoding )
 		throws IOException
 	{
-		OutputStreamWriter writer;
-		if ( encoding != null ) {
-			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
-		} else {
-			writer = new FileWriter( file, append );
+		try( OutputStream fos = new FileOutputStream( file, append ) ) {
+			OutputStreamWriter writer =
+				(encoding != null)
+				? new OutputStreamWriter( fos, encoding )
+				: new OutputStreamWriter( fos );
+			writer.write( value.strValue() );
+			writer.flush();
 		}
-		writer.write( value.strValue() );
-		writer.flush();
-		writer.close();
 	}
 
 	private static void writeJson( File file, Value value, boolean append, String encoding )
@@ -573,16 +580,11 @@ public class FileService extends JavaService
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 
-		OutputStreamWriter writer;
-		if ( encoding != null ) {
-			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
-		} else {
-			// UTF-8 is JSON's default charset: https://tools.ietf.org/html/rfc7159#section-8.1
-			writer = new OutputStreamWriter( new FileOutputStream( file, append ), "UTF-8" );
+		try( OutputStream fos = new FileOutputStream( file, append ) ) {
+			OutputStreamWriter writer = new OutputStreamWriter( fos, encoding != null ? encoding : "UTF-8" );
+			writer.write( json.toString() );
+			writer.flush();
 		}
-		writer.write( json.toString() );
-		writer.flush();
-		writer.close();
 	}
 
 	@RequestResponse

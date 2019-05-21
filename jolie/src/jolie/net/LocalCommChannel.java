@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2008-2019 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.net;
 
@@ -25,7 +23,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import jolie.Interpreter;
 
 /**
@@ -36,12 +34,14 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
-		private final LocalCommChannel senderChannel;
+		private final long requestId;
+		private final CompletableFuture<CommMessage> responseFut;
 
-		private CoLocalCommChannel( LocalCommChannel senderChannel, CommMessage request )
+		private CoLocalCommChannel( CommMessage request, CompletableFuture<CommMessage> responseFut )
 		{
-			this.senderChannel = senderChannel;
 			this.request = request;
+			this.responseFut = responseFut;
+			this.requestId = request.id();
 		}
 
 		@Override
@@ -60,15 +60,14 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
-			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
-			if ( f == null ) {
+			if ( message.id() != requestId) {
 				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
 			}
-			f.complete( message );
+			responseFut.complete( message );
 		}
 
 		@Override
-		public CommMessage recvResponseFor( CommMessage request )
+		public Future< CommMessage > recvResponseFor( CommMessage request )
 			throws IOException
 		{
 			throw new IOException( "Unsupported operation" );
@@ -115,26 +114,16 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	@Override
 	protected void sendImpl( CommMessage message )
 	{
-		responseWaiters.put( message.id(), new CompletableFuture<>() );
-		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
+		CompletableFuture f = new CompletableFuture<>();
+		responseWaiters.put( message.id(), f );
+		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		final CompletableFuture< CommMessage > f = responseWaiters.get( request.id() );
-		final CommMessage m;
-		
-		try { 
-			m = f.get();
-		} catch( ExecutionException | InterruptedException e ) {
-			throw new IOException( e );
-		} finally {
-			responseWaiters.remove( request.id() );
-		}
-			
-		return m;
+		return responseWaiters.remove( request.id() );
 	}
 	
 	@Override

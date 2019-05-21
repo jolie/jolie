@@ -19,9 +19,10 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
@@ -38,7 +39,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 	{
 		super( channelDest );
         
-		List< String > newArgs = new LinkedList< String >();
+		List< String > newArgs = new ArrayList<>();
 		newArgs.add( "-i" );
 		newArgs.add( currInterpreter.programDirectory().getAbsolutePath() );
 		
@@ -54,6 +55,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 		);
 	}
 
+	@Override
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
@@ -65,7 +67,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}
-		} catch( Exception e ) {
+		} catch( InterruptedException | ExecutionException | EmbeddedServiceLoadingException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}
 	}
@@ -73,6 +75,5 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 	public Interpreter interpreter()
 	{
 		return interpreter;
-	}
-    
+	}    
 }

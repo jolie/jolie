@@ -20,12 +20,11 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
-
 include "string_utils.iol"
 
 define doTest
 {
-	a.left << "Left" { .x = 1, .y = 2, .y.left = "y_l", .y.right = "y_r" };
+	a.left << "Left" { .x = 1, .y << 2 { left = "y_l" right = "y_r" } };
 	a.right << "Right" { .x = "Right_x" };
 	b << a;
 
@@ -54,8 +53,8 @@ define doTest
 			.right.x = "Right_x"
 		}
 	)( s_inline );
+
 	if ( s_b != s_inline ) {
 		throw( TestFailed, "Inline tree does not match composition of sub-trees" )
 	}
 }
-

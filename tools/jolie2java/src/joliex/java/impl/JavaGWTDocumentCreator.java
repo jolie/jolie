@@ -33,7 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -53,16 +52,14 @@ import jolie.runtime.FaultException;
 
 public class JavaGWTDocumentCreator {
 
-    private Vector<TypeDefinition> subclass;
-    private boolean subtypePresent = false;
-    private String namespace;
-    private String targetPort;
+    private final String namespace;
+    private final String targetPort;
     private LinkedHashMap<String, TypeDefinition> typeMap;
     private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
-    private static HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
-    private static HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
-    private static HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
+    private static final HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
+    private static final HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
+    private static final HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
 
     public JavaGWTDocumentCreator(ProgramInspector inspector, String namespace, String targetPort) {
 
@@ -95,9 +92,8 @@ public class JavaGWTDocumentCreator {
 
     public void ConvertDocument() throws FaultException {
 
-        typeMap = new LinkedHashMap<String, TypeDefinition>();
-        subTypeMap = new LinkedHashMap<String, TypeDefinition>();
-        subclass = new Vector<TypeDefinition>();
+        typeMap = new LinkedHashMap<>();
+        subTypeMap = new LinkedHashMap<>();
 
         try {
             // creating ZipOutputStream
@@ -106,10 +102,8 @@ public class JavaGWTDocumentCreator {
             ZipOutputStream zipStream = new ZipOutputStream(os);
 
 
-            TypeDefinition[] support = inspector.getTypes();
             InputPortInfo[] inputPorts = inspector.getInputPorts();
             OutputPortInfo[] outputPorts = inspector.getOutputPorts();
-            OperationDeclaration operation;
             RequestResponseOperationDeclaration requestResponseOperation;
 
             for (InputPortInfo inputPort : inputPorts) {
@@ -171,8 +165,6 @@ public class JavaGWTDocumentCreator {
             while (typeMapIterator.hasNext()) {
                 Entry<String, TypeDefinition> typeEntry = typeMapIterator.next();
                 if (!(typeEntry.getKey().equals("undefined"))) {
-                    subclass = new Vector<TypeDefinition>();
-                    subtypePresent = false;
                     ConvertTypes(typeEntry.getValue(), zipStream, namespace);
                 }
             }
@@ -307,7 +299,6 @@ public class JavaGWTDocumentCreator {
     private void importsCreate(StringBuilder stringBuilder, TypeDefinition type) {
         stringBuilder.append("import joliex.gwt.client.Value;\n");
         if (Utils.hasSubTypes(type)) {
-            subtypePresent = true;
             stringBuilder.append("import java.util.List;\n");
             stringBuilder.append("import java.util.LinkedList;\n");
             stringBuilder.append("import joliex.gwt.client.ByteArray;\n");

@@ -33,7 +33,7 @@ import jolie.util.Range;
 public final class Constants
 {
 	// Release information
-	public static final String VERSION = "Jolie 1.7.2-git";
+	public static final String VERSION = "Jolie 1.8.0";
 	public static final String COPYRIGHT = "(C) 2006-2019 the Jolie team";
 	
 	public interface Manifest
@@ -106,6 +106,7 @@ public final class Constants
 
 	public static final String TYPE_MISMATCH_FAULT_NAME = "TypeMismatch";
 	public static final String IO_EXCEPTION_FAULT_NAME = "IOException";
+	public static final String TIMEOUT_EXCEPTION_FAULT_NAME = "Timeout";
 
 	public static final String MONITOR_OUTPUTPORT_NAME = "#Monitor";
 	public static final String INPUT_PORTS_NODE_NAME = "inputPorts";

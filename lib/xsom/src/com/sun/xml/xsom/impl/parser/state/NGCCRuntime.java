@@ -4,7 +4,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.StringTokenizer;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -186,9 +185,6 @@ public class NGCCRuntime implements ContentHandler, NGCCEventSource {
      * follow an end tag, then they must be either whitespaces or
      * must match to &lt;text/>.
      * 
-     * @param   possiblyWhitespace
-     *      True if the buffered character can be ignorabale. False if
-     *      it needs to be consumed.
      */
     private void processPendingText(boolean ignorable) throws SAXException {
         if(ignorable && text.toString().trim().length()==0)
@@ -418,9 +414,9 @@ public class NGCCRuntime implements ContentHandler, NGCCEventSource {
      * Currently active NGCCHandler will only receive the leaveElement
      * event of the newly started element.
      * 
-     * @param   uri,local,qname
-     *      Parameters passed to the enter element event. Used to
-     *      simulate the startElement event for the new ContentHandler.
+     * @param uri
+	 * @param local
+	 * @param qname
      */
     public void redirectSubtree( ContentHandler child,
         String uri, String local, String qname ) throws SAXException {

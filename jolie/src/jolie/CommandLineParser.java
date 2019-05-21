@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2008-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2008-2019 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie;
 
@@ -77,6 +75,8 @@ public class CommandLineParser implements Closeable
 	private final boolean typeCheck;
 	private final boolean tracer;
 	private final boolean check;
+	private final long responseTimeout;
+	private final boolean printStackTraces;
 	private final Level logLevel;
 	private File programDirectory = null;
 	
@@ -197,6 +197,16 @@ public class CommandLineParser implements Closeable
 	{
 		return connectionsLimit;
 	}
+	
+	/**
+	 * Returns the response timeout parameter
+	 * passed by command line with the --responseTimeout option.
+	 * @return the response timeout parameter passed by command line
+	 */
+	public long responseTimeout()
+	{
+		return responseTimeout;
+	}
 
 	/**
 	 * Returns the connection cache parameter
@@ -244,23 +254,27 @@ public class CommandLineParser implements Closeable
 							+ "-C ConstantIdentifier=ConstantValue".replaceAll("(.)"," ") + "\t\t\t"
 							+ "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) );
 		helpBuilder.append(
-				getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
+			getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
 		helpBuilder.append(
-				getOptionString( "--conncache [number]", "Set the maximum number of cached persistent output connections" ) );
+			getOptionString( "--conncache [number]", "Set the maximum number of cached persistent output connections" ) );
 		helpBuilder.append(
-				getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
+			getOptionString( "--responseTimeout [number]", "Set the timeout for request-response invocations (in milliseconds)" ) );
 		helpBuilder.append(
-				getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
+			getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
 		helpBuilder.append(
-				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
-                helpBuilder.append(
-				getOptionString( "--check", "Check for syntactic and semantic errors." ) );
+			getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
 		helpBuilder.append(
-				getOptionString( "--trace", "Activate tracer" ) );
+			getOptionString( "--stackTraces", "Activate the printing of Java stack traces (default: false)" ) );
 		helpBuilder.append(
-				getOptionString( "--charset [character encoding, eg. UTF-8]", "Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
+			getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
 		helpBuilder.append(
-				getOptionString( "--version", "Display this program version information" ) );
+			getOptionString( "--check", "Check for syntactic and semantic errors." ) );
+		helpBuilder.append(
+			getOptionString( "--trace", "Activate tracer" ) );
+		helpBuilder.append(
+			getOptionString( "--charset [character encoding, e.g., UTF-8]", "Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
+		helpBuilder.append(
+			getOptionString( "--version", "Display this program version information" ) );
 		return helpBuilder.toString();
 	}
 
@@ -368,6 +382,7 @@ public class CommandLineParser implements Closeable
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList<>();
 		boolean bTracer = false;
+		boolean bStackTraces = false;
 		boolean bCheck = false;
 		boolean bTypeCheck = false; // Default for typecheck
 		Level lLogLevel = Level.INFO;
@@ -376,6 +391,7 @@ public class CommandLineParser implements Closeable
 		List< String > libList = new ArrayList<>();
 		int cLimit = -1;
 		int cCache = 100;
+		long rTimeout = 10 * 1000; // 10 seconds
 		String pwd = new File( "" ).getCanonicalPath();
 		includeList.add( pwd );
 		includeList.add( "include" );
@@ -425,6 +441,11 @@ public class CommandLineParser implements Closeable
 				i++;
 				cCache = Integer.parseInt( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
+			} else if ( "--responseTimeout".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				rTimeout = Long.parseLong( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
 			} else if ( "--correlationAlgorithm".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
@@ -440,6 +461,9 @@ public class CommandLineParser implements Closeable
 				} else if ( "true".equals( typeCheckStr ) ) {
 					bTypeCheck = true;
 				}
+			} else if ( "--stackTraces".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				bStackTraces = true;
 			} else if ( "--check".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bCheck = true;
@@ -487,17 +511,18 @@ public class CommandLineParser implements Closeable
 			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
 				if ( olFilepath == null ) {
 					String japFilename = new File( argsList.get( i ) ).getCanonicalPath();
-					JarFile japFile = new JarFile( japFilename );
-					Manifest manifest = japFile.getManifest();
-					olFilepath = parseJapManifestForMainProgram( manifest, japFile );
-					if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
-						olFilepath = olFilepath.replace( "\\", "/" );
+					try ( JarFile japFile = new JarFile( japFilename ) ) {
+						Manifest manifest = japFile.getManifest();
+						olFilepath = parseJapManifestForMainProgram( manifest, japFile );
+						if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
+							olFilepath = olFilepath.replace( "\\", "/" );
+						}
+						libList.add( japFilename );
+						Collection< String> japOptions = parseJapManifestForOptions( manifest );
+						argsList.addAll( i + 1, japOptions );
+						japUrl = japFilename + "!";
+						programDirectory = new File( japFilename ).getParentFile();
 					}
-					libList.add( japFilename );
-					Collection< String> japOptions = parseJapManifestForOptions( manifest );
-					argsList.addAll( i + 1, japOptions );
-					japUrl = japFilename + "!";
-					programDirectory = new File( japFilename ).getParentFile();
 				} else {
 					programArgumentsList.add( argsList.get( i ) );
 				}
@@ -519,6 +544,7 @@ public class CommandLineParser implements Closeable
 
 		typeCheck = bTypeCheck;
 		logLevel = lLogLevel;
+		printStackTraces = bStackTraces;
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
 		if ( correlationAlgorithmType == null ) {
@@ -528,12 +554,13 @@ public class CommandLineParser implements Closeable
 		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
 		// whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 		
-		if ( olFilepath == null && !ignoreFile) {
+		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
 		}
 	
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
+		responseTimeout = rTimeout;
         
 		List< URL > urls = new ArrayList<>();
 		for( String path : libList ) {
@@ -566,7 +593,7 @@ public class CommandLineParser implements Closeable
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
-		GetOLStreamResult olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
+		GetOLStreamResult olResult = getOLStream( ignoreFile, olFilepath, includeList, jolieClassLoader );
 
 		if ( olResult.stream == null ) {
             if ( ignoreFile ) {
@@ -575,7 +602,7 @@ public class CommandLineParser implements Closeable
             } else if ( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
-				olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
+				olResult = getOLStream( ignoreFile, olFilepath, includeList, jolieClassLoader );
 				if ( olResult.stream == null ) {
 					throw new FileNotFoundException( olFilepath );
 				}
@@ -614,6 +641,11 @@ public class CommandLineParser implements Closeable
 		}
 	} */
 
+	public boolean printStackTraces()
+	{
+		return printStackTraces;
+	}
+	
 	/**
 	 * Returns the directory in which the main program is located.
 	 * @return the directory in which the main program is located.
@@ -706,10 +738,13 @@ public class CommandLineParser implements Closeable
 		private InputStream stream;
 	}
 	
-	private GetOLStreamResult getOLStream( String olFilepath, Deque< String > includePaths, ClassLoader classLoader )
+	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths, ClassLoader classLoader )
 		throws FileNotFoundException, IOException
 	{
 		GetOLStreamResult result = new GetOLStreamResult();
+		if ( ignoreFile ) {
+			return result;
+		}
 
 		URL olURL = null;
 		File f = new File( olFilepath ).getAbsoluteFile();

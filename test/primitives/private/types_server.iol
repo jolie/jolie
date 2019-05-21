@@ -23,18 +23,18 @@ type CoListNode:ListNode
 
 // A list, stupidly and purposefully implemented as a co-recursive type
 type ListNode:int {
-	.next?:CoListNode
+	next?:CoListNode
 }
 
 // Test for the type equality check
 type ListNode:int {
-	.next?:CoListNode
+	next?:CoListNode
 }
 
 type ChoiceRequest: ChoiceLeft | ChoiceRight
 
-type ChoiceLeft: void { .left:int }
-type ChoiceRight: void { .right:string }
+type ChoiceLeft { left:int } // defaults to void native type
+type ChoiceRight:void { right:string }
 
 type ChoiceResponse: int | string
 

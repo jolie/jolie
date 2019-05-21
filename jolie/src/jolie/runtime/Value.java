@@ -191,7 +191,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	public boolean hasChildren()
 	{
 		Map< String, ValueVector > c = children.get();
-		return ( c == null ? false : !c.isEmpty() );
+		return ( c != null && !c.isEmpty() );
 	}
 
 	@Override
@@ -497,6 +497,11 @@ public abstract class Value implements Expression, Cloneable
 	public final void deepCopy( Value value )
 	{
 		_deepCopy( value, false );
+	}
+	
+	public final void deepCopyWithLinks( Value value )
+	{
+		_deepCopy( value, true );
 	}
 
 	public final void refCopy( Value value )
