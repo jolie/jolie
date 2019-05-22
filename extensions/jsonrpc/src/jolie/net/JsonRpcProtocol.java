@@ -121,16 +121,19 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 
 		if ( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
-			value.setFirstChild( "id", jsonRpcId );
+			value.setFirstChild( "id", jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
 			Value error = value.getFirstChild( "error" );
 			error.getFirstChild( "code" ).setValue( -32000 );
 			error.getFirstChild( "message" ).setValue( message.fault().faultName() );
 			error.getChildren( "data" ).set( 0, message.fault().value() );
 		} else {
+//			boolean isRR =
+//				channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
+//				instanceof RequestResponseTypeDescription;
 			if ( inInputPort ) {
 				value.getChildren( "result" ).set( 0, message.value() );
 				String jsonRpcId = jsonRpcIdMap.get( message.id() );
-				value.getFirstChild( "id" ).setValue( jsonRpcId );
+				value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
 			} else {
 				jsonRpcOpMap.put( message.id() + "", message.operationName() );
 				value.getFirstChild( "method" ).setValue( message.operationName() );
@@ -222,7 +225,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			LSPMessage message = parser.parse();
 			String charset = "utf-8";
 			//encoding = message.getProperty( "accept-encoding" );
-			return createCommMessage( message.size(), message.content(), charset );
+			return recv_createCommMessage( message.size(), message.content(), charset );
 		} else {
 			HttpParser parser = new HttpParser( istream );
 			HttpMessage message = parser.parse();
@@ -238,11 +241,11 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 
 			encoding = message.getProperty( "accept-encoding" );
 
-			return createCommMessage( message.size(), message.content(), charset );
+			return recv_createCommMessage( message.size(), message.content(), charset );
 		}
 	}
 
-	private CommMessage createCommMessage( int messageSize, byte[] messageContent, String charset )
+	private CommMessage recv_createCommMessage( int messageSize, byte[] messageContent, String charset )
 		throws IOException
 	{
 		Value value = Value.create();
