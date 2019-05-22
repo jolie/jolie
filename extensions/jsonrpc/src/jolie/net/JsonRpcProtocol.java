@@ -62,6 +62,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		private final static String TRANSPORT = "transport";
 		private final static String ALIAS = "alias";
 		private final static String OSC = "osc";
+		private final static String CLIENT_LOCATION = "clientLocation";
 	}
 	private final static String LSP = "lsp";
 	private final static int INITIAL_CAPACITY = 8;
@@ -214,6 +215,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		throws IOException
 	{
 		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+			if ( inInputPort && configurationPath().getValue().hasChildren( Parameters.CLIENT_LOCATION ) ) {
+				getParameterFirstValue( Parameters.CLIENT_LOCATION ).setValue( channel() );
+			}
 			LSPParser parser = new LSPParser( istream );
 			LSPMessage message = parser.parse();
 			String charset = "utf-8";
