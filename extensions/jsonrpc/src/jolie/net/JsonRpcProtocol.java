@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import jolie.Interpreter;
+import jolie.js.JsUtils;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -41,7 +42,6 @@ import jolie.net.http.UnsupportedMethodException;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.*;
 import jolie.runtime.typing.Type;
-import jolie.js.JsUtils;
 
 /**
  * 
@@ -60,8 +60,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	private String encoding;
 	private static class Parameters {
 		private final static String TRANSPORT = "transport";
-                private final static String ALIAS = "alias";
-                private final static String OSC = "osc";
+		private final static String ALIAS = "alias";
+		private final static String OSC = "osc";
 	}
 	private final static String LSP = "lsp";
 	private final static int INITIAL_CAPACITY = 8;
@@ -70,7 +70,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	private final Map< Long, String > jsonRpcIdMap;
 	private final Map< String, String > jsonRpcOpMap;
 
-        
+	@Override
 	public String name()
 	{
 		return "jsonrpc";
@@ -89,12 +89,13 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		this.jsonRpcOpMap = new HashMap<String, String>(INITIAL_CAPACITY, LOAD_FACTOR);
 	}
 
+	@Override
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		channel().setToBeClosed(!checkBooleanParameter("keepAlive", true));
+		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 
-		if( !checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+		if ( !checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			if ( !message.isFault() && message.hasGenericId() && inInputPort ) {
 				// JSON-RPC notification mechanism (method call with dropped result)
 				// we just send HTTP status code 204
@@ -107,20 +108,19 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		}
 		Value value = Value.create();
 		value.getFirstChild( "jsonrpc" ).setValue( "2.0" );
-                
-                /*
-                    If we are in LSP mode, we do not want to send ACKs to the 
-                    client.
-                */
-                if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
-                    if( message.hasGenericId() && message.value().getChildren( "result" ).isEmpty()) {
-                        return;
-                    }
-                }
-                
+
+		/*
+			If we are in LSP mode, we do not want to send ACKs to the client.
+		 */
+		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+			if ( message.hasGenericId() && message.value().getChildren( "result" ).isEmpty() ) {
+				return;
+			}
+		}
+
 		if ( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
-			value.setFirstChild( "id", jsonRpcId);
+			value.setFirstChild( "id", jsonRpcId );
 			Value error = value.getFirstChild( "error" );
 			error.getFirstChild( "code" ).setValue( -32000 );
 			error.getFirstChild( "message" ).setValue( message.fault().faultName() );
@@ -137,35 +137,35 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					// some implementations need an array here
 					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
 				}
-                                if( checkStringParameter( Parameters.TRANSPORT, LSP ) && !message.hasGenericId() ) {
-                                    value.getFirstChild( "id" ).setValue( message.id() );
-                                }
+				if ( !message.hasGenericId() ) {
+					value.getFirstChild( "id" ).setValue( message.id() );
+				}
 			}
 		}
-		
+
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
 
-		if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			String lspHeaders = "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF;
-                
+
 			if ( checkBooleanParameter( "debug", false ) ) {
-				interpreter.logInfo( "[JSON-RPC debug] Sending:\n" + lspHeaders + content.toString( "utf-8" ); );
+				interpreter.logInfo( "[JSON-RPC debug] Sending:\n" + lspHeaders + content.toString( "utf-8" ) );
 			}
 
-			ostream.write( lspMessage.getBytes( HttpUtils.URL_DECODER_ENC ) );
+			ostream.write( lspHeaders.getBytes( HttpUtils.URL_DECODER_ENC ) );
 			ostream.write( content.getBytes() );
 		} else {
 			StringBuilder httpMessage = new StringBuilder();
-			if (inInputPort) {
+			if ( inInputPort ) {
 				// We're responding to a request
 				httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
 				httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
 			} else {
 				// We're sending a request
 				String path = uri.getRawPath(); // TODO: fix this to consider resourcePaths
-				if (path == null || path.length() == 0) {
+				if ( path == null || path.length() == 0 ) {
 					path = "*";
 				}
 				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
@@ -196,7 +196,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
 
 			if ( checkBooleanParameter( "debug", false ) ) {
-				interpreter.logInfo( "[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ));
+				interpreter.logInfo( "[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 			}
 
 			ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
@@ -213,87 +213,87 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-            if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
-                LSPParser parser = new LSPParser( istream );
-                LSPMessage message = parser.parse();
-                String charset = "utf-8";
-                //encoding = message.getProperty( "accept-encoding" );
-                Value value = Value.create();
-		return createCommMessage( message.size(), message.content(), value, charset );
-            } else {
-                HttpParser parser = new HttpParser( istream );
-		HttpMessage message = parser.parse();
-		String charset = HttpUtils.getCharset( null, message );
-		HttpUtils.recv_checkForChannelClosing( message, channel() );
+		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+			LSPParser parser = new LSPParser( istream );
+			LSPMessage message = parser.parse();
+			String charset = "utf-8";
+			//encoding = message.getProperty( "accept-encoding" );
+			return createCommMessage( message.size(), message.content(), charset );
+		} else {
+			HttpParser parser = new HttpParser( istream );
+			HttpMessage message = parser.parse();
+			String charset = HttpUtils.getCharset( null, message );
+			HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-		if ( message.isError() ) {
-                    throw new IOException("HTTP error: " + new String(message.content(), charset));
+			if ( message.isError() ) {
+				throw new IOException( "HTTP error: " + new String( message.content(), charset ) );
+			}
+			if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
+				throw new UnsupportedMethodException( "Only HTTP method POST allowed", Method.POST );
+			}
+
+			encoding = message.getProperty( "accept-encoding" );
+
+			return createCommMessage( message.size(), message.content(), charset );
 		}
-		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
-                    throw new UnsupportedMethodException( "Only HTTP method POST allowed", Method.POST );
-		}
+	}
 
-		encoding = message.getProperty( "accept-encoding" );
-
+	private CommMessage createCommMessage( int messageSize, byte[] messageContent, String charset )
+		throws IOException
+	{
 		Value value = Value.create();
-		return createCommMessage(message.size(), message.content(), value, charset);
-	    }
-        }
-        
-        private CommMessage createCommMessage(int messageSize, byte[] messageContent , Value value, String charset)
-            throws IOException
-        {
-            if ( messageSize > 0 ) {
-                if ( checkBooleanParameter( "debug", false ) ) {
-                    interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( messageContent, charset ) );
-                }
-            
-            
-                JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream( messageContent ), charset), value, false);
+		if ( messageSize > 0 ) {
+			if ( checkBooleanParameter( "debug", false ) ) {
+				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( messageContent, charset ) );
+			}
 
-                String operation = value.getFirstChild("method").strValue();
-                
-                // Resolving aliases
-                if (hasParameter( Parameters.OSC )) {
-                    Value osc = getParameterFirstValue( Parameters.OSC );
-                    for(Entry<String,ValueVector> ev : osc.children().entrySet()) {
-                        Value v = ev.getValue().get(0);
-                        if(v.hasChildren( Parameters.ALIAS )) {
-                            if(v.getFirstChild( Parameters.ALIAS ).strValue().equals(operation)) {
-                                operation = ev.getKey();
-                            }
-                        }
-                    }
-                }
-                
-                if (!value.hasChildren("id")) {
-                    // JSON-RPC notification mechanism (method call with dropped result)
-                    if (!inInputPort) {
-                        throw new IOException("A JSON-RPC notification (message without \"id\") needs to be a request, not a response!");
-                    }
-                    return new CommMessage(CommMessage.GENERIC_ID, operation,
-                                             "/", value.getFirstChild("params"), null);
-                }
-                String jsonRpcId = value.getFirstChild("id").strValue();
-                if ( inInputPort ) {
-                    jsonRpcIdMap.put((long)jsonRpcId.hashCode(), jsonRpcId);
-                    return new CommMessage(jsonRpcId.hashCode(), operation,
-                                            "/", value.getFirstChild("params"), null);
-                } else if (value.hasChildren("error")) {
-                    String operationName = jsonRpcOpMap.get(jsonRpcId);
-                    return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
-                                            new FaultException(value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
-                                                           value.getFirstChild( "error" ).getFirstChild( "data" ))
-                                            );
-                } else {
-                    // Certain implementations do not provide a result if it is "void"
-                    String operationName = jsonRpcOpMap.get(jsonRpcId);
-                    return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null);
-                }
-            }
-            return null; //error situation
+			JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( messageContent ), charset ), value, false );
 
- }
+			String operation = value.getFirstChild( "method" ).strValue();
+
+			// Resolving aliases
+			if ( hasParameter( Parameters.OSC ) ) {
+				Value osc = getParameterFirstValue( Parameters.OSC );
+				for( Entry<String, ValueVector> ev : osc.children().entrySet() ) {
+					Value v = ev.getValue().get( 0 );
+					if ( v.hasChildren( Parameters.ALIAS ) ) {
+						if ( v.getFirstChild( Parameters.ALIAS ).strValue().equals( operation ) ) {
+							operation = ev.getKey();
+						}
+					}
+				}
+			}
+
+			if ( !value.hasChildren( "id" ) ) {
+				// JSON-RPC notification mechanism (method call with dropped result)
+				if ( !inInputPort ) {
+					throw new IOException( "A JSON-RPC notification (message without \"id\") needs to be a request, not a response!" );
+				}
+				return new CommMessage( CommMessage.GENERIC_ID, operation,
+					"/", value.getFirstChild( "params" ), null );
+			}
+			String jsonRpcId = value.getFirstChild( "id" ).strValue();
+			if ( inInputPort ) {
+				jsonRpcIdMap.put( (long) jsonRpcId.hashCode(), jsonRpcId );
+				return new CommMessage(
+					jsonRpcId.hashCode(), operation,
+					"/", value.getFirstChild( "params" ), null
+				);
+			} else if ( value.hasChildren( "error" ) ) {
+				String operationName = jsonRpcOpMap.get( jsonRpcId );
+				return new CommMessage( Long.valueOf( jsonRpcId ), operationName, "/", null,
+					new FaultException(
+						value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
+						value.getFirstChild( "error" ).getFirstChild( "data" ) )
+				);
+			} else {
+				// Certain implementations do not provide a result if it is "void"
+				String operationName = jsonRpcOpMap.get( jsonRpcId );
+				return new CommMessage( Long.valueOf( jsonRpcId ), operationName, "/", value.getFirstChild( "result" ), null );
+			}
+		}
+		return null; //error situation
+	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
