@@ -59,9 +59,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	private final boolean inInputPort;
 	private String encoding;
 	private static class Parameters {
-		final private static String TRANSPORT = "transport";
-                final private static String ALIAS = "alias";
-                final private static String OSC = "osc";
+		private final static String TRANSPORT = "transport";
+                private final static String ALIAS = "alias";
+                private final static String OSC = "osc";
 	}
 	private final static String LSP = "lsp";
 	private final static int INITIAL_CAPACITY = 8;
@@ -94,8 +94,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	{
 		channel().setToBeClosed(!checkBooleanParameter("keepAlive", true));
 
-		if( !checkStringParameter(Parameters.TRANSPORT, LSP) ) {
-			if (!message.isFault() && message.hasGenericId() && inInputPort) {
+		if( !checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+			if ( !message.isFault() && message.hasGenericId() && inInputPort ) {
 				// JSON-RPC notification mechanism (method call with dropped result)
 				// we just send HTTP status code 204
 				StringBuilder httpMessage = new StringBuilder();
@@ -110,9 +110,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
                 
                 /*
                     If we are in LSP mode, we do not want to send ACKs to the 
-                    client
+                    client.
                 */
-                if( checkStringParameter(Parameters.TRANSPORT, LSP) ) {
+                if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
                     if( message.hasGenericId() && message.value().getChildren( "result" ).isEmpty()) {
                         return;
                     }
@@ -137,24 +137,24 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					// some implementations need an array here
 					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
 				}
-                                if(checkStringParameter(Parameters.TRANSPORT, LSP) && !message.hasGenericId()) {
+                                if( checkStringParameter( Parameters.TRANSPORT, LSP ) && !message.hasGenericId() ) {
                                     value.getFirstChild( "id" ).setValue( message.id() );
                                 }
 			}
 		}
+		
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
 
-		if( checkStringParameter(Parameters.TRANSPORT, LSP)) {
-			StringBuilder LSPMessage = new StringBuilder();
-			LSPMessage.append("Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF);
+		if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+			String lspHeaders = "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF;
                 
-			if (checkBooleanParameter("debug", false)) {
-				interpreter.logInfo("[JSON-RPC debug] Sending:\n" + LSPMessage.toString() + content.toString( "utf-8" ));
+			if ( checkBooleanParameter( "debug", false ) ) {
+				interpreter.logInfo( "[JSON-RPC debug] Sending:\n" + lspHeaders + content.toString( "utf-8" ); );
 			}
 
-			ostream.write( LSPMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
+			ostream.write( lspMessage.getBytes( HttpUtils.URL_DECODER_ENC ) );
 			ostream.write( content.getBytes() );
 		} else {
 			StringBuilder httpMessage = new StringBuilder();
@@ -183,7 +183,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				}
 			}
 
-			if (channel().toBeClosed()) {
+			if ( channel().toBeClosed() ) {
 				httpMessage.append( "Connection: close" + HttpUtils.CRLF );
 			}
 
@@ -195,8 +195,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			httpMessage.append( "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF );
 			httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
 
-			if (checkBooleanParameter("debug", false)) {
-				interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ));
+			if ( checkBooleanParameter( "debug", false ) ) {
+				interpreter.logInfo( "[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ));
 			}
 
 			ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
@@ -213,31 +213,31 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-            if(checkStringParameter(Parameters.TRANSPORT, LSP )) {
+            if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
                 LSPParser parser = new LSPParser( istream );
                 LSPMessage message = parser.parse();
                 String charset = "utf-8";
                 //encoding = message.getProperty( "accept-encoding" );
                 Value value = Value.create();
-		return createCommMessage(message.size(), message.content(), value, charset);
+		return createCommMessage( message.size(), message.content(), value, charset );
             } else {
-                HttpParser parser = new HttpParser(istream);
+                HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
-		String charset = HttpUtils.getCharset(null, message);
-		HttpUtils.recv_checkForChannelClosing(message, channel());
+		String charset = HttpUtils.getCharset( null, message );
+		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-		if (message.isError()) {
+		if ( message.isError() ) {
                     throw new IOException("HTTP error: " + new String(message.content(), charset));
 		}
-		if (inInputPort && message.type() != HttpMessage.Type.POST) {
-                    throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
+		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
+                    throw new UnsupportedMethodException( "Only HTTP method POST allowed", Method.POST );
 		}
 
-		encoding = message.getProperty("accept-encoding");
+		encoding = message.getProperty( "accept-encoding" );
 
 		Value value = Value.create();
 		return createCommMessage(message.size(), message.content(), value, charset);
-			}
+	    }
         }
         
         private CommMessage createCommMessage(int messageSize, byte[] messageContent , Value value, String charset)
