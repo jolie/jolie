@@ -36,6 +36,17 @@ type ChoiceRequest: ChoiceLeft | ChoiceRight
 type ChoiceLeft { left:int } // defaults to void native type
 type ChoiceRight:void { right:string }
 
+type SomeTrickyType {
+	x {
+		x1
+		x2:int {
+			x21? {
+				x211
+			}
+		}
+	}
+}
+
 type ChoiceResponse: int | string
 
 interface ServerInterface {
