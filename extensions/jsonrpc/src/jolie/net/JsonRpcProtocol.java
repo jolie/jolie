@@ -145,9 +145,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
                                     // some implementations need an array here
                                     value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
                                 }
-                                if ( !message.hasGenericId() ) {
+                                if ( !message.hasGenericId() && !isLsp ) {
                                     value.getFirstChild( "id" ).setValue( message.id() );
-                                }
+                                } 
                         }
 		}
 
