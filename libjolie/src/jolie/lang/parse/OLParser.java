@@ -380,13 +380,10 @@ public class OLParser extends AbstractParser
 	private Range parseCardinality()
 		throws IOException, ParserException
 	{
-		int min = -1;
-		int max = -1;
+		final int min;
+		final int max;
 
-		if ( token.is( Scanner.TokenType.COLON ) ) { // Default (no cardinality specified)
-			min = 1;
-			max = 1;
-		} else if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
+		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
 			min = 0;
 			max = 1;
 			getToken();
@@ -416,13 +413,15 @@ public class OLParser extends AbstractParser
 			} else if ( token.is( Scanner.TokenType.ASTERISK ) ) {
 				max = Integer.MAX_VALUE;
 			} else {
+				max = -1;
 				throwException( "Maximum number of sub-type occurences not valid: " + token.content() );
 			}
 
 			getToken();
 			eat( Scanner.TokenType.RSQUARE, "expected ]" );
-		} else {
-			throwException( "Sub-type cardinality syntax error" );
+		} else { // Default (no cardinality specified)
+			min = 1;
+			max = 1;
 		}
 
 		return new Range( min, max );
