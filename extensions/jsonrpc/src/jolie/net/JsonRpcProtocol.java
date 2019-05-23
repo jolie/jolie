@@ -132,7 +132,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
                                 instanceof RequestResponseTypeDescription;
                         //if we are in LSP, we want to be sure the message to be an RR
-                        //in order to send it with the field "result"
+                        //in order to send it with the field "results" and "id"
                         boolean check = isLsp ? isRR : true;
                         if ( inInputPort && check ) {
                                 value.getChildren( "result" ).set( 0, message.value() );
