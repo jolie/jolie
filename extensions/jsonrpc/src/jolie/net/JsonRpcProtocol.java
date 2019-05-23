@@ -41,6 +41,7 @@ import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.*;
+import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 
 /**
@@ -95,8 +96,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		throws IOException
 	{
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
-
-		if ( !checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+                boolean isLsp = checkStringParameter( Parameters.TRANSPORT, LSP);
+		if ( !isLsp ) {
 			if ( !message.isFault() && message.hasGenericId() && inInputPort ) {
 				// JSON-RPC notification mechanism (method call with dropped result)
 				// we just send HTTP status code 204
@@ -113,7 +114,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		/*
 			If we are in LSP mode, we do not want to send ACKs to the client.
 		 */
-		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+		if ( isLsp ) {
 			if ( message.hasGenericId() && message.value().getChildren( "result" ).isEmpty() ) {
 				return;
 			}
@@ -127,23 +128,41 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			error.getFirstChild( "message" ).setValue( message.fault().faultName() );
 			error.getChildren( "data" ).set( 0, message.fault().value() );
 		} else {
-//			boolean isRR =
-//				channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
-//				instanceof RequestResponseTypeDescription;
-			if ( inInputPort ) {
-				value.getChildren( "result" ).set( 0, message.value() );
-				String jsonRpcId = jsonRpcIdMap.get( message.id() );
-				value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
+			boolean isRR =
+				channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
+                                instanceof RequestResponseTypeDescription;
+                        if ( isLsp ) {
+                            if ( inInputPort && isRR ) {
+                                    value.getChildren( "result" ).set( 0, message.value() );
+                                    String jsonRpcId = jsonRpcIdMap.get( message.id() );
+                                    value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
+                            } else {
+                                    jsonRpcOpMap.put( message.id() + "", message.operationName() );
+                                    value.getFirstChild( "method" ).setValue( message.operationName() );
+                                    if ( message.value().isDefined() || message.value().hasChildren() ) {
+                                        // some implementations need an array here
+                                        value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
+                                    }
+                                    if ( !message.hasGenericId() ) {
+                                        value.getFirstChild( "id" ).setValue( message.id() );
+                                    }
+                            }
 			} else {
-				jsonRpcOpMap.put( message.id() + "", message.operationName() );
-				value.getFirstChild( "method" ).setValue( message.operationName() );
-				if ( message.value().isDefined() || message.value().hasChildren() ) {
-					// some implementations need an array here
-					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
-				}
-				if ( !message.hasGenericId() ) {
-					value.getFirstChild( "id" ).setValue( message.id() );
-				}
+				if ( inInputPort ) {
+                                        value.getChildren( "result" ).set( 0, message.value() );
+                                        String jsonRpcId = jsonRpcIdMap.get( message.id() );
+                                        value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
+                                } else {
+                                        jsonRpcOpMap.put( message.id() + "", message.operationName() );
+                                        value.getFirstChild( "method" ).setValue( message.operationName() );
+                                        if ( message.value().isDefined() || message.value().hasChildren() ) {
+                                            // some implementations need an array here
+                                            value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
+                                        }
+                                        if ( !message.hasGenericId() ) {
+                                            value.getFirstChild( "id" ).setValue( message.id() );
+                                        }
+                                }
 			}
 		}
 
