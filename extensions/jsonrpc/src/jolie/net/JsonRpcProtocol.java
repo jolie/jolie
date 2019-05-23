@@ -131,39 +131,24 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			boolean isRR =
 				channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
                                 instanceof RequestResponseTypeDescription;
-                        if ( isLsp ) {
-                            if ( inInputPort && isRR ) {
-                                    value.getChildren( "result" ).set( 0, message.value() );
-                                    String jsonRpcId = jsonRpcIdMap.get( message.id() );
-                                    value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
-                            } else {
-                                    jsonRpcOpMap.put( message.id() + "", message.operationName() );
-                                    value.getFirstChild( "method" ).setValue( message.operationName() );
-                                    if ( message.value().isDefined() || message.value().hasChildren() ) {
-                                        // some implementations need an array here
-                                        value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
-                                    }
-                                    if ( !message.hasGenericId() ) {
-                                        value.getFirstChild( "id" ).setValue( message.id() );
-                                    }
-                            }
-			} else {
-				if ( inInputPort ) {
-                                        value.getChildren( "result" ).set( 0, message.value() );
-                                        String jsonRpcId = jsonRpcIdMap.get( message.id() );
-                                        value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
-                                } else {
-                                        jsonRpcOpMap.put( message.id() + "", message.operationName() );
-                                        value.getFirstChild( "method" ).setValue( message.operationName() );
-                                        if ( message.value().isDefined() || message.value().hasChildren() ) {
-                                            // some implementations need an array here
-                                            value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
-                                        }
-                                        if ( !message.hasGenericId() ) {
-                                            value.getFirstChild( "id" ).setValue( message.id() );
-                                        }
+                        //if we are in LSP, we want to be sure the message to be an RR
+                        //in order to send it with the field "result"
+                        boolean check = isLsp ? isRR : true;
+                        if ( inInputPort && check ) {
+                                value.getChildren( "result" ).set( 0, message.value() );
+                                String jsonRpcId = jsonRpcIdMap.get( message.id() );
+                                value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
+                        } else {
+                                jsonRpcOpMap.put( message.id() + "", message.operationName() );
+                                value.getFirstChild( "method" ).setValue( message.operationName() );
+                                if ( message.value().isDefined() || message.value().hasChildren() ) {
+                                    // some implementations need an array here
+                                    value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
                                 }
-			}
+                                if ( !message.hasGenericId() ) {
+                                    value.getFirstChild( "id" ).setValue( message.id() );
+                                }
+                        }
 		}
 
 		StringBuilder json = new StringBuilder();
