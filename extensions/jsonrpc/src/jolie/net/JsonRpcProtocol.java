@@ -119,7 +119,20 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				return;
 			}
 		}
-
+                String operation = message.operationName();
+                //resolving aliases
+                if ( isLsp && hasParameter( Parameters.OSC ) ) {
+			Value osc = getParameterFirstValue( Parameters.OSC );
+			for( Entry<String, ValueVector> ev : osc.children().entrySet() ) {
+				Value v = ev.getValue().get( 0 );
+				if ( v.hasChildren( Parameters.ALIAS ) ) {
+					if ( ev.getKey().equals( operation ) ) {
+						operation = v.getFirstChild( Parameters.ALIAS ).strValue();
+					}
+				}
+			}
+                }
+                
 		if ( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
 			value.setFirstChild( "id", jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
@@ -129,7 +142,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			error.getChildren( "data" ).set( 0, message.fault().value() );
 		} else {
 			boolean isRR =
-				channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
+				channel().parentPort().getOperationTypeDescription( operation, message.resourcePath() )
                                 instanceof RequestResponseTypeDescription;
                         //if we are in LSP, we want to be sure the message to be an RR
                         //in order to send it with the field "results" and "id"
@@ -139,8 +152,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
                                 String jsonRpcId = jsonRpcIdMap.get( message.id() );
                                 value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
                         } else {
-                                jsonRpcOpMap.put( message.id() + "", message.operationName() );
-                                value.getFirstChild( "method" ).setValue( message.operationName() );
+                                jsonRpcOpMap.put( message.id() + "", operation );
+                                value.getFirstChild( "method" ).setValue( operation );
                                 if ( message.value().isDefined() || message.value().hasChildren() ) {
                                     // some implementations need an array here
                                     value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
@@ -305,7 +318,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		}
 		return null; //error situation
 	}
-
+        
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
