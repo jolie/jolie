@@ -398,7 +398,7 @@ public class OLParser extends AbstractParser
 			assertToken( Scanner.TokenType.INT, "expected int value" );
 			min = Integer.parseInt( token.content() );
 			if ( min < 0 ) {
-				throwException( "Minimum number of occurences of a sub-type must be positive or zero" );
+				throwException( "Minimum number of occurrences of a sub-type must be positive or zero" );
 			}
 
 			getToken();
@@ -408,13 +408,13 @@ public class OLParser extends AbstractParser
 			if ( token.is( Scanner.TokenType.INT ) ) {
 				max = Integer.parseInt( token.content() );
 				if ( max < 1 ) {
-					throwException( "Maximum number of occurences of a sub-type must be positive" );
+					throwException( "Maximum number of occurrences of a sub-type must be positive" );
 				}
 			} else if ( token.is( Scanner.TokenType.ASTERISK ) ) {
 				max = Integer.MAX_VALUE;
 			} else {
 				max = -1;
-				throwException( "Maximum number of sub-type occurences not valid: " + token.content() );
+				throwException( "Maximum number of sub-type occurrences not valid: " + token.content() );
 			}
 
 			getToken();
