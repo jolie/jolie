@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2019 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2019 by Eros Fabrici <eros.fabrici@gmail.com>           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,40 +20,51 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-type CoListNode:ListNode
+package jolie.net;
 
-// A list, stupidly and purposefully implemented as a co-recursive type
-type ListNode:int {
-	next?:CoListNode
-}
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
-// Test for the type equality check
-type ListNode:int {
-	next?:CoListNode
-}
+/**
+ *
+ * @author Eros Fabrici
+ */
+public class LSPMessage {
 
-type ChoiceRequest: ChoiceLeft | ChoiceRight
+    private byte[] content = null;
+    final private Map< String, String > propMap = new HashMap<>();
 
-type ChoiceLeft { left:int } // defaults to void native type
-type ChoiceRight:void { right:string }
+    public String getProperty( String name ) {
+        String property = getPropMap().get( name.toLowerCase() );
+        if(property!=null)
+            property=property.trim();
+        return property;
+    }
 
-type SomeTrickyType {
-	x {
-		x1
-		x2:int {
-			x21? {
-				x211
-			}
-		}
-	}
-}
+    protected Map<String, String > getPropMap() {
+        return propMap;
+    }
+    public void setContent( byte[] content ) {
+        this.content = content;
+    }
 
-type ChoiceResponse: int | string
+    public void setProperty(String name, String value) {
+        propMap.put( name.toLowerCase(), value );
+    }
 
-interface ServerInterface {
-RequestResponse:
-	call(ListNode)(int),
-	choice(ChoiceRequest)(ChoiceResponse)
-OneWay:
-	shutdown(void)
+    public Collection< Entry< String, String > > getProperties() {
+        return propMap.entrySet();
+    }
+
+    public int size() {
+        if ( content == null )
+            return 0;
+        return content.length;
+    }
+
+    public byte[] content() {
+        return content;
+    }
 }
