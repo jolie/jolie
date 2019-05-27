@@ -209,14 +209,14 @@ public class OLParser extends AbstractParser
 			parseInclude();
 			parseCorrelationSets();
 			parseInclude();
-            parseTypes();
+			parseTypes();
 			parseInclude();
 			parseInterfaceOrPort();
 			parseInclude();
 			parseEmbedded();
 			parseInclude();
             parseInternalService();
-            parseInclude();
+			parseInclude();
 			parseCode();
 		} while( t != token );
 
@@ -228,7 +228,7 @@ public class OLParser extends AbstractParser
 	private void parseTypes()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" );
+		Scanner.Token commentToken = null;
 		boolean keepRun = true;
 		boolean haveComment = false;
 		while( keepRun ) {
@@ -251,13 +251,17 @@ public class OLParser extends AbstractParser
 				}
 
 				currentType = parseType( typeName );
+
+				if( haveComment ){ haveComment = false; }
+				parseBackwardAndSetDocumentation( currentType, Optional.ofNullable( commentToken ) );
+				
 				typeName = currentType.id();
 
 				definedTypes.put( typeName, currentType );
 				program.addChild( currentType );
 			} else {
 				keepRun = false;
-				if ( haveComment ) {
+				if ( haveComment ) { //  we return the comment and the subsequent token since we did not use them
 					addToken( commentToken );
 					addToken( token );
 					getToken();
@@ -265,7 +269,7 @@ public class OLParser extends AbstractParser
 			}
 		}
 	}
-
+	
 	private TypeDefinition parseType( String typeName )
 			throws IOException, ParserException
 	{
@@ -297,39 +301,64 @@ public class OLParser extends AbstractParser
 			throws IOException, ParserException
 	{
 		eat( Scanner.TokenType.LCURLY, "expected {" );
+		
+		Scanner.Token commentToken = null;
+		boolean keepRun = true;
+		boolean haveComment = false;
+		while( keepRun ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
+				haveComment = true;
+				commentToken = token;
+				getToken();
+			} else if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
+				type.setUntypedSubTypes( true );
+				getToken();
+			} else {
+				TypeDefinition currentSubType;
+				while( !token.is( Scanner.TokenType.RCURLY ) ) {
+					
+					if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
+						haveComment = true;
+						commentToken = token;
+						getToken();
+					} else {
+						maybeEat( Scanner.TokenType.DOT );
 
-		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
-			type.setUntypedSubTypes( true );
-			getToken();
-		} else {
-			TypeDefinition currentSubType;
-			while( !token.is( Scanner.TokenType.RCURLY ) ) {
-				maybeEat( Scanner.TokenType.DOT );
+						// SubType id
+						String id = token.content();
+						if ( token.is( Scanner.TokenType.STRING ) ) {
+							getToken();
+						} else {
+							eatIdentifier( "expected type name" );
+						}
 
-				// SubType id
-				String id = token.content();
-				if ( token.is( Scanner.TokenType.STRING ) ) {
-					getToken();
-				} else {
-					eatIdentifier( "expected type name" );
-				}
-				
-				Range cardinality = parseCardinality();
-				if ( token.is( Scanner.TokenType.COLON ) ) {
-					getToken();
-				} else {
-					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
-					getToken();
-				}
+						Range cardinality = parseCardinality();
+						if ( token.is( Scanner.TokenType.COLON ) ) {
+							getToken();
+						} else {
+							prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+							getToken();
+						}
 
-				currentSubType = parseSubType( id, cardinality );
-				if ( type.hasSubType( currentSubType.id() ) ) {
-					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
+						currentSubType = parseSubType( id, cardinality );
+
+						if( haveComment ){ haveComment = false; }
+						parseBackwardAndSetDocumentation( currentSubType, Optional.ofNullable( commentToken ) );
+
+						if ( type.hasSubType( currentSubType.id() ) ) {
+							throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
+						}
+						type.putSubType( currentSubType );
+					}
 				}
-				type.putSubType( currentSubType );
+				keepRun = false;
+				if ( haveComment ) {
+					addToken( commentToken );
+					addToken( token );
+					getToken();
+				}
 			}
 		}
-
 		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
 	}
 
@@ -346,8 +375,20 @@ public class OLParser extends AbstractParser
 		} else {
 			getToken();
 			subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
+			boolean haveComment = false;
+			Scanner.Token commentToken = null;
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD ) ){
+				haveComment = true;
+				commentToken = token;
+				getToken();
+			}
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
 				parseSubTypes((TypeInlineDefinition) subType);
+			}
+			if( haveComment ){
+				addToken( commentToken );
+				addToken( token );
+				getToken();
 			}
 		}
 
@@ -793,9 +834,8 @@ public class OLParser extends AbstractParser
 			if ( backwardDoc.isPresent() ) {
 				node.setDocumentation( backwardDoc.get().content() );
 			} else {
-				node.setDocumentation(
-					forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) ).content()
-				);
+				String forwardDoc = forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) ).content();
+				node.setDocumentation( forwardDoc );
 			}
 			// </Java 8>
 			

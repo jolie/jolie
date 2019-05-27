@@ -49,7 +49,8 @@ public class JolieDoc
 				cmdParser.includePaths(), 
 				cmdParser.jolieClassLoader(), 
 				cmdParser.definedConstants(),
-				configuration
+				configuration,
+				true
 			);			
 			
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
