@@ -52,11 +52,12 @@ public class ParsingUtils
 		String[] includePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
-		SemanticVerifier.Configuration configuration
+		SemanticVerifier.Configuration configuration,
+		boolean includeDocumentation
 	)
 		throws IOException, ParserException, SemanticException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
@@ -72,11 +73,12 @@ public class ParsingUtils
 		String charset,
 		String[] includePaths,
 		ClassLoader classLoader,
-		Map< String, Scanner.Token > definedConstants
+		Map< String, Scanner.Token > definedConstants,
+		boolean includeDocumentation
 	)
 		throws IOException, ParserException, SemanticException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
@@ -85,7 +87,7 @@ public class ParsingUtils
 
 		return program;
 	}
-
+	
 	/**
 	 * Creates a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}.
 	 * @param program the {@link jolie.lang.parse.ast.Program} to inspect
