@@ -254,6 +254,7 @@ public class OLParser extends AbstractParser
 
 				if( haveComment ){ haveComment = false; }
 				parseBackwardAndSetDocumentation( currentType, Optional.ofNullable( commentToken ) );
+				commentToken = null;
 				
 				typeName = currentType.id();
 
@@ -385,7 +386,7 @@ public class OLParser extends AbstractParser
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
 				parseSubTypes((TypeInlineDefinition) subType);
 			}
-			if( haveComment ){
+			if( haveComment ){ // we return the backward comment token and the eaten one, to be parsed by the super type
 				addToken( commentToken );
 				addToken( token );
 				getToken();
