@@ -799,7 +799,7 @@ public class MetaJolie extends JavaService
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
+				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			URI originalFile = program.context().source();
@@ -883,7 +883,8 @@ public class MetaJolie extends JavaService
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
+				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(),	false
+			);
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			URI originalFile = program.context().source();
