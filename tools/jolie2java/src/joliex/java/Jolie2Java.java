@@ -5,22 +5,15 @@
 package joliex.java;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.CommandLineException;
-
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
-
 import joliex.java.impl.JavaDocumentCreator;
-
 import joliex.java.impl.JavaGWTDocumentCreator;
-
-
 import joliex.java.impl.ProgramVisitor;
 
 /**
@@ -37,7 +30,7 @@ public class Jolie2Java {
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
                     cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
 
             //Program program = parser.parse();
             ProgramInspector inspector = ParsingUtils.createInspector(program);
