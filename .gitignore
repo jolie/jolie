@@ -41,3 +41,4 @@ build/
 /extensions/auto/nbproject/private/
 /libjolie/build
 /support/jolie-gwt/build
+/lib/jolie-xml/build
