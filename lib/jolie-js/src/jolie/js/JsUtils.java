@@ -90,8 +90,8 @@ public class JsUtils
 
 	public static void valueToJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder ) throws IOException
 	{
-		if ( value.hasChildren( JSONARRAY_KEY ) ) {
-			valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
+                if ( value.hasChildren( JSONARRAY_KEY ) ) {
+			valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null);
 			return;
 		}
 		int size = value.children().size();

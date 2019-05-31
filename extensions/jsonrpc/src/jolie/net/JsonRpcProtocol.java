@@ -39,7 +39,7 @@ import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
-import jolie.net.ports.Interface;
+import jolie.net.ports.OutputPort;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.*;
 import jolie.runtime.typing.RequestResponseTypeDescription;
@@ -65,6 +65,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		private final static String ALIAS = "alias";
 		private final static String OSC = "osc";
 		private final static String CLIENT_LOCATION = "clientLocation";
+                private final static String CLIENT_OUTPUTPORT = "clientOutputPort";
 	}
 	private final static String LSP = "lsp";
 	private final static int INITIAL_CAPACITY = 8;
@@ -166,34 +167,24 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		}
 
 		StringBuilder json = new StringBuilder();
-                Interface channelInteface = channel().parentPort().getInterface();
-                String myOperation = message.operationName();
-                System.out.println( myOperation );
                 Type operationType = Type.UNDEFINED;
-                System.out.println( "Has OneWay Op: " + channelInteface.oneWayOperations().containsKey( myOperation ) );
-                System.out.println( "Has RR Op: " + channelInteface.requestResponseOperations().containsKey( myOperation ) );
-                /*System.out.println( 
-                        "Has OW outP: " + channel().parentOutputPort().getInterface().oneWayOperations().containsKey( myOperation ) 
-                );
-                System.out.println( 
-                        "Has RR outP: " + channel().parentOutputPort().getInterface().requestResponseOperations().containsKey( myOperation ) 
-                );*/
-                if( channelInteface.oneWayOperations().containsKey( myOperation ) ){
-                        System.out.println( "OneWay" );
-                        operationType = channelInteface.oneWayOperations().get( myOperation ).requestType();
-                }
-                
-                if( channelInteface.requestResponseOperations().containsKey( myOperation ) ){
-                        System.out.println( "RR" );
+                /*
+                String myOperation = message.operationName();
+                Interface channelInterface = channel().parentPort().getInterface();
+                if( channelInterface.oneWayOperations().containsKey( myOperation ) ){
+                        operationType = channelInterface.oneWayOperations().get( myOperation ).requestType();
+                        if ( myOperation.equals( "publishDiagnostics" ) ) {
+                            Type subType = operationType.findSubType( "diagnostics" );
+                        }
+                }else
+                if( channelInterface.requestResponseOperations().containsKey( myOperation ) ){
                         if ( inInputPort ){
-                                System.out.println( "InputPort" );
-                                operationType = channelInteface.requestResponseOperations().get( myOperation ).responseType();
+                                operationType = channelInterface.requestResponseOperations().get( myOperation ).responseType();
                         } else {
-                                System.out.println( "outputPort" );
-                                operationType = channelInteface.requestResponseOperations().get( myOperation ).requestType();
+                                operationType = channelInterface.requestResponseOperations().get( myOperation ).requestType();
                         }
                 }
-                System.out.println( operationType );
+                */
 		JsUtils.valueToJsonString( value, true, operationType, json );
 		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
 
@@ -265,7 +256,17 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	{
 		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			if ( inInputPort && configurationPath().getValue().hasChildren( Parameters.CLIENT_LOCATION ) ) {
-				getParameterFirstValue( Parameters.CLIENT_LOCATION ).setValue( channel() );
+                            try {
+                                OutputPort op = interpreter.getOutputPort( 
+                                getParameterFirstValue( Parameters.CLIENT_OUTPUTPORT ).strValue() );
+                                if( op != null ) {
+                                        channel().parentPort().getInterface().merge( op.getInterface() );
+                                }
+                            } catch (InvalidIdException ex) {}
+                            if( !getParameterFirstValue( Parameters.CLIENT_LOCATION ).isDefined() ){
+                                    //Setting the outport to the channel
+                                    getParameterFirstValue( Parameters.CLIENT_LOCATION ).setValue( channel() );
+                            }
 			}
 			LSPParser parser = new LSPParser( istream );
 			LSPMessage message = parser.parse();
