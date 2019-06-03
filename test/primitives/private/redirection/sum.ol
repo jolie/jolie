@@ -1,7 +1,7 @@
 include "locations.iol"
 include "SumInterface.iol"
 
-execution{ concurrent }
+execution { concurrent }
 
 inputPort Sum {
   Location: Location_Sum
