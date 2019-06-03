@@ -7,11 +7,13 @@ include "SubInterface.iol"
 outputPort SubService {
 Location: Location_Sub
 Protocol: http
+Interfaces: SubInterface
 }
 
 outputPort SumService {
 Location: Location_Sum
 Protocol: http
+Interfaces: SumInterface
 }
 
 inputPort Redirector {
@@ -32,5 +34,6 @@ embedded {
 
 main
 {
-  shutdown(); exit
+  shutdown()
+	exit
 }

@@ -1,8 +1,7 @@
 include "locations.iol"
 include "SubInterface.iol"
 
-
-execution{ concurrent }
+execution { concurrent }
 
 inputPort Sub {
   Location: Location_Sub
