@@ -287,7 +287,7 @@ public class OLParser extends AbstractParser
 				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
 		}
-
+		
 		if ( token.is( Scanner.TokenType.PARALLEL ) ) { // It's a sum (union, choice) type
 			getToken();
 			final TypeDefinition secondType = parseType( typeName );
@@ -345,6 +345,7 @@ public class OLParser extends AbstractParser
 
 						if( haveComment ){ haveComment = false; }
 						parseBackwardAndSetDocumentation( currentSubType, Optional.ofNullable( commentToken ) );
+						commentToken = null;
 
 						if ( type.hasSubType( currentSubType.id() ) ) {
 							throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
