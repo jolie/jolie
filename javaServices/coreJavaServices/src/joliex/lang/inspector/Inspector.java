@@ -97,6 +97,8 @@ public class Inspector extends JavaService
 		private static final String CODE = "code";
 		private static final String DOCUMENTATION = "documentation";
 		private static final String SUBTYPE = "subtype";
+		private static final String ROOT_TYPE = "rootType";
+		private static final String UNDEFINED_SUBTYPES = "undefinedSubtypes";
 	}
 
 	private static final class FaultInfoType
@@ -119,7 +121,7 @@ public class Inspector extends JavaService
 	private static final String TYPE_CARDINALITY_ZERO_TO_MANY = "*";
 	private static final String TAB = "\t";
 	private static final String NEW_LINE = "\n";
-
+	
 	@RequestResponse
 	public Value inspectProgram( Value request ) throws FaultException {
 		try {
@@ -319,13 +321,33 @@ public class Inspector extends JavaService
 		returnValue.getChildren( FaultInfoType.TYPE ).add( buildTypeInfo( fault.getValue() ) );
 		return returnValue;
 	}
-
-	private static Value buildTypeInfo( TypeDefinition typeDefinition )
+	
+	private static Value buildTypeInfo( TypeDefinition typeDefinition ){
+		return buildTypeInfo( typeDefinition, true );
+	}
+	
+	private static Value buildTypeInfo( TypeDefinition typeDefinition, boolean addCode )
 	{
 		Value returnValue = Value.create();
-		returnValue.setFirstChild( TypeInfoType.NAME, typeDefinition.id() );
-		returnValue.setFirstChild( TypeInfoType.IS_NATIVE, NativeType.isNativeTypeKeyword( typeDefinition.id() ) );
-		returnValue.setFirstChild( TypeInfoType.IS_CHOICE, typeDefinition instanceof TypeChoiceDefinition );
+		if( !( typeDefinition instanceof TypeInlineDefinition ) ){
+			returnValue.setFirstChild( TypeInfoType.NAME, typeDefinition.id() );
+			returnValue.setFirstChild( TypeInfoType.IS_NATIVE, false );
+		} else {
+			TypeInlineDefinition tid = ( TypeInlineDefinition ) typeDefinition;
+			returnValue.setFirstChild( TypeInfoType.NAME, tid.id() );
+			if( tid.hasSubTypes() || tid.untypedSubTypes() ){
+				returnValue.setFirstChild( TypeInfoType.IS_NATIVE, false );
+			} else {
+				returnValue.setFirstChild( TypeInfoType.IS_NATIVE, true );
+			}
+			if ( tid.untypedSubTypes() ) {
+				returnValue.setFirstChild( TypeInfoType.UNDEFINED_SUBTYPES, true );
+			}
+			returnValue.setFirstChild( TypeInfoType.ROOT_TYPE, tid.nativeType().id() );
+		}
+		if( typeDefinition instanceof TypeChoiceDefinition ){
+			returnValue.setFirstChild( TypeInfoType.IS_CHOICE, typeDefinition instanceof TypeChoiceDefinition );
+		}
 		if ( typeDefinition.getDocumentation() != null ) {
 			returnValue.setFirstChild( TypeInfoType.DOCUMENTATION, typeDefinition.getDocumentation() );
 		}
@@ -334,7 +356,10 @@ public class Inspector extends JavaService
 		if( !subtypes.isEmpty() ){
 			returnValue.children().put( TypeInfoType.SUBTYPE, subtypes );
 		}
-		returnValue.setFirstChild( TypeInfoType.CODE, buildTypeCode( typeDefinition ) );
+		
+		if( addCode ){
+			returnValue.setFirstChild( TypeInfoType.CODE, buildTypeCode( typeDefinition ) );
+		}
 		
 		return returnValue;
 	}
@@ -343,8 +368,10 @@ public class Inspector extends JavaService
 		ValueVector returnVector = ValueVector.create();
 		
 		if ( typeDefinition instanceof TypeChoiceDefinition ) {
-			returnVector.add( buildTypeInfo( ( (TypeChoiceDefinition) typeDefinition ).left() ) );
-			returnVector.add( buildTypeInfo( ( (TypeChoiceDefinition) typeDefinition ).right() ) );
+			returnVector.add( buildTypeInfo( ( (TypeChoiceDefinition) typeDefinition ).left(), false ) );
+			returnVector.get( returnVector.size()-1 ).children().remove( TypeInfoType.NAME );
+			returnVector.add( buildTypeInfo( ( (TypeChoiceDefinition) typeDefinition ).right(), false ) );
+			returnVector.get( returnVector.size()-1 ).children().remove( TypeInfoType.NAME );
 		}
 //		if ( typeDefinition instanceof TypeDefinitionLink ) {
 //		}
@@ -355,7 +382,7 @@ public class Inspector extends JavaService
 //			} else {
 			if( tid.hasSubTypes() ){
 				for ( Entry<String, TypeDefinition> subType : tid.subTypes() ) {
-					returnVector.add( buildTypeInfo( subType.getValue() ) );
+					returnVector.add( buildTypeInfo( subType.getValue(), false ) );
 				}
 			}
 		}
@@ -373,9 +400,9 @@ public class Inspector extends JavaService
 	{
 		String returnString = "";
 		if ( typeDefinition instanceof TypeChoiceDefinition ) {
-			returnString += buildTypeCode( ( (TypeChoiceDefinition) typeDefinition ).left() );
-			returnString += TYPE_CHOICE_TOKEN;
-			returnString += buildTypeCode( ( (TypeChoiceDefinition) typeDefinition ).right() );
+			returnString += buildSubTypeCode( ( (TypeChoiceDefinition) typeDefinition ).left() );
+			returnString += " " + TYPE_CHOICE_TOKEN + " ";
+			returnString += buildSubTypeCode( ( (TypeChoiceDefinition) typeDefinition ).right() );
 		}
 		if ( typeDefinition instanceof TypeDefinitionLink ) {
 			returnString += ( (TypeDefinitionLink) typeDefinition ).linkedTypeName();

@@ -263,7 +263,7 @@ public abstract class AbstractParser
 	/**
 	 * Shortcut to throw a correctly formed ParserException.
 	 * @param mesg The message to insert in the ParserException.
-	 * @throws ParserException Everytime, as its the purpose of this method.
+	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
 	protected final void throwException( String mesg )
 		throws ParserException
@@ -279,7 +279,7 @@ public abstract class AbstractParser
 	/**
 	 * Shortcut to throw a correctly formed ParserException, getting the message from an existing exception.
 	 * @param exception The exception to get the message from.
-	 * @throws ParserException Everytime, as its the purpose of this method.
+	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
 	protected final void throwException( Exception exception )
 		throws ParserException

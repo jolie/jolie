@@ -22,10 +22,19 @@
 include "types/JavaException.iol"
 
 type TypeInfoType: void {
-  .name: string
-  .code: string
+  .rootType: string
+  .name?: string
+  .code?: string
   .isNative: bool
+  .undefinedSubtypes?: bool
+  .documentation?: string
+  .subtype*: TypeInfoType
+} | void {
   .isChoice: bool
+  .name?: string
+  .code?: string
+  .isNative: bool
+  .undefinedSubtypes?: bool
   .documentation?: string
   .subtype*: TypeInfoType
 }
