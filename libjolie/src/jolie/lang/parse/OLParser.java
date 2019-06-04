@@ -1251,6 +1251,7 @@ public class OLParser extends AbstractParser
 	{
 		boolean keepRun = true;
 		while( keepRun ) {
+
 			if ( token.is( Scanner.TokenType.OP_OW ) ) {
 				parseOneWayOperations( oc );
 			} else if ( token.is( Scanner.TokenType.OP_RR ) ) {
@@ -1258,6 +1259,7 @@ public class OLParser extends AbstractParser
 			} else {
 				keepRun = false;
 			}
+
 		}
 	}
 
@@ -1347,14 +1349,12 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 
 		boolean keepRun = true;
-		boolean commentsPreset = false;
-		String comment = "";
+		Scanner.Token commentToken = null;
 		String opId;
 		while( keepRun ) {
 			checkConstant();
 			if ( token.is(Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
-				commentsPreset = true;
-				comment = token.content();
+				commentToken = token;
 				getToken();
 			} else if ( token.is( Scanner.TokenType.ID ) || (
 				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
@@ -1373,10 +1373,7 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
 
-				if ( commentsPreset ) {
-					opDecl.setDocumentation( comment );
-					commentsPreset = false;
-				}
+				parseBackwardAndSetDocumentation( opDecl, Optional.ofNullable( commentToken ) );
 
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultOneWayOperation( opDecl );
@@ -1402,14 +1399,14 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.COLON, "expected :" );
 		boolean keepRun = true;
-		String comment = "";
+		Scanner.Token commentToken = null;
 		String opId;
 		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
 			if ( token.is(Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				commentsPreset = true;
-				comment = token.content();
+				commentToken = token;
 				getToken();
 			} else if ( token.is( Scanner.TokenType.ID ) || (
 				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
@@ -1468,12 +1465,8 @@ public class OLParser extends AbstractParser
 						faultTypesMap
 					);
 
-				// adding documentation
-				if ( commentsPreset ) {
-					opRR.setDocumentation( comment );
-					commentsPreset = false;
-				}
-
+				parseBackwardAndSetDocumentation( opRR, Optional.ofNullable( commentToken ) );
+				
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultRequestResponseOperation( opRR );
 				} else {

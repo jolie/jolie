@@ -369,17 +369,12 @@ public class Inspector extends JavaService
 		
 		if ( typeDefinition instanceof TypeChoiceDefinition ) {
 			returnVector.add( buildTypeInfo( ( (TypeChoiceDefinition) typeDefinition ).left(), false ) );
-			returnVector.get( returnVector.size()-1 ).children().remove( TypeInfoType.NAME );
+			returnVector.get( returnVector.size() - 1 ).children().remove( TypeInfoType.NAME );
 			returnVector.add( buildTypeInfo( ( (TypeChoiceDefinition) typeDefinition ).right(), false ) );
-			returnVector.get( returnVector.size()-1 ).children().remove( TypeInfoType.NAME );
+			returnVector.get( returnVector.size() - 1 ).children().remove( TypeInfoType.NAME );
 		}
-//		if ( typeDefinition instanceof TypeDefinitionLink ) {
-//		}
 		if ( typeDefinition instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition tid = (TypeInlineDefinition) typeDefinition;
-//			if ( tid.untypedSubTypes() ){
-//				returnString += UNDEFINED_TYPE;
-//			} else {
 			if( tid.hasSubTypes() ){
 				for ( Entry<String, TypeDefinition> subType : tid.subTypes() ) {
 					returnVector.add( buildTypeInfo( subType.getValue(), false ) );
