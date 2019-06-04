@@ -192,7 +192,36 @@ define doTest
     }    
   }
 
-  // valueToPrettyString@StringUtils( response )( s );
-  // println@Console( s )()
-
+  undef( response );
+  
+  expectedType.filename = "library/private/inspector/types_6.ol";
+  inspectProgram@Inspector( expectedType )( response );
+  with( response ){
+    if( .port[0].isOutput ){
+      throw( TestFailed, "Port[0] should be marked as an inputPort" )
+    };
+    if( .port[0].name != "MyInput" ){
+      throw( TestFailed, "Port[0] has a wrong name" )
+    };
+    trim@StringUtils( .port[0].documentation )( .port[0].documentation );
+    if( .port[0].documentation != "bwc port documentation" ){
+      throw( TestFailed, "Port[0] has a wrong name: " + .port[0].documentation )
+    };
+    if( .port[0].interface[0].name != "MyInterface" ){
+      throw( TestFailed, "Port[0].interface[0] has a wrong name: " + .port[0].interface[0].name )
+    };
+    d -> .port[0].interface[0].operation[0].documentation;
+    trim@StringUtils( d )( d );
+    if( d != "a backward comment for the request" ){
+      throw( TestFailed, "Port[0].interface[0].operation[0] has a wrong documentation: " + d )
+    };
+    d -> .port[0].interface[0].operation[2].documentation;
+    trim@StringUtils( d )( d );
+    if( d != "request-response op1 documentation" ){
+      throw( TestFailed, "Port[0].interface[0].operation[2] has a wrong documentation: " + d )
+    };
+    if( .port[0].interface[0].operation[2].fault[1].name != "MyOtherFault" ){
+      throw( TestFailed, "Port[0].interface[0].operation[2].fault[1] has a wrong name: " + .port[0].interface[0].operation[2].fault[1].name )
+    }
+  }
 }
