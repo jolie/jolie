@@ -21,7 +21,8 @@
 
 include "types/IOException.iol"
 
-type RawToStringRequest:raw /*< The byte array to be converted */ {
+/** The byte array to be converted */
+type RawToStringRequest:raw {
 	.charset?:string //< set the encoding. Default: system (eg. for Unix-like OS UTF-8)
 }
 
@@ -34,13 +35,13 @@ RequestResponse:
 	rawToBase64( raw )( string ),
 	base64ToRaw( string )( raw ) throws IOException(IOExceptionType),
 
-	/* string <-> raw (byte arrays) conversion methods */
+	/** string <-> raw (byte arrays) conversion methods */
 	rawToString( RawToStringRequest )( string ) throws IOException(IOExceptionType),
 	stringToRaw( StringToRawRequest )( raw ) throws IOException(IOExceptionType)
 }
 
 outputPort Converter {
-Interfaces: ConverterInterface
+  Interfaces: ConverterInterface
 }
 
 embedded {
