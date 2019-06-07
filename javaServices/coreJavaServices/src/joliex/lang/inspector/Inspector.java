@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
@@ -45,6 +44,7 @@ import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ParsingUtils;
@@ -318,7 +318,7 @@ public class Inspector extends JavaService
 	{
 		Value returnValue = Value.create();
 		returnValue.setFirstChild( FaultInfoType.NAME, fault.getKey() );
-		returnValue.getChildren( FaultInfoType.TYPE ).add( buildTypeInfo( fault.getValue() ) );
+		returnValue.getChildren( FaultInfoType.TYPE ).add( buildTypeInfo( fault.getValue(), true ) );
 		return returnValue;
 	}
 	
@@ -332,6 +332,10 @@ public class Inspector extends JavaService
 		if( !( typeDefinition instanceof TypeInlineDefinition ) ){
 			returnValue.setFirstChild( TypeInfoType.NAME, typeDefinition.id() );
 			returnValue.setFirstChild( TypeInfoType.IS_NATIVE, false );
+			if( typeDefinition instanceof TypeDefinitionLink ){
+				TypeDefinitionLink tdl = ( TypeDefinitionLink ) typeDefinition;
+				setRootNativeTypeOrChoice( returnValue, tdl );
+			}
 		} else {
 			TypeInlineDefinition tid = ( TypeInlineDefinition ) typeDefinition;
 			returnValue.setFirstChild( TypeInfoType.NAME, tid.id() );
@@ -362,6 +366,20 @@ public class Inspector extends JavaService
 		}
 		
 		return returnValue;
+	}
+	
+	private static void setRootNativeTypeOrChoice( Value v, TypeDefinitionLink tdl ){
+		if( tdl.linkedType() instanceof TypeDefinitionLink ){
+			setRootNativeTypeOrChoice( v, ( TypeDefinitionLink ) tdl.linkedType() );
+		} else if( tdl.linkedType() instanceof TypeChoiceDefinition ){
+			v.setFirstChild( TypeInfoType.IS_CHOICE, true );
+		} else if( tdl.linkedType() instanceof TypeDefinitionUndefined ){
+			v.setFirstChild( TypeInfoType.ROOT_TYPE, TypeDefinitionUndefined.getInstance().nativeType().id() );
+			v.setFirstChild( TypeInfoType.UNDEFINED_SUBTYPES, true );
+		} else {
+			TypeInlineDefinition tid = ( TypeInlineDefinition ) tdl.linkedType();
+			v.setFirstChild( TypeInfoType.ROOT_TYPE, tid.nativeType().id() );
+		}
 	}
 	
 	private static ValueVector buildSubtypes( TypeDefinition typeDefinition ){
@@ -457,58 +475,79 @@ public class Inspector extends JavaService
 	private static void buildSubTypes( PortInfo p, ValueVector v, Set<String> s, ProgramInspector inspector )
 	{
 		p.getInterfaceList().forEach( ( i ) -> {
-			buildSubTypes( i, v, s, inspector );
+			buildSubTypes( i, v, s );
 		} );
 		if ( p instanceof InputPortInfo ){
-			getAggregatedInterfaces( (InputPortInfo) p, inspector).forEach( ( i ) -> buildSubTypes( i, v, s, inspector ) );
+			getAggregatedInterfaces( (InputPortInfo) p, inspector).forEach( ( i ) -> buildSubTypes( i, v, s ) );
 		}
 	}
 
-	private static void buildSubTypes( InterfaceDefinition i, ValueVector v, Set<String> s, ProgramInspector inspector )
+	private static void buildSubTypes( InterfaceDefinition i, ValueVector v, Set<String> s )
 	{
 		i.operationsMap().entrySet().forEach( ( Entry<String, OperationDeclaration> d ) -> {
-			buildSubTypes( d.getValue(), v, s, inspector );
+			buildSubTypes( d.getValue(), v, s );
 		} );
 	}
 
-	private static void buildSubTypes( OperationDeclaration o, ValueVector v, Set<String> s, ProgramInspector inspector )
+	private static void buildSubTypes( OperationDeclaration o, ValueVector v, Set<String> s )
 	{
 		if ( o instanceof OneWayOperationDeclaration ) {
-			buildSubTypes( ( (OneWayOperationDeclaration) o ).requestType(), v, s, inspector );
+			buildSubTypes( ( (OneWayOperationDeclaration) o ).requestType(), v, s );
 		} else {
-			buildSubTypes( ( (RequestResponseOperationDeclaration) o ).requestType(), v, s, inspector );
-			buildSubTypes( ( (RequestResponseOperationDeclaration) o ).responseType(), v, s, inspector );
+			buildSubTypes( ( (RequestResponseOperationDeclaration) o ).requestType(), v, s );
+			buildSubTypes( ( (RequestResponseOperationDeclaration) o ).responseType(), v, s );
 			( (RequestResponseOperationDeclaration) o ).faults().entrySet().forEach( ( f ) -> {
-				buildSubTypes( f.getValue(), v, s, inspector );
+				buildSubTypes( f.getValue(), v, s );
 			} );
 		}
 	}
 
-	private static void buildSubTypes( TypeDefinition d, ValueVector v, Set<String> s, ProgramInspector inspector )
+	private static void buildSubTypes( TypeDefinition d, ValueVector v, Set<String> s ){
+		buildSubTypes( d, v, s , false );
+	}
+		
+	private static void buildSubTypes( TypeDefinition d, ValueVector v, Set<String> s, boolean fromLinked ){
+		if ( d instanceof TypeDefinitionUndefined ){
+			buildSubTypes( ( TypeDefinitionUndefined ) d, v, s, fromLinked );
+		} else if ( d instanceof TypeDefinitionLink ){
+			buildSubTypes( ( TypeDefinitionLink ) d, v, s );
+		} else if ( d instanceof TypeChoiceDefinition ){
+			buildSubTypes( ( TypeChoiceDefinition ) d, v, s, fromLinked );
+		} else if ( d instanceof TypeInlineDefinition ){
+			buildSubTypes( ( TypeInlineDefinition ) d, v, s, fromLinked );
+		}
+	}
+
+	private static void buildSubTypes( TypeDefinitionUndefined d, ValueVector v, Set<String> s, boolean fromLinked ){}
+	
+	private static void buildSubTypes( TypeChoiceDefinition d, ValueVector v, Set<String> s , boolean fromLinked ){
+		buildSubTypes( d.left(), v, s, fromLinked );
+		buildSubTypes( d.right(), v, s, fromLinked );
+	}
+
+	private static void buildSubTypes( TypeDefinitionLink d, ValueVector v, Set<String> s ){
+		if( !s.contains( d.linkedType().id() ) )
+			buildSubTypes( d.linkedType(), v, s, true );
+	}
+	
+	private static void buildSubTypes( TypeInlineDefinition d, ValueVector v, Set<String> s, boolean fromLinked )
 	{
-		if ( d instanceof TypeChoiceDefinition ) {
-			buildSubTypes( ( (TypeChoiceDefinition) d ).left(), v, s, inspector );
-			buildSubTypes( ( (TypeChoiceDefinition) d ).right(), v, s, inspector );
-		} else if ( d instanceof TypeDefinitionLink ) {
-			TypeDefinitionLink tdl = (TypeDefinitionLink) d;
-			if ( !s.contains( tdl.id() ) && Stream.of( inspector.getTypes() ).anyMatch( ( t ) -> t.id().equals( tdl.id() ) ) ) {
-				s.add( tdl.id() );
-				Value tv = Value.create();
-				tv.setFirstChild( TypeInfoType.NAME, tdl.id() );
-				tv.setFirstChild( TypeInfoType.IS_NATIVE, NativeType.isNativeTypeKeyword( tdl.id() ) );
-				tv.setFirstChild( TypeInfoType.CODE, buildTypeCode( tdl ) );
-				if ( tdl.getDocumentation() != null ) {
-					tv.setFirstChild( TypeInfoType.DOCUMENTATION, tdl.getDocumentation() );
-				}
-				v.add( tv );
+		if ( fromLinked && !s.contains( d.id() ) ) {
+			Value tv = Value.create();
+			tv.setFirstChild( TypeInfoType.NAME, d.id() );
+			tv.setFirstChild( TypeInfoType.IS_NATIVE, NativeType.isNativeTypeKeyword( d.id() ) );
+			tv.setFirstChild( TypeInfoType.CODE, buildTypeCode( d ) );
+			if ( d.getDocumentation() != null ) {
+				tv.setFirstChild( TypeInfoType.DOCUMENTATION, d.getDocumentation() );
 			}
-		} else if ( d instanceof TypeInlineDefinition ) {
-			TypeInlineDefinition tid = (TypeInlineDefinition) d;
-			if ( tid.hasSubTypes() ) {
-				tid.subTypes().forEach( ( td ) -> {
-					buildSubTypes( td.getValue(), v, s, inspector );
-				} );
-			}
+			tv.setFirstChild( TypeInfoType.ROOT_TYPE, d.nativeType().id() );
+			v.add( tv );
+		}
+		s.add( d.id() );
+		if ( d.hasSubTypes() ) {
+			d.subTypes().forEach( ( td ) -> {
+					buildSubTypes( td.getValue(), v, s ); 
+			} );
 		}
 	}
 

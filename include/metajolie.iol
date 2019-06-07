@@ -47,7 +47,8 @@ type GetMetaDataResponse: void {
   .output*: Port                //< the definitions of all the output ports
   .interfaces*: Interface       //< the definitions of all the interfaces
   .types*: Type                 //< the definitions of all the types
-  .embeddedServices*: void {    //< the definitions of all the embedded services
+  /// the definitions of all the embedded services
+  .embeddedServices*: void {    
 	    .type: string             //< type of the embedded service
 	    .servicepath: string      //< path where the service can be found
 	    .portId: string           //< target output port where the embedded service is bound
@@ -65,7 +66,8 @@ type GetInputPortMetaDataResponse: void {
 
 type MessageTypeCastRequest: void {
   .message: undefined           //< the message to be cast
-  .types: void {                //< the types to use for casting the message
+  /// the types to use for casting the message
+  .types: void {                
 	     .messageTypeName: Name   //< starting type to user for casting
 	     .types*: Type            //< list of all the required types
   }
