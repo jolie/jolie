@@ -34,16 +34,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
+import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
+import jolie.net.ports.Interface;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.*;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
+import jolie.util.Range;
 
 /**
  * 
@@ -66,6 +69,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		private final static String OSC = "osc";
 		private final static String CLIENT_LOCATION = "clientLocation";
                 private final static String CLIENT_OUTPUTPORT = "clientOutputPort";
+                private final static String IS_NULLABLE = "isNullable";
 	}
 	private final static String LSP = "lsp";
 	private final static int INITIAL_CAPACITY = 8;
@@ -99,6 +103,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	{
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
                 boolean isLsp = checkStringParameter( Parameters.TRANSPORT, LSP);
+                
 		if ( !isLsp ) {
 			if ( !message.isFault() && message.hasGenericId() && inInputPort ) {
 				// JSON-RPC notification mechanism (method call with dropped result)
@@ -134,7 +139,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				}
 			}
                 }
-                
+                          
 		if ( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
 			value.setFirstChild( "id", jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
@@ -168,25 +173,60 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 
 		StringBuilder json = new StringBuilder();
                 Type operationType = Type.UNDEFINED;
-                /*
+                
                 String myOperation = message.operationName();
                 Interface channelInterface = channel().parentPort().getInterface();
-                if( channelInterface.oneWayOperations().containsKey( myOperation ) ){
+                if ( channelInterface.oneWayOperations().containsKey( myOperation ) ){
                         operationType = channelInterface.oneWayOperations().get( myOperation ).requestType();
-                        if ( myOperation.equals( "publishDiagnostics" ) ) {
-                            Type subType = operationType.findSubType( "diagnostics" );
-                        }
-                }else
-                if( channelInterface.requestResponseOperations().containsKey( myOperation ) ){
+                        
+                } else if ( channelInterface.requestResponseOperations().containsKey( myOperation ) ){
                         if ( inInputPort ){
                                 operationType = channelInterface.requestResponseOperations().get( myOperation ).responseType();
                         } else {
                                 operationType = channelInterface.requestResponseOperations().get( myOperation ).requestType();
                         }
                 }
-                */
-		JsUtils.valueToJsonString( value, true, operationType, json );
-		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
+                
+                /**
+                 * We type the entire message, so JsUtils class will convert 
+                 * it properly
+                 */
+                Map< String, Type > subTypes = new HashMap<>();
+                subTypes.put( "jsonrpc", Type.create( NativeType.STRING, new Range( 1, 1 ), false, null ) );
+                subTypes.put( "method", Type.create( NativeType.STRING, new Range( 1, 1 ), false, null ) );
+                subTypes.put( "id", Type.create( NativeType.INT, new Range( 0, 1 ), false, null ) );
+                Map<String,Type> paramsSubTypes = new HashMap<>();
+                paramsSubTypes.put(JsUtils.JSONARRAY_KEY, operationType);
+                subTypes.put( "params",  Type.create(NativeType.VOID, new Range( 0, 1 ), false, paramsSubTypes));
+                Type t = Type.create( NativeType.VOID, new Range( 1, 1 ), false, subTypes );
+                
+		JsUtils.valueToJsonString( value, true, t, json );
+                String jsonMessage = json.toString();
+                
+                /**
+                 * LSP clients sometimes want a empty array for some fields,
+                 * problem is that JsUtils converts void types into null
+                 * with this we romove manually null values iff there is a parameter 
+                 * that permits so
+                 */
+                if ( hasParameter( Parameters.OSC ) ) {
+                        Value osc = getParameterFirstValue( Parameters.OSC );
+                        String opName = message.operationName();
+                    
+                        if ( osc.hasChildren( opName ) ) {
+                            Value childOp = osc.getFirstChild( opName );
+                            //if osc has a child with opName and grandChild isNullable
+                            if ( childOp.hasChildren( Parameters.IS_NULLABLE ) ) {
+                                
+                                if ( childOp.getFirstChild( Parameters.IS_NULLABLE ).boolValue() ){
+                                    //then we replace all null with and empty string
+                                    jsonMessage = jsonMessage.replaceAll("null", "");
+                                }
+                            }
+                        }
+                }
+                
+		ByteArray content = new ByteArray( jsonMessage.getBytes( "utf-8" ) );
 
 		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			String lspHeaders = "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF;
@@ -270,8 +310,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 			LSPParser parser = new LSPParser( istream );
 			LSPMessage message = parser.parse();
+                        //LSP supports only utf-8 encoding
 			String charset = "utf-8";
-			//encoding = message.getProperty( "accept-encoding" );
+			//encoding = message.getProperty( "accept-encoding" )             
 			return recv_createCommMessage( message.size(), message.content(), charset );
 		} else {
 			HttpParser parser = new HttpParser( istream );
@@ -304,7 +345,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( messageContent ), charset ), value, false );
 
 			String operation = value.getFirstChild( "method" ).strValue();
-
+                        
 			// Resolving aliases
 			if ( hasParameter( Parameters.OSC ) ) {
 				Value osc = getParameterFirstValue( Parameters.OSC );
