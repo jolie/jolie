@@ -91,8 +91,7 @@ public class JsUtils
 	public static void valueToJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder ) throws IOException
 	{
                 if ( value.hasChildren( JSONARRAY_KEY ) ) {
-                        Type t = type.findSubType( JSONARRAY_KEY ) == null ? null : type.findSubType( JSONARRAY_KEY ); //lgtm [java/dereferenced-value-may-be-null] 
-			valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, t);
+			valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, type.findSubType( JSONARRAY_KEY ));
 			return;
 		}
 		int size = value.children().size();
