@@ -20,6 +20,7 @@
  *******************************************************************************/
 package joliex.lang.inspector;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,7 +126,12 @@ public class Inspector extends JavaService
 	@RequestResponse
 	public Value inspectProgram( Value request ) throws FaultException {
 		try {
-			ProgramInspector inspector = getInspector( request.getFirstChild( "filename" ).strValue() );
+			ProgramInspector inspector;
+			if( request.hasChildren( "source" ) ) {
+				inspector = getInspector( request.getFirstChild( "filename" ).strValue(),  request.getFirstChild( "source" ).strValue() );
+			} else {
+				inspector = getInspector( request.getFirstChild( "filename" ).strValue() );
+			}
 			return buildProgramInfo( inspector );
 		} catch( CommandLineException | IOException | ParserException ex ) {
 			throw new FaultException( ex );
@@ -150,6 +156,25 @@ public class Inspector extends JavaService
 				, ex 
 			);
 		}
+	}
+	
+	private static ProgramInspector getInspector( String filename, String source ) throws CommandLineException, IOException, ParserException, SemanticException{
+		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
+		configuration.setCheckForMain( false );
+		CommandLineParser commandLineParser;
+		String[] args = { filename };
+		commandLineParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
+		Program program = ParsingUtils.parseProgram(
+				new ByteArrayInputStream( source.getBytes() ),
+				commandLineParser.programFilepath().toURI(),
+				commandLineParser.charset(),
+				commandLineParser.includePaths(),
+				commandLineParser.jolieClassLoader(),
+				commandLineParser.definedConstants(),
+				configuration,
+				true
+		);
+		return ParsingUtils.createInspector( program );
 	}
 	
 		
