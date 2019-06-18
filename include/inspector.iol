@@ -78,6 +78,7 @@ type TypesInspectionResponse: void {
 
 type InspectionRequest: void {
   .filename: string
+  .source?: string
 }
 
 interface InspectorInterface {
