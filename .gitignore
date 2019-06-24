@@ -43,3 +43,4 @@ build/
 /support/jolie-gwt/build
 /lib/jolie-xml/build
 /jolie/build
+/extensions/http/build
