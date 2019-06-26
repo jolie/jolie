@@ -1429,7 +1429,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if ( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
 			&& (channel().parentPort().getInterface().containsOperation( retVal.operationName() )
-			|| channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null) ) {
+			|| (channel().parentInputPort() != null && channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null)) ) {
 			try {
 				// The message is for this service
 				boolean hasInput = false;
