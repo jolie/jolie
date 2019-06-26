@@ -40,6 +40,7 @@ import jolie.util.Range;
  * @author Fabrizio Montesi
  * @author Károly Szántó
  * @author Giannakis Manthios
+ * @author Eros Fabrici
  *
  * 2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
  */
