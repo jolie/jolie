@@ -24,6 +24,7 @@ package jolie.runtime.typing;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import jolie.lang.NativeType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -114,6 +115,17 @@ class TypeImpl extends Type
 			for( Value v : vector ) {
 				type.cast( v, pathBuilder );
 			}
+		}
+	}
+	
+	@Override
+	public Optional< Type > getMinimalType( Value value )
+	{
+		try {
+			check( value );
+			return Optional.of( this );
+		} catch( TypeCheckingException ex ) {
+			return Optional.empty();
 		}
 	}
 
@@ -305,15 +317,16 @@ class TypeChoice extends Type
 		}
 	}
         
-        @Override
-        public Type getMinimalType( Value value ) {
-                Type leftType = this.left().getMinimalType( value );
-                if ( leftType != null ) {
-                        return leftType;
-                } else {
-                    return this.right().getMinimalType( value );
-                }
-        }
+	@Override
+	public Optional< Type > getMinimalType( Value value )
+	{
+		Optional< Type > leftType = left().getMinimalType( value );
+		if ( leftType.isPresent() ) {
+			return leftType;
+		} else {
+			return right().getMinimalType( value );
+		}
+	}
         
 	@Override
 	protected Value cast( Value value, StringBuilder pathBuilder )
@@ -446,22 +459,14 @@ public abstract class Type implements Cloneable
 	{
 		check( value, new StringBuilder( "#Message" ) );
 	}
-        
-        public Type getMinimalType( Value value ) {
-                try {
-                        check( value );
-                        return this;
-                } catch (TypeCheckingException ex) {
-                        return null;
-                }
-        }
-        
+    
 	public Value cast( Value value )
 		throws TypeCastingException
 	{
 		return cast( value, new StringBuilder( "#Message" ) );
 	}
-
+	
+	public abstract Optional< Type > getMinimalType( Value value );
 	public abstract void cutChildrenFromValue( Value value );
 	public abstract Range cardinality();
 	public abstract Type findSubType( String key );
@@ -516,11 +521,12 @@ public abstract class Type implements Cloneable
 		{
 			linkedType.check( value, pathBuilder );
 		}
-                
-                @Override
-                public Type getMinimalType( Value value ) {
-                        return linkedType.getMinimalType( value );
-                }
+              
+		@Override
+		public Optional< Type > getMinimalType( Value value )
+		{
+			return linkedType.getMinimalType( value );
+		}
                 
 		@Override
 		protected Value cast( Value value, StringBuilder pathBuilder )
