@@ -23,6 +23,7 @@ package jolie.net.ports;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import jolie.runtime.typing.OneWayTypeDescription;
