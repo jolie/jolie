@@ -216,6 +216,11 @@ public class Interface
 		this.oneWayOperations = oneWayOperations;
 		this.requestResponseOperations = requestResponseOperations;
 	}
+	
+	public Interface copy()
+	{
+		return new Interface( new HashMap<>( oneWayOperations ), new HashMap<>( requestResponseOperations ) );
+	}
 
 	public Map< String, OneWayTypeDescription > oneWayOperations()
 	{
