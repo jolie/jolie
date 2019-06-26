@@ -51,7 +51,7 @@ class TypeImpl extends Type
 	{
 		return ( subTypes != null ) ? subTypes.get( key ) : null;
 	}
-		
+        
 	@Override
 	public Range cardinality()
 	{
@@ -304,7 +304,17 @@ class TypeChoice extends Type
 			right.check( value, pathBuilder );
 		}
 	}
-
+        
+        @Override
+        public Type getMinimalType( Value value ) {
+                Type leftType = this.left().getMinimalType( value );
+                if ( leftType != null ) {
+                        return leftType;
+                } else {
+                    return this.right().getMinimalType( value );
+                }
+        }
+        
 	@Override
 	protected Value cast( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
@@ -436,7 +446,16 @@ public abstract class Type implements Cloneable
 	{
 		check( value, new StringBuilder( "#Message" ) );
 	}
-
+        
+        public Type getMinimalType( Value value ) {
+                try {
+                        check( value );
+                        return this;
+                } catch (TypeCheckingException ex) {
+                        return null;
+                }
+        }
+        
 	public Value cast( Value value )
 		throws TypeCastingException
 	{
@@ -497,7 +516,12 @@ public abstract class Type implements Cloneable
 		{
 			linkedType.check( value, pathBuilder );
 		}
-
+                
+                @Override
+                public Type getMinimalType( Value value ) {
+                        return linkedType.getMinimalType( value );
+                }
+                
 		@Override
 		protected Value cast( Value value, StringBuilder pathBuilder )
 			throws TypeCastingException
