@@ -45,17 +45,20 @@ public class Jolie2Java {
             visitor.run();
 
             String format = cmdParser.getFormat();
-            if (format.equals("java")) {
+			String packageName = cmdParser.getPackageName();
+            if (format != null && format.equals("java") && packageName != null ) {
                 JavaDocumentCreator documentJava = new JavaDocumentCreator(inspector, cmdParser.getPackageName(), cmdParser.getTargetPort(), cmdParser.isAddSource());
                 documentJava.ConvertDocument();
-            } else if (format.equals("gwt")) {
+            } else if (format != null && format.equals("gwt") && packageName != null) {
+				System.out.println("WARNING: gwt conversion is deprecated, use it at your own risk");
                 JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator(inspector, cmdParser.getPackageName(), cmdParser.getTargetPort());
                 documentJava.ConvertDocument();
 
             } else {
-                System.out.print("type not yet implemented");
+                System.out.print( cmdParser.getHelpString());
             }
 
+			System.out.println("Generation done!");
         } catch (CommandLineException e) {
             System.out.println(e.getMessage());
         } catch (IOException e) {

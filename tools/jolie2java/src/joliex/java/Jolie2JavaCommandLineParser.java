@@ -34,27 +34,27 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
     private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
 
-	private String packageName;
-	private String format;
+	private String packageName = null;
+	private String format = null;
 	private String targetPort;
 	private boolean addSource = false;
 
 	public int onUnrecognizedArgument(List< String> argumentsList, int index)
 		throws CommandLineException {
 	    if ("--addSource".equals(argumentsList.get(index))) {
-		index++;
-		this.addSource = true;
+			index++;
+			this.addSource = true;
 	    } else if ("--packageName".equals(argumentsList.get(index))) {
-		index++;
-		packageName = argumentsList.get(index);
+			index++;
+			packageName = argumentsList.get(index);
 	    } else if ("--format".equals(argumentsList.get(index))) {
-		index++;
-		format = argumentsList.get(index);
+			index++;
+			format = argumentsList.get(index);
 	    } else if ("--targetPort".equals(argumentsList.get(index))) {
-		index++;
-		targetPort = argumentsList.get(index);
+			index++;
+			targetPort = argumentsList.get(index);
 	    } else {
-		throw new CommandLineException("Unrecognized command line option: " + argumentsList.get(index));
+			throw new CommandLineException("Unrecognized command line option: " + argumentsList.get(index));
 	    }
 
 	    return index;
@@ -68,12 +68,12 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
     private Jolie2JavaCommandLineParser(String[] args, ClassLoader parentClassLoader, JolieDummyArgumentHandler argHandler)
 	    throws CommandLineException, IOException {
-	super(args, parentClassLoader, argHandler);
+		super(args, parentClassLoader, argHandler);
 
-	packageName = argHandler.packageName;
-	format = argHandler.format;
-	targetPort = argHandler.targetPort;
-	addSource = argHandler.addSource;
+		packageName = argHandler.packageName;
+		format = argHandler.format;
+		targetPort = argHandler.targetPort;
+		addSource = argHandler.addSource;
     }
 
     @Override
