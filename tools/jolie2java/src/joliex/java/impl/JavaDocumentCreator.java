@@ -16,8 +16,7 @@
  * *************************************************************************
  */
 
-// DO NOT MERGE!
-package joliex.java.impls;
+package joliex.java.impl;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -468,12 +467,12 @@ public class JavaDocumentCreator
 						variableType = javaNativeEquivalent.get( ((TypeInlineDefinition) subType).nativeType() );
 					}
 				} else if ( subType instanceof TypeChoiceDefinition ) {
-					System.out.println( "WARNING: Type definition contains a choice variable which is not supported!" );
+					System.out.println( "WARNING7: Type definition contains a choice variable which is not supported!" );
 					variableName = subType.id();
 					variableType = "Object";
 
 				} else {
-					System.out.println( "WARNING: variable is not a Link, a Choice or an Inline Definition!" );
+					System.out.println( "WARNING8: variable is not a Link, a Choice or an Inline Definition!" );
 				}
 
 				if ( subType.cardinality().max() > 1 ) {
@@ -626,20 +625,21 @@ public class JavaDocumentCreator
 							stringBuilder.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName ).append( "\")." );
 							stringBuilder.append( javaMethod );
 							stringBuilder.append( ";\n" );
-						} else // in case of ANY and in case of undefined
-						if ( variableNameType.equals( "Value" ) ) {
+						} else if ( variableNameType.equals( "Value" ) ) {
+							 // in case of ANY and in case of undefined
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "if(v.getFirstChild(\"" ).append( variableName );
 							stringBuilder.append( "\").isDefined()){\n" );
 
 							incrementIndentation();
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( variableName ).append( ".setValue(v.getFirstChild(\"" ).append( variableName );
-							stringBuilder.append( "\"))" ).append( ";\n" );
+							stringBuilder.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName );
+							stringBuilder.append( "\")" ).append( ";\n" );
 
 							decrementIndentation();
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "}\n" );
+							
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
 								if ( !javaNativeChecker.containsKey( t ) ) {
@@ -668,9 +668,7 @@ public class JavaDocumentCreator
 
 				if ( subType instanceof TypeChoiceDefinition ) {
 					throw new UnsupportedOperationException( "Can't initialize variable with several possible types" );
-				} else {
-					System.out.println( "WARNING: variable is not a Link, a Choice or an Inline Definition!" );
-				}
+				} 
 			}
 			decrementIndentation();
 			appendingIndentation( stringBuilder );
@@ -714,7 +712,7 @@ public class JavaDocumentCreator
 				} else if ( subType instanceof TypeChoiceDefinition ) {
 					throw new UnsupportedOperationException( "Can't initialize variable with several possible types" );
 				} else {
-					System.out.println( "WARNING: variable is not a Link, a Choice or an Inline Definition!" );
+					System.out.println( "WARNING2: variable is not a Link, a Choice or an Inline Definition!" );
 				}
 			}
 		}
@@ -999,9 +997,7 @@ public class JavaDocumentCreator
 					//public <type1> get <variable>
 					//public <type2> get <variable>
 
-				} else {
-					System.out.println( "WARNING: variable is not a Link, a Choice or an Inline Definition!" );
-				}
+				} 
 			}
 		}
 
@@ -1144,9 +1140,7 @@ public class JavaDocumentCreator
 				if ( subType instanceof TypeChoiceDefinition ) {
 					
 
-				} else {
-					System.out.println( "WARNING: variable is not a Link, a Choice or an Inline Definition!" );
-				}
+				} 
 			}
 		}
 
@@ -1393,7 +1387,7 @@ public class JavaDocumentCreator
 			System.out.println( "WARNING: Type definition contains a choice variable which is not supported!" );
 			return type.id();
 		} else {
-			System.out.println( "WARNING: variable is not a Link, a Choice or an Inline Definition!" );
+			System.out.println( "WARNING5: variable is not a Link, a Choice or an Inline Definition!" );
 		}
 		return "err";
 	}
@@ -1416,7 +1410,7 @@ public class JavaDocumentCreator
 			System.out.println( "WARNING: Type definition contains a choice variable which is not supported!" );
 			return "Value";
 		} else {
-			System.out.println( "WARNING: variable is not a Link, a Choice or an Inline Definition!" );
+			System.out.println( "WARNING6: variable is not a Link, a Choice or an Inline Definition!" );
 		}
 		return "err";
 	}
