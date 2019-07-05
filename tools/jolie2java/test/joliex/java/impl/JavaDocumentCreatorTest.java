@@ -51,6 +51,12 @@ public class JavaDocumentCreatorTest
 	private static final Boolean TESTBOOL = true;
 	private static final Long TESTLONG = 2L;
 
+	HashMap<String, Method> setMethodList = new HashMap<>();
+	HashMap<String, Method> getMethodList = new HashMap<>();
+	HashMap<String, Method> addMethodList = new HashMap<>();
+	HashMap<String, Method> removeMethodList = new HashMap<>();
+	HashMap<String, Method> sizeMethodList = new HashMap<>();
+
 	public JavaDocumentCreatorTest()
 	{
 	}
@@ -105,7 +111,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 2, new File( "./generated/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 3, new File( "./generated/com/test" ).list().length );
 
 		// compile files
 		File generatedPath = new File( "./generated/com/test" );
@@ -130,25 +136,8 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( getFlatStructuredType(), flatStructureType.getValue() ) );
 		Jolie2JavaInterface flatStructureTypeEmpty = (Jolie2JavaInterface) FlatStructureType.newInstance();
 		// check methods
-		HashMap<String, Method> setMethodList = new HashMap<>();
-		HashMap<String, Method> getMethodList = new HashMap<>();
-		for( Entry<String, ValueVector> vv : getFlatStructuredType().children().entrySet() ) {
-			boolean foundGet = false;
-			boolean foundSet = false;
-			for( Method method : FlatStructureType.getDeclaredMethods() ) {
-				String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
-				if ( method.getName().equals( "get" + mNameTmp ) ) {
-					foundGet = true;
-					getMethodList.put( mNameTmp, method );
-				}
-				if ( method.getName().equals( "set" + mNameTmp ) ) {
-					foundSet = true;
-					setMethodList.put( mNameTmp, method );
-				}
-			}
-			assertTrue( "get method for field " + vv.getKey() + "not found ", foundGet );
-			assertTrue( "set method for field " + vv.getKey() + "not found ", foundSet );
-		}
+		checkMethods( FlatStructureType, getFlatStructuredType() );
+
 		// invoking methods 
 		for( Entry<String, ValueVector> vv : getFlatStructuredType().children().entrySet() ) {
 			String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
@@ -167,7 +156,7 @@ public class JavaDocumentCreatorTest
 			} else if ( vv.getValue().get( 0 ).isDouble() ) {
 				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).doubleValue() );
 				Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", new Double(vv.getValue().get( 0 ).doubleValue()), returnValue );
+				assertEquals( "check methods for field " + vv.getKey() + " failed", new Double( vv.getValue().get( 0 ).doubleValue() ), returnValue );
 			} else if ( vv.getValue().get( 0 ).isLong() ) {
 				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).longValue() );
 				Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
@@ -179,9 +168,76 @@ public class JavaDocumentCreatorTest
 			} else {
 				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ) );
 				Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertTrue( "check methods for field " + vv.getKey() + " failed", compareValues(returnValue, vv.getValue().get( 0 ) ) );
+				assertTrue( "check methods for field " + vv.getKey() + " failed", compareValues( returnValue, vv.getValue().get( 0 ) ) );
 			}
 		}
+
+		// FileStructureVector
+		Class<?> FlatStructureVectorsType = Class.forName( "com.test.FlatStructureVectorsType", true, classLoader ); // Should print "hello".
+		Constructor flatStructureVectorsTypeConstructor = FlatStructureVectorsType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface flatStructureVectorsType = (Jolie2JavaInterface) flatStructureVectorsTypeConstructor.newInstance( getFlatStructuredVectorsType() );
+		// check constructor and getValues
+		assertTrue( compareValues( getFlatStructuredVectorsType(), flatStructureVectorsType.getValue() ) );
+		Jolie2JavaInterface flatStructureVectorsTypeEmpty = (Jolie2JavaInterface) FlatStructureVectorsType.newInstance();
+
+		// check methods
+		checkMethods( FlatStructureVectorsType, getFlatStructuredVectorsType() );
+		
+		//TODO
+	}
+
+	private void checkMethods( Class cls, Value value )
+	{
+		setMethodList = new HashMap<>();
+		getMethodList = new HashMap<>();
+		for( Entry<String, ValueVector> vv : value.children().entrySet() ) {
+			if ( vv.getValue().size() == 1 ) {
+				boolean foundGet = false;
+				boolean foundSet = false;
+				for( Method method : cls.getDeclaredMethods() ) {
+					String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
+					if ( method.getName().equals( "get" + mNameTmp ) ) {
+						foundGet = true;
+						getMethodList.put( mNameTmp, method );
+					}
+					if ( method.getName().equals( "set" + mNameTmp ) ) {
+						foundSet = true;
+						setMethodList.put( mNameTmp, method );
+					}
+				}
+				assertTrue( "get method for field " + vv.getKey() + "not found, class " + cls.getName(), foundGet );
+				assertTrue( "set method for field " + vv.getKey() + "not found, class " + cls.getName(), foundSet );
+			} else {
+				boolean foundAdd = false;
+				boolean foundRemove = false;
+				boolean foundSize = false;
+				boolean foundGet = false;
+				for( Method method : cls.getDeclaredMethods() ) {
+					String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
+					if ( method.getName().equals( "get" + mNameTmp ) || method.getName().equals( "get" + mNameTmp + "Value" ) ) {
+						foundGet = true;
+						getMethodList.put( mNameTmp, method );
+					}
+					if ( method.getName().equals( "add" + mNameTmp + "Value" ) ) {
+						foundAdd = true;
+						addMethodList.put( mNameTmp, method );
+					}
+					if ( method.getName().equals( "remove" + mNameTmp + "Value" ) ) {
+						foundRemove = true;
+						removeMethodList.put( mNameTmp, method );
+					}
+					if ( method.getName().equals( "get" + mNameTmp + "Size" ) ) {
+						foundSize = true;
+						sizeMethodList.put( mNameTmp, method );
+					}
+				}
+				assertTrue( "get method for field " + vv.getKey() + "not found, class " + cls.getName(), foundGet );
+				assertTrue( "add method for field " + vv.getKey() + "not found, class " + cls.getName(), foundAdd );
+				assertTrue( "size method for field " + vv.getKey() + "not found, class " + cls.getName(), foundSize );
+				assertTrue( "remove method for field " + vv.getKey() + "not found, class " + cls.getName(), foundRemove );
+			}
+		}
+
 	}
 
 	private Value getFlatStructuredType()
@@ -195,6 +251,32 @@ public class JavaDocumentCreatorTest
 		testValue.getFirstChild( "ffield" ).setValue( TESTBOOL );
 		testValue.getFirstChild( "gfield" ).setValue( getTestUndefined() );
 		testValue.getFirstChild( "hfield" ).setValue( TESTLONG );
+		return testValue;
+	}
+
+	private Value getFlatStructuredVectorsType()
+	{
+		Value testValue = Value.create();
+		for( int i = 0; i < 50; i++ ) {
+			testValue.getNewChild( "afield" ).setValue( TESTSTRING );
+		}
+		// bfield is missing for testing 0 occurencies
+		for( int i = 0; i < 10; i++ ) {
+			testValue.getNewChild( "cfield" ).setValue( TESTDOUBLE );
+		}
+		for( int i = 0; i < 100; i++ ) {
+			testValue.getNewChild( "dfield" ).setValue( new ByteArray( TESTRAW ) );
+		}
+		// efield is missing for testing 0 occurencies
+		for( int i = 0; i < 10; i++ ) {
+			testValue.getNewChild( "ffield" ).setValue( TESTBOOL );
+		}
+		for( int i = 0; i < 4; i++ ) {
+			testValue.getNewChild( "gfield" ).setValue( getTestUndefined() );
+		}
+		for( int i = 0; i < 2; i++ ) {
+			testValue.getNewChild( "hfield" ).setValue( TESTLONG );
+		}
 		return testValue;
 	}
 
@@ -223,7 +305,8 @@ public class JavaDocumentCreatorTest
 				return false;
 			} else {
 				if ( entry.getValue().size() != v2.getChildren( entry.getKey() ).size() ) {
-					System.out.println( "The number of subnodes is different: " + entry.getValue().size() + "," + v2.getChildren( entry.getKey() ).size() );
+					System.out.println( "Node name " + entry.getKey() );
+					System.out.println( "from v1 -> v2: The number of subnodes is different: " + entry.getValue().size() + "," + v2.getChildren( entry.getKey() ).size() );
 					return false;
 				}
 				for( int i = 0; i < entry.getValue().size(); i++ ) {
@@ -243,7 +326,7 @@ public class JavaDocumentCreatorTest
 				return false;
 			} else {
 				if ( entry.getValue().size() != v1.getChildren( entry.getKey() ).size() ) {
-					System.out.println( "The number of subnodes is different: " + entry.getValue().size() + "," + v1.getChildren( entry.getKey() ).size() );
+					System.out.println( "from v2 -> v1: The number of subnodes is different: " + entry.getValue().size() + "," + v1.getChildren( entry.getKey() ).size() );
 					return false;
 				}
 				for( int i = 0; i < entry.getValue().size(); i++ ) {

@@ -15,7 +15,6 @@
  * software, see the AUTHORS file. *
  * *************************************************************************
  */
-
 package joliex.java.impl;
 
 import java.io.BufferedWriter;
@@ -58,6 +57,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
+import jolie.runtime.Value;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -172,7 +172,7 @@ public class JavaDocumentCreator
 		typeMapIterator = typeMap.entrySet().iterator();
 		createPackageDirectory();
 		createBuildFile();
-	
+
 		while( typeMapIterator.hasNext() ) {
 			Entry<String, TypeDefinition> typeEntry = typeMapIterator.next();
 			if ( !NativeType.isNativeTypeKeyword( typeEntry.getKey() ) && !isNativeTypeUndefined( typeEntry.getKey() ) ) {
@@ -403,9 +403,9 @@ public class JavaDocumentCreator
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "public class " ).append( typeDefinition.id() );
 		if ( interfaceToBeImplemented != null && Utils.hasSubTypes( typeDefinition ) ) {
-			stringBuilder.append( " implements ").append( interfaceToBeImplemented );
+			stringBuilder.append( " implements " ).append( interfaceToBeImplemented );
 		}
-		
+
 		stringBuilder.append( " {" + "\n" );
 
 		if ( Utils.hasSubTypes( typeDefinition ) ) {
@@ -421,12 +421,12 @@ public class JavaDocumentCreator
 
 	private void appendingImportsIfNecessary( StringBuilder stringBuilder, TypeDefinition type )
 	{
-		
+
 		stringBuilder.append( "import jolie.runtime.embedding.Jolie2JavaInterface;\n" );
 		TypeDefinition supportType = type;
 		if ( Utils.hasSubTypes( supportType ) ) {
 			stringBuilder.append( "import java.util.List;\n" );
-			stringBuilder.append( "import java.util.LinkedList;\n" );
+			stringBuilder.append( "import java.util.ArrayList;\n" );
 			stringBuilder.append( "import jolie.runtime.Value;\n" );
 			stringBuilder.append( "import jolie.runtime.ByteArray;\n" );
 			stringBuilder.append( "\n" );
@@ -490,9 +490,8 @@ public class JavaDocumentCreator
 		}
 	}
 
-	private void appendingConstructor( StringBuilder stringBuilder, TypeDefinition type )
+	private void appendingConstructorWithParameters( StringBuilder stringBuilder, TypeDefinition type )
 	{
-
 		//constructor with parameters
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "public " ).append( type.id() ).append( "( Value v ){\n" );
@@ -507,11 +506,12 @@ public class JavaDocumentCreator
 				String variableName = getVariableName( subType );
 				String variableNameType = getVariableTypeName( subType );
 
+				// case where there are subnodes
 				if ( Utils.hasSubTypes( subType ) ) {
 					if ( subType.cardinality().max() > 1 ) {
 						/* creating the list object */
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( subType.id() ).append( "= new LinkedList<" );
+						stringBuilder.append( subType.id() ).append( "= new ArrayList<" );
 						stringBuilder.append( variableNameType );
 						stringBuilder.append( ">();" ).append( "\n" );
 
@@ -558,13 +558,20 @@ public class JavaDocumentCreator
 						stringBuilder.append( "}\n" );
 					}
 				} else {
+					// case where there are no subnodes
 					//native type
 					String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( subType ) );
+					if ( isNativeTypeUndefined( subType ) ) {
+						// it is undefined
+						nativeTypeName = "Value";
+					}
 					String javaMethod = javaNativeMethod.get( Utils.nativeType( subType ) );
 
+					// it is a vector
 					if ( subType.cardinality().max() > 1 ) {
+
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( variableName ).append( "= new LinkedList<" ).append( nativeTypeName ).append( ">();\n" );
+						stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );
 
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "if (v.hasChildren(\"" ).append( variableName ).append( "\")){\n" );
@@ -574,16 +581,13 @@ public class JavaDocumentCreator
 						stringBuilder.append( "for(int counter" ).append( variableName ).append( "=0;counter" ).append( variableName );
 						stringBuilder.append( "<v.getChildren(\"" ).append( variableName ).append( "\").size(); counter" ).append( variableName );
 						stringBuilder.append( "++){\n" );
-
 						incrementIndentation();
 						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( nativeTypeName ).append( " support" ).append( variableName ).append( " = v.getChildren(\"" );
-							stringBuilder.append( variableName ).append( "\").get(counter" ).append( variableName );
-							stringBuilder.append( ")." ).append( javaMethod ).append( ";\n" );
-
+							appendingAddToListNative( stringBuilder, variableName, javaMethod );
+						} else if ( nativeTypeName.equals( "Value" ) ) {
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( variableName ).append( ".add(support" ).append( variableName ).append( ");\n" );
+							appendingAddToListValue( stringBuilder, variableName );
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
 								if ( !javaNativeChecker.containsKey( t ) ) {
@@ -595,12 +599,7 @@ public class JavaDocumentCreator
 
 								incrementIndentation();
 								appendingIndentation( stringBuilder );
-								stringBuilder.append( nativeTypeName ).append( " support" ).append( subType.id() );
-								stringBuilder.append( " = v.getChildren(\"" ).append( variableName ).append( "\").get(counter" );
-								stringBuilder.append( variableName ).append( ")." ).append( javaNativeMethod.get( t ) ).append( ";\n" );
-
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( variableName ).append( ".add(support" ).append( variableName ).append( ");\n" );
+								appendingAddToListNative( stringBuilder, variableName, javaNativeMethod.get( t ) );
 
 								decrementIndentation();
 								appendingIndentation( stringBuilder );
@@ -615,6 +614,7 @@ public class JavaDocumentCreator
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "}\n" );
 					} else {
+						// it is a single element
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "if (v.hasChildren(\"" ).append( variableName ).append( "\")){\n" );
 
@@ -626,7 +626,7 @@ public class JavaDocumentCreator
 							stringBuilder.append( javaMethod );
 							stringBuilder.append( ";\n" );
 						} else if ( variableNameType.equals( "Value" ) ) {
-							 // in case of ANY and in case of undefined
+							// in case of ANY and in case of undefined
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "if(v.getFirstChild(\"" ).append( variableName );
 							stringBuilder.append( "\").isDefined()){\n" );
@@ -639,7 +639,7 @@ public class JavaDocumentCreator
 							decrementIndentation();
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "}\n" );
-							
+
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
 								if ( !javaNativeChecker.containsKey( t ) ) {
@@ -668,13 +668,16 @@ public class JavaDocumentCreator
 
 				if ( subType instanceof TypeChoiceDefinition ) {
 					throw new UnsupportedOperationException( "Can't initialize variable with several possible types" );
-				} 
+				}
 			}
 			decrementIndentation();
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
 		}
+	}
 
+	private void appendingConstructorWithoutParameters( StringBuilder stringBuilder, TypeDefinition type )
+	{
 		//constructor without parameters
 		stringBuilder.append( "\n\n" );
 		appendingIndentation( stringBuilder );
@@ -692,20 +695,24 @@ public class JavaDocumentCreator
 					//link
 					if ( subType.cardinality().max() > 1 ) {
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( subType.id() ).append( "= new LinkedList<" ).append( ((TypeDefinitionLink) subType).linkedType().id() );
-						stringBuilder.append( ">();\n" );
+						if ( isNativeTypeUndefined( subType ) ) {
+							stringBuilder.append( subType.id() ).append( "= new ArrayList<Value>();\n" );
+
+						} else {
+							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( ((TypeDefinitionLink) subType).linkedType().id() ).append( ">();\n" );
+						}
 					}
 				} else if ( subType instanceof TypeInlineDefinition ) {
 					if ( Utils.hasSubTypes( subType ) ) {
 						if ( subType.cardinality().max() > 1 ) {
-							stringBuilder.append( subType.id() ).append( "= new LinkedList<" ).append( subType.id() ).append( ">();\n" );
+							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( subType.id() ).append( ">();\n" );
 						}
 					} else {
 						//native type
 						String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( subType ) );
 						if ( subType.cardinality().max() > 1 ) {
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( subType.id() ).append( "= new LinkedList<" ).append( nativeTypeName ).append( ">();\n" );
+							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );
 						}
 					}
 
@@ -723,13 +730,20 @@ public class JavaDocumentCreator
 
 	}
 
+	private void appendingConstructor( StringBuilder stringBuilder, TypeDefinition type )
+	{
+
+		appendingConstructorWithParameters( stringBuilder, type );
+		appendingConstructorWithoutParameters( stringBuilder, type );
+	}
+
 	/*
 				} else if ( subType instanceof TypeInlineDefinition ) {
 
 					if ( Utils.hasSubTypes( subType ) ) {
 						if ( subType.cardinality().max() > 1 ) {
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( subType.id() ).append( "= new LinkedList<" ).append( variableTypeFromVariableName( subType.id() ) );
+							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( variableTypeFromVariableName( subType.id() ) );
 							stringBuilder.append( ">();\n" );
 
 							//to check:
@@ -781,7 +795,7 @@ public class JavaDocumentCreator
 
 						if ( subType.cardinality().max() > 1 ) {
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( subType.id() ).append( "= new LinkedList<" ).append( nativeTypeName ).append( ">();\n" );
+							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );
 
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.id() ).append( "\")){\n" );
@@ -919,88 +933,8 @@ public class JavaDocumentCreator
 
 		
 	}*/
-	private void appendingMethods( StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/ )
+	private void appendingGetValueMethod( StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/ )
 	{
-
-		if ( Utils.hasSubTypes( type ) ) {
-			Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
-
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
-
-				String variableName = getVariableName( subType );
-				String startingChar = variableName.substring( 0, 1 );
-				String variableNameCapitalized = startingChar.toUpperCase().concat( variableName.substring( 1, variableName.length() ) );
-				if ( variableNameCapitalized.equals( "Value" ) ) {
-					variableNameCapitalized = "__Value";
-				}
-				String variableNameType = getVariableTypeName( subType );
-
-				if ( Utils.hasSubTypes( subType ) ) {
-					//link
-					if ( subType.cardinality().max() > 1 ) {
-
-						// get
-						appendGetMethodWithIndex( stringBuilder, variableNameType, variableNameCapitalized, variableName );
-
-						// size
-						appendGetMethodSize( stringBuilder, variableNameCapitalized, variableName );
-
-						// add
-						appendAddMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
-
-						// remove
-						appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
-
-					} else {
-						// get
-						appendGetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
-						//
-						appendSetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
-					}
-				} else {
-					//native type
-
-					String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( subType ) );
-
-					if ( Utils.nativeType( subType ) != NativeType.VOID ) {
-
-						if ( subType.cardinality().max() > 1 ) {
-							appendGetMethodWithIndex( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
-
-							// size
-							appendGetMethodSize( stringBuilder, variableNameCapitalized, variableName );
-
-							// add
-							appendAddMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
-
-							// remove
-							appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
-
-						} else if ( variableNameType.equals( "Value" ) ) {
-							// add
-							appendGetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
-							// set
-							appendSetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
-						} else {
-							// add
-							appendGetMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
-							// set
-							appendSetMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
-						}
-					}
-				}
-
-				if ( subType instanceof TypeChoiceDefinition ) {
-					//How to manage creating getters and setters for variable that can be initialized with several types?
-					//public <type1> get <variable>
-					//public <type2> get <variable>
-
-				} 
-			}
-		}
-
 		//method getValue
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "public Value getValue(){\n" );
@@ -1072,6 +1006,12 @@ public class JavaDocumentCreator
 							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" ).append( variableName );
 							stringBuilder.append( ".get(counter" ).append( variableName ).append( "));\n" );
 
+						} else if ( isNativeTypeUndefined( subType ) ) {
+							incrementIndentation();
+							appendingIndentation( stringBuilder );
+							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
+							stringBuilder.append( variableName ).append( ".get(counter" ).append( variableName ).append( "));\n" );
+							decrementIndentation();
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
 								if ( !javaNativeChecker.containsKey( t ) ) {
@@ -1103,15 +1043,15 @@ public class JavaDocumentCreator
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "if((" ).append( variableName ).append( "!=null)){\n" );
 						incrementIndentation();
-						
+
 						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-							stringBuilder.append( subType.id() ).append(");\n");
+							stringBuilder.append( subType.id() ).append( ");\n" );
 						} else if ( variableNameType.equals( "Value" ) ) {
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-							stringBuilder.append( variableName ).append(");\n");
+							stringBuilder.append( variableName ).append( ");\n" );
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
 								if ( !javaNativeChecker.containsKey( t ) ) {
@@ -1138,9 +1078,8 @@ public class JavaDocumentCreator
 				}
 
 				if ( subType instanceof TypeChoiceDefinition ) {
-					
 
-				} 
+				}
 			}
 		}
 
@@ -1178,6 +1117,104 @@ public class JavaDocumentCreator
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingMethods( StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/ )
+	{
+
+		if ( Utils.hasSubTypes( type ) ) {
+			Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes( type );
+			Iterator i = supportSet.iterator();
+
+			while( i.hasNext() ) {
+				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+
+				String variableName = getVariableName( subType );
+				String startingChar = variableName.substring( 0, 1 );
+				String variableNameCapitalized = startingChar.toUpperCase().concat( variableName.substring( 1, variableName.length() ) );
+				if ( variableNameCapitalized.equals( "Value" ) ) {
+					variableNameCapitalized = "__Value";
+				}
+				String variableNameType = getVariableTypeName( subType );
+
+				if ( Utils.hasSubTypes( subType ) ) {
+					//link
+					if ( subType.cardinality().max() > 1 ) {
+
+						// get
+						appendGetMethodWithIndex( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+
+						// size
+						appendGetMethodSize( stringBuilder, variableNameCapitalized, variableName );
+
+						// add
+						appendAddMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+
+						// remove
+						appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
+
+					} else {
+						// get
+						appendGetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+						//
+						appendSetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+					}
+				} else {
+					//native type
+
+					String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( subType ) );
+
+					if ( Utils.nativeType( subType ) != NativeType.VOID ) {
+
+						if ( subType.cardinality().max() > 1 ) {
+							if ( variableNameType.equals( "Value" ) ) {
+								appendGetMethodWithIndex( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+
+								// size
+								appendGetMethodSize( stringBuilder, variableNameCapitalized, variableName );
+
+								// add
+								appendAddMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+
+								// remove
+								appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
+							} else {
+								appendGetMethodWithIndex( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
+
+								// size
+								appendGetMethodSize( stringBuilder, variableNameCapitalized, variableName );
+
+								// add
+								appendAddMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
+
+								// remove
+								appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
+							}
+
+						} else if ( variableNameType.equals( "Value" ) ) {
+							// add
+							appendGetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+							// set
+							appendSetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+						} else {
+							// add
+							appendGetMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
+							// set
+							appendSetMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
+						}
+					}
+				}
+
+				if ( subType instanceof TypeChoiceDefinition ) {
+					//How to manage creating getters and setters for variable that can be initialized with several types?
+					//public <type1> get <variable>
+					//public <type2> get <variable>
+
+				}
+			}
+		}
+
+		appendingGetValueMethod( stringBuilder, type );
 	}
 
 	/*
@@ -1256,6 +1293,17 @@ public class JavaDocumentCreator
 		return t.equals( "undefined" );
 	}
 
+	private boolean isNativeTypeUndefined( TypeDefinition t )
+	{
+		if ( t instanceof TypeDefinitionLink ) {
+			TypeDefinitionLink tLink = (TypeDefinitionLink) t;
+			if ( ((TypeDefinitionLink) t).linkedType() instanceof TypeDefinitionUndefined ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private String variableTypeFromVariableName( String variableName )
 	{
 		return variableName.concat( "Type" );
@@ -1270,7 +1318,7 @@ public class JavaDocumentCreator
 	private void appendPrivateVariableList( String variableType, String variableName, StringBuilder stringBuilder )
 	{
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "private List<" ).append( variableType ).append( "> " ).append( variableName ).append( ";\n" );
+		stringBuilder.append( "private ArrayList<" ).append( variableType ).append( "> " ).append( variableName ).append( ";\n" );
 	}
 
 	private void appendGetMethodWithIndex( StringBuilder stringBuilder, String typeName, String variableNameCapitalized, String variableName )
@@ -1305,6 +1353,7 @@ public class JavaDocumentCreator
 
 	private void appendGetMethodSize( StringBuilder stringBuilder, String variableNameCapitalized, String variableName )
 	{
+		appendingIndentation( stringBuilder );
 		stringBuilder.append( "public " ).append( "int get" ).append( variableNameCapitalized ).append( "Size(){\n" );
 
 		incrementIndentation();
@@ -1357,6 +1406,19 @@ public class JavaDocumentCreator
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "}\n\n" );
+	}
+
+	private void appendingAddToListNative( StringBuilder stringBuilder, String variableName, String javaMethod )
+	{
+		stringBuilder.append( variableName ).append( ".add(v.getChildren(\"" );
+		stringBuilder.append( variableName ).append( "\").get(counter" ).append( variableName ).append( ")." );
+		stringBuilder.append( javaMethod ).append( ");\n" );
+	}
+
+	private void appendingAddToListValue( StringBuilder stringBuilder, String variableName )
+	{
+		stringBuilder.append( variableName ).append( ".add(v.getChildren(\"" );
+		stringBuilder.append( variableName ).append( "\").get(counter" ).append( variableName ).append( "));\n" );
 	}
 
 	private void incrementIndentation()
