@@ -50,6 +50,8 @@ public class JavaDocumentCreatorTest
 	private static final byte[] TESTRAW = new byte[]{ (byte) 0xe0, 0x4f, (byte) 0xd0, 0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2 };
 	private static final Boolean TESTBOOL = true;
 	private static final Long TESTLONG = 2L;
+	
+	private static URLClassLoader classLoader;
 
 	HashMap<String, Method> setMethodList = new HashMap<>();
 	HashMap<String, Method> getMethodList = new HashMap<>();
@@ -84,6 +86,25 @@ public class JavaDocumentCreatorTest
 
 		//Program program = parser.parse();
 		inspector = ParsingUtils.createInspector( program );
+		
+				JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
+		instance.ConvertDocument();
+
+		assertEquals( "The number of generated files is wrong", 3, new File( "./generated/com/test" ).list().length );
+
+		// compile files
+		if ( generatedPath.exists() ) {
+			String files[] = generatedPath.list();
+			for( String temp : files ) {
+				File sourceFile = new File( generatedPath, temp );
+				JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+				compiler.run( null, null, null, sourceFile.getPath() );
+			}
+		}
+
+		// load classes
+		File generated = new File( "./generated" );
+		classLoader = URLClassLoader.newInstance(new URL[]{ generated.toURI().toURL() } );
 	}
 
 	@AfterClass
@@ -105,29 +126,8 @@ public class JavaDocumentCreatorTest
 	 * Test of ConvertDocument method, of class JavaDocumentCreator.
 	 */
 	@Test
-	public void testConvertDocument() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	public void testFlatStructure() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
 	{
-		System.out.println( "ConvertDocument" );
-		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
-		instance.ConvertDocument();
-
-		assertEquals( "The number of generated files is wrong", 3, new File( "./generated/com/test" ).list().length );
-
-		// compile files
-		File generatedPath = new File( "./generated/com/test" );
-		if ( generatedPath.exists() ) {
-			String files[] = generatedPath.list();
-			for( String temp : files ) {
-				File sourceFile = new File( generatedPath, temp );
-				JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-				compiler.run( null, null, null, sourceFile.getPath() );
-			}
-		}
-
-		// load classes
-		File pippo = new File( "./generated" );
-		URLClassLoader classLoader = URLClassLoader.newInstance( new URL[]{ pippo.toURI().toURL() } );
-
 		// FileStructure
 		Class<?> FlatStructureType = Class.forName( "com.test.FlatStructureType", true, classLoader ); // Should print "hello".
 		Constructor flatStructureTypeConstructor = FlatStructureType.getConstructor( new Class[]{ Value.class } );
@@ -137,41 +137,12 @@ public class JavaDocumentCreatorTest
 		Jolie2JavaInterface flatStructureTypeEmpty = (Jolie2JavaInterface) FlatStructureType.newInstance();
 		// check methods
 		checkMethods( FlatStructureType, getFlatStructuredType() );
-
-		// invoking methods 
-		for( Entry<String, ValueVector> vv : getFlatStructuredType().children().entrySet() ) {
-			String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
-			if ( vv.getValue().get( 0 ).isBool() ) {
-				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).boolValue() );
-				Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).boolValue(), returnValue );
-			} else if ( vv.getValue().get( 0 ).isInt() ) {
-				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).intValue() );
-				Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).intValue(), returnValue.intValue() );
-			} else if ( vv.getValue().get( 0 ).isString() ) {
-				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).strValue() );
-				String returnValue = (String) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).strValue(), returnValue );
-			} else if ( vv.getValue().get( 0 ).isDouble() ) {
-				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).doubleValue() );
-				Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", new Double( vv.getValue().get( 0 ).doubleValue() ), returnValue );
-			} else if ( vv.getValue().get( 0 ).isLong() ) {
-				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).longValue() );
-				Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).longValue(), returnValue.longValue() );
-			} else if ( vv.getValue().get( 0 ).isByteArray() ) {
-				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ).byteArrayValue() );
-				ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertTrue( "check methods for field " + vv.getKey() + " failed", compareByteArrays( returnValue, vv.getValue().get( 0 ).byteArrayValue() ) );
-			} else {
-				setMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty, vv.getValue().get( 0 ) );
-				Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( flatStructureTypeEmpty );
-				assertTrue( "check methods for field " + vv.getKey() + " failed", compareValues( returnValue, vv.getValue().get( 0 ) ) );
-			}
-		}
-
+		invokingMethods( flatStructureTypeEmpty, getFlatStructuredType() );
+	}
+	
+	@Test
+	public void testFlatStructureVectors() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
 		// FileStructureVector
 		Class<?> FlatStructureVectorsType = Class.forName( "com.test.FlatStructureVectorsType", true, classLoader ); // Should print "hello".
 		Constructor flatStructureVectorsTypeConstructor = FlatStructureVectorsType.getConstructor( new Class[]{ Value.class } );
@@ -182,8 +153,7 @@ public class JavaDocumentCreatorTest
 
 		// check methods
 		checkMethods( FlatStructureVectorsType, getFlatStructuredVectorsType() );
-		
-		//TODO
+		invokingMethods( flatStructureVectorsTypeEmpty, getFlatStructuredVectorsType() );
 	}
 
 	private void checkMethods( Class cls, Value value )
@@ -238,6 +208,85 @@ public class JavaDocumentCreatorTest
 			}
 		}
 
+	}
+
+	private void invokingMethods( Object cls, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		// invoking methods 
+		for( Entry<String, ValueVector> vv : v.children().entrySet() ) {
+			String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
+			if ( vv.getValue().size() > 1 ) {
+				for( int i = 0; i < vv.getValue().size(); i++ ) {
+					if ( vv.getValue().get( i ).isBool() ) {
+						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).boolValue() );
+						Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( cls, i );
+						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).boolValue(), returnValue );
+					} else if ( vv.getValue().get( 0 ).isInt() ) {
+						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).intValue() );
+						Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( cls, i );
+						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).intValue(), returnValue.intValue() );
+					} else if ( vv.getValue().get( 0 ).isString() ) {
+						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).strValue() );
+						String returnValue = (String) getMethodList.get( mNameTmp ).invoke( cls, i );
+						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).strValue(), returnValue );
+					} else if ( vv.getValue().get( 0 ).isDouble() ) {
+						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).doubleValue() );
+						Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( cls, i );
+						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", 
+							new Double( vv.getValue().get( i ).doubleValue()), returnValue );
+					} else if ( vv.getValue().get( 0 ).isLong() ) {
+						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).longValue() );
+						Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( cls, i );
+						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).longValue(), returnValue.longValue() );
+					} else if ( vv.getValue().get( 0 ).isByteArray() ) {
+						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).byteArrayValue() );
+						ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( cls, i );
+						assertTrue( "check methods for field " + vv.getKey() + ", index " + i + " failed", compareByteArrays( returnValue, vv.getValue().get( i ).byteArrayValue()));
+					} else {
+						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ) );
+						Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( cls, i );
+						assertTrue( "check methods for field " + vv.getKey() + ", index " + i + " failed", compareValues(returnValue, vv.getValue().get( i )));
+					}
+				}
+				Integer size = (Integer) sizeMethodList.get( mNameTmp ).invoke( cls );
+				assertEquals( "size of vector of element " + vv.getKey() + " does not correspond", size, new Integer( vv.getValue().size() ) );
+				for( int i = vv.getValue().size(); i > 0; i-- ) {
+					removeMethodList.get( mNameTmp ).invoke( cls, (i-1) );
+				}
+				size = (Integer) sizeMethodList.get( mNameTmp ).invoke( cls );
+				assertEquals( "size of vector of element " + vv.getKey() + " does not correspond", size, new Integer(0) );
+				
+				
+			} else if ( vv.getValue().get( 0 ).isBool() ) {
+				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).boolValue() );
+				Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( cls );
+				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).boolValue(), returnValue );
+			} else if ( vv.getValue().get( 0 ).isInt() ) {
+				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).intValue() );
+				Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( cls );
+				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).intValue(), returnValue.intValue() );
+			} else if ( vv.getValue().get( 0 ).isString() ) {
+				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).strValue() );
+				String returnValue = (String) getMethodList.get( mNameTmp ).invoke( cls );
+				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).strValue(), returnValue );
+			} else if ( vv.getValue().get( 0 ).isDouble() ) {
+				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).doubleValue() );
+				Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( cls );
+				assertEquals( "check methods for field " + vv.getKey() + " failed", new Double( vv.getValue().get( 0 ).doubleValue() ), returnValue );
+			} else if ( vv.getValue().get( 0 ).isLong() ) {
+				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).longValue() );
+				Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( cls );
+				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).longValue(), returnValue.longValue() );
+			} else if ( vv.getValue().get( 0 ).isByteArray() ) {
+				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).byteArrayValue() );
+				ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( cls );
+				assertTrue( "check methods for field " + vv.getKey() + " failed", compareByteArrays( returnValue, vv.getValue().get( 0 ).byteArrayValue() ) );
+			} else {
+				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ) );
+				Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( cls );
+				assertTrue( "check methods for field " + vv.getKey() + " failed", compareValues( returnValue, vv.getValue().get( 0 ) ) );
+			}
+		}
 	}
 
 	private Value getFlatStructuredType()
