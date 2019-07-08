@@ -77,6 +77,7 @@ public class JavaDocumentCreator
 	private LinkedHashMap<String, TypeDefinition> typeMap;
 	private LinkedHashMap<String, TypeDefinition> subTypeMap;
 	ProgramInspector inspector;
+	private String TYPESUFFIX = "Type";
 	private static final HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
 	private static final HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
 	private static final HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
@@ -364,7 +365,7 @@ public class JavaDocumentCreator
 		writer.append( outputFileText.toString() );
 	}
 
-	private void appendingClassBody( TypeDefinition typeDefinition, StringBuilder stringBuilder )
+	private void appendingClassBody( TypeDefinition typeDefinition, StringBuilder stringBuilder, String className )
 	{
 
 		Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes( typeDefinition );
@@ -377,9 +378,10 @@ public class JavaDocumentCreator
 			if ( (((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (Utils.hasSubTypes( (TypeDefinition) me.getValue() )) ) {
 				/* opening the inner class */
 				appendingIndentation( stringBuilder );
-				stringBuilder.append( "public class " ).append( ((TypeDefinition) me.getValue()).id() ).append( " {" ).append( "\n" );
+				String clsName = ((TypeDefinition) me.getValue()).id() + TYPESUFFIX;
+				stringBuilder.append( "public class " ).append( clsName ).append( " {" ).append( "\n" );
 				incrementIndentation();
-				appendingClassBody( (TypeDefinition) me.getValue(), stringBuilder );
+				appendingClassBody( (TypeDefinition) me.getValue(), stringBuilder, clsName );
 				decrementIndentation();
 				appendingIndentation( stringBuilder );
 				stringBuilder.append( "}\n" );
@@ -391,7 +393,7 @@ public class JavaDocumentCreator
 		stringBuilder.append( "\n" );
 
 		/* create constructor */
-		appendingConstructor( stringBuilder, typeDefinition );
+		appendingConstructor( stringBuilder, typeDefinition, className );
 
 		/* create methods */
 		appendingMethods( stringBuilder, typeDefinition );
@@ -410,7 +412,7 @@ public class JavaDocumentCreator
 
 		if ( Utils.hasSubTypes( typeDefinition ) ) {
 			incrementIndentation();
-			appendingClassBody( typeDefinition, stringBuilder );
+			appendingClassBody( typeDefinition, stringBuilder, typeDefinition.id() );
 			decrementIndentation();
 		}
 
@@ -490,11 +492,11 @@ public class JavaDocumentCreator
 		}
 	}
 
-	private void appendingConstructorWithParameters( StringBuilder stringBuilder, TypeDefinition type )
+	private void appendingConstructorWithParameters( StringBuilder stringBuilder, TypeDefinition type, String className )
 	{
 		//constructor with parameters
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( type.id() ).append( "( Value v ){\n" );
+		stringBuilder.append( "public " ).append( className ).append( "( Value v ){\n" );
 
 		if ( Utils.hasSubTypes( type ) ) {
 			Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes( type );
@@ -676,12 +678,12 @@ public class JavaDocumentCreator
 		}
 	}
 
-	private void appendingConstructorWithoutParameters( StringBuilder stringBuilder, TypeDefinition type )
+	private void appendingConstructorWithoutParameters( StringBuilder stringBuilder, TypeDefinition type, String className )
 	{
 		//constructor without parameters
 		stringBuilder.append( "\n\n" );
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( type.id() ).append( "(){\n" );
+		stringBuilder.append( "public " ).append( className ).append( "(){\n" );
 
 		incrementIndentation();
 
@@ -730,11 +732,11 @@ public class JavaDocumentCreator
 
 	}
 
-	private void appendingConstructor( StringBuilder stringBuilder, TypeDefinition type )
+	private void appendingConstructor( StringBuilder stringBuilder, TypeDefinition type, String className )
 	{
 
-		appendingConstructorWithParameters( stringBuilder, type );
-		appendingConstructorWithoutParameters( stringBuilder, type );
+		appendingConstructorWithParameters( stringBuilder, type, className );
+		appendingConstructorWithoutParameters( stringBuilder, type, className );
 	}
 
 	/*
@@ -965,7 +967,7 @@ public class JavaDocumentCreator
 
 						incrementIndentation();
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" ).append( variableName );
+						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" ).append( variableName );
 						stringBuilder.append( ".get(counter" ).append( variableName ).append( ").getValue());\n" );
 
 						decrementIndentation();
@@ -982,15 +984,14 @@ public class JavaDocumentCreator
 
 						incrementIndentation();
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" ).append( variableName );
+						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" ).append( variableName );
 						stringBuilder.append( ".getValue());\n" );
 
 						decrementIndentation();
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "}\n" );
 					}
-				} else //native type
-				{
+				} else {
 					if ( subType.cardinality().max() > 1 ) {
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "if(" ).append( variableName ).append( "!=null){\n" );
@@ -1306,7 +1307,7 @@ public class JavaDocumentCreator
 
 	private String variableTypeFromVariableName( String variableName )
 	{
-		return variableName.concat( "Type" );
+		return variableName.concat( TYPESUFFIX );
 	}
 
 	private void appendPrivateVariable( String variableType, String variableName, StringBuilder stringBuilder )
