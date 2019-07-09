@@ -1,104 +1,122 @@
 /*
- *   Copyright (C) 2019 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>
- *                                                                            
- *   This program is free software; you can redistribute it and/or modify     
- *   it under the terms of the GNU Library General Public License as          
- *   published by the Free Software Foundation; either version 2 of the       
- *   License, or (at your option) any later version.                          
- *                                                                            
- *   This program is distributed in the hope that it will be useful,          
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of           
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            
- *   GNU General Public License for more details.                             
- *                                                                            
- *   You should have received a copy of the GNU Library General Public        
- *   License along with this program; if not, write to the                    
- *   Free Software Foundation, Inc.,                                          
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                
- *                                                                            
- *   For details about the authors of this software, see the AUTHORS file.    
+ * Copyright (C) 2019 Saverio Giallorenzo <saverio.giallorenzo@gmail.com>
+ * Copyright (C) 2019 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
 
 include "types/JavaException.iol"
 
-type TypeInfoType: void {
-  .rootType: string
-  .name?: string
-  .code?: string
-  .isNative: bool
-  .undefinedSubtypes?: bool
-  .documentation?: string
-  .subtype*: TypeInfoType
-} | void {
-  .isChoice: bool
-  .name?: string
-  .code?: string
-  .isNative: bool
-  .undefinedSubtypes?: bool
-  .documentation?: string
-  .subtype*: TypeInfoType
+type Range {
+	min:int
+	max:int
 }
 
-type FaultInfoType: void {
-  .name: string
-  .faultType: TypeInfoType
+type Field {
+	name: string
+	range: Range
+	type: TypeInfo
 }
 
-type OperationInfoType: void {
-  .name: string
-  .requestType: TypeInfoType
-  .responseType?: TypeInfoType
-  .fault*: FaultInfoType
-  .documentation?: string
+type TypeInfo:
+void {
+	documentation?: string
+	linkedTypeName: string
+}
+|
+// Inline type definition
+void {
+	documentation?: string
+	nativeType: string
+	fields*: Field
+	untypedFields: bool
+}
+|
+// Type choice
+void {
+	documentation?: string
+	left: TypeInfo
+	right: TypeInfo
 }
 
-type InterfaceInfoType: void {
-  .name: string
-  .operation*: OperationInfoType
-  .documentation?: string
+type FaultInfo {
+	name: string
+	type: string
 }
 
-type PortInfoType : void {
-  .name: string
-  .location?: string
-  .protocol?: string
-  .interface*: InterfaceInfoType
-  .isOutput: bool
-  .documentation?: string
-  .subtype*: TypeInfoType
+type OperationInfo {
+	name: string
+	requestType: string
+	responseType?: string
+	faults*: FaultInfo
+	documentation?: string
 }
 
-type ProgramInspectionResponse: void {
-  .port*: PortInfoType
+type InterfaceInfo {
+	name: string
+	operations*: OperationInfo
+	documentation?: string
 }
 
-type TypesInspectionResponse: void {
-  .type*: TypeInfoType
+type PortInfo {
+	name: string
+	location?: string
+	protocol?: string
+	interfaces*: InterfaceInfo
+	documentation?: string
 }
 
-type InspectionRequest: void {
-  .filename: string
-  .source?: string
+type TypeDefinition {
+	name: string
+	type: TypeInfo
+}
+
+type PortInspectionResponse {
+	inputPorts*: PortInfo
+	outputPorts*: PortInfo
+	referredTypes*: TypeDefinition
+}
+
+type TypesInspectionResponse {
+	types*: TypeDefinition
+}
+
+type InspectionRequest {
+	filename: string
+	source?: string
 }
 
 interface InspectorInterface {
-  RequestResponse:
-  	inspectProgram( InspectionRequest )( ProgramInspectionResponse ) 
-      throws ParserException( WeakJavaExceptionType ) 
-             SemanticException( WeakJavaExceptionType ) 
-             FileNotFoundException( WeakJavaExceptionType ) 
-             IOException( WeakJavaExceptionType ),
-    inspectTypes( InspectionRequest )( TypesInspectionResponse ) 
-      throws ParserException( WeakJavaExceptionType ) 
-             SemanticException( WeakJavaExceptionType ) 
-             FileNotFoundException( WeakJavaExceptionType ) 
-             IOException( WeakJavaExceptionType )
+RequestResponse:
+	inspectPorts( InspectionRequest )( PortInspectionResponse )
+		throws	ParserException( WeakJavaExceptionType )
+						SemanticException( WeakJavaExceptionType )
+						FileNotFoundException( WeakJavaExceptionType )
+						IOException( WeakJavaExceptionType ),
+	inspectTypes( InspectionRequest )( TypesInspectionResponse )
+		throws	ParserException( WeakJavaExceptionType )
+						SemanticException( WeakJavaExceptionType )
+						FileNotFoundException( WeakJavaExceptionType )
+						IOException( WeakJavaExceptionType )
 }
 
 outputPort Inspector {
-  Interfaces: InspectorInterface
+	interfaces: InspectorInterface
 }
 
 embedded {
-  Java: "joliex.lang.inspector.Inspector" in Inspector
+	Java: "joliex.lang.inspector.Inspector" in Inspector
 }
