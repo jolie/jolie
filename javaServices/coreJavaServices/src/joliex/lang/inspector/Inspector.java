@@ -138,8 +138,8 @@ public class Inspector extends JavaService
 			throw new FaultException( ex );
 		} catch( SemanticException ex ) {
 			throw new FaultException(
-				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) ),
-				 ex
+				"SemanticException",
+				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) )
 			);
 		}
 	}
@@ -155,8 +155,8 @@ public class Inspector extends JavaService
 			throw new FaultException( ex );
 		} catch( SemanticException ex ) {
 			throw new FaultException(
-				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) ),
-				 ex
+				"SemanticException",
+				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) )
 			);
 		}
 	}

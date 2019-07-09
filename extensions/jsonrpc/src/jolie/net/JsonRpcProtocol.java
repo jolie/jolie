@@ -195,9 +195,11 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 
 				if ( message.value().isDefined() || message.value().hasChildren() ) {
 					// some implementations need an array here
-					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
-					paramsSubTypes.put( JsUtils.JSONARRAY_KEY, operationType );
-					subTypes.put( "params", Type.create( NativeType.VOID, new Range( 0, 1 ), false, paramsSubTypes ) );
+//					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
+//					paramsSubTypes.put( JsUtils.JSONARRAY_KEY, operationType );
+//					subTypes.put( "params", Type.create( NativeType.VOID, new Range( 1, 1 ), false, paramsSubTypes ) );
+					value.getChildren( "params" ).add( message.value() );
+					subTypes.put( "params", operationType );
 				}
 
 				if ( !message.hasGenericId() && !isLsp ) {
@@ -228,7 +230,6 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				Value childOp = osc.getFirstChild( opName );
 				//if osc has a child with opName and grandChild isNullable
 				if ( childOp.hasChildren( Parameters.IS_NULLABLE ) ) {
-
 					if ( childOp.getFirstChild( Parameters.IS_NULLABLE ).boolValue() ) {
 						//then we replace all null with and empty string
 						//TODO use a regex 

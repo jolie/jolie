@@ -74,7 +74,7 @@ public class JsUtils
 	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray, Type type )
 		throws IOException
 	{
-		if ( isArray || ( type != null && type.cardinality().max() > 1 || vector.size() > 1 ) ) {
+		if ( vector.size() > 1 || isArray || ( type != null && type.cardinality().max() > 1 ) ) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
 				valueToJsonString( vector.get( i ), false, type, builder );
@@ -90,8 +90,8 @@ public class JsUtils
 
 	public static void valueToJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder ) throws IOException
 	{
-                if ( value.hasChildren( JSONARRAY_KEY ) ) {
-                        Type subType = ( type != null ? type.findSubType( JSONARRAY_KEY ) : null);
+		if ( value.hasChildren( JSONARRAY_KEY ) ) {
+			Type subType = ( type != null ? type.findSubType( JSONARRAY_KEY ) : null );
 			valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, subType );
 			return;
 		}
