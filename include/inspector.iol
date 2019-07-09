@@ -20,14 +20,12 @@
 
 include "types/JavaException.iol"
 
-type Range {
-	min:int
-	max:int
-}
-
 type Field {
 	name: string
-	range: Range
+	range {
+		min:int
+		max:int
+	}
 	type: TypeInfo
 }
 

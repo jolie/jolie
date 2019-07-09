@@ -25,6 +25,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class ValueVectorLink extends ValueVector implements Cloneable
 {
@@ -36,11 +38,13 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return new ValueVectorLink( linkPath );
 	}
 
+	@Override
 	public Value get( int i )
 	{
 		return getLinkedValueVector().get( i );
 	}
 
+	@Override
 	public void set( int i, Value value )
 	{
 		getLinkedValueVector().set( i, value );
@@ -51,6 +55,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		linkPath = path;
 	}
 
+	@Override
 	public boolean isLink()
 	{
 		return true;
@@ -61,11 +66,13 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return linkPath.getValueVector();
 	}
 	
+	@Override
 	protected List< Value > values()
 	{
 		return getLinkedValueVector().values();
 	}
 	
+	@Override
 	public List< Value > valuesCopy()
 	{
 		return getLinkedValueVector().valuesCopy();
@@ -131,6 +138,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 		return false;
 	}
 	
+	@Override
 	public synchronized List< Value > valuesCopy()
 	{
 		return (List< Value >)values.clone();
@@ -185,6 +193,7 @@ public abstract class ValueVector implements Iterable< Value >
 		return values().isEmpty();
 	}
 	
+	@Override
 	public synchronized Iterator< Value > iterator()
 	{
 		return values().iterator();
@@ -211,4 +220,9 @@ public abstract class ValueVector implements Iterable< Value >
 
 	protected abstract List< Value > values();
 	public abstract boolean isLink();
+	
+	public final Stream< Value > stream()
+	{
+        return StreamSupport.stream( spliterator(), false );
+    }
 }
