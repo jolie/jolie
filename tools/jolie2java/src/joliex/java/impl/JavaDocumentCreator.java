@@ -1109,6 +1109,7 @@ public class JavaDocumentCreator
 					stringBuilder.append( "}\n" );
 				}
 			}
+			decrementIndentation();
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
 		}

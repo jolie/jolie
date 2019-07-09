@@ -140,7 +140,8 @@ public class JavaDocumentCreatorTest
 		// check methods
 		checkMethods( FlatStructureType, getFlatStructuredType() );
 		System.out.println( testName + " checking methods OK" );
-		invokingMethods( flatStructureTypeEmpty, getFlatStructuredType() );
+		invokingSetAddGetMethods( flatStructureTypeEmpty, getFlatStructuredType() );
+		invokingRemoveSizetMethods( flatStructureTypeEmpty, getFlatStructuredType() );
 		System.out.println( testName + " invoking methods OK" );
 	}
 
@@ -160,7 +161,8 @@ public class JavaDocumentCreatorTest
 		// check methods
 		checkMethods( FlatStructureVectorsType, getFlatStructuredVectorsType() );
 		System.out.println( testName + " checking methods OK" );
-		invokingMethods( flatStructureVectorsTypeEmpty, getFlatStructuredVectorsType() );
+		invokingSetAddGetMethods( flatStructureVectorsTypeEmpty, getFlatStructuredVectorsType() );
+		invokingRemoveSizetMethods( flatStructureVectorsTypeEmpty, getFlatStructuredVectorsType() );
 		System.out.println( testName + " invoking methods OK" );
 	}
 
@@ -179,8 +181,8 @@ public class JavaDocumentCreatorTest
 
 		// check methods
 		checkMethods( InLineStructureType, getInlineStructureType() );
-		System.out.println( testName + " checking methods OK" );
-		//invokingMethods( inLineStructureTypeEmpty, getInlineStructureType() );
+		invokingSetAddGetMethods( inLineStructureTypeEmpty, getInlineStructureType() );
+		invokingRemoveSizetMethods( inLineStructureTypeEmpty, getInlineStructureType() );
 		//System.out.println( testName + " invoking methods OK" );
 	}
 
@@ -238,82 +240,119 @@ public class JavaDocumentCreatorTest
 
 	}
 
-	private void invokingMethods( Object cls, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	private void invokingRemoveSizetMethods( Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		// invoking methods 
 		for( Entry<String, ValueVector> vv : v.children().entrySet() ) {
 			String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
 			if ( vv.getValue().size() > 1 ) {
-				for( int i = 0; i < vv.getValue().size(); i++ ) {
-					if ( vv.getValue().get( i ).isBool() ) {
-						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).boolValue() );
-						Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( cls, i );
-						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).boolValue(), returnValue );
-					} else if ( vv.getValue().get( 0 ).isInt() ) {
-						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).intValue() );
-						Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( cls, i );
-						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).intValue(), returnValue.intValue() );
-					} else if ( vv.getValue().get( 0 ).isString() ) {
-						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).strValue() );
-						String returnValue = (String) getMethodList.get( mNameTmp ).invoke( cls, i );
-						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).strValue(), returnValue );
-					} else if ( vv.getValue().get( 0 ).isDouble() ) {
-						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).doubleValue() );
-						Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( cls, i );
-						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed",
-							new Double( vv.getValue().get( i ).doubleValue() ), returnValue );
-					} else if ( vv.getValue().get( 0 ).isLong() ) {
-						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).longValue() );
-						Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( cls, i );
-						assertEquals( "check methods for field " + vv.getKey() + ", index " + i + " failed", vv.getValue().get( i ).longValue(), returnValue.longValue() );
-					} else if ( vv.getValue().get( 0 ).isByteArray() ) {
-						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ).byteArrayValue() );
-						ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( cls, i );
-						assertTrue( "check methods for field " + vv.getKey() + ", index " + i + " failed", compareByteArrays( returnValue, vv.getValue().get( i ).byteArrayValue() ) );
-					} else {
-						addMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( i ) );
-						Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( cls, i );
-						assertTrue( "check methods for field " + vv.getKey() + ", index " + i + " failed", compareValues( returnValue, vv.getValue().get( i ) ) );
-					}
-				}
-				Integer size = (Integer) sizeMethodList.get( mNameTmp ).invoke( cls );
+				Integer size = (Integer) sizeMethodList.get( mNameTmp ).invoke( obj );
 				assertEquals( "size of vector of element " + vv.getKey() + " does not correspond", size, new Integer( vv.getValue().size() ) );
 				for( int i = vv.getValue().size(); i > 0; i-- ) {
-					removeMethodList.get( mNameTmp ).invoke( cls, (i - 1) );
+					removeMethodList.get( mNameTmp ).invoke( obj, (i - 1) );
 				}
-				size = (Integer) sizeMethodList.get( mNameTmp ).invoke( cls );
+				size = (Integer) sizeMethodList.get( mNameTmp ).invoke( obj );
 				assertEquals( "size of vector of element " + vv.getKey() + " does not correspond", size, new Integer( 0 ) );
 
-			}  else if ( vv.getValue().get( 0 ).isBool() ) {
-				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).boolValue() );
-				Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( cls );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).boolValue(), returnValue );
-			} else if ( vv.getValue().get( 0 ).isInt() ) {
-				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).intValue() );
-				Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( cls );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).intValue(), returnValue.intValue() );
-			} else if ( vv.getValue().get( 0 ).isString() ) {
-				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).strValue() );
-				String returnValue = (String) getMethodList.get( mNameTmp ).invoke( cls );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).strValue(), returnValue );
-			} else if ( vv.getValue().get( 0 ).isDouble() ) {
-				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).doubleValue() );
-				Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( cls );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", new Double( vv.getValue().get( 0 ).doubleValue() ), returnValue );
-			} else if ( vv.getValue().get( 0 ).isLong() ) {
-				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).longValue() );
-				Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( cls );
-				assertEquals( "check methods for field " + vv.getKey() + " failed", vv.getValue().get( 0 ).longValue(), returnValue.longValue() );
-			} else if ( vv.getValue().get( 0 ).isByteArray() ) {
-				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ).byteArrayValue() );
-				ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( cls );
-				assertTrue( "check methods for field " + vv.getKey() + " failed", compareByteArrays( returnValue, vv.getValue().get( 0 ).byteArrayValue() ) );
-			} else {
-				System.out.println( "Invoking " + setMethodList.get( mNameTmp ).getName() + " argument " + vv.getValue().get( 0 ) );
-				setMethodList.get( mNameTmp ).invoke( cls, vv.getValue().get( 0 ) );
-				Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( cls );
-				assertTrue( "check methods for field " + vv.getKey() + " failed", compareValues( returnValue, vv.getValue().get( 0 ) ) );
 			}
+		}
+	}
+
+	private void invokingSetAddGetMethods( Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException
+	{
+		// invoking methods 
+		for( Entry<String, ValueVector> vv : v.children().entrySet() ) {
+			if ( vv.getValue().size() > 1 ) {
+				for( int i = 0; i < vv.getValue().size(); i++ ) {
+					Value value = vv.getValue().get( i );
+					invokingAddMethodForVector( value, vv.getKey(), obj, i );
+				}
+			} else {
+				Value value = vv.getValue().get( 0 );
+				if ( value.hasChildren() ) {
+					String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
+					for( int i = 0; i < setMethodList.get( mNameTmp ).getParameterTypes().length; i++ ) {
+						Class SubClass = setMethodList.get( mNameTmp ).getParameterTypes()[ i ];
+						Constructor subClassConstructor = SubClass.getConstructors()[0];
+						Object subClassInstance = subClassConstructor.newInstance( obj, value );
+						setMethodList.get( mNameTmp ).invoke(obj, subClassInstance );
+						Object getSubClassInstance = getMethodList.get( mNameTmp ).invoke( obj );
+						assertTrue("SubClasses (" + SubClass.getName() + ") are not equal", subClassInstance.equals(getSubClassInstance ));
+					}
+				} else {
+					invokingSetGetMethodsForFlatType( value, vv.getKey(), obj );
+				}
+			}
+		}
+	}
+
+	private void invokingSetGetMethodsForFlatType( Value v, String fieldName, Object obj ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+
+		String mNameTmp = fieldName.substring( 0, 1 ).toUpperCase() + fieldName.substring( 1 );
+		if ( v.isBool() ) {
+			setMethodList.get( mNameTmp ).invoke( obj, v.boolValue() );
+			Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( obj );
+			assertEquals( "check methods for field " + fieldName + " failed", v.boolValue(), returnValue );
+		} else if ( v.isInt() ) {
+			setMethodList.get( mNameTmp ).invoke( obj, v.intValue() );
+			Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( obj );
+			assertEquals( "check methods for field " + fieldName + " failed", v.intValue(), returnValue.intValue() );
+		} else if ( v.isString() ) {
+			setMethodList.get( mNameTmp ).invoke( obj, v.strValue() );
+			String returnValue = (String) getMethodList.get( mNameTmp ).invoke( obj );
+			assertEquals( "check methods for field " + fieldName + " failed", v.strValue(), returnValue );
+		} else if ( v.isDouble() ) {
+			setMethodList.get( mNameTmp ).invoke( obj, v.doubleValue() );
+			Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( obj );
+			assertEquals( "check methods for field " + fieldName + " failed", new Double( v.doubleValue() ), returnValue );
+		} else if ( v.isLong() ) {
+			setMethodList.get( mNameTmp ).invoke( obj, v.longValue() );
+			Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( obj );
+			assertEquals( "check methods for field " + fieldName + " failed", v.longValue(), returnValue.longValue() );
+		} else if ( v.isByteArray() ) {
+			setMethodList.get( mNameTmp ).invoke( obj, v.byteArrayValue() );
+			ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( obj );
+			assertTrue( "check methods for field " + fieldName + " failed", compareByteArrays( returnValue, v.byteArrayValue() ) );
+		} else {
+			setMethodList.get( mNameTmp ).invoke( obj, v );
+			Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( obj );
+			assertTrue( "check methods for field " + fieldName + " failed", compareValues( returnValue, v ) );
+		}
+	}
+
+	private void invokingAddMethodForVector( Value v, String fieldName, Object obj, int index ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		String mNameTmp = fieldName.substring( 0, 1 ).toUpperCase() + fieldName.substring( 1 );
+		if ( v.isBool() ) {
+			addMethodList.get( mNameTmp ).invoke( obj, v.boolValue() );
+			Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( obj, index );
+			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.boolValue(), returnValue );
+		} else if ( v.isInt() ) {
+			addMethodList.get( mNameTmp ).invoke( obj, v.intValue() );
+			Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( obj, index );
+			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.intValue(), returnValue.intValue() );
+		} else if ( v.isString() ) {
+			addMethodList.get( mNameTmp ).invoke( obj, v.strValue() );
+			String returnValue = (String) getMethodList.get( mNameTmp ).invoke( obj, index );
+			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.strValue(), returnValue );
+		} else if ( v.isDouble() ) {
+			addMethodList.get( mNameTmp ).invoke( obj, v.doubleValue() );
+			Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( obj, index );
+			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed",
+				new Double( v.doubleValue() ), returnValue );
+		} else if ( v.isLong() ) {
+			addMethodList.get( mNameTmp ).invoke( obj, v.longValue() );
+			Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( obj, index );
+			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.longValue(), returnValue.longValue() );
+		} else if ( v.isByteArray() ) {
+			addMethodList.get( mNameTmp ).invoke( obj, v.byteArrayValue() );
+			ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( obj, index );
+			assertTrue( "check methods for field " + fieldName + ", index " + index + " failed", compareByteArrays( returnValue, v.byteArrayValue() ) );
+		} else {
+			addMethodList.get( mNameTmp ).invoke( obj, v );
+			Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( obj, index );
+			assertTrue( "check methods for field " + fieldName + ", index " + index + " failed", compareValues( returnValue, v ) );
 		}
 	}
 
