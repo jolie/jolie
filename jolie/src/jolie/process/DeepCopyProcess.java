@@ -38,6 +38,7 @@ public class DeepCopyProcess implements Process
 		this.copyLinks = copyLinks;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason )
 	{
 		return new DeepCopyProcess(
@@ -47,6 +48,7 @@ public class DeepCopyProcess implements Process
 		);
 	}
 
+	@Override
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
@@ -63,6 +65,7 @@ public class DeepCopyProcess implements Process
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

@@ -23,10 +23,10 @@ package joliex.lang.inspector;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayDeque;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -55,6 +55,7 @@ import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 
@@ -129,10 +130,7 @@ public class Inspector extends JavaService
 	{
 		try {
 			final ProgramInspector inspector;
-			Deque< String > includePaths = new ArrayDeque<>();
-			for( Value v : request.getChildren( "includePaths" ) ) {
-				includePaths.add( v.strValue() );
-			}
+			String includePaths[] = request.getChildren( "includePaths" ).stream().map( v -> v.strValue() ).toArray( String[]::new );
 			if ( request.hasChildren( "source" ) ) {
 				inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.of( request.getFirstChild( "source" ).strValue() ), includePaths );
 			} else {
@@ -152,10 +150,7 @@ public class Inspector extends JavaService
 	@RequestResponse
 	public Value inspectTypes( Value request ) throws FaultException
 	{
-		Deque< String > includePaths = new ArrayDeque<>();
-		for( Value v : request.getChildren( "includePaths" ) ) {
-			includePaths.add( v.strValue() );
-		}
+		String includePaths[] = request.getChildren( "includePaths" ).stream().map( v -> v.strValue() ).toArray( String[]::new );
 		try {
 			ProgramInspector inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
 			return buildProgramTypeInfo( inspector );
@@ -169,14 +164,13 @@ public class Inspector extends JavaService
 		}
 	}
 
-	private static ProgramInspector getInspector( String filename, Optional< String > source, Deque< String > includePaths )
+	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths )
 		throws CommandLineException, IOException, ParserException, SemanticException
 	{
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );
-		CommandLineParser commandLineParser;
-		includePaths.addFirst( filename );
-		commandLineParser = new CommandLineParser( includePaths.toArray( new String[ includePaths.size() ] ), Inspector.class.getClassLoader() );
+		String args[] = { filename };
+		CommandLineParser commandLineParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
 		final InputStream sourceIs;
 		if ( source.isPresent() ) {
 			sourceIs = new ByteArrayInputStream( source.get().getBytes() );
@@ -187,7 +181,7 @@ public class Inspector extends JavaService
 			sourceIs,
 			commandLineParser.programFilepath().toURI(),
 			commandLineParser.charset(),
-			commandLineParser.includePaths(),
+			includePaths,
 			commandLineParser.jolieClassLoader(),
 			commandLineParser.definedConstants(),
 			configuration,
@@ -201,7 +195,7 @@ public class Inspector extends JavaService
 		Value result = Value.create();
 		ValueVector inputPorts = result.getChildren( PortInspectionResponse.INPUT_PORT );
 		ValueVector outputPorts = result.getChildren( PortInspectionResponse.OUTPUT_PORT );
-		ValueVector referredTypesValue = result.getChildren( PortInspectionResponse.REFERRED_TYPES );
+		ValueVector referredTypesValues = result.getChildren( PortInspectionResponse.REFERRED_TYPES );
 
 		Set< String > referredTypes = new HashSet<>();
 		for( InputPortInfo portInfo : inspector.getInputPorts() ) {
@@ -218,8 +212,15 @@ public class Inspector extends JavaService
 		}
 		
 		referredTypes.stream().filter( types::containsKey ).forEach( typeName ->
-			referredTypesValue.add( buildTypeDefinition( types.get( typeName ) ) )
+			referredTypesValues.add( buildTypeDefinition( types.get( typeName ) ) )
 		);
+		
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( result, writer, "Value" );
+		try {
+			printer.run();
+		} catch( IOException e ) {} // Should never happen
+		System.out.println( writer.toString() );
 		
 		return result;
 	}
@@ -228,7 +229,7 @@ public class Inspector extends JavaService
 	{
 		Value result = Value.create();
 		result.setFirstChild( TypeDefinitionInfoType.NAME, typeDef.id() );
-		result.setFirstChild( TypeDefinitionInfoType.TYPE, buildTypeInfo( typeDef ) );
+		result.getChildren( TypeDefinitionInfoType.TYPE ).add( buildTypeInfo( typeDef ) );
 		return result;
 	}
 
