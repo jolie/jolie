@@ -23,8 +23,10 @@ package joliex.lang.inspector;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -127,10 +129,14 @@ public class Inspector extends JavaService
 	{
 		try {
 			final ProgramInspector inspector;
+			Deque< String > includePaths = new ArrayDeque<>();
+			for( Value v : request.getChildren( "includePaths" ) ) {
+				includePaths.add( v.strValue() );
+			}
 			if ( request.hasChildren( "source" ) ) {
-				inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.of( request.getFirstChild( "source" ).strValue() ) );
+				inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.of( request.getFirstChild( "source" ).strValue() ), includePaths );
 			} else {
-				inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty() );
+				inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
 			}
 			return buildPortInspectionResponse( inspector );
 		} catch( CommandLineException | IOException | ParserException ex ) {
@@ -146,8 +152,12 @@ public class Inspector extends JavaService
 	@RequestResponse
 	public Value inspectTypes( Value request ) throws FaultException
 	{
+		Deque< String > includePaths = new ArrayDeque<>();
+		for( Value v : request.getChildren( "includePaths" ) ) {
+			includePaths.add( v.strValue() );
+		}
 		try {
-			ProgramInspector inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty() );
+			ProgramInspector inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
 			return buildProgramTypeInfo( inspector );
 		} catch( CommandLineException | IOException | ParserException ex ) {
 			throw new FaultException( ex );
@@ -159,14 +169,14 @@ public class Inspector extends JavaService
 		}
 	}
 
-	private static ProgramInspector getInspector( String filename, Optional< String> source )
+	private static ProgramInspector getInspector( String filename, Optional< String > source, Deque< String > includePaths )
 		throws CommandLineException, IOException, ParserException, SemanticException
 	{
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );
 		CommandLineParser commandLineParser;
-		String[] args = { filename };
-		commandLineParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
+		includePaths.addFirst( filename );
+		commandLineParser = new CommandLineParser( includePaths.toArray( new String[ includePaths.size() ] ), Inspector.class.getClassLoader() );
 		final InputStream sourceIs;
 		if ( source.isPresent() ) {
 			sourceIs = new ByteArrayInputStream( source.get().getBytes() );
