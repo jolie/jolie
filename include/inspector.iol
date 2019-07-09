@@ -96,6 +96,7 @@ type TypesInspectionResponse {
 
 type InspectionRequest {
 	filename: string
+	includePaths*: string
 	source?: string
 }
 
