@@ -690,39 +690,25 @@ public class JavaDocumentCreator
 		if ( Utils.hasSubTypes( type ) ) {
 			Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes( type );
 			Iterator i = supportSet.iterator();
-
 			while( i.hasNext() ) {
 				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
-				if ( subType instanceof TypeDefinitionLink ) {
-					//link
-					if ( subType.cardinality().max() > 1 ) {
-						appendingIndentation( stringBuilder );
-						if ( isNativeTypeUndefined( subType ) ) {
-							stringBuilder.append( subType.id() ).append( "= new ArrayList<Value>();\n" );
-
+				String variableName = subType.id();
+				String variableType = "Value";
+				if ( subType.cardinality().max() > 1 ) {
+					if ( subType instanceof TypeDefinitionLink ) {
+						if ( !isNativeTypeUndefined( subType ) ) {
+							variableType = ((TypeDefinitionLink) subType).linkedType().id();
+						}
+					} else if ( subType instanceof TypeInlineDefinition ) {
+						if ( Utils.hasSubTypes( subType ) ) {
+							variableType = subType.id() + "Type";
 						} else {
-							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( ((TypeDefinitionLink) subType).linkedType().id() ).append( ">();\n" );
+							variableType = javaNativeEquivalent.get( Utils.nativeType( subType ) );
 						}
 					}
-				} else if ( subType instanceof TypeInlineDefinition ) {
-					if ( Utils.hasSubTypes( subType ) ) {
-						if ( subType.cardinality().max() > 1 ) {
-							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( subType.id() ).append( ">();\n" );
-						}
-					} else {
-						//native type
-						String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( subType ) );
-						if ( subType.cardinality().max() > 1 ) {
-							appendingIndentation( stringBuilder );
-							stringBuilder.append( subType.id() ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );
-						}
-					}
-
-				} else if ( subType instanceof TypeChoiceDefinition ) {
-					throw new UnsupportedOperationException( "Can't initialize variable with several possible types" );
-				} else {
-					System.out.println( "WARNING2: variable is not a Link, a Choice or an Inline Definition!" );
-				}
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( variableType ).append( ">();\n" );
+				} 
 			}
 		}
 
@@ -991,91 +977,89 @@ public class JavaDocumentCreator
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "}\n" );
 					}
-				} else {
-					if ( subType.cardinality().max() > 1 ) {
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if(" ).append( variableName ).append( "!=null){\n" );
+				} else if ( subType.cardinality().max() > 1 ) {
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "if(" ).append( variableName ).append( "!=null){\n" );
 
+					incrementIndentation();
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "for(int counter" ).append( variableName ).append( "=0;counter" ).append( variableName );
+					stringBuilder.append( "<" ).append( variableName ).append( ".size();counter" ).append( variableName ).append( "++){\n" );
+
+					incrementIndentation();
+					if ( Utils.nativeType( subType ) != NativeType.ANY ) {
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" ).append( variableName );
+						stringBuilder.append( ".get(counter" ).append( variableName ).append( "));\n" );
+
+					} else if ( isNativeTypeUndefined( subType ) ) {
 						incrementIndentation();
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "for(int counter" ).append( variableName ).append( "=0;counter" ).append( variableName );
-						stringBuilder.append( "<" ).append( variableName ).append( ".size();counter" ).append( variableName ).append( "++){\n" );
-
-						incrementIndentation();
-						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
+						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
+						stringBuilder.append( variableName ).append( ".get(counter" ).append( variableName ).append( "));\n" );
+						decrementIndentation();
+					} else {
+						for( NativeType t : NativeType.class.getEnumConstants() ) {
+							if ( !javaNativeChecker.containsKey( t ) ) {
+								continue;
+							}
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" ).append( variableName );
-							stringBuilder.append( ".get(counter" ).append( variableName ).append( "));\n" );
+							stringBuilder.append( "if(" ).append( variableName ).append( ".get(counter" ).append( variableName );
+							stringBuilder.append( ") instanceof " ).append( javaNativeEquivalent.get( t ) ).append( "){\n" );
 
-						} else if ( isNativeTypeUndefined( subType ) ) {
 							incrementIndentation();
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
 							stringBuilder.append( variableName ).append( ".get(counter" ).append( variableName ).append( "));\n" );
+
 							decrementIndentation();
-						} else {
-							for( NativeType t : NativeType.class.getEnumConstants() ) {
-								if ( !javaNativeChecker.containsKey( t ) ) {
-									continue;
-								}
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "if(" ).append( variableName ).append( ".get(counter" ).append( variableName );
-								stringBuilder.append( ") instanceof " ).append( javaNativeEquivalent.get( t ) ).append( "){\n" );
-
-								incrementIndentation();
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-								stringBuilder.append( variableName ).append( ".get(counter" ).append( variableName ).append( "));\n" );
-
-								decrementIndentation();
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "}\n" );
-							}
-						}
-						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
-
-						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
-
-					} else {
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if((" ).append( variableName ).append( "!=null)){\n" );
-						incrementIndentation();
-
-						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-							stringBuilder.append( subType.id() ).append( ");\n" );
-						} else if ( variableNameType.equals( "Value" ) ) {
+							stringBuilder.append( "}\n" );
+						}
+					}
+					decrementIndentation();
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "}\n" );
+
+					decrementIndentation();
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "}\n" );
+
+				} else {
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "if((" ).append( variableName ).append( "!=null)){\n" );
+					incrementIndentation();
+
+					if ( Utils.nativeType( subType ) != NativeType.ANY ) {
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
+						stringBuilder.append( subType.id() ).append( ");\n" );
+					} else if ( variableNameType.equals( "Value" ) ) {
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
+						stringBuilder.append( variableName ).append( ");\n" );
+					} else {
+						for( NativeType t : NativeType.class.getEnumConstants() ) {
+							if ( !javaNativeChecker.containsKey( t ) ) {
+								continue;
+							}
+							appendingIndentation( stringBuilder );
+							stringBuilder.append( "if(" ).append( variableName ).append( " instanceof " );
+							stringBuilder.append( javaNativeEquivalent.get( t ) ).append( "){\n" );
+
+							incrementIndentation();
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
 							stringBuilder.append( variableName ).append( ");\n" );
-						} else {
-							for( NativeType t : NativeType.class.getEnumConstants() ) {
-								if ( !javaNativeChecker.containsKey( t ) ) {
-									continue;
-								}
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "if(" ).append( variableName ).append( " instanceof " );
-								stringBuilder.append( javaNativeEquivalent.get( t ) ).append( "){\n" );
 
-								incrementIndentation();
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-								stringBuilder.append( variableName ).append( ");\n" );
-
-								decrementIndentation();
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "}\n" );
-							}
+							decrementIndentation();
+							appendingIndentation( stringBuilder );
+							stringBuilder.append( "}\n" );
 						}
-						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
 					}
+					decrementIndentation();
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "}\n" );
 				}
 
 				if ( subType instanceof TypeChoiceDefinition ) {

@@ -90,7 +90,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 4, new File( "./generated/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 5, new File( "./generated/com/test" ).list().length );
 
 		// compile files
 		if ( generatedPath.exists() ) {
@@ -181,9 +181,31 @@ public class JavaDocumentCreatorTest
 
 		// check methods
 		checkMethods( InLineStructureType, getInlineStructureType() );
+		System.out.println( testName + " checking methods OK" );
 		invokingSetAddGetMethods( inLineStructureTypeEmpty, getInlineStructureType() );
 		invokingRemoveSizetMethods( inLineStructureTypeEmpty, getInlineStructureType() );
-		//System.out.println( testName + " invoking methods OK" );
+		System.out.println( testName + " invoking methods OK" );
+	}
+
+	@Test
+	public void testInLineStructureVectorsType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
+		String testName = "testInLineStructureVectorsType";
+		// FileStructureVector
+		Class<?> InLineStructureVectorsType = Class.forName( "com.test.InLineStructureVectorsType", true, classLoader );
+		Constructor inLineStructureVectorsTypeConstructor = InLineStructureVectorsType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface inLineStructureVectorsType = (Jolie2JavaInterface) inLineStructureVectorsTypeConstructor.newInstance( getInlineStructureVectorsType() );
+		// check constructor and getValues
+		assertTrue( compareValues( getInlineStructureVectorsType(), inLineStructureVectorsType.getValue() ) );
+		Jolie2JavaInterface inLineStructureVectorsTypeEmpty = (Jolie2JavaInterface) InLineStructureVectorsType.newInstance();
+		System.out.println( testName + " contructors and getValue() OK" );
+
+		// check methods
+		checkMethods( InLineStructureVectorsType, getInlineStructureVectorsType() );
+		System.out.println( testName + " checking methods OK" );
+		invokingSetAddGetMethods( inLineStructureVectorsTypeEmpty, getInlineStructureVectorsType() );
+		invokingRemoveSizetMethods( InLineStructureVectorsType, getInlineStructureVectorsType() );
+		System.out.println( testName + " invoking methods OK" );
 	}
 
 	private void checkMethods( Class cls, Value value )
@@ -264,6 +286,7 @@ public class JavaDocumentCreatorTest
 		for( Entry<String, ValueVector> vv : v.children().entrySet() ) {
 			if ( vv.getValue().size() > 1 ) {
 				for( int i = 0; i < vv.getValue().size(); i++ ) {
+					// TODO
 					Value value = vv.getValue().get( i );
 					invokingAddMethodForVector( value, vv.getKey(), obj, i );
 				}
@@ -273,11 +296,11 @@ public class JavaDocumentCreatorTest
 					String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
 					for( int i = 0; i < setMethodList.get( mNameTmp ).getParameterTypes().length; i++ ) {
 						Class SubClass = setMethodList.get( mNameTmp ).getParameterTypes()[ i ];
-						Constructor subClassConstructor = SubClass.getConstructors()[0];
+						Constructor subClassConstructor = SubClass.getConstructors()[ 0 ];
 						Object subClassInstance = subClassConstructor.newInstance( obj, value );
-						setMethodList.get( mNameTmp ).invoke(obj, subClassInstance );
+						setMethodList.get( mNameTmp ).invoke( obj, subClassInstance );
 						Object getSubClassInstance = getMethodList.get( mNameTmp ).invoke( obj );
-						assertTrue("SubClasses (" + SubClass.getName() + ") are not equal", subClassInstance.equals(getSubClassInstance ));
+						assertTrue( "SubClasses (" + SubClass.getName() + ") are not equal", subClassInstance.equals( getSubClassInstance ) );
 					}
 				} else {
 					invokingSetGetMethodsForFlatType( value, vv.getKey(), obj );
@@ -371,8 +394,54 @@ public class JavaDocumentCreatorTest
 		fh.setValue( TESTSTRING );
 		fh.getFirstChild( "abc" ).setValue( TESTSTRING );
 		fh.getFirstChild( "def" ).setValue( TESTLONG );
+		Value aa = testValue.getFirstChild( "aa" );
+		aa.setValue( TESTSTRING );
+		aa.getFirstChild( "z" ).setValue( TESTINTEGER );
+		aa.getFirstChild( "c" ).setValue( TESTDOUBLE );
+		aa.getFirstChild( "f" ).getFirstChild( "rm" ).setValue( TESTSTRING );
 		return testValue;
+	}
 
+	private Value getInlineStructureVectorsType()
+	{
+		Value testValue = Value.create();
+		ValueVector a = testValue.getChildren( "a" );
+		for( int x = 0; x < 10; x++ ) {
+			for( int i = 0; i < 10; i++ ) {
+				a.get(x).getNewChild( "b" ).setValue( TESTSTRING );
+			}
+			a.get(x).getFirstChild( "c" ).setValue( TESTINTEGER );
+			for( int i = 0; i < 9; i++ ) {
+				a.get(x).getNewChild( "f" ).setValue( TESTDOUBLE );
+			}
+			ValueVector e = a.get(x).getChildren( "e" );
+			for( int i = 0; i < 8; i++ ) {
+				e.get( i ).setValue( TESTSTRING );
+				e.get( i ).getFirstChild( "ab" ).setValue( new ByteArray( TESTRAW ) );
+				for( int y = 0; y < 4; y++ ) {
+					e.get( i ).getNewChild( "bc" ).setValue( TESTSTRING );
+				}
+				ValueVector fh = e.get( i ).getChildren( "fh" );
+				for( int y = 0; y < 100; y++ ) {
+					fh.get( y ).setValue( TESTSTRING );
+					fh.get( y ).getFirstChild( "abc" ).setValue( TESTSTRING );
+					fh.get( y ).getFirstChild( "def" ).setValue( TESTLONG );
+				}
+			}
+		}
+		Value aa = testValue.getFirstChild( "aa" );
+		aa.setValue( TESTSTRING );
+		for( int i = 0; i < 5; i++ ) {
+			aa.getNewChild( "z" ).setValue( TESTINTEGER );
+		}
+		for( int i = 0; i < 3; i++ ) {
+			aa.getNewChild( "c" ).setValue( TESTDOUBLE );
+		}
+		ValueVector f = aa.getChildren( "f" );
+		for( int i = 0; i < 100; i++ ) {
+			f.get( i ).getFirstChild( "rm" ).setValue( TESTSTRING );
+		}
+		return testValue;
 	}
 
 	private Value getFlatStructuredType()
