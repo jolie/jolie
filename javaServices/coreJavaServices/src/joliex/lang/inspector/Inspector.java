@@ -23,8 +23,6 @@ package joliex.lang.inspector;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,7 +53,6 @@ import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 
@@ -119,8 +116,8 @@ public class Inspector extends JavaService
 	private static final class FieldType
 	{
 		private static final String NAME = "name";
-		private static final String RANGE = "RANGE";
-		private static final String TYPE = "TYPE";
+		private static final String RANGE = "range";
+		private static final String TYPE = "type";
 		private static final String MIN = "min";
 		private static final String MAX = "max";
 	}
@@ -214,14 +211,7 @@ public class Inspector extends JavaService
 		referredTypes.stream().filter( types::containsKey ).forEach( typeName ->
 			referredTypesValues.add( buildTypeDefinition( types.get( typeName ) ) )
 		);
-		
-		Writer writer = new StringWriter();
-		ValuePrettyPrinter printer = new ValuePrettyPrinter( result, writer, "Value" );
-		try {
-			printer.run();
-		} catch( IOException e ) {} // Should never happen
-		System.out.println( writer.toString() );
-		
+				
 		return result;
 	}
 	
@@ -368,8 +358,8 @@ public class Inspector extends JavaService
 			result.setFirstChild( TypeInfoType.LINKED_TYPE_NAME, ((TypeDefinitionLink) t).linkedTypeName() );
 		} else if ( t instanceof TypeChoiceDefinition ) {
 			TypeChoiceDefinition tc = (TypeChoiceDefinition) t;
-			result.setFirstChild( TypeInfoType.LEFT, buildTypeInfo( tc.left() ) );
-			result.setFirstChild( TypeInfoType.RIGHT, buildTypeInfo( tc.right() ) );
+			result.getChildren( TypeInfoType.LEFT ).add( buildTypeInfo( tc.left() ) );
+			result.getChildren( TypeInfoType.RIGHT ).add( buildTypeInfo( tc.right() ) );
 		} else if ( t instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition ti = (TypeInlineDefinition) t;
 			result.setFirstChild( TypeInfoType.NATIVE_TYPE, ti.nativeType().id() );
@@ -384,7 +374,7 @@ public class Inspector extends JavaService
 					range.setFirstChild( FieldType.MIN, entry.getValue().cardinality().min() );
 					range.setFirstChild( FieldType.MAX, entry.getValue().cardinality().max() );
 										
-					field.setFirstChild( FieldType.TYPE, buildTypeInfo( entry.getValue() ) );
+					field.getChildren( FieldType.TYPE ).add( buildTypeInfo( entry.getValue() ) );
 					
 					fields.add( field );
 				} );
