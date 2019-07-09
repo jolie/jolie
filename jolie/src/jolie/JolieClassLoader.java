@@ -333,7 +333,7 @@ public final class JolieClassLoader extends URLClassLoader
 	public void addJarResource( String jarName )
 		throws MalformedURLException, IOException
 	{
-		URL url = null;
+		URL url;
 		try {
 			url = findResource( jarName );
 		} catch ( IllegalArgumentException e ) {

@@ -23,6 +23,7 @@ package jolie.net.ports;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import jolie.runtime.typing.OneWayTypeDescription;
@@ -215,6 +216,11 @@ public class Interface
 	) {
 		this.oneWayOperations = oneWayOperations;
 		this.requestResponseOperations = requestResponseOperations;
+	}
+	
+	public Interface copy()
+	{
+		return new Interface( new HashMap<>( oneWayOperations ), new HashMap<>( requestResponseOperations ) );
 	}
 
 	public Map< String, OneWayTypeDescription > oneWayOperations()

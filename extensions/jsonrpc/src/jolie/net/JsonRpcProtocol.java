@@ -1,26 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
- *   Copyright (C) 2011 by Károly Szántó                                   *
- *   Copyright (C) 2011 by Giannakis Manthios                              *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+/** *************************************************************************
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com> * Copyright (C) 2011 by Károly Szántó * Copyright (C) 2011 by Giannakis
+ * Manthios * * This program is free software; you can redistribute it and/or modify * it under the terms of the GNU Library General Public
+ * License as * published by the Free Software Foundation; either version 2 of the * License, or (at your option) any later version. * *
+ * This program is distributed in the hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the implied warranty of *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU General Public License for more details. * * You should have received
+ * a copy of the GNU Library General Public * License along with this program; if not, write to the * Free Software Foundation, Inc., * 59
+ * Temple Place - Suite 330, Boston, MA 02111-1307, USA. * * For details about the authors of this software, see the AUTHORS file. *
+ **************************************************************************
+ */
 package jolie.net;
 
 import java.io.ByteArrayInputStream;
@@ -34,42 +21,53 @@ import java.util.Map;
 import java.util.Map.Entry;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
+import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
+import jolie.net.ports.Interface;
+import jolie.net.ports.OutputPort;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.*;
+import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
+import jolie.util.Range;
 
 /**
- * 
+ *
  * @author Fabrizio Montesi
  * @author Károly Szántó
  * @author Giannakis Manthios
+ * @author Eros Fabrici
  *
  * 2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
  */
-
 public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
 {
 	private final URI uri;
 	private final Interpreter interpreter;
 	private final boolean inInputPort;
 	private String encoding;
-	private static class Parameters {
+	private Interface channelInterface = null;
+
+	private static class Parameters
+	{
 		private final static String TRANSPORT = "transport";
 		private final static String ALIAS = "alias";
 		private final static String OSC = "osc";
 		private final static String CLIENT_LOCATION = "clientLocation";
+		private final static String CLIENT_OUTPUTPORT = "clientOutputPort";
+		private final static String IS_NULLABLE = "isNullable";
 	}
+	
 	private final static String LSP = "lsp";
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
-	
-	private final Map< Long, String > jsonRpcIdMap;
-	private final Map< String, String > jsonRpcOpMap;
+
+	private final Map< Long, String> jsonRpcIdMap;
+	private final Map< String, String> jsonRpcOpMap;
 
 	@Override
 	public String name()
@@ -78,16 +76,16 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	}
 
 	public JsonRpcProtocol( VariablePath configurationPath, URI uri,
-				Interpreter interpreter, boolean inInputPort )
+		Interpreter interpreter, boolean inInputPort )
 	{
 		super( configurationPath );
 		this.uri = uri;
 		this.interpreter = interpreter;
 		this.inInputPort = inInputPort;
-		
+
 		// prepare the two maps
-		this.jsonRpcIdMap = new HashMap<Long, String>(INITIAL_CAPACITY, LOAD_FACTOR);
-		this.jsonRpcOpMap = new HashMap<String, String>(INITIAL_CAPACITY, LOAD_FACTOR);
+		this.jsonRpcIdMap = new HashMap<>( INITIAL_CAPACITY, LOAD_FACTOR );
+		this.jsonRpcOpMap = new HashMap<>( INITIAL_CAPACITY, LOAD_FACTOR );
 	}
 
 	@Override
@@ -95,8 +93,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		throws IOException
 	{
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
+		boolean isLsp = checkStringParameter( Parameters.TRANSPORT, LSP );
 
-		if ( !checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+		if ( !isLsp ) {
 			if ( !message.isFault() && message.hasGenericId() && inInputPort ) {
 				// JSON-RPC notification mechanism (method call with dropped result)
 				// we just send HTTP status code 204
@@ -111,13 +110,39 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		value.getFirstChild( "jsonrpc" ).setValue( "2.0" );
 
 		/*
-			If we are in LSP mode, we do not want to send ACKs to the client.
+		  If we are in LSP mode, we do not want to send ACKs to the client.
 		 */
-		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
+		if ( isLsp ) {
 			if ( message.hasGenericId() && message.value().getChildren( "result" ).isEmpty() ) {
 				return;
 			}
 		}
+
+		String operationNameAliased = message.operationName();
+		//resolving aliases
+		if ( isLsp && hasParameter( Parameters.OSC ) ) {
+			Value osc = getParameterFirstValue( Parameters.OSC );
+			for( Entry<String, ValueVector> ev : osc.children().entrySet() ) {
+				Value v = ev.getValue().get( 0 );
+				if ( v.hasChildren( Parameters.ALIAS ) ) {
+					if ( ev.getKey().equals( operationNameAliased ) ) {
+						operationNameAliased = v.getFirstChild( Parameters.ALIAS ).strValue();
+					}
+				}
+			}
+		}
+
+		/*
+                 * While we build the full message
+                 * we type the entire message, so JsUtils class will convert 
+                 * it properly
+		 */
+		Type operationType = Type.UNDEFINED;
+		String originalOpName = message.operationName();
+		Map< String, Type > subTypes = new HashMap<>();
+		subTypes.put( "jsonrpc", Type.create( NativeType.STRING, new Range( 1, 1 ), false, null ) );
+		subTypes.put( "id", Type.create( NativeType.INT, new Range( 0, 1 ), false, null ) );
+		Map< String, Type > paramsSubTypes = new HashMap<>();
 
 		if ( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
@@ -127,29 +152,93 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			error.getFirstChild( "message" ).setValue( message.fault().faultName() );
 			error.getChildren( "data" ).set( 0, message.fault().value() );
 		} else {
-//			boolean isRR =
-//				channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() )
-//				instanceof RequestResponseTypeDescription;
-			if ( inInputPort ) {
+			boolean isRR
+				= channel().parentPort().getOperationTypeDescription( message.operationName(), message.resourcePath() ) instanceof RequestResponseTypeDescription;
+			//if we are in LSP, we want to be sure the message to be
+			//a response to a request in order to send it with 
+			//the fields "results" and "id"
+			boolean check = isLsp ? isRR : true;
+			if ( inInputPort && check ) {
 				value.getChildren( "result" ).set( 0, message.value() );
 				String jsonRpcId = jsonRpcIdMap.get( message.id() );
 				value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
+
+				if ( channelInterface.requestResponseOperations().containsKey( originalOpName ) ) {
+					operationType = channelInterface.requestResponseOperations().
+						get( originalOpName ).responseType();
+				} else if ( channel().parentInputPort().getAggregatedOperation( originalOpName ) != null ) {
+					operationType = channel().parentInputPort().
+						getAggregatedOperation( originalOpName ).
+						getOperationTypeDescription().
+						asRequestResponseTypeDescription().responseType();
+				}
+
+				operationType = operationType.getMinimalType( message.value() ).orElseGet( () -> Type.UNDEFINED );
+				subTypes.put( "result", operationType );
 			} else {
-				jsonRpcOpMap.put( message.id() + "", message.operationName() );
-				value.getFirstChild( "method" ).setValue( message.operationName() );
+				jsonRpcOpMap.put( Long.toString( message.id() ), operationNameAliased );
+				value.getFirstChild( "method" ).setValue( operationNameAliased );
+
+				if ( isRR ) {
+					if ( channelInterface.requestResponseOperations().containsKey( originalOpName ) ) {
+						operationType = channelInterface.requestResponseOperations().
+							get( originalOpName ).requestType();
+					}
+				} else {
+					if ( channelInterface.oneWayOperations().containsKey( originalOpName ) ) {
+						operationType = channelInterface.oneWayOperations().
+							get( originalOpName ).requestType();
+					}
+				}
+
+				operationType = operationType.getMinimalType( message.value() ).orElseGet( () -> Type.UNDEFINED );
+
 				if ( message.value().isDefined() || message.value().hasChildren() ) {
 					// some implementations need an array here
 					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
+					paramsSubTypes.put( JsUtils.JSONARRAY_KEY, operationType );
+					subTypes.put( "params", Type.create( NativeType.VOID, new Range( 0, 1 ), false, paramsSubTypes ) );
 				}
-				if ( !message.hasGenericId() ) {
+
+				if ( !message.hasGenericId() && !isLsp ) {
 					value.getFirstChild( "id" ).setValue( message.id() );
 				}
 			}
 		}
 
+		Type fullMessageType = Type.create( NativeType.VOID, new Range( 1, 1 ), false, subTypes );
 		StringBuilder json = new StringBuilder();
-		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
-		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
+		JsUtils.valueToJsonString( value, true, fullMessageType, json );
+		String jsonMessage = json.toString();
+
+		/*
+                 * LSP clients sometimes want a empty array for some fields,
+                 * the only way to do in jolie is to have a type like the follwoing:
+                 * t*: void
+                 * then you assing t = void, resulting in t[0] = void
+                 * the problem is that JsUtils will convert this in "t": [null]
+                 * with this we remove manually null values iff there is the parameter 
+                 * osc."operationName".isNullable = true
+		 */
+		if ( hasParameter( Parameters.OSC ) ) {
+			Value osc = getParameterFirstValue( Parameters.OSC );
+			String opName = message.operationName();
+
+			if ( osc.hasChildren( opName ) ) {
+				Value childOp = osc.getFirstChild( opName );
+				//if osc has a child with opName and grandChild isNullable
+				if ( childOp.hasChildren( Parameters.IS_NULLABLE ) ) {
+
+					if ( childOp.getFirstChild( Parameters.IS_NULLABLE ).boolValue() ) {
+						//then we replace all null with and empty string
+						//TODO use a regex 
+						jsonMessage = jsonMessage.replaceAll( "null", "" );
+					}
+				}
+			}
+		}
+
+		ByteArray content = new ByteArray( jsonMessage.getBytes( "utf-8" ) );
 
 		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			String lspHeaders = "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF;
@@ -211,6 +300,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
+		setChannelInterface();
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
@@ -219,12 +309,24 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	{
 		if ( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			if ( inInputPort && configurationPath().getValue().hasChildren( Parameters.CLIENT_LOCATION ) ) {
-				getParameterFirstValue( Parameters.CLIENT_LOCATION ).setValue( channel() );
+				try {
+					OutputPort op = interpreter.getOutputPort(
+						getParameterFirstValue( Parameters.CLIENT_OUTPUTPORT ).strValue() );
+					if ( op != null ) {
+						channelInterface.merge( op.getInterface() );
+					}
+				} catch( InvalidIdException ex ) {
+				}
+				if ( !getParameterFirstValue( Parameters.CLIENT_LOCATION ).isDefined() ) {
+					//Setting the outport to the channel
+					getParameterFirstValue( Parameters.CLIENT_LOCATION ).setValue( channel() );
+				}
 			}
 			LSPParser parser = new LSPParser( istream );
 			LSPMessage message = parser.parse();
+			//LSP supports only utf-8 encoding
 			String charset = "utf-8";
-			//encoding = message.getProperty( "accept-encoding" );
+			//encoding = message.getProperty( "accept-encoding" )             
 			return recv_createCommMessage( message.size(), message.content(), charset );
 		} else {
 			HttpParser parser = new HttpParser( istream );
@@ -301,10 +403,16 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		}
 		return null; //error situation
 	}
+	
+	private void setChannelInterface()
+	{
+		channelInterface = channel().parentPort().getInterface();
+	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
+		setChannelInterface();
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}
 }
