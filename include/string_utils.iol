@@ -65,7 +65,7 @@ type StartsWithRequest:string {
 
 type SubStringRequest:string {
 	.begin:int
-	.end:int
+	.end?:int
 }
 
 type StringItemList:void {
