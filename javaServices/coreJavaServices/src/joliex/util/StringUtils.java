@@ -183,19 +183,14 @@ public class StringUtils extends JavaService
 
 	public String substring( Value request )
 	{
-		String subst;
-		if ( request.strValue().length() < request.getFirstChild( "end" ).intValue() ) {
-			subst = request.strValue().substring(
-				request.getFirstChild( "begin" ).intValue(),
-				request.strValue().length()
-			);
+		final int end;
+		if ( request.hasChildren( "end" ) ) {
+			end = Math.min( request.getFirstChild( "end" ).intValue(), request.strValue().length() );
 		} else {
-			subst = request.strValue().substring(
-				request.getFirstChild( "begin" ).intValue(),
-				request.getFirstChild( "end" ).intValue()
-			);
+			end = request.strValue().length();
 		}
-		return subst;
+		
+		return request.strValue().substring( request.getFirstChild( "begin" ).intValue(), end );
 	}
 
 	public Value split( Value request )
@@ -307,12 +302,9 @@ public class StringUtils extends JavaService
 		return writer.toString();
 	}
 	
-	public Value indexOf( Value request )
+	public Integer indexOf( Value request )
 	{
-		String string = request.strValue();
-		Value response = Value.create();
-		response.setValue( string.indexOf( request.getFirstChild( "word" ).strValue()) );
-		return response;
+		return request.strValue().indexOf( request.getFirstChild( "word" ).strValue() );
 	}
 
 	public String rightPad( Value request )
