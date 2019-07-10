@@ -13,19 +13,19 @@ define doTest
 		throw( TestFailed, "Program types_1.ol contains only one type, found " + #response.types )
 	}
 	with( response.types ){
-			if( .isChoice ){
-				throw( TestFailed, "Type " + expectedTypeName + " is not a type choice" )
-			}
-			if( !.isNative ){
-				throw( TestFailed, "Type " + expectedTypeName + " is a native type" )
-			}
-			if( .name != expectedTypeName ){
-				throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + .name )
-			}
-			trim@StringUtils( .documentation )( .documentation )
-			if( .documentation != expectedTypeDocumentation ){
-				throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + .documentation )
-			}
+		if( .isChoice ){
+			throw( TestFailed, "Type " + expectedTypeName + " is not a type choice" )
+		}
+		if( !.isNative ){
+			throw( TestFailed, "Type " + expectedTypeName + " is a native type" )
+		}
+		if( .name != expectedTypeName ){
+			throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + .name )
+		}
+		trim@StringUtils( .documentation )( .documentation )
+		if( .documentation != expectedTypeDocumentation ){
+			throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + .documentation )
+		}
 	}
 
 	undef( response )

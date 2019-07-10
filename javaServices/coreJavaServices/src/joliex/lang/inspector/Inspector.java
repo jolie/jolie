@@ -231,7 +231,7 @@ public class Inspector extends JavaService
 		for( TypeDefinition type : inspector.getTypes() ) {
 			Value typeDefinition = Value.create();
 			typeDefinition.setFirstChild( TypeDefinitionInfoType.NAME, type.id() );
-			typeDefinition.setFirstChild( TypeDefinitionInfoType.TYPE, buildTypeInfo( type ) );
+			typeDefinition.getChildren( TypeDefinitionInfoType.TYPE ).add( buildTypeInfo( type ) );
 			types.add( typeDefinition );
 		}
 		return returnValue;
