@@ -185,7 +185,7 @@ define doTest
 	// 	throw( TestFailed, "field[0] of the left type of " + expectedTypeName + " has a wrong documentation: " + t.documentation )
 	// }
 	t -> response.types.type.left.fields[ 1 ]
-	valueToPrettyString@StringUtils( t )( s ); println@Console( s )()
+	// valueToPrettyString@StringUtils( t )( s ); println@Console( s )()
 	if( t.name != "b" ){
 		throw( TestFailed, "fields[1] of the left type of " + expectedTypeName + " has a wrong name: " + t.name )
 	}
