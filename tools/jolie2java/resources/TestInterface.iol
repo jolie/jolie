@@ -84,13 +84,23 @@ type LinkedTypeStructureType: void {
   .d: NewType
 }
 
+type LinkedTypeStructureVectorsType: void {
+  .a*: InLineStructureType
+  .b?: void {
+    .bb[2,10]: InLineStructureVectorsType
+  }
+  .c[3,7]: FlatStructureType
+  .d*: NewType
+}
+
+
 type VoidType: void
 
 
 interface TestInterface {
 RequestResponse:
 
-  testLinkedTypeStructure( LinkedTypeStructureType )( LinkedTypeStructureType ),
+  testLinkedTypeStructure( LinkedTypeStructureType )( LinkedTypeStructureVectorsType ),
 
   testInlineStructure( InLineStructureType )( InLineStructureVectorsType ),
 
