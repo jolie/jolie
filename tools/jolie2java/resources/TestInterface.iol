@@ -1,3 +1,13 @@
+type NewType: void {
+    .a: string
+    .b*: int {
+        .c: long {
+            .d: raw
+            .e: FlatStructureType
+        }
+    }
+}
+
 type FlatStructureType: void {
     .afield: string
     .bfield: int
@@ -36,7 +46,7 @@ type InLineStructureType: void {
         }
 	}
 	.aa: string {
-		.z:int 
+		.z:int
         .c:double
         .f: void {
 			.rm: string
@@ -59,7 +69,7 @@ type InLineStructureVectorsType: void {
         }
 	}
 	.aa?: string {
-		.z[4,5]:int 
+		.z[4,5]:int
         .c[1,3]:double
         .f*: void {
 			.rm: string
@@ -67,11 +77,20 @@ type InLineStructureVectorsType: void {
 	}
 }
 
+type LinkedTypeStructureType: void {
+  .a: InLineStructureType
+  .b: InLineStructureVectorsType
+  .c: FlatStructureType
+  .d: NewType
+}
+
 type VoidType: void
 
 
 interface TestInterface {
 RequestResponse:
+
+  testLinkedTypeStructure( LinkedTypeStructureType )( LinkedTypeStructureType ),
 
   testInlineStructure( InLineStructureType )( InLineStructureVectorsType ),
 

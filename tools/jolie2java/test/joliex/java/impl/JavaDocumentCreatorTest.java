@@ -6,7 +6,9 @@
 package joliex.java.impl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -14,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import javax.tools.JavaCompiler;
@@ -90,21 +93,42 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 5, new File( "./generated/com/test" ).list().length );
-
-		// compile files
-		if ( generatedPath.exists() ) {
-			String files[] = generatedPath.list();
-			for( String temp : files ) {
-				File sourceFile = new File( generatedPath, temp );
-				JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-				compiler.run( null, null, null, sourceFile.getPath() );
-			}
-		}
+		assertEquals( "The number of generated files is wrong", 7, new File( "./generated/com/test" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated" );
 		classLoader = URLClassLoader.newInstance( new URL[]{ generated.toURI().toURL() } );
+
+		// compile files
+		if ( generatedPath.exists() ) {
+			String files[] = generatedPath.list();
+			for( int i = 0; i < files.length; i++ ) {
+				files[ i ] = generatedPath.getPath() + "/" + files[ i ];
+			}
+		
+			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+			OutputStream output = new OutputStream()
+			{
+				private StringBuilder sb = new StringBuilder();
+
+				@Override
+				public void write( int b ) throws IOException
+				{
+					this.sb.append( (char) b );
+				}
+
+				@Override
+				public String toString()
+				{
+					return this.sb.toString();
+				}
+			};
+
+			
+			compiler.run( null, null, output, files );
+			System.out.println( output );
+			
+		}
 	}
 
 	@AfterClass
@@ -208,6 +232,26 @@ public class JavaDocumentCreatorTest
 		System.out.println( testName + " invoking methods OK" );
 	}
 
+	@Test
+	public void testLinkedTypeStructureType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
+		String testName = "testLinkedTypeStructureType";
+		// FileStructureVector
+		Class<?> LinkedTypeStructureType = Class.forName( "com.test.LinkedTypeStructureType", true, classLoader );
+		Constructor linkedTypeStructureTypeConstructor = LinkedTypeStructureType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface linkedTypeStructureType = (Jolie2JavaInterface) linkedTypeStructureTypeConstructor.newInstance( getLinkedTypeStructureType() );
+		// check constructor and getValues
+		assertTrue( compareValues( getLinkedTypeStructureType(), linkedTypeStructureType.getValue() ) );
+		Jolie2JavaInterface linkedTypeStructureTypeEmpty = (Jolie2JavaInterface) LinkedTypeStructureType.newInstance();
+		System.out.println( testName + " contructors and getValue() OK" );
+
+		// check methods
+		checkMethods( LinkedTypeStructureType, getLinkedTypeStructureType() );
+		System.out.println( testName + " checking methods OK" );
+		invokingSetAddGetMethodsForLinkedType( linkedTypeStructureTypeEmpty );
+		System.out.println( testName + " invoking methods OK" );
+	}
+
 	private void checkMethods( Class cls, Value value )
 	{
 		setMethodList = new HashMap<>();
@@ -278,6 +322,38 @@ public class JavaDocumentCreatorTest
 
 			}
 		}
+	}
+	
+	private void invokingSetAddGetMethodsForLinkedType( Object obj ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException, ClassNotFoundException
+	{
+		// invoking methods 
+		Class<?> InLineStructureType = Class.forName( "com.test.InLineStructureType", true, classLoader );
+		Constructor inLineStructureTypeConstructor = InLineStructureType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface inLineStructureType = (Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( getInlineStructureType() );
+		setMethodList.get( "A" ).invoke( obj, inLineStructureType );
+		Object a = getMethodList.get( "A" ).invoke( obj );
+		assertEquals( "Linked type a does not correspond ", InLineStructureType.cast( a ), inLineStructureType);
+
+		Class<?> InLineStructureVectorsType = Class.forName( "com.test.InLineStructureVectorsType", true, classLoader );
+		Constructor inLineStructureVectorsTypeConstructor = InLineStructureVectorsType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface inLineStructureVectorsType = (Jolie2JavaInterface) inLineStructureVectorsTypeConstructor.newInstance( getInlineStructureVectorsType());
+		setMethodList.get( "B" ).invoke( obj, inLineStructureVectorsType );
+		Object b = getMethodList.get( "B" ).invoke( obj );
+		assertEquals( "Linked type b does not correspond ", InLineStructureVectorsType.cast( b ), inLineStructureVectorsType);
+		
+		Class<?> FlatStructureType = Class.forName( "com.test.FlatStructureType", true, classLoader );
+		Constructor flatStructureTypeConstructor = FlatStructureType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface flatStructureType = (Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( getFlatStructuredType());
+		setMethodList.get( "C" ).invoke( obj, flatStructureType );
+		Object c = getMethodList.get( "C" ).invoke( obj );
+		assertEquals( "Linked type c does not correspond ", FlatStructureType.cast( c ), flatStructureType);
+		
+		Class<?> NewType = Class.forName( "com.test.NewType", true, classLoader );
+		Constructor newTypeConstructor = NewType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface newType = (Jolie2JavaInterface) newTypeConstructor.newInstance( getNewType());
+		setMethodList.get( "D" ).invoke( obj, newType );
+		Object d = getMethodList.get( "D" ).invoke( obj );
+		assertEquals( "Linked type a does not correspond ", NewType.cast( d ), newType);
 	}
 
 	private void invokingSetAddGetMethods( Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException
@@ -388,6 +464,41 @@ public class JavaDocumentCreatorTest
 			Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( obj, index );
 			assertTrue( "check methods for field " + fieldName + ", index " + index + " failed", compareValues( returnValue, v ) );
 		}
+	}
+
+	private Value getNewType()
+	{
+		Value testValue = Value.create();
+		Value a = testValue.getFirstChild( "a" );
+		a.setValue( TESTSTRING );
+		ValueVector b = testValue.getChildren( "b" );
+		for( int i = 0; i < 100; i++ ) {
+			b.get( i ).setValue( TESTINTEGER );
+			Value c = b.get( i ).getFirstChild( "c" );
+			c.setValue( TESTLONG );
+			Value d = c.getFirstChild( "d" );
+			Value e = c.getFirstChild( "e" );
+			d.setValue( new ByteArray( TESTRAW ) );
+			e.add( getFlatStructuredType() );
+		}
+
+		return testValue;
+
+	}
+
+	private Value getLinkedTypeStructureType()
+	{
+		Value testValue = Value.create();
+		Value a = testValue.getFirstChild( "a" );
+		a.add( getInlineStructureType() );
+		Value b = testValue.getFirstChild( "b" );
+		b.add( getInlineStructureVectorsType() );
+		Value c = testValue.getFirstChild( "c" );
+		c.add( getFlatStructuredType() );
+		Value d = testValue.getFirstChild( "d" );
+		d.add( getNewType() );
+
+		return testValue;
 	}
 
 	private Value getInlineStructureType()
