@@ -163,7 +163,7 @@ define doTest
 	expectedTypeName = "myChoice"
 	expectedTypeDocumentation = "backward comment choice"
 	inspectTypes@Inspector( expectedType )( response )
-	t -> response.types.type;
+	t -> response.types.type[0]
 	// if( !( is_defined( t.left ) && is_defined( t.right ) ) ){
 	// 	throw( TestFailed, "Type " + expectedTypeName + " is not marked as a type choice" )
 	// }
