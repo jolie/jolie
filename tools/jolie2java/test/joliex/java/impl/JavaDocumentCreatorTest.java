@@ -204,7 +204,7 @@ public class JavaDocumentCreatorTest
 		checkMethods( InLineStructureVectorsType, getInlineStructureVectorsType() );
 		System.out.println( testName + " checking methods OK" );
 		invokingSetAddGetMethods( inLineStructureVectorsTypeEmpty, getInlineStructureVectorsType() );
-		invokingRemoveSizetMethods( InLineStructureVectorsType, getInlineStructureVectorsType() );
+		invokingRemoveSizetMethods( inLineStructureVectorsTypeEmpty, getInlineStructureVectorsType() );
 		System.out.println( testName + " invoking methods OK" );
 	}
 
@@ -286,9 +286,20 @@ public class JavaDocumentCreatorTest
 		for( Entry<String, ValueVector> vv : v.children().entrySet() ) {
 			if ( vv.getValue().size() > 1 ) {
 				for( int i = 0; i < vv.getValue().size(); i++ ) {
-					// TODO
 					Value value = vv.getValue().get( i );
-					invokingAddMethodForVector( value, vv.getKey(), obj, i );
+					if ( value.hasChildren() ) {
+						String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
+						for( int y = 0; y < addMethodList.get( mNameTmp ).getParameterTypes().length; y++ ) {
+							Class SubClass = addMethodList.get( mNameTmp ).getParameterTypes()[ y ];
+							Constructor subClassConstructor = SubClass.getConstructors()[ 0 ];
+							Object subClassInstance = subClassConstructor.newInstance( obj, value );
+							addMethodList.get( mNameTmp ).invoke( obj, subClassInstance );
+							Object getSubClassInstance = getMethodList.get( mNameTmp ).invoke( obj, i );
+							assertTrue( "SubClasses (" + SubClass.getName() + ") are not equal", subClassInstance.equals( getSubClassInstance ) );
+						}
+					} else {
+						invokingAddMethodForVector( value, vv.getKey(), obj, i );
+					}
 				}
 			} else {
 				Value value = vv.getValue().get( 0 );
@@ -408,13 +419,13 @@ public class JavaDocumentCreatorTest
 		ValueVector a = testValue.getChildren( "a" );
 		for( int x = 0; x < 10; x++ ) {
 			for( int i = 0; i < 10; i++ ) {
-				a.get(x).getNewChild( "b" ).setValue( TESTSTRING );
+				a.get( x ).getNewChild( "b" ).setValue( TESTSTRING );
 			}
-			a.get(x).getFirstChild( "c" ).setValue( TESTINTEGER );
+			a.get( x ).getFirstChild( "c" ).setValue( TESTINTEGER );
 			for( int i = 0; i < 9; i++ ) {
-				a.get(x).getNewChild( "f" ).setValue( TESTDOUBLE );
+				a.get( x ).getNewChild( "f" ).setValue( TESTDOUBLE );
 			}
-			ValueVector e = a.get(x).getChildren( "e" );
+			ValueVector e = a.get( x ).getChildren( "e" );
 			for( int i = 0; i < 8; i++ ) {
 				e.get( i ).setValue( TESTSTRING );
 				e.get( i ).getFirstChild( "ab" ).setValue( new ByteArray( TESTRAW ) );
