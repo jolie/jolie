@@ -12,191 +12,207 @@ define doTest
 	if( #response.types > 1 ){
 		throw( TestFailed, "Program types_1.ol contains only one type, found " + #response.types )
 	}
-	with( response.types ){
-		if( .isChoice ){
-			throw( TestFailed, "Type " + expectedTypeName + " is not a type choice" )
-		}
-		if( !.isNative ){
-			throw( TestFailed, "Type " + expectedTypeName + " is a native type" )
-		}
-		if( .name != expectedTypeName ){
-			throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + .name )
-		}
-		trim@StringUtils( .documentation )( .documentation )
-		if( .documentation != expectedTypeDocumentation ){
-			throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + .documentation )
-		}
+	t -> response.types
+	if( t.isChoice ){
+		throw( TestFailed, "Type " + expectedTypeName + " is not a type choice" )
+	}
+	if( t.name != expectedTypeName ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedTypeDocumentation ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	}
+	if( t.nativeType != "void" ){
+		throw( TestFailed, "Type " + expectedTypeName + " should have 'void' as native type, found: " + t.nativeType )
+	}
+	if( #t.fields > 0 ){
+		throw( TestFailed, "Type " + expectedTypeName + " should have no fields, found " + #t.fields )
+	}
+	if( t.untypedFields ){
+		throw( TestFailed, "Type " + expectedTypeName + " should have no untypedFields" )
 	}
 
 	undef( response )
 
-	// expectedType.filename = "library/private/inspector/types_2.ol"
-	// expectedTypeName = "myType2"
-	// expectedTypeDocumentation = "bwd 2"
-	// inspectTypes@Inspector( expectedType )( response )
-	// with( response.type ){
-	// 		if( .name != expectedTypeName ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + .name )
-	// 		}
-	// 		trim@StringUtils( .documentation )( .documentation )
-	// 		if( .documentation != expectedTypeDocumentation ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + .documentation )
-	// 	}
-	// }
+	expectedType.filename = "library/private/inspector/types_2.ol"
+	expectedTypeName = "myType2"
+	expectedTypeDocumentation = "bwd 2"
+	inspectTypes@Inspector( expectedType )( response )
+	t -> response.types
+	if( t.name != expectedTypeName ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedTypeDocumentation ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	}
 
-	// undef( response )
+	undef( response )
 
-	// expectedType.filename = "library/private/inspector/types_3.ol"
-	// expectedTypeName = "SetRedirectionRequest"
-	// expectedTypeDocumentation = "backward comment"
-	// with( expectedTypeSubtype[0] ){
-	// 	.documentation = "Backward node documentation"
-	// 	.name = "inputPortName"
-	// }
-	// with( expectedTypeSubtype[1] ){
-	// 	.documentation = "Backward block\n                          node documentation"
-	// 	.name = "outputPortName"
-	// }
-	// with( expectedTypeSubtype[2] ){
-	// 		.documentation = "forward block node documentation"
-	// 		.name = "resourceName"
-	// }
-	// inspectTypes@Inspector( expectedType )( response )
-	// with( response.type ){
-	// 		if( .isChoice ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " is not a type choice" )
-	// 		}
-	// 		if( .isNative ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " is not a native type" )
-	// 		}
-	// 		if( .name != expectedTypeName ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + .name )
-	// 		}
-	// 		trim@StringUtils( .documentation )( .documentation )
-	// 		if( .documentation != expectedTypeDocumentation ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + .documentation )
-	// 		}
-	// 		subtype -> .subtype[i]
-	// 		expSubtype -> expectedTypeSubtype[i]
-	// 		for ( i=0, i<#expectedTypeSubtype, i++ ) {
-	// 			if( subtype.name != expSubtype.name ){
-	// 				throw( TestFailed, "Type " + expSubtype.name + " has a wrong name: " + subtype.name )
-	// 			}
-	// 			trim@StringUtils( subtype.documentation )( subtype.documentation )
-	// 			if( subtype.documentation != expSubtype.documentation ){
-	// 				throw( TestFailed, "Type " + expSubtype.name + " has a wrong documentation: " + subtype.documentation )
-	// 			} 
-	// 		}
-	// }
+	expectedType.filename = "library/private/inspector/types_3.ol"
+	expectedTypeName = "SetRedirectionRequest"
+	expectedTypeDocumentation = "backward comment"
 
-	// undef( response )
-
-	// expectedType.filename = "library/private/inspector/types_4.ol"
-	// expectedTypeName = "SetOutputPortRequest"
-	// expectedTypeDocumentation = "forward comment for SetOutputPortRequest"
-	// inspectTypes@Inspector( expectedType )( response )
-	// with( response.type ){
-	// 		if( .isChoice ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " is not a type choice" )
-	// 		}
-	// 		if( .isNative ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " is not a native type" )
-	// 		}
-	// 		if( .name != expectedTypeName ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + .name )
-	// 		}
-	// 		trim@StringUtils( .documentation )( .documentation )
-	// 		if( .documentation != expectedTypeDocumentation ){
-	// 			throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + .documentation )
-	// 		}
-	// 		expectedSubtypeName = "name"
-	// 		expectedSubtypeDocumentation = "bwd comment"
-	// 		with( .subtype ){
-	// 			if( .name != expectedSubtypeName ){
-	// 				throw( TestFailed, "Type " + expectedSubtypeName + " has a wrong name: " + .name )
-	// 			}
-	// 			trim@StringUtils( .documentation )( .documentation )
-	// 			if( .documentation != expectedSubtypeDocumentation ){
-	// 				throw( TestFailed, "Type " + expectedSubtypeName + " has a wrong documentation: " + .documentation )
-	// 			}
-	// 			expectedSubtypeName = "location"
-	// 			expectedSubtypeDocumentation = "fwd The location of the output port"
-	// 			with( .subtype ){
-	// 				if( .name != expectedSubtypeName ){
-	// 					throw( TestFailed, "Type " + expectedSubtypeName + " has a wrong name: " + .name )
-	// 				}
-	// 				trim@StringUtils( .documentation )( .documentation )
-	// 				if( .documentation != expectedSubtypeDocumentation ){
-	// 					throw( TestFailed, "Type " + expectedSubtypeName + " has a wrong documentation: " + .documentation )
-	// 				}
-	// 				expectedSubtypeName = "protocol"
-	// 				expectedSubtypeDocumentation = "The name of the protocol (e.g., sodep, http)"
-	// 				with( .subtype ){
-	// 					if( .name != expectedSubtypeName ){
-	// 						throw( TestFailed, "Type " + expectedSubtypeName + " has a wrong name: " + .name )
-	// 					}
-	// 					trim@StringUtils( .documentation )( .documentation )
-	// 					if( .documentation != expectedSubtypeDocumentation ){
-	// 						throw( TestFailed, "Type " + expectedSubtypeName + " has a wrong documentation: " + .documentation )
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// }
+	e -> expFields[ 0 ] 
+	e.name = "inputPortName"
+	e.documentation = "Backward node documentation"
+	e.range.min = 1
+	e.range.max = 5
+	e.type.nativeType = "string"
 	
-	// undef( response )
+	e -> expFields[ 1 ]
+	e.name = "outputPortName"
+	e.documentation = "Backward block\n                          node documentation"
+	e.range.min = 0
+	e.range.min = 2147483647 // MAX_INTEGER
+	e.type.nativeType = "string"
 
-	// expectedType.filename = "library/private/inspector/types_5.ol"
-	// expectedTypeName = "myChoice"
-	// expectedTypeDocumentation = "backward comment choice"
-	// inspectPorts@Inspector( expectedType )( response )
-	// with ( response.type ){
-	// 	if( !.isChoice ){
-	// 		throw( TestFailed, "Type " + expectedTypeName + " is not marked as a type choice" )
-	// 	}
-	// 	if( .isNative ){
-	// 		throw( TestFailed, "Type " + expectedTypeName + " is not native" )
-	// 	}
-	// 	trim@StringUtils( .documentation )( .documentation )
-	// 	if( .documentation != expectedTypeDocumentation ){
-	// 		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + .documentation )
-	// 	}
-	// 	if( .subtype[0].rootType != "void" ){
-	// 		throw( TestFailed, "Subtype 0 of " + expectedTypeName + " has an unexpected rootType: " + .subtype[0].rootType )
+	e -> expFields[ 2 ]
+	e.name = "resourceName"
+	e.documentation = "forward block node documentation"
+	e.range.min = 0
+	e.range.min = 1
+	e.type.nativeType = "string"
 
-	// 	}
-	// 	trim@StringUtils( .subtype[0].subtype[0].documentation[0] )( .subtype[0].subtype[0].documentation[0] )
-	// 	if( .subtype[0].subtype[0].documentation[0] = "first choice, fwd" ){
-	// 		throw( TestFailed, "Subtype[0].Subtype[0] of " + expectedTypeName + " has a wrong documentation: " + .subtype[0].subtype[0].documentation[0] )
-	// 	}
-	// 	if( .subtype[0].subtype[0].name != "a" ){
-	// 		throw( TestFailed, "Subtype[0].Subtype[0] of " + expectedTypeName + " has a wrong node: " + .subtype[0].subtype[0].name )
-	// 	}
-	// 	if( .subtype[0].subtype[1].name != "b" ){
-	// 		throw( TestFailed, "Subtype[0].Subtype[1] of " + expectedTypeName + " has a wrong node: " + .subtype[0].subtype[1].name )
-	// 	}
-	// 	if( .subtype[0].subtype[1].subtype[0].name != "c" ){
-	// 		throw( TestFailed, "Subtype[0].Subtype[1].Subtype[0] of " + expectedTypeName + " has a wrong node: " + .subtype[0].subtype[1].subtype[0].name )
-	// 	}
-	// 	if( !.subtype[0].subtype[1].subtype[0].undefinedSubtypes ){
-	// 		throw( TestFailed, "Subtype[0].Subtype[1].Subtype[0] of " + expectedTypeName + " should have undefined subtypes" )
-	// 	}
-	// 	trim@StringUtils( .subtype[0].subtype[1].subtype[0].documentation )( .subtype[0].subtype[1].subtype[0].documentation )
-	// 	if( .subtype[0].subtype[1].subtype[0].documentation != "first choice, nested, bwd" ){
-	// 		throw( TestFailed, "Subtype[0].Subtype[1].Subtype[0] of " + expectedTypeName + " has a wrong documentation: " + .subtype[0].subtype[1].subtype[0].documentation )
-	// 	}
-	// 	if( !.subtype[1].isChoice ){
-	// 		throw( TestFailed, "Subtype 1 of " + expectedTypeName + " should be marked as a choice" )
-	// 	}
-	// 	nestedDoc -> .subtype[1].subtype[1].subtype[0].subtype[1].subtype[1].subtype[0].documentation
-	// 	trim@StringUtils( nestedDoc )( nestedDoc )
-	// 	if( nestedDoc != "very, nested, bwd comment" ){
-	// 		throw( TestFailed, "Subtype[1].Subtype[1].Subtype[1].Subtype[0] of " + expectedTypeName + " has a wrong documentation: " + nestedDoc )
-	// 	}    
+	inspectTypes@Inspector( expectedType )( response )
+	t -> response.types
+	if( t.name != expectedTypeName ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedTypeDocumentation ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	}
+	field -> t.fields[i]
+	expField -> expFields[i]
+	if( #t.fields != #expFields ){
+		throw( TestFailed, "Type " + expField.name + " has unexpected fields, expected: " + #expFields + " found " + #t.fields )
+	}
+	for ( i=0, i<#expectedFields, i++ ) {
+		if( field.name != expField.name ){
+			throw( TestFailed, "Type " + expField.name + " has a wrong name: " + fields.name )
+		}
+		if( field.range != expField.name ){
+			throw( TestFailed, "Type " + expField.name + " has a wrong name: " + fields.name )
+		}
+		trim@StringUtils( field.type.documentation )( field.type.documentation )
+		if( field.type.documentation != expField.documentation ){
+			throw( TestFailed, "Type " + expField.name + " has a wrong documentation: " + field.type.documentation )
+		} 
+	}
+
+	undef( response )
+
+	expectedType.filename = "library/private/inspector/types_4.ol"
+	expectedTypeName = "SetOutputPortRequest"
+	expectedTypeDocumentation = "forward comment for SetOutputPortRequest"
+	inspectTypes@Inspector( expectedType )( response )
+	t -> response.types
+	if( t.name != expectedTypeName ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedTypeDocumentation ){
+		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	}
+	expectedFieldName = "name"
+	expectedFieldDocumentation = "bwd comment"
+	t -> response.types.type.fields
+	if( t.name != expectedFieldName ){
+		throw( TestFailed, "Field " + expectedFieldName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type.fields.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedFieldDocumentation ){
+		throw( TestFailed, "Field " + expectedFieldName + " has a wrong documentation: " + t.documentation )
+	}
+	expectedFieldName = "location"
+	expectedFieldDocumentation = "fwd The location of the output port"
+	t -> response.types.type.fields.type.fields
+	if( t.name != expectedFieldName ){
+		throw( TestFailed, "Field " + expectedFieldName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type.fields.type.fields.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedFieldDocumentation ){
+		throw( TestFailed, "Field " + expectedFieldName + " has a wrong documentation: " + t.documentation )
+	}
+	expectedFieldName = "protocol"
+	expectedFieldDocumentation = "The name of the protocol (e.g., sodep, http)"
+	t -> response.types.type.fields.type.fields.type.fields
+	if( t.name != expectedFieldName ){
+		throw( TestFailed, "Field " + expectedFieldName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type.fields.type.fields.type.fields.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedFieldDocumentation ){
+		throw( TestFailed, "Field " + expectedFieldName + " has a wrong documentation: " + t.documentation )
+	}
+	if( !t.untypedFields ){
+		throw( TestFailed, "Field " + expectedFieldName + " should have untypedFields" )
+	}
+
+	undef( response )
+
+	expectedType.filename = "library/private/inspector/types_5.ol"
+	expectedTypeName = "myChoice"
+	expectedTypeDocumentation = "backward comment choice"
+	inspectTypes@Inspector( expectedType )( response )
+	t -> response.types.type;
+	// if( !( is_defined( t.left ) && is_defined( t.right ) ) ){
+	// 	throw( TestFailed, "Type " + expectedTypeName + " is not marked as a type choice" )
 	// }
+	// trim@StringUtils( t.documentation )( t.documentation )
+	// if( t.documentation != expectedTypeDocumentation ){
+	// 	throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	// }
+	// t -> response.types.type.left
+	// if( t.nativeType != "void" ){
+	// 		throw( TestFailed, "Left type of " + expectedTypeName + " has nativeType: " + t.nativeType + ", expected void" )
+	// }
+	// t -> response.types.type.left.field[ 0 ]
+	// if( t.name != "a" ){
+	// 	throw( TestFailed, "field[0] of the left type of " + expectedTypeName + " has a wrong name: " + t.name )
+	// }
+	// t -> response.types.type.left.field[ 0 ].type
+	// trim@StringUtils( t.documentation )( t.documentation )
+	// if( t.documentation = "first choice, fwd" ){
+	// 	throw( TestFailed, "field[0] of the left type of " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	// }
+	t -> response.types.type.left.fields[ 1 ]
+	valueToPrettyString@StringUtils( t )( s ); println@Console( s )()
+	if( t.name != "b" ){
+		throw( TestFailed, "fields[1] of the left type of " + expectedTypeName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type.left.fields[ 1 ].type.fields
+	if( t.name != "c" ){
+		throw( TestFailed, "fields[ 1 ].field[ 0 ] of the left type of " + expectedTypeName + " has a wrong name: " + t.name )
+	}
+	t -> response.types.type.left.fields[ 1 ].type.fields.type
+	if( !t.untypedFields ){
+		throw( TestFailed, "fields[ 1 ].field[ 0 ]  of the left type of " + expectedTypeName + " should have untyped fields" )
+	}
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != "first choice, nested, bwd" ){
+		throw( TestFailed, "fields[ 1 ].field[ 0 ]  of the left type of " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	}
+	t -> response.types.type.right
+	if( !( is_defined( t.left ) && is_defined( t.right ) ) ){
+		throw( TestFailed, "Right type of " + expectedTypeName + " should be marked as a choice" )
+	}
+	t -> response.types.type.right.right.fields.type.right.right.fields.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != "very, nested, bwd comment" ){
+		throw( TestFailed, "Field of right of right of field of right of right of " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+	}
 
 	// undef( response )
-	
+
 	// expectedType.filename = "library/private/inspector/types_6.ol"
 	// inspectPorts@Inspector( expectedType )( response )
 	// with( response ){
