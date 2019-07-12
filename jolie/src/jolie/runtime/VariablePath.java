@@ -22,6 +22,8 @@
 package jolie.runtime;
 
 
+import java.util.HashSet;
+import java.util.Set;
 import jolie.ExecutionThread;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
@@ -175,6 +177,19 @@ public class VariablePath implements Expression
 	{
 		return getValue( getRootValue() );
 	}
+	
+	private final Set< ValueLink > fromValueLink = new HashSet<>();
+	
+	public final Value getValue( ValueLink l ) {
+		if( fromValueLink.contains( l ) ){
+			throw buildAliasAccessException().toRuntimeFaultException();
+		} else {
+			fromValueLink.add( l );
+		}
+		Value v = getValue();
+		fromValueLink.remove( l );
+		return v;
+	}
 
 	public final Value getValue( Value currValue )
 	{
@@ -270,6 +285,37 @@ public class VariablePath implements Expression
 
 		return currValue;
 	}
+	
+	private final Set< ValueVectorLink > fromValueVectorLink = new HashSet<>();
+	
+	public final ValueVector getValueVector( ValueVectorLink l ){
+		if( fromValueVectorLink.contains( l ) ){
+			throw buildAliasAccessException().toRuntimeFaultException();
+		} else {
+			fromValueVectorLink.add( l );
+		}
+		ValueVector v = getValueVector();
+		if( fromValueVectorLink.contains( v ) ){
+			throw buildAliasAccessException().toRuntimeFaultException();
+		}
+		fromValueVectorLink.remove( l );
+		return v;
+	}
+	
+	private final FaultException buildAliasAccessException(){
+		String alias = "";
+		boolean isRoot = true;
+		for ( Pair< Expression, Expression > p : path ) {
+			if( isRoot ){
+				alias += p.key().evaluate().strValue();
+				isRoot = false;
+			} else {
+				alias += "." + p.key().evaluate().strValue();
+			}
+		}
+		return new FaultException( "AliasAccessException", "Found a loop when accessing an alias pointing to path: " + alias );
+	}
+		
 	
 	public final ValueVector getValueVector( Value currValue )
 	{

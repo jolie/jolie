@@ -63,7 +63,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 	
 	private ValueVector getLinkedValueVector()
 	{
-		return linkPath.getValueVector();
+		return linkPath.getValueVector( this );
 	}
 	
 	@Override

@@ -139,9 +139,13 @@ public class RequestResponseProcess implements InputOperationProcess
 
 		Future< SessionMessage > f = ethread.requestMessage( operation, ethread );
 		try {
-			SessionMessage m = f.get();
-			if ( m != null ) { // If it is null, we got killed by a fault
-				receiveMessage( m, ethread.state() ).run();
+			try {
+				SessionMessage m = f.get();
+				if ( m != null ) { // If it is null, we got killed by a fault
+					receiveMessage( m, ethread.state() ).run();
+				}
+			} catch ( FaultException.RuntimeFaultException rf ){
+				throw rf.faultException();
 			}
 		} catch( FaultException e ) {
 			throw e;
@@ -186,38 +190,42 @@ public class RequestResponseProcess implements InputOperationProcess
 		CommMessage response;
 		try {
 			try {
-				process.run();
-			} catch( ExitingException e ) {}
-			ExecutionThread ethread = ExecutionThread.currentThread();
-			if ( ethread.isKilled() ) {
 				try {
-					response = createFaultMessage( message, ethread.killerFault() );
-					responseStatus = OperationEndedEvent.FAULT;
-					details = ethread.killerFault().faultName();
-				} catch( TypeCheckingException e ) {
-					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
-					response = CommMessage.createFaultResponse( message, typeMismatch );
-					responseStatus = OperationEndedEvent.ERROR;
-					details = typeMismatch.faultName();
-				}
-			} else {
-				response =
-					CommMessage.createResponse(
-						message,
-						( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
-					);
-					responseStatus = OperationEndedEvent.SUCCESS;
-					details = "";
-				if ( operation.typeDescription().responseType() != null ) {
+					process.run();
+				} catch( ExitingException e ) {}
+				ExecutionThread ethread = ExecutionThread.currentThread();
+				if ( ethread.isKilled() ) {
 					try {
-						operation.typeDescription().responseType().check( response.value() );
-					} catch( TypeCheckingException e ) {						
-						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );						
-						response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
+						response = createFaultMessage( message, ethread.killerFault() );
+						responseStatus = OperationEndedEvent.FAULT;
+						details = ethread.killerFault().faultName();
+					} catch( TypeCheckingException e ) {
+						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+						response = CommMessage.createFaultResponse( message, typeMismatch );
 						responseStatus = OperationEndedEvent.ERROR;
-						details =  Constants.TYPE_MISMATCH_FAULT_NAME;
+						details = typeMismatch.faultName();
+					}
+				} else {
+					response =
+						CommMessage.createResponse(
+							message,
+							( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
+						);
+						responseStatus = OperationEndedEvent.SUCCESS;
+						details = "";
+					if ( operation.typeDescription().responseType() != null ) {
+						try {
+							operation.typeDescription().responseType().check( response.value() );
+						} catch( TypeCheckingException e ) {						
+							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );						
+							response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
+							responseStatus = OperationEndedEvent.ERROR;
+							details =  Constants.TYPE_MISMATCH_FAULT_NAME;
+						}
 					}
 				}
+			} catch ( FaultException.RuntimeFaultException rf ){
+				throw rf.faultException();
 			}
 		} catch( FaultException f ) {
 			try {
