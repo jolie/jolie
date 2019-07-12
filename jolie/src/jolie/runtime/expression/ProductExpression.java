@@ -22,6 +22,7 @@
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public class ProductExpression implements Expression
@@ -54,7 +55,11 @@ public class ProductExpression implements Expression
 				val.multiply( children[i].expression().evaluate() );
 				break;
 			case DIVIDE:
-				val.divide( children[i].expression().evaluate() );
+				try {
+						val.divide( children[i].expression().evaluate() );
+				} catch ( ArithmeticException ae ){
+					throw new FaultException( "ArithmeticException", ae.getLocalizedMessage() ).toRuntimeFaultException();
+				}
 				break;
 			case MODULUS:
 				val.modulo( children[i].expression().evaluate() );

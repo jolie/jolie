@@ -41,8 +41,12 @@ public class ParallelExecution
 		public void runProcess()
 		{
 			try {
-				process().run();
-				terminationNotify( this );
+				try {
+					process().run();
+					terminationNotify( this );
+				} catch ( FaultException.RuntimeFaultException rf ){
+					throw rf.faultException();
+				}
 			} catch( FaultException f ) {
 				signalFault( this, f );
 			} catch( ExitingException f ) {
