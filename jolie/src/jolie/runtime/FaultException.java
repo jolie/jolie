@@ -128,7 +128,7 @@ public class FaultException extends Exception
 	}
 	
 	// A RuntimeFaultException is used for runtime errors from which it is 
-	// impossible to recover from and continued execution.
+	// impossible to recover from and continue the execution.
 	// A RuntimeFaultException wraps a FaultException. 
 	// A thrown RuntimeFaultException is caught by the enclosing execution
 	// instance and used to report to the user the enclosed FaultException
