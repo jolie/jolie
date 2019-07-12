@@ -52,7 +52,7 @@ public class Compiler
 		Program program = ParsingUtils.parseProgram(
 			cmdParser.programStream(),
 			cmdParser.programFilepath().toURI(), cmdParser.charset(),
-			cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants()
+			cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false
 		);
 		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );

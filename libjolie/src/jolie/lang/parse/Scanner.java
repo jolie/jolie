@@ -918,8 +918,8 @@ public class Scanner
 						readChar();
 						stopOneChar = true;
 						if ( ch == '/' ) {
+							readChar();
 							if ( !includeDocumentation ) {
-								readChar();
 								resetTokenBuilder();
 								state = State.FIRST_CHARACTER;
 							} else {

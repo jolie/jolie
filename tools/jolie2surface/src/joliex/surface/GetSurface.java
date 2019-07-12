@@ -46,7 +46,7 @@ public class GetSurface
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
+				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
 			document.ConvertDocument( cmdParser.arguments()[0], cmdParser.noOutputPort(), cmdParser.noLocation(), cmdParser.noProtocol() );

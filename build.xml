@@ -250,6 +250,7 @@ Please make sure that:
 		<ant antfile="${project.tests.ws-test}/build.xml" inheritall="false" target="jar"/>
 	</target>
 	<target name="clean" depends="-init">
+		<delete dir="${dist}"/>
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="clean"/>

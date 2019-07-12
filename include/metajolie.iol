@@ -1,23 +1,23 @@
-/***************************************************************************
- *   Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ *   Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>    
+ *                                                                        
+ *   This program is free software; you can redistribute it and/or modify 
+ *   it under the terms of the GNU Library General Public License as      
+ *   published by the Free Software Foundation; either version 2 of the   
+ *   License, or (at your option) any later version.                      
+ *                                                                        
+ *   This program is distributed in the hope that it will be useful,      
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of       
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
+ *   GNU General Public License for more details.                         
+ *                                                                        
+ *   You should have received a copy of the GNU Library General Public    
+ *   License along with this program; if not, write to the                
+ *   Free Software Foundation, Inc.,                                      
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.            
+ *                                                                        
+ *   For details about the authors of this software, see the AUTHORS file.
+ */
 
 include "types/definition_types.iol"
 
@@ -47,7 +47,8 @@ type GetMetaDataResponse: void {
   .output*: Port                //< the definitions of all the output ports
   .interfaces*: Interface       //< the definitions of all the interfaces
   .types*: Type                 //< the definitions of all the types
-  .embeddedServices*: void {    //< the definitions of all the embedded services
+  /// the definitions of all the embedded services
+  .embeddedServices*: void {    
 	    .type: string             //< type of the embedded service
 	    .servicepath: string      //< path where the service can be found
 	    .portId: string           //< target output port where the embedded service is bound
@@ -65,7 +66,8 @@ type GetInputPortMetaDataResponse: void {
 
 type MessageTypeCastRequest: void {
   .message: undefined           //< the message to be cast
-  .types: void {                //< the types to use for casting the message
+  /// the types to use for casting the message
+  .types: void {                
 	     .messageTypeName: Name   //< starting type to user for casting
 	     .types*: Type            //< list of all the required types
   }

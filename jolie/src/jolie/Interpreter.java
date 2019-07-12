@@ -40,8 +40,8 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +49,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -1022,54 +1021,6 @@ public class Interpreter
 		return initExecutionThread;
 	}
 	
-	private static class InterpreterStartFuture implements Future< Exception >
-	{
-		private final CountDownLatch cl = new CountDownLatch( 1 );
-		private Exception result;
-
-		@Override
-		public boolean cancel( boolean mayInterruptIfRunning )
-		{
-			return false;
-		}
-		
-		@Override
-		public Exception get( long timeout, TimeUnit unit )
-			throws InterruptedException, TimeoutException
-		{
-			if ( !cl.await( timeout, unit ) ) {
-				throw new TimeoutException();
-			}
-			return result;
-		}
-		
-		@Override
-		public Exception get()
-			throws InterruptedException
-		{
-			cl.await();
-			return result;
-		}
-		
-		@Override
-		public boolean isCancelled()
-		{
-			return false;
-		}
-		
-		@Override
-		public boolean isDone()
-		{
-			return cl.getCount() == 0;
-		}
-		
-		private void setResult( Exception e )
-		{
-			result = e;
-			cl.countDown();
-		}
-	}
-	
 	/**
 	 * Starts this interpreter, returning a <code>Future</code> which can
 	 * be interrogated to know when the interpreter start procedure has been 
@@ -1080,7 +1031,7 @@ public class Interpreter
 	 */
 	public Future< Exception > start()
 	{
-		InterpreterStartFuture f = new InterpreterStartFuture();
+		CompletableFuture< Exception > f = new CompletableFuture<>();
 		(new StarterThread( f )).start();
 		return f;
 	}
@@ -1218,8 +1169,8 @@ public class Interpreter
 
 	private class StarterThread extends Thread
 	{
-		private final InterpreterStartFuture future;
-		public StarterThread( InterpreterStartFuture future )
+		private final CompletableFuture< Exception > future;
+		public StarterThread( CompletableFuture< Exception > future )
 		{
 			super( createStarterThreadName( programFilename ) );
 			this.future = future;
@@ -1231,13 +1182,12 @@ public class Interpreter
 		{
 			try {
 				init();
-				future.setResult( null );
-			} catch( Exception e ) {
-				future.setResult( e );
+				future.complete( null );
+			} catch( IOException | InterpreterException e ) {
+				future.complete( e );
 			}
 			runCode();
 			//commCore.shutdown();
-			// final boolean proceed;
 			exit();
 		}
 	}

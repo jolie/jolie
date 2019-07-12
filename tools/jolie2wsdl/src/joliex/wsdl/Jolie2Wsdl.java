@@ -27,7 +27,7 @@ public class Jolie2Wsdl {
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
                     cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
 
             //Program program = parser.parse();
             ProgramInspector inspector = ParsingUtils.createInspector(program);
