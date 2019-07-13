@@ -8,7 +8,7 @@ type NewType: void {
     }
 }
 
-type FlatStructureType: void {
+type FlatStructureType: string {
     .afield: string
     .bfield: int
     .cfield: double
@@ -35,15 +35,15 @@ type InLineStructureType: void {
 	.a: void {
 		.b: string
 		.c: int
-        .f: double
-        .e: string {
-      			.ab: raw
-      			.bc: string
-      			.fh: string {
-                .abc: any
-                .def: long
-            }
+    .f: double
+    .e: string {
+        .ab: raw
+        .bc: string
+        .fh: string {
+            .abc: any
+            .def: long
         }
+    }
 	}
 	.aa: string {
 		.z:int

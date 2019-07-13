@@ -673,10 +673,16 @@ public class JavaDocumentCreator
 					throw new UnsupportedOperationException( "Can't initialize variable with several possible types" );
 				}
 			}
-			decrementIndentation();
-			appendingIndentation( stringBuilder );
-			stringBuilder.append( "}\n" );
 		}
+		if ( Utils.nativeType( type ) != NativeType.VOID ) {
+			String variableName = "rootValue";
+			String javaMethod = javaNativeMethod.get( Utils.nativeType( type ) );
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( variableName ).append( " = v." ).append( javaMethod ).append( ";\n" );
+		}
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
 	}
 
 	private void appendingConstructorWithoutParameters( StringBuilder stringBuilder, TypeDefinition type, String className )
@@ -709,7 +715,7 @@ public class JavaDocumentCreator
 					}
 					appendingIndentation( stringBuilder );
 					stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( variableType ).append( ">();\n" );
-				} 
+				}
 			}
 		}
 
@@ -726,7 +732,6 @@ public class JavaDocumentCreator
 		appendingConstructorWithoutParameters( stringBuilder, type, className );
 	}
 
-	
 	private void appendingGetValueMethod( StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/ )
 	{
 		//method getValue
@@ -1007,44 +1012,37 @@ public class JavaDocumentCreator
 		}
 
 		appendingGetValueMethod( stringBuilder, type );
-	}
 
-	/*
-				if ( Utils.nativeType( type ) != NativeType.VOID ) {
+		if ( Utils.nativeType( type ) != NativeType.VOID ) {
 
-					String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( type ) );
+			String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( type ) );
 
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "public " ).append( nativeTypeName ).append( " getRootValue(){\n" );
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "public " ).append( nativeTypeName ).append( " getRootValue(){\n" );
 
-					incrementIndentation();
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "return " + "rootValue;\n" );
+			incrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "return " + "rootValue;\n" );
 
-					decrementIndentation();
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "}\n" );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
 
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "public void setRootValue( " ).append( nativeTypeName ).append( " value ){\n" );
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "public void setRootValue( " ).append( nativeTypeName ).append( " value ){\n" );
 
-					incrementIndentation();
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "rootValue = value;\n" );
+			incrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "rootValue = value;\n" );
 
-					decrementIndentation();
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "}\n" );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
 
-				}
-}
-			}
 		}
 
-		
-
 	}
-	 */
+
 	private void parseSubType( TypeDefinition typeDefinition )
 	{
 		if ( Utils.hasSubTypes( typeDefinition ) ) {
