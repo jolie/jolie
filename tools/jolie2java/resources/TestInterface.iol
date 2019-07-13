@@ -93,6 +93,10 @@ type LinkedTypeStructureVectorsType: void {
   .d*: NewType
 }
 
+type ChoiceSimpleType: string | int
+
+
+
 type RootValue1Type: string {
   .field: string
 }
@@ -117,6 +121,10 @@ type RootValue6Type: bool {
   .field: bool
 }
 
+type RootValue7Type: any {
+  .field: any
+}
+
 
 type VoidType: void
 
@@ -130,11 +138,15 @@ RequestResponse:
 
   testFlatStructure( FlatStructureType )( FlatStructureVectorsType ),
 
+  testChoice( ChoiceSimpleType )( ChoiceSimpleType ),
+
   testRootValue1( RootValue1Type )( RootValue2Type ),
 
   testRootValue2( RootValue3Type )( RootValue4Type ),
 
   testRootValue3( RootValue5Type )( RootValue6Type ),
+
+  testRootValue4( RootValue7Type)( RootValue7Type ),
 
   testUndefined( undefined )( double ),
 

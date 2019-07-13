@@ -97,7 +97,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 14, new File( "./generated/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 16, new File( "./generated/com/test" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated" );
@@ -167,6 +167,7 @@ public class JavaDocumentCreatorTest
 		// check methods
 		checkMethods( FlatStructureType, getFlatStructuredType() );
 		System.out.println( testName + " checking methods OK" );
+		checkRootMethods( FlatStructureType, flatStructureTypeEmpty, getFlatStructuredType() );
 		invokingSetAddGetMethods( FlatStructureType, flatStructureTypeEmpty, getFlatStructuredType() );
 		invokingRemoveSizetMethods( flatStructureTypeEmpty, getFlatStructuredType() );
 		System.out.println( testName + " invoking methods OK" );
@@ -188,6 +189,7 @@ public class JavaDocumentCreatorTest
 		// check methods
 		checkMethods( FlatStructureVectorsType, getFlatStructuredVectorsType() );
 		System.out.println( testName + " checking methods OK" );
+		checkRootMethods( FlatStructureVectorsType, flatStructureVectorsTypeEmpty, getFlatStructuredVectorsType() );
 		invokingSetAddGetMethods( FlatStructureVectorsType, flatStructureVectorsTypeEmpty, getFlatStructuredVectorsType() );
 		invokingRemoveSizetMethods( flatStructureVectorsTypeEmpty, getFlatStructuredVectorsType() );
 		System.out.println( testName + " invoking methods OK" );
@@ -209,6 +211,7 @@ public class JavaDocumentCreatorTest
 		// check methods
 		checkMethods( InLineStructureType, getInlineStructureType() );
 		System.out.println( testName + " checking methods OK" );
+		checkRootMethods( InLineStructureType, inLineStructureTypeEmpty, getInlineStructureType() );
 		invokingSetAddGetMethods( InLineStructureType, inLineStructureTypeEmpty, getInlineStructureType() );
 		invokingRemoveSizetMethods( inLineStructureTypeEmpty, getInlineStructureType() );
 		System.out.println( testName + " invoking methods OK" );
@@ -230,6 +233,7 @@ public class JavaDocumentCreatorTest
 		// check methods
 		checkMethods( InLineStructureVectorsType, getInlineStructureVectorsType() );
 		System.out.println( testName + " checking methods OK" );
+		checkRootMethods( InLineStructureVectorsType, inLineStructureVectorsTypeEmpty, getInlineStructureVectorsType() );
 		invokingSetAddGetMethods( InLineStructureVectorsType, inLineStructureVectorsTypeEmpty, getInlineStructureVectorsType() );
 		invokingRemoveSizetMethods( inLineStructureVectorsTypeEmpty, getInlineStructureVectorsType() );
 		System.out.println( testName + " invoking methods OK" );
@@ -274,23 +278,28 @@ public class JavaDocumentCreatorTest
 		invokingSetAddGetMethodsForLinkedVectorsType( linkedTypeStructureVectorsTypeEmpty );
 		System.out.println( testName + " invoking methods OK" );
 	}
-	
-		@Test
+
+	@Test
 	public void testRootValuesType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
 	{
-		
-		int numberOfRootValueTypeSamples = 6;
+
+		int numberOfRootValueTypeSamples = 7;
 		for( int i = 1; i <= numberOfRootValueTypeSamples; i++ ) {
 			String testName = "testRootValue" + i + "Type";
 			Class<?> RootValueType = Class.forName( "com.test.RootValue" + i + "Type", true, classLoader );
 			Constructor rootValueConstructotr = RootValueType.getConstructor( new Class[]{ Value.class } );
-			Jolie2JavaInterface rootValueTypeInstance = (Jolie2JavaInterface) rootValueConstructotr.newInstance( getRootValue( i ));
+			Jolie2JavaInterface rootValueTypeInstance = (Jolie2JavaInterface) rootValueConstructotr.newInstance( getRootValue( i ) );
 			assertTrue( compareValues( getRootValue( i ), rootValueTypeInstance.getValue(), 0 ) );
 			Jolie2JavaInterface rootValueTypeInstanceEmpty = (Jolie2JavaInterface) RootValueType.newInstance();
 			System.out.println( testName + " contructors and getValue() OK" );
 			// check methods
 			checkMethods( RootValueType, getRootValue( i ) );
 			System.out.println( testName + " checking methods OK" );
+			if ( i == 7 ) {
+				checkRootMethodsAnyValue( RootValueType, rootValueTypeInstanceEmpty, getRootValue( i ) );
+			} else {
+				checkRootMethods( RootValueType, rootValueTypeInstanceEmpty, getRootValue( i ) );
+			}
 			invokingSetAddGetMethods( RootValueType, rootValueTypeInstanceEmpty, getRootValue( i ) );
 			System.out.println( testName + " invoking methods OK" );
 		}
@@ -350,7 +359,6 @@ public class JavaDocumentCreatorTest
 				assertTrue( "remove method for field " + vv.getKey() + "not found, class " + cls.getName(), foundRemove );
 			}
 		}
-
 	}
 
 	private void invokingRemoveSizetMethods( Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
@@ -402,7 +410,7 @@ public class JavaDocumentCreatorTest
 		Object d = getMethodList.get( "D" ).invoke( obj );
 		assertEquals( "Linked type a does not correspond ", NewType.cast( d ), newType );
 	}
-	
+
 	private void invokingSetAddGetMethodsForLinkedVectorsType( Object obj ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException, ClassNotFoundException
 	{
 		// invoking methods 
@@ -415,16 +423,15 @@ public class JavaDocumentCreatorTest
 			Object a = getMethodList.get( "A" ).invoke( obj, i );
 			assertEquals( "Linked type a does not correspond ", InLineStructureType.cast( a ), inLineStructureType );
 		};
-		Integer sizeA = (Integer) sizeMethodList.get("A").invoke( obj );
+		Integer sizeA = (Integer) sizeMethodList.get( "A" ).invoke( obj );
 		assertEquals( "LinkedVectorsType field a, wrong number of elements", sizeA, aElements );
 		for( int i = aElements; i > 0; i-- ) {
 			removeMethodList.get( "A" ).invoke( obj, i - 1 );
 		};
-		sizeA = (Integer) sizeMethodList.get("A").invoke( obj );
-		assertEquals( "LinkedVectorsType field a remove test, elemenst number should be 0", sizeA, new Integer(0) );
-		
+		sizeA = (Integer) sizeMethodList.get( "A" ).invoke( obj );
+		assertEquals( "LinkedVectorsType field a remove test, elemenst number should be 0", sizeA, new Integer( 0 ) );
+
 		// TODO test field b
-		
 		Class<?> FlatStructureType = Class.forName( "com.test.FlatStructureType", true, classLoader );
 		Constructor flatStructureTypeConstructor = FlatStructureType.getConstructor( new Class[]{ Value.class } );
 		Integer cElements = 7;
@@ -434,14 +441,13 @@ public class JavaDocumentCreatorTest
 			Object c = getMethodList.get( "C" ).invoke( obj, i );
 			assertEquals( "Linked type c does not correspond ", FlatStructureType.cast( c ), flatStructureType );
 		};
-		Integer sizeC = (Integer) sizeMethodList.get("C").invoke( obj );
+		Integer sizeC = (Integer) sizeMethodList.get( "C" ).invoke( obj );
 		assertEquals( "LinkedVectorsType field c, wrong number of elements", sizeC, cElements );
 		for( int i = cElements; i > 0; i-- ) {
-			removeMethodList.get( "C" ).invoke( obj, i - 1);
+			removeMethodList.get( "C" ).invoke( obj, i - 1 );
 		};
-		sizeC = (Integer) sizeMethodList.get("C").invoke( obj );
-		assertEquals( "LinkedVectorsType field c remove test, elemenst number should be 0", sizeC, new Integer(0) );
-
+		sizeC = (Integer) sizeMethodList.get( "C" ).invoke( obj );
+		assertEquals( "LinkedVectorsType field c remove test, elemenst number should be 0", sizeC, new Integer( 0 ) );
 
 		Class<?> NewType = Class.forName( "com.test.NewType", true, classLoader );
 		Constructor newTypeConstructor = NewType.getConstructor( new Class[]{ Value.class } );
@@ -452,19 +458,17 @@ public class JavaDocumentCreatorTest
 			Object d = getMethodList.get( "D" ).invoke( obj, i );
 			assertEquals( "Linked type c does not correspond ", NewType.cast( d ), newType );
 		};
-		Integer sizeD = (Integer) sizeMethodList.get("D").invoke( obj );
+		Integer sizeD = (Integer) sizeMethodList.get( "D" ).invoke( obj );
 		assertEquals( "LinkedVectorsType field d, wrong number of elements", sizeD, dElements );
 		for( int i = dElements; i > 0; i-- ) {
-			removeMethodList.get( "D" ).invoke( obj, i - 1);
+			removeMethodList.get( "D" ).invoke( obj, i - 1 );
 		};
-		sizeD = (Integer) sizeMethodList.get("D").invoke( obj );
-		assertEquals( "LinkedVectorsType field d remove test, elemenst number should be 0", sizeD, new Integer(0) );
-	
+		sizeD = (Integer) sizeMethodList.get( "D" ).invoke( obj );
+		assertEquals( "LinkedVectorsType field d remove test, elemenst number should be 0", sizeD, new Integer( 0 ) );
 	}
 
-	private void invokingSetAddGetMethods( Class cls, Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException
+	private void checkRootMethods( Class cls, Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException
 	{
-
 		if ( v.isBool() || v.isByteArray() || v.isString() || v.isDouble() || v.isInt() || v.isLong() ) {
 			Method getRootValue = cls.getDeclaredMethod( "getRootValue" );
 			if ( v.isBool() ) {
@@ -498,6 +502,43 @@ public class JavaDocumentCreatorTest
 				assertEquals( "Root values in methods do not correspond", new Long( v.longValue() ), (Long) getRootValue.invoke( obj ) );
 			}
 		}
+	}
+
+	private void checkRootMethodsAnyValue( Class cls, Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException
+	{
+		if ( v.isBool() || v.isByteArray() || v.isString() || v.isDouble() || v.isInt() || v.isLong() ) {
+			Method getRootValue = cls.getDeclaredMethod( "getRootValue" );
+			Method setRootValue = cls.getDeclaredMethod( "setRootValue", Object.class );
+			if ( v.isBool() ) {
+				setRootValue.invoke( obj, v.boolValue() );
+				assertEquals( "Root values in methods do not correspond", v.boolValue(), (Boolean) getRootValue.invoke( obj ) );
+			}
+			if ( v.isByteArray() ) {
+				setRootValue.invoke( obj, v.byteArrayValue() );
+				assertTrue( "Root values in methods do not correspond", compareByteArrays( v.byteArrayValue(), (ByteArray) getRootValue.invoke( obj ) ) );
+			}
+			if ( v.isString() ) {
+				setRootValue.invoke( obj, v.strValue() );
+				assertEquals( "Root values in methods do not correspond", v.strValue(), (String) getRootValue.invoke( obj ) );
+			}
+			if ( v.isDouble() ) {
+				setRootValue.invoke( obj, v.doubleValue() );
+				assertEquals( "Root values in methods do not correspond", new Double( v.doubleValue() ), (Double) getRootValue.invoke( obj ) );
+			}
+			if ( v.isInt() ) {
+				setRootValue.invoke( obj, v.intValue() );
+				assertEquals( "Root values in methods do not correspond", new Integer( v.intValue() ), (Integer) getRootValue.invoke( obj ) );
+			}
+			if ( v.isLong() ) {
+				setRootValue.invoke( obj, v.longValue() );
+				assertEquals( "Root values in methods do not correspond", new Long( v.longValue() ), (Long) getRootValue.invoke( obj ) );
+			}
+		}
+	}
+
+	private void invokingSetAddGetMethods( Class cls, Object obj, Value v ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException
+	{
+
 		// invoking methods 
 		for( Entry<String, ValueVector> vv : v.children().entrySet() ) {
 			if ( vv.getValue().size() > 1 ) {
@@ -611,32 +652,37 @@ public class JavaDocumentCreatorTest
 			assertTrue( "check methods for field " + fieldName + ", index " + index + " failed", compareValues( returnValue, v, 0 ) );
 		}
 	}
-	
-	private Value getRootValue( int index ) {
+
+	private Value getRootValue( int index )
+	{
 		Value returnValue = Value.create();
 		Value field = returnValue.getFirstChild( "field" );
 		switch( index ) {
-			case 1 :
+			case 1:
 				returnValue.setValue( TESTSTRING );
 				field.setValue( TESTSTRING );
 				break;
-			case 2 : 
+			case 2:
 				returnValue.setValue( TESTINTEGER );
 				field.setValue( TESTINTEGER );
 				break;
-			case 3 :
+			case 3:
 				returnValue.setValue( TESTDOUBLE );
 				field.setValue( TESTDOUBLE );
 				break;
-			case 4 :
-				returnValue.setValue( new ByteArray(TESTRAW ) );
-				field.setValue( new ByteArray(TESTRAW ) );
+			case 4:
+				returnValue.setValue( new ByteArray( TESTRAW ) );
+				field.setValue( new ByteArray( TESTRAW ) );
 				break;
-			case 5 :
+			case 5:
 				returnValue.setValue( TESTLONG );
 				field.setValue( TESTLONG );
 				break;
-			case 6 :
+			case 6:
+				returnValue.setValue( TESTBOOL );
+				field.setValue( TESTBOOL );
+				break;
+			case 7: // any TODO: explore all the possibilties
 				returnValue.setValue( TESTBOOL );
 				field.setValue( TESTBOOL );
 				break;
@@ -825,7 +871,7 @@ public class JavaDocumentCreatorTest
 		boolean resp = true;
 		if ( !checkRootValue( v1, v2 ) ) {
 			System.out.println( "level: " + level + " Root values are different" );
-			System.out.println( v1.strValue() + "," + v2.strValue() );
+			System.out.println( v1.toString() + "," + v2.toString() );
 			return false;
 		}
 		// from v1 -> v2

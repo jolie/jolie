@@ -677,8 +677,27 @@ public class JavaDocumentCreator
 		if ( Utils.nativeType( type ) != NativeType.VOID ) {
 			String variableName = "rootValue";
 			String javaMethod = javaNativeMethod.get( Utils.nativeType( type ) );
-			appendingIndentation( stringBuilder );
-			stringBuilder.append( variableName ).append( " = v." ).append( javaMethod ).append( ";\n" );
+			if ( javaMethod == null ) {
+				// case any
+				for( NativeType t : NativeType.class.getEnumConstants() ) {
+					if ( !javaNativeChecker.containsKey( t ) ) {
+						continue;
+					}
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "if ( v." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
+					incrementIndentation();
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "rootValue = v.").append( javaNativeMethod.get(  t  ) ).append(";\n");
+					
+					decrementIndentation();
+					appendingIndentation( stringBuilder );
+					stringBuilder.append("}\n");
+				}
+
+			} else {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( variableName ).append( " = v." ).append( javaMethod ).append( ";\n" );
+			}
 		}
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -884,7 +903,9 @@ public class JavaDocumentCreator
 			stringBuilder.append( "if((rootValue!=null)){\n" );
 
 			incrementIndentation();
-			if ( Utils.nativeType( type ) != NativeType.ANY ) {
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "vReturn.setValue(rootValue);\n" );
+			/*if ( Utils.nativeType( type ) != NativeType.ANY ) {
 				appendingIndentation( stringBuilder );
 				stringBuilder.append( "vReturn.setValue(rootValue);\n" );
 			} else {
@@ -903,7 +924,7 @@ public class JavaDocumentCreator
 					appendingIndentation( stringBuilder );
 					stringBuilder.append( "}\n" );
 				}
-			}
+			}*/
 			decrementIndentation();
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
