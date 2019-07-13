@@ -93,6 +93,30 @@ type LinkedTypeStructureVectorsType: void {
   .d*: NewType
 }
 
+type RootValue1Type: string {
+  .field: string
+}
+
+type RootValue2Type: int {
+  .field: int
+}
+
+type RootValue3Type: double {
+  .field: double
+}
+
+type RootValue4Type: raw {
+  .field: raw
+}
+
+type RootValue5Type: long {
+  .field: long
+}
+
+type RootValue6Type: bool {
+  .field: bool
+}
+
 
 type VoidType: void
 
@@ -105,6 +129,12 @@ RequestResponse:
   testInlineStructure( InLineStructureType )( InLineStructureVectorsType ),
 
   testFlatStructure( FlatStructureType )( FlatStructureVectorsType ),
+
+  testRootValue1( RootValue1Type )( RootValue2Type ),
+
+  testRootValue2( RootValue3Type )( RootValue4Type ),
+
+  testRootValue3( RootValue5Type )( RootValue6Type ),
 
   testUndefined( undefined )( double ),
 

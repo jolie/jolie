@@ -97,7 +97,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 8, new File( "./generated/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 14, new File( "./generated/com/test" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated" );
@@ -274,6 +274,27 @@ public class JavaDocumentCreatorTest
 		invokingSetAddGetMethodsForLinkedVectorsType( linkedTypeStructureVectorsTypeEmpty );
 		System.out.println( testName + " invoking methods OK" );
 	}
+	
+		@Test
+	public void testRootValuesType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
+		
+		int numberOfRootValueTypeSamples = 6;
+		for( int i = 1; i <= numberOfRootValueTypeSamples; i++ ) {
+			String testName = "testRootValue" + i + "Type";
+			Class<?> RootValueType = Class.forName( "com.test.RootValue" + i + "Type", true, classLoader );
+			Constructor rootValueConstructotr = RootValueType.getConstructor( new Class[]{ Value.class } );
+			Jolie2JavaInterface rootValueTypeInstance = (Jolie2JavaInterface) rootValueConstructotr.newInstance( getRootValue( i ));
+			assertTrue( compareValues( getRootValue( i ), rootValueTypeInstance.getValue(), 0 ) );
+			Jolie2JavaInterface rootValueTypeInstanceEmpty = (Jolie2JavaInterface) RootValueType.newInstance();
+			System.out.println( testName + " contructors and getValue() OK" );
+			// check methods
+			checkMethods( RootValueType, getRootValue( i ) );
+			System.out.println( testName + " checking methods OK" );
+			invokingSetAddGetMethods( RootValueType, rootValueTypeInstanceEmpty, getRootValue( i ) );
+			System.out.println( testName + " invoking methods OK" );
+		}
+	}
 
 	private void checkMethods( Class cls, Value value )
 	{
@@ -388,7 +409,6 @@ public class JavaDocumentCreatorTest
 		Class<?> InLineStructureType = Class.forName( "com.test.InLineStructureType", true, classLoader );
 		Constructor inLineStructureTypeConstructor = InLineStructureType.getConstructor( new Class[]{ Value.class } );
 		Integer aElements = 10;
-		System.out.println(addMethodList.toString());
 		for( int i = 0; i < aElements; i++ ) {
 			Jolie2JavaInterface inLineStructureType = (Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( getInlineStructureType() );
 			addMethodList.get( "A" ).invoke( obj, inLineStructureType );
@@ -455,7 +475,7 @@ public class JavaDocumentCreatorTest
 			if ( v.isByteArray() ) {
 				Method setRootValue = cls.getDeclaredMethod( "setRootValue", ByteArray.class );
 				setRootValue.invoke( obj, v.byteArrayValue() );
-				assertEquals( "Root values in methods do not correspond", compareByteArrays( v.byteArrayValue(), (ByteArray) getRootValue.invoke( obj ) ) );
+				assertTrue( "Root values in methods do not correspond", compareByteArrays( v.byteArrayValue(), (ByteArray) getRootValue.invoke( obj ) ) );
 			}
 			if ( v.isString() ) {
 				Method setRootValue = cls.getDeclaredMethod( "setRootValue", String.class );
@@ -590,6 +610,38 @@ public class JavaDocumentCreatorTest
 			Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( obj, index );
 			assertTrue( "check methods for field " + fieldName + ", index " + index + " failed", compareValues( returnValue, v, 0 ) );
 		}
+	}
+	
+	private Value getRootValue( int index ) {
+		Value returnValue = Value.create();
+		Value field = returnValue.getFirstChild( "field" );
+		switch( index ) {
+			case 1 :
+				returnValue.setValue( TESTSTRING );
+				field.setValue( TESTSTRING );
+				break;
+			case 2 : 
+				returnValue.setValue( TESTINTEGER );
+				field.setValue( TESTINTEGER );
+				break;
+			case 3 :
+				returnValue.setValue( TESTDOUBLE );
+				field.setValue( TESTDOUBLE );
+				break;
+			case 4 :
+				returnValue.setValue( new ByteArray(TESTRAW ) );
+				field.setValue( new ByteArray(TESTRAW ) );
+				break;
+			case 5 :
+				returnValue.setValue( TESTLONG );
+				field.setValue( TESTLONG );
+				break;
+			case 6 :
+				returnValue.setValue( TESTBOOL );
+				field.setValue( TESTBOOL );
+				break;
+		}
+		return returnValue;
 	}
 
 	private Value getNewType()
