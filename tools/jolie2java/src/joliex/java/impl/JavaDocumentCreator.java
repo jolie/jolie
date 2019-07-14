@@ -369,22 +369,24 @@ public class JavaDocumentCreator
 	{
 
 		Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes( typeDefinition );
-		Iterator i = supportSet.iterator();
+		if ( supportSet != null ) {
+			Iterator i = supportSet.iterator();
 
-		/* inserting inner classes if present */
-		while( i.hasNext() ) {
-			Map.Entry me = (Map.Entry) i.next();
-			/* TypeInLineDefinitions are converted into inner classes */
-			if ( (((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (Utils.hasSubTypes( (TypeDefinition) me.getValue() )) ) {
-				/* opening the inner class */
-				appendingIndentation( stringBuilder );
-				String clsName = ((TypeDefinition) me.getValue()).id() + TYPESUFFIX;
-				stringBuilder.append( "public class " ).append( clsName ).append( " {" ).append( "\n" );
-				incrementIndentation();
-				appendingClassBody( (TypeDefinition) me.getValue(), stringBuilder, clsName );
-				decrementIndentation();
-				appendingIndentation( stringBuilder );
-				stringBuilder.append( "}\n" );
+			/* inserting inner classes if present */
+			while( i.hasNext() ) {
+				Map.Entry me = (Map.Entry) i.next();
+				/* TypeInLineDefinitions are converted into inner classes */
+				if ( (((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (Utils.hasSubTypes( (TypeDefinition) me.getValue() )) ) {
+					/* opening the inner class */
+					appendingIndentation( stringBuilder );
+					String clsName = ((TypeDefinition) me.getValue()).id() + TYPESUFFIX;
+					stringBuilder.append( "public class " ).append( clsName ).append( " {" ).append( "\n" );
+					incrementIndentation();
+					appendingClassBody( (TypeDefinition) me.getValue(), stringBuilder, clsName );
+					decrementIndentation();
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "}\n" );
+				}
 			}
 		}
 
@@ -403,18 +405,13 @@ public class JavaDocumentCreator
 	private void appendingClass( StringBuilder stringBuilder, TypeDefinition typeDefinition, String interfaceToBeImplemented )
 	{
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public class " ).append( typeDefinition.id() );
-		if ( interfaceToBeImplemented != null && Utils.hasSubTypes( typeDefinition ) ) {
-			stringBuilder.append( " implements " ).append( interfaceToBeImplemented );
-		}
-
+		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " implements " ).append( interfaceToBeImplemented );
 		stringBuilder.append( " {" + "\n" );
 
-		if ( Utils.hasSubTypes( typeDefinition ) ) {
-			incrementIndentation();
-			appendingClassBody( typeDefinition, stringBuilder, typeDefinition.id() );
-			decrementIndentation();
-		}
+		incrementIndentation();
+		appendingClassBody( typeDefinition, stringBuilder, typeDefinition.id() );
+		decrementIndentation();
+
 
 		/* closing main class */
 		appendingIndentation( stringBuilder );
@@ -425,13 +422,13 @@ public class JavaDocumentCreator
 	{
 
 		stringBuilder.append( "import jolie.runtime.embedding.Jolie2JavaInterface;\n" );
-		//stringBuilder.append( "import ").append( packageName ).append(".*;\n");
+		stringBuilder.append( "import jolie.runtime.Value;\n" );
+		stringBuilder.append( "import jolie.runtime.ByteArray;\n" );
+
 		TypeDefinition supportType = type;
 		if ( Utils.hasSubTypes( supportType ) ) {
 			stringBuilder.append( "import java.util.List;\n" );
 			stringBuilder.append( "import java.util.ArrayList;\n" );
-			stringBuilder.append( "import jolie.runtime.Value;\n" );
-			stringBuilder.append( "import jolie.runtime.ByteArray;\n" );
 			stringBuilder.append( "\n" );
 		}
 	}
@@ -498,12 +495,12 @@ public class JavaDocumentCreator
 		//constructor with parameters
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "public " ).append( className ).append( "( Value v ){\n" );
+		incrementIndentation();
 
 		if ( Utils.hasSubTypes( type ) ) {
 			Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes( type );
 			Iterator i = supportSet.iterator();
 
-			incrementIndentation();
 			while( i.hasNext() ) {
 				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
 				String variableName = getVariableName( subType );
@@ -687,11 +684,11 @@ public class JavaDocumentCreator
 					stringBuilder.append( "if ( v." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
 					incrementIndentation();
 					appendingIndentation( stringBuilder );
-					stringBuilder.append( "rootValue = v.").append( javaNativeMethod.get(  t  ) ).append(";\n");
-					
+					stringBuilder.append( "rootValue = v." ).append( javaNativeMethod.get( t ) ).append( ";\n" );
+
 					decrementIndentation();
 					appendingIndentation( stringBuilder );
-					stringBuilder.append("}\n");
+					stringBuilder.append( "}\n" );
 				}
 
 			} else {

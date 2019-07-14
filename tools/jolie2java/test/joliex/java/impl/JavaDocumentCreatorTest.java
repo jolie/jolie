@@ -97,7 +97,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 16, new File( "./generated/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 21, new File( "./generated/com/test" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated" );
@@ -303,6 +303,43 @@ public class JavaDocumentCreatorTest
 			invokingSetAddGetMethods( RootValueType, rootValueTypeInstanceEmpty, getRootValue( i ) );
 			System.out.println( testName + " invoking methods OK" );
 		}
+	}
+
+	@Test
+	public void testStringType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
+
+		HashMap<String, Object> simpleTypeList = new HashMap<>();
+		simpleTypeList.put( "String", TESTSTRING );
+		simpleTypeList.put( "Void", null );
+		simpleTypeList.put( "Double", TESTDOUBLE );
+		simpleTypeList.put( "Int", TESTINTEGER );
+		simpleTypeList.put( "Bool", TESTBOOL );
+		simpleTypeList.put( "Raw", new ByteArray(TESTRAW ) );
+		simpleTypeList.put( "Long", TESTLONG );
+
+		for( Entry<String, Object> entry : simpleTypeList.entrySet() ) {
+			String testName = "test" + entry.getKey() + "Type";
+			Class<?> simpleType = Class.forName( "com.test." + entry.getKey() + "Type", true, classLoader );
+			Constructor stringTypeConstructotr = simpleType.getConstructor( new Class[]{ Value.class } );
+			Value v = Value.create();
+			if ( entry.getValue() != null ) {
+				v.setValue( entry.getValue() );
+			}
+			Jolie2JavaInterface simpleTypeInstance = (Jolie2JavaInterface) stringTypeConstructotr.newInstance( v );
+			assertTrue( compareValues( v, simpleTypeInstance.getValue(), 0 ) );
+			Jolie2JavaInterface simpleTypeInstanceEmpty = (Jolie2JavaInterface) simpleType.newInstance();
+			System.out.println( testName + " contructors and getValue() OK" );
+			// check methods
+			checkMethods( simpleType, v );
+			System.out.println( testName + " checking methods OK" );
+
+			checkRootMethods( simpleType, simpleTypeInstanceEmpty, v );
+
+			invokingSetAddGetMethods( simpleType, simpleTypeInstanceEmpty, v );
+			System.out.println( testName + " invoking methods OK" );
+		}
+
 	}
 
 	private void checkMethods( Class cls, Value value )

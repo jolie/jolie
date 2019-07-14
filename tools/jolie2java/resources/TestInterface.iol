@@ -93,7 +93,7 @@ type LinkedTypeStructureVectorsType: void {
   .d*: NewType
 }
 
-type ChoiceSimpleType: string | int
+//type ChoiceSimpleType: string | int
 
 
 
@@ -125,8 +125,19 @@ type RootValue7Type: any {
   .field: any
 }
 
+type StringType: string
 
 type VoidType: void
+
+type DoubleType: double
+
+type LongType: long
+
+type RawType: raw
+
+type IntType: int
+
+type BoolType: bool
 
 
 interface TestInterface {
@@ -138,7 +149,7 @@ RequestResponse:
 
   testFlatStructure( FlatStructureType )( FlatStructureVectorsType ),
 
-  testChoice( ChoiceSimpleType )( ChoiceSimpleType ),
+  //testChoice( ChoiceSimpleType )( ChoiceSimpleType ),
 
   testRootValue1( RootValue1Type )( RootValue2Type ),
 
@@ -148,8 +159,18 @@ RequestResponse:
 
   testRootValue4( RootValue7Type)( RootValue7Type ),
 
-  testUndefined( undefined )( double ),
+  testStringType( StringType )( StringType ),
 
-  testVoidType( VoidType )( VoidType )
+  testVoidType( VoidType )( VoidType ),
+
+  testDoubleType( DoubleType )( DoubleType ),
+
+  testLongType( LongType )( LongType ),
+
+  testRawType( RawType )( RawType ),
+
+  testIntType( IntType )( IntType ),
+
+  testBoolType( BoolType )( BoolType )
 
 }
