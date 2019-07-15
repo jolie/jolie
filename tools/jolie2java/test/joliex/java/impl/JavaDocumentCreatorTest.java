@@ -6,7 +6,6 @@
 package joliex.java.impl;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
@@ -15,8 +14,6 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import javax.tools.JavaCompiler;
@@ -160,6 +157,13 @@ public class JavaDocumentCreatorTest
 		Class<?> FlatStructureType = Class.forName( "com.test.FlatStructureType", true, classLoader );
 		Constructor flatStructureTypeConstructor = FlatStructureType.getConstructor( new Class[]{ Value.class } );
 		Jolie2JavaInterface flatStructureType = (Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( getFlatStructuredType() );
+		// checking TypeCheckingException 
+		Value exceptionValue = Value.create();
+		exceptionValue.setValue( TESTBOOL );
+		try {
+			Jolie2JavaInterface flatStructureTypeException = (Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( exceptionValue );
+			assertTrue( "Exception not thrown", false );
+		} catch( java.lang.reflect.InvocationTargetException e ) {}
 		// check constructor and getValues
 		assertTrue( compareValues( getFlatStructuredType(), flatStructureType.getValue(), 0 ) );
 		Jolie2JavaInterface flatStructureTypeEmpty = (Jolie2JavaInterface) FlatStructureType.newInstance();
@@ -205,6 +209,13 @@ public class JavaDocumentCreatorTest
 		Jolie2JavaInterface inLineStructureType = (Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( getInlineStructureType() );
 		// check constructor and getValues
 		assertTrue( compareValues( getInlineStructureType(), inLineStructureType.getValue(), 0 ) );
+		//exception
+		Value exceptionValue = Value.create();
+		exceptionValue.getFirstChild( "zzzzzz").setValue( TESTBOOL );
+		try {
+			Jolie2JavaInterface inLineStructureTypeException = (Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( exceptionValue );
+			assertTrue( "Exception not thrown", false );
+		} catch( java.lang.reflect.InvocationTargetException e ) {}
 		Jolie2JavaInterface inLineStructureTypeEmpty = (Jolie2JavaInterface) InLineStructureType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 
@@ -257,6 +268,14 @@ public class JavaDocumentCreatorTest
 		System.out.println( testName + " checking methods OK" );
 		invokingSetAddGetMethodsForLinkedType( linkedTypeStructureTypeEmpty );
 		System.out.println( testName + " invoking methods OK" );
+	}
+
+	@Test
+	public void testChoiceLinkedType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
+		String testName = "testChoiceLinkedType";
+		// FileStructureVector
+
 	}
 
 	@Test
@@ -315,7 +334,7 @@ public class JavaDocumentCreatorTest
 		simpleTypeList.put( "Double", TESTDOUBLE );
 		simpleTypeList.put( "Int", TESTINTEGER );
 		simpleTypeList.put( "Bool", TESTBOOL );
-		simpleTypeList.put( "Raw", new ByteArray(TESTRAW ) );
+		simpleTypeList.put( "Raw", new ByteArray( TESTRAW ) );
 		simpleTypeList.put( "Long", TESTLONG );
 
 		for( Entry<String, Object> entry : simpleTypeList.entrySet() ) {
@@ -905,6 +924,7 @@ public class JavaDocumentCreatorTest
 
 	private boolean compareValues( Value v1, Value v2, int level )
 	{
+
 		boolean resp = true;
 		if ( !checkRootValue( v1, v2 ) ) {
 			System.out.println( "level: " + level + " Root values are different" );

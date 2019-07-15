@@ -22,13 +22,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -57,7 +56,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.Value;
+import jolie.runtime.typing.TypeCheckingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -367,7 +366,6 @@ public class JavaDocumentCreator
 
 	private void appendingClassBody( TypeDefinition typeDefinition, StringBuilder stringBuilder, String className )
 	{
-
 		Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes( typeDefinition );
 		if ( supportSet != null ) {
 			Iterator i = supportSet.iterator();
@@ -423,14 +421,14 @@ public class JavaDocumentCreator
 
 		stringBuilder.append( "import jolie.runtime.embedding.Jolie2JavaInterface;\n" );
 		stringBuilder.append( "import jolie.runtime.Value;\n" );
+		stringBuilder.append( "import jolie.runtime.ValueVector;\n" );
 		stringBuilder.append( "import jolie.runtime.ByteArray;\n" );
+		stringBuilder.append( "import jolie.runtime.typing.TypeCheckingException;\n" );
+		stringBuilder.append( "import java.util.List;\n" );
+		stringBuilder.append( "import java.util.ArrayList;\n" );
+		stringBuilder.append( "import java.util.Map.Entry;\n");
+		stringBuilder.append( "\n" );
 
-		TypeDefinition supportType = type;
-		if ( Utils.hasSubTypes( supportType ) ) {
-			stringBuilder.append( "import java.util.List;\n" );
-			stringBuilder.append( "import java.util.ArrayList;\n" );
-			stringBuilder.append( "\n" );
-		}
 	}
 
 	private void appendingIndentation( StringBuilder stringBuilder )
@@ -494,10 +492,33 @@ public class JavaDocumentCreator
 	{
 		//constructor with parameters
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( className ).append( "( Value v ){\n" );
+		stringBuilder.append( "public " ).append( className ).append( "( Value v ) throws TypeCheckingException {\n" );
 		incrementIndentation();
 
 		if ( Utils.hasSubTypes( type ) ) {
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "ArrayList<String> __fieldList__ = new ArrayList<>();\n" );
+			Utils.subTypes( type ).stream()
+				.forEach( t -> {
+					appendingIndentation( stringBuilder );
+					stringBuilder.append( "__fieldList__.add(\"" ).append( t.getValue().id() ).append( "\");\n" );
+				} );
+			
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "for( Entry<String,ValueVector> __vv : v.children().entrySet() ) {\n" );
+			incrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "if ( !__fieldList__.contains( __vv.getKey() ) ) { \n" );
+			incrementIndentation();		
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "throw new TypeCheckingException(\"field \" + __vv.getKey() + \" not found\");\n");
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n");
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
+
 			Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes( type );
 			Iterator i = supportSet.iterator();
 
@@ -693,8 +714,30 @@ public class JavaDocumentCreator
 
 			} else {
 				appendingIndentation( stringBuilder );
+				stringBuilder.append( "if (!v.").append(javaNativeChecker.get( Utils.nativeType( type ) ) ).append(") {\n");
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "throw new TypeCheckingException(\"root value wrong type\");\n");
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append("} else {\n");
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
 				stringBuilder.append( variableName ).append( " = v." ).append( javaMethod ).append( ";\n" );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append("}\n");
 			}
+		} else {
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "if ( v.isString() || v.isInt() || v.isDouble() || v.isByteArray() || v.isBool() || v.isLong() ) {\n");
+			incrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "throw new TypeCheckingException(\"root value wrong type\");\n");
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append("}\n");
+				
 		}
 		decrementIndentation();
 		appendingIndentation( stringBuilder );

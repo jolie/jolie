@@ -93,7 +93,9 @@ type LinkedTypeStructureVectorsType: void {
   .d*: NewType
 }
 
-//type ChoiceSimpleType: string | int
+//type ChoiceSimpleType: string | int | double
+
+//type ChoiceLinkedType: LinkedTypeStructureType | InLineStructureType | FlatStructureType
 
 
 
@@ -150,6 +152,8 @@ RequestResponse:
   testFlatStructure( FlatStructureType )( FlatStructureVectorsType ),
 
   //testChoice( ChoiceSimpleType )( ChoiceSimpleType ),
+
+  //testChoiceLinkedTypes( ChoiceLinkedType )( ChoiceLinkedType ),
 
   testRootValue1( RootValue1Type )( RootValue2Type ),
 
