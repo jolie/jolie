@@ -76,7 +76,8 @@ public class JavaDocumentCreator
 	private LinkedHashMap<String, TypeDefinition> typeMap;
 	private LinkedHashMap<String, TypeDefinition> subTypeMap;
 	ProgramInspector inspector;
-	private String TYPESUFFIX = "Type";
+	private final String TYPESUFFIX = "Type";
+	private final String CHOICEVARIABLENAME = "choice";
 	private static final HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
 	private static final HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
 	private static final HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
@@ -364,40 +365,141 @@ public class JavaDocumentCreator
 		writer.append( outputFileText.toString() );
 	}
 
+	private void appendingSubClassBody( TypeDefinition typeDefinition, StringBuilder stringBuilder, String clsName )
+	{
+		/* TypeInLineDefinitions are converted into inner classes */
+		if ( (typeDefinition instanceof TypeInlineDefinition) && (Utils.hasSubTypes( typeDefinition )) ) {
+			/* opening the inner class */
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "public class " ).append( clsName ).append( " {" ).append( "\n" );
+			incrementIndentation();
+			appendingClassBody( typeDefinition, stringBuilder, clsName );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
+		}
+	}
+
 	private void appendingClassBody( TypeDefinition typeDefinition, StringBuilder stringBuilder, String className )
 	{
-		Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes( typeDefinition );
-		if ( supportSet != null ) {
-			Iterator i = supportSet.iterator();
+		if ( typeDefinition instanceof TypeChoiceDefinition ) {
+			appendingClassBodyTypeChoiceDefinition( (TypeChoiceDefinition) typeDefinition, stringBuilder, className );
+		} else {
+			Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes( typeDefinition );
 
-			/* inserting inner classes if present */
-			while( i.hasNext() ) {
-				Map.Entry me = (Map.Entry) i.next();
-				/* TypeInLineDefinitions are converted into inner classes */
-				if ( (((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (Utils.hasSubTypes( (TypeDefinition) me.getValue() )) ) {
-					/* opening the inner class */
-					appendingIndentation( stringBuilder );
-					String clsName = ((TypeDefinition) me.getValue()).id() + TYPESUFFIX;
-					stringBuilder.append( "public class " ).append( clsName ).append( " {" ).append( "\n" );
-					incrementIndentation();
-					appendingClassBody( (TypeDefinition) me.getValue(), stringBuilder, clsName );
-					decrementIndentation();
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "}\n" );
-				}
+			if ( supportSet != null ) {
+				/* inserting inner classes if present */
+				supportSet.stream().forEach( ( me ) -> {
+					TypeDefinition tdef = (TypeDefinition) me.getValue();
+					appendingSubClassBody( tdef, stringBuilder, tdef.id() + TYPESUFFIX );
+				} );
+			}
+
+			/* appending private variables */
+			appendingPrivateVariables( stringBuilder, typeDefinition );
+			stringBuilder.append( "\n" );
+
+			/* create constructor */
+			appendingConstructor( stringBuilder, typeDefinition, className );
+
+			/* create methods */
+			appendingMethods( stringBuilder, typeDefinition );
+		}
+	}
+
+	private void appendingChoicesVaiableDeclaration( TypeDefinition type, StringBuilder stringBuilder, String className, int choiceCount )
+	{
+		if ( Utils.hasSubTypes( type ) ) {
+			String variableTypeName = getVariableTypeName( type );
+			if ( type instanceof TypeInlineDefinition ) {
+				variableTypeName = variableTypeName + choiceCount;
+			}
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( variableTypeName ).append( " " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
+			appendingSubClassBody( type, stringBuilder, variableTypeName );
+		} else {
+			NativeType nativeType = Utils.nativeType( type );
+			if ( nativeType != NativeType.VOID ) {
+				appendingIndentation( stringBuilder );
+
+				stringBuilder.append( javaNativeEquivalent.get( nativeType ) ).append( " " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
+			} else {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "Object " ).append( " " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
 			}
 		}
+	}
 
-		/* appending private variables */
-		appendingPrivateVariables( stringBuilder, typeDefinition );
-		stringBuilder.append( "\n" );
+	private void appendingReturnValueForChoice( StringBuilder stringBuilder, TypeDefinition type, int choiceCount )
+	{
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "if ( choice" ).append( choiceCount ).append( " != null ) {\n" );
+		incrementIndentation();
+		if ( Utils.hasSubTypes( type ) ) {
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "return choice" ).append( choiceCount ).append( ".getValue();\n" );
+		} else {
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "Value returnValue = Value.create();\n" );
+			if ( Utils.nativeType( type ) != NativeType.VOID ) {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "returnValue.setValue( choice" ).append( choiceCount ).append( " );\n" );
+			}
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "return returnValue;\n" );
+		}
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingReturnValueForTypeChoice( StringBuilder stringBuilder, TypeChoiceDefinition type, int choiceCount )
+	{
+		appendingReturnValueForChoice( stringBuilder, type.left(), choiceCount );
+		if ( type.right() instanceof TypeChoiceDefinition ) {
+			appendingReturnValueForTypeChoice( stringBuilder, (TypeChoiceDefinition) type.right(), choiceCount + 1 );
+		} else {
+			appendingReturnValueForChoice( stringBuilder, type.right(), choiceCount + 1 );
+		}
+
+	}
+
+	private void appendingChoiceMethods( StringBuilder stringBuilder, TypeChoiceDefinition type )
+	{
+
+		// getValue method
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "public Value getValue() {\n" );
+		incrementIndentation();
+		appendingReturnValueForTypeChoice( stringBuilder, type, 1 );
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "return Value.create();\n" );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingChoicesVariables( TypeChoiceDefinition typeChoiceDefinition, StringBuilder stringBuilder, String className, int choiceCount )
+	{
+		appendingChoicesVaiableDeclaration( typeChoiceDefinition.left(), stringBuilder, className, choiceCount );
+		if ( typeChoiceDefinition.right() instanceof TypeChoiceDefinition ) {
+			appendingChoicesVariables( (TypeChoiceDefinition) typeChoiceDefinition.right(), stringBuilder, className, choiceCount + 1 );
+		} else {
+			appendingChoicesVaiableDeclaration( typeChoiceDefinition.right(), stringBuilder, className, choiceCount + 1 );
+		}
+
+	}
+
+	private void appendingClassBodyTypeChoiceDefinition( TypeChoiceDefinition typeChoiceDefinition, StringBuilder stringBuilder, String className )
+	{
+
+		appendingChoicesVariables( typeChoiceDefinition, stringBuilder, className, 1 );
 
 		/* create constructor */
-		appendingConstructor( stringBuilder, typeDefinition, className );
+		appendingChoiceConstructor( stringBuilder, typeChoiceDefinition, className, 1 );
 
 		/* create methods */
-		appendingMethods( stringBuilder, typeDefinition );
-
+		appendingChoiceMethods( stringBuilder, typeChoiceDefinition );
 	}
 
 	private void appendingClass( StringBuilder stringBuilder, TypeDefinition typeDefinition, String interfaceToBeImplemented )
@@ -426,7 +528,7 @@ public class JavaDocumentCreator
 		stringBuilder.append( "import jolie.runtime.typing.TypeCheckingException;\n" );
 		stringBuilder.append( "import java.util.List;\n" );
 		stringBuilder.append( "import java.util.ArrayList;\n" );
-		stringBuilder.append( "import java.util.Map.Entry;\n");
+		stringBuilder.append( "import java.util.Map.Entry;\n" );
 		stringBuilder.append( "\n" );
 
 	}
@@ -464,13 +566,6 @@ public class JavaDocumentCreator
 						variableName = subType.id();
 						variableType = javaNativeEquivalent.get( ((TypeInlineDefinition) subType).nativeType() );
 					}
-				} else if ( subType instanceof TypeChoiceDefinition ) {
-					System.out.println( "WARNING7: Type definition contains a choice variable which is not supported!" );
-					variableName = subType.id();
-					variableType = "Object";
-
-				} else {
-					System.out.println( "WARNING8: variable is not a Link, a Choice or an Inline Definition!" );
 				}
 
 				if ( subType.cardinality().max() > 1 ) {
@@ -503,18 +598,18 @@ public class JavaDocumentCreator
 					appendingIndentation( stringBuilder );
 					stringBuilder.append( "__fieldList__.add(\"" ).append( t.getValue().id() ).append( "\");\n" );
 				} );
-			
+
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "for( Entry<String,ValueVector> __vv : v.children().entrySet() ) {\n" );
 			incrementIndentation();
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "if ( !__fieldList__.contains( __vv.getKey() ) ) { \n" );
-			incrementIndentation();		
+			incrementIndentation();
 			appendingIndentation( stringBuilder );
-			stringBuilder.append( "throw new TypeCheckingException(\"field \" + __vv.getKey() + \" not found\");\n");
+			stringBuilder.append( "throw new TypeCheckingException(\"field \" + __vv.getKey() + \" not found\");\n" );
 			decrementIndentation();
 			appendingIndentation( stringBuilder );
-			stringBuilder.append( "}\n");
+			stringBuilder.append( "}\n" );
 			decrementIndentation();
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
@@ -714,30 +809,30 @@ public class JavaDocumentCreator
 
 			} else {
 				appendingIndentation( stringBuilder );
-				stringBuilder.append( "if (!v.").append(javaNativeChecker.get( Utils.nativeType( type ) ) ).append(") {\n");
+				stringBuilder.append( "if (!v." ).append( javaNativeChecker.get( Utils.nativeType( type ) ) ).append( ") {\n" );
 				incrementIndentation();
 				appendingIndentation( stringBuilder );
-				stringBuilder.append( "throw new TypeCheckingException(\"root value wrong type\");\n");
+				stringBuilder.append( "throw new TypeCheckingException(\"root value wrong type\");\n" );
 				decrementIndentation();
 				appendingIndentation( stringBuilder );
-				stringBuilder.append("} else {\n");
+				stringBuilder.append( "} else {\n" );
 				incrementIndentation();
 				appendingIndentation( stringBuilder );
 				stringBuilder.append( variableName ).append( " = v." ).append( javaMethod ).append( ";\n" );
 				decrementIndentation();
 				appendingIndentation( stringBuilder );
-				stringBuilder.append("}\n");
+				stringBuilder.append( "}\n" );
 			}
 		} else {
 			appendingIndentation( stringBuilder );
-			stringBuilder.append( "if ( v.isString() || v.isInt() || v.isDouble() || v.isByteArray() || v.isBool() || v.isLong() ) {\n");
+			stringBuilder.append( "if ( v.isString() || v.isInt() || v.isDouble() || v.isByteArray() || v.isBool() || v.isLong() ) {\n" );
 			incrementIndentation();
 			appendingIndentation( stringBuilder );
-			stringBuilder.append( "throw new TypeCheckingException(\"root value wrong type\");\n");
+			stringBuilder.append( "throw new TypeCheckingException(\"root value wrong type\");\n" );
 			decrementIndentation();
 			appendingIndentation( stringBuilder );
-			stringBuilder.append("}\n");
-				
+			stringBuilder.append( "}\n" );
+
 		}
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -782,6 +877,148 @@ public class JavaDocumentCreator
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "}\n\n" );
 
+	}
+
+	private void appendingChoiceConstructorWithoutParameters( StringBuilder stringBuilder, String className )
+	{
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "public " ).append( className ).append( "( ) {\n" );
+		incrementIndentation();
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingInitChoiceVariable( StringBuilder stringBuilder, String variableTypeName, int choiceCount )
+	{
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = new " );
+		stringBuilder.append( variableTypeName ).append( "( v );\n" );
+	}
+
+	private void appendingInitChoiceVariableNativeType( StringBuilder stringBuilder, NativeType nativeType, int choiceCount )
+	{
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = v." ).append( javaNativeMethod.get( nativeType ) ).append( ";\n" );
+	}
+
+	private void appendingChoiceTryCatchForInitTypeRight( StringBuilder stringBuilder, TypeDefinition type, int choiceCount )
+	{
+		if ( type instanceof TypeChoiceDefinition ) {
+			appendingChoiceTryCatchForInitType( stringBuilder, (TypeChoiceDefinition) type, choiceCount );
+		} else if ( Utils.hasSubTypes( type ) ) {
+			String variableTypeName = getVariableTypeName( type );
+			if ( type instanceof TypeInlineDefinition ) {
+				variableTypeName = variableTypeName + choiceCount;
+			}
+			appendingInitChoiceVariable( stringBuilder, variableTypeName, choiceCount );
+		} else {
+			NativeType nativeType = Utils.nativeType( type );
+			if ( nativeType != NativeType.VOID ) {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "if ( v." ).append( javaNativeChecker.get( nativeType ) ).append( " && !v.hasChildren()) {\n" );
+				incrementIndentation();
+				appendingInitChoiceVariableNativeType( stringBuilder, nativeType, choiceCount );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "} else {\n" );
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "throw new TypeCheckingException(\"no native type\");\n" );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "}\n" );
+			} else {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "if ( !v.isString() && !v.isInt() && !v.isDouble() && !v.isLong() && !v.isByteArray() && !v.isBool() && !v.hasChildren()) {\n" );
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = new Object();\n" );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "} else {\n" );
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "throw new TypeCheckingException(\"no native type\");\n" );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "}\n" );
+			}
+		}
+	}
+
+	private void appendingChoiceTryCatchForInitType( StringBuilder stringBuilder, TypeChoiceDefinition type, int choiceCount )
+	{
+		if ( Utils.hasSubTypes( type.left() ) ) {
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "try {\n" );
+			incrementIndentation();
+			String variableTypeName = getVariableTypeName( type.left() );
+			if ( type.left() instanceof TypeInlineDefinition ) {
+				variableTypeName = variableTypeName + choiceCount;
+			}
+			appendingInitChoiceVariable( stringBuilder, variableTypeName, choiceCount );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "} catch ( TypeCheckingException e" ).append( choiceCount ).append( " ) {\n" );
+			incrementIndentation();
+			choiceCount++;
+			appendingChoiceTryCatchForInitTypeRight( stringBuilder, type.right(), choiceCount );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
+
+		} else {
+			NativeType nativeType = Utils.nativeType( type.left() );
+			if ( nativeType != NativeType.VOID ) {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "if ( v." ).append( javaNativeChecker.get( nativeType ) ).append( " && !v.hasChildren()) {\n" );
+				incrementIndentation();
+				appendingInitChoiceVariableNativeType( stringBuilder, nativeType, choiceCount );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "} else {\n" );
+				incrementIndentation();
+				choiceCount++;
+				appendingChoiceTryCatchForInitTypeRight( stringBuilder, type.right(), choiceCount );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "}\n" );
+			} else {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "if ( !v.isString() && !v.isInt() && !v.isDouble() && !v.isLong() && !v.isByteArray() && !v.isBool() && !v.hasChildren()) {\n" );
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = new Object();\n" );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "} else {\n" );
+				incrementIndentation();
+				choiceCount++;
+				appendingChoiceTryCatchForInitTypeRight( stringBuilder, type.right(), choiceCount );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "}\n" );
+			}
+		}
+
+	}
+
+	private void appendingChoiceConstructorWithParameters( StringBuilder stringBuilder, TypeChoiceDefinition type, String className, int choiceCount )
+	{
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "public " ).append( className ).append( "( Value v ) throws TypeCheckingException {\n" );
+		incrementIndentation();
+		appendingChoiceTryCatchForInitType( stringBuilder, type, choiceCount );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingChoiceConstructor( StringBuilder stringBuilder, TypeChoiceDefinition type, String className, int choiceCounter )
+	{
+		appendingChoiceConstructorWithParameters( stringBuilder, type, className, choiceCounter );
+		appendingChoiceConstructorWithoutParameters( stringBuilder, className );
 	}
 
 	private void appendingConstructor( StringBuilder stringBuilder, TypeDefinition type, String className )
@@ -1319,11 +1556,6 @@ public class JavaDocumentCreator
 			} else {
 				return javaNativeEquivalent.get( ((TypeInlineDefinition) type).nativeType() );
 			}
-		} else if ( type instanceof TypeChoiceDefinition ) {
-			System.out.println( "WARNING: Type definition contains a choice variable which is not supported!" );
-			return "Value";
-		} else {
-			System.out.println( "WARNING6: variable is not a Link, a Choice or an Inline Definition!" );
 		}
 		return "err";
 	}

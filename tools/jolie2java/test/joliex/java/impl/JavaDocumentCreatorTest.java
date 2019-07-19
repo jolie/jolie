@@ -94,7 +94,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 21, new File( "./generated/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 24, new File( "./generated/com/test" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated" );
@@ -163,7 +163,8 @@ public class JavaDocumentCreatorTest
 		try {
 			Jolie2JavaInterface flatStructureTypeException = (Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( exceptionValue );
 			assertTrue( "Exception not thrown", false );
-		} catch( java.lang.reflect.InvocationTargetException e ) {}
+		} catch( java.lang.reflect.InvocationTargetException e ) {
+		}
 		// check constructor and getValues
 		assertTrue( compareValues( getFlatStructuredType(), flatStructureType.getValue(), 0 ) );
 		Jolie2JavaInterface flatStructureTypeEmpty = (Jolie2JavaInterface) FlatStructureType.newInstance();
@@ -211,11 +212,12 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( getInlineStructureType(), inLineStructureType.getValue(), 0 ) );
 		//exception
 		Value exceptionValue = Value.create();
-		exceptionValue.getFirstChild( "zzzzzz").setValue( TESTBOOL );
+		exceptionValue.getFirstChild( "zzzzzz" ).setValue( TESTBOOL );
 		try {
 			Jolie2JavaInterface inLineStructureTypeException = (Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( exceptionValue );
 			assertTrue( "Exception not thrown", false );
-		} catch( java.lang.reflect.InvocationTargetException e ) {}
+		} catch( java.lang.reflect.InvocationTargetException e ) {
+		}
 		Jolie2JavaInterface inLineStructureTypeEmpty = (Jolie2JavaInterface) InLineStructureType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 
@@ -274,7 +276,123 @@ public class JavaDocumentCreatorTest
 	public void testChoiceLinkedType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
 	{
 		String testName = "testChoiceLinkedType";
-		// FileStructureVector
+		Class<?> ChoiceLinkedType = Class.forName( "com.test.ChoiceLinkedType", true, classLoader );
+		Constructor choiceLinkedTypeConstructor = ChoiceLinkedType.getConstructor( new Class[]{ Value.class } );
+		// LinkedTypeStructureType
+		Jolie2JavaInterface choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getLinkedTypeStructureType() );
+		assertTrue( compareValues( getLinkedTypeStructureType(), choiceLinkedType.getValue(), 0 ) );
+		// int
+		Value testValue = Value.create();
+		testValue.setValue( TESTINTEGER );
+		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceLinkedType.getValue(), 0 ) );
+		// InLineStructureType
+		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getInlineStructureType() );
+		assertTrue( compareValues( getInlineStructureType(), choiceLinkedType.getValue(), 0 ) );
+		// void
+		testValue = Value.create();
+		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceLinkedType.getValue(), 0 ) );
+		// FlatStructureType
+		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getFlatStructuredType() );
+		assertTrue( compareValues( getFlatStructuredType(), choiceLinkedType.getValue(), 0 ) );
+		// FlatStructureVecotrsType
+		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getFlatStructuredVectorsType() );
+		assertTrue( compareValues( getFlatStructuredVectorsType(), choiceLinkedType.getValue(), 0 ) );
+		// string
+		testValue = Value.create();
+		testValue.setValue( TESTSTRING );
+		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceLinkedType.getValue(), 0 ) );
+		System.out.println( testName + " contructors and getValue() OK" );
+		// Exception
+		try {
+			testValue.setValue( TESTBOOL );
+			choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( testValue );
+			assertTrue( "TypeCheckingException not thrown", false );
+		} catch( java.lang.reflect.InvocationTargetException e ) {
+		}
+		System.out.println( testName + " Exception raised OK" );
+
+	}
+
+	@Test
+	public void testChoiceInLineType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
+		String testName = "testChoiceInlineType";
+		Class<?> ChoiceInlineType = Class.forName( "com.test.ChoiceInlineType", true, classLoader );
+		Constructor choiceInlineTypeConstructor = ChoiceInlineType.getConstructor( new Class[]{ Value.class } );
+		// ChoiceInlineType1
+		Jolie2JavaInterface choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( getChoiceInlineType1() );
+		assertTrue( compareValues( getChoiceInlineType1(), choiceInlineType.getValue(), 0 ) );
+		// int
+		Value testValue = Value.create();
+		testValue.setValue( TESTINTEGER );
+		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceInlineType.getValue(), 0 ) );
+		// ChoiceInlineType2
+		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( getChoiceInlineType2() );
+		assertTrue( compareValues( getChoiceInlineType2(), choiceInlineType.getValue(), 0 ) );
+		// ChoiceInlineType3
+		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( getChoiceInlineType3() );
+		assertTrue( compareValues( getChoiceInlineType3(), choiceInlineType.getValue(), 0 ) );
+		// string
+		testValue = Value.create();
+		testValue.setValue( TESTSTRING );
+		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceInlineType.getValue(), 0 ) );
+
+		System.out.println( testName + " contructors and getValue() OK" );
+		// Exception
+		try {
+			testValue.setValue( TESTBOOL );
+			choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( testValue );
+			assertTrue( "TypeCheckingException not thrown", false );
+		} catch( java.lang.reflect.InvocationTargetException e ) {
+		}
+		System.out.println( testName + " Exception raised OK" );
+
+	}
+	
+	@Test
+	public void testChoiceSimpleType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
+	{
+		String testName = "testChoiceSimpleType";
+		Class<?> ChoiceSimpleType = Class.forName( "com.test.ChoiceSimpleType", true, classLoader );
+		Constructor choiceSimpleTypeConstructor = ChoiceSimpleType.getConstructor( new Class[]{ Value.class } );
+				
+		// string
+		Value testValue = Value.create();
+		testValue.setValue( TESTSTRING );
+		Jolie2JavaInterface choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+		
+		// int
+		testValue = Value.create();
+		testValue.setValue( TESTINTEGER );
+		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+		
+		// double
+		testValue = Value.create();
+		testValue.setValue( TESTDOUBLE );
+		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+		
+		// void
+		testValue = Value.create();
+		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
+		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+
+		System.out.println( testName + " contructors and getValue() OK" );
+		// Exception
+		try {
+			testValue.setValue( TESTBOOL );
+			choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
+			assertTrue( "TypeCheckingException not thrown", false );
+		} catch( java.lang.reflect.InvocationTargetException e ) {
+		}
+		System.out.println( testName + " Exception raised OK" );
 
 	}
 
@@ -284,8 +402,8 @@ public class JavaDocumentCreatorTest
 		String testName = "testLinkedTypeStructureVectorsType";
 		// FileStructureVector
 		Class<?> LinkedTypeStructureVectorsType = Class.forName( "com.test.LinkedTypeStructureVectorsType", true, classLoader );
-		Constructor linkedTypeStructureVecotrsTypeConstructor = LinkedTypeStructureVectorsType.getConstructor( new Class[]{ Value.class } );
-		Jolie2JavaInterface linkedTypeStructureVectorsType = (Jolie2JavaInterface) linkedTypeStructureVecotrsTypeConstructor.newInstance( getLinkedTypeStructureVectorsType() );
+		Constructor linkedTypeStructureVectorsTypeConstructor = LinkedTypeStructureVectorsType.getConstructor( new Class[]{ Value.class } );
+		Jolie2JavaInterface linkedTypeStructureVectorsType = (Jolie2JavaInterface) linkedTypeStructureVectorsTypeConstructor.newInstance( getLinkedTypeStructureVectorsType() );
 		// check constructor and getValues
 		assertTrue( compareValues( getLinkedTypeStructureVectorsType(), linkedTypeStructureVectorsType.getValue(), 0 ) );
 		Jolie2JavaInterface linkedTypeStructureVectorsTypeEmpty = (Jolie2JavaInterface) LinkedTypeStructureVectorsType.newInstance();
@@ -765,6 +883,47 @@ public class JavaDocumentCreatorTest
 		return testValue;
 
 	}
+
+	private Value getChoiceInlineType1()
+	{
+		Value testValue = Value.create();
+		Value a = testValue.getFirstChild( "a" );
+		a.setValue( TESTSTRING );
+		Value b = a.getFirstChild( "b" );
+		b.setValue( TESTSTRING );
+		Value c = b.getFirstChild( "c" );
+		c.setValue( TESTSTRING );
+
+		return testValue;
+
+	}
+
+	private Value getChoiceInlineType2()
+	{
+		Value testValue = Value.create();
+		testValue.setValue( TESTSTRING );
+		ValueVector d = testValue.getChildren( "d" );
+		for( int i = 0; i < 20; i++ ) {
+			d.get( i ).setValue( TESTINTEGER );
+			ValueVector e = d.get( i ).getChildren( "e" );
+			for( int y = 0; y < 5; y++ ) {
+				e.get( y ).setValue( TESTDOUBLE );
+				e.get( y ).getFirstChild( "f" ).setValue( new ByteArray( TESTRAW ) );
+			}
+		}
+		return testValue;
+	}
+	
+		private Value getChoiceInlineType3()
+	{
+		Value testValue = Value.create();
+		testValue.getFirstChild( "g" ).setValue( TESTSTRING );
+		testValue.getFirstChild( "m").setValue( TESTINTEGER );
+
+		return testValue;
+
+	}
+	
 
 	private Value getLinkedTypeStructureType()
 	{
