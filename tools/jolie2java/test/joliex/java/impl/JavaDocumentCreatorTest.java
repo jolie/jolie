@@ -313,6 +313,20 @@ public class JavaDocumentCreatorTest
 		} catch( java.lang.reflect.InvocationTargetException e ) {
 		}
 		System.out.println( testName + " Exception raised OK" );
+		int setMethods = 0;
+		int getMethods = 0;
+		for( int i = 0; i < ChoiceLinkedType.getMethods().length; i++ ) {
+			Method method = ChoiceLinkedType.getMethods()[i];
+			if ( method.getName().equals( "set") ) {
+				setMethods++;
+			}
+			if ( method.getName().equals( "get") ) {
+				getMethods++;
+			}
+		}
+		assertEquals( "Number of set methods wrong", 7, setMethods );
+		assertEquals( "Number of get methods wrong", 1, getMethods );
+		System.out.println( testName + " checking methods OK" );
 
 	}
 
@@ -351,6 +365,20 @@ public class JavaDocumentCreatorTest
 		} catch( java.lang.reflect.InvocationTargetException e ) {
 		}
 		System.out.println( testName + " Exception raised OK" );
+		int setMethods = 0;
+		int getMethods = 0;
+		for( int i = 0; i < ChoiceInlineType.getMethods().length; i++ ) {
+			Method method = ChoiceInlineType.getMethods()[i];
+			if ( method.getName().equals( "set") ) {
+				setMethods++;
+			}
+			if ( method.getName().equals( "get") ) {
+				getMethods++;
+			}
+		}
+		assertEquals( "Number of set methods wrong", 5, setMethods );
+		assertEquals( "Number of get methods wrong", 1, getMethods );
+		System.out.println( testName + " checking methods OK" );
 
 	}
 	
@@ -393,6 +421,20 @@ public class JavaDocumentCreatorTest
 		} catch( java.lang.reflect.InvocationTargetException e ) {
 		}
 		System.out.println( testName + " Exception raised OK" );
+		int setMethods = 0;
+		int getMethods = 0;
+		for( int i = 0; i < ChoiceSimpleType.getMethods().length; i++ ) {
+			Method method = ChoiceSimpleType.getMethods()[i];
+			if ( method.getName().equals( "set") ) {
+				setMethods++;
+			}
+			if ( method.getName().equals( "get") ) {
+				getMethods++;
+			}
+		}
+		assertEquals( "Number of set methods wrong", 4, setMethods );
+		assertEquals( "Number of get methods wrong", 1, getMethods );
+		System.out.println( testName + " checking methods OK" );
 
 	}
 

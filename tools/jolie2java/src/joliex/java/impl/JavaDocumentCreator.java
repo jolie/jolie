@@ -464,6 +464,85 @@ public class JavaDocumentCreator
 
 	}
 
+	private void appendingSetChoiceMethod( StringBuilder stringBuilder, TypeDefinition type, int choiceCount )
+	{
+		appendingIndentation( stringBuilder );
+		if ( Utils.hasSubTypes( type ) ) {
+			String variableTypeName = getVariableTypeName( type );
+			if ( type instanceof TypeInlineDefinition ) {
+				variableTypeName = variableTypeName + choiceCount;
+			}
+			stringBuilder.append( "public void set(" ).append( variableTypeName ).append( " c ) {\n" );
+			incrementIndentation();
+		} else {
+			NativeType nativeType = Utils.nativeType( type );
+			if ( nativeType != NativeType.VOID ) {
+				stringBuilder.append( "public void set(" ).append( javaNativeEquivalent.get( nativeType ) ).append( " c ) {\n" );
+				incrementIndentation();
+			} else {
+				stringBuilder.append( "public void set() {\n" );
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "Object c = null;\n" );
+			}
+		}
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = c;\n" );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingSetChoiceMethods( StringBuilder stringBuilder, TypeChoiceDefinition type, int choiceCount )
+	{
+		appendingSetChoiceMethod( stringBuilder, type.left(), choiceCount );
+		choiceCount++;
+		if ( type.right() instanceof TypeChoiceDefinition ) {
+			appendingSetChoiceMethods( stringBuilder, (TypeChoiceDefinition) type.right(), choiceCount );
+		} else {
+			appendingSetChoiceMethod( stringBuilder, type.right(), choiceCount );
+		}
+	}
+
+	private void appendingGetChoiceMethod( StringBuilder stringBuilder, TypeDefinition type, int choiceCount )
+	{
+
+		if ( Utils.hasSubTypes( type ) ) {
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "if ( " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( " != null ) {\n" );
+			incrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "return " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
+		} else {
+			NativeType nativeType = Utils.nativeType( type );
+			if ( nativeType != NativeType.VOID ) {
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "if ( " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( " != null ) {\n" );
+				incrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "return " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "}\n" );
+			}
+		}
+
+	}
+
+	private void appendingGetChoiceMethods( StringBuilder stringBuilder, TypeChoiceDefinition type, int choiceCount )
+	{
+		appendingGetChoiceMethod( stringBuilder, type.left(), choiceCount );
+		choiceCount++;
+		if ( type.right() instanceof TypeChoiceDefinition ) {
+			appendingGetChoiceMethods( stringBuilder, (TypeChoiceDefinition) type.right(), choiceCount );
+		} else {
+			appendingGetChoiceMethod( stringBuilder, type.right(), choiceCount );
+		}
+	}
+
 	private void appendingChoiceMethods( StringBuilder stringBuilder, TypeChoiceDefinition type )
 	{
 
@@ -474,6 +553,19 @@ public class JavaDocumentCreator
 		appendingReturnValueForTypeChoice( stringBuilder, type, 1 );
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "return Value.create();\n" );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+
+		// set methods
+		appendingSetChoiceMethods( stringBuilder, type, 1 );
+		// get method
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "public Object get() {\n" );
+		incrementIndentation();
+		appendingGetChoiceMethods( stringBuilder, type, 1 );
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "return null;\n" );
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "}\n" );
@@ -1182,26 +1274,6 @@ public class JavaDocumentCreator
 			incrementIndentation();
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "vReturn.setValue(rootValue);\n" );
-			/*if ( Utils.nativeType( type ) != NativeType.ANY ) {
-				appendingIndentation( stringBuilder );
-				stringBuilder.append( "vReturn.setValue(rootValue);\n" );
-			} else {
-				for( NativeType t : getTypes( type ) ) {
-					if ( !javaNativeChecker.containsKey( t ) ) {
-						continue;
-					}
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "if(rootValue instanceof " ).append( javaNativeEquivalent.get( t ) ).append( "){\n" );
-
-					incrementIndentation();
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "vReturn.setValue(rootValue);\n" );
-
-					decrementIndentation();
-					appendingIndentation( stringBuilder );
-					stringBuilder.append( "}\n" );
-				}
-			}*/
 			decrementIndentation();
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
