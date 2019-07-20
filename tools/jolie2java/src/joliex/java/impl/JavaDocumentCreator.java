@@ -71,8 +71,10 @@ public class JavaDocumentCreator
 	private final String targetPort;
 	private final boolean addSource;
 	private final int INDENTATION_STEP = 1;
+	private final String TYPEFOLDER = "types";
 	private int indentation;
 	private String directoryPath;
+	private String directoryPathTypes;
 	private LinkedHashMap<String, TypeDefinition> typeMap;
 	private LinkedHashMap<String, TypeDefinition> subTypeMap;
 	ProgramInspector inspector;
@@ -177,11 +179,11 @@ public class JavaDocumentCreator
 		while( typeMapIterator.hasNext() ) {
 			Entry<String, TypeDefinition> typeEntry = typeMapIterator.next();
 			if ( !NativeType.isNativeTypeKeyword( typeEntry.getKey() ) && !isNativeTypeUndefined( typeEntry.getKey() ) ) {
-				String nameFile = directoryPath + Constants.fileSeparator + typeEntry.getKey() + ".java";
+				String nameFile = directoryPathTypes + Constants.fileSeparator + typeEntry.getKey() + ".java";
 				Writer writer;
 				try {
 					writer = new BufferedWriter( new FileWriter( nameFile ) );
-					prepareOutputFile( typeEntry.getValue(), writer );
+					prepareTypeOutputFile( typeEntry.getValue(), writer );
 					writer.flush();
 					writer.close();
 				} catch( IOException ex ) {
@@ -320,6 +322,9 @@ public class JavaDocumentCreator
 			}
 			f = new File( directoryPath );
 			f.mkdirs();
+			directoryPathTypes = directoryPath + File.separator + TYPEFOLDER;
+			File f2 = new File( directoryPathTypes );
+			f2.mkdir();
 		} catch( IOException ex ) {
 			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		}
@@ -349,12 +354,12 @@ public class JavaDocumentCreator
 		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 
-	public void prepareOutputFile( TypeDefinition typeDefinition, Writer writer )
+	public void prepareTypeOutputFile( TypeDefinition typeDefinition, Writer writer )
 		throws IOException
 	{
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
-		outputFileText.append( "package " ).append( packageName ).append( ";\n" );
+		outputFileText.append( "package " ).append( packageName ).append( ".").append( TYPEFOLDER ).append(";\n" );
 		/* appending imports */
 		appendingImportsIfNecessary( outputFileText, typeDefinition );
 
@@ -675,6 +680,31 @@ public class JavaDocumentCreator
 		}
 	}
 
+	private void appendingIfHasChildren( StringBuilder stringBuilder, String variableName, TypeDefinition type, StringBuilder ifBody )
+	{
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "if ( v.hasChildren(\"" ).append( variableName ).append( "\")){\n" );
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "if ( v.getChildren(\"" ).append( variableName ).append( "\").size() <= " );
+		stringBuilder.append( type.cardinality().max() ).append( " && v.getChildren(\"" ).append( variableName );
+		stringBuilder.append( "\").size() >= " ).append( type.cardinality().min() ).append( " ){\n" );
+		incrementIndentation();
+		stringBuilder.append( ifBody );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "} else {\n" );
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "throw new TypeCheckingException(\"cardinality does not correspond for node " ).append( variableName ).append( " \");\n" );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+	}
+
 	private void appendingConstructorWithParameters( StringBuilder stringBuilder, TypeDefinition type, String className )
 	{
 		//constructor with parameters
@@ -724,46 +754,37 @@ public class JavaDocumentCreator
 						stringBuilder.append( ">();" ).append( "\n" );
 
 						/* checking if there are fields in the value */
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if ( v.hasChildren(\"" ).append( variableName );
-						stringBuilder.append( "\")){\n" );
+										
+						StringBuilder ifbody = new StringBuilder();
+						incrementIndentation(2);
+						appendingIndentation( ifbody );
+						ifbody.append( "for( int counter" ).append( variableName ).append( " = 0;" ).append( "counter" );
+						ifbody.append( variableName );
+						ifbody.append( " < v.getChildren( \"" ).append( variableName ).append( "\" ).size(); counter" );
+						ifbody.append( variableName ).append( "++) { \n" );
 
 						incrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "for( int counter" ).append( variableName ).append( " = 0;" ).append( "counter" );
-						stringBuilder.append( variableName );
-						stringBuilder.append( " < v.getChildren( \"" ).append( variableName ).append( "\" ).size(); counter" );
-						stringBuilder.append( variableName ).append( "++) { \n" );
-
-						incrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( variableNameType ).append( " support" );
-						stringBuilder.append( variableName ).append( " = new " );
-						stringBuilder.append( variableNameType );
-						stringBuilder.append( "( v.getChildren(\"" ).append( variableName ).append( "\").get(counter" );
-						stringBuilder.append( subType.id() ).append( "));\n" );
-
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( subType.id() ).append( ".add(support" ).append( variableName ).append( ");\n" );
+						appendingIndentation( ifbody );
+						ifbody.append( variableNameType ).append( " support" );
+						ifbody.append( variableName ).append( " = new " );
+						ifbody.append( variableNameType );
+						ifbody.append( "( v.getChildren(\"" ).append( variableName ).append( "\").get(counter" );
+						ifbody.append( subType.id() ).append( "));\n" );
+						appendingIndentation( ifbody );
+						ifbody.append( subType.id() ).append( ".add(support" ).append( variableName ).append( ");\n" );
 						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
-
-						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
-					} else {
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if (v.hasChildren(\"" ).append( variableName ).append( "\")){\n" );
-
-						incrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( subType.id() ).append( " = new " ).append( variableNameType );
-						stringBuilder.append( "( v.getFirstChild(\"" ).append( variableName ).append( "\"));" ).append( "\n" );
-
-						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
+						appendingIndentation( ifbody );
+						ifbody.append( "}\n" );
+						decrementIndentation(2);
+						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
+					} else {	
+						StringBuilder ifbody = new StringBuilder();
+						incrementIndentation(2);
+						appendingIndentation( ifbody );
+						ifbody.append( subType.id() ).append( " = new " ).append( variableNameType );
+						ifbody.append( "( v.getFirstChild(\"" ).append( variableName ).append( "\"));" ).append( "\n" );
+						decrementIndentation(2);
+						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
 					}
 				} else {
 					// case where there are no subnodes
@@ -779,97 +800,92 @@ public class JavaDocumentCreator
 					if ( subType.cardinality().max() > 1 ) {
 
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );
-
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if (v.hasChildren(\"" ).append( variableName ).append( "\")){\n" );
-
-						incrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "for(int counter" ).append( variableName ).append( "=0;counter" ).append( variableName );
-						stringBuilder.append( "<v.getChildren(\"" ).append( variableName ).append( "\").size(); counter" ).append( variableName );
-						stringBuilder.append( "++){\n" );
+						stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );				
+						
+						StringBuilder ifbody = new StringBuilder();
+						incrementIndentation(2);
+						appendingIndentation( ifbody );
+						ifbody.append( "for(int counter" ).append( variableName ).append( "=0;counter" ).append( variableName );
+						ifbody.append( "<v.getChildren(\"" ).append( variableName ).append( "\").size(); counter" ).append( variableName );
+						ifbody.append( "++){\n" );
 						incrementIndentation();
 						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
-							appendingIndentation( stringBuilder );
-							appendingAddToListNative( stringBuilder, variableName, javaMethod );
+							appendingIndentation( ifbody );
+							appendingAddToListNative( ifbody, variableName, javaMethod );
 						} else if ( nativeTypeName.equals( "Value" ) ) {
-							appendingIndentation( stringBuilder );
-							appendingAddToListValue( stringBuilder, variableName );
+							appendingIndentation( ifbody );
+							appendingAddToListValue( ifbody, variableName );
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
 								if ( !javaNativeChecker.containsKey( t ) ) {
 									continue;
 								}
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "if(v.getChildren(\"" ).append( variableName ).append( "\").get(counter" );
-								stringBuilder.append( variableName ).append( ")." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
+								appendingIndentation( ifbody );
+								ifbody.append( "if(v.getChildren(\"" ).append( variableName ).append( "\").get(counter" );
+								ifbody.append( variableName ).append( ")." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
 
 								incrementIndentation();
-								appendingIndentation( stringBuilder );
-								appendingAddToListNative( stringBuilder, variableName, javaNativeMethod.get( t ) );
+								appendingIndentation( ifbody );
+								appendingAddToListNative( ifbody, variableName, javaNativeMethod.get( t ) );
 
 								decrementIndentation();
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "}\n" );
+								appendingIndentation( ifbody );
+								ifbody.append( "}\n" );
 							}
 						}
 						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
-
-						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
+						appendingIndentation( ifbody );
+						ifbody.append( "}\n" );
+						decrementIndentation(2);
+						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
+						
+						
 					} else {
 						// it is a single element
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if (v.hasChildren(\"" ).append( variableName ).append( "\")){\n" );
-
-						incrementIndentation();
+						StringBuilder ifbody = new StringBuilder();
+						incrementIndentation(2);
 						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 							// all the common native types
-							appendingIndentation( stringBuilder );
-							stringBuilder.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName ).append( "\")." );
-							stringBuilder.append( javaMethod );
-							stringBuilder.append( ";\n" );
+							appendingIndentation( ifbody );
+							ifbody.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName ).append( "\")." );
+							ifbody.append( javaMethod );
+							ifbody.append( ";\n" );
 						} else if ( variableNameType.equals( "Value" ) ) {
 							// in case of ANY and in case of undefined
-							appendingIndentation( stringBuilder );
-							stringBuilder.append( "if(v.getFirstChild(\"" ).append( variableName );
-							stringBuilder.append( "\").isDefined()){\n" );
+							appendingIndentation( ifbody );
+							ifbody.append( "if(v.getFirstChild(\"" ).append( variableName );
+							ifbody.append( "\").isDefined()){\n" );
 
 							incrementIndentation();
-							appendingIndentation( stringBuilder );
-							stringBuilder.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName );
-							stringBuilder.append( "\")" ).append( ";\n" );
+							appendingIndentation( ifbody );
+							ifbody.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName );
+							ifbody.append( "\")" ).append( ";\n" );
 
 							decrementIndentation();
-							appendingIndentation( stringBuilder );
-							stringBuilder.append( "}\n" );
+							appendingIndentation( ifbody );
+							ifbody.append( "}\n" );
 
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
 								if ( !javaNativeChecker.containsKey( t ) ) {
 									continue;
 								}
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "if(v.getFirstChild(\"" ).append( variableName );
-								stringBuilder.append( "\")." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
+								appendingIndentation( ifbody );
+								ifbody.append( "if(v.getFirstChild(\"" ).append( variableName );
+								ifbody.append( "\")." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
 
 								incrementIndentation();
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( variableName ).append( " = v.getFirstChild(\"" ).append( variableName ).append( "\")." );
-								stringBuilder.append( javaNativeMethod.get( t ) ).append( ";\n" );
+								appendingIndentation( ifbody );
+								ifbody.append( variableName ).append( " = v.getFirstChild(\"" ).append( variableName ).append( "\")." );
+								ifbody.append( javaNativeMethod.get( t ) ).append( ";\n" );
 
 								decrementIndentation();
-								appendingIndentation( stringBuilder );
-								stringBuilder.append( "}\n" );
+								appendingIndentation( ifbody );
+								ifbody.append( "}\n" );
 							}
 						}
-						decrementIndentation();
-						appendingIndentation( stringBuilder );
-						stringBuilder.append( "}\n" );
+						decrementIndentation(2);
+						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
 					}
 
 				}
@@ -1585,10 +1601,24 @@ public class JavaDocumentCreator
 	{
 		indentation = indentation + INDENTATION_STEP;
 	}
+	
+	private void incrementIndentation(int times)
+	{
+		for( int i = 0; i < times; i++ ) {
+			incrementIndentation();
+		}
+	}
 
 	private void decrementIndentation()
 	{
 		indentation = indentation - INDENTATION_STEP;
+	}
+		
+	private void decrementIndentation(int times)
+	{
+		for( int i = 0; i < times; i++ ) {
+			decrementIndentation();
+		}
 	}
 
 	private String getVariableName( TypeDefinition type )

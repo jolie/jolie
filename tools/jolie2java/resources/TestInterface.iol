@@ -63,9 +63,9 @@ type InLineStructureVectorsType: void {
       			.ab: raw
       			.bc[3,4]: string
       			.fh*: string {
-					.abc[2,2]: any
-					.def: long
-				}
+              .abc[2,2]: any
+              .def: long
+            }
         }
 	}
 	.aa?: string {
