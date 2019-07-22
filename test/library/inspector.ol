@@ -3,6 +3,11 @@ include "inspector.iol"
 include "string_utils.iol"
 include "console.iol"
 
+define resetAliases {
+	undef( t )
+	undef( response )
+}
+
 define doTest
 {
 	expectedType.filename = "library/private/inspector/types_1.ol"
@@ -17,12 +22,12 @@ define doTest
 		throw( TestFailed, "Type " + expectedTypeName + " is not a type choice" )
 	}
 	if( t.name != expectedTypeName ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != expectedTypeDocumentation ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
 	}
 	if( t.nativeType != "void" ){
 		throw( TestFailed, "Type " + expectedTypeName + " should have 'void' as native type, found: " + t.nativeType )
@@ -34,7 +39,7 @@ define doTest
 		throw( TestFailed, "Type " + expectedTypeName + " should have no untypedFields" )
 	}
 
-	undef( response )
+	resetAliases // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	expectedType.filename = "library/private/inspector/types_2.ol"
 	expectedTypeName = "myType2"
@@ -42,15 +47,15 @@ define doTest
 	inspectTypes@Inspector( expectedType )( response )
 	t -> response.types
 	if( t.name != expectedTypeName ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != expectedTypeDocumentation ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
 	}
 
-	undef( response )
+	resetAliases // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	expectedType.filename = "library/private/inspector/types_3.ol"
 	expectedTypeName = "SetRedirectionRequest"
@@ -77,15 +82,17 @@ define doTest
 	e.range.min = 1
 	e.type.nativeType = "string"
 
+	undef( e )
+
 	inspectTypes@Inspector( expectedType )( response )
 	t -> response.types
 	if( t.name != expectedTypeName ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != expectedTypeDocumentation ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
 	}
 	field -> t.fields[i]
 	expField -> expFields[i]
@@ -94,18 +101,18 @@ define doTest
 	}
 	for ( i=0, i<#expectedFields, i++ ) {
 		if( field.name != expField.name ){
-			throw( TestFailed, "Type " + expField.name + " has a wrong name: " + fields.name )
+			throw( TestFailed, "Type " + expField.name + " has an unexpected name: " + fields.name )
 		}
 		if( field.range != expField.name ){
-			throw( TestFailed, "Type " + expField.name + " has a wrong name: " + fields.name )
+			throw( TestFailed, "Type " + expField.name + " has an unexpected name: " + fields.name )
 		}
 		trim@StringUtils( field.type.documentation )( field.type.documentation )
 		if( field.type.documentation != expField.documentation ){
-			throw( TestFailed, "Type " + expField.name + " has a wrong documentation: " + field.type.documentation )
+			throw( TestFailed, "Type " + expField.name + " has an unexpected documentation: " + field.type.documentation )
 		} 
 	}
 
-	undef( response )
+	resetAliases // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	expectedType.filename = "library/private/inspector/types_4.ol"
 	expectedTypeName = "SetOutputPortRequest"
@@ -113,93 +120,92 @@ define doTest
 	inspectTypes@Inspector( expectedType )( response )
 	t -> response.types
 	if( t.name != expectedTypeName ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong name: " + t.name )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != expectedTypeDocumentation ){
-		throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
 	}
 	expectedFieldName = "name"
 	expectedFieldDocumentation = "bwd comment"
 	t -> response.types.type.fields
 	if( t.name != expectedFieldName ){
-		throw( TestFailed, "Field " + expectedFieldName + " has a wrong name: " + t.name )
+		throw( TestFailed, "Field " + expectedFieldName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type.fields.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != expectedFieldDocumentation ){
-		throw( TestFailed, "Field " + expectedFieldName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Field " + expectedFieldName + " has an unexpected documentation: " + t.documentation )
 	}
 	expectedFieldName = "location"
 	expectedFieldDocumentation = "fwd The location of the output port"
 	t -> response.types.type.fields.type.fields
 	if( t.name != expectedFieldName ){
-		throw( TestFailed, "Field " + expectedFieldName + " has a wrong name: " + t.name )
+		throw( TestFailed, "Field " + expectedFieldName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type.fields.type.fields.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != expectedFieldDocumentation ){
-		throw( TestFailed, "Field " + expectedFieldName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Field " + expectedFieldName + " has an unexpected documentation: " + t.documentation )
 	}
 	expectedFieldName = "protocol"
 	expectedFieldDocumentation = "The name of the protocol (e.g., sodep, http)"
 	t -> response.types.type.fields.type.fields.type.fields
 	if( t.name != expectedFieldName ){
-		throw( TestFailed, "Field " + expectedFieldName + " has a wrong name: " + t.name )
+		throw( TestFailed, "Field " + expectedFieldName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type.fields.type.fields.type.fields.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != expectedFieldDocumentation ){
-		throw( TestFailed, "Field " + expectedFieldName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Field " + expectedFieldName + " has an unexpected documentation: " + t.documentation )
 	}
 	if( !t.untypedFields ){
 		throw( TestFailed, "Field " + expectedFieldName + " should have untypedFields" )
 	}
 
-	undef( response )
+	resetAliases // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	expectedType.filename = "library/private/inspector/types_5.ol"
 	expectedTypeName = "myChoice"
 	expectedTypeDocumentation = "backward comment choice"
 	inspectTypes@Inspector( expectedType )( response )
-	t -> response.types.type[0]
-	// if( !( is_defined( t.left ) && is_defined( t.right ) ) ){
-	// 	throw( TestFailed, "Type " + expectedTypeName + " is not marked as a type choice" )
-	// }
-	// trim@StringUtils( t.documentation )( t.documentation )
-	// if( t.documentation != expectedTypeDocumentation ){
-	// 	throw( TestFailed, "Type " + expectedTypeName + " has a wrong documentation: " + t.documentation )
-	// }
-	// t -> response.types.type.left
-	// if( t.nativeType != "void" ){
-	// 		throw( TestFailed, "Left type of " + expectedTypeName + " has nativeType: " + t.nativeType + ", expected void" )
-	// }
-	// t -> response.types.type.left.field[ 0 ]
-	// if( t.name != "a" ){
-	// 	throw( TestFailed, "field[0] of the left type of " + expectedTypeName + " has a wrong name: " + t.name )
-	// }
-	// t -> response.types.type.left.field[ 0 ].type
-	// trim@StringUtils( t.documentation )( t.documentation )
-	// if( t.documentation = "first choice, fwd" ){
-	// 	throw( TestFailed, "field[0] of the left type of " + expectedTypeName + " has a wrong documentation: " + t.documentation )
-	// }
+	t -> response.types.type
+	if( !( is_defined( t.left ) && is_defined( t.right ) ) ){
+		throw( TestFailed, "Type " + expectedTypeName + " is not marked as a type choice" )
+	}
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != expectedTypeDocumentation ){
+		throw( TestFailed, "Type " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
+	}
+	t -> response.types.type.left
+	if( t.nativeType != "void" ){
+			throw( TestFailed, "Left type of " + expectedTypeName + " has nativeType: " + t.nativeType + ", expected void" )
+	}
+	t -> response.types.type.left.fields // fields[ 0 ] crashes due to an infinite aliasing loop
+	if( t.name != "a" ){
+		throw( TestFailed, "field[0] of the left type of " + expectedTypeName + " has an unexpected name: " + t.name )
+	}
+	t -> response.types.type.left.fields[ 0 ].type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation = "first choice, fwd" ){
+		throw( TestFailed, "field[0] of the left type of " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
+	}
 	t -> response.types.type.left.fields[ 1 ]
-	// valueToPrettyString@StringUtils( t )( s ); println@Console( s )()
 	if( t.name != "b" ){
-		throw( TestFailed, "fields[1] of the left type of " + expectedTypeName + " has a wrong name: " + t.name )
+		throw( TestFailed, "fields[1] of the left type of " + expectedTypeName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type.left.fields[ 1 ].type.fields
 	if( t.name != "c" ){
-		throw( TestFailed, "fields[ 1 ].field[ 0 ] of the left type of " + expectedTypeName + " has a wrong name: " + t.name )
+		throw( TestFailed, "fields[ 1 ].field[ 0 ] of the left type of " + expectedTypeName + " has an unexpected name: " + t.name )
 	}
 	t -> response.types.type.left.fields[ 1 ].type.fields.type
 	if( !t.untypedFields ){
-		throw( TestFailed, "fields[ 1 ].field[ 0 ]  of the left type of " + expectedTypeName + " should have untyped fields" )
+		throw( TestFailed, "fields[ 1 ].field[ 0 ] of the left type of " + expectedTypeName + " should have untyped fields" )
 	}
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != "first choice, nested, bwd" ){
-		throw( TestFailed, "fields[ 1 ].field[ 0 ]  of the left type of " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "fields[ 1 ].field[ 0 ] of the left type of " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
 	}
 	t -> response.types.type.right
 	if( !( is_defined( t.left ) && is_defined( t.right ) ) ){
@@ -208,39 +214,84 @@ define doTest
 	t -> response.types.type.right.right.fields.type.right.right.fields.type
 	trim@StringUtils( t.documentation )( t.documentation )
 	if( t.documentation != "very, nested, bwd comment" ){
-		throw( TestFailed, "Field of right of right of field of right of right of " + expectedTypeName + " has a wrong documentation: " + t.documentation )
+		throw( TestFailed, "Field of right of right of field of right of right of " + expectedTypeName + " has an unexpected documentation: " + t.documentation )
 	}
 
-	// undef( response )
+	resetAliases // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	// expectedType.filename = "library/private/inspector/types_6.ol"
-	// inspectPorts@Inspector( expectedType )( response )
-	// with( response ){
-	// 	if( .port[0].isOutput ){
-	// 		throw( TestFailed, "Port[0] should be marked as an inputPort" )
-	// 	}
-	// 	if( .port[0].name != "MyInput" ){
-	// 		throw( TestFailed, "Port[0] has a wrong name" )
-	// 	}
-	// 	trim@StringUtils( .port[0].documentation )( .port[0].documentation )
-	// 	if( .port[0].documentation != "bwc port documentation" ){
-	// 		throw( TestFailed, "Port[0] has a wrong name: " + .port[0].documentation )
-	// 	}
-	// 	if( .port[0].interface[0].name != "MyInterface" ){
-	// 		throw( TestFailed, "Port[0].interface[0] has a wrong name: " + .port[0].interface[0].name )
-	// 	}
-	// 	d -> .port[0].interface[0].operation[0].documentation
-	// 	trim@StringUtils( d )( d )
-	// 	if( d != "a backward comment for the request" ){
-	// 		throw( TestFailed, "Port[0].interface[0].operation[0] has a wrong documentation: " + d )
-	// 	}
-	// 	d -> .port[0].interface[0].operation[2].documentation
-	// 	trim@StringUtils( d )( d )
-	// 	if( d != "request-response op1 documentation" ){
-	// 		throw( TestFailed, "Port[0].interface[0].operation[2] has a wrong documentation: " + d )
-	// 	}
-	// 	if( .port[0].interface[0].operation[2].fault[1].name != "MyOtherFault" ){
-	// 		throw( TestFailed, "Port[0].interface[0].operation[2].fault[1] has a wrong name: " + .port[0].interface[0].operation[2].fault[1].name )
-	// 	}
-	// }
+	expectedType.filename = "library/private/inspector/types_6.ol"
+	inspectPorts@Inspector( expectedType )( response )
+	t -> response.inputPorts
+	if( t.name != "MyInput" ){
+		throw( TestFailed, "InputPort 'MyInput' has an unexpected name: " + t.name )
+	}
+	if( t.location != "local" ){
+		throw( TestFailed, "InputPort 'MyInput' has an unexpected location: " + t.location )
+	}
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != "bwc port documentation" ){
+		throw( TestFailed, "InputPort " + t.name + " has an unexpected documentation " + t.documentation )
+	}
+	t -> response.inputPorts.interfaces
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != "backward interface documentation" ){
+		throw( TestFailed, "Interface " + t.name + " has an unexpected documentation " + t.documentation )
+	}
+	t -> response.inputPorts.interfaces.operations
+	if( #t != 4 ){
+		throw( TestFailed, "Unexpected number of operations, found " + #t + ", expected 4" )
+	}
+	trim@StringUtils( t[0].documentation )( t[0].documentation )
+	if( t[0].documentation != "a backward comment for the request" ){
+		throw( TestFailed, "Operation " + t[0].name + " has an unexpected documentation " + t[0].documentation )
+	}
+	if( is_defined( t[1].responseType ) ){
+		throw( TestFailed, "Operation " + t[1].name + " is unexpectedly marked as a RequestResponse with responseType " + t[1].responseType )
+	}
+	if( t[2].faults[0].name != "MyFault" || t[2].faults[1].name != "MyOtherFault" ){
+		throw( TestFailed, "Operation " + t[2].name + " has unexpectedly fault names: " + t[2].faults[0].name + ", " + t[2].faults[1].name )
+	}
+	if( t[3].requestType != "void" || t[3].responseType != "void" ){
+		throw( TestFailed, "Operation " + t[3].name + " has unexpectedly request or response types: " + t[3].requestType + ", " + t[3].responseType )
+	}
+
+	t -> response.outputPorts
+	if( t.name != "MyOutput" ){
+		throw( TestFailed, "OutputPort 'MyOutput' has an unexpected name: " + t.name )
+	}
+	if( is_defined( t.location ) || is_defined( t.protocol ) ){
+		throw( TestFailed, "OutputPort 'MyOutput' should not define either a location or a protocol: " + t.location + ", " + t.protocol )
+	}
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != "bw block comment" ){
+		throw( TestFailed, "OutputPort " + t.name + " has an unexpected documentation " + t.documentation )
+	}
+	t -> response.outputPorts.interfaces
+	trim@StringUtils( t[0].documentation )( t[0].documentation )
+	if( t[0].documentation != "interface 2 documentation" ){
+		throw( TestFailed, "Interface " + t[0].name + " has an unexpected documentation " + t[0].documentation )
+	}
+	if( t[1].name != "MyInterface3" ){
+		throw( TestFailed, "Interface 'MyInterface3' has an unexpected name " + t[1].name )
+	}
+	t -> response.outputPorts.interfaces[0].operations
+	if( #t != 2 ){
+		throw( TestFailed, "Unexpected number of operations, found " + #t + ", expected 2" )
+	}
+	trim@StringUtils( t[0].documentation )( t[0].documentation )
+	trim@StringUtils( t[1].documentation )( t[1].documentation )
+	if( t[0].documentation != t[1].documentation ){
+		throw( TestFailed, "Documentation of operations " + t[0].name + " and " + t[1].name + " should coincide. Found: \n - " + t[0].documentation + "\n - " + t[1].documentation  )
+	}
+
+	t -> response.referredTypes
+	if( t.name != "MyType" ){
+		throw( TestFailed, "Unexpected name of referred type. Found: " + t.name )
+	}
+	t -> response.referredTypes.type.fields.type
+	trim@StringUtils( t.documentation )( t.documentation )
+	if( t.documentation != "a nice field" ){
+		throw( TestFailed, "Unexpected documentation in field of referred type. Found: " + t.documentation )
+	}
+
 }

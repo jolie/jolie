@@ -1,6 +1,6 @@
 /// MyType documentation
 type MyType : void {
-  .a : string //< a nice subnode
+  .a : string //< a nice field
 }
 
 /// interface documentation
@@ -18,9 +18,14 @@ interface MyInterface {
 /// interface 2 documentation
 interface MyInterface2 {
   RequestResponse:
-  /// request-response op1 MyInterface2 documentation
+  /// a request-response of MyInterface2
   rrOperation1( void )( void ),
-  rrOperation2( void )( void ) //< request-response op2 MyInterface2 documentation
+  rrOperation2( void )( void ) //< a request-response of MyInterface2
+}
+
+interface MyInterface3 {
+  OneWay:
+    owOperation1( void )
 }
 
 /// port documentation
@@ -31,5 +36,5 @@ inputPort MyInput {
 
 /** block comment */
 outputPort MyOutput {
-  Interfaces: MyInterface2
+  Interfaces: MyInterface2, MyInterface3
 } /*< bw block comment */
