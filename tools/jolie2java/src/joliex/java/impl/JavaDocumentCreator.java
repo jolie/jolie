@@ -359,7 +359,7 @@ public class JavaDocumentCreator
 	{
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
-		outputFileText.append( "package " ).append( packageName ).append( ".").append( TYPEFOLDER ).append(";\n" );
+		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
 		/* appending imports */
 		appendingImportsIfNecessary( outputFileText, typeDefinition );
 
@@ -754,9 +754,8 @@ public class JavaDocumentCreator
 						stringBuilder.append( ">();" ).append( "\n" );
 
 						/* checking if there are fields in the value */
-										
 						StringBuilder ifbody = new StringBuilder();
-						incrementIndentation(2);
+						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
 						ifbody.append( "for( int counter" ).append( variableName ).append( " = 0;" ).append( "counter" );
 						ifbody.append( variableName );
@@ -775,15 +774,15 @@ public class JavaDocumentCreator
 						decrementIndentation();
 						appendingIndentation( ifbody );
 						ifbody.append( "}\n" );
-						decrementIndentation(2);
+						decrementIndentation( 2 );
 						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
-					} else {	
+					} else {
 						StringBuilder ifbody = new StringBuilder();
-						incrementIndentation(2);
+						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
 						ifbody.append( subType.id() ).append( " = new " ).append( variableNameType );
 						ifbody.append( "( v.getFirstChild(\"" ).append( variableName ).append( "\"));" ).append( "\n" );
-						decrementIndentation(2);
+						decrementIndentation( 2 );
 						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
 					}
 				} else {
@@ -800,10 +799,10 @@ public class JavaDocumentCreator
 					if ( subType.cardinality().max() > 1 ) {
 
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );				
-						
+						stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( nativeTypeName ).append( ">();\n" );
+
 						StringBuilder ifbody = new StringBuilder();
-						incrementIndentation(2);
+						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
 						ifbody.append( "for(int counter" ).append( variableName ).append( "=0;counter" ).append( variableName );
 						ifbody.append( "<v.getChildren(\"" ).append( variableName ).append( "\").size(); counter" ).append( variableName );
@@ -836,14 +835,13 @@ public class JavaDocumentCreator
 						decrementIndentation();
 						appendingIndentation( ifbody );
 						ifbody.append( "}\n" );
-						decrementIndentation(2);
+						decrementIndentation( 2 );
 						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
-						
-						
+
 					} else {
 						// it is a single element
 						StringBuilder ifbody = new StringBuilder();
-						incrementIndentation(2);
+						incrementIndentation( 2 );
 						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 							// all the common native types
 							appendingIndentation( ifbody );
@@ -884,7 +882,7 @@ public class JavaDocumentCreator
 								ifbody.append( "}\n" );
 							}
 						}
-						decrementIndentation(2);
+						decrementIndentation( 2 );
 						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
 					}
 
@@ -1336,6 +1334,10 @@ public class JavaDocumentCreator
 						// remove
 						appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
 
+						// get
+						variableNameType = "ArrayList<" + variableNameType + ">";
+						appendGetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
+
 					} else {
 						// get
 						appendGetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
@@ -1361,6 +1363,10 @@ public class JavaDocumentCreator
 
 								// remove
 								appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
+
+								// get
+								variableNameType = "ArrayList<" + variableNameType + ">";
+								appendGetMethod( stringBuilder, variableNameType, variableNameCapitalized, variableName );
 							} else {
 								appendGetMethodWithIndex( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
 
@@ -1372,6 +1378,10 @@ public class JavaDocumentCreator
 
 								// remove
 								appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
+								
+								// get
+								nativeTypeName = "ArrayList<" + nativeTypeName + ">";
+								appendGetMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
 							}
 
 						} else if ( variableNameType.equals( "Value" ) ) {
@@ -1601,8 +1611,8 @@ public class JavaDocumentCreator
 	{
 		indentation = indentation + INDENTATION_STEP;
 	}
-	
-	private void incrementIndentation(int times)
+
+	private void incrementIndentation( int times )
 	{
 		for( int i = 0; i < times; i++ ) {
 			incrementIndentation();
@@ -1613,8 +1623,8 @@ public class JavaDocumentCreator
 	{
 		indentation = indentation - INDENTATION_STEP;
 	}
-		
-	private void decrementIndentation(int times)
+
+	private void decrementIndentation( int times )
 	{
 		for( int i = 0; i < times; i++ ) {
 			decrementIndentation();

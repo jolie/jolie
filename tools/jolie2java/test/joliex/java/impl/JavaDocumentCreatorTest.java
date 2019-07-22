@@ -56,6 +56,7 @@ public class JavaDocumentCreatorTest
 
 	HashMap<String, Method> setMethodList = new HashMap<>();
 	HashMap<String, Method> getMethodList = new HashMap<>();
+	HashMap<String, Method> getMethodValueList = new HashMap<>();
 	HashMap<String, Method> addMethodList = new HashMap<>();
 	HashMap<String, Method> removeMethodList = new HashMap<>();
 	HashMap<String, Method> sizeMethodList = new HashMap<>();
@@ -95,7 +96,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 24, new File( "./generated/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 25, new File( "./generated/com/test/types" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated" );
@@ -317,11 +318,11 @@ public class JavaDocumentCreatorTest
 		int setMethods = 0;
 		int getMethods = 0;
 		for( int i = 0; i < ChoiceLinkedType.getMethods().length; i++ ) {
-			Method method = ChoiceLinkedType.getMethods()[i];
-			if ( method.getName().equals( "set") ) {
+			Method method = ChoiceLinkedType.getMethods()[ i ];
+			if ( method.getName().equals( "set" ) ) {
 				setMethods++;
 			}
-			if ( method.getName().equals( "get") ) {
+			if ( method.getName().equals( "get" ) ) {
 				getMethods++;
 			}
 		}
@@ -369,11 +370,11 @@ public class JavaDocumentCreatorTest
 		int setMethods = 0;
 		int getMethods = 0;
 		for( int i = 0; i < ChoiceInlineType.getMethods().length; i++ ) {
-			Method method = ChoiceInlineType.getMethods()[i];
-			if ( method.getName().equals( "set") ) {
+			Method method = ChoiceInlineType.getMethods()[ i ];
+			if ( method.getName().equals( "set" ) ) {
 				setMethods++;
 			}
-			if ( method.getName().equals( "get") ) {
+			if ( method.getName().equals( "get" ) ) {
 				getMethods++;
 			}
 		}
@@ -382,32 +383,32 @@ public class JavaDocumentCreatorTest
 		System.out.println( testName + " checking methods OK" );
 
 	}
-	
+
 	@Test
 	public void testChoiceSimpleType() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException
 	{
 		String testName = "testChoiceSimpleType";
 		Class<?> ChoiceSimpleType = Class.forName( packageName + ".ChoiceSimpleType", true, classLoader );
 		Constructor choiceSimpleTypeConstructor = ChoiceSimpleType.getConstructor( new Class[]{ Value.class } );
-				
+
 		// string
 		Value testValue = Value.create();
 		testValue.setValue( TESTSTRING );
 		Jolie2JavaInterface choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
-		
+
 		// int
 		testValue = Value.create();
 		testValue.setValue( TESTINTEGER );
 		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
-		
+
 		// double
 		testValue = Value.create();
 		testValue.setValue( TESTDOUBLE );
 		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
-		
+
 		// void
 		testValue = Value.create();
 		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
@@ -425,11 +426,11 @@ public class JavaDocumentCreatorTest
 		int setMethods = 0;
 		int getMethods = 0;
 		for( int i = 0; i < ChoiceSimpleType.getMethods().length; i++ ) {
-			Method method = ChoiceSimpleType.getMethods()[i];
-			if ( method.getName().equals( "set") ) {
+			Method method = ChoiceSimpleType.getMethods()[ i ];
+			if ( method.getName().equals( "set" ) ) {
 				setMethods++;
 			}
-			if ( method.getName().equals( "get") ) {
+			if ( method.getName().equals( "get" ) ) {
 				getMethods++;
 			}
 		}
@@ -526,6 +527,7 @@ public class JavaDocumentCreatorTest
 	{
 		setMethodList = new HashMap<>();
 		getMethodList = new HashMap<>();
+		getMethodValueList = new HashMap<>();
 		addMethodList = new HashMap<>();
 		removeMethodList = new HashMap<>();
 		sizeMethodList = new HashMap<>();
@@ -551,9 +553,14 @@ public class JavaDocumentCreatorTest
 				boolean foundRemove = false;
 				boolean foundSize = false;
 				boolean foundGet = false;
+				boolean foundGetValue = false;
 				for( Method method : cls.getDeclaredMethods() ) {
 					String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
-					if ( method.getName().equals( "get" + mNameTmp ) || method.getName().equals( "get" + mNameTmp + "Value" ) ) {
+					if ( method.getName().equals( "get" + mNameTmp + "Value" ) ) {
+						foundGetValue = true;
+						getMethodValueList.put( mNameTmp, method );
+					}
+					if ( method.getName().equals( "get" + mNameTmp ) ) {
 						foundGet = true;
 						getMethodList.put( mNameTmp, method );
 					}
@@ -570,6 +577,7 @@ public class JavaDocumentCreatorTest
 						sizeMethodList.put( mNameTmp, method );
 					}
 				}
+				assertTrue( "get...Value method for field " + vv.getKey() + "not found, class " + cls.getName(), foundGetValue );
 				assertTrue( "get method for field " + vv.getKey() + "not found, class " + cls.getName(), foundGet );
 				assertTrue( "add method for field " + vv.getKey() + "not found, class " + cls.getName(), foundAdd );
 				assertTrue( "size method for field " + vv.getKey() + "not found, class " + cls.getName(), foundSize );
@@ -637,7 +645,7 @@ public class JavaDocumentCreatorTest
 		for( int i = 0; i < aElements; i++ ) {
 			Jolie2JavaInterface inLineStructureType = (Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( getInlineStructureType() );
 			addMethodList.get( "A" ).invoke( obj, inLineStructureType );
-			Object a = getMethodList.get( "A" ).invoke( obj, i );
+			Object a = getMethodValueList.get( "A" ).invoke( obj, i );
 			assertEquals( "Linked type a does not correspond ", InLineStructureType.cast( a ), inLineStructureType );
 		};
 		Integer sizeA = (Integer) sizeMethodList.get( "A" ).invoke( obj );
@@ -655,7 +663,7 @@ public class JavaDocumentCreatorTest
 		for( int i = 0; i < cElements; i++ ) {
 			Jolie2JavaInterface flatStructureType = (Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( getFlatStructuredType() );
 			addMethodList.get( "C" ).invoke( obj, flatStructureType );
-			Object c = getMethodList.get( "C" ).invoke( obj, i );
+			Object c = getMethodValueList.get( "C" ).invoke( obj, i );
 			assertEquals( "Linked type c does not correspond ", FlatStructureType.cast( c ), flatStructureType );
 		};
 		Integer sizeC = (Integer) sizeMethodList.get( "C" ).invoke( obj );
@@ -672,7 +680,7 @@ public class JavaDocumentCreatorTest
 		for( int i = 0; i < dElements; i++ ) {
 			Jolie2JavaInterface newType = (Jolie2JavaInterface) newTypeConstructor.newInstance( getNewType() );
 			addMethodList.get( "D" ).invoke( obj, newType );
-			Object d = getMethodList.get( "D" ).invoke( obj, i );
+			Object d = getMethodValueList.get( "D" ).invoke( obj, i );
 			assertEquals( "Linked type c does not correspond ", NewType.cast( d ), newType );
 		};
 		Integer sizeD = (Integer) sizeMethodList.get( "D" ).invoke( obj );
@@ -768,7 +776,7 @@ public class JavaDocumentCreatorTest
 							Constructor subClassConstructor = SubClass.getConstructors()[ 0 ];
 							Object subClassInstance = subClassConstructor.newInstance( obj, value );
 							addMethodList.get( mNameTmp ).invoke( obj, subClassInstance );
-							Object getSubClassInstance = getMethodList.get( mNameTmp ).invoke( obj, i );
+							Object getSubClassInstance = getMethodValueList.get( mNameTmp ).invoke( obj, i );
 							assertTrue( "SubClasses (" + SubClass.getName() + ") are not equal", subClassInstance.equals( getSubClassInstance ) );
 						}
 					} else {
@@ -840,32 +848,32 @@ public class JavaDocumentCreatorTest
 		String mNameTmp = fieldName.substring( 0, 1 ).toUpperCase() + fieldName.substring( 1 );
 		if ( v.isBool() ) {
 			addMethodList.get( mNameTmp ).invoke( obj, v.boolValue() );
-			Boolean returnValue = (Boolean) getMethodList.get( mNameTmp ).invoke( obj, index );
+			Boolean returnValue = (Boolean) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.boolValue(), returnValue );
 		} else if ( v.isInt() ) {
 			addMethodList.get( mNameTmp ).invoke( obj, v.intValue() );
-			Integer returnValue = (Integer) getMethodList.get( mNameTmp ).invoke( obj, index );
+			Integer returnValue = (Integer) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.intValue(), returnValue.intValue() );
 		} else if ( v.isString() ) {
 			addMethodList.get( mNameTmp ).invoke( obj, v.strValue() );
-			String returnValue = (String) getMethodList.get( mNameTmp ).invoke( obj, index );
+			String returnValue = (String) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.strValue(), returnValue );
 		} else if ( v.isDouble() ) {
 			addMethodList.get( mNameTmp ).invoke( obj, v.doubleValue() );
-			Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( obj, index );
+			Double returnValue = (Double) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed",
 				new Double( v.doubleValue() ), returnValue );
 		} else if ( v.isLong() ) {
 			addMethodList.get( mNameTmp ).invoke( obj, v.longValue() );
-			Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( obj, index );
+			Long returnValue = (Long) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed", v.longValue(), returnValue.longValue() );
 		} else if ( v.isByteArray() ) {
 			addMethodList.get( mNameTmp ).invoke( obj, v.byteArrayValue() );
-			ByteArray returnValue = (ByteArray) getMethodList.get( mNameTmp ).invoke( obj, index );
+			ByteArray returnValue = (ByteArray) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertTrue( "check methods for field " + fieldName + ", index " + index + " failed", compareByteArrays( returnValue, v.byteArrayValue() ) );
 		} else {
 			addMethodList.get( mNameTmp ).invoke( obj, v );
-			Value returnValue = (Value) getMethodList.get( mNameTmp ).invoke( obj, index );
+			Value returnValue = (Value) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertTrue( "check methods for field " + fieldName + ", index " + index + " failed", compareValues( returnValue, v, 0 ) );
 		}
 	}
@@ -956,17 +964,16 @@ public class JavaDocumentCreatorTest
 		}
 		return testValue;
 	}
-	
-		private Value getChoiceInlineType3()
+
+	private Value getChoiceInlineType3()
 	{
 		Value testValue = Value.create();
 		testValue.getFirstChild( "g" ).setValue( TESTSTRING );
-		testValue.getFirstChild( "m").setValue( TESTINTEGER );
+		testValue.getFirstChild( "m" ).setValue( TESTINTEGER );
 
 		return testValue;
 
 	}
-	
 
 	private Value getLinkedTypeStructureType()
 	{

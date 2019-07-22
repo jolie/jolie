@@ -166,6 +166,9 @@ type IntType: int
 
 type BoolType: bool
 
+type TestFaultType: void {
+  .f: InLineStructureType
+}
 
 interface TestInterface {
 RequestResponse:
@@ -202,6 +205,6 @@ RequestResponse:
 
   testIntType( IntType )( IntType ),
 
-  testBoolType( BoolType )( BoolType )
+  testBoolType( BoolType )( BoolType ) throws TestFault( TestFaultType )
 
 }
