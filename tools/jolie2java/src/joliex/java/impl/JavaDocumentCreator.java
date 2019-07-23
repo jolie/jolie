@@ -1,18 +1,21 @@
 /**
  * *************************************************************************
- *   Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com> *
- * Copyright (C) 2015 by Matthias Dieter Wallnöfer * * This program is free
- * software; you can redistribute it and/or modify * it under the terms of the
- * GNU Library General Public License as * published by the Free Software
- * Foundation; either version 2 of the * License, or (at your option) any later
- * version. * * This program is distributed in the hope that it will be useful,
- * * but WITHOUT ANY WARRANTY; without even the implied warranty of *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU General
- * Public License for more details. * * You should have received a copy of the
- * GNU Library General Public * License along with this program; if not, write
- * to the * Free Software Foundation, Inc., * 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA. * * For details about the authors of this
- * software, see the AUTHORS file. *
+ * Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>
+ * Copyright (C) 2011 by Michele Morgagni Copyright (C) 2015 by Matthias Dieter
+ * Wallnöfer Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>
+ *
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Library General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version. This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details. You should have received a copy of the GNU
+ * Library General Public License along with this program; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA. For details about the authors of this software, see the
+ * AUTHORS file.
  * *************************************************************************
  */
 package joliex.java.impl;
@@ -60,10 +63,6 @@ import jolie.runtime.typing.TypeCheckingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-/**
- *
- * @author balint maschio & michele morgagni
- */
 public class JavaDocumentCreator
 {
 
@@ -230,6 +229,47 @@ public class JavaDocumentCreator
 				}
 			}
 		}
+
+		// prepare interfaceImpl
+		for( OutputPortInfo outputPort : outputPorts ) {
+			/* range over the input ports */
+			if ( targetPort == null || outputPort.id().equals( targetPort ) ) {
+
+				String nameFile = directoryPath + Constants.fileSeparator + outputPort.id() + "Impl.java";
+				Writer writer;
+				try {
+					writer = new BufferedWriter( new FileWriter( nameFile ) );
+					prepareInterfaceImpl( outputPort, writer );
+					writer.flush();
+					writer.close();
+				} catch( IOException ex ) {
+					Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+				}
+			}
+		}
+
+		// prepare JolieClient
+		String nameFile = directoryPath + Constants.fileSeparator + "JolieClient.java";
+		Writer writer;
+		try {
+			writer = new BufferedWriter( new FileWriter( nameFile ) );
+			prepareJolieClient( writer );
+			writer.flush();
+			writer.close();
+		} catch( IOException ex ) {
+			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+		}
+
+		// prepare Controller
+		nameFile = directoryPath + Constants.fileSeparator + "Controller.java";
+		try {
+			writer = new BufferedWriter( new FileWriter( nameFile ) );
+			prepareController( writer );
+			writer.flush();
+			writer.close();
+		} catch( IOException ex ) {
+			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+		}
 	}
 
 	private void prepareExceptionConstrructorAndGet( StringBuilder stringBuilder, String faultName, String faultTypeName, String exceptionName )
@@ -338,11 +378,258 @@ public class JavaDocumentCreator
 
 			}
 			appendingOperationdeclaration( outputFileText, operation.id(), requestType, responseType, exceptionList );
+			outputFileText.append( ";\n" );
 		}
 
 		decrementIndentation();
 		appendingIndentation( outputFileText );
 		outputFileText.append( "}\n" );
+		writer.append( outputFileText.toString() );
+	}
+
+	private void prepareInterfaceImpl( OutputPortInfo outputPort, Writer writer ) throws IOException
+	{
+		OperationDeclaration operation;
+		RequestResponseOperationDeclaration requestResponseOperation;
+
+		StringBuilder outputFileText = new StringBuilder();
+		/* appending package */
+		outputFileText.append( "package " ).append( packageName ).append( ";\n" );
+		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
+		outputFileText.append( "import java.io.IOException;\n" );
+		outputFileText.append( "import jolie.runtime.FaultException;\n" );
+
+
+		/* writing main class */
+		indentation = 0;
+		outputFileText.append( "public class " ).append( outputPort.id() ).append( "Impl implements " ).append( outputPort.id() ).append( "Interface {\n" );
+
+		incrementIndentation();
+
+		Collection<OperationDeclaration> operations = outputPort.operations();
+		Iterator<OperationDeclaration> operatorIterator = operations.iterator();
+		while( operatorIterator.hasNext() ) {
+			operation = operatorIterator.next();
+			String requestType = "";
+			String responseType = "";
+			ArrayList<String> exceptionList = new ArrayList<>();
+
+			if ( operation instanceof RequestResponseOperationDeclaration ) {
+				requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().id() ) ) {
+					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.requestType() ) );
+				} else {
+					requestType = requestResponseOperation.requestType().id();
+				}
+				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.responseType().id() ) ) {
+					responseType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.responseType() ) );
+				} else {
+					responseType = requestResponseOperation.responseType().id();
+				}
+				for( Entry<String, TypeDefinition> fault : requestResponseOperation.faults().entrySet() ) {
+					exceptionList.add( getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
+				}
+
+			} else {
+				OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
+				if ( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().id() ) ) {
+					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( oneWayOperationDeclaration.requestType() ) );
+				} else {
+					requestType = oneWayOperationDeclaration.requestType().id();
+				}
+				responseType = "void";
+
+			}
+			appendingOperationdeclaration( outputFileText, operation.id(), requestType, responseType, exceptionList );
+			outputFileText.append( "{\n" );
+			incrementIndentation();
+			appendingIndentation( outputFileText );
+			outputFileText.append( "final Controller controller = new Controller();\n" );
+			appendingIndentation( outputFileText );
+			outputFileText.append( "JolieClient.call(request.getValue(), \"" ).append( operation.id() ).append( "\", controller );\n" );
+			appendingIndentation( outputFileText );
+			outputFileText.append( "if ( controller.getFault() != null ) {\n" );
+			incrementIndentation();
+			appendingIndentation( outputFileText );
+			outputFileText.append( "throw controller.getFault();\n" );
+			decrementIndentation();
+			appendingIndentation( outputFileText );
+			outputFileText.append( "}\n" );
+			appendingIndentation( outputFileText );
+			outputFileText.append( "if ( controller.getException() != null ) {\n" );
+			incrementIndentation();
+			appendingIndentation( outputFileText );
+			outputFileText.append( "throw controller.getException();\n" );
+			decrementIndentation();
+			appendingIndentation( outputFileText );
+			outputFileText.append( "}\n" );
+			if ( operation instanceof RequestResponseOperationDeclaration ) {
+				appendingIndentation( outputFileText );
+				outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse() );\n" );
+			}
+
+			decrementIndentation();
+			appendingIndentation( outputFileText );
+			outputFileText.append( "}\n" );
+		}
+
+		decrementIndentation();
+		appendingIndentation( outputFileText );
+		outputFileText.append( "}\n" );
+		writer.append( outputFileText.toString() );
+	}
+
+	private void prepareJolieClient( Writer writer ) throws IOException
+	{
+
+		StringBuilder outputFileText = new StringBuilder();
+		outputFileText.append( "/**\n"
+			+ " * *************************************************************************\n"
+			+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n"
+			+ " *\n"
+			+ " *\n"
+			+ " * This program is free software; you can redistribute it and/or modify it under\n"
+			+ " * the terms of the GNU Library General Public License as published by the Free\n"
+			+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
+			+ " * later version. This program is distributed in the hope that it will be\n"
+			+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+			+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
+			+ " * Public License for more details. You should have received a copy of the GNU\n"
+			+ " * Library General Public License along with this program; if not, write to the\n"
+			+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
+			+ " * 02111-1307, USA. For details about the authors of this software, see the\n"
+			+ " * AUTHORS file.\n"
+			+ " * *************************************************************************\n"
+			+ " */\n"
+			+ "package " + packageName + ";\n"
+			+ "\n"
+			+ "import java.io.IOException;\n"
+			+ "import java.net.URI;\n"
+			+ "import java.util.concurrent.CountDownLatch;\n"
+			+ "import jolie.runtime.FaultException;\n"
+			+ "import jolie.runtime.Value;\n"
+			+ "import joliex.java.Callback;\n"
+			+ "import joliex.java.Protocols;\n"
+			+ "import joliex.java.Service;\n"
+			+ "import joliex.java.ServiceFactory;\n"
+			+ "\n"
+			+ "public class JolieClient\n"
+			+ "{\n"
+			+ "	private static String ip = null;\n"
+			+ "	private static int servicePort = 0;\n"
+			+ "\n"
+			+ "	public static void init( String ipAddress, int port )\n"
+			+ "	{\n"
+			+ "		ip = ipAddress;\n"
+			+ "		servicePort = port;\n"
+			+ "	}\n"
+			+ "\n"
+			+ "	public static void call( Value request, String operation, final Controller controller ) throws IOException, InterruptedException, Exception\n"
+			+ "	{\n"
+			+ "		if (ip != null && servicePort > 0  ) {\n"
+			+ "			final CountDownLatch latch = new CountDownLatch( 1 ); // just one time\n"
+			+ "			ServiceFactory serviceFactory = new ServiceFactory();\n"
+			+ "			String location = \"socket://\" + ip + \":\" + servicePort;\n"
+			+ "			Service service = serviceFactory.create( URI.create( location ), Protocols.SODEP, Value.create() );\n"
+			+ "			if ( service != null ) {\n"
+			+ "				service.callRequestResponse( operation, request, new Callback()\n"
+			+ "				{\n"
+			+ "					@Override\n"
+			+ "					public void onSuccess( Value response )\n"
+			+ "					{\n"
+			+ "						controller.setResponse( response );\n"
+			+ "						latch.countDown();\n"
+			+ "\n"
+			+ "					}\n"
+			+ "\n"
+			+ "					@Override\n"
+			+ "					public void onFault( FaultException fault )\n"
+			+ "					{\n"
+			+ "						controller.setFault( fault );\n"
+			+ "						latch.countDown();\n"
+			+ "					}\n"
+			+ "\n"
+			+ "					@Override\n"
+			+ "					public void onError( IOException exception )\n"
+			+ "					{\n"
+			+ "						controller.setException( exception );\n"
+			+ "						latch.countDown();\n"
+			+ "					}\n"
+			+ "				} );\n"
+			+ "			}\n"
+			+ "\n"
+			+ "			latch.await();\n"
+			+ "			service.close();\n"
+			+ "			serviceFactory.shutdown();\n"
+			+ "		} else {\n"
+			+ "			throw new Exception( \"IP and servicePort not initialized, initialize them using static init() method\" );\n"
+			+ "		}\n"
+			+ "\n"
+			+ "	}\n"
+			+ "\n"
+			+ "}\n"
+			+ "" );
+
+		writer.append( outputFileText.toString() );
+	}
+
+	private void prepareController( Writer writer ) throws IOException
+	{
+
+		StringBuilder outputFileText = new StringBuilder();
+		outputFileText.append( "/**\n"
+			+ " * *************************************************************************\n"
+			+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n"
+			+ " *\n"
+			+ " *\n"
+			+ " * This program is free software; you can redistribute it and/or modify it under\n"
+			+ " * the terms of the GNU Library General Public License as published by the Free\n"
+			+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
+			+ " * later version. This program is distributed in the hope that it will be\n"
+			+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+			+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
+			+ " * Public License for more details. You should have received a copy of the GNU\n"
+			+ " * Library General Public License along with this program; if not, write to the\n"
+			+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
+			+ " * 02111-1307, USA. For details about the authors of this software, see the\n"
+			+ " * AUTHORS file.\n"
+			+ " * *************************************************************************\n"
+			+ " */\n"
+			+ "package " + packageName + ";\n"
+			+ "import jolie.runtime.FaultException;\n"
+			+ "import jolie.runtime.Value;\n"
+			+ "\n"
+			+ "public class Controller\n"
+			+ "{	\n"
+			+ "	private FaultException fault = null;\n"
+			+ "	private Exception exception = null;\n"
+			+ "	private Value response = null;\n"
+			+ "		\n"
+			+ "	public void setFault( FaultException f ) {\n"
+			+ "		fault = f;\n"
+			+ "	}\n"
+			+ "	\n"
+			+ "	public FaultException getFault() {\n"
+			+ "		return fault;\n"
+			+ "	}\n"
+			+ "	\n"
+			+ "	public void setException( Exception e ) {\n"
+			+ "		exception = e;\n"
+			+ "	}\n"
+			+ "	\n"
+			+ "	public Exception getException() {\n"
+			+ "		return exception;\n"
+			+ "	}\n"
+			+ "	\n"
+			+ "	public void setResponse( Value v ) {\n"
+			+ "		response = v;\n"
+			+ "	}\n"
+			+ "	\n"
+			+ "	public Value getResponse() {\n"
+			+ "		return response;\n"
+			+ "	}\n"
+			+ "}" );
+
 		writer.append( outputFileText.toString() );
 	}
 
@@ -526,13 +813,12 @@ public class JavaDocumentCreator
 	private void appendingOperationdeclaration( StringBuilder stringBuilder, String operationName, String requestType, String responseType, ArrayList<String> exceptionList )
 	{
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestType ).append( " request) throws FaultException, IOException, Exception" );
+		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestType ).append( " request) throws FaultException, IOException, InterruptedException, Exception" );
 		if ( exceptionList.size() > 0 ) {
 			for( int i = 0; i < exceptionList.size(); i++ ) {
 				stringBuilder.append( ", " ).append( exceptionList.get( i ) );
 			}
 		}
-		stringBuilder.append( ";\n" );
 	}
 
 	private void appendingSubClassBody( TypeDefinition typeDefinition, StringBuilder stringBuilder, String clsName )
