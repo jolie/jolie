@@ -2,6 +2,12 @@ include "./TestInterface.iol"
 
 execution{ concurrent }
 
+outputPort MyOutputPort {
+  Location: "socket://localhost:9000"
+  Protocol: sodep
+  Interfaces: TestInterface
+}
+
 inputPort MyPort {
   Location: "socket://localhost:9000"
   Protocol: sodep

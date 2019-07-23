@@ -96,7 +96,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 25, new File( "./generated/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 33, new File( "./generated/com/test/types" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated" );

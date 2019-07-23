@@ -170,7 +170,23 @@ type TestFaultType: void {
   .f: InLineStructureType
 }
 
+type TestFaultType2: string
+
+type TestFaultType3: void {
+  .f: void {
+    .a: string
+    .b: int {
+      .c:bool
+    }
+  }
+}
+
 interface TestInterface {
+OneWay:
+  testOneWay( InLineStructureType ),
+
+  testOneWay2( LinkedTypeStructureType )
+
 RequestResponse:
 
   testLinkedTypeStructure( LinkedTypeStructureType )( LinkedTypeStructureVectorsType ),
@@ -179,13 +195,15 @@ RequestResponse:
 
   testFlatStructure( FlatStructureType )( FlatStructureVectorsType ),
 
-  testChoice( ChoiceSimpleType )( ChoiceSimpleType ),
+  testChoice( ChoiceSimpleType )( ChoiceSimpleType )
+    throws TestFault3( string ),
 
   testChoiceLinkedTypes( ChoiceLinkedType )( ChoiceLinkedType ),
 
   testChoiceInlineTypes( ChoiceInlineType )( ChoiceInlineType ),
 
-  testRootValue1( RootValue1Type )( RootValue2Type ),
+  testRootValue1( RootValue1Type )( RootValue2Type )
+    throws TestFault2,
 
   testRootValue2( RootValue3Type )( RootValue4Type ),
 
@@ -205,6 +223,13 @@ RequestResponse:
 
   testIntType( IntType )( IntType ),
 
-  testBoolType( BoolType )( BoolType ) throws TestFault( TestFaultType )
+  testBoolType( BoolType )( BoolType ) 
+      throws  TestFault( TestFaultType ) 
+              TestFault2( TestFaultType2 )
+              TestFault3( TestFaultType3 ),
+
+  testNatives( string )( long ) throws TestFaultNatives( double )
+
+
 
 }

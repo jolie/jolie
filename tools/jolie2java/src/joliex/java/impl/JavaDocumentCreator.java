@@ -76,13 +76,14 @@ public class JavaDocumentCreator
 	private String directoryPath;
 	private String directoryPathTypes;
 	private LinkedHashMap<String, TypeDefinition> typeMap;
+	private LinkedHashMap<String, TypeDefinition> faultMap;
 	private LinkedHashMap<String, TypeDefinition> subTypeMap;
 	ProgramInspector inspector;
 	private final String TYPESUFFIX = "Type";
 	private final String CHOICEVARIABLENAME = "choice";
-	private static final HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
-	private static final HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
-	private static final HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
+	private static final HashMap<NativeType, String> JAVA_NATIVE_EQUIVALENT = new HashMap<>();
+	private static final HashMap<NativeType, String> JAVA_NATIVE_METHOD = new HashMap<>();
+	private static final HashMap<NativeType, String> JAVA_NATIVE_CHECKER = new HashMap<>();
 
 	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource )
 	{
@@ -92,43 +93,43 @@ public class JavaDocumentCreator
 		this.targetPort = targetPort;
 		this.addSource = addSource;
 
-		javaNativeEquivalent.put( NativeType.INT, "Integer" );
-		javaNativeEquivalent.put( NativeType.BOOL, "Boolean" );
-		javaNativeEquivalent.put( NativeType.DOUBLE, "Double" );
-		javaNativeEquivalent.put( NativeType.LONG, "Long" );
-		javaNativeEquivalent.put( NativeType.STRING, "String" );
-		javaNativeEquivalent.put( NativeType.ANY, "Object" );
-		javaNativeEquivalent.put( NativeType.RAW, "ByteArray" );
+		JAVA_NATIVE_EQUIVALENT.put( NativeType.INT, "Integer" );
+		JAVA_NATIVE_EQUIVALENT.put( NativeType.BOOL, "Boolean" );
+		JAVA_NATIVE_EQUIVALENT.put( NativeType.DOUBLE, "Double" );
+		JAVA_NATIVE_EQUIVALENT.put( NativeType.LONG, "Long" );
+		JAVA_NATIVE_EQUIVALENT.put( NativeType.STRING, "String" );
+		JAVA_NATIVE_EQUIVALENT.put( NativeType.ANY, "Object" );
+		JAVA_NATIVE_EQUIVALENT.put( NativeType.RAW, "ByteArray" );
 
-		javaNativeMethod.put( NativeType.INT, "intValue()" );
-		javaNativeMethod.put( NativeType.BOOL, "boolValue()" );
-		javaNativeMethod.put( NativeType.DOUBLE, "doubleValue()" );
-		javaNativeMethod.put( NativeType.LONG, "longValue()" );
-		javaNativeMethod.put( NativeType.STRING, "strValue()" );
-		javaNativeMethod.put( NativeType.RAW, "byteArrayValue()" );
+		JAVA_NATIVE_METHOD.put( NativeType.INT, "intValue()" );
+		JAVA_NATIVE_METHOD.put( NativeType.BOOL, "boolValue()" );
+		JAVA_NATIVE_METHOD.put( NativeType.DOUBLE, "doubleValue()" );
+		JAVA_NATIVE_METHOD.put( NativeType.LONG, "longValue()" );
+		JAVA_NATIVE_METHOD.put( NativeType.STRING, "strValue()" );
+		JAVA_NATIVE_METHOD.put( NativeType.RAW, "byteArrayValue()" );
 
-		javaNativeChecker.put( NativeType.INT, "isInt()" );
-		javaNativeChecker.put( NativeType.BOOL, "isBool()" );
-		javaNativeChecker.put( NativeType.DOUBLE, "isDouble()" );
-		javaNativeChecker.put( NativeType.LONG, "isLong()" );
-		javaNativeChecker.put( NativeType.STRING, "isString()" );
-		javaNativeChecker.put( NativeType.RAW, "isByteArray()" );
+		JAVA_NATIVE_CHECKER.put( NativeType.INT, "isInt()" );
+		JAVA_NATIVE_CHECKER.put( NativeType.BOOL, "isBool()" );
+		JAVA_NATIVE_CHECKER.put( NativeType.DOUBLE, "isDouble()" );
+		JAVA_NATIVE_CHECKER.put( NativeType.LONG, "isLong()" );
+		JAVA_NATIVE_CHECKER.put( NativeType.STRING, "isString()" );
+		JAVA_NATIVE_CHECKER.put( NativeType.RAW, "isByteArray()" );
 	}
 
 	public void ConvertDocument()
 	{
 		typeMap = new LinkedHashMap<>();
+		faultMap = new LinkedHashMap<>();
 		subTypeMap = new LinkedHashMap<>();
-		InputPortInfo[] inputPorts = inspector.getInputPorts();
+		OutputPortInfo[] outputPorts = inspector.getOutputPorts();
 		OperationDeclaration operation;
 		RequestResponseOperationDeclaration requestResponseOperation;
 
-		for( InputPortInfo inputPort : inputPorts ) {
+		for( OutputPortInfo outputPort : outputPorts ) {
 			/* range over the input ports */
+			if ( targetPort == null || outputPort.id().equals( targetPort ) ) {
 
-			if ( targetPort == null || inputPort.id().equals( targetPort ) ) {
-
-				Collection<OperationDeclaration> operations = inputPort.operations();
+				Collection<OperationDeclaration> operations = outputPort.operations();
 				Iterator<OperationDeclaration> operatorIterator = operations.iterator();
 				while( operatorIterator.hasNext() ) {
 					operation = operatorIterator.next();
@@ -144,6 +145,7 @@ public class JavaDocumentCreator
 							if ( !typeMap.containsKey( fault.getValue().id() ) ) {
 								typeMap.put( fault.getValue().id(), fault.getValue() );
 							}
+							faultMap.put( getExceptionName( requestResponseOperation.id(), fault.getKey() ), fault.getValue() );
 						}
 					} else {
 						OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
@@ -176,6 +178,7 @@ public class JavaDocumentCreator
 		createPackageDirectory();
 		createBuildFile();
 
+		// prepare types
 		while( typeMapIterator.hasNext() ) {
 			Entry<String, TypeDefinition> typeEntry = typeMapIterator.next();
 			if ( !NativeType.isNativeTypeKeyword( typeEntry.getKey() ) && !isNativeTypeUndefined( typeEntry.getKey() ) ) {
@@ -191,6 +194,156 @@ public class JavaDocumentCreator
 				}
 			}
 		}
+
+		// prepare exeptions
+		Iterator<Entry<String, TypeDefinition>> faultMapIterator = faultMap.entrySet().iterator();
+
+		while( faultMapIterator.hasNext() ) {
+			Entry<String, TypeDefinition> faultEntry = faultMapIterator.next();
+			String nameFile = directoryPathTypes + Constants.fileSeparator + faultEntry.getKey() + ".java";
+			Writer writer;
+			try {
+				writer = new BufferedWriter( new FileWriter( nameFile ) );
+				prepareException( faultEntry, writer );
+				writer.flush();
+				writer.close();
+			} catch( IOException ex ) {
+				Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+			}
+
+		}
+
+		// prepare interfaces
+		for( OutputPortInfo outputPort : outputPorts ) {
+			/* range over the input ports */
+			if ( targetPort == null || outputPort.id().equals( targetPort ) ) {
+
+				String nameFile = directoryPath + Constants.fileSeparator + outputPort.id() + "Interface.java";
+				Writer writer;
+				try {
+					writer = new BufferedWriter( new FileWriter( nameFile ) );
+					prepareInterface( outputPort, writer );
+					writer.flush();
+					writer.close();
+				} catch( IOException ex ) {
+					Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+				}
+			}
+		}
+	}
+
+	private void prepareExceptionConstrructorAndGet( StringBuilder stringBuilder, String faultName, String faultTypeName, String exceptionName )
+	{
+		stringBuilder.append( "private " ).append( faultTypeName ).append( " fault" ).append( ";\n" );
+
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "public " ).append( exceptionName ).append( "( " ).append( faultTypeName ).append( " f) {\n" );
+		incrementIndentation();
+
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "fault = f;\n" );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "public " ).append( faultTypeName ).append( " getFault(){\n" );
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "return fault;\n" );
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "}\n" );
+		decrementIndentation();
+	}
+
+	private void prepareException( Entry<String, TypeDefinition> fault, Writer writer ) throws IOException
+	{
+
+		StringBuilder outputFileText = new StringBuilder();
+		/* appending package */
+		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
+		outputFileText.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
+
+		indentation = 0;
+		incrementIndentation();
+		appendingIndentation( outputFileText );
+		String faultTypeName = "";
+		if ( (Utils.hasSubTypes( fault.getValue() ) || !NativeType.isNativeTypeKeyword( fault.getValue().id() ))
+			&& !(fault.getValue() instanceof TypeDefinitionUndefined) ) {
+			faultTypeName = fault.getValue().id();
+			prepareExceptionConstrructorAndGet( outputFileText, fault.getValue().id(), faultTypeName, fault.getKey() );
+		} else if ( Utils.nativeType( fault.getValue() ) != NativeType.VOID ) {
+			faultTypeName = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( fault.getValue() ) );
+			prepareExceptionConstrructorAndGet( outputFileText, fault.getValue().id(), faultTypeName, fault.getKey() );
+		}
+		decrementIndentation();
+		appendingIndentation( outputFileText );
+		outputFileText.append( "}\n" );
+
+		writer.append( outputFileText );
+	}
+
+	private void prepareInterface( OutputPortInfo outputPort, Writer writer ) throws IOException
+	{
+		OperationDeclaration operation;
+		RequestResponseOperationDeclaration requestResponseOperation;
+
+		StringBuilder outputFileText = new StringBuilder();
+		/* appending package */
+		outputFileText.append( "package " ).append( packageName ).append( ";\n" );
+		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
+		outputFileText.append( "import java.io.IOException;\n" );
+		outputFileText.append( "import jolie.runtime.FaultException;\n" );
+
+
+		/* writing main class */
+		indentation = 0;
+		outputFileText.append( "public interface " ).append( outputPort.id() ).append( "Interface {\n" );
+
+		incrementIndentation();
+
+		Collection<OperationDeclaration> operations = outputPort.operations();
+		Iterator<OperationDeclaration> operatorIterator = operations.iterator();
+		while( operatorIterator.hasNext() ) {
+			operation = operatorIterator.next();
+			String requestType = "";
+			String responseType = "";
+			ArrayList<String> exceptionList = new ArrayList<>();
+
+			if ( operation instanceof RequestResponseOperationDeclaration ) {
+				requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().id() ) ) {
+					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.requestType() ) );
+				} else {
+					requestType = requestResponseOperation.requestType().id();
+				}
+				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.responseType().id() ) ) {
+					responseType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.responseType() ) );
+				} else {
+					responseType = requestResponseOperation.responseType().id();
+				}
+				for( Entry<String, TypeDefinition> fault : requestResponseOperation.faults().entrySet() ) {
+					exceptionList.add( getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
+				}
+
+			} else {
+				OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
+				if ( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().id() ) ) {
+					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( oneWayOperationDeclaration.requestType() ) );
+				} else {
+					requestType = oneWayOperationDeclaration.requestType().id();
+				}
+				responseType = "void";
+
+			}
+			appendingOperationdeclaration( outputFileText, operation.id(), requestType, responseType, exceptionList );
+		}
+
+		decrementIndentation();
+		appendingIndentation( outputFileText );
+		outputFileText.append( "}\n" );
+		writer.append( outputFileText.toString() );
 	}
 
 	private void createBuildFile()
@@ -370,6 +523,18 @@ public class JavaDocumentCreator
 		writer.append( outputFileText.toString() );
 	}
 
+	private void appendingOperationdeclaration( StringBuilder stringBuilder, String operationName, String requestType, String responseType, ArrayList<String> exceptionList )
+	{
+		appendingIndentation( stringBuilder );
+		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestType ).append( " request) throws FaultException, IOException, Exception" );
+		if ( exceptionList.size() > 0 ) {
+			for( int i = 0; i < exceptionList.size(); i++ ) {
+				stringBuilder.append( ", " ).append( exceptionList.get( i ) );
+			}
+		}
+		stringBuilder.append( ";\n" );
+	}
+
 	private void appendingSubClassBody( TypeDefinition typeDefinition, StringBuilder stringBuilder, String clsName )
 	{
 		/* TypeInLineDefinitions are converted into inner classes */
@@ -427,7 +592,7 @@ public class JavaDocumentCreator
 			if ( nativeType != NativeType.VOID ) {
 				appendingIndentation( stringBuilder );
 
-				stringBuilder.append( javaNativeEquivalent.get( nativeType ) ).append( " " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
+				stringBuilder.append( JAVA_NATIVE_EQUIVALENT.get( nativeType ) ).append( " " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
 			} else {
 				appendingIndentation( stringBuilder );
 				stringBuilder.append( "Object " ).append( " " ).append( CHOICEVARIABLENAME ).append( choiceCount ).append( ";\n" );
@@ -482,7 +647,7 @@ public class JavaDocumentCreator
 		} else {
 			NativeType nativeType = Utils.nativeType( type );
 			if ( nativeType != NativeType.VOID ) {
-				stringBuilder.append( "public void set(" ).append( javaNativeEquivalent.get( nativeType ) ).append( " c ) {\n" );
+				stringBuilder.append( "public void set(" ).append( JAVA_NATIVE_EQUIVALENT.get( nativeType ) ).append( " c ) {\n" );
 				incrementIndentation();
 			} else {
 				stringBuilder.append( "public void set() {\n" );
@@ -661,7 +826,7 @@ public class JavaDocumentCreator
 						variableType = variableTypeFromVariableName( variableName );
 					} else {
 						variableName = subType.id();
-						variableType = javaNativeEquivalent.get( ((TypeInlineDefinition) subType).nativeType() );
+						variableType = JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) subType).nativeType() );
 					}
 				}
 
@@ -675,7 +840,7 @@ public class JavaDocumentCreator
 
 		if ( Utils.nativeType( type ) != NativeType.VOID ) {
 			String variableName = "rootValue";
-			String variableType = javaNativeEquivalent.get( Utils.nativeType( type ) );
+			String variableType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( type ) );
 			appendPrivateVariable( variableType, variableName, stringBuilder );
 		}
 	}
@@ -788,12 +953,12 @@ public class JavaDocumentCreator
 				} else {
 					// case where there are no subnodes
 					//native type
-					String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( subType ) );
+					String nativeTypeName = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( subType ) );
 					if ( isNativeTypeUndefined( subType ) ) {
 						// it is undefined
 						nativeTypeName = "Value";
 					}
-					String javaMethod = javaNativeMethod.get( Utils.nativeType( subType ) );
+					String javaMethod = JAVA_NATIVE_METHOD.get( Utils.nativeType( subType ) );
 
 					// it is a vector
 					if ( subType.cardinality().max() > 1 ) {
@@ -816,16 +981,16 @@ public class JavaDocumentCreator
 							appendingAddToListValue( ifbody, variableName );
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
-								if ( !javaNativeChecker.containsKey( t ) ) {
+								if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
 									continue;
 								}
 								appendingIndentation( ifbody );
 								ifbody.append( "if(v.getChildren(\"" ).append( variableName ).append( "\").get(counter" );
-								ifbody.append( variableName ).append( ")." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
+								ifbody.append( variableName ).append( ")." ).append( JAVA_NATIVE_CHECKER.get( t ) ).append( "){\n" );
 
 								incrementIndentation();
 								appendingIndentation( ifbody );
-								appendingAddToListNative( ifbody, variableName, javaNativeMethod.get( t ) );
+								appendingAddToListNative( ifbody, variableName, JAVA_NATIVE_METHOD.get( t ) );
 
 								decrementIndentation();
 								appendingIndentation( ifbody );
@@ -865,17 +1030,17 @@ public class JavaDocumentCreator
 
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {
-								if ( !javaNativeChecker.containsKey( t ) ) {
+								if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
 									continue;
 								}
 								appendingIndentation( ifbody );
 								ifbody.append( "if(v.getFirstChild(\"" ).append( variableName );
-								ifbody.append( "\")." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
+								ifbody.append( "\")." ).append( JAVA_NATIVE_CHECKER.get( t ) ).append( "){\n" );
 
 								incrementIndentation();
 								appendingIndentation( ifbody );
 								ifbody.append( variableName ).append( " = v.getFirstChild(\"" ).append( variableName ).append( "\")." );
-								ifbody.append( javaNativeMethod.get( t ) ).append( ";\n" );
+								ifbody.append( JAVA_NATIVE_METHOD.get( t ) ).append( ";\n" );
 
 								decrementIndentation();
 								appendingIndentation( ifbody );
@@ -895,18 +1060,18 @@ public class JavaDocumentCreator
 		}
 		if ( Utils.nativeType( type ) != NativeType.VOID ) {
 			String variableName = "rootValue";
-			String javaMethod = javaNativeMethod.get( Utils.nativeType( type ) );
+			String javaMethod = JAVA_NATIVE_METHOD.get( Utils.nativeType( type ) );
 			if ( javaMethod == null ) {
 				// case any
 				for( NativeType t : NativeType.class.getEnumConstants() ) {
-					if ( !javaNativeChecker.containsKey( t ) ) {
+					if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
 						continue;
 					}
 					appendingIndentation( stringBuilder );
-					stringBuilder.append( "if ( v." ).append( javaNativeChecker.get( t ) ).append( "){\n" );
+					stringBuilder.append( "if ( v." ).append( JAVA_NATIVE_CHECKER.get( t ) ).append( "){\n" );
 					incrementIndentation();
 					appendingIndentation( stringBuilder );
-					stringBuilder.append( "rootValue = v." ).append( javaNativeMethod.get( t ) ).append( ";\n" );
+					stringBuilder.append( "rootValue = v." ).append( JAVA_NATIVE_METHOD.get( t ) ).append( ";\n" );
 
 					decrementIndentation();
 					appendingIndentation( stringBuilder );
@@ -915,7 +1080,7 @@ public class JavaDocumentCreator
 
 			} else {
 				appendingIndentation( stringBuilder );
-				stringBuilder.append( "if (!v." ).append( javaNativeChecker.get( Utils.nativeType( type ) ) ).append( ") {\n" );
+				stringBuilder.append( "if (!v." ).append( JAVA_NATIVE_CHECKER.get( Utils.nativeType( type ) ) ).append( ") {\n" );
 				incrementIndentation();
 				appendingIndentation( stringBuilder );
 				stringBuilder.append( "throw new TypeCheckingException(\"root value wrong type\");\n" );
@@ -970,7 +1135,7 @@ public class JavaDocumentCreator
 						if ( Utils.hasSubTypes( subType ) ) {
 							variableType = subType.id() + "Type";
 						} else {
-							variableType = javaNativeEquivalent.get( Utils.nativeType( subType ) );
+							variableType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( subType ) );
 						}
 					}
 					appendingIndentation( stringBuilder );
@@ -1005,7 +1170,7 @@ public class JavaDocumentCreator
 	private void appendingInitChoiceVariableNativeType( StringBuilder stringBuilder, NativeType nativeType, int choiceCount )
 	{
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = v." ).append( javaNativeMethod.get( nativeType ) ).append( ";\n" );
+		stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = v." ).append( JAVA_NATIVE_METHOD.get( nativeType ) ).append( ";\n" );
 	}
 
 	private void appendingChoiceTryCatchForInitTypeRight( StringBuilder stringBuilder, TypeDefinition type, int choiceCount )
@@ -1022,7 +1187,7 @@ public class JavaDocumentCreator
 			NativeType nativeType = Utils.nativeType( type );
 			if ( nativeType != NativeType.VOID ) {
 				appendingIndentation( stringBuilder );
-				stringBuilder.append( "if ( v." ).append( javaNativeChecker.get( nativeType ) ).append( " && !v.hasChildren()) {\n" );
+				stringBuilder.append( "if ( v." ).append( JAVA_NATIVE_CHECKER.get( nativeType ) ).append( " && !v.hasChildren()) {\n" );
 				incrementIndentation();
 				appendingInitChoiceVariableNativeType( stringBuilder, nativeType, choiceCount );
 				decrementIndentation();
@@ -1078,7 +1243,7 @@ public class JavaDocumentCreator
 			NativeType nativeType = Utils.nativeType( type.left() );
 			if ( nativeType != NativeType.VOID ) {
 				appendingIndentation( stringBuilder );
-				stringBuilder.append( "if ( v." ).append( javaNativeChecker.get( nativeType ) ).append( " && !v.hasChildren()) {\n" );
+				stringBuilder.append( "if ( v." ).append( JAVA_NATIVE_CHECKER.get( nativeType ) ).append( " && !v.hasChildren()) {\n" );
 				incrementIndentation();
 				appendingInitChoiceVariableNativeType( stringBuilder, nativeType, choiceCount );
 				decrementIndentation();
@@ -1213,12 +1378,12 @@ public class JavaDocumentCreator
 						decrementIndentation();
 					} else {
 						for( NativeType t : NativeType.class.getEnumConstants() ) {
-							if ( !javaNativeChecker.containsKey( t ) ) {
+							if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
 								continue;
 							}
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "if(" ).append( variableName ).append( ".get(counter" ).append( variableName );
-							stringBuilder.append( ") instanceof " ).append( javaNativeEquivalent.get( t ) ).append( "){\n" );
+							stringBuilder.append( ") instanceof " ).append( JAVA_NATIVE_EQUIVALENT.get( t ) ).append( "){\n" );
 
 							incrementIndentation();
 							appendingIndentation( stringBuilder );
@@ -1253,12 +1418,12 @@ public class JavaDocumentCreator
 						stringBuilder.append( variableName ).append( ");\n" );
 					} else {
 						for( NativeType t : NativeType.class.getEnumConstants() ) {
-							if ( !javaNativeChecker.containsKey( t ) ) {
+							if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
 								continue;
 							}
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "if(" ).append( variableName ).append( " instanceof " );
-							stringBuilder.append( javaNativeEquivalent.get( t ) ).append( "){\n" );
+							stringBuilder.append( JAVA_NATIVE_EQUIVALENT.get( t ) ).append( "){\n" );
 
 							incrementIndentation();
 							appendingIndentation( stringBuilder );
@@ -1347,7 +1512,7 @@ public class JavaDocumentCreator
 				} else {
 					//native type
 
-					String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( subType ) );
+					String nativeTypeName = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( subType ) );
 
 					if ( Utils.nativeType( subType ) != NativeType.VOID ) {
 
@@ -1378,7 +1543,7 @@ public class JavaDocumentCreator
 
 								// remove
 								appendRemoveMethod( stringBuilder, variableNameCapitalized, variableName );
-								
+
 								// get
 								nativeTypeName = "ArrayList<" + nativeTypeName + ">";
 								appendGetMethod( stringBuilder, nativeTypeName, variableNameCapitalized, variableName );
@@ -1398,12 +1563,6 @@ public class JavaDocumentCreator
 					}
 				}
 
-				if ( subType instanceof TypeChoiceDefinition ) {
-					//How to manage creating getters and setters for variable that can be initialized with several types?
-					//public <type1> get <variable>
-					//public <type2> get <variable>
-
-				}
 			}
 		}
 
@@ -1411,7 +1570,7 @@ public class JavaDocumentCreator
 
 		if ( Utils.nativeType( type ) != NativeType.VOID ) {
 
-			String nativeTypeName = javaNativeEquivalent.get( Utils.nativeType( type ) );
+			String nativeTypeName = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( type ) );
 
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "public " ).append( nativeTypeName ).append( " getRootValue(){\n" );
@@ -1666,10 +1825,15 @@ public class JavaDocumentCreator
 			if ( Utils.hasSubTypes( type ) ) {
 				return variableTypeFromVariableName( getVariableName( type ) );
 			} else {
-				return javaNativeEquivalent.get( ((TypeInlineDefinition) type).nativeType() );
+				return JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) type).nativeType() );
 			}
 		}
 		return "err";
+	}
+
+	private String getExceptionName( String operationName, String faultName )
+	{
+		return operationName + faultName + "Exception";
 	}
 
 }
