@@ -265,7 +265,13 @@ RequestResponse:
 
   testNatives2( double )( double ) throws TestFaultNatives( double ),
 
-  testNatives3( int )( int ) throws TestFaultNatives( double )
+  testNatives3( int )( int ) throws TestFaultNatives( double ),
+
+  testVoid( void )( void ) throws TestFaultVoid( void ),
+
+  testUndefined( undefined )( undefined ) throws TestUndefined( undefined )
+
+
 
 
 

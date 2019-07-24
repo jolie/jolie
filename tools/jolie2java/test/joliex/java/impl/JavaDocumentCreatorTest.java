@@ -68,7 +68,7 @@ public class JavaDocumentCreatorTest
 	private static final byte[] TESTRAW = new byte[]{ (byte) 0xe0, 0x4f, (byte) 0xd0, 0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2 };
 	private static final Boolean TESTBOOL = true;
 	private static final Long TESTLONG = 2L;
-	private static final Boolean DELETE_AFTER_TEST = true;
+	private static final Boolean DELETE_AFTER_TEST = false;
 
 	private static URLClassLoader classLoader;
 
@@ -110,7 +110,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 38, new File( "./generated/src/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 40, new File( "./generated/src/com/test/types" ).list().length );
 		assertEquals( "The number of generated files is wrong", 5, new File( "./generated/src/com/test" ).list().length );
 		assertEquals( "The number of generated files is wrong", 2, new File( "./generated" ).list().length );
 
@@ -211,7 +211,7 @@ public class JavaDocumentCreatorTest
 				methodCount++;
 			};
 		}
-		assertEquals( "Number of generated methods does not correspond", 28, methodCount );
+		assertEquals( "Number of generated methods does not correspond", 30, methodCount );
 
 	}
 

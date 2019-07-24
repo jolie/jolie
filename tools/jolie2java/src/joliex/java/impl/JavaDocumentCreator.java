@@ -176,7 +176,7 @@ public class JavaDocumentCreator
 		/* start generation of java files for each type in typeMap */
 		typeMapIterator = typeMap.entrySet().iterator();
 		createPackageDirectory();
-		
+
 		createBuildFile();
 
 		// prepare types
@@ -326,6 +326,78 @@ public class JavaDocumentCreator
 		writer.append( outputFileText );
 	}
 
+	private String getRequestType( OperationDeclaration operation )
+	{
+		String requestType = "";
+		RequestResponseOperationDeclaration requestResponseOperation;
+		if ( operation instanceof RequestResponseOperationDeclaration ) {
+			requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+			if ( requestResponseOperation.requestType() instanceof TypeDefinitionUndefined ) {
+				requestType = "Value";
+			} else if ( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().id() ) ) {
+				requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.requestType() ) );
+				if ( requestType == null ) {
+					requestType = "";
+				}
+			} else {
+				requestType = requestResponseOperation.requestType().id();
+			}
+
+		} else {
+			OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
+			if ( oneWayOperationDeclaration.requestType() instanceof TypeDefinitionUndefined ) {
+				requestType = "Value";
+			} else if ( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().id() ) ) {
+				requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( oneWayOperationDeclaration.requestType() ) );
+				if ( requestType == null ) {
+					requestType = "";
+				}
+			} else {
+				requestType = oneWayOperationDeclaration.requestType().id();
+			}
+		}
+		return requestType;
+	}
+
+	private String getResponseType( OperationDeclaration operation )
+	{
+		String responseType = "";
+		RequestResponseOperationDeclaration requestResponseOperation;
+		if ( operation instanceof RequestResponseOperationDeclaration ) {
+			requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+
+			if ( requestResponseOperation.responseType() instanceof TypeDefinitionUndefined ) {
+				responseType = "Value";
+			} else if ( NativeType.isNativeTypeKeyword( requestResponseOperation.responseType().id() ) ) {
+				responseType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.responseType() ) );
+				if ( responseType == null ) {
+					responseType = "void";
+				}
+			} else {
+				responseType = requestResponseOperation.responseType().id();
+			}
+
+		} else {
+			responseType = "void";
+
+		}
+		return responseType;
+	}
+
+	private ArrayList<String> getExceptionList( OperationDeclaration operation )
+	{
+		ArrayList<String> exceptionList = new ArrayList<>();
+		RequestResponseOperationDeclaration requestResponseOperation;
+		if ( operation instanceof RequestResponseOperationDeclaration ) {
+			requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+
+			for( Entry<String, TypeDefinition> fault : requestResponseOperation.faults().entrySet() ) {
+				exceptionList.add( getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
+			}
+		}
+		return exceptionList;
+	}
+
 	private void prepareInterface( OutputPortInfo outputPort, Writer writer ) throws IOException
 	{
 		OperationDeclaration operation;
@@ -337,6 +409,7 @@ public class JavaDocumentCreator
 		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
 		outputFileText.append( "import java.io.IOException;\n" );
 		outputFileText.append( "import jolie.runtime.FaultException;\n" );
+		outputFileText.append( "import jolie.runtime.Value;\n" );
 
 
 		/* writing main class */
@@ -349,36 +422,9 @@ public class JavaDocumentCreator
 		Iterator<OperationDeclaration> operatorIterator = operations.iterator();
 		while( operatorIterator.hasNext() ) {
 			operation = operatorIterator.next();
-			String requestType = "";
-			String responseType = "";
-			ArrayList<String> exceptionList = new ArrayList<>();
-
-			if ( operation instanceof RequestResponseOperationDeclaration ) {
-				requestResponseOperation = (RequestResponseOperationDeclaration) operation;
-				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().id() ) ) {
-					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.requestType() ) );
-				} else {
-					requestType = requestResponseOperation.requestType().id();
-				}
-				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.responseType().id() ) ) {
-					responseType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.responseType() ) );
-				} else {
-					responseType = requestResponseOperation.responseType().id();
-				}
-				for( Entry<String, TypeDefinition> fault : requestResponseOperation.faults().entrySet() ) {
-					exceptionList.add( getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
-				}
-
-			} else {
-				OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
-				if ( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().id() ) ) {
-					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( oneWayOperationDeclaration.requestType() ) );
-				} else {
-					requestType = oneWayOperationDeclaration.requestType().id();
-				}
-				responseType = "void";
-
-			}
+			String requestType = getRequestType( operation );
+			String responseType = getResponseType( operation );
+			ArrayList<String> exceptionList = getExceptionList( operation );
 			appendingOperationdeclaration( outputFileText, operation.id(), requestType, responseType, exceptionList );
 			outputFileText.append( ";\n" );
 		}
@@ -400,7 +446,7 @@ public class JavaDocumentCreator
 		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
 		outputFileText.append( "import java.io.IOException;\n" );
 		outputFileText.append( "import jolie.runtime.FaultException;\n" );
-		outputFileText.append( "import jolie.runtime.Value;\n");
+		outputFileText.append( "import jolie.runtime.Value;\n" );
 
 
 		/* writing main class */
@@ -414,37 +460,16 @@ public class JavaDocumentCreator
 		TypeDefinition requestTypeDefinition;
 		while( operatorIterator.hasNext() ) {
 			operation = operatorIterator.next();
-			String requestType = "";
-			String responseType = "";
-			ArrayList<String> exceptionList = new ArrayList<>();
+			String requestType = getRequestType( operation );
+			String responseType = getResponseType( operation );
+			ArrayList<String> exceptionList = getExceptionList( operation );
 
 			if ( operation instanceof RequestResponseOperationDeclaration ) {
 				requestResponseOperation = (RequestResponseOperationDeclaration) operation;
 				requestTypeDefinition = requestResponseOperation.requestType();
-				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().id() ) ) {
-					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.requestType() ) );
-				} else {
-					requestType = requestResponseOperation.requestType().id();
-				}
-				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.responseType().id() ) ) {
-					responseType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.responseType() ) );
-				} else {
-					responseType = requestResponseOperation.responseType().id();
-				}
-				for( Entry<String, TypeDefinition> fault : requestResponseOperation.faults().entrySet() ) {
-					exceptionList.add( getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
-				}
-
 			} else {
 				OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
 				requestTypeDefinition = oneWayOperationDeclaration.requestType();
-				if ( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().id() ) ) {
-					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( oneWayOperationDeclaration.requestType() ) );
-				} else {
-					requestType = oneWayOperationDeclaration.requestType().id();
-				}
-				responseType = "void";
-
 			}
 			appendingOperationdeclaration( outputFileText, operation.id(), requestType, responseType, exceptionList );
 			outputFileText.append( "{\n" );
@@ -453,12 +478,20 @@ public class JavaDocumentCreator
 			outputFileText.append( "final Controller controller = new Controller();\n" );
 			if ( NativeType.isNativeTypeKeyword( requestTypeDefinition.id() ) ) {
 				appendingIndentation( outputFileText );
-				outputFileText.append( "Value requestValue = Value.create(); requestValue.setValue( request );\n" );
+				outputFileText.append( "Value requestValue = Value.create();\n" );
+				if ( !requestType.isEmpty() ) {
+					outputFileText.append( "requestValue.setValue( request );\n" );
+				}
 				appendingIndentation( outputFileText );
 				outputFileText.append( "JolieClient.call(requestValue, \"" ).append( operation.id() ).append( "\", controller );\n" );
 			} else {
 				appendingIndentation( outputFileText );
-				outputFileText.append( "JolieClient.call(request.getValue(), \"" ).append( operation.id() ).append( "\", controller );\n" );
+				if ( requestType.equals( "Value" ) ) {
+					outputFileText.append( "JolieClient.call(request, \"" ).append( operation.id() ).append( "\", controller );\n" );
+				} else {
+					outputFileText.append( "JolieClient.call(request.getValue(), \"" ).append( operation.id() ).append( "\", controller );\n" );
+				}
+
 			}
 			appendingIndentation( outputFileText );
 			outputFileText.append( "if ( controller.getFault() != null ) {\n" );
@@ -476,13 +509,17 @@ public class JavaDocumentCreator
 			decrementIndentation();
 			appendingIndentation( outputFileText );
 			outputFileText.append( "}\n" );
-			if ( operation instanceof RequestResponseOperationDeclaration ) {
+			if ( operation instanceof RequestResponseOperationDeclaration && !responseType.equals( "void" ) ) {
 				appendingIndentation( outputFileText );
 				String nativeMethod = "";
 				if ( NativeType.isNativeTypeKeyword( ((RequestResponseOperationDeclaration) operation).responseType().id() ) ) {
 					nativeMethod = "." + JAVA_NATIVE_METHOD.get( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) );
 				}
-				outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse()" ).append( nativeMethod ).append( ");\n" );
+				if ( responseType.equals( "Value" ) ) {
+					outputFileText.append( "return " ).append( " controller.getResponse()" ).append( ";\n" );
+				} else {
+					outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse()" ).append( nativeMethod ).append( ");\n" );
+				}
 			}
 			decrementIndentation();
 			appendingIndentation( outputFileText );
@@ -834,7 +871,11 @@ public class JavaDocumentCreator
 	private void appendingOperationdeclaration( StringBuilder stringBuilder, String operationName, String requestType, String responseType, ArrayList<String> exceptionList )
 	{
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestType ).append( " request) throws FaultException, IOException, InterruptedException, Exception" );
+		String requestArgument = "";
+		if ( !requestType.isEmpty() ) {
+			requestArgument = requestType + " request";
+		}
+		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestArgument ).append( ") throws FaultException, IOException, InterruptedException, Exception" );
 		if ( exceptionList.size() > 0 ) {
 			for( int i = 0; i < exceptionList.size(); i++ ) {
 				stringBuilder.append( ", " ).append( exceptionList.get( i ) );
