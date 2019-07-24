@@ -39,8 +39,6 @@ import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
-import jolie.net.CommMessage;
-import jolie.net.LocalCommChannel;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -110,7 +108,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 40, new File( "./generated/src/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 41, new File( "./generated/src/com/test/types" ).list().length );
 		assertEquals( "The number of generated files is wrong", 5, new File( "./generated/src/com/test" ).list().length );
 		assertEquals( "The number of generated files is wrong", 2, new File( "./generated" ).list().length );
 

@@ -305,6 +305,7 @@ public class JavaDocumentCreator
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
 		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
+		outputFileText.append("import jolie.runtime.Value;\n").append("import jolie.runtime.ByteArray;n");
 		outputFileText.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
 
 		indentation = 0;
@@ -318,6 +319,7 @@ public class JavaDocumentCreator
 		} else if ( Utils.nativeType( fault.getValue() ) != NativeType.VOID ) {
 			faultTypeName = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( fault.getValue() ) );
 			prepareExceptionConstrructorAndGet( outputFileText, fault.getValue().id(), faultTypeName, fault.getKey() );
+			
 		}
 		decrementIndentation();
 		appendingIndentation( outputFileText );
@@ -410,6 +412,7 @@ public class JavaDocumentCreator
 		outputFileText.append( "import java.io.IOException;\n" );
 		outputFileText.append( "import jolie.runtime.FaultException;\n" );
 		outputFileText.append( "import jolie.runtime.Value;\n" );
+		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
 
 
 		/* writing main class */
@@ -447,6 +450,7 @@ public class JavaDocumentCreator
 		outputFileText.append( "import java.io.IOException;\n" );
 		outputFileText.append( "import jolie.runtime.FaultException;\n" );
 		outputFileText.append( "import jolie.runtime.Value;\n" );
+		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
 
 
 		/* writing main class */
@@ -480,6 +484,7 @@ public class JavaDocumentCreator
 				appendingIndentation( outputFileText );
 				outputFileText.append( "Value requestValue = Value.create();\n" );
 				if ( !requestType.isEmpty() ) {
+					appendingIndentation( outputFileText );
 					outputFileText.append( "requestValue.setValue( request );\n" );
 				}
 				appendingIndentation( outputFileText );
@@ -511,14 +516,13 @@ public class JavaDocumentCreator
 			outputFileText.append( "}\n" );
 			if ( operation instanceof RequestResponseOperationDeclaration && !responseType.equals( "void" ) ) {
 				appendingIndentation( outputFileText );
-				String nativeMethod = "";
 				if ( NativeType.isNativeTypeKeyword( ((RequestResponseOperationDeclaration) operation).responseType().id() ) ) {
-					nativeMethod = "." + JAVA_NATIVE_METHOD.get( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) );
-				}
-				if ( responseType.equals( "Value" ) ) {
+					String nativeMethod = "." + JAVA_NATIVE_METHOD.get( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) );
+					outputFileText.append( "return " ).append( "controller.getResponse()" ).append( nativeMethod ).append( ";\n" );
+				} else if ( responseType.equals( "Value" ) ) {
 					outputFileText.append( "return " ).append( " controller.getResponse()" ).append( ";\n" );
 				} else {
-					outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse()" ).append( nativeMethod ).append( ");\n" );
+					outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse()" ).append( ");\n" );
 				}
 			}
 			decrementIndentation();
