@@ -33,11 +33,14 @@ import java.util.Map.Entry;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import jolie.CommandLineException;
+import jolie.lang.Constants;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
+import jolie.net.CommMessage;
+import jolie.net.LocalCommChannel;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -85,11 +88,7 @@ public class JavaDocumentCreatorTest
 		// clean past generated files if they exist
 		File generatedPath = new File( "./generated" );
 		if ( generatedPath.exists() ) {
-			String files[] = generatedPath.list();
-			for( String temp : files ) {
-				File fileDelete = new File( generatedPath, temp );
-				fileDelete.delete();
-			}
+			deleteFolder( generatedPath );
 		}
 
 		String[] args = { "./resources/main.ol" };
@@ -110,7 +109,9 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 33, new File( "./generated/src/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 38, new File( "./generated/src/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 5, new File( "./generated/src/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 2, new File( "./generated" ).list().length );
 
 		// load classes
 		File generated = new File( "./generated/src" );
@@ -122,19 +123,18 @@ public class JavaDocumentCreatorTest
 		if ( generatedTypesPath.exists() ) {
 			String filesTypes[] = generatedTypesPath.list();
 			for( int i = 0; i < filesTypes.length; i++ ) {
-				files.add( generatedTypesPath.getPath() + "/" + filesTypes[ i ]);
+				files.add( generatedTypesPath.getPath() + "/" + filesTypes[ i ] );
 			}
-			
+
 			File generatedTestPath = new File( "./generated/src/com/test" );
 			String filesTest[] = generatedTestPath.list();
 			for( int i = 0; i < filesTest.length; i++ ) {
-				filesTest[i] = generatedTestPath.getPath() + "/" + filesTest[ i ];
-				File tmpFile = new File( filesTest[ i ]);
+				filesTest[ i ] = generatedTestPath.getPath() + "/" + filesTest[ i ];
+				File tmpFile = new File( filesTest[ i ] );
 				if ( !tmpFile.isDirectory() ) {
-					files.add( filesTest[ i ]  );
+					files.add( filesTest[ i ] );
 				}
 			}
-			
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			OutputStream output = new OutputStream()
@@ -154,7 +154,7 @@ public class JavaDocumentCreatorTest
 				}
 			};
 
-			String filesToBeCompiled[] = new String[files.size()];
+			String filesToBeCompiled[] = new String[ files.size() ];
 			filesToBeCompiled = files.toArray( filesToBeCompiled );
 			compiler.run( null, null, output, filesToBeCompiled );
 			System.out.println( output );
@@ -174,6 +174,36 @@ public class JavaDocumentCreatorTest
 	@After
 	public void tearDown()
 	{
+	}
+
+	private static void deleteFolder( File folder )
+	{
+		for( int i = folder.list().length - 1; i >= 0; i-- ) {
+			File tmpFile = new File( folder.getPath() + Constants.fileSeparator + folder.list()[ i ] );
+			if ( tmpFile.isDirectory() ) {
+				deleteFolder( tmpFile );
+				tmpFile.delete();
+			} else {
+				tmpFile.delete();
+			}
+		}
+	}
+
+	@Test
+	public void testInterfaceImpl() throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		String testName = "testInterfaceImpl";
+		Class<?> MyOutputPortImpl = Class.forName( "com.test.MyOutputPortImpl", true, classLoader );
+		Constructor myOutputPortImplConstructor = MyOutputPortImpl.getConstructor();
+		Object myOutputPortImplInstance = myOutputPortImplConstructor.newInstance();
+		int methodCount = 0;
+		for( int i = 0; i < MyOutputPortImpl.getMethods().length; i++ ) {
+			if ( MyOutputPortImpl.getMethods()[ i ].getName().startsWith( "test" ) ) {
+				methodCount++;
+			};
+		}
+		assertEquals( "Number of generated methods does not correspond", 28, methodCount );
+
 	}
 
 	/**
@@ -1219,7 +1249,7 @@ public class JavaDocumentCreatorTest
 		boolean resp = true;
 		if ( v1.isString() && !v2.isString() ) {
 			resp = false;
-		} else if ( v1.isString() && v2.isString() && (v1.strValue() != v2.strValue()) ) {
+		} else if ( v1.isString() && v2.isString() && !(v1.strValue().equals( v2.strValue())) ) {
 			resp = false;
 		}
 		if ( v1.isBool() && !v2.isBool() ) {
@@ -1271,4 +1301,5 @@ public class JavaDocumentCreatorTest
 		}
 		return true;
 	}
+
 }

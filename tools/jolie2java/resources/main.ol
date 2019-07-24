@@ -33,27 +33,61 @@ inputPort MyPort {
 }
 
 main {
-  [ testFlatStructure( request )( response ) {
-    with( response ) {
-      for( i = 0, i < 10, i++ ){
-          .afield[i] = "test string" + i;
-          .cfield[i] = 10.0
-          .efield = "string"
-          .ffield = true
-      }
-      .bfield = 10
-      for( y = 0, y <5, y++ ) {
-        .gfield[y] = "ciao"
-      }
-      for( y = 0, y <2, y++ ) {
-        .hfield[y] = long( 10 )
-      }
-    }
-    
-  }]
+  [ testOneWay( request ) ]
 
-  [ testOneWay( request ) ] 
+  [ testOneWay2( request ) ]
 
+  [ testLinkedTypeStructure( request )( request ) ] { nullProcess }
+
+  [ testLinkedTypeStructureVectors( request )( request ) ] { nullProcess }
+
+  [ testInlineStructure( request )( request ) ] { nullProcess }
+
+  [ testInlineStructureVectors( request )( request ) ] { nullProcess }
+
+  [ testFlatStructure( request )( request ) ] { nullProcess }
+
+  [ testFlatStructureVectors( request )( request ) ] { nullProcess }
+
+  [ testChoice( request )( request ) ] { nullProcess }
+
+  [ testChoiceLinkedTypes( request )( request ) ] { nullProcess }
+
+  [ testChoiceInlineTypes( request )( request ) ] { nullProcess }
+
+  [ testRootValue1( request )( request ) ] { nullProcess }
+
+  [ testRootValue2( request )( request ) ] { nullProcess }
+
+  [ testRootValue3( request )( request ) ] { nullProcess }
+
+  [ testRootValue4( request )( request ) ] { nullProcess }
+
+  [ testRootValue5( request )( request ) ] { nullProcess }
+
+  [ testRootValue6( request )( request ) ] { nullProcess }
+
+  [ testRootValue7( request )( request ) ] { nullProcess }
+
+  [ testStringType( request )( request ) ] { nullProcess }
+
+  [ testVoidType( request )( request ) ] { nullProcess }
+
+  [ testDoubleType( request )( request ) ] { nullProcess }
+
+  [ testLongType( request )( request ) ] { nullProcess }
+
+  [ testRawType( request )( request ) ] { nullProcess }
+
+  [ testIntType( request )( request ) ] { nullProcess }
+
+  [ testBoolType( request )( request ) ] { nullProcess }
+
+  [ testNatives( request )( request ) ] { nullProcess }
+
+  [ testNatives2( request )( request ) ] { nullProcess }
+
+  [ testNatives3( request )( request ) ] { nullProcess }
   
 
 }

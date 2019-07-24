@@ -1323,17 +1323,8 @@ public class JavaDocumentCreator
 						} else if ( variableNameType.equals( "Value" ) ) {
 							// in case of ANY and in case of undefined
 							appendingIndentation( ifbody );
-							ifbody.append( "if(v.getFirstChild(\"" ).append( variableName );
-							ifbody.append( "\").isDefined()){\n" );
-
-							incrementIndentation();
-							appendingIndentation( ifbody );
 							ifbody.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName );
 							ifbody.append( "\")" ).append( ";\n" );
-
-							decrementIndentation();
-							appendingIndentation( ifbody );
-							ifbody.append( "}\n" );
 
 						} else {
 							for( NativeType t : NativeType.class.getEnumConstants() ) {

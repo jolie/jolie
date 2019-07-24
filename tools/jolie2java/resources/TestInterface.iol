@@ -207,11 +207,17 @@ OneWay:
 
 RequestResponse:
 
-  testLinkedTypeStructure( LinkedTypeStructureType )( LinkedTypeStructureVectorsType ),
+  testLinkedTypeStructure( LinkedTypeStructureType )( LinkedTypeStructureType ),
 
-  testInlineStructure( InLineStructureType )( InLineStructureVectorsType ),
+  testLinkedTypeStructureVectors( LinkedTypeStructureVectorsType )( LinkedTypeStructureVectorsType ),
 
-  testFlatStructure( FlatStructureType )( FlatStructureVectorsType ),
+  testInlineStructure( InLineStructureType )( InLineStructureType ),
+
+  testInlineStructureVectors( InLineStructureVectorsType )( InLineStructureVectorsType ),
+
+  testFlatStructure( FlatStructureType )( FlatStructureType ),
+
+  testFlatStructureVectors( FlatStructureVectorsType )( FlatStructureVectorsType ),
 
   testChoice( ChoiceSimpleType )( ChoiceSimpleType )
     throws TestFault3( string ),
@@ -220,14 +226,23 @@ RequestResponse:
 
   testChoiceInlineTypes( ChoiceInlineType )( ChoiceInlineType ),
 
-  testRootValue1( RootValue1Type )( RootValue2Type )
+  testRootValue1( RootValue1Type )( RootValue1Type )
     throws TestFault2,
 
-  testRootValue2( RootValue3Type )( RootValue4Type ),
+  testRootValue2( RootValue2Type )( RootValue2Type )
+    throws TestFault2,
 
-  testRootValue3( RootValue5Type )( RootValue6Type ),
+  testRootValue3( RootValue3Type )( RootValue3Type ),
 
-  testRootValue4( RootValue7Type)( RootValue7Type ),
+  testRootValue4( RootValue4Type )( RootValue4Type )
+    throws TestFault2,
+
+  testRootValue5( RootValue5Type )( RootValue5Type ),
+
+  testRootValue6( RootValue6Type )( RootValue6Type )
+    throws TestFault2,
+
+  testRootValue7( RootValue7Type)( RootValue7Type ),
 
   testStringType( StringType )( StringType ),
 
@@ -246,7 +261,11 @@ RequestResponse:
               TestFault2( TestFaultType2 )
               TestFault3( TestFaultType3 ),
 
-  testNatives( string )( long ) throws TestFaultNatives( double )
+  testNatives( string )( string ) throws TestFaultNatives( double ),
+
+  testNatives2( double )( double ) throws TestFaultNatives( double ),
+
+  testNatives3( int )( int ) throws TestFaultNatives( double )
 
 
 
