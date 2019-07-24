@@ -73,6 +73,7 @@ public class JavaDocumentCreator
 	private final String TYPEFOLDER = "types";
 	private int indentation;
 	private String directoryPath;
+	private String generatedPath;
 	private String directoryPathTypes;
 	private LinkedHashMap<String, TypeDefinition> typeMap;
 	private LinkedHashMap<String, TypeDefinition> faultMap;
@@ -175,6 +176,7 @@ public class JavaDocumentCreator
 		/* start generation of java files for each type in typeMap */
 		typeMapIterator = typeMap.entrySet().iterator();
 		createPackageDirectory();
+		
 		createBuildFile();
 
 		// prepare types
@@ -398,6 +400,7 @@ public class JavaDocumentCreator
 		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
 		outputFileText.append( "import java.io.IOException;\n" );
 		outputFileText.append( "import jolie.runtime.FaultException;\n" );
+		outputFileText.append( "import jolie.runtime.Value;\n");
 
 
 		/* writing main class */
@@ -408,6 +411,7 @@ public class JavaDocumentCreator
 
 		Collection<OperationDeclaration> operations = outputPort.operations();
 		Iterator<OperationDeclaration> operatorIterator = operations.iterator();
+		TypeDefinition requestTypeDefinition;
 		while( operatorIterator.hasNext() ) {
 			operation = operatorIterator.next();
 			String requestType = "";
@@ -416,6 +420,7 @@ public class JavaDocumentCreator
 
 			if ( operation instanceof RequestResponseOperationDeclaration ) {
 				requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+				requestTypeDefinition = requestResponseOperation.requestType();
 				if ( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().id() ) ) {
 					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.requestType() ) );
 				} else {
@@ -432,6 +437,7 @@ public class JavaDocumentCreator
 
 			} else {
 				OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
+				requestTypeDefinition = oneWayOperationDeclaration.requestType();
 				if ( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().id() ) ) {
 					requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( oneWayOperationDeclaration.requestType() ) );
 				} else {
@@ -445,8 +451,15 @@ public class JavaDocumentCreator
 			incrementIndentation();
 			appendingIndentation( outputFileText );
 			outputFileText.append( "final Controller controller = new Controller();\n" );
-			appendingIndentation( outputFileText );
-			outputFileText.append( "JolieClient.call(request.getValue(), \"" ).append( operation.id() ).append( "\", controller );\n" );
+			if ( NativeType.isNativeTypeKeyword( requestTypeDefinition.id() ) ) {
+				appendingIndentation( outputFileText );
+				outputFileText.append( "Value requestValue = Value.create(); requestValue.setValue( request );\n" );
+				appendingIndentation( outputFileText );
+				outputFileText.append( "JolieClient.call(requestValue, \"" ).append( operation.id() ).append( "\", controller );\n" );
+			} else {
+				appendingIndentation( outputFileText );
+				outputFileText.append( "JolieClient.call(request.getValue(), \"" ).append( operation.id() ).append( "\", controller );\n" );
+			}
 			appendingIndentation( outputFileText );
 			outputFileText.append( "if ( controller.getFault() != null ) {\n" );
 			incrementIndentation();
@@ -465,9 +478,12 @@ public class JavaDocumentCreator
 			outputFileText.append( "}\n" );
 			if ( operation instanceof RequestResponseOperationDeclaration ) {
 				appendingIndentation( outputFileText );
-				outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse() );\n" );
+				String nativeMethod = "";
+				if ( NativeType.isNativeTypeKeyword( ((RequestResponseOperationDeclaration) operation).responseType().id() ) ) {
+					nativeMethod = "." + JAVA_NATIVE_METHOD.get( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) );
+				}
+				outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse()" ).append( nativeMethod ).append( ");\n" );
 			}
-
 			decrementIndentation();
 			appendingIndentation( outputFileText );
 			outputFileText.append( "}\n" );
@@ -641,7 +657,7 @@ public class JavaDocumentCreator
 			Document doc = docBuilder.newDocument();
 			Element rootElement = doc.createElement( "project" );
 			doc.appendChild( rootElement );
-			rootElement.setAttribute( "name", "JolieConnector" );
+			rootElement.setAttribute( "name", "JolieClient" );
 			rootElement.setAttribute( "default", "compile" );
 			rootElement.setAttribute( "basedir", "." );
 			/*Section that defines constants*/
@@ -707,6 +723,7 @@ public class JavaDocumentCreator
 			compileElement.appendChild( javacElement );
 			javacElement.setAttribute( "srcdir", "${src}" );
 			javacElement.setAttribute( "destdir", "${build}" );
+			javacElement.setAttribute( "includeantruntime", "false" );
 			Element classPathElement = doc.createElement( "classpath" );
 			javacElement.appendChild( classPathElement );
 			Element jolieJar = doc.createElement( "pathelement" );
@@ -715,13 +732,16 @@ public class JavaDocumentCreator
 			Element libJolieJar = doc.createElement( "pathelement" );
 			classPathElement.appendChild( libJolieJar );
 			libJolieJar.setAttribute( "path", "./lib/libjolie.jar" );
+			Element jolieJavaJar = doc.createElement( "pathelement" );
+			classPathElement.appendChild( jolieJavaJar );
+			jolieJavaJar.setAttribute( "path", "./lib/jolie-java.jar" );
 			Element distElement = doc.createElement( "target" );
 			rootElement.appendChild( distElement );
 			distElement.setAttribute( "name", "dist" );
 			distElement.setAttribute( "depends", "compile" );
 			Element jarElement = doc.createElement( "jar" );
 			distElement.appendChild( jarElement );
-			jarElement.setAttribute( "jarfile", "${dist}/JolieConnector.jar" );
+			jarElement.setAttribute( "jarfile", "${dist}/JolieClient.jar" );
 			jarElement.setAttribute( "basedir", "${build}" );
 			if ( addSource ) {
 				Element filesetElement = doc.createElement( "fileset" );
@@ -738,7 +758,7 @@ public class JavaDocumentCreator
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
 			DOMSource source = new DOMSource( doc );
-			StreamResult streamResult = new StreamResult( new File( directoryPath + "build.xml" ) );
+			StreamResult streamResult = new StreamResult( new File( generatedPath + "/build.xml" ) );
 			transformer.transform( source, streamResult );
 		} catch( ParserConfigurationException ex ) {
 			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
@@ -756,7 +776,8 @@ public class JavaDocumentCreator
 		File f = new File( "." );
 
 		try {
-			directoryPath = f.getCanonicalPath() + Constants.fileSeparator + "generated";
+			generatedPath = directoryPath = f.getCanonicalPath() + Constants.fileSeparator + "generated";
+			directoryPath += Constants.fileSeparator + "src";
 			for( int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++ ) {
 				directoryPath += Constants.fileSeparator + directoriesComponents[ counterDirectories ];
 			}

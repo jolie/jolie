@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import javax.tools.JavaCompiler;
@@ -82,7 +83,7 @@ public class JavaDocumentCreatorTest
 	public static void setUpClass() throws IOException, ParserException, SemanticException, CommandLineException
 	{
 		// clean past generated files if they exist
-		File generatedPath = new File( "./generated/com/test/types" );
+		File generatedPath = new File( "./generated" );
 		if ( generatedPath.exists() ) {
 			String files[] = generatedPath.list();
 			for( String temp : files ) {
@@ -109,18 +110,31 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 33, new File( "./generated/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 33, new File( "./generated/src/com/test/types" ).list().length );
 
 		// load classes
-		File generated = new File( "./generated" );
+		File generated = new File( "./generated/src" );
 		classLoader = URLClassLoader.newInstance( new URL[]{ generated.toURI().toURL() } );
 
 		// compile files
-		if ( generatedPath.exists() ) {
-			String files[] = generatedPath.list();
-			for( int i = 0; i < files.length; i++ ) {
-				files[ i ] = generatedPath.getPath() + "/" + files[ i ];
+		File generatedTypesPath = new File( "./generated/src/com/test/types" );
+		ArrayList<String> files = new ArrayList();
+		if ( generatedTypesPath.exists() ) {
+			String filesTypes[] = generatedTypesPath.list();
+			for( int i = 0; i < filesTypes.length; i++ ) {
+				files.add( generatedTypesPath.getPath() + "/" + filesTypes[ i ]);
 			}
+			
+			File generatedTestPath = new File( "./generated/src/com/test" );
+			String filesTest[] = generatedTestPath.list();
+			for( int i = 0; i < filesTest.length; i++ ) {
+				filesTest[i] = generatedTestPath.getPath() + "/" + filesTest[ i ];
+				File tmpFile = new File( filesTest[ i ]);
+				if ( !tmpFile.isDirectory() ) {
+					files.add( filesTest[ i ]  );
+				}
+			}
+			
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			OutputStream output = new OutputStream()
@@ -140,9 +154,10 @@ public class JavaDocumentCreatorTest
 				}
 			};
 
-			compiler.run( null, null, output, files );
+			String filesToBeCompiled[] = new String[files.size()];
+			filesToBeCompiled = files.toArray( filesToBeCompiled );
+			compiler.run( null, null, output, filesToBeCompiled );
 			System.out.println( output );
-
 		}
 	}
 
