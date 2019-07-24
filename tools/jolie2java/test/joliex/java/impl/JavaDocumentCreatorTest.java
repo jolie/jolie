@@ -68,6 +68,7 @@ public class JavaDocumentCreatorTest
 	private static final byte[] TESTRAW = new byte[]{ (byte) 0xe0, 0x4f, (byte) 0xd0, 0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2 };
 	private static final Boolean TESTBOOL = true;
 	private static final Long TESTLONG = 2L;
+	private static final Boolean DELETE_AFTER_TEST = true;
 
 	private static URLClassLoader classLoader;
 
@@ -164,6 +165,13 @@ public class JavaDocumentCreatorTest
 	@AfterClass
 	public static void tearDownClass()
 	{
+		if ( DELETE_AFTER_TEST ) {
+			File generatedPath = new File( "./generated" );
+			if ( generatedPath.exists() ) {
+				deleteFolder( generatedPath );
+				generatedPath.delete();
+			}
+		}
 	}
 
 	@Before
@@ -174,6 +182,7 @@ public class JavaDocumentCreatorTest
 	@After
 	public void tearDown()
 	{
+		
 	}
 
 	private static void deleteFolder( File folder )
@@ -1249,7 +1258,7 @@ public class JavaDocumentCreatorTest
 		boolean resp = true;
 		if ( v1.isString() && !v2.isString() ) {
 			resp = false;
-		} else if ( v1.isString() && v2.isString() && !(v1.strValue().equals( v2.strValue())) ) {
+		} else if ( v1.isString() && v2.isString() && !(v1.strValue().equals( v2.strValue() )) ) {
 			resp = false;
 		}
 		if ( v1.isBool() && !v2.isBool() ) {
