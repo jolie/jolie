@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,7 +58,6 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.typing.TypeCheckingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -274,10 +272,46 @@ public class JavaDocumentCreator
 		}
 	}
 
-	private void prepareExceptionConstrructorAndGet( StringBuilder stringBuilder, String faultTypeName, String exceptionName )
+	private void prepareExceptionConstrructorAndGet( StringBuilder stringBuilder, String faultTypeName, String exceptionName, String nativeMethod )
 	{
 		if ( faultTypeName != null ) {
 			stringBuilder.append( "private " ).append( faultTypeName ).append( " fault" ).append( ";\n" );
+			appendingIndentation( stringBuilder );
+			if ( !faultTypeName.equals( "Value" ) ) {
+				stringBuilder.append( "public " ).append( exceptionName ).append( "( Value v ) throws TypeCheckingException{\n" );
+				incrementIndentation();
+
+				if ( !faultTypeName.equals( "Object" ) ) {
+					if ( !faultTypeName.equals( "ByteArray" ) ) {
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "fault = new " ).append( faultTypeName ).append( "(v" );
+						if ( nativeMethod != null ) {
+							stringBuilder.append( "." ).append( nativeMethod );
+						}
+						stringBuilder.append( ");\n" );
+					} else {
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "fault = v.byteArrayValue();\n" );
+					}
+				} else {
+					for( NativeType t : NativeType.class.getEnumConstants() ) {
+						if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
+							continue;
+						}
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "if ( v." ).append( JAVA_NATIVE_CHECKER.get( t ) ).append( "){\n" );
+						incrementIndentation();
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "fault = v." ).append( JAVA_NATIVE_METHOD.get( t ) ).append( ";\n" );
+						decrementIndentation();
+						appendingIndentation( stringBuilder );
+						stringBuilder.append( "}\n" );
+					}
+				}
+				decrementIndentation();
+				appendingIndentation( stringBuilder );
+				stringBuilder.append( "}\n" );
+			}
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "public " ).append( exceptionName ).append( "( " ).append( faultTypeName ).append( " f) {\n" );
 			incrementIndentation();
@@ -296,6 +330,8 @@ public class JavaDocumentCreator
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
 			decrementIndentation();
+		} else {
+			stringBuilder.append( "public " ).append( exceptionName ).append( "( Value v ){}\n");
 		}
 
 	}
@@ -306,13 +342,16 @@ public class JavaDocumentCreator
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
 		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
-		outputFileText.append( "import jolie.runtime.Value;\n" ).append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append( "import jolie.runtime.Value;\n" );
+		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append( "import jolie.runtime.typing.TypeCheckingException;\n" );
 		outputFileText.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
 
 		indentation = 0;
 		incrementIndentation();
 		appendingIndentation( outputFileText );
 		String faultTypeName = "";
+		String nativeMethod = null;
 		if ( (Utils.hasSubTypes( fault.getValue() ) || !NativeType.isNativeTypeKeyword( fault.getValue().id() ))
 			&& !(fault.getValue() instanceof TypeDefinitionUndefined) ) {
 			faultTypeName = fault.getValue().id();
@@ -320,10 +359,11 @@ public class JavaDocumentCreator
 			faultTypeName = "Value";
 		} else if ( Utils.nativeType( fault.getValue() ) != NativeType.VOID ) {
 			faultTypeName = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( fault.getValue() ) );
+			nativeMethod = JAVA_NATIVE_METHOD.get( Utils.nativeType( fault.getValue() ) );
 		} else {
 			faultTypeName = null;
 		}
-		prepareExceptionConstrructorAndGet( outputFileText, faultTypeName, fault.getKey() );
+		prepareExceptionConstrructorAndGet( outputFileText, faultTypeName, fault.getKey(), nativeMethod );
 		decrementIndentation();
 		appendingIndentation( outputFileText );
 		outputFileText.append( "}\n" );
@@ -389,16 +429,16 @@ public class JavaDocumentCreator
 		return responseType;
 	}
 
-	private ArrayList<String> getExceptionList( OperationDeclaration operation )
+	private HashMap<String, String> getExceptionList( OperationDeclaration operation )
 	{
-		ArrayList<String> exceptionList = new ArrayList<>();
+		HashMap<String, String> exceptionList = new HashMap<>();
 		RequestResponseOperationDeclaration requestResponseOperation;
 		if ( operation instanceof RequestResponseOperationDeclaration ) {
 			requestResponseOperation = (RequestResponseOperationDeclaration) operation;
 
-			for( Entry<String, TypeDefinition> fault : requestResponseOperation.faults().entrySet() ) {
-				exceptionList.add( getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
-			}
+			requestResponseOperation.faults().entrySet().stream().forEach( ( fault ) -> {
+				exceptionList.put( fault.getKey(), getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
+			} );
 		}
 		return exceptionList;
 	}
@@ -430,7 +470,7 @@ public class JavaDocumentCreator
 			operation = operatorIterator.next();
 			String requestType = getRequestType( operation );
 			String responseType = getResponseType( operation );
-			ArrayList<String> exceptionList = getExceptionList( operation );
+			HashMap<String, String> exceptionList = getExceptionList( operation );
 			appendingOperationdeclaration( outputFileText, operation.id(), requestType, responseType, exceptionList );
 			outputFileText.append( ";\n" );
 		}
@@ -469,7 +509,7 @@ public class JavaDocumentCreator
 			operation = operatorIterator.next();
 			String requestType = getRequestType( operation );
 			String responseType = getResponseType( operation );
-			ArrayList<String> exceptionList = getExceptionList( operation );
+			HashMap<String, String> exceptionList = getExceptionList( operation );
 
 			if ( operation instanceof RequestResponseOperationDeclaration ) {
 				requestResponseOperation = (RequestResponseOperationDeclaration) operation;
@@ -499,13 +539,22 @@ public class JavaDocumentCreator
 				} else {
 					outputFileText.append( "JolieClient.call(request.getValue(), \"" ).append( operation.id() ).append( "\", controller );\n" );
 				}
-
 			}
 			appendingIndentation( outputFileText );
 			outputFileText.append( "if ( controller.getFault() != null ) {\n" );
 			incrementIndentation();
+			exceptionList.entrySet().stream().forEach( f -> {
+				appendingIndentation( outputFileText );
+				outputFileText.append( "if ( controller.getFault().faultName().equals(\"" ).append( f.getKey() ).append( "\")) {\n" );
+				incrementIndentation();
+				appendingIndentation( outputFileText );
+				outputFileText.append( "throw new " ).append( f.getValue() ).append( "( controller.getFault().value() );\n" );
+				decrementIndentation();
+				appendingIndentation( outputFileText );
+				outputFileText.append( "}\n" );
+			} );
 			appendingIndentation( outputFileText );
-			outputFileText.append( "throw controller.getFault();\n" );
+			outputFileText.append( "throw new Exception( controller.getFault().faultName() );\n" );
 			decrementIndentation();
 			appendingIndentation( outputFileText );
 			outputFileText.append( "}\n" );
@@ -518,7 +567,7 @@ public class JavaDocumentCreator
 			appendingIndentation( outputFileText );
 			outputFileText.append( "}\n" );
 			if ( operation instanceof RequestResponseOperationDeclaration && !responseType.equals( "void" ) ) {
-				
+
 				if ( NativeType.isNativeTypeKeyword( ((RequestResponseOperationDeclaration) operation).responseType().id() ) ) {
 					if ( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) != NativeType.ANY ) {
 						String nativeMethod = "." + JAVA_NATIVE_METHOD.get( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) );
@@ -899,7 +948,7 @@ public class JavaDocumentCreator
 		writer.append( outputFileText.toString() );
 	}
 
-	private void appendingOperationdeclaration( StringBuilder stringBuilder, String operationName, String requestType, String responseType, ArrayList<String> exceptionList )
+	private void appendingOperationdeclaration( StringBuilder stringBuilder, String operationName, String requestType, String responseType, HashMap<String, String> exceptionList )
 	{
 		appendingIndentation( stringBuilder );
 		String requestArgument = "";
@@ -908,9 +957,9 @@ public class JavaDocumentCreator
 		}
 		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestArgument ).append( ") throws FaultException, IOException, InterruptedException, Exception" );
 		if ( exceptionList.size() > 0 ) {
-			for( int i = 0; i < exceptionList.size(); i++ ) {
-				stringBuilder.append( ", " ).append( exceptionList.get( i ) );
-			}
+			exceptionList.entrySet().stream().forEach( f -> {
+				stringBuilder.append( ", " ).append( f.getValue() );
+			} );
 		}
 	}
 
