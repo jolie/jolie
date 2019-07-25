@@ -66,7 +66,7 @@ public class JavaDocumentCreatorTest
 	private static final byte[] TESTRAW = new byte[]{ (byte) 0xe0, 0x4f, (byte) 0xd0, 0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2 };
 	private static final Boolean TESTBOOL = true;
 	private static final Long TESTLONG = 2L;
-	private static final Boolean DELETE_AFTER_TEST = false;
+	private static final Boolean DELETE_AFTER_TEST = true;
 
 	private static URLClassLoader classLoader;
 

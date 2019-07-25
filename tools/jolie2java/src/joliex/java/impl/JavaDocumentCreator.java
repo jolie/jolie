@@ -58,6 +58,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
+import jolie.runtime.Value;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -1833,7 +1834,7 @@ public class JavaDocumentCreator
 						stringBuilder.append( subType.id() ).append( ");\n" );
 					} else if ( variableNameType.equals( "Value" ) ) {
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
+						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" );
 						stringBuilder.append( variableName ).append( ");\n" );
 					} else {
 						for( NativeType t : NativeType.class.getEnumConstants() ) {
