@@ -274,29 +274,30 @@ public class JavaDocumentCreator
 		}
 	}
 
-	private void prepareExceptionConstrructorAndGet( StringBuilder stringBuilder, String faultName, String faultTypeName, String exceptionName )
+	private void prepareExceptionConstrructorAndGet( StringBuilder stringBuilder, String faultTypeName, String exceptionName )
 	{
-		stringBuilder.append( "private " ).append( faultTypeName ).append( " fault" ).append( ";\n" );
+		if ( faultTypeName != null ) {
+			stringBuilder.append( "private " ).append( faultTypeName ).append( " fault" ).append( ";\n" );
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "public " ).append( exceptionName ).append( "( " ).append( faultTypeName ).append( " f) {\n" );
+			incrementIndentation();
 
-		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( exceptionName ).append( "( " ).append( faultTypeName ).append( " f) {\n" );
-		incrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "fault = f;\n" );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "public " ).append( faultTypeName ).append( " getFault(){\n" );
+			incrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "return fault;\n" );
+			decrementIndentation();
+			appendingIndentation( stringBuilder );
+			stringBuilder.append( "}\n" );
+			decrementIndentation();
+		}
 
-		appendingIndentation( stringBuilder );
-		stringBuilder.append( "fault = f;\n" );
-		decrementIndentation();
-		appendingIndentation( stringBuilder );
-		stringBuilder.append( "}\n" );
-
-		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( faultTypeName ).append( " getFault(){\n" );
-		incrementIndentation();
-		appendingIndentation( stringBuilder );
-		stringBuilder.append( "return fault;\n" );
-		decrementIndentation();
-		appendingIndentation( stringBuilder );
-		stringBuilder.append( "}\n" );
-		decrementIndentation();
 	}
 
 	private void prepareException( Entry<String, TypeDefinition> fault, Writer writer ) throws IOException
@@ -305,7 +306,7 @@ public class JavaDocumentCreator
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
 		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
-		outputFileText.append("import jolie.runtime.Value;\n").append("import jolie.runtime.ByteArray;n");
+		outputFileText.append( "import jolie.runtime.Value;\n" ).append( "import jolie.runtime.ByteArray;\n" );
 		outputFileText.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
 
 		indentation = 0;
@@ -315,12 +316,14 @@ public class JavaDocumentCreator
 		if ( (Utils.hasSubTypes( fault.getValue() ) || !NativeType.isNativeTypeKeyword( fault.getValue().id() ))
 			&& !(fault.getValue() instanceof TypeDefinitionUndefined) ) {
 			faultTypeName = fault.getValue().id();
-			prepareExceptionConstrructorAndGet( outputFileText, fault.getValue().id(), faultTypeName, fault.getKey() );
+		} else if ( fault.getValue() instanceof TypeDefinitionUndefined ) {
+			faultTypeName = "Value";
 		} else if ( Utils.nativeType( fault.getValue() ) != NativeType.VOID ) {
 			faultTypeName = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( fault.getValue() ) );
-			prepareExceptionConstrructorAndGet( outputFileText, fault.getValue().id(), faultTypeName, fault.getKey() );
-			
+		} else {
+			faultTypeName = null;
 		}
+		prepareExceptionConstrructorAndGet( outputFileText, faultTypeName, fault.getKey() );
 		decrementIndentation();
 		appendingIndentation( outputFileText );
 		outputFileText.append( "}\n" );
@@ -515,13 +518,37 @@ public class JavaDocumentCreator
 			appendingIndentation( outputFileText );
 			outputFileText.append( "}\n" );
 			if ( operation instanceof RequestResponseOperationDeclaration && !responseType.equals( "void" ) ) {
-				appendingIndentation( outputFileText );
+				
 				if ( NativeType.isNativeTypeKeyword( ((RequestResponseOperationDeclaration) operation).responseType().id() ) ) {
-					String nativeMethod = "." + JAVA_NATIVE_METHOD.get( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) );
-					outputFileText.append( "return " ).append( "controller.getResponse()" ).append( nativeMethod ).append( ";\n" );
+					if ( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) != NativeType.ANY ) {
+						String nativeMethod = "." + JAVA_NATIVE_METHOD.get( Utils.nativeType( ((RequestResponseOperationDeclaration) operation).responseType() ) );
+						appendingIndentation( outputFileText );
+						outputFileText.append( "return " ).append( "controller.getResponse()" ).append( nativeMethod ).append( ";\n" );
+					} else {
+						for( NativeType t : NativeType.class.getEnumConstants() ) {
+							if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
+								continue;
+							}
+							appendingIndentation( outputFileText );
+							outputFileText.append( "if(controller.getResponse()." ).append( JAVA_NATIVE_CHECKER.get( t ) ).append( "){\n" );
+
+							incrementIndentation();
+							String nativeMethod = "." + JAVA_NATIVE_METHOD.get( t );
+							appendingIndentation( outputFileText );
+							outputFileText.append( "return " ).append( "controller.getResponse()" ).append( nativeMethod ).append( ";\n" );
+
+							decrementIndentation();
+							appendingIndentation( outputFileText );
+							outputFileText.append( "}\n" );
+						}
+						appendingIndentation( outputFileText );
+						outputFileText.append( "return null;\n" );
+					}
 				} else if ( responseType.equals( "Value" ) ) {
+					appendingIndentation( outputFileText );
 					outputFileText.append( "return " ).append( " controller.getResponse()" ).append( ";\n" );
 				} else {
+					appendingIndentation( outputFileText );
 					outputFileText.append( "return new " ).append( responseType ).append( "( controller.getResponse()" ).append( ");\n" );
 				}
 			}

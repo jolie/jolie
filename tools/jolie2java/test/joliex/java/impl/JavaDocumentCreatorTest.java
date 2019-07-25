@@ -108,7 +108,7 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 41, new File( "./generated/src/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 43, new File( "./generated/src/com/test/types" ).list().length );
 		assertEquals( "The number of generated files is wrong", 5, new File( "./generated/src/com/test" ).list().length );
 		assertEquals( "The number of generated files is wrong", 2, new File( "./generated" ).list().length );
 
@@ -209,7 +209,7 @@ public class JavaDocumentCreatorTest
 				methodCount++;
 			};
 		}
-		assertEquals( "Number of generated methods does not correspond", 30, methodCount );
+		assertEquals( "Number of generated methods does not correspond", 32, methodCount );
 
 	}
 

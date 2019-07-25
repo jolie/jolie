@@ -254,7 +254,8 @@ RequestResponse:
 
   testRawType( RawType )( RawType ),
 
-  testIntType( IntType )( IntType ),
+  testIntType( IntType )( IntType )
+      throws TestFault( InLineStructureType ),
 
   testBoolType( BoolType )( BoolType ) 
       throws  TestFault( TestFaultType ) 
@@ -271,7 +272,9 @@ RequestResponse:
 
   testVoid( void )( void ) throws TestFaultVoid( void ),
 
-  testUndefined( undefined )( undefined ) throws TestUndefined( undefined )
+  testUndefined( undefined )( undefined ) throws TestUndefined( undefined ),
+
+  testAny( any )( any ) throws TestAny( any )
 
 
 
