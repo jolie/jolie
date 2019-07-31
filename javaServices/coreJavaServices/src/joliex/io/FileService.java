@@ -830,12 +830,11 @@ public class FileService extends JavaService
 	{
 		Value response = Value.create();
 		String fileName = request.strValue();
-		URI uri; 
+		URI uri = null; 
 		Path parent = null;
 
 		try {
 			uri = new URL(fileName).toURI();
-			System.out.println(uri.toString());
 			parent = Paths.get( uri ).getParent();
 		} catch ( InvalidPathException invalidPathException ) {
 			throw new FaultException( invalidPathException );

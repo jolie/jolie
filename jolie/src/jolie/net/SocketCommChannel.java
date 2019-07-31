@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.IllegalBlockingModeException;
@@ -139,7 +138,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		throws IOException
 	{
 		
-		((Buffer)buffer).clear();
+		buffer.clear();
 		
 		final boolean wasBlocking = socketChannel.isBlocking();
 		
@@ -164,8 +163,8 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		if ( read == -1 ) {
 			return false;
 		} else if ( read > 0 ) {
-			((Buffer)buffer).limit( read );
-			((Buffer)buffer).rewind();
+			buffer.limit( read );
+			buffer.rewind();
 			istream.append( buffer );
 		}
 		return true;
