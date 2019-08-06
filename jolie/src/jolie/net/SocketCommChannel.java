@@ -137,7 +137,6 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	private boolean _isOpenImpl()
 		throws IOException
 	{
-		
 		buffer.clear();
 		
 		final boolean wasBlocking = socketChannel.isBlocking();
