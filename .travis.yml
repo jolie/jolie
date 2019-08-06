@@ -1,7 +1,8 @@
 language: java
-
-script: ant dist && ant test
-
-sudo: false
-
 jdk: openjdk11
+sudo: false
+addons:
+  apt:
+    packages:
+      - ant
+script: ant dist && ant test
