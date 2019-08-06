@@ -37,6 +37,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -827,13 +830,18 @@ public class FileService extends JavaService
 	{
 		Value response = Value.create();
 		String fileName = request.strValue();
-
+		URI uri = null; 
 		Path parent = null;
 
 		try {
-			parent = Paths.get( fileName ).getParent();
+			uri = new URL(fileName).toURI();
+			parent = Paths.get( uri ).getParent();
 		} catch ( InvalidPathException invalidPathException ) {
 			throw new FaultException( invalidPathException );
+		} catch( MalformedURLException malformedURLException ) {
+			throw new FaultException( malformedURLException );
+		} catch( URISyntaxException urise ) {
+			throw new FaultException( urise );
 		}
 
 		if ( parent == null ) {
