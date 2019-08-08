@@ -78,6 +78,6 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
     @Override
     protected String getHelpString() {
-	return "Usage: jolie2java --addSource [true] --format [java|gwt] --packageName package_namespace [--targetPort inputPort_to_be_encoded] file.ol";
+	return "Usage: jolie2java --addSource [true] --format [java|gwt] --packageName package_namespace [--targetPort outputPort_to_be_encoded] file.ol";
     }
 }
