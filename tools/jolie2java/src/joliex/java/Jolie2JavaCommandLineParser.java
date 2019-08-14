@@ -11,6 +11,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     private String format;
     private String targetPort;
     private boolean addSource = false;
+	private String outputDirectory = "";
 
     public String getPackageName() {
 	return packageName;
@@ -28,6 +29,8 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 	return addSource;
     }
 
+    public String getOutputDirectory() { return outputDirectory; }
+
     public void setAddSource(boolean addSource) {
 	this.addSource = true;
     }
@@ -38,6 +41,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 	private String format = null;
 	private String targetPort;
 	private boolean addSource = false;
+	private String outputDirectory = null;
 
 	public int onUnrecognizedArgument(List< String> argumentsList, int index)
 		throws CommandLineException {
@@ -53,7 +57,10 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 	    } else if ("--targetPort".equals(argumentsList.get(index))) {
 			index++;
 			targetPort = argumentsList.get(index);
-	    } else {
+	    } else if ("--outputDirectory".equals(argumentsList.get(index))) {
+			index++;
+			outputDirectory = argumentsList.get(index);
+		} else {
 			throw new CommandLineException("Unrecognized command line option: " + argumentsList.get(index));
 	    }
 
@@ -74,10 +81,11 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 		format = argHandler.format;
 		targetPort = argHandler.targetPort;
 		addSource = argHandler.addSource;
+		outputDirectory = argHandler.outputDirectory;
     }
 
     @Override
     protected String getHelpString() {
-	return "Usage: jolie2java --addSource [true] --format [java|gwt] --packageName package_namespace [--targetPort outputPort_to_be_encoded] file.ol";
+	return "Usage: jolie2java --addSource [true] --format [java|gwt] --packageName package_namespace [--targetPort outputPort_to_be_encoded] [ --outputDirectory outputDirectory ] file.ol";
     }
 }

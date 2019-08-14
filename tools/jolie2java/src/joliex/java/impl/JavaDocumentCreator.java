@@ -71,7 +71,7 @@ public class JavaDocumentCreator
 	private final int INDENTATION_STEP = 1;
 	private final String TYPEFOLDER = "types";
 	private int indentation;
-	private String directoryPath;
+	private String outputDirectory;
 	private String generatedPath;
 	private String directoryPathTypes;
 	private LinkedHashMap<String, TypeDefinition> typeMap;
@@ -84,13 +84,21 @@ public class JavaDocumentCreator
 	private static final HashMap<NativeType, String> JAVA_NATIVE_METHOD = new HashMap<>();
 	private static final HashMap<NativeType, String> JAVA_NATIVE_CHECKER = new HashMap<>();
 
-	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource )
+	public static final String defaultOutputDirectory = "./generated";
+
+	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory )
 	{
 
 		this.inspector = inspector;
 		this.packageName = packageName;
 		this.targetPort = targetPort;
 		this.addSource = addSource;
+
+		if ( outputDirectory == null ) {
+			this.outputDirectory = defaultOutputDirectory;
+		} else {
+			this.outputDirectory = (outputDirectory.endsWith(Constants.fileSeparator)) ? outputDirectory.substring(0,outputDirectory.length()-1):outputDirectory;
+		}
 
 		JAVA_NATIVE_EQUIVALENT.put( NativeType.INT, "Integer" );
 		JAVA_NATIVE_EQUIVALENT.put( NativeType.BOOL, "Boolean" );
@@ -218,7 +226,7 @@ public class JavaDocumentCreator
 			/* range over the input ports */
 			if ( targetPort == null || outputPort.id().equals( targetPort ) ) {
 
-				String nameFile = directoryPath + Constants.fileSeparator + outputPort.id() + "Interface.java";
+				String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Interface.java";
 				Writer writer;
 				try {
 					writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -236,7 +244,7 @@ public class JavaDocumentCreator
 			/* range over the input ports */
 			if ( targetPort == null || outputPort.id().equals( targetPort ) ) {
 
-				String nameFile = directoryPath + Constants.fileSeparator + outputPort.id() + "Impl.java";
+				String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Impl.java";
 				Writer writer;
 				try {
 					writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -250,7 +258,7 @@ public class JavaDocumentCreator
 		}
 
 		// prepare JolieClient
-		String nameFile = directoryPath + Constants.fileSeparator + "JolieClient.java";
+		String nameFile = outputDirectory + Constants.fileSeparator + "JolieClient.java";
 		Writer writer;
 		try {
 			writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -262,7 +270,7 @@ public class JavaDocumentCreator
 		}
 
 		// prepare Controller
-		nameFile = directoryPath + Constants.fileSeparator + "Controller.java";
+		nameFile = outputDirectory + Constants.fileSeparator + "Controller.java";
 		try {
 			writer = new BufferedWriter( new FileWriter( nameFile ) );
 			prepareController( writer );
@@ -893,20 +901,17 @@ public class JavaDocumentCreator
 		String[] directoriesComponents = packageName.split( "\\." );
 		File f = new File( "." );
 
-		try {
-			generatedPath = directoryPath = f.getCanonicalPath() + Constants.fileSeparator + "generated";
-			directoryPath += Constants.fileSeparator + "src";
-			for( int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++ ) {
-				directoryPath += Constants.fileSeparator + directoriesComponents[ counterDirectories ];
-			}
-			f = new File( directoryPath );
-			f.mkdirs();
-			directoryPathTypes = directoryPath + File.separator + TYPEFOLDER;
-			File f2 = new File( directoryPathTypes );
-			f2.mkdir();
-		} catch( IOException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+
+		generatedPath = outputDirectory;
+		outputDirectory += Constants.fileSeparator + "src";
+		for( int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++ ) {
+			outputDirectory += Constants.fileSeparator + directoriesComponents[ counterDirectories ];
 		}
+		f = new File(outputDirectory);
+		f.mkdirs();
+		directoryPathTypes = outputDirectory + File.separator + TYPEFOLDER;
+		File f2 = new File( directoryPathTypes );
+		f2.mkdir();
 	}
 
 	public void ConvertInterface( InterfaceDefinition interfaceDefinition, Writer writer )

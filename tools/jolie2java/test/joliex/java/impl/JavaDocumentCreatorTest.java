@@ -33,7 +33,6 @@ import java.util.Map.Entry;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import jolie.CommandLineException;
-import jolie.lang.Constants;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
@@ -69,6 +68,7 @@ public class JavaDocumentCreatorTest
 	private static final Boolean DELETE_AFTER_TEST = true;
 
 	private static URLClassLoader classLoader;
+	private static final String outputDirectory = "./target/jolie2java-generated-sources/";
 
 	HashMap<String, Method> setMethodList = new HashMap<>();
 	HashMap<String, Method> getMethodList = new HashMap<>();
@@ -85,9 +85,9 @@ public class JavaDocumentCreatorTest
 	public static void setUpClass() throws IOException, ParserException, SemanticException, CommandLineException
 	{
 		// clean past generated files if they exist
-		File generatedPath = new File( "./generated" );
+		File generatedPath = new File( outputDirectory );
 		if ( generatedPath.exists() ) {
-			deleteFolder( generatedPath );
+			TestUtils.deleteFolder( generatedPath );
 		}
 
 		String[] args = { "./resources/main.ol" };
@@ -104,20 +104,19 @@ public class JavaDocumentCreatorTest
 
 		//Program program = parser.parse();
 		inspector = ParsingUtils.createInspector( program );
-
-		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false );
+		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory);
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 43, new File( "./generated/src/com/test/types" ).list().length );
-		assertEquals( "The number of generated files is wrong", 5, new File( "./generated/src/com/test" ).list().length );
-		assertEquals( "The number of generated files is wrong", 2, new File( "./generated" ).list().length );
+		assertEquals( "The number of generated files is wrong", 43, new File( outputDirectory + "src/com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 5, new File( outputDirectory +"src/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 2, new File( outputDirectory ).list().length );
 
 		// load classes
-		File generated = new File( "./generated/src" );
+		File generated = new File( outputDirectory + "src" );
 		classLoader = URLClassLoader.newInstance( new URL[]{ generated.toURI().toURL() } );
 
 		// compile files
-		File generatedTypesPath = new File( "./generated/src/com/test/types" );
+		File generatedTypesPath = new File( outputDirectory + "src/com/test/types" );
 		ArrayList<String> files = new ArrayList();
 		if ( generatedTypesPath.exists() ) {
 			String filesTypes[] = generatedTypesPath.list();
@@ -125,7 +124,7 @@ public class JavaDocumentCreatorTest
 				files.add( generatedTypesPath.getPath() + "/" + filesTypes[ i ] );
 			}
 
-			File generatedTestPath = new File( "./generated/src/com/test" );
+			File generatedTestPath = new File( outputDirectory + "/src/com/test" );
 			String filesTest[] = generatedTestPath.list();
 			for( int i = 0; i < filesTest.length; i++ ) {
 				filesTest[ i ] = generatedTestPath.getPath() + "/" + filesTest[ i ];
@@ -164,9 +163,9 @@ public class JavaDocumentCreatorTest
 	public static void tearDownClass()
 	{
 		if ( DELETE_AFTER_TEST ) {
-			File generatedPath = new File( "./generated" );
+			File generatedPath = new File( outputDirectory );
 			if ( generatedPath.exists() ) {
-				deleteFolder( generatedPath );
+				TestUtils.deleteFolder( generatedPath );
 				generatedPath.delete();
 			}
 		}
@@ -181,19 +180,6 @@ public class JavaDocumentCreatorTest
 	public void tearDown()
 	{
 		
-	}
-
-	private static void deleteFolder( File folder )
-	{
-		for( int i = folder.list().length - 1; i >= 0; i-- ) {
-			File tmpFile = new File( folder.getPath() + Constants.fileSeparator + folder.list()[ i ] );
-			if ( tmpFile.isDirectory() ) {
-				deleteFolder( tmpFile );
-				tmpFile.delete();
-			} else {
-				tmpFile.delete();
-			}
-		}
 	}
 
 	@Test

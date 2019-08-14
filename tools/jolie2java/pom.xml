@@ -53,8 +53,8 @@
 
     <build>
 
-        <sourceDirectory>src/joliex/java</sourceDirectory>
-        <testSourceDirectory>test/joliex/java</testSourceDirectory>
+        <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>test</testSourceDirectory>
 
         <testResources>
             <testResource>
