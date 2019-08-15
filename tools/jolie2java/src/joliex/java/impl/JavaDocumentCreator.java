@@ -789,7 +789,7 @@ public class JavaDocumentCreator
 			/*Section that defines constants*/
 			Element propertyElement = doc.createElement( "property" );
 			propertyElement.setAttribute( "name", "src" );
-			propertyElement.setAttribute( "location", "src" );
+			propertyElement.setAttribute( "location", "." );
 			rootElement.appendChild( propertyElement );
 			propertyElement = doc.createElement( "property" );
 			propertyElement.setAttribute( "name", "dist" );
@@ -903,7 +903,6 @@ public class JavaDocumentCreator
 
 
 		generatedPath = outputDirectory;
-		outputDirectory += Constants.fileSeparator + "src";
 		for( int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++ ) {
 			outputDirectory += Constants.fileSeparator + directoriesComponents[ counterDirectories ];
 		}

@@ -107,16 +107,16 @@ public class JavaDocumentCreatorTest
 		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory);
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 43, new File( outputDirectory + "src/com/test/types" ).list().length );
-		assertEquals( "The number of generated files is wrong", 5, new File( outputDirectory +"src/com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong", 43, new File( outputDirectory + "com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong", 5, new File( outputDirectory +"com/test" ).list().length );
 		assertEquals( "The number of generated files is wrong", 2, new File( outputDirectory ).list().length );
 
 		// load classes
-		File generated = new File( outputDirectory + "src" );
+		File generated = new File( outputDirectory  );
 		classLoader = URLClassLoader.newInstance( new URL[]{ generated.toURI().toURL() } );
 
 		// compile files
-		File generatedTypesPath = new File( outputDirectory + "src/com/test/types" );
+		File generatedTypesPath = new File( outputDirectory + "com/test/types" );
 		ArrayList<String> files = new ArrayList();
 		if ( generatedTypesPath.exists() ) {
 			String filesTypes[] = generatedTypesPath.list();
@@ -124,7 +124,7 @@ public class JavaDocumentCreatorTest
 				files.add( generatedTypesPath.getPath() + "/" + filesTypes[ i ] );
 			}
 
-			File generatedTestPath = new File( outputDirectory + "/src/com/test" );
+			File generatedTestPath = new File( outputDirectory + "com/test" );
 			String filesTest[] = generatedTestPath.list();
 			for( int i = 0; i < filesTest.length; i++ ) {
 				filesTest[ i ] = generatedTestPath.getPath() + "/" + filesTest[ i ];
