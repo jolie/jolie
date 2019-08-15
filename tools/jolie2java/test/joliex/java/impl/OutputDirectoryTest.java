@@ -63,7 +63,7 @@ public class OutputDirectoryTest {
 
         //Program program = parser.parse();
         inspector = ParsingUtils.createInspector( program );
-        JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, null);
+        JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, null, true);
         instance.ConvertDocument();
     }
 

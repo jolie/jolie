@@ -104,7 +104,7 @@ public class JavaDocumentCreatorTest
 
 		//Program program = parser.parse();
 		inspector = ParsingUtils.createInspector( program );
-		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory);
+		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true);
 		instance.ConvertDocument();
 
 		assertEquals( "The number of generated files is wrong", 43, new File( outputDirectory + "com/test/types" ).list().length );

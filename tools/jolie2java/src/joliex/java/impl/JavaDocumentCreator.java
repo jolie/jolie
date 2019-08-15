@@ -68,6 +68,7 @@ public class JavaDocumentCreator
 	private final String packageName;
 	private final String targetPort;
 	private final boolean addSource;
+	private final boolean buildXml;
 	private final int INDENTATION_STEP = 1;
 	private final String TYPEFOLDER = "types";
 	private int indentation;
@@ -86,13 +87,14 @@ public class JavaDocumentCreator
 
 	public static final String defaultOutputDirectory = "./generated";
 
-	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory )
+	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml )
 	{
 
 		this.inspector = inspector;
 		this.packageName = packageName;
 		this.targetPort = targetPort;
 		this.addSource = addSource;
+		this.buildXml = buildXml;
 
 		if ( outputDirectory == null ) {
 			this.outputDirectory = defaultOutputDirectory;
@@ -184,7 +186,9 @@ public class JavaDocumentCreator
 		typeMapIterator = typeMap.entrySet().iterator();
 		createPackageDirectory();
 
-		createBuildFile();
+		if ( buildXml ) {
+			createBuildFile();
+		}
 
 		// prepare types
 		while( typeMapIterator.hasNext() ) {

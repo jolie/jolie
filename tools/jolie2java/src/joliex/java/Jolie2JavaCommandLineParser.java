@@ -12,6 +12,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     private String targetPort;
     private boolean addSource = false;
 	private String outputDirectory = "";
+	private boolean buildXml = true;
 
     public String getPackageName() {
 	return packageName;
@@ -35,19 +36,22 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 	this.addSource = true;
     }
 
+    public boolean isBuildXmlenabled() { return buildXml; }
+
     private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
 
 	private String packageName = null;
 	private String format = null;
 	private String targetPort;
-	private boolean addSource = false;
+	private Boolean addSource = false;
 	private String outputDirectory = null;
+	private Boolean buildXml = true;
 
 	public int onUnrecognizedArgument(List< String> argumentsList, int index)
 		throws CommandLineException {
 	    if ("--addSource".equals(argumentsList.get(index))) {
 			index++;
-			this.addSource = true;
+			this.addSource = new Boolean(argumentsList.get(index));
 	    } else if ("--packageName".equals(argumentsList.get(index))) {
 			index++;
 			packageName = argumentsList.get(index);
@@ -60,6 +64,9 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 	    } else if ("--outputDirectory".equals(argumentsList.get(index))) {
 			index++;
 			outputDirectory = argumentsList.get(index);
+		} else if ("--buildXml".equals(argumentsList.get(index))) {
+			index++;
+			buildXml = new Boolean(argumentsList.get(index));
 		} else {
 			throw new CommandLineException("Unrecognized command line option: " + argumentsList.get(index));
 	    }
@@ -82,6 +89,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 		targetPort = argHandler.targetPort;
 		addSource = argHandler.addSource;
 		outputDirectory = argHandler.outputDirectory;
+		buildXml = argHandler.buildXml;
     }
 
     @Override
