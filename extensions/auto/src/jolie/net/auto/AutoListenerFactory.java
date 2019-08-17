@@ -37,7 +37,7 @@ import jolie.util.Helpers;
  * Listener factory for the auto communication medium.
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"ini4j.jar"})
+@AndJarDeps({"ini4j.jar", "jolie-js.jar"})
 public class AutoListenerFactory extends CommListenerFactory
 {
 	public AutoListenerFactory( CommCore commCore )
@@ -57,12 +57,7 @@ public class AutoListenerFactory extends CommListenerFactory
 		URI locationURI = inputPort.location();
 
 		String[] ss = locationURI.getSchemeSpecificPart().split( ":", 2 );
-		String location = null;
-		if ( "ini".equals( ss[0] ) ) {
-			location = AutoHelper.getLocationFromIni( ss[1] );
-		} else {
-			AutoHelper.throwIOException( "unsupported scheme: " + locationURI.getScheme() );
-		}
+		String location = AutoHelper.getLocationFromUrl( ss[0], ss[1] );
 
 		AutoHelper.assertIOException( location == null, "internal error: location is null" );
 		

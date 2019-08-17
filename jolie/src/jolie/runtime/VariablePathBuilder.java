@@ -54,4 +54,9 @@ public final class VariablePathBuilder
 			return new VariablePath( list.toArray( new Pair[]{} ) );
 		}
 	}
+	
+	public VariablePath toClosedVariablePath( Value rootValue )
+	{
+		return new ClosedVariablePath( list.toArray( new Pair[0] ), rootValue );
+	}
 }
