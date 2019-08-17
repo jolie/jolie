@@ -45,8 +45,7 @@ public class AutoListenerFactory extends CommListenerFactory
 		super( commCore );
 	}
 	
-	
-
+	@Override
 	public CommListener createListener(
 					Interpreter interpreter,
 					CommProtocolFactory protocolFactory,
@@ -66,9 +65,8 @@ public class AutoListenerFactory extends CommListenerFactory
 		}
 
 		AutoHelper.assertIOException( location == null, "internal error: location is null" );
-		//AutoHelper.assertIOException( location.equals( Constants.LOCAL_LOCATION_KEYWORD ), "autoconf does not support local locations" );
 		
-		if ( location.equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+		if ( Constants.LOCAL_LOCATION_KEYWORD.equals( location ) ) {
 			interpreter.commCore().addLocalInputPort( inputPort );
 			inputPort.setLocation( location );
 			return interpreter.commCore().localListener();

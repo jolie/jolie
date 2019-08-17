@@ -63,7 +63,7 @@ public class AutoChannelFactory extends CommChannelFactory {
 		}
 
 		AutoHelper.assertIOException( location == null, "internal error: location is null" );
-		AutoHelper.assertIOException( location.equals( Constants.LOCAL_LOCATION_KEYWORD ), "autoconf does not support local locations" );
+		AutoHelper.assertIOException( Constants.LOCAL_LOCATION_KEYWORD.equals( location ), "autoconf does not support local locations" );
 		
 		try {
 			URI uri = new URI( location );
