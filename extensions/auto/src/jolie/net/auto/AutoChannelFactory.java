@@ -34,12 +34,12 @@ import jolie.runtime.AndJarDeps;
  * @author Claudio Guidi
  */
 @AndJarDeps({
-	"ini4j.jar"
+	"ini4j.jar", "jolie-js.jar"
 })
 public class AutoChannelFactory extends CommChannelFactory {
 	
 	private final CommCore commCore;
-	private final HashMap<URI,String> locationMap = new HashMap<URI,String>();
+	private final HashMap<URI,String> locationMap = new HashMap<>(); // TODO: check whether this can be invoked concurrently
 
 	public AutoChannelFactory(CommCore commCore) {
 		super(commCore);
@@ -49,17 +49,11 @@ public class AutoChannelFactory extends CommChannelFactory {
 	@Override
 	public CommChannel createChannel(URI locationURI, OutputPort port) throws IOException {
 
-		String location = null;
-		if ( !locationMap.containsKey(locationURI) ) {
+		String location = locationMap.get(locationURI);
+		if ( location == null ) {
 			String[] ss = locationURI.getSchemeSpecificPart().split( ":", 2 );
-			if ( "ini".equals( ss[0] ) ) {
-				location = AutoHelper.getLocationFromIni( ss[1] );
-				locationMap.put(locationURI, location);
-			} else {
-				AutoHelper.throwIOException( "unsupported scheme: " + locationURI.getScheme() );
-			}
-		} else {
-			location = locationMap.get(locationURI);
+			location = AutoHelper.getLocationFromUrl( ss[0], ss[1] );
+			locationMap.put(locationURI, location);
 		}
 
 		AutoHelper.assertIOException( location == null, "internal error: location is null" );

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2014-2019 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,12 +22,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
+import jolie.js.JsUtils;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePathBuilder;
 import jolie.util.Helpers;
 import org.ini4j.Ini;
 
 /**
- *
- * @author claudio
+ * @author Claudio Guidi, Fabrizio Montesi
  */
 public class AutoHelper {
     
@@ -71,5 +73,38 @@ public class AutoHelper {
 
 			return retLocation;
 		}
+	}
+	
+	public static String getLocationFromJson( String jsonLocation )
+		throws IOException
+	{
+		// Format: "path:URL_to_json"
+		String[] ss = jsonLocation.split( ":", 2 );
+		assertIOException( ss.length < 2, "invalid JSON location; the format is path.to.config.node:URL_to_JSON" );
+		String[] pathComponents = ss[0].split( "\\." );
+		VariablePathBuilder builder = new VariablePathBuilder( false );
+		for( String component : pathComponents ) {
+			builder.add( component, 0 );
+		}
+		
+		URL jsonURL = new URL( ss[1] );
+		try( Reader reader = new InputStreamReader( jsonURL.openStream() ) ) {
+			Value jsonValue = Value.create();
+			JsUtils.parseJsonIntoValue( reader, jsonValue, false );
+			return builder.toClosedVariablePath( jsonValue ).getValue().strValue();
+		}
+	}
+	
+	public static String getLocationFromUrl( String type, String url )
+		throws IOException
+	{
+		switch( type ) {
+			case "ini":
+				return getLocationFromIni( url );
+			case "json":
+				return getLocationFromJson( url );
+		}
+		AutoHelper.throwIOException( "unsupported url type: " + type );
+		return null; // To appease the compiler..
 	}
 }
