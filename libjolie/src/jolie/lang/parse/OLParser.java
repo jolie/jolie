@@ -127,6 +127,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.util.ProgramBuilder;
 import jolie.util.Helpers;
 import jolie.util.Pair;
 import jolie.util.Range;
@@ -137,7 +138,7 @@ import jolie.util.Range;
  */
 public class OLParser extends AbstractParser
 {
-	private final Program program;
+	private final ProgramBuilder programBuilder;
 	private final Map< String, Scanner.Token > constantsMap =
 		new HashMap<>();
 	private boolean insideInstallFunction = false;
@@ -155,8 +156,8 @@ public class OLParser extends AbstractParser
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
 		super( scanner );
-		ParsingContext context = new URIParsingContext( scanner.source(), 0 );
-		this.program = new Program( context );
+		final ParsingContext context = new URIParsingContext( scanner.source(), 0 );
+		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
 		this.definedTypes = createTypeDeclarationMap( context );
@@ -186,13 +187,13 @@ public class OLParser extends AbstractParser
 		_parse();
 
 		if ( initSequence != null ) {
-			program.addChild( new DefinitionNode( getContext(), "init", initSequence ) );
+			programBuilder.addChild( new DefinitionNode( getContext(), "init", initSequence ) );
 		}
 
 		if ( main != null ) {
-			program.addChild( main );
+			programBuilder.addChild( main );
 		}
-		return program;
+		return programBuilder.toProgram();
 	}
 
 	private void _parse()
@@ -259,7 +260,7 @@ public class OLParser extends AbstractParser
 				typeName = currentType.id();
 
 				definedTypes.put( typeName, currentType );
-				program.addChild( currentType );
+				programBuilder.addChild( currentType );
 			} else {
 				keepRun = false;
 				if ( haveComment ) { //  we return the comment and the subsequent token since we did not use them
@@ -506,7 +507,7 @@ public class OLParser extends AbstractParser
 						} else {
 							portId = null;
 						}
-						program.addChild(
+						programBuilder.addChild(
 							new EmbeddedServiceNode(
 							getContext(),
 							type,
@@ -556,7 +557,7 @@ public class OLParser extends AbstractParser
 				}
 			}
 
-			program.addChild( new CorrelationSetInfo( getContext(), variables ) );
+			programBuilder.addChild( new CorrelationSetInfo( getContext(), variables ) );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
@@ -583,7 +584,7 @@ public class OLParser extends AbstractParser
 					throwException( "Expected execution mode, found " + token.content() );
 					break;
 			}
-			program.addChild( new ExecutionInfo( getContext(), mode ) );
+			programBuilder.addChild( new ExecutionInfo( getContext(), mode ) );
 			getToken();
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
@@ -798,7 +799,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			parseOutputPortInfo( p );
-			program.addChild( p );
+			programBuilder.addChild( p );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 			portInfo = p;
 		}
@@ -994,43 +995,43 @@ public class OLParser extends AbstractParser
 		}
 
 		//add output port to main program
-		program.addChild( createInternalServicePort( serviceName, interfaceList ) );
+		programBuilder.addChild( createInternalServicePort( serviceName, interfaceList ) );
 		
 		//create Program representing the internal service
-		Program internalServiceProgram = new Program( getContext() );
+		ProgramBuilder internalServiceProgramBuilder = new ProgramBuilder( getContext() );
 
 		// copy children of parent to embedded service
-		for( OLSyntaxNode child : program.children() ) {
+		for( OLSyntaxNode child : programBuilder.children() ) {
 			if ( child instanceof InterfaceDefinition
 				|| child instanceof OutputPortInfo
 				|| child instanceof TypeDefinition ) {
-				internalServiceProgram.addChild( child );
+				internalServiceProgramBuilder.addChild( child );
 			}
 		}
 
 		// set execution to always concurrent
-		internalServiceProgram.addChild( new ExecutionInfo( getContext(), Constants.ExecutionMode.CONCURRENT ) );
+		internalServiceProgramBuilder.addChild( new ExecutionInfo( getContext(), Constants.ExecutionMode.CONCURRENT ) );
 
 		//add input port to internal service
-		internalServiceProgram.addChild( createInternalServiceInputPort( serviceName, interfaceList ) );
+		internalServiceProgramBuilder.addChild( createInternalServiceInputPort( serviceName, interfaceList ) );
 
 		//add init if defined in internal service
 		if ( internalInit != null ) {
-			internalServiceProgram.addChild( new DefinitionNode( getContext(), "init", internalInit ) );
+			internalServiceProgramBuilder.addChild( new DefinitionNode( getContext(), "init", internalInit ) );
 		}
 
 		//add main defined in internal service
-		internalServiceProgram.addChild( internalMain );
+		internalServiceProgramBuilder.addChild( internalMain );
 
 		//create internal embedded service node
 		EmbeddedServiceNode internalServiceNode
 			= new EmbeddedServiceNode( getContext(), Constants.EmbeddedServiceType.INTERNAL, serviceName, serviceName );
 
 		//add internal service program to embedded service node
-		internalServiceNode.setProgram( internalServiceProgram );
+		internalServiceNode.setProgram( internalServiceProgramBuilder.toProgram() );
 
 		//add embedded service node to program that is embedding it
-		program.addChild( internalServiceNode );
+		programBuilder.addChild( internalServiceNode );
 	}
     
 	private InputPortInfo parseInputPortInfo()
@@ -1156,7 +1157,7 @@ public class OLParser extends AbstractParser
 			iport.addInterface( i );
 		}
 		iface.copyTo( iport );
-		program.addChild( iport );
+		programBuilder.addChild( iport );
 		return iport;
 	}
 	
@@ -1222,7 +1223,7 @@ public class OLParser extends AbstractParser
 				new InterfaceExtenderDefinition( getContext(), name );
 		parseOperations( currInterfaceExtender );
 		interfaceExtenders.put( name, extender );
-		program.addChild( currInterfaceExtender );
+		programBuilder.addChild( currInterfaceExtender );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 		currInterfaceExtender = null;
 		return extender;
@@ -1240,7 +1241,7 @@ public class OLParser extends AbstractParser
 		iface = new InterfaceDefinition( getContext(), name );
 		parseOperations( iface );
 		interfaces.put( name, iface );
-		program.addChild( iface );
+		programBuilder.addChild( iface );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 
 		return iface;
@@ -1495,9 +1496,9 @@ public class OLParser extends AbstractParser
 
 		do {
 			if ( token.is( Scanner.TokenType.DEFINE ) ) {
-				program.addChild( parseDefinition() );
+				programBuilder.addChild( parseDefinition() );
 			} else if ( token.isKeyword( "courier" ) ) {
-				program.addChild( parseCourierDefinition() );
+				programBuilder.addChild( parseCourierDefinition() );
 			} else if ( token.isKeyword( "main" ) ) {
 				if ( main != null ) {
 					throwException( "you must specify only one main definition" );

@@ -20,6 +20,8 @@
 package jolie.lang.parse;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -117,18 +119,19 @@ public class OLParseTreeOptimizer
 	 */
 	private static class OptimizerVisitor implements OLVisitor
 	{
-		private final Program program;
+		private final List< OLSyntaxNode > programChildren = new ArrayList<>();
+		private final ParsingContext context;
 		private OLSyntaxNode currNode;
 		
 		public OptimizerVisitor( ParsingContext context )
 		{
-			program = new Program( context );
+			this.context = context;
 		}
 		
 		public Program optimize( Program p )
 		{
 			visit( p );
-			return program;
+			return new Program( context, programChildren );
 		}
 		
 		private OLSyntaxNode optimize( OLSyntaxNode n )
@@ -148,13 +151,13 @@ public class OLParseTreeOptimizer
 		@Override
 		public void visit( ExecutionInfo p )
 		{
-			program.addChild( p );
+			programChildren.add( p );
 		}
 		
 		@Override
 		public void visit( CorrelationSetInfo p )
 		{
-			program.addChild( p );
+			programChildren.add( p );
 		}
 		
 		@Override
@@ -164,7 +167,7 @@ public class OLParseTreeOptimizer
 				p.protocolConfiguration().accept( this );
 				p.setProtocolConfiguration( currNode );
 			}
-			program.addChild( p	);
+			programChildren.add( p );
 		}
 
 		@Override
@@ -187,9 +190,9 @@ public class OLParseTreeOptimizer
 				}
 				iport.operationsMap().putAll( p.operationsMap() );
 				iport.getInterfaceList().addAll( p.getInterfaceList() );
-				program.addChild( iport );
+				programChildren.add( iport );
 			} else {
-				program.addChild( p );
+				programChildren.add( p );
 			}
 		}
 
@@ -204,13 +207,13 @@ public class OLParseTreeOptimizer
 		@Override
 		public void visit( EmbeddedServiceNode n )
 		{
-			program.addChild( n );
+			programChildren.add( n );
 		}
 
 		@Override
 		public void visit( DefinitionNode n )
 		{
-			program.addChild( new DefinitionNode( n.context(), n.id(), optimizeNode( n.body() ) ) );
+			programChildren.add( new DefinitionNode( n.context(), n.id(), optimizeNode( n.body() ) ) );
 		}
 
 		@Override
@@ -745,17 +748,17 @@ public class OLParseTreeOptimizer
 		@Override
 		public void visit( TypeInlineDefinition n )
 		{
-			program.addChild( n );
+			programChildren.add( n );
 		}
 
 		@Override
 		public void visit( TypeDefinitionLink n )
 		{
-			program.addChild( n );
+			programChildren.add( n );
 		}
 
 		public void visit(TypeChoiceDefinition n) {
-			program.addChild( n );
+			programChildren.add( n );
 		}
 		
 		@Override
@@ -854,19 +857,19 @@ public class OLParseTreeOptimizer
 		@Override
 		public void visit( InterfaceDefinition n )
 		{
-			program.addChild( n );
+			programChildren.add( n );
 		}
 		
 		@Override
 		public void visit( InterfaceExtenderDefinition n )
 		{
-			program.addChild( n );
+			programChildren.add( n );
 		}
 	
 		@Override
 		public void visit( CourierDefinitionNode n )
 		{
-			program.addChild( new CourierDefinitionNode( n.context(), n.inputPortName(), optimizeNode( n.body() ) ) );
+			programChildren.add( new CourierDefinitionNode( n.context(), n.inputPortName(), optimizeNode( n.body() ) ) );
 		}
 	
 		@Override
