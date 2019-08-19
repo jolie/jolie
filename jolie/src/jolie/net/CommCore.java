@@ -85,10 +85,9 @@ public class CommCore
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 
 	private final int connectionsLimit;
-	// private final int connectionCacheSize;
 	private final Interpreter interpreter;
-	
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
+	private SelectorThread[] selectorThreads;
 
 	// Location URI -> Protocol name -> Persistent CommChannel object
 	private final Map< URI, Map< String, CommChannel > > persistentChannels = new HashMap<>();
@@ -788,8 +787,6 @@ public class CommCore
 		pollingThread().register( channel );
 	}
 	
-	private SelectorThread[] selectorThreads;
-
 	private class SelectorThread extends NativeJolieThread {
 		// We use a custom class for debugging purposes (the profiler gives us the class name)
 		private class SelectorMutex extends Object {}
