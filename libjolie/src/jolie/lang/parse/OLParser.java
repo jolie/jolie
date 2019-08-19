@@ -180,11 +180,25 @@ public class OLParser extends AbstractParser
 
 		return definedTypes;
 	}
+	
+	private Optional<String> serviceName = Optional.empty();
 
 	public Program parse()
 		throws IOException, ParserException
 	{
-		_parse();
+		getToken();
+		boolean explicitServiceBlock = token.isKeyword( "service" );
+		if ( token.isKeyword( "service" ) ) { // Top-level service definition
+			getToken();
+			assertToken( Scanner.TokenType.ID, "expected service name" );
+			serviceName = Optional.of( token.content() );
+			getToken();
+			assertToken( Scanner.TokenType.LCURLY, "expected { after the opening clause of service " + serviceName.get() );
+		} else {
+			addToken( token );
+		}
+		
+		_parse( explicitServiceBlock );
 
 		if ( initSequence != null ) {
 			programBuilder.addChild( new DefinitionNode( getContext(), "init", initSequence ) );
@@ -193,10 +207,11 @@ public class OLParser extends AbstractParser
 		if ( main != null ) {
 			programBuilder.addChild( main );
 		}
+		
 		return programBuilder.toProgram();
 	}
 
-	private void _parse()
+	private void _parse( boolean explicitServiceBlock )
 		throws IOException, ParserException
 	{
 		getToken();
@@ -219,8 +234,13 @@ public class OLParser extends AbstractParser
             parseInternalService();
 			parseInclude();
 			parseCode();
-		} while( t != token );
+		} while( t != token ); // Loop until no procedures can eat the initial token
 
+		if ( explicitServiceBlock ) {
+			eat( Scanner.TokenType.RCURLY, "expected } at the end of the definition of service " + serviceName.get() );
+			t = token;
+		}
+		
 		if ( t.isNot( Scanner.TokenType.EOF ) ) {
 			throwException( "Invalid token encountered" );
 		}
@@ -760,7 +780,7 @@ public class OLParser extends AbstractParser
 				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length + 1 );
 				includePaths[ origIncludePaths.length ] = includeFile.getParentPath();
 			}
-			_parse();
+			_parse( false );
 			includePaths = origIncludePaths;
 			includeFile.getInputStream().close();
 			setScanner( oldScanner );
@@ -934,7 +954,7 @@ public class OLParser extends AbstractParser
 		//get service name
 		getToken();
 		assertToken( Scanner.TokenType.ID, "expected service name" );
-		String serviceName = token.content();
+		String internalServiceName = token.content();
 
 		//validate token
 		getToken();
@@ -991,11 +1011,11 @@ public class OLParser extends AbstractParser
 
 		//main in service needs to be defined
 		if ( internalMain == null ) {
-			throwException( "You must specify a main for internal service " + serviceName );
+			throwException( "You must specify a main for internal service " + internalServiceName );
 		}
 
 		//add output port to main program
-		programBuilder.addChild( createInternalServicePort( serviceName, interfaceList ) );
+		programBuilder.addChild( createInternalServicePort( internalServiceName, interfaceList ) );
 		
 		//create Program representing the internal service
 		ProgramBuilder internalServiceProgramBuilder = new ProgramBuilder( getContext() );
@@ -1013,7 +1033,7 @@ public class OLParser extends AbstractParser
 		internalServiceProgramBuilder.addChild( new ExecutionInfo( getContext(), Constants.ExecutionMode.CONCURRENT ) );
 
 		//add input port to internal service
-		internalServiceProgramBuilder.addChild( createInternalServiceInputPort( serviceName, interfaceList ) );
+		internalServiceProgramBuilder.addChild( createInternalServiceInputPort( internalServiceName, interfaceList ) );
 
 		//add init if defined in internal service
 		if ( internalInit != null ) {
@@ -1025,7 +1045,7 @@ public class OLParser extends AbstractParser
 
 		//create internal embedded service node
 		EmbeddedServiceNode internalServiceNode
-			= new EmbeddedServiceNode( getContext(), Constants.EmbeddedServiceType.INTERNAL, serviceName, serviceName );
+			= new EmbeddedServiceNode( getContext(), Constants.EmbeddedServiceType.INTERNAL, internalServiceName, internalServiceName );
 
 		//add internal service program to embedded service node
 		internalServiceNode.setProgram( internalServiceProgramBuilder.toProgram() );
