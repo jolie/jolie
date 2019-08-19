@@ -138,6 +138,7 @@ import jolie.util.Range;
  */
 public class OLParser extends AbstractParser
 {
+	private Optional<String> serviceName = Optional.empty();
 	private final ProgramBuilder programBuilder;
 	private final Map< String, Scanner.Token > constantsMap =
 		new HashMap<>();
@@ -181,8 +182,6 @@ public class OLParser extends AbstractParser
 		return definedTypes;
 	}
 	
-	private Optional<String> serviceName = Optional.empty();
-
 	public Program parse()
 		throws IOException, ParserException
 	{
