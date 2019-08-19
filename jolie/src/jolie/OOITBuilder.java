@@ -280,13 +280,13 @@ public class OOITBuilder implements OLVisitor
 		CorrelationFunctionInfo correlationFunctionInfo
 	) {
 		this.interpreter = interpreter;
-		this.program = new Program( program.context() );
 		this.isConstantMap = isConstantMap;
 		this.correlationFunctionInfo = correlationFunctionInfo;
 
-		Map< String, TypeDefinition > builtInTypes = OLParser.createTypeDeclarationMap( program.context() );
-		this.program.children().addAll( builtInTypes.values() );
-		this.program.children().addAll( program.children() );
+		List< OLSyntaxNode > programChildren = new ArrayList<>();
+		programChildren.addAll( OLParser.createTypeDeclarationMap( program.context() ).values() );
+		programChildren.addAll( program.children() );
+		this.program = new Program( program.context(), programChildren );
 	}
 	
 	private static String buildErrorMessage( ParsingContext context, String message )
