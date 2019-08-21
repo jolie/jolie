@@ -1,17 +1,50 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>jolie</groupId>
-    <artifactId>distribution</artifactId>
-    <version>1.8.0</version>
-    <packaging>pom</packaging>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    <description>The distribution of the Jolie language, containing interpreter and extensions.</description>
-    <name>distribution</name>
-    <modules>
-        <module>libjolie</module>
-        <module>jolie</module>
-    </modules>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.jolie-lang</groupId>
+	<artifactId>distribution</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jolie.installation.directory>C:\TestMaven\</jolie.installation.directory>
+		<jolie.version>1.8.3</jolie.version>
+	</properties>
+	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
+	<name>distribution</name>
+	<modules>
+		<module>libjolie</module>
+		<module>jolie</module>
+	</modules>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>javax.activation</groupId>
+									<artifactId>activation</artifactId>
+									<version>1.1</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${jolie.installation.directory}\lib</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>
