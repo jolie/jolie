@@ -13,47 +13,18 @@
 	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
 	<name>distribution</name>
 	<modules>
+                <module>javaServices/coreJavaServices</module>
 		<module>libjolie</module>
 		<module>jolie</module>
                 <module>lib/jolie-js</module>
                 <module>lib/jolie-ssl</module>
                  <!--module>lib/jolie-xml</module-->
-                 <module>support/jolie-gwt</module>
-                 <module>support/jolie-java</module>
-                 <module>extensions/auto</module>
-                 <module>extensions/btl2cap</module>
-                 <module>extensions/sodep</module>
-                 
+                <module>support/jolie-gwt</module>
+                <module>support/jolie-java</module>
+                <module>support/metaservice-java</module>
+                <module>extensions/auto</module>
+                <module>extensions/btl2cap</module>
+                <module>extensions/sodep</module>
+                <module>extensions/https</module> 
 	</modules>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.1.1</version>
-				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>javax.activation</groupId>
-									<artifactId>activation</artifactId>
-									<version>1.1</version>
-									<type>jar</type>
-									<overWrite>false</overWrite>
-									<outputDirectory>${jolie.installation.directory}\lib</outputDirectory>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-
 </project>
