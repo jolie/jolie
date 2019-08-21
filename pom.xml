@@ -8,13 +8,16 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jolie.installation.directory>C:\TestMaven\</jolie.installation.directory>
-		<jolie.version>1.8.3</jolie.version>
+		<jolie.version>1.8.2</jolie.version>
 	</properties>
 	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
 	<name>distribution</name>
 	<modules>
 		<module>libjolie</module>
 		<module>jolie</module>
+                <module>lib/jolie-js</module>
+                <module>lib/jolie-ssl</module>
+                 <module>lib/jolie-xml</module>
 	</modules>
 	<build>
 		<plugins>

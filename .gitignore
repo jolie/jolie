@@ -41,3 +41,7 @@ build/
 /extensions/auto/nbproject/private/
 /libjolie/target/
 /jolie/target/
+/javaServices/coreJavaServices/target/
+/lib/jolie-js/target/
+/lib/jolie-ssl/target/
+/lib/jolie-xml/target/

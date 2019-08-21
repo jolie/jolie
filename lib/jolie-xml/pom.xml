@@ -5,11 +5,11 @@
     <parent>
         <groupId>org.jolie-lang</groupId>
         <artifactId>distribution</artifactId>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
         <version>1.0.0</version>
     </parent>
     <groupId>org.jolie-lang</groupId>
-    <artifactId>libjolie</artifactId>
+    <artifactId>jolie-xml</artifactId>
     <version>${jolie.version}</version>
     <packaging>jar</packaging>
     <properties>
@@ -17,7 +17,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-    <name>libjolie</name>
+    <name>jolie-xml</name>
     <description>The basic library used for Jolie code parsing and analysis.</description>
     <build>
         <finalName>${project.artifactId}.jar</finalName>
@@ -51,4 +51,27 @@
             </plugin>
         </plugins>
     </build>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>jolie</artifactId>
+            <version>${jolie.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>libjolie</artifactId>
+            <version>${jolie.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xsom</groupId>
+            <artifactId>xsom</artifactId>
+            <version>20140925</version>
+        </dependency>
+        <dependency>
+            <groupId>wsdl4j</groupId>
+            <artifactId>wsdl4j</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+
+    </dependencies>
 </project>
