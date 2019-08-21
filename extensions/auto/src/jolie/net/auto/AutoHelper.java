@@ -31,8 +31,8 @@ import org.ini4j.Ini;
 /**
  * @author Claudio Guidi, Fabrizio Montesi
  */
-public class AutoHelper {
-    
+public class AutoHelper
+{    
     public static IOException buildIOException( String message )
 	{
 		return new IOException( "autoconf: " + message );
