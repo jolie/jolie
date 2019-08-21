@@ -1,15 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-      <modelVersion>4.0.0</modelVersion>
-  <parent>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+	
+    <parent>
         <groupId>org.jolie-lang</groupId>
         <artifactId>distribution</artifactId>
         <relativePath>../../pom.xml</relativePath>
         <version>1.0.0</version>
     </parent>
     <groupId>org.jolie-lang</groupId>
-    <artifactId>http</artifactId>
+    <artifactId>jolie-java</artifactId>
     <version>${jolie.version}</version>
     <packaging>jar</packaging>
     <properties>
@@ -17,8 +17,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-    <name>http
-    </name>
+    <name>jolie-java</name>
     <description>The basic library used for Jolie code parsing and analysis.</description>
     <build>
         <finalName>${project.artifactId}.jar</finalName>
@@ -44,7 +43,7 @@
                                     <destFileName>${project.artifactId}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${jolie.installation.directory}/extensions</outputDirectory>
+                            <outputDirectory>${jolie.installation.directory}/support</outputDirectory>
           
                         </configuration>
                     </execution>
@@ -53,27 +52,15 @@
         </plugins>
     </build>
     <dependencies>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>sodep</artifactId>
+            <version>${jolie.version}</version>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>jolie</artifactId>
             <version>${jolie.version}</version>
         </dependency>
-         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>jolie-js</artifactId>
-            <version>${jolie.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>jolie-gwt</artifactId>
-            <version>${jolie.version}</version>
-        </dependency>
-                <dependency>
-            <groupId>com.google.gwt</groupId>
-            <artifactId>gwt-user</artifactId>
-            <version>2.8.2</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
-  
 </project>
