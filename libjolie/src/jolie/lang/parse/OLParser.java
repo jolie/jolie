@@ -138,6 +138,10 @@ import jolie.util.Range;
  */
 public class OLParser extends AbstractParser
 {
+	private interface ParsingRunnable {
+		public void parse() throws IOException, ParserException;
+	}
+	
 	private Optional<String> serviceName = Optional.empty();
 	private final ProgramBuilder programBuilder;
 	private final Map< String, Scanner.Token > constantsMap =
@@ -209,40 +213,43 @@ public class OLParser extends AbstractParser
 		
 		return programBuilder.toProgram();
 	}
-
-	private void _parse( boolean explicitServiceBlock )
+		
+	private void parseLoop( boolean explicitServiceBlock, ParsingRunnable... parseRunnables )
 		throws IOException, ParserException
 	{
 		getToken();
 		Scanner.Token t;
 		do {
-     		t = token;
-			parseInclude();
-			parseConstants();
-			parseInclude();
-			parseExecution();
-			parseInclude();
-			parseCorrelationSets();
-			parseInclude();
-			parseTypes();
-			parseInclude();
-			parseInterfaceOrPort();
-			parseInclude();
-			parseEmbedded();
-			parseInclude();
-            parseInternalService();
-			parseInclude();
-			parseCode();
+			t = token;
+			for( ParsingRunnable runnable : parseRunnables ) {
+				parseInclude();
+				runnable.parse();
+			}
 		} while( t != token ); // Loop until no procedures can eat the initial token
-
+		
 		if ( explicitServiceBlock ) {
 			eat( Scanner.TokenType.RCURLY, "expected } at the end of the definition of service " + serviceName.get() );
 			t = token;
 		}
-		
+
 		if ( t.isNot( Scanner.TokenType.EOF ) ) {
 			throwException( "Invalid token encountered" );
 		}
+	}
+	
+	private void _parse( boolean explicitServiceBlock )
+		throws IOException, ParserException
+	{		
+		parseLoop( explicitServiceBlock,
+			this::parseConstants,
+			this::parseExecution,
+			this::parseCorrelationSets,
+			this::parseTypes,
+			this::parseInterfaceOrPort,
+			this::parseEmbedded,
+			this::parseInternalService,
+			this::parseCode
+		);
 	}
 
 	private void parseTypes()
