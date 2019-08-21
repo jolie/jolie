@@ -17,7 +17,13 @@
 		<module>jolie</module>
                 <module>lib/jolie-js</module>
                 <module>lib/jolie-ssl</module>
-                 <module>lib/jolie-xml</module>
+                 <!--module>lib/jolie-xml</module-->
+                 <module>support/jolie-gwt</module>
+                 <module>support/jolie-java</module>
+                 <module>extensions/auto</module>
+                 <module>extensions/btl2cap</module>
+                 <module>extensions/sodep</module>
+                 
 	</modules>
 	<build>
 		<plugins>

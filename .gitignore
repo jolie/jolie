@@ -45,3 +45,9 @@ build/
 /lib/jolie-js/target/
 /lib/jolie-ssl/target/
 /lib/jolie-xml/target/
+/extensions/auto/target/
+/extensions/btl2cap/target/
+/extensions/http/target/
+/support/jolie-gwt/target/
+/extensions/sodep/target/
+/support/jolie-java/target/
