@@ -13,18 +13,37 @@
 	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
 	<name>distribution</name>
 	<modules>
-                <module>javaServices/coreJavaServices</module>
+                
 		<module>libjolie</module>
 		<module>jolie</module>
-                <module>lib/jolie-js</module>
-                <module>lib/jolie-ssl</module>
-                 <!--module>lib/jolie-xml</module-->
-                <module>support/jolie-gwt</module>
-                <module>support/jolie-java</module>
-                <module>support/metaservice-java</module>
-                <module>extensions/auto</module>
-                <module>extensions/btl2cap</module>
-                <module>extensions/sodep</module>
-                <module>extensions/https</module> 
+		<module>lib/jolie-js</module>
+		<module>lib/jolie-ssl</module>
+		<module>lib/xsom</module>
+        <module>lib/jolie-xml</module>
+		<module>support/jolie-gwt</module>
+		<module>support/jolie-java</module>
+		<module>support/metaservice-java</module>
+		<module>extensions/auto</module>
+		<module>extensions/btl2cap</module>
+		<module>extensions/sodep</module>
+		<module>extensions/http</module> 
+		<module>extensions/https</module> 
+		<module>extensions/javascript</module>
+		<module>extensions/jsonrpc</module>  
+		<module>extensions/local</module> 
+		<module>extensions/localsocket</module> 
+		<module>extensions/rmi</module> 
+		<module>extensions/soap</module> 
+		<module>extensions/soaps</module> 
+		<module>extensions/sodeps</module> 
+		<module>extensions/xmlrpc</module> 
+		<module>tools/jolie2dummy</module>
+		<module>tools/jolie2java</module>
+		<module>tools/jolie2plasma</module>
+		<module>tools/jolie2surface</module>
+		<module>tools/jolie2wsdl</module>
+		<module>tools/joliec</module>
+		<module>tools/joliedoc</module>
+		<module>javaServices/coreJavaServices</module>
 	</modules>
 </project>

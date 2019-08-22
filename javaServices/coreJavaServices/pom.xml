@@ -72,9 +72,9 @@
                                     <destFileName>json-simple.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.sun.xsom</groupId>
+                                    <groupId>${project.groupId}</groupId>
                                     <artifactId>xsom</artifactId>
-                                    <version>20140925</version>
+                                    <version>${jolie.version}</version>
                                     <type>jar</type>
                                     <destFileName>xsom.jar</destFileName>
                                 </artifactItem>
@@ -172,7 +172,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>jolie-js</artifactId>
-            <version>${jolie.version}</version>
+            <version>1.8.2</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
