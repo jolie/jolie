@@ -63,9 +63,9 @@
             <version>${jolie.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.sun.xsom</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>xsom</artifactId>
-            <version>20140925</version>
+            <version>${jolie.version}</version>
         </dependency>
         <dependency>
             <groupId>wsdl4j</groupId>

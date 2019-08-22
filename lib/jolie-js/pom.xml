@@ -20,7 +20,6 @@
     <name>jolie-js</name>
     <description>The basic library used for Jolie code parsing and analysis.</description>
     <build>
-        <finalName>${project.artifactId}.jar</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
