@@ -374,6 +374,8 @@ main {
               } else {
                   response = "string"
               }
+          } else if ( request.type == "file" ) {
+              response = "raw"
           } else if ( request.type == "boolean" ) {
               response = "bool"
           } else if ( request.type == "number" ) {
