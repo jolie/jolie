@@ -18,9 +18,8 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	<name>xmlrpc</name>
-	<description>Protocol xmlrpc support for Jolie</description>
+	<description>Xmlrpc protocol for Jolie</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

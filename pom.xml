@@ -46,6 +46,7 @@
 		<module>tools/joliec</module>
 		<module>tools/joliedoc</module>
 		<module>javaServices/coreJavaServices</module>
+		<module>javaServices/monitorJavaServices</module>
 	</modules>
 	  <build>
     <plugins>

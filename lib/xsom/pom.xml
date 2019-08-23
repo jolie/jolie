@@ -18,7 +18,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	<name>xson</name>
-	<description>The basic library used for Jolie code parsing and analysis.</description>
+	<description>Jolie XSOM library implementation.</description>
 	<build>
 		<plugins>
 			<plugin>

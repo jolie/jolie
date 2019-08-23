@@ -33,3 +33,5 @@ build/
 /tools/jolie2wsdl/target/
 /tools/joliec/target/
 /tools/joliedoc/target/
+/javaServices/monitorJavaServices/nbproject/private/
+/javaServices/monitorJavaServices/target/
