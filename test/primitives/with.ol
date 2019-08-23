@@ -18,10 +18,16 @@
  */
 
 include "../AbstractTestUnit.iol"
+include "console.iol"
+include "string_utils.iol"
 
 define doTest
 {
+  b = "hello"
   with( root ) {
+    // .b = b;  it works, the semicolon solves
+    .b = b
+    .c = "yes"
     .a.left << "Left" {
       x = 1
       y = 2
@@ -30,6 +36,9 @@ define doTest
     }
   }
 
+  if ( root.b != "hello")  {
+    throw( TestFailed, "root.b does not match expected content" )
+  }
   if ( root.a.left.y.right != "y_r" ) {
     throw( TestFailed, "root.a.left.y.right does not match expected content" )
   }
