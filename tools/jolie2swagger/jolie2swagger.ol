@@ -35,7 +35,7 @@ main {
     service_filename = args[ 0 ]
     input_port = args[ 1 ]
     router_host = args [ 2 ]
-    output_folder = args[ 3 ]
+    wkdir = args[ 3 ]
 
     if ( #args == 5 ) {
         easy_interface = args[ 4 ]
@@ -50,7 +50,7 @@ main {
     }
 
     with( swagger ) {
-        .filename = service_filename
+        .filename = service_filename;
         .host = router_host
         .inputPort = service_input_port
         .easyInterface = easy_interface
