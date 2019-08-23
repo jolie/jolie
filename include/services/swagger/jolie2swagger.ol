@@ -36,7 +36,7 @@ outputPort Swagger {
 }
 
 constants {
-  LOG = false
+  LOG = true
 }
 
 
@@ -151,14 +151,14 @@ main {
 
                         path_counter++;
                         with( swagger.paths[ path_counter ].( __method ) ) {
-                            .tags = c_interface_name
-                            .description = __given_template
-                            .operationId = oper.operation_name
-                            .consumes[0] = "application/json"
-                            .produces = "application/json"
+                            .tags = c_interface_name;
+                            .description = __given_template;
+                            .operationId = oper.operation_name;
+                            .consumes[0] = "application/json";
+                            .produces = "application/json";
                             with( .responses.( "200" ) ) {
-                                    .description = "OK"
-                                    tp_resp_count = 0; tp_resp_found = false
+                                    .description = "OK";
+                                    tp_resp_count = 0; tp_resp_found = false;
                                     while( !tp_resp_found && tp_resp_count < #c_interface.types ) {
                                         if ( c_interface.types[ tp_resp_count ].name.name == oper.output.name ) {
                                             tp_resp_found = true

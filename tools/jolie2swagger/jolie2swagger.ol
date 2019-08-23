@@ -33,7 +33,7 @@ main {
     
     
     service_filename = args[ 0 ]
-    input_port = args[ 1 ]
+    service_input_port = args[ 1 ]
     router_host = args [ 2 ]
     wkdir = args[ 3 ]
 
@@ -51,16 +51,17 @@ main {
 
     with( swagger ) {
         .filename = service_filename;
-        .host = router_host
-        .inputPort = service_input_port
-        .easyInterface = easy_interface
+        .host = router_host;
+        .inputPort = service_input_port;
+        .easyInterface = easy_interface;
         if ( !easy_interface ) {
             .template -> template
         }
     }
 
     println@Console("Creating json file... " )()
-    jolie2swagger@Jolie2Swagger( swagger )( f.content )
+    jolie2swagger@Jolie2Swagger( swagger )( f.content );
+    f.format = "text";
     f.filename = wkdir + "/" + service_input_port + ".json"
     writeFile@File( f )()
     println@Console("Done.")()
