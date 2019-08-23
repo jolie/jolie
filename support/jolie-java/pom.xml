@@ -43,7 +43,7 @@
                                     <destFileName>${project.artifactId}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${jolie.installation.directory}/support</outputDirectory>
+                            <outputDirectory>${jolie.installation.directory}/lib</outputDirectory>
           
                         </configuration>
                     </execution>
