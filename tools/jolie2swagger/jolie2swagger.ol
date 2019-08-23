@@ -38,7 +38,7 @@ main {
     wkdir = args[ 3 ]
 
     if ( #args == 5 ) {
-        easy_interface = args[ 4 ]
+        easy_interface = bool( args[ 4 ] )
     } else {
         easy_interface = false
     }
