@@ -81,11 +81,21 @@ define __analize_given_template {
 
 }
 
+define __add_cast_data {
+  if ( is_defined( current_root_type.int_type ) ) {
+      current_render_operation.cast.( current_sbt.name ) = "int"
+  } else if ( is_defined( current_root_type.long_type ) ){
+      current_render_operation.cast.( current_sbt.name ) = "long"
+  } else if ( is_defined( current_root_type.double_type ) ){
+      current_render_operation.cast.( current_sbt.name ) = "double"
+  } else if ( is_defined( current_root_type.bool_type ) ){
+      current_render_operation.cast.( current_sbt.name ) = "bool"
+  }
 
-main {
+}
 
-[ jolie2swagger( request )( response ) {
-      easyInterface = false;
+define __body {
+    easyInterface = false;
       if ( is_defined( request.easyInterface ) ) {
           easyInterface = request.easyInterface
       };
@@ -230,6 +240,7 @@ main {
 
                                                 /* casting */
                                                 current_root_type -> current_sbt.type_inline.root_type;
+                                                __add_cast_data;
 
                                                 current_sbt -> current_type.sub_type[ sbt ];
                                                 find_str = par;
@@ -317,6 +328,7 @@ main {
                                     for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
                                     /* casting */
                                     current_root_type -> current_sbt.type_inline.root_type;
+                                    __add_cast_data;
 
                                     current_sbt -> current_type.sub_type[ sbt ];
                                     swagger_params_count++;
@@ -364,8 +376,18 @@ main {
               }
           }
       }
-      ;
-      createSwaggerFile@Swagger( swagger )( response )
+}
+
+
+main {
+
+    [ getSwagger( request )( response ) {
+        __body
+        createSwaggerFile@Swagger( swagger )( response )
+    }]
+
+    [ getJesterConfig( request )( response ) {
+        __body
     }]
 
 }

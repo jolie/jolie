@@ -60,7 +60,7 @@ main {
     }
 
     println@Console("Creating json file... " )()
-    jolie2swagger@Jolie2Swagger( swagger )( f.content );
+    getSwagger@Jolie2Swagger( swagger )( f.content );
     f.format = "text";
     f.filename = wkdir + "/" + service_input_port + ".json"
     writeFile@File( f )()
