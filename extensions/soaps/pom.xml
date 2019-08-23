@@ -18,7 +18,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	<name>soaps</name>
-	<description>The basic library used for Jolie code parsing and analysis.</description>
+	<description>Soaps protocol for Jolie</description>
 	<build>
 		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>

@@ -82,7 +82,7 @@
 									<artifactId>activation</artifactId>
 									<version>1.1</version>
 									<type>jar</type>
-									<destFileName>activation.jar</destFileName>
+									<destFileName>javax.activation.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
 									<groupId>com.googlecode.json-simple</groupId>
@@ -110,11 +110,25 @@
 									<artifactId>quartz</artifactId>
 									<version>2.2.1</version>
 									<type>jar</type>
-									<destFileName>quartz.jar</destFileName>
+									<destFileName>quartz-2.2.1.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.quartz-scheduler</groupId>
+									<artifactId>quartz-jobs</artifactId>
+									<version>2.2.1</version>	
+									<type>jar</type>
+									<destFileName>quartz-jobs-2.2.1.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
 									<groupId>jivesoftware</groupId>
 									<artifactId>smack</artifactId>
+									<version>3.0.4</version>
+									<type>jar</type>
+									<destFileName>smack.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>jivesoftware</groupId>
+									<artifactId>smackx</artifactId>
 									<version>3.0.4</version>
 									<type>jar</type>
 									<destFileName>smack.jar</destFileName>
@@ -145,7 +159,35 @@
 									<artifactId>handy-uri-templates</artifactId>
 									<version>2.1.7</version>
 									<type>jar</type>
-									<destFileName>handy-uri-templates.jar</destFileName>
+									<destFileName>uri-templates.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.sun.mail</groupId>
+									<artifactId>smtp</artifactId>
+									<version>1.4.5</version>
+									<type>jar</type>
+									<destFileName>smtp.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.slf4j</groupId>
+									<artifactId>slf4j-api</artifactId>
+									<version>1.6.6</version>
+									<type>jar</type>
+									<destFileName>slf4j-api-1.6.6.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>c3p0</groupId>
+									<artifactId>c3p0</artifactId>
+									<version>0.9.1.1</version>
+									<type>jar</type>
+									<destFileName>c3p0-0.9.1.1.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.sun.xml</groupId>
+									<artifactId>relaxngDatatype</artifactId>
+									<version>1.0</version>
+									<type>jar</type>
+									<destFileName>relaxngDatatype.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${jolie.installation.directory}/lib</outputDirectory>
@@ -210,9 +252,9 @@
 			<version>1.1.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sun.xsom</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>xsom</artifactId>
-			<version>20140925</version>
+			<version>${jolie.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.mail</groupId>
@@ -224,6 +266,12 @@
 			<artifactId>quartz</artifactId>
 			<version>2.2.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz-jobs</artifactId>
+			<version>2.2.1</version>
+		</dependency>
+
 		<dependency>
 			<groupId>jivesoftware</groupId>
 			<artifactId>smack</artifactId>
@@ -249,5 +297,33 @@
 			<artifactId>handy-uri-templates</artifactId>
 			<version>2.1.7</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>smtp</artifactId>
+			<version>1.4.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.6</version>
+		</dependency>
+		<dependency>
+			<groupId>c3p0</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>0.9.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml</groupId>
+			<artifactId>relaxngDatatype</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>jivesoftware</groupId>
+			<artifactId>smackx</artifactId>
+			<version>3.0.4</version>
+		</dependency>
+
+
+
 	</dependencies>
 </project>
