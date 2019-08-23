@@ -1,10 +1,9 @@
-/jolie/nbproject/private/
-/libjolie/nbproject/private/
 /libjolie/target/
 /javaServices/coreJavaServices/nbproject/private/
 /javaServices/monitorJavaServices/nbproject/private/
 /extensions/btl2cap/nbproject/private/
-/extensions/http/nbproject/private/
+/extensions/http/target/
+/extensions/http/target/
 /extensions/https/nbproject/private/
 /extensions/jsonrpc/nbproject/private/
 /extensions/localsocket/nbproject/private/
