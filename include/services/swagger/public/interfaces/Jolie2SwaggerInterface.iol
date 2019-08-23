@@ -20,7 +20,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-type Jolie2SwaggerRequest: void {
+type SwaggerRequest: void {
   .filename: string
   .host: string
   .inputPort: string
@@ -30,5 +30,6 @@ type Jolie2SwaggerRequest: void {
 
 interface Jolie2SwaggerInterface {
 RequestResponse:
-  jolie2swagger( Jolie2SwaggerRequest )( string )
+  getJesterConfig( SwaggerRequest )( string ),
+  getSwagger( SwaggerRequest )( string )
 }
