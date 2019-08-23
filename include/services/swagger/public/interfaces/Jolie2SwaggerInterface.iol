@@ -25,9 +25,10 @@ type Jolie2SwaggerRequest: void {
   .host: string
   .inputPort: string
   .easyInterface?: bool
+  .template?: undefined
 }
 
 interface Jolie2SwaggerInterface {
 RequestResponse:
-  jolie2swagger( Jolie2SwaggerRequest )( string ) throws EasyInterfaceModalityNotAllowed
+  jolie2swagger( Jolie2SwaggerRequest )( string )
 }

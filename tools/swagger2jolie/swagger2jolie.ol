@@ -73,7 +73,7 @@ init {
 
 main {
     if ( #args < 3 || #args > 4 ) {
-        println@Console("Usage: swagger2jolie.ol <url|filepath> <service_name> <output_folder> [protocol http|https]")();
+        println@Console("Usage: swagger2jolie <url|filepath> <service_name> <output_folder> [protocol http|https]")();
         throw( Error )
     }
     ;
