@@ -95,7 +95,7 @@ define __add_cast_data {
 }
 
 define __body {
-    easyInterface = false;
+      easyInterface = false;
       if ( is_defined( request.easyInterface ) ) {
           easyInterface = request.easyInterface
       };
@@ -141,12 +141,19 @@ define __body {
           // port selection from metadata
           if ( metadata.input[ i ].name.name == service_input_port ) {
               output_port_index = #render.output_port
+              getSurface@Parser( metadata.input )( render.output_port[ output_port_index ].surface );
+              with( render.output_port[ output_port_index ] ) {
+                    .name = service_input_port;
+                    .location = metadata.input[ i ].location;
+                    .protocol = metadata.input[ i ].protocol
+              };
               path_counter = -1
 
               // for each interface in the port
               for( int_i = 0, int_i < #metadata.input[ i ].interfaces, int_i++ ) {
                   c_interface -> metadata.input[ i ].interfaces[ int_i ]
                   c_interface_name = c_interface.name.name
+                  render.output_port[ output_port_index ].interfaces[ int_i ] = c_interface_name;
                   
                   // for each operations in the interfaces
                   for( o = 0, o < #c_interface.operations, o++ ) {
@@ -165,6 +172,16 @@ define __body {
                         if ( LOG ) { println@Console("Operation Template:" + __template )() }
 
                         path_counter++;
+                        if ( is_defined( oper.output ) ) {
+                            rr_operation_max = #render.output_port[ output_port_index ].interfaces[ int_i ].rr_operation
+                            current_render_operation -> render.output_port[ output_port_index ].interfaces[ int_i ].rr_operation[ rr_operation_max ]
+                        } else {
+                            ow_operation_max = #render.output_port[ output_port_index ].interfaces[ int_i ].ow_operation
+                            current_render_operation -> render.output_port[ output_port_index ].interfaces[ int_i ].ow_operation[ ow_operation_max ]
+                        }
+                        current_render_operation = oper.operation_name
+                        current_render_operation.method = __method
+
                         with( swagger.paths[ path_counter ].( __method ) ) {
                             .tags = c_interface_name;
                             .description = __given_template;
@@ -356,7 +373,7 @@ define __body {
                                     }
                                     ;
                                     __template = __template + "/{" + current_sbt.name + "}"
-                                    }
+                                }
                             } else {
 
                                     if ( tp_found ) {
@@ -372,10 +389,69 @@ define __body {
                         }
                         ;
                         swagger.paths[ path_counter ] = __template
+                        current_render_operation.template = "/" + service_input_port + __template
                     }
               }
           }
       }
+}
+
+define __config_operation {
+    /* __cur_op, __op_name, __r_counter, _cast */
+    if ( __r_counter > 0 ) {
+        file_content = file_content + "\t;\n"
+    };
+    file_content = file_content + "\troutes[__route_counter++] << {\n";
+    file_content = file_content + "\t\t.outputPort=\"" + __op_name + "\"\n";
+    file_content = file_content + "\t\t,.method=\"" + __cur_op.method + "\"\n";
+    file_content = file_content + "\t\t,.template=\"" + __cur_op.template + "\"\n";
+    file_content = file_content + "\t\t,.operation=\"" + __cur_op + "\"\n";
+    foreach( cast_par : __cast ) {
+        file_content = file_content + "\t\t,.cast." + cast_par + "=\"" + __cast.( cast_par ) + "\"\n"
+    };
+    file_content = file_content + "\t}\n"
+}
+
+define __get_jester_config {
+
+    /* creation of file router_import.ol */
+    file_content = "";
+    for( op = 0, op < #render.output_port, op++ ) {
+         c_op -> render.output_port[ op ];
+         file_content = file_content + render.output_port[ op ].surface
+    };
+
+
+
+    /* creation of the definition */
+    file_content = file_content + "init {\n";
+    route_counter = 0;
+    for( op = 0, op < #render.output_port, op++ ) {
+         c_op -> render.output_port[ op ];
+
+         for( int_i = 0, int_i < #c_op.interfaces, int_i++ ) {
+              for( opr = 0, opr < #c_op.interfaces[ int_i ].ow_operation, opr++ ) {
+                    __op_name= c_op.name;
+                    __r_counter = route_counter;
+                    __cur_op -> c_op.interfaces[ int_i ].ow_operation[ opr ];
+                    __cast -> c_op.interfaces[ int_i ].ow_operation[ opr ].cast;
+                    __config_operation;
+                    route_counter++
+              }
+              ;
+              for( opr = 0, opr < #c_op.interfaces[ int_i ].rr_operation, opr++ ) {
+                    __op_name= c_op.name;
+                    __r_counter = route_counter;
+                    __cur_op -> c_op.interfaces[ int_i ].rr_operation[ opr ];
+                    __cast -> c_op.interfaces[ int_i ].rr_operation[ opr ].cast;
+                    __config_operation;
+                    route_counter++
+              }
+          }
+    };
+
+    file_content = file_content + "}";
+    response -> file_content
 }
 
 
@@ -388,6 +464,7 @@ main {
 
     [ getJesterConfig( request )( response ) {
         __body
+        __get_jester_config
     }]
 
 }
