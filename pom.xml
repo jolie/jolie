@@ -7,7 +7,8 @@
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jolie.installation.directory>C:\TestMaven\</jolie.installation.directory>
+		<jolie.installation.directory>/dist/jolie/</jolie.installation.directory>
+		<jolie.installation.directory.executable>/dist/jolie/launchers/</jolie.installation.directory.executable>
 		<jolie.version>1.8.2</jolie.version>
 	</properties>
 	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
@@ -46,4 +47,31 @@
 		<module>tools/joliedoc</module>
 		<module>javaServices/coreJavaServices</module>
 	</modules>
+	  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <!-- here the phase you need -->
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jolie.installation.directory}/include</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>${basedir}/include</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
