@@ -81,6 +81,14 @@ java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libj
 		<echo file="${dist.launchers.windows}/wsdl2jolie.bat">@echo off
 jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %*
 		</echo>
+		<echo message="Creating swagger2jolie Windows launcher script..." />
+		<echo file="${dist.launchers.windows}/swagger2jolie.bat">@echo off
+jolie %JOLIE_HOME%\tools\swagger2jolie.ol %*
+		</echo>
+		<echo message="Creating jolie2swagger Windows launcher script..." />
+		<echo file="${dist.launchers.windows}/jolie2swagger.bat">@echo off
+jolie %JOLIE_HOME%\tools\jolie2swagger.ol %*
+		</echo>
 	</target>
 
     <target name="-install-unix-launchers" unless="isWindows">
@@ -161,6 +169,19 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/wsdl2jolie" perm="a+x"/>
+
+		<echo message="Creating swagger2jolie Unix launcher script..." />
+		<echo file="${dist.launchers.unix}/swagger2jolie">#!/bin/sh
+jolie $JOLIE_HOME/tools/swagger2jolie.ol "$@"
+		</echo>
+		<chmod file="${dist.launchers.unix}/swagger2jolie" perm="a+x"/>
+
+		<echo message="Creating jolie2swagger Unix launcher script..." />
+		<echo file="${dist.launchers.unix}/jolie2swagger">#!/bin/sh
+jolie $JOLIE_HOME/tools/jolie2swagger.ol "$@"
+		</echo>
+		<chmod file="${dist.launchers.unix}/jolie2swagger" perm="a+x"/>
+
 		<echo message="Creating JolieC (Jolie Compiler) Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/joliec">#!/bin/sh
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/joliec.jar jolie.compiler.Main -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
@@ -342,6 +363,8 @@ Please make sure that:
 				<file file="${project.jolie2java}/dist/jolie2java.jar"/>
 				<file file="${project.joliedoc}/dist/joliedoc.jar"/>
 				<file file="${project.wsdl2jolie}/wsdl2jolie.ol"/>
+				<file file="${project.swagger2jolie}/swagger2jolie.ol"/>
+				<file file="${project.jolie2swagger}/jolie2swagger.ol"/>
 			</resources>
 		</copy>
 
