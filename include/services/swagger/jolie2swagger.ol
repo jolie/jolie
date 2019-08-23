@@ -145,7 +145,12 @@ main {
                         error_prefix =  "ERROR on port " + service_input_port + ", operation " + oper.operation_name + ":" + "the operation has been declared to be imported as a REST ";
                         
                         // proceed only if a rest template has been defined for that operation
-                        __given_template = request.template.( oper.operation_name )
+                        if ( is_defined( request.template.( oper.operation_name ) ) ) {
+                            __given_template = request.template.( oper.operation_name )
+                        } else {
+                            __given_template = ""
+                        }
+                       
                         __analize_given_template
                         if ( LOG ) { println@Console("Operation Template:" + __template )() }
 
