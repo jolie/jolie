@@ -54,6 +54,17 @@ embedded {
     "services/swagger/swagger_definition.ol" in SwaggerDefinition
 }
 
+define _get_protocol_port {
+    if ( protocol == "http" ) {
+        protocol_port = "80"
+    } else if ( protocol == "https" ) {
+        protocol_port = "443"
+    } else {
+        println@Console("Protocol not supported:" + protocol.result[0] )();
+        throw( Error )
+    }
+}
+
 init {
     registerForInput@Console()();
 
@@ -66,6 +77,7 @@ main {
         throw( Error )
     }
     ;
+    println@Console("Generating client...")();
     if ( #args == 4 && (args[ 3 ] == "http" || args[ 3 ] == "https")) {
         protocol = args[ 3 ]
     } else {
@@ -91,16 +103,7 @@ main {
                     protocol = protocol_split.result[0]
             }
             ;
-
-
-            if ( protocol == "http" ) {
-                protocol_port = "80"
-            } else if ( protocol == "https" ) {
-                protocol_port = "443"
-            } else {
-                println@Console("Protocol not supported:" + protocol.result[0] )();
-                throw( Error )
-            };
+            _get_protocol_port;
 
 
             url.replacement = "socket";
@@ -140,7 +143,8 @@ main {
         );
         f.filename = args[ 0 ];
         f.format = "json";
-        readFile@File( f )( swagger )
+        readFile@File( f )( swagger );
+        _get_protocol_port
     }
     ;
 
@@ -241,7 +245,16 @@ main {
         if ( is_defined( outputPort.interface.operation[ o ].faults ) ) {
             interface_file = interface_file + " throws";
             foreach( f : outputPort.interface.operation[ o ].faults ) {
-                interface_file = interface_file + " Fault" + f
+                faultType = "";
+                if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema ) ) {
+                    getReferenceName@SwaggerDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
+                    faultType = "(" + ref + ")"
+                } else {
+                    if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).description ) ) {
+                        faultType = "( string )"
+                    }
+                }
+                interface_file = interface_file + " Fault" + f + faultType
             }
         };
 
@@ -280,7 +293,7 @@ main {
     client_file = client_file + "Interfaces: " + outputPort.interface + "\n}\n\n";
 
     client_file = client_file + "inputPort " + service_name + "{\n";
-    client_file = client_file + "Location:\"socket://localhost:8000\"\n";
+    client_file = client_file + "Location:\"local\"\n";
     client_file = client_file + "Protocol: sodep\n";
     client_file = client_file + "Interfaces: " + outputPort.interface + "\n}\n\n";
 
@@ -290,8 +303,16 @@ main {
         client_file = client_file + "\t\t" + outputPort.interface.operation[ o ] + "@" + outputPort.name + "( request )( response )\n";
         if ( is_defined( outputPort.interface.operation[ o ].faults ) ) {
             foreach( f : outputPort.interface.operation[ o ].faults ) {
+                faultValue = "";
+                if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema ) ) {
+                    faultValue = ", response"
+                } else {
+                    if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).description ) ) {
+                        faultValue = ", response.description"
+                    }
+                }
                 client_file = client_file + "\t\tif ( response.(\"@header\").statusCode == " + f + ") {\n ";
-                client_file = client_file + "\t\t\tthrow( Fault" + f + ")\n"
+                client_file = client_file + "\t\t\tthrow( Fault" + f + faultValue + ")\n"
                 client_file = client_file + "\t\t}\n"
             }
         };
@@ -302,5 +323,7 @@ main {
     undef( file );
     file.filename = output_folder + "/" + service_name + "Client.ol";
     file.content = client_file;
-    writeFile@File( file )()
+    writeFile@File( file )();
+
+    println@Console("Done.")()
 }
