@@ -89,9 +89,9 @@ jolie %JOLIE_HOME%\tools\swagger2jolie.ol %*
 		<echo file="${dist.launchers.windows}/jolie2swagger.bat">@echo off
 jolie %JOLIE_HOME%\tools\jolie2swagger.ol %*
 		</echo>
-		<echo message="Creating jester Windows launcher script..." />
-		<echo file="${dist.launchers.windows}/jester.bat">@echo off
-jolie %JOLIE_HOME%\tools\jester.ol %*
+		<echo message="Creating jolier Windows launcher script..." />
+		<echo file="${dist.launchers.windows}/jolier.bat">@echo off
+jolie %JOLIE_HOME%\tools\jolier.ol %*
 		</echo>
 	</target>
 
@@ -186,11 +186,11 @@ jolie $JOLIE_HOME/tools/jolie2swagger.ol "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie2swagger" perm="a+x"/>
 
-		<echo message="Creating jester Unix launcher script..." />
-		<echo file="${dist.launchers.unix}/jester">#!/bin/sh
-jolie $JOLIE_HOME/tools/jester.ol "$@"
+		<echo message="Creating jolier Unix launcher script..." />
+		<echo file="${dist.launchers.unix}/jolier">#!/bin/sh
+jolie $JOLIE_HOME/tools/jolier.ol "$@"
 		</echo>
-		<chmod file="${dist.launchers.unix}/jester" perm="a+x"/>
+		<chmod file="${dist.launchers.unix}/jolier" perm="a+x"/>
 
 		<echo message="Creating JolieC (Jolie Compiler) Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/joliec">#!/bin/sh
@@ -375,7 +375,7 @@ Please make sure that:
 				<file file="${project.wsdl2jolie}/wsdl2jolie.ol"/>
 				<file file="${project.swagger2jolie}/swagger2jolie.ol"/>
 				<file file="${project.jolie2swagger}/jolie2swagger.ol"/>
-				<file file="${project.jester}/jester.ol"/>
+				<file file="${project.jolier}/jolier.ol"/>
 			</resources>
 		</copy>
 
