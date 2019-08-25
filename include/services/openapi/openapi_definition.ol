@@ -24,7 +24,7 @@ include "json_utils.iol"
 include "string_utils.iol"
 include "console.iol"
 include "runtime.iol"
-include "./public/interfaces/SwaggerDefinitionInterface.iol"
+include "./public/interfaces/OpenApiDefinitionInterface.iol"
 include "./public/interfaces/JSONSchemaGeneratorInterface.iol"
 
 execution{ concurrent }
@@ -39,17 +39,17 @@ outputPort JSONSchemaGenerator {
 
 embedded {
   Jolie:
-    "services/swagger/json_schema_generator.ol" in JSONSchemaGenerator
+    "services/openapi/json_schema_generator.ol" in JSONSchemaGenerator
 }
 
 outputPort MySelf {
-  Interfaces: SwaggerDefinitionInterface
+  Interfaces: OpenApiDefinitionInterface
 }
 
-inputPort SwaggerDefinition {
+inputPort OpenApiDefinition {
   Location: "local"
   Protocol: sodep
-  Interfaces: SwaggerDefinitionInterface
+  Interfaces: OpenApiDefinitionInterface
 }
 
 define __clean_name {
@@ -71,7 +71,7 @@ init {
 }
 
 main {
-  [  createSwaggerFile( request )( response ) {
+  [  getOpenApiDefinition( request )( response ) {
           with( json ) {
             .swagger = "2.0";
             .info -> request.info;
@@ -210,7 +210,7 @@ main {
          if ( LOG ) { println@Console("converted!" )() }
     } ]
 
-    [ getJolieTypeFromSwaggerParameters( request )( response ) {
+    [ getJolieTypeFromOpenApiParameters( request )( response ) {
           __name_to_clean = request.name;
           __clean_name;
           response = "type " + __cleaned_name + ": void {\n";
@@ -224,7 +224,7 @@ main {
                         };
                         rq_arr.definition -> cur_par;
                         rq_arr.indentation = 1;
-                        getJolieDefinitionFromSwaggerArray@MySelf( rq_arr )( array );
+                        getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array );
                         response = response + array
                   } else if ( cur_par.type == "file" ) {
                         if (  cur_par.required == "false" ) {
@@ -236,7 +236,7 @@ main {
                         if ( is_defined( cur_par.format ) )  {
                             rq_n.format = cur_par.format
                         };
-                        getJolieNativeTypeFromSwaggerNativeType@MySelf( rq_n )( native );
+                        getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
                         if (  cur_par.required == "false" ) {
                             response = response + "?"
                         };
@@ -249,7 +249,7 @@ main {
                     };
                     rq_arr.definition -> cur_par.schema;
                     rq_arr.indentation = 1;
-                    getJolieDefinitionFromSwaggerArray@MySelf( rq_arr )( array );
+                    getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array );
                     response = response + array
                   } else {
                     if ( cur_par.required == "false" ) {
@@ -262,7 +262,7 @@ main {
           response = response + "}\n"
     }]
 
-    [ getJolieTypeFromSwaggerDefinition( request )( response ) {
+    [ getJolieTypeFromOpenApiDefinition( request )( response ) {
           __name_to_clean = request.name;
           __clean_name;
           scope( get_definition ) {
@@ -272,14 +272,14 @@ main {
                       response = "type " + __cleaned_name + ": undefined \n"
                   } else {
                       rq_obj.definition -> request.definition; rq_obj.indentation = 1;
-                      getJolieDefinitionFromSwaggerObject@MySelf( rq_obj )( object );
+                      getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object );
                       response = "type " + __cleaned_name + ": void {\n";
                       response = response + object + "}\n"
                   }
               } else {
                 if ( #request.definition.properties == 0 ) {
                       nt.type = request.definition.type;
-                      getJolieNativeTypeFromSwaggerNativeType@MySelf( nt )( native_type );
+                      getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type );
                       min = "0"; max = "*";
                       if ( is_defined( request.definition.minimum ) ) {
                           min = request.definition.minimum
@@ -290,7 +290,7 @@ main {
                       response = "type " + __cleaned_name + "[" + min + "," + max + "]:" + native_type + "\n"
                 } else {
                     rq_obj.definition -> request.definition; rq_obj.indentation = 1;
-                    getJolieDefinitionFromSwaggerObject@MySelf( rq_obj )( object );
+                    getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object );
                     response = "type " + __cleaned_name + ": void {\n";
                     response = response + object + "}\n"
                 }
@@ -299,7 +299,7 @@ main {
           }
     }]
 
-    [ getJolieDefinitionFromSwaggerObject( request )( response ) {
+    [ getJolieDefinitionFromOpenApiObject( request )( response ) {
           __indentation;
           foreach( property : request.definition.properties ) {
               response = response + indentation;
@@ -315,7 +315,7 @@ main {
                   if ( request.definition.properties.( property ).type == "array" ) {
                       rq_arr.definition -> request.definition.properties.( property );
                       rq_arr.indentation = request.indentation + 1;
-                      getJolieDefinitionFromSwaggerArray@MySelf( rq_arr )( array );
+                      getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array );
                       response = response + array
                   } else if ( request.definition.properties.( property ).type == "object" ) {
                       /* TODO */
@@ -326,14 +326,14 @@ main {
                       if ( is_defined( request.definition.properties.( property ).format ) )  {
                           rq_n.format = request.definition.properties.( property ).format
                       };
-                      getJolieNativeTypeFromSwaggerNativeType@MySelf( rq_n )( native );
+                      getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
                       response = response + ":" + native + "\n"
                   }
               }
           }
     }]
 
-    [ getJolieDefinitionFromSwaggerArray( request )( response ) {
+    [ getJolieDefinitionFromOpenApiArray( request )( response ) {
           if ( is_defined( request.definition.items.minItems ) ) {
               min_cardinality = string( request.definition.items.minItems )
           } else {
@@ -360,14 +360,14 @@ main {
               if ( is_defined( request.definition.items.format ) ) {
                   rq_n.format = request.definition.items.format
               };
-              getJolieNativeTypeFromSwaggerNativeType@MySelf( rq_n )( native );
+              getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
               response = response + native + "\n"
           } else {
               response = response + "undefined\n"
           }
     } ]
 
-    [ getJolieNativeTypeFromSwaggerNativeType( request )( response ) {
+    [ getJolieNativeTypeFromOpenApiNativeType( request )( response ) {
           if ( request.type == "string" ) {
               if ( request.format == "binary" ) {
                   response = "raw"

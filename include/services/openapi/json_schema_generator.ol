@@ -67,24 +67,6 @@ main
             if ( !(resp_root_type instanceof void) ) {
               .properties.("$") << resp_root_type
             }
-            /*if ( resp_root_type == "string" || resp_root_type == "any" ) {
-                .properties.("$").type = "string"
-            } else if ( resp_root_type == "int" ) {
-                .properties.("$").type = "integer"
-            } else if ( resp_root_type == "double" ) {
-                .properties.("$").type = "number";
-                .properties.("$").format = "double"
-            } else if ( resp_root_type == "bool" ) {
-                .properties.("$").type = "boolean"
-            } else if ( resp_root_type == "long" ) {
-                .properties.("$").type = "number";
-                .properties.("$").format = "int64"
-            } else if ( resp_root_type == "raw" ) {
-                .properties.("$").type = "string";
-                .properties.("$").format = "binary"
-            } else if ( resp_root_type == "void" || resp_root_type == "undefined" ) {
-                nullProcess
-            }*/
         }
         ;
         /* analyzing sub types */
@@ -150,26 +132,6 @@ main
               if ( !(resp_root_type instanceof void) ) {
                     pointer << resp_root_type
               }
-              /*with( pointer ) {
-                  if ( resp_root_type == "string" || resp_root_type == "any" ) {
-                      .type = "string"
-                  } else if ( resp_root_type == "int" ) {
-                      .type = "integer"
-                  } else if ( resp_root_type == "double" ) {
-                      .type = "number";
-                      .format = "double"
-                  } else if ( resp_root_type == "bool" ) {
-                      .type = "boolean"
-                  } else if ( resp_root_type == "long" ) {
-                      .type = "number";
-                      .format = "int64"
-                  } else if ( resp_root_type == "raw" ) {
-                      .type = "string";
-                      .format = "binary"
-                  } else if ( resp_root_type == "void" || resp_root_type == "undefined" ) {
-                      nullProcess
-                  }
-              }*/
           }
       }
  } ] { nullProcess }

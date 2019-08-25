@@ -80,7 +80,7 @@ type Parameter: void {
 type Responses: undefined
 
 
-type CreateSwaggerFileRequest: void {
+type GetOpenApiDefinitionRequest: void {
     .info: void {
         .title: string
         .description?: string
@@ -128,42 +128,42 @@ type CreateSwaggerFileRequest: void {
     */
 }
 
-type CreateSwaggerFileResponse: undefined
+type GetOpenApiDefinitionResponse: undefined
 
-type GetJolieTypeFromSwaggerParametersRequest: void {
+type GetJolieTypeFromOpenApiParametersRequest: void {
     .definition: undefined
     .name: string
 }
 
-type GetJolieTypeFromSwaggerDefinitionRequest: void {
+type GetJolieTypeFromOpenApiDefinitionRequest: void {
     .name: string
     .definition: undefined
 }
 
-type GetJolieDefinitionFromSwaggerObjectRequest: void {
+type GetJolieDefinitionFromOpenApiObjectRequest: void {
     .definition: undefined
     .indentation: int
 }
 
-type GetJolieDefinitionFromSwaggerArrayRequest: void {
+type GetJolieDefinitionFromOpenApiArrayRequest: void {
     .definition: undefined
     .indentation: int
 }
 
-type GetJolieNativeTypeFromSwaggerNativeTypeRequest: void {
+type GetJolieNativeTypeFromOpenApiNativeTypeRequest: void {
     .type: string
     .format?: string
 }
 
-interface SwaggerDefinitionInterface {
+interface OpenApiDefinitionInterface {
   RequestResponse:
-      createSwaggerFile( CreateSwaggerFileRequest )( CreateSwaggerFileResponse ),
-      getJolieTypeFromSwaggerDefinition( GetJolieTypeFromSwaggerDefinitionRequest )( string ),
-      getJolieTypeFromSwaggerParameters( GetJolieTypeFromSwaggerParametersRequest )( string ),
-      getJolieDefinitionFromSwaggerObject( GetJolieDefinitionFromSwaggerObjectRequest )( string )
+      getOpenApiDefinition( GetOpenApiDefinitionRequest )( GetOpenApiDefinitionResponse ),
+      getJolieTypeFromOpenApiDefinition( GetJolieTypeFromOpenApiDefinitionRequest )( string ),
+      getJolieTypeFromOpenApiParameters( GetJolieTypeFromOpenApiParametersRequest )( string ),
+      getJolieDefinitionFromOpenApiObject( GetJolieDefinitionFromOpenApiObjectRequest )( string )
         throws DefinitionError,
-      getJolieDefinitionFromSwaggerArray( GetJolieDefinitionFromSwaggerArrayRequest )( string ),
-      getJolieNativeTypeFromSwaggerNativeType( GetJolieNativeTypeFromSwaggerNativeTypeRequest )( string ),
+      getJolieDefinitionFromOpenApiArray( GetJolieDefinitionFromOpenApiArrayRequest )( string ),
+      getJolieNativeTypeFromOpenApiNativeType( GetJolieNativeTypeFromOpenApiNativeTypeRequest )( string ),
       getReferenceName( string )( string )
 
 }

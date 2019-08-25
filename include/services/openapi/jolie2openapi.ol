@@ -26,13 +26,13 @@ include "string_utils.iol"
 include "metajolie.iol"
 include "metaparser.iol"
 
-include "./public/interfaces/SwaggerDefinitionInterface.iol"
-include "./public/interfaces/Jolie2SwaggerInterface.iol"
+include "./public/interfaces/OpenApiDefinitionInterface.iol"
+include "./public/interfaces/Jolie2OpenApiInterface.iol"
 
 execution{ concurrent }
 
-outputPort Swagger {
-  Interfaces: SwaggerDefinitionInterface
+outputPort OpenApi {
+  Interfaces: OpenApiDefinitionInterface
 }
 
 constants {
@@ -42,13 +42,13 @@ constants {
 
 embedded {
   Jolie:
-    "services/swagger/swagger_definition.ol" in Swagger
+    "services/openapi/openapi_definition.ol" in OpenApi
 }
 
-inputPort Jolie2Swagger {
+inputPort Jolie2OpenApi {
   Location: "local"
   Protocol: sodep
-  Interfaces: Jolie2SwaggerInterface
+  Interfaces: Jolie2OpenApiInterface
 }
 
 define __analize_given_template {
@@ -110,9 +110,9 @@ define __body {
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
       ;
-      /* creating swagger definition file */
-      undef( swagger );
-      with( swagger ) {
+      /* creating openapi definition file */
+      undef( openapi );
+      with( openapi ) {
         with( .info ) {
             .title = service_input_port + " API";
             .description = "";
@@ -182,7 +182,7 @@ define __body {
                         current_render_operation = oper.operation_name
                         current_render_operation.method = __method
 
-                        with( swagger.paths[ path_counter ].( __method ) ) {
+                        with( openapi.paths[ path_counter ].( __method ) ) {
                             .tags = c_interface_name;
                             .description = __given_template;
                             .operationId = oper.operation_name;
@@ -203,8 +203,8 @@ define __body {
                                     }
                             }
                         };
-                        swagger_params_count = -1
-                        current_swagger_path -> swagger.paths[ path_counter ].( __method )
+                        openapi_params_count = -1
+                        current_openapi_path -> openapi.paths[ path_counter ].( __method )
 
                         /* find request type description */
                         tp_count = 0; tp_found = false;
@@ -266,8 +266,8 @@ define __body {
 
                                                 find@StringUtils( find_str )( find_str_res );
 
-                                                swagger_params_count++;
-                                                with( current_swagger_path.parameters[ swagger_params_count ] ) {
+                                                openapi_params_count++;
+                                                with( current_openapi_path.parameters[ openapi_params_count ] ) {
                                                     .name = current_sbt.name;
                                                     if ( current_sbt.cardinality.min > 0 ) {
                                                         .required = true
@@ -325,8 +325,8 @@ define __body {
                                         if ( tp_found ) {
                                             /* the fields of the request type must be transformed into parameters */
                                             for( sf = 0, sf < #current_type.sub_type, sf++ ) {
-                                                    swagger_params_count++;
-                                                    with( current_swagger_path.parameters[ swagger_params_count ] ) {
+                                                    openapi_params_count++;
+                                                    with( current_openapi_path.parameters[ openapi_params_count ] ) {
                                                         .name = current_type.sub_type[ sf ].name;
                                                         if ( current_type.sub_type[ sf ].cardinality.min > 0 ) {
                                                             .required = true
@@ -350,8 +350,8 @@ define __body {
                                     __add_cast_data;
 
                                     current_sbt -> current_type.sub_type[ sbt ];
-                                    swagger_params_count++;
-                                    with( current_swagger_path.parameters[ swagger_params_count ] ) {
+                                    openapi_params_count++;
+                                    with( current_openapi_path.parameters[ openapi_params_count ] ) {
                                         .name = current_sbt.name;
                                         if ( current_sbt.cardinality.min > 0 ) {
                                             .required = true
@@ -379,7 +379,7 @@ define __body {
                             } else {
 
                                     if ( tp_found ) {
-                                        with( current_swagger_path.parameters ) {
+                                        with( current_openapi_path.parameters ) {
                                             .in.in_body.schema_type << current_type;
                                             .name = current_type.name.name;
                                             .required = true
@@ -390,7 +390,7 @@ define __body {
                             if ( LOG ) { println@Console( "Template automatically generated:" + __template )() }
                         }
                         ;
-                        swagger.paths[ path_counter ] = __template
+                        openapi.paths[ path_counter ] = __template
                         current_render_operation.template = "/" + service_input_port + __template
                     }
               }
@@ -464,9 +464,9 @@ define __get_jester_config {
 
 main {
 
-    [ getSwagger( request )( response ) {
+    [ getOpenApi( request )( response ) {
         __body
-        createSwaggerFile@Swagger( swagger )( response )
+        getOpenApiDefinition@OpenApi( openapi )( response )
     }]
 
     [ getJesterConfig( request )( response ) {
