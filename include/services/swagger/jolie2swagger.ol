@@ -36,7 +36,7 @@ outputPort Swagger {
 }
 
 constants {
-  LOG = true
+  LOG = false
 }
 
 
@@ -141,7 +141,7 @@ define __body {
           // port selection from metadata
           if ( metadata.input[ i ].name.name == service_input_port ) {
               output_port_index = #render.output_port
-              getSurface@Parser( metadata.input )( render.output_port[ output_port_index ].surface );
+              getSurfaceWithoutOutputPort@Parser( metadata.input )( render.output_port[ output_port_index ].surface );
               with( render.output_port[ output_port_index ] ) {
                     .name = service_input_port;
                     .location = metadata.input[ i ].location;
@@ -256,10 +256,11 @@ define __body {
                                             for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
 
                                                 /* casting */
+                                                current_sbt -> current_type.sub_type[ sbt ];
                                                 current_root_type -> current_sbt.type_inline.root_type;
                                                 __add_cast_data;
 
-                                                current_sbt -> current_type.sub_type[ sbt ];
+                                                
                                                 find_str = par;
                                                 find_str.regex = current_sbt.name;
 
@@ -344,6 +345,7 @@ define __body {
                             if ( __method == "get" ) {
                                     for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
                                     /* casting */
+                                    current_sbt -> current_type.sub_type[ sbt ];
                                     current_root_type -> current_sbt.type_inline.root_type;
                                     __add_cast_data;
 
@@ -421,7 +423,12 @@ define __get_jester_config {
          file_content = file_content + render.output_port[ op ].surface
     };
 
-
+    file_content = file_content + "outputPort " + service_input_port + " {\n"
+    file_content = file_content + "\tInterfaces:" + service_input_port + "Interface\n}\n"
+    file_content = file_content + "embedded {\n"
+    file_content = file_content + "\tJolie:\n"
+    file_content = file_content + "\t\t\"--trace " + service_filename + "\" in " + service_input_port + "\n"
+    file_content = file_content + "}\n"
 
     /* creation of the definition */
     file_content = file_content + "init {\n";
