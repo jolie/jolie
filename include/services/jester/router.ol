@@ -38,10 +38,16 @@ RequestResponse:
 	get, post, put, delete, options
 }
 
+/* parameters 
+API_ROUTER_HTTP: it is the http location of the router
+DEBUG: enable DEBUG
+*/
+
 inputPort WebInput {
-Location: API_ROUTER
+Location: API_ROUTER_HTTP
 Protocol: http {
-	.debug=true;.debug.showContent=true;
+	.debug=DEBUG;
+	.debug.showContent=DEBUG;
 	.default.get = "get";
 	.default.post = "post";
 	.default.put = "put";

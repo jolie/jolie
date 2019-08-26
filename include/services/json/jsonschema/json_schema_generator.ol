@@ -21,7 +21,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-include "./public/interfaces/JSONSchemaGeneratorInterface.iol"
+include "./JSONSchemaGeneratorInterface.iol"
 include "console.iol"
 include "file.iol"
 include "json_utils.iol"
