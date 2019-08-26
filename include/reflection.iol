@@ -30,7 +30,7 @@ type InvokeRequest:void {
 
 type InvocationFaultType:void {
 	.name:string
-	.data:string
+	.data:undefined
 }
 
 /*
