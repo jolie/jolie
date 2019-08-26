@@ -30,23 +30,16 @@ type Route:void {
 	.method:string
 	.template:string
 	.operation:string
+	.cast?:undefined
+	.outputPort: string
 }
 
-type Resource:void {
-	.name:string
-	.id:string
-	.template:string
-}
-
-type Config:void {
-	.host:string
-	.outputPort:string
+type ConfigRouterRequest:void {
 	.routes*:Route
-	.resources*:Resource
 }
 
 interface RouterIface {
 RequestResponse:
-	config(Config)(void),
+	config(ConfigRouterRequest)(void),
 	makeLink(MakeLinkRequest)(string) throws BindingNotFound(void)
 }

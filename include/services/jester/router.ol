@@ -43,6 +43,10 @@ API_ROUTER_HTTP: it is the http location of the router
 DEBUG: enable DEBUG
 */
 
+outputPort JesterEmbedded {
+	Location: "local://JesterEmbedded"
+}
+
 inputPort WebInput {
 Location: API_ROUTER_HTTP
 Protocol: http {
@@ -99,6 +103,7 @@ define matchTemplate {
 	split_urls;
 	template_elements << __str_elements;
 	found = false;
+
 	if ( #template_elements.element == #uri_elements.element ) {
 		found = true;
 		_e = 0;
@@ -170,7 +175,21 @@ define route
 		  }
 		};
 
-		invoke@Reflection( invokeReq )( response )
+		scope( invoke_scope ) {
+			install( InvocationFault => 
+					statusCode = 500
+					undef( response )
+					response.fault = invoke_scope.InvocationFault.name
+					if ( invoke_scope.InvocationFault.name == "TypeMismatch" ) {
+						split@StringUtils( invoke_scope.InvocationFault.data { .regex = ":" } )( error_msg )
+						response.content = invoke_scope.InvocationFault.name + ":" + error_msg.result[1]
+					} else {
+						response.content << invoke_scope.InvocationFault.data
+					}
+					
+			)
+			invoke@Reflection( invokeReq )( response )
+		}
 	}
 }
 
@@ -189,6 +208,9 @@ define makeLink
 }
 
 init {
+	config( config )() {
+		routes << config.routes
+	}
 	for( r = 0, r < #routes, r++ ) {
 			println@Console( "Loaded " + routes[ r ].template )()
 	}

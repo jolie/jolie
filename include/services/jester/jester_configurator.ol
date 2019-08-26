@@ -238,74 +238,47 @@ define __body {
 }
 
 define __config_operation {
-    /* __cur_op, __op_name, __r_counter, _cast */
-    if ( __r_counter > 0 ) {
-        file_content = file_content + "\t;\n"
-    };
-    file_content = file_content + "\troutes[__route_counter++] << {\n";
-    file_content = file_content + "\t\t.outputPort=\"" + __op_name + "\"\n";
-    file_content = file_content + "\t\t,.method=\"" + __cur_op.method + "\"\n";
-    file_content = file_content + "\t\t,.template=\"" + __cur_op.template + "\"\n";
-    file_content = file_content + "\t\t,.operation=\"" + __cur_op + "\"\n";
-    foreach( cast_par : __cast ) {
-        file_content = file_content + "\t\t,.cast." + cast_par + "=\"" + __cast.( cast_par ) + "\"\n"
-    };
-    file_content = file_content + "\t}\n"
+    with( response.routes[ __r_counter ] ) {
+        .method = __cur_op.method;
+        .template = __cur_op.template;
+        .operation = __cur_op;
+        .outputPort = service_input_port;
+        foreach( cast_par : __cast ) {
+            .cast.( cast_par ) = __cast.( cast_par )
+        }
+    }
 }
 
-define __get_jester_config {
-
-    /* creation of file router_import.ol */
-    file_content = "";
-    for( op = 0, op < #render.output_port, op++ ) {
-         c_op -> render.output_port[ op ];
-         file_content = file_content + render.output_port[ op ].surface
-    };
-
-    file_content = file_content + "outputPort " + service_input_port + " {\n"
-    file_content = file_content + "\tInterfaces:" + service_input_port + "Interface\n}\n"
-    file_content = file_content + "embedded {\n"
-    file_content = file_content + "\tJolie:\n"
-    file_content = file_content + "\t\t\"" + service_filename + "\" in " + service_input_port + "\n"
-    file_content = file_content + "}\n"
-
-    /* creation of the definition */
-    file_content = file_content + "init {\n";
-    route_counter = 0;
-    for( op = 0, op < #render.output_port, op++ ) {
-         c_op -> render.output_port[ op ];
-
-         for( int_i = 0, int_i < #c_op.interfaces, int_i++ ) {
-              for( opr = 0, opr < #c_op.interfaces[ int_i ].ow_operation, opr++ ) {
-                    __op_name= c_op.name;
-                    __r_counter = route_counter;
-                    __cur_op -> c_op.interfaces[ int_i ].ow_operation[ opr ];
-                    __cast -> c_op.interfaces[ int_i ].ow_operation[ opr ].cast;
-                    __config_operation;
-                    route_counter++
-              }
-              ;
-              for( opr = 0, opr < #c_op.interfaces[ int_i ].rr_operation, opr++ ) {
-                    __op_name= c_op.name;
-                    __r_counter = route_counter;
-                    __cur_op -> c_op.interfaces[ int_i ].rr_operation[ opr ];
-                    __cast -> c_op.interfaces[ int_i ].rr_operation[ opr ].cast;
-                    __config_operation;
-                    route_counter++
-              }
-          }
-    };
-
-    file_content = file_content + "}";
-    response -> file_content
-}
 
 
 main {
 
     [ getJesterConfig( request )( response ) {
         __body
-        __get_jester_config
+        route_counter = 0;
+        for( op = 0, op < #render.output_port, op++ ) {
+            c_op -> render.output_port[ op ];
+
+            for( int_i = 0, int_i < #c_op.interfaces, int_i++ ) {
+                for( opr = 0, opr < #c_op.interfaces[ int_i ].ow_operation, opr++ ) {
+                        __op_name= c_op.name;
+                        __r_counter = route_counter;
+                        __cur_op -> c_op.interfaces[ int_i ].ow_operation[ opr ];
+                        __cast -> c_op.interfaces[ int_i ].ow_operation[ opr ].cast;
+                        __config_operation;
+                        route_counter++
+                }
+                ;
+                for( opr = 0, opr < #c_op.interfaces[ int_i ].rr_operation, opr++ ) {
+                        __op_name= c_op.name;
+                        __r_counter = route_counter;
+                        __cur_op -> c_op.interfaces[ int_i ].rr_operation[ opr ];
+                        __cast -> c_op.interfaces[ int_i ].rr_operation[ opr ].cast;
+                        __config_operation;
+                        route_counter++
+                }
+            }
+        }
     }]
 
 }
