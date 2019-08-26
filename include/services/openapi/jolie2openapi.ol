@@ -141,7 +141,6 @@ define __body {
               for( int_i = 0, int_i < #metadata.input[ i ].interfaces, int_i++ ) {
                   c_interface -> metadata.input[ i ].interfaces[ int_i ]
                   c_interface_name = c_interface.name.name
-                  // render.output_port[ output_port_index ].interfaces[ int_i ] = c_interface_name;
                   
                   // for each operations in the interfaces
                   for( o = 0, o < #c_interface.operations, o++ ) {
@@ -160,15 +159,6 @@ define __body {
                         if ( LOG ) { println@Console("Operation Template:" + __template )() }
 
                         path_counter++;
-                        /*if ( is_defined( oper.output ) ) {
-                            rr_operation_max = #render.output_port[ output_port_index ].interfaces[ int_i ].rr_operation
-                            current_render_operation -> render.output_port[ output_port_index ].interfaces[ int_i ].rr_operation[ rr_operation_max ]
-                        } else {
-                            ow_operation_max = #render.output_port[ output_port_index ].interfaces[ int_i ].ow_operation
-                            current_render_operation -> render.output_port[ output_port_index ].interfaces[ int_i ].ow_operation[ ow_operation_max ]
-                        }
-                        current_render_operation = oper.operation_name
-                        current_render_operation.method = __method*/
 
                         with( openapi.paths[ path_counter ].( __method ) ) {
                             .tags = c_interface_name;
@@ -246,7 +236,7 @@ define __body {
                                                 /* casting */
                                                 current_sbt -> current_type.sub_type[ sbt ];
                                                 current_root_type -> current_sbt.type_inline.root_type;
-                                                //__add_cast_data;
+
 
                                                 
                                                 find_str = par;
@@ -284,11 +274,6 @@ define __body {
 
                                     }
                             } else {
-                                /* no parameters in the template
-                                    if the method is GET, the request type must be void
-                                    if the method is different from GET, the request stype must be declared as a reference
-                                */
-
                                 /* the root type of the request type must be always void */
                                 if ( !tp_found ) {
                                     if ( oper.input.name != "void" ) {
@@ -379,7 +364,6 @@ define __body {
                         }
                         ;
                         openapi.paths[ path_counter ] = __template
-                       //current_render_operation.template = "/" + service_input_port + __template
                     }
               }
           }

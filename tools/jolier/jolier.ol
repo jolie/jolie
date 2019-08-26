@@ -1,10 +1,17 @@
 include "services/jester/JesterConfiguratorInterface.iol"
+include "services/jester/router.iol"
 include "console.iol"
 include "file.iol"
 include "runtime.iol"
+include "metajolie.iol"
+include "metaparser.iol"
 
 outputPort JesterConfigurator {
     Interfaces: JesterConfiguratorInterface
+}
+
+outputPort Jester {
+    Interfaces: RouterIface
 }
 
 embedded {
@@ -23,8 +30,8 @@ init {
 main {
     if ( #args < 4 || #args > 6 ) {
         println@Console("Usage: jolier <service_filename> <input_port> <router_host> <output_folder> [-easyInterface] [-debug]")()
-        println@Console("<service_filename>:\tfilename of the jolie service")()
-        println@Console("<input_port>:\tinput port to be converted")()
+        println@Console("<service_filename>:\tfilename of the jolie service.")()
+        println@Console("<input_port>:\tinput port to be converted. Note that the inputPort location must be set to value \"local://JesterEmbedded\"")()
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
         println@Console("<output_folder>:\toutput folder where storing the resulting json file")()
         println@Console("[-easyInterface]:\t if set no templates will be exploited for generating the json file. Default is false. jolier will read templates from file rest_template.json")()
@@ -80,15 +87,30 @@ main {
         }
     }
 
-    println@Console("Creating jester config file... " )()
-    getJesterConfig@JesterConfigurator( jester )( f.content );
-    f.format = "text"
-    f.filename = wkdir + "/jester_config.iol"
+    println@Console("Getting outputPort definition...")();
+    with( request_meta ) {
+        .filename = service_filename;
+        .name.name  = "";
+        .name.domain = ""
+    };
+    getInputPortMetaData@MetaJolie( request_meta )( metadata )
+    for( i = 0, i < #metadata.input, i++ ) {
+        // port selection from metadata
+        if ( metadata.input[ i ].name.name == service_input_port ) {
+              getSurface@Parser( metadata.input )( surface )
+        }
+    }
+    undef( f )
+    f.content = surface + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+    f.filename = "jester_config.iol"
     writeFile@File( f )()
-    println@Console("Done.")()
+    
+    println@Console("Creating jester config from templates... " )()
+    getJesterConfig@JesterConfigurator( jester )( config );
 
     println@Console("Running jester...")()
-    loadEmbeddedService@Runtime( { .filepath = debug_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + "\" services/jester/router.ol", .type="Jolie"} )()
+    loadEmbeddedService@Runtime( { .filepath = debug_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
+    config@Jester( config )()
     linkIn( lock )
     
 }
