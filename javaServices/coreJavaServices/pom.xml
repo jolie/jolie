@@ -195,7 +195,7 @@
                                     <destFileName>woodstox-core-asl.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${jolie.installation.directory}/lib/jaxws</outputDirectory>
+                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib/jaxws</outputDirectory>
           
                         </configuration>
 
@@ -361,7 +361,7 @@
                                     <destFileName>jmanagement-api.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${jolie.installation.directory}/lib</outputDirectory>
+                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
           
                         </configuration>
 
@@ -382,7 +382,7 @@
                                     <destFileName>${project.artifactId}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${jolie.installation.directory}/javaServices</outputDirectory>
+                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/javaServices</outputDirectory>
                         </configuration>
                     </execution>
 				

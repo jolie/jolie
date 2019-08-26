@@ -43,7 +43,7 @@
 									<destFileName>ini4j.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
-							<outputDirectory>${jolie.installation.directory}/lib</outputDirectory>
+							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
           
 						</configuration>
 					</execution>
@@ -63,7 +63,7 @@
 									<destFileName>${project.artifactId}.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
-							<outputDirectory>${jolie.installation.directory}/extensions</outputDirectory>
+							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions</outputDirectory>
           
 						</configuration>
 					</execution>

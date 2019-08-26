@@ -1,6 +1,8 @@
 language: java
 
-script: ant dist && ant test
+script: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+
+script: mvn test -B
 
 sudo: false
 
