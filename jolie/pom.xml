@@ -40,7 +40,7 @@
                                     <destFileName>${project.artifactId}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${jolie.installation.directory}</outputDirectory>
+                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}</outputDirectory>
           
                         </configuration>
                     </execution>
