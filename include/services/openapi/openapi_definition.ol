@@ -25,7 +25,7 @@ include "string_utils.iol"
 include "console.iol"
 include "runtime.iol"
 include "./public/interfaces/OpenApiDefinitionInterface.iol"
-include "./public/interfaces/JSONSchemaGeneratorInterface.iol"
+include "services/json/jsonschema/JSONSchemaGeneratorInterface.iol"
 
 execution{ concurrent }
 
@@ -39,7 +39,7 @@ outputPort JSONSchemaGenerator {
 
 embedded {
   Jolie:
-    "services/openapi/json_schema_generator.ol" in JSONSchemaGenerator
+    "services/json/jsonschema/json_schema_generator.ol" in JSONSchemaGenerator
 }
 
 outputPort MySelf {

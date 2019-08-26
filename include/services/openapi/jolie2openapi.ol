@@ -81,18 +81,6 @@ define __analize_given_template {
 
 }
 
-define __add_cast_data {
-  if ( is_defined( current_root_type.int_type ) ) {
-      current_render_operation.cast.( current_sbt.name ) = "int"
-  } else if ( is_defined( current_root_type.long_type ) ){
-      current_render_operation.cast.( current_sbt.name ) = "long"
-  } else if ( is_defined( current_root_type.double_type ) ){
-      current_render_operation.cast.( current_sbt.name ) = "double"
-  } else if ( is_defined( current_root_type.bool_type ) ){
-      current_render_operation.cast.( current_sbt.name ) = "bool"
-  }
-
-}
 
 define __body {
       easyInterface = false;
@@ -153,7 +141,7 @@ define __body {
               for( int_i = 0, int_i < #metadata.input[ i ].interfaces, int_i++ ) {
                   c_interface -> metadata.input[ i ].interfaces[ int_i ]
                   c_interface_name = c_interface.name.name
-                  render.output_port[ output_port_index ].interfaces[ int_i ] = c_interface_name;
+                  // render.output_port[ output_port_index ].interfaces[ int_i ] = c_interface_name;
                   
                   // for each operations in the interfaces
                   for( o = 0, o < #c_interface.operations, o++ ) {
@@ -172,7 +160,7 @@ define __body {
                         if ( LOG ) { println@Console("Operation Template:" + __template )() }
 
                         path_counter++;
-                        if ( is_defined( oper.output ) ) {
+                        /*if ( is_defined( oper.output ) ) {
                             rr_operation_max = #render.output_port[ output_port_index ].interfaces[ int_i ].rr_operation
                             current_render_operation -> render.output_port[ output_port_index ].interfaces[ int_i ].rr_operation[ rr_operation_max ]
                         } else {
@@ -180,7 +168,7 @@ define __body {
                             current_render_operation -> render.output_port[ output_port_index ].interfaces[ int_i ].ow_operation[ ow_operation_max ]
                         }
                         current_render_operation = oper.operation_name
-                        current_render_operation.method = __method
+                        current_render_operation.method = __method*/
 
                         with( openapi.paths[ path_counter ].( __method ) ) {
                             .tags = c_interface_name;
@@ -258,7 +246,7 @@ define __body {
                                                 /* casting */
                                                 current_sbt -> current_type.sub_type[ sbt ];
                                                 current_root_type -> current_sbt.type_inline.root_type;
-                                                __add_cast_data;
+                                                //__add_cast_data;
 
                                                 
                                                 find_str = par;
@@ -347,7 +335,7 @@ define __body {
                                     /* casting */
                                     current_sbt -> current_type.sub_type[ sbt ];
                                     current_root_type -> current_sbt.type_inline.root_type;
-                                    __add_cast_data;
+                                    //__add_cast_data;
 
                                     current_sbt -> current_type.sub_type[ sbt ];
                                     openapi_params_count++;
@@ -391,76 +379,12 @@ define __body {
                         }
                         ;
                         openapi.paths[ path_counter ] = __template
-                        current_render_operation.template = "/" + service_input_port + __template
+                       //current_render_operation.template = "/" + service_input_port + __template
                     }
               }
           }
       }
 }
-
-define __config_operation {
-    /* __cur_op, __op_name, __r_counter, _cast */
-    if ( __r_counter > 0 ) {
-        file_content = file_content + "\t;\n"
-    };
-    file_content = file_content + "\troutes[__route_counter++] << {\n";
-    file_content = file_content + "\t\t.outputPort=\"" + __op_name + "\"\n";
-    file_content = file_content + "\t\t,.method=\"" + __cur_op.method + "\"\n";
-    file_content = file_content + "\t\t,.template=\"" + __cur_op.template + "\"\n";
-    file_content = file_content + "\t\t,.operation=\"" + __cur_op + "\"\n";
-    foreach( cast_par : __cast ) {
-        file_content = file_content + "\t\t,.cast." + cast_par + "=\"" + __cast.( cast_par ) + "\"\n"
-    };
-    file_content = file_content + "\t}\n"
-}
-
-define __get_jester_config {
-
-    /* creation of file router_import.ol */
-    file_content = "";
-    for( op = 0, op < #render.output_port, op++ ) {
-         c_op -> render.output_port[ op ];
-         file_content = file_content + render.output_port[ op ].surface
-    };
-
-    file_content = file_content + "outputPort " + service_input_port + " {\n"
-    file_content = file_content + "\tInterfaces:" + service_input_port + "Interface\n}\n"
-    file_content = file_content + "embedded {\n"
-    file_content = file_content + "\tJolie:\n"
-    file_content = file_content + "\t\t\"--trace " + service_filename + "\" in " + service_input_port + "\n"
-    file_content = file_content + "}\n"
-
-    /* creation of the definition */
-    file_content = file_content + "init {\n";
-    route_counter = 0;
-    for( op = 0, op < #render.output_port, op++ ) {
-         c_op -> render.output_port[ op ];
-
-         for( int_i = 0, int_i < #c_op.interfaces, int_i++ ) {
-              for( opr = 0, opr < #c_op.interfaces[ int_i ].ow_operation, opr++ ) {
-                    __op_name= c_op.name;
-                    __r_counter = route_counter;
-                    __cur_op -> c_op.interfaces[ int_i ].ow_operation[ opr ];
-                    __cast -> c_op.interfaces[ int_i ].ow_operation[ opr ].cast;
-                    __config_operation;
-                    route_counter++
-              }
-              ;
-              for( opr = 0, opr < #c_op.interfaces[ int_i ].rr_operation, opr++ ) {
-                    __op_name= c_op.name;
-                    __r_counter = route_counter;
-                    __cur_op -> c_op.interfaces[ int_i ].rr_operation[ opr ];
-                    __cast -> c_op.interfaces[ int_i ].rr_operation[ opr ].cast;
-                    __config_operation;
-                    route_counter++
-              }
-          }
-    };
-
-    file_content = file_content + "}";
-    response -> file_content
-}
-
 
 main {
 
@@ -468,10 +392,4 @@ main {
         __body
         getOpenApiDefinition@OpenApi( openapi )( response )
     }]
-
-    [ getJesterConfig( request )( response ) {
-        __body
-        __get_jester_config
-    }]
-
 }
