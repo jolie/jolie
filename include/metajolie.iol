@@ -38,7 +38,7 @@ type CheckNativeTypeResponse: void {
 
 type GetMetaDataRequest: void {
   .filename: string             //< the filename where the service definition is
-  .name: Name                   //< the name and the domain name to give to the service
+  .name?: Name                   //< the name and the domain name to give to the service
 }
 
 type GetMetaDataResponse: void {

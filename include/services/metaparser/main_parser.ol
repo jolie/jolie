@@ -75,7 +75,13 @@ define de_indentify {
 
 main
 {
-
+  [ getChoiceBranch( request )( response ) {
+	  if ( is_defined( request.type_inline ) ) {
+		  getTypeInLine@MySelf( request.type_inline )( response )
+	  } else if ( is_defined( request.type_link ) ) {
+		  response = request.type_link.name
+	  }
+  }]
 
   [ getInputPort( request )( response ) {
 	response = response + "inputPort " + request.name.name + " {\n"
@@ -284,17 +290,26 @@ main
   } ] { nullProcess }
 
   [ getType( request )( response ) {
-	getNativeType@MySelf( request.root_type )( resp_root_type );
-	response = "type " + request.name.name + ": " + resp_root_type;
-	if ( #request.sub_type > 0 ) {
-	  response = response + " {\n";
-	  for( s = 0, s < #request.sub_type, s++ ) {
-	    getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
-	    response = response + _indentation_string + resp_sub_type + "\n"
-	  };
-	  response = response + _indentation_string + "}"
-	};
-	response = response + "\n"
+	  if ( !is_defined( request.choice ) ) {
+			/*getNativeType@MySelf( request.root_type )( resp_root_type );
+			response = "type " + request.name.name + ": " + resp_root_type;
+			if ( #request.sub_type > 0 ) {
+			response = response + " {\n";
+			for( s = 0, s < #request.sub_type, s++ ) {
+				getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
+				response = response + _indentation_string + resp_sub_type + "\n"
+			};
+			response = response + _indentation_string + "}"
+			}*/
+			getTypeInLine@MySelf( request )( type_inline )
+			response = "type " + request.name.name + ": " + type_inline
+	  } else {
+		  	// choice
+			getChoiceBranch@MySelf( request.choice.left_type )( left )
+			getChoiceBranch@MySelf( request.choice.right_type )( right )
+			response = "type " + request.name.name + ": " + left + "\n|\n" + right
+	  }
+	  response = response + "\n"
   } ] { nullProcess }
 
   [ getSubType( request )( response ) {
@@ -313,16 +328,22 @@ main
   } ] { nullProcess }
 
   [ getTypeInLine( request )( response ) {
-	getNativeType@MySelf( request.root_type )( resp_root_type );
-	response = resp_root_type;
-	if ( #request.sub_type > 0 ) {
-	    response = response + " {\n";
-	    for( s = 0, s < #request.sub_type, s++ ) {
-		getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
-		response = response + resp_sub_type + "\n"
-	    };
-	    response = response + _indentation_string + "}"
-	}
+	    if ( !is_defined( request.choice ) ) {
+			getNativeType@MySelf( request.root_type )( resp_root_type );
+			response = resp_root_type;
+			if ( #request.sub_type > 0 ) {
+				response = response + " {\n";
+				for( s = 0, s < #request.sub_type, s++ ) {
+					getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
+					response = response + resp_sub_type + "\n"
+				};
+				response = response + _indentation_string + "}"
+			}
+	   } else {
+		   	getChoiceBranch@MySelf( request.choice.left_type )( left )
+			getChoiceBranch@MySelf( request.choice.right_type )( right )
+			response = left + "\n|\n" + right
+	   }
   } ] { nullProcess }
 
   [ getCardinality( request )( response ) {
@@ -358,5 +379,7 @@ main
 	  response = request.link.name
 	}
   } ] { nullProcess }
+
+
 
 }
