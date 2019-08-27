@@ -22,13 +22,18 @@ define doTest
   if ( meta_description.input.interfaces.name.name != "TmpInterface" ) {
       throw( TestFailed, "Expected interface name equal to \"TmpInterface\", found " + meta_description.input.interfaces.name.name )
   };
-  if ( #meta_description.input.interfaces.types != 2 ) {
-      throw( TestFailed, "Expected 2 types, found " + #meta_description.input.interfaces.types )
+  if ( #meta_description.input.interfaces.types != 6 ) {
+      throw( TestFailed, "Expected 6 types, found " + #meta_description.input.interfaces.types )
   };
-  if ( #meta_description.input.interfaces.operations != 1 ) {
-      throw( TestFailed, "Expected 1 operation, found " + #meta_description.input.interfaces.operations )
+  if ( #meta_description.input.interfaces.operations != 3 ) {
+      throw( TestFailed, "Expected 3 operation, found " + #meta_description.input.interfaces.operations )
   };
   if ( meta_description.input.interfaces.operations.operation_name != "tmp" ) {
       throw( TestFailed, "Expected operation_name equal to \"tmp\", found " + meta_description.input.interfaces.operations.operation_name )
+  };
+  if ( meta_description.input.interfaces.operations[1].operation_name != "tmp3" ) {
+      throw( TestFailed, "Expected secondo operation_name equal to \"tmp3\", found " + meta_description.input.interfaces.operations[1].operation_name )
   }
+
+  getMetaData@MetaJolie( rq )( metadata )
 }

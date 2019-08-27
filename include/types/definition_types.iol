@@ -26,16 +26,39 @@ type Name: void {
 }
 
 type NativeType: void {
-  .string_type?: bool
-  .int_type?: bool
-  .double_type?: bool
-  .any_type?: bool
-  .void_type?: bool
-  .raw_type?: bool
-  //.undefined_type?: bool
-  .bool_type?: bool
-  .long_type?: bool
-  .link?: void {
+  .string_type: bool
+} 
+|
+void {
+  .int_type: bool
+}
+|
+void {
+  .double_type: bool
+}
+|
+void {
+  .any_type: bool
+}
+| 
+void {
+  .void_type: bool
+}
+| 
+void {
+  .raw_type: bool
+}
+|
+void {
+  .bool_type: bool
+}
+|
+void {
+  .long_type: bool
+}
+| 
+void {
+  .link: void {
      .name: string
      .domain?: string
   }
@@ -50,15 +73,35 @@ type Cardinality: void {
 type SubType: void {
   .name: string
   .cardinality: Cardinality
-  .type_inline?: Type
-  .type_link?: Name
+  .type_inline: Type
+}
+|
+void {
+  .name: string
+  .cardinality: Cardinality
+  .type_link: Name
+}
+
+type ChoiceBranch: void {
+  .type_inline: Type
+}
+|
+void {
+  .type_link: Name
 }
 
 type Type: void {
   .name: Name
   .root_type: NativeType
   .sub_type*: SubType
+} | void {
+  .name?: Name
+  .choice?: void {
+      .left_type: ChoiceBranch 
+      .right_type: ChoiceBranch 
+  }
 }
+
 
 type Fault: void {
   .name: Name
