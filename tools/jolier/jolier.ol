@@ -28,12 +28,11 @@ init {
 }
 
 main {
-    if ( #args < 4 || #args > 6 ) {
+    if ( #args < 4 || #args > 5 ) {
         println@Console("Usage: jolier <service_filename> <input_port> <router_host> <output_folder> [-easyInterface] [-debug]")()
         println@Console("<service_filename>:\tfilename of the jolie service.")()
         println@Console("<input_port>:\tinput port to be converted. Note that the inputPort location must be set to value \"local://JesterEmbedded\"")()
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
-        println@Console("<output_folder>:\toutput folder where storing the resulting json file")()
         println@Console("[-easyInterface]:\t if set no templates will be exploited for generating the json file. Default is false. jolier will read templates from file rest_template.json")()
         println@Console("[-debug]:\t when set it enables the debug modality, default is false")()
         println@Console()()
@@ -45,14 +44,13 @@ main {
     service_filename = args[ 0 ]
     service_input_port = args[ 1 ]
     router_host = args [ 2 ]
-    wkdir = args[ 3 ]
     easy_interface = false
     debug = false
 
     jester_http_location = "socket://" + router_host
 
-    if ( #args > 4 ) {
-        for( i = 4, i < #args, i++ ) {
+    if ( #args > 3 ) {
+        for( i = 3, i < #args, i++ ) {
             if ( args[ i ] == "-easyInterface" ) {
                 easy_interface = true
             } else if ( args[ i ] == "-debug" ) {
