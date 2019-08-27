@@ -61,7 +61,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/include</outputDirectory>
+							<outputDirectory>${jolie.installation.directory}/include</outputDirectory>
 							<resources>
 								<resource>
 									<directory>${basedir}/include</directory>
@@ -96,7 +96,7 @@
 							<outputDirectory>${jolie.installation.directory}/tools</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${project.parent.basedir}/${jolie.installation.directory}/tools/wsdl2jolie</directory>
+									<directory>${jolie.installation.directory}/tools/wsdl2jolie</directory>
 									<includes>
 										<include>wsdl2jolie.ol</include>
 									</includes>
