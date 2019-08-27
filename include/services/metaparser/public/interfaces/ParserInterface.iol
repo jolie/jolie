@@ -32,5 +32,6 @@ interface ParserInterface {
     getTypeInLine( Type )( string ),
     getSubType( SubType )( string ),
     getCardinality( Cardinality )( string ),
-    getNativeType( NativeType )( string )
+    getNativeType( NativeType )( string ),
+    getChoiceBranch( ChoiceBranch )( string )
 }
