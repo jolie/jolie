@@ -24,7 +24,6 @@ include "file.iol"
 include "console.iol"
 include "string_utils.iol"
 include "metajolie.iol"
-include "metaparser.iol"
 
 include "./public/interfaces/OpenApiDefinitionInterface.iol"
 include "./public/interfaces/Jolie2OpenApiInterface.iol"
@@ -128,13 +127,6 @@ define __body {
       for( i = 0, i < #metadata.input, i++ ) {
           // port selection from metadata
           if ( metadata.input[ i ].name.name == service_input_port ) {
-              output_port_index = #render.output_port
-              getSurfaceWithoutOutputPort@Parser( metadata.input )( render.output_port[ output_port_index ].surface );
-              with( render.output_port[ output_port_index ] ) {
-                    .name = service_input_port;
-                    .location = metadata.input[ i ].location;
-                    .protocol = metadata.input[ i ].protocol
-              };
               path_counter = -1
 
               // for each interface in the port
