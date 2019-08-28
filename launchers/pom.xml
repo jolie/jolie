@@ -38,8 +38,8 @@
 			</activation>
 			<properties>
 				<launchers.setExecutable.cmd>chmod</launchers.setExecutable.cmd>
-				<launchers.setExecutable.arg1>+x</launchers.setExecutable.arg1>
-				<launchers.setExecutable.arg2>-R</launchers.setExecutable.arg2>
+				<launchers.setExecutable.arg1>-R</launchers.setExecutable.arg1>
+				<launchers.setExecutable.arg2>+x</launchers.setExecutable.arg2>
 				<launchers.setExecutable.arg3>${project.parent.basedir}/${jolie.installation.directory.executable}/unix</launchers.setExecutable.arg3>
 			</properties>
 		</profile>
