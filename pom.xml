@@ -88,7 +88,11 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
+<<<<<<< HEAD
 							<outputDirectory>${basedir}/${jolie.installation.directory}/include</outputDirectory>
+=======
+							<outputDirectory>${jolie.installation.directory}/include</outputDirectory>
+>>>>>>> 7b929bdd8f174641647474fa45a951b87e06df3b
 							<resources>
 								<resource>
 									<directory>${basedir}/include</directory>
@@ -123,7 +127,11 @@
 							<outputDirectory>${jolie.installation.directory}/tools</outputDirectory>
 							<resources>
 								<resource>
+<<<<<<< HEAD
 									<directory>${basedir}/${jolie.installation.directory}/tools/wsdl2jolie</directory>
+=======
+									<directory>${jolie.installation.directory}/tools/wsdl2jolie</directory>
+>>>>>>> 7b929bdd8f174641647474fa45a951b87e06df3b
 									<includes>
 										<include>wsdl2jolie.ol</include>
 									</includes>
