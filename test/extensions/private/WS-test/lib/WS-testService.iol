@@ -33,9 +33,9 @@ outputPort CalcServiceJoliePort {
 
 define loadLocalService
 {
-	list@File( { .directory = "../lib/jaxws" } )( list );
+	list@File( { .directory = "../dist/jolie/lib/jaxws" } )( list );
 	for( path in list.result ) {
-		toAbsolutePath@File( "../lib/jaxws/" + path )( path );
+		toAbsolutePath@File( "../dist/jolie/lib/jaxws/" + path )( path );
 		loadLibrary@Runtime( path )()
 	};
 	loadLibrary@Runtime( "extensions/private/WS-test.jar" )();
