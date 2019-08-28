@@ -29,6 +29,15 @@ type GetOrdersByItemRequest: void {
     .itemName: string
     .quantity: int
 }
+|
+void {
+    .userId: string
+    .itemName: string
+}
+|
+void {
+    .userId: string
+}
 
 type GetOrdersByItemResponse: Orders
 
@@ -39,9 +48,11 @@ type PutOrderRequest: void {
 
 type PutOrderResponse: void
 
-type DeleteOrderRequest: void {
+type DeleteOrderRequestLinked: void {
     .orderId: int
 }
+
+type DeleteOrderRequest: DeleteOrderRequestLinked
 
 type DeleteOrderResponse: void
 

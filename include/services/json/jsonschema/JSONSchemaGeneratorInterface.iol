@@ -31,6 +31,7 @@ interface JSONSchemaGeneratorInterface {
  RequestResponse:
    getSchemas( Interface )( GetSchemasResponse ),
    getType( Type )( undefined ),
+   getChoiceBranch( ChoiceBranch )( undefined ),
    getTypeInLine( Type )( undefined ),
    getSubType( SubType )( undefined ),
    getNativeType( NativeType )( undefined )

@@ -17,6 +17,7 @@ constants {
 
 init {
     install( Error => nullProcess )
+    install( DefinitionError => println@Console( main.DefinitionError )() )
 }
 
 main {
