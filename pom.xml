@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" 
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-			
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jolie-lang</groupId>
 	<artifactId>distribution</artifactId>
@@ -9,37 +9,13 @@
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jolie.installation.directory>\dist\jolie</jolie.installation.directory>
-		<jolie.installation.directory.executable>\dist\launchers\</jolie.installation.directory.executable>
+		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
+		<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
 		<jolie.version>1.9.0-git</jolie.version>
 	</properties>
 	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
 	<name>distribution</name>
-	<profiles>
-		<profile>
-			<id>Windows</id>
-			<activation>
-				<os>
-					<family>Windows</family>
-				</os>
-			</activation>
-			<properties>
-				<script.extension>windows\jolie.bat</script.extension>
-			</properties>
-		</profile>
-		<profile>
-			<id>unix</id>
-			<activation>
-				<os>
-					<family>unix</family>
-				</os>
-			</activation>
-			<properties>
-				<script>/linux/jolie.sh</script>
-			</properties>
-		</profile>
-	</profiles>
-  
+	
 	<modules>
 		<module>libjolie</module>
 		<module>jolie</module>
@@ -73,46 +49,29 @@
 		<module>tools/joliedoc</module>
 		<module>javaServices/coreJavaServices</module>
 		<module>javaServices/monitorJavaServices</module>
-	</modules>	
+		<module>launchers</module>
+		<module>test</module>
+	</modules>
 
 	<build>
 		<plugins>
 			<plugin>
+				<inherited>false</inherited>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>3.1.0</version>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
+						<id>copy-include</id>
 						<phase>install</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-<<<<<<< HEAD
 							<outputDirectory>${basedir}/${jolie.installation.directory}/include</outputDirectory>
-=======
-							<outputDirectory>${jolie.installation.directory}/include</outputDirectory>
->>>>>>> 7b929bdd8f174641647474fa45a951b87e06df3b
 							<resources>
 								<resource>
 									<directory>${basedir}/include</directory>
 									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
-						<id>copy-launchers</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/${jolie.installation.directory.executable}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${basedir}/launchers</directory>
-									<filtering>false</filtering>
 								</resource>
 							</resources>
 						</configuration>
@@ -127,11 +86,7 @@
 							<outputDirectory>${jolie.installation.directory}/tools</outputDirectory>
 							<resources>
 								<resource>
-<<<<<<< HEAD
 									<directory>${basedir}/${jolie.installation.directory}/tools/wsdl2jolie</directory>
-=======
-									<directory>${jolie.installation.directory}/tools/wsdl2jolie</directory>
->>>>>>> 7b929bdd8f174641647474fa45a951b87e06df3b
 									<includes>
 										<include>wsdl2jolie.ol</include>
 									</includes>
@@ -140,38 +95,8 @@
 							</resources>
 						</configuration>
 					</execution>
-
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<configuration>
-					<environmentVariables>
-						<JOLIE_HOME>${basedir}${jolie.installation.directory}</JOLIE_HOME>
-					</environmentVariables>
-					<workingDirectory>${basedir}/test</workingDirectory>
-					<executable>${basedir}${jolie.installation.directory.executable}${script.extension}</executable>
-					<arguments>
-						<argument>test.ol</argument>
-					</arguments>
-				</configuration>
-				<version>1.2.1</version>
-				<executions>
-					<execution>
-						<id>compile-jni</id>
-						<phase>deploy</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
 		</plugins>
-		
 	</build>
-	
-	
-
 </project>
