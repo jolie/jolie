@@ -27,9 +27,9 @@
 				<version>2.4</version>
 				<configuration>	
 					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-						</manifest>
+						<manifestEntries>
+							<Class-Path>lib/jolie.jar lib/libjolie.jar lib/mailapi.jar lib/smtp.jar lib/jolie-xml.jar lib/ini4j.jar lib/c3p0-0.9.1.1.jar lib/smack.jar lib/smackx.jar lib/wsdl4j.jar lib/xsom.jar lib/commons-lang3.jar lib/http.jar lib/jolie-js.jar lib/uri-templates.jar lib/quartz-2.2.1.jar lib/quartz-jobs-2.2.1.jar lib/slf4j-api-1.6.6.jar lib/javax.activation.jar lib/joda-time.jar</Class-Path>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>
