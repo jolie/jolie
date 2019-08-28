@@ -30,5 +30,5 @@ type OpenApiRequest: void {
 
 interface Jolie2OpenApiInterface {
 RequestResponse:
-  getOpenApi( OpenApiRequest )( undefined )
+  getOpenApi( OpenApiRequest )( undefined ) throws DefinitionError( string )
 }

@@ -57,26 +57,52 @@ main
      }
  } ] { nullProcess }
 
+ [ getChoiceBranch( request )( response ) {
+    if ( is_defined( request.type_inline ) ) {
+        if ( is_defined( request.type_inline.choice ) ) {
+            getChoiceBranch@MySelf( request.type_inline.choice.left_type )( left )
+            getChoiceBranch@MySelf( request.type_inline.choice.right_type )( right )
+            response.oneOf[ 0 ] << left.oneOf
+            for( i = 0, i < #right.oneOf, i++ ) {
+                  response.oneOf[ i + 1 ] << right.oneOf[ i ] 
+            }
+        } else {
+            getTypeInLine@MySelf( request.type_inline )( response.oneOf )
+        }
+    } else if ( is_defined( request.type_link ) ) {
+        response.oneOf.("$ref") = "#/definitions/" + request.type_link.name
+    }
+ }]
+
  [ getType( request )( response ) {
      with( response.( request.name.name ) ) {
-        getNativeType@MySelf( request.root_type )( resp_root_type );
-        if ( is_defined( request.root_type.link ) ) {
-            .("$ref") = "#/definitions/" + resp_root_type
-        } else {
-            .type = "object";
-            if ( !(resp_root_type instanceof void) ) {
-              .properties.("$") << resp_root_type
-            }
-        }
-        ;
-        /* analyzing sub types */
-        if ( #request.sub_type > 0 ) {
-           for( s = 0, s < #request.sub_type, s++ ) {
-                  getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
-                  .properties.( request.sub_type[ s ].name ) << resp_sub_type
-           }
-        }
-    }
+          if ( is_defined( request.choice )  ) { 
+                getChoiceBranch@MySelf( request.choice.left_type )( left )
+                getChoiceBranch@MySelf( request.choice.right_type )( right )
+                .oneOf[ 0 ] << left.oneOf
+                for( i = 0, i < #right.oneOf, i++ ) {
+                      .oneOf[ i + 1 ] << right.oneOf[ i ] 
+                }
+          } else {
+                getNativeType@MySelf( request.root_type )( resp_root_type );
+                if ( is_defined( request.root_type.link ) ) {
+                      .("$ref") = "#/definitions/" + request.root_type.link.name
+                } else {
+                      .type = "object";
+                      if ( !(resp_root_type instanceof void) ) {
+                        .properties.("$") << resp_root_type
+                      }
+                }
+                ;
+                /* analyzing sub types */
+                if ( #request.sub_type > 0 ) {
+                      for( s = 0, s < #request.sub_type, s++ ) {
+                              getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
+                              .properties.( request.sub_type[ s ].name ) << resp_sub_type
+                      }
+                }
+          }
+     }
  } ] { nullProcess }
 
  [ getSubType( request )( response ) {

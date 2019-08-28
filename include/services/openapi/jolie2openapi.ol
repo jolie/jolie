@@ -30,6 +30,13 @@ include "./public/interfaces/Jolie2OpenApiInterface.iol"
 
 execution{ concurrent }
 
+interface InnerInterface {
+    RequestResponse:
+        checkTypeConsistency( string )( bool ) throws DefinitionError,
+        checkBranchChoiceConsistency( undefined )( bool ) throws DefinitionError,
+        getActualCurrentType( string )( string )
+}
+
 outputPort OpenApi {
   Interfaces: OpenApiDefinitionInterface
 }
@@ -42,6 +49,18 @@ constants {
 embedded {
   Jolie:
     "services/openapi/openapi_definition.ol" in OpenApi
+}
+
+outputPort MySelf {
+    Location: "local://Jolie2OpenApi"
+    Protocol: sodep
+    Interfaces: InnerInterface
+}
+
+inputPort MySelf {
+    Location: "local://Jolie2OpenApi"
+    Protocol: sodep
+    Interfaces: InnerInterface
 }
 
 inputPort Jolie2OpenApi {
@@ -96,7 +115,17 @@ define __body {
         .name.domain = ""
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
-      ;
+      /* creating a map name-types for managing type links */
+      for( itf = 0, itf < #metadata.input.interfaces, itf++ ) { 
+          for( tps = 0, tps < #metadata.input.interfaces[ itf ].types, tps++ ) {
+              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name.name ) << metadata.input.interfaces[ itf ].types[ tps ]
+          }
+      } 
+
+      if ( LOG ) {
+          valueToPrettyString@StringUtils( global.type_map )( s )
+          println@Console("Type map: " + s)()
+      }
       /* creating openapi definition file */
       undef( openapi );
       with( openapi ) {
@@ -187,12 +216,11 @@ define __body {
                         }
 
                         if ( tp_found ) {
-                            current_type -> c_interface.types[ tp_count ];
-                            if ( !is_defined( current_type.root_type.void_type ) ) {
-                                println@Console( error_prefix + "but the root type of the request type is not void" )();
-                                throw( DefinitionError )
-                            }
+                            // check the consistency of the root type of the type
+                            checkTypeConsistency@MySelf( c_interface.types[ tp_count ].name.name )()
                         }
+                        getActualCurrentType@MySelf( c_interface.types[ tp_count ].name.name )( actual_type_name );
+                        current_type -> global.type_map.( actual_type_name )
                         
 
                         if ( !( __template instanceof void ) ) {
@@ -215,29 +243,26 @@ define __body {
                             ;
 
                             if ( found_params ) {
-
                                     /* there are parameters in the template */
                                     error_prefix = error_prefix + "with template " + __template + " ";
                                     if ( !tp_found ) {
-                                        println@Console( error_prefix +  "but the request type does not declare any field")();
-                                        throw( DefinitionError )
+                                            error_msg = current_type.name.name +  ": the request type does not declare any field";
+                                            throw( DefinitionError, error_msg )
+                                    } else if ( is_defined( current_type.choice ) ) {
+                                            error_msg = current_type.name.name +  ": the request type cannot be a choice type when the template specifies parameters in the URL"
+                                            throw( DefinitionError, error_msg )
                                     } else {
                                             /* if there are parameters in the template the request type must be analyzed */
                                             for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
-
-                                                /* casting */
                                                 current_sbt -> current_type.sub_type[ sbt ];
-                                                current_root_type -> current_sbt.type_inline.root_type;
-
-
-                                                
+                                                current_root_type -> current_sbt.type_inline.root_type;                                               
                                                 find_str = par;
                                                 find_str.regex = current_sbt.name;
-
                                                 find@StringUtils( find_str )( find_str_res );
 
                                                 openapi_params_count++;
                                                 with( current_openapi_path.parameters[ openapi_params_count ] ) {
+                                                    /* if a parameter name corresponds with a node of the the type, such a node must be declared as a simple native type node */
                                                     .name = current_sbt.name;
                                                     if ( current_sbt.cardinality.min > 0 ) {
                                                         .required = true
@@ -245,15 +270,17 @@ define __body {
                                                     if ( find_str_res == 1 ) {
                                                         if ( is_defined( current_sbt.type_inline ) ) {
                                                             if ( #current_sbt.type_inline.sub_type > 0 ) {
-                                                                println@Console( error_prefix +  "but the field " + .name + " has a type with subnodes which is not permitted")();
-                                                                throw( DefinitionError )
+                                                                error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted"
+                                                                throw( DefinitionError, error_msg )
                                                             };
                                                             .in.other = "path";
                                                             .in.other.type << current_sbt.type_inline;
-
                                                             if ( is_defined( current_sbt.type_inline.root_type.type_link ) ) {
-                                                                println@Console( error_prefix +  "but the field " + .name + " cannot reference to another type because it is a path parameter")();
-                                                                throw( DefinitionError )
+                                                                getActualCurrentType@MySelf( current_sbt.type_inline.root_type.type_link.name )( sbt_actual_linked_type )
+                                                                if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
+                                                                    error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                                    throw( DefinitionError, error_msg )
+                                                                }
                                                             }
                                                         }
 
@@ -263,47 +290,41 @@ define __body {
 
                                                 }
                                             }
-
                                     }
                             } else {
-                                /* the root type of the request type must be always void */
-                                if ( !tp_found ) {
-                                    if ( oper.input.name != "void" ) {
-
-                                        println@Console( error_prefix + "0but its request message must be declared as void" )();
-                                        throw( DefinitionError )
-                                    }
-                                } else {
-                                    /* check if the request type is void */
-                                    if ( !current_type.root_type.void_type ) {
-                                        println@Console( error_prefix + "1but its request message must be declared as void" )();
-                                        throw( DefinitionError )
-                                    }
-                                };
-
-                                if ( __method == "get" ) {
-                                        if ( tp_found && #current_type.sub_type > 0 ) {
-                                            println@Console( error_prefix + "2but its request message must be declared as void" )();
+                                    /* the root type of the request type must be always void */
+                                    if ( !tp_found ) {
+                                        if ( oper.input.name != "void" ) {
+                                            println@Console( "operation " + oper.operation_name + " cannot have the request message declared as void" )();
                                             throw( DefinitionError )
                                         }
-                                } else {
-                                        if ( tp_found ) {
-                                            /* the fields of the request type must be transformed into parameters */
-                                            for( sf = 0, sf < #current_type.sub_type, sf++ ) {
-                                                    openapi_params_count++;
-                                                    with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                                        .name = current_type.sub_type[ sf ].name;
-                                                        if ( current_type.sub_type[ sf ].cardinality.min > 0 ) {
-                                                            .required = true
-                                                        };
-                                                        .in.in_body.schema_subType << current_type.sub_type[ sf ]
-                                                    }
-                                            }
-                                        }
-                                }
+                                    } 
 
+                                    if ( __method == "get" ) {
+                                            if ( tp_found ) {
+                                                    if ( #current_type.sub_type > 0 || is_defined( current_type.choice )) {
+                                                    println@Console( current_type.name.name + ": this request tyoe message is joined to a get method without any template, thus it cannot be declared as a choice type nor it cannot contain subnodes" )();
+                                                    throw( DefinitionError )
+                                                }
+                                            }
+                                    } else {
+                                            if ( tp_found ) {
+                                                /* the fields of the request type must be transformed into parameters */
+                                                for( sf = 0, sf < #current_type.sub_type, sf++ ) {
+                                                        openapi_params_count++;
+                                                        with( current_openapi_path.parameters[ openapi_params_count ] ) {
+                                                            .name = current_type.sub_type[ sf ].name;
+                                                            if ( current_type.sub_type[ sf ].cardinality.min > 0 ) {
+                                                                .required = true
+                                                            };
+                                                            .in.in_body.schema_subType << current_type.sub_type[ sf ]
+                                                        }
+                                                }
+                                            }
+                                    }
                             }
                         } else {
+                            /* the template is not defined */
                             __template = "/" + oper.operation_name;
 
                             /* if it is a GET, extract the path params from the request message */
@@ -312,9 +333,7 @@ define __body {
                                     /* casting */
                                     current_sbt -> current_type.sub_type[ sbt ];
                                     current_root_type -> current_sbt.type_inline.root_type;
-                                    //__add_cast_data;
 
-                                    current_sbt -> current_type.sub_type[ sbt ];
                                     openapi_params_count++;
                                     with( current_openapi_path.parameters[ openapi_params_count ] ) {
                                         .name = current_sbt.name;
@@ -324,18 +343,18 @@ define __body {
 
                                         if ( is_defined( current_sbt.type_inline ) ) {
                                                 if ( #current_sbt.type_inline.sub_type > 0 ) {
-                                                    println@Console( error_prefix +  "but the field " + .name + " has a type with subnodes which is not permitted")();
-                                                    throw( DefinitionError )
+                                                        error_msg = "Type " + current_type.name.name  + ": field " + current_sbt.name + " has a type with subnodes which is not permitted"
+                                                        throw( DefinitionError, error_msg )
                                                 };
                                                 .in.other = "path";
                                                 .in.other.type << current_sbt.type_inline;
                                                 if ( is_defined( current_sbt.type_inline.root_type.type_link ) ) {
-                                                println@Console( error_prefix +  "but the field " + .name + " cannot reference to another type because it is a path parameter")();
-                                                throw( DefinitionError )
+                                                        error_msg = "Type " + current_type.name.name  + ": field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                        throw( DefinitionError, error_msg )
                                                 }
                                         } else {
-                                                println@Console( error_prefix +  "but the field " + current_sbt.name + " of request type is not an inline type. REST template for GET method cannot be created!")();
-                                                throw( DefinitionError )
+                                                error_msg = "Type " + current_type.name.name  + ": field " + current_sbt.name + " of request type is not an inline type. REST template for GET method cannot be created!"
+                                                throw( DefinitionError, error_msg )
                                         }
                                     }
                                     ;
@@ -367,5 +386,58 @@ main {
     [ getOpenApi( request )( response ) {
         __body
         getOpenApiDefinition@OpenApi( openapi )( response )
+    }]
+
+    /* private operations */
+    [ checkBranchChoiceConsistency( request )( response ) {
+        response = true
+        if ( is_defined( request.type_link ) ) {
+            checkTypeConsistency@MySelf( current_type.type_link.name )( response )
+        }
+        else if ( is_defined( request.type_inline ) ) {
+            if ( is_defined( request.type_inline.choice ) ) {
+                checkBranchChoiceConsistency@MySelf( request.type_inline.choice.left_type )( response )
+                checkBranchChoiceConsistency@MySelf( request.type_inline.choice.right_type )( response )
+            } else if ( !is_defined( request.type_inline.root_type.void_type ) ) {
+                error_msg = "Type " + current_type.name.name + ": root native type must be void"
+                throw( DefinitionError, error_msg )
+            } 
+        }
+    }]
+
+
+    [ checkTypeConsistency( request )( response ) {
+        current_type -> global.type_map.( request );
+        if ( LOG ) {
+            valueToPrettyString@StringUtils( current_type )( s )
+            println@Console("checking consistency of type " + request + ":" + s )()
+        }
+        // link
+        if (  is_defined(current_type.root_type.link) ) {
+            checkTypeConsistency@MySelf( current_type.root_type.link.name )( response )
+        } 
+        
+        // choice
+        else if ( is_defined( current_type.choice ) ) {
+            checkBranchChoiceConsistency@MySelf( current_type.choice.left_type )( response )
+            checkBranchChoiceConsistency@MySelf( current_type.choice.right_type )( response )
+        }
+        // usual typeinline
+        else if ( !is_defined( current_type.root_type.void_type ) ) {
+            error_msg = "Type " + current_type.name.name + ": root native type must be void"
+            throw( DefinitionError, error_msg )
+        }
+        else {
+            response = true
+        }
+    }]
+
+    [ getActualCurrentType( request )( response ) {
+        current_type -> global.type_map.( request )
+        if (  is_defined(current_type.root_type.link) ) {
+            getActualCurrentType@MySelf( current_type.root_type.link.name )( response )
+        } else {
+            response = current_type.name.name
+        } 
     }]
 }
