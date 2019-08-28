@@ -23,10 +23,10 @@
 				</os>
 			</activation>
 			<properties>
-				<launchers.setExecutable.cmd></launchers.setExecutable.cmd>
-				<launchers.setExecutable.arg1></launchers.setExecutable.arg1>
-				<launchers.setExecutable.arg2></launchers.setExecutable.arg2>
-				<launchers.setExecutable.arg3></launchers.setExecutable.arg3>
+				<launchers.setExecutable.cmd>cmd.exe</launchers.setExecutable.cmd>
+				<launchers.setExecutable.arg1>/C</launchers.setExecutable.arg1>
+				<launchers.setExecutable.arg2>dir</launchers.setExecutable.arg2>
+				<launchers.setExecutable.arg3>/w</launchers.setExecutable.arg3>
 			</properties>
 		</profile>
 		<profile>

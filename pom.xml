@@ -7,6 +7,33 @@
 	<artifactId>distribution</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
+
+	<profiles>
+			<profile>
+				<id>Windows</id>
+				<activation>
+					<os>
+						<family>Windows</family>
+					</os>
+				</activation>
+				<properties>
+						<jolie.installation.directory>dist\jolie</jolie.installation.directory>
+						<jolie.installation.directory.executable>dist\launchers</jolie.installation.directory.executable>
+				</properties>
+			</profile>
+			<profile>
+				<id>unix</id>
+				<activation>
+					<os>
+						<family>unix</family>
+					</os>
+				</activation>
+				<properties>
+						<jolie.installation.directory>dist/jolie</jolie.installation.directory>
+						<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
+				</properties>
+			</profile>
+		</profiles>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
