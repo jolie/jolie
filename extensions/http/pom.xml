@@ -21,8 +21,20 @@
 	</name>
 	<description>HTTP protocol for Jolie.</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>	
+					<archive>
+						<manifestEntries>
+							<Class-Path>lib/jolie.jar lib/libjolie.jar lib/gwt-servlet.jar lib/jolie-gwt.jar lib/jolie-xml.jar lib/jolie-js.jar </Class-Path>
+							<X-JOLIE-ProtocolExtension>http:jolie.net.HttpProtocolFactory</X-JOLIE-ProtocolExtension>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

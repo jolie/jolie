@@ -29,7 +29,8 @@
 				<configuration>	
 					<archive>
 						<manifestEntries>
-							<X-JOLIE-ProtocolExtension>rmi:jolie.rmi.RMIListenerFactory</X-JOLIE-ProtocolExtension>
+							<X-JOLIE-ChannelExtension>rmi:joliex.rmi.RMICommChannelFactory </X-JOLIE-ChannelExtension>
+							<X-JOLIE-ListenerExtension> lrmi:joliex.rmi.RMIListenerFactory </X-JOLIE-ListenerExtension>
 						</manifestEntries>
 					</archive>
 				</configuration>

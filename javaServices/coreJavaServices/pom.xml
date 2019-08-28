@@ -23,6 +23,18 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>	
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.1</version>
 				<executions>
@@ -288,7 +300,7 @@
 								<artifactItem>
 									<groupId>com.damnhandy</groupId>
 									<artifactId>handy-uri-templates</artifactId>
-									<version>2.1.7</version>
+									<version>2.1.6</version>
 									<type>jar</type>
 									<destFileName>uri-templates.jar</destFileName>
 								</artifactItem>
@@ -472,7 +484,7 @@
 		<dependency>
 			<groupId>com.damnhandy</groupId>
 			<artifactId>handy-uri-templates</artifactId>
-			<version>2.1.7</version>
+			<version>2.1.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.mail</groupId>
@@ -606,6 +618,7 @@
 			<artifactId>joda-time</artifactId>
 			<version>2.9.4</version>
 		</dependency>
+
 
 
 	</dependencies>
