@@ -27,18 +27,17 @@ include "metajolie.iol"
 
 include "./public/interfaces/OpenApiDefinitionInterface.iol"
 include "./public/interfaces/Jolie2OpenApiInterface.iol"
+include "services/jester/JesterUtilsInterface.iol"
 
 execution{ concurrent }
 
-interface InnerInterface {
-    RequestResponse:
-        checkTypeConsistency( string )( bool ) throws DefinitionError,
-        checkBranchChoiceConsistency( undefined )( bool ) throws DefinitionError,
-        getActualCurrentType( string )( string )
-}
 
 outputPort OpenApi {
   Interfaces: OpenApiDefinitionInterface
+}
+
+outputPort JesterUtils {
+    Interfaces: JesterUtilsInterface
 }
 
 constants {
@@ -48,20 +47,10 @@ constants {
 
 embedded {
   Jolie:
-    "services/openapi/openapi_definition.ol" in OpenApi
+    "services/openapi/openapi_definition.ol" in OpenApi,
+    "services/jester/jester_utils.ol" in JesterUtils
 }
 
-outputPort MySelf {
-    Location: "local://Jolie2OpenApi"
-    Protocol: sodep
-    Interfaces: InnerInterface
-}
-
-inputPort MySelf {
-    Location: "local://Jolie2OpenApi"
-    Protocol: sodep
-    Interfaces: InnerInterface
-}
 
 inputPort Jolie2OpenApi {
   Location: "local"
@@ -69,35 +58,7 @@ inputPort Jolie2OpenApi {
   Interfaces: Jolie2OpenApiInterface
 }
 
-define __analize_given_template {
-    /* __given_template */
-    undef( __method )
-    undef( __template )
-    if ( !easyInterface && !(__given_template instanceof void) ) {
-        r3 = __given_template
-        r3.regex = ","
-        split@StringUtils( r3 )( r4 )
-        for( _p = 0, _p < #r4.result, _p++ ) {
-            trim@StringUtils( r4.result[_p] )( r_result )
-            r_result.regex = "method="
-            find@StringUtils( r_result )( there_is_method )
-            if ( there_is_method == 1) {
-                split@StringUtils( r_result )( _params )
-                trim@StringUtils( _params.result[1] )( __method )
-            } else {
-                r_result.regex = "template="
-                find@StringUtils( r_result )( there_is_template )
-                if ( there_is_template == 1) {
-                    split@StringUtils( r_result )( _params )
-                    trim@StringUtils( _params.result[1] )( __template )
-                }
-            }
-        }
-    } else {
-        __method = "post"
-    }
 
-}
 
 
 define __body {
@@ -176,7 +137,14 @@ define __body {
                             __given_template = ""
                         }
                        
-                        __analize_given_template
+                        if ( !easyInterface && !(__given_template instanceof void) ) {
+                            analyzeTemplate@JesterUtils(__given_template )( analyzed_template )
+                            __template = analyzed_template.template
+                            __method = analyzed_template.method
+                        } else {
+                            __method = "post"
+                        }
+
                         if ( LOG ) { println@Console("Operation Template:" + __template )() }
 
                         path_counter++;
@@ -217,30 +185,19 @@ define __body {
 
                         if ( tp_found ) {
                             // check the consistency of the root type of the type
-                            checkTypeConsistency@MySelf( c_interface.types[ tp_count ].name.name )()
+                            check_rq = c_interface.types[ tp_count ].name.name
+                            check_rq.type_map -> global.type_map
+                            checkTypeConsistency@JesterUtils( check_rq )()
                         }
-                        getActualCurrentType@MySelf( c_interface.types[ tp_count ].name.name )( actual_type_name );
+                        get_actual_ctype_rq = c_interface.types[ tp_count ].name.name
+                        get_actual_ctype_rq.type_map -> global.type_map 
+                        getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
                         current_type -> global.type_map.( actual_type_name )
                         
 
                         if ( !( __template instanceof void ) ) {
-                            /* check if the params are contained in the request type */
-                            splr =__template;
-                            splr.regex = "/|\\?|=|&";
-                            split@StringUtils( splr )( splres );
-                            undef( par );
-                            found_params = false;
-                            for( pr = 0, pr < #splres.result, pr++ ) {
-                                w = splres.result[ pr ];
-                                w.regex = "\\{(.*)\\}";
-                                find@StringUtils( w )( params );
-                                if ( params == 1 ) {
-                                    found_params = true;
-                                    par = par + params.group[1] + "," /* string where looking for */
-                                }
-                            }
-
-                            ;
+                            
+                            getParamList@JesterUtils( __template )( found_params )
 
                             if ( found_params ) {
                                     /* there are parameters in the template */
@@ -256,7 +213,7 @@ define __body {
                                             for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
                                                 current_sbt -> current_type.sub_type[ sbt ];
                                                 current_root_type -> current_sbt.type_inline.root_type;                                               
-                                                find_str = par;
+                                                find_str = found_params.param_list;
                                                 find_str.regex = current_sbt.name;
                                                 find@StringUtils( find_str )( find_str_res );
 
@@ -276,7 +233,9 @@ define __body {
                                                             .in.other = "path";
                                                             .in.other.type << current_sbt.type_inline;
                                                             if ( is_defined( current_sbt.type_inline.root_type.type_link ) ) {
-                                                                getActualCurrentType@MySelf( current_sbt.type_inline.root_type.type_link.name )( sbt_actual_linked_type )
+                                                                get_actual_ctype_rq = current_sbt.type_inline.root_type.type_link.name
+                                                                get_actual_ctype_rq.type_map -> global.type_map 
+                                                                getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
                                                                 if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
                                                                     error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
                                                                     throw( DefinitionError, error_msg )
@@ -386,58 +345,5 @@ main {
     [ getOpenApi( request )( response ) {
         __body
         getOpenApiDefinition@OpenApi( openapi )( response )
-    }]
-
-    /* private operations */
-    [ checkBranchChoiceConsistency( request )( response ) {
-        response = true
-        if ( is_defined( request.type_link ) ) {
-            checkTypeConsistency@MySelf( current_type.type_link.name )( response )
-        }
-        else if ( is_defined( request.type_inline ) ) {
-            if ( is_defined( request.type_inline.choice ) ) {
-                checkBranchChoiceConsistency@MySelf( request.type_inline.choice.left_type )( response )
-                checkBranchChoiceConsistency@MySelf( request.type_inline.choice.right_type )( response )
-            } else if ( !is_defined( request.type_inline.root_type.void_type ) ) {
-                error_msg = "Type " + current_type.name.name + ": root native type must be void"
-                throw( DefinitionError, error_msg )
-            } 
-        }
-    }]
-
-
-    [ checkTypeConsistency( request )( response ) {
-        current_type -> global.type_map.( request );
-        if ( LOG ) {
-            valueToPrettyString@StringUtils( current_type )( s )
-            println@Console("checking consistency of type " + request + ":" + s )()
-        }
-        // link
-        if (  is_defined(current_type.root_type.link) ) {
-            checkTypeConsistency@MySelf( current_type.root_type.link.name )( response )
-        } 
-        
-        // choice
-        else if ( is_defined( current_type.choice ) ) {
-            checkBranchChoiceConsistency@MySelf( current_type.choice.left_type )( response )
-            checkBranchChoiceConsistency@MySelf( current_type.choice.right_type )( response )
-        }
-        // usual typeinline
-        else if ( !is_defined( current_type.root_type.void_type ) ) {
-            error_msg = "Type " + current_type.name.name + ": root native type must be void"
-            throw( DefinitionError, error_msg )
-        }
-        else {
-            response = true
-        }
-    }]
-
-    [ getActualCurrentType( request )( response ) {
-        current_type -> global.type_map.( request )
-        if (  is_defined(current_type.root_type.link) ) {
-            getActualCurrentType@MySelf( current_type.root_type.link.name )( response )
-        } else {
-            response = current_type.name.name
-        } 
     }]
 }

@@ -1,6 +1,6 @@
 /*
 The MIT License (MIT)
-Copyright (c) 2016 Claudio Guidi <guidiclaudio@gmail.com>
+Copyright (c) 2019 Claudio Guidi <guidiclaudio@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -20,18 +20,33 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
-include "router.iol"
-
-type GetJesterConfigRequest: void {
-  .filename: string
-  .host: string
-  .inputPort: string
-  .easyInterface?: bool
-  .template?: undefined
+type AnalyzeTemplateResponse: void {
+    .method: string
+    .template: string | void
+}
+type GetParamsListResponse: bool {
+    .param_list?: string
 }
 
-interface JesterConfiguratorInterface {
+type CheckTypeConsistencyRequest: string {
+    .type_map: undefined 
+}
+
+
+type GetActualCurrentTypeRequest: string {
+    .type_map: undefined 
+}
+
+type CheckBranchChoiceConsistency: void {
+    .branch: undefined
+    .type_map: undefined 
+}
+        
+interface JesterUtilsInterface {
 RequestResponse:
-  getJesterConfig( GetJesterConfigRequest )( ConfigRouterRequest ) throws DefinitionError( string )
+    analyzeTemplate( string )( AnalyzeTemplateResponse ),
+    getParamList( string )( GetParamsListResponse ),
+    checkTypeConsistency( CheckTypeConsistencyRequest )( bool ) throws DefinitionError,
+    checkBranchChoiceConsistency( CheckBranchChoiceConsistency )( bool ) throws DefinitionError,
+    getActualCurrentType( GetActualCurrentTypeRequest )( string )
 }
