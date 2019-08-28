@@ -38,6 +38,11 @@ define loadLocalService
 		toAbsolutePath@File( "../dist/jolie/lib/jaxws/" + path )( path );
 		loadLibrary@Runtime( path )()
 	};
+	list@File( { .directory = "../dist/jolie/lib" } )( list );
+	for( path in list.result ) {
+		toAbsolutePath@File( "../dist/jolie/lib/" + path )( path );
+		loadLibrary@Runtime( path )()
+	};
 	loadLibrary@Runtime( "extensions/private/WS-test.jar" )();
 	loadEmbeddedService@Runtime
 		( { .filepath = "ws.test.WSTest", .type = "Java" } )
