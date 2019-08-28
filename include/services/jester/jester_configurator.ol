@@ -28,11 +28,16 @@ include "metaparser.iol"
 
 include "./JesterConfiguratorInterface.iol"
 include "services/openapi/public/interfaces/OpenApiDefinitionInterface.iol"
+include "services/jester/JesterUtilsInterface.iol"
 
 execution{ concurrent }
 
 outputPort OpenApi {
-  Interfaces: OpenApiDefinitionInterface
+    Interfaces: OpenApiDefinitionInterface
+}
+
+outputPort JesterUtils {
+    Interfaces: JesterUtilsInterface
 }
 
 constants {
@@ -42,7 +47,8 @@ constants {
 
 embedded {
   Jolie:
-    "services/openapi/openapi_definition.ol" in OpenApi
+    "services/openapi/openapi_definition.ol" in OpenApi,
+    "services/jester/jester_utils.ol" in JesterUtils
 }
 
 inputPort JesterConfigurator {
@@ -51,35 +57,6 @@ inputPort JesterConfigurator {
   Interfaces: JesterConfiguratorInterface
 }
 
-define __analize_given_template {
-    /* __given_template */
-    undef( __method )
-    undef( __template )
-    if ( !easyInterface && !(__given_template instanceof void) ) {
-        r3 = __given_template
-        r3.regex = ","
-        split@StringUtils( r3 )( r4 )
-        for( _p = 0, _p < #r4.result, _p++ ) {
-            trim@StringUtils( r4.result[_p] )( r_result )
-            r_result.regex = "method="
-            find@StringUtils( r_result )( there_is_method )
-            if ( there_is_method == 1) {
-                split@StringUtils( r_result )( _params )
-                trim@StringUtils( _params.result[1] )( __method )
-            } else {
-                r_result.regex = "template="
-                find@StringUtils( r_result )( there_is_template )
-                if ( there_is_template == 1) {
-                    split@StringUtils( r_result )( _params )
-                    trim@StringUtils( _params.result[1] )( __template )
-                }
-            }
-        }
-    } else {
-        __method = "post"
-    }
-
-}
 
 define __add_cast_data {
   if ( is_defined( current_root_type.int_type ) ) {
@@ -116,7 +93,6 @@ define __body {
           // port selection from metadata
           if ( metadata.input[ i ].name.name == service_input_port ) {
               output_port_index = #render.output_port
-              getSurfaceWithoutOutputPort@Parser( metadata.input )( render.output_port[ output_port_index ].surface );
               with( render.output_port[ output_port_index ] ) {
                     .name = service_input_port;
                     .location = metadata.input[ i ].location;
@@ -142,7 +118,14 @@ define __body {
                             __given_template = ""
                         }
                        
-                        __analize_given_template
+                         if ( !easyInterface && !(__given_template instanceof void) ) {
+                            analyzeTemplate@JesterUtils(__given_template )( analyzed_template )
+                            __template = analyzed_template.template
+                            __method = analyzed_template.method
+                        } else {
+                            __method = "post"
+                        }
+                        
                         if ( LOG ) { println@Console("Operation Template:" + __template )() }
 
                         
@@ -177,22 +160,7 @@ define __body {
 
                         if ( !( __template instanceof void ) ) {
                             /* check if the params are contained in the request type */
-                            splr =__template;
-                            splr.regex = "/|\\?|=|&";
-                            split@StringUtils( splr )( splres );
-                            undef( par );
-                            found_params = false;
-                            for( pr = 0, pr < #splres.result, pr++ ) {
-                                w = splres.result[ pr ];
-                                w.regex = "\\{(.*)\\}";
-                                find@StringUtils( w )( params );
-                                if ( params == 1 ) {
-                                    found_params = true;
-                                    par = par + params.group[1] + "," /* string where looking for */
-                                }
-                            }
-
-                            ;
+                            getParamList@JesterUtils( __template )( found_params )
 
                             if ( found_params ) {
 
