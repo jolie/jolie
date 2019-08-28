@@ -2,6 +2,7 @@ include "../AbstractTestUnit.iol"
 include "services/jester/JesterConfiguratorInterface.iol"
 include "json_utils.iol"
 include "console.iol"
+include "string_utils.iol"
 
 outputPort JesterConfig {
     Interfaces: JesterConfiguratorInterface
@@ -9,7 +10,7 @@ outputPort JesterConfig {
 
 embedded {
     Jolie:
-        "--trace services/jester/jester_configurator.ol" in JesterConfig
+        "services/jester/jester_configurator.ol" in JesterConfig
 }
 
 define doTest {
@@ -33,5 +34,9 @@ define doTest {
     }
 
     getJesterConfig@JesterConfig( jester )( jester_config )
+    if ( #jester_config.routes != 4 ) {
+        println@Console("Expected 4 routes, found " + #jester_config.routes)()
+        throw( TestFailed )
+    }
 
 }
