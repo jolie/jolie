@@ -68,7 +68,7 @@
 									<destFileName>saaj-impl.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
-							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
+							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib/jaxws</outputDirectory>
 							<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
 					</execution>
