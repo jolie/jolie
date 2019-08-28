@@ -20,7 +20,6 @@
 	<name>jolie2dummy</name>
 	<description>Tool to create dummy services</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -54,9 +53,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
+			<artifactId>libjolie</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>jolie</artifactId>
 			<version>${jolie.version}</version>
 		</dependency>
-
 	</dependencies>
 </project>

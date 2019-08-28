@@ -28,7 +28,7 @@
 				<configuration>	
 					<archive>
 						<manifestEntries>
-							<X-JOLIE-ProtocolExtension>sodep:jolie.net.SoapProtocolFactory</X-JOLIE-ProtocolExtension>
+							<X-JOLIE-ProtocolExtension>soap:jolie.net.SoapProtocolFactory</X-JOLIE-ProtocolExtension>
 						</manifestEntries>
 					</archive>
 				</configuration>
