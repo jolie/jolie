@@ -86,7 +86,14 @@ define __body {
         .name.domain = ""
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
-      ;
+      /* creating a map name-types for managing type links */
+      for( itf = 0, itf < #metadata.input.interfaces, itf++ ) { 
+          for( tps = 0, tps < #metadata.input.interfaces[ itf ].types, tps++ ) {
+              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name.name ) << metadata.input.interfaces[ itf ].types[ tps ]
+          }
+      } 
+
+
       
       /* selecting the port and the list of the interfaces to be imported */
       for( i = 0, i < #metadata.input, i++ ) {
@@ -150,12 +157,16 @@ define __body {
                         }
 
                         if ( tp_found ) {
-                            current_type -> c_interface.types[ tp_count ];
-                            if ( !is_defined( current_type.root_type.void_type ) ) {
-                                println@Console( error_prefix + "but the root type of the request type is not void" )();
-                                throw( DefinitionError )
-                            }
+                            // check the consistency of the root type of the type
+                            check_rq = c_interface.types[ tp_count ].name.name
+                            check_rq.type_map -> global.type_map
+                            checkTypeConsistency@JesterUtils( check_rq )()
                         }
+                        get_actual_ctype_rq = c_interface.types[ tp_count ].name.name
+                        get_actual_ctype_rq.type_map -> global.type_map 
+                        getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
+                        current_type -> global.type_map.( actual_type_name )
+                        
                         
 
                         if ( !( __template instanceof void ) ) {
@@ -167,8 +178,8 @@ define __body {
                                     /* there are parameters in the template */
                                     error_prefix = error_prefix + "with template " + __template + " ";
                                     if ( !tp_found ) {
-                                        println@Console( error_prefix +  "but the request type does not declare any field")();
-                                        throw( DefinitionError )
+                                            error_msg = error_prefix +  "but the request type does not declare any field"
+                                            throw( DefinitionError, error_msg )
                                     } else {
                                             /* if there are parameters in the template the request type must be analyzed */
                                             for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {

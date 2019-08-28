@@ -28,8 +28,8 @@ init {
 }
 
 main {
-    if ( #args < 4 || #args > 5 ) {
-        println@Console("Usage: jolier <service_filename> <input_port> <router_host> <output_folder> [-easyInterface] [-debug]")()
+    if ( #args < 3 || #args > 5 ) {
+        println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug]")()
         println@Console("<service_filename>:\tfilename of the jolie service.")()
         println@Console("<input_port>:\tinput port to be converted. Note that the inputPort location must be set to value \"local://JesterEmbedded\"")()
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
