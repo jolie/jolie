@@ -31,7 +31,7 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
-@AndJarDeps({"uri-templates.jar"})
+@AndJarDeps({"uri-templates.jar", "joda-time.jar"})
 public class UriTemplates extends JavaService
 {
 	public Value match( Value request )
