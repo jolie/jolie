@@ -29,7 +29,7 @@
 				<configuration>	
 					<archive>
 						<manifestEntries>
-							<Class-Path>lib/jolie.jar lib/libjolie.jar lib/gwt-servlet.jar lib/jolie-gwt.jar lib/jolie-xml.jar lib/jolie-js.jar </Class-Path>
+							<Class-Path>lib/jolie.jar lib/libjolie.jar lib/gwt-servlet.jar lib/jolie-gwt.jar lib/jolie-xml.jar lib/jolie-js.jar</Class-Path>
 							<X-JOLIE-ProtocolExtension>http:jolie.net.HttpProtocolFactory</X-JOLIE-ProtocolExtension>
 						</manifestEntries>
 					</archive>
