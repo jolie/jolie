@@ -35,3 +35,4 @@ build/
 /tools/joliedoc/target/
 /javaServices/monitorJavaServices/nbproject/private/
 /javaServices/monitorJavaServices/target/
+/test/extensions/private/WS-test/target/

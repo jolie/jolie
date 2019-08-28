@@ -76,6 +76,7 @@
 		<module>tools/joliedoc</module>
 		<module>javaServices/coreJavaServices</module>
 		<module>javaServices/monitorJavaServices</module>
+		<module>test/extensions/private/WS-test</module>
 		<module>launchers</module>
 		<module>test</module>
 	</modules>
