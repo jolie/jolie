@@ -52,115 +52,76 @@ main
 
  [ getSchemas( request )( response ) {
      for ( t = 0, t < #request.types, t++ ) {
-       getType@MySelf( request.types[ t ] )( def );
+       getTypeDefinition@MySelf( request.types[ t ] )( def );
        response.definitions << def
      }
  } ] { nullProcess }
 
- [ getChoiceBranch( request )( response ) {
-    if ( is_defined( request.type_inline ) ) {
-        if ( is_defined( request.type_inline.choice ) ) {
-            getChoiceBranch@MySelf( request.type_inline.choice.left_type )( left )
-            getChoiceBranch@MySelf( request.type_inline.choice.right_type )( right )
-            response.oneOf[ 0 ] << left.oneOf
-            for( i = 0, i < #right.oneOf, i++ ) {
-                  response.oneOf[ i + 1 ] << right.oneOf[ i ] 
-            }
-        } else {
-            getTypeInLine@MySelf( request.type_inline )( response.oneOf )
-        }
-    } else if ( is_defined( request.type_link ) ) {
-        response.oneOf.("$ref") = "#/definitions/" + request.type_link.name
-    }
- }]
+ [ getTypeDefinition( request )( response ) {
+      getType@MySelf( request.type )( response.( request.name ) )
+ }] 
 
  [ getType( request )( response ) {
-     with( response.( request.name.name ) ) {
-          if ( is_defined( request.choice )  ) { 
-                getChoiceBranch@MySelf( request.choice.left_type )( left )
-                getChoiceBranch@MySelf( request.choice.right_type )( right )
-                .oneOf[ 0 ] << left.oneOf
-                for( i = 0, i < #right.oneOf, i++ ) {
-                      .oneOf[ i + 1 ] << right.oneOf[ i ] 
-                }
-          } else {
-                getNativeType@MySelf( request.root_type )( resp_root_type );
-                if ( is_defined( request.root_type.link ) ) {
-                      .("$ref") = "#/definitions/" + request.root_type.link.name
-                } else {
-                      .type = "object";
-                      if ( !(resp_root_type instanceof void) ) {
-                        .properties.("$") << resp_root_type
-                      }
-                }
-                ;
-                /* analyzing sub types */
-                if ( #request.sub_type > 0 ) {
-                      for( s = 0, s < #request.sub_type, s++ ) {
-                              getSubType@MySelf( request.sub_type[ s ] )( resp_sub_type );
-                              .properties.( request.sub_type[ s ].name ) << resp_sub_type
-                      }
-                }
-          }
-     }
- } ] { nullProcess }
-
- [ getSubType( request )( response ) {
-       with( response ) {
-          if ( is_defined( request.type_link ) ) {
-              .("$ref") = "#/definitions/" + request.type_link.name;
-              if ( request.cardinality.max > 1 ) {
-                  .type = "array";
-                  with( .items ) {
-                      .minItems = request.cardinality.min;
-                      if ( is_defined( request.cardinality.max ) ) {
-                          .maxItems = request.cardinality.max
-                      }
-                  }
-              }
-          } else if ( is_defined( request.type_inline ) ) {
-              getTypeInLine@MySelf( request.type_inline )( resp_type_inline );
-              if ( request.cardinality.min  == 1 && request.cardinality.max == 1 ) {
-                  response << resp_type_inline
-              } else {
-                  .items << resp_type_inline;
-                  .type = "array";
-                  with( .items ) {
-                      .minItems = request.cardinality.min;
-                      if ( is_defined( request.cardinality.max ) ) {
-                          .maxItems = request.cardinality.max
-                      }
-                  }
-              }
-          }
+      if ( request instanceof TypeInLine ) {
+          getTypeInLine@MySelf( request )( response )
+      } else if ( request instanceof TypeLink ) {
+          getTypeLink@MySelf( request )( response )
+      } else if ( request instanceof TypeChoice ) {
+          getTypeChoice@MySelf( request )( response )
       }
- } ] { nullProcess }
+ }]
 
  [ getTypeInLine( request )( response ) {
        with( response ) {
+          getNativeType@MySelf( request.root_type )( resp_root_type );
+          if ( #request.sub_type > 0 ) {
+                .type = "object"
+          } else {
+                 type = resp_root_type
+          }
+          
           /* analyzing sub types */
           if ( #request.sub_type > 0 ) {
               for( st = 0, st < #request.sub_type, st++ ) {
                      getSubType@MySelf( request.sub_type[ st ] )( resp_sub_type );
                      .properties.( request.sub_type[ st ].name ) << resp_sub_type
               }
-          };
-          getNativeType@MySelf( request.root_type )( resp_root_type );
-          if ( is_defined( request.root_type.link ) ) {
-              .("$ref") = "#/definitions/" + resp_root_type
-          } else {
-              if ( #request.sub_type > 0 ) {
-                    .type = "object";
-                    pointer -> response.properties.("$")
-              } else {
-                    pointer -> response
-              };
-              if ( !(resp_root_type instanceof void) ) {
-                    pointer << resp_root_type
-              }
           }
       }
+ } ]
+
+ [ getTypeLink( request )( response ) {
+      response.("$ref") = "#/definitions/" + reques.link_name
+ }]
+
+ [ getTypeChoice( request )( response ) {
+      getType@MySelf( request.choice.left_type )( left )
+      getType@MySelf( request.choice.right_type )( right )
+      response.oneOf[ 0 ] << left.oneOf
+      for( i = 0, i < #right.oneOf, i++ ) {
+            response.oneOf[ i + 1 ] << right.oneOf[ i ] 
+      }
+ }]
+
+ [ getSubType( request )( response ) {
+      getType@MySelf( request.type )( typedef )
+      with( response ) {
+        if ( request.cardinality.min  == 1 && request.cardinality.max == 1 ) {
+            response << typedef
+        } else {
+            .items << typedef;
+            .type = "array";
+              with( .items ) {
+                .minItems = request.cardinality.min;
+                if ( is_defined( request.cardinality.max ) ) {
+                    .maxItems = request.cardinality.max
+                }
+            }
+        }
+      }
  } ] { nullProcess }
+
+
 
  [ getNativeType( request )( response ) {
        if ( is_defined( request.string_type ) ) {
@@ -184,8 +145,6 @@ main
        } else if ( is_defined( request.long_type ) ) {
          response.type = "number";
          response.format = "int64"
-       } else if ( is_defined( request.link ) ) {
-         response = request.link.name
        }
  } ] { nullProcess }
 
