@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>         
+ *   Copyright (C) 2010 by Claudio Guidi <cguidi@italianasoftware.com>
  *                                                                        
  *   This program is free software; you can redistribute it and/or modify 
  *   it under the terms of the GNU Library General Public License as      
@@ -19,13 +19,23 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-include "services/metaparser/public/interfaces/ParserInterface.iol"
+include "types/definition_types.iol"
 
-outputPort Parser {
-Interfaces: ParserInterface
-}
-
-embedded {
-  Jolie:
-    "services/metaparser/main_parser.ol" in Parser
+interface NativeCodeRenderInterface {
+  RequestResponse:
+    getInterface( Interface )( string ),
+    getInterfaceWIthoutTypeList( Interface )( string ),
+    getOperation( Operation )( string ),
+    getInputPort( Port )( string ),
+    getOutputPort( Port )( string ),
+    getSurface( Port )( string ),
+    getSurfaceWithoutOutputPort( Port )( string ),
+    getTypeDefinition( TypeDefinition )( string ),
+    getType( Type )( string ),
+    getTypeInLine( TypeInLine )( string ),
+    getTypeLink( TypeLink )( string ),
+    getTypeChoice( TypeChoice )( string ),
+    getSubType( SubType )( string ),
+    getCardinality( Cardinality )( string ),
+    getNativeType( NativeType )( string ),
 }
