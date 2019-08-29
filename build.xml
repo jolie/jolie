@@ -81,9 +81,9 @@ java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libj
 		<echo file="${dist.launchers.windows}/wsdl2jolie.bat">@echo off
 jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %*
 		</echo>
-		<echo message="Creating swagger2jolie Windows launcher script..." />
-		<echo file="${dist.launchers.windows}/swagger2jolie.bat">@echo off
-jolie %JOLIE_HOME%\tools\swagger2jolie.ol %*
+		<echo message="Creating openapi2jolie Windows launcher script..." />
+		<echo file="${dist.launchers.windows}/openapi2jolie.bat">@echo off
+jolie %JOLIE_HOME%\tools\openapi2jolie.ol %*
 		</echo>
 		<echo message="Creating jolie2openapi Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie2openapi.bat">@echo off
@@ -174,11 +174,11 @@ jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/wsdl2jolie" perm="a+x"/>
 
-		<echo message="Creating swagger2jolie Unix launcher script..." />
-		<echo file="${dist.launchers.unix}/swagger2jolie">#!/bin/sh
-jolie $JOLIE_HOME/tools/swagger2jolie.ol "$@"
+		<echo message="Creating openapi2jolie Unix launcher script..." />
+		<echo file="${dist.launchers.unix}/openapi2jolie">#!/bin/sh
+jolie $JOLIE_HOME/tools/openapi2jolie.ol "$@"
 		</echo>
-		<chmod file="${dist.launchers.unix}/swagger2jolie" perm="a+x"/>
+		<chmod file="${dist.launchers.unix}/openapi2jolie" perm="a+x"/>
 
 		<echo message="Creating jolie2openapi Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2openapi">#!/bin/sh
@@ -373,7 +373,7 @@ Please make sure that:
 				<file file="${project.jolie2java}/dist/jolie2java.jar"/>
 				<file file="${project.joliedoc}/dist/joliedoc.jar"/>
 				<file file="${project.wsdl2jolie}/wsdl2jolie.ol"/>
-				<file file="${project.swagger2jolie}/swagger2jolie.ol"/>
+				<file file="${project.openapi2jolie}/openapi2jolie.ol"/>
 				<file file="${project.jolie2openapi}/jolie2openapi.ol"/>
 				<file file="${project.jolier}/jolier.ol"/>
 			</resources>

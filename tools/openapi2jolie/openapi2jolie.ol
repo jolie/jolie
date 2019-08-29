@@ -25,11 +25,11 @@ include "string_utils.iol"
 include "file.iol"
 include "json_utils.iol"
 
-include "services/swagger/public/interfaces/SwaggerDefinitionInterface.iol"
+include "services/openapi/public/interfaces/OpenApiDefinitionInterface.iol"
 
 
-outputPort SwaggerDefinition {
-    Interfaces: SwaggerDefinitionInterface
+outputPort OpenApiDefinition {
+    Interfaces: OpenApiDefinitionInterface
 }
 
 outputPort HTTP {
@@ -51,7 +51,7 @@ outputPort HTTPS {
 
 embedded {
   Jolie:
-    "services/swagger/swagger_definition.ol" in SwaggerDefinition
+    "services/openapi/openapi_definition.ol" in OpenApiDefinition
 }
 
 define _get_protocol_port {
@@ -72,8 +72,8 @@ init {
 }
 
 main {
-    if ( #args < 3 || #args > 4 ) {
-        println@Console("Usage: swagger2jolie <url|filepath> <service_name> <output_folder> [protocol http|https]")();
+    if ( #args != 4 ) {
+        println@Console("Usage: openapi2jolie <url|filepath> <service_name> <output_folder> <protocol http|https>")();
         throw( Error )
     }
     ;
@@ -92,7 +92,7 @@ main {
     };
 
     // try to get the json declaration
-    scope( get_swagger_file ) {
+    scope( get_openapi_file ) {
         install( FileNotFound => 
             
             url = spl = args[0];
@@ -135,41 +135,41 @@ main {
             replaceAll@StringUtils( location )( location );
             if ( protocol == "http" ) {
                 HTTP.location = location;
-                getDefinition@HTTP()( swagger )
+                getDefinition@HTTP()( openapi )
             } else if ( protocol == "https" ) {
                 HTTPS.location = location;
-                getDefinition@HTTPS()( swagger )
+                getDefinition@HTTPS()( openapi )
             }
         );
         f.filename = args[ 0 ];
         f.format = "json";
-        readFile@File( f )( swagger );
+        readFile@File( f )( openapi );
         _get_protocol_port
     }
     ;
 
     service_name = args[ 1 ];
-    spl = string( swagger.host );
+    spl = string( openapi.host );
     spl.regex = ":";
     split@StringUtils( spl )( ports );
     if ( #ports.result == 1 ) {
-        swagger.host = swagger.host + ":" + protocol_port
+        openapi.host = openapi.host + ":" + protocol_port
     };
 
     /* creating outputPort */
     outputPort.name = service_name + "Port";
-    outputPort.location = "socket://" + swagger.host + swagger.basePath;
+    outputPort.location = "socket://" + openapi.host + openapi.basePath;
     outputPort.protocol = protocol;
     outputPort.interface = service_name + "Interface";
 
-    foreach( path : swagger.paths ) {
-        foreach( method : swagger.paths.( path ) ) {
-            if ( !is_defined( swagger.paths.( path ).( method ).operationId ) ) {
+    foreach( path : openapi.paths ) {
+        foreach( method : openapi.paths.( path ) ) {
+            if ( !is_defined( openapi.paths.( path ).( method ).operationId ) ) {
                 println@Console( "Path " + method + ":" + path + " does not define an operationId, please insert an operationId for this path.")();
                 print@Console(">")();
                 in( operationId )
             } else {
-                operationId = swagger.paths.( path ).( method ).operationId
+                operationId = openapi.paths.( path ).( method ).operationId
             }
             ;
             op_max = #outputPort.interface.operation;
@@ -181,41 +181,41 @@ main {
             outputPort.interface.operation[ op_max ] = operationId;
             outputPort.interface.operation[ op_max ].path = corrected_path;
             outputPort.interface.operation[ op_max ].method = method;
-            outputPort.interface.operation[ op_max ].parameters << swagger.paths.( path ).( method ).parameters;
-            foreach( res : swagger.paths.( path ).( method ).responses ) {
+            outputPort.interface.operation[ op_max ].parameters << openapi.paths.( path ).( method ).parameters;
+            foreach( res : openapi.paths.( path ).( method ).responses ) {
                 if ( res == "200" ) {
-                     outputPort.interface.operation[ op_max ].response << swagger.paths.( path ).( method ).responses.( res )
+                     outputPort.interface.operation[ op_max ].response << openapi.paths.( path ).( method ).responses.( res )
                 } else {
-                     outputPort.interface.operation[ op_max ].faults.( res ) << swagger.paths.( path ).( method ).responses.( res )
+                     outputPort.interface.operation[ op_max ].faults.( res ) << openapi.paths.( path ).( method ).responses.( res )
                 }
             }
             
         }
     };
 
-    foreach( definition : swagger.definitions ) {
+    foreach( definition : openapi.definitions ) {
         get_def.name = definition;
-        get_def.definition -> swagger.definitions.( definition );
-        getJolieTypeFromSwaggerDefinition@SwaggerDefinition( get_def )( j_definition );
+        get_def.definition -> openapi.definitions.( definition );
+        getJolieTypeFromOpenApiDefinition@OpenApiDefinition( get_def )( j_definition );
         interface_file = interface_file + j_definition
     };
 
     for( o = 0, o < #outputPort.interface.operation, o++ ) {
         rq_p.definition.parameters -> outputPort.interface.operation[ o ].parameters;
         rq_p.name = outputPort.interface.operation[ o ] + "Request";
-        getJolieTypeFromSwaggerParameters@SwaggerDefinition( rq_p )( parameters );
+        getJolieTypeFromOpenApiParameters@OpenApiDefinition( rq_p )( parameters );
 
         type_string = parameters;
 
         type_string = type_string + "type " + outputPort.interface.operation[ o ] + "Response:";
         if ( is_defined( outputPort.interface.operation[ o ].response.schema ) ) {
             if ( is_defined( outputPort.interface.operation[ o ].response.schema.("$ref") ) ) {
-                getReferenceName@SwaggerDefinition( outputPort.interface.operation[ o ].response.schema.("$ref") )( ref );
+                getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].response.schema.("$ref") )( ref );
                 type_string = type_string + ref + "\n"
             } else if ( outputPort.interface.operation[ o ].response.schema.type == "array" ) {
                 rq_arr.definition -> outputPort.interface.operation[ o ].response.schema;
                 rq_arr.indentation = 1;
-                getJolieDefinitionFromSwaggerArray@SwaggerDefinition( rq_arr )( array );
+                getJolieDefinitionFromOpenApiArray@OpenApiDefinition( rq_arr )( array );
                 type_string = type_string + " void {\n\t._" + array + "}\n"
             } else if ( outputPort.interface.operation[ o ].response.schema.type == "object" ) {
                 type_string = type_string + "undefined\n"
@@ -224,7 +224,7 @@ main {
                 if ( is_defined( outputPort.interface.operation[ o ].response.schema.format ) ) {
                     rq_n.format = outputPort.interface.operation[ o ].response.schema.format
                 };
-                getJolieNativeTypeFromSwaggerNativeType@SwaggerDefinition( rq_n )( native );
+                getJolieNativeTypeFromOpenApiNativeType@OpenApiDefinition( rq_n )( native );
                 type_string = type_string + native + "\n"
             }
         } else {
@@ -247,7 +247,7 @@ main {
             foreach( f : outputPort.interface.operation[ o ].faults ) {
                 faultType = "";
                 if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema ) ) {
-                    getReferenceName@SwaggerDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
+                    getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
                     faultType = "(" + ref + ")"
                 } else {
                     if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).description ) ) {
