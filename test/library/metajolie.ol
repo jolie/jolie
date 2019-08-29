@@ -10,8 +10,8 @@ define doTest
   if ( #meta_description.input != 1 ) {
       throw( TestFailed, "Expected 1 input port, found " + #meta_description.input )
   };
-  if ( meta_description.input.name.name != "TPort" ) {
-      throw( TestFailed, "Expected input port name equal to \"TPort\", found " + meta_description.input.name.name )
+  if ( meta_description.input.name != "TPort" ) {
+      throw( TestFailed, "Expected input port name equal to \"TPort\", found " + meta_description.input.name )
   };
   if ( meta_description.input[0].protocol != "sodep" ) {
       throw( TestFailed, "Expected sodep protocol, found " + meta_description.input[0].protocol )
@@ -19,8 +19,8 @@ define doTest
   if ( #meta_description.input.interfaces != 1 ) {
       throw( TestFailed, "Expected 1 interface, found " + #meta_description.input.interfaces )
   };
-  if ( meta_description.input.interfaces.name.name != "TmpInterface" ) {
-      throw( TestFailed, "Expected interface name equal to \"TmpInterface\", found " + meta_description.input.interfaces.name.name )
+  if ( meta_description.input.interfaces.name != "TmpInterface" ) {
+      throw( TestFailed, "Expected interface name equal to \"TmpInterface\", found " + meta_description.input.interfaces.name )
   };
   if ( #meta_description.input.interfaces.types != 6 ) {
       throw( TestFailed, "Expected 6 types, found " + #meta_description.input.interfaces.types )

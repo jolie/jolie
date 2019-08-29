@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010 by Claudio Guidi <cguidi@italianasoftware.com>
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>         
  *                                                                        
  *   This program is free software; you can redistribute it and/or modify 
  *   it under the terms of the GNU Library General Public License as      
@@ -19,19 +19,13 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-include "types/definition_types.iol"
+include "services/metarenders/public/interfaces/NativeCodeRenderInterface.iol"
 
-interface ParserInterface {
-  RequestResponse:
-    getInterface( Interface )( string ),
-    getInputPort( Port )( string ),
-    getOutputPort( Port )( string ),
-    getSurface( Port )( string ),
-    getSurfaceWithoutOutputPort( Port )( string ),
-    getType( Type )( string ),
-    getTypeInLine( Type )( string ),
-    getSubType( SubType )( string ),
-    getCardinality( Cardinality )( string ),
-    getNativeType( NativeType )( string ),
-    getChoiceBranch( ChoiceBranch )( string )
+outputPort Render {
+Interfaces: NativeCodeRenderInterface
+}
+
+embedded {
+  Jolie:
+    "services/metarenders/nativecode_render.ol" in Render
 }
