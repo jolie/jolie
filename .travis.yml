@@ -2,8 +2,6 @@ language: java
 
 script: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
-script: mvn test -B
-
 sudo: false
 
 jdk: oraclejdk8
