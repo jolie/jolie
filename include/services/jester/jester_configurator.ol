@@ -81,15 +81,13 @@ define __body {
       service_input_port = request.inputPort;
 
       with( request_meta ) {
-        .filename = service_filename;
-        .name.name  = "";
-        .name.domain = ""
+        .filename = service_filename
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
       /* creating a map name-types for managing type links */
       for( itf = 0, itf < #metadata.input.interfaces, itf++ ) { 
           for( tps = 0, tps < #metadata.input.interfaces[ itf ].types, tps++ ) {
-              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name.name ) << metadata.input.interfaces[ itf ].types[ tps ]
+              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name ) << metadata.input.interfaces[ itf ].types[ tps ]
           }
       } 
 
@@ -98,7 +96,7 @@ define __body {
       /* selecting the port and the list of the interfaces to be imported */
       for( i = 0, i < #metadata.input, i++ ) {
           // port selection from metadata
-          if ( metadata.input[ i ].name.name == service_input_port ) {
+          if ( metadata.input[ i ].name == service_input_port ) {
               output_port_index = #render.output_port
               with( render.output_port[ output_port_index ] ) {
                     .name = service_input_port;
@@ -109,7 +107,7 @@ define __body {
               // for each interface in the port
               for( int_i = 0, int_i < #metadata.input[ i ].interfaces, int_i++ ) {
                   c_interface -> metadata.input[ i ].interfaces[ int_i ]
-                  c_interface_name = c_interface.name.name
+                  c_interface_name = c_interface.name
                   render.output_port[ output_port_index ].interfaces[ int_i ] = c_interface_name;
                   
                   // for each operations in the interfaces
@@ -149,7 +147,7 @@ define __body {
                         /* find request type description */
                         tp_count = 0; tp_found = false;
                         while( !tp_found && tp_count < #c_interface.types ) {
-                            if ( c_interface.types[ tp_count ].name.name == oper.input.name ) {
+                            if ( c_interface.types[ tp_count ].name == oper.input ) {
                                 tp_found = true
                             } else {
                                 tp_count++
@@ -158,23 +156,22 @@ define __body {
 
                         if ( tp_found ) {
                             // check the consistency of the root type of the type
-                            check_rq = c_interface.types[ tp_count ].name.name
+                            check_rq = c_interface.types[ tp_count ].name
                             check_rq.type_map -> global.type_map
                             checkTypeConsistency@JesterUtils( check_rq )()
                         }
-                        get_actual_ctype_rq = c_interface.types[ tp_count ].name.name
+                        get_actual_ctype_rq = c_interface.types[ tp_count ].name
                         get_actual_ctype_rq.type_map -> global.type_map 
                         getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
+
+                        
                         current_type -> global.type_map.( actual_type_name )
-                        
-                        
 
                         if ( !( __template instanceof void ) ) {
                             /* check if the params are contained in the request type */
                             getParamList@JesterUtils( __template )( found_params )
 
                             if ( found_params ) {
-
                                     /* there are parameters in the template */
                                     error_prefix = error_prefix + "with template " + __template + " ";
                                     if ( !tp_found ) {
@@ -182,11 +179,11 @@ define __body {
                                             throw( DefinitionError, error_msg )
                                     } else {
                                             /* if there are parameters in the template the request type must be analyzed */
-                                            for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
+                                            for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
 
                                                 /* casting */
-                                                current_sbt -> current_type.sub_type[ sbt ];
-                                                current_root_type -> current_sbt.type_inline.root_type;
+                                                current_sbt -> current_type.type.sub_type[ sbt ];
+                                                current_root_type -> current_sbt.type.root_type;
                                                 __add_cast_data
                                             }
 
@@ -197,13 +194,12 @@ define __body {
 
                             /* if it is a GET, extract the path params from the request message */
                             if ( __method == "get" ) {
-                                    for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
+                                    for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
                                     /* casting */
-                                    current_sbt -> current_type.sub_type[ sbt ];
-                                    current_root_type -> current_sbt.type_inline.root_type;
+                                    current_sbt -> current_type.type.sub_type[ sbt ];
+                                    current_root_type -> current_sbt.type.type.root_type;
                                     __add_cast_data;
 
-                                    current_sbt -> current_type.sub_type[ sbt ]
                                     __template = __template + "/{" + current_sbt.name + "}"
                                 }
                             } 

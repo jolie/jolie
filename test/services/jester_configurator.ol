@@ -38,5 +38,20 @@ define doTest {
         println@Console("Expected 4 routes, found " + #jester_config.routes)()
         throw( TestFailed )
     }
+    found_interesting_template = false
+    interesting_template = "/DEMO/orders/{userId}?maxItems={maxItems}"
+    for( i = 0, i < #jester_config.routes, i++ ) {
+        if ( jester_config.routes[ i ].template == interesting_template ) {
+            found_interesting_template = true
+            if ( !is_defined( jester_config.routes[ i ].cast ) ) {
+                println@Console("Cast is missing in template " + interesting_template )()
+                throw( TestFailed )
+            }
+        }
+    }
+    if ( !found_interesting_template ) {
+        println@Console("Missing template " + interesting_template )()
+        throw( TestFailed )
+    }
 
 }

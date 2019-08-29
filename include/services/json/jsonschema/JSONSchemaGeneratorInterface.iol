@@ -30,9 +30,11 @@ type GetSchemasResponse: void {
 interface JSONSchemaGeneratorInterface {
  RequestResponse:
    getSchemas( Interface )( GetSchemasResponse ),
+   getTypeDefinition( TypeDefinition )( undefined ),
    getType( Type )( undefined ),
-   getChoiceBranch( ChoiceBranch )( undefined ),
-   getTypeInLine( Type )( undefined ),
+   getTypeInLine( TypeInLine )( undefined ),
+   getTypeChoice( TypeChoice )( undefined ),
+   getTypeLink( TypeLink )( undefined ),
    getSubType( SubType )( undefined ),
    getNativeType( NativeType )( undefined )
 }
