@@ -47,13 +47,6 @@
 						<configuration>
 							<artifactItems>
 								<artifactItem>
-									<groupId>${project.groupId}</groupId>
-									<artifactId>xsom</artifactId>
-									<version>${jolie.version}</version>
-									<type>jar</type>
-									<destFileName>xsom.jar</destFileName>
-								</artifactItem>
-								<artifactItem>
 									<groupId>javax.xml.soap</groupId>
 									<artifactId>javax.xml.soap-api</artifactId>
 									<version>1.4.0</version>

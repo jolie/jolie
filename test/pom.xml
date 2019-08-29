@@ -64,7 +64,7 @@
 					<workingDirectory>${test.dir}</workingDirectory>
 					<executable>${jolie.launcher}</executable>
 					<arguments>
-						<argument>--trace</argument>
+						<argument>--stackTraces</argument>
 						<argument>test.ol</argument>
 					</arguments>
 				</configuration>
