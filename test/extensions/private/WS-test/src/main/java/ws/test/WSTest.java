@@ -37,7 +37,6 @@ import jolie.runtime.embedding.RequestResponse;
 @SOAPBinding( style = SOAPBinding.Style.DOCUMENT, use = SOAPBinding.Use.LITERAL )
 public class WSTest extends JavaService
 {
-
 	@XmlRootElement( name = "CalculatorWs", namespace = "http://calculator.id" )
 	@XmlAccessorType( XmlAccessType.FIELD )
 	static public class Calculator
