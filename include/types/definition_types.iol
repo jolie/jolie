@@ -19,50 +19,24 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-type Name: void {
-  .name: string
-  .domain?: string
-  .registry?: string       // if omitted = local
-}
-
 type NativeType: void {
   .string_type: bool
-} 
-|
-void {
+} | void {
   .int_type: bool
-}
-|
-void {
+} | void {
   .double_type: bool
-}
-|
-void {
+} | void {
   .any_type: bool
-}
-| 
-void {
+} | void {
   .void_type: bool
-}
-| 
-void {
+} | void {
   .raw_type: bool
-}
-|
-void {
+} | void {
   .bool_type: bool
-}
-|
-void {
+} | void {
   .long_type: bool
 }
-| 
-void {
-  .link: void {
-     .name: string
-     .domain?: string
-  }
-}
+
 
 type Cardinality: void {
   .min: int
@@ -73,67 +47,60 @@ type Cardinality: void {
 type SubType: void {
   .name: string
   .cardinality: Cardinality
-  .type_inline: Type
-}
-|
-void {
-  .name: string
-  .cardinality: Cardinality
-  .type_link: Name
+  .type: Type
 }
 
-type ChoiceBranch: void {
-  .type_inline: Type
-}
-|
-void {
-  .type_link: Name
-}
-
-type Type: void {
-  .name: Name
+type TypeInLine: void {
   .root_type: NativeType
   .sub_type*: SubType
-} | void {
-  .name?: Name
+}
+
+type TypeLink: void {
+  .link_name: string
+}
+
+type TypeChoice: void {
   .choice?: void {
-      .left_type: ChoiceBranch 
-      .right_type: ChoiceBranch 
+      .left_type: TypeInLine | TypeLink 
+      .right_type: Type
   }
+}
+
+type Type: TypeInLine | TypeLink | TypeChoice
+
+type TypeDefinition: void {
+  .name: string
+  .type: Type
 }
 
 
 type Fault: void {
-  .name: Name
-  .type_name?: Name
+  .name: string
+  .type_name?: string
 }
 
 type Operation: void {
   .operation_name: string
   .documentation?: any
-  .input: Name
-  .output?: Name
+  .input: string
+  .output?: string
   .fault*: Fault
 }
 
 type Interface: void {
-  .name: Name
-  .types*: Type
+  .name: string
+  .types*: TypeDefinition
   .operations*: Operation
 }
 
 type Port: void {
-  .name: Name
+  .name: string
   .protocol: string
   .location: any
   .interfaces*: Interface
 }
 
 type Service: void {
-  .name: Name
-  .input*: void {
-    .name: string
-    .domain: string
-  }
-  .output*: Name
+  .input*: string
+  .output*: string
 }
