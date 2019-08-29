@@ -42,6 +42,9 @@
 			</properties>
 		</profile>
 	</profiles>
+	<modules>
+		<module>extensions/private/WS-test</module>
+	</modules>
 	<build>
 		<plugins>
 			<plugin>
