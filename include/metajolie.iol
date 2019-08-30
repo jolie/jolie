@@ -45,7 +45,7 @@ type GetMetaDataResponse: void {
   .input*: Port                 //< the definitions of all the input ports
   .output*: Port                //< the definitions of all the output ports
   .interfaces*: Interface       //< the definitions of all the interfaces
-  .types*: Type                 //< the definitions of all the types
+  .types*: TypeDefinition       //< the definitions of all the types
   /// the definitions of all the embedded services
   .embeddedServices*: void {    
 	    .type: string             //< type of the embedded service
