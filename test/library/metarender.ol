@@ -30,7 +30,7 @@ define doTest
   writeFile@File( f )( )
   loadEmbeddedService@Runtime( { .filepath = f.filename, .type = "Jolie" } )( )
   tmp@Test()()
-  delete@File( f.filename )(  )
-  deleteDir@File( TMPDIR )(  )
+  //delete@File( f.filename )(  )
+  //deleteDir@File( TMPDIR )(  )
   
 }

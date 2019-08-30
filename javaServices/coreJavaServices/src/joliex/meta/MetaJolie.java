@@ -46,6 +46,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
@@ -62,28 +63,72 @@ import joliex.util.StringUtils;
  */
 public class MetaJolie extends JavaService {
 
-    private int MAX_CARD = 2147483647;
+    private final int MAX_CARD = 2147483647;
     private ArrayList<TypeDefinition> listOfGeneratedTypesInTypeDefinition;
     private ArrayList<Value> listOfGeneratedTypesInValues;
 
     private Value getNativeType(NativeType type) {
         Value response = Value.create();
-        if (type == NativeType.ANY) {
-            response.getFirstChild("any_type").setValue(true);
-        } else if (type == NativeType.STRING) {
-            response.getFirstChild("string_type").setValue(true);
-        } else if (type == NativeType.DOUBLE) {
-            response.getFirstChild("double_type").setValue(true);
-        } else if (type == NativeType.INT) {
-            response.getFirstChild("int_type").setValue(true);
-        } else if (type == NativeType.VOID) {
-            response.getFirstChild("void_type").setValue(true);
-        } else if (type == NativeType.BOOL) {
-            response.getFirstChild("bool_type").setValue(true);
-        } else if (type == NativeType.LONG) {
-            response.getFirstChild("long_type").setValue(true);
-        } else if (type == NativeType.RAW) {
-            response.getFirstChild("raw_type").setValue(true);
+        if (null != type) switch (type) {
+            case ANY:
+                response.getFirstChild("any_type").setValue(true);
+                break;
+            case STRING:
+                response.getFirstChild("string_type").setValue(true);
+                break;
+            case DOUBLE:
+                response.getFirstChild("double_type").setValue(true);
+                break;
+            case INT:
+                response.getFirstChild("int_type").setValue(true);
+                break;
+            case VOID:
+                response.getFirstChild("void_type").setValue(true);
+                break;
+            case BOOL:
+                response.getFirstChild("bool_type").setValue(true);
+                break;
+            case LONG:
+                response.getFirstChild("long_type").setValue(true);
+                break;
+            case RAW:
+                response.getFirstChild("raw_type").setValue(true);
+                break;
+            default:
+                break;
+        }
+        return response;
+    }
+    
+    private Value getNativeType(String type) {
+        Value response = Value.create();
+        if (null != type) switch (type) {
+            case "any":
+                response.getFirstChild("any_type").setValue(true);
+                break;
+            case "string":
+                response.getFirstChild("string_type").setValue(true);
+                break;
+            case "double":
+                response.getFirstChild("double_type").setValue(true);
+                break;
+            case "int":
+                response.getFirstChild("int_type").setValue(true);
+                break;
+            case "void":
+                response.getFirstChild("void_type").setValue(true);
+                break;
+            case "bool":
+                response.getFirstChild("bool_type").setValue(true);
+                break;
+            case "long":
+                response.getFirstChild("long_type").setValue(true);
+                break;
+            case "raw":
+                response.getFirstChild("raw_type").setValue(true);
+                break;
+            default:
+                break;
         }
         return response;
     }
@@ -95,7 +140,6 @@ public class MetaJolie extends JavaService {
                 || type.equals("int")
                 || type.equals("void")
                 || type.equals("raw")
-                //|| type.equals("undefined")
                 || type.equals("any")
                 || type.equals("bool")
                 || type.equals("long");
@@ -175,12 +219,22 @@ public class MetaJolie extends JavaService {
         }
         return type;
     }
+    
+     private Value getTypeUndefined() {
+        Value type = Value.create();
+        type.getFirstChild("undefined").setValue( true );
+        return type;
+    }
 
     private Value getType(TypeDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension) {
         if (typedef instanceof TypeChoiceDefinition) {
             return getChoiceType((TypeChoiceDefinition) typedef, insertInInterfaceList, extension);
         } else if (typedef instanceof TypeDefinitionLink) {
-            return getTypeLink((TypeDefinitionLink) typedef, insertInInterfaceList, extension);
+            if ( ((TypeDefinitionLink) typedef).linkedType() instanceof TypeDefinitionUndefined ) {
+                return getTypeUndefined();
+            } else {
+                return getTypeLink((TypeDefinitionLink) typedef, insertInInterfaceList, extension);
+            }
         } else {
             return getTypeInlineDefinition((TypeInlineDefinition) typedef, insertInInterfaceList, extension);
         }
@@ -403,9 +457,13 @@ public class MetaJolie extends JavaService {
         Value type = Value.create();
         type.getFirstChild("name").setValue(faultname);
         if (typedef != null) {
-            type.getFirstChild("type_name").setValue(typedef.id());
-            if (!isNativeType(typedef.id())) {
+            if ( typedef.id().equals("undefined")) {
+                type.getFirstChild("type").deepCopy( getTypeUndefined() );
+            } else if (!isNativeType(typedef.id())) {
+                type.getFirstChild("type").getFirstChild("link_name").setValue(typedef.id());
                 insertTypeDefinition(typedef, extension);
+            } else {
+                type.getFirstChild("type").deepCopy( getNativeType( typedef.id() ));
             }
         }
         return type;
