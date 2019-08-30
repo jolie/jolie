@@ -58,7 +58,20 @@ inputPort Jolie2OpenApi {
   Interfaces: Jolie2OpenApiInterface
 }
 
-
+define check_param_found {
+    // __str_to_search
+    // __found
+    for( _pf = 0, _pf < #found_params.path, _pf++ ) {
+        if ( found_params.path[ _pr ] == __str_to_search ) {
+            __found = "path"
+        }
+    }
+    for( _pf = 0, _pf < #found_params.query, _pf++ ) {
+        if ( found_params.query[ _pr ] == __str_to_search ) {
+            __found = "query"
+        }
+    }
+}
 
 
 define __body {
@@ -71,15 +84,13 @@ define __body {
       service_input_port = request.inputPort;
 
       with( request_meta ) {
-        .filename = service_filename;
-        .name.name  = "";
-        .name.domain = ""
+        .filename = service_filename
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
       /* creating a map name-types for managing type links */
       for( itf = 0, itf < #metadata.input.interfaces, itf++ ) { 
           for( tps = 0, tps < #metadata.input.interfaces[ itf ].types, tps++ ) {
-              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name.name ) << metadata.input.interfaces[ itf ].types[ tps ]
+              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name ) << metadata.input.interfaces[ itf ].types[ tps ]
           }
       } 
 
@@ -105,7 +116,7 @@ define __body {
         /* importing of all the types */
         for( itf = 0, itf < #metadata.input.interfaces, itf++ ) {
             with( .tags[ itf ] ) {
-                .name = .description = metadata.input.interfaces[ itf ].name.name
+                .name = .description = metadata.input.interfaces[ itf ].name
             };
             .definitions[ itf ] << metadata.input.interfaces[ itf ]
         }
@@ -116,13 +127,13 @@ define __body {
       /* selecting the port and the list of the interfaces to be imported */
       for( i = 0, i < #metadata.input, i++ ) {
           // port selection from metadata
-          if ( metadata.input[ i ].name.name == service_input_port ) {
+          if ( metadata.input[ i ].name == service_input_port ) {
               path_counter = -1
 
               // for each interface in the port
               for( int_i = 0, int_i < #metadata.input[ i ].interfaces, int_i++ ) {
                   c_interface -> metadata.input[ i ].interfaces[ int_i ]
-                  c_interface_name = c_interface.name.name
+                  c_interface_name = c_interface.name
                   
                   // for each operations in the interfaces
                   for( o = 0, o < #c_interface.operations, o++ ) {
@@ -151,7 +162,7 @@ define __body {
 
                         with( openapi.paths[ path_counter ].( __method ) ) {
                             .tags = c_interface_name;
-                            .description = __given_template;
+                            .description = "";
                             .operationId = oper.operation_name;
                             .consumes[0] = "application/json";
                             .produces = "application/json";
@@ -159,7 +170,7 @@ define __body {
                                     .description = "OK";
                                     tp_resp_count = 0; tp_resp_found = false;
                                     while( !tp_resp_found && tp_resp_count < #c_interface.types ) {
-                                        if ( c_interface.types[ tp_resp_count ].name.name == oper.output.name ) {
+                                        if ( c_interface.types[ tp_resp_count ].name == oper.output ) {
                                             tp_resp_found = true
                                         } else {
                                             tp_resp_count++
@@ -176,7 +187,7 @@ define __body {
                         /* find request type description */
                         tp_count = 0; tp_found = false;
                         while( !tp_found && tp_count < #c_interface.types ) {
-                            if ( c_interface.types[ tp_count ].name.name == oper.input.name ) {
+                            if ( c_interface.types[ tp_count ].name == oper.input ) {
                                 tp_found = true
                             } else {
                                 tp_count++
@@ -185,38 +196,39 @@ define __body {
 
                         if ( tp_found ) {
                             // check the consistency of the root type of the type
-                            check_rq = c_interface.types[ tp_count ].name.name
+                            check_rq = c_interface.types[ tp_count ].name
                             check_rq.type_map -> global.type_map
                             checkTypeConsistency@JesterUtils( check_rq )()
                         }
-                        get_actual_ctype_rq = c_interface.types[ tp_count ].name.name
+                        real_current_type -> c_interface.types[ tp_count ]
+                        get_actual_ctype_rq = c_interface.types[ tp_count ].name
                         get_actual_ctype_rq.type_map -> global.type_map 
                         getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
                         current_type -> global.type_map.( actual_type_name )
                         
 
                         if ( !( __template instanceof void ) ) {
-                            
+                        
                             getParamList@JesterUtils( __template )( found_params )
 
                             if ( found_params ) {
                                     /* there are parameters in the template */
                                     error_prefix = error_prefix + "with template " + __template + " ";
                                     if ( !tp_found ) {
-                                            error_msg = current_type.name.name +  ": the request type does not declare any field";
+                                            error_msg = current_type.name +  ": the request type does not declare any field";
                                             throw( DefinitionError, error_msg )
                                     } else if ( is_defined( current_type.choice ) ) {
-                                            error_msg = current_type.name.name +  ": the request type cannot be a choice type when the template specifies parameters in the URL"
+                                            error_msg = current_type.name +  ": the request type cannot be a choice type when the template specifies parameters in the URL"
                                             throw( DefinitionError, error_msg )
                                     } else {
                                             /* if there are parameters in the template the request type must be analyzed */
-                                            for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
-                                                current_sbt -> current_type.sub_type[ sbt ];
-                                                current_root_type -> current_sbt.type_inline.root_type;                                               
-                                                find_str = found_params.param_list;
-                                                find_str.regex = current_sbt.name;
-                                                find@StringUtils( find_str )( find_str_res );
-
+                                            for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
+                                                current_sbt -> current_type.type.sub_type[ sbt ];
+                                                current_root_type -> current_sbt.type.root_type;  
+                                                __str_to_search = current_sbt.name 
+                                                __found = ""
+                                                check_param_found                               
+                                                
                                                 openapi_params_count++;
                                                 with( current_openapi_path.parameters[ openapi_params_count ] ) {
                                                     /* if a parameter name corresponds with a node of the the type, such a node must be declared as a simple native type node */
@@ -224,27 +236,25 @@ define __body {
                                                     if ( current_sbt.cardinality.min > 0 ) {
                                                         .required = true
                                                     };
-                                                    if ( find_str_res == 1 ) {
-                                                        if ( is_defined( current_sbt.type_inline ) ) {
-                                                            if ( #current_sbt.type_inline.sub_type > 0 ) {
+                                                    if ( __found != "" ) {
+                                                        if ( current_sbt.type instanceof TypeInLine ) {
+                                                            if ( #current_sbt.type.sub_type > 0 ) {
                                                                 error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted"
                                                                 throw( DefinitionError, error_msg )
-                                                            };
-                                                            .in.other = "path";
-                                                            .in.other.type << current_sbt.type_inline;
-                                                            if ( is_defined( current_sbt.type_inline.root_type.type_link ) ) {
-                                                                get_actual_ctype_rq = current_sbt.type_inline.root_type.type_link.name
+                                                            }
+                                                        } else if ( current_sbt.type instanceof TypeLink ) {
+                                                                get_actual_ctype_rq = current_sbt.type.link_name
                                                                 get_actual_ctype_rq.type_map -> global.type_map 
                                                                 getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
                                                                 if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
                                                                     error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
                                                                     throw( DefinitionError, error_msg )
                                                                 }
-                                                            }
                                                         }
-
+                                                        .in.other = __found;
+                                                        .in.other.type << current_sbt.type                                                       
                                                     } else {
-                                                        .in.in_body.schema << current_sbt
+                                                        .in.in_body.schema_type << real_current_type
                                                     }
 
                                                 }
@@ -253,7 +263,7 @@ define __body {
                             } else {
                                     /* the root type of the request type must be always void */
                                     if ( !tp_found ) {
-                                        if ( oper.input.name != "void" ) {
+                                        if ( oper.input != "void" ) {
                                             println@Console( "operation " + oper.operation_name + " cannot have the request message declared as void" )();
                                             throw( DefinitionError )
                                         }
@@ -261,7 +271,7 @@ define __body {
 
                                     if ( __method == "get" ) {
                                             if ( tp_found ) {
-                                                    if ( #current_type.sub_type > 0 || is_defined( current_type.choice )) {
+                                                    if ( #current_type.type.sub_type > 0 || current_type instanceof TypeChoice ) {
                                                     println@Console( current_type.name.name + ": this request tyoe message is joined to a get method without any template, thus it cannot be declared as a choice type nor it cannot contain subnodes" )();
                                                     throw( DefinitionError )
                                                 }
@@ -269,14 +279,14 @@ define __body {
                                     } else {
                                             if ( tp_found ) {
                                                 /* the fields of the request type must be transformed into parameters */
-                                                for( sf = 0, sf < #current_type.sub_type, sf++ ) {
+                                                for( sf = 0, sf < #current_type.type.sub_type, sf++ ) {
                                                         openapi_params_count++;
                                                         with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                                            .name = current_type.sub_type[ sf ].name;
-                                                            if ( current_type.sub_type[ sf ].cardinality.min > 0 ) {
+                                                            .name = real_current_type.type.sub_type[ sf ].name;
+                                                            if ( current_type.type.sub_type[ sf ].cardinality.min > 0 ) {
                                                                 .required = true
                                                             };
-                                                            .in.in_body.schema_subType << current_type.sub_type[ sf ]
+                                                            .in.in_body.schema_subType << current_type.type.sub_type[ sf ]
                                                         }
                                                 }
                                             }
@@ -288,10 +298,10 @@ define __body {
 
                             /* if it is a GET, extract the path params from the request message */
                             if ( __method == "get" ) {
-                                    for( sbt = 0, sbt < #current_type.sub_type, sbt++ ) {
+                                    for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
                                     /* casting */
-                                    current_sbt -> current_type.sub_type[ sbt ];
-                                    current_root_type -> current_sbt.type_inline.root_type;
+                                    current_sbt -> current_type.type.sub_type[ sbt ];
+                                    current_root_type -> current_sbt.type.root_type;
 
                                     openapi_params_count++;
                                     with( current_openapi_path.parameters[ openapi_params_count ] ) {
@@ -300,19 +310,20 @@ define __body {
                                             .required = true
                                         };
 
-                                        if ( is_defined( current_sbt.type_inline ) ) {
-                                                if ( #current_sbt.type_inline.sub_type > 0 ) {
-                                                        error_msg = "Type " + current_type.name.name  + ": field " + current_sbt.name + " has a type with subnodes which is not permitted"
+                                        if ( current_sbt.type instanceof TypeInLine  ) {
+                                                if ( #current_sbt.type.sub_type > 0 ) {
+                                                        error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " has a type with subnodes which is not permitted"
                                                         throw( DefinitionError, error_msg )
                                                 };
                                                 .in.other = "path";
-                                                .in.other.type << current_sbt.type_inline;
-                                                if ( is_defined( current_sbt.type_inline.root_type.type_link ) ) {
-                                                        error_msg = "Type " + current_type.name.name  + ": field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                .in.other.type << current_sbt.type
+
+                                                if ( current_sbt.type instanceof TypeLink ) {
+                                                        error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
                                                         throw( DefinitionError, error_msg )
                                                 }
                                         } else {
-                                                error_msg = "Type " + current_type.name.name  + ": field " + current_sbt.name + " of request type is not an inline type. REST template for GET method cannot be created!"
+                                                error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " of request type is not an inline type. REST template for GET method cannot be created!"
                                                 throw( DefinitionError, error_msg )
                                         }
                                     }
@@ -320,11 +331,10 @@ define __body {
                                     __template = __template + "/{" + current_sbt.name + "}"
                                 }
                             } else {
-
                                     if ( tp_found ) {
                                         with( current_openapi_path.parameters ) {
-                                            .in.in_body.schema_type << current_type;
-                                            .name = current_type.name.name;
+                                            .in.in_body.schema_ref = real_current_type.name;
+                                            .name = real_current_type.name;
                                             .required = true
                                         }
 

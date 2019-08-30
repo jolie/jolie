@@ -4,7 +4,7 @@ include "console.iol"
 include "file.iol"
 include "runtime.iol"
 include "metajolie.iol"
-include "metaparser.iol"
+include "metarender.iol"
 
 outputPort JesterConfigurator {
     Interfaces: JesterConfiguratorInterface
@@ -87,15 +87,13 @@ main {
 
     println@Console("Getting outputPort definition...")();
     with( request_meta ) {
-        .filename = service_filename;
-        .name.name  = "";
-        .name.domain = ""
-    };
+        .filename = service_filename
+    }
     getInputPortMetaData@MetaJolie( request_meta )( metadata )
     for( i = 0, i < #metadata.input, i++ ) {
         // port selection from metadata
-        if ( metadata.input[ i ].name.name == service_input_port ) {
-              getSurface@Parser( metadata.input )( surface )
+        if ( metadata.input[ i ].name == service_input_port ) {
+              getSurface@MetaRender( metadata.input )( surface )
         }
     }
     undef( f )

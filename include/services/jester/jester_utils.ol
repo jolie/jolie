@@ -45,17 +45,38 @@ main {
     }]
 
     [ getParamList( request )( response ) {
-        splr = request;
-        splr.regex = "/|\\?|=|&";
-        split@StringUtils( splr )( splres );
         response = false;
+        splr = request
+        splr.regex = "\\?"
+        split@StringUtils( splr )( splres );
+        pathpart = splres.result[ 0 ]
+        querypart = splres.result[ 1 ]
+
+        // path part
+        splr = pathpart;
+        splr.regex =  "/";
+        split@StringUtils( splr )( splres );
         for( pr = 0, pr < #splres.result, pr++ ) {
             w = splres.result[ pr ];
             w.regex = "\\{(.*)\\}";
             find@StringUtils( w )( params );
             if ( params == 1 ) {
                 response = true;
-                response.param_list = response.param_list + params.group[1] + "," /* string where looking for */
+                response.path[ #response.path ] = params.group[1]
+            }
+        }
+
+        // query part
+        splr = querypart;
+        splr.regex =  "&|=";
+        split@StringUtils( splr )( splres );
+        for( pr = 0, pr < #splres.result, pr++ ) {
+            w = splres.result[ pr ];
+            w.regex = "\\{(.*)\\}";
+            find@StringUtils( w )( params );
+            if ( params == 1 ) {
+                response = true;
+                response.query[ #response.query ] = params.group[1]
             }
         }
     }]

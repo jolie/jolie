@@ -77,7 +77,7 @@ main
           if ( #request.sub_type > 0 ) {
                 .type = "object"
           } else {
-                 type = resp_root_type
+                response << resp_root_type
           }
           
           /* analyzing sub types */
@@ -91,15 +91,19 @@ main
  } ]
 
  [ getTypeLink( request )( response ) {
-      response.("$ref") = "#/definitions/" + reques.link_name
+      response.("$ref") = "#/definitions/" + request.link_name
  }]
 
  [ getTypeChoice( request )( response ) {
       getType@MySelf( request.choice.left_type )( left )
       getType@MySelf( request.choice.right_type )( right )
-      response.oneOf[ 0 ] << left.oneOf
-      for( i = 0, i < #right.oneOf, i++ ) {
-            response.oneOf[ i + 1 ] << right.oneOf[ i ] 
+      response.oneOf[ 0 ] << left
+      if ( is_defined( right.oneOf ) ) {
+          for( o = 0, o < #right.oneOf, o++ ) {
+            response.oneOf[ o + 1 ] << right.oneOf[ o ]
+          }
+      } else {
+          response.oneOf[ 1 ] << right 
       }
  }]
 
@@ -145,7 +149,7 @@ main
        } else if ( is_defined( request.long_type ) ) {
          response.type = "number";
          response.format = "int64"
-       }
+       } 
  } ] { nullProcess }
 
 }

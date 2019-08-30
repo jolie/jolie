@@ -24,7 +24,6 @@ include "file.iol"
 include "console.iol"
 include "string_utils.iol"
 include "metajolie.iol"
-include "metaparser.iol"
 
 include "./JesterConfiguratorInterface.iol"
 include "services/openapi/public/interfaces/OpenApiDefinitionInterface.iol"

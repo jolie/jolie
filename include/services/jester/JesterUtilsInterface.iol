@@ -27,7 +27,8 @@ type AnalyzeTemplateResponse: void {
     .template: string | void
 }
 type GetParamsListResponse: bool {
-    .param_list?: string
+    .query*: string
+    .path*: string
 }
 
 type CheckTypeConsistencyRequest: string {

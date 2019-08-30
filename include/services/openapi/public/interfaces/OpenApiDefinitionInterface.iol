@@ -61,14 +61,19 @@ type OperationObject: void {
     .responses: Responses
 }
 
+type InBody: void {
+    .schema_subType: SubType   // used when there are more parameters in the body
+} | void {
+    .schema_type: Type         // used when there is one single parameter in the body
+} | void {
+    .schema_ref?: string       // add a reference to a schema
+}
+
 type Parameter: void {
     .name: string
     .in: void {
-        .in_body?: void {  //"body"
-            .schema_subType?: SubType   // used when there are more parameters in the body
-            .schema_type?: Type         // used when there is one single parameter in the body
-        }
-        .other?: string {    // "query", "header", "path", "formData"
+        .in_body?:InBody
+        .other?: string {               // "query", "header", "path", "formData"
             .type: Type
             .allowEmptyValue?: bool
         }
