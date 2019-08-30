@@ -265,7 +265,31 @@ main {
           __clean_name;
           scope( get_definition ) {
               install( DefinitionError => println@Console("Error for type " + request.name )() );
-              if ( request.definition.type == "object" ) {
+              if ( is_defined( request.definition.oneOf ) ) {
+                      response = "type " + __cleaned_name + ":"
+                      for( _of = 0, _of < #request.definition.oneOf, _of++ ) {
+                          branch -> request.definition.oneOf[ _of ]
+                          if ( _of == 0 ) {
+                              branch_st = ""
+                          } else {
+                              branch_st = "\n| "
+                          }
+                          if ( is_defined( branch.type ) ) {
+                                rq_obj.definition -> branch; rq_obj.indentation = 1;
+                                getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object )
+                                response = response + branch_st + "void {\n"  + object + "}"
+                          } else if ( is_defined( branch.("$ref") ) ) {
+                                split@StringUtils( branch.("$ref") { . regex="#/definitions/" } )( splitted_ref )
+                                response = response + branch_st + splitted_ref.result[1]
+                          }
+                      }
+                      response = response + "\n"
+              } else if ( request.definition instanceof void ) {
+                      response = "type " + __cleaned_name + ": void\n"
+              } else if ( is_defined( request.definition.("$ref") ) ) {
+                      split@StringUtils( request.definition.("$ref") { . regex="#/definitions/" } )( splitted_ref )
+                      response = "type " + __cleaned_name + ": " + splitted_ref.result[1] + "\n"
+              } else if ( request.definition.type == "object" ) {
                   if ( #request.definition.properties == 0 ) {
                       response = "type " + __cleaned_name + ": undefined \n"
                   } else {
@@ -366,7 +390,9 @@ main {
     } ]
 
     [ getJolieNativeTypeFromOpenApiNativeType( request )( response ) {
-          if ( request.type == "string" ) {
+          if ( request.type instanceof void ) {
+              response = "void"
+          } else if ( request.type == "string" ) {
               if ( request.format == "binary" ) {
                   response = "raw"
               } else {

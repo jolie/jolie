@@ -156,7 +156,7 @@ type GetJolieDefinitionFromOpenApiArrayRequest: void {
 }
 
 type GetJolieNativeTypeFromOpenApiNativeTypeRequest: void {
-    .type: string
+    .type: string | void
     .format?: string
 }
 
