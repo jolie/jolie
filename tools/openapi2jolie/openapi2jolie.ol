@@ -97,12 +97,9 @@ main {
             
             url = spl = args[0];
 
-            if ( protocol == "" ) {
-                    spl.regex = ":";
-                    split@StringUtils( spl )( protocol_split );
-                    protocol = protocol_split.result[0]
-            }
-            ;
+            spl.regex = ":";
+            split@StringUtils( spl )( protocol_split );
+            protocol = protocol_split.result[0]
             _get_protocol_port;
 
 
@@ -111,6 +108,7 @@ main {
             replaceAll@StringUtils( url )( location );
             if ( #protocol_split.result == 2 ) {
                 /* add default port number */
+                spl = location
                 spl.regex = "/";
                 split@StringUtils( spl )( splitted_url );
                 location = ""; alias = "";
@@ -130,9 +128,7 @@ main {
                     }
                 }
             };
-            location.replacement = "socket";
-            location.regex = protocol;
-            replaceAll@StringUtils( location )( location );
+println@Console( location )()
             if ( protocol == "http" ) {
                 HTTP.location = location;
                 getDefinition@HTTP()( openapi )
