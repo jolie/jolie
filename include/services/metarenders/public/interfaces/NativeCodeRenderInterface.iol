@@ -35,6 +35,7 @@ interface NativeCodeRenderInterface {
     getTypeInLine( TypeInLine )( string ),
     getTypeLink( TypeLink )( string ),
     getTypeChoice( TypeChoice )( string ),
+    getTypeUndefined( TypeUndefined )( string ),
     getSubType( SubType )( string ),
     getCardinality( Cardinality )( string ),
     getNativeType( NativeType )( string ),

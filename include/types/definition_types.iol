@@ -35,7 +35,7 @@ type NativeType: void {
   .bool_type: bool
 } | void {
   .long_type: bool
-}
+} 
 
 
 type Cardinality: void {
@@ -66,7 +66,11 @@ type TypeChoice: void {
   }
 }
 
-type Type: TypeInLine | TypeLink | TypeChoice
+type TypeUndefined: void {
+  .undefined: bool
+}
+
+type Type: TypeInLine | TypeLink | TypeChoice | TypeUndefined 
 
 type TypeDefinition: void {
   .name: string
@@ -76,7 +80,7 @@ type TypeDefinition: void {
 
 type Fault: void {
   .name: string
-  .type_name?: string
+  .type: NativeType | TypeUndefined | TypeLink
 }
 
 type Operation: void {
