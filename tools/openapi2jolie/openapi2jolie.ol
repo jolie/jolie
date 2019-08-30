@@ -56,8 +56,8 @@ outputPort HTTPS {
 
 embedded {
   Jolie:
-    "--trace services/openapi/openapi_definition.ol" in OpenApiDefinition,
-    "--trace services/openapi/openapi2jolie.ol" in OpenApi2Jolie
+    "services/openapi/openapi_definition.ol" in OpenApiDefinition,
+    "services/openapi/openapi2jolie.ol" in OpenApi2Jolie
 }
 
 define _get_protocol_port {
@@ -167,8 +167,8 @@ main {
     file.filename = output_folder + "/" + service_name + "Interface.iol";
     file.content = interface_file;
     writeFile@File( file )()
-    ;
     
+    get_code_from_openapi.protocol = protocol
     getJolieClient@OpenApi2Jolie( get_code_from_openapi )( client_file )
 
     undef( file );
