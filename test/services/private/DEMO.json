@@ -20,7 +20,7 @@
                 "parameters": [
                     {
                         "schema": {
-                            "$ref": "#definitions\/GetOrdersByItemRequest"
+                            "$ref": "#/definitions\/GetOrdersByItemRequest"
                         },
                         "in": "body",
                         "name": "GetOrdersByItemRequest",
@@ -54,7 +54,7 @@
                 "parameters": [
                     {
                         "schema": {
-                            "$ref": "#definitions\/PutOrderRequest"
+                            "$ref": "#/definitions\/PutOrderRequest"
                         },
                         "in": "body",
                         "name": "PutOrderRequest",
@@ -126,7 +126,7 @@
                 "parameters": [
                     {
                         "schema": {
-                            "$ref": "#definitions\/DeleteOrderRequest"
+                            "$ref": "#/definitions\/DeleteOrderRequest"
                         },
                         "in": "body",
                         "name": "DeleteOrderRequest",

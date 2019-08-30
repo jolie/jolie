@@ -70,9 +70,15 @@ main {
 
     /* execution */
     if( !easy_interface ) {
-        f.filename = TEMPLATEFILE
-        f.format = "json"
-        readFile@File( f )( template )
+        scope( read_template ) {
+            install( default => 
+                println@Console("Template file " + TEMPLATEFILE + " not found " )()
+                throw( Error )
+            )
+            f.filename = TEMPLATEFILE
+            f.format = "json"
+            readFile@File( f )( template )
+        }
     }
 
     with( jester ) {

@@ -30,9 +30,9 @@ type T6: void | string | int
 
 interface TmpInterface {
   RequestResponse:
-    tmp( T1 )( T2 ),
-    tmp2( T3 )( T4 ),
-    tmp3( T5 )( T6 )
+    tmp( T1 )( T2 ) throws F1( T1 ),
+    tmp2( T3 )( T4 ) throws F2,
+    tmp3( T5 )( T6 ) throws F3( string )
 }
 
 inputPort TPort {
