@@ -1,4 +1,4 @@
-/***************************************************************************
+/** *************************************************************************
  *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,8 +17,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+ ************************************************************************** */
 package joliex.meta;
 
 import java.io.IOException;
@@ -61,766 +60,712 @@ import joliex.util.StringUtils;
  *
  * @author claudio guidi
  */
-public class MetaJolie extends JavaService
-{
+public class MetaJolie extends JavaService {
 
-	private int MAX_CARD = 2147483647;
-        private ArrayList<TypeDefinition> checkListOfGeneratedTypes;
-        private ArrayList<Value> listOfGeneratedTypes;
-        
-	private Value getNativeType( NativeType type )
-	{
-		Value response = Value.create();
-		if ( type == NativeType.ANY ) {
-			response.getFirstChild( "any_type" ).setValue( true );
-		} else if ( type == NativeType.STRING ) {
-			response.getFirstChild( "string_type" ).setValue( true );
-		} else if ( type == NativeType.DOUBLE ) {
-			response.getFirstChild( "double_type" ).setValue( true );
-		} else if ( type == NativeType.INT ) {
-			response.getFirstChild( "int_type" ).setValue( true );
-		} else if ( type == NativeType.VOID ) {
-			response.getFirstChild( "void_type" ).setValue( true );
-		} else if ( type == NativeType.BOOL ) {
-			response.getFirstChild( "bool_type" ).setValue( true );
-		} else if ( type == NativeType.LONG ) {
-			response.getFirstChild( "long_type" ).setValue( true );
-		} else if ( type == NativeType.RAW ) {
-			response.getFirstChild( "raw_type" ).setValue( true );
-		}
-		return response;
-	}
+    private int MAX_CARD = 2147483647;
+    private ArrayList<TypeDefinition> listOfGeneratedTypesInTypeDefinition;
+    private ArrayList<Value> listOfGeneratedTypesInValues;
 
-	private boolean isNativeType( String type )
-	{
-		return type.equals( "any" )
-			|| type.equals( "string" )
-			|| type.equals( "double" )
-			|| type.equals( "int" )
-			|| type.equals( "void" )
-			|| type.equals( "raw" )
-			//|| type.equals("undefined")
-			|| type.equals( "any" )
-			|| type.equals( "bool" )
-			|| type.equals( "long" );
-	}
-
-	private Value addCardinality( Range range )
-	{
-		Value response = Value.create();
-		response.getFirstChild( "min" ).setValue( range.min() );
-		if ( range.max() == MAX_CARD ) {
-			response.getFirstChild( "infinite" ).setValue( 1 );
-		} else {
-			response.getFirstChild( "max" ).setValue( range.max() );
-		}
-		return response;
-	}
-
-	private Value getSubType( TypeDefinition type, boolean insertTypeInInterfaceList, TypeDefinition extension )
-	{
-		Value response = Value.create();
-		response.getFirstChild( "name" ).setValue( type.id() );
-		response.getFirstChild( "cardinality" ).deepCopy( addCardinality( type.cardinality() ) );
-                response.getFirstChild( "type" ).deepCopy( getType( type,insertTypeInInterfaceList, extension ));
-		return response;
-	}
-        
-        private Value getChoiceType( TypeChoiceDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension) {
-                Value type = Value.create();
-                Value left = type.getFirstChild( "choice" ).getFirstChild("left_type");
-                Value right = type.getFirstChild( "choice" ).getFirstChild("right_type");
-
-                left.deepCopy(getType(typedef.left(), insertInInterfaceList, extension));
-                right.deepCopy(getType(typedef.right(), insertInInterfaceList, extension));
-                
-                return type;
+    private Value getNativeType(NativeType type) {
+        Value response = Value.create();
+        if (type == NativeType.ANY) {
+            response.getFirstChild("any_type").setValue(true);
+        } else if (type == NativeType.STRING) {
+            response.getFirstChild("string_type").setValue(true);
+        } else if (type == NativeType.DOUBLE) {
+            response.getFirstChild("double_type").setValue(true);
+        } else if (type == NativeType.INT) {
+            response.getFirstChild("int_type").setValue(true);
+        } else if (type == NativeType.VOID) {
+            response.getFirstChild("void_type").setValue(true);
+        } else if (type == NativeType.BOOL) {
+            response.getFirstChild("bool_type").setValue(true);
+        } else if (type == NativeType.LONG) {
+            response.getFirstChild("long_type").setValue(true);
+        } else if (type == NativeType.RAW) {
+            response.getFirstChild("raw_type").setValue(true);
         }
+        return response;
+    }
+
+    private boolean isNativeType(String type) {
+        return type.equals("any")
+                || type.equals("string")
+                || type.equals("double")
+                || type.equals("int")
+                || type.equals("void")
+                || type.equals("raw")
+                //|| type.equals("undefined")
+                || type.equals("any")
+                || type.equals("bool")
+                || type.equals("long");
+    }
+
+    private Value addCardinality(Range range) {
+        Value response = Value.create();
+        response.getFirstChild("min").setValue(range.min());
+        if (range.max() == MAX_CARD) {
+            response.getFirstChild("infinite").setValue(1);
+        } else {
+            response.getFirstChild("max").setValue(range.max());
+        }
+        return response;
+    }
+
+    private Value getSubType(TypeDefinition type, boolean insertTypeInInterfaceList, TypeDefinition extension) {
+        Value response = Value.create();
+        response.getFirstChild("name").setValue(type.id());
+        response.getFirstChild("cardinality").deepCopy(addCardinality(type.cardinality()));
+        response.getFirstChild("type").deepCopy(getType(type, insertTypeInInterfaceList, extension));
+        return response;
+    }
+
+    private Value getChoiceType(TypeChoiceDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension) {
+        Value type = Value.create();
+        Value left = type.getFirstChild("choice").getFirstChild("left_type");
+        Value right = type.getFirstChild("choice").getFirstChild("right_type");
+
+        left.deepCopy(getType(typedef.left(), insertInInterfaceList, extension));
+        right.deepCopy(getType(typedef.right(), insertInInterfaceList, extension));
+
+        return type;
+    }
+
+    private void insertTypeDefinition(TypeDefinition typedef, TypeDefinition extension) {
+        // to be optimized, similar code with addType
+        if (!listOfGeneratedTypesInTypeDefinition.contains(typedef) && !isNativeType(typedef.id()) && !typedef.id().equals("undefined")) {
+            listOfGeneratedTypesInTypeDefinition.add(typedef);
+            listOfGeneratedTypesInValues.add(getTypeDefinition(typedef, true, extension));
+        }
+    }
+
+    private Value getTypeDefinition(TypeDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension) {
+        Value type = Value.create();
+        type.getFirstChild("type").deepCopy(getType(typedef, insertInInterfaceList, extension));
+        type.getFirstChild("name").setValue(typedef.id());
+        return type;
+    }
+
+    private Value getTypeLink(TypeDefinitionLink typedef, boolean insertInInterfaceList, TypeDefinition extension) {
+        Value type = Value.create();
+        type.getFirstChild("link_name").setValue(((TypeDefinitionLink) typedef).linkedTypeName());
+        if (insertInInterfaceList) {
+            insertTypeDefinition(((TypeDefinitionLink) typedef).linkedType(), extension);
+        }
+        return type;
+    }
+
+    private Value getTypeInlineDefinition(TypeInlineDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension) {
+        Value type = Value.create();
+        type.getFirstChild("root_type").deepCopy(getNativeType(typedef.nativeType()));
+        if (typedef.hasSubTypes()) {
+            int subtype_counter = 0;
+            for (Entry<String, TypeDefinition> entry : typedef.subTypes()) {
+                type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), insertInInterfaceList, extension));
+                subtype_counter++;
+            }
+        }
+        if (extension != null && extension instanceof TypeInlineDefinition) {
+            final TypeInlineDefinition extensionTypeInline = (TypeInlineDefinition) extension;
+            int subtype_counter = type.getChildren("sub_type").size();
+            for (Entry<String, TypeDefinition> entry : extensionTypeInline.subTypes()) {
+                type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), true, extension));
+                subtype_counter++;
+            }
+        }
+        return type;
+    }
+
+    private Value getType(TypeDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension) {
+        if (typedef instanceof TypeChoiceDefinition) {
+            return getChoiceType((TypeChoiceDefinition) typedef, insertInInterfaceList, extension);
+        } else if (typedef instanceof TypeDefinitionLink) {
+            return getTypeLink((TypeDefinitionLink) typedef, insertInInterfaceList, extension);
+        } else {
+            return getTypeInlineDefinition((TypeInlineDefinition) typedef, insertInInterfaceList, extension);
+        }
+    }
+
+    private List<TypeDefinition> addTypeDefinition(List<TypeDefinition> types, TypeDefinition typedef) {
+
+        if (!typedef.id().equals("undefined")) {
+            if (!types.contains(typedef) && !isNativeType(typedef.id())) {
+                types.add(typedef);
+                if (typedef instanceof TypeDefinitionLink) {
+                    addTypeDefinition(types, ((TypeDefinitionLink) typedef).linkedType());
+                } else if (typedef instanceof TypeInlineDefinition) {
+                    TypeInlineDefinition td = (TypeInlineDefinition) typedef;
+                    if (td.hasSubTypes()) {
+                        for (Entry<String, TypeDefinition> entry : td.subTypes()) {
+                            addSubTypeDefinition(types, entry.getValue());
+                        }
+                    }
+                } else if (typedef instanceof TypeChoiceDefinition) {
+                    addTypeDefinition(types, ((TypeChoiceDefinition) typedef).left());
+                    addTypeDefinition(types, ((TypeChoiceDefinition) typedef).right());
+                }
+            }
+        }
+        return types;
+    }
+
+    private List<TypeDefinition> addSubTypeDefinition(List<TypeDefinition> types, TypeDefinition subtype) {
+        if (subtype instanceof TypeDefinitionLink) {
+            addTypeDefinition(types, ((TypeDefinitionLink) subtype).linkedType());
+        } else {
+            TypeInlineDefinition td = (TypeInlineDefinition) subtype;
+            if (td.hasSubTypes()) {
+                for (Entry<String, TypeDefinition> entry : td.subTypes()) {
+                    addSubTypeDefinition(types, entry.getValue());
+                }
+            }
+        }
+
+        return types;
+    }
+
+    private Value getInterface(
+            InterfaceDefinition interfaceDefinition,
+            OneWayOperationDeclaration owExtender,
+            RequestResponseOperationDeclaration rrExtender) {
+        Value itf = Value.create();
+
+        itf.getFirstChild("name").setValue(interfaceDefinition.name());
+
+        ValueVector operations = itf.getChildren("operations");
+
+        // scans operations and types
+        Map< String, OperationDeclaration> operationMap = interfaceDefinition.operationsMap();
+
+        for (Entry< String, OperationDeclaration> operationEntry : operationMap.entrySet()) {
+            Value current_operation = Value.create();;
+            if (operationEntry.getValue() instanceof OneWayOperationDeclaration) {
+                OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationEntry.getValue();
+                current_operation.getFirstChild("operation_name").setValue(oneWayOperation.id());
+                current_operation.getFirstChild("documentation").setValue(oneWayOperation.getDocumentation());
+                current_operation.getFirstChild("input").setValue(oneWayOperation.requestType().id());
+
+                if (!isNativeType(oneWayOperation.requestType().id())) {
+                    if (owExtender == null) {
+                        insertTypeDefinition(oneWayOperation.requestType(), null);
+                    } else {
+                        insertTypeDefinition(oneWayOperation.requestType(), owExtender.requestType());
+                    }
+                }
+
+            } else {
+                RequestResponseOperationDeclaration requestResponseOperation = (RequestResponseOperationDeclaration) operationEntry.getValue();
+                current_operation.getFirstChild("operation_name").setValue(requestResponseOperation.id());
+                current_operation.getFirstChild("documentation").setValue(requestResponseOperation.getDocumentation());
+                current_operation.getFirstChild("input").setValue(requestResponseOperation.requestType().id());
+                current_operation.getFirstChild("output").setValue(requestResponseOperation.responseType().id());
+                if (!isNativeType(requestResponseOperation.requestType().id())) {
+                    if (rrExtender == null) {
+                        insertTypeDefinition(requestResponseOperation.requestType(), null);
+                    } else {
+                        insertTypeDefinition(requestResponseOperation.requestType(), rrExtender.requestType());
+                    }
+                }
+                if (!isNativeType(requestResponseOperation.responseType().id())) {
+                    if (rrExtender == null) {
+                        insertTypeDefinition(requestResponseOperation.responseType(), null);
+                    } else {
+                        insertTypeDefinition(requestResponseOperation.responseType(), rrExtender.requestType());
+                    }
+                }
+                Map<String, TypeDefinition> faults = requestResponseOperation.faults();
+                int faultCounter = 0;
+                for (Entry<String, TypeDefinition> f : faults.entrySet()) {
+                    if (rrExtender == null) {
+                        current_operation.getChildren("fault").get(faultCounter).deepCopy(getFault(f.getKey(), f.getValue(), null));
+                    } else {
+                        current_operation.getChildren("fault").get(faultCounter).deepCopy(getFault(f.getKey(), f.getValue(), rrExtender.faults().get(f.getKey())));
+                    }
+                    faultCounter++;
+                }
+            }
+            operations.add(current_operation);
+        }
+
+        return itf;
+    }
 
 	
 
-	private void insertTypeDefinition( TypeDefinition typedef, TypeDefinition extension )
-	{
-		// to be optimized, similar code with addType
-		if ( !checkListOfGeneratedTypes.contains( typedef ) && !isNativeType( typedef.id() ) && !typedef.id().equals( "undefined" ) ) {
-			checkListOfGeneratedTypes.add( typedef );
-			listOfGeneratedTypes.add( getTypeDefinition(typedef, true, extension) );
-		}
-	}
-        
-        private Value getTypeDefinition( TypeDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension ) {
-                Value type = Value.create();
-                type.getFirstChild( "type" ).deepCopy(getType( typedef, insertInInterfaceList, extension ));
-                type.getFirstChild( "name" ).setValue( typedef.id() );
-                return type;
+    private List<InterfaceDefinition> addInterfaceToList(List<InterfaceDefinition> list, InterfaceDefinition intf) {
+        if (!list.contains(intf)) {
+            list.add(intf);
         }
-        
-        private Value getTypeLink( TypeDefinitionLink typedef, boolean insertInInterfaceList, TypeDefinition extension ) {
-                Value type = Value.create();
-                type.getFirstChild( "link_name" ).setValue( ((TypeDefinitionLink) typedef).linkedTypeName() );
-                if ( insertInInterfaceList ) {
-                    insertTypeDefinition(((TypeDefinitionLink) typedef).linkedType(), extension );
-                }
-                return type;
-        }
-        
-        private Value getTypeInlineDefinition( TypeInlineDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension ) {
-                Value type = Value.create();
-                type.getFirstChild( "root_type" ).deepCopy( getNativeType( typedef.nativeType() ) );
-                if ( typedef.hasSubTypes() ) {
-                        int subtype_counter = 0;
-                        for( Entry<String, TypeDefinition> entry : typedef.subTypes() ) {
-                                type.getChildren( "sub_type" ).get( subtype_counter ).deepCopy( getSubType( entry.getValue(), insertInInterfaceList, extension) );
-                                subtype_counter++;
-                        }
-                }
-                if ( extension != null && extension instanceof TypeInlineDefinition ) {
-                        final TypeInlineDefinition extensionTypeInline = (TypeInlineDefinition) extension;
-                        int subtype_counter = type.getChildren( "sub_type" ).size();
-                        for( Entry<String, TypeDefinition> entry : extensionTypeInline.subTypes() ) {
-                                type.getChildren( "sub_type" ).get( subtype_counter ).deepCopy( getSubType( entry.getValue(), true, extension ) );
-                                subtype_counter++;
-                        }
-				}
-                return type;
+        return list;
+    }
+
+    private Value getInputPort(InputPortInfo portInfo, OutputPortInfo[] outputPortList) {
+
+        Value response = Value.create();
+        // setting the name of the port
+        response.getFirstChild("name").setValue(portInfo.id());
+
+        InputPortInfo port = (InputPortInfo) portInfo;
+        response.getFirstChild("location").setValue(port.location().toString());
+        if (port.protocolId() != null) {
+            response.getFirstChild("protocol").setValue(port.protocolId());
+        } else {
+            response.getFirstChild("protocol").setValue("");
         }
 
-	private Value getType( TypeDefinition typedef, boolean insertInInterfaceList, TypeDefinition extension )
-	{
-                if ( typedef instanceof TypeChoiceDefinition ) {
-                        return getChoiceType((TypeChoiceDefinition) typedef, insertInInterfaceList, extension);
-                } else if ( typedef instanceof TypeDefinitionLink ) {
-                        return getTypeLink((TypeDefinitionLink) typedef, insertInInterfaceList, extension);
-                } else {
-                        return getTypeInlineDefinition((TypeInlineDefinition) typedef, insertInInterfaceList, extension );
-                }
-	}
+        // scan all the interfaces of the inputPort
+        for (int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++) {
+            InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf_index);
+            response.getChildren("interfaces").get(intf_index).deepCopy(getInterfaceAndInsertTypes(interfaceDefinition, null, null));
 
-	private List<TypeDefinition> addTypeDefinition( List<TypeDefinition> types, TypeDefinition typedef )
-	{
-
-		if ( !typedef.id().equals( "undefined" ) ) {
-			if ( !types.contains( typedef ) && !isNativeType( typedef.id() ) ) {
-				types.add( typedef );
-				if ( typedef instanceof TypeDefinitionLink ) {
-					addTypeDefinition( types, ((TypeDefinitionLink) typedef).linkedType() );
-				} else if ( typedef instanceof TypeInlineDefinition) {
-					TypeInlineDefinition td = (TypeInlineDefinition) typedef;
-					if ( td.hasSubTypes() ) {
-						for( Entry<String, TypeDefinition> entry : td.subTypes() ) {
-							addSubTypeDefinition( types, entry.getValue() );
-						}
-					}
-				} else if ( typedef instanceof TypeChoiceDefinition ) {
-                                        addTypeDefinition( types, ((TypeChoiceDefinition) typedef).left());
-                                        addTypeDefinition( types, ((TypeChoiceDefinition) typedef).right());
-                                }
-			}
-		}
-		return types;
-	}
-
-	private List<TypeDefinition> addSubTypeDefinition( List<TypeDefinition> types, TypeDefinition subtype )
-	{
-		if ( subtype instanceof TypeDefinitionLink ) {
-			addTypeDefinition( types, ((TypeDefinitionLink) subtype).linkedType() );
-		} else {
-			TypeInlineDefinition td = (TypeInlineDefinition) subtype;
-			if ( td.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> entry : td.subTypes() ) {
-					addSubTypeDefinition( types, entry.getValue() );
-				}
-			}
-		}
-
-		return types;
-	}
-
-	private Value getInterface( 
-                InterfaceDefinition interfaceDefinition, 
-                OneWayOperationDeclaration owExtender,
-		RequestResponseOperationDeclaration rrExtender )
-	{
-		Value itf = Value.create();
-                
-                itf.getFirstChild( "name" ).setValue( interfaceDefinition.name() );
-
-		ValueVector operations = itf.getChildren( "operations" );
-                
-		// scans operations and types
-		Map< String, OperationDeclaration> operationMap = interfaceDefinition.operationsMap();
-
-		for( Entry< String, OperationDeclaration> operationEntry : operationMap.entrySet() ) {
-			Value current_operation = Value.create();;
-			if ( operationEntry.getValue() instanceof OneWayOperationDeclaration ) {
-				OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationEntry.getValue();
-				current_operation.getFirstChild( "operation_name" ).setValue( oneWayOperation.id() );
-                                current_operation.getFirstChild( "documentation" ).setValue( oneWayOperation.getDocumentation() );
-				current_operation.getFirstChild( "input" ).setValue( oneWayOperation.requestType().id() );
-				if ( !isNativeType( oneWayOperation.requestType().id() ) ) {
-                                        if ( owExtender == null ) {
-                                            insertTypeDefinition(oneWayOperation.requestType(), null );
-                                        } else {
-                                            insertTypeDefinition(oneWayOperation.requestType(), owExtender.requestType() );
-                                        }
-				}
-
-			} else {
-				RequestResponseOperationDeclaration requestResponseOperation = (RequestResponseOperationDeclaration) operationEntry.getValue();
-				current_operation.getFirstChild( "operation_name" ).setValue( requestResponseOperation.id() );
-                                current_operation.getFirstChild( "documentation" ).setValue( requestResponseOperation.getDocumentation() );
-				current_operation.getFirstChild( "input" ).setValue( requestResponseOperation.requestType().id() );
-				current_operation.getFirstChild( "output" ).setValue( requestResponseOperation.responseType().id() );
-				if ( !isNativeType( requestResponseOperation.requestType().id() ) ) {
-                                    if ( rrExtender == null ) {
-                                        insertTypeDefinition(requestResponseOperation.requestType(), null );
-                                    } else {
-					insertTypeDefinition(requestResponseOperation.requestType(), rrExtender.requestType() );
-                                    }
-				}
-				if ( !isNativeType( requestResponseOperation.responseType().id() ) ) {
-                                    if ( rrExtender == null ) {
-                                        insertTypeDefinition(requestResponseOperation.responseType(), null );
-                                    } else {
-					insertTypeDefinition(requestResponseOperation.responseType(), rrExtender.requestType() );
-                                    }
-				}
-				Map<String, TypeDefinition> faults = requestResponseOperation.faults();
-				int faultCounter = 0;
-				for( Entry<String, TypeDefinition> f : faults.entrySet() ) {
-                                    if ( rrExtender == null ) {
-                                        current_operation.getChildren( "fault" ).get( faultCounter ).deepCopy( getFault(f.getKey(), f.getValue(),null ));
-                                    } else {
-                                        current_operation.getChildren( "fault" ).get( faultCounter ).deepCopy( getFault(f.getKey(), f.getValue(), rrExtender.faults().get( f.getKey() )));
-                                    }
-				faultCounter++;
-				}
-			}
-			operations.add( current_operation );
-		}
-		
-		return itf;
-	}
-
-	private List<InterfaceDefinition> addInterfaceToList( List<InterfaceDefinition> list, InterfaceDefinition intf )
-	{
-		if ( !list.contains( intf ) ) {
-			list.add( intf );
-		}
-		return list;
-	}
-
-	private Value getInputPort( InputPortInfo portInfo, OutputPortInfo[] outputPortList )
-	{
-
-		Value response = Value.create();
-		// setting the name of the port
-		response.getFirstChild( "name" ).setValue( portInfo.id() );
-
-		InputPortInfo port = (InputPortInfo) portInfo;
-		response.getFirstChild( "location" ).setValue( port.location().toString() );
-		if ( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
-		} else {
-			response.getFirstChild( "protocol" ).setValue( "" );
-		}
-
-		// scan all the interfaces of the inputPort
-		for( int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++ ) {
-			InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get( intf_index );
-			response.getChildren( "interfaces" ).get( intf_index ).deepCopy( getInterfaceAndInsertTypes( interfaceDefinition, null, null ));
-
-		}
-
-                // scanning aggregation
-		// extracts interfaces from aggregated outputPorts
-		for( int x = 0; x < portInfo.aggregationList().length; x++ ) {
-			int i = 0;
-			while( !portInfo.aggregationList()[ x ].outputPortList()[ 0 ].equals( outputPortList[ i ].id() ) ) {
-				i++;
-			}
-			int curItfIndex = response.getChildren( "interfaces" ).size();
-			InterfaceExtenderDefinition extender = null;
-			OneWayOperationDeclaration owExtender = null;
-			RequestResponseOperationDeclaration rrExtender = null;
-			if ( portInfo.aggregationList()[ x ].interfaceExtender() != null ) {
-                                // the interfaces of the outputPort must be extended
-				// only default extension is processed. TODO: extending also specific operation declaration
-
-				extender = portInfo.aggregationList()[ x ].interfaceExtender();
-				if ( extender.defaultOneWayOperation() != null ) {
-					owExtender = extender.defaultOneWayOperation();
-				}
-				if ( extender.defaultRequestResponseOperation() != null ) {
-					rrExtender = extender.defaultRequestResponseOperation();
-				}
-			}
-			for( InterfaceDefinition interfaceDefinition : outputPortList[ i ].getInterfaceList() ) {
-				Value inputInterface = response.getChildren( "interfaces" ).get( curItfIndex );
-				if ( extender != null ) {
-					inputInterface.deepCopy( getInterfaceAndInsertTypes( interfaceDefinition, owExtender, rrExtender ));
-				} else {
-					inputInterface.deepCopy( getInterfaceAndInsertTypes( interfaceDefinition, null, null ));
-				}
-				curItfIndex++;
-			}
-
-		}
-
-		return response;
-
-	}
-
-	private Value getInputPort( InputPortInfo portInfo, OutputPortInfo[] outputPortList, List<InterfaceDefinition> interfaces )
-	{
-
-		Value response = Value.create();
-		// setting the name of the port
-		response.getFirstChild( "name" ).setValue( portInfo.id() );
-
-		InputPortInfo port = (InputPortInfo) portInfo;
-		response.getFirstChild( "location" ).setValue( port.location().toString() );
-		if ( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
-		} else {
-			response.getFirstChild( "protocol" ).setValue( "" );
-		}
-
-		// scan all the interfaces of the inputPort
-		for( int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++ ) {
-			InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get( intf_index );
-			response.getChildren( "interfaces" ).get( intf_index ).getFirstChild( "name" ).setValue( interfaceDefinition.name() );
-			addInterfaceToList( interfaces, interfaceDefinition );
-		}
+        }
 
         // scanning aggregation
-		// extracts interfaces from aggregated outputPorts
-		for( int x = 0; x < portInfo.aggregationList().length; x++ ) {
-			int i = 0;
-			while( !portInfo.aggregationList()[ x ].outputPortList()[ 0 ].equals( outputPortList[ i ].id() ) ) {
-				i++;
-			}
-			int intf = response.getChildren( "interfaces" ).size();
-			for( InterfaceDefinition interfaceDefinition : outputPortList[ i ].getInterfaceList() ) {
-				response.getChildren( "interfaces" ).get( intf ).getFirstChild( "name" ).setValue( interfaceDefinition.name() );
-				addInterfaceToList( interfaces, interfaceDefinition );
-				intf++;
-			}
-		}
+        // extracts interfaces from aggregated outputPorts
+        for (int x = 0; x < portInfo.aggregationList().length; x++) {
+            int i = 0;
+            while (!portInfo.aggregationList()[x].outputPortList()[0].equals(outputPortList[i].id())) {
+                i++;
+            }
+            int curItfIndex = response.getChildren("interfaces").size();
+            InterfaceExtenderDefinition extender = null;
+            OneWayOperationDeclaration owExtender = null;
+            RequestResponseOperationDeclaration rrExtender = null;
+            if (portInfo.aggregationList()[x].interfaceExtender() != null) {
+                // the interfaces of the outputPort must be extended
+                // only default extension is processed. TODO: extending also specific operation declaration
 
-		return response;
-
-	}
-
-	/*private Value getOutputPort( OutputPortInfo portInfo, Value name )
-	{
-
-		Value response = Value.create();
-		// setting the name of the port
-		response.getFirstChild( "name" ).setValue( portInfo.id() );
-
-		OutputPortInfo port = (OutputPortInfo) portInfo;
-		response.getFirstChild( "location" ).setValue( port.location().toString() );
-
-		if ( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
-		} else {
-			response.getFirstChild( "protocol" ).setValue( "" );
-		}
-
-		// scan all the interfaces of the inputPort
-		for( int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++ ) {
-			InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get( intf_index );
-			Value input_interface = response.getChildren( "interfaces" ).get( intf_index );
-			getInterfaceAndInsertTypes( input_interface, interfaceDefinition, null, null );
-		}
-
-		return response;
-
-	}*/
-        
-        private Value getFault( String faultname, TypeDefinition typedef, TypeDefinition extension ) {
-                Value type = Value.create();
-                type.getFirstChild( "name" ).setValue( faultname );
-                if ( typedef != null ) {
-                        type.getFirstChild( "type_name" ).setValue( typedef.id() );
-                        if ( !isNativeType( typedef.id() ) ) {
-                                insertTypeDefinition( typedef, extension );
-                        }
+                extender = portInfo.aggregationList()[x].interfaceExtender();
+                if (extender.defaultOneWayOperation() != null) {
+                    owExtender = extender.defaultOneWayOperation();
                 }
-                return type;
+                if (extender.defaultRequestResponseOperation() != null) {
+                    rrExtender = extender.defaultRequestResponseOperation();
+                }
+            }
+            for (InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList()) {
+                Value inputInterface = response.getChildren("interfaces").get(curItfIndex);
+                if (extender != null) {
+                    inputInterface.deepCopy(getInterfaceAndInsertTypes(interfaceDefinition, owExtender, rrExtender));
+                } else {
+                    inputInterface.deepCopy(getInterfaceAndInsertTypes(interfaceDefinition, null, null));
+                }
+                curItfIndex++;
+            }
+
         }
 
-	private Value getInterfaceAndInsertTypes( 
-                InterfaceDefinition interfaceDefinition, 
-                OneWayOperationDeclaration owExtender,
-		RequestResponseOperationDeclaration rrExtender )
-	{
-                Value inputInterface = Value.create();
-		checkListOfGeneratedTypes = new ArrayList<>();
-                listOfGeneratedTypes = new ArrayList<>();
+        return response;
 
-		inputInterface.deepCopy( getInterface( interfaceDefinition, owExtender, rrExtender ));
-                        
-                listOfGeneratedTypes.stream().forEach(v -> {
-                    inputInterface.getChildren( "types" ).add( v );
-                });
-                
-                return inputInterface;
+    }
 
-	}
+    private Value getInputPortInfoAndAddInterfacesToList(InputPortInfo portInfo, OutputPortInfo[] outputPortList, List<InterfaceDefinition> interfaces) {
 
-	private Value getPort( PortInfo portInfo, List<InterfaceDefinition> interfaces )
-	{
-		Value response = Value.create();
+        Value response = Value.create();
+        // setting the name of the port
+        response.getFirstChild("name").setValue(portInfo.id());
 
-		// setting the name of the port
-		response.getFirstChild( "name" ).setValue( portInfo.id() );
+        InputPortInfo port = (InputPortInfo) portInfo;
+        response.getFirstChild("location").setValue(port.location().toString());
+        if (port.protocolId() != null) {
+            response.getFirstChild("protocol").setValue(port.protocolId());
+        } else {
+            response.getFirstChild("protocol").setValue("");
+        }
 
-		if ( portInfo instanceof InputPortInfo ) {
-			InputPortInfo port = (InputPortInfo) portInfo;
-			if ( port.location() != null ) {
-				response.getFirstChild( "location" ).setValue( port.location().toString() );
-			} else {
-				response.getFirstChild( "location" ).setValue( "local" );
-			}
-			if ( port.protocolId() != null ) {
-				response.getFirstChild( "protocol" ).setValue( port.protocolId() );
-			} else {
-				response.getFirstChild( "protocol" ).setValue( "" );
-			}
+        // scan all the interfaces of the inputPort
+        for (int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++) {
+            InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf_index);
+            response.getChildren("interfaces").get(intf_index).getFirstChild("name").setValue(interfaceDefinition.name());
+            addInterfaceToList(interfaces, interfaceDefinition);
+        }
 
-		} else if ( portInfo instanceof OutputPortInfo ) {
-			OutputPortInfo port = (OutputPortInfo) portInfo;
-			if ( port.location() != null ) {
-				response.getFirstChild( "location" ).setValue( port.location().toString() );
-			} else {
-				response.getFirstChild( "location" ).setValue( "local" );
-			}
-			if ( port.protocolId() != null ) {
-				response.getFirstChild( "protocol" ).setValue( port.protocolId() );
-			} else {
-				response.getFirstChild( "protocol" ).setValue( "" );
-			}
-		}
+        // scanning aggregation
+        // extracts interfaces from aggregated outputPorts
+        for (int x = 0; x < portInfo.aggregationList().length; x++) {
+            int i = 0;
+            while (!portInfo.aggregationList()[x].outputPortList()[0].equals(outputPortList[i].id())) {
+                i++;
+            }
+            int intf = response.getChildren("interfaces").size();
+            for (InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList()) {
+                response.getChildren("interfaces").get(intf).getFirstChild("name").setValue(interfaceDefinition.name());
+                addInterfaceToList(interfaces, interfaceDefinition);
+                intf++;
+            }
+        }
 
-		// scans interfaces
-		List<InterfaceDefinition> interfaceList = portInfo.getInterfaceList();
-		for( int intf = 0; intf < interfaceList.size(); intf++ ) {
-			InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get( intf );
+        return response;
 
-			// setting the name of the interface within the port response
-			response.getChildren( "interfaces" ).get( intf ).getFirstChild( "name" ).setValue( interfaceDefinition.name() );
-			interfaces = addInterfaceToList( interfaces, interfaceDefinition );
+    }
 
-		}
+    private Value getFault(String faultname, TypeDefinition typedef, TypeDefinition extension) {
+        Value type = Value.create();
+        type.getFirstChild("name").setValue(faultname);
+        if (typedef != null) {
+            type.getFirstChild("type_name").setValue(typedef.id());
+            if (!isNativeType(typedef.id())) {
+                insertTypeDefinition(typedef, extension);
+            }
+        }
+        return type;
+    }
 
-		return response;
-	}
+    private Value getInterfaceAndInsertTypes(
+            InterfaceDefinition interfaceDefinition,
+            OneWayOperationDeclaration owExtender,
+            RequestResponseOperationDeclaration rrExtender) {
+        Value inputInterface = Value.create();
+        listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
+        listOfGeneratedTypesInValues = new ArrayList<>();
 
-	private String[] getArgs( String filename )
-	{
-		StringBuilder builder = new StringBuilder();
-		int i = 0;
-		for( String s : interpreter().includePaths() ) {
-			builder.append( s );
-			if ( ++i < interpreter().includePaths().length ) {
-				builder.append( jolie.lang.Constants.pathSeparator );
-			}
-		}
-		
-		return new String[] {
-			"-i",
-			builder.toString(),
-			// String.join( jolie.lang.Constants.pathSeparator, interpreter().includePaths() ),
-			filename
-		};
-	}
+        inputInterface.deepCopy(getInterface(interfaceDefinition, owExtender, rrExtender));
 
-	
+        listOfGeneratedTypesInValues.stream().forEach(v -> {
+            inputInterface.getChildren("types").add(v);
+        });
 
-	private Value findType( ValueVector types, String typeName, String typeDomain )
-	{
-		Iterator iterator = types.iterator();
-		boolean found = false;
-		int index = 0;
-		while( index < types.size() && !found ) {
-			Value type = (Value) iterator.next();
-			String name = type.getFirstChild( "name" ).getFirstChild( "name" ).strValue();
-			String domain = type.getFirstChild( "name" ).getFirstChild( "domain" ).strValue();
-			if ( name.equals( typeName ) && domain.equals( typeDomain ) ) {
-				found = true;
-			}
-			index++;
-		}
-		return types.get( index - 1 );
-	}
+        return inputInterface;
 
-	private void castingSubType( ValueVector subTypes, String elementName, ValueVector messageVector, ValueVector types, Value response )
-		throws FaultException
-	{
-		boolean found = false;
-		int index = 0;
-		while( !found && index < subTypes.size() ) {
-			if ( subTypes.get( index ).getFirstChild( "name" ).strValue().equals( elementName ) ) {
-				found = true;
-			}
-			index++;
-		}
-		if ( !found ) {
-			throw new FaultException( "TypeMismatch" );
-		} else {
-			Value subType = subTypes.get( index - 1 );
-			// check cardinality
-			if ( messageVector.size() < subType.getFirstChild( "Cardinality" ).getFirstChild( "min" ).intValue() ) {
-				throw new FaultException( "TypeMismatch" );
-			}
-			if ( subType.getFirstChild( "cardinality" ).getChildren( "max" ).size() > 0 ) {
-				if ( messageVector.size() > subType.getFirstChild( "cardinality" ).getFirstChild( "max" ).intValue() ) {
-					throw new FaultException( "TypeMismatch" );
-				}
-			}
-			// casting all the elements
-			for( int el = 0; el < messageVector.size(); el++ ) {
-				if ( subType.getChildren( "type_inline" ).size() > 0 ) {
-					castingType( subType.getFirstChild( "type_inline" ), messageVector.get( el ), types, response.getChildren( elementName ).get( el ) );
-				} else if ( subType.getChildren( "type_link" ).size() > 0 ) {
-					String name = subType.getFirstChild( "type_link" ).getFirstChild( "name" ).strValue();
-					String domain = subType.getFirstChild( "type_link" ).getFirstChild( "domain" ).strValue();
-					Value typeToCast = findType( types, name, domain );
-					castingType( typeToCast, messageVector.get( el ), types, response.getChildren( elementName ).get( el ) );
-				}
-			}
-		}
+    }
 
-	}
+    private Value getPort(PortInfo portInfo, List<InterfaceDefinition> interfaces) {
+        Value response = Value.create();
 
-	private void castingType( Value typeToCast, Value message, ValueVector types, Value response )
-		throws FaultException
-	{
+        // setting the name of the port
+        response.getFirstChild("name").setValue(portInfo.id());
 
-		// casting root
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "string_type" ).size() > 0 ) {
-			response.setValue( message.strValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "bool_type" ).size() > 0 ) {
-			response.setValue( message.boolValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "int_type" ).size() > 0 ) {
-			response.setValue( message.intValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "double_type" ).size() > 0 ) {
-			response.setValue( message.doubleValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "any_type" ).size() > 0 ) {
-			response.setValue( message.strValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "int_type" ).size() > 0 ) {
-			response.setValue( message.intValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "void_type" ).size() > 0 ) {
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "long_type" ).size() > 0 ) {
-			response.setValue( message.longValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "int_type" ).size() > 0 ) {
-			response.setValue( message.intValue() );
-		}
-		if ( typeToCast.getFirstChild( "root_type" ).getChildren( "link" ).size() > 0 ) {
-			String domain = "";
-			if ( typeToCast.getFirstChild( "root_type" ).getFirstChild( "link" ).getChildren( "domain" ).size() > 0 ) {
-				domain = typeToCast.getFirstChild( "root_type" ).getFirstChild( "link" ).getFirstChild( "domain" ).strValue();
-			}
-			Value linkRootType = findType( types, typeToCast.getFirstChild( "root_type" ).getFirstChild( "link" ).getFirstChild( "name" ).strValue(), domain ).getFirstChild( "root_type" );
-			castingType( linkRootType, message, types, response );
-		}
+        if (portInfo instanceof InputPortInfo) {
+            InputPortInfo port = (InputPortInfo) portInfo;
+            if (port.location() != null) {
+                response.getFirstChild("location").setValue(port.location().toString());
+            } else {
+                response.getFirstChild("location").setValue("local");
+            }
+            if (port.protocolId() != null) {
+                response.getFirstChild("protocol").setValue(port.protocolId());
+            } else {
+                response.getFirstChild("protocol").setValue("");
+            }
 
+        } else if (portInfo instanceof OutputPortInfo) {
+            OutputPortInfo port = (OutputPortInfo) portInfo;
+            if (port.location() != null) {
+                response.getFirstChild("location").setValue(port.location().toString());
+            } else {
+                response.getFirstChild("location").setValue("local");
+            }
+            if (port.protocolId() != null) {
+                response.getFirstChild("protocol").setValue(port.protocolId());
+            } else {
+                response.getFirstChild("protocol").setValue("");
+            }
+        }
 
-		// choice
-		if ( typeToCast.getChildren( "choice" ).size() > 0  ) {
-			try {
-				castingType( typeToCast, message, typeToCast.getFirstChild( "choice" ).getChildren( "left_type" ), response );
-			} catch ( FaultException f ) {
-				if ( f.faultName().equals("TypeMismatch")) {
-                                    castingType( typeToCast, message, typeToCast.getFirstChild( "choice" ).getChildren( "right_type" ), response );
-                                }
-			}
-		}
+        // scans interfaces
+        List<InterfaceDefinition> interfaceList = portInfo.getInterfaceList();
+        for (int intf = 0; intf < interfaceList.size(); intf++) {
+            InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf);
 
-		// casting subTypes
-		if ( typeToCast.getChildren( "sub_type" ).size() > 0 ) {
-			// ranging over all the subfields of the message
-			for( Entry<String, ValueVector> e : message.children().entrySet() ) {
-				castingSubType( typeToCast.getChildren( "sub_type" ), e.getKey(), message.getChildren( e.getKey() ), types, response );
-			}
-		}
+            // setting the name of the interface within the port response
+            response.getChildren("interfaces").get(intf).getFirstChild("name").setValue(interfaceDefinition.name());
+            interfaces = addInterfaceToList(interfaces, interfaceDefinition);
 
-	}
-        
-        @RequestResponse
-	public Value getInputPortMetaData( Value request ) throws FaultException
-	{
-		Value response = Value.create();
-		try {
-			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
-			
-			CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() );
-			Program program = ParsingUtils.parseProgram(
-				cmdParser.programStream(),
-				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(),	false
-			);
-			ProgramInspector inspector = ParsingUtils.createInspector( program );
+        }
 
-			URI originalFile = program.context().source();
+        return response;
+    }
 
-			InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
-			ValueVector input = response.getChildren( "input" );
-		
-			if ( inputPortList.length > 0 ) {
-				for( int ip = 0; ip < inputPortList.length; ip++ ) {
-					InputPortInfo inputPort = inputPortList[ ip ];
-					input.get( ip ).deepCopy( getInputPort( inputPort, inspector.getOutputPorts() ) );
-				}
-			}
-			cmdParser.close();
+    private String[] getArgs(String filename) {
+        StringBuilder builder = new StringBuilder();
+        int i = 0;
+        for (String s : interpreter().includePaths()) {
+            builder.append(s);
+            if (++i < interpreter().includePaths().length) {
+                builder.append(jolie.lang.Constants.pathSeparator);
+            }
+        }
 
-		} catch( CommandLineException e ) {
-			throw new FaultException( "InputPortMetaDataFault", e );
-		} catch( IOException e ) {
-			throw new FaultException( "InputPortMetaDataFault", e );
-		} catch( ParserException e ) {
-			Value fault = Value.create();
-			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().line() );
-			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
-			throw new FaultException( "ParserException", fault );
-		} catch( SemanticException e ) {
-			Value fault = Value.create();
-			List<SemanticException.SemanticError> errorList = e.getErrorList();
-			for( int i = 0; i < errorList.size(); i++ ) {
-				fault.getChildren( "error" ).get( i ).getFirstChild( "message" ).setValue( errorList.get( i ).getMessage() );
-				fault.getChildren( "error" ).get( i ).getFirstChild( "line" ).setValue( errorList.get( i ).context().line() );
-				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" ).setValue( errorList.get( i ).context().sourceName() );
-			}
-			throw new FaultException( "SemanticException", fault );
-		}
+        return new String[]{
+            "-i",
+            builder.toString(),
+            // String.join( jolie.lang.Constants.pathSeparator, interpreter().includePaths() ),
+            filename
+        };
+    }
 
-               
-		return response;
-	}
+    private Value findType(ValueVector types, String typeName, String typeDomain) {
+        Iterator iterator = types.iterator();
+        boolean found = false;
+        int index = 0;
+        while (index < types.size() && !found) {
+            Value type = (Value) iterator.next();
+            String name = type.getFirstChild("name").getFirstChild("name").strValue();
+            String domain = type.getFirstChild("name").getFirstChild("domain").strValue();
+            if (name.equals(typeName) && domain.equals(typeDomain)) {
+                found = true;
+            }
+            index++;
+        }
+        return types.get(index - 1);
+    }
 
+    private void castingSubType(ValueVector subTypes, String elementName, ValueVector messageVector, ValueVector types, Value response)
+            throws FaultException {
+        boolean found = false;
+        int index = 0;
+        while (!found && index < subTypes.size()) {
+            if (subTypes.get(index).getFirstChild("name").strValue().equals(elementName)) {
+                found = true;
+            }
+            index++;
+        }
+        if (!found) {
+            throw new FaultException("TypeMismatch");
+        } else {
+            Value subType = subTypes.get(index - 1);
+            // check cardinality
+            if (messageVector.size() < subType.getFirstChild("Cardinality").getFirstChild("min").intValue()) {
+                throw new FaultException("TypeMismatch");
+            }
+            if (subType.getFirstChild("cardinality").getChildren("max").size() > 0) {
+                if (messageVector.size() > subType.getFirstChild("cardinality").getFirstChild("max").intValue()) {
+                    throw new FaultException("TypeMismatch");
+                }
+            }
+            // casting all the elements
+            for (int el = 0; el < messageVector.size(); el++) {
+                if (subType.getChildren("type_inline").size() > 0) {
+                    castingType(subType.getFirstChild("type_inline"), messageVector.get(el), types, response.getChildren(elementName).get(el));
+                } else if (subType.getChildren("type_link").size() > 0) {
+                    String name = subType.getFirstChild("type_link").getFirstChild("name").strValue();
+                    String domain = subType.getFirstChild("type_link").getFirstChild("domain").strValue();
+                    Value typeToCast = findType(types, name, domain);
+                    castingType(typeToCast, messageVector.get(el), types, response.getChildren(elementName).get(el));
+                }
+            }
+        }
 
-	@RequestResponse
-	public Value messageTypeCast( Value request )
-		throws FaultException
-	{
-		Value message = request.getFirstChild( "message" );
-		String messageTypeName = request.getFirstChild( "types" ).getFirstChild( "messageTypeName" ).getFirstChild( "name" ).strValue();
-		String messageTypeDomain = request.getFirstChild( "types" ).getFirstChild( "messageTypeName" ).getFirstChild( "domain" ).strValue();
-		ValueVector types = request.getFirstChild( "types" ).getChildren( "types" );
-		Value response = Value.create();
+    }
 
-		// get message type
-		Value messageType = findType( types, messageTypeName, messageTypeDomain );
-		// casting root node
-		castingType( messageType, message, types, response.getFirstChild( "message" ) );
+    private void castingType(Value typeToCast, Value message, ValueVector types, Value response)
+            throws FaultException {
 
-		return response;
-	}
-        
-        @RequestResponse
-	public Value checkNativeType( Value request )
-	{
-		Value response = Value.create();
-		response.getFirstChild( "result" ).setValue( isNativeType( request.getFirstChild( "type_name" ).strValue() ) );
-		return response;
-	}
+        // casting root
+        if (typeToCast.getFirstChild("root_type").getChildren("string_type").size() > 0) {
+            response.setValue(message.strValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("bool_type").size() > 0) {
+            response.setValue(message.boolValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("int_type").size() > 0) {
+            response.setValue(message.intValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("double_type").size() > 0) {
+            response.setValue(message.doubleValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("any_type").size() > 0) {
+            response.setValue(message.strValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("int_type").size() > 0) {
+            response.setValue(message.intValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("void_type").size() > 0) {
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("long_type").size() > 0) {
+            response.setValue(message.longValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("int_type").size() > 0) {
+            response.setValue(message.intValue());
+        }
+        if (typeToCast.getFirstChild("root_type").getChildren("link").size() > 0) {
+            String domain = "";
+            if (typeToCast.getFirstChild("root_type").getFirstChild("link").getChildren("domain").size() > 0) {
+                domain = typeToCast.getFirstChild("root_type").getFirstChild("link").getFirstChild("domain").strValue();
+            }
+            Value linkRootType = findType(types, typeToCast.getFirstChild("root_type").getFirstChild("link").getFirstChild("name").strValue(), domain).getFirstChild("root_type");
+            castingType(linkRootType, message, types, response);
+        }
 
+        // choice
+        if (typeToCast.getChildren("choice").size() > 0) {
+            try {
+                castingType(typeToCast, message, typeToCast.getFirstChild("choice").getChildren("left_type"), response);
+            } catch (FaultException f) {
+                if (f.faultName().equals("TypeMismatch")) {
+                    castingType(typeToCast, message, typeToCast.getFirstChild("choice").getChildren("right_type"), response);
+                }
+            }
+        }
 
-	@RequestResponse
-	public Value getMetaData( Value request )
-		throws FaultException
-	{
+        // casting subTypes
+        if (typeToCast.getChildren("sub_type").size() > 0) {
+            // ranging over all the subfields of the message
+            for (Entry<String, ValueVector> e : message.children().entrySet()) {
+                castingSubType(typeToCast.getChildren("sub_type"), e.getKey(), message.getChildren(e.getKey()), types, response);
+            }
+        }
 
-		String domain = "";
-		List<TypeDefinition> types = new ArrayList<TypeDefinition>();
-		List<InterfaceDefinition> interfaces = new ArrayList<InterfaceDefinition>();
-		Value response = Value.create();
-		try {
-			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
+    }
 
-			CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() );
-			Program program = ParsingUtils.parseProgram(
-				cmdParser.programStream(),
-				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
-			ProgramInspector inspector = ParsingUtils.createInspector( program );
+    @RequestResponse
+    public Value getInputPortMetaData(Value request) throws FaultException {
+        Value response = Value.create();
+        try {
+            String[] args = getArgs(request.getFirstChild("filename").strValue());
 
-			URI originalFile = program.context().source();
+            CommandLineParser cmdParser = new CommandLineParser(args, interpreter().getClassLoader());
+            Program program = ParsingUtils.parseProgram(
+                    cmdParser.programStream(),
+                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false
+            );
+            ProgramInspector inspector = ParsingUtils.createInspector(program);
 
-			cmdParser.close();
+            URI originalFile = program.context().source();
 
-			OutputPortInfo[] outputPortList = inspector.getOutputPorts();
-			if ( outputPortList.length > 0 ) {
-				ValueVector output = response.getChildren( "output" );
-				for( int op = 0; op < outputPortList.length; op++ ) {
-					OutputPortInfo outputPort = outputPortList[ op ];
-					output.get( op ).deepCopy( getPort( outputPort, interfaces ) );
-					response.getFirstChild( "service" ).getChildren( "output" ).get( op ).getFirstChild( "name" ).setValue( outputPort.id() );
-				}
-			}
+            InputPortInfo[] inputPortList = inspector.getInputPorts(originalFile);
+            ValueVector input = response.getChildren("input");
 
-			InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
-			ValueVector input = response.getChildren( "input" );
-			if ( inputPortList.length > 0 ) {
-				for( int ip = 0; ip < inputPortList.length; ip++ ) {
-					InputPortInfo inputPort = inputPortList[ ip ];
-					input.get( ip ).deepCopy( getInputPort( inputPort, outputPortList, interfaces ) );
-					response.getFirstChild( "service" ).getChildren( "input" ).get( ip ).setValue( inputPort.id() );
-				}
-			}
+            if (inputPortList.length > 0) {
+                for (int ip = 0; ip < inputPortList.length; ip++) {
+                    InputPortInfo inputPort = inputPortList[ip];
+                    input.get(ip).deepCopy(getInputPort(inputPort, inspector.getOutputPorts()));
+                }
+            }
+            cmdParser.close();
 
-			// adding interfaces
-			for( int intf = 0; intf < interfaces.size(); intf++ ) {
-				InterfaceDefinition interfaceDefinition = interfaces.get( intf );
-				response.getChildren( "interfaces" ).get( intf ).deepCopy( getInterface( interfaceDefinition, null, null ) );
-			}
+        } catch (CommandLineException e) {
+            throw new FaultException("InputPortMetaDataFault", e);
+        } catch (IOException e) {
+            throw new FaultException("InputPortMetaDataFault", e);
+        } catch (ParserException e) {
+            Value fault = Value.create();
+            fault.getFirstChild("message").setValue(e.getMessage());
+            fault.getFirstChild("line").setValue(e.context().line());
+            fault.getFirstChild("sourceName").setValue(e.context().sourceName());
+            throw new FaultException("ParserException", fault);
+        } catch (SemanticException e) {
+            Value fault = Value.create();
+            List<SemanticException.SemanticError> errorList = e.getErrorList();
+            for (int i = 0; i < errorList.size(); i++) {
+                fault.getChildren("error").get(i).getFirstChild("message").setValue(errorList.get(i).getMessage());
+                fault.getChildren("error").get(i).getFirstChild("line").setValue(errorList.get(i).context().line());
+                fault.getChildren("error").get(i).getFirstChild("sourceName").setValue(errorList.get(i).context().sourceName());
+            }
+            throw new FaultException("SemanticException", fault);
+        }
 
-			// adding types
-			for( int tp = 0; tp < types.size(); tp++ ) {
-				TypeDefinition typeDefinition = types.get( tp );
-				response.getChildren( "types" ).get( tp ).deepCopy( getType( typeDefinition, false, null ) );
-			}
+        return response;
+    }
 
-			// adding embedded services
-			EmbeddedServiceNode[] embeddedServices = inspector.getEmbeddedServices();
-			for( int es = 0; es < embeddedServices.length; es++ ) {
-				response.getChildren( "embeddedServices" ).get( es ).getFirstChild( "type" ).setValue( embeddedServices[ es ].type().toString() );
-				response.getChildren( "embeddedServices" ).get( es ).getFirstChild( "servicepath" ).setValue( embeddedServices[ es ].servicePath() );
-				response.getChildren( "embeddedServices" ).get( es ).getFirstChild( "portId" ).setValue( embeddedServices[ es ].portId() );
-			}
+    @RequestResponse
+    public Value messageTypeCast(Value request)
+            throws FaultException {
+        Value message = request.getFirstChild("message");
+        String messageTypeName = request.getFirstChild("types").getFirstChild("messageTypeName").getFirstChild("name").strValue();
+        String messageTypeDomain = request.getFirstChild("types").getFirstChild("messageTypeName").getFirstChild("domain").strValue();
+        ValueVector types = request.getFirstChild("types").getChildren("types");
+        Value response = Value.create();
 
-		} catch( CommandLineException e ) {
-		} catch( IOException e ) {
-		} catch( ParserException e ) {
-			Value fault = Value.create();
-			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().line() );
-			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
-			throw new FaultException( "ParserException", fault );
-		} catch( SemanticException e ) {
-			Value fault = Value.create();
-			int i = 0;
-			for( SemanticException.SemanticError error : e.getErrorList() ) {
-				fault.getChildren( "error" ).get( i ).getFirstChild( "message" ).setValue( error.getMessage() );
-				fault.getChildren( "error" ).get( i ).getFirstChild( "line" ).setValue( error.context().line() );
-				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" ).setValue( error.context().sourceName() );
-				i++;
-			}
-			throw new FaultException( "SemanticException", fault );
-		}
-		return response;
-	}
+        // get message type
+        Value messageType = findType(types, messageTypeName, messageTypeDomain);
+        // casting root node
+        castingType(messageType, message, types, response.getFirstChild("message"));
+
+        return response;
+    }
+
+    @RequestResponse
+    public Value checkNativeType(Value request) {
+        Value response = Value.create();
+        response.getFirstChild("result").setValue(isNativeType(request.getFirstChild("type_name").strValue()));
+        return response;
+    }
+
+    @RequestResponse
+    public Value getMetaData(Value request)
+            throws FaultException {
+
+        listOfGeneratedTypesInValues = new ArrayList<>();
+        listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
+        List<InterfaceDefinition> interfaces = new ArrayList<>();
+        Value response = Value.create();
+        try {
+            String[] args = getArgs(request.getFirstChild("filename").strValue());
+
+            CommandLineParser cmdParser = new CommandLineParser(args, MetaJolie.class.getClassLoader());
+            Program program = ParsingUtils.parseProgram(
+                    cmdParser.programStream(),
+                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false);
+            ProgramInspector inspector = ParsingUtils.createInspector(program);
+
+            URI originalFile = program.context().source();
+
+            cmdParser.close();
+ 
+            OutputPortInfo[] outputPortList = inspector.getOutputPorts();
+            if (outputPortList.length > 0) {
+                ValueVector output = response.getChildren("output");
+                for (int op = 0; op < outputPortList.length; op++) {
+                    OutputPortInfo outputPort = outputPortList[op];
+                    output.get(op).deepCopy(getPort(outputPort, interfaces));
+                    response.getFirstChild("service").getChildren("output").get(op).getFirstChild("name").setValue(outputPort.id());
+                }
+            }
+
+            InputPortInfo[] inputPortList = inspector.getInputPorts(originalFile);
+            ValueVector input = response.getChildren("input");
+            if (inputPortList.length > 0) {
+                for (int ip = 0; ip < inputPortList.length; ip++) {
+                    InputPortInfo inputPort = inputPortList[ip];
+                    input.get(ip).deepCopy(getInputPortInfoAndAddInterfacesToList(inputPort, outputPortList, interfaces));
+                    response.getFirstChild("service").getChildren("input").get(ip).setValue(inputPort.id());
+                }
+            }
+
+    
+            // adding interfaces
+            for (int intf = 0; intf < interfaces.size(); intf++) {
+                InterfaceDefinition interfaceDefinition = interfaces.get(intf);
+                response.getChildren("interfaces").get(intf).deepCopy(getInterface(interfaceDefinition, null, null));
+            }
+
+            // adding types
+            for (int tp = 0; tp < listOfGeneratedTypesInValues.size(); tp++) {
+                Value typeDefinition = listOfGeneratedTypesInValues.get(tp);
+                response.getChildren("types").get(tp).deepCopy( typeDefinition );
+            }
+
+            // adding embedded services
+            EmbeddedServiceNode[] embeddedServices = inspector.getEmbeddedServices();
+            for (int es = 0; es < embeddedServices.length; es++) {
+                response.getChildren("embeddedServices").get(es).getFirstChild("type").setValue(embeddedServices[es].type().toString());
+                response.getChildren("embeddedServices").get(es).getFirstChild("servicepath").setValue(embeddedServices[es].servicePath());
+                response.getChildren("embeddedServices").get(es).getFirstChild("portId").setValue(embeddedServices[es].portId());
+            }
+
+        } catch (CommandLineException e) {
+        } catch (IOException e) {
+        } catch (ParserException e) {
+            Value fault = Value.create();
+            fault.getFirstChild("message").setValue(e.getMessage());
+            fault.getFirstChild("line").setValue(e.context().line());
+            fault.getFirstChild("sourceName").setValue(e.context().sourceName());
+            throw new FaultException("ParserException", fault);
+        } catch (SemanticException e) {
+            Value fault = Value.create();
+            int i = 0;
+            for (SemanticException.SemanticError error : e.getErrorList()) {
+                fault.getChildren("error").get(i).getFirstChild("message").setValue(error.getMessage());
+                fault.getChildren("error").get(i).getFirstChild("line").setValue(error.context().line());
+                fault.getChildren("error").get(i).getFirstChild("sourceName").setValue(error.context().sourceName());
+                i++;
+            }
+            throw new FaultException("SemanticException", fault);
+        }
+        return response;
+    }
 
 }
