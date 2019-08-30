@@ -32,8 +32,20 @@ define doTest
       throw( TestFailed, "Expected operation_name equal to \"tmp\", found " + meta_description.input.interfaces.operations.operation_name )
   };
   if ( meta_description.input.interfaces.operations[1].operation_name != "tmp3" ) {
-      throw( TestFailed, "Expected secondo operation_name equal to \"tmp3\", found " + meta_description.input.interfaces.operations[1].operation_name )
+      throw( TestFailed, "Expected second operation_name equal to \"tmp3\", found " + meta_description.input.interfaces.operations[1].operation_name )
   }
 
   getMetaData@MetaJolie( rq )( metadata )
+  if ( #metadata.types != 6 ) {
+      throw( TestFailed, "Expected 6 types in metadata, found " + #metadata.types )
+  }
+  if ( #metadata.interfaces != 1 ) {
+      throw( TestFailed, "Expected 1 interface in metadata, found " + #metadata.interfaces )
+  }
+   if ( #metadata.interfaces.operations != 3 ) {
+      throw( TestFailed, "Expected 3 operations in metadata.interfaces[0], found " + #metadata.interfaces.operations )
+  }
+  if ( #metadata.input != 1 ) {
+      throw( TestFailed, "Expected 1 input in metadata, found " + #metadata.input )
+  }
 }
