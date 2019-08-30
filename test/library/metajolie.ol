@@ -1,5 +1,6 @@
 include "../AbstractTestUnit.iol"
 include "metajolie.iol"
+include "string_utils.iol"
 
 define doTest
 {
@@ -22,8 +23,8 @@ define doTest
   if ( meta_description.input.interfaces.name != "TmpInterface" ) {
       throw( TestFailed, "Expected interface name equal to \"TmpInterface\", found " + meta_description.input.interfaces.name )
   };
-  if ( #meta_description.input.interfaces.types != 6 ) {
-      throw( TestFailed, "Expected 6 types, found " + #meta_description.input.interfaces.types )
+  if ( #meta_description.input.interfaces.types != 7 ) {
+      throw( TestFailed, "Expected 7 types, found " + #meta_description.input.interfaces.types )
   };
   if ( #meta_description.input.interfaces.operations != 3 ) {
       throw( TestFailed, "Expected 3 operation, found " + #meta_description.input.interfaces.operations )
@@ -34,10 +35,26 @@ define doTest
   if ( meta_description.input.interfaces.operations[1].operation_name != "tmp3" ) {
       throw( TestFailed, "Expected second operation_name equal to \"tmp3\", found " + meta_description.input.interfaces.operations[1].operation_name )
   }
+  ops -> meta_description.input.interfaces.operations
+  for( o = 0, o < #ops, o++ ) {
+      if ( !is_defined( ops[ o ].fault ) ) {
+          throw( TestFailed, "Expected faults in operation " + ops[ o ].operation_name )
+      }
+      if ( ops[ o ].fault.name == "Fault2" && ops[ o ].fault.type.undefined != true ) {
+          valueToPrettyString@StringUtils( ops[ o ].fault )( f )
+          throw( TestFailed, "Fault2 must be undefined  .undefined = true, found " + f )
+      }
+  }
 
   getMetaData@MetaJolie( rq )( metadata )
-  if ( #metadata.types != 6 ) {
-      throw( TestFailed, "Expected 6 types in metadata, found " + #metadata.types )
+  if ( #metadata.types != 7 ) {
+      throw( TestFailed, "Expected 7 types in metadata, found " + #metadata.types )
+  }
+  for( t = 0, t < #metadata.types, t++ ) {
+      if ( metadata.types[ t ].name == "T7" && metadata.types[ t ].type.undefined != true ) {
+          valueToPrettyString@StringUtils( metadata.types[ t ] )( tt )
+          throw( TestFailed, "Type T7 must be undefined  .undefined = true, found " + tt )
+      }
   }
   if ( #metadata.interfaces != 1 ) {
       throw( TestFailed, "Expected 1 interface in metadata, found " + #metadata.interfaces )
