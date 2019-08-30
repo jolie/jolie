@@ -70,6 +70,7 @@ interface DemoInterface {
     deleteOrder( DeleteOrderRequest )( DeleteOrderResponse )
 }
 
+execution{ concurrent }
 inputPort DEMO {
   Location: "local"
   Protocol: sodep

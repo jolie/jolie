@@ -180,6 +180,30 @@ define __body {
                                         .schema << c_interface.types[ tp_resp_count ]
                                     }
                             }
+                            if ( #oper.faults > 0 ) {
+                                with( .response.("500")) {
+                                    .description = "Fault";
+                                    with( .schema ) {
+                                        .name = "FaultType";
+                                        with( .type ) {
+                                            .root_type.void_type = true;
+                                            with( .sub_type[0] ) {
+                                                .name = "fault";
+                                                .cardinality.min = 1;
+                                                .cardinality.max = 1;
+                                                .type.root_type.string_type = true    
+                                            }
+                                            with( .sub_type[0] ) {
+                                                .name = "content";
+                                                .cardinality.min = 1;
+                                                .cardinality.max = 1;
+                                                .type.root_type.undefined_type = true    
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
                         };
                         openapi_params_count = -1
                         current_openapi_path -> openapi.paths[ path_counter ].( __method )
@@ -205,7 +229,6 @@ define __body {
                         get_actual_ctype_rq.type_map -> global.type_map 
                         getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
                         current_type -> global.type_map.( actual_type_name )
-                        
 
                         if ( !( __template instanceof void ) ) {
                         

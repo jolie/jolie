@@ -181,7 +181,7 @@ main {
                                     getType@JSONSchemaGenerator( type )( generated_type );
                                     cur_par.ln.schema << generated_type
                                } else if ( is_defined( in_body.schema_ref ) ) {
-                                    cur_par.ln.schema.("$ref") = "#definitions/" + in_body.schema_ref
+                                    cur_par.ln.schema.("$ref") = "#/definitions/" + in_body.schema_ref
                                     cur_par.ln.required = true
                                }
                           };

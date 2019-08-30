@@ -1393,7 +1393,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
-		if ( !message.isGet() && !message.isHead() && !message.isDelete() ) {
+		if ( !message.isGet() && !message.isHead() ) {
 			// body parsing
 			if ( message.size() > 0 ) {
 				recv_parseMessage( message, decodedMessage, contentType, charset );

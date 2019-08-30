@@ -4,13 +4,13 @@ type GetJolieCodeForOpenApi2JolieClientRequest: void {
     .protocol: string
 }
 
-type GetJolieCodeForOpenApi2JolieInterfacesRequest: void {
+/*type GetJolieCodeForOpenApi2JolieInterfacesRequest: void {
     .port_name: string
     .openapi: undefined
-}
+}*/
 
 interface OpenApi2JolieInterface {
     RequestResponse:
-        getJolieClient( GetJolieCodeForOpenApi2JolieClientRequest )( string ),
-        getJolieInterface( GetJolieCodeForOpenApi2JolieInterfacesRequest )( string )
+        getJolieClient( GetJolieCodeForOpenApi2JolieClientRequest )( string )
+        //getJolieInterface( GetJolieCodeForOpenApi2JolieInterfacesRequest )( string )
 }
