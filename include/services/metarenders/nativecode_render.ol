@@ -270,8 +270,14 @@ main
 			getTypeChoice@MySelf( request )( response )
 		} else if ( request instanceof TypeInLine ) {
 			getTypeInLine@MySelf( request )( response )
+		} else if ( request instanceof TypeUndefined ) {
+			getTypeUndefined@MySelf( request )( response )
 		}
   } ] 
+
+  [ getTypeUndefined( request )( response ) {
+	  response = "undefined"
+  }]
 
   [ getSubType( request )( response ) {
 		indentify;
@@ -319,8 +325,6 @@ main
 		response = "raw"
 		} else if ( is_defined( request.void_type ) ) {
 		response = "void"
-		} else if ( is_defined( request.undefined_type ) ) {
-		response = "undefined"
 		} else if ( is_defined( request.bool_type ) ) {
 		response = "bool"
 		} else if ( is_defined( request.long_type ) ) {
