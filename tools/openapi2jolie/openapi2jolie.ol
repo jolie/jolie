@@ -26,10 +26,15 @@ include "file.iol"
 include "json_utils.iol"
 
 include "services/openapi/public/interfaces/OpenApiDefinitionInterface.iol"
+include "services/openapi/public/interfaces/OpenApi2JolieInterface.iol"
 
 
 outputPort OpenApiDefinition {
     Interfaces: OpenApiDefinitionInterface
+}
+
+outputPort OpenApi2Jolie {
+    Interfaces: OpenApi2JolieInterface
 }
 
 outputPort HTTP {
@@ -51,7 +56,8 @@ outputPort HTTPS {
 
 embedded {
   Jolie:
-    "services/openapi/openapi_definition.ol" in OpenApiDefinition
+    "--trace services/openapi/openapi_definition.ol" in OpenApiDefinition,
+    "--trace services/openapi/openapi2jolie.ol" in OpenApi2Jolie
 }
 
 define _get_protocol_port {
@@ -128,7 +134,7 @@ main {
                     }
                 }
             };
-println@Console( location )()
+            
             if ( protocol == "http" ) {
                 HTTP.location = location;
                 getDefinition@HTTP()( openapi )
@@ -142,7 +148,7 @@ println@Console( location )()
         readFile@File( f )( openapi );
         _get_protocol_port
     }
-    ;
+
 
     service_name = args[ 1 ];
     spl = string( openapi.host );
@@ -152,169 +158,18 @@ println@Console( location )()
         openapi.host = openapi.host + ":" + protocol_port
     };
 
-    /* creating outputPort */
-    outputPort.name = service_name + "Port";
-    outputPort.location = "socket://" + openapi.host + openapi.basePath;
-    outputPort.protocol = protocol;
-    outputPort.interface = service_name + "Interface";
 
-    foreach( path : openapi.paths ) {
-        foreach( method : openapi.paths.( path ) ) {
-            if ( !is_defined( openapi.paths.( path ).( method ).operationId ) ) {
-                println@Console( "Path " + method + ":" + path + " does not define an operationId, please insert an operationId for this path.")();
-                print@Console(">")();
-                in( operationId )
-            } else {
-                operationId = openapi.paths.( path ).( method ).operationId
-            }
-            ;
-            op_max = #outputPort.interface.operation;
-            spl = path;
-            spl.replacement = "%!\\{";
-            spl.regex = "\\{";
-            replaceAll@StringUtils( spl )( corrected_path );
-
-            outputPort.interface.operation[ op_max ] = operationId;
-            outputPort.interface.operation[ op_max ].path = corrected_path;
-            outputPort.interface.operation[ op_max ].method = method;
-            outputPort.interface.operation[ op_max ].parameters << openapi.paths.( path ).( method ).parameters;
-            foreach( res : openapi.paths.( path ).( method ).responses ) {
-                if ( res == "200" ) {
-                     outputPort.interface.operation[ op_max ].response << openapi.paths.( path ).( method ).responses.( res )
-                } else {
-                     outputPort.interface.operation[ op_max ].faults.( res ) << openapi.paths.( path ).( method ).responses.( res )
-                }
-            }
-            
-        }
-    };
-
-    foreach( definition : openapi.definitions ) {
-        get_def.name = definition;
-        get_def.definition -> openapi.definitions.( definition );
-        getJolieTypeFromOpenApiDefinition@OpenApiDefinition( get_def )( j_definition );
-        interface_file = interface_file + j_definition
-    };
-
-    for( o = 0, o < #outputPort.interface.operation, o++ ) {
-        rq_p.definition.parameters -> outputPort.interface.operation[ o ].parameters;
-        rq_p.name = outputPort.interface.operation[ o ] + "Request";
-        getJolieTypeFromOpenApiParameters@OpenApiDefinition( rq_p )( parameters );
-
-        type_string = parameters;
-
-        type_string = type_string + "type " + outputPort.interface.operation[ o ] + "Response:";
-        if ( is_defined( outputPort.interface.operation[ o ].response.schema ) ) {
-            if ( is_defined( outputPort.interface.operation[ o ].response.schema.("$ref") ) ) {
-                getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].response.schema.("$ref") )( ref );
-                type_string = type_string + ref + "\n"
-            } else if ( outputPort.interface.operation[ o ].response.schema.type == "array" ) {
-                rq_arr.definition -> outputPort.interface.operation[ o ].response.schema;
-                rq_arr.indentation = 1;
-                getJolieDefinitionFromOpenApiArray@OpenApiDefinition( rq_arr )( array );
-                type_string = type_string + " void {\n\t._" + array + "}\n"
-            } else if ( outputPort.interface.operation[ o ].response.schema.type == "object" ) {
-                type_string = type_string + "undefined\n"
-            } else {
-                rq_n.type = outputPort.interface.operation[ o ].response.schema.type;
-                if ( is_defined( outputPort.interface.operation[ o ].response.schema.format ) ) {
-                    rq_n.format = outputPort.interface.operation[ o ].response.schema.format
-                };
-                getJolieNativeTypeFromOpenApiNativeType@OpenApiDefinition( rq_n )( native );
-                type_string = type_string + native + "\n"
-            }
-        } else {
-          type_string = type_string + "undefined \n"
-        }
-        ;
-        interface_file = interface_file + type_string
-    };
-
-
-    /* create interface file */
-    interface_file = interface_file + "interface " + outputPort.interface + "{\n";
-    interface_file = interface_file + "RequestResponse:\n";
-    for( o = 0, o < #outputPort.interface.operation, o++ ) {
-        interface_file = interface_file + "\t" + outputPort.interface.operation[ o ]
-            + "( " + outputPort.interface.operation[ o ] + "Request )"
-            + "( " + outputPort.interface.operation[ o ] + "Response )";
-        if ( is_defined( outputPort.interface.operation[ o ].faults ) ) {
-            interface_file = interface_file + " throws";
-            foreach( f : outputPort.interface.operation[ o ].faults ) {
-                faultType = "";
-                if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema ) ) {
-                    getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
-                    faultType = "(" + ref + ")"
-                } else {
-                    if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).description ) ) {
-                        faultType = "( string )"
-                    }
-                }
-                interface_file = interface_file + " Fault" + f + faultType
-            }
-        };
-
-        if ( o < (#outputPort.interface.operation - 1) ) {
-            interface_file = interface_file + ",\n"
-        }
-    };
-    interface_file =  interface_file + "\n}\n\n";
+    with( get_code_from_openapi ) {
+        .port_name = service_name;
+        .openapi -> openapi
+    }
+    getJolieInterface@OpenApi2Jolie( get_code_from_openapi )( interface_file )
     file.filename = output_folder + "/" + service_name + "Interface.iol";
     file.content = interface_file;
     writeFile@File( file )()
     ;
     
-    //writing client service file
-    client_file = "include \"" + service_name + "Interface.iol\"\n\n";
-    client_file = client_file + "execution{ concurrent }\n\n";
-
-
-    client_file = client_file + "outputPort " + outputPort.name + "{\n";
-    client_file = client_file + "Location: \"" + outputPort.location + "\"\n";
-    client_file = client_file + "Protocol: " + outputPort.protocol + "{\n";
-    if ( protocol == "https" ) { 
-        client_file = client_file + ".ssl.protocol = \"TLSv1.1\";"
-    };
-    for( o = 0, o < #outputPort.interface.operation, o++ ) {
-        client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
-                          + ".alias=\"" + outputPort.interface.operation[ o ].path + "\";\n";
-        client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
-                          + ".method=\"" + outputPort.interface.operation[ o ].method + "\"";
-        if ( o < (#outputPort.interface.operation - 1) ) {
-            client_file = client_file + ";\n"
-        }
-    };
-    client_file = client_file + "}\n";
-
-    client_file = client_file + "Interfaces: " + outputPort.interface + "\n}\n\n";
-
-    client_file = client_file + "inputPort " + service_name + "{\n";
-    client_file = client_file + "Location:\"local\"\n";
-    client_file = client_file + "Protocol: sodep\n";
-    client_file = client_file + "Interfaces: " + outputPort.interface + "\n}\n\n";
-
-    client_file = client_file + "main {\n";
-    for( o = 0, o < #outputPort.interface.operation, o++ ) {
-        client_file = client_file + "\t[ " + outputPort.interface.operation[ o ] + "( request )( response ) {\n";
-        client_file = client_file + "\t\t" + outputPort.interface.operation[ o ] + "@" + outputPort.name + "( request )( response )\n";
-        if ( is_defined( outputPort.interface.operation[ o ].faults ) ) {
-            foreach( f : outputPort.interface.operation[ o ].faults ) {
-                faultValue = "";
-                if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema ) ) {
-                    faultValue = ", response"
-                } else {
-                    if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).description ) ) {
-                        faultValue = ", response.description"
-                    }
-                }
-                client_file = client_file + "\t\tif ( response.(\"@header\").statusCode == " + f + ") {\n ";
-                client_file = client_file + "\t\t\tthrow( Fault" + f + faultValue + ")\n"
-                client_file = client_file + "\t\t}\n"
-            }
-        };
-        client_file = client_file + "\t}]\n\n"
-    };
-    client_file = client_file + "}"
+    getJolieClient@OpenApi2Jolie( get_code_from_openapi )( client_file )
 
     undef( file );
     file.filename = output_folder + "/" + service_name + "Client.ol";
