@@ -20,7 +20,7 @@ define doTest
       .filename = "private/sample_service.ol"
   };
   getInputPortMetaData@MetaJolie( rq )( meta_description )
-  getSurface@Render( meta_description.input )( surface  )
+  getSurface@MetaRender( meta_description.input )( surface  )
   f.filename = "library/private/sample_service.ol"
   readFile@File( f )( testservice )
   mkdir@File( TMPDIR )(  )

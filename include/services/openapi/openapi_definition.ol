@@ -150,14 +150,13 @@ main {
                               .paths.(__template ).( op ).responses.( response ).description = current_response.description;
                               if ( is_defined( current_response.schema ) ) {
                                   .paths.(__template ).( op ).responses.( response ).schema.type = "object";
-                                  .paths.(__template ).( op ).responses.( response ).schema.("$ref") = "#/definitions/" + current_response.schema.name.name
+                                  .paths.(__template ).( op ).responses.( response ).schema.("$ref") = "#/definitions/" + current_response.schema.name
                               }
                          }
                        };
                        for( par = 0, par < #request.paths[ p ].( op ).parameters, par++ ) {
                           undef( cur_par );
                           if ( #request.paths[ p ].( op ).parameters == 1 ) {
-
                               cur_par.ln -> json.paths.(__template ).( op ).parameters[ 0 ]._
                           } else {
                               cur_par.ln -> json.paths.(__template ).( op ).parameters[ par ]
@@ -174,17 +173,16 @@ main {
                                           cur_par.ln.required = true
                                     };
 
-                                    if ( is_defined( sb_type.type_inline ) ) {
-                                          getTypeInLine@JSONSchemaGenerator( sb_type.type_inline )( t_inline );
-                                          cur_par.ln.schema << t_inline
-                                    } else if ( is_defined( sb_type.type_link ) ) {
-                                          .("$ref") = "#/definitions/" + request.type_link.name
-                                    }
+                                    getType@JSONSchemaGenerator( sb_type.type )( sbt_type_generated );
+                                    cur_par.ln.schema << sbt_type_generated
                                }  else if ( is_defined( in_body.schema_type ) ) {
                                     type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type;
                                     cur_par.ln.required = true;
                                     getType@JSONSchemaGenerator( type )( generated_type );
-                                    cur_par.ln.schema << generated_type.( type.name.name )
+                                    cur_par.ln.schema << generated_type
+                               } else if ( is_defined( in_body.schema_ref ) ) {
+                                    cur_par.ln.schema.("$ref") = "#definitions/" + in_body.schema_ref
+                                    cur_par.ln.required = true
                                }
                           };
                           if ( is_defined( request.paths[ p ].( op ).parameters[ par ].in.other ) ) {
