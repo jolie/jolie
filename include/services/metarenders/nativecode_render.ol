@@ -112,8 +112,16 @@ main
 						response = response + " throws "
 				};
 				response = response + request.fault[ f ].name;
-				if ( is_defined( request.fault[ f ].type_name ) ) {
-						response = response + "(" + request.fault[ f ].type_name + ") "
+				if ( !(request.fault[ f ].type instanceof TypeUndefined)  ) {
+
+					if ( request.fault[ f ].type instanceof TypeLink ) {
+						response = response + "(" + request.fault[ f ].type.link_name + ") "
+					}
+					if ( request.fault[ f ].type instanceof NativeType ) {
+						getNativeType@MySelf( request.fault[ f ].type )( fault_native_type )
+						response = response + "(" + fault_native_type + ") "
+					}
+						
 				};
 				response = response + " "
 			}
