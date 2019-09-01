@@ -17,9 +17,16 @@
                     },
                     "500": {
                         "schema": {
-                            "$ref": "#\/definitions\/FaultType"
+                            "oneOf": [
+                                {
+                                    "$ref": "#\/definitions\/JolieFaultType1"
+                                },
+                                {
+                                    "$ref": "#\/definitions\/JolieFaultType0"
+                                }
+                            ]
                         },
-                        "description": "Fault"
+                        "description": "JolieFault"
                     }
                 },
                 "parameters": [
@@ -32,12 +39,8 @@
                         "required": true
                     }
                 ],
-                "tags": [
-                    "DemoInterface"
-                ],
-                "consumes": [
-                    "application\/json"
-                ]
+                "tags": "DemoInterface",
+                "consumes": "application\/json"
             }
         },
         "/putOrder": {
@@ -53,6 +56,12 @@
                             "$ref": "#\/definitions\/PutOrderResponse"
                         },
                         "description": "OK"
+                    },
+                    "500": {
+                        "schema": {
+                            "$ref": "#\/definitions\/JolieFaultType2"
+                        },
+                        "description": "JolieFault"
                     }
                 },
                 "parameters": [
@@ -196,14 +205,22 @@
                 }
             }
         },
-        "FaultTestType": {
+        "FaultTest2": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "message": {
+                "fieldfult1": {
                     "type": "string"
+                }
+            }
+        },
+        "FaultTest1": {
+            "type": "object",
+            "properties": {
+                "fieldfault1": {
+                    "type": "string"
+                },
+                "fieldfault2": {
+                    "type": "integer"
                 }
             }
         },
@@ -215,6 +232,30 @@
                 },
                 "userId": {
                     "type": "string"
+                }
+            }
+        },
+        "JolieFaultType2": {
+            "type": "object",
+            "properties": {
+                "fault": {
+                    "pattern": "FaultTest3",
+                    "type": "string"
+                },
+                "content": {
+                    "$ref": "#\/definitions\/FaultTest2"
+                }
+            }
+        },
+        "JolieFaultType1": {
+            "type": "object",
+            "properties": {
+                "fault": {
+                    "pattern": "FaultTest",
+                    "type": "string"
+                },
+                "content": {
+                    "$ref": "#\/definitions\/FaultTest1"
                 }
             }
         },
@@ -279,6 +320,16 @@
                 "orderId": {
                     "type": "integer"
                 }
+            }
+        },
+        "JolieFaultType0": {
+            "type": "object",
+            "properties": {
+                "fault": {
+                    "pattern": "FaultTest2",
+                    "type": "string"
+                },
+                "content": null
             }
         },
         "DeleteOrderRequest": {

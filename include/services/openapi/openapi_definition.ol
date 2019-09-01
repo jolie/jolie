@@ -98,16 +98,23 @@ main {
                   .externalDocs -> request.externalDocs
             };
             for( d = 0, d < #request.definitions, d++ ) {
-                  getTypeDefinition@JSONSchemaGenerator( request.definitions[ d ] )( def );
-                  .definitions << def.definitions
+                if ( request.definitions[ d ] instanceof TypeDefinition ) {
+                    getTypeDefinition@JSONSchemaGenerator( request.definitions[ d ] )( def )
+                } else if ( request.definitions[ d ] instanceof FaultDefinitionForOpenAPI ) {
+                    getTypeDefinition@JSONSchemaGenerator( request.definitions[ d ].fault )( def )
+                    def.( request.definitions[ d ].fault.name ).properties.fault.pattern = request.definitions[ d ].name 
+                }
+                .definitions << def
             };
             if ( LOG ) { println@Console("Checking paths...")() };
             for( p = 0, p <#request.paths, p++ ) {
 
                   __template = request.paths[ p ];
                   if ( LOG ) { println@Console("path:" + __template )() };
+
+                  // paths
                   foreach ( op : request.paths[ p ] ) {
-                    undef( __tags );
+                       undef( __tags );
                        if ( LOG ) { println@Console("method:" + op )() };
                        if ( #request.paths[ p ].( op ).tags == 1 ) {
                           __tags._ -> request.paths[ p ].( op ).tags
@@ -128,6 +135,7 @@ main {
                           .paths.(__template ).( op ).operationId = request.paths[ p ].( op ).operationId
                        };
 
+                       // consumes
                        if ( is_defined( request.paths[ p ].( op ).consumes ) ) {
                           if ( #request.paths[ p ].( op ).consumes == 1 ) {
                             __consumes._ = request.paths[ p ].( op ).consumes
@@ -136,6 +144,8 @@ main {
                           };
                           .paths.(__template ).( op ).consumes << __consumes
                        };
+
+                       // produces
                        if ( is_defined( request.paths[ p ].( op ).produces ) ) {
                          if ( #request.paths[ p ].( op ).produces == 1 ) {
                            __produces._ = request.paths[ p ].( op ).produces
@@ -144,16 +154,20 @@ main {
                          };
                           .paths.(__template ).( op ).produces << __produces
                        };
+
+                       // responses
                        if ( is_defined( request.paths[ p ].( op ).responses ) ) {
-                         foreach( response : request.paths[ p ].( op ).responses ) {
-                              current_response -> request.paths[ p ].( op ).responses.( response );
-                              .paths.(__template ).( op ).responses.( response ).description = current_response.description;
+                         for( res = 0, res < #request.paths[ p ].( op ).responses, res++ ) {
+                              current_response -> request.paths[ p ].( op ).responses[ res ];
+                              status = string( current_response.status )
+                              .paths.(__template ).( op ).responses.( status ).description = current_response.description;
                               if ( is_defined( current_response.schema ) ) {
-                                  //.paths.(__template ).( op ).responses.( response ).schema.type = "object";
-                                  .paths.(__template ).( op ).responses.( response ).schema.("$ref") = "#/definitions/" + current_response.schema.name
+                                   getType@JSONSchemaGenerator( current_response.schema )( .paths.(__template ).( op ).responses.( status ).schema ) 
                               }
                          }
                        };
+
+                       // parameters
                        for( par = 0, par < #request.paths[ p ].( op ).parameters, par++ ) {
                           undef( cur_par );
                           if ( #request.paths[ p ].( op ).parameters == 1 ) {

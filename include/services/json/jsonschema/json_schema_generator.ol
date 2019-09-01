@@ -50,13 +50,6 @@ init
 main
 {
 
- [ getSchemas( request )( response ) {
-     for ( t = 0, t < #request.types, t++ ) {
-       getTypeDefinition@MySelf( request.types[ t ] )( def );
-       response.definitions << def
-     }
- } ] { nullProcess }
-
  [ getTypeDefinition( request )( response ) {
       getType@MySelf( request.type )( response.( request.name ) )
  }] 
