@@ -6,7 +6,7 @@ include "string_utils.iol"
 include "file.iol"
 
 constants {
-    LOG = true
+    LOG = false
 }
 
 outputPort Jolie2OpenApi {

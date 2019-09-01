@@ -58,7 +58,7 @@ type OperationObject: void {
     .consumes*: string
     .produces*: string
     .parameters*: Parameter
-    .responses: Responses
+    .responses*: Responses
 }
 
 type InBody: void {
@@ -82,7 +82,11 @@ type Parameter: void {
     .description?: string
 }
 
-type Responses: undefined
+type Responses: void {
+    .status: int 
+    .schema?: Type
+    .description: string
+}
 
 
 type GetOpenApiDefinitionRequest: void {
@@ -124,7 +128,7 @@ type GetOpenApiDefinitionRequest: void {
         .parameters?:
         */
     }
-    .definitions*: Interface
+    .definitions*: TypeDefinition | FaultDefinitionForOpenAPI
     /* TODO
       .security?
       .securityDefinitions?
@@ -133,6 +137,10 @@ type GetOpenApiDefinitionRequest: void {
     */
 }
 
+type FaultDefinitionForOpenAPI: void {
+    .fault: TypeDefinition
+    .name: string
+}
 type GetOpenApiDefinitionResponse: undefined
 
 type GetJolieTypeFromOpenApiParametersRequest: void {

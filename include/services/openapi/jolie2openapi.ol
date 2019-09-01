@@ -44,11 +44,67 @@ constants {
   LOG = false
 }
 
+type GetSchemaForFaultsRequest: void {
+    .name*: string
+}
+type GetFaultDefinitionForOpenAPIRequest: void {
+    .fault: Fault
+    .name: string 
+}
+
+interface UtilsInteface {
+    RequestResponse:
+        getSchemaForFaults( GetSchemaForFaultsRequest )( undefined ),
+        getFaultDefinitionForOpenAPI( GetFaultDefinitionForOpenAPIRequest )( FaultDefinitionForOpenAPI )
+}
+
+service Utils {
+    Interfaces: UtilsInteface 
+
+    main {
+
+        [ getSchemaForFaults( request )( response ) {
+            if ( #request.name == 1 ) {
+                response.link_name = request.name
+            } else {
+                response.choice.left_type.link_name = request.name[ #request.name -1 ]
+                undef( request.name[ #request.name - 1] )
+                getSchemaForFaults@Utils( request )( response.choice.right_type )   
+            }
+        }]
+
+        [ getFaultDefinitionForOpenAPI( request )( response ) {
+            response.name = request.fault.name
+            with( response.fault )  {
+                .name = request.name;
+                with( .type ) {
+                    .root_type.void_type = true;
+                    with( .sub_type[0] ) {
+                        .name = "fault";
+                        .cardinality.min = 1;
+                        .cardinality.max = 1;
+                        .type.root_type.string_type = true    
+                    }
+                    with( .sub_type[1] ) {
+                        .name = "content";
+                        .cardinality.min = 1;
+                        .cardinality.max = 1;
+                        .type -> request.fault.type                   
+                    }
+                }
+            }
+        }]
+    }
+}
 
 embedded {
   Jolie:
     "services/openapi/openapi_definition.ol" in OpenApi,
     "services/jester/jester_utils.ol" in JesterUtils
+}
+
+constants {
+    JOLIE_FAULT_PREFIX = "JolieFaultType"
 }
 
 
@@ -119,10 +175,13 @@ define __body {
                 .name = .description = metadata.input.interfaces[ itf ].name
             };
             for ( itftp = 0, itftp < #metadata.input.interfaces[ itf ].types, itftp++ ) {
-                .definitions[ itf ] << metadata.input.interfaces[ itf ].types[ itftp ]
+                .definitions[ itftp ] << metadata.input.interfaces[ itf ].types[ itftp ]
             }
         }
       };
+
+
+      jolieFaultTypeCounter = 0
 
       /* selecting the port and the list of the interfaces to be imported */
       for( i = 0, i < #metadata.input, i++ ) {
@@ -166,7 +225,8 @@ define __body {
                             .operationId = oper.operation_name;
                             .consumes[0] = "application/json";
                             .produces = "application/json";
-                            with( .responses.( "200" ) ) {
+                            with( .responses[ 0 ] ) {
+                                    .status = 200;
                                     .description = "OK";
                                     tp_resp_count = 0; tp_resp_found = false;
                                     while( !tp_resp_found && tp_resp_count < #c_interface.types ) {
@@ -177,32 +237,25 @@ define __body {
                                         }
                                     };
                                     if ( tp_resp_found ) {
-                                        .schema << c_interface.types[ tp_resp_count ]
+                                        .schema.link_name << c_interface.types[ tp_resp_count ].name
                                     }
                             }
+                        
+                            undef( fnames )
                             if ( #oper.fault > 0 ) {
-                                with( .responses.("500")) {
-                                    .description = "JolieFault";
-                                    
-                                    with( .schema ) {
-                                        .name = oper.fault[0].name;
-                                         with( .type ) {
-                                            .root_type.void_type = true;
-                                            with( .sub_type[0] ) {
-                                                .name = "fault";
-                                                .cardinality.min = 1;
-                                                .cardinality.max = 1;
-                                                .type.root_type.string_type = true    
-                                            }
-                                            with( .sub_type[1] ) {
-                                                .name = "content";
-                                                .cardinality.min = 1;
-                                                .cardinality.max = 1;
-                                                .type.undefined_type  = true
-                                            }
-                                        }
-                                    }
-
+                                for ( f = 0, f < #oper.fault, f++ ) {
+                                        
+                                        gdff.fault -> oper.fault[ f ];
+                                        gdff.name = fnames[ #fnames ] = JOLIE_FAULT_PREFIX + jolieFaultTypeCounter
+                                        getFaultDefinitionForOpenAPI@Utils( gdff )( fault_definition )
+                                        openapi.definitions[ #openapi.definitions ] << fault_definition
+                                        jolieFaultTypeCounter++     
+                                }
+                                with( .responses[ 1 ] ) {
+                                    .status = 500;
+                                    gsff.name -> fnames
+                                    getSchemaForFaults@Utils( gsff )( .schema )
+                                    .description = "JolieFault"
                                 }
                             }
                         };

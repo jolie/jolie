@@ -56,17 +56,21 @@ type DeleteOrderRequest: DeleteOrderRequestLinked
 
 type DeleteOrderResponse: void
 
-type FaultTestType: void {
-    .message: string
-    .code: int
+type FaultTest1: void {
+    .fieldfault1: string
+    .fieldfault2: int
+}
+
+type FaultTest2: void {
+    .fieldfult1: string
 }
 
 
 interface DemoInterface {
   RequestResponse:
     getOrders( GetOrdersRequest )( GetOrdersResponse ),
-    getOrdersByIItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws FaultTest( FaultTestType ),
-    putOrder( PutOrderRequest )( PutOrderResponse ),
+    getOrdersByIItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws FaultTest( FaultTest1 ) FaultTest2,
+    putOrder( PutOrderRequest )( PutOrderResponse ) throws FaultTest3( FaultTest2 ),
     deleteOrder( DeleteOrderRequest )( DeleteOrderResponse )
 }
 
