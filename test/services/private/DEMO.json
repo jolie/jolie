@@ -11,10 +11,15 @@
                 "responses": {
                     "200": {
                         "schema": {
-                            "type": "object",
                             "$ref": "#\/definitions\/GetOrdersByItemResponse"
                         },
                         "description": "OK"
+                    },
+                    "500": {
+                        "schema": {
+                            "$ref": "#\/definitions\/FaultType"
+                        },
+                        "description": "Fault"
                     }
                 },
                 "parameters": [
@@ -45,7 +50,6 @@
                 "responses": {
                     "200": {
                         "schema": {
-                            "type": "object",
                             "$ref": "#\/definitions\/PutOrderResponse"
                         },
                         "description": "OK"
@@ -79,7 +83,6 @@
                 "responses": {
                     "200": {
                         "schema": {
-                            "type": "object",
                             "$ref": "#\/definitions\/GetOrdersResponse"
                         },
                         "description": "OK"
@@ -117,7 +120,6 @@
                 "responses": {
                     "200": {
                         "schema": {
-                            "type": "object",
                             "$ref": "#\/definitions\/DeleteOrderResponse"
                         },
                         "description": "OK"

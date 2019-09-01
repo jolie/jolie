@@ -118,11 +118,11 @@ define __body {
             with( .tags[ itf ] ) {
                 .name = .description = metadata.input.interfaces[ itf ].name
             };
-            .definitions[ itf ] << metadata.input.interfaces[ itf ]
+            for ( itftp = 0, itftp < #metadata.input.interfaces[ itf ].types, itftp++ ) {
+                .definitions[ itf ] << metadata.input.interfaces[ itf ].types[ itftp ]
+            }
         }
       };
-
-
 
       /* selecting the port and the list of the interfaces to be imported */
       for( i = 0, i < #metadata.input, i++ ) {
@@ -180,12 +180,13 @@ define __body {
                                         .schema << c_interface.types[ tp_resp_count ]
                                     }
                             }
-                            if ( #oper.faults > 0 ) {
-                                with( .response.("500")) {
-                                    .description = "Fault";
+                            if ( #oper.fault > 0 ) {
+                                with( .responses.("500")) {
+                                    .description = "JolieFault";
+                                    
                                     with( .schema ) {
-                                        .name = "FaultType";
-                                        with( .type ) {
+                                        .name = oper.fault[0].name;
+                                         with( .type ) {
                                             .root_type.void_type = true;
                                             with( .sub_type[0] ) {
                                                 .name = "fault";
@@ -193,11 +194,11 @@ define __body {
                                                 .cardinality.max = 1;
                                                 .type.root_type.string_type = true    
                                             }
-                                            with( .sub_type[0] ) {
+                                            with( .sub_type[1] ) {
                                                 .name = "content";
                                                 .cardinality.min = 1;
                                                 .cardinality.max = 1;
-                                                .type.root_type.undefined_type = true    
+                                                .type.undefined_type  = true
                                             }
                                         }
                                     }
