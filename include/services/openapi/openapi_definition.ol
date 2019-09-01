@@ -98,7 +98,7 @@ main {
                   .externalDocs -> request.externalDocs
             };
             for( d = 0, d < #request.definitions, d++ ) {
-                  getSchemas@JSONSchemaGenerator( request.definitions[ d ] )( def );
+                  getTypeDefinition@JSONSchemaGenerator( request.definitions[ d ] )( def );
                   .definitions << def.definitions
             };
             if ( LOG ) { println@Console("Checking paths...")() };
@@ -149,7 +149,7 @@ main {
                               current_response -> request.paths[ p ].( op ).responses.( response );
                               .paths.(__template ).( op ).responses.( response ).description = current_response.description;
                               if ( is_defined( current_response.schema ) ) {
-                                  .paths.(__template ).( op ).responses.( response ).schema.type = "object";
+                                  //.paths.(__template ).( op ).responses.( response ).schema.type = "object";
                                   .paths.(__template ).( op ).responses.( response ).schema.("$ref") = "#/definitions/" + current_response.schema.name
                               }
                          }
