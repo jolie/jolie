@@ -225,53 +225,61 @@ main {
     [ getJolieTypeFromOpenApiParameters( request )( response ) {
           __name_to_clean = request.name;
           __clean_name;
-          response = "type " + __cleaned_name + ": void {\n";
-          for( p = 0, p < #request.definition.parameters, p++ ) {
-              cur_par -> request.definition.parameters[ p ];
-              response = response + "." + cur_par.name;
-              if ( is_defined( cur_par.type ) ) {
-                  if ( cur_par.type == "array" ) {
-                        if (  cur_par.required == "false" ) {
-                            cur_par.schema.items.minItems = 0
-                        };
-                        rq_arr.definition -> cur_par;
-                        rq_arr.indentation = 1;
-                        getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array );
-                        response = response + array
-                  } else if ( cur_par.type == "file" ) {
-                        if (  cur_par.required == "false" ) {
-                            response = response + "?"
-                        };
-                        response = response + ":raw\n"
-                  } else {
-                        rq_n.type = cur_par.type;
-                        if ( is_defined( cur_par.format ) )  {
-                            rq_n.format = cur_par.format
-                        };
-                        getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
-                        if (  cur_par.required == "false" ) {
-                            response = response + "?"
-                        };
-                        response = response + ":" + native + "\n"
-                  }
-              } else if ( is_defined( cur_par.schema ) ) {
-                  if ( cur_par.schema.type == "array" ) {
-                    if (  cur_par.required == "false" ) {
-                        cur_par.schema.items.minItems = 0
-                    };
-                    rq_arr.definition -> cur_par.schema;
-                    rq_arr.indentation = 1;
-                    getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array );
-                    response = response + array
-                  } else {
-                    if ( cur_par.required == "false" ) {
-                        response = response + "?"
-                    };
-                    response = response + ": undefined\n"
-                  }
-              }
-          };
-          response = response + "}\n"
+          if ( #request.definition.parameters == 1 && is_defined( request.definition.parameters.schema.("$ref") ) ) {
+                splreq = request.definition.parameters.schema.("$ref")
+                splreq.regex = "#/definitions/"
+                split@StringUtils( splreq )( splres )
+                response = "type " + __cleaned_name + ": " + splres.result[ 1 ] + "\n"
+          } else {
+                response = "type " + __cleaned_name + ": void {\n";
+                for( p = 0, p < #request.definition.parameters, p++ ) {
+                    cur_par -> request.definition.parameters[ p ];
+                    response = response + "." + cur_par.name;
+                    if ( is_defined( cur_par.type ) ) {
+                        if ( cur_par.type == "array" ) {
+                                if (  cur_par.required == "false" ) {
+                                    cur_par.schema.items.minItems = 0
+                                };
+                                rq_arr.definition -> cur_par;
+                                rq_arr.indentation = 1;
+                                getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array );
+                                response = response + array
+                        } else if ( cur_par.type == "file" ) {
+                                if (  cur_par.required == "false" ) {
+                                    response = response + "?"
+                                };
+                                response = response + ":raw\n"
+                        } else {
+                                rq_n.type = cur_par.type;
+                                if ( is_defined( cur_par.format ) )  {
+                                    rq_n.format = cur_par.format
+                                };
+                                getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
+                                if (  cur_par.required == "false" ) {
+                                    response = response + "?"
+                                };
+                                response = response + ":" + native + "\n"
+                        }
+                    } else if ( is_defined( cur_par.schema ) ) {
+                        if ( cur_par.schema.type == "array" ) {
+                            if (  cur_par.required == "false" ) {
+                                cur_par.schema.items.minItems = 0
+                            };
+                            rq_arr.definition -> cur_par.schema;
+                            rq_arr.indentation = 1;
+                            getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array );
+                            response = response + array
+                        } else {
+                            if ( cur_par.required == "false" ) {
+                                response = response + "?"
+                            };
+                            response = response + ": undefined\n"
+                        }
+                    }
+                }
+                response = response + "}\n"
+          }
+         
     }]
 
     [ getJolieTypeFromOpenApiDefinition( request )( response ) {

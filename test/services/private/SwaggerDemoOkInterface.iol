@@ -1,0 +1,152 @@
+type Order: void {
+	.petId:long
+	.quantity:int
+	.id:long
+	.shipDate:string
+	.complete:bool
+	.status:string
+}
+type User: void {
+	.firstName:string
+	.lastName:string
+	.password:string
+	.userStatus:int
+	.phone:string
+	.id:long
+	.email:string
+	.username:string
+}
+type Category: void {
+	.name:string
+	.id:long
+}
+type Tag: void {
+	.name:string
+	.id:long
+}
+type Pet: void {
+	.photoUrls[0,*]:string
+	.name:string
+	.id:long
+	.category:Category
+	.tags[0,*]:Tag
+	.status:string
+}
+type ApiResponse: void {
+	.code:int
+	.type:string
+	.message:string
+}
+type addPetRequest: Pet
+type addPetResponse:undefined 
+type updatePetRequest: Pet
+type updatePetResponse:undefined 
+type getUserByNameRequest: void {
+.username:string
+}
+type getUserByNameResponse:User
+type deleteUserRequest: void {
+.username:string
+}
+type deleteUserResponse:undefined 
+type updateUserRequest: void {
+.username:string
+.body: undefined
+}
+type updateUserResponse:undefined 
+type findPetsByStatusRequest: void {
+.status[0,*]:string
+}
+type findPetsByStatusResponse: void {
+	._[0,*]:Pet
+}
+type createUsersWithListInputRequest: void {
+.body[0,*]:User
+}
+type createUsersWithListInputResponse:undefined 
+type uploadFileRequest: void {
+.petId:long
+.additionalMetadata?:string
+.file?:raw
+}
+type uploadFileResponse:ApiResponse
+type getInventoryRequest: void {
+}
+type getInventoryResponse:undefined
+type loginUserRequest: void {
+.username:string
+.password:string
+}
+type loginUserResponse:string
+type createUserRequest: User
+type createUserResponse:undefined 
+type createUsersWithArrayInputRequest: void {
+.body[0,*]:User
+}
+type createUsersWithArrayInputResponse:undefined 
+type findPetsByTagsRequest: void {
+.tags[0,*]:string
+}
+type findPetsByTagsResponse: void {
+	._[0,*]:Pet
+}
+type placeOrderRequest: Order
+type placeOrderResponse:Order
+type logoutUserRequest: void {
+}
+type logoutUserResponse:undefined 
+type updatePetWithFormRequest: void {
+.petId:long
+.name?:string
+.status?:string
+}
+type updatePetWithFormResponse:undefined 
+type getPetByIdRequest: void {
+.petId:long
+}
+type getPetByIdResponse:Pet
+type deletePetRequest: void {
+.api_key?:string
+.petId:long
+}
+type deletePetResponse:undefined 
+type getOrderByIdRequest: void {
+.orderId:long
+}
+type getOrderByIdResponse:Order
+type deleteOrderRequest: void {
+.orderId:long
+}
+type deleteOrderResponse:undefined 
+interface SwaggerDemoOkInterface{
+RequestResponse:
+	addPet( addPetRequest )( addPetResponse ) throws Fault405( string ),
+	updatePet( updatePetRequest )( updatePetResponse ) throws Fault400(Pet) Fault404( string ) Fault405( string ),
+	getUserByName( getUserByNameRequest )( getUserByNameResponse ) throws Fault400( string ) Fault404( string ),
+	deleteUser( deleteUserRequest )( deleteUserResponse ) throws Fault400( string ) Fault404( string ),
+	updateUser( updateUserRequest )( updateUserResponse ) throws Fault400( string ) Fault404( string ),
+	findPetsByStatus( findPetsByStatusRequest )( findPetsByStatusResponse ) throws Fault400( string ),
+	createUsersWithListInput( createUsersWithListInputRequest )( createUsersWithListInputResponse ),
+	uploadFile( uploadFileRequest )( uploadFileResponse ),
+	getInventory( getInventoryRequest )( getInventoryResponse ),
+	loginUser( loginUserRequest )( loginUserResponse ) throws Fault400( string ),
+	createUser( createUserRequest )( createUserResponse ),
+	createUsersWithArrayInput( createUsersWithArrayInputRequest )( createUsersWithArrayInputResponse ),
+	findPetsByTags( findPetsByTagsRequest )( findPetsByTagsResponse ) throws Fault400( string ),
+	placeOrder( placeOrderRequest )( placeOrderResponse ) throws Fault400( string ),
+	logoutUser( logoutUserRequest )( logoutUserResponse ),
+	updatePetWithForm( updatePetWithFormRequest )( updatePetWithFormResponse ) throws Fault405( string ),
+	getPetById( getPetByIdRequest )( getPetByIdResponse ) throws Fault400( string ) Fault404( string ),
+	deletePet( deletePetRequest )( deletePetResponse ) throws Fault400( string ) Fault404( string ),
+	getOrderById( getOrderByIdRequest )( getOrderByIdResponse ) throws Fault400( string ) Fault404( string ),
+	deleteOrder( deleteOrderRequest )( deleteOrderResponse ) throws Fault400( string ) Fault404( string )
+}
+
+inputPort Test {
+	Location:"local"
+	Protocol: sodep
+	Interfaces: SwaggerDemoOkInterface, SwaggerDemoInterface
+}
+
+main {nullProcess}
+

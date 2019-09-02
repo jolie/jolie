@@ -114,7 +114,7 @@ main {
                     type_string = type_string + native + "\n"
                 }
             } else {
-            type_string = type_string + "undefined \n"
+                type_string = type_string + "undefined \n"
             }
             ;
             interface_file = interface_file + type_string
