@@ -127,7 +127,7 @@ define doTest {
     getJesterConfig@JesterConfigurator( jester )( config );
 
     println@Console("Running jester...")()
-    loadEmbeddedService@Runtime( { .filepath = "--trace -C DEBUG=true -C API_ROUTER_HTTP=\"socket://" + router_host + "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
+    loadEmbeddedService@Runtime( { .filepath = "-C DEBUG=false -C API_ROUTER_HTTP=\"socket://" + router_host + "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
     config@Jester( config )()
 
     // testing jester invoking the client
@@ -177,6 +177,7 @@ define doTest {
 
     undef( rq )
     scope( fault ) {
+        install( FaultTest => nullProcess )
         with( rq ) {
             .userId = "ciao";
             .itemName= "ciao";
