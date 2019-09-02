@@ -73,7 +73,6 @@ define doTest {
     getOpenApi@Jolie2OpenApi( openapi )( openapi_definition )
     getJsonValue@JsonUtils( openapi_definition )( openapi )
 
-   println@Console("Getting outputPort definition...")();
     with( request_meta ) {
         .filename = service_filename
     }
@@ -123,10 +122,8 @@ define doTest {
     f.filename = "jester_config.iol"
     writeFile@File( f )()
     
-    println@Console("Creating jester config from templates... " )()
     getJesterConfig@JesterConfigurator( jester )( config );
 
-    println@Console("Running jester...")()
     loadEmbeddedService@Runtime( { .filepath = "-C DEBUG=false -C API_ROUTER_HTTP=\"socket://" + router_host + "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
     config@Jester( config )()
 

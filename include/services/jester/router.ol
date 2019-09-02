@@ -211,11 +211,11 @@ init {
 	config( config )() {
 		routes << config.routes
 	}
-	for( r = 0, r < #routes, r++ ) {
+	/*for( r = 0, r < #routes, r++ ) {
 			println@Console( "Loaded " + routes[ r ].template )()
 	}
 	;
-	println@Console("Router is running...")()
+	println@Console("Router is running...")()*/
 }
 
 main
