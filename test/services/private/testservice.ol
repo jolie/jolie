@@ -144,6 +144,7 @@ init {
           .price = 15.0
         }
       }
+      install( default => nullProcess )
 }
 
 main {
@@ -153,8 +154,8 @@ main {
 
   [ getOrdersByIItem( request )( response ) {
       if ( request.quantity > 1 ) {
-         f.message = "test message"
-         f.code = 100
+         f.fieldfault1 = "test message"
+         f.fieldfault2 = 100
          throw( FaultTest, f )
       }
       response.orders -> global.orders
