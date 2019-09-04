@@ -65,13 +65,28 @@ type FaultTest2: void {
     .fieldfult1: string
 }
 
+type GetUsersRequest: void {
+    .city: string
+    .country: string
+    .surname: string
+}
+
+type GetUsersResponse: void {
+  .users*: void {
+    .name: string 
+    .surname: string
+    .country: string
+    .city: string
+  }
+}
 
 interface DemoInterface {
   RequestResponse:
     getOrders( GetOrdersRequest )( GetOrdersResponse ),
-    getOrdersByIItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws FaultTest( FaultTest1 ) FaultTest2,
+    getOrdersByItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws FaultTest( FaultTest1 ) FaultTest2,
     putOrder( PutOrderRequest )( PutOrderResponse ) throws FaultTest3( FaultTest2 ),
-    deleteOrder( DeleteOrderRequest )( DeleteOrderResponse )
+    deleteOrder( DeleteOrderRequest )( DeleteOrderResponse ),
+    getUsers( GetUsersRequest )( GetUsersResponse )
 }
 
 execution{ concurrent }
@@ -152,7 +167,7 @@ main {
       response.orders -> global.orders
   }]
 
-  [ getOrdersByIItem( request )( response ) {
+  [ getOrdersByItem( request )( response ) {
       if ( request.quantity > 1 ) {
          f.fieldfault1 = "test message"
          f.fieldfault2 = 100
@@ -179,5 +194,34 @@ main {
 
   [ deleteOrder( request )( response ) {
       nullProcess
+  }]
+
+  [ getUsers( request )( response ) {
+      if ( request.country == "USA" ) {
+        with( response ) {
+            with( .users[ 0 ] ) {
+              .name = "Homer";
+              .surname = "Simpsons";
+              .country = "USA";
+              .city = "Springfield"
+            }
+            with( .users[ 1 ] ) {
+              .name = "Walter";
+              .surname = "White";
+              .country = "USA";
+              .city = "Albuquerque"
+            }
+        }
+      }
+      if ( request.coutry == "UK" ) {
+          with( response ) {
+            with( .users[ 2 ] ) {
+              .name = "Dylan";
+              .surname = "Dog";
+              .country = "England";
+              .city = "London"
+            }
+          }
+      }
   }]
 }

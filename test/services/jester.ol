@@ -33,9 +33,10 @@ outputPort Jester {
 outputPort Test {
     RequestResponse: 
     getOrders,
-    getOrdersByIItem throws FaultTest( undefined ),
+    getOrdersByItem throws FaultTest( undefined ),
     putOrder,
-    deleteOrder
+    deleteOrder,
+    getUsers
 }
 
 embedded {
@@ -58,7 +59,7 @@ define doTest {
     wkdir = "./services/private"
     protocol = "http"
 
-    template_json = "{ \"getOrders\":\"method=get,\ntemplate=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByIItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
+    template_json = "{ \"getUsers\":\"method=post, template=/users/{country}\", \"getOrders\":\"method=get, template=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
     getJsonValue@JsonUtils( template_json )( template )
     with( openapi ) {
         .filename = service_filename;
@@ -151,13 +152,24 @@ define doTest {
     }
     deleteOrder@Test( rq )()
 
+    undef( rq )
+    with( rq ) {
+        .city = "Springfield";
+        .country = "USA";
+        .surname = "White"
+    }
+    getUsers@Test( rq )( rs )
+    if ( #rs.users != 2 ) {
+        throw( TestFailed, "Expected 2 users in getUsers operation")
+    }
+
     undef( rq ) 
     with( rq ) {
         .userId = "ciao";
         .itemName= "ciao";
         .quantity = 0
     }
-    getOrdersByIItem@Test( rq )()
+    getOrdersByItem@Test( rq )()
 
    
     undef( rq )
@@ -165,12 +177,12 @@ define doTest {
         .userId = "ciao";
         .itemName= "ciao"
     }
-    getOrdersByIItem@Test( rq )()
+    getOrdersByItem@Test( rq )()
     undef( rq )
     with( rq ) {
         .userId = "ciao"
     }
-    getOrdersByIItem@Test( rq )()
+    getOrdersByItem@Test( rq )()
 
     undef( rq )
     scope( fault ) {
@@ -180,7 +192,7 @@ define doTest {
             .itemName= "ciao";
             .quantity = 10
         }
-        getOrdersByIItem@Test( rq )()
+        getOrdersByItem@Test( rq )()
     }
 
 
