@@ -47,12 +47,17 @@ define _create_outputport_info {
                 outputPort.interface.operation[ op_max ].path = corrected_path;
                 outputPort.interface.operation[ op_max ].method = method;
                 outputPort.interface.operation[ op_max ].parameters << openapi.paths.( path ).( method ).parameters;
+                found500 = false
                 foreach( res : openapi.paths.( path ).( method ).responses ) {
+                    if ( res == "500" ) { found500 = true }
                     if ( res == "200" ) {
                         outputPort.interface.operation[ op_max ].response << openapi.paths.( path ).( method ).responses.( res )
                     } else {
                         outputPort.interface.operation[ op_max ].faults.( res ) << openapi.paths.( path ).( method ).responses.( res )
                     }
+                }
+                if ( !found500 ) {
+                    outputPort.interface.operation[ op_max ].faults.( "500" ).description = "Internal Server Error"
                 }
                 
             }
@@ -230,7 +235,11 @@ main {
                     client_file = client_file + "\t\t}\n"
                     
                 } else {
+                    found500 = false
                     foreach( f : outputPort.interface.operation[ o ].faults ) {
+                        if ( f == "500" ) {
+                            found500 = true
+                        }
                         faultValue = "";
                         faultName = "Fault" + f 
                         if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema ) ) {
@@ -242,6 +251,11 @@ main {
                         }
                         client_file = client_file + "\t\tif ( response.(\"@header\").statusCode == " + f + ") {\n ";
                         client_file = client_file + "\t\t\tthrow( " + faultName + faultValue + ")\n"
+                        client_file = client_file + "\t\t}\n"
+                    }
+                    if ( !found500 ) {
+                        client_file = client_file + "\t\tif ( response.(\"@header\").statusCode == 500 ) {\n ";
+                        client_file = client_file + "\t\t\tthrow(  fault500 )\n"
                         client_file = client_file + "\t\t}\n"
                     }
                 }

@@ -130,7 +130,7 @@ define doTest {
         compareValues@ValuesUtils( cmp )()
     }
 
-    //delete@File( TESTFILE )(  )
+    delete@File( TESTFILE )(  )
 
 
 
