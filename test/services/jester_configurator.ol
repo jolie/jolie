@@ -20,7 +20,7 @@ define doTest {
     wkdir = "./services/private"
     easy_interface = false
 
-    template_json = "{ \"getOrders\":\"method=get,\ntemplate=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByIItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
+    template_json = "{ \"getUsers\":\"method=post, template=/users/{country}\", \"getOrders\":\"method=get, template=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
     getJsonValue@JsonUtils( template_json )( template )
     
     with( jester ) {
@@ -34,8 +34,8 @@ define doTest {
     }
 
     getJesterConfig@JesterConfig( jester )( jester_config )
-    if ( #jester_config.routes != 4 ) {
-        println@Console("Expected 4 routes, found " + #jester_config.routes)()
+    if ( #jester_config.routes != 5 ) {
+        println@Console("Expected 5 routes, found " + #jester_config.routes)()
         throw( TestFailed )
     }
     found_interesting_template = false

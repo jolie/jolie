@@ -320,18 +320,18 @@ define __body {
                                                     
                                                     if ( current_sbt.type instanceof TypeInLine ) {
                                                         if ( #current_sbt.type.sub_type > 0 ) {
-                                                            error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted"
+                                                            error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted when it is used in a template"
                                                             throw( DefinitionError, error_msg )
                                                         }
                                                     } else if ( current_sbt.type instanceof TypeChoice ) {
-                                                         error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + "  has been declared as a type choice. Not permitted when a template is defined"
+                                                         error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type choice. Not permitted when a template is defined"
                                                         throw( DefinitionError, error_msg )
                                                     } else if ( current_sbt.type instanceof TypeLink ) {
                                                             get_actual_ctype_rq = current_sbt.type.link_name
                                                             get_actual_ctype_rq.type_map -> global.type_map 
                                                             getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
                                                             if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
-                                                                error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                                error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
                                                                 throw( DefinitionError, error_msg )
                                                             }
                                                     }
@@ -357,7 +357,7 @@ define __body {
                                     if ( __method == "get" ) {
                                             if ( tp_found ) {
                                                     if ( #current_type.type.sub_type > 0 || current_type instanceof TypeChoice ) {
-                                                    println@Console( current_type.name.name + ": this request tyoe message is joined to a get method without any template, thus it cannot be declared as a choice type nor it cannot contain subnodes" )();
+                                                    println@Console( current_type.name + ": this request tyoe message is joined to a get method without any template, thus it cannot be declared as a choice type nor it cannot contain subnodes" )();
                                                     throw( DefinitionError )
                                                 }
                                             }

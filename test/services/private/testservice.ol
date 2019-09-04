@@ -67,8 +67,8 @@ type FaultTest2: void {
 
 type GetUsersRequest: void {
     .city: string
-    .country: string
     .surname: string
+    .country: string
 }
 
 type GetUsersResponse: void {
