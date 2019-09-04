@@ -120,26 +120,26 @@ type deleteOrderRequest: void {
 type deleteOrderResponse:undefined 
 interface SwaggerDemoOkInterface{
 RequestResponse:
-	addPet( addPetRequest )( addPetResponse ) throws Fault405( string ),
-	updatePet( updatePetRequest )( updatePetResponse ) throws Fault400(Pet) Fault404( string ) Fault405( string ),
-	getUserByName( getUserByNameRequest )( getUserByNameResponse ) throws Fault400( string ) Fault404( string ),
-	deleteUser( deleteUserRequest )( deleteUserResponse ) throws Fault400( string ) Fault404( string ),
-	updateUser( updateUserRequest )( updateUserResponse ) throws Fault400( string ) Fault404( string ),
-	findPetsByStatus( findPetsByStatusRequest )( findPetsByStatusResponse ) throws Fault400( string ),
-	createUsersWithListInput( createUsersWithListInputRequest )( createUsersWithListInputResponse ),
-	uploadFile( uploadFileRequest )( uploadFileResponse ),
-	getInventory( getInventoryRequest )( getInventoryResponse ),
-	loginUser( loginUserRequest )( loginUserResponse ) throws Fault400( string ),
-	createUser( createUserRequest )( createUserResponse ),
-	createUsersWithArrayInput( createUsersWithArrayInputRequest )( createUsersWithArrayInputResponse ),
-	findPetsByTags( findPetsByTagsRequest )( findPetsByTagsResponse ) throws Fault400( string ),
-	placeOrder( placeOrderRequest )( placeOrderResponse ) throws Fault400( string ),
-	logoutUser( logoutUserRequest )( logoutUserResponse ),
-	updatePetWithForm( updatePetWithFormRequest )( updatePetWithFormResponse ) throws Fault405( string ),
-	getPetById( getPetByIdRequest )( getPetByIdResponse ) throws Fault400( string ) Fault404( string ),
-	deletePet( deletePetRequest )( deletePetResponse ) throws Fault400( string ) Fault404( string ),
-	getOrderById( getOrderByIdRequest )( getOrderByIdResponse ) throws Fault400( string ) Fault404( string ),
-	deleteOrder( deleteOrderRequest )( deleteOrderResponse ) throws Fault400( string ) Fault404( string )
+	addPet( addPetRequest )( addPetResponse ) throws Fault500( string ) Fault405( string ),
+	updatePet( updatePetRequest )( updatePetResponse ) throws Fault400(Pet) Fault500( string ) Fault404( string ) Fault405( string ),
+	getUserByName( getUserByNameRequest )( getUserByNameResponse ) throws Fault400( string ) Fault500( string ) Fault404( string ),
+	deleteUser( deleteUserRequest )( deleteUserResponse ) throws Fault400( string ) Fault500( string ) Fault404( string ),
+	updateUser( updateUserRequest )( updateUserResponse ) throws Fault400( string ) Fault500( string ) Fault404( string ),
+	findPetsByStatus( findPetsByStatusRequest )( findPetsByStatusResponse ) throws Fault400( string ) Fault500( string ),
+	createUsersWithListInput( createUsersWithListInputRequest )( createUsersWithListInputResponse ) throws Fault500( string ),
+	uploadFile( uploadFileRequest )( uploadFileResponse ) throws Fault500( string ),
+	getInventory( getInventoryRequest )( getInventoryResponse ) throws Fault500( string ),
+	loginUser( loginUserRequest )( loginUserResponse ) throws Fault400( string ) Fault500( string ),
+	createUser( createUserRequest )( createUserResponse ) throws Fault500( string ),
+	createUsersWithArrayInput( createUsersWithArrayInputRequest )( createUsersWithArrayInputResponse ) throws Fault500( string ),
+	findPetsByTags( findPetsByTagsRequest )( findPetsByTagsResponse ) throws Fault400( string ) Fault500( string ),
+	placeOrder( placeOrderRequest )( placeOrderResponse ) throws Fault400( string ) Fault500( string ),
+	logoutUser( logoutUserRequest )( logoutUserResponse ) throws Fault500( string ),
+	updatePetWithForm( updatePetWithFormRequest )( updatePetWithFormResponse ) throws Fault500( string ) Fault405( string ),
+	getPetById( getPetByIdRequest )( getPetByIdResponse ) throws Fault400( string ) Fault500( string ) Fault404( string ),
+	deletePet( deletePetRequest )( deletePetResponse ) throws Fault400( string ) Fault500( string ) Fault404( string ),
+	getOrderById( getOrderByIdRequest )( getOrderByIdResponse ) throws Fault400( string ) Fault500( string ) Fault404( string ),
+	deleteOrder( deleteOrderRequest )( deleteOrderResponse ) throws Fault400( string ) Fault500( string ) Fault404( string )
 }
 
 inputPort Test {
