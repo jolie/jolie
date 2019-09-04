@@ -117,6 +117,7 @@ inputPort Jolie2OpenApi {
 define check_param_found {
     // __str_to_search
     // __found
+    __found = "body"
     for( _pf = 0, _pf < #found_params.path, _pf++ ) {
         if ( found_params.path[ _pr ] == __str_to_search ) {
             __found = "path"
@@ -204,13 +205,16 @@ define __body {
                         if ( is_defined( request.template.( oper.operation_name ) ) ) {
                             __given_template = request.template.( oper.operation_name )
                         } else {
-                            __given_template = ""
+                            __given_template = Void
                         }
                        
                         if ( !easyInterface && !(__given_template instanceof void) ) {
                             analyzeTemplate@JesterUtils(__given_template )( analyzed_template )
                             __template = analyzed_template.template
                             __method = analyzed_template.method
+                            if ( __method == "" ) {
+                                 throw( DefinitionError, "Template " + __given_template + " of operation " + oper.operation_name + " does not define method, not permitted" )
+                            }
                         } else {
                             __method = "post"
                         }
@@ -294,7 +298,7 @@ define __body {
                                     if ( !tp_found ) {
                                             error_msg = current_type.name +  ": the request type does not declare any field";
                                             throw( DefinitionError, error_msg )
-                                    } else if ( is_defined( current_type.choice ) ) {
+                                    } else if ( current_type.type instanceof TypeChoice ) {
                                             error_msg = current_type.name +  ": the request type cannot be a choice type when the template specifies parameters in the URL"
                                             throw( DefinitionError, error_msg )
                                     } else {
@@ -313,27 +317,31 @@ define __body {
                                                     if ( current_sbt.cardinality.min > 0 ) {
                                                         .required = true
                                                     };
-                                                    if ( __found != "" ) {
-                                                        if ( current_sbt.type instanceof TypeInLine ) {
-                                                            if ( #current_sbt.type.sub_type > 0 ) {
-                                                                error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted"
+                                                    
+                                                    if ( current_sbt.type instanceof TypeInLine ) {
+                                                        if ( #current_sbt.type.sub_type > 0 ) {
+                                                            error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted"
+                                                            throw( DefinitionError, error_msg )
+                                                        }
+                                                    } else if ( current_sbt.type instanceof TypeChoice ) {
+                                                         error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + "  has been declared as a type choice. Not permitted when a template is defined"
+                                                        throw( DefinitionError, error_msg )
+                                                    } else if ( current_sbt.type instanceof TypeLink ) {
+                                                            get_actual_ctype_rq = current_sbt.type.link_name
+                                                            get_actual_ctype_rq.type_map -> global.type_map 
+                                                            getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
+                                                            if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
+                                                                error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
                                                                 throw( DefinitionError, error_msg )
                                                             }
-                                                        } else if ( current_sbt.type instanceof TypeLink ) {
-                                                                get_actual_ctype_rq = current_sbt.type.link_name
-                                                                get_actual_ctype_rq.type_map -> global.type_map 
-                                                                getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
-                                                                if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
-                                                                    error_msg = "Type " + current_type.name.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
-                                                                    throw( DefinitionError, error_msg )
-                                                                }
-                                                        }
-                                                        .in.other = __found;
-                                                        .in.other.type << current_sbt.type                                                       
-                                                    } else {
-                                                        .in.in_body.schema_type << real_current_type
                                                     }
 
+                                                    if ( __found == "body" ) {
+                                                        .in.in_body.schema_subType << current_sbt
+                                                    } else {
+                                                        .in.other = __found;
+                                                        .in.other.type << current_sbt.type 
+                                                    }
                                                 }
                                             }
                                     }

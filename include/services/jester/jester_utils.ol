@@ -40,8 +40,7 @@ main {
                     trim@StringUtils( _params.result[1] )( response.template )
                 }
             }
-        }
-        
+        }     
     }]
 
     [ getParamList( request )( response ) {
@@ -67,16 +66,18 @@ main {
         }
 
         // query part
-        splr = querypart;
-        splr.regex =  "&|=";
-        split@StringUtils( splr )( splres );
-        for( pr = 0, pr < #splres.result, pr++ ) {
-            w = splres.result[ pr ];
-            w.regex = "\\{(.*)\\}";
-            find@StringUtils( w )( params );
-            if ( params == 1 ) {
-                response = true;
-                response.query[ #response.query ] = params.group[1]
+        if ( !( querypart instanceof void ) )  {
+            splr = querypart;
+            splr.regex =  "&|=";
+            split@StringUtils( splr )( splres );
+            for( pr = 0, pr < #splres.result, pr++ ) {
+                w = splres.result[ pr ];
+                w.regex = "\\{(.*)\\}";
+                find@StringUtils( w )( params );
+                if ( params == 1 ) {
+                    response = true;
+                    response.query[ #response.query ] = params.group[1]
+                }
             }
         }
     }]

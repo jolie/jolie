@@ -1,13 +1,13 @@
 {
     "basePath": "\/DEMO",
     "paths": {
-        "/getOrdersByIItem": {
+        "/getOrdersByItem": {
             "post": {
                 "produces": [
                     "application\/json"
                 ],
                 "description": "",
-                "operationId": "getOrdersByIItem",
+                "operationId": "getOrdersByItem",
                 "responses": {
                     "200": {
                         "schema": {
@@ -19,10 +19,10 @@
                         "schema": {
                             "oneOf": [
                                 {
-                                    "$ref": "#\/definitions\/JolieFaultType1"
+                                    "$ref": "#\/definitions\/JolieFaultType2"
                                 },
                                 {
-                                    "$ref": "#\/definitions\/JolieFaultType0"
+                                    "$ref": "#\/definitions\/JolieFaultType1"
                                 }
                             ]
                         },
@@ -59,7 +59,7 @@
                     },
                     "500": {
                         "schema": {
-                            "$ref": "#\/definitions\/JolieFaultType2"
+                            "$ref": "#\/definitions\/JolieFaultType0"
                         },
                         "description": "JolieFault"
                     }
@@ -117,6 +117,47 @@
                 "consumes": [
                     "application\/json"
                 ]
+            }
+        },
+        "/users/{country}": {
+            "post": {
+                "produces": "application\/json",
+                "description": "",
+                "operationId": "getUsers",
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#\/definitions\/GetUsersResponse"
+                        },
+                        "description": "OK"
+                    }
+                },
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "country",
+                        "type": "string",
+                        "required": true
+                    },
+                    {
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "body",
+                        "name": "city",
+                        "required": true
+                    },
+                    {
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "body",
+                        "name": "surname",
+                        "required": true
+                    }
+                ],
+                "tags": "DemoInterface",
+                "consumes": "application\/json"
             }
         },
         "/deleteOrder": {
@@ -194,6 +235,46 @@
             }
         },
         "PutOrderResponse": null,
+        "GetUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "minItems": 0,
+                        "type": "object",
+                        "properties": {
+                            "country": {
+                                "type": "string"
+                            },
+                            "city": {
+                                "type": "string"
+                            },
+                            "surname": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "GetUsersRequest": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
         "PutOrderRequest": {
             "type": "object",
             "properties": {
@@ -239,11 +320,11 @@
             "type": "object",
             "properties": {
                 "fault": {
-                    "pattern": "FaultTest3",
+                    "pattern": "FaultTest",
                     "type": "string"
                 },
                 "content": {
-                    "$ref": "#\/definitions\/FaultTest2"
+                    "$ref": "#\/definitions\/FaultTest1"
                 }
             }
         },
@@ -251,12 +332,10 @@
             "type": "object",
             "properties": {
                 "fault": {
-                    "pattern": "FaultTest",
+                    "pattern": "FaultTest2",
                     "type": "string"
                 },
-                "content": {
-                    "$ref": "#\/definitions\/FaultTest1"
-                }
+                "content": null
             }
         },
         "OrderItem": {
@@ -326,10 +405,12 @@
             "type": "object",
             "properties": {
                 "fault": {
-                    "pattern": "FaultTest2",
+                    "pattern": "FaultTest3",
                     "type": "string"
                 },
-                "content": null
+                "content": {
+                    "$ref": "#\/definitions\/FaultTest2"
+                }
             }
         },
         "DeleteOrderRequest": {

@@ -64,7 +64,7 @@ define doTest {
     router_host = "localhost:8000"
     wkdir = "./services/private"
 
-    template_json = "{ \"getOrders\":\"method=get,\ntemplate=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByIItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
+    template_json = "{ \"getUsers\":\"method=post, template=/users/{country}\", \"getOrders\":\"method=get, template=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
     getJsonValue@JsonUtils( template_json )( template )
     with( openapi ) {
         .filename = service_filename;
@@ -84,10 +84,11 @@ define doTest {
     f.content -> json_value
     writeFile@File( f )(  )
 
-    paths[ 0 ] = "/getOrdersByIItem"
+    paths[ 0 ] = "/getOrdersByItem"
     paths[ 1 ] = "/putOrder"
     paths[ 2 ] = "/deleteOrder"
     paths[ 3 ] = "/orders/{userId}?maxItems={maxItems}"
+    paths[ 4 ] = "/users/{country}"
 
     for( i = 0, i < #paths, i++ ) {
         if ( !is_defined( json_value.paths.(paths[i]) ) ) {
@@ -117,7 +118,7 @@ define doTest {
         )
         compareValues@ValuesUtils( { .__v2 -> json_value, .__v1 -> ok_json } )(  )
     }
-    delete@File(  "./services/private/generated.json" )(  )
+    //delete@File(  "./services/private/generated.json" )(  )
 
 
 }
