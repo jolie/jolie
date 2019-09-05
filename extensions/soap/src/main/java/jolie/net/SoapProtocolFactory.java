@@ -39,7 +39,7 @@ import jolie.runtime.VariablePath;
 	"jaxws/jaxb-core.jar",
 	"jaxws/jaxb-impl.jar",
 	"jaxws/jaxws-api.jar",
-	"jaxws/jaxws-rt.jar",
+	"jaxws/rt.jar",
 	"jaxws/jsr181-api.jar",
 	"jaxws/management-api.jar",
 	"jaxws/mimepull.jar",
