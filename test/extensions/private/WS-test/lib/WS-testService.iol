@@ -36,7 +36,6 @@ define loadLocalService
 	list@File( { .directory = "../dist/jolie/lib/jaxws" } )( list );
 	 for( file in list.result ) {
 	 	toAbsolutePath@File( "../dist/jolie/lib/jaxws/" + file )( path );
-     println@Console(path)()
 	 	loadLibrary@Runtime( path )()
 	 };
 	loadLibrary@Runtime( "extensions/private/WS-test.jar" )();

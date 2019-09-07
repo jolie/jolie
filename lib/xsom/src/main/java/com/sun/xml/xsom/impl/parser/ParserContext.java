@@ -56,10 +56,8 @@ public class ParserContext {
         this.parser = parser;
 
         try {
-            parse(new InputSource(ParserContext.class.getResource("datatypes.xsd").toExternalForm()));
-
-            SchemaImpl xs = (SchemaImpl)
-                schemaSet.getSchema("http://www.w3.org/2001/XMLSchema");
+            parse(new InputSource(ParserContext.class.getResource("../../../../../../META-INF/datatypes.xsd").toExternalForm()));
+            SchemaImpl xs = (SchemaImpl)schemaSet.getSchema("http://www.w3.org/2001/XMLSchema");
             xs.addSimpleType(schemaSet.anySimpleType,true);
             xs.addComplexType(schemaSet.anyType,true);
         } catch( SAXException e ) {
@@ -82,6 +80,7 @@ public class ParserContext {
 
     /**
      * Parses a new XML Schema document.
+     * @throws org.xml.sax.SAXException
      */
     public void parse( InputSource source ) throws SAXException {
         newNGCCRuntime().parseEntity(source,false,null,null);
