@@ -60,6 +60,13 @@
                                     <type>jar</type>
                                     <destFileName>saaj-impl.jar</destFileName>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.sun.xml.messaging.saaj</groupId>
+                                    <artifactId>saaj-impl</artifactId>
+                                    <version>1.5.0</version>
+                                    <type>jar</type>
+                                    <destFileName>saaj-impl.jar</destFileName>
+                                </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib/jaxws</outputDirectory>
                             <overWriteIfNewer>true</overWriteIfNewer>
@@ -99,6 +106,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>xsom</artifactId>
             <version>${jolie.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -115,5 +128,6 @@
             <artifactId>saaj-impl</artifactId>
             <version>1.5.0</version>
         </dependency>
+
     </dependencies>
 </project>

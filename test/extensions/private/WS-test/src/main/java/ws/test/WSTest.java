@@ -44,7 +44,6 @@ public class WSTest extends JavaService
 
 		static public Integer sum( Integer x, Integer y )
 		{
-		      System.out.println("I am here");
                       return x + y;
 		}
 
