@@ -20,7 +20,6 @@
 	<name>jolie2surface</name>
 	<description>Tool to generate jolie surfaces</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

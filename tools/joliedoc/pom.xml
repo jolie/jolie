@@ -20,7 +20,6 @@
 	<name>joliedoc</name>
 	<description>Tool to generate documentation for the jolie code</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

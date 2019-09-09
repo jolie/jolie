@@ -20,9 +20,8 @@
 	<name>localsocket</name>
 	<description>Localsocket protocol for Jolie</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
-						<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>2.4</version>

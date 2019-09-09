@@ -20,7 +20,6 @@
 	<name>jolie-xml</name>
 	<description>The basic library used by Jolie for XML handling.</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

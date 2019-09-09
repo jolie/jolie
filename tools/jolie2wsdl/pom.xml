@@ -20,7 +20,6 @@
 	<name>jolie2wsdl</name>
 	<description>Tool to generate WSDL files from Jolie interface</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
