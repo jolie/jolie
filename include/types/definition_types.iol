@@ -19,27 +19,24 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-type Name: void {
-  .name: string
-  .domain?: string
-  .registry?: string       // if omitted = local
-}
-
 type NativeType: void {
-  .string_type?: bool
-  .int_type?: bool
-  .double_type?: bool
-  .any_type?: bool
-  .void_type?: bool
-  .raw_type?: bool
-  //.undefined_type?: bool
-  .bool_type?: bool
-  .long_type?: bool
-  .link?: void {
-     .name: string
-     .domain?: string
-  }
-}
+  .string_type: bool
+} | void {
+  .int_type: bool
+} | void {
+  .double_type: bool
+} | void {
+  .any_type: bool
+} | void {
+  .void_type: bool
+} | void {
+  .raw_type: bool
+} | void {
+  .bool_type: bool
+} | void {
+  .long_type: bool
+} 
+
 
 type Cardinality: void {
   .min: int
@@ -50,47 +47,64 @@ type Cardinality: void {
 type SubType: void {
   .name: string
   .cardinality: Cardinality
-  .type_inline?: Type
-  .type_link?: Name
+  .type: Type
 }
 
-type Type: void {
-  .name: Name
+type TypeInLine: void {
   .root_type: NativeType
   .sub_type*: SubType
 }
 
+type TypeLink: void {
+  .link_name: string
+}
+
+type TypeChoice: void {
+  .choice?: void {
+      .left_type: TypeInLine | TypeLink 
+      .right_type: Type
+  }
+}
+
+type TypeUndefined: void {
+  .undefined: bool
+}
+
+type Type: TypeInLine | TypeLink | TypeChoice | TypeUndefined 
+
+type TypeDefinition: void {
+  .name: string
+  .type: Type
+}
+
+
 type Fault: void {
-  .name: Name
-  .type_name?: Name
+  .name: string
+  .type: NativeType | TypeUndefined | TypeLink
 }
 
 type Operation: void {
   .operation_name: string
   .documentation?: any
-  .input: Name
-  .output?: Name
+  .input: string
+  .output?: string
   .fault*: Fault
 }
 
 type Interface: void {
-  .name: Name
-  .types*: Type
+  .name: string
+  .types*: TypeDefinition
   .operations*: Operation
 }
 
 type Port: void {
-  .name: Name
+  .name: string
   .protocol: string
   .location: any
   .interfaces*: Interface
 }
 
 type Service: void {
-  .name: Name
-  .input*: void {
-    .name: string
-    .domain: string
-  }
-  .output*: Name
+  .input*: string
+  .output*: string
 }

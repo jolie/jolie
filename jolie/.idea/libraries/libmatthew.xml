@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="libmatthew">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../lib/libmatthew/unix.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

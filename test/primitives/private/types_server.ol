@@ -38,6 +38,8 @@ main
 			response = request.left
 		} else if ( request instanceof ChoiceRight ) {
 			response = request.right
+		} else if ( request instanceof ChoiceThird ) {
+			reesponse = request.third
 		}
 	} ]
 	[ shutdown() ] { exit }

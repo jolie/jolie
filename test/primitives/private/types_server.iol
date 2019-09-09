@@ -31,10 +31,13 @@ type ListNode:int {
 	next?:CoListNode
 }
 
-type ChoiceRequest: ChoiceLeft | ChoiceRight
+type ChoiceRequest: ChoiceLeft | ChoiceRight | ChoiceThird
 
 type ChoiceLeft { left:int } // defaults to void native type
 type ChoiceRight:void { right:string }
+type ChoiceThird: void {
+	.third:string
+}
 
 type SomeTrickyType {
 	x {
