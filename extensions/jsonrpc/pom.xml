@@ -1,0 +1,75 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.jolie-lang</groupId>
+		<artifactId>distribution</artifactId>
+		<relativePath>../../pom.xml</relativePath>
+		<version>1.0.0</version>
+	</parent>
+	<groupId>org.jolie-lang</groupId>
+	<artifactId>jsonrpc</artifactId>
+	<version>${jolie.version}</version>
+	<packaging>jar</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
+	<name>jsonrpc</name>
+	<description>Jsonrpc protocol for Jolie</description>
+	<build>
+		<finalName>${project.artifactId}.jar</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>	
+					<archive>
+						<manifestEntries>
+							<X-JOLIE-ChannelExtension>local:jolie.net.LocalCommChannelFactory </X-JOLIE-ChannelExtension>
+							<X-JOLIE-ListenerExtension>local:jolie.net.LocalListenerFactory</X-JOLIE-ListenerExtension>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>copy-installed</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.jolie-lang</groupId>
+									<artifactId>${project.artifactId}</artifactId>
+									<version>${jolie.version}</version>
+									<type>jar</type>
+									<destFileName>${project.artifactId}.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions</outputDirectory>
+          
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>http</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+	</dependencies>
+  
+</project>
