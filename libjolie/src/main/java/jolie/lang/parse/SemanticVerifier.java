@@ -1033,7 +1033,7 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( CorrelationSetInfo n )
 	{
-		VariablePathSet pathSet = new VariablePathSet();
+		VariablePathSet< VariablePathNode > pathSet = new VariablePathSet<>();
 
 		VariablePathNode path;
 		for( CorrelationSetInfo.CorrelationVariableInfo csetVar : n.variables() ) {
