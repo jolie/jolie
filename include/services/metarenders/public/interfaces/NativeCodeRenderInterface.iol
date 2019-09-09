@@ -21,16 +21,22 @@
 
 include "types/definition_types.iol"
 
-interface ParserInterface {
+interface NativeCodeRenderInterface {
   RequestResponse:
     getInterface( Interface )( string ),
+    getInterfaceWIthoutTypeList( Interface )( string ),
+    getOperation( Operation )( string ),
     getInputPort( Port )( string ),
     getOutputPort( Port )( string ),
     getSurface( Port )( string ),
     getSurfaceWithoutOutputPort( Port )( string ),
+    getTypeDefinition( TypeDefinition )( string ),
     getType( Type )( string ),
-    getTypeInLine( Type )( string ),
+    getTypeInLine( TypeInLine )( string ),
+    getTypeLink( TypeLink )( string ),
+    getTypeChoice( TypeChoice )( string ),
+    getTypeUndefined( TypeUndefined )( string ),
     getSubType( SubType )( string ),
     getCardinality( Cardinality )( string ),
-    getNativeType( NativeType )( string )
+    getNativeType( NativeType )( string ),
 }
