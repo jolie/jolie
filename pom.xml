@@ -50,7 +50,6 @@
 		<module>lib/jolie-ssl</module>
 		<module>lib/jolie-xml</module>
 		<module>lib/xsom</module>
-		<module>support/jolie-gwt</module>
 		<module>support/jolie-java</module>
 		<module>support/metaservice-java</module>
 		<module>extensions/auto</module>
