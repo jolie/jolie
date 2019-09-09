@@ -40,12 +40,12 @@ define doTest
 	readFile@File( { .filename = "../README.md", .format = "text" } )( data );
 	checkResult;
 
-	// Properties file
-	readFile@File( { .filename = "../buildconfig/build.properties", .format = "properties" } )( data );
+	// // Properties file
+	readFile@File( { .filename = "../libjolie/src/main/resources/libjolie.properties", .format = "properties" } )( data );
 	checkResult;
 
 	// XML file
-	readFile@File( { .filename = "../build.xml", .format = "xml" } )( data );
+	readFile@File( { .filename = "../pom.xml", .format = "xml" } )( data );
 	checkResult;
 
 	getServiceDirectory@File()( dir );
