@@ -1429,11 +1429,9 @@ public class OLParser extends AbstractParser
 		boolean keepRun = true;
 		Scanner.Token commentToken = null;
 		String opId;
-		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
 			if ( token.is(Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
-				commentsPreset = true;
 				commentToken = token;
 				getToken();
 			} else if ( token.is( Scanner.TokenType.ID ) || (
@@ -2000,6 +1998,7 @@ public class OLParser extends AbstractParser
 				retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
 			}
 			break;
+		default: break;
 		}
 
 		if ( throwException && retVal == null ) {
@@ -2080,6 +2079,7 @@ public class OLParser extends AbstractParser
 		}
 
 		insideInstallFunction = backup;
+
 		return new InstallFunctionNode( vec.toArray( new Pair[ vec.size() ] ) );
 	}
 
@@ -2603,6 +2603,7 @@ public class OLParser extends AbstractParser
 				return retVal;
 			}
 			break;
+		default: break;
 		}
 
 		if ( path != null ) {
@@ -2773,6 +2774,7 @@ public class OLParser extends AbstractParser
 				);
 				eat( Scanner.TokenType.RPAREN, "expected )" );
 				break;
+			default: break;
 			}
 		}	
 				

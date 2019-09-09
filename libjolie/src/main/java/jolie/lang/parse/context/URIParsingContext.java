@@ -26,12 +26,15 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import jolie.lang.Constants;
+
 /**
  * A very simple {@code ParsingContext} based upon an URI.
  * @author Fabrizio Montesi
  */
 public class URIParsingContext extends AbstractParsingContext
 {
+	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final URI uri;
 
 	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0 );

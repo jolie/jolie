@@ -76,7 +76,7 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 	}
 
 	@Override
-	public <T> T[] toArray( T[] a )
+	public <K> K[] toArray( K[] a )
 	{
 		return elements.toArray( a );
 	}

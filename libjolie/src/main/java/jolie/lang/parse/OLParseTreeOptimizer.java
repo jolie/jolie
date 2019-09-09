@@ -466,6 +466,7 @@ public class OLParseTreeOptimizer
 				return null;
 			}
 
+			@SuppressWarnings("unchecked")
 			Pair< String, OLSyntaxNode >[] pairs =
 				(Pair< String, OLSyntaxNode >[]) Array.newInstance( Pair.class, n.pairs().length );
 			int i = 0;

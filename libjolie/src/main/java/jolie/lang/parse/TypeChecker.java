@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -119,8 +120,9 @@ import jolie.util.Pair;
  */
 public class TypeChecker implements OLVisitor
 {
-	private class FlaggedVariablePathNode extends VariablePathNode
+	private static class FlaggedVariablePathNode extends VariablePathNode
 	{
+		private static final long serialVersionUID = Constants.serialVersionUID();
 		private final boolean isFresh;
 		public FlaggedVariablePathNode( VariablePathNode path, boolean isFresh )
 		{
@@ -148,11 +150,11 @@ public class TypeChecker implements OLVisitor
 
 		public TypingResult()
 		{
-			neededCorrPaths = new VariablePathSet();
-			providedCorrPaths = new VariablePathSet();
-			neededVarPaths = new VariablePathSet();
-			providedVarPaths = new VariablePathSet();
-			invalidatedVarPaths = new VariablePathSet();
+			neededCorrPaths = new VariablePathSet<>();
+			providedCorrPaths = new VariablePathSet<>();
+			neededVarPaths = new VariablePathSet<>();
+			providedVarPaths = new VariablePathSet<>();
+			invalidatedVarPaths = new VariablePathSet<>();
 			sessionOperations = new HashSet<>();
 		}
 
@@ -237,12 +239,12 @@ public class TypeChecker implements OLVisitor
 			}
 		}
 
-		public void needAll( VariablePathSet< ? extends VariablePathNode > other )
-		{
-			for( VariablePathNode path : other ) {
-				need( path );
-			}
-		}
+		// public void needAll( VariablePathSet< ? extends VariablePathNode > other )
+		// {
+		// 	for( VariablePathNode path : other ) {
+		// 		need( path );
+		// 	}
+		// }
 
 		public void invalidateAll( TypingResult other )
 		{
