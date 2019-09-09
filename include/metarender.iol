@@ -19,13 +19,13 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-include "services/metaparser/public/interfaces/ParserInterface.iol"
+include "services/metarenders/public/interfaces/NativeCodeRenderInterface.iol"
 
-outputPort Parser {
-Interfaces: ParserInterface
+outputPort Render {
+Interfaces: NativeCodeRenderInterface
 }
 
 embedded {
   Jolie:
-    "services/metaparser/main_parser.ol" in Parser
+    "services/metarenders/nativecode_render.ol" in Render
 }
