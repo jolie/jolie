@@ -20,24 +20,13 @@
 	<name>libjolie</name>
 	<description>The basic library used for Jolie code parsing and analysis.</description>
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>templating-maven-plugin</artifactId>
-				<version>1.0-alpha-3</version>
-				<executions>
-					<execution>
-						<id>filter-src</id>
-						<goals>
-							<goal>filter-sources</goal>
-						</goals>
-						<configuration>
-							<sourceDirectory>${basedir}/src/java-template</sourceDirectory>
-							<outputDirectory>${basedir}/src/main/java/jolie/lang</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
