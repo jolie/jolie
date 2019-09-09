@@ -3,4 +3,6 @@
 **/target/
 **/.classpath/
 **/.settings/
+**/.project
+**/*.iml
 test/extensions/private/WS-test.jar
