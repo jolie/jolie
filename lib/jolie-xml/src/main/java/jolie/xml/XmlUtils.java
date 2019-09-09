@@ -21,6 +21,15 @@
 
 package jolie.xml;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+
 import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;
@@ -32,24 +41,18 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import jolie.Interpreter;
-import jolie.lang.Constants;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import jolie.Interpreter;
+import jolie.lang.Constants;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 /**
  * Utilities for interactions and transformations with XML.
@@ -61,7 +64,6 @@ public class XmlUtils
 	private static final String FORCE_ATTRIBUTE = "@ForcedAttributes";
 
 	public static final String PREFIX = "@Prefix";
-	private static final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 	public static final String NAMESPACE_ATTRIBUTE_NAME = "@Namespace";
 
 	/**

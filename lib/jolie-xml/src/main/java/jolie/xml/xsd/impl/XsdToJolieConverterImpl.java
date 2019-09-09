@@ -160,7 +160,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 
 		// creating type name lists
-		Iterator complexNameIter = schemaSet.iterateComplexTypes();
+		Iterator<XSComplexType> complexNameIter = schemaSet.iterateComplexTypes();
 		while( complexNameIter.hasNext() ) {
 			XSComplexType complexType = (XSComplexType) complexNameIter.next();
 			if ( complexType.getContentType().asSimpleType() == null && !checkSkippedTypes( complexType.getName(), complexType.getTargetNamespace() ) ) {
@@ -170,7 +170,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		}
 
 		// Load simple types
-		Iterator simpleIter = schemaSet.iterateSimpleTypes();
+		Iterator<XSSimpleType> simpleIter = schemaSet.iterateSimpleTypes();
 		while( simpleIter.hasNext() ) {
 			XSSimpleType simpleType = (XSSimpleType) simpleIter.next();
 			if ( !checkSkippedTypes( simpleType.getName(), simpleType.getTargetNamespace() ) ) {
@@ -183,7 +183,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 
 
 		// Load complex types
-		Iterator complexIter = schemaSet.iterateComplexTypes();
+		Iterator<XSComplexType> complexIter = schemaSet.iterateComplexTypes();
 		while( complexIter.hasNext() ) {
 			XSComplexType complexType = (XSComplexType) complexIter.next();
 			if ( complexType.getContentType().asSimpleType() == null && !checkSkippedTypes( complexType.getName(), complexType.getTargetNamespace() ) ) {
@@ -205,7 +205,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 
 
 		// Load element types
-		Iterator elementDeclIter = schemaSet.iterateElementDecls();
+		Iterator<XSElementDecl> elementDeclIter = schemaSet.iterateElementDecls();
 		while( elementDeclIter.hasNext() ) {
 			XSElementDecl element = (XSElementDecl) elementDeclIter.next();
 			XSType type = element.getType();

@@ -22,6 +22,8 @@
 package jolie.xml.xsd;
 
 import java.util.List;
+
+import jolie.lang.Constants;
 import jolie.lang.parse.ast.types.TypeDefinition;
 
 /**
@@ -32,7 +34,9 @@ public interface XsdToJolieConverter
 {
 	public static class ConversionException extends Exception
 	{
-		public ConversionException( String message )
+		private static final long serialVersionUID = Constants.serialVersionUID();
+
+		public ConversionException(String message)
 		{
 			super( message );
 		}
