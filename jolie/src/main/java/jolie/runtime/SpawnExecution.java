@@ -56,8 +56,7 @@ public class SpawnExecution
 			parentSpawnProcess.indexPath().getValue().setValue( index );
 			try {
 				process().run();
-			} catch( FaultException f ) {}
-			catch( ExitingException e ) {}
+			} catch( FaultException | ExitingException | FaultException.RuntimeFaultException f ) {}
 			
 			terminationNotify( this );
 		}

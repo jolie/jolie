@@ -22,7 +22,6 @@
 package jolie.runtime;
 
 import java.io.ByteArrayOutputStream;
-
 import java.io.PrintStream;
 
 /**
@@ -122,4 +121,29 @@ public class FaultException extends Exception
 	{
 		return faultName;
 	}
+
+	public RuntimeFaultException toRuntimeFaultException()
+	{
+		return new RuntimeFaultException( this );
+	}
+	
+	// A RuntimeFaultException is used for runtime errors from which it is 
+	// impossible to recover from and continue the execution.
+	// A RuntimeFaultException wraps a FaultException. 
+	// A thrown RuntimeFaultException is caught by the enclosing execution
+	// instance and used to report to the user the enclosed FaultException
+	public class RuntimeFaultException extends RuntimeException {
+		private final FaultException faultException;
+
+		private RuntimeFaultException( FaultException faultException )
+		{
+			this.faultException = faultException;
+		}
+		
+		public FaultException faultException(){
+			return this.faultException;
+		}
+		
+	}
+	
 }
