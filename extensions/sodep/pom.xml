@@ -20,7 +20,6 @@
 	<name>sodep</name>
 	<description>Sodep protocol for Jolie</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
