@@ -19,9 +19,6 @@
 
 package jolie.net;
 
-import com.google.gwt.user.client.rpc.SerializationException;
-import com.google.gwt.user.server.rpc.RPC;
-import com.google.gwt.user.server.rpc.RPCRequest;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -56,6 +54,12 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
@@ -78,12 +82,6 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
-import joliex.gwt.client.JolieService;
-import joliex.gwt.server.JolieGWTConverter;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  * HTTP protocol implementation
@@ -555,27 +553,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				}
 			}
 			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
-		} else if ( "text/x-gwt-rpc".equals( format ) ) {
-			ret.contentType = "text/x-gwt-rpc";
-			try {
-				if ( inInputPort ) { // It's a response
-					if ( message.isFault() ) {
-						ret.content = new ByteArray(
-							RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], JolieGWTConverter.jolieToGwtFault( message.fault() ) ).getBytes( charset )
-						);
-					} else {
-						joliex.gwt.client.Value v = new joliex.gwt.client.Value();
-						JolieGWTConverter.jolieToGwtValue( message.value(), v );
-						ret.content = new ByteArray(
-							RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v ).getBytes( charset )
-						);
-					}
-				} else { // It's a request
-					throw new IOException( "Sending requests to a GWT server is currently unsupported." );
-				}
-			} catch( SerializationException e ) {
-				throw new IOException( e );
-			}
 		} else if ( "json".equals( format ) ) {
 			ret.contentType = ContentTypes.APPLICATION_JSON;
 			StringBuilder jsonStringBuilder = new StringBuilder();
@@ -873,7 +850,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
-				"text/html text/css text/plain text/xml text/x-js text/x-gwt-rpc application/json application/javascript application/x-www-form-urlencoded application/xhtml+xml application/xml"
+				"text/html text/css text/plain text/xml text/x-js application/json application/javascript application/x-www-form-urlencoded application/xhtml+xml application/xml"
 			).toLowerCase();
 			if ( compression && !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
@@ -1005,16 +982,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
 		multiPartFormDataParser.parse();
-	}
-
-	private static String parseGWTRPC( HttpMessage message, Value value, String charset )
-		throws IOException
-	{
-		RPCRequest request = RPC.decodeRequest( new String( message.content(), charset ) );
-		String operationName = (String)request.getParameters()[0];
-		joliex.gwt.client.Value requestValue = (joliex.gwt.client.Value)request.getParameters()[1];
-		JolieGWTConverter.gwtToJolieValue( requestValue, value );
-		return operationName;
 	}
 
 	private void recv_checkForSetCookie( HttpMessage message, Value value )
@@ -1207,8 +1174,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if ( "text/xml".equals( type ) ) {
 			responseFormat = "xml";
-		} else if ( "text/x-gwt-rpc".equals( type ) ) {
-			responseFormat = "text/x-gwt-rpc";
 		} else if ( ContentTypes.APPLICATION_JSON.equals( type ) ) {
 			responseFormat = "json";
 		}
@@ -1228,8 +1193,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			parseForm( message, decodedMessage.value, charset );
 		} else if ( "text/xml".equals( type ) || type.contains( "xml" ) ) {
 			parseXML( message, decodedMessage.value, charset );
-		} else if ( "text/x-gwt-rpc".equals( type ) ) {
-			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value, charset );
 		} else if ( "multipart/form-data".equals( type ) ) {
 			parseMultiPartFormData( message, decodedMessage.value, charset );
 		} else if (
