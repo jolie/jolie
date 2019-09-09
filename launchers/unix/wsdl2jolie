@@ -1,0 +1,3 @@
+#!/bin/sh
+jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
+		

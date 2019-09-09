@@ -38,7 +38,6 @@ type CheckNativeTypeResponse: void {
 
 type GetMetaDataRequest: void {
   .filename: string             //< the filename where the service definition is
-  .name: Name                   //< the name and the domain name to give to the service
 }
 
 type GetMetaDataResponse: void {
@@ -46,18 +45,13 @@ type GetMetaDataResponse: void {
   .input*: Port                 //< the definitions of all the input ports
   .output*: Port                //< the definitions of all the output ports
   .interfaces*: Interface       //< the definitions of all the interfaces
-  .types*: Type                 //< the definitions of all the types
+  .types*: TypeDefinition       //< the definitions of all the types
   /// the definitions of all the embedded services
   .embeddedServices*: void {    
 	    .type: string             //< type of the embedded service
 	    .servicepath: string      //< path where the service can be found
 	    .portId: string           //< target output port where the embedded service is bound
   }
-}
-
-type GetInputPortMetaDataRequest: void {
-  .filename: string             //< the filename where the service definition is
-  .name?: Name                  //< the absolute name to give to the resource. in this operation only .domain will be used. default .domain = "".
 }
 
 type GetInputPortMetaDataResponse: void {
@@ -68,7 +62,7 @@ type MessageTypeCastRequest: void {
   .message: undefined           //< the message to be cast
   /// the types to use for casting the message
   .types: void {                
-	     .messageTypeName: Name   //< starting type to user for casting
+	     .messageTypeName: string   //< starting type to user for casting
 	     .types*: Type            //< list of all the required types
   }
 }
@@ -98,7 +92,7 @@ RequestResponse:
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
 	    throws  ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
-	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse )
+	getInputPortMetaData( GetMetaDataRequest )( GetInputPortMetaDataResponse )
 	    throws  InputPortMetaDataFault
 		          ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
