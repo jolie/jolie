@@ -19,7 +19,6 @@
 	<name>sodeps</name>
 	<description>Sodeps protocol for Jolie</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

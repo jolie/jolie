@@ -20,7 +20,6 @@
 	<name>jolie2java</name>
 	<description>Tool to generate java project from Jolie interface</description>
 	<build>
-		<finalName>${project.artifactId}.jar</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

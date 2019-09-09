@@ -20,7 +20,6 @@
     <name>javascript</name>
     <description>Javascript embedding extension for Jolie.</description>
     <build>
-        <finalName>${project.artifactId}.jar</finalName>
         <plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

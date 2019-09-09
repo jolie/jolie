@@ -20,7 +20,6 @@
     <name>jolie-ssl</name>
     <description>The basic library used by Jolie for SSL handling</description>
     <build>
-        <finalName>${project.artifactId}.jar</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
