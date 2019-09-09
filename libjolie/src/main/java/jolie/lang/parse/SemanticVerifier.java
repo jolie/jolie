@@ -253,7 +253,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		try {
 			encounteredAssignment( ( ( ConstantStringExpression ) path.path().get( 0 ).key()).value() );
-		} catch ( ClassCastException e ){
+		} catch ( IndexOutOfBoundsException | ClassCastException e ){
 			error( path, path.toPrettyString() + " is an invalid path" );
 		}
 	}
@@ -499,14 +499,18 @@ public class SemanticVerifier implements OLVisitor
 			error( n, "Correlation paths must be statically defined" );
 		}
 		
-		if ( !(n.path().get( 0 ).key() instanceof ConstantStringExpression) ) {
-			if ( n.isGlobal() ) {
-				error( n, "the global keyword in paths must be followed by an identifier" );
-			} else if ( n.isCSet() ) {
-				error( n, "the csets keyword in paths must be followed by an identifier" );
-			} else {
-				error( n, "paths must start with an identifier" );
+		try {
+			if ( !(n.path().get( 0 ).key() instanceof ConstantStringExpression) ) {
+				if ( n.isGlobal() ) {
+					error( n, "the global keyword in paths must be followed by an identifier" );
+				} else if ( n.isCSet() ) {
+					error( n, "the csets keyword in paths must be followed by an identifier" );
+				} else {
+					error( n, "paths must start with an identifier" );
+				}
 			}
+		} catch( IndexOutOfBoundsException e ) {
+			error( n, "invalid path: " + n.toPrettyString() );
 		}
 	}
 
