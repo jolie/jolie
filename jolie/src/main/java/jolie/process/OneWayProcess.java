@@ -91,9 +91,13 @@ public class OneWayProcess implements InputOperationProcess
 
 		Future< SessionMessage > f = ethread.requestMessage( operation, ethread );
 		try {
-			SessionMessage m = f.get();
-			if ( m != null ) { // If it is null, we got killed by a fault
-				receiveMessage( m, ethread.state() ).run();
+			try {
+				SessionMessage m = f.get();
+				if ( m != null ) { // If it is null, we got killed by a fault
+					receiveMessage( m, ethread.state() ).run();
+				}
+			} catch ( FaultException.RuntimeFaultException rf ){
+				throw rf.faultException();
 			}
 		} catch( FaultException e ) {
 			// Should never happen since receiveMessage always
@@ -106,6 +110,7 @@ public class OneWayProcess implements InputOperationProcess
 		} catch( Exception e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
+		
 	}
 
 	private void log( String log, CommMessage message )

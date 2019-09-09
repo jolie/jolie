@@ -43,7 +43,7 @@ class ValueLink extends Value implements Cloneable
 	private final VariablePath linkPath;
 	private Value getLinkedValue()
 	{
-		return linkPath.getValue();
+		return linkPath.getValue( this );
 	}
 
 	@Override

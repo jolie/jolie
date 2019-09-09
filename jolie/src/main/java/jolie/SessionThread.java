@@ -465,9 +465,13 @@ public class SessionThread extends ExecutionThread
 	{
 		try {
 			try {
-				process().run();
-			} catch( ExitingException e ) {}
-			listeners.forEach( listener -> listener.onSessionExecuted( this ) );
+				try {
+					process().run();
+				} catch( ExitingException e ) {}
+				listeners.forEach( listener -> listener.onSessionExecuted( this ) );
+			} catch( FaultException.RuntimeFaultException rf ){
+				throw rf.faultException();
+			}
 		} catch( FaultException f ) {
 			Process p = null;
 			while( hasScope() && (p = getFaultHandler( f.faultName(), true )) == null ) {
@@ -475,21 +479,24 @@ public class SessionThread extends ExecutionThread
 			}
 
 			try {
-				if ( p == null ) {
-					Interpreter.getInstance().logUnhandledFault( f );
-					throw f;
-				} else {
-					Value scopeValue =
-						new VariablePathBuilder( false ).add( currentScopeId(), 0 ).toVariablePath().getValue();
-					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
-					try {
-						p.run();
-					} catch( ExitingException e ) {}
+				try {
+					if ( p == null ) {
+						Interpreter.getInstance().logUnhandledFault( f );
+						throw f;
+					} else {
+						Value scopeValue =
+							new VariablePathBuilder( false ).add( currentScopeId(), 0 ).toVariablePath().getValue();
+						scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
+						try {
+							p.run();
+						} catch( ExitingException e ) {}
+					}
+				} catch ( FaultException.RuntimeFaultException rf ){
+					throw rf.faultException();
 				}
 			} catch( FaultException fault ) {
 				listeners.forEach( listener -> listener.onSessionError( this, fault ) );
 			}
-
 			listeners.forEach( listener -> listener.onSessionExecuted( this ) );
 		}
 	}

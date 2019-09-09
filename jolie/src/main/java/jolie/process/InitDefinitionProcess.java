@@ -46,7 +46,7 @@ public class InitDefinitionProcess extends DefinitionProcess
 			for( OutputPort outputPort : interpreter.outputPorts() ) {
 				try {
 					outputPort.configurationProcess().run();
-				} catch( FaultException fe ) {
+				} catch( FaultException | FaultException.RuntimeFaultException fe ) {
 					// If this happens, it's been caused by a bug in the SemanticVerifier
 					assert( false );
 				} catch( ExitingException e ) {

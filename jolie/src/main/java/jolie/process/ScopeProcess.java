@@ -60,16 +60,20 @@ public class ScopeProcess implements Process
 			throws ExitingException
 		{
 			try {
-				p.run();
-				if ( ethread.isKilled() ) {
-					shouldMerge = false;
-					p = ethread.getCompensation( id );
-					if ( p != null ) { // Termination handling
-						FaultException f = ethread.killerFault();
-						ethread.clearKill();
-						this.runScope( p );
-						ethread.kill( f );
+				try {
+					p.run();
+					if ( ethread.isKilled() ) {
+						shouldMerge = false;
+						p = ethread.getCompensation( id );
+						if ( p != null ) { // Termination handling
+							FaultException f = ethread.killerFault();
+							ethread.clearKill();
+							this.runScope( p );
+							ethread.kill( f );
+						}
 					}
+				} catch( FaultException.RuntimeFaultException rf ){
+					throw rf.faultException();
 				}
 			} catch( FaultException f ) {
 				p = ethread.getFaultHandler( f.faultName(), true );
