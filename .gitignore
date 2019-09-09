@@ -4,5 +4,6 @@
 **/.classpath/
 **/.settings/
 **/.project
+**/.idea/
 **/*.iml
 test/extensions/private/WS-test.jar
