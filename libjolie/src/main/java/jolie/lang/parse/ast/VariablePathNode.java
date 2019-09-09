@@ -197,7 +197,10 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 		StringBuilder builder = new StringBuilder();
 		Pair< OLSyntaxNode, OLSyntaxNode > node;
 		if ( isGlobal() ) {
-			builder.append( Constants.GLOBAL ).append( '.' );
+			builder.append( Constants.GLOBAL );
+			if ( path.size() > 1 ) {
+				builder.append( '.' );
+			}
 		}
 		for( int i = 0; i < path.size(); i++ ) {
 			node = path.get( i );
