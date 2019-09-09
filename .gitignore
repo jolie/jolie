@@ -2,4 +2,5 @@
 **/build/
 **/target/
 **/.classpath/
+**/.settings/
 test/extensions/private/WS-test.jar
