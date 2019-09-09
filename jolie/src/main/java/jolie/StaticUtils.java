@@ -31,7 +31,7 @@ public final class StaticUtils
 {
 	private static final Map< String, Object > m = new ConcurrentHashMap<>();
 
-	public static void create( Class holder, Callable<Object> task )
+	public static void create( Class<?> holder, Callable<Object> task )
 	{
 		m.computeIfAbsent( holder.getName(),
 			k -> {
