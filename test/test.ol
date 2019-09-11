@@ -34,7 +34,6 @@ init
 	dirs[0] = "primitives"
 	dirs[1] = "library"
 	dirs[2] = "extensions"
-	//dirs[3] = "services"
 }
 
 define calcMaxLength
