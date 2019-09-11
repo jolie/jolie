@@ -28,9 +28,13 @@ define doTest
   f.filename = "library/private/tmp/metarendertest.ol"
   f.content = testservice
   writeFile@File( f )( )
-  loadEmbeddedService@Runtime( { .filepath = f.filename, .type = "Jolie" } )( )
-  tmp@Test()()
-  //delete@File( f.filename )(  )
-  //deleteDir@File( TMPDIR )(  )
-  
+  del = true
+  scope( s ) {
+	install( default => deleteDir@File( TMPDIR )(); del = false; throw( TestFailed, "error with the rendered test service" ) )
+	loadEmbeddedService@Runtime( { .filepath = f.filename, .type = "Jolie" } )( )
+	tmp@Test()()
+  }
+  if ( del ) {
+	  deleteDir@File( TMPDIR )()
+  }  
 }
