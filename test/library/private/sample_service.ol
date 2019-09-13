@@ -35,7 +35,7 @@ type T7: undefined
 interface TmpInterface {
   RequestResponse:
     /**!documentation of operation tmp*/
-    tmp( T2 )( T2 ) throws Fault1( T3 ),
+    tmp( T1 )( T2 ) throws Fault1( T3 ),
     /**!documentation of operation tmp2*/
     tmp2( T3 )( T4 ) throws Fault2,
     tmp3( T5 )( T6 ) throws Fault3( string ) Fault4( T7 )
