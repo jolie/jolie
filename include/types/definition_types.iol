@@ -48,6 +48,7 @@ type SubType: void {
   .name: string
   .cardinality: Cardinality
   .type: Type
+  .documentation?: string
 }
 
 type TypeInLine: void {
@@ -75,6 +76,7 @@ type Type: TypeInLine | TypeLink | TypeChoice | TypeUndefined
 type TypeDefinition: void {
   .name: string
   .type: Type
+  .documentation?: string
 }
 
 
@@ -85,7 +87,7 @@ type Fault: void {
 
 type Operation: void {
   .operation_name: string
-  .documentation?: any
+  .documentation?: string
   .input: string
   .output?: string
   .fault*: Fault
@@ -95,6 +97,7 @@ type Interface: void {
   .name: string
   .types*: TypeDefinition
   .operations*: Operation
+  .documentation?: string
 }
 
 type Port: void {

@@ -1402,6 +1402,7 @@ public class OLParser extends AbstractParser
 				}
 
 				parseBackwardAndSetDocumentation( opDecl, Optional.ofNullable( commentToken ) );
+				commentToken = null;
 
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultOneWayOperation( opDecl );
@@ -1492,6 +1493,7 @@ public class OLParser extends AbstractParser
 					);
 
 				parseBackwardAndSetDocumentation( opRR, Optional.ofNullable( commentToken ) );
+				commentToken = null;
 				
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultRequestResponseOperation( opRR );
