@@ -38,7 +38,7 @@ public class Jolie2Wsdl {
             String portName = cmdParser.getPortName();
             String address = cmdParser.getAddress();
 
-            if ( outfile == null || tns == null || tns == null || portName == null || address == null ) {
+            if ( outfile == null || tns == null || portName == null || address == null ) {
                 System.out.println( cmdParser.getHelpString() );
             } else {
                 document.ConvertDocument(outfile, tns, portName, address);

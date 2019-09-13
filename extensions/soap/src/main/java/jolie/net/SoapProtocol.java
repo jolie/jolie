@@ -1066,7 +1066,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 
 		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
-		ostream.write( content.getBytes() );
+		if ( content != null) {
+			ostream.write( content.getBytes() );
+		};
 
 	}
 
