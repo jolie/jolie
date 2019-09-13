@@ -142,10 +142,10 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${jolie.installation.directory}/tools</outputDirectory>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/${jolie.installation.directory}/tools/joliedoc</directory>
+									<directory>${basedir}/tools/joliedoc</directory>
 									<includes>
 										<include>joliedoc.ol</include>
 									</includes>
