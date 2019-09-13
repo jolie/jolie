@@ -37,9 +37,14 @@ public class Jolie2Wsdl {
             String tns = cmdParser.getNamespace();
             String portName = cmdParser.getPortName();
             String address = cmdParser.getAddress();
-            document.ConvertDocument(outfile, tns, portName, address );
+
+            if ( outfile == null || tns == null || tns == null || portName == null || address == null ) {
+                System.out.println( cmdParser.getHelpString() );
+            } else {
+                document.ConvertDocument(outfile, tns, portName, address);
+            }
         } catch (CommandLineException ex) {
-            Logger.getLogger(Jolie2Wsdl.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println( ex.getMessage() );
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParserException e) {
