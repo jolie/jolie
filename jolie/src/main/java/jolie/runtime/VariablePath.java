@@ -180,8 +180,9 @@ public class VariablePath implements Expression
 	
 	private final Set< ValueLink > fromValueLink = new HashSet<>();
 	
-	public final Value getValue( ValueLink l ) {
-		if( fromValueLink.contains( l ) ){
+	public final Value getValue( ValueLink l )
+	{
+		if ( fromValueLink.contains( l ) ) {
 			throw buildAliasAccessException().toRuntimeFaultException();
 		} else {
 			fromValueLink.add( l );
