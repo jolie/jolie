@@ -779,7 +779,7 @@ public class OLParser extends AbstractParser
 
 			origIncludePaths = includePaths;
 			// includes are explicitly parsed in ASCII to be independent of program's encoding
-			setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI(), "US-ASCII" ) );
+			setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI(), "US-ASCII", oldScanner.includeDocumentation() ) );
 			
 			if ( includeFile.getParentPath() == null ) {
 				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length );
