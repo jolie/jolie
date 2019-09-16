@@ -61,7 +61,7 @@ type TypeLink: void {
 }
 
 type TypeChoice: void {
-  .choice?: void {
+  .choice: void {
       .left_type: TypeInLine | TypeLink 
       .right_type: Type
   }
