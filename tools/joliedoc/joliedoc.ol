@@ -49,12 +49,12 @@ service Render {
             for( i in request.interfaces ) {
                 response = response + "<a href='#" + "'>" + i.name + "<a>&nbsp;&nbsp;"
             }
-            response = response + "</td></tr>"
+            response = response + "</td></tr></table>"
         }]
 
         [ getInterface( request )( response ) {
             response = "<table class='interface-definition'>"
-            response = response + "<tr><th id='" + request.name + "' class='resource-label-interface resource-label'>interface</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
+            response = response + "<tr><th id='" + request.name + "' class='resource-label-interface resource-label'>interface</th><th id='" + request.name + "' colspan='3' class='content-td'>" + request.name + "</th></tr>"
             if ( is_defined( request.documentation ) && request.documentation != "" ) {
                 response = response + "<tr><td>&nbsp;</td></tr>"
                 response = response + "<tr><td></td><td colspan='4' class='documentation'>" + request.documentation + "</td></tr>"
@@ -204,6 +204,10 @@ service Render {
         }]
 
     }
+}
+
+constants {
+    JOLIEDOC_FOLDER = "joliedoc"
 }
 
 init {
@@ -407,6 +411,28 @@ init {
         width:44%;
     }
     </style>"
+
+    css_header = "<style>
+        body {
+            font-family: 'Courier New';
+            font-size:14px;
+        }
+
+        .headertable {
+            width:100%;
+            heigth:50px;
+            font-size:30px;
+            padding:10px;
+        }
+
+        .menutd {
+            width:20%;
+        }
+
+        .bodytd {
+            width:80%;
+        }
+    </style>"
 }
 
 main {
@@ -417,6 +443,7 @@ main {
         getInputPortMetaData@MetaJolie( rq )( meta_description )
 
         for( inpt in meta_description.input ) {
+            html = "";
             getPort@Render( inpt )( port )
             
             for( itf in inpt.interfaces ) {
@@ -436,10 +463,35 @@ main {
                 html = html + t
             }
             html = html + "</body></html>"
+
+            max_files = #files 
+            files[ max_files ].filename = inpt.name + "Port.html"
+            files[ max_files ].html = html
         }        
+
+        /* creating index */
+        getMetaData@MetaJolie( rq )( metadata )
+
+
+        index = "<html><head></head><body><table class='headertable'><tr><td>Jolie Documenation:&nbsp;" + args[ 0 ] + "</td></tr></table>"
+        index = index + "<table><tr><td class='menutd'></td>"
+        index = index + "<td class='bodytd'></td></tr></table></body></html>"
+
+        max_files = #files 
+        files[ max_files ].filename = "index.html"
+        files[ max_files ].html = index
     }
 
-    f.filename = "test.html"
-    f.content -> html
-    writeFile@File( f )(  )
+    exists@File( JOLIEDOC_FOLDER )( joliedoc_exists )
+    if ( joliedoc_exists ) {
+        deleteDir@File( JOLIEDOC_FOLDER )()
+    }
+    mkdir@File( JOLIEDOC_FOLDER )()
+
+    for( file in files ) {
+        f.filename = JOLIEDOC_FOLDER + "/" + file.filename;
+        f.content -> file.html
+        writeFile@File( f )(  )
+    }
+
 }
