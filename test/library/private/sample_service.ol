@@ -1,4 +1,5 @@
 include "SampleInterface.iol"
+include "console.iol"
 
 inputPort TPort {
   Location: "socket://localhost:9000"
