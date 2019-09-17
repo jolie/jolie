@@ -41,40 +41,42 @@ service Render {
         }]
 
         [ getPort( request )( response ) {
-            response = "<h1>" + request.name + "</h1>"
-            response = response + "<span class='port-element'>Protocol:</sapn>&nbsp;" + request.protocol + "<br>"
-            response = response + "<span class='port-element'>Location:</span>&nbsp;" + request.location + "<br>"
-            response = response + "<span class='port-element'>Interfaces:</span><br>"
+            response = "<table class='port-definition'>"
+            response = response + "<tr><th class='resource-label-port resource-label'>port</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
+            response = response + "<tr><td></td><td class='content-td port-element'>Location:</td><td class='content-td'>" + request.location + "</td></tr>"
+            response = response + "<tr><td></td><td class='content-td port-element'>Protocol:</td><td class='content-td'>" + request.protocol + "</td></tr>"
+            response = response + "<tr><td></td><td class='content-td port-element'>Interfaces:</td><td class='content-td'>" 
             for( i in request.interfaces ) {
-                response = response + i.name + "<br>"
+                response = response + "<a href='#" + "'>" + i.name + "<a>&nbsp;&nbsp;"
             }
+            response = response + "</td></tr>"
         }]
 
         [ getInterface( request )( response ) {
             response = "<table class='interface-definition'>"
-            response = response + "<tr><th class='resource-label-interface'>interface</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
+            response = response + "<tr><th id='" + request.name + "' class='resource-label-interface resource-label'>interface</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
             if ( is_defined( request.documentation ) && request.documentation != "" ) {
                 response = response + "<tr><td>&nbsp;</td></tr>"
-                response = response + "<tr><td></td><td colspan='2' class='documentation'>" + request.documentation + "</td></tr>"
+                response = response + "<tr><td></td><td colspan='4' class='documentation'>" + request.documentation + "</td></tr>"
                 response = response + "<tr><td>&nbsp;</td></tr>"
             } else {
                 response = response + "<tr><td>&nbsp;</td></tr>"
             }
             for( o in request.operations ) {
-                otype = " class='ow-type'>OW"
+                otype = " class='resource-label ow-type'>async"
                 if ( is_defined( o.output ) ) {
-                     otype = " class='rr-type'>RR"
+                     otype = " class='resource-label rr-type'>sync"
                 } 
-                response = response + "<tr><td" + otype + "</td><td><b>" + o.operation_name + "</b><br></td><td></td></tr>"
-                getIndentation@Render( 25 )( indent )
-                response = response + "<tr><td></td><td class='content-td'>" + indent + "<span class='message-type'>Request:</span><a href='#'" + o.input + "'>" + o.input + "</a><br>"
-                if ( is_defined( o.output )  ) {
-                    response = response + indent + "<span class='message-type'>Response:</span><a href='#'" + o.output + "'>" + o.output + "</a><br>"
-                }
-                response = response + "</td><td class='content-td'>"
+                response = response + "<tr><td" + otype + "</td><td class='content-td operation-name'><span>" + o.operation_name + "</span><button onclick='openDetails(\"" + o.operation_name + "\")' class='operation-button'>Details</button></td>"
+                response = response + "<td class='content-td'><span class='message-type'>Request:</span><a href='#" + o.input + "'>" + o.input + "</a></td>"
+                response = response + "<td class='content-td'>"
+                if ( is_defined( o.output ) )  {
+                    response = response + "<span class='message-type'>Response:</span><a href='#" + o.output + "'>" + o.output + "</a>"
+                } 
+                response = response + "</td></tr>"
                 if ( is_defined( o.fault )) {
                     
-                    response = response + indent + "<span class='message-type'>Faults:</span> "
+                    response = response + "<tr id='faults_" + o.operation_name + "' style='display:none'><td></td><td></td><td></td><td class='content-td'><span class='message-type'>Faults:</span> "
                     for ( f in o.fault ) {
                         response = response + "<br>" + indent + "<span class='fault-name'>" + f.name + "</span>"
                         getFaultType@Render( f )( fname )
@@ -83,7 +85,7 @@ service Render {
                     response = response + "<br>"
                 }
                 response = response + "</td></tr>"
-                response = response + "<tr><td></td><td colspan='2' class='documentation'>" + o.documentation + "</td><tr>"
+                response = response + "<tr id='doc_" + o.operation_name + "' style='display:none'><td></td><td colspan='3' class='documentation'>" + o.documentation + "</td><tr>"
                 response = response + "<tr><td><br></td></tr>"
             }
             response = response + "</table>"
@@ -105,7 +107,7 @@ service Render {
         [ getTypeDefinition( request )( response ) {
             global.indentation = 0;
             response = "<table class='type-definition'>"
-            response = response + "<tr><th class='resource-label-type'>type</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
+            response = response + "<tr><th class='resource-label-type resource-label'>type</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
             if ( is_defined( request.documentation ) && request.documentation != "" ) {
                 response = response + "<tr><td>&nbsp;</td></tr>"
                 response = response + "<tr><td></td><td colspan='2' class='documentation'>" + request.documentation + "</td></tr>"
@@ -205,23 +207,47 @@ service Render {
 }
 
 init {
+    js = "<script>
+        function openDetails( operation ) {
+            if ( document.getElementById( \"doc_\" + operation ).style.display == \"none\" ) {
+                document.getElementById( \"doc_\" + operation ).style.display = \"table-row\";
+                document.getElementById( \"faults_\" + operation ).style.display = \"table-row\"
+            } else {
+                document.getElementById( \"doc_\" + operation ).style.display = \"none\";
+                document.getElementById( \"faults_\" + operation ).style.display = \"none\"
+            }
+        }
+    </script>"
     css = "<style>
                 body {
         font-family: Verdana, Helvetica, sans-serif;
     }
+
+    .resource-label {
+        height:40px;
+        font-size: 14px;
+        text-align:center;
+        color:white;
+        font-weight:bold;
+        border-radius:5px;
+        width:6%;
+    }
+
     a {
         font-weight:bold;
         text-decoration:none;
         color: #600;
     }
+
     tr:hover td:not(:first-child) {
- 	 background-color: #ffffcc;
+ 	    background-color: #ffffcc;
     }
 
 
     .type-definition a:hover {
         color: #aa0000;
     }
+
     .type-definition {
         margin-left:30px;
         margin-top:50px;
@@ -247,20 +273,21 @@ init {
 	}
 
     .type-definition .resource-label-type {
-         background-color: red;
-         color:white;
-         padding: 5px;
-         border-radius:5px;
-         width:5%;
-	     text-align:center;
+        background-color: red;
+        color:white;
+        text-align:center;
+        font-size:14px;
     }
+
     .content-td {
         padding-left: 20px;
         width: 30%;
         background-color: #eee;
-        padding-bottom: 3px;
-        padding-top: 3px;
+        padding-bottom: 5px;
+        padding-top: 5px;
         border-radius: 5px;
+        font-size: 15px;
+        font-family: 'Courier New';
     }
     .documentation {
         font-style: italic;
@@ -273,14 +300,12 @@ init {
     }
 
     .interface-definition .resource-label-interface {
-         background-color: green;
-         color:white;
-         padding: 5px;
-         border-radius:5px;
-         width:5%;
-	     text-align:center;
-         font-size:14px;
+        background-color: #107710;
+        color:white;
+        text-align:center;
+        font-size:14px;
     }
+
     .interface-definition th {
         font-size:20px;
         text-align: left;
@@ -288,23 +313,40 @@ init {
         color:black;
         border-radius:5px;
     }
+
  	.interface-definition th.content-td{
         border-bottom:1px solid #555;
         border-radius:0px;
     }
-    .rr-type {
-         background-color:#000;
-        text-align:center;
-        color:white;
-        font-weight:bold;
-        border-radius:5px;
+
+    .operation-name {
+        font-weight: bold;
+        font-size:18px;
+        padding-left:20px;
     }
-    .ow-type {
-        background-color:#444;
-        text-align:center;
+
+    .operation-button {
+        font-size: 10px;
+        border: 1px solid #666;
+        padding: 4px;
+        margin-right: 10px;
+        float: right;
+        cursor: pointer;
+    }
+
+    .operation-button:hover {
+        background-color:#666;
         color:white;
-        font-weight:bold;
-        border-radius:5px;
+    }
+
+    .rr-type {
+        background-color:#929900;
+        color:white;
+    }
+
+    .ow-type {
+        background-color:#cca133;
+        color:white;
     }
 
     .message-type {
@@ -316,12 +358,53 @@ init {
     .interface-definition a {
         font-size: 14px;
     }
+
     .interface-definition .content-td {
         padding-top:10px;
         padding-bottom:10px;
+        width:32%;
     }
+
     .fault-name {
         font-size:14px;
+    }
+
+        .port-definition a {
+        font-size: 14px;
+        color: #050;
+    }
+
+    .port-definition th.content-td{
+        border-bottom:1px solid #555;
+        border-radius:0px;
+    }
+
+    .port-definition .resource-label-port {
+        background-color: blue;
+        color:white;
+        text-align:center;
+        font-size:14px;
+    }
+
+    .port-definition th {
+        font-size: 20px;
+        text-align: left;
+        background-color: #fff;
+        color: black;
+    }
+
+    .port-definition {
+        margin-left:30px;
+        margin-top:50px;
+        width:90%;
+    }
+
+    .port-element {
+        font-weight: bold;
+    }
+
+    .port-definition .content-td {
+        width:44%;
     }
     </style>"
 }
@@ -344,7 +427,7 @@ main {
                     tps[ #tps ] = tp_string
                 }
             }
-            html = "<html><head></head>" + css + "<body>" + port + "<hr>"
+            html = "<html><head>" + css + js + "</head><body>" + port + "<hr>"
             for( i in itfcs ) {
                 html = html + i 
             }
