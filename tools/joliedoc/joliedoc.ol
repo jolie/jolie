@@ -2,6 +2,7 @@ include "metajolie.iol"
 include "console.iol"
 include "types/definition_types.iol"
 include "file.iol"
+include "string_utils.iol"
 
 interface RenderInterface {
     RequestResponse:
@@ -412,27 +413,61 @@ init {
     }
     </style>"
 
-    css_header = "<style>
+    css_index = "<style>
         body {
             font-family: 'Courier New';
-            font-size:14px;
+            font-size: 14px;
         }
 
         .headertable {
-            width:100%;
-            heigth:50px;
-            font-size:30px;
-            padding:10px;
+            width: 100%;
+            font-size: 30px;
+            padding: 10px;
+            border-bottom: 1px dotted #444;
         }
 
         .menutd {
-            width:20%;
+            width: 12%;
+            border-right: 1px dotted #444;
+            height: 1000px;
         }
 
         .bodytd {
-            width:80%;
+            width: 80%;
         }
-    </style>"
+
+        .bodytd object {
+            width:100%;
+            height:100%;
+        }
+        .maintable {
+            width: 100%;
+        }
+
+        .menutitle {
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .menutd a {
+            cursor: pointer;
+        }
+
+        .itemmenu {
+            float: left;
+            margin-top:10px;
+            margin-left:50px;
+        }
+
+        .itemmenu a:hover {
+            color:#600;
+        }
+        </style>"
+    js_index = "<script>
+        function loadPage( page ) {
+            document.getElementById(\"bodytd\").innerHTML='<object type=\"text/html\" data=\"' + page + '\"></object>';
+        }
+    </script>"
 }
 
 main {
@@ -465,7 +500,7 @@ main {
             html = html + "</body></html>"
 
             max_files = #files 
-            files[ max_files ].filename = inpt.name + "Port.html"
+            files[ max_files ].filename = inpt.name + "IPort.html"
             files[ max_files ].html = html
         }        
 
@@ -473,9 +508,25 @@ main {
         getMetaData@MetaJolie( rq )( metadata )
 
 
-        index = "<html><head></head><body><table class='headertable'><tr><td>Jolie Documenation:&nbsp;" + args[ 0 ] + "</td></tr></table>"
-        index = index + "<table><tr><td class='menutd'></td>"
-        index = index + "<td class='bodytd'></td></tr></table></body></html>"
+        index = "<html><head>" + css_index + js_index + "</head><body><table class='headertable'><tr><td>Jolie Documentation:&nbsp;<b>" + args[ 0 ] + "</b></td></tr></table>"
+        index = index + "<table class='maintable'><tr><td  valign='top' class='menutd'><br><br>"
+        index = index + "<table><tr><td><span class='itemmenu'><a onclick='loadPage(\"Overview.html\")'>overview</a></span></td></tr></table><br><br>"
+        index = index + "<span class='menutitle'>inputs</span><br>"
+        index = index + "<table>"
+        for( i in metadata.input ) {
+            index = index + "<tr><td><span class='itemmenu'><a onclick='loadPage(\"" + i.name + "IPort.html\")'>" + i.name + "</a></span></td></tr>"
+        }
+        index = index + "</table><br><br>"
+        index = index + "<span class='menutitle'>outputs</span><br>"
+        index = index + "<table>"
+        for( o in metadata.output ) {
+            startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
+            if ( o.location != "local" && !starts_with_local ) {
+                index = index + "<tr><td><span class='itemmenu'><a onclick='loadPage(\"" + o.name + "OPort.html\")'>" + o.name + "</a></span></td></tr>"
+            }
+        }
+        index = index + "</table><br><br>"
+        index = index + "</td><td id='bodytd' class='bodytd'></td></tr></table></body></html>"
 
         max_files = #files 
         files[ max_files ].filename = "index.html"
