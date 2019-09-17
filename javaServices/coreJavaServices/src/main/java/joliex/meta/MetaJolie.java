@@ -779,7 +779,7 @@ public class MetaJolie extends JavaService {
                 for (int op = 0; op < outputPortList.length; op++) {
                     OutputPortInfo outputPort = outputPortList[op];
                     output.get(op).deepCopy(getPort(outputPort, interfaces));
-                    response.getFirstChild("service").getChildren("output").get(op).getFirstChild("name").setValue(outputPort.id());
+                    response.getFirstChild("service").getChildren("output").get(op).setValue(outputPort.id());
                 }
             }
 
