@@ -521,6 +521,10 @@ init {
             padding-top:50px;
             text-align:center;
         }
+
+        .link:hover {
+            fill: #660000;
+        }
     </style>"
 }
 
@@ -564,7 +568,7 @@ main {
             }
         }
         index = index + "</table><br><br>"
-        index = index + "</td><td id='bodytd' class='bodytd'></td></tr></table></body></html>"
+        index = index + "</td><td id='bodytd' class='bodytd'></td></tr></table></body><script>loadPage('Overview.html')</script></html>"
 
         max_files = #files 
         files[ max_files ].filename = "index.html"
@@ -621,7 +625,7 @@ main {
             text_x = left_corner_x - text_displacement
             text_y = iport_height - text_displacement
             text_y2 = iport_height + text_displacement*2
-            svg = svg + "<text x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text>"
+            svg = svg + "<a xlink:href='" + inputs[ i ].name + "IPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text></a>"
             svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "," + inputs[ i ].protocol + "</text>"
             svg = svg + "<line x1='0' y1='" + iport_height + "' x2='" + left_corner_x + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
         }
@@ -644,7 +648,7 @@ main {
             text_y2 = iport_height + text_displacement*2
 
             svg = svg + "<polygon points='" + up_corner + " " + right_corner + " " + bottom_corner + " '  style='fill:#ff0000;stroke:#000000;stroke-width:2' />"
-            svg = svg + "<text x='" + text_x + "' y='" + text_y + "' fill='black' font-family='Courier New' font-weight='bold'>" + outputs[ i ].name + "</text>"
+            svg = svg + "<a xlink:href='" + outputs[ i ].name + "OPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' fill='black' font-family='Courier New' font-weight='bold'>" + outputs[ i ].name + "</text></a>"
             svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' fill='black' font-size='10px' font-family='Courier New'>" + outputs[ i ].location + "," + outputs[ i ].protocol + "</text>"
             svg = svg + "<line x1='" + right_corner_x + "' y1='" + iport_height + "' x2='" + svg_width + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
         }
