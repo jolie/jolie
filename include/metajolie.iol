@@ -50,7 +50,7 @@ type GetMetaDataResponse: void {
   .embeddedServices*: void {    
 	    .type: string             //< type of the embedded service
 	    .servicepath: string      //< path where the service can be found
-	    .portId: string           //< target output port where the embedded service is bound
+	    .portId?: string           //< target output port where the embedded service is bound
   }
   .communication_dependencies*: CommunicationDependency
 }

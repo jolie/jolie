@@ -878,7 +878,9 @@ public class MetaJolie extends JavaService {
             for (int es = 0; es < embeddedServices.length; es++) {
                 response.getChildren("embeddedServices").get(es).getFirstChild("type").setValue(embeddedServices[es].type().toString());
                 response.getChildren("embeddedServices").get(es).getFirstChild("servicepath").setValue(embeddedServices[es].servicePath());
-                response.getChildren("embeddedServices").get(es).getFirstChild("portId").setValue(embeddedServices[es].portId());
+                if ( embeddedServices[es].portId() != null ) {
+                    response.getChildren("embeddedServices").get(es).getFirstChild("portId").setValue(embeddedServices[es].portId());
+                }
             }
 
             // adding communication dependencies

@@ -639,51 +639,56 @@ main {
         
  
         // microservice input ports
-        ip_slot = int( body_height / input_ports_number )
-        for( i = 0, i < input_ports_number, i++ ) {
-            iport_diagonal_half = int( iport_diagonal / 2 )
-            iport_height = trapezoid_delta + ip_slot * i + int( ip_slot / 2 )
-            left_corner_x = svg_padding - iport_diagonal_half
-            up_corner_y = iport_height + iport_diagonal_half
-            right_corner_x = svg_padding + iport_diagonal_half
-            bottom_corner_y = iport_height - iport_diagonal_half
+        if ( input_ports_number > 0 ) {
+            ip_slot = int( body_height / input_ports_number )
+            for( i = 0, i < input_ports_number, i++ ) {
+                iport_diagonal_half = int( iport_diagonal / 2 )
+                iport_height = trapezoid_delta + ip_slot * i + int( ip_slot / 2 )
+                left_corner_x = svg_padding - iport_diagonal_half
+                up_corner_y = iport_height + iport_diagonal_half
+                right_corner_x = svg_padding + iport_diagonal_half
+                bottom_corner_y = iport_height - iport_diagonal_half
 
-            left_corner = left_corner_x + "," + iport_height
-            up_corner = svg_padding + "," + up_corner_y
-            right_corner = right_corner_x + "," + iport_height
-            bottom_corner = svg_padding + "," + bottom_corner_y
+                left_corner = left_corner_x + "," + iport_height
+                up_corner = svg_padding + "," + up_corner_y
+                right_corner = right_corner_x + "," + iport_height
+                bottom_corner = svg_padding + "," + bottom_corner_y
 
-            svg = svg + "<polygon points='" + left_corner + " " + up_corner + " " + right_corner + " " + bottom_corner + " ' style='fill:#ffff66;stroke:#cc9900;stroke-width:2' />"
-            text_x = left_corner_x - text_displacement
-            text_y = iport_height - text_displacement
-            text_y2 = iport_height + text_displacement*2
-            svg = svg + "<a xlink:href='" + inputs[ i ].name + "IPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text></a>"
-            svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "," + inputs[ i ].protocol + "</text>"
-            svg = svg + "<line x1='0' y1='" + iport_height + "' x2='" + left_corner_x + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+                svg = svg + "<polygon points='" + left_corner + " " + up_corner + " " + right_corner + " " + bottom_corner + " ' style='fill:#ffff66;stroke:#cc9900;stroke-width:2' />"
+                text_x = left_corner_x - text_displacement
+                text_y = iport_height - text_displacement
+                text_y2 = iport_height + text_displacement*2
+                svg = svg + "<a xlink:href='" + inputs[ i ].name + "IPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text></a>"
+                svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "," + inputs[ i ].protocol + "</text>"
+                svg = svg + "<line x1='0' y1='" + iport_height + "' x2='" + left_corner_x + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+            }
         }
 
         // microservices output ports
-        op_slot = int( body_height / output_ports_number )
-        for( i = 0, i < output_ports_number, i++ ) {
-            iport_diagonal_half = int( iport_diagonal / 2 )
-            iport_height = trapezoid_delta + op_slot * i + int( op_slot / 2 )
-            up_corner_y = iport_height + iport_diagonal_half
-            basic_x = svg_width - svg_padding
-            right_corner_x = basic_x + iport_diagonal_half
-            bottom_corner_y = iport_height - iport_diagonal_half
+        if ( output_ports_number > 0 ) {
+            op_slot = int( body_height / output_ports_number )
+            for( i = 0, i < output_ports_number, i++ ) {
+                iport_diagonal_half = int( iport_diagonal / 2 )
+                iport_height = trapezoid_delta + op_slot * i + int( op_slot / 2 )
+                up_corner_y = iport_height + iport_diagonal_half
+                basic_x = svg_width - svg_padding
+                right_corner_x = basic_x + iport_diagonal_half
+                bottom_corner_y = iport_height - iport_diagonal_half
 
-            up_corner = basic_x + "," + up_corner_y
-            right_corner = right_corner_x + "," + iport_height
-            bottom_corner = basic_x + "," + bottom_corner_y
-            text_x = right_corner_x + text_displacement
-            text_y = iport_height - text_displacement
-            text_y2 = iport_height + text_displacement*2
+                up_corner = basic_x + "," + up_corner_y
+                right_corner = right_corner_x + "," + iport_height
+                bottom_corner = basic_x + "," + bottom_corner_y
+                text_x = right_corner_x + text_displacement
+                text_y = iport_height - text_displacement
+                text_y2 = iport_height + text_displacement*2
 
-            svg = svg + "<polygon points='" + up_corner + " " + right_corner + " " + bottom_corner + " '  style='fill:#ff0000;stroke:#000000;stroke-width:2' />"
-            svg = svg + "<a xlink:href='" + outputs[ i ].name + "OPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' fill='black' font-family='Courier New' font-weight='bold'>" + outputs[ i ].name + "</text></a>"
-            svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' fill='black' font-size='10px' font-family='Courier New'>" + outputs[ i ].location + "," + outputs[ i ].protocol + "</text>"
-            svg = svg + "<line x1='" + right_corner_x + "' y1='" + iport_height + "' x2='" + svg_width + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+                svg = svg + "<polygon points='" + up_corner + " " + right_corner + " " + bottom_corner + " '  style='fill:#ff0000;stroke:#000000;stroke-width:2' />"
+                svg = svg + "<a xlink:href='" + outputs[ i ].name + "OPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' fill='black' font-family='Courier New' font-weight='bold'>" + outputs[ i ].name + "</text></a>"
+                svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' fill='black' font-size='10px' font-family='Courier New'>" + outputs[ i ].location + "," + outputs[ i ].protocol + "</text>"
+                svg = svg + "<line x1='" + right_corner_x + "' y1='" + iport_height + "' x2='" + svg_width + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+            }
         }
+      
         svg = svg + "</svg>"
 
         ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
