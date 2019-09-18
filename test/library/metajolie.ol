@@ -101,4 +101,17 @@ define doTest
   if ( #metadata.input != 1 ) {
       throw( TestFailed, "Expected 1 input in metadata, found " + #metadata.input )
   }
+  if ( #metadata.communication_dependencies != 1 ) {
+      throw( TestFailed, "Expected 1 communication_dependencies in metadata, found " + #metadata.communication_dependencies )
+  }
+  mcom -> metadata.communication_dependencies
+  if ( mcom.input_operation.name != "tmp" || mcom.input_operation.type != "RequestResponse" ) {
+      throw( TestFailed, "Expected  communication_dependencies input_operation tmp of type RequestRepsponse in metadata, found " + mcom.input_operation.name + "," + mcom.input_operation.type )
+  }
+  if ( #mcom.dependencies != 1 ) {
+      throw( TestFailed, "Expected 1 dependencies in communication_dependencies metadata, found " + #mcom.dependencies )
+  }
+  if ( mcom.dependencies.name != "print" || mcom.dependencies.port != "Console" || mcom.dependencies.type != "SolicitResponse" ) {
+      throw( TestFailed, "Wrong dependencies in communication_dependencies metadata, expected print@Console found " +  mcom.dependencies.name + "," +  mcom.dependencies.type + "," +  mcom.dependencies.port )
+  }
 }

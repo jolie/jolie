@@ -22,26 +22,14 @@ package joliex.meta;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.PortInfo;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -891,6 +879,49 @@ public class MetaJolie extends JavaService {
                 response.getChildren("embeddedServices").get(es).getFirstChild("type").setValue(embeddedServices[es].type().toString());
                 response.getChildren("embeddedServices").get(es).getFirstChild("servicepath").setValue(embeddedServices[es].servicePath());
                 response.getChildren("embeddedServices").get(es).getFirstChild("portId").setValue(embeddedServices[es].portId());
+            }
+
+            // adding communication dependencies
+            Map<OLSyntaxNode, List<OLSyntaxNode>> communicationDependencies = inspector.getBehaviouralDependencies();
+            if ( communicationDependencies != null && communicationDependencies.size() > 0) {
+                final ValueVector comDepVect = response.getChildren( "communication_dependencies");
+                communicationDependencies.entrySet().stream()
+                        .forEach( p -> {
+                            Value v = Value.create();
+                            if ( p.getKey() instanceof RequestResponseOperationStatement ) {
+                                v.getFirstChild("input_operation").getFirstChild("type").setValue("RequestResponse");
+                                v.getFirstChild("input_operation").getFirstChild("name").setValue(((RequestResponseOperationStatement) p.getKey()).id());
+                            } else if ( p.getKey() instanceof  OneWayOperationStatement ) {
+                                v.getFirstChild("input_operation").getFirstChild("type").setValue("OneWay");
+                                v.getFirstChild("input_operation").getFirstChild("name").setValue(((OneWayOperationStatement) p.getKey()).id());
+                            }
+                            if ( p.getValue().size() > 0 ) {
+                                ValueVector dependencies = v.getChildren("dependencies");
+                                for( OLSyntaxNode o : p.getValue() ) {
+                                    Value d = Value.create();
+                                    if (o instanceof RequestResponseOperationStatement) {
+                                        d.getFirstChild("name").setValue(((RequestResponseOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("RequestResponse");
+                                    }
+                                    if (o instanceof OneWayOperationStatement) {
+                                        d.getFirstChild("name").setValue(((OneWayOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("OneWay");
+                                    }
+                                    if (o instanceof NotificationOperationStatement) {
+                                        d.getFirstChild("name").setValue(((NotificationOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("Notification");
+                                        d.getFirstChild("port").setValue(((NotificationOperationStatement) o).outputPortId());
+                                    }
+                                    if (o instanceof SolicitResponseOperationStatement) {
+                                        d.getFirstChild("name").setValue(((SolicitResponseOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("SolicitResponse");
+                                        d.getFirstChild("port").setValue(((SolicitResponseOperationStatement) o).outputPortId());
+                                    }
+                                    dependencies.add(d);
+                                }
+                            }
+                            comDepVect.add(v);
+                        });
             }
 
         } catch (CommandLineException e) {

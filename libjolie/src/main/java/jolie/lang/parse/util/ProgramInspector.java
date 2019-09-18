@@ -22,10 +22,10 @@
 package jolie.lang.parse.util;
 
 import java.net.URI;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.OutputPortInfo;
+import java.util.List;
+import java.util.Map;
+
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.TypeDefinition;
 
 /**
@@ -107,4 +107,15 @@ public interface ProgramInspector
 	 * @return an array of all the embedded service nodes defined in the program
 	 */
 	public EmbeddedServiceNode[] getEmbeddedServices( );
+
+	/**
+	 * Returns a map between initial input operations an their related dependent communication primitive in the behaviour
+	 */
+	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies();
+
+	/**
+	 * Returns a map between initial input operations an their related dependent communication primitive in the behaviour
+	 * defined in the specific source
+	 */
+	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies( URI source );
 }

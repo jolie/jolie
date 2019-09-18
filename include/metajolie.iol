@@ -52,6 +52,20 @@ type GetMetaDataResponse: void {
 	    .servicepath: string      //< path where the service can be found
 	    .portId: string           //< target output port where the embedded service is bound
   }
+  .communication_dependencies*: CommunicationDependency
+}
+
+type CommunicationDependency: void {
+  .input_operation: void {
+      .name: string             //<name of the operation
+      .type: string             //<RequestResponse or OneWay
+  }
+  .dependencies*: void {
+      .name: string             //< name of the operation
+      .port?: string            //< defined only if type is Notification or SolicitResponse
+      .type: string             //<RequestResponse, OneWay, SolicitResponse or Notification
+  }
+
 }
 
 type GetInputPortMetaDataResponse: void {

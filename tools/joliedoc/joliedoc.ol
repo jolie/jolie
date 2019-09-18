@@ -517,6 +517,9 @@ init {
     </script>"
 
     ovw_css = "<style>
+        body {
+            font-family:'Courier New';
+        }
         .picture {
             padding-top:50px;
             text-align:center;
@@ -524,6 +527,35 @@ init {
 
         .link:hover {
             fill: #660000;
+        }
+        .dependency-map {
+            padding:20px;
+        }
+        .input-operation {
+            width:50%;
+        }
+       .dependency-table {
+            width: 100%;
+            border: 1px solid #444;
+            padding: 10px;
+        }
+
+        .dependency-table a {
+            color: black;
+            text-decoration: none;
+        }
+
+
+        .dependency-table a:hover {
+            color: #600;
+        }
+
+        .dependency-table th {
+            text-align: left;
+        }
+
+        .dependency-list {
+            background-color: #ddd;
         }
     </style>"
 }
@@ -654,7 +686,21 @@ main {
         }
         svg = svg + "</svg>"
 
-        ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td class='picture' width='50%'>" + svg + "</td><td><td></table></body></html>"
+        ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
+        ovw = ovw + "<h1>Dependency Map</h1>"
+        ovw = ovw + "<table class='dependency-table'><tr><th class='input-operation'>input operation</th><th>communication dependencies</th></tr></table>"
+        for( com in metadata.communication_dependencies ) {
+            ovw = ovw + "<table class='dependency-table'><tr><td class='input-operation'>" + com.input_operation.name + "</td><td class='dependency-list'><table width='100%'>"
+            for( dep in com.dependencies ) {
+                port_string = ""
+                if ( is_defined( dep.port ) ) {
+                    port_string = "@<b><a href='" + dep.port + "OPort.html'>" + dep.port + "</a></b>"
+                }
+                ovw = ovw + "<tr><td>" + dep.name + port_string + "</td></tr>"
+            }
+            ovw = ovw + "</table></td></tr></table>"
+        }
+        ovw = ovw + "<td></table></body></html>"
         max_files = #files 
         files[ max_files ].filename = "Overview.html"
         files[ max_files ].html = ovw
