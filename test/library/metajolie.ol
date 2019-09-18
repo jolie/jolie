@@ -1,6 +1,7 @@
 include "../AbstractTestUnit.iol"
 include "metajolie.iol"
 include "string_utils.iol"
+include "console.iol"
 
 define doTest
 {
@@ -76,6 +77,11 @@ define doTest
       }
 
   }
+  getOutputPortMetaData@MetaJolie( rq )( meta_description );
+  if ( #meta_description.output != 1 ) {
+      throw( TestFailed, "Expected 1 output port, found " + #meta_description.output )
+  };
+
   getMetaData@MetaJolie( rq )( metadata )
   if ( #metadata.types != 11 ) {
       throw( TestFailed, "Expected 11 types in metadata, found " + #metadata.types )

@@ -58,6 +58,10 @@ type GetInputPortMetaDataResponse: void {
   .input*: Port                 //< the full description of each input port of the service definition
 }
 
+type GetOutputPortMetaDataResponse: void {
+  .output*: Port                 //< the full description of each output port of the service definition
+}
+
 type MessageTypeCastRequest: void {
   .message: undefined           //< the message to be cast
   /// the types to use for casting the message
@@ -94,6 +98,10 @@ RequestResponse:
 		          SemanticException( SemanticExceptionType ),
 	getInputPortMetaData( GetMetaDataRequest )( GetInputPortMetaDataResponse )
 	    throws  InputPortMetaDataFault
+		          ParserException( ParserExceptionType )
+		          SemanticException( SemanticExceptionType ),
+  getOutputPortMetaData( GetMetaDataRequest )( GetOutputPortMetaDataResponse )
+	    throws  OutputPortMetaDataFault
 		          ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )

@@ -363,6 +363,36 @@ public class MetaJolie extends JavaService {
         return list;
     }
 
+
+    private Value getOutputPort(OutputPortInfo portInfo) {
+
+        Value response = Value.create();
+        // setting the name of the port
+        response.getFirstChild("name").setValue(portInfo.id());
+
+        OutputPortInfo port = (OutputPortInfo) portInfo;
+        if ( port.location() != null ) {
+            response.getFirstChild("location").setValue(port.location().toString());
+        } else {
+            response.getFirstChild("location").setValue("undefined");
+        }
+        if (port.protocolId() != null) {
+            response.getFirstChild("protocol").setValue(port.protocolId());
+        } else {
+            response.getFirstChild("protocol").setValue("");
+        }
+
+        // scan all the interfaces of the inputPort
+        for (int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++) {
+            InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf_index);
+            response.getChildren("interfaces").get(intf_index).deepCopy(getInterfaceAndInsertTypes(interfaceDefinition, null, null));
+
+        }
+
+        return response;
+
+    }
+
     private Value getInputPort(InputPortInfo portInfo, OutputPortInfo[] outputPortList) {
 
         Value response = Value.create();
@@ -707,6 +737,55 @@ public class MetaJolie extends JavaService {
             throw new FaultException("InputPortMetaDataFault", e);
         } catch (IOException e) {
             throw new FaultException("InputPortMetaDataFault", e);
+        } catch (ParserException e) {
+            Value fault = Value.create();
+            fault.getFirstChild("message").setValue(e.getMessage());
+            fault.getFirstChild("line").setValue(e.context().line());
+            fault.getFirstChild("sourceName").setValue(e.context().sourceName());
+            throw new FaultException("ParserException", fault);
+        } catch (SemanticException e) {
+            Value fault = Value.create();
+            List<SemanticException.SemanticError> errorList = e.getErrorList();
+            for (int i = 0; i < errorList.size(); i++) {
+                fault.getChildren("error").get(i).getFirstChild("message").setValue(errorList.get(i).getMessage());
+                fault.getChildren("error").get(i).getFirstChild("line").setValue(errorList.get(i).context().line());
+                fault.getChildren("error").get(i).getFirstChild("sourceName").setValue(errorList.get(i).context().sourceName());
+            }
+            throw new FaultException("SemanticException", fault);
+        }
+
+        return response;
+    }
+
+    @RequestResponse
+    public Value getOutputPortMetaData(Value request) throws FaultException {
+        Value response = Value.create();
+        try {
+            String[] args = getArgs(request.getFirstChild("filename").strValue());
+
+            CommandLineParser cmdParser = new CommandLineParser(args, interpreter().getClassLoader());
+            Program program = ParsingUtils.parseProgram(
+                    cmdParser.programStream(),
+                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), true
+            );
+            ProgramInspector inspector = ParsingUtils.createInspector(program);
+
+            OutputPortInfo[] outputPortList = inspector.getOutputPorts();
+            ValueVector output = response.getChildren("output");
+
+            if (outputPortList.length > 0) {
+                for (int ip = 0; ip < outputPortList.length; ip++) {
+                    OutputPortInfo outputPortInfo = outputPortList[ip];
+                    output.get(ip).deepCopy( getOutputPort( outputPortInfo ));
+                }
+            }
+            cmdParser.close();
+
+        } catch (CommandLineException e) {
+            throw new FaultException("OutputPortMetaDataFault", e);
+        } catch (IOException e) {
+            throw new FaultException("OutputPortMetaDataFault", e);
         } catch (ParserException e) {
             Value fault = Value.create();
             fault.getFirstChild("message").setValue(e.getMessage());

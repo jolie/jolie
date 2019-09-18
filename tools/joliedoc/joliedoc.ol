@@ -43,7 +43,7 @@ service Render {
 
         [ getPort( request )( response ) {
             response = "<table class='port-definition'>"
-            response = response + "<tr><th class='resource-label-port resource-label'>port</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
+            response = response + "<tr><th class='resource-label-PORTTYPE resource-label'>PORTTYPE</th><th id='" + request.name + "' colspan='2' class='content-td'>" + request.name + "</th></tr>"
             response = response + "<tr><td></td><td class='content-td port-element'>Location:</td><td class='content-td'>" + request.location + "</td></tr>"
             response = response + "<tr><td></td><td class='content-td port-element'>Protocol:</td><td class='content-td'>" + request.protocol + "</td></tr>"
             response = response + "<tr><td></td><td class='content-td port-element'>Interfaces:</td><td class='content-td'>" 
@@ -209,6 +209,47 @@ service Render {
 
 constants {
     JOLIEDOC_FOLDER = "joliedoc"
+}
+
+define _get_ports {
+    // __port_type
+    for( ptt in meta_description.( __port_type ) ) {
+            startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
+            if ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) {
+                html = "";
+                getPort@Render( ptt )( port )
+                replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = __port_type } )( port )
+                
+                undef( itfcs )
+                undef( tps )
+                for( itf in ptt.interfaces ) {
+                    getInterface@Render( itf )( itfc )
+                    itfcs[ #itfcs ] = itfc
+                    for ( tp in itf.types ) {
+                        getTypeDefinition@Render( tp )( tp_string )
+                        tps[ #tps ] = tp_string
+                    }
+                }
+                html = "<html><head>" + css + js + "</head><body>" + port + "<hr>"
+                for( i in itfcs ) {
+                    html = html + i 
+                }
+                html = html + "<hr>"
+                for( t in tps ) {
+                    html = html + t
+                }
+                html = html + "</body></html>"
+
+                max_files = #files 
+                if ( __port_type == "input" ) {
+                    endname = "IPort.html"
+                } else {
+                    endname = "OPort.html"
+                }
+                files[ max_files ].filename = ptt.name + endname
+                files[ max_files ].html = html
+            }
+        }      
 }
 
 init {
@@ -384,8 +425,15 @@ init {
         border-radius:0px;
     }
 
-    .port-definition .resource-label-port {
+    .port-definition .resource-label-input {
         background-color: blue;
+        color:white;
+        text-align:center;
+        font-size:14px;
+    }
+
+    .port-definition .resource-label-output {
+        background-color: black;
         color:white;
         text-align:center;
         font-size:14px;
@@ -454,9 +502,8 @@ init {
         }
 
         .itemmenu {
-            float: left;
-            margin-top:10px;
-            margin-left:50px;
+            text-align: center;
+            width:100%;
         }
 
         .itemmenu a:hover {
@@ -468,6 +515,13 @@ init {
             document.getElementById(\"bodytd\").innerHTML='<object type=\"text/html\" data=\"' + page + '\"></object>';
         }
     </script>"
+
+    ovw_css = "<style>
+        .picture {
+            padding-top:50px;
+            text-align:center;
+        }
+    </style>"
 }
 
 main {
@@ -476,53 +530,37 @@ main {
     } else {
         rq.filename = args[ 0 ]
         getInputPortMetaData@MetaJolie( rq )( meta_description )
-
-        for( inpt in meta_description.input ) {
-            html = "";
-            getPort@Render( inpt )( port )
-            
-            for( itf in inpt.interfaces ) {
-                getInterface@Render( itf )( itfc )
-                itfcs[ #itfcs ] = itfc
-                for ( tp in itf.types ) {
-                    getTypeDefinition@Render( tp )( tp_string )
-                    tps[ #tps ] = tp_string
-                }
-            }
-            html = "<html><head>" + css + js + "</head><body>" + port + "<hr>"
-            for( i in itfcs ) {
-                html = html + i 
-            }
-            html = html + "<hr>"
-            for( t in tps ) {
-                html = html + t
-            }
-            html = html + "</body></html>"
-
-            max_files = #files 
-            files[ max_files ].filename = inpt.name + "IPort.html"
-            files[ max_files ].html = html
-        }        
+        __port_type = "input"
+        _get_ports
+        input_ports_number = #files
+          
+        getOutputPortMetaData@MetaJolie( rq )( meta_description )
+        __port_type = "output"
+        _get_ports
+        output_ports_number = #files - input_ports_number
 
         /* creating index */
         getMetaData@MetaJolie( rq )( metadata )
-
-
         index = "<html><head>" + css_index + js_index + "</head><body><table class='headertable'><tr><td>Jolie Documentation:&nbsp;<b>" + args[ 0 ] + "</b></td></tr></table>"
         index = index + "<table class='maintable'><tr><td  valign='top' class='menutd'><br><br>"
-        index = index + "<table><tr><td><span class='itemmenu'><a onclick='loadPage(\"Overview.html\")'>overview</a></span></td></tr></table><br><br>"
-        index = index + "<span class='menutitle'>inputs</span><br>"
-        index = index + "<table>"
+        index = index + "<table width='100%'><tr><td class='itemmenu'><a onclick='loadPage(\"Overview.html\")'>OVERVIEW</a></td></tr></table><br><br>"
+        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>inputs</td></tr></table><br>"
+        index = index + "<table width='100%'>"
         for( i in metadata.input ) {
-            index = index + "<tr><td><span class='itemmenu'><a onclick='loadPage(\"" + i.name + "IPort.html\")'>" + i.name + "</a></span></td></tr>"
+            startsWith@StringUtils( i.location { .prefix = "local://" } )( starts_with_local )
+            if ( i.location != "undefined" && i.location != "local" && !starts_with_local ) {
+                index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + i.name + "IPort.html\")'>" + i.name + "</a></td></tr>"
+                inputs[ #inputs ] << i
+            }
         }
         index = index + "</table><br><br>"
-        index = index + "<span class='menutitle'>outputs</span><br>"
-        index = index + "<table>"
+        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>outputs</td></tr></table><br>"
+        index = index + "<table width='100%'>"
         for( o in metadata.output ) {
             startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
-            if ( o.location != "local" && !starts_with_local ) {
-                index = index + "<tr><td><span class='itemmenu'><a onclick='loadPage(\"" + o.name + "OPort.html\")'>" + o.name + "</a></span></td></tr>"
+            if ( o.location != "undefined" && o.location != "local" && !starts_with_local ) {
+                index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + o.name + "OPort.html\")'>" + o.name + "</a></td></tr>"
+                outputs[ #outputs ] << o
             }
         }
         index = index + "</table><br><br>"
@@ -531,6 +569,91 @@ main {
         max_files = #files 
         files[ max_files ].filename = "index.html"
         files[ max_files ].html = index
+
+        /* creating overview */
+        minimum_ports = 3
+        slot_height_for_port = 100
+        trapezoid_delta = 80
+        svg_width = 800
+        svg_padding = 300
+        iport_diagonal = 50
+        text_displacement = 10
+
+        max_port_number = minimum_ports
+
+        if ( input_ports_number > minimum_ports || output_ports_number > minimum_ports ) {
+            max_port_number = input_ports_number
+            if ( output_ports_number > max_port_number ) {
+                max_port_number = output_ports_number
+            }
+        }
+
+        body_height = slot_height_for_port * max_port_number
+        svg_height = body_height + trapezoid_delta*2
+        svg = "<svg height='" + svg_height + "' width='" + svg_width + "'>"
+        // microservice body
+        left_corner_top_y = svg_height - trapezoid_delta
+        right_corners_x = svg_width -svg_padding
+
+        left_corner_bottom = svg_padding + "," + trapezoid_delta
+        left_corner_top = svg_padding + "," + left_corner_top_y
+        right_corner_top = right_corners_x + "," + svg_height
+        right_corner_bottom = right_corners_x + ",0"
+        svg = svg + "<polygon points='" + left_corner_bottom + " " + left_corner_top + " " + right_corner_top + " " + right_corner_bottom + "' style='fill:#ffcc00;stroke:#cc6600;stroke-width:2' />"
+        
+ 
+        // microservice input ports
+        ip_slot = int( body_height / input_ports_number )
+        for( i = 0, i < input_ports_number, i++ ) {
+            iport_diagonal_half = int( iport_diagonal / 2 )
+            iport_height = trapezoid_delta + ip_slot * i + int( ip_slot / 2 )
+            left_corner_x = svg_padding - iport_diagonal_half
+            up_corner_y = iport_height + iport_diagonal_half
+            right_corner_x = svg_padding + iport_diagonal_half
+            bottom_corner_y = iport_height - iport_diagonal_half
+
+            left_corner = left_corner_x + "," + iport_height
+            up_corner = svg_padding + "," + up_corner_y
+            right_corner = right_corner_x + "," + iport_height
+            bottom_corner = svg_padding + "," + bottom_corner_y
+
+            svg = svg + "<polygon points='" + left_corner + " " + up_corner + " " + right_corner + " " + bottom_corner + " ' style='fill:#ffff66;stroke:#cc9900;stroke-width:2' />"
+            text_x = left_corner_x - text_displacement
+            text_y = iport_height - text_displacement
+            text_y2 = iport_height + text_displacement*2
+            svg = svg + "<text x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text>"
+            svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "," + inputs[ i ].protocol + "</text>"
+            svg = svg + "<line x1='0' y1='" + iport_height + "' x2='" + left_corner_x + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+        }
+
+        // microservices output ports
+        op_slot = int( body_height / output_ports_number )
+        for( i = 0, i < output_ports_number, i++ ) {
+            iport_diagonal_half = int( iport_diagonal / 2 )
+            iport_height = trapezoid_delta + op_slot * i + int( op_slot / 2 )
+            up_corner_y = iport_height + iport_diagonal_half
+            basic_x = svg_width - svg_padding
+            right_corner_x = basic_x + iport_diagonal_half
+            bottom_corner_y = iport_height - iport_diagonal_half
+
+            up_corner = basic_x + "," + up_corner_y
+            right_corner = right_corner_x + "," + iport_height
+            bottom_corner = basic_x + "," + bottom_corner_y
+            text_x = right_corner_x + text_displacement
+            text_y = iport_height - text_displacement
+            text_y2 = iport_height + text_displacement*2
+
+            svg = svg + "<polygon points='" + up_corner + " " + right_corner + " " + bottom_corner + " '  style='fill:#ff0000;stroke:#000000;stroke-width:2' />"
+            svg = svg + "<text x='" + text_x + "' y='" + text_y + "' fill='black' font-family='Courier New' font-weight='bold'>" + outputs[ i ].name + "</text>"
+            svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' fill='black' font-size='10px' font-family='Courier New'>" + outputs[ i ].location + "," + outputs[ i ].protocol + "</text>"
+            svg = svg + "<line x1='" + right_corner_x + "' y1='" + iport_height + "' x2='" + svg_width + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+        }
+        svg = svg + "</svg>"
+
+        ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td class='picture' width='50%'>" + svg + "</td><td><td></table></body></html>"
+        max_files = #files 
+        files[ max_files ].filename = "Overview.html"
+        files[ max_files ].html = ovw
     }
 
     exists@File( JOLIEDOC_FOLDER )( joliedoc_exists )
