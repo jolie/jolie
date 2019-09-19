@@ -429,14 +429,14 @@ init {
         border-radius:0px;
     }
 
-    .port-definition .resource-label-input {
+    .port-definition .resource-label-ip {
         background-color: blue;
         color:white;
         text-align:center;
         font-size:14px;
     }
 
-    .port-definition .resource-label-output {
+    .port-definition .resource-label-op {
         background-color: black;
         color:white;
         text-align:center;
