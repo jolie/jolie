@@ -55,7 +55,7 @@ service Render {
 
         [ getInterface( request )( response ) {
             response = "<table class='interface-definition'>"
-            response = response + "<tr><th id='" + request.name + "' class='resource-label-interface resource-label'>interface</th><th id='" + request.name + "' colspan='3' class='content-td'>" + request.name + "</th></tr>"
+            response = response + "<tr><th id='" + request.name + "' class='resource-label-interface resource-label'>intf</th><th id='" + request.name + "' colspan='3' class='content-td'>" + request.name + "</th></tr>"
             if ( is_defined( request.documentation ) && request.documentation != "" ) {
                 response = response + "<tr><td>&nbsp;</td></tr>"
                 response = response + "<tr><td></td><td colspan='4' class='documentation'>" + request.documentation + "</td></tr>"
@@ -64,9 +64,9 @@ service Render {
                 response = response + "<tr><td>&nbsp;</td></tr>"
             }
             for( o in request.operations ) {
-                otype = " class='resource-label ow-type'>async"
+                otype = " class='resource-label ow-type'>ow"
                 if ( is_defined( o.output ) ) {
-                     otype = " class='resource-label rr-type'>sync"
+                     otype = " class='resource-label rr-type'>rr"
                 } 
                 response = response + "<tr><td" + otype + "</td><td class='content-td operation-name'><span>" + o.operation_name + "</span><button onclick='openDetails(\"" + o.operation_name + "\")' class='operation-button'>Details</button></td>"
                 response = response + "<td class='content-td'><span class='message-type'>Request:</span><a href='#" + o.input + "'>" + o.input + "</a></td>"
@@ -215,10 +215,14 @@ define _get_ports {
     // __port_type
     for( ptt in meta_description.( __port_type ) ) {
             startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
-            if ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) {
+            if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
                 html = "";
                 getPort@Render( ptt )( port )
-                replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = __port_type } )( port )
+                if ( __port_type == "input" ) {
+                    replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = "ip" } )( port )
+                } else {
+                    replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = "op" } )( port )
+                }
                 
                 undef( itfcs )
                 undef( tps )
@@ -556,14 +560,29 @@ init {
 
         .dependency-list {
             background-color: #ddd;
+            padding-left: 20%;
+        }
+        .legenda {
+            font-size: 12px;
+            font-style: italic;
+            color: #888;
         }
     </style>"
+
+    install( Abort => nullProcess )
 }
 
 main {
-    if ( #args != 1 ) {
-        println@Console( "Usage: joliedoc <filename>")()
+    if ( #args == 0 || #args > 2 ) {
+        println@Console( "Usage: joliedoc <filename> [--internals ]")()
     } else {
+        internals = false
+        if ( #args == 2 && args[ 1 ] == "--internals" ) {
+            internals = true
+        } else if ( #args == 2 ) {
+            println@Console("Argument " + args[ 1 ] + " not recognized" )()
+            throw( Abort )
+        }
         rq.filename = args[ 0 ]
         getInputPortMetaData@MetaJolie( rq )( meta_description )
         __port_type = "input"
@@ -580,21 +599,21 @@ main {
         index = "<html><head>" + css_index + js_index + "</head><body><table class='headertable'><tr><td>Jolie Documentation:&nbsp;<b>" + args[ 0 ] + "</b></td></tr></table>"
         index = index + "<table class='maintable'><tr><td  valign='top' class='menutd'><br><br>"
         index = index + "<table width='100%'><tr><td class='itemmenu'><a onclick='loadPage(\"Overview.html\")'>OVERVIEW</a></td></tr></table><br><br>"
-        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>inputs</td></tr></table><br>"
+        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>input ports</td></tr></table><br>"
         index = index + "<table width='100%'>"
         for( i in metadata.input ) {
             startsWith@StringUtils( i.location { .prefix = "local://" } )( starts_with_local )
-            if ( i.location != "undefined" && i.location != "local" && !starts_with_local ) {
+            if ( internals || ( i.location != "undefined" && i.location != "local" && !starts_with_local ) ) {
                 index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + i.name + "IPort.html\")'>" + i.name + "</a></td></tr>"
                 inputs[ #inputs ] << i
             }
         }
         index = index + "</table><br><br>"
-        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>outputs</td></tr></table><br>"
+        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>output ports</td></tr></table><br>"
         index = index + "<table width='100%'>"
         for( o in metadata.output ) {
             startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
-            if ( o.location != "undefined" && o.location != "local" && !starts_with_local ) {
+            if ( internals || ( o.location != "undefined" && o.location != "local" && !starts_with_local ) ) {
                 index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + o.name + "OPort.html\")'>" + o.name + "</a></td></tr>"
                 outputs[ #outputs ] << o
             }
@@ -658,8 +677,11 @@ main {
                 text_x = left_corner_x - text_displacement
                 text_y = iport_height - text_displacement
                 text_y2 = iport_height + text_displacement*2
+                protocol_text_x = left_corner_x + text_displacement
+                protocol_text_y = iport_height + int( text_displacement / 2 )
                 svg = svg + "<a xlink:href='" + inputs[ i ].name + "IPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text></a>"
-                svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "," + inputs[ i ].protocol + "</text>"
+                svg = svg + "<text x='" + protocol_text_x + "' y='" + protocol_text_y + "'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].protocol + "</text>"
+                svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "</text>"
                 svg = svg + "<line x1='0' y1='" + iport_height + "' x2='" + left_corner_x + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
             }
         }
@@ -691,17 +713,21 @@ main {
       
         svg = svg + "</svg>"
 
-        ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
+        ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td valign='top' class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
         ovw = ovw + "<h1>Dependency Map</h1>"
-        ovw = ovw + "<table class='dependency-table'><tr><th class='input-operation'>input operation</th><th>communication dependencies</th></tr></table>"
+        ovw = ovw + "<span class='legenda'>Legenda:</span><br><table class='dependency-table'><tr><th class='input-operation'>input operation</th></tr><tr><td class='dependency-list'><i>communication dependencies</i></td></tr></tr></table><br><br>"
         for( com in metadata.communication_dependencies ) {
-            ovw = ovw + "<table class='dependency-table'><tr><td class='input-operation'>" + com.input_operation.name + "</td><td class='dependency-list'><table width='100%'>"
+            ovw = ovw + "<table class='dependency-table'><tr><td colspan='2' class='input-operation'>" + com.input_operation.name + "</td></tr>"
+            ovw = ovw + "<tr><td class='dependency-list'><table width='100%'>"
             for( dep in com.dependencies ) {
-                port_string = ""
-                if ( is_defined( dep.port ) ) {
-                    port_string = "@<b><a href='" + dep.port + "OPort.html'>" + dep.port + "</a></b>"
-                }
-                ovw = ovw + "<tr><td>" + dep.name + port_string + "</td></tr>"
+                startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
+                if ( internals || ( o.location != "undefined" && o.location != "local" && !starts_with_local ) ) {
+                    port_string = ""
+                    if ( is_defined( dep.port ) ) {
+                        port_string = "@<b><a href='" + dep.port + "OPort.html'>" + dep.port + "</a></b>"
+                    }
+                    ovw = ovw + "<tr><td>" + dep.name + port_string + "</td></tr>"
+                } 
             }
             ovw = ovw + "</table></td></tr></table>"
         }
