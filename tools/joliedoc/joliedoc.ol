@@ -720,8 +720,17 @@ main {
             ovw = ovw + "<table class='dependency-table'><tr><td colspan='2' class='input-operation'>" + com.input_operation.name + "</td></tr>"
             ovw = ovw + "<tr><td class='dependency-list'><table width='100%'>"
             for( dep in com.dependencies ) {
-                startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
-                if ( internals || ( o.location != "undefined" && o.location != "local" && !starts_with_local ) ) {
+                found_p = false
+                if ( is_defined( dep.port ) ) {
+                    for ( tmp_o in outputs ) {
+                        if ( tmp_o.name == dep.port ) {
+                            found_p = true
+                        }
+                    }
+                } else {
+                    found_p = true
+                }
+                if ( internals || found_p ) {
                     port_string = ""
                     if ( is_defined( dep.port ) ) {
                         port_string = "@<b><a href='" + dep.port + "OPort.html'>" + dep.port + "</a></b>"

@@ -268,8 +268,8 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 				} else if ( pair.key() instanceof  RequestResponseOperationStatement ) {
 					currentFirstInput = pair.key();
 					((RequestResponseOperationStatement) pair.key()).process().accept(this);
-					pair.value().accept(this );
 				}
+				pair.value().accept(this );
 				currentFirstInput = null;
 			}
 
