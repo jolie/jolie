@@ -9,6 +9,7 @@ inputPort TPort {
 
 main {
   tmp()( response ) {
-    response.field = "test"
+    response.field = "test";
+    print@Console("")()
   }
 }

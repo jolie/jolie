@@ -22,26 +22,14 @@ package joliex.meta;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.PortInfo;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -361,6 +349,36 @@ public class MetaJolie extends JavaService {
             list.add(intf);
         }
         return list;
+    }
+
+
+    private Value getOutputPort(OutputPortInfo portInfo) {
+
+        Value response = Value.create();
+        // setting the name of the port
+        response.getFirstChild("name").setValue(portInfo.id());
+
+        OutputPortInfo port = (OutputPortInfo) portInfo;
+        if ( port.location() != null ) {
+            response.getFirstChild("location").setValue(port.location().toString());
+        } else {
+            response.getFirstChild("location").setValue("undefined");
+        }
+        if (port.protocolId() != null) {
+            response.getFirstChild("protocol").setValue(port.protocolId());
+        } else {
+            response.getFirstChild("protocol").setValue("");
+        }
+
+        // scan all the interfaces of the inputPort
+        for (int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++) {
+            InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf_index);
+            response.getChildren("interfaces").get(intf_index).deepCopy(getInterfaceAndInsertTypes(interfaceDefinition, null, null));
+
+        }
+
+        return response;
+
     }
 
     private Value getInputPort(InputPortInfo portInfo, OutputPortInfo[] outputPortList) {
@@ -728,6 +746,55 @@ public class MetaJolie extends JavaService {
     }
 
     @RequestResponse
+    public Value getOutputPortMetaData(Value request) throws FaultException {
+        Value response = Value.create();
+        try {
+            String[] args = getArgs(request.getFirstChild("filename").strValue());
+
+            CommandLineParser cmdParser = new CommandLineParser(args, interpreter().getClassLoader());
+            Program program = ParsingUtils.parseProgram(
+                    cmdParser.programStream(),
+                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), true
+            );
+            ProgramInspector inspector = ParsingUtils.createInspector(program);
+
+            OutputPortInfo[] outputPortList = inspector.getOutputPorts();
+            ValueVector output = response.getChildren("output");
+
+            if (outputPortList.length > 0) {
+                for (int ip = 0; ip < outputPortList.length; ip++) {
+                    OutputPortInfo outputPortInfo = outputPortList[ip];
+                    output.get(ip).deepCopy( getOutputPort( outputPortInfo ));
+                }
+            }
+            cmdParser.close();
+
+        } catch (CommandLineException e) {
+            throw new FaultException("OutputPortMetaDataFault", e);
+        } catch (IOException e) {
+            throw new FaultException("OutputPortMetaDataFault", e);
+        } catch (ParserException e) {
+            Value fault = Value.create();
+            fault.getFirstChild("message").setValue(e.getMessage());
+            fault.getFirstChild("line").setValue(e.context().line());
+            fault.getFirstChild("sourceName").setValue(e.context().sourceName());
+            throw new FaultException("ParserException", fault);
+        } catch (SemanticException e) {
+            Value fault = Value.create();
+            List<SemanticException.SemanticError> errorList = e.getErrorList();
+            for (int i = 0; i < errorList.size(); i++) {
+                fault.getChildren("error").get(i).getFirstChild("message").setValue(errorList.get(i).getMessage());
+                fault.getChildren("error").get(i).getFirstChild("line").setValue(errorList.get(i).context().line());
+                fault.getChildren("error").get(i).getFirstChild("sourceName").setValue(errorList.get(i).context().sourceName());
+            }
+            throw new FaultException("SemanticException", fault);
+        }
+
+        return response;
+    }
+
+    @RequestResponse
     public Value messageTypeCast(Value request)
             throws FaultException {
         Value message = request.getFirstChild("message");
@@ -811,7 +878,52 @@ public class MetaJolie extends JavaService {
             for (int es = 0; es < embeddedServices.length; es++) {
                 response.getChildren("embeddedServices").get(es).getFirstChild("type").setValue(embeddedServices[es].type().toString());
                 response.getChildren("embeddedServices").get(es).getFirstChild("servicepath").setValue(embeddedServices[es].servicePath());
-                response.getChildren("embeddedServices").get(es).getFirstChild("portId").setValue(embeddedServices[es].portId());
+                if ( embeddedServices[es].portId() != null ) {
+                    response.getChildren("embeddedServices").get(es).getFirstChild("portId").setValue(embeddedServices[es].portId());
+                }
+            }
+
+            // adding communication dependencies
+            Map<OLSyntaxNode, List<OLSyntaxNode>> communicationDependencies = inspector.getBehaviouralDependencies();
+            if ( communicationDependencies != null && communicationDependencies.size() > 0) {
+                final ValueVector comDepVect = response.getChildren( "communication_dependencies");
+                communicationDependencies.entrySet().stream()
+                        .forEach( p -> {
+                            Value v = Value.create();
+                            if ( p.getKey() instanceof RequestResponseOperationStatement ) {
+                                v.getFirstChild("input_operation").getFirstChild("type").setValue("RequestResponse");
+                                v.getFirstChild("input_operation").getFirstChild("name").setValue(((RequestResponseOperationStatement) p.getKey()).id());
+                            } else if ( p.getKey() instanceof  OneWayOperationStatement ) {
+                                v.getFirstChild("input_operation").getFirstChild("type").setValue("OneWay");
+                                v.getFirstChild("input_operation").getFirstChild("name").setValue(((OneWayOperationStatement) p.getKey()).id());
+                            }
+                            if ( p.getValue().size() > 0 ) {
+                                ValueVector dependencies = v.getChildren("dependencies");
+                                for( OLSyntaxNode o : p.getValue() ) {
+                                    Value d = Value.create();
+                                    if (o instanceof RequestResponseOperationStatement) {
+                                        d.getFirstChild("name").setValue(((RequestResponseOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("RequestResponse");
+                                    }
+                                    if (o instanceof OneWayOperationStatement) {
+                                        d.getFirstChild("name").setValue(((OneWayOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("OneWay");
+                                    }
+                                    if (o instanceof NotificationOperationStatement) {
+                                        d.getFirstChild("name").setValue(((NotificationOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("Notification");
+                                        d.getFirstChild("port").setValue(((NotificationOperationStatement) o).outputPortId());
+                                    }
+                                    if (o instanceof SolicitResponseOperationStatement) {
+                                        d.getFirstChild("name").setValue(((SolicitResponseOperationStatement) o).id());
+                                        d.getFirstChild("type").setValue("SolicitResponse");
+                                        d.getFirstChild("port").setValue(((SolicitResponseOperationStatement) o).outputPortId());
+                                    }
+                                    dependencies.add(d);
+                                }
+                            }
+                            comDepVect.add(v);
+                        });
             }
 
         } catch (CommandLineException e) {
