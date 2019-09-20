@@ -64,7 +64,6 @@
 			<artifactId>jolie</artifactId>
 			<version>${jolie.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -72,17 +71,16 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>jolie</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>sodep</artifactId>
-			<version>1.8.1</version>
+			<version>${jolie.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>jolie</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>jolie-java</artifactId>
-			<version>1.8.1</version>
+			<version>${jolie.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 </project>
