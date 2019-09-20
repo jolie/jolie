@@ -22,12 +22,8 @@
 package jolie.lang.parse.util.impl;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -110,6 +106,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
+import jolie.util.Pair;
 
 /**
  * Visitor for creating a {@link ProgramInspectorImpl} object.
@@ -122,7 +119,10 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap<>();
 	private final Map< URI, List< TypeDefinition > > types = new HashMap<>();
 	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap<>();
+	private final Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies = new HashMap<>();
 	private final Set< URI > sources = new HashSet<>();
+
+	private OLSyntaxNode currentFirstInput = null;
 
 	public ProgramInspectorCreatorVisitor( Program program )
 	{
@@ -137,7 +137,8 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 			interfaces,
 			inputPorts,
 			outputPorts,
-			embeddedServices
+			embeddedServices,
+			behaviouralDependencies
 		);
 	}
 
@@ -236,21 +237,69 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	@Override
 	public void visit( RequestResponseOperationDeclaration decl ) {}
 	@Override
-	public void visit( DefinitionNode n ) {}
+	public void visit( DefinitionNode n ) {
+		n.body().accept( this );
+	}
 	@Override
-	public void visit( ParallelStatement n ) {}
+	public void visit( ParallelStatement n ) {
+		for( OLSyntaxNode node : n.children() ) {
+			node.accept( this );
+		}
+	}
 	@Override
-	public void visit( SequenceStatement n ) {}
+	public void visit( SequenceStatement n ) {
+		for( OLSyntaxNode node : n.children() ) {
+			node.accept( this );
+		}
+	}
 	@Override
-	public void visit( NDChoiceStatement n ) {}
+	public void visit( NDChoiceStatement n ) {
+		Map<OLSyntaxNode,List<OLSyntaxNode>> sourceBehaviouralDependencies = behaviouralDependencies.get( n.context().source() );
+		if ( currentFirstInput != null ) {
+			for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
+				addOlSyntaxNodeToBehaviouralDependencies( pair.key() );
+				pair.value().accept( this );
+			}
+		} else {
+			for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
+
+				if ( pair.key() instanceof OneWayOperationStatement) {
+					currentFirstInput = pair.key();
+				} else if ( pair.key() instanceof  RequestResponseOperationStatement ) {
+					currentFirstInput = pair.key();
+					((RequestResponseOperationStatement) pair.key()).process().accept(this);
+				}
+				pair.value().accept(this );
+				currentFirstInput = null;
+			}
+
+		}
+	}
 	@Override
-	public void visit( OneWayOperationStatement n ) {}
+	public void visit( OneWayOperationStatement n ) {
+		if ( currentFirstInput == null ) {
+			currentFirstInput = n;
+		} else {
+			addOlSyntaxNodeToBehaviouralDependencies( n );
+		}
+	}
 	@Override
-	public void visit( RequestResponseOperationStatement n ) {}
+	public void visit( RequestResponseOperationStatement n ) {
+		if ( currentFirstInput == null ) {
+			currentFirstInput = n;
+		} else {
+			addOlSyntaxNodeToBehaviouralDependencies( n );
+		}
+		n.process().accept(this );
+	}
 	@Override
-	public void visit( NotificationOperationStatement n ) {}
+	public void visit( NotificationOperationStatement n ) {
+		addOlSyntaxNodeToBehaviouralDependencies( n );
+	}
 	@Override
-	public void visit( SolicitResponseOperationStatement n ) {}
+	public void visit( SolicitResponseOperationStatement n ) {
+		addOlSyntaxNodeToBehaviouralDependencies( n );
+	}
 	@Override
 	public void visit( LinkInStatement n ) {}
 	@Override
@@ -258,11 +307,21 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	@Override
 	public void visit( AssignStatement n ) {}
 	@Override
-	public void visit( IfStatement n ) {}
+	public void visit( IfStatement n ) {
+		for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
+			pair.key().accept(this);
+			pair.value().accept(this);
+		}
+		if ( n.elseProcess() != null ) {
+			n.elseProcess().accept(this);
+		}
+	}
 	@Override
 	public void visit( DefinitionCallStatement n ) {}
 	@Override
-	public void visit( WhileStatement n ) {}
+	public void visit( WhileStatement n ) {
+		n.body().accept(this );
+	}
 	@Override
 	public void visit( OrConditionNode n ) {}
 	@Override
@@ -290,9 +349,15 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	@Override
 	public void visit( NullProcessStatement n ) {}
 	@Override
-	public void visit( Scope n ) {}
+	public void visit( Scope n ) {
+		n.body().accept(this );
+	}
 	@Override
-	public void visit( InstallStatement n ) {}
+	public void visit( InstallStatement n ) {
+		for( int i = 0; i < n.handlersFunction().pairs().length; i++ ) {
+			n.handlersFunction().pairs()[i].value().accept(this );
+		}
+	}
 	@Override
 	public void visit( CompensateStatement n ) {}
 	@Override
@@ -322,19 +387,29 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	@Override
 	public void visit( PostDecrementStatement n ) {}
 	@Override
-	public void visit( ForStatement n ) {}
+	public void visit( ForStatement n ) {
+		n.body().accept(this);
+	}
 	@Override
-	public void visit( ForEachSubNodeStatement n ) {}
+	public void visit( ForEachSubNodeStatement n ) {
+		n.body().accept(this);
+	}
 	@Override
-	public void visit( ForEachArrayItemStatement n ) {}
+	public void visit( ForEachArrayItemStatement n ) {
+		n.body().accept(this);
+	}
 	@Override
-	public void visit( SpawnStatement n ) {}
+	public void visit( SpawnStatement n ) {
+		n.body().accept( this );
+	}
 	@Override
 	public void visit( IsTypeExpressionNode n ) {}
 	@Override
 	public void visit( TypeCastExpressionNode n ) {}
 	@Override
-	public void visit( SynchronizedStatement n ) {}
+	public void visit( SynchronizedStatement n ) {
+		n.body().accept(this);
+	}
 	@Override
 	public void visit( CurrentHandlerStatement n ) {}
 	@Override
@@ -364,13 +439,18 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	@Override
 	public void visit( InstanceOfExpressionNode n ) {}
 	@Override
-	public void visit( SolicitResponseForwardStatement n ) {}
+	public void visit( SolicitResponseForwardStatement n ) {
+		addOlSyntaxNodeToBehaviouralDependencies( n );
+	}
 	@Override
 	public void visit( InlineTreeExpressionNode n ) {}
 	@Override
 	public void visit( VoidExpressionNode n ) {}
 	@Override
-	public void visit( ProvideUntilStatement n ) {}
+	public void visit( ProvideUntilStatement n ) {
+		n.provide().accept(this );
+		n.until().accept(this);
+	}
 
 	@Override
 	public void visit( TypeChoiceDefinition n )
@@ -383,5 +463,18 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		list.add( n );
 
 		encounteredNode( n );
+	}
+
+	private void addOlSyntaxNodeToBehaviouralDependencies( OLSyntaxNode n ) {
+		if ( currentFirstInput != null ) {
+			if (behaviouralDependencies.get(n.context().source()) == null) {
+				behaviouralDependencies.put(n.context().source(), new HashMap<>());
+			}
+			Map<OLSyntaxNode, List<OLSyntaxNode>> sourceBehaviouralDependencies = behaviouralDependencies.get(n.context().source());
+			if (sourceBehaviouralDependencies.get(currentFirstInput) == null) {
+				sourceBehaviouralDependencies.put(currentFirstInput, new ArrayList<OLSyntaxNode>());
+			}
+			sourceBehaviouralDependencies.get(currentFirstInput).add(n);
+		}
 	}
 }

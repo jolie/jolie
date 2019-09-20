@@ -1,6 +1,7 @@
 include "../AbstractTestUnit.iol"
 include "metajolie.iol"
 include "string_utils.iol"
+include "console.iol"
 
 define doTest
 {
@@ -76,6 +77,11 @@ define doTest
       }
 
   }
+  getOutputPortMetaData@MetaJolie( rq )( meta_description );
+  if ( #meta_description.output != 1 ) {
+      throw( TestFailed, "Expected 1 output port, found " + #meta_description.output )
+  };
+
   getMetaData@MetaJolie( rq )( metadata )
   if ( #metadata.types != 11 ) {
       throw( TestFailed, "Expected 11 types in metadata, found " + #metadata.types )
@@ -94,5 +100,18 @@ define doTest
   }
   if ( #metadata.input != 1 ) {
       throw( TestFailed, "Expected 1 input in metadata, found " + #metadata.input )
+  }
+  if ( #metadata.communication_dependencies != 1 ) {
+      throw( TestFailed, "Expected 1 communication_dependencies in metadata, found " + #metadata.communication_dependencies )
+  }
+  mcom -> metadata.communication_dependencies
+  if ( mcom.input_operation.name != "tmp" || mcom.input_operation.type != "RequestResponse" ) {
+      throw( TestFailed, "Expected  communication_dependencies input_operation tmp of type RequestRepsponse in metadata, found " + mcom.input_operation.name + "," + mcom.input_operation.type )
+  }
+  if ( #mcom.dependencies != 1 ) {
+      throw( TestFailed, "Expected 1 dependencies in communication_dependencies metadata, found " + #mcom.dependencies )
+  }
+  if ( mcom.dependencies.name != "print" || mcom.dependencies.port != "Console" || mcom.dependencies.type != "SolicitResponse" ) {
+      throw( TestFailed, "Wrong dependencies in communication_dependencies metadata, expected print@Console found " +  mcom.dependencies.name + "," +  mcom.dependencies.type + "," +  mcom.dependencies.port )
   }
 }
