@@ -123,10 +123,10 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${jolie.installation.directory}/tools</outputDirectory>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/${jolie.installation.directory}/tools/wsdl2jolie</directory>
+									<directory>${basedir}/tools/wsdl2jolie</directory>
 									<includes>
 										<include>wsdl2jolie.ol</include>
 									</includes>
@@ -136,6 +136,63 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>copy-jolier</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/tools/jolier</directory>
+									<includes>
+										<include>jolier.ol</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-jolie2openapi</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/tools/jolie2openapi</directory>
+									<includes>
+										<include>jolie2openapi.ol</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-openapi2jolie</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/tools/openapi2jolie</directory>
+									<includes>
+										<include>openapi2jolie.ol</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+          <execution>
 						<id>copy-joliedoc</id>
 						<phase>install</phase>
 						<goals>

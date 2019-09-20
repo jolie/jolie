@@ -1,0 +1,436 @@
+{
+    "basePath": "\/DEMO",
+    "paths": {
+        "/getOrdersByItem": {
+            "post": {
+                "produces": [
+                    "application\/json"
+                ],
+                "description": "",
+                "operationId": "getOrdersByItem",
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#\/definitions\/GetOrdersByItemResponse"
+                        },
+                        "description": "OK"
+                    },
+                    "500": {
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "$ref": "#\/definitions\/JolieFaultType2"
+                                },
+                                {
+                                    "$ref": "#\/definitions\/JolieFaultType1"
+                                }
+                            ]
+                        },
+                        "description": "JolieFault"
+                    }
+                },
+                "parameters": [
+                    {
+                        "schema": {
+                            "$ref": "#/definitions\/GetOrdersByItemRequest"
+                        },
+                        "in": "body",
+                        "name": "GetOrdersByItemRequest",
+                        "required": true
+                    }
+                ],
+                "tags": "DemoInterface",
+                "consumes": "application\/json"
+            }
+        },
+        "/putOrder": {
+            "put": {
+                "produces": [
+                    "application\/json"
+                ],
+                "description": "",
+                "operationId": "putOrder",
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#\/definitions\/PutOrderResponse"
+                        },
+                        "description": "OK"
+                    },
+                    "500": {
+                        "schema": {
+                            "$ref": "#\/definitions\/JolieFaultType0"
+                        },
+                        "description": "JolieFault"
+                    }
+                },
+                "parameters": [
+                    {
+                        "schema": {
+                            "$ref": "#/definitions\/PutOrderRequest"
+                        },
+                        "in": "body",
+                        "name": "PutOrderRequest",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "DemoInterface"
+                ],
+                "consumes": [
+                    "application\/json"
+                ]
+            }
+        },
+        "/orders/{userId}?maxItems={maxItems}": {
+            "get": {
+                "produces": [
+                    "application\/json"
+                ],
+                "description": "",
+                "operationId": "getOrders",
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#\/definitions\/GetOrdersResponse"
+                        },
+                        "description": "OK"
+                    }
+                },
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "maxItems",
+                        "type": "integer",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "DemoInterface"
+                ],
+                "consumes": [
+                    "application\/json"
+                ]
+            }
+        },
+        "/users/{country}": {
+            "post": {
+                "produces": "application\/json",
+                "description": "",
+                "operationId": "getUsers",
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#\/definitions\/GetUsersResponse"
+                        },
+                        "description": "OK"
+                    }
+                },
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "country",
+                        "type": "string",
+                        "required": true
+                    },
+                    {
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "body",
+                        "name": "city",
+                        "required": true
+                    },
+                    {
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "body",
+                        "name": "surname",
+                        "required": true
+                    }
+                ],
+                "tags": "DemoInterface",
+                "consumes": "application\/json"
+            }
+        },
+        "/deleteOrder": {
+            "delete": {
+                "produces": [
+                    "application\/json"
+                ],
+                "description": "",
+                "operationId": "deleteOrder",
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#\/definitions\/DeleteOrderResponse"
+                        },
+                        "description": "OK"
+                    }
+                },
+                "parameters": [
+                    {
+                        "schema": {
+                            "$ref": "#/definitions\/DeleteOrderRequest"
+                        },
+                        "in": "body",
+                        "name": "DeleteOrderRequest",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "DemoInterface"
+                ],
+                "consumes": [
+                    "application\/json"
+                ]
+            }
+        }
+    },
+    "host": "localhost:8000",
+    "definitions": {
+        "Order": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "array",
+                    "items": {
+                        "minItems": 0,
+                        "maxItems": 1,
+                        "type": "integer"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "minItems": 0,
+                        "$ref": "#\/definitions\/OrderItem"
+                    }
+                }
+            }
+        },
+        "Orders": {
+            "type": "object",
+            "properties": {
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "minItems": 0,
+                        "$ref": "#\/definitions\/Order"
+                    }
+                }
+            }
+        },
+        "PutOrderResponse": null,
+        "GetUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "minItems": 0,
+                        "type": "object",
+                        "properties": {
+                            "country": {
+                                "type": "string"
+                            },
+                            "city": {
+                                "type": "string"
+                            },
+                            "surname": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "GetUsersRequest": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "PutOrderRequest": {
+            "type": "object",
+            "properties": {
+                "userId": {
+                    "type": "string"
+                },
+                "order": {
+                    "$ref": "#\/definitions\/Order"
+                }
+            }
+        },
+        "FaultTest2": {
+            "type": "object",
+            "properties": {
+                "fieldfult1": {
+                    "type": "string"
+                }
+            }
+        },
+        "FaultTest1": {
+            "type": "object",
+            "properties": {
+                "fieldfault1": {
+                    "type": "string"
+                },
+                "fieldfault2": {
+                    "type": "integer"
+                }
+            }
+        },
+        "GetOrdersRequest": {
+            "type": "object",
+            "properties": {
+                "maxItems": {
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "JolieFaultType2": {
+            "type": "object",
+            "properties": {
+                "fault": {
+                    "pattern": "FaultTest",
+                    "type": "string"
+                },
+                "content": {
+                    "$ref": "#\/definitions\/FaultTest1"
+                }
+            }
+        },
+        "JolieFaultType1": {
+            "type": "object",
+            "properties": {
+                "fault": {
+                    "pattern": "FaultTest2",
+                    "type": "string"
+                },
+                "content": null
+            }
+        },
+        "OrderItem": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                },
+                "price": {
+                    "format": "double",
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "GetOrdersByItemRequest": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "itemName": {
+                            "type": "string"
+                        },
+                        "quantity": {
+                            "type": "integer"
+                        },
+                        "userId": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "itemName": {
+                            "type": "string"
+                        },
+                        "userId": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "userId": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
+        "GetOrdersByItemResponse": {
+            "$ref": "#\/definitions\/Orders"
+        },
+        "DeleteOrderRequestLinked": {
+            "type": "object",
+            "properties": {
+                "orderId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "JolieFaultType0": {
+            "type": "object",
+            "properties": {
+                "fault": {
+                    "pattern": "FaultTest3",
+                    "type": "string"
+                },
+                "content": {
+                    "$ref": "#\/definitions\/FaultTest2"
+                }
+            }
+        },
+        "DeleteOrderRequest": {
+            "$ref": "#\/definitions\/DeleteOrderRequestLinked"
+        },
+        "DeleteOrderResponse": null,
+        "GetOrdersResponse": {
+            "$ref": "#\/definitions\/Orders"
+        }
+    },
+    "swagger": "2.0",
+    "info": {
+        "description": "",
+        "title": "DEMO API",
+        "version": ""
+    },
+    "tags": [
+        {
+            "name": "DemoInterface",
+            "description": "DemoInterface"
+        }
+    ]
+}

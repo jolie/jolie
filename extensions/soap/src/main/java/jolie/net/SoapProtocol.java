@@ -113,6 +113,8 @@ import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
+import jolie.tracer.DummyTracer;
+import jolie.tracer.MessageTraceAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -400,14 +402,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		XSSchemaSet sSet, String messageNamespace )
 		throws SOAPException
 	{
-
+		Value currValue = value.clone();
 		if ( currTerm.isElementDecl() ) {
 			ValueVector vec;
 			XSElementDecl currElementDecl = currTerm.asElementDecl();
 			String name = currElementDecl.getName();
 			String prefix = (first) ? getPrefix( currElementDecl ) : getPrefixOrNull( currElementDecl );
 			SOAPElement childElement;
-			if ( (vec = value.children().get( name )) != null ) {
+			if ( (vec = currValue.children().get( name )) != null ) {
 				int k = 0;
 				while( vec.size() > 0 && (getMaxOccur > k || getMaxOccur == XSParticle.UNBOUNDED) ) {
 					if ( prefix == null ) {
@@ -715,6 +717,10 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
+
+		StringBuilder httpMessage = new StringBuilder();
+		ByteArray content = null;
+
 		try {
 			inputId = message.operationName();
 			String messageNamespace = getOutputMessageNamespace( message.operationName() );
@@ -907,6 +913,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							}
 						}
 					}
+
 					// check if the body has been defined with more than one parts
 					Operation operation = getWSDLPort().getBinding().getPortType().getOperation( message.operationName(), null, null );
 					Message wsdlMessage;
@@ -931,12 +938,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							}
 						}
 					}
+
 					if ( !partsInBody ) {
 						valueToTypedSOAP( valueToSend, elementDecl, opBody, soapEnvelope, !wrapped, sSet, messageNamespace );
 					} else {
 						// we support only body with one element as a root
 						valueToTypedSOAP( valueToSend.getFirstChild( partName ), elementDecl, opBody, soapEnvelope, !wrapped, sSet, messageNamespace );
 					}
+
 				}
 			}
 
@@ -947,9 +956,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
-			ByteArray content = new ByteArray( tmpStream.toByteArray() );
+			content = new ByteArray( tmpStream.toByteArray() );
 
-			StringBuilder httpMessage = new StringBuilder();
 			String soapAction = null;
 
 			if ( received ) {
@@ -1013,15 +1021,55 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				interpreter.logInfo( "[SOAP debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 			}
 
-			inputId = message.operationName();
+			if ( !(interpreter.tracer() instanceof DummyTracer) ) {
+				final String traceMessage = httpMessage.toString() + content.toString("utf-8");
+				if (received) {
+					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null));
+				} else {
+					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null ));
+				}
+			}
 
-			ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
-			ostream.write( content.getBytes() );
-		} catch( SOAPException se ) {
-			throw new IOException( se );
-		} catch( SAXException saxe ) {
-			throw new IOException( saxe );
+			inputId = message.operationName();
+		} catch( Exception e ) {
+			if ( received ) {
+				httpMessage = new StringBuilder();
+
+				try {
+					SOAPMessage soapMessage = messageFactory.createMessage();
+					soapMessage.setProperty(SOAPMessage.WRITE_XML_DECLARATION, "true");
+					soapMessage.setProperty(SOAPMessage.CHARACTER_SET_ENCODING, "utf-8");
+					SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
+					setOutputEncodingStyle(soapEnvelope, message.operationName());
+					SOAPBody soapBody = soapEnvelope.getBody();
+					SOAPFault soapFault = soapBody.addFault();
+					soapFault.setFaultCode( soapEnvelope.createQName( "Server", soapEnvelope.getPrefix() ) );
+					soapFault.setFaultString( "Error found in SOAP/XML format" );
+					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+					soapMessage.writeTo( tmpStream );
+					content = new ByteArray( tmpStream.toByteArray() );
+					httpMessage.append( "HTTP/1.1 500 Internal Server Error" + HttpUtils.CRLF );
+					httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
+					httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+					httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
+					httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF );
+					httpMessage.append( HttpUtils.CRLF );
+
+				} catch( SOAPException se ) {
+					System.out.println( se.getMessage() );
+				}
+
+
+			} else {
+				throw new IOException(e);
+			}
 		}
+
+		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
+		if ( content != null) {
+			ostream.write( content.getBytes() );
+		};
+
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
@@ -1147,6 +1195,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			if ( message.size() > 0 ) {
 				if ( checkBooleanParameter( "debug" ) ) {
 					interpreter.logInfo( "[SOAP debug] Receiving:\n" + new String( message.content(), charset ) );
+				}
+
+				if ( !(interpreter.tracer() instanceof DummyTracer) ) {
+					final String traceMessage = new String( message.content(), charset );
+					if (message.isResponse()) {
+						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null));
+					} else {
+						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null ));
+					}
 				}
 
 				SOAPMessage soapMessage = messageFactory.createMessage();

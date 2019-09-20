@@ -21,11 +21,11 @@
 
 include "services/metarenders/public/interfaces/NativeCodeRenderInterface.iol"
 
-outputPort Render {
+outputPort MetaRender {
 Interfaces: NativeCodeRenderInterface
 }
 
 embedded {
   Jolie:
-    "services/metarenders/nativecode_render.ol" in Render
+    "services/metarenders/nativecode_render.ol" in MetaRender
 }
