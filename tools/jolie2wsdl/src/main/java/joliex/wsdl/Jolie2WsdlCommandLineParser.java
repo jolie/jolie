@@ -46,7 +46,7 @@ public class Jolie2WsdlCommandLineParser extends CommandLineParser {
             } else if ("--portAddr".equals(argumentsList.get(index))) {
                 index++;
                 address = argumentsList.get(index);
-            } else if ("--o".equals(argumentsList.get(index))) {
+            } else if ("--outputFile".equals(argumentsList.get(index))) {
                 index++;
                 outputFile = argumentsList.get(index);
             } else {
@@ -75,6 +75,6 @@ public class Jolie2WsdlCommandLineParser extends CommandLineParser {
 
     @Override
     protected String getHelpString() {
-        return "Usage: jolie2wsdl --namespace target_name_space --portName name_of_the_port --portAddr address_string --o output_filename file.ol";
+        return "Usage: jolie2wsdl --namespace target_name_space --portName name_of_the_port --portAddr address_string --outputFile output_filename file.ol";
     }
 }

@@ -1248,6 +1248,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		}
 
+	}
+	
+	private void recv_checkDefaultOp(  HttpMessage message, DecodedMessage decodedMessage ) {
 		if ( decodedMessage.resourcePath.equals( "/" ) && !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
 			String defaultOpId = getDefaultOperation( message.type() );
 			if ( defaultOpId != null ) {
@@ -1353,11 +1356,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
-		if ( !message.isGet() && !message.isHead() && !message.isDelete() ) {
+		if ( !message.isGet() && !message.isHead() ) {
 			// body parsing
 			if ( message.size() > 0 ) {
 				recv_parseMessage( message, decodedMessage, contentType, charset );
 			}
+		}
+		
+		if ( !message.isResponse() ) {
+			recv_checkDefaultOp(message, decodedMessage );
 		}
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
