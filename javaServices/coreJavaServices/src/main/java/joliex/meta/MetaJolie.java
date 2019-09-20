@@ -161,6 +161,9 @@ public class MetaJolie extends JavaService {
         response.getFirstChild("name").setValue(type.id());
         response.getFirstChild("cardinality").deepCopy(addCardinality(type.cardinality()));
         response.getFirstChild("type").deepCopy(getType(type, insertTypeInInterfaceList, extension));
+        if ( !type.getDocumentation().isEmpty()) {
+            response.getFirstChild("documentation").setValue( type.getDocumentation() );
+        }
         return response;
     }
 
@@ -187,6 +190,9 @@ public class MetaJolie extends JavaService {
         Value type = Value.create();
         type.getFirstChild("type").deepCopy(getType(typedef, insertInInterfaceList, extension));
         type.getFirstChild("name").setValue(typedef.id());
+        if( !typedef.getDocumentation().isEmpty() ) {
+            type.getFirstChild("documentation").setValue(typedef.getDocumentation());
+        }
         return type;
     }
 
@@ -206,6 +212,7 @@ public class MetaJolie extends JavaService {
             int subtype_counter = 0;
             for (Entry<String, TypeDefinition> entry : typedef.subTypes()) {
                 type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), insertInInterfaceList, extension));
+
                 subtype_counter++;
             }
         }
@@ -285,6 +292,9 @@ public class MetaJolie extends JavaService {
         Value itf = Value.create();
 
         itf.getFirstChild("name").setValue(interfaceDefinition.name());
+        if ( !interfaceDefinition.getDocumentation().isEmpty() ) {
+            itf.getFirstChild("documentation").setValue(interfaceDefinition.getDocumentation());
+        }
 
         ValueVector operations = itf.getChildren("operations");
 
@@ -676,7 +686,7 @@ public class MetaJolie extends JavaService {
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
                     cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), true
             );
             ProgramInspector inspector = ParsingUtils.createInspector(program);
 
@@ -756,7 +766,7 @@ public class MetaJolie extends JavaService {
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
                     cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false);
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), true);
             ProgramInspector inspector = ParsingUtils.createInspector(program);
 
             URI originalFile = program.context().source();
@@ -769,7 +779,7 @@ public class MetaJolie extends JavaService {
                 for (int op = 0; op < outputPortList.length; op++) {
                     OutputPortInfo outputPort = outputPortList[op];
                     output.get(op).deepCopy(getPort(outputPort, interfaces));
-                    response.getFirstChild("service").getChildren("output").get(op).getFirstChild("name").setValue(outputPort.id());
+                    response.getFirstChild("service").getChildren("output").get(op).setValue(outputPort.id());
                 }
             }
 

@@ -779,7 +779,7 @@ public class OLParser extends AbstractParser
 
 			origIncludePaths = includePaths;
 			// includes are explicitly parsed in ASCII to be independent of program's encoding
-			setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI(), "US-ASCII" ) );
+			setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI(), "US-ASCII", oldScanner.includeDocumentation() ) );
 			
 			if ( includeFile.getParentPath() == null ) {
 				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length );
@@ -1402,6 +1402,7 @@ public class OLParser extends AbstractParser
 				}
 
 				parseBackwardAndSetDocumentation( opDecl, Optional.ofNullable( commentToken ) );
+				commentToken = null;
 
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultOneWayOperation( opDecl );
@@ -1492,6 +1493,7 @@ public class OLParser extends AbstractParser
 					);
 
 				parseBackwardAndSetDocumentation( opRR, Optional.ofNullable( commentToken ) );
+				commentToken = null;
 				
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultRequestResponseOperation( opRR );
