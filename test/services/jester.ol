@@ -198,6 +198,6 @@ define doTest {
 
     delete@File( TESTFILE )(  )
     delete@File( "jester_config.iol" )()
-    delete@File("DEMOInterface.iol")()
+    delete@File("services/private/DEMOInterface.iol")()
 
 }
