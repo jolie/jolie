@@ -25,14 +25,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -58,7 +52,6 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.Value;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -86,6 +79,16 @@ public class JavaDocumentCreator
 	private static final HashMap<NativeType, String> JAVA_NATIVE_CHECKER = new HashMap<>();
 
 	public static final String defaultOutputDirectory = "./generated";
+
+	static final String keywords[] = { "abstract", "assert", "boolean",
+			"break", "byte", "case", "catch", "char", "class", "const",
+			"continue", "default", "do", "double", "else", "extends", "false",
+			"final", "finally", "float", "for", "goto", "if", "implements",
+			"import", "instanceof", "int", "interface", "long", "native",
+			"new", "null", "package", "private", "protected", "public",
+			"return", "short", "static", "strictfp", "super", "switch",
+			"synchronized", "this", "throw", "throws", "transient", "true",
+			"try", "void", "volatile", "while" };
 
 	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml )
 	{
@@ -123,6 +126,7 @@ public class JavaDocumentCreator
 		JAVA_NATIVE_CHECKER.put( NativeType.LONG, "isLong()" );
 		JAVA_NATIVE_CHECKER.put( NativeType.STRING, "isString()" );
 		JAVA_NATIVE_CHECKER.put( NativeType.RAW, "isByteArray()" );
+
 	}
 
 	public void ConvertDocument()
@@ -285,7 +289,7 @@ public class JavaDocumentCreator
 		}
 	}
 
-	private void prepareExceptionConstrructorAndGet( StringBuilder stringBuilder, String faultTypeName, String exceptionName, String nativeMethod )
+	private void prepareExceptionConstructorAndGet(StringBuilder stringBuilder, String faultTypeName, String exceptionName, String nativeMethod )
 	{
 		if ( faultTypeName != null ) {
 			stringBuilder.append( "private " ).append( faultTypeName ).append( " fault" ).append( ";\n" );
@@ -376,7 +380,7 @@ public class JavaDocumentCreator
 		} else {
 			faultTypeName = null;
 		}
-		prepareExceptionConstrructorAndGet( outputFileText, faultTypeName, fault.getKey(), nativeMethod );
+		prepareExceptionConstructorAndGet( outputFileText, faultTypeName, fault.getKey(), nativeMethod );
 		decrementIndentation();
 		appendingIndentation( outputFileText );
 		outputFileText.append( "}\n" );
@@ -1251,18 +1255,18 @@ public class JavaDocumentCreator
 				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
 				if ( subType instanceof TypeDefinitionLink ) {
 					if ( ((TypeDefinitionLink) subType).linkedType() instanceof TypeDefinitionUndefined ) {
-						variableName = ((TypeDefinitionLink) subType).id();
+						variableName = checkReservedKeywords(((TypeDefinitionLink) subType).id());
 						variableType = "Value";
 					} else {
-						variableName = ((TypeDefinitionLink) subType).id();
+						variableName = checkReservedKeywords(((TypeDefinitionLink) subType).id());
 						variableType = ((TypeDefinitionLink) subType).linkedTypeName();
 					}
 				} else if ( subType instanceof TypeInlineDefinition ) {
 					if ( Utils.hasSubTypes( subType ) ) {
-						variableName = subType.id();
+						variableName = checkReservedKeywords(subType.id());
 						variableType = variableTypeFromVariableName( variableName );
 					} else {
-						variableName = subType.id();
+						variableName = checkReservedKeywords(subType.id());
 						variableType = JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) subType).nativeType() );
 					}
 				}
@@ -1351,7 +1355,7 @@ public class JavaDocumentCreator
 					if ( subType.cardinality().max() > 1 ) {
 						/* creating the list object */
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( subType.id() ).append( "= new ArrayList<" );
+						stringBuilder.append( checkReservedKeywords( subType.id()) ).append( "= new ArrayList<" );
 						stringBuilder.append( variableNameType );
 						stringBuilder.append( ">();" ).append( "\n" );
 
@@ -1382,7 +1386,7 @@ public class JavaDocumentCreator
 						StringBuilder ifbody = new StringBuilder();
 						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
-						ifbody.append( subType.id() ).append( " = new " ).append( variableNameType );
+						ifbody.append( checkReservedKeywords(subType.id()) ).append( " = new " ).append( variableNameType );
 						ifbody.append( "( v.getFirstChild(\"" ).append( variableName ).append( "\"));" ).append( "\n" );
 						decrementIndentation( 2 );
 						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
@@ -1447,13 +1451,13 @@ public class JavaDocumentCreator
 						if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 							// all the common native types
 							appendingIndentation( ifbody );
-							ifbody.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName ).append( "\")." );
+							ifbody.append( checkReservedKeywords(variableName) ).append( "= v.getFirstChild(\"" ).append( variableName ).append( "\")." );
 							ifbody.append( javaMethod );
 							ifbody.append( ";\n" );
 						} else if ( variableNameType.equals( "Value" ) ) {
 							// in case of ANY and in case of undefined
 							appendingIndentation( ifbody );
-							ifbody.append( variableName ).append( "= v.getFirstChild(\"" ).append( variableName );
+							ifbody.append( checkReservedKeywords(variableName) ).append( "= v.getFirstChild(\"" ).append( variableName );
 							ifbody.append( "\")" ).append( ";\n" );
 
 						} else {
@@ -1467,7 +1471,7 @@ public class JavaDocumentCreator
 
 								incrementIndentation();
 								appendingIndentation( ifbody );
-								ifbody.append( variableName ).append( " = v.getFirstChild(\"" ).append( variableName ).append( "\")." );
+								ifbody.append( checkReservedKeywords(variableName) ).append( " = v.getFirstChild(\"" ).append( variableName ).append( "\")." );
 								ifbody.append( JAVA_NATIVE_METHOD.get( t ) ).append( ";\n" );
 
 								decrementIndentation();
@@ -1517,7 +1521,7 @@ public class JavaDocumentCreator
 				stringBuilder.append( "} else {\n" );
 				incrementIndentation();
 				appendingIndentation( stringBuilder );
-				stringBuilder.append( variableName ).append( " = v." ).append( javaMethod ).append( ";\n" );
+				stringBuilder.append( checkReservedKeywords(variableName) ).append( " = v." ).append( javaMethod ).append( ";\n" );
 				decrementIndentation();
 				appendingIndentation( stringBuilder );
 				stringBuilder.append( "}\n" );
@@ -1567,7 +1571,7 @@ public class JavaDocumentCreator
 						}
 					}
 					appendingIndentation( stringBuilder );
-					stringBuilder.append( variableName ).append( "= new ArrayList<" ).append( variableType ).append( ">();\n" );
+					stringBuilder.append( checkReservedKeywords(variableName) ).append( "= new ArrayList<" ).append( variableType ).append( ">();\n" );
 				}
 			}
 		}
@@ -1750,7 +1754,7 @@ public class JavaDocumentCreator
 					//link
 					if ( subType.cardinality().max() > 1 ) {
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if(" ).append( variableName ).append( "!=null){\n" );
+						stringBuilder.append( "if(" ).append( checkReservedKeywords(variableName) ).append( "!=null){\n" );
 
 						incrementIndentation();
 						appendingIndentation( stringBuilder );
@@ -1759,7 +1763,7 @@ public class JavaDocumentCreator
 
 						incrementIndentation();
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" ).append( variableName );
+						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" ).append( checkReservedKeywords(variableName) );
 						stringBuilder.append( ".get(counter" ).append( variableName ).append( ").getValue());\n" );
 
 						decrementIndentation();
@@ -1772,11 +1776,11 @@ public class JavaDocumentCreator
 
 					} else {
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "if((" ).append( variableName ).append( "!=null)){\n" );
+						stringBuilder.append( "if((" ).append( checkReservedKeywords(variableName) ).append( "!=null)){\n" );
 
 						incrementIndentation();
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" ).append( variableName );
+						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" ).append( checkReservedKeywords(variableName) );
 						stringBuilder.append( ".getValue());\n" );
 
 						decrementIndentation();
@@ -1785,7 +1789,7 @@ public class JavaDocumentCreator
 					}
 				} else if ( subType.cardinality().max() > 1 ) {
 					appendingIndentation( stringBuilder );
-					stringBuilder.append( "if(" ).append( variableName ).append( "!=null){\n" );
+					stringBuilder.append( "if(" ).append( checkReservedKeywords(variableName) ).append( "!=null){\n" );
 
 					incrementIndentation();
 					appendingIndentation( stringBuilder );
@@ -1795,14 +1799,14 @@ public class JavaDocumentCreator
 					incrementIndentation();
 					if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" ).append( variableName );
+						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" ).append( checkReservedKeywords(variableName) );
 						stringBuilder.append( ".get(counter" ).append( variableName ).append( "));\n" );
 
 					} else if ( isNativeTypeUndefined( subType ) ) {
 						incrementIndentation();
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-						stringBuilder.append( variableName ).append( ".get(counter" ).append( variableName ).append( "));\n" );
+						stringBuilder.append( checkReservedKeywords(variableName) ).append( ".get(counter" ).append( variableName ).append( "));\n" );
 						decrementIndentation();
 					} else {
 						for( NativeType t : NativeType.class.getEnumConstants() ) {
@@ -1810,13 +1814,13 @@ public class JavaDocumentCreator
 								continue;
 							}
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( "if(" ).append( variableName ).append( ".get(counter" ).append( variableName );
+							stringBuilder.append( "if(" ).append( checkReservedKeywords(variableName) ).append( ".get(counter" ).append( variableName );
 							stringBuilder.append( ") instanceof " ).append( JAVA_NATIVE_EQUIVALENT.get( t ) ).append( "){\n" );
 
 							incrementIndentation();
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-							stringBuilder.append( variableName ).append( ".get(counter" ).append( variableName ).append( "));\n" );
+							stringBuilder.append( checkReservedKeywords(variableName) ).append( ".get(counter" ).append( variableName ).append( "));\n" );
 
 							decrementIndentation();
 							appendingIndentation( stringBuilder );
@@ -1833,30 +1837,30 @@ public class JavaDocumentCreator
 
 				} else {
 					appendingIndentation( stringBuilder );
-					stringBuilder.append( "if((" ).append( variableName ).append( "!=null)){\n" );
+					stringBuilder.append( "if((" ).append( checkReservedKeywords(variableName) ).append( "!=null)){\n" );
 					incrementIndentation();
 
 					if ( Utils.nativeType( subType ) != NativeType.ANY ) {
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-						stringBuilder.append( subType.id() ).append( ");\n" );
+						stringBuilder.append( checkReservedKeywords(subType.id()) ).append( ");\n" );
 					} else if ( variableNameType.equals( "Value" ) ) {
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" );
-						stringBuilder.append( variableName ).append( ");\n" );
+						stringBuilder.append( checkReservedKeywords(variableName) ).append( ");\n" );
 					} else {
 						for( NativeType t : NativeType.class.getEnumConstants() ) {
 							if ( !JAVA_NATIVE_CHECKER.containsKey( t ) ) {
 								continue;
 							}
 							appendingIndentation( stringBuilder );
-							stringBuilder.append( "if(" ).append( variableName ).append( " instanceof " );
+							stringBuilder.append( "if(" ).append( checkReservedKeywords(variableName) ).append( " instanceof " );
 							stringBuilder.append( JAVA_NATIVE_EQUIVALENT.get( t ) ).append( "){\n" );
 
 							incrementIndentation();
 							appendingIndentation( stringBuilder );
 							stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName ).append( "\").setValue(" );
-							stringBuilder.append( variableName ).append( ");\n" );
+							stringBuilder.append( checkReservedKeywords(variableName) ).append( ");\n" );
 
 							decrementIndentation();
 							appendingIndentation( stringBuilder );
@@ -2102,7 +2106,7 @@ public class JavaDocumentCreator
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "return " ).append( variableName ).append( ".get(index);\n" );
+		stringBuilder.append( "return " ).append( checkReservedKeywords( variableName ) ).append( ".get(index);\n" );
 
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2117,7 +2121,7 @@ public class JavaDocumentCreator
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "return " ).append( variableName ).append( ";\n" );
+		stringBuilder.append( "return " ).append( checkReservedKeywords(variableName) ).append( ";\n" );
 
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2131,7 +2135,7 @@ public class JavaDocumentCreator
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "return " ).append( variableName ).append( ".size();\n" );
+		stringBuilder.append( "return " ).append( checkReservedKeywords(variableName) ).append( ".size();\n" );
 
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2145,7 +2149,7 @@ public class JavaDocumentCreator
 		stringBuilder.append( typeName ).append( " value ){\n" );
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( variableName ).append( ".add(value);\n" );
+		stringBuilder.append( checkReservedKeywords(variableName) ).append( ".add(value);\n" );
 
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2160,7 +2164,7 @@ public class JavaDocumentCreator
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( variableName ).append( " = value;\n" );
+		stringBuilder.append( checkReservedKeywords(variableName) ).append( " = value;\n" );
 
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2174,7 +2178,7 @@ public class JavaDocumentCreator
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( variableName ).append( ".remove(index);\n" );
+		stringBuilder.append( checkReservedKeywords(variableName) ).append( ".remove(index);\n" );
 
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2262,6 +2266,14 @@ public class JavaDocumentCreator
 	private String getExceptionName( String operationName, String faultName )
 	{
 		return operationName + faultName + "Exception";
+	}
+
+	private String checkReservedKeywords(String id ) {
+		if (Arrays.binarySearch(keywords, id) >= 0) {
+			return "_" + id;
+		} else {
+			return id;
+		}
 	}
 
 }
