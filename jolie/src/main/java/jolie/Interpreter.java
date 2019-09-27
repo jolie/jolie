@@ -109,12 +109,15 @@ public class Interpreter
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
 		{
 			super( interpreter, process );
+			enableLoopDetection( false );
 			addSessionListener( new SessionListener() {
+				
 				@Override
 				public void onSessionExecuted( SessionThread session )
 				{
 					onSuccessfulInitExecution();
 				}
+				
 				@Override
 				public void onSessionError( SessionThread session, FaultException fault )
 				{
@@ -179,6 +182,7 @@ public class Interpreter
 		{
 			return true;
 		}
+		
 	}
 	
 	private static class JolieExecutionThreadFactory implements ThreadFactory {
@@ -193,7 +197,7 @@ public class Interpreter
 		{
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
 			if ( r instanceof ExecutionThread ) {
-				t.setExecutionThread( (ExecutionThread)r );
+				t.setExecutionThread( ( ExecutionThread ) r );
 			}
 			return t;
 		}

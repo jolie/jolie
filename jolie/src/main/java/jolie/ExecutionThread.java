@@ -27,7 +27,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.lang.Constants;
@@ -37,6 +39,8 @@ import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 /**
@@ -165,6 +169,9 @@ public abstract class ExecutionThread extends JolieThread
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	private Future<?> taskFuture;
+	private boolean enableLoopDetection = true;
+	private final Map< VariablePath, Set< Value > > valueLoopDetectionMap;
+	private final Map< VariablePath, Set< ValueVector > > valueVectorLoopDetectionMap;
 	
 	private void setTaskFuture( Future<?> taskFuture )
 	{
@@ -189,6 +196,8 @@ public abstract class ExecutionThread extends JolieThread
 		super( parent.interpreter() );
 		this.process = process;
 		this.parent = parent;
+		this.valueLoopDetectionMap = parent.valueLoopDetectionMap;
+		this.valueVectorLoopDetectionMap = parent.valueVectorLoopDetectionMap;
 	}
 	
 	/**
@@ -201,6 +210,8 @@ public abstract class ExecutionThread extends JolieThread
 		super( interpreter );
 		this.process = process;
 		this.parent = null;
+		this.valueLoopDetectionMap = new HashMap<>();
+		this.valueVectorLoopDetectionMap = new HashMap<>();
 	}
 
 	/**
@@ -220,6 +231,62 @@ public abstract class ExecutionThread extends JolieThread
 		
 		if( canBeInterrupted ) {
 			taskFuture.cancel( canBeInterrupted );
+		}
+	}
+	
+	public synchronized void enableLoopDetection( boolean t ){
+		enableLoopDetection = t;
+	}
+	
+	public synchronized void addLoopDetectionMap( VariablePath p, Value l ){
+		if( valueLoopDetectionMap.containsKey( p ) ){
+			valueLoopDetectionMap.get( p ).add( l );
+		} else {
+			Set< Value > s = new HashSet();
+			s.add( l );
+			valueLoopDetectionMap.put( p, s );
+		}	
+	}
+	
+	public synchronized boolean hasLinkInDetectionMap( VariablePath p, Value l ){
+		return enableLoopDetection
+			&& valueLoopDetectionMap.containsKey( p )
+			&& valueLoopDetectionMap.get( p ).contains( l );
+	}
+	
+	public synchronized void removeLoopDetectionMap( VariablePath p, Value l ){
+		if( valueLoopDetectionMap.containsKey( p ) ){
+			Set< Value > s = valueLoopDetectionMap.get( p );
+			s.remove( l );
+			if( s.isEmpty() ){
+				valueLoopDetectionMap.remove( p );
+			}
+		}
+	}
+	
+	public synchronized void addLoopDetectionMap( VariablePath p, ValueVector l ){
+		if( valueVectorLoopDetectionMap.containsKey( p ) ){
+			valueVectorLoopDetectionMap.get( p ).add( l );
+		} else {
+			Set< ValueVector > s = new HashSet();
+			s.add( l );
+			valueVectorLoopDetectionMap.put( p, s );
+		}
+	}
+	
+	public synchronized boolean hasLinkInDetectionMap( VariablePath p, ValueVector l ){
+		return enableLoopDetection
+			&& valueVectorLoopDetectionMap.containsKey( p )
+			&& valueVectorLoopDetectionMap.get( p ).contains( l );
+	}
+	
+	public synchronized void removeLoopDetectionMap( VariablePath p, ValueVector l ){
+		if( valueVectorLoopDetectionMap.containsKey( p ) ){
+			Set< ValueVector > s = valueVectorLoopDetectionMap.get( p );
+			s.remove( l );
+			if( s.isEmpty() ){
+				valueVectorLoopDetectionMap.remove( p );
+			}
 		}
 	}
 	
@@ -429,7 +496,7 @@ public abstract class ExecutionThread extends JolieThread
 
 		return null;
 	}
-
+	
 	/**
 	 * Returns the State this ExecutionThread refers to.
 	 * @return the State this ExecutionThread refers to

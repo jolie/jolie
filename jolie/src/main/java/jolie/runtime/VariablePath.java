@@ -22,8 +22,6 @@
 package jolie.runtime;
 
 
-import java.util.HashSet;
-import java.util.Set;
 import jolie.ExecutionThread;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
@@ -178,17 +176,15 @@ public class VariablePath implements Expression
 		return getValue( getRootValue() );
 	}
 	
-	private final Set< ValueLink > fromValueLink = new HashSet<>();
-	
 	public final Value getValue( ValueLink l )
 	{
-		if ( fromValueLink.contains( l ) ) {
+		if ( ExecutionThread.currentThread().hasLinkInDetectionMap( this, l ) ) {
 			throw buildAliasAccessException().toRuntimeFaultException();
 		} else {
-			fromValueLink.add( l );
+			ExecutionThread.currentThread().addLoopDetectionMap( this, l );
 		}
 		Value v = getValue();
-		fromValueLink.remove( l );
+		ExecutionThread.currentThread().removeLoopDetectionMap( this, l );
 		return v;
 	}
 
@@ -287,19 +283,17 @@ public class VariablePath implements Expression
 		return currValue;
 	}
 	
-	private final Set< ValueVectorLink > fromValueVectorLink = new HashSet<>();
-	
 	public final ValueVector getValueVector( ValueVectorLink l ){
-		if( fromValueVectorLink.contains( l ) ){
+		if( ExecutionThread.currentThread().hasLinkInDetectionMap( this, l ) ){
 			throw buildAliasAccessException().toRuntimeFaultException();
 		} else {
-			fromValueVectorLink.add( l );
+			ExecutionThread.currentThread().addLoopDetectionMap( this, l );
 		}
 		ValueVector v = getValueVector();
-		if( fromValueVectorLink.contains( v ) ){
+		if( ExecutionThread.currentThread().hasLinkInDetectionMap( this, v ) ){
 			throw buildAliasAccessException().toRuntimeFaultException();
 		}
-		fromValueVectorLink.remove( l );
+		ExecutionThread.currentThread().removeLoopDetectionMap( this, l );
 		return v;
 	}
 	
