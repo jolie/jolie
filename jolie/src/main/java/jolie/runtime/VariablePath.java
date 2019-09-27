@@ -178,13 +178,13 @@ public class VariablePath implements Expression
 	
 	public final Value getValue( ValueLink l )
 	{
-		if ( ExecutionThread.currentThread().hasLinkInDetectionMap( this, l ) ) {
+		if ( ExecutionThread.currentThread().contains_loopDetectionMap(  this, l ) ) {
 			throw buildAliasAccessException().toRuntimeFaultException();
 		} else {
-			ExecutionThread.currentThread().addLoopDetectionMap( this, l );
+			ExecutionThread.currentThread().put_loopDetectionMap( this, l );
 		}
 		Value v = getValue();
-		ExecutionThread.currentThread().removeLoopDetectionMap( this, l );
+		ExecutionThread.currentThread().remove_loopDetectionMap( this, l );
 		return v;
 	}
 
@@ -284,16 +284,16 @@ public class VariablePath implements Expression
 	}
 	
 	public final ValueVector getValueVector( ValueVectorLink l ){
-		if( ExecutionThread.currentThread().hasLinkInDetectionMap( this, l ) ){
+		if( ExecutionThread.currentThread().contains_loopDetectionMap( this, l ) ){
 			throw buildAliasAccessException().toRuntimeFaultException();
 		} else {
-			ExecutionThread.currentThread().addLoopDetectionMap( this, l );
+			ExecutionThread.currentThread().put_loopDetectionMap( this, l );
 		}
 		ValueVector v = getValueVector();
-		if( ExecutionThread.currentThread().hasLinkInDetectionMap( this, v ) ){
+		if( ExecutionThread.currentThread().contains_loopDetectionMap( this, v ) ){
 			throw buildAliasAccessException().toRuntimeFaultException();
 		}
-		ExecutionThread.currentThread().removeLoopDetectionMap( this, l );
+		ExecutionThread.currentThread().remove_loopDetectionMap( this, l );
 		return v;
 	}
 	
