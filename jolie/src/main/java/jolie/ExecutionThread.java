@@ -278,8 +278,8 @@ public abstract class ExecutionThread extends JolieThread
 	}
 	
 	private LoopDetectionMap< Value > valueLoopDetectionMap(){
-		Thread t = Thread.currentThread();
-		if( subthreads && !t.equals( this ) ){
+		if( subthreads ){
+			Thread t = Thread.currentThread();
 			if ( !subthreadsDetectionMap.containsKey( t ) ){
 				createSubthreadLoopDetectionMaps( t );
 			}
@@ -290,8 +290,8 @@ public abstract class ExecutionThread extends JolieThread
 	}
 	
 	private LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap(){
-		Thread t = Thread.currentThread();
-		if( subthreads && !t.equals( this ) ){
+		if( subthreads ){
+			Thread t = Thread.currentThread();
 			if( !subthreadsDetectionMap.containsKey( t ) ){
 				createSubthreadLoopDetectionMaps( t );
 			}
