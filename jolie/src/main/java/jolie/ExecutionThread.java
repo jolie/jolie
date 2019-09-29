@@ -32,6 +32,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
@@ -170,10 +174,15 @@ public abstract class ExecutionThread extends JolieThread
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	private Future<?> taskFuture;
-	private boolean subthreads = false;
+	private boolean multithreaded = false;
 	
 	private class LoopDetectionMap< V >{
-		private final Map< VariablePath, Set< V > > m = new HashMap();
+		private final Map< VariablePath, Set< V > > m = new HashMap<>();
+		private final Lock l = new ReentrantLock();
+		
+		public void lock(){ l.lock(); }
+		
+		public void unlock(){ l.unlock(); }
 		
 		public void put( VariablePath p, V v ){
 			if( m.containsKey( p ) ){
@@ -203,7 +212,7 @@ public abstract class ExecutionThread extends JolieThread
 	
 	private final LoopDetectionMap< Value > valueLoopDetectionMap;
 	private final LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap;
-	private Map< Thread, Pair< LoopDetectionMap< Value >, LoopDetectionMap< ValueVector > > > subthreadsDetectionMap;
+	private Map< Thread, Pair< LoopDetectionMap< Value >, LoopDetectionMap< ValueVector > > > multiThreadDetectionMap;
 	
 	private void setTaskFuture( Future<?> taskFuture )
 	{
@@ -266,63 +275,85 @@ public abstract class ExecutionThread extends JolieThread
 		}
 	}
 	
-	public synchronized void enableSubThreadingLoopDetection( boolean t ){
-		if( t ){
-			subthreads = t;
-			subthreadsDetectionMap = new HashMap<>();
-		}
+	public synchronized void enableMultiThreadingLoopDetection(){
+		multithreaded = true;
+		multiThreadDetectionMap = new HashMap<>();
 	}
 	
 	private void createSubthreadLoopDetectionMaps( Thread t ){
-		subthreadsDetectionMap.put( t, new Pair<>( new LoopDetectionMap<>(), new LoopDetectionMap<>() ) );
+		multiThreadDetectionMap.put( t, new Pair<>( new LoopDetectionMap<>(), new LoopDetectionMap<>() ) );
 	}
 	
 	private LoopDetectionMap< Value > valueLoopDetectionMap(){
-		if( subthreads ){
+		if( multithreaded ){
 			Thread t = Thread.currentThread();
-			if ( !subthreadsDetectionMap.containsKey( t ) ){
+			if ( !multiThreadDetectionMap.containsKey( t ) ){
 				createSubthreadLoopDetectionMaps( t );
 			}
-			return subthreadsDetectionMap.get( t ).key();
+			return multiThreadDetectionMap.get( t ).key();
 		} else {
 			return valueLoopDetectionMap;
 		}
 	}
 	
 	private LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap(){
-		if( subthreads ){
+		if( multithreaded ){
 			Thread t = Thread.currentThread();
-			if( !subthreadsDetectionMap.containsKey( t ) ){
+			if( !multiThreadDetectionMap.containsKey( t ) ){
 				createSubthreadLoopDetectionMaps( t );
 			}
-			return subthreadsDetectionMap.get( t ).value();
+			return multiThreadDetectionMap.get( t ).value();
 		} else {
 			return valueVectorLoopDetectionMap;
 		}
 	}
 	
+	public < R > R synchronisedReturn( LoopDetectionMap m, Function< LoopDetectionMap, R > c ){
+		R r;
+		if( !multithreaded ){ m.lock(); }
+		r = c.apply( m );
+		if( !multithreaded ){ m.unlock(); }
+		return r;
+	}
+		
+	public void synchronised( LoopDetectionMap m, Consumer< LoopDetectionMap > c ){
+		synchronisedReturn( m, v -> { c.accept( v ); return null; } );
+	}
+	
 	public void put_loopDetectionMap( VariablePath p, Value l ){
-		valueLoopDetectionMap().put( p, l );
+		synchronised( valueLoopDetectionMap(), v -> 
+			v.put( p, l ) 
+		);
 	}
 	
 	public boolean contains_loopDetectionMap( VariablePath p, Value l ){
-		return valueLoopDetectionMap().contains( p, l );
+		return synchronisedReturn( valueLoopDetectionMap(), v -> 
+			v.contains( p, l )
+		);
 	}
 	
 	public void remove_loopDetectionMap( VariablePath p, Value l ){
-		valueLoopDetectionMap().remove( p, l );
+		synchronised( valueLoopDetectionMap(), v -> 
+			v.remove( p, l )
+		);
 	}
 	
 	public void put_loopDetectionMap( VariablePath p, ValueVector l ){
-		valueVectorLoopDetectionMap().put( p, l );
+		synchronised( valueVectorLoopDetectionMap(), v -> 
+			v.put( p, l )
+		);
 	}
 	
 	public boolean contains_loopDetectionMap( VariablePath p, ValueVector l ){
-		return valueVectorLoopDetectionMap().contains( p, l );
+		return synchronisedReturn( valueVectorLoopDetectionMap(), v -> 
+			v.contains( p, l )
+		);
 	}
 	
 	public void remove_loopDetectionMap( VariablePath p, ValueVector l ){
-		valueVectorLoopDetectionMap().remove( p, l );
+		synchronised( valueVectorLoopDetectionMap(), v -> 
+			v.remove( p, l )
+		);
 	}
 	
 	/**
