@@ -614,7 +614,7 @@ public class CommCore
 		public void run()
 		{
 			final CommChannelHandler thread = CommChannelHandler.currentThread();
-			thread.setExecutionThread( interpreter().initThread() );
+			thread.setExecutionThread( interpreter().initThread().getNewSessionThread() );
 			channel.lock.lock();
 			channelHandlersLock.readLock().lock();
 			try {

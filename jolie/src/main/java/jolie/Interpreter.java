@@ -109,7 +109,6 @@ public class Interpreter
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
 		{
 			super( interpreter, process );
-			enableMultiThreadingLoopDetection();
 			addSessionListener( new SessionListener() {
 				
 				@Override

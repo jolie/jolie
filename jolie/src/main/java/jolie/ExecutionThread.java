@@ -27,15 +27,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
@@ -46,7 +40,6 @@ import jolie.runtime.InputOperation;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
-import jolie.util.Pair;
 
 /**
  * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
@@ -174,45 +167,6 @@ public abstract class ExecutionThread extends JolieThread
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	private Future<?> taskFuture;
-	private boolean multithreaded = false;
-	
-	private class LoopDetectionMap< V >{
-		private final Map< VariablePath, Set< V > > m = new HashMap<>();
-		private final Lock l = new ReentrantLock();
-		
-		public void lock(){ l.lock(); }
-		
-		public void unlock(){ l.unlock(); }
-		
-		public void put( VariablePath p, V v ){
-			if( m.containsKey( p ) ){
-				m.get( p ).add( v );
-			} else {
-				Set< V > s = new HashSet();
-				s.add( v );
-				m.put( p, s );
-			}	
-		}
-		
-		public boolean contains( VariablePath p, V v ){
-			return m.containsKey( p ) && m.get( p ).contains( v );
-		}
-		
-		public void remove( VariablePath p, V v ){
-			if( m.containsKey( p ) ){
-				Set< V > s = m.get( p );
-				s.remove( v );
-				if( s.isEmpty() ){
-					m.remove( p );
-				}
-			}
-		}
-		
-	}
-	
-	private final LoopDetectionMap< Value > valueLoopDetectionMap;
-	private final LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap;
-	private Map< Thread, Pair< LoopDetectionMap< Value >, LoopDetectionMap< ValueVector > > > multiThreadDetectionMap;
 	
 	private void setTaskFuture( Future<?> taskFuture )
 	{
@@ -237,8 +191,6 @@ public abstract class ExecutionThread extends JolieThread
 		super( parent.interpreter() );
 		this.process = process;
 		this.parent = parent;
-		this.valueLoopDetectionMap = parent.valueLoopDetectionMap;
-		this.valueVectorLoopDetectionMap = parent.valueVectorLoopDetectionMap;
 	}
 	
 	/**
@@ -251,8 +203,6 @@ public abstract class ExecutionThread extends JolieThread
 		super( interpreter );
 		this.process = process;
 		this.parent = null;
-		this.valueLoopDetectionMap = new LoopDetectionMap<>();
-		this.valueVectorLoopDetectionMap = new LoopDetectionMap<>();
 	}
 
 	/**
@@ -273,87 +223,6 @@ public abstract class ExecutionThread extends JolieThread
 		if( canBeInterrupted ) {
 			taskFuture.cancel( canBeInterrupted );
 		}
-	}
-	
-	public synchronized void enableMultiThreadingLoopDetection(){
-		multithreaded = true;
-		multiThreadDetectionMap = new HashMap<>();
-	}
-	
-	private void createSubthreadLoopDetectionMaps( Thread t ){
-		multiThreadDetectionMap.put( t, new Pair<>( new LoopDetectionMap<>(), new LoopDetectionMap<>() ) );
-	}
-	
-	private LoopDetectionMap< Value > valueLoopDetectionMap(){
-		if( multithreaded ){
-			Thread t = Thread.currentThread();
-			if ( !multiThreadDetectionMap.containsKey( t ) ){
-				createSubthreadLoopDetectionMaps( t );
-			}
-			return multiThreadDetectionMap.get( t ).key();
-		} else {
-			return valueLoopDetectionMap;
-		}
-	}
-	
-	private LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap(){
-		if( multithreaded ){
-			Thread t = Thread.currentThread();
-			if( !multiThreadDetectionMap.containsKey( t ) ){
-				createSubthreadLoopDetectionMaps( t );
-			}
-			return multiThreadDetectionMap.get( t ).value();
-		} else {
-			return valueVectorLoopDetectionMap;
-		}
-	}
-	
-	public < R > R synchronisedReturn( LoopDetectionMap m, Function< LoopDetectionMap, R > c ){
-		R r;
-		if( !multithreaded ){ m.lock(); }
-		r = c.apply( m );
-		if( !multithreaded ){ m.unlock(); }
-		return r;
-	}
-		
-	public void synchronised( LoopDetectionMap m, Consumer< LoopDetectionMap > c ){
-		synchronisedReturn( m, v -> { c.accept( v ); return null; } );
-	}
-	
-	public void put_loopDetectionMap( VariablePath p, Value l ){
-		synchronised( valueLoopDetectionMap(), v -> 
-			v.put( p, l ) 
-		);
-	}
-	
-	public boolean contains_loopDetectionMap( VariablePath p, Value l ){
-		return synchronisedReturn( valueLoopDetectionMap(), v -> 
-			v.contains( p, l )
-		);
-	}
-	
-	public void remove_loopDetectionMap( VariablePath p, Value l ){
-		synchronised( valueLoopDetectionMap(), v -> 
-			v.remove( p, l )
-		);
-	}
-	
-	public void put_loopDetectionMap( VariablePath p, ValueVector l ){
-		synchronised( valueVectorLoopDetectionMap(), v -> 
-			v.put( p, l )
-		);
-	}
-	
-	public boolean contains_loopDetectionMap( VariablePath p, ValueVector l ){
-		return synchronisedReturn( valueVectorLoopDetectionMap(), v -> 
-			v.contains( p, l )
-		);
-	}
-	
-	public void remove_loopDetectionMap( VariablePath p, ValueVector l ){
-		synchronised( valueVectorLoopDetectionMap(), v -> 
-			v.remove( p, l )
-		);
 	}
 	
 	/**
@@ -563,6 +432,13 @@ public abstract class ExecutionThread extends JolieThread
 		return null;
 	}
 	
+	public abstract void put_loopDetectionMap( VariablePath p, Value l );
+	public abstract void put_loopDetectionMap( VariablePath p, ValueVector l );
+	public abstract void remove_loopDetectionMap( VariablePath p, Value l );
+	public abstract void remove_loopDetectionMap( VariablePath p, ValueVector l );
+	public abstract boolean contains_loopDetectionMap( VariablePath p, Value l );
+	public abstract boolean contains_loopDetectionMap( VariablePath p, ValueVector l );
+
 	/**
 	 * Returns the State this ExecutionThread refers to.
 	 * @return the State this ExecutionThread refers to

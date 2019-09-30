@@ -43,6 +43,7 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
@@ -253,17 +254,10 @@ public class SessionThread extends ExecutionThread
 		return instList;
 	}
 
-	private SessionThread( Process process, ExecutionThread parent, jolie.State state )
-	{
-		super( process, parent );
-		this.state = state;
-		initMessageQueues();
-	}
-
 	public SessionThread( Process process, jolie.State state, ExecutionThread parent )
 	{
 		super( parent.interpreter(), process );
-		this.state = state;		
+		this.state = state;	
 		parent.scopeStack.forEach( s -> scopeStack.push( s.clone() ) );
 		initMessageQueues();
 	}
@@ -316,6 +310,52 @@ public class SessionThread extends ExecutionThread
 		assert( parent != null );
 		state = parent.state().clone();
 		parent.scopeStack.forEach( s -> scopeStack.push( s.clone() ) );
+	}
+	
+	public SessionThread( Interpreter interpreter, Process process, State state ){
+		super( interpreter, process );
+		this.state = state;
+		initMessageQueues();
+	}
+	
+	public SessionThread toNewSessionThread(){
+		return new SessionThread( this.interpreter(), process, state.clone() );
+	}
+	
+	@Override
+	public void put_loopDetectionMap( VariablePath p, Value l )
+	{
+		state().valueLoopDetectionMap().put( p, l );
+	}
+
+	@Override
+	public void put_loopDetectionMap( VariablePath p, ValueVector l )
+	{
+		state().valueVectorLoopDetectionMap().put( p, l );
+	}
+
+	@Override
+	public void remove_loopDetectionMap( VariablePath p, Value l )
+	{
+		state().valueLoopDetectionMap().remove( p, l );
+	}
+
+	@Override
+	public void remove_loopDetectionMap( VariablePath p, ValueVector l )
+	{
+		state().valueVectorLoopDetectionMap().remove( p, l );
+	}
+
+	@Override
+	public boolean contains_loopDetectionMap( VariablePath p, Value l )
+	{
+		return state().valueLoopDetectionMap().contains( p, l );
+	}
+
+	@Override
+	public boolean contains_loopDetectionMap( VariablePath p, ValueVector l )
+	{
+		return state().valueVectorLoopDetectionMap().contains( p, l );
 	}
 	
 	/**
