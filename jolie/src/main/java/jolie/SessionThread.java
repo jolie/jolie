@@ -318,7 +318,7 @@ public class SessionThread extends ExecutionThread
 		initMessageQueues();
 	}
 	
-	public SessionThread toNewSessionThread(){
+	public SessionThread getNewSessionThread(){
 		return new SessionThread( this.interpreter(), process, state.clone() );
 	}
 	
