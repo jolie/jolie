@@ -37,6 +37,8 @@ import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 /**
@@ -429,6 +431,13 @@ public abstract class ExecutionThread extends JolieThread
 
 		return null;
 	}
+	
+	public abstract void put_loopDetectionMap( VariablePath p, Value l );
+	public abstract void put_loopDetectionMap( VariablePath p, ValueVector l );
+	public abstract void remove_loopDetectionMap( VariablePath p, Value l );
+	public abstract void remove_loopDetectionMap( VariablePath p, ValueVector l );
+	public abstract boolean contains_loopDetectionMap( VariablePath p, Value l );
+	public abstract boolean contains_loopDetectionMap( VariablePath p, ValueVector l );
 
 	/**
 	 * Returns the State this ExecutionThread refers to.

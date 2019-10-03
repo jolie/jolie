@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import jolie.net.SessionMessage;
 import jolie.runtime.InputOperation;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
 
 /**
  *
@@ -41,6 +44,42 @@ public abstract class TransparentExecutionThread extends ExecutionThread
 	public jolie.State state()
 	{
 		return parent.state();
+	}
+	
+	@Override
+	public void put_loopDetectionMap( VariablePath p, Value l )
+	{
+		parent.put_loopDetectionMap( p, l );
+	}
+
+	@Override
+	public void put_loopDetectionMap( VariablePath p, ValueVector l )
+	{
+		parent.put_loopDetectionMap( p, l );
+	}
+
+	@Override
+	public void remove_loopDetectionMap( VariablePath p, Value l )
+	{
+		parent.remove_loopDetectionMap( p, l );
+	}
+
+	@Override
+	public void remove_loopDetectionMap( VariablePath p, ValueVector l )
+	{
+		parent.remove_loopDetectionMap( p, l );
+	}
+
+	@Override
+	public boolean contains_loopDetectionMap( VariablePath p, Value l )
+	{
+		return parent.contains_loopDetectionMap( p, l );
+	}
+
+	@Override
+	public boolean contains_loopDetectionMap( VariablePath p, ValueVector l )
+	{
+		return parent.contains_loopDetectionMap( p, l );
 	}
 
 	public Future< SessionMessage> requestMessage( InputOperation operation, ExecutionThread ethread )
