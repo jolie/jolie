@@ -78,6 +78,7 @@ public class NDChoiceProcess implements Process
 	
 	public Process copy( TransformationReason reason )
 	{
+		@SuppressWarnings("unchecked")
 		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
 		int i = 0;
 		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {

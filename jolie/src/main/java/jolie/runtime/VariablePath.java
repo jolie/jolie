@@ -36,6 +36,8 @@ public class VariablePath implements Expression
 {
 	public static class EmptyPathLazyHolder {
 		private EmptyPathLazyHolder() {}
+
+		@SuppressWarnings("unchecked")
 		public static final Pair< Expression, Expression >[] EMPTY_PATH = new Pair[0];
 	}
 
@@ -53,6 +55,7 @@ public class VariablePath implements Expression
 
 	protected static Pair< Expression, Expression >[] cloneExpressionHelper( Pair< Expression, Expression >[] path, TransformationReason reason )
 	{
+		@SuppressWarnings("unchecked")
 		Pair< Expression, Expression >[] clonedPath = new Pair[ path.length ];
 		for( int i = 0; i < path.length; i++ ) {
 			clonedPath[i] = new Pair<>(
@@ -106,6 +109,7 @@ public class VariablePath implements Expression
 		}
 		
 		// Now i represents the beginning of the subpath, we can just copy it from there
+		@SuppressWarnings("unchecked")
 		Pair< Expression, Expression >[] subPath = new Pair[ otherVarPath.path.length - i ];
 		System.arraycopy( otherVarPath.path, i, subPath, 0, otherVarPath.path.length - i );
 		/*for( int k = 0; i < otherVarPath.path.length; i++ ) {
@@ -433,7 +437,6 @@ public class VariablePath implements Expression
 		return currValue;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public final void deepCopy( VariablePath rightPath )
 	{
 		Object myObj = getValueOrValueVector();
