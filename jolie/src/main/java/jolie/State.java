@@ -19,11 +19,11 @@
 
 package jolie;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import jolie.runtime.InternalLink;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;

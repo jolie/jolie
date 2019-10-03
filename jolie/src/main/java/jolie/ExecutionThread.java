@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
@@ -37,8 +38,6 @@ import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 /**

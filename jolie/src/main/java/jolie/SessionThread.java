@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import jolie.lang.Constants;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
@@ -41,7 +42,6 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;

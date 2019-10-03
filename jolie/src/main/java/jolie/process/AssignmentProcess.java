@@ -22,10 +22,9 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
-import jolie.runtime.VariablePath;
-import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /** Assigns an expression value to a VariablePath.
  * @see Expression

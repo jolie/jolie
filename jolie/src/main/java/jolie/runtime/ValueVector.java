@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import jolie.lang.Constants;
+
 class ValueVectorLink extends ValueVector implements Cloneable
 {
 	private final VariablePath linkPath;
@@ -88,7 +90,8 @@ class ValueVectorLink extends ValueVector implements Cloneable
 
 class ValueVectorImpl extends ValueVector implements Serializable
 {
-	private final ArrayList< Value > values;
+	private static final long serialVersionUID = Constants.serialVersionUID();
+	private final ArrayList<Value> values;
 	
 	@Override
 	protected List< Value > values()
@@ -141,7 +144,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	@Override
 	public synchronized List< Value > valuesCopy()
 	{
-		return (List< Value >)values.clone();
+		return new ArrayList<>( values );
 	}
 	
 	public ValueVectorImpl()

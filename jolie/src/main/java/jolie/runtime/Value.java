@@ -33,6 +33,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+
+import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
@@ -271,8 +273,6 @@ class ValueImpl extends Value implements Cloneable, Serializable
 /** TODO: remove code duplication from ValueImpl */
 class RootValueImpl extends Value implements Cloneable
 {
-	private static final long serialVersionUID = 1L;
-
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 
@@ -379,6 +379,8 @@ class RootValueImpl extends Value implements Cloneable
 
 class CSetValue extends ValueImpl
 {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
 	@Override
 	public void setValueObject( Object object )
 	{

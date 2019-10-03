@@ -24,11 +24,9 @@ package jolie;
 
 import java.util.Map;
 import java.util.concurrent.Future;
+
 import jolie.net.SessionMessage;
 import jolie.runtime.InputOperation;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
 
 /**
  *

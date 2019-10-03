@@ -46,6 +46,7 @@ public final class VariablePathBuilder
 		return this;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public VariablePath toVariablePath()
 	{
 		if ( global ) {
@@ -55,6 +56,7 @@ public final class VariablePathBuilder
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public VariablePath toClosedVariablePath( Value rootValue )
 	{
 		return new ClosedVariablePath( list.toArray( new Pair[0] ), rootValue );
