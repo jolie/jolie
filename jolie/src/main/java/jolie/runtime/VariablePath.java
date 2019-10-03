@@ -21,8 +21,8 @@
 
 package jolie.runtime;
 
-
 import jolie.ExecutionThread;
+import jolie.State;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
@@ -178,13 +178,16 @@ public class VariablePath implements Expression
 	
 	public final Value getValue( ValueLink l )
 	{
-		if ( ExecutionThread.currentThread().contains_loopDetectionMap(  this, l ) ) {
+		final State state = ExecutionThread.currentThread().state();
+		
+		if ( state.hasAlias( this, l ) ) {
 			throw buildAliasAccessException().toRuntimeFaultException();
 		} else {
-			ExecutionThread.currentThread().put_loopDetectionMap( this, l );
+			state.putAlias( this, l );
 		}
+
 		Value v = getValue();
-		ExecutionThread.currentThread().remove_loopDetectionMap( this, l );
+		state.removeAlias( this, l );
 		return v;
 	}
 
@@ -283,17 +286,19 @@ public class VariablePath implements Expression
 		return currValue;
 	}
 	
-	public final ValueVector getValueVector( ValueVectorLink l ){
-		if( ExecutionThread.currentThread().contains_loopDetectionMap( this, l ) ){
+	public final ValueVector getValueVector( ValueVectorLink l )
+	{
+		final State state = ExecutionThread.currentThread().state();
+		if( state.hasAlias( this, l ) ){
 			throw buildAliasAccessException().toRuntimeFaultException();
 		} else {
-			ExecutionThread.currentThread().put_loopDetectionMap( this, l );
+			state.putAlias( this, l );
 		}
 		ValueVector v = getValueVector();
-		if( ExecutionThread.currentThread().contains_loopDetectionMap( this, v ) ){
+		if( state.hasAlias( this, v ) ){
 			throw buildAliasAccessException().toRuntimeFaultException();
 		}
-		ExecutionThread.currentThread().remove_loopDetectionMap( this, l );
+		state.removeAlias( this, l );
 		return v;
 	}
 	

@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie;
 
@@ -32,9 +30,10 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 /**
- * A variable and links state.
- * Variables are stored in a tree-like structure, of which the root Value element is stored.
+ * The state of a process, containing the values of its variables (inside of the root tree),
+ * its internal links, and data structures for detecting alias loops.
  * @see Value
+ * @see InternalLink
  * @author Fabrizio Montesi
  */
 public final class State implements Cloneable
@@ -83,42 +82,64 @@ public final class State implements Cloneable
 		return root;
 	}
 	
-	public LoopDetectionMap< Value > valueLoopDetectionMap() {
-		return valueLoopDetectionMap;
+	public void putAlias( VariablePath p, Value l )
+	{
+		valueLoopDetectionMap.put( p, l );
+	}
+
+	public void putAlias( VariablePath p, ValueVector l )
+	{
+		valueVectorLoopDetectionMap.put( p, l );
+	}
+
+	public void removeAlias( VariablePath p, Value l )
+	{
+		valueLoopDetectionMap.remove( p, l );
+	}
+
+	public void removeAlias( VariablePath p, ValueVector l )
+	{
+		valueVectorLoopDetectionMap.remove( p, l );
+	}
+
+	public boolean hasAlias( VariablePath p, Value l )
+	{
+		return valueLoopDetectionMap.contains( p, l );
+	}
+
+	public boolean hasAlias( VariablePath p, ValueVector l )
+	{
+		return valueVectorLoopDetectionMap.contains( p, l );
 	}
 	
-	public LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap() {
-		return valueVectorLoopDetectionMap;
-	}
-	
-	protected class LoopDetectionMap< V >{
-		private final Map< VariablePath, Set< V > > m = new HashMap<>();
+	private static class LoopDetectionMap< V > {
+		private final Map< VariablePath, Set< V > > m = new ConcurrentHashMap<>();
 		
-		public synchronized void put( VariablePath p, V v ){
-			if( m.containsKey( p ) ){
-				m.get( p ).add( v );
-			} else {
-				Set< V > s = new HashSet();
-				s.add( v );
-				m.put( p, s );
-			}	
+		public synchronized void put( VariablePath p, V v )
+		{
+			m.compute( p, ( path, set ) -> {
+				if ( set == null ) {
+					Set< V > s = new HashSet<>();
+					s.add( v );
+					return s;
+				} else {
+					set.add( v );
+					return set;
+				}
+			} );
 		}
 		
-		public synchronized boolean contains( VariablePath p, V v ){
+		public synchronized boolean contains( VariablePath p, V v )
+		{
 			return m.containsKey( p ) && m.get( p ).contains( v );
 		}
 		
-		public synchronized void remove( VariablePath p, V v ){
-			if( m.containsKey( p ) ){
-				Set< V > s = m.get( p );
-				s.remove( v );
-				if( s.isEmpty() ){
-					m.remove( p );
-				}
-			}
+		public synchronized void remove( VariablePath p, V v )
+		{
+			m.computeIfPresent( p, ( path, set ) -> {
+				set.remove( v );
+				return set.isEmpty() ? null : set;
+			} );
 		}
-		
-	}
-	
-	
+	}	
 }
