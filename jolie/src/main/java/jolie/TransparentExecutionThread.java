@@ -46,48 +46,12 @@ public abstract class TransparentExecutionThread extends ExecutionThread
 		return parent.state();
 	}
 	
-	@Override
-	public void put_loopDetectionMap( VariablePath p, Value l )
-	{
-		parent.put_loopDetectionMap( p, l );
-	}
-
-	@Override
-	public void put_loopDetectionMap( VariablePath p, ValueVector l )
-	{
-		parent.put_loopDetectionMap( p, l );
-	}
-
-	@Override
-	public void remove_loopDetectionMap( VariablePath p, Value l )
-	{
-		parent.remove_loopDetectionMap( p, l );
-	}
-
-	@Override
-	public void remove_loopDetectionMap( VariablePath p, ValueVector l )
-	{
-		parent.remove_loopDetectionMap( p, l );
-	}
-
-	@Override
-	public boolean contains_loopDetectionMap( VariablePath p, Value l )
-	{
-		return parent.contains_loopDetectionMap( p, l );
-	}
-
-	@Override
-	public boolean contains_loopDetectionMap( VariablePath p, ValueVector l )
-	{
-		return parent.contains_loopDetectionMap( p, l );
-	}
-
 	public Future< SessionMessage> requestMessage( InputOperation operation, ExecutionThread ethread )
 	{
 		return parent.requestMessage( operation, ethread );
 	}
 
-	public Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ExecutionThread ethread )
+	public Future< SessionMessage> requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
 	{
 		return parent.requestMessage( operations, ethread );
 	}
