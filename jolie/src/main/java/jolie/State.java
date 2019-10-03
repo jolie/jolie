@@ -21,9 +21,15 @@
 
 package jolie;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import jolie.runtime.InternalLink;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
 
 /**
  * A variable and links state.
@@ -35,6 +41,8 @@ public final class State implements Cloneable
 {
 	private final Value root;
 	private final ConcurrentHashMap< String, InternalLink > linksMap = new ConcurrentHashMap<>();
+	private final LoopDetectionMap< Value > valueLoopDetectionMap = new LoopDetectionMap<>();
+	private final LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap = new LoopDetectionMap<>();
 	
 	private State( Value root )
 	{
@@ -74,4 +82,43 @@ public final class State implements Cloneable
 	{
 		return root;
 	}
+	
+	public LoopDetectionMap< Value > valueLoopDetectionMap() {
+		return valueLoopDetectionMap;
+	}
+	
+	public LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap() {
+		return valueVectorLoopDetectionMap;
+	}
+	
+	protected class LoopDetectionMap< V >{
+		private final Map< VariablePath, Set< V > > m = new HashMap<>();
+		
+		public synchronized void put( VariablePath p, V v ){
+			if( m.containsKey( p ) ){
+				m.get( p ).add( v );
+			} else {
+				Set< V > s = new HashSet();
+				s.add( v );
+				m.put( p, s );
+			}	
+		}
+		
+		public synchronized boolean contains( VariablePath p, V v ){
+			return m.containsKey( p ) && m.get( p ).contains( v );
+		}
+		
+		public synchronized void remove( VariablePath p, V v ){
+			if( m.containsKey( p ) ){
+				Set< V > s = m.get( p );
+				s.remove( v );
+				if( s.isEmpty() ){
+					m.remove( p );
+				}
+			}
+		}
+		
+	}
+	
+	
 }
