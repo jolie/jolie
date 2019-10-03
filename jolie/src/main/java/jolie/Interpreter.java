@@ -984,7 +984,7 @@ public class Interpreter
 	 * @param id the global lock identifier
 	 * @return the global lock registered on this interpreter with the specified identifier
 	 */
-	public Object getLock( String id )
+	public synchronized Object getLock( String id )
 	{
 		Object l = locksMap.get( id );
 		if ( l == null ) {
