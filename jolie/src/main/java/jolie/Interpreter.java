@@ -93,6 +93,7 @@ import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 import jolie.tracer.DummyTracer;
+import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 
@@ -908,7 +909,11 @@ public class Interpreter
 		logPrefix = builder.toString();
 
 		if ( cmdParser.tracer() ) {
-			tracer = new PrintingTracer( this );
+			if ( cmdParser.tracerLevel().equals("file")) {
+				tracer = new FileTracer( this );
+			} else {
+				tracer = new PrintingTracer(this);
+			}
 		} else {
 			tracer = new DummyTracer();
 		}
