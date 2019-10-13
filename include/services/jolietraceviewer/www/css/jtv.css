@@ -1,0 +1,47 @@
+body {
+    font-family: 'Courier New';
+    font-size: 14px;
+}
+
+.headertable {
+    width: 100%;
+    font-size: 30px;
+    padding: 10px;
+    border-bottom: 1px dotted #444;
+}
+
+.menutd {
+    width: 12%;
+    border-right: 1px dotted #444;
+    height: 1000px;
+}
+
+.bodytd {
+    width: 80%;
+}
+
+.bodytd object {
+    width:100%;
+    height:100vh;
+}
+.maintable {
+    width: 100%;
+}
+
+.menutitle {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.menutd a {
+    cursor: pointer;
+}
+
+.itemmenu {
+    text-align: center;
+    width:100%;
+}
+
+.itemmenu a:hover {
+    color:#600;
+}

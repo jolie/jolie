@@ -1,0 +1,94 @@
+<html>
+    <head>
+        
+            <link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
+            <link rel="stylesheet" type="text/css" href="css/jtv.css"/>
+            <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+            <script type="text/javascript" src="DataTables/datatables.min.js"></script>
+            <script type="text/javascript" src="js/jolie-client.js"></script>
+            
+    </head>
+    <script>
+        function onError( data ) {
+            alert( error )
+        }
+
+        function refreshTraceList() {
+            JolieClient.getTraceList({}, function( data ) {
+                for( i = 0; i < data.trace.length; i++ ) {
+                    var logName = data.trace[i].substring(0,2) + "/" + data.trace[i].substring(2,4) + "/" 
+                        + data.trace[i].substring(4,8) + " " + data.trace[i].substring(8,10) + ":" + data.trace[i].substring(10,12) + ":"
+                        + data.trace[i].substring(12,14) 
+                    $(".menutd").append("<table width='100%'><tr><td class='itemmenu'><a onclick='getTrace(\"" + data.trace[i] + "\")'>" + logName +  "</a></td></tr></table>")
+                }
+            }, onError )
+        }
+
+
+        function showMessage( el, message ) {
+            $( el ).after( "<div>" + atob( message ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;") + "<div>")
+        }
+
+        function getTrace( trace ) {
+            
+            JolieClient.getTrace({ "$": trace }, function( data ) {
+                $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>Index</th><th>Timestamp</th><th>Service</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
+                var table = $("#traceTable").DataTable({
+                        "columnDefs": [
+                            { "width": "5%", "targets": 0 },
+                            { "width": "5%", "targets": 3 },
+                            { "width": "5%", "targets": 6 }
+                        ]
+                        });   
+                var lines = data.$.split(/\n/);
+                for( var i = 0; i < lines.length; i++ ) {
+                    try {
+                        var obj = JSON.parse( lines[ i ] );
+                        var key = Object.keys( obj )[0];
+                        if ( obj[ key ].length == 5 ) {
+                            table.row.add([
+                                key,
+                                obj[ key ][0],
+                                obj[ key ][1],
+                                obj[ key ][2],
+                                obj[ key ][3],
+                                obj[ key ][4],
+                                "",
+                                ""
+
+                            ])
+                        }
+                        if ( obj[ key ].length == 7 ) {
+                            table.row.add([
+                                key,
+                                obj[ key ][0],
+                                obj[ key ][1],
+                                obj[ key ][2],
+                                obj[ key ][3],
+                                obj[ key ][4],
+                                obj[ key ][5],
+                                "<button onclick='showMessage(this, \"" + obj[ key ][6] + "\")'>Show Message</button>"
+                            ])
+                        }
+                    } catch (e) {}
+                    
+                }
+                table.draw();
+            }, onError )
+        }
+    </script>
+    </script>
+    <body>
+        <table class='headertable'><tr><td>Jolie Trace Viewer</td></tr></table>
+        <table class='maintable'>
+            <tr>
+                <td  valign='top' class='menutd'>
+                </td>
+                <td valign='top' id='bodytd'  class='bodytd'></td>
+            </tr>
+        </table>
+    </body>
+    <script>
+        refreshTraceList()
+    </script>
+</html>

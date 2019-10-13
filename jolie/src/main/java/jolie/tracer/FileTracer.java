@@ -6,6 +6,7 @@ import jolie.runtime.ValuePrettyPrinter;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.function.Supplier;
 
@@ -40,12 +41,21 @@ public class FileTracer implements Tracer {
         }
     }
 
+    private String getCurrentTimeStamp() {
+        String format = "dd/MM/yyyy HH:mm:ss.SSS";
+        SimpleDateFormat sdf = new SimpleDateFormat( format );
+        final Date now = new Date();
+        return sdf.format(now);
+    }
+
     private void trace( EmbeddingTraceAction action )
     {
         StringBuilder stBuilder = new StringBuilder();
-        stBuilder.append( "{[");
+        stBuilder.append( "{");
+        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
+        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
         stBuilder.append( "\"").append( interpreter.logPrefix() ).append( "\"," );
-        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\"," );
+
         switch( action.type() ) {
             case SERVICE_LOAD:
                 stBuilder.append( "\"").append( "emb" ).append( "\"," );
@@ -68,8 +78,11 @@ public class FileTracer implements Tracer {
     private void trace( MessageTraceAction action )
     {
         StringBuilder stBuilder = new StringBuilder();
+        stBuilder.append( "{");
+        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
+        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
+
         stBuilder.append( "\"").append( interpreter.logPrefix() ).append( "\"," );
-        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\"," );
         switch( action.type() ) {
             case SOLICIT_RESPONSE:
                 stBuilder.append( "\"").append( "sr" ).append( "\"," );
@@ -92,11 +105,11 @@ public class FileTracer implements Tracer {
             default:
                 break;
         }
-        stBuilder.append( "\"").append( action.name() ).append( "\"," );
-        stBuilder.append( "\"").append( action.description() ).append( "\"" );
+        stBuilder.append( "\"").append( action.description() ).append( "\"," );
 
+        stBuilder.append( "\"").append( action.name() ).append( "\"" );
         if ( action.message() != null ) {
-            stBuilder.append( ",{\"").append( action.message().id() ).append( "\"," );
+            stBuilder.append( ",\"").append( action.message().id() ).append( "\"," );
 
             Writer writer = new StringWriter();
             Value messageValue = action.message().value();
@@ -114,7 +127,8 @@ public class FileTracer implements Tracer {
                 printer.run();
             } catch( IOException e ) {} // Should never happen
 
-            stBuilder.append( "\"").append(  writer.toString().trim() ).append( "\"}" );
+            String encodedString = Base64.getEncoder().encodeToString(writer.toString().trim().getBytes());
+            stBuilder.append( "\"").append( encodedString ).append( "\"" );
         }
         stBuilder.append("]}\n");
         try {
