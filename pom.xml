@@ -192,7 +192,7 @@
 							</resources>
 						</configuration>
 					</execution>
-          <execution>
+          			<execution>
 						<id>copy-joliedoc</id>
 						<phase>install</phase>
 						<goals>
@@ -205,6 +205,25 @@
 									<directory>${basedir}/tools/joliedoc</directory>
 									<includes>
 										<include>joliedoc.ol</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-jolietraceviewer</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/tools/jolietraceviewer</directory>
+									<includes>
+										<include>jolietraceviewer.ol</include>
 									</includes>
 									<filtering>true</filtering>
 								</resource>
