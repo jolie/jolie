@@ -164,12 +164,9 @@ define __body {
             .version = ""
         };
         .host = router_host;
-        if ( easyInterface ) {
-          .basePath = "/"
-        } else {
-          .basePath = "/" + service_input_port
-        };
-
+        
+        .basePath = "/"
+       
         /* importing of all the types */
         for( itf = 0, itf < #metadata.input.interfaces, itf++ ) {
             with( .tags[ itf ] ) {

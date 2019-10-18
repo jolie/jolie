@@ -1,5 +1,5 @@
 {
-    "basePath": "\/DEMO",
+    "basePath": "\/",
     "paths": {
         "/getOrdersByItem": {
             "post": {
