@@ -56,7 +56,7 @@ public class ProductExpression implements Expression
 				break;
 			case DIVIDE:
 				try {
-						val.divide( children[i].expression().evaluate() );
+					val.divide( children[i].expression().evaluate() );
 				} catch ( ArithmeticException ae ){
 					throw new FaultException( "ArithmeticException", ae.getLocalizedMessage() ).toRuntimeFaultException();
 				}
@@ -64,6 +64,8 @@ public class ProductExpression implements Expression
 			case MODULUS:
 				val.modulo( children[i].expression().evaluate() );
 				break;
+			default:
+				throw new IllegalStateException( "Invalid operator in product expression" );
 			}
 		}
 		

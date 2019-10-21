@@ -23,12 +23,11 @@ package jolie.lang.parse.util.impl;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.OutputPortInfo;
+
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.util.ProgramInspector;
 
@@ -44,6 +43,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 	private final Map< URI, List< InputPortInfo > > inputPorts;
 	private final Map< URI, List< OutputPortInfo > > outputPorts;
 	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices;
+	private final Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies;
 
 	public ProgramInspectorImpl(
 		URI[] sources,
@@ -51,14 +51,16 @@ public class ProgramInspectorImpl implements ProgramInspector
 		Map< URI, List< InterfaceDefinition > > interfaces,
 		Map< URI, List< InputPortInfo > > inputPorts,
 		Map< URI, List< OutputPortInfo > > outputPorts,
-		Map< URI, List< EmbeddedServiceNode > > embeddedServices
+		Map< URI, List< EmbeddedServiceNode > > embeddedServices,
+		Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies
 	) {
 		this.sources = sources;
 		this.interfaces = interfaces;
 		this.inputPorts = inputPorts;
 		this.types = types;
 		this.outputPorts = outputPorts;
-                this.embeddedServices = embeddedServices;
+		this.embeddedServices = embeddedServices;
+		this.behaviouralDependencies = behaviouralDependencies;
 	}
 
 	@Override
@@ -175,6 +177,28 @@ public class ProgramInspectorImpl implements ProgramInspector
 			}
 		}
 		return result.toArray( new EmbeddedServiceNode[ 0 ] );
+	}
+
+	@Override
+	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies() {
+		Map<OLSyntaxNode, List<OLSyntaxNode>> result = new HashMap<>();
+		Map<OLSyntaxNode, List<OLSyntaxNode>> list;
+		for( URI source : sources ) {
+			list = behaviouralDependencies.get( source );
+			if ( list != null ) {
+				result.putAll(list);
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies(URI source) {
+		Map<OLSyntaxNode, List<OLSyntaxNode>> list  = behaviouralDependencies.get( source );;
+		if ( list == null ) {
+			return new HashMap<>();
+		}
+		return list;
 	}
 
 	@Override

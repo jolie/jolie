@@ -118,7 +118,7 @@ define doTest {
         )
         compareValues@ValuesUtils( { .__v2 -> json_value, .__v1 -> ok_json } )(  )
     }
-    //delete@File(  "./services/private/generated.json" )(  )
+    delete@File(  "./services/private/generated.json" )(  )
 
 
 }

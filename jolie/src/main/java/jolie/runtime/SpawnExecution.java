@@ -36,18 +36,15 @@ public class SpawnExecution
 	private class SpawnedThread extends SessionThread
 	{
 		private final int index;
-		private final CountDownLatch latch;
 
 		public SpawnedThread(
 			ExecutionThread parentThread,
 			Process process,
-			int index,
-			CountDownLatch latch
+			int index
 		)
 		{
 			super( process, parentThread );
 			this.index = index;
-			this.latch = latch;
 		}
 
 		@Override
@@ -87,8 +84,7 @@ public class SpawnExecution
 			thread = new SpawnedThread(
 				ethread,
 				parentSpawnProcess.body(),
-				i,
-				latch
+				i
 			);
 			threads.add( thread );
 		}
