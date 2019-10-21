@@ -204,7 +204,7 @@ define __body {
                             } 
                             if ( LOG ) { println@Console( "Template automatically generated:" + __template )() }
                         }
-                        current_render_operation.template = "/" + service_input_port + __template
+                        current_render_operation.template = __template
                     }
               }
           }

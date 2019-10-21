@@ -24,6 +24,8 @@ package jolie.runtime;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import jolie.lang.Constants;
+
 /**
  * Java representation for a Jolie fault.
  * @author Fabrizio Montesi
@@ -132,7 +134,9 @@ public class FaultException extends Exception
 	// A RuntimeFaultException wraps a FaultException. 
 	// A thrown RuntimeFaultException is caught by the enclosing execution
 	// instance and used to report to the user the enclosed FaultException
-	public class RuntimeFaultException extends RuntimeException {
+	public static class RuntimeFaultException extends RuntimeException {
+		private static final long serialVersionUID = Constants.serialVersionUID();
+
 		private final FaultException faultException;
 
 		private RuntimeFaultException( FaultException faultException )
@@ -140,10 +144,9 @@ public class FaultException extends Exception
 			this.faultException = faultException;
 		}
 		
-		public FaultException faultException(){
+		public FaultException faultException()
+		{
 			return this.faultException;
 		}
-		
 	}
-	
 }

@@ -20,6 +20,14 @@
 	<name>jolie2java</name>
 	<description>Tool to generate java project from Jolie interface</description>
 	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory>
+
+		<testResources>
+			<testResource>
+				<directory>resources</directory>
+			</testResource>
+		</testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -56,6 +64,23 @@
 			<artifactId>jolie</artifactId>
 			<version>${jolie.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sodep</artifactId>
+			<version>${jolie.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie-java</artifactId>
+			<version>${jolie.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

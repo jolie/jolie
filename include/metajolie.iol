@@ -50,12 +50,30 @@ type GetMetaDataResponse: void {
   .embeddedServices*: void {    
 	    .type: string             //< type of the embedded service
 	    .servicepath: string      //< path where the service can be found
-	    .portId: string           //< target output port where the embedded service is bound
+	    .portId?: string           //< target output port where the embedded service is bound
   }
+  .communication_dependencies*: CommunicationDependency
+}
+
+type CommunicationDependency: void {
+  .input_operation: void {
+      .name: string             //<name of the operation
+      .type: string             //<RequestResponse or OneWay
+  }
+  .dependencies*: void {
+      .name: string             //< name of the operation
+      .port?: string            //< defined only if type is Notification or SolicitResponse
+      .type: string             //<RequestResponse, OneWay, SolicitResponse or Notification
+  }
+
 }
 
 type GetInputPortMetaDataResponse: void {
   .input*: Port                 //< the full description of each input port of the service definition
+}
+
+type GetOutputPortMetaDataResponse: void {
+  .output*: Port                 //< the full description of each output port of the service definition
 }
 
 type MessageTypeCastRequest: void {
@@ -94,6 +112,10 @@ RequestResponse:
 		          SemanticException( SemanticExceptionType ),
 	getInputPortMetaData( GetMetaDataRequest )( GetInputPortMetaDataResponse )
 	    throws  InputPortMetaDataFault
+		          ParserException( ParserExceptionType )
+		          SemanticException( SemanticExceptionType ),
+  getOutputPortMetaData( GetMetaDataRequest )( GetOutputPortMetaDataResponse )
+	    throws  OutputPortMetaDataFault
 		          ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )

@@ -3,6 +3,7 @@ include "metarender.iol"
 include "metajolie.iol"
 include "file.iol"
 include "runtime.iol"
+include "string_utils.iol"
 
 outputPort Test {
     Location: "socket://localhost:9000"
@@ -23,14 +24,18 @@ define doTest
   getSurface@MetaRender( meta_description.input )( surface  )
   f.filename = "library/private/sample_service.ol"
   readFile@File( f )( testservice )
+  replace_str = testservice
+  replace_str.regex = "SampleInterface.iol"
+  replace_str.replacement = "../SampleInterface.iol"
+  replaceAll@StringUtils( replace_str )( testserice_final )
   mkdir@File( TMPDIR )(  )
-  testservice = surface + "\n" + testservice
+  testservice = surface + "\n" + testserice_final
   f.filename = "library/private/tmp/metarendertest.ol"
   f.content = testservice
   writeFile@File( f )( )
   del = true
   scope( s ) {
-	install( default => deleteDir@File( TMPDIR )(); del = false; throw( TestFailed, "error with the rendered test service" ) )
+	//install( default => deleteDir@File( TMPDIR )(); del = false; throw( TestFailed, "error with the rendered test service" ) )
 	loadEmbeddedService@Runtime( { .filepath = f.filename, .type = "Jolie" } )( )
 	tmp@Test()()
   }

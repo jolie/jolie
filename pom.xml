@@ -72,7 +72,6 @@
 		<module>tools/jolie2surface</module>
 		<module>tools/jolie2wsdl</module>
 		<module>tools/joliec</module>
-		<module>tools/joliedoc</module>
 		<module>javaServices/coreJavaServices</module>
 		<module>javaServices/monitorJavaServices</module>
 		<module>launchers</module>
@@ -187,6 +186,25 @@
 									<directory>${basedir}/tools/openapi2jolie</directory>
 									<includes>
 										<include>openapi2jolie.ol</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+          <execution>
+						<id>copy-joliedoc</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/tools/joliedoc</directory>
+									<includes>
+										<include>joliedoc.ol</include>
 									</includes>
 									<filtering>true</filtering>
 								</resource>

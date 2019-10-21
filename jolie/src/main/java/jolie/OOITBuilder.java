@@ -863,6 +863,7 @@ public class OOITBuilder implements OLVisitor
 		interpreter.registerSessionStarter( guard, body );
 	}
 
+	@SuppressWarnings("unchecked")
 	public void visit( NDChoiceStatement n )
 	{
 		boolean origRegisterSessionStarters = registerSessionStarters;
@@ -1108,6 +1109,7 @@ public class OOITBuilder implements OLVisitor
 
 		final Expression backupExpr = currExpression;
 
+		@SuppressWarnings("unchecked")
 		Pair< Expression, Expression >[] internalPath = new Pair[ path.path().size() ];
 		int i = 0;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
@@ -1433,6 +1435,8 @@ public class OOITBuilder implements OLVisitor
 		case LONG:
 			currExpression = new CastLongExpression( currExpression );
 			break;
+		default:
+			error( n.context(), "unsupported type for cast: " + n.type().toString() );
 		}
 	}
 	

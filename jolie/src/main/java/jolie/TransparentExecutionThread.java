@@ -24,6 +24,7 @@ package jolie;
 
 import java.util.Map;
 import java.util.concurrent.Future;
+
 import jolie.net.SessionMessage;
 import jolie.runtime.InputOperation;
 
@@ -42,13 +43,13 @@ public abstract class TransparentExecutionThread extends ExecutionThread
 	{
 		return parent.state();
 	}
-
+	
 	public Future< SessionMessage> requestMessage( InputOperation operation, ExecutionThread ethread )
 	{
 		return parent.requestMessage( operation, ethread );
 	}
 
-	public Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ExecutionThread ethread )
+	public Future< SessionMessage> requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
 	{
 		return parent.requestMessage( operations, ethread );
 	}

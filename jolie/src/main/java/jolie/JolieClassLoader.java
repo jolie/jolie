@@ -180,6 +180,7 @@ public final class JolieClassLoader extends URLClassLoader
 			try {
 				final Class<?> c = loadExtensionClass( className );
 				if ( EmbeddedServiceLoaderFactory.class.isAssignableFrom( c ) ) {
+					@SuppressWarnings("unchecked")
 					final Class< ? extends EmbeddedServiceLoaderFactory > fClass = (Class< ? extends EmbeddedServiceLoaderFactory >)c;
 					return fClass.getConstructor().newInstance();
 				}
@@ -208,6 +209,7 @@ public final class JolieClassLoader extends URLClassLoader
 			try {
 				Class<?> c = loadExtensionClass( className );
 				if ( CommChannelFactory.class.isAssignableFrom( c ) ) {
+					@SuppressWarnings("unchecked")
 					Class< ? extends CommChannelFactory > fClass = (Class< ? extends CommChannelFactory >)c;
 					factory = fClass.getConstructor( CommCore.class ).newInstance( commCore );
 				}
@@ -248,6 +250,7 @@ public final class JolieClassLoader extends URLClassLoader
 			try {
 				Class<?> c = loadExtensionClass( className );
 				if ( CommListenerFactory.class.isAssignableFrom( c ) ) {
+					@SuppressWarnings("unchecked")
 					Class< ? extends CommListenerFactory > fClass = (Class< ? extends CommListenerFactory >)c;
 					factory = fClass.getConstructor( CommCore.class ).newInstance( commCore );
 				}
@@ -282,6 +285,7 @@ public final class JolieClassLoader extends URLClassLoader
 			try {
 				Class<?> c = loadExtensionClass( className );
 				if ( CommProtocolFactory.class.isAssignableFrom( c ) ) {
+					@SuppressWarnings("unchecked")
 					Class< ? extends CommProtocolFactory > fClass = (Class< ? extends CommProtocolFactory >)c;
 					factory = fClass.getConstructor( CommCore.class ).newInstance( commCore );
 				}

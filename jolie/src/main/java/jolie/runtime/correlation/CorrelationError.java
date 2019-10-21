@@ -21,10 +21,13 @@
 
 package jolie.runtime.correlation;
 
+import jolie.lang.Constants;
+
 /**
  *
  * @author Fabrizio Montesi
  */
 public class CorrelationError extends Exception
 {
+	private static final long serialVersionUID = Constants.serialVersionUID();
 }
