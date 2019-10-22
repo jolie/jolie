@@ -39,7 +39,7 @@ define doTest {
         throw( TestFailed )
     }
     found_interesting_template = false
-    interesting_template = "orders/{userId}?maxItems={maxItems}"
+    interesting_template = "/orders/{userId}?maxItems={maxItems}"
     for( i = 0, i < #jester_config.routes, i++ ) {
         if ( jester_config.routes[ i ].template == interesting_template ) {
             found_interesting_template = true

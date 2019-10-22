@@ -70,6 +70,10 @@ type uploadFileRequest: void {
 .file?:raw
 }
 type uploadFileResponse:ApiResponse
+type createTestRequest: void {
+.body[0,*]:UserTest
+}
+type createTestResponse:undefined 
 type getInventoryRequest: void {
 }
 type getInventoryResponse:undefined
@@ -128,6 +132,7 @@ RequestResponse:
 	findPetsByStatus( findPetsByStatusRequest )( findPetsByStatusResponse ) throws Fault400( string ) Fault500( string ),
 	createUsersWithListInput( createUsersWithListInputRequest )( createUsersWithListInputResponse ) throws Fault500( string ),
 	uploadFile( uploadFileRequest )( uploadFileResponse ) throws Fault500( string ),
+	createTest( createTestRequest )( createTestResponse ) throws Fault500( string ),
 	getInventory( getInventoryRequest )( getInventoryResponse ) throws Fault500( string ),
 	loginUser( loginUserRequest )( loginUserResponse ) throws Fault400( string ) Fault500( string ),
 	createUser( createUserRequest )( createUserResponse ) throws Fault500( string ),

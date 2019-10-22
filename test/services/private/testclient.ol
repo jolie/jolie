@@ -20,7 +20,7 @@ Protocol: http{
 .osc.putOrder.method="put";
 .osc.getOrders.alias="/orders/%!{userId}?maxItems=%!{maxItems}";
 .osc.getOrders.method="get";
-.osc.getUsers.alias="/users/%!{country}";
+.osc.getUsers.alias="users/%!{country}";
 .osc.getUsers.method="post";
 .osc.deleteOrder.alias="/deleteOrder";
 .osc.deleteOrder.method="delete"}
@@ -61,6 +61,9 @@ main {
 		if ( response.("@header").statusCode == 500) {
  			throw( Fault500,"Internal Server Error")
 		}
+		if ( response.("@header").statusCode == 404) {
+ 			throw( Fault404,"resource not found")
+		}
 		undef( response.("@header"))
 	}]
 
@@ -69,6 +72,9 @@ main {
 		if ( response.("@header").statusCode == 500) {
  			throw( Fault500,"Internal Server Error")
 		}
+		if ( response.("@header").statusCode == 404) {
+ 			throw( Fault404,"resource not found")
+		}
 		undef( response.("@header"))
 	}]
 
@@ -76,6 +82,9 @@ main {
 		deleteOrder@DEMOPort( request )( response )
 		if ( response.("@header").statusCode == 500) {
  			throw( Fault500,"Internal Server Error")
+		}
+		if ( response.("@header").statusCode == 404) {
+ 			throw( Fault404,"resource not found")
 		}
 		undef( response.("@header"))
 	}]

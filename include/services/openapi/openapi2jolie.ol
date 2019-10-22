@@ -29,6 +29,7 @@ define _create_outputport_info {
 
         foreach( path : openapi.paths ) {
             foreach( method : openapi.paths.( path ) ) {
+            
                 if ( !is_defined( openapi.paths.( path ).( method ).operationId ) ) {
                     println@Console( "Path " + method + ":" + path + " does not define an operationId, please insert an operationId for this path.")();
                     print@Console(">")();
@@ -137,15 +138,20 @@ main {
                 interface_file = interface_file + " throws";
                 foreach( f : outputPort.interface.operation[ o ].faults ) {
                     faultType = "";
-                    if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema ) ) {
+                    if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") ) ) {
                         getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
-                        faultType = "(" + ref + ")"
+                        faultType = "Fault" + f + "(" + ref + ") "
+                    } else if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema.oneOf ) ) {
+                        for( of = 0, of < #outputPort.interface.operation[ o ].faults.( f ).schema.oneOf, of++ ) {
+                            getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.oneOf[ of ].("$ref") )( ref );
+                            faultType = faultType + " Fault" + f + "_" + of + "(" + ref + ") "
+                        }
                     } else {
                         if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).description ) ) {
-                            faultType = "( string )"
+                            faultType = "Fault" + f + "( string ) "
                         }
                     }
-                    interface_file = interface_file + " Fault" + f + faultType
+                    interface_file = interface_file + " " + faultType
                 }
             };
 
