@@ -635,6 +635,39 @@
                 }
             }
         },
+        "/user/createTest": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Creates list of users with given input array",
+                "description": "",
+                "operationId": "createTest",
+                "produces": [
+                    "application/xml",
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "List of user object",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/UserTest"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    }
+                }
+            }
+        },
         "/user/createWithList": {
             "post": {
                 "tags": [
@@ -935,6 +968,7 @@
                 "name": "User"
             }
         },
+        "UserTest": null,
         "Category": {
             "type": "object",
             "properties": {

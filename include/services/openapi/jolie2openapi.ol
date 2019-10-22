@@ -241,7 +241,10 @@ define __body {
                                         .schema.link_name << c_interface.types[ tp_resp_count ].name
                                     }
                             }
-                        
+                            with( .responses[ 1 ] ) {
+                                .status = 404;
+                                .description = "resource not found"
+                            }
                             undef( fnames )
                             if ( #oper.fault > 0 ) {
                                 for ( f = 0, f < #oper.fault, f++ ) {
@@ -252,7 +255,7 @@ define __body {
                                         openapi.definitions[ #openapi.definitions ] << fault_definition
                                         jolieFaultTypeCounter++     
                                 }
-                                with( .responses[ 1 ] ) {
+                                with( .responses[ 2 ] ) {
                                     .status = 500;
                                     gsff.name -> fnames
                                     getSchemaForFaults@Utils( gsff )( .schema )
