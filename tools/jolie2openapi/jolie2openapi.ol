@@ -45,9 +45,16 @@ main {
     }
 
     if( !easy_interface ) {
-        f.filename = TEMPLATEFILE
-        f.format = "json"
-        readFile@File( f )( template )
+        scope( load_template ) {
+            install( FileNotFound => 
+                                        println@Console("rest_template.json not found")()
+                                        throw( Error )
+            )
+
+            f.filename = TEMPLATEFILE
+            f.format = "json"
+            readFile@File( f )( template )
+        }
     }
 
     with( openapi ) {
