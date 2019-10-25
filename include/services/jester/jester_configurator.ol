@@ -84,9 +84,17 @@ define __body {
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
       /* creating a map name-types for managing type links */
-      for( itf = 0, itf < #metadata.input.interfaces, itf++ ) { 
-          for( tps = 0, tps < #metadata.input.interfaces[ itf ].types, tps++ ) {
-              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name ) << metadata.input.interfaces[ itf ].types[ tps ]
+      input_port_index = 0
+      for( ip = 0, ip < #metadata.input, ip++ ) {
+          if ( metadata.input[ ip ].name == service_input_port ) {
+              input_port_index = ip
+          }
+      }
+
+      /* creating a map name-types for managing type links */
+      for( itf = 0, itf < #metadata.input[ input_port_index ].interfaces, itf++ ) { 
+          for( tps = 0, tps < #metadata.input[ input_port_index ].interfaces[ itf ].types, tps++ ) {
+              global.type_map.( metadata.input[ input_port_index ].interfaces[ itf ].types[ tps ].name ) << metadata.input[ input_port_index ].interfaces[ itf ].types[ tps ]
           }
       } 
 
