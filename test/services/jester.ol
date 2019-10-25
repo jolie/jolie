@@ -59,7 +59,7 @@ define doTest {
     wkdir = "./services/private"
     protocol = "http"
 
-    template_json = "{ \"getUsers\":\"method=post, template=/users/{country}\", \"getOrders\":\"method=get, template=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
+    template_json = "{ \"getUsers\":\"method=post, template=users/{country}\", \"getOrders\":\"method=get, template=orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
     getJsonValue@JsonUtils( template_json )( template )
     with( openapi ) {
         .filename = service_filename;
@@ -73,22 +73,16 @@ define doTest {
 
     getOpenApi@Jolie2OpenApi( openapi )( openapi_definition )
     getJsonValue@JsonUtils( openapi_definition )( openapi )
-
-    with( request_meta ) {
-        .filename = service_filename
-    }
-    getInputPortMetaData@MetaJolie( request_meta )( metadata )
-    for( i = 0, i < #metadata.input, i++ ) {
-        // port selection from metadata
-        if ( metadata.input[ i ].name == service_input_port ) {
-              getSurface@MetaRender( metadata.input )( surface )
-              getSurfaceWithoutOutputPort@MetaRender( metadata.input )( surface_wop )
-        }
-    }
+    with( gji ) {
+        .port_name = service_input_port;
+        .openapi -> openapi
+    };
+    getJolieInterface@OpenApi2Jolie( gji )( client_interface )
+    
 
     undef( f )
     f.filename = "./services/private/DEMOInterface.iol"
-    f.content -> surface_wop
+    f.content -> client_interface
     writeFile@File( f )(  )
     
     with( get_code_from_openapi ) {
@@ -119,7 +113,7 @@ define doTest {
 
     
     undef( f )
-    f.content = surface + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+    f.content = client_interface + "outputPort DEMO {\nInterfaces: DEMOInterface\n}\n\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
     f.filename = "jester_config.iol"
     writeFile@File( f )()
     
@@ -129,60 +123,88 @@ define doTest {
     config@Jester( config )()
 
     // testing jester invoking the client
-    with( rq ) {
-        .userId = "ciao";
-        .maxItems = 10
+    scope( call ) {
+        install( Fault404 =>  throw( TestFailed, "getOrders - Received 404 when 200 was expected" ) )
+        with( rq ) {
+            .userId = "ciao";
+            .maxItems = 10
+        }
+        getOrders@Test( rq )( rs )
     }
-    getOrders@Test( rq )()
 
     undef( rq )
-    with( rq ) {
-      .userId = "ciao"
-      with( .order ) {
-        .title = "title";
-        .id = 5;
-        .date = "date"
-      }
+
+    scope( call ) {
+        install( Fault404 =>  throw( TestFailed, "putOrder - Received 404 when 200 was expected" ) )
+        with( rq ) {
+        .userId = "ciao"
+        with( .order ) {
+            .title = "title";
+            .id = 5;
+            .date = "date"
+        }
+        }
+        putOrder@Test( rq )( rs )
     }
-    putOrder@Test( rq )()
 
     undef( rq )
-    with( rq ) {
-        .orderId = 10
+    scope( call ) {
+        install( Fault404 =>  throw( TestFailed, "deleteOrder - Received 404 when 200 was expected" ) )
+        with( rq ) {
+            .orderId = 10
+        }
+        deleteOrder@Test( rq )( rs )
     }
-    deleteOrder@Test( rq )()
+
 
     undef( rq )
-    with( rq ) {
-        .city = "Springfield";
-        .country = "USA";
-        .surname = "White"
+    scope( call ) {
+        install( Fault404 =>  throw( TestFailed, "getUser - Received 404 when 200 was expected" ) )
+        with( rq ) {
+            .city = "Springfield";
+            .country = "USA";
+            .surname = "White"
+        }
+        getUsers@Test( rq )( rs )
     }
-    getUsers@Test( rq )( rs )
+
     if ( #rs.users != 2 ) {
         throw( TestFailed, "Expected 2 users in getUsers operation")
     }
 
     undef( rq ) 
-    with( rq ) {
-        .userId = "ciao";
-        .itemName= "ciao";
-        .quantity = 0
+    scope( call ) {
+        install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (0) - Received 404 when 200 was expected" ) )
+        with( rq ) {
+            .userId = "ciao";
+            .itemName= "ciao";
+            .quantity = 0
+        }
+        getOrdersByItem@Test( rq )( rs )
     }
-    getOrdersByItem@Test( rq )()
+
 
    
     undef( rq )
-    with( rq ) {
-        .userId = "ciao";
-        .itemName= "ciao"
+    scope( call ) {
+        install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (1) - Received 404 when 200 was expected" ) )
+        with( rq ) {
+            .userId = "ciao";
+            .itemName= "ciao"
+        }
+        getOrdersByItem@Test( rq )( rs )
     }
-    getOrdersByItem@Test( rq )()
+
     undef( rq )
-    with( rq ) {
-        .userId = "ciao"
+    scope( call ) {
+        install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (2) - Received 404 when 200 was expected" ) )
+    
+        with( rq ) {
+            .userId = "ciao"
+        }
+        getOrdersByItem@Test( rq )( rs )
     }
-    getOrdersByItem@Test( rq )()
+
 
     undef( rq )
     scope( fault ) {
