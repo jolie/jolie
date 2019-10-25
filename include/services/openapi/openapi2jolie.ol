@@ -73,6 +73,16 @@ define __getFaultDefinition {
     foreach( definition : openapi.definitions ) {
         if ( definition == __jolietypename ) {
             __fault_name = openapi.definitions.( definition ).properties.fault.pattern
+            if ( is_defined( openapi.definitions.( definition ).properties.content.("$ref") ) ) {
+                splref = openapi.definitions.( definition ).properties.content.("$ref")
+                splref.regex = "#/definitions/"
+                split@StringUtils( splref )( splrefres )
+                __fault_type = splrefres.result[1]
+            } else {
+                // jolie generated type not found
+                __fault_type = ""
+            }
+     
         }
     }
 }
@@ -139,12 +149,24 @@ main {
                 foreach( f : outputPort.interface.operation[ o ].faults ) {
                     faultType = "";
                     if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") ) ) {
-                        getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
-                        faultType = "Fault" + f + "(" + ref + ") "
+                        __link_name = outputPort.interface.operation[ o ].faults.( f ).schema.("$ref")
+                        __getFaultDefinition
+                        if ( __fault_name != ""  && __fault_type != "" ) {
+                            faultType = __fault_name + "(" + __fault_type + ")" 
+                        } else {
+                            getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
+                            faultType = "Fault" + f + "(" + ref + ") "
+                        }
                     } else if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema.oneOf ) ) {
                         for( of = 0, of < #outputPort.interface.operation[ o ].faults.( f ).schema.oneOf, of++ ) {
-                            getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.oneOf[ of ].("$ref") )( ref );
-                            faultType = faultType + " Fault" + f + "_" + of + "(" + ref + ") "
+                            __link_name = outputPort.interface.operation[ o ].faults.( f ).schema.oneOf[ of ].("$ref")
+                            __getFaultDefinition
+                            if ( __fault_name != "" && __fault_type != "" ) {
+                                faultType = faultType + " " + __fault_name + "(" + __fault_type + ")" 
+                            } else {
+                                getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.oneOf[ of ].("$ref") )( ref );
+                                faultType = faultType + " Fault" + f + "_" + of + "(" + ref + ") "
+                            }
                         }
                     } else {
                         if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).description ) ) {
@@ -186,6 +208,16 @@ main {
 
         client_file = client_file + "execution{ concurrent }\n\n";
 
+        endsWith@StringUtils( outputPort.location { .suffix = "/" } )( ends_with_slash )
+        if ( ends_with_slash ) {
+            sbst = outputPort.location
+            length@StringUtils( outputPort.location )( location_length )
+            with ( sbst ) {
+                .begin = 0;
+                .end = location_length - 1
+            }
+            substring@StringUtils( sbst )( outputPort.location )
+        }
 
         client_file = client_file + "outputPort " + outputPort.name + "{\n";
         client_file = client_file + "Location: \"" + outputPort.location + "\"\n";
@@ -196,8 +228,20 @@ main {
         client_file = client_file + ".format = \"json\";"
         client_file = client_file + ".responseHeaders=\"@header\";"
         for( o = 0, o < #outputPort.interface.operation, o++ ) {
+            startsWith@StringUtils(  outputPort.interface.operation[ o ].path  { .prefix = "/" } )( starts_with_slash )
+            if ( starts_with_slash ) {
+                sbst = outputPort.interface.operation[ o ].path
+                length@StringUtils( outputPort.interface.operation[ o ].path )( path_length )
+                with ( sbst ) {
+                    .begin = 1;
+                    .end = path_length
+                }
+                substring@StringUtils( sbst )( alias_path )
+            }  else {
+                alias_path = outputPort.interface.operation[ o ].path
+            }
             client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
-                            + ".alias=\"" + outputPort.interface.operation[ o ].path + "\";\n";
+                            + ".alias=\"" + alias_path + "\";\n";
             client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
                             + ".method=\"" + outputPort.interface.operation[ o ].method + "\"";
             if ( o < (#outputPort.interface.operation - 1) ) {
