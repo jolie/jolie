@@ -76,24 +76,24 @@ define split_urls {
   // __input_str
 	undef( __str_elements );
   split_str = __input_str;
+  split_str.regex = "\\?";
+  split@StringUtils( split_str )( splitted_path_string )	
+  split_str = splitted_path_string.result[0];
   split_str.regex = "/";
   split@StringUtils( split_str )( splitted_str );
-  __str_elements.element << splitted_str.result;
-  split_str = splitted_str.result[ #splitted_str.result - 1 ];
-  split_str.regex = "\\?";
-  split@StringUtils( split_str )( splitted_str );
-  if ( #splitted_str.result > 1 ) {
-      __str_elements.element[ #__str_elements.element - 1] = splitted_str.result [ 0 ];
-      split_str = splitted_str.result[ 1 ];
+  __str_elements.element_url << splitted_str.result;
+  if ( #splitted_path_string.result > 1 ) {
+      split_str = splitted_path_string.result[ 1 ];
       split_str.regex = "&";
       split@StringUtils( split_str )( splitted_str );
       for( _s = 0, _s < #splitted_str.result, _s++ ) {
           split_str2 = splitted_str.result[ _s ];
           split_str2.regex = "=";
           split@StringUtils( split_str2 )( splitted_str2 );
-          __str_elements.element[ #__str_elements.element ]  = splitted_str2.result[ 1 ]
+          __str_elements.element_query.(splitted_str2.result[ 0 ]).value = splitted_str2.result[ 1 ] 
       }
   }
+  
 }
 
 define matchTemplate {
@@ -104,25 +104,41 @@ define matchTemplate {
 	template_elements << __str_elements;
 	found = false;
 
-	if ( #template_elements.element == #uri_elements.element ) {
+	if ( #template_elements.element_url == #uri_elements.element_url ) {
 		found = true;
 		_e = 0;
-		while( found && _e < #uri_elements.element ) {
-				if ( uri_elements.element[ _e ] != template_elements.element[ _e ] ) {
-						w = template_elements.element[ _e ];
+		while( found && _e < #uri_elements.element_url ) {
+				if ( uri_elements.element_url[ _e ] != template_elements.element_url[ _e ] ) {
+						w = template_elements.element_url[ _e ];
 						w.regex = "\\{(.*)\\}";
 						find@StringUtils( w )( is_param );
 						if ( is_param == 0 ) {
 								found = false
 						} else {
-								found.( is_param.group[1] ) = uri_elements.element[ _e ]
+								found.( is_param.group[1] ) = uri_elements.element_url[ _e ]
 						}
 				}
 				;
 				_e++
 		}
-	}
+};
 
+if (found){
+	foreach (query_element : uri_elements.element_query){
+		if (!is_defined(template_elements.element_query.(query_element))){
+			found = false
+		}else{
+			w = template_elements.element_query.(query_element).value;
+			w.regex = "\\{(.*)\\}";
+			find@StringUtils( w )( is_param );
+			if ( is_param == 0 ) {
+					found = false
+			} else {
+					found.( is_param.group[1] ) = uri_elements.element_query.(query_element).value
+			}
+		}
+	} 
+}
 }
 
 define findRoute

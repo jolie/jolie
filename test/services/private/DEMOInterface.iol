@@ -1,85 +1,95 @@
-type OrderItem:void {
-  .quantity[1,1]:int
-  .price[1,1]:double
-  .name[1,1]:string
+type Order: void {
+	.date:string
+	.id[0,1]:int
+	.title:string
+	.items[0,*]:OrderItem
 }
-
-type Order:void {
-  .date[1,1]:string
-  .id[0,1]:int
-  .title[1,1]:string
-  .items[0,*]:OrderItem
+type PutOrderResponse: void
+type Orders: void {
+	.orders[0,*]:Order
 }
-
-type PutOrderRequest:void {
-  .userId[1,1]:string
-  .order[1,1]:Order
+type GetUsersResponse: void {
+	.users[0,*]:undefined
 }
-
-type PutOrderResponse:void
-
-type FaultTest2:void {
-  .fieldfult1[1,1]:string
+type PutOrderRequest: void {
+	.userId:string
+	.order:Order
 }
-
-type GetUsersRequest:void {
-  .country[1,1]:string
-  .city[1,1]:string
-  .surname[1,1]:string
+type GetUsersRequest: void {
+	.country:string
+	.city:string
+	.surname:string
 }
-
-type GetUsersResponse:void {
-  .users[0,*]:void {
-    .country[1,1]:string
-    .city[1,1]:string
-    .surname[1,1]:string
-    .name[1,1]:string
-  }
+type FaultTest2: void {
+	.fieldfult1:string
 }
-
+type FaultTest1: void {
+	.fieldfault1:string
+	.fieldfault2:int
+}
+type GetOrdersRequest: void {
+	.maxItems:int
+	.userId:string
+}
+type JolieFaultType2: void {
+	.fault:string
+	.content:FaultTest1
+}
+type JolieFaultType1: void {
+	.fault:string
+	.content:void
+}
+type OrderItem: void {
+	.quantity:int
+	.price:double
+	.name:string
+}
 type GetOrdersByItemRequest:void {
-  .itemName[1,1]:string
-  .quantity[1,1]:int
-  .userId[1,1]:string
-}|void {
-  .itemName[1,1]:string
-  .userId[1,1]:string
-}|void {
-  .userId[1,1]:string
+	.itemName:string
+	.quantity:int
+	.userId:string
 }
-
-type Orders:void {
-  .orders[0,*]:Order
+| void {
+	.itemName:string
+	.userId:string
 }
-
-type GetOrdersByItemResponse:Orders
-
-type FaultTest1:void {
-  .fieldfault1[1,1]:string
-  .fieldfault2[1,1]:int
+| void {
+	.userId:string
 }
-
-type DeleteOrderRequestLinked:void {
-  .orderId[1,1]:int
+type GetOrdersByItemResponse: Orders
+type DeleteOrderRequestLinked: void {
+	.orderId:int
 }
-
-type DeleteOrderRequest:DeleteOrderRequestLinked
-
-type DeleteOrderResponse:void
-
-type GetOrdersRequest:void {
-  .maxItems[1,1]:int
-  .userId[1,1]:string
+type JolieFaultType0: void {
+	.fault:string
+	.content:FaultTest2
 }
-
-type GetOrdersResponse:Orders
-
-interface DEMOInterface {
+type DeleteOrderRequest: DeleteOrderRequestLinked
+type DeleteOrderResponse: void
+type GetOrdersResponse: Orders
+type getOrdersByItemRequest: GetOrdersByItemRequest
+type getOrdersByItemResponse:GetOrdersByItemResponse
+type putOrderRequest: PutOrderRequest
+type putOrderResponse:PutOrderResponse
+type getUsersRequest: void {
+.country:string
+.city: undefined
+.surname: undefined
+}
+type getUsersResponse:GetUsersResponse
+type deleteOrderRequest: DeleteOrderRequest
+type deleteOrderResponse:DeleteOrderResponse
+type getOrdersRequest: void {
+.maxItems:int
+.userId:string
+}
+type getOrdersResponse:GetOrdersResponse
+interface DEMOInterface{
 RequestResponse:
-  putOrder( PutOrderRequest )( PutOrderResponse ) throws FaultTest3(FaultTest2)  ,
-  getUsers( GetUsersRequest )( GetUsersResponse ),
-  getOrdersByItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws FaultTest2 FaultTest(FaultTest1)  ,
-  deleteOrder( DeleteOrderRequest )( DeleteOrderResponse ),
-  getOrders( GetOrdersRequest )( GetOrdersResponse )
+	getOrdersByItem( getOrdersByItemRequest )( getOrdersByItemResponse ) throws  Fault500_0(JolieFaultType2)  Fault500_1(JolieFaultType1)  Fault404( string ) ,
+	putOrder( putOrderRequest )( putOrderResponse ) throws Fault500(JolieFaultType0)  Fault404( string ) ,
+	getUsers( getUsersRequest )( getUsersResponse ) throws Fault500( string )  Fault404( string ) ,
+	deleteOrder( deleteOrderRequest )( deleteOrderResponse ) throws Fault500( string )  Fault404( string ) ,
+	getOrders( getOrdersRequest )( getOrdersResponse ) throws Fault500( string )  Fault404( string ) 
 }
 
