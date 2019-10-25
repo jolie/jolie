@@ -87,7 +87,7 @@ define doTest {
     paths[ 0 ] = "/getOrdersByItem"
     paths[ 1 ] = "/putOrder"
     paths[ 2 ] = "/deleteOrder"
-    paths[ 3 ] = "/orders/{userId}?maxItems={maxItems}"
+    paths[ 3 ] = "/orders/{userId}"
     paths[ 4 ] = "/users/{country}"
 
     for( i = 0, i < #paths, i++ ) {

@@ -226,6 +226,13 @@ define makeLink
 init {
 	config( config )() {
 		routes << config.routes
+		// normalize route templates
+		for( i = 0, i < #routes, i++ ) {
+			startsWith@StringUtils( routes[ i ].template { .prefix = "/" } )( start_with_slash )
+			if ( !start_with_slash ) {
+				routes[ i ].template = "/" + routes[ i ].template
+			}
+		}
 	}
 	/*for( r = 0, r < #routes, r++ ) {
 			println@Console( "Loaded " + routes[ r ].template )()
