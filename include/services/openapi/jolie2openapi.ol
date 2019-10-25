@@ -144,10 +144,18 @@ define __body {
         .filename = service_filename
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
+      // finding input port index
+      input_port_index = 0
+      for( ip = 0, ip < #metadata.input, ip++ ) {
+          if ( metadata.input[ ip ].name == service_input_port ) {
+              input_port_index = ip
+          }
+      }
+
       /* creating a map name-types for managing type links */
-      for( itf = 0, itf < #metadata.input.interfaces, itf++ ) { 
-          for( tps = 0, tps < #metadata.input.interfaces[ itf ].types, tps++ ) {
-              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name ) << metadata.input.interfaces[ itf ].types[ tps ]
+      for( itf = 0, itf < #metadata.input[ input_port_index ].interfaces, itf++ ) { 
+          for( tps = 0, tps < #metadata.input[ input_port_index ].interfaces[ itf ].types, tps++ ) {
+              global.type_map.( metadata.input[ input_port_index ].interfaces[ itf ].types[ tps ].name ) << metadata.input[ input_port_index ].interfaces[ itf ].types[ tps ]
           }
       } 
 
@@ -168,12 +176,12 @@ define __body {
         .basePath = "/"
        
         /* importing of all the types */
-        for( itf = 0, itf < #metadata.input.interfaces, itf++ ) {
+        for( itf = 0, itf < #metadata.input[ input_port_index ].interfaces, itf++ ) {
             with( .tags[ itf ] ) {
-                .name = .description = metadata.input.interfaces[ itf ].name
+                .name = .description = metadata.input[ input_port_index ].interfaces[ itf ].name
             };
-            for ( itftp = 0, itftp < #metadata.input.interfaces[ itf ].types, itftp++ ) {
-                .definitions[ itftp ] << metadata.input.interfaces[ itf ].types[ itftp ]
+            for ( itftp = 0, itftp < #metadata.input[ input_port_index ].interfaces[ itf ].types, itftp++ ) {
+                .definitions[ itftp ] << metadata.input[ input_port_index ].interfaces[ itf ].types[ itftp ]
             }
         }
       };
