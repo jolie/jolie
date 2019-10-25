@@ -88,7 +88,7 @@
                 ]
             }
         },
-        "/orders/{userId}?maxItems={maxItems}": {
+        "/orders/{userId}": {
             "get": {
                 "produces": [
                     "application\/json"

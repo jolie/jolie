@@ -119,12 +119,12 @@ define check_param_found {
     // __found
     __found = "body"
     for( _pf = 0, _pf < #found_params.path, _pf++ ) {
-        if ( found_params.path[ _pr ] == __str_to_search ) {
+        if ( found_params.path[ _pf ] == __str_to_search ) {
             __found = "path"
         }
     }
     for( _pf = 0, _pf < #found_params.query, _pf++ ) {
-        if ( found_params.query[ _pr ] == __str_to_search ) {
+        if ( found_params.query[ _pf ] == __str_to_search ) {
             __found = "query"
         }
     }
@@ -436,7 +436,10 @@ define __body {
                             if ( LOG ) { println@Console( "Template automatically generated:" + __template )() }
                         }
                         ;
-                        openapi.paths[ path_counter ] = __template
+                        splr = __template
+                        splr.regex = "\\?"
+                        split@StringUtils( splr )( splres );
+                        openapi.paths[ path_counter ] = splres.result[ 0 ]
                     }
               }
           }
