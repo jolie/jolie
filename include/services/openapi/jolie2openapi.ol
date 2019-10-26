@@ -119,12 +119,12 @@ define check_param_found {
     // __found
     __found = "body"
     for( _pf = 0, _pf < #found_params.path, _pf++ ) {
-        if ( found_params.path[ _pr ] == __str_to_search ) {
+        if ( found_params.path[ _pf ] == __str_to_search ) {
             __found = "path"
         }
     }
     for( _pf = 0, _pf < #found_params.query, _pf++ ) {
-        if ( found_params.query[ _pr ] == __str_to_search ) {
+        if ( found_params.query[ _pf ] == __str_to_search ) {
             __found = "query"
         }
     }
@@ -144,10 +144,18 @@ define __body {
         .filename = service_filename
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
+      // finding input port index
+      input_port_index = 0
+      for( ip = 0, ip < #metadata.input, ip++ ) {
+          if ( metadata.input[ ip ].name == service_input_port ) {
+              input_port_index = ip
+          }
+      }
+
       /* creating a map name-types for managing type links */
-      for( itf = 0, itf < #metadata.input.interfaces, itf++ ) { 
-          for( tps = 0, tps < #metadata.input.interfaces[ itf ].types, tps++ ) {
-              global.type_map.( metadata.input.interfaces[ itf ].types[ tps ].name ) << metadata.input.interfaces[ itf ].types[ tps ]
+      for( itf = 0, itf < #metadata.input[ input_port_index ].interfaces, itf++ ) { 
+          for( tps = 0, tps < #metadata.input[ input_port_index ].interfaces[ itf ].types, tps++ ) {
+              global.type_map.( metadata.input[ input_port_index ].interfaces[ itf ].types[ tps ].name ) << metadata.input[ input_port_index ].interfaces[ itf ].types[ tps ]
           }
       } 
 
@@ -164,19 +172,16 @@ define __body {
             .version = ""
         };
         .host = router_host;
-        if ( easyInterface ) {
-          .basePath = "/"
-        } else {
-          .basePath = "/" + service_input_port
-        };
-
+        
+        .basePath = "/"
+       
         /* importing of all the types */
-        for( itf = 0, itf < #metadata.input.interfaces, itf++ ) {
+        for( itf = 0, itf < #metadata.input[ input_port_index ].interfaces, itf++ ) {
             with( .tags[ itf ] ) {
-                .name = .description = metadata.input.interfaces[ itf ].name
+                .name = .description = metadata.input[ input_port_index ].interfaces[ itf ].name
             };
-            for ( itftp = 0, itftp < #metadata.input.interfaces[ itf ].types, itftp++ ) {
-                .definitions[ itftp ] << metadata.input.interfaces[ itf ].types[ itftp ]
+            for ( itftp = 0, itftp < #metadata.input[ input_port_index ].interfaces[ itf ].types, itftp++ ) {
+                .definitions[ itftp ] << metadata.input[ input_port_index ].interfaces[ itf ].types[ itftp ]
             }
         }
       };
@@ -244,7 +249,10 @@ define __body {
                                         .schema.link_name << c_interface.types[ tp_resp_count ].name
                                     }
                             }
-                        
+                            with( .responses[ 1 ] ) {
+                                .status = 404;
+                                .description = "resource not found"
+                            }
                             undef( fnames )
                             if ( #oper.fault > 0 ) {
                                 for ( f = 0, f < #oper.fault, f++ ) {
@@ -255,7 +263,7 @@ define __body {
                                         openapi.definitions[ #openapi.definitions ] << fault_definition
                                         jolieFaultTypeCounter++     
                                 }
-                                with( .responses[ 1 ] ) {
+                                with( .responses[ 2 ] ) {
                                     .status = 500;
                                     gsff.name -> fnames
                                     getSchemaForFaults@Utils( gsff )( .schema )
@@ -428,7 +436,10 @@ define __body {
                             if ( LOG ) { println@Console( "Template automatically generated:" + __template )() }
                         }
                         ;
-                        openapi.paths[ path_counter ] = __template
+                        splr = __template
+                        splr.regex = "\\?"
+                        split@StringUtils( splr )( splres );
+                        openapi.paths[ path_counter ] = splres.result[ 0 ]
                     }
               }
           }
