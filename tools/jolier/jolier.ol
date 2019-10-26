@@ -99,7 +99,7 @@ main {
     for( i = 0, i < #metadata.input, i++ ) {
         // port selection from metadata
         if ( metadata.input[ i ].name == service_input_port ) {
-              getSurface@MetaRender( metadata.input )( surface )
+              getSurface@MetaRender( metadata.input[i] )( surface )
         }
     }
     undef( f )

@@ -1,5 +1,5 @@
 {
-    "basePath": "\/DEMO",
+    "basePath": "\/",
     "paths": {
         "/getOrdersByItem": {
             "post": {
@@ -27,6 +27,9 @@
                             ]
                         },
                         "description": "JolieFault"
+                    },
+                    "404": {
+                        "description": "resource not found"
                     }
                 },
                 "parameters": [
@@ -62,6 +65,9 @@
                             "$ref": "#\/definitions\/JolieFaultType0"
                         },
                         "description": "JolieFault"
+                    },
+                    "404": {
+                        "description": "resource not found"
                     }
                 },
                 "parameters": [
@@ -82,7 +88,7 @@
                 ]
             }
         },
-        "/orders/{userId}?maxItems={maxItems}": {
+        "/orders/{userId}": {
             "get": {
                 "produces": [
                     "application\/json"
@@ -95,6 +101,9 @@
                             "$ref": "#\/definitions\/GetOrdersResponse"
                         },
                         "description": "OK"
+                    },
+                    "404": {
+                        "description": "resource not found"
                     }
                 },
                 "parameters": [
@@ -130,6 +139,9 @@
                             "$ref": "#\/definitions\/GetUsersResponse"
                         },
                         "description": "OK"
+                    },
+                    "404": {
+                        "description": "resource not found"
                     }
                 },
                 "parameters": [
@@ -173,6 +185,9 @@
                             "$ref": "#\/definitions\/DeleteOrderResponse"
                         },
                         "description": "OK"
+                    },
+                    "404": {
+                        "description": "resource not found"
                     }
                 },
                 "parameters": [
