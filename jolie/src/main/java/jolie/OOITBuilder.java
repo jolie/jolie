@@ -903,7 +903,8 @@ public class OOITBuilder implements OLVisitor
 			currProcess = inputProcess =
 				new OneWayProcess(
 					interpreter.getOneWayOperation( n.id() ),
-					buildVariablePath( n.inputVarPath() )
+					buildVariablePath( n.inputVarPath() ),
+					n.context()
 				);
 			if ( origRegisterSessionStarters ) {
 				registerSessionStarter( inputProcess, NullProcess.getInstance() );
@@ -925,6 +926,7 @@ public class OOITBuilder implements OLVisitor
 			n.outputExpression().accept( this );
 			outputExpression = currExpression;
 		}
+
 		try {
 			InputOperationProcess inputProcess;
 			currProcess = inputProcess =
@@ -932,7 +934,8 @@ public class OOITBuilder implements OLVisitor
 						interpreter.getRequestResponseOperation( n.id() ),
 						buildVariablePath( n.inputVarPath() ),
 						outputExpression,
-						buildProcess( n.process() )
+						buildProcess( n.process() ),
+						n.context()
 						);
 			if ( origRegisterSessionStarters ) {
 				registerSessionStarter( inputProcess, NullProcess.getInstance() );
@@ -957,7 +960,8 @@ public class OOITBuilder implements OLVisitor
 						n.id(),
 						interpreter.getOutputPort( n.outputPortId() ),
 						outputExpression,
-						notificationTypes.get( n.outputPortId() ).get( n.id() )
+						notificationTypes.get( n.outputPortId() ).get( n.id() ),
+						n.context()
 					);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
@@ -977,7 +981,8 @@ public class OOITBuilder implements OLVisitor
 						buildExpression( n.outputExpression() ),
 						buildVariablePath( n.inputVarPath() ),
 						installProcess,
-						solicitResponseTypes.get( n.outputPortId() ).get( n.id() )
+						solicitResponseTypes.get( n.outputPortId() ).get( n.id() ),
+						n.context()
 					);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
@@ -1640,7 +1645,8 @@ public class OOITBuilder implements OLVisitor
 						AggregatedOperation.createWithCourier(
 							getExtendedOneWayOperation( currCourierInputPort.name(), currCourierOperationName ),
 							buildVariablePath( branch.inputVariablePath ),
-							buildProcess( branch.body )
+							buildProcess( branch.body ),
+							n.context()
 						)
 					);
 				}
@@ -1656,7 +1662,8 @@ public class OOITBuilder implements OLVisitor
 						AggregatedOperation.createWithCourier(
 							getExtendedRequestResponseOperation( currCourierInputPort.name(), currCourierOperationName ),
 							buildVariablePath( branch.inputVariablePath ), buildVariablePath( branch.outputVariablePath ),
-							buildProcess( branch.body )
+							buildProcess( branch.body ),
+							n.context()
 						)
 					);
 				}
@@ -1670,7 +1677,8 @@ public class OOITBuilder implements OLVisitor
 				AggregatedOperation.createWithCourier(
 					getExtendedOneWayOperation( currCourierInputPort.name(), currCourierOperationName ),
 					buildVariablePath( branch.inputVariablePath ),
-					buildProcess( branch.body )
+					buildProcess( branch.body ),
+					n.context()
 				)
 			);
 		}
@@ -1682,7 +1690,8 @@ public class OOITBuilder implements OLVisitor
 				AggregatedOperation.createWithCourier(
 					getExtendedRequestResponseOperation( currCourierInputPort.name(), currCourierOperationName ),
 					buildVariablePath( branch.inputVariablePath ), buildVariablePath( branch.outputVariablePath ),
-					buildProcess( branch.body )
+					buildProcess( branch.body ),
+					n.context()
 				)
 			);
 		}
@@ -1705,7 +1714,8 @@ public class OOITBuilder implements OLVisitor
 				outputPort,
 				buildVariablePath( n.outputVariablePath() ),
 				conf.aggregatedInterface.oneWayOperations().get( currCourierOperationName ),
-				(conf.interfaceExtender == null) ? null : conf.interfaceExtender.getOneWayTypeDescription( currCourierOperationName )
+				(conf.interfaceExtender == null) ? null : conf.interfaceExtender.getOneWayTypeDescription( currCourierOperationName ),
+				n.context()
 			);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
@@ -1747,7 +1757,8 @@ public class OOITBuilder implements OLVisitor
 				buildVariablePath( n.outputVariablePath() ),
 				buildVariablePath( n.inputVariablePath() ),
 				conf.aggregatedInterface.requestResponseOperations().get( currCourierOperationName ),
-				(conf.interfaceExtender == null) ? null : conf.interfaceExtender.getRequestResponseTypeDescription( currCourierOperationName )
+				(conf.interfaceExtender == null) ? null : conf.interfaceExtender.getRequestResponseTypeDescription( currCourierOperationName ),
+				n.context()
 			);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );

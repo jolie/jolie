@@ -60,7 +60,8 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
 				"Java Service Loader",
-				c.getCanonicalName()
+				c.getCanonicalName(),
+				null
 			) );
 		} catch( InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e ) {
 			throw new EmbeddedServiceLoadingException( e );

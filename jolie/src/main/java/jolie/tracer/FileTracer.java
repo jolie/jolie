@@ -54,7 +54,12 @@ public class FileTracer implements Tracer {
         stBuilder.append( "{");
         stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
         stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
-        stBuilder.append( "\"").append( interpreter.logPrefix() ).append( "\"," );
+        if ( action.context() == null ) {
+            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+        } else {
+            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
+        }
+
 
         switch( action.type() ) {
             case SERVICE_LOAD:
@@ -81,8 +86,11 @@ public class FileTracer implements Tracer {
         stBuilder.append( "{");
         stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
         stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
-
-        stBuilder.append( "\"").append( interpreter.logPrefix() ).append( "\"," );
+        if ( action.context() == null ) {
+            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+        } else {
+            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
+        }
         switch( action.type() ) {
             case SOLICIT_RESPONSE:
                 stBuilder.append( "\"").append( "sr" ).append( "\"," );

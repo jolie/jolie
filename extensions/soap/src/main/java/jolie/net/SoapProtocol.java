@@ -1024,9 +1024,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			if ( !(interpreter.tracer() instanceof DummyTracer) ) {
 				final String traceMessage = httpMessage.toString() + content.toString("utf-8");
 				if (received) {
-					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null));
+					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null, null));
 				} else {
-					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null ));
+					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null, null ));
 				}
 			}
 
@@ -1200,9 +1200,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				if ( !(interpreter.tracer() instanceof DummyTracer) ) {
 					final String traceMessage = new String( message.content(), charset );
 					if (message.isResponse()) {
-						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null));
+						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null, null));
 					} else {
-						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null ));
+						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null, null ));
 					}
 				}
 

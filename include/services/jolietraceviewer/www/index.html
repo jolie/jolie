@@ -32,7 +32,7 @@
         function getTrace( trace ) {
             
             JolieClient.getTrace({ "$": trace }, function( data ) {
-                $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>Index</th><th>Timestamp</th><th>Service</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
+                $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>Index</th><th>Timestamp</th><th>Service</th><th>Line</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
                 var table = $("#traceTable").DataTable({
                         "columnDefs": [
                             { "width": "5%", "targets": 0 },
@@ -45,29 +45,31 @@
                     try {
                         var obj = JSON.parse( lines[ i ] );
                         var key = Object.keys( obj )[0];
-                        if ( obj[ key ].length == 5 ) {
+                        if ( obj[ key ].length == 7 ) {
                             table.row.add([
                                 key,
                                 obj[ key ][0],
-                                obj[ key ][1],
                                 obj[ key ][2],
                                 obj[ key ][3],
                                 obj[ key ][4],
+                                obj[ key ][5],
+                                obj[ key ][6],
                                 "",
                                 ""
 
                             ])
                         }
-                        if ( obj[ key ].length == 7 ) {
+                        if ( obj[ key ].length == 9 ) {
                             table.row.add([
                                 key,
                                 obj[ key ][0],
-                                obj[ key ][1],
                                 obj[ key ][2],
                                 obj[ key ][3],
                                 obj[ key ][4],
                                 obj[ key ][5],
-                                "<button onclick='showMessage(this, \"" + obj[ key ][6] + "\")'>Show Message</button>"
+                                obj[ key ][6],
+                                obj[ key ][7],
+                                "<button onclick='showMessage(this, \"" + obj[ key ][8] + "\")'>Show Message</button>"
                             ])
                         }
                     } catch (e) {}
