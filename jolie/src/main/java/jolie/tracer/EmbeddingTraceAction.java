@@ -22,6 +22,10 @@
 
 package jolie.tracer;
 
+import jolie.lang.parse.context.ParsingContext;
+
+import java.text.ParseException;
+
 /**
  *
  * @author Fabrizio Montesi
@@ -35,12 +39,14 @@ public class EmbeddingTraceAction implements TraceAction
 	private final Type type;
 	private final String name;
 	private final String description;
+	private final ParsingContext context;
 	
-	public EmbeddingTraceAction( Type type, String name, String description )
+	public EmbeddingTraceAction(Type type, String name, String description, ParsingContext context )
 	{
 		this.type = type;
 		this.name = name;
 		this.description = description;
+		this.context = context;
 	}
 	
 	public Type type()
@@ -57,4 +63,6 @@ public class EmbeddingTraceAction implements TraceAction
 	{
 		return description;
 	}
+
+	public ParsingContext context() { return context; }
 }

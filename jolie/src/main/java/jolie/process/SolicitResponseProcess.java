@@ -29,6 +29,7 @@ import java.util.concurrent.TimeoutException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.events.OperationCallEvent;
 import jolie.monitoring.events.OperationReplyEvent;
 import jolie.net.CommChannel;
@@ -53,6 +54,7 @@ public class SolicitResponseProcess implements Process
 	private final Expression outputExpression; // may be null
 	private final Process installProcess; // may be null
 	private final RequestResponseTypeDescription types;
+	private final ParsingContext context;
 
 	public SolicitResponseProcess(
 			String operationId,
@@ -60,7 +62,8 @@ public class SolicitResponseProcess implements Process
 			Expression outputExpression,
 			VariablePath inputVarPath,
 			Process installProcess,
-			RequestResponseTypeDescription types
+			RequestResponseTypeDescription types,
+			ParsingContext context
 	) {
 		this.operationId = operationId;
 		this.outputPort = outputPort;
@@ -68,6 +71,7 @@ public class SolicitResponseProcess implements Process
 		this.inputVarPath = inputVarPath;
 		this.installProcess = installProcess;
 		this.types = types;
+		this.context = context;
 	}
 
 	public Process copy( TransformationReason reason )
@@ -78,7 +82,8 @@ public class SolicitResponseProcess implements Process
 					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
 					( installProcess == null ) ? null : installProcess.copy( reason ),
-					types
+					types,
+				    context
 				);
 	}
 
@@ -89,7 +94,8 @@ public class SolicitResponseProcess implements Process
 			MessageTraceAction.Type.SOLICIT_RESPONSE,
 			operationId + "@" + outputPort.id(),
 			log,
-			message
+			message,
+			context
 		) );
 	}
 

@@ -61,6 +61,7 @@ public class PrintingTracer implements Tracer
 	private void trace( EmbeddingTraceAction action )
 	{
 		StringBuilder stBuilder = new StringBuilder();
+
 		stBuilder.append( interpreter.logPrefix() ).append( "\t" );
 		stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
 		switch( action.type() ) {
@@ -79,7 +80,11 @@ public class PrintingTracer implements Tracer
 	private void trace( MessageTraceAction action )
 	{
 		StringBuilder stBuilder = new StringBuilder();
-		stBuilder.append( interpreter.logPrefix() ).append( "\t" );
+		if ( action.context() == null ) {
+			stBuilder.append(interpreter.logPrefix()).append("\t");
+		} else {
+			stBuilder.append( action.context().sourceName() ).append(":").append( action.context().line() );
+		}
 		stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
 		switch( action.type() ) {
 			case SOLICIT_RESPONSE:

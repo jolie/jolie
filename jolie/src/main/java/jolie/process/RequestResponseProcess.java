@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.events.OperationEndedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.CommChannel;
@@ -50,17 +51,20 @@ public class RequestResponseProcess implements InputOperationProcess
 	private final Expression outputExpression; // may be null
 	private final Process process;
 	private boolean isSessionStarter = false;
+	private final ParsingContext context;
 	
 	public RequestResponseProcess(
 			RequestResponseOperation operation,
 			VariablePath inputVarPath,
 			Expression outputExpression,
-			Process process )
+			Process process,
+			ParsingContext context)
 	{
 		this.operation = operation;
 		this.inputVarPath = inputVarPath;
 		this.process = process;
 		this.outputExpression = outputExpression;
+		this.context = context;
 	}
 	
 	public void setSessionStarter( boolean isSessionStarter )
@@ -76,11 +80,13 @@ public class RequestResponseProcess implements InputOperationProcess
 	private void log( String log, CommMessage message )
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
+
 		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.REQUEST_RESPONSE,
 			operation.id(),
 			log,
-			message
+			message,
+			context
 		) );
 	}
 	
@@ -95,7 +101,8 @@ public class RequestResponseProcess implements InputOperationProcess
 					operation,
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
 					( outputExpression == null ) ? null : (VariablePath)outputExpression.cloneExpression( reason ),
-					process.copy( reason )
+					process.copy( reason ),
+				    context
 				);
 	}
 	
