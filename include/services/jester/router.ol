@@ -204,19 +204,30 @@ define route
 		foreach( n : found ) {
 			if ( is_defined( cast.( n ) ) ) {
 					if ( cast.( n ) == "int" ) {
-						invokeReq.data.(n) = int( found.(n) )
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = int( invokeReq.data.(n)[counter] )
+					  }
 					} else if ( cast.( n ) == "long" ) {
-						invokeReq.data.(n) = long( found.(n) )
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = long( invokeReq.data.(n)[counter] )
+					  }
 					} else if ( cast.( n ) == "double" ) {
-						invokeReq.data.(n) = double( found.(n) )
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = double( invokeReq.data.(n)[counter] )
+					  }
 					} else if ( cast.( n ) == "bool" ) {
-						invokeReq.data.(n) = bool( found.(n) )
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = bool( invokeReq.data.(n)[counter] )
+					  }
+						
 					}
 			} else {
 				  /* all the other cases */
-					invokeReq.data.(n) << found.(n)
+				for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						invokeReq.data.(n)[counter] << invokeReq.data.(n)[counter]
+					}			
 		  }
-		};
+		}
 
 		scope( invoke_scope ) {
 			install( InvocationFault => 
