@@ -67,6 +67,33 @@ Protocol: http {
 Interfaces: WebIface
 }
 
+
+
+inputPort WebInputHttps {
+Location: API_ROUTER_HTTPS
+Protocol: https {
+	.debug=DEBUG;
+	.debug.showContent=DEBUG;
+	.default.get = "get";
+	.default.post = "post";
+	.default.put = "put";
+	.default.delete = "delete";
+	.default.options = "options";
+	.method -> method;
+	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
+	.response.headers.("Access-Control-Allow-Origin") = "*";
+	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
+	.statusCode -> statusCode;
+    .ssl.keyStore= KEY_STORE;
+    .ssl.keyStorePassword= KEY_STORE_PASSWORD;
+    .ssl.trustStore = TRUST_STORE;
+    .ssl.trustStorePassword= TRUST_STORE_PASSWORD;
+	.ssl.protocol=SSL_PROTOCOL;
+	.format = "json"
+}
+Interfaces: WebIface
+}
+
 inputPort RouterIn {
 Location: "local"
 Interfaces: RouterIface
