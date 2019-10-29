@@ -26,7 +26,8 @@
 
 
         function showMessage( el, message ) {
-            $( el ).after( "<div>" + atob( message ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;") + "<div>")
+            $( "#content" ).empty().html( atob( message ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;") );
+            $("#message").show()
         }
 
         function getTrace( trace ) {
@@ -63,7 +64,7 @@
                             table.row.add([
                                 key,
                                 obj[ key ][0],
-                                obj[ key ][2],
+                                obj[ key ][2].split('/').pop(),
                                 obj[ key ][3],
                                 obj[ key ][4],
                                 obj[ key ][5],
@@ -81,6 +82,12 @@
     </script>
     </script>
     <body>
+        <div id="message">
+            <button onclick="$('#message').hide()">Close</button>
+            <div id='content'>
+
+            </div>
+        </div>
         <table class='headertable'><tr><td>Jolie Trace Viewer</td></tr></table>
         <table class='maintable'>
             <tr>

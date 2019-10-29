@@ -35,6 +35,7 @@ main {
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
         println@Console("[-easyInterface]:\t if set no templates will be exploited for generating the json file. Default is false. jolier will read templates from file rest_template.json")()
         println@Console("[-debug]:\t when set it enables the debug modality, default is false")()
+        println@Console("[-debug-file]:\t when set it enables the file tracing modality, default is false")()
         println@Console()()
         throw( Error )
     }
@@ -55,6 +56,8 @@ main {
                 easy_interface = true
             } else if ( args[ i ] == "-debug" ) {
                 debug = true
+            } else if ( args[ i ] == "-debug-file" ) {
+                debug_file = true
             } else {
                 println@Console("Argument " + args[ i ] + " not recognized")()
                 throw( Error )
@@ -64,6 +67,8 @@ main {
     
     if ( debug ) {
         debug_string = "--trace -C DEBUG=true"
+    } else if ( debug_file ) {
+        debug_string = "--trace file -C DEBUG=false"
     } else {
         debug_string = "-C DEBUG=false"
     }

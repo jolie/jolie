@@ -37,6 +37,31 @@ body {
     cursor: pointer;
 }
 
+#message {
+    position: fixed;
+    width: 90%;
+    height: 70%;
+    left: 5%;
+    top: 10%;
+    display: none;
+    z-index: 2;
+    background-color: white;
+    color: #333;
+    border: 1px solid black;
+    box-shadow: 5px 10px #aaa;
+}
+
+#message button {
+    float:right;
+    padding:5px;
+    margin:10px;
+}
+
+#message #content {
+    overflow-y: auto;
+    padding:30px;
+}
+
 .itemmenu {
     text-align: center;
     width:100%;
