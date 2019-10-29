@@ -198,34 +198,52 @@ define route
 			.outputPort = outputPort
 		};
 
-		foreach( n : request.data ) {
-			invokeReq.data.(n) << request.data.(n)
-		};
-		foreach( n : found ) {
+	foreach( n : found ) {
 			if ( is_defined( cast.( n ) ) ) {
 					if ( cast.( n ) == "int" ) {
+					if (#invokeReq.data.(n)>1){	
                       for(counter=0, counter<#invokeReq.data.(n) ,counter++){
 						  invokeReq.data.(n)[counter] = int( invokeReq.data.(n)[counter] )
 					  }
+					}else{
+						invokeReq.data.(n) = int (found.(n))
+					}
+
 					} else if ( cast.( n ) == "long" ) {
+					 if (#invokeReq.data.(n)>1){		
                       for(counter=0, counter<#invokeReq.data.(n) ,counter++){
 						  invokeReq.data.(n)[counter] = long( invokeReq.data.(n)[counter] )
 					  }
+					 }else{
+						 invokeReq.data.(n) = long (found.(n))
+					 }
 					} else if ( cast.( n ) == "double" ) {
+					 if (#invokeReq.data.(n)>1){	
                       for(counter=0, counter<#invokeReq.data.(n) ,counter++){
 						  invokeReq.data.(n)[counter] = double( invokeReq.data.(n)[counter] )
 					  }
+					 }else{
+						  invokeReq.data.(n) = double (found.(n))
+					 }
 					} else if ( cast.( n ) == "bool" ) {
+					 if (#invokeReq.data.(n)>1){	
                       for(counter=0, counter<#invokeReq.data.(n) ,counter++){
 						  invokeReq.data.(n)[counter] = bool( invokeReq.data.(n)[counter] )
 					  }
+					 }else{
+						 invokeReq.data.(n) = bool (found.(n))
+					 }
 						
 					}
 			} else {
 				  /* all the other cases */
+	           if (#invokeReq.data.(n)>1){
 				for(counter=0, counter<#invokeReq.data.(n) ,counter++){
 						invokeReq.data.(n)[counter] << invokeReq.data.(n)[counter]
-					}			
+					}	
+			   }else{
+				   invokeReq.data.(n) << found.(n)
+			   }			
 		  }
 		}
 
