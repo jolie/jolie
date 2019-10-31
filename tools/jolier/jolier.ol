@@ -35,11 +35,11 @@ main {
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
         println@Console("[-easyInterface]:\t if set no templates will be exploited for generating the json file. Default is false. jolier will read templates from file rest_template.json")()
         println@Console("[-debug]:\t when set it enables the debug modality, default is false")()
-        println@Console("[-keyStore]:\t  when sets the keyStore location")()
+        println@Console("[-keyStore]:\t  sets the keyStore location")()
         println@Console("[-keyStorePassword]:\t  sets the keyStore password")()
         println@Console("[-trustStore]:\t sets the trustStore location")()
         println@Console("[-trustStorePassword]:\t sets the trustStore password")()
-        println@Console("[-sslProtocol]:\t sets the ssl Protocol")()
+        println@Console("[-sslProtocol]:\t sets the ssl protocol")()
         println@Console()()
         throw( Error )
     }
