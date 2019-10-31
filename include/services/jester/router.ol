@@ -197,6 +197,9 @@ define route
 			.operation = op;
 			.outputPort = outputPort
 		};
+	foreach( n : request.data ) {
+			invokeReq.data.(n) << request.data.(n)
+	};	
 
 	foreach( n : found ) {
 			if ( is_defined( cast.( n ) ) ) {
