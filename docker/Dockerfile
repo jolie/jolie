@@ -10,7 +10,6 @@ RUN mvn clean
 RUN mvn clean install
 RUN ls /jolie-git/dist/launchers/unix/
 RUN cp -avr /jolie-git/dist/jolie/ /usr/lib/jolie/
-#RUN chmod +x /jolie-git/dist/launchers/unix/*.*
 RUN cp -a /jolie-git/dist/launchers/unix/.  /usr/bin/
 ENV JOLIE_HOME /usr/lib/jolie
 
@@ -22,6 +21,7 @@ RUN mvn clean install
 WORKDIR /release_tools
 RUN apk add zip
 RUN jolie release.ol ../jolie-git
+
 
 # Start from scratch, copy the installer, install, remove the installer.
 FROM openjdk:alpine
