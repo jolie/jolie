@@ -58,6 +58,7 @@ Protocol: http {
 	.default.delete = "delete";
 	.default.options = "options";
 	.method -> method;
+	.headers.authorization = "authorization";
 	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
 	.response.headers.("Access-Control-Allow-Origin") = "*";
 	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
@@ -80,6 +81,7 @@ Protocol: https {
 	.default.delete = "delete";
 	.default.options = "options";
 	.method -> method;
+	.headers.authorization = "authorization";
 	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
 	.response.headers.("Access-Control-Allow-Origin") = "*";
 	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
@@ -182,6 +184,19 @@ define findRoute
 			undef( cast );
 			cast << routes[i].cast
 		}
+	}
+}
+define headerHandler{
+   findRoute;
+   valueToPrettyString@StringUtils(request)()
+   invokeRequestHearder.data.operation = op
+   invokeRequestHearder.data.headers << request
+   invokeRequestHearder.operation = "incomingHeaderHandler"
+   invokeRequestHearder.outputPort = "HeaderPort"
+   invoke@Reflection( invokeRequestHearder )( responseHandler )
+   undef (request.authorization)
+   foreach( n : responseHandler ) {
+			invokeReq.data.(n) << responseHandler.(n)
 	}
 }
 
@@ -304,21 +319,33 @@ main
 {
 	[ get( request )( response ) {
 		method = "get";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 
 	[ post( request )( response ) {
 		method = "post";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 
 	[ put( request )( response ) {
 		method = "put";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 
 	[ delete( request )( response ) {
 		method = "delete";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 

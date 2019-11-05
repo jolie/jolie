@@ -28,8 +28,10 @@ init {
 }
 
 main {
-    if ( #args < 3 || #args > 13 ) {
-     println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug] [-keyStore] [-keyStorePassword] [-trustStore] [-trustStorePassword] [-sslProtocol]")()
+    if ( #args < 1 || #args > 13 ) {
+        println@Console("Usage: jolier createHandler")()
+        println@Console("Create an empty Header Handler")()
+        println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug] [-keyStore] [-keyStorePassword] [-trustStore] [-trustStorePassword] [-sslProtocol]")()
         println@Console("<service_filename>:\tfilename of the jolie service.")()
         println@Console("<input_port>:\tinput port to be converted. Note that the inputPort location must be set to value \"local://JesterEmbedded\"")()
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
@@ -46,16 +48,52 @@ main {
     
     /* preparing data */
     
+
+    if (#args == 1){
+        if ( args[ 0 ] == "createHandler" ) {
+              f.content ="type incomingHeaderHandlerRequest:void{.operation:string 
+                                                                .headers:undefined
+                                                                }
+                         type incomingHeaderHandlerResponse: undefined
+                         interface HeaderHandlerInterface{
+                         RequestResponse:
+                            incomingHeaderHandler(incomingHeaderHandlerRequest)(incomingHeaderHandlerResponse)
+                        }
+                        inputPort HeaderPort {
+                                Protocol:sodep
+                                Location:\"local\"
+                                Interfaces:HeaderHandlerInterface
+                        }
+
+                        execution { concurrent }
+                        main{
+                            [incomingHeaderHandler(request)(response){
+                                /* add your implementation */
+                                nullProcess
+
+                            }]
+            }"
+
+      f.filename = "RestHandler.ol"
+      writeFile@File( f )()
+            }else{
+                println@Console("Argument " + args[ i ] + " not recognized")()
+                throw( Error )
+            }
+    } else{
+
+
     service_filename = args[ 0 ]
     service_input_port = args[ 1 ]
     router_host = args [ 2 ]
     easy_interface = false
     debug = false
-
+    headerHandler = false
     jester_http_location = "socket://" + router_host
 
+
     if ( #args > 3 ) {
-        i = 3 
+        i = 3     
         while (i < #args ) {
             if ( args[ i ] == "-easyInterface" ) {
                 easy_interface = true
@@ -63,6 +101,9 @@ main {
             } else if ( args[ i ] == "-debug" ) {
                 debug = true
                 i++
+            }else if ( args[ i ] == "-headerHandler" ) {
+                headerHandler = true
+                i++    
             } else if ( args[ i ] == "-keyStore" ) {
                 jester_https_keyStore = args[ i + 1 ]
                 i = i + 2
@@ -126,7 +167,27 @@ main {
         }
     }
     undef( f )
-    f.content = surface + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+
+    if (headerHandler == true){
+        println@Console("Getting HeaderHandler...")();
+        with( request_meta ) {
+            .filename = "RestHandler.ol"
+        }
+        getInputPortMetaData@MetaJolie( request_meta )( metadata )
+        for( i = 0, i < #metadata.input, i++ ) {
+            // port selection from metadata
+            if ( metadata.input[ i ].name == "HeaderPort" ) {
+                getSurface@MetaRender( metadata.input[i] )( surfaceHeaderHandler)
+            }
+        }
+      f.content = surface + "\n"  + surfaceHeaderHandler + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+                  + "\nembedded { Jolie: \"RestHandler.ol\" in HeaderPort }\n"
+      handler_string =" -C HANDLER=true"     
+    } else{
+      f.content = surface + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+      handler_string =" -C HANDLER=false"  
+    }
+    
     f.filename = "jester_config.iol"
     writeFile@File( f )()
     
@@ -140,7 +201,16 @@ main {
     }else{
        jester_https_location = "local"
     }
-    loadEmbeddedService@Runtime( { .filepath = debug_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + 
+    println@Console( debug_string + handler_string +
+                                                             " -C API_ROUTER_HTTP=\"" + jester_http_location + 
+                                                            "\" -C API_ROUTER_HTTPS=\"" + jester_https_location +
+                                                            "\" -C KEY_STORE=\"" + jester_https_keyStore +
+                                                            "\" -C KEY_STORE_PASSWORD=\"" + jester_https_keyStorePassword +
+                                                            "\" -C TRUST_STORE=\"" + jester_https_trustStore +
+                                                            "\" -C TRUST_STORE_PASSWORD=\"" + jester_https_trustStorePassword +
+                                                            "\" -C SSL_PROTOCOL=\"" + jester_https_sslProtocol +
+                                                            "\" services/jester/router.ol" )(  )
+    loadEmbeddedService@Runtime( { .filepath = debug_string + handler_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + 
                                                             "\" -C API_ROUTER_HTTPS=\"" + jester_https_location +
                                                             "\" -C KEY_STORE=\"" + jester_https_keyStore +
                                                             "\" -C KEY_STORE_PASSWORD=\"" + jester_https_keyStorePassword +
@@ -150,5 +220,6 @@ main {
                                                             "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
     config@Jester( config )()
     linkIn( lock )
+    }
     
 }
