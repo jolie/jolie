@@ -28,15 +28,16 @@ init {
 }
 
 main {
-    if ( #args < 1 || #args > 14 ) {
+    if ( #args < 1 || #args > 16 ) {
         println@Console("Usage: jolier createHandler")()
         println@Console("Create an empty Header Handler")()
-        println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug] [-keyStore] [-keyStorePassword] [-trustStore] [-trustStorePassword] [-sslProtocol]")()
+        println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug] [-headerHandler] [-keyStore] [filePath] [-keyStorePassword] [password] [-trustStore] [filePath] [-trustStorePassword] [password] [-sslProtocol] [protocol]")()
         println@Console("<service_filename>:\tfilename of the jolie service.")()
         println@Console("<input_port>:\tinput port to be converted. Note that the inputPort location must be set to value \"local://JesterEmbedded\"")()
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
         println@Console("[-easyInterface]:\t if set no templates will be exploited for generating the json file. Default is false. jolier will read templates from file rest_template.json")()
         println@Console("[-debug]:\t when set it enables the debug modality, default is false")()
+        println@Console("[-headerHandler]:\t when set it enables the header handler service, default is false")()
         println@Console("[-keyStore]:\t  sets the keyStore location")()
         println@Console("[-keyStorePassword]:\t  sets the keyStore password")()
         println@Console("[-trustStore]:\t sets the trustStore location")()
