@@ -28,13 +28,18 @@ init {
 }
 
 main {
-    if ( #args < 3 || #args > 5 ) {
-        println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug]")()
+    if ( #args < 3 || #args > 13 ) {
+     println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug] [-keyStore] [-keyStorePassword] [-trustStore] [-trustStorePassword] [-sslProtocol]")()
         println@Console("<service_filename>:\tfilename of the jolie service.")()
         println@Console("<input_port>:\tinput port to be converted. Note that the inputPort location must be set to value \"local://JesterEmbedded\"")()
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
         println@Console("[-easyInterface]:\t if set no templates will be exploited for generating the json file. Default is false. jolier will read templates from file rest_template.json")()
         println@Console("[-debug]:\t when set it enables the debug modality, default is false")()
+        println@Console("[-keyStore]:\t  sets the keyStore location")()
+        println@Console("[-keyStorePassword]:\t  sets the keyStore password")()
+        println@Console("[-trustStore]:\t sets the trustStore location")()
+        println@Console("[-trustStorePassword]:\t sets the trustStore password")()
+        println@Console("[-sslProtocol]:\t sets the ssl protocol")()
         println@Console()()
         throw( Error )
     }
@@ -50,11 +55,29 @@ main {
     jester_http_location = "socket://" + router_host
 
     if ( #args > 3 ) {
-        for( i = 3, i < #args, i++ ) {
+        i = 3 
+        while (i < #args ) {
             if ( args[ i ] == "-easyInterface" ) {
                 easy_interface = true
+                i++
             } else if ( args[ i ] == "-debug" ) {
                 debug = true
+                i++
+            } else if ( args[ i ] == "-keyStore" ) {
+                jester_https_keyStore = args[ i + 1 ]
+                i = i + 2
+            } else if ( args[ i ] == "-keyStorePassword" ) {
+                jester_https_keyStorePassword = args[ i + 1 ]
+                i = i + 2
+            } else if ( args[ i ] == "-trustStore" ) {
+                jester_https_trustStore = args[ i + 1 ]
+                i = i + 2
+            }else if ( args[ i ] == "-trustStorePassword" ) {
+                jester_https_trustStorePassword = args[ i + 1 ]
+                i = i + 2
+            }else if ( args[ i ] == "-sslProtocol" ) {
+                jester_https_sslProtocol = args[ i + 1 ]
+                i = i + 2
             } else {
                 println@Console("Argument " + args[ i ] + " not recognized")()
                 throw( Error )
@@ -111,7 +134,20 @@ main {
     getJesterConfig@JesterConfigurator( jester )( config );
 
     println@Console("Running jester...")()
-    loadEmbeddedService@Runtime( { .filepath = debug_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
+    if (is_defined(jester_https_keyStore)){
+        jester_https_location = jester_http_location
+        jester_http_location = "local"
+    }else{
+       jester_https_location = "local"
+    }
+    loadEmbeddedService@Runtime( { .filepath = debug_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + 
+                                                            "\" -C API_ROUTER_HTTPS=\"" + jester_https_location +
+                                                            "\" -C KEY_STORE=\"" + jester_https_keyStore +
+                                                            "\" -C KEY_STORE_PASSWORD=\"" + jester_https_keyStorePassword +
+                                                            "\" -C TRUST_STORE=\"" + jester_https_trustStore +
+                                                            "\" -C TRUST_STORE_PASSWORD=\"" + jester_https_trustStorePassword +
+                                                            "\" -C SSL_PROTOCOL=\"" + jester_https_sslProtocol +
+                                                            "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
     config@Jester( config )()
     linkIn( lock )
     
