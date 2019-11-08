@@ -28,7 +28,7 @@ init {
 }
 
 main {
-    if ( #args < 1 || #args > 13 ) {
+    if ( #args < 1 || #args > 14 ) {
         println@Console("Usage: jolier createHandler")()
         println@Console("Create an empty Header Handler")()
         println@Console("Usage: jolier <service_filename> <input_port> <router_host> [-easyInterface] [-debug] [-keyStore] [-keyStorePassword] [-trustStore] [-trustStorePassword] [-sslProtocol]")()
