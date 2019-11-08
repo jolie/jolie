@@ -202,15 +202,6 @@ main {
     }else{
        jester_https_location = "local"
     }
-    println@Console( debug_string + handler_string +
-                                                             " -C API_ROUTER_HTTP=\"" + jester_http_location + 
-                                                            "\" -C API_ROUTER_HTTPS=\"" + jester_https_location +
-                                                            "\" -C KEY_STORE=\"" + jester_https_keyStore +
-                                                            "\" -C KEY_STORE_PASSWORD=\"" + jester_https_keyStorePassword +
-                                                            "\" -C TRUST_STORE=\"" + jester_https_trustStore +
-                                                            "\" -C TRUST_STORE_PASSWORD=\"" + jester_https_trustStorePassword +
-                                                            "\" -C SSL_PROTOCOL=\"" + jester_https_sslProtocol +
-                                                            "\" services/jester/router.ol" )(  )
     loadEmbeddedService@Runtime( { .filepath = debug_string + handler_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + 
                                                             "\" -C API_ROUTER_HTTPS=\"" + jester_https_location +
                                                             "\" -C KEY_STORE=\"" + jester_https_keyStore +
