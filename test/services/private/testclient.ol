@@ -12,17 +12,17 @@ RequestResponse:
 execution{ concurrent }
 
 outputPort DEMOPort{
-Location: "socket://localhost:8000/"
+Location: "socket://localhost:8000"
 Protocol: http{
-.format = "json";.responseHeaders="@header";.osc.getOrdersByItem.alias="/getOrdersByItem";
+.format = "json";.responseHeaders="@header";.osc.getOrdersByItem.alias="getOrdersByItem";
 .osc.getOrdersByItem.method="post";
-.osc.putOrder.alias="/putOrder";
+.osc.putOrder.alias="putOrder";
 .osc.putOrder.method="put";
 .osc.getUsers.alias="users/%!{country}";
 .osc.getUsers.method="post";
-.osc.deleteOrder.alias="/deleteOrder";
+.osc.deleteOrder.alias="deleteOrder";
 .osc.deleteOrder.method="delete";
-.osc.getOrders.alias="orders/%!{userId}?maxItems=%!{maxItems}";
+.osc.getOrders.alias="orders/%!{userId}";
 .osc.getOrders.method="get"}
 Interfaces: DEMOInterfaceHTTP
 }

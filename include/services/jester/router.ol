@@ -58,10 +58,39 @@ Protocol: http {
 	.default.delete = "delete";
 	.default.options = "options";
 	.method -> method;
+	.headers.authorization = "authorization";
 	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
 	.response.headers.("Access-Control-Allow-Origin") = "*";
 	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
 	.statusCode -> statusCode;
+	.format = "json"
+}
+Interfaces: WebIface
+}
+
+
+
+inputPort WebInputHttps {
+Location: API_ROUTER_HTTPS
+Protocol: https {
+	.debug=DEBUG;
+	.debug.showContent=DEBUG;
+	.default.get = "get";
+	.default.post = "post";
+	.default.put = "put";
+	.default.delete = "delete";
+	.default.options = "options";
+	.method -> method;
+	.headers.authorization = "authorization";
+	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
+	.response.headers.("Access-Control-Allow-Origin") = "*";
+	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
+	.statusCode -> statusCode;
+    .ssl.keyStore= KEY_STORE;
+    .ssl.keyStorePassword= KEY_STORE_PASSWORD;
+    .ssl.trustStore = TRUST_STORE;
+    .ssl.trustStorePassword= TRUST_STORE_PASSWORD;
+	.ssl.protocol=SSL_PROTOCOL;
 	.format = "json"
 }
 Interfaces: WebIface
@@ -157,6 +186,19 @@ define findRoute
 		}
 	}
 }
+define headerHandler{
+   findRoute;
+   valueToPrettyString@StringUtils(request)()
+   invokeRequestHearder.data.operation = op
+   invokeRequestHearder.data.headers << request
+   invokeRequestHearder.operation = "incomingHeaderHandler"
+   invokeRequestHearder.outputPort = "HeaderPort"
+   invoke@Reflection( invokeRequestHearder )( responseHandler )
+   undef (request.authorization)
+   foreach( n : responseHandler ) {
+			invokeReq.data.(n) << responseHandler.(n)
+	}
+}
 
 define route
 {
@@ -170,26 +212,58 @@ define route
 			.operation = op;
 			.outputPort = outputPort
 		};
-
-		foreach( n : request.data ) {
+	foreach( n : request.data ) {
 			invokeReq.data.(n) << request.data.(n)
-		};
-		foreach( n : found ) {
+	};	
+
+	foreach( n : found ) {
 			if ( is_defined( cast.( n ) ) ) {
 					if ( cast.( n ) == "int" ) {
-						invokeReq.data.(n) = int( found.(n) )
+					if (#invokeReq.data.(n)>1){	
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = int( invokeReq.data.(n)[counter] )
+					  }
+					}else{
+						invokeReq.data.(n) = int (found.(n))
+					}
+
 					} else if ( cast.( n ) == "long" ) {
-						invokeReq.data.(n) = long( found.(n) )
+					 if (#invokeReq.data.(n)>1){		
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = long( invokeReq.data.(n)[counter] )
+					  }
+					 }else{
+						 invokeReq.data.(n) = long (found.(n))
+					 }
 					} else if ( cast.( n ) == "double" ) {
-						invokeReq.data.(n) = double( found.(n) )
+					 if (#invokeReq.data.(n)>1){	
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = double( invokeReq.data.(n)[counter] )
+					  }
+					 }else{
+						  invokeReq.data.(n) = double (found.(n))
+					 }
 					} else if ( cast.( n ) == "bool" ) {
-						invokeReq.data.(n) = bool( found.(n) )
+					 if (#invokeReq.data.(n)>1){	
+                      for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						  invokeReq.data.(n)[counter] = bool( invokeReq.data.(n)[counter] )
+					  }
+					 }else{
+						 invokeReq.data.(n) = bool (found.(n))
+					 }
+						
 					}
 			} else {
 				  /* all the other cases */
-					invokeReq.data.(n) << found.(n)
+	           if (#invokeReq.data.(n)>1){
+				for(counter=0, counter<#invokeReq.data.(n) ,counter++){
+						invokeReq.data.(n)[counter] << invokeReq.data.(n)[counter]
+					}	
+			   }else{
+				   invokeReq.data.(n) << found.(n)
+			   }			
 		  }
-		};
+		}
 
 		scope( invoke_scope ) {
 			install( InvocationFault => 
@@ -245,21 +319,33 @@ main
 {
 	[ get( request )( response ) {
 		method = "get";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 
 	[ post( request )( response ) {
 		method = "post";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 
 	[ put( request )( response ) {
 		method = "put";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 
 	[ delete( request )( response ) {
 		method = "delete";
+		if (HANDLER ){
+           headerHandler
+		}
 		route
 	} ]
 

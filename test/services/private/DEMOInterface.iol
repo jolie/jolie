@@ -86,8 +86,8 @@ type getOrdersRequest: void {
 type getOrdersResponse:GetOrdersResponse
 interface DEMOInterface{
 RequestResponse:
-	getOrdersByItem( getOrdersByItemRequest )( getOrdersByItemResponse ) throws  Fault500_0(JolieFaultType2)  Fault500_1(JolieFaultType1)  Fault404( string ) ,
-	putOrder( putOrderRequest )( putOrderResponse ) throws Fault500(JolieFaultType0)  Fault404( string ) ,
+	getOrdersByItem( getOrdersByItemRequest )( getOrdersByItemResponse ) throws  FaultTest(FaultTest1) Fault500_1(JolieFaultType1)  Fault404( string ) ,
+	putOrder( putOrderRequest )( putOrderResponse ) throws FaultTest3(FaultTest2) Fault404( string ) ,
 	getUsers( getUsersRequest )( getUsersResponse ) throws Fault500( string )  Fault404( string ) ,
 	deleteOrder( deleteOrderRequest )( deleteOrderResponse ) throws Fault500( string )  Fault404( string ) ,
 	getOrders( getOrdersRequest )( getOrdersResponse ) throws Fault500( string )  Fault404( string ) 
