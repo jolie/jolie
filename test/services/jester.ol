@@ -119,7 +119,15 @@ define doTest {
     
     getJesterConfig@JesterConfigurator( jester )( config );
 
-    loadEmbeddedService@Runtime( { .filepath = "-C DEBUG=false -C API_ROUTER_HTTP=\"socket://" + router_host + "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
+    loadEmbeddedService@Runtime( { .filepath = "-C DEBUG=false" +
+                                                " -C API_ROUTER_HTTP=\"socket://" + router_host  + 
+                                                "\" -C API_ROUTER_HTTPS=\"local"  +
+                                                "\" -C KEY_STORE=\"" + jester_https_keyStore +
+                                                "\" -C KEY_STORE_PASSWORD=\"" + jester_https_keyStorePassword +
+                                                "\" -C TRUST_STORE=\"" + jester_https_trustStore +
+                                                "\" -C TRUST_STORE_PASSWORD=\"" + jester_https_trustStorePassword +
+                                                "\" -C SSL_PROTOCOL=\"" + jester_https_sslProtocol +
+                                                "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
     config@Jester( config )()
 
     // testing jester invoking the client
@@ -137,12 +145,12 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "putOrder - Received 404 when 200 was expected" ) )
         with( rq ) {
-        .userId = "ciao"
-        with( .order ) {
-            .title = "title";
-            .id = 5;
-            .date = "date"
-        }
+            .userId = "ciao"
+            with( .order ) {
+                .title = "title";
+                .id = 5;
+                .date = "date"
+            }
         }
         putOrder@Test( rq )( rs )
     }
