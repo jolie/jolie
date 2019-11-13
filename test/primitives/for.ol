@@ -14,7 +14,7 @@ define doTest
         }
     }
 
-    if ( count_c == 0) {
+    if ( count_c > 1) {
         throw( TestFailed )
     }
 }
