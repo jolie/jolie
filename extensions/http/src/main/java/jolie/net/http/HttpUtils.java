@@ -80,6 +80,8 @@ public class HttpUtils
 			return "delete";
 		case PUT:
 			return "put";
+                case OPTIONS:
+			return "options";
 		}
 		return null;
 	}

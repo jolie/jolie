@@ -33,7 +33,8 @@ public enum Method
 	POST( "POST" ),
 	GET( "GET" ),
 	PUT( "PUT" ),
-	DELETE( "DELETE" );
+	DELETE( "DELETE" ),
+        OPTIONS ("OPTIONS");
 
 	private final static Map< String, Method > idMap = new ConcurrentHashMap<>();
 
