@@ -24,6 +24,31 @@
             }, onError )
         }
 
+        function formatCode( code, line ) {
+            var lines = code.split(/\n/);
+            var returnHtml = "<table class='code'>";
+            for( var i = 0; i < lines.length; i++ ) {
+
+                var linenumber = i + 1
+                if ( linenumber == line ) {
+                    highlightedline = "class='highlightedline'"
+                } else {
+                    highlightedline = ""
+                }
+                returnHtml = returnHtml + "<tr><td class='line'>" + linenumber + "</td><td "  + highlightedline + ">" + lines[i].replace(/ /g,"&nbsp") + "</td></tr>"
+            }
+            returnHtml = returnHtml + "</table>"
+            return returnHtml;
+        }
+
+        function showCode( file, line ) {
+            JolieClient.getServiceFile( {"$": file }, function( data ) {
+                $( "#content" ).empty().html( formatCode( data.$, line ) );
+                $("#message").show()
+            }, onError)
+            
+        }
+
 
         function showMessage( el, message ) {
             $( "#content" ).empty().html( atob( message ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;") );
@@ -33,12 +58,16 @@
         function getTrace( trace ) {
             
             JolieClient.getTrace({ "$": trace }, function( data ) {
-                $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>Index</th><th>Timestamp</th><th>Service</th><th>Line</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
+                $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>Index</th><th>Timestamp</th><th>Service</th><th>Code Line</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
                 var table = $("#traceTable").DataTable({
                         "columnDefs": [
                             { "width": "5%", "targets": 0 },
-                            { "width": "5%", "targets": 3 },
-                            { "width": "5%", "targets": 6 }
+                            { "width": "20%","targets": 1 },
+                            { "width": "10%", "targets": 3 },
+                            { "className":"text-right", "targets": 3 },
+                            { "width": "5%", "targets": 4 },
+                            { "width": "5%", "targets": 6 },
+                            { "className":"text-right", "targets": 7 }
                         ]
                         });   
                 var lines = data.$.split(/\n/);
@@ -65,12 +94,13 @@
                                 key,
                                 obj[ key ][0],
                                 obj[ key ][2].split('/').pop(),
-                                obj[ key ][3],
+                                obj[ key ][3] + "&nbsp;<button onclick='showCode(\"" + obj[ key ][2] + "\"," + obj[ key ][3] + ")'>view</button>",
                                 obj[ key ][4],
                                 obj[ key ][5],
                                 obj[ key ][6],
                                 obj[ key ][7],
-                                "<button onclick='showMessage(this, \"" + obj[ key ][8] + "\")'>Show Message</button>"
+                                "<button onclick='showMessage(this, \"" + obj[ key ][8] + "\")'>Show Message</button><div style='display:none;'>" 
+                                    + atob( obj[ key ][8] ) + "</div>"
                             ])
                         }
                     } catch (e) {}

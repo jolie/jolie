@@ -5,5 +5,6 @@ type GetTraceListResponse: void {
 interface FrontendInterface {
     RequestResponse:
         getTraceList( void )( GetTraceListResponse ),
-        getTrace( string )( string )
+        getTrace( string )( string ),
+        getServiceFile( string )( string )
 }
