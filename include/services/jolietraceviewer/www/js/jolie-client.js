@@ -37,7 +37,9 @@ var JolieClient = JolieClient || (function() {
         jolieCall( "getTraceList", request, callback, errorHandler );
     }
     
-    
+    API.getServiceFile = function( request, callback, errorHandler ) {
+        jolieCall( "getServiceFile", request, callback, errorHandler );
+    }   
     
     return API;
 })();

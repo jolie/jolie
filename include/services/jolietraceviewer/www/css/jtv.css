@@ -3,6 +3,10 @@ body {
     font-size: 14px;
 }
 
+.code {
+    width:100%;
+}
+
 .headertable {
     width: 100%;
     font-size: 30px;
@@ -24,6 +28,24 @@ body {
     width:100%;
     height:100vh;
 }
+
+#message #content {
+    width:100%;
+    height: 90%;
+    overflow-y: auto;
+    position: relative;
+}
+
+.line {
+    background-color: #dddddd;
+    border: 1 px #bbbbbb;
+    padding:2px;
+}
+
+.highlightedline {
+    background-color: yellow;
+}
+
 .maintable {
     width: 100%;
 }
@@ -49,7 +71,6 @@ body {
     color: #333;
     border: 1px solid black;
     box-shadow: 5px 10px #aaa;
-    overflow-y: auto;
 }
 
 #message button {
@@ -58,9 +79,6 @@ body {
     margin:10px;
 }
 
-#message #content {
-    padding:30px;
-}
 
 .itemmenu {
     text-align: center;
