@@ -9,6 +9,9 @@
             
     </head>
     <script>
+
+        var current_row = {}
+
         function onError( data ) {
             alert( error )
         }
@@ -41,17 +44,30 @@
             return returnHtml;
         }
 
-        function showCode( file, line ) {
-            JolieClient.getServiceFile( {"$": file }, function( data ) {
-                $( "#content" ).empty().html( formatCode( data.$, line ) );
-                $("#message").show()
-            }, onError)
-            
+        function showCode( trace_line ) {
+            var next_trace_line = trace_line + 1
+            var previous_trace_line = trace_line - 1
+            if ( previous_trace_line < 0 ) previous_trace_line = 0;
+            JolieClient.getTraceLine( { "line": trace_line }, function( data ) {
+                current_row = JSON.parse( data[ "$" ] );
+                var key = Object.keys( current_row )[0];
+                JolieClient.getServiceFile( {"$": current_row[ key ][ 2 ] }, function( data ) {
+                    $( "#code #content" ).empty().html( formatCode( data.$, current_row[ key ][ 3 ] ) );
+                    $("#code #message-menu").html("<b>Index:</b>" + key  
+                        + "&nbsp;&nbsp;<b>Timestamp:</b>" + current_row[ key ][ 0 ]
+                        + "&nbsp;&nbsp;<b>Action:</b>" + current_row[ key][ 5 ]
+                        + "<br><b>Service:</b>" + current_row[ key][ 2 ]
+                        + "<br><button onclick='showMessage(\"" + current_row[ key][ 8 ] + "\" )'>Show Message</button>&nbsp;"
+                        + "<button onclick='showCode(" + previous_trace_line + ")'>Previous Trace Line</button>&nbsp;<button onclick='showCode(" + next_trace_line + ")'>Next Trace Line</button>" ) 
+                    $("#code").show()
+                    $("#code #content").scrollTop( $(".highlightedline").position().top - 100 )
+                }, onError)
+            }, onError )
         }
 
 
-        function showMessage( el, message ) {
-            $( "#content" ).empty().html( atob( message ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;") );
+        function showMessage( msg ) {
+            $( "#content" ).empty().html( atob( msg ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;"));
             $("#message").show()
         }
 
@@ -94,12 +110,12 @@
                                 key,
                                 obj[ key ][0],
                                 obj[ key ][2].split('/').pop(),
-                                obj[ key ][3] + "&nbsp;<button onclick='showCode(\"" + obj[ key ][2] + "\"," + obj[ key ][3] + ")'>view</button>",
+                                obj[ key ][3] + "&nbsp;<button onclick='showCode(" + key + ")'>view</button>",
                                 obj[ key ][4],
                                 obj[ key ][5],
                                 obj[ key ][6],
                                 obj[ key ][7],
-                                "<button onclick='showMessage(this, \"" + obj[ key ][8] + "\")'>Show Message</button><div style='display:none;'>" 
+                                "<button onclick='showMessage( \"" + obj[ key ][8] + "\")'>Show Message</button><div style='display:none;'>" 
                                     + atob( obj[ key ][8] ) + "</div>"
                             ])
                         }
@@ -115,7 +131,11 @@
         <div id="message">
             <button onclick="$('#message').hide()">Close</button>
             <div id='content'>
-
+            </div>
+        </div>
+        <div id="code">
+            <div id='message-menu'></div><button class="button-close" onclick="$('#code').hide()">Close</button>
+            <div id='content'>
             </div>
         </div>
         <table class='headertable'><tr><td>Jolie Trace Viewer</td></tr></table>

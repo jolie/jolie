@@ -33,6 +33,10 @@ var JolieClient = JolieClient || (function() {
         jolieCall( "getTrace", request, callback, errorHandler );
     }
     
+    API.getTraceLine = function( request, callback, errorHandler ) {
+        jolieCall( "getTraceLine", request, callback, errorHandler );
+    }
+
     API.getTraceList = function( request, callback, errorHandler ) {
         jolieCall( "getTraceList", request, callback, errorHandler );
     }
