@@ -52,15 +52,17 @@
                 current_row = JSON.parse( data[ "$" ] );
                 var key = Object.keys( current_row )[0];
                 JolieClient.getServiceFile( {"$": current_row[ key ][ 2 ] }, function( data ) {
-                    $( "#code #content" ).empty().html( formatCode( data.$, current_row[ key ][ 3 ] ) );
-                    $("#code #message-menu").html("<b>Index:</b>" + key  
+
+                    $("#code #message-menu").empty().html("<b>Index:</b>" + key  
                         + "&nbsp;&nbsp;<b>Timestamp:</b>" + current_row[ key ][ 0 ]
                         + "&nbsp;&nbsp;<b>Action:</b>" + current_row[ key][ 5 ]
                         + "<br><b>Service:</b>" + current_row[ key][ 2 ]
                         + "<br><button onclick='showMessage(\"" + current_row[ key][ 8 ] + "\" )'>Show Message</button>&nbsp;"
                         + "<button onclick='showCode(" + previous_trace_line + ")'>Previous Trace Line</button>&nbsp;<button onclick='showCode(" + next_trace_line + ")'>Next Trace Line</button>" ) 
+                    $( "#code #content" ).empty().html( formatCode( data.$, current_row[ key ][ 3 ] ) );
                     $("#code").show()
                     $("#code #content").scrollTop( $(".highlightedline").position().top - 100 )
+                    $( "#code #value" ).empty().html( atob( current_row[ key][ 8 ] ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;"));
                 }, onError)
             }, onError )
         }
@@ -71,19 +73,44 @@
             $("#message").show()
         }
 
+        function showCredits( ) {
+            $( "#content" ).empty().html("This app uses: <ul><li><a href='https://jquery.com/'>jquery-3.4.1</a></li><li><a href='https://datatables.net'>datatables-1.10.20</a></li></ul>");
+            $("#message").show()
+        }
+
         function getTrace( trace ) {
             
             JolieClient.getTrace({ "$": trace }, function( data ) {
                 $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>Index</th><th>Timestamp</th><th>Service</th><th>Code Line</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
+                $('#traceTable thead tr').clone(true).appendTo( '#traceTable thead' );
+                $('#traceTable thead tr:eq(1) th').each( function (i) {
+                    if (  i != 8 ) {
+                        var title = $(this).text();
+                        $(this).html( '<input style="width:100%;" type="text" placeholder="Search '+title+'" />' );
+                
+                        $( 'input', this ).on( 'keyup change', function () {
+                            if ( table.column(i).search() !== this.value ) {
+                                table
+                                    .column(i)
+                                    .search( this.value )
+                                    .draw();
+                            }
+                        } );
+                    } else {
+                        $( this).html("");
+                    }
+                } );
+                
                 var table = $("#traceTable").DataTable({
                         "columnDefs": [
                             { "width": "5%", "targets": 0 },
                             { "width": "20%","targets": 1 },
                             { "width": "10%", "targets": 3 },
-                            { "className":"text-right", "targets": 3 },
+                            { "className":"dt-body-right", "targets": 3 },
                             { "width": "5%", "targets": 4 },
                             { "width": "5%", "targets": 6 },
-                            { "className":"text-right", "targets": 7 }
+                            { "className":"dt-body-right", "targets": 7 },
+                            { "orderable": false, "targets":8 }
                         ]
                         });   
                 var lines = data.$.split(/\n/);
@@ -134,11 +161,18 @@
             </div>
         </div>
         <div id="code">
-            <div id='message-menu'></div><button class="button-close" onclick="$('#code').hide()">Close</button>
-            <div id='content'>
+            <div id="header" width='100%' height='20%'>
+                <div style="float:left;" width='80%'id='message-menu'></div>
+                <div style="float:right;"><button class="button-close" onclick="$('#code').hide()">Close</button></div>
+        
+            </div>
+            
+            <div height='80%'>
+                <div id='content' style="float:left"></div>
+                <div style="float:right" id='value'></div>    
             </div>
         </div>
-        <table class='headertable'><tr><td>Jolie Trace Viewer</td></tr></table>
+        <table class='headertable'><tr><td>Jolie Trace Viewer</td><td><a onclick="showCredits()" class="credits">Credits</a></td></tr></table>
         <table class='maintable'>
             <tr>
                 <td  valign='top' class='menutd'>
