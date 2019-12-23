@@ -5,6 +5,7 @@ body {
 
 .code {
     width:100%;
+    font-size:12px;
 }
 
 #code {
@@ -28,15 +29,38 @@ body {
 }
 
 #code #content {
-    width:100%;
-    height: 75%;
+    width:64%;
+    height: 85%;
     overflow-y: auto;
-    position: relative;
-    border-top: 2px solid black;
+    overflow-x: auto;
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+}
+
+#code #header {
+    padding: 10px;
 }
 
 #code #message-menu {
     padding:10px;
+}
+
+#code #value {
+    width:35%;
+    height:85%;
+    border-top: 1px solid black;
+    padding-top:5px;
+    overflow-y: auto;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.credits {
+    font-size:16px;
+}
+.credits:hover {
+    color: #aaa;
+    cursor: pointer;
 }
 
 .headertable {
