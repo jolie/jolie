@@ -120,6 +120,11 @@ public class SolicitResponseProcess implements Process
 				try {
 					types.requestType().check( message.value() );
 				} catch ( TypeCheckingException e ) {
+					log( "TYPE MISMATCH", message );
+					// just for logging also cause
+					Value tmpValue = Value.create();
+					tmpValue.setValue(e.getMessage());
+					log( "TYPE MISMATCH", new CommMessage(message.id(),message.operationName(), message.resourcePath(),tmpValue, null ));
 					if ( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}

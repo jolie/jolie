@@ -223,7 +223,8 @@ public class RequestResponseProcess implements InputOperationProcess
 					if ( operation.typeDescription().responseType() != null ) {
 						try {
 							operation.typeDescription().responseType().check( response.value() );
-						} catch( TypeCheckingException e ) {						
+						} catch( TypeCheckingException e ) {
+							log( "TYPE MISMATCH", response );
 							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );						
 							response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 							responseStatus = OperationEndedEvent.ERROR;

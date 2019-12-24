@@ -162,7 +162,7 @@ public class FileTracer implements Tracer {
         }
         switch( action.type() ) {
             case ASSIGNMENT:
-                stBuilder.append( "\"").append( "asgn" ).append( "\"," );
+                stBuilder.append( "\"").append( "comp" ).append( "\"," );
                 break;
             case POINTER:
                 stBuilder.append( "\"").append( "alias" ).append( "\"," );
