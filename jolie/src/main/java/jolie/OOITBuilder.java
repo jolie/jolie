@@ -593,7 +593,7 @@ public class OOITBuilder implements OLVisitor
 			.add( n.id(), 0 )
 			.add( Constants.PROTOCOL_NODE_NAME, 0 )
 			.toVariablePath();
-		Process assignProtocol = new AssignmentProcess( protocolPath, Value.create( n.protocolId() ) );
+		Process assignProtocol = new AssignmentProcess( protocolPath, Value.create( n.protocolId() ), n.context() );
 		Process[] confChildren = new Process[] { buildProcess( n.protocolConfiguration() ), assignProtocol };
 		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
 
@@ -1042,7 +1042,7 @@ public class OOITBuilder implements OLVisitor
 		AssignmentProcess p = 
 			new AssignmentProcess(
 				buildVariablePath( n.variablePath() ),
-				currExpression
+				currExpression, n.context()
 				);
 		currProcess = p;
 		currExpression = p;
@@ -1067,7 +1067,7 @@ public class OOITBuilder implements OLVisitor
 		SubtractAssignmentProcess p =
 			new SubtractAssignmentProcess(
 			buildVariablePath( n.variablePath() ),
-			currExpression );
+			currExpression, n.context() );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1142,7 +1142,7 @@ public class OOITBuilder implements OLVisitor
 		currProcess =
 			new MakePointerProcess(
 				buildVariablePath( n.leftPath() ),
-				buildVariablePath( n.rightPath() )
+				buildVariablePath( n.rightPath() ), n.context()
 			);
 	}
 
@@ -1152,7 +1152,7 @@ public class OOITBuilder implements OLVisitor
 			new DeepCopyProcess(
 				buildVariablePath( n.leftPath() ),
 				buildExpression( n.rightExpression() ),
-				n.copyLinks()
+				n.copyLinks(), n.context()
 			);
 	}
 

@@ -54,7 +54,7 @@ public class MessageTraceAction implements TraceAction
 		this.message = message;
 		this.context = context;
 	}
-	
+
 	public Type type()
 	{
 		return type;

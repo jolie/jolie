@@ -55,6 +55,8 @@ public class PrintingTracer implements Tracer
 			trace( (MessageTraceAction) action );
 		} else if ( action instanceof EmbeddingTraceAction ) {
 			trace( (EmbeddingTraceAction) action );
+		} else if ( action instanceof AssignmentTraceAction ) {
+			trace( (AssignmentTraceAction) action );
 		}
 	}
 	
@@ -122,6 +124,50 @@ public class PrintingTracer implements Tracer
 				messageValue,
 				writer,
 				"Value:"
+			);
+			printer.setByteTruncation( 50 );
+			printer.setIndentationOffset( 6 );
+			try {
+				printer.run();
+			} catch( IOException e ) {} // Should never happen
+			stBuilder.append( writer.toString() );
+		}
+		System.out.println( stBuilder.toString() );
+	}
+
+	private void trace( AssignmentTraceAction action )
+	{
+		StringBuilder stBuilder = new StringBuilder();
+		if ( action.context() == null ) {
+			stBuilder.append(interpreter.logPrefix()).append("\t");
+		} else {
+			stBuilder.append( action.context().sourceName() ).append(":").append( action.context().line() );
+		}
+		stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+		switch( action.type() ) {
+			case ASSIGNMENT:
+				stBuilder.append( ":: ASSIGNMENT" );
+				break;
+			case POINTER:
+				stBuilder.append( ":: POINTER" );
+				break;
+			case DEEPCOPY:
+				stBuilder.append( ":: DEEPCOPY" );
+				break;
+			default:
+				break;
+		}
+		stBuilder
+				.append( "\t" ).append( action.name() )
+				.append( "\t\t\t" ).append( action.description() );
+		if ( action.value() != null ) {
+			Writer writer = new StringWriter();
+			Value value = action.value();
+
+			ValuePrettyPrinter printer = new ValuePrettyPrinter(
+					value,
+					writer,
+					"Value:"
 			);
 			printer.setByteTruncation( 50 );
 			printer.setIndentationOffset( 6 );

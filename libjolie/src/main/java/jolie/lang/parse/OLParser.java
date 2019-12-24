@@ -2123,11 +2123,13 @@ public class OLParser extends AbstractParser
 			retVal =
 				new PointerStatement( getContext(), path, parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
+			ParsingContext context = getContext();
 			getToken();
-			retVal = new DeepCopyStatement( getContext(), path, parseExpression(), false );
+			retVal = new DeepCopyStatement( context, path, parseExpression(), false );
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) ) {
+			ParsingContext context = getContext();
 			getToken();
-			retVal = new DeepCopyStatement( getContext(), path, parseExpression(), true );
+			retVal = new DeepCopyStatement( context, path, parseExpression(), true );
 		} else {
 			throwException( "expected = or -> or << or -- or ++" );
 		}

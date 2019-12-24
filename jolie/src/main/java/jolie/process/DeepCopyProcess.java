@@ -22,20 +22,41 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
+import jolie.tracer.AssignmentTraceAction;
+import jolie.tracer.Tracer;
+import jolie.tracer.TracerUtils;
+import jolie.util.Pair;
 
 public class DeepCopyProcess implements Process
 {
 	private final VariablePath leftPath;
 	private final Expression rightExpression;
 	private final boolean copyLinks;
+	private final ParsingContext context;
 
-	public DeepCopyProcess( VariablePath leftPath, Expression rightExpression, boolean copyLinks )
+	public DeepCopyProcess( VariablePath leftPath, Expression rightExpression, boolean copyLinks, ParsingContext context )
 	{
 		this.leftPath = leftPath;
 		this.rightExpression = rightExpression;
 		this.copyLinks = copyLinks;
+		this.context = context;
+	}
+
+	private void log(String description, Value value, String name )
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new AssignmentTraceAction(
+				AssignmentTraceAction.Type.DEEPCOPY,
+				name,
+				description,
+				value,
+				context
+		) );
 	}
 
 	@Override
@@ -44,7 +65,8 @@ public class DeepCopyProcess implements Process
 		return new DeepCopyProcess(
 			(VariablePath)leftPath.cloneExpression( reason ),
 			rightExpression.cloneExpression( reason ),
-			copyLinks
+			copyLinks,
+				context
 		);
 	}
 
@@ -63,8 +85,9 @@ public class DeepCopyProcess implements Process
 				leftPath.getValue().deepCopy( rightExpression.evaluate() );
 			}
 		}
+		log( "COPIED", leftPath.getValue(), TracerUtils.getVarPathString(leftPath.path()));
 	}
-	
+
 	@Override
 	public boolean isKillable()
 	{

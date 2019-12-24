@@ -57,7 +57,7 @@
                         + "&nbsp;&nbsp;<b>Timestamp:</b>" + current_row[ key ][ 0 ]
                         + "&nbsp;&nbsp;<b>Action:</b>" + current_row[ key][ 5 ]
                         + "<br><b>Service:</b>" + current_row[ key][ 2 ]
-                        + "<br><button onclick='showMessage(\"" + current_row[ key][ 8 ] + "\" )'>Show Message</button>&nbsp;"
+                        + "<br><button onclick='showMessage(\"" + current_row[ key][ 8 ] + "\" )'>Show Value</button>&nbsp;"
                         + "<button onclick='showCode(" + previous_trace_line + ")'>Previous Trace Line</button>&nbsp;<button onclick='showCode(" + next_trace_line + ")'>Next Trace Line</button>" ) 
                     $( "#code #content" ).empty().html( formatCode( data.$, current_row[ key ][ 3 ] ) );
                     $("#code").show()
@@ -142,7 +142,7 @@
                                 obj[ key ][5],
                                 obj[ key ][6],
                                 obj[ key ][7],
-                                "<button onclick='showMessage( \"" + obj[ key ][8] + "\")'>Show Message</button><div style='display:none;'>" 
+                                "<button onclick='showMessage( \"" + obj[ key ][8] + "\")'>Show Value</button><div style='display:none;'>" 
                                     + atob( obj[ key ][8] ) + "</div>"
                             ])
                         }
@@ -162,7 +162,7 @@
         </div>
         <div id="code">
             <div id="header" width='100%' height='20%'>
-                <div style="float:left;" width='80%'id='message-menu'></div>
+                <div style="float:left;width:80%;" id='message-menu'></div>
                 <div style="float:right;"><button class="button-close" onclick="$('#code').hide()">Close</button></div>
         
             </div>
