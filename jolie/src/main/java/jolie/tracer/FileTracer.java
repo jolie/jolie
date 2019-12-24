@@ -38,6 +38,8 @@ public class FileTracer implements Tracer {
             trace( (MessageTraceAction) action );
         } else if ( action instanceof EmbeddingTraceAction ) {
             trace( (EmbeddingTraceAction) action );
+        } else if ( action instanceof AssignmentTraceAction ) {
+            trace( (AssignmentTraceAction) action );
         }
     }
 
@@ -126,6 +128,62 @@ public class FileTracer implements Tracer {
             }
             ValuePrettyPrinter printer = new ValuePrettyPrinter(
                     messageValue,
+                    writer,
+                    "Value:"
+            );
+            printer.setByteTruncation( 50 );
+            printer.setIndentationOffset( 6 );
+            try {
+                printer.run();
+            } catch( IOException e ) {} // Should never happen
+
+            String encodedString = Base64.getEncoder().encodeToString(writer.toString().trim().getBytes());
+            stBuilder.append( "\"").append( encodedString ).append( "\"" );
+        }
+        stBuilder.append("]}\n");
+        try {
+            fileWriter.write(stBuilder.toString());
+            fileWriter.flush();
+        } catch( IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    private void trace( AssignmentTraceAction action )
+    {
+        StringBuilder stBuilder = new StringBuilder();
+        stBuilder.append( "{");
+        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
+        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
+        if ( action.context() == null ) {
+            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+        } else {
+            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
+        }
+        switch( action.type() ) {
+            case ASSIGNMENT:
+                stBuilder.append( "\"").append( "asgn" ).append( "\"," );
+                break;
+            case POINTER:
+                stBuilder.append( "\"").append( "alias" ).append( "\"," );
+                break;
+            case DEEPCOPY:
+                stBuilder.append( "\"").append( "dcopy" ).append( "\"," );
+                break;
+            default:
+                break;
+        }
+        stBuilder.append( "\"").append( action.description() ).append( "\"," );
+
+        stBuilder.append( "\"").append( action.name() ).append( "\"" );
+        if ( action.value() != null ) {
+            stBuilder.append( ",\"\"," );
+
+            Writer writer = new StringWriter();
+            Value value = action.value();
+
+            ValuePrettyPrinter printer = new ValuePrettyPrinter(
+                    value,
                     writer,
                     "Value:"
             );
