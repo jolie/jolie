@@ -21,6 +21,16 @@
 
 include "../AbstractTestUnit.iol"
 
+include "private/fault_handling_main.iol"
+
+outputPort FaultHandlingMain {
+Interfaces: FaultHandlingMainIface
+}
+
+embedded {
+Jolie: "private/fault_handling_main.ol" in FaultHandlingMain
+}
+
 define terminationTest
 {
 	i = y = 0
@@ -90,5 +100,9 @@ define doTest
 	simpleFaultTest
 	terminationTest
 	runtimeExceptionTest
+	reply@FaultHandlingMain(42)(x)
+	if ( x != 42 ) {
+		throw( TestFailed, "Fault handling main error" )
+	}
 }
 

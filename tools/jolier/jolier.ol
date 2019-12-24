@@ -53,28 +53,40 @@ main {
 
     if (#args == 1){
         if ( args[ 0 ] == "createHandler" ) {
-              f.content ="type incomingHeaderHandlerRequest:void{.operation:string 
-                                                                .headers:undefined
-                                                                }
-                         type incomingHeaderHandlerResponse: undefined
-                         interface HeaderHandlerInterface{
-                         RequestResponse:
-                            incomingHeaderHandler(incomingHeaderHandlerRequest)(incomingHeaderHandlerResponse)
-                        }
-                        inputPort HeaderPort {
-                                Protocol:sodep
-                                Location:\"local\"
-                                Interfaces:HeaderHandlerInterface
-                        }
+f.content ="type incomingHeaderHandlerRequest:void{
+    .operation:string 
+    .headers:undefined
+}
+type incomingHeaderHandlerResponse: undefined
 
-                        execution { concurrent }
-                        main{
-                            [incomingHeaderHandler(request)(response){
-                                /* add your implementation */
-                                nullProcess
+type outgoingHeaderHandlerRequest:void{
+    .operation:string 
+    .response?:undefined
+}
 
-                            }]
-            }"
+type outgoingHeaderHandlerResponse: undefined
+
+interface HeaderHandlerInterface{
+    RequestResponse:
+    incomingHeaderHandler(incomingHeaderHandlerRequest)(incomingHeaderHandlerResponse),
+    outgoingHeaderHandler(outgoingHeaderHandlerRequest)(outgoingHeaderHandlerResponse)
+}
+inputPort HeaderPort {
+        Protocol:sodep
+        Location:\"local\"
+        Interfaces:HeaderHandlerInterface
+}
+
+execution { concurrent }
+main{
+    [incomingHeaderHandler(request)(response){
+        nullProcess
+    }]
+
+    [outgoingHeaderHandler(request)(response){
+      nullProcess  
+    }]
+}"
 
       f.filename = "RestHandler.ol"
       writeFile@File( f )()
