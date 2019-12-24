@@ -28,6 +28,7 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 import jolie.tracer.AssignmentTraceAction;
+import jolie.tracer.DummyTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
 import jolie.util.Pair;
@@ -72,7 +73,16 @@ public class MakePointerProcess implements Process
 			return;
 
 		leftPath.makePointer( rightPath );
-		log( "POINTS", rightPath.getValue(), TracerUtils.getVarPathString(leftPath.path()));
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		if ( !( tracer instanceof DummyTracer) ){
+			tracer.trace(() -> new AssignmentTraceAction(
+					AssignmentTraceAction.Type.ASSIGNMENT,
+					"POINTS",
+					TracerUtils.getVarPathString(leftPath.path().clone()),
+					rightPath.getValue(ExecutionThread.currentThread().state().root().clone()),
+					context
+			));
+		}
 	}
 	
 	public boolean isKillable()

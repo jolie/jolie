@@ -27,7 +27,7 @@ main {
     }]
 
     [ getTraceLine( request )( response ) {
-        response = global.trace_lines.result[ request.line - 1]
+        response = global.trace_lines.result[ request.line ]
     }]
 
     [ getServiceFile( request )( response ) {

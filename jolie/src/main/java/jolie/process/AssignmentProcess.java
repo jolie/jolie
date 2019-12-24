@@ -28,10 +28,7 @@ import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
-import jolie.tracer.AssignmentTraceAction;
-import jolie.tracer.MessageTraceAction;
-import jolie.tracer.Tracer;
-import jolie.tracer.TracerUtils;
+import jolie.tracer.*;
 import jolie.util.Pair;
 
 /** Assigns an expression value to a VariablePath.
@@ -44,19 +41,6 @@ public class AssignmentProcess implements Process, Expression
 	final private VariablePath varPath;
 	final private Expression expression;
 	final private ParsingContext context;
-
-	private void log( String description, Value value, String name )
-	{
-		final Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace( () -> new AssignmentTraceAction(
-				AssignmentTraceAction.Type.ASSIGNMENT,
-				name,
-				description,
-				value,
-				context
-		) );
-	}
-
 
 	/** Constructor.
 	 * 
@@ -93,8 +77,18 @@ public class AssignmentProcess implements Process, Expression
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		varPath.getValue().assignValue( expression.evaluate() );
-		log( "ASSIGN", varPath.getValue(), TracerUtils.getVarPathString(varPath.path()));
+		Value evaluationValue = expression.evaluate();
+		varPath.getValue().assignValue( evaluationValue );
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		if ( !( tracer instanceof DummyTracer ) ){
+			tracer.trace(() -> new AssignmentTraceAction(
+					AssignmentTraceAction.Type.ASSIGNMENT,
+					"ASSIGN",
+					TracerUtils.getVarPathString(varPath.path().clone()),
+					evaluationValue.clone(),
+					context
+			));
+		}
 	}
 	
 	public Value evaluate()

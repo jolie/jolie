@@ -12,6 +12,9 @@ public final class TracerUtils {
                 stringBuilder.append(".");
             }
             stringBuilder.append(path[p].key().evaluate().strValue());
+            if ( path[p].value() != null ) {
+                stringBuilder.append("[").append(path[p].value().evaluate().strValue()).append("]");
+            }
         }
         return stringBuilder.toString();
     }

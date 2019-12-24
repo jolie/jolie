@@ -56,6 +56,7 @@
                     $("#code #message-menu").empty().html("<b>Index:</b>" + key  
                         + "&nbsp;&nbsp;<b>Timestamp:</b>" + current_row[ key ][ 0 ]
                         + "&nbsp;&nbsp;<b>Action:</b>" + current_row[ key][ 5 ]
+                        + "&nbsp;&nbsp;<b>Description:</b>" + current_row[ key][ 6 ]
                         + "<br><b>Service:</b>" + current_row[ key][ 2 ]
                         + "<br><button onclick='showMessage(\"" + current_row[ key][ 8 ] + "\" )'>Show Value</button>&nbsp;"
                         + "<button onclick='showCode(" + previous_trace_line + ")'>Previous Trace Line</button>&nbsp;<button onclick='showCode(" + next_trace_line + ")'>Next Trace Line</button>" ) 
@@ -81,10 +82,10 @@
         function getTrace( trace ) {
             
             JolieClient.getTrace({ "$": trace }, function( data ) {
-                $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>Index</th><th>Timestamp</th><th>Service</th><th>Code Line</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
+                $("#bodytd").empty().append("<table id='traceTable'><thead><tr><th>File<br>Index</th><th>Prog.<br>Index</th><th>Timestamp</th><th>Service</th><th>Code Line</th><th>Action Type</th><th>Action</th><th>Description</th><th>MsgId</th><th>Message</th></tr></thead></table>")
                 $('#traceTable thead tr').clone(true).appendTo( '#traceTable thead' );
                 $('#traceTable thead tr:eq(1) th').each( function (i) {
-                    if (  i != 8 ) {
+                    if (  i != 9 ) {
                         var title = $(this).text();
                         $(this).html( '<input style="width:100%;" type="text" placeholder="Search '+title+'" />' );
                 
@@ -104,13 +105,14 @@
                 var table = $("#traceTable").DataTable({
                         "columnDefs": [
                             { "width": "5%", "targets": 0 },
-                            { "width": "20%","targets": 1 },
-                            { "width": "10%", "targets": 3 },
-                            { "className":"dt-body-right", "targets": 3 },
-                            { "width": "5%", "targets": 4 },
-                            { "width": "5%", "targets": 6 },
-                            { "className":"dt-body-right", "targets": 7 },
-                            { "orderable": false, "targets":8 }
+                            { "width": "5%", "targets": 1 },
+                            { "width": "20%","targets": 2 },
+                            { "width": "10%", "targets": 4 },
+                            { "className":"dt-body-right", "targets": 4 },
+                            { "width": "5%", "targets": 5 },
+                            { "width": "5%", "targets": 7 },
+                            { "className":"dt-body-right", "targets": 8 },
+                            { "orderable": false, "targets":9 }
                         ]
                         });   
                 var lines = data.$.split(/\n/);
@@ -120,6 +122,7 @@
                         var key = Object.keys( obj )[0];
                         if ( obj[ key ].length == 7 ) {
                             table.row.add([
+                                i,
                                 key,
                                 obj[ key ][0],
                                 obj[ key ][2],
@@ -134,10 +137,11 @@
                         }
                         if ( obj[ key ].length == 9 ) {
                             table.row.add([
+                                i,
                                 key,
                                 obj[ key ][0],
                                 obj[ key ][2].split('/').pop(),
-                                obj[ key ][3] + "&nbsp;<button onclick='showCode(" + key + ")'>view</button>",
+                                obj[ key ][3] + "&nbsp;<button onclick='showCode(" + i + ")'>view</button>",
                                 obj[ key ][4],
                                 obj[ key ][5],
                                 obj[ key ][6],
