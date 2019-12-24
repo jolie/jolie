@@ -59,9 +59,7 @@ Protocol: http {
 	.default.options = "options";
 	.method -> method;
 	.headers.authorization = "authorization";
-	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
-	.response.headers.("Access-Control-Allow-Origin") = "*";
-	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
+	.response.headers -> responseOutgoingHeaders;
 	.statusCode -> statusCode;
 	.format = "json"
 }
@@ -82,9 +80,7 @@ Protocol: https {
 	.default.options = "options";
 	.method -> method;
 	.headers.authorization = "authorization";
-	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
-	.response.headers.("Access-Control-Allow-Origin") = "*";
-	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
+	.response.headers -> responseOutgoingHeaders;
 	.statusCode -> statusCode;
     .ssl.keyStore= KEY_STORE;
     .ssl.keyStorePassword= KEY_STORE_PASSWORD;
@@ -200,6 +196,23 @@ define headerHandler{
 	}
 }
 
+define headerHandlerResponse{
+
+   undef (invokeRequestHearder)
+   invokeRequestHearder.data.operation = op
+   invokeRequestHearder.data.response << response
+   invokeRequestHearder.operation = "outgoingHeaderHandler"
+   invokeRequestHearder.outputPort = "HeaderPort"
+   invoke@Reflection( invokeRequestHearder )( invokeReponseHeader ) 
+   foreach( n : invokeReponseHeader ) {
+	       if (is_defined (invokeReponseHeader.(n).deleteResponseNode) ){
+			   undef (response.(invokeReponseHeader.(n).deleteResponseNode))
+		   }
+		   responseOutgoingHeaders.(n) = invokeReponseHeader.(n)
+			
+	}
+}
+
 define route
 {
 	findRoute;
@@ -279,6 +292,9 @@ define route
 					
 			)
 			invoke@Reflection( invokeReq )( response )
+			responseOutgoingHeaders.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS"
+			responseOutgoingHeaders.("Access-Control-Allow-Origin") = "*"
+			responseOutgoingHeaders.("Access-Control-Allow-Headers") = "Content-Type"
 		}
 	}
 }
@@ -323,6 +339,9 @@ main
            headerHandler
 		}
 		route
+		if (HANDLER ){
+           headerHandlerResponse
+		}
 	} ]
 
 	[ post( request )( response ) {
@@ -331,6 +350,9 @@ main
            headerHandler
 		}
 		route
+		if (HANDLER ){
+           headerHandlerResponse
+		}
 	} ]
 
 	[ put( request )( response ) {
@@ -339,6 +361,9 @@ main
            headerHandler
 		}
 		route
+		if (HANDLER ){
+           headerHandlerResponse
+		}
 	} ]
 
 	[ delete( request )( response ) {
@@ -347,6 +372,9 @@ main
            headerHandler
 		}
 		route
+		 if (HANDLER ){
+           headerHandlerResponse
+		}
 	} ]
 
 	[ options( request )( response ) {
