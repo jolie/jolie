@@ -40,6 +40,8 @@ public class FileTracer implements Tracer {
             trace( (EmbeddingTraceAction) action );
         } else if ( action instanceof AssignmentTraceAction ) {
             trace( (AssignmentTraceAction) action );
+        } else if ( action instanceof ProtocolTraceAction ) {
+            trace( (ProtocolTraceAction) action );
         }
     }
 
@@ -125,6 +127,7 @@ public class FileTracer implements Tracer {
             Value messageValue = action.message().value();
             if ( action.message().isFault() ) {
                 messageValue = action.message().fault().value();
+                messageValue.getFirstChild("__faultname").setValue(action.message().fault().faultName());
             }
             ValuePrettyPrinter printer = new ValuePrettyPrinter(
                     messageValue,
@@ -132,7 +135,7 @@ public class FileTracer implements Tracer {
                     "Value:"
             );
             printer.setByteTruncation( 50 );
-            printer.setIndentationOffset( 6 );
+            printer.setIndentationOffset( 0 );
             try {
                 printer.run();
             } catch( IOException e ) {} // Should never happen
@@ -194,6 +197,46 @@ public class FileTracer implements Tracer {
             } catch( IOException e ) {} // Should never happen
 
             String encodedString = Base64.getEncoder().encodeToString(writer.toString().trim().getBytes());
+            stBuilder.append( "\"").append( encodedString ).append( "\"" );
+        }
+        stBuilder.append("]}\n");
+        try {
+            fileWriter.write(stBuilder.toString());
+            fileWriter.flush();
+        } catch( IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    private void trace( ProtocolTraceAction action )
+    {
+        StringBuilder stBuilder = new StringBuilder();
+        stBuilder.append( "{");
+        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
+        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
+        if ( action.context() == null ) {
+            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+        } else {
+            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
+        }
+        switch( action.type() ) {
+            case HTTP:
+                stBuilder.append( "\"").append( "http" ).append( "\"," );
+                break;
+            case SOAP:
+                stBuilder.append( "\"").append( "soap" ).append( "\"," );
+                break;
+            default:
+                break;
+        }
+        stBuilder.append( "\"").append( action.description() ).append( "\"," );
+
+        stBuilder.append( "\"").append( action.name() ).append( "\"" );
+        if ( action.message() != null ) {
+            stBuilder.append( ",\"\"," );
+
+
+            String encodedString = Base64.getEncoder().encodeToString(action.message().getBytes());
             stBuilder.append( "\"").append( encodedString ).append( "\"" );
         }
         stBuilder.append("]}\n");

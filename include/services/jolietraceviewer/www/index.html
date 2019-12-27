@@ -12,6 +12,14 @@
 
         var current_row = {}
 
+        function htmlEncode( str ) {
+            return str.replace(/&/g, '&amp;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+        }
+
         function onError( data ) {
             alert( error )
         }
@@ -62,15 +70,18 @@
                         + "<button onclick='showCode(" + previous_trace_line + ")'>Previous Trace Line</button>&nbsp;<button onclick='showCode(" + next_trace_line + ")'>Next Trace Line</button>" ) 
                     $( "#code #content" ).empty().html( formatCode( data.$, current_row[ key ][ 3 ] ) );
                     $("#code").show()
-                    $("#code #content").scrollTop( $(".highlightedline").position().top - 100 )
-                    $( "#code #value" ).empty().html( atob( current_row[ key][ 8 ] ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;"));
+                    console.log($(".highlightedline").length)
+                    if ( $(".highlightedline").length > 0 )  {
+                        $("#code #content").scrollTop( $(".highlightedline").position().top - 100 )
+                    }
+                    $( "#code #value" ).empty().html( htmlEncode( atob( current_row[ key][ 8 ] ).trim() ))
                 }, onError)
             }, onError )
         }
 
 
         function showMessage( msg ) {
-            $( "#content" ).empty().html( atob( msg ).replace(/\n/g,"<br>").replace(/\t/g,"&nbsp;"));
+            $( "#content" ).empty().html( htmlEncode( atob( msg ).trim() ))
             $("#message").show()
         }
 
