@@ -57,6 +57,8 @@ public class PrintingTracer implements Tracer
 			trace( (EmbeddingTraceAction) action );
 		} else if ( action instanceof AssignmentTraceAction ) {
 			trace( (AssignmentTraceAction) action );
+		} else if ( action instanceof ProtocolTraceAction ) {
+			trace( (ProtocolTraceAction) action );
 		}
 	}
 	
@@ -119,6 +121,7 @@ public class PrintingTracer implements Tracer
 			Value messageValue = action.message().value();
 			if ( action.message().isFault() ) {
 				messageValue = action.message().fault().value();
+				messageValue.getFirstChild("__faultname").setValue(action.message().fault().faultName());
 			}
 			ValuePrettyPrinter printer = new ValuePrettyPrinter(
 				messageValue,
@@ -175,6 +178,36 @@ public class PrintingTracer implements Tracer
 				printer.run();
 			} catch( IOException e ) {} // Should never happen
 			stBuilder.append( writer.toString() );
+		}
+		System.out.println( stBuilder.toString() );
+	}
+
+	private void trace( ProtocolTraceAction action )
+	{
+		StringBuilder stBuilder = new StringBuilder();
+		if ( action.context() == null ) {
+			stBuilder.append(interpreter.logPrefix()).append("\t");
+		} else {
+			stBuilder.append( action.context().sourceName() ).append(":").append( action.context().line() );
+		}
+		stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+		switch( action.type() ) {
+			case HTTP:
+				stBuilder.append( "HTTP" );
+				break;
+			case SOAP:
+				stBuilder.append( "SOAP" );
+				break;
+			default:
+				break;
+		}
+		stBuilder
+				.append( "\t" ).append( action.name() )
+				.append( "\t\t\t" ).append( action.description() );
+		if ( action.message() != null ) {
+			Writer writer = new StringWriter();
+
+			stBuilder.append( action.message() );
 		}
 		System.out.println( stBuilder.toString() );
 	}

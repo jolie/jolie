@@ -52,7 +52,7 @@ body {
     padding-top:5px;
     overflow-y: auto;
     overflow-x: auto;
-    white-space: nowrap;
+    white-space: pre-wrap;
 }
 
 .credits {
@@ -136,6 +136,7 @@ body {
     position: relative;
     border-top: 2px solid black;
     padding:10px;
+    white-space: pre-wrap;
 }
 
 
