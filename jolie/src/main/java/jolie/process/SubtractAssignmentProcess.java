@@ -51,14 +51,14 @@ public class SubtractAssignmentProcess implements Process, Expression
 
 	public Process copy( TransformationReason reason )
 	{
-		return new AssignmentProcess(
+		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ) );
 	}
 
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new AssignmentProcess(
+		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ) );
 	}
