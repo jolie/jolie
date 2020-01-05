@@ -15,8 +15,11 @@ public class FileTracer implements Tracer {
     private int actionCounter = 0;
     Writer fileWriter;
     private final Interpreter interpreter;
+    private TracerUtils.TracerLevels tracerLevels;
 
-    public FileTracer(Interpreter interpreter ) {
+    public FileTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel  )
+    {
+        this.tracerLevels = tLevel;
         this.interpreter = interpreter;
         String format = "ddMMyyyyHHmmss";
         SimpleDateFormat sdf = new SimpleDateFormat( format );
@@ -54,31 +57,33 @@ public class FileTracer implements Tracer {
 
     private void trace( EmbeddingTraceAction action )
     {
-        StringBuilder stBuilder = new StringBuilder();
-        stBuilder.append( "{");
-        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
-        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
-        if ( action.context() == null ) {
-            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
-        } else {
-            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
-        }
+        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) ) {
+            StringBuilder stBuilder = new StringBuilder();
+            stBuilder.append("{");
+            stBuilder.append("\"").append(Integer.toString(actionCounter)).append("\":[");
+            stBuilder.append("\"").append(getCurrentTimeStamp()).append("\",");
+            if (action.context() == null) {
+                stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+            } else {
+                stBuilder.append("\"").append(action.context().source()).append("\",\"").append(action.context().sourceName()).append("\",\"").append(action.context().line()).append("\",");
+            }
 
 
-        switch( action.type() ) {
-            case SERVICE_LOAD:
-                stBuilder.append( "\"").append( "emb" ).append( "\"," );
-                break;
-            default:
-                break;
-        }
-        stBuilder.append( "\"").append( action.name() ).append( "\"," );
-        stBuilder.append( "\"").append( action.description() ).append( "\"]}\n" );
-        try {
-            fileWriter.write(stBuilder.toString());
-            fileWriter.flush();
-        } catch( IOException e ) {
-            e.printStackTrace();
+            switch (action.type()) {
+                case SERVICE_LOAD:
+                    stBuilder.append("\"").append("emb").append("\",");
+                    break;
+                default:
+                    break;
+            }
+            stBuilder.append("\"").append(action.name()).append("\",");
+            stBuilder.append("\"").append(action.description()).append("\"]}\n");
+            try {
+                fileWriter.write(stBuilder.toString());
+                fileWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
 
@@ -86,165 +91,174 @@ public class FileTracer implements Tracer {
 
     private void trace( MessageTraceAction action )
     {
-        StringBuilder stBuilder = new StringBuilder();
-        stBuilder.append( "{");
-        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
-        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
-        if ( action.context() == null ) {
-            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
-        } else {
-            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
-        }
-        switch( action.type() ) {
-            case SOLICIT_RESPONSE:
-                stBuilder.append( "\"").append( "sr" ).append( "\"," );
-                break;
-            case NOTIFICATION:
-                stBuilder.append( "\"").append( "n" ).append( "\"," );
-                break;
-            case ONE_WAY:
-                stBuilder.append( "\"").append( "ow" ).append( "\"," );
-                break;
-            case REQUEST_RESPONSE:
-                stBuilder.append( "\"").append( "rr" ).append( "\"," );
-                break;
-            case COURIER_NOTIFICATION:
-                stBuilder.append( "\"").append( "cn" ).append( "\"," );
-                break;
-            case COURIER_SOLICIT_RESPONSE:
-                stBuilder.append( "\"").append( "csr" ).append( "\"," );
-                break;
-            default:
-                break;
-        }
-        stBuilder.append( "\"").append( action.description() ).append( "\"," );
-
-        stBuilder.append( "\"").append( action.name() ).append( "\"" );
-        if ( action.message() != null ) {
-            stBuilder.append( ",\"").append( action.message().id() ).append( "\"," );
-
-            Writer writer = new StringWriter();
-            Value messageValue = action.message().value();
-            if ( action.message().isFault() ) {
-                messageValue = action.message().fault().value();
-                messageValue.getFirstChild("__faultname").setValue(action.message().fault().faultName());
+        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) || (tracerLevels.equals(TracerUtils.TracerLevels.COMM))) {
+            StringBuilder stBuilder = new StringBuilder();
+            stBuilder.append("{");
+            stBuilder.append("\"").append(Integer.toString(actionCounter)).append("\":[");
+            stBuilder.append("\"").append(getCurrentTimeStamp()).append("\",");
+            if (action.context() == null) {
+                stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+            } else {
+                stBuilder.append("\"").append(action.context().source()).append("\",\"").append(action.context().sourceName()).append("\",\"").append(action.context().line()).append("\",");
             }
-            ValuePrettyPrinter printer = new ValuePrettyPrinter(
-                    messageValue,
-                    writer,
-                    "Value:"
-            );
-            printer.setByteTruncation( 50 );
-            printer.setIndentationOffset( 0 );
-            try {
-                printer.run();
-            } catch( IOException e ) {} // Should never happen
+            switch (action.type()) {
+                case SOLICIT_RESPONSE:
+                    stBuilder.append("\"").append("sr").append("\",");
+                    break;
+                case NOTIFICATION:
+                    stBuilder.append("\"").append("n").append("\",");
+                    break;
+                case ONE_WAY:
+                    stBuilder.append("\"").append("ow").append("\",");
+                    break;
+                case REQUEST_RESPONSE:
+                    stBuilder.append("\"").append("rr").append("\",");
+                    break;
+                case COURIER_NOTIFICATION:
+                    stBuilder.append("\"").append("cn").append("\",");
+                    break;
+                case COURIER_SOLICIT_RESPONSE:
+                    stBuilder.append("\"").append("csr").append("\",");
+                    break;
+                default:
+                    break;
+            }
+            stBuilder.append("\"").append(action.description()).append("\",");
 
-            String encodedString = Base64.getEncoder().encodeToString(writer.toString().trim().getBytes());
-            stBuilder.append( "\"").append( encodedString ).append( "\"" );
-        }
-        stBuilder.append("]}\n");
-        try {
-            fileWriter.write(stBuilder.toString());
-            fileWriter.flush();
-        } catch( IOException e ) {
-            e.printStackTrace();
+            stBuilder.append("\"").append(action.name()).append("\"");
+            if (action.message() != null) {
+                stBuilder.append(",\"").append(action.message().id()).append("\",");
+
+                Writer writer = new StringWriter();
+                Value messageValue = action.message().value().clone();
+                if (action.message().isFault()) {
+                    messageValue = action.message().fault().value();
+                    messageValue.getFirstChild("__faultname").setValue(action.message().fault().faultName());
+                }
+                ValuePrettyPrinter printer = new ValuePrettyPrinter(
+                        messageValue,
+                        writer,
+                        "Value:"
+                );
+                printer.setByteTruncation(50);
+                printer.setIndentationOffset(0);
+                try {
+                    printer.run();
+                } catch (IOException e) {
+                } // Should never happen
+
+                String encodedString = Base64.getEncoder().encodeToString(writer.toString().trim().getBytes());
+                stBuilder.append("\"").append(encodedString).append("\"");
+            }
+            stBuilder.append("]}\n");
+            try {
+                fileWriter.write(stBuilder.toString());
+                fileWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void trace( AssignmentTraceAction action )
     {
-        StringBuilder stBuilder = new StringBuilder();
-        stBuilder.append( "{");
-        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
-        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
-        if ( action.context() == null ) {
-            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
-        } else {
-            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
-        }
-        switch( action.type() ) {
-            case ASSIGNMENT:
-                stBuilder.append( "\"").append( "comp" ).append( "\"," );
-                break;
-            case POINTER:
-                stBuilder.append( "\"").append( "alias" ).append( "\"," );
-                break;
-            case DEEPCOPY:
-                stBuilder.append( "\"").append( "dcopy" ).append( "\"," );
-                break;
-            default:
-                break;
-        }
-        stBuilder.append( "\"").append( action.description() ).append( "\"," );
+        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) || (tracerLevels.equals(TracerUtils.TracerLevels.COMP))) {
 
-        stBuilder.append( "\"").append( action.name() ).append( "\"" );
-        if ( action.value() != null ) {
-            stBuilder.append( ",\"\"," );
+            StringBuilder stBuilder = new StringBuilder();
+            stBuilder.append("{");
+            stBuilder.append("\"").append(Integer.toString(actionCounter)).append("\":[");
+            stBuilder.append("\"").append(getCurrentTimeStamp()).append("\",");
+            if (action.context() == null) {
+                stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+            } else {
+                stBuilder.append("\"").append(action.context().source()).append("\",\"").append(action.context().sourceName()).append("\",\"").append(action.context().line()).append("\",");
+            }
+            switch (action.type()) {
+                case ASSIGNMENT:
+                    stBuilder.append("\"").append("comp").append("\",");
+                    break;
+                case POINTER:
+                    stBuilder.append("\"").append("alias").append("\",");
+                    break;
+                case DEEPCOPY:
+                    stBuilder.append("\"").append("dcopy").append("\",");
+                    break;
+                default:
+                    break;
+            }
+            stBuilder.append("\"").append(action.description()).append("\",");
 
-            Writer writer = new StringWriter();
-            Value value = action.value();
+            stBuilder.append("\"").append(action.name()).append("\"");
+            if (action.value() != null) {
+                stBuilder.append(",\"\",");
 
-            ValuePrettyPrinter printer = new ValuePrettyPrinter(
-                    value,
-                    writer,
-                    "Value:"
-            );
-            printer.setByteTruncation( 50 );
-            printer.setIndentationOffset( 6 );
+                Writer writer = new StringWriter();
+                Value value = action.value();
+
+                ValuePrettyPrinter printer = new ValuePrettyPrinter(
+                        value,
+                        writer,
+                        "Value:"
+                );
+                printer.setByteTruncation(50);
+                printer.setIndentationOffset(6);
+                try {
+                    printer.run();
+                } catch (IOException e) {
+                } // Should never happen
+
+                String encodedString = Base64.getEncoder().encodeToString(writer.toString().trim().getBytes());
+                stBuilder.append("\"").append(encodedString).append("\"");
+            }
+            stBuilder.append("]}\n");
             try {
-                printer.run();
-            } catch( IOException e ) {} // Should never happen
-
-            String encodedString = Base64.getEncoder().encodeToString(writer.toString().trim().getBytes());
-            stBuilder.append( "\"").append( encodedString ).append( "\"" );
-        }
-        stBuilder.append("]}\n");
-        try {
-            fileWriter.write(stBuilder.toString());
-            fileWriter.flush();
-        } catch( IOException e ) {
-            e.printStackTrace();
+                fileWriter.write(stBuilder.toString());
+                fileWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void trace( ProtocolTraceAction action )
     {
-        StringBuilder stBuilder = new StringBuilder();
-        stBuilder.append( "{");
-        stBuilder.append( "\"").append( Integer.toString( actionCounter ) ).append( "\":[" );
-        stBuilder.append("\"").append( getCurrentTimeStamp() ).append("\",");
-        if ( action.context() == null ) {
-            stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
-        } else {
-            stBuilder.append("\"").append( action.context().source() ).append( "\",\"" ).append( action.context().sourceName() ).append( "\",\"").append( action.context().line() ).append("\",");
-        }
-        switch( action.type() ) {
-            case HTTP:
-                stBuilder.append( "\"").append( "http" ).append( "\"," );
-                break;
-            case SOAP:
-                stBuilder.append( "\"").append( "soap" ).append( "\"," );
-                break;
-            default:
-                break;
-        }
-        stBuilder.append( "\"").append( action.description() ).append( "\"," );
+        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) || (tracerLevels.equals(TracerUtils.TracerLevels.COMM))) {
+            StringBuilder stBuilder = new StringBuilder();
+            stBuilder.append("{");
+            stBuilder.append("\"").append(Integer.toString(actionCounter)).append("\":[");
+            stBuilder.append("\"").append(getCurrentTimeStamp()).append("\",");
+            if (action.context() == null) {
+                stBuilder.append("\"").append(interpreter.programDirectory() + interpreter.programFilename()).append("\",\"").append(interpreter.programFilename()).append("\",\"\",");
+            } else {
+                stBuilder.append("\"").append(action.context().source()).append("\",\"").append(action.context().sourceName()).append("\",\"").append(action.context().line()).append("\",");
+            }
+            switch (action.type()) {
+                case HTTP:
+                    stBuilder.append("\"").append("http").append("\",");
+                    break;
+                case SOAP:
+                    stBuilder.append("\"").append("soap").append("\",");
+                    break;
+                default:
+                    break;
+            }
+            stBuilder.append("\"").append(action.description()).append("\",");
 
-        stBuilder.append( "\"").append( action.name() ).append( "\"" );
-        if ( action.message() != null ) {
-            stBuilder.append( ",\"\"," );
+            stBuilder.append("\"").append(action.name()).append("\"");
+            if (action.message() != null) {
+                stBuilder.append(",\"\",");
 
 
-            String encodedString = Base64.getEncoder().encodeToString(action.message().getBytes());
-            stBuilder.append( "\"").append( encodedString ).append( "\"" );
-        }
-        stBuilder.append("]}\n");
-        try {
-            fileWriter.write(stBuilder.toString());
-            fileWriter.flush();
-        } catch( IOException e ) {
-            e.printStackTrace();
+                String encodedString = Base64.getEncoder().encodeToString(action.message().getBytes());
+                stBuilder.append("\"").append(encodedString).append("\"");
+            }
+            stBuilder.append("]}\n");
+            try {
+                fileWriter.write(stBuilder.toString());
+                fileWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

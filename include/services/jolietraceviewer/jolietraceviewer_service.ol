@@ -28,7 +28,7 @@ outputPort Frontend {
 }
 
 embedded {
-	Jolie: "--trace frontend.ol" in Frontend
+	Jolie: "frontend.ol" in Frontend
 
 }
 
@@ -70,7 +70,7 @@ main
 {
 	[ default( request )( response ) {
 		scope( s ) {
-			install( FileNotFound => println@Console( "File not found: " + file.filename )(); statusCode = 404 );
+			install( FileNotFound => nullProcess; statusCode = 404 );
 
 			split@StringUtils( request.operation { .regex = "\\?" } )( s );
 
