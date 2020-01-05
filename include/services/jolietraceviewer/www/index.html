@@ -75,7 +75,11 @@
                         $("#code #content").scrollTop( $(".highlightedline").position().top - 100 )
                     }
                     $( "#code #value" ).empty().html( htmlEncode( atob( current_row[ key][ 8 ] ).trim() ))
-                }, onError)
+                }, function(data){
+                    // error in retrieving file
+                    alert( "File " + current_row[ key ][ 2 ] + " not found, line skipped");
+                    showCode( next_trace_line + 1 )
+                })
             }, onError )
         }
 
