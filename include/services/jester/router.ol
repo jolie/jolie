@@ -184,7 +184,6 @@ define findRoute
 }
 define headerHandler{
    findRoute;
-   valueToPrettyString@StringUtils(request)()
    invokeRequestHearder.data.operation = op
    invokeRequestHearder.data.headers << request
    invokeRequestHearder.operation = "incomingHeaderHandler"
