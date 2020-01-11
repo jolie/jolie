@@ -55,4 +55,11 @@
 			</plugin>
 		</plugins>
 	</build>
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Jolie Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/jolie/jolie</url>
+		</repository>
+	</distributionManagement>
 </project>
