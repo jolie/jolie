@@ -104,12 +104,14 @@ public class JavaDocumentCreatorTest
 
 		//Program program = parser.parse();
 		inspector = ParsingUtils.createInspector( program );
-		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true);
+
+		// testing interfaceOnly = true
+		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true, false);
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 43, new File( outputDirectory + "com/test/types" ).list().length );
-		assertEquals( "The number of generated files is wrong", 5, new File( outputDirectory +"com/test" ).list().length );
-		assertEquals( "The number of generated files is wrong", 2, new File( outputDirectory ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 43, new File( outputDirectory + "com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 5, new File( outputDirectory +"com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 2, new File( outputDirectory ).list().length );
 
 		// load classes
 		File generated = new File( outputDirectory  );

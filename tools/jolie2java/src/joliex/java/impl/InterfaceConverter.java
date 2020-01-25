@@ -30,7 +30,6 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import joliex.java.impl.InterfaceVisitor;
 import joliex.java.impl.InterfaceVisitor.InterfaceNotFound;
 
 /**

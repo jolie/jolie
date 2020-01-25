@@ -62,6 +62,7 @@ public class JavaDocumentCreator
 	private final String targetPort;
 	private final boolean addSource;
 	private final boolean buildXml;
+	private final boolean interfaceOnly;
 	private final int INDENTATION_STEP = 1;
 	private final String TYPEFOLDER = "types";
 	private int indentation;
@@ -90,14 +91,15 @@ public class JavaDocumentCreator
 			"synchronized", "this", "throw", "throws", "transient", "true",
 			"try", "void", "volatile", "while" };
 
-	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml )
+	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml, boolean interfaceOnly )
 	{
 
 		this.inspector = inspector;
-		this.packageName = packageName;
+		this.packageName = packageName.replaceAll("-","_");
 		this.targetPort = targetPort;
 		this.addSource = addSource;
 		this.buildXml = buildXml;
+		this.interfaceOnly = interfaceOnly;
 
 		if ( outputDirectory == null ) {
 			this.outputDirectory = defaultOutputDirectory;
@@ -248,44 +250,51 @@ public class JavaDocumentCreator
 		}
 
 		// prepare interfaceImpl
-		for( OutputPortInfo outputPort : outputPorts ) {
-			/* range over the input ports */
-			if ( targetPort == null || outputPort.id().equals( targetPort ) ) {
+		if ( !interfaceOnly ) {
+			for (OutputPortInfo outputPort : outputPorts) {
+				/* range over the input ports */
+				if (targetPort == null || outputPort.id().equals(targetPort)) {
 
-				String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Impl.java";
-				Writer writer;
-				try {
-					writer = new BufferedWriter( new FileWriter( nameFile ) );
-					prepareInterfaceImpl( outputPort, writer );
-					writer.flush();
-					writer.close();
-				} catch( IOException ex ) {
-					Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+					String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Impl.java";
+					Writer writer;
+					try {
+						writer = new BufferedWriter(new FileWriter(nameFile));
+						prepareInterfaceImpl(outputPort, writer);
+						writer.flush();
+						writer.close();
+					} catch (IOException ex) {
+						Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+					}
 				}
 			}
 		}
 
 		// prepare JolieClient
-		String nameFile = outputDirectory + Constants.fileSeparator + "JolieClient.java";
-		Writer writer;
-		try {
-			writer = new BufferedWriter( new FileWriter( nameFile ) );
-			prepareJolieClient( writer );
-			writer.flush();
-			writer.close();
-		} catch( IOException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+		if ( !interfaceOnly ) {
+			String nameFile = outputDirectory + Constants.fileSeparator + "JolieClient.java";
+			Writer writer;
+			try {
+				writer = new BufferedWriter(new FileWriter(nameFile));
+				prepareJolieClient(writer);
+				writer.flush();
+				writer.close();
+			} catch (IOException ex) {
+				Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 
 		// prepare Controller
-		nameFile = outputDirectory + Constants.fileSeparator + "Controller.java";
-		try {
-			writer = new BufferedWriter( new FileWriter( nameFile ) );
-			prepareController( writer );
-			writer.flush();
-			writer.close();
-		} catch( IOException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+		if ( !interfaceOnly ) {
+			String nameFile = outputDirectory + Constants.fileSeparator + "Controller.java";
+			Writer writer;
+			try {
+				writer = new BufferedWriter(new FileWriter(nameFile));
+				prepareController(writer);
+				writer.flush();
+				writer.close();
+			} catch (IOException ex) {
+				Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 	}
 
