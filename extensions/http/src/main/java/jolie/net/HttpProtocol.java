@@ -851,10 +851,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				compression = false;
 			}
 			if ( compression ) {
-				if ( !(Interpreter.getInstance().tracer() instanceof DummyTracer) ) {
-					final String traceMessage = encodedContent.content.toString(charset);
-					Interpreter.getInstance().tracer().trace(() -> new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP COMPRESSING MESSAGE", message.resourcePath(), traceMessage, null ));
-				}
+
+
+				Interpreter.getInstance().tracer().trace( () -> {
+					try {
+						final String traceMessage = encodedContent.content.toString(charset);
+						return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP COMPRESSING MESSAGE", message.resourcePath(), traceMessage, null );
+					} catch ( UnsupportedEncodingException e ) {
+						return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP COMPRESSING MESSAGE", message.resourcePath(), e.getMessage(), null );
+					}
+
+				} );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
@@ -925,10 +932,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		send_logDebugInfo( headerBuilder, encodedContent, charset );
 
-		if ( !(Interpreter.getInstance().tracer() instanceof DummyTracer) ) {
-			final String traceMessage = prepareSendDebugString(headerBuilder, encodedContent, charset, true);
-			Interpreter.getInstance().tracer().trace(() -> new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE SENT", message.resourcePath(), traceMessage, null ));
-		}
+		Interpreter.getInstance().tracer().trace(() -> {
+			try {
+				final String traceMessage = prepareSendDebugString(headerBuilder, encodedContent, charset, true);
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE SENT", message.resourcePath(), traceMessage, null);
+			} catch( UnsupportedEncodingException e ) {
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE SENT", message.resourcePath(), e.getMessage(), null);
+			}
+		});
 
 		inputId = message.operationName();
 
@@ -1350,11 +1361,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		// tracer
-		if ( !(Interpreter.getInstance().tracer() instanceof DummyTracer) ) {
-			final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
-			Interpreter.getInstance().tracer().trace(() -> new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED", message.requestPath(), traceMessage, null ));
+		Interpreter.getInstance().tracer().trace(() -> {
+			try {
+				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED", message.requestPath(), traceMessage, null );
+			} catch (IOException e) {
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED", message.requestPath(), e.getMessage(), null );
 
-		}
+			}
+
+		});
 
 		recv_checkForStatusCode( message );
 
