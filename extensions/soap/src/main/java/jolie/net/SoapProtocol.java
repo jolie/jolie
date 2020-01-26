@@ -34,14 +34,8 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
+
+import java.io.*;
 import java.net.URI;
 import java.util.Base64;
 import java.util.Collection;
@@ -719,7 +713,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		throws IOException
 	{
 
-		StringBuilder httpMessage = new StringBuilder();
+		final StringBuilder httpMessage = new StringBuilder();
 		ByteArray content = null;
 
 		try {
@@ -1023,16 +1017,22 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				interpreter.logInfo( "[SOAP debug] Sending:\n" + httpMessage.toString() + plainTextContent.toString( "utf-8" ) );
 			}
 
-			if ( !(interpreter.tracer() instanceof DummyTracer) ) {
-				final String traceMessage = httpMessage.toString() + plainTextContent.toString("utf-8");
-				interpreter.tracer().trace(() -> new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE SENT", message.operationName(), traceMessage, null ));
+			interpreter.tracer().trace(() -> {
+				try {
+					final String traceMessage = httpMessage.toString() + plainTextContent.toString("utf-8");
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE SENT", message.operationName(), traceMessage, null );
 
-			}
+				} catch (UnsupportedEncodingException e) {
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE SENT", message.operationName(), e.getMessage(), null );
+
+				}
+
+			});
 
 			inputId = message.operationName();
 		} catch( Exception e ) {
 			if ( received ) {
-				httpMessage = new StringBuilder();
+				httpMessage.setLength(0);
 
 				try {
 					SOAPMessage soapMessage = messageFactory.createMessage();
@@ -1283,12 +1283,17 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
 			}
 
-			if ( !(interpreter.tracer() instanceof DummyTracer) ) {
+			final String mId = messageId;
+			interpreter.tracer().trace(() -> {
 				final StringBuilder traceMessage = new StringBuilder();
-				traceMessage.append( getHeadersFromHttpMessage(message) ).append( "\n" ).append( new String( message.content(), charset ));
-				final String mId = messageId;
-				interpreter.tracer().trace(() -> new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE RECEIVED", mId, traceMessage.toString(), null ));
-			}
+				try {
+					traceMessage.append( getHeadersFromHttpMessage(message) ).append( "\n" ).append( new String( message.content(), charset ));
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE RECEIVED", mId, traceMessage.toString(), null );
+				} catch (UnsupportedEncodingException e) {
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE RECEIVED", mId, e.getMessage(), null );
+				}
+
+			});
 		} catch( SOAPException e ) {
 			throw new IOException( e );
 		} catch( ParserConfigurationException e ) {
