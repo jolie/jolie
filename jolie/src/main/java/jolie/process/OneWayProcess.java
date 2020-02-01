@@ -24,6 +24,7 @@ package jolie.process;
 import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
@@ -40,11 +41,13 @@ public class OneWayProcess implements InputOperationProcess
 	private final OneWayOperation operation;
 	private final VariablePath varPath;
 	private boolean isSessionStarter = false;
+	private final ParsingContext context;
 
-	public OneWayProcess( OneWayOperation operation, VariablePath varPath )
+	public OneWayProcess( OneWayOperation operation, VariablePath varPath, ParsingContext context )
 	{
 		this.operation = operation;
 		this.varPath = varPath;
+		this.context = context;
 	}
 
 	public void setSessionStarter( boolean isSessionStarter )
@@ -59,7 +62,7 @@ public class OneWayProcess implements InputOperationProcess
 	
 	public Process copy( TransformationReason reason )
 	{
-		return new OneWayProcess( operation, varPath );
+		return new OneWayProcess( operation, varPath, context );
 	}
 	
 	public VariablePath inputVarPath()
@@ -120,7 +123,8 @@ public class OneWayProcess implements InputOperationProcess
 			MessageTraceAction.Type.ONE_WAY,
 			operation.id(),
 			log,
-			message
+			message,
+			context
 		) );
 	}
 

@@ -19,14 +19,7 @@
 
 package jolie.net;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -55,6 +48,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import jolie.tracer.DummyTracer;
+import jolie.tracer.ProtocolTraceAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -856,6 +851,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				compression = false;
 			}
 			if ( compression ) {
+
+
+				Interpreter.getInstance().tracer().trace( () -> {
+					try {
+						final String traceMessage = encodedContent.content.toString(charset);
+						return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP COMPRESSING MESSAGE", message.resourcePath(), traceMessage, null );
+					} catch ( UnsupportedEncodingException e ) {
+						return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP COMPRESSING MESSAGE", message.resourcePath(), e.getMessage(), null );
+					}
+
+				} );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
@@ -865,20 +871,27 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
+	private String prepareSendDebugString( CharSequence header, EncodedContent encodedContent, String charset, boolean showContent)
+			throws UnsupportedEncodingException {
+		StringBuilder debugSB = new StringBuilder();
+		debugSB.append( "[HTTP debug] Sending:\n" );
+		debugSB.append( header );
+		if ( showContent ) {
+			debugSB.append( encodedContent.content.toString( charset ) );
+		}
+		return debugSB.toString();
+	}
+
 	private void send_logDebugInfo( CharSequence header, EncodedContent encodedContent, String charset )
 		throws IOException
 	{
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-			StringBuilder debugSB = new StringBuilder();
-			debugSB.append( "[HTTP debug] Sending:\n" );
-			debugSB.append( header );
+			boolean showContent = false;
 			if (
-				getParameterVector( Parameters.DEBUG ).first().getFirstChild( "showContent" ).intValue() > 0
-				&& encodedContent.content != null
-				) {
-				debugSB.append( encodedContent.content.toString( charset ) );
-			}
-			Interpreter.getInstance().logInfo( debugSB.toString() );
+					getParameterVector( Parameters.DEBUG ).first().getFirstChild( "showContent" ).intValue() > 0
+							&& encodedContent.content != null
+			) { showContent = true; }
+			Interpreter.getInstance().logInfo( prepareSendDebugString(header,encodedContent,charset, showContent) );
 		}
 	}
 
@@ -918,6 +931,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		headerBuilder.append( HttpUtils.CRLF );
 
 		send_logDebugInfo( headerBuilder, encodedContent, charset );
+
+		Interpreter.getInstance().tracer().trace(() -> {
+			try {
+				final String traceMessage = prepareSendDebugString(headerBuilder, encodedContent, charset, true);
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE SENT", message.resourcePath(), traceMessage, null);
+			} catch( UnsupportedEncodingException e ) {
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE SENT", message.resourcePath(), e.getMessage(), null);
+			}
+		});
+
 		inputId = message.operationName();
 
 		ostream.write( headerBuilder.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
@@ -1140,12 +1163,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	/*
 	 * Prints debug information about a received message
 	 */
-	private void recv_logDebugInfo( HttpMessage message, String charset )
+	private String getDebugMessage(HttpMessage message, String charset, boolean showContent )
 		throws IOException
 	{
 		StringBuilder debugSB = new StringBuilder();
 		debugSB.append( "[HTTP debug] Receiving:\n" );
 		debugSB.append( "HTTP Code: " + message.statusCode() + "\n" );
+		debugSB.append( "HTTP Method: " + message.type().name() + "\n" );
 		debugSB.append( "Resource: " + message.requestPath() + "\n" );
 		debugSB.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
@@ -1157,14 +1181,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		for( Entry< String, String > entry : message.cookies().entrySet() ) {
 			debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
 		}
-		if (
-			getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
-			&& message.size() > 0
-		) {
+		if ( showContent ) {
 			debugSB.append( "--> Message content\n" );
 			debugSB.append( new String( message.content(), charset ) );
 		}
-		Interpreter.getInstance().logInfo( debugSB.toString() );
+		return debugSB.toString();
 	}
 
 	private void recv_parseRequestFormat( String type )
@@ -1331,8 +1352,25 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-			recv_logDebugInfo( message, charset );
+			boolean showContent = false;
+			if (
+					getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
+							&& message.size() > 0
+			) { showContent = true; }
+			Interpreter.getInstance().logInfo( getDebugMessage( message, charset, showContent ));
 		}
+
+		// tracer
+		Interpreter.getInstance().tracer().trace(() -> {
+			try {
+				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED", message.requestPath(), traceMessage, null );
+			} catch (IOException e) {
+				return new ProtocolTraceAction(ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED", message.requestPath(), e.getMessage(), null );
+
+			}
+
+		});
 
 		recv_checkForStatusCode( message );
 

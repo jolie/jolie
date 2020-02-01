@@ -37,6 +37,7 @@ main {
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
         println@Console("[-easyInterface]:\t if set no templates will be exploited for generating the json file. Default is false. jolier will read templates from file rest_template.json")()
         println@Console("[-debug]:\t when set it enables the debug modality, default is false")()
+        println@Console("[-debug-file]:\t when set it enables the file tracing modality, default is false")()
         println@Console("[-headerHandler]:\t when set it enables the header handler service, default is false")()
         println@Console("[-keyStore]:\t  sets the keyStore location")()
         println@Console("[-keyStorePassword]:\t  sets the keyStore password")()
@@ -113,6 +114,9 @@ main{
                 i++
             } else if ( args[ i ] == "-debug" ) {
                 debug = true
+            } else if ( args[ i ] == "-debug-file" ) {
+                debug_file = true
+                i++
                 i++
             }else if ( args[ i ] == "-headerHandler" ) {
                 headerHandler = true
@@ -141,6 +145,8 @@ main{
     
     if ( debug ) {
         debug_string = "--trace -C DEBUG=true"
+    } else if ( debug_file ) {
+        debug_string = "--trace file -C DEBUG=false"
     } else {
         debug_string = "-C DEBUG=false"
     }

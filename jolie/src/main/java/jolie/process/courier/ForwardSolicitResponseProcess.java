@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
@@ -51,6 +52,7 @@ public class ForwardSolicitResponseProcess implements Process
 	private final OutputPort outputPort;
 	private final VariablePath outputVariablePath, inputVariablePath;
 	private final RequestResponseTypeDescription aggregatedTypeDescription, extenderTypeDescription;
+	private final ParsingContext context;
 
 	public ForwardSolicitResponseProcess(
 			String operationName,
@@ -58,7 +60,8 @@ public class ForwardSolicitResponseProcess implements Process
 			VariablePath outputVariablePath,
 			VariablePath inputVariablePath,
 			RequestResponseTypeDescription aggregatedTypeDescription,
-			RequestResponseTypeDescription extenderTypeDescription
+			RequestResponseTypeDescription extenderTypeDescription,
+			ParsingContext context
 	) {
 		this.operationName = operationName;
 		this.outputPort = outputPort;
@@ -66,6 +69,7 @@ public class ForwardSolicitResponseProcess implements Process
 		this.inputVariablePath = inputVariablePath;
 		this.aggregatedTypeDescription = aggregatedTypeDescription;
 		this.extenderTypeDescription = extenderTypeDescription;
+		this.context = context;
 	}
 	
 	public Process copy( TransformationReason reason )
@@ -76,7 +80,8 @@ public class ForwardSolicitResponseProcess implements Process
 			outputVariablePath,
 			inputVariablePath,
 			aggregatedTypeDescription,
-			extenderTypeDescription
+			extenderTypeDescription,
+			context
 		);
 	}
 	
@@ -87,7 +92,8 @@ public class ForwardSolicitResponseProcess implements Process
 			MessageTraceAction.Type.COURIER_SOLICIT_RESPONSE,
 			operationName + "@" + outputPort.id(),
 			log,
-			message
+			message,
+			context
 		) );
 	}
 

@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.events.OperationCallEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -45,18 +46,21 @@ public class NotificationProcess implements Process
 	private final OutputPort outputPort;
 	private final Expression outputExpression; // may be null
 	private final OneWayTypeDescription oneWayDescription; // may be null
+	private final ParsingContext context;
 
 	public NotificationProcess(
 			String operationId,
 			OutputPort outputPort,
 			Expression outputExpression,
-			OneWayTypeDescription outputType
+			OneWayTypeDescription outputType,
+			ParsingContext context
 			)
 	{
 		this.operationId = operationId;
 		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
 		this.oneWayDescription = outputType;
+		this.context = context;
 	}
 	
 	public Process copy( TransformationReason reason )
@@ -65,7 +69,8 @@ public class NotificationProcess implements Process
 					operationId,
 					outputPort,
 					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
-					oneWayDescription
+					oneWayDescription,
+					context
 				);
 	}
 
@@ -76,7 +81,8 @@ public class NotificationProcess implements Process
 			MessageTraceAction.Type.NOTIFICATION,
 			operationId + "@" + outputPort.id(),
 			log,
-			message
+			message,
+			context
 		) );
 	}
 

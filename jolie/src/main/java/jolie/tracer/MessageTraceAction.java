@@ -22,6 +22,7 @@
 
 package jolie.tracer;
 
+import jolie.lang.parse.context.ParsingContext;
 import jolie.net.CommMessage;
 
 /**
@@ -43,15 +44,17 @@ public class MessageTraceAction implements TraceAction
 	private final String name;
 	private final String description;
 	private final CommMessage message;
+	private final ParsingContext context;
 	
-	public MessageTraceAction( Type type, String name, String description, CommMessage message )
+	public MessageTraceAction(Type type, String name, String description, CommMessage message, ParsingContext context )
 	{
 		this.type = type;
 		this.name = name;
 		this.description = description;
 		this.message = message;
+		this.context = context;
 	}
-	
+
 	public Type type()
 	{
 		return type;
@@ -71,4 +74,6 @@ public class MessageTraceAction implements TraceAction
 	{
 		return message;
 	}
+
+	public ParsingContext context() { return context; }
 }

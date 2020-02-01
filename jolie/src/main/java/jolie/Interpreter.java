@@ -92,9 +92,7 @@ import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
-import jolie.tracer.DummyTracer;
-import jolie.tracer.PrintingTracer;
-import jolie.tracer.Tracer;
+import jolie.tracer.*;
 
 /**
  * The Jolie interpreter engine.
@@ -885,6 +883,7 @@ public class Interpreter
     public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, boolean ignoreFile )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
+		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.parentClassLoader = parentClassLoader;
         
 		cmdParser = new CommandLineParser( args, parentClassLoader, ignoreFile );
@@ -895,6 +894,15 @@ public class Interpreter
 		printStackTraces = cmdParser.printStackTraces();
 		
 		responseTimeout = cmdParser.responseTimeout();
+
+		switch( cmdParser.tracerLevel() ) {
+			case "comm":
+				tracerLevel = TracerUtils.TracerLevels.COMM;
+				break;
+			case "comp":
+				tracerLevel = TracerUtils.TracerLevels.COMP;
+				break;
+		}
         
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
 		
@@ -908,7 +916,11 @@ public class Interpreter
 		logPrefix = builder.toString();
 
 		if ( cmdParser.tracer() ) {
-			tracer = new PrintingTracer( this );
+			if ( cmdParser.tracerMode().equals("file")) {
+				tracer = new FileTracer( this, tracerLevel );
+			} else {
+				tracer = new PrintingTracer(this, tracerLevel );
+			}
 		} else {
 			tracer = new DummyTracer();
 		}
