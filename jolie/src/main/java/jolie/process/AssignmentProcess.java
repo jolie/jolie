@@ -80,15 +80,14 @@ public class AssignmentProcess implements Process, Expression
 		Value evaluationValue = expression.evaluate();
 		varPath.getValue().assignValue( evaluationValue );
 		final Tracer tracer = Interpreter.getInstance().tracer();
-		if ( !( tracer instanceof DummyTracer ) ){
-			tracer.trace(() -> new AssignmentTraceAction(
+		tracer.trace(() -> new AssignmentTraceAction(
 					AssignmentTraceAction.Type.ASSIGNMENT,
 					"ASSIGN",
 					TracerUtils.getVarPathString(varPath.path().clone()),
 					evaluationValue.clone(),
 					context
 			));
-		}
+
 	}
 	
 	public Value evaluate()

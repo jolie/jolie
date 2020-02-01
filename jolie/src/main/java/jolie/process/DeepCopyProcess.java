@@ -76,15 +76,15 @@ public class DeepCopyProcess implements Process
 			}
 		}
 		final Tracer tracer = Interpreter.getInstance().tracer();
-		if ( !( tracer instanceof DummyTracer) ){
-			tracer.trace(() -> new AssignmentTraceAction(
-					AssignmentTraceAction.Type.DEEPCOPY,
-					"COPIED",
-					TracerUtils.getVarPathString(leftPath.path()),
-					leftPath.getValue(ExecutionThread.currentThread().state().root().clone()),
-					context
-			));
-		}
+
+		tracer.trace(() -> new AssignmentTraceAction(
+				AssignmentTraceAction.Type.DEEPCOPY,
+				"COPIED",
+				TracerUtils.getVarPathString(leftPath.path()),
+				leftPath.getValue(ExecutionThread.currentThread().state().root().clone()),
+				context
+		));
+
 	}
 
 	@Override
