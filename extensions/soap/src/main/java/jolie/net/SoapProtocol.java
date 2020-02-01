@@ -107,8 +107,6 @@ import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
-import jolie.tracer.DummyTracer;
-import jolie.tracer.MessageTraceAction;
 import jolie.tracer.ProtocolTraceAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

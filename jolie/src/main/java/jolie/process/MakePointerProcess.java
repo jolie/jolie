@@ -74,15 +74,15 @@ public class MakePointerProcess implements Process
 
 		leftPath.makePointer( rightPath );
 		final Tracer tracer = Interpreter.getInstance().tracer();
-		if ( !( tracer instanceof DummyTracer) ){
-			tracer.trace(() -> new AssignmentTraceAction(
-					AssignmentTraceAction.Type.ASSIGNMENT,
-					"POINTS",
-					TracerUtils.getVarPathString(leftPath.path().clone()),
-					rightPath.getValue(ExecutionThread.currentThread().state().root().clone()),
-					context
-			));
-		}
+
+		tracer.trace(() -> new AssignmentTraceAction(
+				AssignmentTraceAction.Type.ASSIGNMENT,
+				"POINTS",
+				TracerUtils.getVarPathString(leftPath.path().clone()),
+				rightPath.getValue(ExecutionThread.currentThread().state().root().clone()),
+				context
+		));
+
 	}
 	
 	public boolean isKillable()
