@@ -31,6 +31,7 @@ import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.net.ports.OutputPort;
 import jolie.process.OneWayProcess;
 import jolie.process.Process;
@@ -53,16 +54,19 @@ public abstract class AggregatedOperation
 		private final OneWayOperation operation;
 		private final Process courierProcess;
 		private final VariablePath inputVariablePath;
+		private final ParsingContext context;
 		
 		public CourierOneWayAggregatedOperation(
 			OneWayOperation operation,
 			VariablePath inputVariablePath,
-			Process courierProcess
+			Process courierProcess,
+			ParsingContext context
 		) {
 			super( operation.id() );
 			this.operation = operation;
 			this.inputVariablePath = inputVariablePath;
 			this.courierProcess = courierProcess;
+			this.context = context;
 		}
 		
 		@Override
@@ -88,7 +92,7 @@ public abstract class AggregatedOperation
 
 				State state = initThread.state().clone();
 				Process p = new SequentialProcess( new Process[] {
-					new OneWayProcess( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), state ),
+					new OneWayProcess( operation, inputVariablePath, context ).receiveMessage( new SessionMessage( requestMessage, channel ), state ),
 					courierProcess
 				});
 				SessionThread t = new SessionThread( p, state, initThread );
@@ -156,18 +160,21 @@ public abstract class AggregatedOperation
 		private final Process courierProcess;
 		private final VariablePath inputVariablePath;
 		private final VariablePath outputVariablePath;
+		private final ParsingContext context;
 		
 		public CourierRequestResponseAggregatedOperation(
 			RequestResponseOperation operation,
 			VariablePath inputVariablePath,
 			VariablePath outputVariablePath,
-			Process courierProcess
+			Process courierProcess,
+			ParsingContext context
 		) {
 			super( operation.id() );
 			this.operation = operation;
 			this.inputVariablePath = inputVariablePath;
 			this.outputVariablePath = outputVariablePath;
 			this.courierProcess = courierProcess;
+			this.context = context;
 		}
 		
 		@Override
@@ -192,7 +199,7 @@ public abstract class AggregatedOperation
 				}
 
 				State state = initThread.state().clone();
-				Process p = new RequestResponseProcess( operation, inputVariablePath, outputVariablePath, courierProcess )
+				Process p = new RequestResponseProcess( operation, inputVariablePath, outputVariablePath, courierProcess, context )
 								.receiveMessage( new SessionMessage( requestMessage, channel ), state );
 				new SessionThread( p, state, initThread ).start();
 			} catch( TypeCheckingException e ) {
@@ -280,18 +287,20 @@ public abstract class AggregatedOperation
 	public static AggregatedOperation createWithCourier(
 		OneWayOperation operation,
 		VariablePath inputVariablePath,
-		Process courierProcess
+		Process courierProcess,
+		ParsingContext context
 	) {
-		return new CourierOneWayAggregatedOperation( operation, inputVariablePath, courierProcess );
+		return new CourierOneWayAggregatedOperation( operation, inputVariablePath, courierProcess, context );
 	}
 	
 	public static AggregatedOperation createWithCourier(
 		RequestResponseOperation operation,
 		VariablePath inputVariablePath,
 		VariablePath outputVariablePath,
-		Process courierProcess
+		Process courierProcess,
+		ParsingContext context
 	) {
-		return new CourierRequestResponseAggregatedOperation( operation, inputVariablePath, outputVariablePath, courierProcess );
+		return new CourierRequestResponseAggregatedOperation( operation, inputVariablePath, outputVariablePath, courierProcess, context );
 	}
 	
 	/**

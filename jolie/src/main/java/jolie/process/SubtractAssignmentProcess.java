@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -37,30 +38,32 @@ public class SubtractAssignmentProcess implements Process, Expression
 {
 	final private VariablePath varPath;
 	final private Expression expression;
+	final private ParsingContext context;
 
 	/** Constructor.
 	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression to be evaluated and subtracted from the variable's value
 	 */
-	public SubtractAssignmentProcess( VariablePath varPath, Expression expression )
+	public SubtractAssignmentProcess(VariablePath varPath, Expression expression, ParsingContext context )
 	{
 		this.varPath = varPath;
 		this.expression = expression;
+		this.context = context;
 	}
 
 	public Process copy( TransformationReason reason )
 	{
 		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
-			expression.cloneExpression( reason ) );
+			expression.cloneExpression( reason ), context );
 	}
 
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
-			expression.cloneExpression( reason ) );
+			expression.cloneExpression( reason ), context );
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */

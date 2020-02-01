@@ -74,6 +74,8 @@ public class CommandLineParser implements Closeable
 	private final boolean isProgramCompiled;
 	private final boolean typeCheck;
 	private final boolean tracer;
+	private final String tracerMode;
+	private final String tracerLevel;
 	private final boolean check;
 	private final long responseTimeout;
 	private final boolean printStackTraces;
@@ -98,6 +100,32 @@ public class CommandLineParser implements Closeable
 		return logLevel;
 	}
 	
+	/**
+	 * Returns
+	 * the selected tracer level [all | comm | comp]
+	 *
+	 * all: all the traces
+	 * comp: only computation traces
+	 * comm: only communication traces
+	 */
+	public String tracerLevel()
+	{
+		return tracerLevel;
+	}
+
+	/**
+	 * Returns
+	 * <code>true</code> if the tracer option has been specified, false
+	 * otherwise.
+	 *
+	 * @return <code>true</code> if the verbose option has been specified, false
+	 * otherwise
+	 */
+	public String tracerMode()
+	{
+		return tracerMode;
+	}
+
 	/**
 	 * Returns
 	 * <code>true</code> if the tracer option has been specified, false
@@ -270,7 +298,9 @@ public class CommandLineParser implements Closeable
 		helpBuilder.append(
 			getOptionString( "--check", "Check for syntactic and semantic errors." ) );
 		helpBuilder.append(
-			getOptionString( "--trace", "Activate tracer" ) );
+			getOptionString( "--trace [console|file]", "Activate tracer. console prints out in the console, file creates a json file" ) );
+		helpBuilder.append(
+				getOptionString( "--traceLevel [all|comm|comp]", "Defines tracer level: all - all the traces; comm - only communication traces; comp - only computation traces. Default is all. " ) );
 		helpBuilder.append(
 			getOptionString( "--charset [character encoding, e.g., UTF-8]", "Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
 		helpBuilder.append(
@@ -386,6 +416,8 @@ public class CommandLineParser implements Closeable
 		boolean bCheck = false;
 		boolean bTypeCheck = false; // Default for typecheck
 		Level lLogLevel = Level.INFO;
+		String tMode = "console";
+		String tLevel = "all";
 		List< String > programArgumentsList = new ArrayList<>();
 		Deque< String > includeList = new LinkedList<>();
 		List< String > libList = new ArrayList<>();
@@ -470,6 +502,37 @@ public class CommandLineParser implements Closeable
 			} else if ( "--trace".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bTracer = true;
+				switch ( argsList.get( i + 1 ) ) {
+					case "console":
+						tMode = "console";
+						i++;
+						optionsList.add( argsList.get( i ) );
+						break;
+					case "file":
+						tMode = "file";
+						i++;
+						optionsList.add( argsList.get( i ) );
+						break;
+				}
+			} else if ( "--traceLevel".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				switch ( argsList.get( i + 1 ) ) {
+					case "all":
+						tLevel = "all";
+						i++;
+						optionsList.add( argsList.get( i ) );
+						break;
+					case "comm":
+						tLevel = "comm";
+						i++;
+						optionsList.add( argsList.get( i ) );
+						break;
+					case "comp":
+						tLevel = "comp";
+						i++;
+						optionsList.add( argsList.get( i ) );
+						break;
+				}
 			} else if ( "--log".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
@@ -544,6 +607,8 @@ public class CommandLineParser implements Closeable
 
 		typeCheck = bTypeCheck;
 		logLevel = lLogLevel;
+		tracerMode = tMode;
+		tracerLevel = tLevel;
 		printStackTraces = bStackTraces;
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );

@@ -34,14 +34,8 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
+
+import java.io.*;
 import java.net.URI;
 import java.util.Base64;
 import java.util.Collection;
@@ -115,6 +109,7 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.MessageTraceAction;
+import jolie.tracer.ProtocolTraceAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -718,7 +713,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		throws IOException
 	{
 
-		StringBuilder httpMessage = new StringBuilder();
+		final StringBuilder httpMessage = new StringBuilder();
 		ByteArray content = null;
 
 		try {
@@ -1005,6 +1000,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				httpMessage.append( "Connection: close" + HttpUtils.CRLF );
 			}
 
+			ByteArray plainTextContent = content;
 			if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
 				content = HttpUtils.encode( encoding, content, httpMessage );
 			}
@@ -1018,22 +1014,25 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			httpMessage.append( HttpUtils.CRLF );
 
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-				interpreter.logInfo( "[SOAP debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
+				interpreter.logInfo( "[SOAP debug] Sending:\n" + httpMessage.toString() + plainTextContent.toString( "utf-8" ) );
 			}
 
-			if ( !(interpreter.tracer() instanceof DummyTracer) ) {
-				final String traceMessage = httpMessage.toString() + content.toString("utf-8");
-				if (received) {
-					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null));
-				} else {
-					interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE SENT\n", traceMessage, null ));
+			interpreter.tracer().trace(() -> {
+				try {
+					final String traceMessage = httpMessage.toString() + plainTextContent.toString("utf-8");
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE SENT", message.operationName(), traceMessage, null );
+
+				} catch (UnsupportedEncodingException e) {
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE SENT", message.operationName(), e.getMessage(), null );
+
 				}
-			}
+
+			});
 
 			inputId = message.operationName();
 		} catch( Exception e ) {
 			if ( received ) {
-				httpMessage = new StringBuilder();
+				httpMessage.setLength(0);
 
 				try {
 					SOAPMessage soapMessage = messageFactory.createMessage();
@@ -1197,14 +1196,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					interpreter.logInfo( "[SOAP debug] Receiving:\n" + new String( message.content(), charset ) );
 				}
 
-				if ( !(interpreter.tracer() instanceof DummyTracer) ) {
-					final String traceMessage = new String( message.content(), charset );
-					if (message.isResponse()) {
-						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.SOLICIT_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null));
-					} else {
-						interpreter.tracer().trace(() -> new MessageTraceAction(MessageTraceAction.Type.REQUEST_RESPONSE, "SOAP MESSAGE RECEIVED\n", traceMessage, null ));
-					}
-				}
 
 				SOAPMessage soapMessage = messageFactory.createMessage();
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -1291,6 +1282,18 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
 			}
+
+			final String mId = messageId;
+			interpreter.tracer().trace(() -> {
+				final StringBuilder traceMessage = new StringBuilder();
+				try {
+					traceMessage.append( getHeadersFromHttpMessage(message) ).append( "\n" ).append( new String( message.content(), charset ));
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE RECEIVED", mId, traceMessage.toString(), null );
+				} catch (UnsupportedEncodingException e) {
+					return new ProtocolTraceAction(ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE RECEIVED", mId, e.getMessage(), null );
+				}
+
+			});
 		} catch( SOAPException e ) {
 			throw new IOException( e );
 		} catch( ParserConfigurationException e ) {
@@ -1347,5 +1350,23 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			ret = message.requestPath();
 		}
 		return ret;
+	}
+
+	private String getHeadersFromHttpMessage( HttpMessage message )
+	{
+		StringBuilder headers = new StringBuilder();
+		headers.append( "HTTP Code: " + message.statusCode() + "\n" );
+		headers.append( "Resource: " + message.requestPath() + "\n" );
+		for( Entry< String, String > entry : message.properties() ) {
+			headers.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
+		}
+		for( HttpMessage.Cookie cookie : message.setCookies() ) {
+			headers.append( "\tset-cookie: " + cookie.toString() + '\n' );
+		}
+		for( Entry< String, String > entry : message.cookies().entrySet() ) {
+			headers.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
+		}
+
+		return headers.toString();
 	}
 }

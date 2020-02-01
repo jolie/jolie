@@ -146,7 +146,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		
 		// Create the configuration Process
 		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
-			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ) );
+			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ), null );
 
 		List< Process > children = new LinkedList<>();
 		children.add( a );
@@ -154,7 +154,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			children.add( protocolConfigurationProcess );
 		}
 		if ( protocolId != null ) {
-			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
+			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ), null ) );
 		}
 		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
 	}

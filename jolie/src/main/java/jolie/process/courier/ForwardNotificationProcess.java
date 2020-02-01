@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
@@ -50,19 +51,22 @@ public class ForwardNotificationProcess implements Process
 	private final OutputPort outputPort;
 	private final VariablePath outputVariablePath;
 	private final OneWayTypeDescription aggregatedTypeDescription, extenderTypeDescription;
+	private final ParsingContext context;
 
 	public ForwardNotificationProcess(
 			String operationName,
 			OutputPort outputPort,
 			VariablePath outputVariablePath,
 			OneWayTypeDescription aggregatedTypeDescription,
-			OneWayTypeDescription extenderTypeDescription
+			OneWayTypeDescription extenderTypeDescription,
+			ParsingContext context
 	) {
 		this.operationName = operationName;
 		this.outputPort = outputPort;
 		this.outputVariablePath = outputVariablePath;
 		this.aggregatedTypeDescription = aggregatedTypeDescription;
 		this.extenderTypeDescription = extenderTypeDescription;
+		this.context = context;
 	}
 	
 	public Process copy( TransformationReason reason )
@@ -72,7 +76,8 @@ public class ForwardNotificationProcess implements Process
 			outputPort,
 			outputVariablePath,
 			aggregatedTypeDescription,
-			extenderTypeDescription
+			extenderTypeDescription,
+			context
 		);
 	}
 	
@@ -83,7 +88,8 @@ public class ForwardNotificationProcess implements Process
 			MessageTraceAction.Type.COURIER_NOTIFICATION,
 			operationName + "@" + outputPort.id(),
 			log,
-			message
+			message,
+			context
 		) );
 	}
 

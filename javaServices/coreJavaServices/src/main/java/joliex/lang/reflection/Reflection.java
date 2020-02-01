@@ -66,7 +66,8 @@ public class Reflection extends JavaService
 			data,
 			new ClosedVariablePath( new Pair[0], ret ),
 			NullProcess.getInstance(),
-			desc
+			desc,
+			null
 		);
 		final FaultReference ref = new FaultReference();
 		ExecutionThread t = new TransparentExecutionThread( p, ExecutionThread.currentThread() ) {
@@ -96,7 +97,8 @@ public class Reflection extends JavaService
 			operationName,
 			port,
 			data,
-			desc
+			desc,
+			null
 		);
 		SessionThread t = new SessionThread( p, interpreter.initThread() );
 		final FaultReference ref = new FaultReference();

@@ -22,9 +22,14 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
+import jolie.tracer.*;
+import jolie.util.Pair;
 
 /** Assigns an expression value to a VariablePath.
  * @see Expression
@@ -35,23 +40,26 @@ public class AssignmentProcess implements Process, Expression
 {
 	final private VariablePath varPath;
 	final private Expression expression;
+	final private ParsingContext context;
 
 	/** Constructor.
 	 * 
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression of which the evaluation will be stored in the variable
 	 */
-	public AssignmentProcess( VariablePath varPath, Expression expression )
+	public AssignmentProcess( VariablePath varPath, Expression expression, ParsingContext context )
 	{
 		this.varPath = varPath;
 		this.expression = expression;
+		this.context = context;
 	}
 	
 	public Process copy( TransformationReason reason )
 	{
 		return new AssignmentProcess(
 					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason )
+					expression.cloneExpression( reason ),
+					context
 				);
 	}
 	
@@ -59,7 +67,8 @@ public class AssignmentProcess implements Process, Expression
 	{
 		return new AssignmentProcess(
 					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason )
+					expression.cloneExpression( reason ),
+					context
 				);
 	}
 	
@@ -68,7 +77,18 @@ public class AssignmentProcess implements Process, Expression
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		varPath.getValue().assignValue( expression.evaluate() );
+		Value evaluationValue = expression.evaluate();
+		varPath.getValue().assignValue( evaluationValue );
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		if ( !( tracer instanceof DummyTracer ) ){
+			tracer.trace(() -> new AssignmentTraceAction(
+					AssignmentTraceAction.Type.ASSIGNMENT,
+					"ASSIGN",
+					TracerUtils.getVarPathString(varPath.path().clone()),
+					evaluationValue.clone(),
+					context
+			));
+		}
 	}
 	
 	public Value evaluate()
@@ -82,4 +102,5 @@ public class AssignmentProcess implements Process, Expression
 	{
 		return true;
 	}
+
 }

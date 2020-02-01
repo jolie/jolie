@@ -22,23 +22,48 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
+import jolie.tracer.AssignmentTraceAction;
+import jolie.tracer.DummyTracer;
+import jolie.tracer.Tracer;
+import jolie.tracer.TracerUtils;
+import jolie.util.Pair;
 
 public class MakePointerProcess implements Process
 {
 	final private VariablePath leftPath, rightPath;
+	final private ParsingContext context;
 
-	public MakePointerProcess( VariablePath leftPath, VariablePath rightPath )
+	public MakePointerProcess( VariablePath leftPath, VariablePath rightPath, ParsingContext context )
 	{
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
+		this.context = context;
 	}
-	
+
+	private void log(String description, Value value, String name )
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new AssignmentTraceAction(
+				AssignmentTraceAction.Type.POINTER,
+				name,
+				description,
+				value,
+				context
+		) );
+	}
+
+
 	public Process copy( TransformationReason reason )
 	{
 		return new MakePointerProcess(
 				( VariablePath ) leftPath.cloneExpression( reason ),
-				( VariablePath ) rightPath.cloneExpression( reason )
+				( VariablePath ) rightPath.cloneExpression( reason ),
+				context
 				);
 	}
 	
@@ -48,10 +73,22 @@ public class MakePointerProcess implements Process
 			return;
 
 		leftPath.makePointer( rightPath );
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		if ( !( tracer instanceof DummyTracer) ){
+			tracer.trace(() -> new AssignmentTraceAction(
+					AssignmentTraceAction.Type.ASSIGNMENT,
+					"POINTS",
+					TracerUtils.getVarPathString(leftPath.path().clone()),
+					rightPath.getValue(ExecutionThread.currentThread().state().root().clone()),
+					context
+			));
+		}
 	}
 	
 	public boolean isKillable()
 	{
 		return true;
 	}
+
+
 }
