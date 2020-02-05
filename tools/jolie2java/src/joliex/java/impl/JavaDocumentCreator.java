@@ -1217,10 +1217,13 @@ public class JavaDocumentCreator
 	private void appendingClass( StringBuilder stringBuilder, TypeDefinition typeDefinition, String interfaceToBeImplemented )
 	{
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " implements " ).append( interfaceToBeImplemented );
+		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " implements " ).append( interfaceToBeImplemented ).append(", ValueConverter");
 		stringBuilder.append( " {" + "\n" );
 
 		incrementIndentation();
+
+		appendingStaticMethodsForValueConverterJavaServiceInterface( stringBuilder, typeDefinition.id() );
+
 		appendingClassBody( typeDefinition, stringBuilder, typeDefinition.id() );
 		decrementIndentation();
 
@@ -1241,6 +1244,7 @@ public class JavaDocumentCreator
 		stringBuilder.append( "import java.util.List;\n" );
 		stringBuilder.append( "import java.util.ArrayList;\n" );
 		stringBuilder.append( "import java.util.Map.Entry;\n" );
+		stringBuilder.append( "import jolie.runtime.JavaService.ValueConverter;\n");
 		stringBuilder.append( "\n" );
 
 	}
@@ -1318,6 +1322,26 @@ public class JavaDocumentCreator
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingStaticMethodsForValueConverterJavaServiceInterface( StringBuilder stringBuilder, String className ) {
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("public static ").append( className ).append(" fromValue( Value value ) throws TypeCheckingException {\n");
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("return new ").append( className ).append("( value );\n");
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("}\n");
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("public static Value toValue( ").append( className ).append( " t ){\n");
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("return t.getValue();\n");
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("}\n");
 	}
 
 	private void appendingConstructorWithParameters( StringBuilder stringBuilder, TypeDefinition type, String className )
