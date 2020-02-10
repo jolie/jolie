@@ -43,7 +43,7 @@ public class Jolie2Java {
             if (format.equals("java") && packageName != null ) {
                 JavaDocumentCreator documentJava = new JavaDocumentCreator(inspector, cmdParser.getPackageName(),
                         cmdParser.getTargetPort(), cmdParser.isAddSource(), cmdParser.getOutputDirectory(),
-                        cmdParser.isBuildXmlenabled(), cmdParser.getInterfaceOnly());
+                        cmdParser.isBuildXmlenabled(), cmdParser.getJavaservice());
                 documentJava.ConvertDocument();
             } else if (format.equals("gwt") && packageName != null) {
 				System.out.println("WARNING: gwt conversion is deprecated, use it at your own risk");
