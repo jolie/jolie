@@ -62,7 +62,7 @@ public class JavaDocumentCreator
 	private final String targetPort;
 	private final boolean addSource;
 	private final boolean buildXml;
-	private final boolean interfaceOnly;
+	private final boolean javaservice;
 	private final int INDENTATION_STEP = 1;
 	private final String TYPEFOLDER = "types";
 	private int indentation;
@@ -91,7 +91,7 @@ public class JavaDocumentCreator
 			"synchronized", "this", "throw", "throws", "transient", "true",
 			"try", "void", "volatile", "while" };
 
-	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml, boolean interfaceOnly )
+	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml, boolean javaservice )
 	{
 
 		this.inspector = inspector;
@@ -99,7 +99,7 @@ public class JavaDocumentCreator
 		this.targetPort = targetPort;
 		this.addSource = addSource;
 		this.buildXml = buildXml;
-		this.interfaceOnly = interfaceOnly;
+		this.javaservice = javaservice;
 
 		if ( outputDirectory == null ) {
 			this.outputDirectory = defaultOutputDirectory;
@@ -213,7 +213,7 @@ public class JavaDocumentCreator
 			}
 		}
 
-		// prepare exeptions
+		// prepare exceptions
 		Iterator<Entry<String, TypeDefinition>> faultMapIterator = faultMap.entrySet().iterator();
 
 		while( faultMapIterator.hasNext() ) {
@@ -250,7 +250,7 @@ public class JavaDocumentCreator
 		}
 
 		// prepare interfaceImpl
-		if ( !interfaceOnly ) {
+		if ( !javaservice ) {
 			for (OutputPortInfo outputPort : outputPorts) {
 				/* range over the input ports */
 				if (targetPort == null || outputPort.id().equals(targetPort)) {
@@ -270,7 +270,7 @@ public class JavaDocumentCreator
 		}
 
 		// prepare JolieClient
-		if ( !interfaceOnly ) {
+		if ( !javaservice ) {
 			String nameFile = outputDirectory + Constants.fileSeparator + "JolieClient.java";
 			Writer writer;
 			try {
@@ -284,7 +284,7 @@ public class JavaDocumentCreator
 		}
 
 		// prepare Controller
-		if ( !interfaceOnly ) {
+		if ( !javaservice ) {
 			String nameFile = outputDirectory + Constants.fileSeparator + "Controller.java";
 			Writer writer;
 			try {
@@ -356,6 +356,7 @@ public class JavaDocumentCreator
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
 			decrementIndentation();
+
 		} else {
 			stringBuilder.append( "public " ).append( exceptionName ).append( "( Value v ){}\n");
 		}
@@ -370,6 +371,7 @@ public class JavaDocumentCreator
 		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
 		outputFileText.append( "import jolie.runtime.Value;\n" );
 		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append("import jolie.runtime.FaultException;\n");
 		outputFileText.append( "import jolie.runtime.typing.TypeCheckingException;\n" );
 		outputFileText.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
 
@@ -478,10 +480,13 @@ public class JavaDocumentCreator
 		/* appending package */
 		outputFileText.append( "package " ).append( packageName ).append( ";\n" );
 		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
-		outputFileText.append( "import java.io.IOException;\n" );
-		outputFileText.append( "import jolie.runtime.FaultException;\n" );
-		outputFileText.append( "import jolie.runtime.Value;\n" );
-		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append("import jolie.runtime.FaultException;\n");
+		outputFileText.append("import jolie.runtime.Value;\n");
+		outputFileText.append("import jolie.runtime.ByteArray;\n");
+		if ( !javaservice ) {
+			outputFileText.append( "import java.io.IOException;\n" );
+		}
+
 
 
 		/* writing main class */
@@ -977,7 +982,10 @@ public class JavaDocumentCreator
 		if ( !requestType.isEmpty() ) {
 			requestArgument = requestType + " request";
 		}
-		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestArgument ).append( ") throws FaultException, IOException, InterruptedException, Exception" );
+		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestArgument ).append( ") throws FaultException");
+		if ( !javaservice ) {
+			stringBuilder.append(", IOException, InterruptedException, Exception" );
+		}
 		if ( exceptionList.size() > 0 ) {
 			exceptionList.entrySet().stream().forEach( f -> {
 				stringBuilder.append( ", " ).append( f.getValue() );

@@ -70,7 +70,7 @@ public class OutputDirectoryTest {
     }
 
     @Test
-    public void checkInterfaceOnlyTrue() throws IOException, ParserException, SemanticException, CommandLineException {
+    public void checkJavaserviceTrue() throws IOException, ParserException, SemanticException, CommandLineException {
         String[] args = { "./resources/main.ol" };
         Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
