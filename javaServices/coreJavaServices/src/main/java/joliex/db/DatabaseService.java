@@ -24,13 +24,7 @@ package joliex.db;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.math.BigDecimal;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -324,6 +318,10 @@ public class DatabaseService extends JavaService
 				fieldValue.setValue( supportByteArray );
 				break;
 			case java.sql.Types.VARBINARY:
+				supportByteArray = new ByteArray( result.getBytes( index ) );
+				fieldValue.setValue( supportByteArray );
+				break;
+			case Types.LONGVARBINARY:
 				supportByteArray = new ByteArray( result.getBytes( index ) );
 				fieldValue.setValue( supportByteArray );
 				break;
