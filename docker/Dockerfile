@@ -5,7 +5,7 @@ RUN apk update
 RUN apk add git maven
 RUN git clone --depth=1 https://github.com/jolie/jolie.git jolie-git
 WORKDIR /jolie-git
-RUN mvn clean install
+RUN mvn install
 RUN cp -avr /jolie-git/dist/jolie/ /usr/lib/jolie/
 RUN cp -a /jolie-git/dist/launchers/unix/.  /usr/bin/
 ENV JOLIE_HOME /usr/lib/jolie
@@ -14,7 +14,7 @@ ENV JOLIE_HOME /usr/lib/jolie
 WORKDIR /
 RUN git clone --depth=1 https://github.com/jolie/release_tools.git
 WORKDIR /release_tools/jolie_installer
-RUN mvn clean install
+RUN mvn install
 WORKDIR /release_tools
 RUN apk add zip
 RUN jolie release.ol ../jolie-git
