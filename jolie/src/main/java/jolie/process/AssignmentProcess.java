@@ -83,7 +83,7 @@ public class AssignmentProcess implements Process, Expression
 		tracer.trace(() -> new AssignmentTraceAction(
 				AssignmentTraceAction.Type.ASSIGNMENT,
 				"ASSIGN",
-				TracerUtils.getVarPathString(varPath.path().clone()),
+				null,
 				evaluationValue.clone(),
 				context
 		));

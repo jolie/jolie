@@ -193,7 +193,7 @@ public class FileTracer implements Tracer {
                 stBuilder.append(",\"\",");
 
                 Writer writer = new StringWriter();
-                Value value = action.value();
+                Value value = action.value().clone();
 
                 ValuePrettyPrinter printer = new ValuePrettyPrinter(
                         value,

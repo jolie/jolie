@@ -78,7 +78,7 @@ public class MakePointerProcess implements Process
 		tracer.trace(() -> new AssignmentTraceAction(
 				AssignmentTraceAction.Type.ASSIGNMENT,
 				"POINTS",
-				TracerUtils.getVarPathString(leftPath.path().clone()),
+				null,
 				rightPath.getValue(ExecutionThread.currentThread().state().root().clone()),
 				context
 		));
