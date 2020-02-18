@@ -176,7 +176,7 @@ public class PrintingTracer implements Tracer
                     .append("\t\t\t").append(action.description());
             if (action.value() != null) {
                 Writer writer = new StringWriter();
-                Value value = action.value();
+                Value value = action.value().clone();
 
                 ValuePrettyPrinter printer = new ValuePrettyPrinter(
                         value,

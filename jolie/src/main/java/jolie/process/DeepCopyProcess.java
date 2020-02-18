@@ -80,7 +80,7 @@ public class DeepCopyProcess implements Process
 		tracer.trace(() -> new AssignmentTraceAction(
 				AssignmentTraceAction.Type.DEEPCOPY,
 				"COPIED",
-				TracerUtils.getVarPathString(leftPath.path()),
+				null,
 				leftPath.getValue(ExecutionThread.currentThread().state().root().clone()),
 				context
 		));
