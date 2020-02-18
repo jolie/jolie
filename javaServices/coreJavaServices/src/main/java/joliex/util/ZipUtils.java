@@ -162,7 +162,7 @@ public class ZipUtils extends JavaService
 				if ( !zipEntry.isDirectory() ) {
 					String targetFilename = zipEntry.getName();
 					File newFile = new File( targetPath + File.separator + targetFilename );
-					if ( !newFile.toPath().normalize().startsWith( targetPath ) ) {
+					if ( !newFile.toPath().normalize().startsWith( targetPath.normalize() ) ) {
 						throw new IOException( "Bad zip entry: " + targetFilename );
 					}
 					response.getChildren( "entry" ).get( entryCounter ).setValue( targetFilename );
