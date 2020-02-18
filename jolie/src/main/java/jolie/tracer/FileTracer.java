@@ -132,7 +132,7 @@ public class FileTracer implements Tracer {
                 Writer writer = new StringWriter();
                 Value messageValue = action.message().value().clone();
                 if (action.message().isFault()) {
-                    messageValue = action.message().fault().value();
+                    messageValue = action.message().fault().value().clone();
                     messageValue.getFirstChild("__faultname").setValue(action.message().fault().faultName());
                 }
                 ValuePrettyPrinter printer = new ValuePrettyPrinter(
