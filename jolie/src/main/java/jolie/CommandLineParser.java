@@ -423,7 +423,7 @@ public class CommandLineParser implements Closeable
 		List< String > libList = new ArrayList<>();
 		int cLimit = -1;
 		int cCache = 100;
-		long rTimeout = 10 * 1000; // 10 seconds
+		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = new File( "" ).getCanonicalPath();
 		includeList.add( pwd );
 		includeList.add( "include" );
