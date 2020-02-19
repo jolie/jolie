@@ -54,6 +54,7 @@ public class MetaJolie extends JavaService {
     private final int MAX_CARD = 2147483647;
     private ArrayList<TypeDefinition> listOfGeneratedTypesInTypeDefinition;
     private ArrayList<Value> listOfGeneratedTypesInValues;
+    private ArrayList<String> nativeTypeList = new ArrayList<>( Arrays.asList("any", "string", "double", "int", "void", "bool", "long", "raw") );
 
     private Value getNativeType(NativeType type) {
         Value response = Value.create();
@@ -122,15 +123,7 @@ public class MetaJolie extends JavaService {
     }
 
     private boolean isNativeType(String type) {
-        return type.equals("any")
-                || type.equals("string")
-                || type.equals("double")
-                || type.equals("int")
-                || type.equals("void")
-                || type.equals("raw")
-                || type.equals("any")
-                || type.equals("bool")
-                || type.equals("long");
+        return nativeTypeList.contains(type);
     }
 
     private Value addCardinality(Range range) {
@@ -944,6 +937,25 @@ public class MetaJolie extends JavaService {
                 i++;
             }
             throw new FaultException("SemanticException", fault);
+        }
+        return response;
+    }
+
+    @RequestResponse
+    public Value getNativeTypeFromString( Value request ) throws FaultException {
+        if ( isNativeType(request.getFirstChild("type_name").strValue()) ) {
+            Value response = Value.create();
+            return getNativeType(request.getFirstChild("type_name").strValue());
+        } else {
+            throw new FaultException("NativeTypeDoesNotExist");
+        }
+    }
+
+    @RequestResponse
+    public Value getNativeTypeStringList( Value request ) {
+        Value response = Value.create();
+        for( int i = 0; i < nativeTypeList.size(); i++ ) {
+            response.getChildren("native_type").get(i).setValue( nativeTypeList.get(i) );
         }
         return response;
     }
