@@ -114,4 +114,21 @@ define doTest
   if ( mcom.dependencies.name != "print" || mcom.dependencies.port != "Console" || mcom.dependencies.type != "SolicitResponse" ) {
       throw( TestFailed, "Wrong dependencies in communication_dependencies metadata, expected print@Console found " +  mcom.dependencies.name + "," +  mcom.dependencies.type + "," +  mcom.dependencies.port )
   }
+
+  getNativeTypeStringList@MetaJolie()( ntype_list )
+  if ( #ntype_list.native_type != 8 ) {
+      throw( TestFailed, "Expected 8 native types found " + #ntype_list.native_type )
+  }
+  for( t in ntype_list.native_type ) {
+      checkNativeType@MetaJolie({ .type_name = t } )( is_native )
+      if ( !is_native.result ) {
+          throw( TestFailed, "Native Type " + t + " retrieved from getNativeTypeStringList is not native" )
+      } else {
+          getNativeTypeFromString@MetaJolie({ .type_name = t } )( ntype )
+          if ( !is_defined( ntype.( t + "_type" ) ) ) {
+              valueToPrettyString@StringUtils( ntype )( s )
+              throw( TestFailed, "getNativeTypeFromString does not return the correct native type for Native Type " + t + ", got " + s )
+          }
+      }
+  }
 }

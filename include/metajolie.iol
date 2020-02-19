@@ -103,10 +103,19 @@ type SemanticExceptionType: void {
   }
 }
 
+type GetNativeTypeFromStringRequest: void {
+  .type_name: string
+}
+
+type GetNativeTypeStringListResponse: void {
+  .native_type*: string
+}
 
 interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
+  getNativeTypeFromString( GetNativeTypeFromStringRequest )( NativeType ) throws NativeTypeDoesNotExist,
+  getNativeTypeStringList( void )( GetNativeTypeStringListResponse ),
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
 	    throws  ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
