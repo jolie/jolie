@@ -76,6 +76,8 @@ type GetOutputPortMetaDataResponse: void {
   .output*: Port                 //< the full description of each output port of the service definition
 }
 
+
+
 type MessageTypeCastRequest: void {
   .message: undefined           //< the message to be cast
   /// the types to use for casting the message
@@ -111,12 +113,8 @@ type GetNativeTypeStringListResponse: void {
   .native_type*: string
 }
 
-type CompareValuesRequest: bool | void {
-    .v1: undefined
-    .v2: undefined
-}
 
-interface MetaJolieInterface {
+interface MetaJolieJavaServiceInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
   getNativeTypeFromString( GetNativeTypeFromStringRequest )( NativeType ) throws NativeTypeDoesNotExist,
@@ -133,27 +131,14 @@ RequestResponse:
 		          ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )
-	    throws  TypeMismatch,
- /**!
-	it checks if two values are exactly the same
-	vectors are strictly compared by index
-	returns void if the comparison had success, raises ComparisonFailed fault otherwise 
-	**/
-	compareValuesStrict( CompareValuesRequest )( void ) throws ComparisonFailed( string ),
-  	/**!
-	it checks if two values are exactly the same
-	vectors are compared by element presence without testing the index
-	returns void if the comparison had success, raises ComparisonFailed fault otherwise 
-	**/
-  compareValuesVectorLight( CompareValuesRequest )( void ) throws ComparisonFailed( string )
+	    throws  TypeMismatch
 }
 
-
-outputPort MetaJolie {
-Interfaces: MetaJolieInterface
+outputPort MetaJolieJavaService {
+Interfaces: MetaJolieJavaServiceInterface
 }
 
 embedded {
-Jolie:
-    "services/metajolie/metajolie.ol" in MetaJolie
+Java:
+	"joliex.meta.MetaJolie" in MetaJolieJavaService
 }
