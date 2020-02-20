@@ -12,16 +12,37 @@ import java.util.function.Supplier;
 
 public class FileTracer implements Tracer {
 
+    private final int MAX_LINE_COUNT = 2000;
     private int actionCounter = 0;
     Writer fileWriter;
     private final Interpreter interpreter;
     private TracerUtils.TracerLevels tracerLevels;
+    private int lineCount = 0;
 
     public FileTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel  )
     {
         this.tracerLevels = tLevel;
         this.interpreter = interpreter;
-        String format = "ddMMyyyyHHmmss";
+        createNewLogFile();
+    }
+
+    private synchronized void fileWriterFlush(StringBuilder stBuilder) {
+        try {
+            fileWriter.write(stBuilder.toString());
+            fileWriter.flush();
+            lineCount++;
+            if ( lineCount >= MAX_LINE_COUNT ) {
+                fileWriter.close();
+                createNewLogFile();
+                lineCount = 0;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createNewLogFile() {
+        String format = "ddMMyyyyHHmmssSSS";
         SimpleDateFormat sdf = new SimpleDateFormat( format );
         final Date now = new Date();
         String filename = sdf.format(now);
@@ -78,12 +99,7 @@ public class FileTracer implements Tracer {
             }
             stBuilder.append("\"").append(action.name()).append("\",");
             stBuilder.append("\"").append(action.description()).append("\"]}\n");
-            try {
-                fileWriter.write(stBuilder.toString());
-                fileWriter.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            fileWriterFlush(stBuilder);
         }
 
 
@@ -151,12 +167,7 @@ public class FileTracer implements Tracer {
                 stBuilder.append("\"").append(encodedString).append("\"");
             }
             stBuilder.append("]}\n");
-            try {
-                fileWriter.write(stBuilder.toString());
-                fileWriter.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            fileWriterFlush(stBuilder);
         }
     }
 
@@ -211,12 +222,7 @@ public class FileTracer implements Tracer {
                 stBuilder.append("\"").append(encodedString).append("\"");
             }
             stBuilder.append("]}\n");
-            try {
-                fileWriter.write(stBuilder.toString());
-                fileWriter.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            fileWriterFlush(stBuilder);
         }
     }
 
@@ -253,12 +259,9 @@ public class FileTracer implements Tracer {
                 stBuilder.append("\"").append(encodedString).append("\"");
             }
             stBuilder.append("]}\n");
-            try {
-                fileWriter.write(stBuilder.toString());
-                fileWriter.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            fileWriterFlush(stBuilder);
         }
     }
+
+
 }
