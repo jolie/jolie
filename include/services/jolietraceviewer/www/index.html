@@ -26,10 +26,12 @@
 
         function refreshTraceList() {
             JolieClient.getTraceList({}, function( data ) {
+                
+                data.trace.sort();
                 for( i = 0; i < data.trace.length; i++ ) {
                     var logName = data.trace[i].substring(0,2) + "/" + data.trace[i].substring(2,4) + "/" 
                         + data.trace[i].substring(4,8) + " " + data.trace[i].substring(8,10) + ":" + data.trace[i].substring(10,12) + ":"
-                        + data.trace[i].substring(12,14) 
+                        + data.trace[i].substring(12,14) + "." + data.trace[i].substring(14,17)
                     $(".menutd").append("<table width='100%'><tr><td class='itemmenu'><a onclick='getTrace(\"" + data.trace[i] + "\")'>" + logName +  "</a></td></tr></table>")
                 }
             }, onError )
