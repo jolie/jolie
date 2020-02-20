@@ -4,6 +4,7 @@ include "json_utils.iol"
 include "console.iol"
 include "string_utils.iol"
 include "file.iol"
+include "metajolie.iol"
 
 constants {
     LOG = false
@@ -18,45 +19,6 @@ embedded {
         "services/openapi/jolie2openapi.ol" in Jolie2OpenApi
 }
 
-type CompareValuesRequest: bool | void {
-    .__v1: undefined
-    .__v2: undefined
-}
-
-interface ValuesUtilsInterface {
-    RequestResponse: compareValues( CompareValuesRequest )( void ) throws ComparisonFailed
-}
-
-service ValuesUtils {
-    Interfaces: ValuesUtilsInterface
-    main {
-            [ compareValues( request )( response ) {
-
-                // check root
-                if ( request.__v1 != request.__v2 ) {
-                    println@Console("Different root values: " + request.__v1 + "<:::>" + request.__v2 )()
-                    throw( ComparisonFailed )
-                }
-
-                // check if all the subnoeds of v1 exists in v2
-                foreach( v : request.__v1 ) {
-                    if ( LOG ) { println@Console("Navigating subnode " + v )() }
-                    if ( is_defined( request.__v2.( v ) ) || ( request.__v1.( v ) instanceof void && request.__v2.( v ) instanceof void ) ) {
-                        for( x = 0, x <#request.__v1.( v ), x++ ) {
-                            with( cmp_rq ) {
-                                .__v1 -> request.__v1.( v )[ x ];
-                                .__v2 -> request.__v2.( v )[ x ]
-                            }
-                            compareValues@ValuesUtils( cmp_rq )( response )
-                        }
-                    } else {
-                        println@Console( "Node " + v + " is not present in the target value")()
-                        throw( ComparisonFailed )
-                    }
-                }
-            }]
-    }
-}
 
 define doTest {
     service_filename = "./services/private/testservice.ol"
@@ -108,16 +70,9 @@ define doTest {
                 println@Console("Error when checking generated value towards the ok value ")()
                 throw( TestFailed )
         )
-        compareValues@ValuesUtils( { .__v1 -> json_value, .__v2 -> ok_json } )(  )
+        compareValuesStrict@MetaJolie( { .v1 -> json_value, .v2 -> ok_json } )(  )
     }
     
-    scope( compare ) {
-        install( ComparisonFailed =>
-                println@Console("Error when checking ok value towards the generated value ")()
-                throw( TestFailed )
-        )
-        compareValues@ValuesUtils( { .__v2 -> json_value, .__v1 -> ok_json } )(  )
-    }
     delete@File(  "./services/private/generated.json" )(  )
 
 

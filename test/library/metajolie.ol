@@ -131,4 +131,48 @@ define doTest
           }
       }
   }
+
+  // comparing nodes
+  a.b.c.d.m.n.l.o = 1
+  a.b.c.d.m.n.l = 2
+  a.b.c.d.m.n = 3
+  a.b.c.d = 4
+  a.b.c = 5
+
+  z.b.c.d.m.n.l.o = 1
+  z.b.c.d.m.n.l = 2
+  z.b.c.d.m.n = 3
+  z.b.c.d = 4
+  z.b.c = 5
+
+  with( comp_rq ) {
+      .v1 -> a;
+      .v2 -> z
+  }
+  scope( compare_values ) {
+      install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
+      compareValuesStrict@MetaJolie( comp_rq )()
+  }
+
+  with( comp_rq ) {
+      .v1 -> z;
+      .v2 -> a
+  }
+  scope( compare_values ) {
+      install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
+      compareValuesStrict@MetaJolie( comp_rq )()
+  }
+
+  scope( compare_values ) {
+      install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
+      compareValuesVectorLight@MetaJolie( comp_rq )()
+  }
+
+  undef ( a.b.c )
+  scope( compare_values ) {
+      install( ComparisonFailed => nullProcess )
+      compareValuesStrict@MetaJolie( comp_rq )()
+      throw( TestFailed, "Expected values are different but comparison succeeded" )
+  }
+
 }
