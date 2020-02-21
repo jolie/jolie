@@ -832,6 +832,9 @@ public class MetaJolie extends JavaService {
             URI originalFile = program.context().source();
 
             cmdParser.close();
+
+            // TODO: now the name of the service cannot be retrieved, to be considered during Jolie 2.0 refactoring
+            response.getFirstChild("service").getFirstChild("name").setValue("");
  
             OutputPortInfo[] outputPortList = inspector.getOutputPorts();
             if (outputPortList.length > 0) {
