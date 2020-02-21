@@ -2,9 +2,11 @@ include "../AbstractTestUnit.iol"
 include "metajolie.iol"
 include "string_utils.iol"
 include "console.iol"
+include "time.iol"
 
 define doTest
 {
+  sleep@Time( 1000 )()
   with( rq ) {
       .filename = "private/sample_service.ol"
   };

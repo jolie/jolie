@@ -108,6 +108,7 @@ type Port: void {
 }
 
 type Service: void {
+  .name: string
   .input*: string
   .output*: string
 }
