@@ -122,8 +122,17 @@ interface TimeInterface{
 		*/
 		setNextTimeout(SetNextTimeOutRequest),
 		setNextTimeoutByDateTime, setNextTimeoutByTime,
+		/**! It stops the current timeout previously set with a setNextTimeout */
+		stopNextTimeout( void )
 	RequestResponse:
-		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
+			/**!
+		* Cancels a timeout from a long-value created from #scheduleTimeout
+		*/
+		cancelTimeout(long)(bool),
+
+		getCurrentDateTime(CurrentDateTimeRequestType)(string), 
+		
+		sleep,
 
 		/**!
 		* It returns a date time in a string format starting from a timestamp
@@ -155,12 +164,10 @@ interface TimeInterface{
 		/**!
 		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS, .operation default is "timeout".
 		*/
-		scheduleTimeout(ScheduleTimeOutRequest)(long) throws InvalidTimeUnit,
-		/**!
-		* Cancels a timeout from a long-value created from #scheduleTimeout
-		*/
-		cancelTimeout(long)(bool)
+		scheduleTimeout(ScheduleTimeOutRequest)(long) throws InvalidTimeUnit
+
 }
+
 
 outputPort Time {
 	Interfaces: TimeInterface
