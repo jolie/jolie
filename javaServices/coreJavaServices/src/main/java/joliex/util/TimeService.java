@@ -98,6 +98,12 @@ public class TimeService extends JavaService
 		thread.start();
 	}
 
+	public void stopNextTimeout( Value request ) {
+		if ( thread != null ) {
+			thread.interrupt();
+		}
+	}
+
 	public void setNextTimeout( Value request )
 	{
 		long waitTime = request.intValue();
