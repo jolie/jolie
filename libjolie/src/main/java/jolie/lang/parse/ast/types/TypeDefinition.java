@@ -209,7 +209,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 			newType = newTid;
 		} else {
 			if ( left.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
+				for( Entry<String, TypeDefinition> subType : left.subTypes() ) {
 					newType.putSubType( subType.getValue() );
 				}
 			}
