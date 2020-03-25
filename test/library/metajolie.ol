@@ -38,7 +38,10 @@ define doTest
   if ( meta_description.input.interfaces.operations.operation_name != "tmp" ) {
       throw( TestFailed, "Expected operation_name equal to \"tmp\", found " + meta_description.input.interfaces.operations.operation_name )
   };
-  if ( meta_description.input.interfaces.operations[1].operation_name != "tmp3" ) {
+  if ( meta_description.input.interfaces.operations[1].operation_name != "tmp2" ) {
+      throw( TestFailed, "Expected second operation_name equal to \"tmp2\", found " + meta_description.input.interfaces.operations[1].operation_name )
+  }
+  if ( meta_description.input.interfaces.operations[2].operation_name != "tmp3" ) {
       throw( TestFailed, "Expected second operation_name equal to \"tmp3\", found " + meta_description.input.interfaces.operations[1].operation_name )
   }
   ops -> meta_description.input.interfaces.operations
