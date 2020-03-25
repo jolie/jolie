@@ -63,6 +63,8 @@ service Render {
             } else {
                 response = response + "<tr><td>&nbsp;</td></tr>"
             }
+
+
             for( o in request.operations ) {
                 otype = " class='resource-label ow-type'>ow"
                 if ( is_defined( o.output ) ) {
@@ -95,7 +97,8 @@ service Render {
         [ getTypeInLine( request )( response ) {
             getNativeType@Render( request.root_type )( response )
             if ( #request.sub_type > 0 ) {
-                response = response + "{</td><td></td></tr>"
+                response = response + " {</td><td>" + global.documentation + "</td></tr>"
+                global.documentation = "";
                 for( s in request.sub_type ) {
                     getSubType@Render( s )( sub_type )
                     response = response + sub_type
@@ -189,8 +192,9 @@ service Render {
             response = response + "<tr><td></td><td class='content-td'>" + indent + "." + request.name 
             getCardinality@Render( request.cardinality )( cardinality )
             response = response + cardinality + ":&nbsp;"
+            global.documentation = request.documentation;  // documentation must be passed because it could be used in TypeInLine
             getType@Render( request.type )( type_string )
-            response = response + type_string + "</td><td class='documentation'>" + request.documentation + "</td></tr>"
+            response = response + type_string + "</td><td class='documentation'>" + global.documentation + "</td></tr>"
             global.indentation = global.indentation - 5
         }]
 
