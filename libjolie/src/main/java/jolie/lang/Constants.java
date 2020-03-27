@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2008-2020 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ public final class Constants
 {
 	// Release information
 	public static final String VERSION = readVersionFromProperties();
-	public static final String COPYRIGHT = "(C) 2006-2019 the Jolie team";
+	public static final String COPYRIGHT = "(C) 2006-2020 the Jolie team";
 
 	private static String readVersionFromProperties()
 	{
