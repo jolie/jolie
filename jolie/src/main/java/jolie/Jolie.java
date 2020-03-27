@@ -33,13 +33,13 @@ import jolie.lang.parse.ParserException;
 public class Jolie
 {
 	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
-	
+
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
 	}
-	
+
 	private Jolie() {}
-	
+
 	private static void printErr( Throwable t, boolean printStackTraces )
 	{
 		String mesg;
@@ -53,7 +53,7 @@ public class Jolie
 		System.err.println( mesg );
 	}
 
-	/** 
+	/**
 	 * Entry point of program execution.
 	 * @param args the command line arguments
 	 * TODO Standardize the exit codes.
@@ -78,7 +78,7 @@ public class Jolie
 		} catch( CommandLineException cle ) {
 			printErr( cle, printStackTraces );
 		} catch( FileNotFoundException fe ) {
-			printErr( fe, printStackTraces );
+			printErr( new FileNotFoundException( "File not found " + fe.getMessage() ), printStackTraces );
 			exitCode = 1;
 		} catch( IOException ioe ) {
 			printErr( ioe, printStackTraces );
