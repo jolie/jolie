@@ -253,7 +253,7 @@ public class CommandLineParser implements Closeable
 	
 	private String getVersionString()
 	{
-		return( Constants.VERSION + "  " + Constants.COPYRIGHT );
+		return( "Jolie " + Constants.VERSION + "  " + Constants.COPYRIGHT );
 	}
 
 	/**
