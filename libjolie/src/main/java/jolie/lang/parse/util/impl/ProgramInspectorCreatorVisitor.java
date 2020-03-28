@@ -254,7 +254,6 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	}
 	@Override
 	public void visit( NDChoiceStatement n ) {
-		Map<OLSyntaxNode,List<OLSyntaxNode>> sourceBehaviouralDependencies = behaviouralDependencies.get( n.context().source() );
 		if ( currentFirstInput != null ) {
 			for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
 				addOlSyntaxNodeToBehaviouralDependencies( pair.key() );
@@ -262,7 +261,6 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 			}
 		} else {
 			for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
-
 				if ( pair.key() instanceof OneWayOperationStatement) {
 					currentFirstInput = pair.key();
 				} else if ( pair.key() instanceof  RequestResponseOperationStatement ) {
