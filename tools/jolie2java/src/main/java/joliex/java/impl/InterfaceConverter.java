@@ -30,7 +30,6 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import joliex.java.impl.InterfaceVisitor;
 import joliex.java.impl.InterfaceVisitor.InterfaceNotFound;
 
 /**
@@ -41,7 +40,6 @@ public class InterfaceConverter
 {
 	private final Program program;
 	private final String[] interfaceNames;
-	private final Logger logger;
 	private Writer writer;
 	private int indentationLevel = 0;
 
@@ -49,7 +47,6 @@ public class InterfaceConverter
 	{
 		this.program = program;
 		this.interfaceNames = interfaceNames;
-		this.logger = logger;
 	}
 
 	private void indent()

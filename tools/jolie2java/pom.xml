@@ -20,14 +20,14 @@
 	<name>jolie2java</name>
 	<description>Tool to generate java project from Jolie interface</description>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
-		<testSourceDirectory>test</testSourceDirectory>
+		<!-- <sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory> -->
 
-		<testResources>
+		<!-- <testResources>
 			<testResource>
-				<directory>resources</directory>
+				<directory>src/test/resources</directory>
 			</testResource>
-		</testResources>
+		</testResources> -->
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

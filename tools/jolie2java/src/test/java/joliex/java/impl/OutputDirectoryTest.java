@@ -49,7 +49,7 @@ public class OutputDirectoryTest {
 
     @Test
     public void checkEmptyOutputDirecotry() throws IOException, ParserException, SemanticException, CommandLineException {
-        String[] args = { "./resources/main.ol" };
+        String[] args = { "src/test/resources/main.ol" };
         Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
         Program program = ParsingUtils.parseProgram(

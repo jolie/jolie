@@ -18,6 +18,9 @@
  */
 package joliex.java.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,11 +30,20 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
@@ -44,12 +56,6 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.Jolie2JavaInterface;
 import joliex.java.Jolie2Java;
 import joliex.java.Jolie2JavaCommandLineParser;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -90,7 +96,7 @@ public class JavaDocumentCreatorTest
 			TestUtils.deleteFolder( generatedPath );
 		}
 
-		String[] args = { "./resources/main.ol" };
+		String[] args = { "src/test/resources/main.ol" };
 		Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
 		Program program = ParsingUtils.parseProgram(
@@ -117,7 +123,7 @@ public class JavaDocumentCreatorTest
 
 		// compile files
 		File generatedTypesPath = new File( outputDirectory + "com/test/types" );
-		ArrayList<String> files = new ArrayList();
+		ArrayList<String> files = new ArrayList<>();
 		if ( generatedTypesPath.exists() ) {
 			String filesTypes[] = generatedTypesPath.list();
 			for( int i = 0; i < filesTypes.length; i++ ) {
@@ -185,10 +191,10 @@ public class JavaDocumentCreatorTest
 	@Test
 	public void testInterfaceImpl() throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
-		String testName = "testInterfaceImpl";
+		// String testName = "testInterfaceImpl";
 		Class<?> MyOutputPortImpl = Class.forName( "com.test.MyOutputPortImpl", true, classLoader );
 		Constructor myOutputPortImplConstructor = MyOutputPortImpl.getConstructor();
-		Object myOutputPortImplInstance = myOutputPortImplConstructor.newInstance();
+		// Object myOutputPortImplInstance = myOutputPortImplConstructor.newInstance();
 		int methodCount = 0;
 		for( int i = 0; i < MyOutputPortImpl.getMethods().length; i++ ) {
 			if ( MyOutputPortImpl.getMethods()[ i ].getName().startsWith( "test" ) ) {
