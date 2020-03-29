@@ -31,6 +31,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +47,8 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+
 import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
@@ -641,11 +646,13 @@ public class CommandLineParser implements Closeable
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
 			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
-				File dir = new File( path.substring( 0, path.length() - 2 ) );
-				String jars[] = dir.list( ( File directory, String filename ) -> filename.endsWith( ".jar" ) );
-				if ( jars != null ) {
-					for( String jarPath : jars ) {
-						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + '/' + jarPath + "!/" ) );
+				Path dir = Paths.get( path.substring( 0, path.length() - 2 ) );
+				if ( Files.isDirectory( dir ) ) {
+					dir = dir.toRealPath();
+					List< String > archives = Files.list( dir ).map( Path::toString ).filter( p -> p.endsWith( ".jar" ) || p.endsWith( ".jap" ) ).collect( Collectors.toList() );
+					for( String archive : archives ) {
+						String scheme = archive.substring( archive.length() - 3, archive.length() ); // "jap" or "jar"
+						urls.add( new URL( scheme + ":file:" + archive + "!/" ) );
 					}
 				}
 			} else if ( path.contains( ":" ) ) { // Try to avoid unnecessary MalformedURLExceptions, filling up the stack trace eats time.
@@ -786,7 +793,7 @@ public class CommandLineParser implements Closeable
 	private Collection< String > parseJapManifestForOptions( Manifest manifest )
 		throws IOException
 	{
-		Collection< String > optionList = new ArrayList();
+		Collection< String > optionList = new ArrayList<>();
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
 			String options = attrs.getValue(Constants.Manifest.OPTIONS );
