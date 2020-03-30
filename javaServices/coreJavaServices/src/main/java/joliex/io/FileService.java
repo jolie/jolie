@@ -21,9 +21,6 @@
 
 package joliex.io;
 
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.XSType;
-import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,6 +55,7 @@ import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.parsers.DocumentBuilder;
@@ -70,6 +68,15 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.parser.XSOMParser;
+
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import jolie.Interpreter;
 import jolie.jap.JapURLConnection;
 import jolie.js.JsUtils;
@@ -81,9 +88,6 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.typing.Type;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -127,12 +131,26 @@ public class FileService extends JavaService
 	}
 
 	@RequestResponse
-	public void setMimeTypeFile( String filename )
+	public void setMimeTypeFile( String path )
 		throws FaultException
 	{
 		try {
-			fileTypeMap = new MimetypesFileTypeMap( filename );
-		} catch( IOException e ) {
+			final String url;
+			if ( path.startsWith( "jap:" ) || path.startsWith( "jar:" ) ) {
+				url = path.substring( 0, 4 ) +
+					new URI( path.substring( 4 ) ).normalize().toString();
+			} else {
+				url = path;
+			}
+			
+			if ( Files.exists( Paths.get( url ) ) ) {
+				fileTypeMap = new MimetypesFileTypeMap( url );
+			} else {
+				try( InputStream mimeIS = new URL( url ).openStream() ) {
+					fileTypeMap = new MimetypesFileTypeMap( mimeIS );
+				}
+			}
+		} catch( IOException | URISyntaxException e ) {
 			throw new FaultException( "IOException", e );
 		}
 	}
@@ -440,6 +458,13 @@ public class FileService extends JavaService
 			throw new FaultException( "FileNotFound", filename );
 		}
 		return fileTypeMap.getContentType( file );
+	}
+
+	@RequestResponse
+	public String getServiceParentPath()
+	{
+		String filepath = interpreter().programFilepath();
+		return filepath.substring( 0, filepath.lastIndexOf( "/" ) );
 	}
 
 	@RequestResponse

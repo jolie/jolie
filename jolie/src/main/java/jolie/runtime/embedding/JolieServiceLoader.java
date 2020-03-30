@@ -42,7 +42,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		super( channelDest );
 		final String[] ss = servicePathSplitPattern.split( servicePath );
 		final String[] options = currInterpreter.optionArgs();
-				
+
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
 		newArgs[0] = "-i";
 		newArgs[1] = currInterpreter.programDirectory().getAbsolutePath();

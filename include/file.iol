@@ -33,11 +33,11 @@ type CopyDirRequest: void {
 	.to: string
 }
 
-type ReadFileRequest:void {
-	.filename:string
-	.format?:string { // "text" (default), "base64" (same as "binary" but afterwards base64-encoded), "binary", "xml" (a type-annotated XML format), "xml_store", "properties" (Java properties file) or "json"
-		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8), header specification (XML) or format's default (for XML and JSON UTF-8)
-		.skipMixedText?: bool // in case of format xml, it skips the mixed elements
+type ReadFileRequest {
+	filename:string
+	format?:string { // "text" (default), "base64" (same as "binary" but afterwards base64-encoded), "binary", "xml" (a type-annotated XML format), "xml_store", "properties" (Java properties file) or "json"
+		charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8), header specification (XML) or format's default (for XML and JSON UTF-8)
+		skipMixedText?: bool // in case of format xml, it skips the mixed elements
 	}
 }
 
@@ -123,7 +123,8 @@ RequestResponse:
 	 * - properties: each property is represented by a child value
 	 * - json: each attribute corresponds to a child value, the default values (attribute "$" or singular value) are saved as the base values, nested arrays get mapped with the "_" helper childs (e.g. a[i][j] -> a._[i]._[j]), the rest is filled in recursively
 	 */
-	readFile(ReadFileRequest)(undefined) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
+	readFile(ReadFileRequest)(undefined)
+		throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 
 	/**!
 	 * Writes a Jolie structure out to an external file
@@ -185,6 +186,10 @@ RequestResponse:
 	*/
 	exists( string )( bool ),
 
+	/** Returns the parent path of the service */
+	getServiceParentPath(void)(string),
+
+	/** Returns the filesystem directory from which the service has been launched */
 	getServiceDirectory(void)(string) throws IOException(IOExceptionType),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),

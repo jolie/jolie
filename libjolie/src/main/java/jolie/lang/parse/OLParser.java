@@ -696,11 +696,17 @@ public class OLParser extends AbstractParser
 	}
 	
 	private IncludeFile retrieveIncludeFile( final String path, final String filename )
+		throws URISyntaxException
 	{
 		IncludeFile ret;
 		
 		String urlStr = build( path, Constants.fileSeparator, filename );
 
+		if ( urlStr.startsWith( "jap:" ) || urlStr.startsWith( "jar:" ) ) {
+			urlStr = urlStr.substring( 0, 4 ) +
+				new URI( urlStr.substring( 4 ) ).normalize().toString();
+		}
+		
 		ret = tryAccessIncludeFile( urlStr );
 		if ( ret == null ) {
 			final URL url = guessIncludeFilepath( urlStr, filename, path );
@@ -767,7 +773,11 @@ public class OLParser extends AbstractParser
 			includeFile = null;
 
 			for ( int i = 0; i < includePaths.length && includeFile == null; i++ ) {
-				includeFile = retrieveIncludeFile( includePaths[i], includeStr );
+				try {
+					includeFile = retrieveIncludeFile( includePaths[i], includeStr );
+				} catch( URISyntaxException e ) {
+					throw new ParserException( getContext(), e.getMessage() );
+				}
 			}
 			
 			if ( includeFile == null ) {
