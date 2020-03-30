@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -415,7 +416,7 @@ public class CommandLineParser implements Closeable
 		List< String > argsList = Arrays.asList( args );
 
 		String csetAlgorithmName = "simple";
-		List< String > optionsList = new ArrayList<>();
+		Deque< String > optionsList = new LinkedList<>();
 		boolean bTracer = false;
 		boolean bStackTraces = false;
 		boolean bCheck = false;
@@ -620,7 +621,6 @@ public class CommandLineParser implements Closeable
 		if ( correlationAlgorithmType == null ) {
 			throw new CommandLineException( "Unrecognized correlation algorithm: " + csetAlgorithmName );
 		}
-		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
 		// whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 		
@@ -665,7 +665,7 @@ public class CommandLineParser implements Closeable
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
-		GetOLStreamResult olResult = getOLStream( ignoreFile, olFilepath, includeList, jolieClassLoader );
+		GetOLStreamResult olResult = getOLStream( ignoreFile, olFilepath, includeList, optionsList, jolieClassLoader );
 
 		if ( olResult.stream == null ) {
             if ( ignoreFile ) {
@@ -674,7 +674,7 @@ public class CommandLineParser implements Closeable
             } else if ( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
-				olResult = getOLStream( ignoreFile, olFilepath, includeList, jolieClassLoader );
+				olResult = getOLStream( ignoreFile, olFilepath, includeList, optionsList, jolieClassLoader );
 				if ( olResult.stream == null ) {
 					throw new FileNotFoundException( olFilepath );
 				}
@@ -689,11 +689,10 @@ public class CommandLineParser implements Closeable
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
-		includePaths = includeList.toArray( new String[]{} );
+		includePaths = includeList.toArray( new String[ includeList.size() ] );
+		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 	}
-	
-	
-	
+
 	/**
 	 * Adds the standard include and library subdirectories of the program to
 	 * the classloader paths.
@@ -810,7 +809,7 @@ public class CommandLineParser implements Closeable
 		private InputStream stream;
 	}
 	
-	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths, ClassLoader classLoader )
+	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths, Deque< String > optionsList, ClassLoader classLoader )
 		throws FileNotFoundException, IOException
 	{
 		GetOLStreamResult result = new GetOLStreamResult();
@@ -852,7 +851,7 @@ public class CommandLineParser implements Closeable
 					olURL = classLoader.getResource( olFilepath );
 					if ( olURL != null ) {
 						result.stream = olURL.openStream();
-						result.source = olFilepath;
+						result.source = olURL.toString();
 					}
 				}
 				if ( programDirectory == null && olURL != null && olURL.getPath() != null ) {
@@ -867,13 +866,20 @@ public class CommandLineParser implements Closeable
 			}
 		}
 		if ( result.stream != null ) {
+			final Optional< String > parent;
 			if ( f.exists() && f.getParent() != null ) {
-				includePaths.addFirst( f.getParent() );
+				parent = Optional.of( f.getParent() );
 			} else if ( olURL != null ) {
 				String urlString = olURL.toString();
-				includePaths.addFirst( urlString.substring( 0, urlString.lastIndexOf( '/' ) + 1 ) );
+				parent = Optional.of( urlString.substring( 0, urlString.lastIndexOf( '/' ) + 1 ) );
+			} else {
+				parent = Optional.empty();
 			}
-			
+			if ( parent.isPresent() ) {
+				includePaths.addFirst( parent.get() );
+				optionsList.addFirst( parent.get() );
+				optionsList.addFirst( "-l" );
+			}
 			result.stream = new BufferedInputStream( result.stream );
 		}
 		return result;
