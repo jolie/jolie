@@ -58,12 +58,21 @@
 		},
 		{
 			"type": "java",
-			"name": "All Tests",
+			"name": "Tests - All",
 			"request": "launch",
 			"mainClass": "jolie.Jolie",
 			"projectName": "jolie",
 			"cwd": "${workspaceFolder}/test",
 			"args": ["-l", "./lib/\\'*\\':${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/\\'*\\':${workspaceFolder}/dist/jolie/extensions/\\'*\\'", "-i", "${workspaceFolder}/include", "test.ol"]
+		},
+		{
+			"type": "java",
+			"name": "Tests - Jap",
+			"request": "launch",
+			"mainClass": "jolie.Jolie",
+			"projectName": "jolie",
+			"cwd": "${workspaceFolder}/test",
+			"args": ["-l", "./lib/\\'*\\':${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/\\'*\\':${workspaceFolder}/dist/jolie/extensions/\\'*\\'", "-i", "${workspaceFolder}/include", "test.ol", ".\\'*\\'jap.\\'*\\'"]
 		}
 	]
 }

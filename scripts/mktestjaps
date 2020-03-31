@@ -1,0 +1,6 @@
+#!/bin/sh
+
+(
+	cd test/primitives/private/jap_src &&
+	zip -r ../twice.jap META-INF twice -x '*/.*'
+)

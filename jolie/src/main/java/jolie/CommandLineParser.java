@@ -31,6 +31,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,7 +55,7 @@ import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
 import jolie.runtime.correlation.CorrelationEngine;
-import jolie.util.Helpers;
+import jolie.util.UriUtils;
 
 /**
  * A parser for JOLIE's command line arguments,
@@ -467,7 +468,13 @@ public class CommandLineParser implements Closeable
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
 				String[] tmp = argsList.get( i ).split( jolie.lang.Constants.pathSeparator );
-				Collections.addAll( libList, tmp );
+				for( String libPath : tmp ) {
+					Optional< String > path = findLibPath( libPath, includeList, parentClassLoader );
+					path.ifPresent( libList::add );
+					// else {
+					// 	throw new IOException( "Could not locate library: " + libPath );
+					// }
+				}
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--connlimit".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -578,22 +585,30 @@ public class CommandLineParser implements Closeable
 					programArgumentsList.add( argsList.get( i ) );
 				}
 			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
+				String japPath = argsList.get( i );
 				if ( olFilepath == null ) {
-					String japFilename = new File( argsList.get( i ) ).getCanonicalPath();
-					try ( JarFile japFile = new JarFile( japFilename ) ) {
-						Manifest manifest = japFile.getManifest();
-						olFilepath = parseJapManifestForMainProgram( manifest, japFile );
-						if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
-							olFilepath = olFilepath.replace( "\\", "/" );
-						}
-						libList.add( japFilename );
-						Collection< String> japOptions = parseJapManifestForOptions( manifest );
-						argsList.addAll( i + 1, japOptions );
-						japUrl = japFilename + "!";
-						programDirectory = new File( japFilename ).getParentFile();
+					for( String includePath : prepend( "", includeList ) ) {
+						try {
+							String japFilename = UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, japPath ) );
+							if ( Files.exists( Paths.get( japFilename ) ) ) {
+								try( JarFile japFile = new JarFile( japFilename ) ) {
+									Manifest manifest = japFile.getManifest();
+									olFilepath = UriUtils.normalizeWindowsPath( parseJapManifestForMainProgram( manifest, japFile ) );
+									libList.add( japFilename );
+									Collection< String> japOptions = parseJapManifestForOptions( manifest );
+									argsList.addAll( i + 1, japOptions );
+									japUrl = japFilename + "!";
+									programDirectory = new File( japFilename ).getParentFile();
+								}
+								break;
+							}
+						} catch( URISyntaxException e ) {}
+					}
+					if ( olFilepath == null ) {
+						throw new IOException( "Could not locate " + japPath );
 					}
 				} else {
-					programArgumentsList.add( argsList.get( i ) );
+					programArgumentsList.add( japPath );
 				}
 			} else {
 				// It's an unrecognized argument
@@ -662,7 +677,7 @@ public class CommandLineParser implements Closeable
 			}
 		}
 		urls.add( new URL( "file:/" ) );
-		libURLs = urls.toArray( new URL[]{} );
+		libURLs = urls.toArray( new URL[ urls.size() ] );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
 		GetOLStreamResult olResult = getOLStream( ignoreFile, olFilepath, includeList, optionsList, jolieClassLoader );
@@ -755,12 +770,12 @@ public class CommandLineParser implements Closeable
 		return optionArgs;
 	}
 
-	private String parseJapManifestForMainProgram( Manifest manifest, JarFile japFile )
+	private static String parseJapManifestForMainProgram( Manifest manifest, JarFile japFile )
 	{
 		String filepath = null;
 		if ( manifest != null ) { // See if a main program is defined through a Manifest attribute
 			Attributes attrs = manifest.getMainAttributes();
-			filepath = attrs.getValue(Constants.Manifest.MAIN_PROGRAM );
+			filepath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
 		}
 
 		if ( filepath == null ) { // Main program not defined, we make <japName>.ol and <japName>.olc guesses
@@ -789,13 +804,13 @@ public class CommandLineParser implements Closeable
 		return filepath;
 	}
 
-	private Collection< String > parseJapManifestForOptions( Manifest manifest )
+	private static Collection< String > parseJapManifestForOptions( Manifest manifest )
 		throws IOException
 	{
 		Collection< String > optionList = new ArrayList<>();
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
-			String options = attrs.getValue(Constants.Manifest.OPTIONS );
+			String options = attrs.getValue( Constants.Manifest.OPTIONS );
 			if ( options != null ) {
 				String[] tmp = options.split( OPTION_SEPARATOR );
 				Collections.addAll( optionList, tmp );
@@ -816,7 +831,7 @@ public class CommandLineParser implements Closeable
 		if ( ignoreFile ) {
 			return result;
 		}
-
+		
 		URL olURL = null;
 		File f = new File( olFilepath ).getAbsoluteFile();
 		if ( f.exists() ) {
@@ -882,6 +897,43 @@ public class CommandLineParser implements Closeable
 			}
 			result.stream = new BufferedInputStream( result.stream );
 		}
+		return result;
+	}
+
+	private static Optional< String > findLibPath( String libPath, Deque< String > includePaths, ClassLoader classLoader )
+	{
+		if ( libPath.endsWith( "*" ) ) {
+			return findLibPath( libPath.substring( 0, libPath.length() - 1 ), includePaths, classLoader ).map( p -> p + "*" );
+		}
+
+		for( String context : prepend( "", includePaths ) ) {
+			try {
+				String path = UriUtils.normalizeJolieUri(
+					UriUtils.resolve(
+						context,
+						UriUtils.normalizeWindowsPath( libPath )
+					)
+				);
+
+				if ( Files.exists( Paths.get( path ) ) ) {
+					return Optional.of( path );
+				} else {
+					URL url = classLoader.getResource( path );
+					if ( url != null ) {
+						return Optional.of( url.toString() );
+					}
+				}
+			} catch( URISyntaxException e ) {}
+		}
+
+		return Optional.empty();
+	}
+
+	private static < T > List< T > prepend( T element, Collection< T > collection )
+	{
+		List< T > result = new ArrayList<>( collection.size() + 1 );
+		result.add( element );
+		result.addAll( collection );
 		return result;
 	}
 
