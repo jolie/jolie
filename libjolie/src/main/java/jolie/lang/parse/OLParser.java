@@ -132,6 +132,7 @@ import jolie.lang.parse.util.ProgramBuilder;
 import jolie.util.Helpers;
 import jolie.util.Pair;
 import jolie.util.Range;
+import jolie.util.UriUtils;
 
 /** Parser for a .ol file.
  * @author Fabrizio Montesi
@@ -142,7 +143,7 @@ public class OLParser extends AbstractParser
 	private interface ParsingRunnable {
 		public void parse() throws IOException, ParserException;
 	}
-	
+
 	private Optional<String> serviceName = Optional.empty();
 	private final ProgramBuilder programBuilder;
 	private final Map< String, Scanner.Token > constantsMap =
@@ -694,22 +695,17 @@ public class OLParser extends AbstractParser
 		} catch( MalformedURLException | URISyntaxException e ) {}
 		return null;
 	}
-	
-	private IncludeFile retrieveIncludeFile( final String path, final String filename )
+
+	private IncludeFile retrieveIncludeFile( final String context, final String target )
 		throws URISyntaxException
 	{
 		IncludeFile ret;
-		
-		String urlStr = build( path, Constants.fileSeparator, filename );
 
-		if ( urlStr.startsWith( "jap:" ) || urlStr.startsWith( "jar:" ) ) {
-			urlStr = urlStr.substring( 0, 4 ) +
-				new URI( urlStr.substring( 4 ) ).normalize().toString();
-		}
+		String urlStr = UriUtils.normalizeJolieUri( UriUtils.resolve( context, target ) );
 		
 		ret = tryAccessIncludeFile( urlStr );
 		if ( ret == null ) {
-			final URL url = guessIncludeFilepath( urlStr, filename, path );
+			final URL url = guessIncludeFilepath( urlStr, target, context );
 			if ( url != null ) {
 				ret = tryAccessIncludeFile( url.toString() );
 			}
@@ -721,13 +717,7 @@ public class OLParser extends AbstractParser
 	
 	private IncludeFile tryAccessIncludeFile( String includeStr )
 	{
-		if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
-			includeStr = includeStr.replace( "\\", "/" );
-			if ( includeStr.charAt( 1 ) == ':' ) {
-				// Remove the drive name if present
-				includeStr = includeStr.substring( 2 );
-			}
-		}
+		includeStr = UriUtils.normalizeWindowsPath( includeStr );
 
 		final URL includeURL = resourceCache.computeIfAbsent(
 			includeStr,

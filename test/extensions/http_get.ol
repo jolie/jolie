@@ -1,4 +1,4 @@
-/***************************************************************************
+/*
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+ */
 
 include "../AbstractTestUnit.iol"
 
