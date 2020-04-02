@@ -38,16 +38,28 @@ public class UriUtils
 	{
 		final String normalizedUrl;
 		if ( uri.startsWith( JAP_PREFIX ) || uri.startsWith( JAR_PREFIX ) ) {
-			normalizedUrl = uri.substring( 0, 4 ) +
-				new URI( uri.substring( 4 ) ).normalize().toString();
+			final String prefix = uri.substring( 0, 4 );
+			final String[] parts = uri.substring( 4 ).split( "!/", 2 );
+			normalizedUrl = prefix
+				+ new URI( parts[0] ).normalize().toString()
+				+ (parts.length > 1 ? "!/" + new URI( parts[1] ).normalize().toString() : "");
 		} else {
+			// URI normalizedUri = URI.create( uri );
+			// if ( normalizedUri != null ) {
+			// 	normalizedUrl = normalizedUri.normalize().toString();
+			// } else {
 			normalizedUrl = uri;
+			// }			
 		}
 		return normalizedUrl;
 	}
 
 	public static String resolve( String context, String target )
 	{
+		if ( "".equals( context ) ) {
+			return target;
+		}
+
 		String result = null;
 		
 		if ( target.startsWith( JAP_FILE_PREFIX ) ) {
@@ -59,7 +71,7 @@ public class UriUtils
 		}
 
 		if ( result == null ) {
-			if ( !"".equals( context ) ) {
+			if ( !context.endsWith( Constants.fileSeparator ) ) {
 				context += Constants.fileSeparator;
 			}
 			result = context + target;

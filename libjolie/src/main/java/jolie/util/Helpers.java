@@ -22,7 +22,12 @@
 package jolie.util;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * A convenience class with some helper functions for cleaner coding.
@@ -32,6 +37,35 @@ public class Helpers
 {
 	public final static long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 	
+	public static String parentFromURL( URL url )
+		throws URISyntaxException
+	{
+		String parent = null;
+		URI uri = url.toURI();
+		switch( uri.getScheme() ) {
+		case "jap":
+		case "file":
+		case "jar":
+			parent = url.toURI().toString();
+			parent = parent.substring( 0, parent.lastIndexOf( '/' ) );
+			break;
+		}
+		return parent;
+	}
+
+	@SafeVarargs
+	public static <T> Optional<T> firstNonNull( Supplier<T>... suppliers )
+	{
+		T result;
+		for( Supplier<T> supplier : suppliers ) {
+			result = supplier.get();
+			if ( result != null ) {
+				return Optional.of( result );
+			}
+		}
+		return Optional.empty();
+	}
+
 	public static <B extends Comparable<Boolean>, T extends Throwable> void condThrow( B condition, T throwable )
 		throws T
 	{
