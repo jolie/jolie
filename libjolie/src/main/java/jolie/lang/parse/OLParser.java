@@ -28,6 +28,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -704,50 +705,63 @@ public class OLParser extends AbstractParser
 		String urlStr = UriUtils.normalizeJolieUri( UriUtils.resolve( context, target ) );
 		
 		ret = tryAccessIncludeFile( urlStr );
+
 		if ( ret == null ) {
 			final URL url = guessIncludeFilepath( urlStr, target, context );
 			if ( url != null ) {
 				ret = tryAccessIncludeFile( url.toString() );
 			}
 		}
+
 		return ret;
 	}
 	
 	private final Map< String, URL > resourceCache = new HashMap<>();
 	
-	private IncludeFile tryAccessIncludeFile( String includeStr )
+	private IncludeFile tryAccessIncludeFile( String origIncludeStr )
 	{
-		includeStr = UriUtils.normalizeWindowsPath( includeStr );
+		final String includeStr = UriUtils.normalizeWindowsPath( origIncludeStr );
 
-		final URL includeURL = resourceCache.computeIfAbsent(
-			includeStr,
-			classLoader::getResource
-		);
-		
-		if ( includeURL != null ) {
-			try {
-				String parent;
-				URI uri;
-				try {
-					Path path = Paths.get( includeURL.toURI() );
-					parent = path.getParent().toString();
-					uri = path.toUri();
-				} catch( FileSystemNotFoundException e ) {
-					if ( includeURL.toURI().getScheme().equals( "jap" ) ) {
-						parent = includeURL.toURI().toString();
-						parent = parent.substring( 0, parent.lastIndexOf( '/' ) );
-					} else {
-						parent = null;
-					}
-					uri = includeURL.toURI();
+		final Optional< IncludeFile > optIncludeFile = Helpers.firstNonNull(
+			() -> {
+				final URL url = resourceCache.get( includeStr );
+				if ( url == null ) {
+					return null;
 				}
-				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), parent, uri );
-			} catch( IOException | URISyntaxException e ) {
+				try {
+					return new IncludeFile( new BufferedInputStream( url.openStream() ), Helpers.parentFromURL( url ), url.toURI() );
+				} catch( IOException | URISyntaxException e ) {
+					return null;
+				}
+			},
+			() -> {
+				try {
+					Path path = Paths.get( includeStr );
+					return new IncludeFile( new BufferedInputStream( Files.newInputStream( path ) ), path.getParent().toString(), path.toUri() );
+				} catch( FileSystemNotFoundException | IOException e ) {
+					return null;
+				}
+			},
+			() -> {
+				try {
+					final URL url = new URL( includeStr );
+					final InputStream inputStream = url.openStream();
+					return new IncludeFile( new BufferedInputStream( inputStream ), Helpers.parentFromURL( url ), url.toURI() );
+				} catch( IOException | URISyntaxException e ) {
+					return null;
+				}
+			}
+		);
+
+		optIncludeFile.ifPresent( includeFile -> {
+			try {
+				resourceCache.putIfAbsent( includeStr, includeFile.uri.toURL() );
+			} catch( MalformedURLException e ) {
 				e.printStackTrace();
 			}
-		}
-
-		return null;
+		} );
+		
+		return optIncludeFile.orElse( null );
 	}
 
 	private void parseInclude()
