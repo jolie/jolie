@@ -857,15 +857,6 @@ public class Interpreter
 		return classLoader;
 	}
 
-	/**
-	 * Returns <code>true</code> if this interpreter is in verbose mode.
-	 * @return <code>true</code> if this interpreter is in verbose mode
-	 */
-	/* public boolean verbose()
-	{
-		return verbose;
-	} */
-
 	/** Constructor.
 	 *
 	 * @param args The command line arguments.
