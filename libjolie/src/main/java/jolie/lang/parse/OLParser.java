@@ -745,8 +745,20 @@ public class OLParser extends AbstractParser
 			() -> {
 				try {
 					final URL url = new URL( includeStr );
-					final InputStream inputStream = url.openStream();
-					return new IncludeFile( new BufferedInputStream( inputStream ), Helpers.parentFromURL( url ), url.toURI() );
+					final InputStream is = url.openStream();
+					return new IncludeFile( new BufferedInputStream( is ), Helpers.parentFromURL( url ), url.toURI() );
+				} catch( IOException | URISyntaxException e ) {
+					return null;
+				}
+			},
+			() -> {
+				final URL url = classLoader.getResource( includeStr );
+				if ( url == null ) {
+					return null;
+				}
+
+				try {
+					return new IncludeFile( new BufferedInputStream( url.openStream() ), Helpers.parentFromURL( url ), url.toURI() );
 				} catch( IOException | URISyntaxException e ) {
 					return null;
 				}
