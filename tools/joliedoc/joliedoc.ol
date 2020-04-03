@@ -88,7 +88,9 @@ service Render {
                     response = response + "<br>"
                 }
                 response = response + "</td></tr>"
-                response = response + "<tr id='doc_" + o.operation_name + "' style='display:none'><td></td><td colspan='3' class='documentation'>" + o.documentation + "</td><tr>"
+                replaceAll@StringUtils( o.documentation { .regex = "\n", .replacement = "<br>" } )( o_documentation )
+                response = response + "<tr id='doc_" + o.operation_name + "' style='display:none'><td></td><td colspan='3' class='documentation'>" 
+                    + o_documentation + "</td><tr>"
                 response = response + "<tr><td><br></td></tr>"
             }
             response = response + "</table>"
@@ -97,7 +99,7 @@ service Render {
         [ getTypeInLine( request )( response ) {
             getNativeType@Render( request.root_type )( response )
             if ( #request.sub_type > 0 ) {
-                response = response + " {</td><td>" + global.documentation + "</td></tr>"
+                response = response + " {</td><td class='documentation'>" + global.documentation + "</td></tr>"
                 global.documentation = "";
                 for( s in request.sub_type ) {
                     getSubType@Render( s )( sub_type )
@@ -195,6 +197,7 @@ service Render {
             global.documentation = request.documentation;  // documentation must be passed because it could be used in TypeInLine
             getType@Render( request.type )( type_string )
             response = response + type_string + "</td><td class='documentation'>" + global.documentation + "</td></tr>"
+            global.documentation = ""
             global.indentation = global.indentation - 5
         }]
 
