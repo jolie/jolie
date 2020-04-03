@@ -31,7 +31,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -679,7 +679,13 @@ public class CommandLineParser implements Closeable
 		urls.add( new URL( "file:/" ) );
 		libURLs = urls.toArray( new URL[ urls.size() ] );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
-		
+
+		for( URL url : libURLs ) {
+			if ( url.getProtocol().startsWith( "jap" ) ) {
+				includeList.add( url.toString() );
+			}
+		}
+
 		GetOLStreamResult olResult = getOLStream( ignoreFile, olFilepath, includeList, optionsList, jolieClassLoader );
 
 		if ( olResult.stream == null ) {
@@ -704,7 +710,7 @@ public class CommandLineParser implements Closeable
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
-		includePaths = includeList.toArray( new String[ includeList.size() ] );
+		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
 		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 	}
 
@@ -840,17 +846,26 @@ public class CommandLineParser implements Closeable
 			programDirectory = f.getParentFile();
 		} else {
 			for( String includePath : includePaths ) {
-				f = new File(
-					includePath +
-					jolie.lang.Constants.fileSeparator +
-					olFilepath
-				);
-				if ( f.exists() ) {
-					f = f.getAbsoluteFile();
-					result.stream = new FileInputStream( f );
-					result.source = f.toURI().getSchemeSpecificPart();
-					programDirectory = f.getParentFile();
-					break;
+				if ( includePath.startsWith( "jap:" ) ) {
+					try {
+						olURL = new URL( UriUtils.normalizeWindowsPath( UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, olFilepath ) ) ) );
+						result.stream = olURL.openStream();
+						result.source = olURL.toString();
+						break;
+					} catch( URISyntaxException | IOException e ) {}
+				} else {
+					f = new File(
+						includePath +
+						jolie.lang.Constants.fileSeparator +
+						olFilepath
+					);
+					if ( f.exists() ) {
+						f = f.getAbsoluteFile();
+						result.stream = new FileInputStream( f );
+						result.source = f.toURI().getSchemeSpecificPart();
+						programDirectory = f.getParentFile();
+						break;
+					}
 				}
 			}
 			
