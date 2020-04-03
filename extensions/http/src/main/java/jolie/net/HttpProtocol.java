@@ -876,7 +876,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		StringBuilder debugSB = new StringBuilder();
 		debugSB.append( "[HTTP debug] Sending:\n" );
 		debugSB.append( header );
-		if ( showContent ) {
+		if ( showContent && encodedContent != null && encodedContent.content != null ) {
 			debugSB.append( encodedContent.content.toString( charset ) );
 		}
 		return debugSB.toString();
