@@ -110,12 +110,14 @@ public class JavaDocumentCreatorTest
 
 		//Program program = parser.parse();
 		inspector = ParsingUtils.createInspector( program );
-		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true);
+
+		// testing interfaceOnly = true
+		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true, false);
 		instance.ConvertDocument();
 
-		assertEquals( "The number of generated files is wrong", 43, new File( outputDirectory + "com/test/types" ).list().length );
-		assertEquals( "The number of generated files is wrong", 5, new File( outputDirectory +"com/test" ).list().length );
-		assertEquals( "The number of generated files is wrong", 2, new File( outputDirectory ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 43, new File( outputDirectory + "com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 5, new File( outputDirectory +"com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 2, new File( outputDirectory ).list().length );
 
 		// load classes
 		File generated = new File( outputDirectory  );
@@ -224,8 +226,15 @@ public class JavaDocumentCreatorTest
 			assertTrue( "Exception not thrown", false );
 		} catch( java.lang.reflect.InvocationTargetException e ) {
 		}
+
 		// check constructor and getValues
 		assertTrue( compareValues( getFlatStructuredType(), flatStructureType.getValue(), 0 ) );
+
+		// check static methods which are used to be invoked when types are used in Javaservices
+		assertTrue( compareValues( flatStructureType.getValue(), ((Jolie2JavaInterface) FlatStructureType.getMethod("fromValue", Value.class ).invoke( flatStructureType, getFlatStructuredType() )).getValue(), 0 ));
+		assertTrue( compareValues( getFlatStructuredType(), (Value) FlatStructureType.getMethod("toValue", FlatStructureType ).invoke( flatStructureType, flatStructureType ), 0 ) );
+
+
 		Jolie2JavaInterface flatStructureTypeEmpty = (Jolie2JavaInterface) FlatStructureType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 		// check methods
@@ -247,6 +256,11 @@ public class JavaDocumentCreatorTest
 		Jolie2JavaInterface flatStructureVectorsType = (Jolie2JavaInterface) flatStructureVectorsTypeConstructor.newInstance( getFlatStructuredVectorsType() );
 		// check constructor and getValues
 		assertTrue( compareValues( getFlatStructuredVectorsType(), flatStructureVectorsType.getValue(), 0 ) );
+
+		// check static methods which are used to be invoked when types are used in Javaservices
+		assertTrue( compareValues( flatStructureVectorsType.getValue(), ((Jolie2JavaInterface) FlatStructureVectorsType.getMethod("fromValue", Value.class ).invoke( flatStructureVectorsType, getFlatStructuredVectorsType() )).getValue(), 0 ));
+		assertTrue( compareValues( getFlatStructuredVectorsType(), (Value) FlatStructureVectorsType.getMethod("toValue", FlatStructureVectorsType ).invoke( flatStructureVectorsType, flatStructureVectorsType ), 0 ) );
+
 		Jolie2JavaInterface flatStructureVectorsTypeEmpty = (Jolie2JavaInterface) FlatStructureVectorsType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 
@@ -277,6 +291,11 @@ public class JavaDocumentCreatorTest
 			assertTrue( "Exception not thrown", false );
 		} catch( java.lang.reflect.InvocationTargetException e ) {
 		}
+
+		// check static methods which are used to be invoked when types are used in Javaservices
+		assertTrue( compareValues( inLineStructureType.getValue(), ((Jolie2JavaInterface) InLineStructureType.getMethod("fromValue", Value.class ).invoke( inLineStructureType, getInlineStructureType() )).getValue(), 0 ));
+		assertTrue( compareValues( getInlineStructureType(), (Value) InLineStructureType.getMethod("toValue", InLineStructureType ).invoke( inLineStructureType, inLineStructureType ), 0 ) );
+
 		Jolie2JavaInterface inLineStructureTypeEmpty = (Jolie2JavaInterface) InLineStructureType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 
@@ -299,6 +318,10 @@ public class JavaDocumentCreatorTest
 		Jolie2JavaInterface inLineStructureVectorsType = (Jolie2JavaInterface) inLineStructureVectorsTypeConstructor.newInstance( getInlineStructureVectorsType() );
 		// check constructor and getValues
 		assertTrue( compareValues( getInlineStructureVectorsType(), inLineStructureVectorsType.getValue(), 0 ) );
+		// check static methods which are used to be invoked when types are used in Javaservices
+		assertTrue( compareValues( inLineStructureVectorsType.getValue(), ((Jolie2JavaInterface) InLineStructureVectorsType.getMethod("fromValue", Value.class ).invoke( inLineStructureVectorsType, getInlineStructureVectorsType() )).getValue(), 0 ));
+		assertTrue( compareValues( getInlineStructureVectorsType(), (Value) InLineStructureVectorsType.getMethod("toValue", InLineStructureVectorsType ).invoke( inLineStructureVectorsType, inLineStructureVectorsType ), 0 ) );
+
 		Jolie2JavaInterface inLineStructureVectorsTypeEmpty = (Jolie2JavaInterface) InLineStructureVectorsType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 
@@ -321,6 +344,10 @@ public class JavaDocumentCreatorTest
 		Jolie2JavaInterface linkedTypeStructureType = (Jolie2JavaInterface) linkedTypeStructureTypeConstructor.newInstance( getLinkedTypeStructureType() );
 		// check constructor and getValues
 		assertTrue( compareValues( getLinkedTypeStructureType(), linkedTypeStructureType.getValue(), 0 ) );
+		// check static methods which are used to be invoked when types are used in Javaservices
+		assertTrue( compareValues( linkedTypeStructureType.getValue(), ((Jolie2JavaInterface) LinkedTypeStructureType.getMethod("fromValue", Value.class ).invoke( linkedTypeStructureType, getLinkedTypeStructureType() )).getValue(), 0 ));
+		assertTrue( compareValues( getLinkedTypeStructureType(), (Value) LinkedTypeStructureType.getMethod("toValue", LinkedTypeStructureType ).invoke( linkedTypeStructureType, linkedTypeStructureType ), 0 ) );
+
 		Jolie2JavaInterface linkedTypeStructureTypeEmpty = (Jolie2JavaInterface) LinkedTypeStructureType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 
@@ -340,29 +367,55 @@ public class JavaDocumentCreatorTest
 		// LinkedTypeStructureType
 		Jolie2JavaInterface choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getLinkedTypeStructureType() );
 		assertTrue( compareValues( getLinkedTypeStructureType(), choiceLinkedType.getValue(), 0 ) );
+		// check static methods which are used to be invoked when types are used in Javaservices
+		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, getLinkedTypeStructureType() )).getValue(), 0 ));
+		assertTrue( compareValues( getLinkedTypeStructureType(), (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
+
 		// int
 		Value testValue = Value.create();
 		testValue.setValue( TESTINTEGER );
 		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceLinkedType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
+
+
 		// InLineStructureType
 		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getInlineStructureType() );
 		assertTrue( compareValues( getInlineStructureType(), choiceLinkedType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, getInlineStructureType() )).getValue(), 0 ));
+		assertTrue( compareValues( getInlineStructureType(), (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
+
+
 		// void
 		testValue = Value.create();
 		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceLinkedType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
+
 		// FlatStructureType
 		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getFlatStructuredType() );
 		assertTrue( compareValues( getFlatStructuredType(), choiceLinkedType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, getFlatStructuredType() )).getValue(), 0 ));
+		assertTrue( compareValues( getFlatStructuredType(), (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
+
+
 		// FlatStructureVecotrsType
 		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getFlatStructuredVectorsType() );
 		assertTrue( compareValues( getFlatStructuredVectorsType(), choiceLinkedType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, getFlatStructuredVectorsType() )).getValue(), 0 ));
+		assertTrue( compareValues( getFlatStructuredVectorsType(), (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
+
+
 		// string
 		testValue = Value.create();
 		testValue.setValue( TESTSTRING );
 		choiceLinkedType = (Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceLinkedType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
+
 		System.out.println( testName + " contructors and getValue() OK" );
 		// Exception
 		try {
@@ -398,22 +451,39 @@ public class JavaDocumentCreatorTest
 		// ChoiceInlineType1
 		Jolie2JavaInterface choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( getChoiceInlineType1() );
 		assertTrue( compareValues( getChoiceInlineType1(), choiceInlineType.getValue(), 0 ) );
+		// check static methods which are used to be invoked when types are used in Javaservices
+		assertTrue( compareValues( choiceInlineType.getValue(), ((Jolie2JavaInterface) ChoiceInlineType.getMethod("fromValue", Value.class ).invoke( choiceInlineType, getChoiceInlineType1() )).getValue(), 0 ));
+		assertTrue( compareValues( getChoiceInlineType1(), (Value) ChoiceInlineType.getMethod("toValue", ChoiceInlineType ).invoke( choiceInlineType, choiceInlineType ), 0 ) );
+
 		// int
 		Value testValue = Value.create();
 		testValue.setValue( TESTINTEGER );
 		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceInlineType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceInlineType.getValue(), ((Jolie2JavaInterface) ChoiceInlineType.getMethod("fromValue", Value.class ).invoke( choiceInlineType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceInlineType.getMethod("toValue", ChoiceInlineType ).invoke( choiceInlineType, choiceInlineType ), 0 ) );
+
+
 		// ChoiceInlineType2
 		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( getChoiceInlineType2() );
 		assertTrue( compareValues( getChoiceInlineType2(), choiceInlineType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceInlineType.getValue(), ((Jolie2JavaInterface) ChoiceInlineType.getMethod("fromValue", Value.class ).invoke( choiceInlineType, getChoiceInlineType2() )).getValue(), 0 ));
+		assertTrue( compareValues( getChoiceInlineType2(), (Value) ChoiceInlineType.getMethod("toValue", ChoiceInlineType ).invoke( choiceInlineType, choiceInlineType ), 0 ) );
+
 		// ChoiceInlineType3
 		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( getChoiceInlineType3() );
 		assertTrue( compareValues( getChoiceInlineType3(), choiceInlineType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceInlineType.getValue(), ((Jolie2JavaInterface) ChoiceInlineType.getMethod("fromValue", Value.class ).invoke( choiceInlineType, getChoiceInlineType3() )).getValue(), 0 ));
+		assertTrue( compareValues( getChoiceInlineType3(), (Value) ChoiceInlineType.getMethod("toValue", ChoiceInlineType ).invoke( choiceInlineType, choiceInlineType ), 0 ) );
+
 		// string
 		testValue = Value.create();
 		testValue.setValue( TESTSTRING );
 		choiceInlineType = (Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceInlineType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceInlineType.getValue(), ((Jolie2JavaInterface) ChoiceInlineType.getMethod("fromValue", Value.class ).invoke( choiceInlineType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceInlineType.getMethod("toValue", ChoiceInlineType ).invoke( choiceInlineType, choiceInlineType ), 0 ) );
+
 
 		System.out.println( testName + " contructors and getValue() OK" );
 		// Exception
@@ -448,28 +518,41 @@ public class JavaDocumentCreatorTest
 		Class<?> ChoiceSimpleType = Class.forName( packageName + ".ChoiceSimpleType", true, classLoader );
 		Constructor choiceSimpleTypeConstructor = ChoiceSimpleType.getConstructor( new Class[]{ Value.class } );
 
+
 		// string
 		Value testValue = Value.create();
 		testValue.setValue( TESTSTRING );
 		Jolie2JavaInterface choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceSimpleType.getValue(), ((Jolie2JavaInterface) ChoiceSimpleType.getMethod("fromValue", Value.class ).invoke( choiceSimpleType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceSimpleType.getMethod("toValue", ChoiceSimpleType ).invoke( choiceSimpleType, choiceSimpleType ), 0 ) );
+
 
 		// int
 		testValue = Value.create();
 		testValue.setValue( TESTINTEGER );
 		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceSimpleType.getValue(), ((Jolie2JavaInterface) ChoiceSimpleType.getMethod("fromValue", Value.class ).invoke( choiceSimpleType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceSimpleType.getMethod("toValue", ChoiceSimpleType ).invoke( choiceSimpleType, choiceSimpleType ), 0 ) );
+
 
 		// double
 		testValue = Value.create();
 		testValue.setValue( TESTDOUBLE );
 		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceSimpleType.getValue(), ((Jolie2JavaInterface) ChoiceSimpleType.getMethod("fromValue", Value.class ).invoke( choiceSimpleType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceSimpleType.getMethod("toValue", ChoiceSimpleType ).invoke( choiceSimpleType, choiceSimpleType ), 0 ) );
+
 
 		// void
 		testValue = Value.create();
 		choiceSimpleType = (Jolie2JavaInterface) choiceSimpleTypeConstructor.newInstance( testValue );
 		assertTrue( compareValues( testValue, choiceSimpleType.getValue(), 0 ) );
+		assertTrue( compareValues( choiceSimpleType.getValue(), ((Jolie2JavaInterface) ChoiceSimpleType.getMethod("fromValue", Value.class ).invoke( choiceSimpleType, testValue )).getValue(), 0 ));
+		assertTrue( compareValues( testValue, (Value) ChoiceSimpleType.getMethod("toValue", ChoiceSimpleType ).invoke( choiceSimpleType, choiceSimpleType ), 0 ) );
+
 
 		System.out.println( testName + " contructors and getValue() OK" );
 		// Exception
@@ -507,6 +590,10 @@ public class JavaDocumentCreatorTest
 		Jolie2JavaInterface linkedTypeStructureVectorsType = (Jolie2JavaInterface) linkedTypeStructureVectorsTypeConstructor.newInstance( getLinkedTypeStructureVectorsType() );
 		// check constructor and getValues
 		assertTrue( compareValues( getLinkedTypeStructureVectorsType(), linkedTypeStructureVectorsType.getValue(), 0 ) );
+		assertTrue( compareValues( linkedTypeStructureVectorsType.getValue(), ((Jolie2JavaInterface) LinkedTypeStructureVectorsType.getMethod("fromValue", Value.class ).invoke( linkedTypeStructureVectorsType, getLinkedTypeStructureVectorsType() )).getValue(), 0 ));
+		assertTrue( compareValues( getLinkedTypeStructureVectorsType(), (Value) LinkedTypeStructureVectorsType.getMethod("toValue", LinkedTypeStructureVectorsType ).invoke( linkedTypeStructureVectorsType, linkedTypeStructureVectorsType ), 0 ) );
+
+
 		Jolie2JavaInterface linkedTypeStructureVectorsTypeEmpty = (Jolie2JavaInterface) LinkedTypeStructureVectorsType.newInstance();
 		System.out.println( testName + " contructors and getValue() OK" );
 
@@ -528,6 +615,10 @@ public class JavaDocumentCreatorTest
 			Constructor rootValueConstructotr = RootValueType.getConstructor( new Class[]{ Value.class } );
 			Jolie2JavaInterface rootValueTypeInstance = (Jolie2JavaInterface) rootValueConstructotr.newInstance( getRootValue( i ) );
 			assertTrue( compareValues( getRootValue( i ), rootValueTypeInstance.getValue(), 0 ) );
+			assertTrue( compareValues( rootValueTypeInstance.getValue(), ((Jolie2JavaInterface) RootValueType.getMethod("fromValue", Value.class ).invoke( rootValueTypeInstance, getRootValue( i ) )).getValue(), 0 ));
+			assertTrue( compareValues( getRootValue( i ), (Value) RootValueType.getMethod("toValue", RootValueType ).invoke( rootValueTypeInstance, rootValueTypeInstance ), 0 ) );
+
+
 			Jolie2JavaInterface rootValueTypeInstanceEmpty = (Jolie2JavaInterface) RootValueType.newInstance();
 			System.out.println( testName + " contructors and getValue() OK" );
 			// check methods
@@ -566,6 +657,10 @@ public class JavaDocumentCreatorTest
 			}
 			Jolie2JavaInterface simpleTypeInstance = (Jolie2JavaInterface) stringTypeConstructotr.newInstance( v );
 			assertTrue( compareValues( v, simpleTypeInstance.getValue(), 0 ) );
+			assertTrue( compareValues( simpleTypeInstance.getValue(), ((Jolie2JavaInterface) simpleType.getMethod("fromValue", Value.class ).invoke( simpleTypeInstance, v )).getValue(), 0 ));
+			assertTrue( compareValues( v, (Value) simpleType.getMethod("toValue", simpleType ).invoke( simpleTypeInstance, simpleTypeInstance ), 0 ) );
+
+
 			Jolie2JavaInterface simpleTypeInstanceEmpty = (Jolie2JavaInterface) simpleType.newInstance();
 			System.out.println( testName + " contructors and getValue() OK" );
 			// check methods

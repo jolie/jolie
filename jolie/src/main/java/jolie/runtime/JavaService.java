@@ -121,6 +121,7 @@ public abstract class JavaService
 				params = method.getParameterTypes();
 				if ( params.length == 1 ) {
 					checkMethod( ops, method, getFromValueConverter( params[0] ) );
+
 				} else if ( params.length == 0 ) {
 					checkMethod( ops, method, null );
 				}
@@ -182,7 +183,7 @@ public abstract class JavaService
 
 		if ( ValueConverter.class.isAssignableFrom( param ) ) {
 			try {
-				return param.getMethod( "toValue", param.getClass() );
+				return param.getMethod( "toValue", param );
 			} catch( NoSuchMethodException e ) {
 				return null;
 			}

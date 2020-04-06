@@ -31,10 +31,12 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import static org.junit.Assert.*;
 
 public class OutputDirectoryTest {
 
     private static ProgramInspector inspector;
+    private static final String outputDirectory = "./target/jolie2java-generated-sources/";
 
     @AfterClass
     public static void tearDownClass()
@@ -63,8 +65,32 @@ public class OutputDirectoryTest {
 
         //Program program = parser.parse();
         inspector = ParsingUtils.createInspector( program );
-        JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, null, true);
+        JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, null, true, false);
         instance.ConvertDocument();
+    }
+
+    @Test
+    public void checkJavaserviceTrue() throws IOException, ParserException, SemanticException, CommandLineException {
+        String[] args = { "./resources/main.ol" };
+        Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
+
+        Program program = ParsingUtils.parseProgram(
+                cmdParser.programStream(),
+                cmdParser.programFilepath().toURI(),
+                cmdParser.charset(),
+                cmdParser.includePaths(),
+                cmdParser.jolieClassLoader(),
+                cmdParser.definedConstants(),
+                false );
+
+        //Program program = parser.parse();
+        inspector = ParsingUtils.createInspector( program );
+        JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true, true);
+        instance.ConvertDocument();
+
+        assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 43, new File( outputDirectory + "com/test/types" ).list().length );
+        assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 2, new File( outputDirectory +"com/test" ).list().length );
+        assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 2, new File( outputDirectory ).list().length );
     }
 
 }
