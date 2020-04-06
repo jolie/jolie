@@ -62,6 +62,7 @@ public class JavaDocumentCreator
 	private final String targetPort;
 	private final boolean addSource;
 	private final boolean buildXml;
+	private final boolean javaservice;
 	private final int INDENTATION_STEP = 1;
 	private final String TYPEFOLDER = "types";
 	private int indentation;
@@ -90,14 +91,15 @@ public class JavaDocumentCreator
 			"synchronized", "this", "throw", "throws", "transient", "true",
 			"try", "void", "volatile", "while" };
 
-	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml )
+	public JavaDocumentCreator( ProgramInspector inspector, String packageName, String targetPort, boolean addSource, String outputDirectory, boolean buildXml, boolean javaservice )
 	{
 
 		this.inspector = inspector;
-		this.packageName = packageName;
+		this.packageName = packageName.replaceAll("-","_");
 		this.targetPort = targetPort;
 		this.addSource = addSource;
 		this.buildXml = buildXml;
+		this.javaservice = javaservice;
 
 		if ( outputDirectory == null ) {
 			this.outputDirectory = defaultOutputDirectory;
@@ -211,7 +213,7 @@ public class JavaDocumentCreator
 			}
 		}
 
-		// prepare exeptions
+		// prepare exceptions
 		Iterator<Entry<String, TypeDefinition>> faultMapIterator = faultMap.entrySet().iterator();
 
 		while( faultMapIterator.hasNext() ) {
@@ -248,44 +250,51 @@ public class JavaDocumentCreator
 		}
 
 		// prepare interfaceImpl
-		for( OutputPortInfo outputPort : outputPorts ) {
-			/* range over the input ports */
-			if ( targetPort == null || outputPort.id().equals( targetPort ) ) {
+		if ( !javaservice ) {
+			for (OutputPortInfo outputPort : outputPorts) {
+				/* range over the input ports */
+				if (targetPort == null || outputPort.id().equals(targetPort)) {
 
-				String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Impl.java";
-				Writer writer;
-				try {
-					writer = new BufferedWriter( new FileWriter( nameFile ) );
-					prepareInterfaceImpl( outputPort, writer );
-					writer.flush();
-					writer.close();
-				} catch( IOException ex ) {
-					Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+					String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Impl.java";
+					Writer writer;
+					try {
+						writer = new BufferedWriter(new FileWriter(nameFile));
+						prepareInterfaceImpl(outputPort, writer);
+						writer.flush();
+						writer.close();
+					} catch (IOException ex) {
+						Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+					}
 				}
 			}
 		}
 
 		// prepare JolieClient
-		String nameFile = outputDirectory + Constants.fileSeparator + "JolieClient.java";
-		Writer writer;
-		try {
-			writer = new BufferedWriter( new FileWriter( nameFile ) );
-			prepareJolieClient( writer );
-			writer.flush();
-			writer.close();
-		} catch( IOException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+		if ( !javaservice ) {
+			String nameFile = outputDirectory + Constants.fileSeparator + "JolieClient.java";
+			Writer writer;
+			try {
+				writer = new BufferedWriter(new FileWriter(nameFile));
+				prepareJolieClient(writer);
+				writer.flush();
+				writer.close();
+			} catch (IOException ex) {
+				Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 
 		// prepare Controller
-		nameFile = outputDirectory + Constants.fileSeparator + "Controller.java";
-		try {
-			writer = new BufferedWriter( new FileWriter( nameFile ) );
-			prepareController( writer );
-			writer.flush();
-			writer.close();
-		} catch( IOException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
+		if ( !javaservice ) {
+			String nameFile = outputDirectory + Constants.fileSeparator + "Controller.java";
+			Writer writer;
+			try {
+				writer = new BufferedWriter(new FileWriter(nameFile));
+				prepareController(writer);
+				writer.flush();
+				writer.close();
+			} catch (IOException ex) {
+				Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 	}
 
@@ -347,6 +356,7 @@ public class JavaDocumentCreator
 			appendingIndentation( stringBuilder );
 			stringBuilder.append( "}\n" );
 			decrementIndentation();
+
 		} else {
 			stringBuilder.append( "public " ).append( exceptionName ).append( "( Value v ){}\n");
 		}
@@ -361,6 +371,7 @@ public class JavaDocumentCreator
 		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
 		outputFileText.append( "import jolie.runtime.Value;\n" );
 		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append("import jolie.runtime.FaultException;\n");
 		outputFileText.append( "import jolie.runtime.typing.TypeCheckingException;\n" );
 		outputFileText.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
 
@@ -469,10 +480,13 @@ public class JavaDocumentCreator
 		/* appending package */
 		outputFileText.append( "package " ).append( packageName ).append( ";\n" );
 		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
-		outputFileText.append( "import java.io.IOException;\n" );
-		outputFileText.append( "import jolie.runtime.FaultException;\n" );
-		outputFileText.append( "import jolie.runtime.Value;\n" );
-		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append("import jolie.runtime.FaultException;\n");
+		outputFileText.append("import jolie.runtime.Value;\n");
+		outputFileText.append("import jolie.runtime.ByteArray;\n");
+		if ( !javaservice ) {
+			outputFileText.append( "import java.io.IOException;\n" );
+		}
+
 
 
 		/* writing main class */
@@ -968,7 +982,10 @@ public class JavaDocumentCreator
 		if ( !requestType.isEmpty() ) {
 			requestArgument = requestType + " request";
 		}
-		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestArgument ).append( ") throws FaultException, IOException, InterruptedException, Exception" );
+		stringBuilder.append( "public " ).append( responseType ).append( " " ).append( operationName ).append( "(" ).append( requestArgument ).append( ") throws FaultException");
+		if ( !javaservice ) {
+			stringBuilder.append(", IOException, InterruptedException, Exception" );
+		}
 		if ( exceptionList.size() > 0 ) {
 			exceptionList.entrySet().stream().forEach( f -> {
 				stringBuilder.append( ", " ).append( f.getValue() );
@@ -1208,10 +1225,13 @@ public class JavaDocumentCreator
 	private void appendingClass( StringBuilder stringBuilder, TypeDefinition typeDefinition, String interfaceToBeImplemented )
 	{
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " implements " ).append( interfaceToBeImplemented );
+		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " implements " ).append( interfaceToBeImplemented ).append(", ValueConverter");
 		stringBuilder.append( " {" + "\n" );
 
 		incrementIndentation();
+
+		appendingStaticMethodsForValueConverterJavaServiceInterface( stringBuilder, typeDefinition.id() );
+
 		appendingClassBody( typeDefinition, stringBuilder, typeDefinition.id() );
 		decrementIndentation();
 
@@ -1232,6 +1252,7 @@ public class JavaDocumentCreator
 		stringBuilder.append( "import java.util.List;\n" );
 		stringBuilder.append( "import java.util.ArrayList;\n" );
 		stringBuilder.append( "import java.util.Map.Entry;\n" );
+		stringBuilder.append( "import jolie.runtime.JavaService.ValueConverter;\n");
 		stringBuilder.append( "\n" );
 
 	}
@@ -1309,6 +1330,26 @@ public class JavaDocumentCreator
 		decrementIndentation();
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "}\n" );
+	}
+
+	private void appendingStaticMethodsForValueConverterJavaServiceInterface( StringBuilder stringBuilder, String className ) {
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("public static ").append( className ).append(" fromValue( Value value ) throws TypeCheckingException {\n");
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("return new ").append( className ).append("( value );\n");
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("}\n");
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("public static Value toValue( ").append( className ).append( " t ){\n");
+		incrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("return t.getValue();\n");
+		decrementIndentation();
+		appendingIndentation( stringBuilder );
+		stringBuilder.append("}\n");
 	}
 
 	private void appendingConstructorWithParameters( StringBuilder stringBuilder, TypeDefinition type, String className )

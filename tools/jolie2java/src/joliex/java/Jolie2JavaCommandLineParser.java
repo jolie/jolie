@@ -13,6 +13,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     private boolean addSource = false;
 	private String outputDirectory = "";
 	private boolean buildXml = true;
+	private boolean javaservice = false;
 
     public String getPackageName() {
 	return packageName;
@@ -38,6 +39,8 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
     public boolean isBuildXmlenabled() { return buildXml; }
 
+    public boolean getJavaservice() { return javaservice; }
+
     private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
 
 	private String packageName = null;
@@ -46,6 +49,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 	private Boolean addSource = false;
 	private String outputDirectory = null;
 	private Boolean buildXml = true;
+	private Boolean javaservice = false;
 
 	public int onUnrecognizedArgument(List< String> argumentsList, int index)
 		throws CommandLineException {
@@ -64,6 +68,9 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 	    } else if ("--outputDirectory".equals(argumentsList.get(index))) {
 			index++;
 			outputDirectory = argumentsList.get(index);
+		} else if ("--javaservice".equals(argumentsList.get(index))) {
+			index++;
+			javaservice = new Boolean(argumentsList.get(index));
 		} else if ("--buildXml".equals(argumentsList.get(index))) {
 			index++;
 			buildXml = new Boolean(argumentsList.get(index));
@@ -90,10 +97,11 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 		addSource = argHandler.addSource;
 		outputDirectory = argHandler.outputDirectory;
 		buildXml = argHandler.buildXml;
+		javaservice = argHandler.javaservice;
     }
 
     @Override
     protected String getHelpString() {
-	return "Usage: jolie2java --format [java|gwt] --packageName package_namespace [--targetPort outputPort_to_be_encoded] [ --outputDirectory outputDirectory ] [--buildXml true|false] [--addSource true|false] file.ol";
+	return "Usage: jolie2java --format [java|gwt] --packageName package_namespace [--javaservice produce files for javaservice implememtation] [--targetPort outputPort_to_be_encoded] [ --outputDirectory outputDirectory ] [--buildXml true|false] [--addSource true|false] file.ol";
     }
 }
