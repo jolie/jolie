@@ -180,4 +180,10 @@ define doTest
       throw( TestFailed, "Expected values are different but comparison succeeded" )
   }
 
+  // test aggregation with extender 
+   with( rq ) {
+      .filename = "private/sample_service2.ol"
+   };
+   getInputPortMetaData@MetaJolie( rq )( meta_description )
+
 }

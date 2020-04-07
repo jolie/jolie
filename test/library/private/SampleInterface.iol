@@ -3,6 +3,7 @@ type T1: void
 /**!documentation of type T2*/
 type T2: void {
   .field:string //<documentation of field
+  .recursion?: T3
 }
 
 type T3: void {
@@ -11,6 +12,7 @@ type T3: void {
 |
 string {
   .fieldChoice2: string
+  .fieldChoice3: T2
 }
 
 type T4: T1 | T2

@@ -200,8 +200,7 @@ public class MetaJolie extends JavaService {
         if (typedef.hasSubTypes()) {
             int subtype_counter = 0;
             for (Entry<String, TypeDefinition> entry : typedef.subTypes()) {
-                type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), insertInInterfaceList, extension));
-
+                type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), insertInInterfaceList, null));
                 subtype_counter++;
             }
         }
@@ -209,7 +208,7 @@ public class MetaJolie extends JavaService {
             final TypeInlineDefinition extensionTypeInline = (TypeInlineDefinition) extension;
             int subtype_counter = type.getChildren("sub_type").size();
             for (Entry<String, TypeDefinition> entry : extensionTypeInline.subTypes()) {
-                type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), true, extension));
+                type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), true, null));
                 subtype_counter++;
             }
         }
