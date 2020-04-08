@@ -207,9 +207,11 @@ public class MetaJolie extends JavaService {
         if (extension != null && extension instanceof TypeInlineDefinition) {
             final TypeInlineDefinition extensionTypeInline = (TypeInlineDefinition) extension;
             int subtype_counter = type.getChildren("sub_type").size();
-            for (Entry<String, TypeDefinition> entry : extensionTypeInline.subTypes()) {
-                type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), true, null));
-                subtype_counter++;
+            if ( extensionTypeInline.subTypes() != null ) {
+                for (Entry<String, TypeDefinition> entry : extensionTypeInline.subTypes()) {
+                    type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), true, null));
+                    subtype_counter++;
+                }
             }
         }
         return type;
@@ -329,7 +331,7 @@ public class MetaJolie extends JavaService {
                     if (rrExtender == null) {
                         insertTypeDefinition(requestResponseOperation.responseType(), null);
                     } else {
-                        insertTypeDefinition(requestResponseOperation.responseType(), rrExtender.requestType());
+                        insertTypeDefinition(requestResponseOperation.responseType(), rrExtender.responseType());
                     }
                 }
                 Map<String, TypeDefinition> faults = requestResponseOperation.faults();
