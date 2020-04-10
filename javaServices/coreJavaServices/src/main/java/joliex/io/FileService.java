@@ -706,7 +706,10 @@ public class FileService extends JavaService
 		String filename = request.getFirstChild( "filename" ).strValue();
 		String toFilename = request.getFirstChild( "to" ).strValue();
 		if ( new File( filename ).renameTo( new File( toFilename ) ) == false ) {
-			throw new FaultException( "IOException" );
+			Value fault = Value.create();
+			fault.setValue(  "Error renaming file " + filename );
+			fault.getFirstChild("stackTrace").setValue("");
+			throw new FaultException( "IOException", fault );
 		}
 	}
 

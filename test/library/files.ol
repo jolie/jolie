@@ -57,4 +57,9 @@ define doTest
 	};
 
 	testList
+
+	scope( rename_scope ) {
+		install( IOException => nullProcess )
+		rename@File({ .filename = "aaa.a", .to = "bbb.b" } )()
+	}
 }
