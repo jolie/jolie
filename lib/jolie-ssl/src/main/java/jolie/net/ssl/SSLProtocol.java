@@ -264,7 +264,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		throws IOException
 	{
 		// Set default parameters
-		String protocol = getSSLStringParameter( "protocol", "TLSv1" ),
+		String protocol = getSSLStringParameter( "protocol", "TLSv1.2" ),
 			keyStoreFormat = getSSLStringParameter( "keyStoreFormat", "JKS" ),
 			trustStoreFormat = getSSLStringParameter( "trustStoreFormat", "JKS" ),
 			keyStoreFile = getSSLStringParameter( "keyStore", null ),
