@@ -59,6 +59,9 @@ Protocol: http {
 	.default.options = "options";
 	.method -> method;
 	.headers.authorization = "authorization";
+	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
+	.response.headers.("Access-Control-Allow-Origin") = "*";
+	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
 	.response.headers -> responseOutgoingHeaders;
 	.statusCode -> statusCode;
 	.format = "json"
@@ -80,6 +83,9 @@ Protocol: https {
 	.default.options = "options";
 	.method -> method;
 	.headers.authorization = "authorization";
+	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
+	.response.headers.("Access-Control-Allow-Origin") = "*";
+	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
 	.response.headers -> responseOutgoingHeaders;
 	.statusCode -> statusCode;
     .ssl.keyStore= KEY_STORE;
