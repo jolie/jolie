@@ -131,6 +131,9 @@ public class Scanner
 		CURRENT_HANDLER,	///< cH
 		INIT,				///< init
 		PROVIDE,			///< provide
+		IMPORT,				///< import
+		AS,					///< as
+		FROM,				///< from
 		NEWLINE,			///< a newline token
 		ERROR				///< Scanner error
 	}
@@ -144,7 +147,9 @@ public class Scanner
 	static {
 		// Initialise the unreserved keywords map.
 		unreservedKeywords.put( "OneWay", TokenType.OP_OW );
+		unreservedKeywords.put( "oneWay", TokenType.OP_OW );
 		unreservedKeywords.put( "RequestResponse", TokenType.OP_RR );
+		unreservedKeywords.put( "requestResponse", TokenType.OP_RR );
 		unreservedKeywords.put( "linkIn", TokenType.LINKIN );
 		unreservedKeywords.put( "linkOut", TokenType.LINKOUT );
 		unreservedKeywords.put( "if", TokenType.IF );
@@ -185,6 +190,9 @@ public class Scanner
 		unreservedKeywords.put( "true", TokenType.TRUE );
 		unreservedKeywords.put( "false", TokenType.FALSE );
 		unreservedKeywords.put( "provide", TokenType.PROVIDE );
+		unreservedKeywords.put( "import", TokenType.IMPORT );
+		unreservedKeywords.put( "from", TokenType.FROM );
+		unreservedKeywords.put( "as", TokenType.AS );
 	}
 
 	/**
