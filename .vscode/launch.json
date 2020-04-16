@@ -64,7 +64,7 @@
 			"mainClass": "jolie.Jolie",
 			"projectName": "jolie",
 			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", "./lib/\\'*\\':${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/\\'*\\':${workspaceFolder}/dist/jolie/extensions/\\'*\\'", "-i", "${workspaceFolder}/include", "--stackTraces", "test.ol"]
+			"args": ["-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "test.ol"]
 		},
 		{
 			"type": "java",
@@ -73,7 +73,7 @@
 			"mainClass": "jolie.Jolie",
 			"projectName": "jolie",
 			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", "./lib/\\'*\\':${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/\\'*\\':${workspaceFolder}/dist/jolie/extensions/\\'*\\'", "-i", "${workspaceFolder}/include", "test.ol", ".\\'*\\'jap.\\'*\\'"]
+			"args": ["-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "test.ol", ".*jap.*"]
 		},
 		{
 			"type": "java",
@@ -82,7 +82,7 @@
 			"mainClass": "jolie.Jolie",
 			"projectName": "jolie",
 			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", "./lib/\\'*\\':${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/\\'*\\':${workspaceFolder}/dist/jolie/extensions/\\'*\\'", "-i", "${workspaceFolder}/include", "test.ol", ".\\'*\\'http_get.\\'*\\'"]
+			"args": ["-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "test.ol", ".*http_get.*"]
 		}
 	]
 }
