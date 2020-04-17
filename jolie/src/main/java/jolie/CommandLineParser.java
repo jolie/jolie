@@ -434,6 +434,7 @@ public class CommandLineParser implements Closeable
 		String pwd = new File( "" ).getCanonicalPath();
 		includeList.add( pwd );
 		includeList.add( "include" );
+		includeList.add( Constants.PACKAGES_DIR );
 		libList.add( pwd );
 		libList.add( "ext" );
 		libList.add( "lib" );
@@ -709,7 +710,6 @@ public class CommandLineParser implements Closeable
 		check = bCheck && !isProgramCompiled;
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
-
 		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
 		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 	}

@@ -42,7 +42,7 @@
 				<directory>${project.basedir}/../include</directory>
 			</testResource>
 			<testResource>
-				<directory>${project.basedir}/../test/java/libjolie</directory>
+				<directory>${project.basedir}/src/test/resources</directory>
 			</testResource>
 		</testResources>
 		<plugins>
