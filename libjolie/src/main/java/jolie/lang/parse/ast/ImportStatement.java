@@ -55,8 +55,10 @@ public class ImportStatement extends OLSyntaxNode
     /**
      * Constructor for namespace import
      * 
-     * @param context      a parsing context
-     * @param importTarget importing target
+     * @param context      parsing context
+     * @param importTarget tokenized import target, empty denote a dot token (
+     *                     import target for .A.B should give this field ["", "A",
+     *                     "", "B"])
      */
     public ImportStatement( ParsingContext context, String[] importTarget )
     {
@@ -66,8 +68,10 @@ public class ImportStatement extends OLSyntaxNode
     /**
      * Constructor for qualified import
      * 
-     * @param context      a parsing context
-     * @param importTarget importing target
+     * @param context        a parsing context
+     * @param importTarget[] tokenized import target, empty denote a dot token (
+     *                       import target for .A.B should give this field ["", "A",
+     *                       "", "B"])
      */
     public ImportStatement( ParsingContext context, String[] importTarget,
             List< Pair< String, String > > pathNodes )

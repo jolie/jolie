@@ -130,6 +130,8 @@ import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.module.Importer;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ProgramBuilder;
 import jolie.util.Helpers;
 import jolie.util.Pair;
@@ -162,14 +164,17 @@ public class OLParser extends AbstractParser
 
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
 
-	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
-	{
-		super( scanner );
-		final ParsingContext context = new URIParsingContext( scanner.source(), 0 );
-		this.programBuilder = new ProgramBuilder( context );
+	private final Importer importer;
+
+	public OLParser(Scanner scanner, String[] includePaths, ClassLoader classLoader) {
+		super(scanner);
+		final ParsingContext context = new URIParsingContext(scanner.source(), 0);
+		this.programBuilder = new ProgramBuilder(context);
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
-		this.definedTypes = createTypeDeclarationMap( context );
+		this.definedTypes = createTypeDeclarationMap(context);
+		this.importer = new Importer(
+				new Importer.Configuration(scanner.source(), scanner.charset(), includePaths, classLoader, constantsMap));
 	}
 
 	public void putConstants( Map< String, Scanner.Token > constantsToPut )
@@ -2907,16 +2912,22 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.FROM ) ) {
 			boolean isNamespaceImport = false;
 			getToken();
-			List< String > importTarget = new ArrayList< String >();
+			List<String> importTarget = new ArrayList<String>();
+			boolean importTargetIDStarted = false;
 			List< Pair< String, String > > pathNodes = null;
 			boolean keepRun = true;
 			do {
 				if ( token.is( Scanner.TokenType.IMPORT ) ) {
 					keepRun = false;
 					getToken();
-				} else if ( token.is( Scanner.TokenType.ID )
-						|| token.is( Scanner.TokenType.DOT ) ) {
-					importTarget.add( token.content() );
+				} else if (token.is(Scanner.TokenType.DOT)) {
+					if ( !importTargetIDStarted ) {
+						importTarget.add(token.content());
+					}
+					getToken();
+				}else if (token.is(Scanner.TokenType.ID)) {
+					importTarget.add(token.content());
+					importTargetIDStarted = true;
 					getToken();
 				} else {
 					throwException( "expected identifier, dot or import for an import statement" );
@@ -2950,8 +2961,13 @@ public class OLParser extends AbstractParser
 					}
 				} while (keepRun);
 			}
-			ImportStatement stmt = new ImportStatement( getContext(),
-					importTarget.toArray( new String[0] ), isNamespaceImport, pathNodes );
+			ImportStatement stmt = new ImportStatement(getContext(), importTarget.toArray(new String[0]),
+					isNamespaceImport, pathNodes);
+			try {
+				this.importer.importModule(stmt);
+			} catch (ModuleException e) {
+				throwException(e);
+			}
 		}
 	}
 	

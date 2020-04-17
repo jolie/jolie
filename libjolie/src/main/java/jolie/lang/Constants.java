@@ -141,6 +141,7 @@ public final class Constants
 	public static final String CSETS = "csets";
 	public static final String ROOT_RESOURCE_PATH = "/";
 	public static final String JOLIE_LOGGER_NAME = "Jolie";
+	public static final String PACKAGES_DIR = "packages";
 
 	public enum EmbeddedServiceType
 	{
