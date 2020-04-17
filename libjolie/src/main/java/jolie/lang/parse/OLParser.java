@@ -2904,21 +2904,22 @@ public class OLParser extends AbstractParser
 	private void parseImport() throws IOException, ParserException
 	{
 
-		if ( token.is( Scanner.TokenType.FROM ) ){
+		if ( token.is( Scanner.TokenType.FROM ) ) {
 			boolean isNamespaceImport = false;
 			getToken();
-			List<String> importTarget = new ArrayList<String>();
+			List< String > importTarget = new ArrayList< String >();
 			List< Pair< String, String > > pathNodes = null;
 			boolean keepRun = true;
 			do {
 				if ( token.is( Scanner.TokenType.IMPORT ) ) {
 					keepRun = false;
 					getToken();
-				} else if (token.is(Scanner.TokenType.ID) || token.is(Scanner.TokenType.DOT)){
-					importTarget.add(token.content());
+				} else if ( token.is( Scanner.TokenType.ID )
+						|| token.is( Scanner.TokenType.DOT ) ) {
+					importTarget.add( token.content() );
 					getToken();
 				} else {
-					throwException("expected identifier, dot or import for an import statement");
+					throwException( "expected identifier, dot or import for an import statement" );
 				}
 			} while (keepRun);
 
@@ -2949,8 +2950,8 @@ public class OLParser extends AbstractParser
 					}
 				} while (keepRun);
 			}
-			ImportStatement stmt =
-					new ImportStatement( getContext(), importTarget.toArray(new String[0]), isNamespaceImport, pathNodes );
+			ImportStatement stmt = new ImportStatement( getContext(),
+					importTarget.toArray( new String[0] ), isNamespaceImport, pathNodes );
 		}
 	}
 	
