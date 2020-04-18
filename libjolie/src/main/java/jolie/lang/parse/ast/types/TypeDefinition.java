@@ -32,6 +32,7 @@ import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.module.Importable;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -39,7 +40,7 @@ import jolie.util.Range;
  * Representation for a type definition.
  * @author Fabrizio Montesi
  */
-public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode
+public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, Importable
 {
 	private final String id;
 	private final Range cardinality;
@@ -256,6 +257,13 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		hash = 31 * hash + this.id.hashCode();
 		hash = 31 * hash + this.cardinality.hashCode();
 		return hash;
+	}
+
+
+	@Override
+	public String name()
+	{
+		return this.id;
 	}
 
 	/* public abstract TypeDefinition getSubType( String id );

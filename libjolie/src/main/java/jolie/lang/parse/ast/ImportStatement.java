@@ -4,10 +4,7 @@
 package jolie.lang.parse.ast;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
@@ -18,37 +15,9 @@ import jolie.util.Pair;
  */
 public class ImportStatement extends OLSyntaxNode
 {
-    /**
-     * A class for holding information of symbol target
-     */
-    public class ImportSymbolTarget
-    {
-        String moduleSymbol;
-        String localSymbol;
-
-        /**
-         * @param moduleSymbol a symbol of targeting module
-         * @param localSymbol  a symbol of to place in local exeuction
-         */
-        public ImportSymbolTarget( String moduleSymbol, String localSymbol )
-        {
-            this.moduleSymbol = moduleSymbol;
-            this.localSymbol = localSymbol;
-        }
-
-        @Override
-        public String toString()
-        {
-            if ( this.moduleSymbol.equals( this.localSymbol ) ) {
-                return this.moduleSymbol;
-            }
-            return this.moduleSymbol + "as" + this.localSymbol;
-        }
-
-    }
 
     private static final long serialVersionUID = Constants.serialVersionUID();
-    private final Map< String, ImportSymbolTarget > importSymbolTargets;
+    private final ImportSymbolTarget[] importSymbolTargets;
     private final String[] importTarget;
     private final boolean isNamespaceImport;
 
@@ -85,12 +54,14 @@ public class ImportStatement extends OLSyntaxNode
         super( context );
         this.importTarget = importTarget;
         this.isNamespaceImport = isNamespaceImport;
-        importSymbolTargets = new HashMap<>();
         if ( pathNodes != null ) {
-            for (Pair< String, String > node : pathNodes) {
-                importSymbolTargets.put( node.key(),
-                        new ImportSymbolTarget( node.key(), node.value() ) );
+            importSymbolTargets = new ImportSymbolTarget[pathNodes.size()];
+            for (int i = 0; i < pathNodes.size(); i++) {
+                importSymbolTargets[i] = new ImportSymbolTarget( pathNodes.get( i ).key(),
+                        pathNodes.get( i ).value() );
             }
+        } else {
+            importSymbolTargets = null;
         }
     }
 
@@ -104,11 +75,16 @@ public class ImportStatement extends OLSyntaxNode
         return isNamespaceImport;
     }
 
+    public ImportSymbolTarget[] importSymbolTargets()
+    {
+        return importSymbolTargets;
+    }
+
     @Override
     public String toString()
     {
         String importIDs = (this.isNamespaceImport) ? "*"
-                : Arrays.toString( this.importSymbolTargets.values().toArray() );
+                : Arrays.toString( this.importSymbolTargets );
         return "from " + Arrays.toString( this.importTarget ) + " import " + importIDs;
     }
 

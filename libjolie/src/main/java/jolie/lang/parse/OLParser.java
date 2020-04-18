@@ -130,6 +130,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.module.ImportResult;
 import jolie.lang.parse.module.Importer;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ProgramBuilder;
@@ -175,6 +176,16 @@ public class OLParser extends AbstractParser
 		this.definedTypes = createTypeDeclarationMap(context);
 		this.importer = new Importer(
 				new Importer.Configuration(scanner.source(), scanner.charset(), includePaths, classLoader, constantsMap));
+	}
+
+	public OLParser(Scanner scanner, String[] includePaths, ClassLoader classLoader, Importer importer) {
+		super(scanner);
+		final ParsingContext context = new URIParsingContext(scanner.source(), 0);
+		this.programBuilder = new ProgramBuilder(context);
+		this.includePaths = includePaths;
+		this.classLoader = classLoader;
+		this.definedTypes = createTypeDeclarationMap(context);
+		this.importer = importer;
 	}
 
 	public void putConstants( Map< String, Scanner.Token > constantsToPut )
@@ -2963,10 +2974,29 @@ public class OLParser extends AbstractParser
 			}
 			ImportStatement stmt = new ImportStatement(getContext(), importTarget.toArray(new String[0]),
 					isNamespaceImport, pathNodes);
+			ImportResult importResult = null;
+
 			try {
-				this.importer.importModule(stmt);
+				importResult = this.importer.importModule(stmt);
 			} catch (ModuleException e) {
-				throwException(e);
+				throwException( e );
+			}
+
+			if ( importResult != null ) {
+				for (OLSyntaxNode importingNode : importResult.nodes()) {
+					programBuilder.addChild( importingNode );
+				}
+				for (Map.Entry< String, TypeDefinition > entry : importResult.types().entrySet()) {
+					if ( definedTypes.containsKey( entry.getKey() ) ) {
+						if ( !definedTypes.get( entry.getKey() )
+								.isEquivalentTo( (entry.getValue()) ) ) {
+							System.err.println(
+									"warning, imported type of '" + entry.getKey()
+											+ "' is already defined" );
+						}
+					}
+					definedTypes.put( entry.getKey(), entry.getValue() );
+				}
 			}
 		}
 	}

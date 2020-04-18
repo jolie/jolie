@@ -1,6 +1,10 @@
 package jolie.lang.parse.module;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +47,7 @@ public abstract class Finder
      * @return
      * @throws ModuleException if there is finder cannot locate any file.
      */
-    abstract File find() throws ModuleException;
+    abstract Source find() throws ModuleException;
 
     /**
      * returns a Finder object corresponding to target either it is a relative import(starts with .)
@@ -89,7 +93,7 @@ public abstract class Finder
         if ( Files.exists( dirPath ) && Files.isDirectory( dirPath ) ) {
             return dirPath;
         }
-        lookedPaths.add(dirPath.toString());
+        lookedPaths.add( dirPath.toString() );
         return null;
     }
 
@@ -146,7 +150,7 @@ public abstract class Finder
     protected File locateModule( Path basePath )
     {
         Path packagePath = this.locatePackage( basePath );
-        if (packagePath == null){
+        if ( packagePath == null ) {
             return null;
         }
         return this.olLookup( packagePath, this.moduleName() );
@@ -182,11 +186,11 @@ class RelativePathFinder extends Finder
     }
 
     @Override
-    File find() throws ModuleException
+    Source find() throws ModuleException
     {
         Path basePath = resolveDotPrefix();
 
-        File moduleFile = super.locateModule( basePath );
+        FileSource moduleFile = new FileSource( super.locateModule( basePath ) );
         // @TODO handle jap file
         return moduleFile;
     }
@@ -205,11 +209,11 @@ class AbsolutePathFinder extends Finder
     }
 
     @Override
-    File find() throws ModuleException
+    Source find() throws ModuleException
     {
         for (String baseDir : this.includePathStrings) {
             Path basePath = Paths.get( baseDir );
-            File moduleFile = super.locateModule( basePath );
+            FileSource moduleFile = new FileSource( super.locateModule( basePath ) );
 
             if ( moduleFile != null ) {
                 return moduleFile;
@@ -218,4 +222,40 @@ class AbsolutePathFinder extends Finder
         return null;
     }
 
+}
+
+
+interface Source
+{
+    URI source();
+
+    InputStream stream() throws FileNotFoundException, IOException;
+}
+
+
+class FileSource implements Source
+{
+
+    File file;
+
+    public FileSource( File f )
+    {
+        this.file = f;
+    }
+
+    @Override
+    public URI source()
+    {
+        return this.file.toURI();
+    }
+
+    @Override
+    public InputStream stream()
+    {
+        try {
+            return new FileInputStream( this.file );
+        } catch (FileNotFoundException e) {
+        }
+        return null;
+    }
 }

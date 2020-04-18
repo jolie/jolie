@@ -1,21 +1,28 @@
 package jolie.lang.parse.module;
 
-import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.Scanner.Token;
+import jolie.lang.parse.SemanticException;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.ImportStatement;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleRecord.Status;
+import jolie.lang.parse.util.ParsingUtils;
+import jolie.lang.parse.util.ProgramInspector;
 
 public class Importer
 {
 
     public static String PACKAGE_FOLDER = "packages";
     public static String JOLIE_HOME = System.getenv( "JOLIE_HOME" );
+    private final Map< URI, ModuleRecord > cache;
+    private final Configuration config;
 
     public static class Configuration
     {
@@ -44,38 +51,12 @@ public class Importer
         }
     }
 
-    // private Map< URI, ImportCache > cache;
-    private Configuration config;
 
     public Importer( Configuration c )
     {
         this.config = c;
-        // cache = new HashMap<>();
+        cache = new HashMap<>();
     }
-
-    // private ModuleRecord load( Source s ) throws ModuleParsingException
-    // {
-    // System.out.println( "[LOADER] loading " + s.source() );
-    // SemanticVerifier.Configuration configuration = new
-    // SemanticVerifier.Configuration();
-    // configuration.setCheckForMain( false );
-    // Program program;
-    // try {
-    // program = ParsingUtils.parseProgram( s.stream(), s.source(),
-    // this.config.charset,
-    // this.config.includePaths, this.config.classLoader,
-    // this.config.definedConstants,
-    // configuration, this.config.includeDocumentation, this );
-    // } catch (IOException | ParserException | SemanticException e) {
-    // throw new ModuleParsingException( e );
-    // }
-    // if ( program == null ) {
-    // throw new ModuleParsingException( "Program from " + s.source() + " is null"
-    // );
-    // }
-    // ProgramInspector pi = ParsingUtils.createInspector( program );
-    // return new ModuleRecord( s.source(), pi );
-    // }
 
     public String prettyPrintTarget( String[] target )
     {
@@ -95,61 +76,69 @@ public class Importer
         return ret;
     }
 
-    private void moduleLookUp( String[] target ) throws ModuleException
+    private Source moduleLookUp( String[] target ) throws ModuleException
     {
         Finder finder =
                 Finder.getFinderForTarget( this.config.source, this.config.includePaths, target );
-        File targetFile = finder.find();
+        Source targetFile = finder.find();
         if ( targetFile == null ) {
             throw new ModuleException( "Unable to locate module " + prettyPrintTarget( target )
                     + ", looked path " + Arrays.toString( finder.lookupedPath() ) );
         }
-        System.out.println( targetFile );
-        // ImportCache ic = null;
-        // Finder[] finders = Finder.getFindersForTargetString(target);
 
-        // for (Finder f : finders) {
-        // Source targetSource = f.find(source, target);
-        // if (targetSource == null) {
-        // continue;
-        // }
-        // // // perform cache lookup
-        // // if (cache.containsKey(targetSource.source())) {
-        // // System.out.println("[LOADER] found " + targetSource.source() + " in
-        // cache");
-        // // ic = cache.get(targetSource.source());
-        // // if (ic.s == Status.PENDING) { // check importStatus is finishes
-        // // throw new ModuleParsingException(
-        // // "cyclic dependency detected between " + source + " and " + targetSource);
-        // // }
-        // // } else {
-        // // ic = new ImportCache(targetSource.source());
-        // // cache.put(targetSource.source(), ic);
-        // // ModuleRecord rc = load(targetSource);
-        // // ic.setModuleRecord(rc);
-        // // ic.importFinished();
-        // // }
-        // break;
-        // }
-        // if (ic == null) {
-        // throw new ModuleNotFoundException("unable to locate " + target);
-        // }
-
-        // return ic.rc;
+        return targetFile;
     }
 
-    public void importModule( ImportStatement stmt ) throws ModuleException
+
+    /**
+     * load a target source into module record
+     * 
+     * @param s Source of import target, an implementation of Source interface.
+     * @see Source
+     * @throws ModuleException
+     */
+    private ProgramInspector load( Source s ) throws ModuleException
+    {
+        System.out.println( "[LOADER] loading " + s.source() );
+        SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
+        configuration.setCheckForMain( false );
+        Program program;
+        try {
+            Scanner scanner = new Scanner( s.stream(), s.source(), this.config.charset );
+            program = ParsingUtils.parseProgram( scanner, this.config.includePaths,
+                    this.config.classLoader, this.config.definedConstants, configuration, this );
+        } catch (IOException | ParserException | SemanticException e) {
+            throw new ModuleException( e );
+        }
+        ProgramInspector pi = ParsingUtils.createInspector( program );
+        return pi;
+    }
+
+    public ImportResult importModule( ImportStatement stmt ) throws ModuleException
     {
         // ModuleRecord rc = moduleLookUp(source, stmt.importTarget());
-        moduleLookUp( stmt.importTarget() );
-        // if ( rc == null ) {
-        // throw new ModuleException("unable to locate from " + source + " with target"
-        // + stmt.importTarget());
-        // }
-        // if ( stmt.isNamespaceImport() ) {
-        // return rc.resolveNameSpace( stmt.context() );
-        // } else {
-        // return rc.resolve( stmt.context(), stmt.pathNodes() );
-        // }
+        Source targetSource = moduleLookUp( stmt.importTarget() );
+
+        // perform cache lookup
+        ModuleRecord moduleRecord;
+        if ( cache.containsKey( targetSource.source() ) ) {
+            System.out.println( "[IMPORTER] found " + targetSource.source() + " in cache" );
+            moduleRecord = cache.get( targetSource.source() );
+            if ( moduleRecord.status() == Status.LOADING ) { // check importStatus is finishes
+                throw new ModuleException( "cyclic dependency detected between "
+                        + stmt.context().sourceName() + " and " + targetSource.source() );
+            }
+        } else {
+            moduleRecord = new ModuleRecord( targetSource.source() );
+            cache.put( targetSource.source(), moduleRecord );
+            ProgramInspector pi = load( targetSource );
+            moduleRecord.loadFinished( pi );
+        }
+
+        if ( stmt.isNamespaceImport() ) {
+            return moduleRecord.resolveNameSpace( stmt.context() );
+        } else {
+            return moduleRecord.resolve( stmt.context(), stmt.importSymbolTargets() );
+        }
     }
 }

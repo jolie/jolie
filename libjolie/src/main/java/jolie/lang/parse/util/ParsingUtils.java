@@ -32,6 +32,7 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.Importer;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
@@ -83,6 +84,28 @@ public class ParsingUtils
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
+		semanticVerifier.validate();
+
+		return program;
+	}
+	
+	/**
+	 * Parse program with custom importer, used by OLParser during load a import statement target
+	 */
+	public static Program parseProgram(
+		Scanner scanner,
+		String[] includePaths,
+		ClassLoader classLoader,
+		Map< String, Scanner.Token > definedConstants,
+		SemanticVerifier.Configuration configuration,
+		Importer importer
+	)
+		throws IOException, ParserException, SemanticException
+	{
+		OLParser olParser = new OLParser( scanner, includePaths, classLoader, importer );
+		olParser.putConstants( definedConstants );
+		Program program = olParser.parse();
+		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
 		semanticVerifier.validate();
 
 		return program;

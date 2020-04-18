@@ -114,4 +114,12 @@ public class TypeDefinitionLink extends TypeDefinition
 	{
 		visitor.visit( this );
 	}
+
+	@Override
+	public TypeDefinition resolve( ParsingContext context, String localID )
+	{
+		TypeDefinitionLink localType = new TypeDefinitionLink(context, localID, this.cardinality(), this.linkedTypeName);
+		return localType;
+	}
+
 }

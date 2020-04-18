@@ -63,4 +63,18 @@ public class TypeChoiceDefinition extends TypeDefinition
 		it.forEachRemaining( pair -> path.add( pair ) );
 		return left.containsPath( path.iterator() ) && right.containsPath( path.iterator() );
 	}
+
+	@Override
+	public OLSyntaxNode resolve( ParsingContext context, String localID )
+	{
+		TypeDefinition right = null;
+		if ( this.right() != null ) {
+			right = (TypeDefinition)this.right().resolve(context, this.right().id());
+		}
+		TypeChoiceDefinition localType = new TypeChoiceDefinition( context, localID,
+				this.cardinality(), this.left(), right );
+		localType.setDocumentation( this.getDocumentation() );
+
+		return localType;
+	}
 }
