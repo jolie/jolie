@@ -2,6 +2,7 @@ package jolie.lang.parse.module;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -98,7 +99,7 @@ public class ModuleRecord
         if ( typeDefinition instanceof TypeDefinitionLink ) {
 
             String linkedTypeName = ((TypeDefinitionLink) typeDefinition).linkedTypeName();
-            res.addAll( List.of( this.findSymbol( linkedTypeName ) ) );
+            res.addAll( Arrays.asList( this.findSymbol( linkedTypeName ) ) );
 
         } else if ( typeDefinition instanceof TypeInlineDefinition ) {
             TypeInlineDefinition inlineImport = ((TypeInlineDefinition) typeDefinition);
@@ -113,7 +114,7 @@ public class ModuleRecord
                         } else {
                             parentSymbols.add(typeDefinition.id());
                             res.addAll(
-                                    List.of( this.findSymbol( parentSymbols, linkedTypeName ) ) );
+                                    Arrays.asList( this.findSymbol( parentSymbols, linkedTypeName ) ) );
                         }
                     }
                 }
@@ -133,19 +134,19 @@ public class ModuleRecord
             if ( op instanceof OneWayOperationDeclaration ) {
                 OneWayOperationDeclaration ow = (OneWayOperationDeclaration) op;
                 if ( !ow.requestType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                    res.addAll( List.of( this.findSymbol( ow.requestType().id() ) ) );
+                    res.addAll( Arrays.asList( this.findSymbol( ow.requestType().id() ) ) );
                 }
             } else if ( op instanceof RequestResponseOperationDeclaration ) {
                 RequestResponseOperationDeclaration rr = (RequestResponseOperationDeclaration) op;
                 if ( !rr.requestType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                    res.addAll( List.of( this.findSymbol( rr.requestType().id() ) ) );
+                    res.addAll( Arrays.asList( this.findSymbol( rr.requestType().id() ) ) );
                 }
                 if ( !rr.responseType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                    res.addAll( List.of( this.findSymbol( rr.responseType().id() ) ) );
+                    res.addAll( Arrays.asList( this.findSymbol( rr.responseType().id() ) ) );
                 }
                 for (TypeDefinition fault : rr.faults().values()) {
                     if ( !fault.id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                        res.addAll( List.of( this.findSymbol( fault.id() ) ) );
+                        res.addAll( Arrays.asList( this.findSymbol( fault.id() ) ) );
                     }
                 }
             }
