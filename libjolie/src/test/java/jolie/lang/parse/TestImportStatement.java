@@ -19,10 +19,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import jolie.lang.Constants;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 
@@ -52,6 +52,26 @@ public class TestImportStatement
                 }
             }
             throw new Exception( "type \"point\" not found" );
+        } );
+    }
+
+    @Test
+    void testImportProcedureDefinition()
+    {
+        String code = "from procedure import foo";
+        this.is = new ByteArrayInputStream( code.getBytes() );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        assertDoesNotThrow( () -> {
+            OLParser olParser = oc.createOLParser( is );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (DefinitionNode node : pi.getProcedureDefinitions()) {
+                if ( node.name().equals( "foo" ) ) {
+                    return;
+                }
+            }
+            throw new Exception( "procedure \"foo\" not found" );
         } );
     }
 

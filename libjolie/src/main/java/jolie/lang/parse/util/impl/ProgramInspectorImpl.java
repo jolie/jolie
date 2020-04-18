@@ -44,6 +44,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 	private final Map< URI, List< OutputPortInfo > > outputPorts;
 	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices;
 	private final Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies;
+	private final Map< URI, List< DefinitionNode > > definitionNodes;
 
 	public ProgramInspectorImpl(
 		URI[] sources,
@@ -52,7 +53,8 @@ public class ProgramInspectorImpl implements ProgramInspector
 		Map< URI, List< InputPortInfo > > inputPorts,
 		Map< URI, List< OutputPortInfo > > outputPorts,
 		Map< URI, List< EmbeddedServiceNode > > embeddedServices,
-		Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies
+		Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode> > > behaviouralDependencies,
+		Map< URI, List< DefinitionNode > > definitionNodes
 	) {
 		this.sources = sources;
 		this.interfaces = interfaces;
@@ -61,6 +63,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 		this.outputPorts = outputPorts;
 		this.embeddedServices = embeddedServices;
 		this.behaviouralDependencies = behaviouralDependencies;
+		this.definitionNodes = definitionNodes;
 	}
 
 	@Override
@@ -209,5 +212,30 @@ public class ProgramInspectorImpl implements ProgramInspector
 			return new EmbeddedServiceNode[ 0 ];
 		}
 		return list.toArray( new EmbeddedServiceNode[ 0 ] );
+	}
+
+
+	@Override
+	public DefinitionNode[] getProcedureDefinitions()
+	{
+		List< DefinitionNode > result = new ArrayList<>();
+		List< DefinitionNode > list;
+		for( URI source : sources ) {
+			list = definitionNodes.get( source );
+			if ( list != null ) {
+				result.addAll( list );
+			}
+		}
+		return result.toArray( new DefinitionNode[ 0 ] );
+	}
+
+	@Override
+	public DefinitionNode[] getProcedureDefinitions(URI source )
+	{
+		List< DefinitionNode > list = definitionNodes.get( source );
+		if ( list == null ) {
+			return new DefinitionNode[ 0 ];
+		}
+		return list.toArray( new DefinitionNode[ 0 ] );
 	}
 }

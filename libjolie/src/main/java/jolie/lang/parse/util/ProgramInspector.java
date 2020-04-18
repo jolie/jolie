@@ -118,4 +118,15 @@ public interface ProgramInspector
 	 * defined in the specific source
 	 */
 	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies( URI source );
+
+	/**
+	 * Returns an array of all the procedure definition nodes defined in the program
+	 */
+	public DefinitionNode[] getProcedureDefinitions();
+
+	/**
+	 * Returns a map procedure definition nodes defined in the program
+	 * defined in the specific source
+	 */
+	public DefinitionNode[] getProcedureDefinitions( URI source );
 }

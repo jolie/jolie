@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.ImportSymbolTarget;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -64,15 +65,15 @@ public class ModuleRecord
         return null;
     }
 
-    // private DefinitionNode findProcedureDefinition( String id )
-    // {
-    // for (DefinitionNode procedureDef : programInspector.getProcedureDefinitions()) {
-    // if ( procedureDef.id().equals( id ) ) {
-    // return procedureDef;
-    // }
-    // }
-    // return null;
-    // }
+    private DefinitionNode findProcedureDefinition( String id )
+    {
+        for (DefinitionNode procedureDef : programInspector.getProcedureDefinitions()) {
+            if ( procedureDef.id().equals( id ) ) {
+                return procedureDef;
+            }
+        }
+        return null;
+    }
 
     // private ServiceNodeParameterize findParamService( String id )
     // {
@@ -165,18 +166,15 @@ public class ModuleRecord
         }
 
 
-        // DefinitionNode moduleProcedureDef = this.findProcedureDefinition( id );
-        // if ( moduleProcedureDef != null ) {
-        // return new Importable[] {moduleProcedureDef};
-        // }
+        DefinitionNode moduleProcedureDef = this.findProcedureDefinition( id );
+        if ( moduleProcedureDef != null ) {
+            return new Importable[] {moduleProcedureDef};
+        }
+
         // ServiceNode moduleService = this.findService( id );
         // if ( moduleService != null ) {
         // return new Importable[] {moduleService};
         // }
-        // // ServiceNodeParameterize service = this.findParamService( id );
-        // // if ( service != null ) {
-        // // return new Importable[] {service};
-        // // }
 
         return res.toArray( new Importable[0] );
     }
@@ -192,18 +190,14 @@ public class ModuleRecord
             importPaths.add( new ImportSymbolTarget( interfaceDef.name(), interfaceDef.name() ) );
         }
 
-        // for (DefinitionNode definitionNode : this.programInspector.getProcedureDefinitions()) {
-        // importPaths
-        // .add( new Pair< String, String >( definitionNode.id(), definitionNode.id() ) );
-        // }
+        for (DefinitionNode definitionNode : this.programInspector.getProcedureDefinitions()) {
+            importPaths.add( new ImportSymbolTarget( definitionNode.id(), definitionNode.id() ) );
+        }
 
         // for (ServiceNode service : this.programInspector.getServices()) {
         // importPaths.add( new Pair< String, String >( service.name(), service.name() ) );
         // }
 
-        // for (ServiceNodeParameterize service : this.programInspector.getParamServices()) {
-        // importPaths.add( new Pair< String, String >( service.name(), service.name() ) );
-        // }
         return resolve( ctx, importPaths.toArray( new ImportSymbolTarget[0] ) );
     }
 
