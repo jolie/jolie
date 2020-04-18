@@ -81,12 +81,51 @@ public class ModuleRecord
     // return null;
     // }
 
+
+    /**
+     * find and resolve dependency of type definitions
+     */
+    private List< Importable > resolveDependency( TypeDefinition typeDefinition )
+    {
+        List< Importable > res = new ArrayList<>();
+        // resolve linked type
+        if ( typeDefinition instanceof TypeDefinitionLink ) {
+
+            String linkedTypeName = ((TypeDefinitionLink) typeDefinition).linkedTypeName();
+            res.addAll( List.of( this.findSymbol( linkedTypeName ) ) );
+
+        } else if ( typeDefinition instanceof TypeInlineDefinition ) {
+            TypeInlineDefinition inlineImport = ((TypeInlineDefinition) typeDefinition);
+            if ( inlineImport.hasSubTypes() ) {
+                for (Entry< String, TypeDefinition > subtypeEntry : inlineImport.subTypes()) {
+                    if ( subtypeEntry.getValue() instanceof TypeDefinitionLink ) {
+                        String linkedTypeName =
+                                ((TypeDefinitionLink) subtypeEntry.getValue()).linkedTypeName();
+                        res.addAll( List.of( this.findSymbol( linkedTypeName ) ) );
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
+     * find a symbol and returns list of importable node which contain the modules' symbol node and
+     * its' dependencies
+     */
     public Importable[] findSymbol( String id )
     {
+        List< Importable > res = new ArrayList<>();
         TypeDefinition moduleTypeDef = this.findType( id );
+
         if ( moduleTypeDef != null ) {
-            return new Importable[] {moduleTypeDef};
+            res.add( moduleTypeDef );
+            List< Importable > typeDependencies = this.resolveDependency( moduleTypeDef );
+            res.addAll( 0, typeDependencies );
+            return res.toArray( new Importable[0] );
         }
+
+
         // InterfaceDefinition moduleInterfaceDef = this.findInterface( id );
         // if ( moduleInterfaceDef != null ) {
         // List< Importable > res = new ArrayList< Importable >();
@@ -164,28 +203,14 @@ public class ModuleRecord
                         + this.programInspector.getSources().toString() );
             }
             for (Importable moduleNode : moduleNodes) {
-                OLSyntaxNode node = moduleNode.resolve( ctx, importSymbol.localSymbol() );
+                OLSyntaxNode node = null;
 
-                // resolve linked type
-                if ( node instanceof TypeDefinitionLink ) {
-                    String linkedTypeName = ((TypeDefinitionLink) node).linkedTypeName();
-                    ImportSymbolTarget[] linkedTypeImportNode = new ImportSymbolTarget[]{
-                        new ImportSymbolTarget( linkedTypeName, linkedTypeName )
-                    };
-                    res.prependResult( this.resolve( ctx, linkedTypeImportNode ) );
-                }else if ( node instanceof TypeInlineDefinition ) {
-                    TypeInlineDefinition inlineImport = ((TypeInlineDefinition) node);
-                    if (inlineImport.hasSubTypes()){
-                        for (Entry<String, TypeDefinition> subtypeEntry: inlineImport.subTypes()) {
-                            if (subtypeEntry.getValue() instanceof TypeDefinitionLink){
-                                String linkedTypeName = ((TypeDefinitionLink) subtypeEntry.getValue()).linkedTypeName();
-                                ImportSymbolTarget[] linkedTypeImportNode = new ImportSymbolTarget[]{
-                                    new ImportSymbolTarget( linkedTypeName, linkedTypeName )
-                                };
-                                res.prependResult( this.resolve( ctx, linkedTypeImportNode ) );
-                            }
-                        }
-                    }
+                // resolve import target symbol and it's dependency
+                if ( moduleNode.name().equals( importSymbol.moduleSymbol() ) ) {
+                    node = moduleNode.resolve( ctx, importSymbol.localSymbol() );
+                } else {
+                    // resolve dependency
+                    node = moduleNode.resolve( ctx, moduleNode.name() );
                 }
 
                 res.addNode( node );
