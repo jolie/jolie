@@ -67,10 +67,7 @@ public abstract class Finder
     /**
      * @return an array of tokens except last one, which denote the module name
      */
-    protected String[] packagesToken()
-    {
-        return Arrays.copyOfRange( this.target, 0, this.target.length - 1 );
-    }
+    protected abstract String[] packagesToken();
 
     /**
      * @return an importing module name
@@ -136,7 +133,7 @@ public abstract class Finder
     {
         Path ret = basePath;
         for (String pathString : this.packagesToken()) {
-            ret = this.directoryLookup( basePath, pathString );
+            ret = this.directoryLookup( ret, pathString );
             if ( ret == null ) {
                 return ret;
             }
@@ -162,6 +159,7 @@ class RelativePathFinder extends Finder
 {
 
     private final URI source;
+    private int packagesTokenStartIndex = 0;
 
     protected RelativePathFinder( String[] target, URI source )
     {
@@ -175,13 +173,15 @@ class RelativePathFinder extends Finder
     {
         Path sourcePath = Paths.get( source );
         Path basePath = sourcePath;
-        for (int i = 1; i < super.moduleIndex(); i++) {
+        int i = 1;
+        for (; i < super.moduleIndex(); i++) {
             if ( target[i].isEmpty() ) {
                 basePath = basePath.getParent();
             } else {
                 break;
             }
         }
+        packagesTokenStartIndex = i;
         return basePath;
     }
 
@@ -189,10 +189,19 @@ class RelativePathFinder extends Finder
     Source find() throws ModuleException
     {
         Path basePath = resolveDotPrefix();
-
-        FileSource moduleFile = new FileSource( super.locateModule( basePath ) );
+        File moduleFile = super.locateModule( basePath );
+        if ( moduleFile == null ) {
+            return null;
+        }
+        FileSource moduleSource = new FileSource( super.locateModule( basePath ) );
         // @TODO handle jap file
-        return moduleFile;
+        return moduleSource;
+    }
+
+    @Override
+    protected String[] packagesToken()
+    {
+        return Arrays.copyOfRange( this.target, packagesTokenStartIndex, this.target.length - 1 );
     }
 
 }
@@ -220,6 +229,12 @@ class AbsolutePathFinder extends Finder
             }
         }
         return null;
+    }
+
+    @Override
+    protected String[] packagesToken()
+    {
+        return Arrays.copyOfRange( this.target, 0, this.target.length - 1 );
     }
 
 }

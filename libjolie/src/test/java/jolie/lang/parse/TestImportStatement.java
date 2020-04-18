@@ -33,6 +33,26 @@ public class TestImportStatement
                     Constants.PACKAGES_DIR );
 
     @Test
+    void testImportTestSuite()
+    {
+        String code = "from .private.imports.point import point";
+        this.is = new ByteArrayInputStream( code.getBytes() );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        assertDoesNotThrow( () -> {
+            OLParser olParser = oc.createOLParser( is );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (TypeDefinition td : pi.getTypes()) {
+                if ( td.id().equals( "point" ) ) {
+                    return;
+                }
+            }
+            throw new Exception( "type \"point\" not found" );
+        } );
+    }
+
+    @Test
     void testImportChoiceType()
     {
         String code = "from type import number";
