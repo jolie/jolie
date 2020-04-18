@@ -114,6 +114,13 @@ public class Importer
         return pi;
     }
 
+    /**
+     * perform import module from a statement
+     * this method is null safety
+     * @param stmt
+     * @return
+     * @throws ModuleException
+     */
     public ImportResult importModule( ImportStatement stmt ) throws ModuleException
     {
         // ModuleRecord rc = moduleLookUp(source, stmt.importTarget());

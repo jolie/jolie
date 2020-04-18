@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -18,8 +19,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import jolie.lang.Constants;
+import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 
@@ -49,6 +52,99 @@ public class TestImportStatement
                 }
             }
             throw new Exception( "type \"point\" not found" );
+        } );
+    }
+
+    @Test
+    void testImportInterfaceDefinitionRR()
+    {
+        String code = "from interface import twiceIface";
+        this.is = new ByteArrayInputStream( code.getBytes() );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        assertDoesNotThrow( () -> {
+            OLParser olParser = oc.createOLParser( is );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (InterfaceDefinition id : pi.getInterfaces()) {
+                if ( id.name().equals( "twiceIface" ) && id.operationsMap().containsKey("twice") ) {
+                    return;
+                }
+            }
+            throw new Exception( "interface \"twiceIface\" not found and operation \"twice\" not found" );
+        } );
+    }
+
+    @Test
+    void testImportInterfaceDefinitionOW()
+    {
+        String code = "from interface import aIface";
+        this.is = new ByteArrayInputStream( code.getBytes() );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        assertDoesNotThrow( () -> {
+            OLParser olParser = oc.createOLParser( is );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (InterfaceDefinition id : pi.getInterfaces()) {
+                if ( id.name().equals( "aIface" ) && id.operationsMap().containsKey("notice") ) {
+                    return;
+                }
+            }
+            throw new Exception( "interface \"aIface\" not found and operation \"notice\" not found" );
+        } );
+    }
+
+    @Test
+    void testImportInterfaceDefinitionCombine()
+    {
+        String code = "from interface import bIface";
+        this.is = new ByteArrayInputStream( code.getBytes() );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        assertDoesNotThrow( () -> {
+            OLParser olParser = oc.createOLParser( is );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (InterfaceDefinition id : pi.getInterfaces()) {
+                if ( id.name().equals( "bIface" ) && id.operationsMap().containsKey("notice") && id.operationsMap().containsKey("twice") ) {
+                    return;
+                }
+            }
+            throw new Exception( "interface \"bIface\" not found and operation \"notice\", \"twice\" not found" );
+        } );
+    }
+
+    @Test
+    void testImportInterfaceDefinitionCustomType()
+    {
+        String code = "from interface import fooIface";
+        this.is = new ByteArrayInputStream( code.getBytes() );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        Set< String > expectedType = new HashSet<>();
+        expectedType.add( "foo" );
+        expectedType.add( "bar" );
+        expectedType.add( "err" );
+        assertDoesNotThrow( () -> {
+            OLParser olParser = oc.createOLParser( is );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (InterfaceDefinition id : pi.getInterfaces()) {
+                if ( id.name().equals( "fooIface" ) && id.operationsMap().containsKey("fooOp")){
+                    break;
+                }
+            }
+
+            for (TypeDefinition td : pi.getTypes()) {
+                if ( expectedType.contains( td.id() ) ) {
+                    expectedType.remove( td.id() );
+                    if ( expectedType.size() == 0 ) {
+                        return;
+                    }
+                }
+            }
+            throw new Exception( "definition incomplete" );
         } );
     }
 
@@ -115,7 +211,7 @@ public class TestImportStatement
                     }
                 }
             }
-            throw new Exception( "type \"dateFoo\" not found" );
+            throw new Exception( "type " + Arrays.toString(expectedType.toArray()) + " not found" );
         } );
     }
 

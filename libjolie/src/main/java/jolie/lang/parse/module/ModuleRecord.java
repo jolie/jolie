@@ -4,12 +4,15 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import jolie.lang.NativeType;
 import jolie.lang.parse.ast.ImportSymbolTarget;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.util.ProgramInspector;
@@ -83,7 +86,7 @@ public class ModuleRecord
 
 
     /**
-     * find and resolve dependency of type definitions
+     * find and resolve dependency of TypeDefinition
      */
     private List< Importable > resolveDependency( TypeDefinition typeDefinition )
     {
@@ -110,6 +113,36 @@ public class ModuleRecord
     }
 
     /**
+     * find and resolve dependency of InterfaceDefinition
+     */
+    private List< Importable > resolveDependency( InterfaceDefinition interfaceDefinition )
+    {
+        List< Importable > res = new ArrayList<>();
+        for (OperationDeclaration op : interfaceDefinition.operationsMap().values()) {
+            if ( op instanceof OneWayOperationDeclaration ) {
+                OneWayOperationDeclaration ow = (OneWayOperationDeclaration) op;
+                if ( !ow.requestType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
+                    res.addAll( List.of( this.findSymbol( ow.requestType().id() ) ) );
+                }
+            } else if ( op instanceof RequestResponseOperationDeclaration ) {
+                RequestResponseOperationDeclaration rr = (RequestResponseOperationDeclaration) op;
+                if ( !rr.requestType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
+                    res.addAll( List.of( this.findSymbol( rr.requestType().id() ) ) );
+                }
+                if ( !rr.responseType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
+                    res.addAll( List.of( this.findSymbol( rr.responseType().id() ) ) );
+                }
+                for (TypeDefinition fault : rr.faults().values()) {
+                    if ( !fault.id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
+                        res.addAll( List.of( this.findSymbol( fault.id() ) ) );
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
      * find a symbol and returns list of importable node which contain the modules' symbol node and
      * its' dependencies
      */
@@ -120,35 +153,18 @@ public class ModuleRecord
 
         if ( moduleTypeDef != null ) {
             res.add( moduleTypeDef );
-            List< Importable > typeDependencies = this.resolveDependency( moduleTypeDef );
-            res.addAll( 0, typeDependencies );
-            return res.toArray( new Importable[0] );
+            List< Importable > dependency = this.resolveDependency( moduleTypeDef );
+            res.addAll( 0, dependency );
+        }
+
+        InterfaceDefinition moduleInterfaceDef = this.findInterface( id );
+        if ( moduleInterfaceDef != null ) {
+            res.add( moduleInterfaceDef );
+            List< Importable > dependency = this.resolveDependency( moduleInterfaceDef );
+            res.addAll( 0, dependency );
         }
 
 
-        // InterfaceDefinition moduleInterfaceDef = this.findInterface( id );
-        // if ( moduleInterfaceDef != null ) {
-        // List< Importable > res = new ArrayList< Importable >();
-        // for (OperationDeclaration op : moduleInterfaceDef.operationsMap().values()) {
-        // if ( op instanceof OneWayOperationDeclaration ) {
-        // OneWayOperationDeclaration ow = (OneWayOperationDeclaration) op;
-        // if ( !ow.requestType().equals( TypeDefinitionUndefined.getInstance() ) ) {
-        // res.add( ow.requestType() );
-        // }
-        // } else if ( op instanceof RequestResponseOperationDeclaration ) {
-        // RequestResponseOperationDeclaration rr =
-        // (RequestResponseOperationDeclaration) op;
-        // if ( !rr.requestType().equals( TypeDefinitionUndefined.getInstance() ) ) {
-        // res.add( rr.requestType() );
-        // }
-        // if ( !rr.responseType().equals( TypeDefinitionUndefined.getInstance() ) ) {
-        // res.add( rr.responseType() );
-        // }
-        // }
-        // }
-        // res.add( moduleInterfaceDef );
-        // return res.toArray( new Importable[0] );
-        // }
         // DefinitionNode moduleProcedureDef = this.findProcedureDefinition( id );
         // if ( moduleProcedureDef != null ) {
         // return new Importable[] {moduleProcedureDef};
@@ -162,7 +178,7 @@ public class ModuleRecord
         // // return new Importable[] {service};
         // // }
 
-        return null;
+        return res.toArray( new Importable[0] );
     }
 
     public ImportResult resolveNameSpace( ParsingContext ctx ) throws ModuleException
@@ -172,10 +188,9 @@ public class ModuleRecord
             importPaths.add( new ImportSymbolTarget( td.id(), td.id() ) );
         }
 
-        // for (InterfaceDefinition interfaceDef : this.programInspector.getInterfaces()) {
-        // importPaths
-        // .add( new Pair< String, String >( interfaceDef.name(), interfaceDef.name() ) );
-        // }
+        for (InterfaceDefinition interfaceDef : this.programInspector.getInterfaces()) {
+            importPaths.add( new ImportSymbolTarget( interfaceDef.name(), interfaceDef.name() ) );
+        }
 
         // for (DefinitionNode definitionNode : this.programInspector.getProcedureDefinitions()) {
         // importPaths
