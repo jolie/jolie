@@ -105,8 +105,7 @@ public class ParsingUtils
 		OLParser olParser = new OLParser( scanner, includePaths, classLoader, importer );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
-		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
-		semanticVerifier.validate();
+		program = OLParseTreeOptimizer.optimize( program );
 
 		return program;
 	}

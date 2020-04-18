@@ -117,6 +117,7 @@ public class Importer
     /**
      * perform import module from a statement
      * this method is null safety
+     * 
      * @param stmt
      * @return
      * @throws ModuleException
@@ -132,16 +133,14 @@ public class Importer
             System.out.println( "[IMPORTER] found " + targetSource.source() + " in cache" );
             moduleRecord = cache.get( targetSource.source() );
             if ( moduleRecord.status() == Status.LOADING ) { // check importStatus is finishes
-                throw new ModuleException( "cyclic dependency detected between "
-                        + stmt.context().sourceName() + " and " + targetSource.source() );
+                moduleRecord.loadPartial();
+                return new ImportResult();
             }
-        } else {
-            moduleRecord = new ModuleRecord( targetSource.source() );
-            cache.put( targetSource.source(), moduleRecord );
-            ProgramInspector pi = load( targetSource );
-            moduleRecord.loadFinished( pi );
         }
-
+        moduleRecord = new ModuleRecord( targetSource.source() );
+        cache.put( targetSource.source(), moduleRecord );
+        ProgramInspector pi = load( targetSource );
+        moduleRecord.setInspector(pi);
         if ( stmt.isNamespaceImport() ) {
             return moduleRecord.resolveNameSpace( stmt.context() );
         } else {

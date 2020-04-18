@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -29,20 +31,73 @@ import jolie.lang.parse.util.ProgramInspector;
 public class TestImportStatement
 {
 
+    private static String BASE_DIR = "imports";
     InputStream is;
     static SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
     private static Path packageDir =
-            Paths.get( TestImportStatement.class.getClassLoader().getResource( "." ).getPath(),
+            Paths.get( TestImportStatement.class.getClassLoader().getResource( BASE_DIR ).getPath(),
                     Constants.PACKAGES_DIR );
+
+    @Test
+    void testCyclicDependencyValid()
+    {
+        URL src = getClass().getClassLoader().getResource( "imports/cyclic/A_valid.ol" );
+        assertDoesNotThrow( () -> {
+            is = src.openStream();
+        } );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+
+        Set< String > expectedType = new HashSet<>();
+        expectedType.add( "foo" );
+        expectedType.add( "bar" );
+        expectedType.add( "b" );
+        assertDoesNotThrow( () -> {
+            URI source = Paths.get( src.toURI() ).getParent().toUri();
+            OLParser olParser = oc.createOLParser( new Scanner( is, source, null ) );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (TypeDefinition td : pi.getTypes()) {
+                if ( expectedType.contains( td.id() ) ) {
+                    expectedType.remove( td.id() );
+                    if ( expectedType.size() == 0 ) {
+                        return;
+                    }
+                }
+            }
+            throw new Exception( "definition incomplete" );
+        } );
+    }
+
+    @Test
+    void testCyclicDependency() throws URISyntaxException, IOException
+    {
+        String errorMessage = "cyclic dependency detected";
+        
+        URL src = getClass().getClassLoader().getResource( "imports/cyclic/A.ol" );
+        assertDoesNotThrow( () -> {
+            is = src.openStream();
+        } );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+
+        URI source = Paths.get( src.toURI() ).getParent().toUri();
+        OLParser olParser = oc.createOLParser( new Scanner( is, source, null ) );
+
+        Exception exception = assertThrows( ParserException.class, () -> olParser.parse(),
+                "Expected parse() to throw, with " + errorMessage + " but it didn't" );
+        assertTrue( exception.getMessage().contains( errorMessage ) );
+    }
 
     @Test
     void testImportTestSuite()
     {
         String code = "from .private.imports.point import point";
+        URL source = TestImportStatement.class.getClassLoader().getResource( BASE_DIR );
+        assert source != null;
         this.is = new ByteArrayInputStream( code.getBytes() );
         InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( source.toURI(), is );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -87,11 +142,13 @@ public class TestImportStatement
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
             for (InterfaceDefinition id : pi.getInterfaces()) {
-                if ( id.name().equals( "twiceIface" ) && id.operationsMap().containsKey("twice") ) {
+                if ( id.name().equals( "twiceIface" )
+                        && id.operationsMap().containsKey( "twice" ) ) {
                     return;
                 }
             }
-            throw new Exception( "interface \"twiceIface\" not found and operation \"twice\" not found" );
+            throw new Exception(
+                    "interface \"twiceIface\" not found and operation \"twice\" not found" );
         } );
     }
 
@@ -107,11 +164,12 @@ public class TestImportStatement
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
             for (InterfaceDefinition id : pi.getInterfaces()) {
-                if ( id.name().equals( "aIface" ) && id.operationsMap().containsKey("notice") ) {
+                if ( id.name().equals( "aIface" ) && id.operationsMap().containsKey( "notice" ) ) {
                     return;
                 }
             }
-            throw new Exception( "interface \"aIface\" not found and operation \"notice\" not found" );
+            throw new Exception(
+                    "interface \"aIface\" not found and operation \"notice\" not found" );
         } );
     }
 
@@ -127,11 +185,13 @@ public class TestImportStatement
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
             for (InterfaceDefinition id : pi.getInterfaces()) {
-                if ( id.name().equals( "bIface" ) && id.operationsMap().containsKey("notice") && id.operationsMap().containsKey("twice") ) {
+                if ( id.name().equals( "bIface" ) && id.operationsMap().containsKey( "notice" )
+                        && id.operationsMap().containsKey( "twice" ) ) {
                     return;
                 }
             }
-            throw new Exception( "interface \"bIface\" not found and operation \"notice\", \"twice\" not found" );
+            throw new Exception(
+                    "interface \"bIface\" not found and operation \"notice\", \"twice\" not found" );
         } );
     }
 
@@ -151,7 +211,7 @@ public class TestImportStatement
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
             for (InterfaceDefinition id : pi.getInterfaces()) {
-                if ( id.name().equals( "fooIface" ) && id.operationsMap().containsKey("fooOp")){
+                if ( id.name().equals( "fooIface" ) && id.operationsMap().containsKey( "fooOp" ) ) {
                     break;
                 }
             }
@@ -231,7 +291,8 @@ public class TestImportStatement
                     }
                 }
             }
-            throw new Exception( "type " + Arrays.toString(expectedType.toArray()) + " not found" );
+            throw new Exception(
+                    "type " + Arrays.toString( expectedType.toArray() ) + " not found" );
         } );
     }
 

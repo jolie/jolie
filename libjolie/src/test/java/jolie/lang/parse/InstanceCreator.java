@@ -2,6 +2,7 @@ package jolie.lang.parse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
@@ -20,6 +21,14 @@ class InstanceCreator
         }
         this.includePaths = includePaths;
     }
+
+    OLParser createOLParser( URI Source, InputStream codeSteam )
+            throws IOException, URISyntaxException
+    {
+        return new OLParser( new Scanner( codeSteam, Source, StandardCharsets.UTF_8.name(), false ),
+                this.includePaths, InstanceCreator.class.getClassLoader() );
+    }
+
 
     OLParser createOLParser( InputStream codeSteam ) throws IOException, URISyntaxException
     {

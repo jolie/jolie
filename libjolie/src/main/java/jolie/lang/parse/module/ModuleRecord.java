@@ -2,8 +2,10 @@ package jolie.lang.parse.module;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.ImportSymbolTarget;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -22,7 +24,7 @@ public class ModuleRecord
 {
 
     public enum Status {
-        LOADING, LOADED
+        LOADING, PARTIAL, LOADED
     }
 
     private final URI source;
@@ -35,13 +37,22 @@ public class ModuleRecord
         this.status = Status.LOADING;
     }
 
-    public void loadFinished( ProgramInspector pi ) throws ModuleException
+    public void loadPartial()
+    {
+        this.status = Status.PARTIAL;
+    }
+
+    public void loadFinished()
+    {
+        this.status = Status.LOADED;
+    }
+
+    public void setInspector( ProgramInspector pi ) throws ModuleException
     {
         if ( status == Status.LOADED ) {
             throw new ModuleException( "module " + this.source + " already is loaded." );
         }
         this.programInspector = pi;
-        this.status = Status.LOADED;
     }
 
 
@@ -75,21 +86,12 @@ public class ModuleRecord
         return null;
     }
 
-    // private ServiceNodeParameterize findParamService( String id )
-    // {
-    // for (ServiceNodeParameterize service : programInspector.getParamServices()) {
-    // if ( service.name().equals( id ) ) {
-    // return service;
-    // }
-    // }
-    // return null;
-    // }
-
 
     /**
      * find and resolve dependency of TypeDefinition
      */
-    private List< Importable > resolveDependency( TypeDefinition typeDefinition )
+    private List< Importable > resolveDependency( Set< String > parentSymbols,
+            TypeDefinition typeDefinition ) throws ModuleException
     {
         List< Importable > res = new ArrayList<>();
         // resolve linked type
@@ -105,7 +107,14 @@ public class ModuleRecord
                     if ( subtypeEntry.getValue() instanceof TypeDefinitionLink ) {
                         String linkedTypeName =
                                 ((TypeDefinitionLink) subtypeEntry.getValue()).linkedTypeName();
-                        res.addAll( List.of( this.findSymbol( linkedTypeName ) ) );
+                        if ( parentSymbols.contains( linkedTypeName ) ) {
+                            throw new ModuleException( "cyclic dependency detected: symbol "
+                                    + typeDefinition.id() + " looking for " + linkedTypeName );
+                        } else {
+                            parentSymbols.add(typeDefinition.id());
+                            res.addAll(
+                                    List.of( this.findSymbol( parentSymbols, linkedTypeName ) ) );
+                        }
                     }
                 }
             }
@@ -117,6 +126,7 @@ public class ModuleRecord
      * find and resolve dependency of InterfaceDefinition
      */
     private List< Importable > resolveDependency( InterfaceDefinition interfaceDefinition )
+            throws ModuleException
     {
         List< Importable > res = new ArrayList<>();
         for (OperationDeclaration op : interfaceDefinition.operationsMap().values()) {
@@ -147,14 +157,19 @@ public class ModuleRecord
      * find a symbol and returns list of importable node which contain the modules' symbol node and
      * its' dependencies
      */
-    public Importable[] findSymbol( String id )
+    public Importable[] findSymbol( String id ) throws ModuleException
+    {
+        return this.findSymbol( new HashSet< String >(), id );
+    }
+
+    private Importable[] findSymbol( Set< String > parentSymbols, String id ) throws ModuleException
     {
         List< Importable > res = new ArrayList<>();
         TypeDefinition moduleTypeDef = this.findType( id );
 
         if ( moduleTypeDef != null ) {
             res.add( moduleTypeDef );
-            List< Importable > dependency = this.resolveDependency( moduleTypeDef );
+            List< Importable > dependency = this.resolveDependency( parentSymbols, moduleTypeDef );
             res.addAll( 0, dependency );
         }
 
@@ -170,11 +185,6 @@ public class ModuleRecord
         if ( moduleProcedureDef != null ) {
             return new Importable[] {moduleProcedureDef};
         }
-
-        // ServiceNode moduleService = this.findService( id );
-        // if ( moduleService != null ) {
-        // return new Importable[] {moduleService};
-        // }
 
         return res.toArray( new Importable[0] );
     }
@@ -193,10 +203,6 @@ public class ModuleRecord
         for (DefinitionNode definitionNode : this.programInspector.getProcedureDefinitions()) {
             importPaths.add( new ImportSymbolTarget( definitionNode.id(), definitionNode.id() ) );
         }
-
-        // for (ServiceNode service : this.programInspector.getServices()) {
-        // importPaths.add( new Pair< String, String >( service.name(), service.name() ) );
-        // }
 
         return resolve( ctx, importPaths.toArray( new ImportSymbolTarget[0] ) );
     }
@@ -225,6 +231,7 @@ public class ModuleRecord
                 res.addNode( node );
             }
         }
+        this.loadFinished();
 
         return res;
     }
