@@ -97,7 +97,7 @@ public class TestImportStatement
         this.is = new ByteArrayInputStream( code.getBytes() );
         InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( source.toURI(), is );
+            OLParser olParser = oc.createOLParser( Paths.get(source.getPath(), "import.ol").toUri(), is );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 

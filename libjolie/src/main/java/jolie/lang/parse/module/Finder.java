@@ -172,7 +172,7 @@ class RelativePathFinder extends Finder
     private Path resolveDotPrefix()
     {
         Path sourcePath = Paths.get( source );
-        Path basePath = sourcePath;
+        Path basePath = sourcePath.getParent();
         int i = 1;
         for (; i < super.moduleIndex(); i++) {
             if ( target[i].isEmpty() ) {
