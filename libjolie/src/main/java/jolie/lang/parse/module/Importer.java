@@ -99,7 +99,6 @@ public class Importer
      */
     private ProgramInspector load( Source s ) throws ModuleException
     {
-        System.out.println( "[LOADER] loading " + s.source() );
         SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
         configuration.setCheckForMain( false );
         Program program;
@@ -130,7 +129,6 @@ public class Importer
         // perform cache lookup
         ModuleRecord moduleRecord;
         if ( cache.containsKey( targetSource.source() ) ) {
-            System.out.println( "[IMPORTER] found " + targetSource.source() + " in cache" );
             moduleRecord = cache.get( targetSource.source() );
             if ( moduleRecord.status() == Status.LOADING ) { // check importStatus is finishes
                 moduleRecord.loadPartial();
