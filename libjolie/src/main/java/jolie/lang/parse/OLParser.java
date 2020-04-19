@@ -167,24 +167,27 @@ public class OLParser extends AbstractParser
 
 	private final Importer importer;
 
-	public OLParser(Scanner scanner, String[] includePaths, ClassLoader classLoader) {
-		super(scanner);
-		final ParsingContext context = new URIParsingContext(scanner.source(), 0);
-		this.programBuilder = new ProgramBuilder(context);
+	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
+	{
+		super( scanner );
+		final ParsingContext context = new URIParsingContext( scanner.source(), 0 );
+		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
-		this.definedTypes = createTypeDeclarationMap(context);
-		this.importer = new Importer(
-				new Importer.Configuration(scanner.source(), scanner.charset(), includePaths, classLoader, constantsMap));
+		this.definedTypes = createTypeDeclarationMap( context );
+		this.importer = new Importer( new Importer.Configuration( scanner.source(),
+				scanner.charset(), includePaths, classLoader, constantsMap ) );
 	}
 
-	public OLParser(Scanner scanner, String[] includePaths, ClassLoader classLoader, Importer importer) {
-		super(scanner);
-		final ParsingContext context = new URIParsingContext(scanner.source(), 0);
-		this.programBuilder = new ProgramBuilder(context);
+	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader,
+			Importer importer )
+	{
+		super( scanner );
+		final ParsingContext context = new URIParsingContext( scanner.source(), 0 );
+		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
-		this.definedTypes = createTypeDeclarationMap(context);
+		this.definedTypes = createTypeDeclarationMap( context );
 		this.importer = importer;
 	}
 

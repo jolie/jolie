@@ -709,6 +709,7 @@ public class CommandLineParser implements Closeable
 		check = bCheck && !isProgramCompiled;
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
+		
 		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
 		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 	}
