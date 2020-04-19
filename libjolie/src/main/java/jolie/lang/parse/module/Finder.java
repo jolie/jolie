@@ -142,8 +142,6 @@ public abstract class Finder
             if ( ret == null ) {
                 return ret;
             }
-            // @TODO handle jap file
-            // ret = this.japLookup(basePath, pathString);
         }
         return ret;
     }
