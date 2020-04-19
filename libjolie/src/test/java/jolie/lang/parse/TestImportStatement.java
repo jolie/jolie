@@ -41,9 +41,8 @@ public class TestImportStatement
     private static String BASE_DIR = "imports";
     InputStream is;
     static SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
-    private static Path packageDir =
-            Paths.get( TestImportStatement.class.getClassLoader().getResource( BASE_DIR ).getPath(),
-                    Constants.PACKAGES_DIR );
+    private static String packageDir =
+            TestImportStatement.class.getClassLoader().getResource( BASE_DIR ).getPath();
 
 
     @Test
@@ -58,8 +57,7 @@ public class TestImportStatement
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
             for (InterfaceDefinition id : pi.getInterfaces()) {
-                if ( id.name().equals( "TwiceAPI" )
-                        && id.operationsMap().containsKey( "twice" ) ) {
+                if ( id.name().equals( "TwiceAPI" ) && id.operationsMap().containsKey( "twice" ) ) {
                     return;
                 }
             }

@@ -133,7 +133,6 @@ public abstract class Finder
         return null;
     }
 
-
     protected Path locatePackage( Path basePath )
     {
         Path ret = basePath;
@@ -187,7 +186,12 @@ class RelativePathFinder extends Finder
     private Path resolveDotPrefix()
     {
         Path sourcePath = Paths.get( source );
-        Path basePath = sourcePath.getParent();
+        Path basePath;
+        if ( !sourcePath.toFile().isDirectory() ) {
+            basePath = sourcePath.getParent();
+        } else {
+            basePath = sourcePath;
+        }
         int i = 1;
         for (; i < super.moduleIndex(); i++) {
             if ( target[i].isEmpty() ) {
@@ -231,7 +235,7 @@ class AbsolutePathFinder extends Finder
     Source find() throws ModuleException
     {
         for (String baseDir : this.includePathStrings) {
-            Path basePath = Paths.get( baseDir );
+            Path basePath = Paths.get( baseDir, Constants.PACKAGES_DIR );
             Source module = super.locateModule( basePath );
             if ( module != null ) {
                 return module;
@@ -348,38 +352,5 @@ class JapSource implements Source
             e.printStackTrace();
         }
         return null;
-    }
-
-    /**
-     * copied from CommandLineParser, needed to be refactor
-     */
-    private static String parseJapManifestForMainProgram( Manifest manifest, JarFile japFile )
-    {
-        String filepath = null;
-        if ( manifest != null ) { // See if a main program is defined through a Manifest attribute
-            Attributes attrs = manifest.getMainAttributes();
-            filepath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
-        }
-
-        if ( filepath == null ) { // Main program not defined, we make <japName>.ol and
-                                  // <japName>.olc guesses
-            String name = new File( japFile.getName() ).getName();
-            filepath =
-                    new StringBuilder().append( name.subSequence( 0, name.lastIndexOf( ".jap" ) ) )
-                            .append( ".ol" ).toString();
-            if ( japFile.getEntry( filepath ) == null ) {
-                filepath = null;
-                filepath = filepath + 'c';
-                if ( japFile.getEntry( filepath ) == null ) {
-                    filepath = null;
-                }
-            }
-        }
-
-        if ( filepath != null ) {
-            filepath = new StringBuilder().append( "jap:file:" ).append( japFile.getName() )
-                    .append( "!/" ).append( filepath ).toString();
-        }
-        return filepath;
     }
 }

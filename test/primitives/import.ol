@@ -5,9 +5,10 @@ from .private.imports.procedure import proc
 from .private.imports.namespace import *
 from .private.imports.namespace import n1 as asN1, n2 as asN2
 from .private.twice import TwiceAPI
+from t import test
 include "../AbstractTestUnit.iol"
 
-define doTest{
+define doTest {
     v << {x= 1, y= 2}
 
 	if ( !(v instanceof point) ) {
@@ -48,5 +49,9 @@ define doTest{
 	}
 	if ( !(n2_val instanceof asN2) ) {
 		throw( TestFailed, "asN2 is not imported" )
+	}
+
+	if ( !("t" instanceof test) ) {
+		throw( TestFailed, "test is not imported" )
 	}
 }

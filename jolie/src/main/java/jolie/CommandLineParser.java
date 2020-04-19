@@ -434,7 +434,6 @@ public class CommandLineParser implements Closeable
 		String pwd = new File( "" ).getCanonicalPath();
 		includeList.add( pwd );
 		includeList.add( "include" );
-		includeList.add( Constants.PACKAGES_DIR );
 		libList.add( pwd );
 		libList.add( "ext" );
 		libList.add( "lib" );
