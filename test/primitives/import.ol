@@ -6,6 +6,7 @@ from .private.imports.namespace import *
 from .private.imports.namespace import n1 as asN1, n2 as asN2
 from .private.twice import TwiceAPI
 from t import test
+from bar.foo import type_foo, type_bar, type_bar_package
 include "../AbstractTestUnit.iol"
 
 define doTest {
@@ -53,5 +54,18 @@ define doTest {
 
 	if ( !("t" instanceof test) ) {
 		throw( TestFailed, "test is not imported" )
+	}
+
+	if ( !(1 instanceof type_foo) ) {
+		throw( TestFailed, "type_foo is not imported" )
+	}
+
+	if ( !("str" instanceof type_bar) ) {
+		throw( TestFailed, "type_bar is not imported" )
+	}
+
+	bar_pack_val << { bar_sub = "str"}
+	if ( !(bar_pack_val instanceof type_bar_package) ) {
+		throw( TestFailed, "type_bar_package is not imported" )
 	}
 }

@@ -74,10 +74,10 @@ public class Importer
         return ret;
     }
 
-    private Source moduleLookUp( String[] target ) throws ModuleException
+    private Source moduleLookUp( URI source, String[] target ) throws ModuleException
     {
         Finder finder =
-                Finder.getFinderForTarget( this.config.source, this.config.includePaths, target );
+                Finder.getFinderForTarget( source, this.config.includePaths, target );
         Source targetFile = finder.find();
         if ( targetFile == null ) {
             throw new ModuleException(
@@ -148,7 +148,7 @@ public class Importer
      */
     public ImportResult importModule( ImportStatement stmt ) throws ModuleException
     {
-        Source targetSource = moduleLookUp( stmt.importTarget() );
+        Source targetSource = moduleLookUp( stmt.context().source(), stmt.importTarget() );
 
         // perform cache lookup
         ModuleRecord moduleRecord;

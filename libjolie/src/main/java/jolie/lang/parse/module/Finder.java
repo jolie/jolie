@@ -65,7 +65,7 @@ public abstract class Finder
         if ( isRelativeImport ) {
             return new RelativePathFinder( target, source );
         } else {
-            return new AbsolutePathFinder( target, includePathStrings );
+            return new AbsolutePathFinder( target, source, includePathStrings );
         }
     }
 
@@ -224,19 +224,32 @@ class RelativePathFinder extends Finder
 class AbsolutePathFinder extends Finder
 {
     private final String[] includePathStrings;
+    private final URI source;
 
-    protected AbsolutePathFinder( String[] target, String[] includePathStrings )
+    protected AbsolutePathFinder( String[] target, URI source, String[] includePathStrings )
     {
         super( target );
         this.includePathStrings = includePathStrings;
+        this.source = source;
     }
 
     @Override
     Source find() throws ModuleException
     {
+        Path sourcePath = Paths.get( source );
+        Path basePath;
+        if ( !sourcePath.toFile().isDirectory() ) {
+            basePath = Paths.get( sourcePath.getParent().toString(), Constants.PACKAGES_DIR );
+        } else {
+            basePath = Paths.get( sourcePath.toString(), Constants.PACKAGES_DIR );
+        }
+        Source module = super.locateModule( basePath );
+        if ( module != null ) {
+            return module;
+        }
         for (String baseDir : this.includePathStrings) {
-            Path basePath = Paths.get( baseDir, Constants.PACKAGES_DIR );
-            Source module = super.locateModule( basePath );
+            basePath = Paths.get( baseDir, Constants.PACKAGES_DIR );
+            module = super.locateModule( basePath );
             if ( module != null ) {
                 return module;
             }
