@@ -3,6 +3,7 @@ from .private.imports.point import point as p
 from .private.imports.iface import fooIface
 from .private.imports.procedure import proc
 from .private.imports.namespace import *
+from .private.imports.namespace import n1 as asN1, n2 as asN2
 from .private.twice import TwiceAPI
 include "../AbstractTestUnit.iol"
 
@@ -39,5 +40,13 @@ define doTest{
 	}
 	if ( !(n2_val instanceof n2) ) {
 		throw( TestFailed, "n2 is not imported" )
+	}
+
+	// test import multiple symbol
+	if ( !(n1_val instanceof asN1) ) {
+		throw( TestFailed, "asN1 is not imported" )
+	}
+	if ( !(n2_val instanceof asN2) ) {
+		throw( TestFailed, "asN2 is not imported" )
 	}
 }
