@@ -8,8 +8,6 @@ import java.util.Map;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.Scanner.Token;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleRecord.Status;
@@ -129,7 +127,6 @@ public class Importer
 
     private Program parseSource( JapSource s ) throws IOException, ParserException
     {
-        System.out.println( s.source().toString() );
         String[] includePaths = new String[this.config.includePaths.length + 1];
         System.arraycopy( config.includePaths, 0, includePaths, 0, config.includePaths.length );
         includePaths[config.includePaths.length] = s.includePath();

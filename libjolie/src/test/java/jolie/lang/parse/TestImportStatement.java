@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -28,6 +27,8 @@ import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
+import jolie.util.InstanceCreator;
+import jolie.util.jap.JolieURLStreamHandlerFactory;
 
 
 public class TestImportStatement

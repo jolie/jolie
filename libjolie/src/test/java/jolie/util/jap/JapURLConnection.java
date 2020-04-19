@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.jap;
+package jolie.util.jap;
 
 import java.io.File;
 import java.io.FileOutputStream;

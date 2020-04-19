@@ -6,8 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +17,6 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import jolie.lang.Constants;
-import jolie.util.UriUtils;
 
 /**
  * Finder find a module target, it is divided into two class, a finder for relative path or absolute

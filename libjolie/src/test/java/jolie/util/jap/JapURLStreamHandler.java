@@ -19,46 +19,23 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
+package jolie.util.jap;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.net.URLStreamHandlerFactory;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import jolie.jap.JapURLStreamHandler;
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory
+public class JapURLStreamHandler extends URLStreamHandler
 {
-	private final static AtomicBoolean registered = new AtomicBoolean( false );
-
-	private final Map< String, URLStreamHandler > handlers = new HashMap<>();
-
-	public JolieURLStreamHandlerFactory()
+	protected URLConnection openConnection( URL url )
+		throws MalformedURLException, IOException
 	{
-		handlers.put( "jap", new JapURLStreamHandler() );
-	}
-
-	@Override
-	public URLStreamHandler createURLStreamHandler( String protocol )
-	{
-		return handlers.get( protocol );
-	}
-
-	public void putURLStreamHandler( String protocol, URLStreamHandler handler )
-	{
-		handlers.put( protocol, handler );
-	}
-
-	public static void registerInVM()
-	{
-		if ( registered.compareAndSet( false, true ) ) {
-			URL.setURLStreamHandlerFactory( new JolieURLStreamHandlerFactory() );
-		}
+		return new JapURLConnection( url );
 	}
 }

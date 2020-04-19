@@ -1,11 +1,43 @@
 from .private.imports.point import point
+from .private.imports.point import point as p
+from .private.imports.iface import fooIface
+from .private.imports.procedure import proc
+from .private.imports.namespace import *
+from .private.twice import TwiceAPI
 include "../AbstractTestUnit.iol"
 
-define doTest
-{
+define doTest{
     v << {x= 1, y= 2}
 
 	if ( !(v instanceof point) ) {
 		throw( TestFailed, "point is not imported" )
+	}
+
+	// test qualified name
+	if ( !(v instanceof p) ) {
+		throw( TestFailed, "point is not imported" )
+	}
+
+	// test interface
+	f << { a = "test" }
+	if ( !(f instanceof foo) ) {
+		throw( TestFailed, "foo type is not imported with fooIface" )
+	}
+
+	// test procedure
+	proc
+
+	if ( !(p_proc instanceof point) ) {
+		throw( TestFailed, "proc was not called" )
+	}
+
+	// test namespace
+	n1_val << { n1_f = 1}
+	n2_val << { n2_f = "t"}
+	if ( !(n1_val instanceof n1) ) {
+		throw( TestFailed, "n1 is not imported" )
+	}
+	if ( !(n2_val instanceof n2) ) {
+		throw( TestFailed, "n2 is not imported" )
 	}
 }

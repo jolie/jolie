@@ -1,15 +1,17 @@
-package jolie.lang.parse;
+package jolie.util;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import jolie.lang.parse.OLParser;
+import jolie.lang.parse.Scanner;
 
 /**
  * A utility class for instance creation
  */
-class InstanceCreator
+public class InstanceCreator
 {
 
     String[] includePaths;
@@ -22,7 +24,7 @@ class InstanceCreator
         this.includePaths = includePaths;
     }
 
-    OLParser createOLParser( URI Source, InputStream codeSteam )
+    public OLParser createOLParser( URI Source, InputStream codeSteam )
             throws IOException, URISyntaxException
     {
         return new OLParser( new Scanner( codeSteam, Source, StandardCharsets.UTF_8.name(), false ),
@@ -30,7 +32,7 @@ class InstanceCreator
     }
 
 
-    OLParser createOLParser( InputStream codeSteam ) throws IOException, URISyntaxException
+    public OLParser createOLParser( InputStream codeSteam ) throws IOException, URISyntaxException
     {
         return new OLParser(
                 new Scanner( codeSteam,
@@ -39,7 +41,7 @@ class InstanceCreator
                 this.includePaths, InstanceCreator.class.getClassLoader() );
     }
 
-    OLParser createOLParser( Scanner source ) throws IOException, URISyntaxException
+    public OLParser createOLParser( Scanner source ) throws IOException, URISyntaxException
     {
         return new OLParser( source, this.includePaths, InstanceCreator.class.getClassLoader() );
     }
