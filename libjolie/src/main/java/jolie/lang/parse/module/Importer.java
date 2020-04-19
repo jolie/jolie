@@ -82,8 +82,9 @@ public class Importer
                 Finder.getFinderForTarget( this.config.source, this.config.includePaths, target );
         Source targetFile = finder.find();
         if ( targetFile == null ) {
-            throw new ModuleException( "Unable to locate module " + prettyPrintTarget( target )
-                    + ", looked path " + Arrays.toString( finder.lookupedPath() ) );
+            throw new ModuleException(
+                    "Unable to locate or read module " + prettyPrintTarget( target )
+                            + ", looked path " + Arrays.toString( finder.lookupedPath() ) );
         }
 
         return targetFile;
@@ -99,19 +100,46 @@ public class Importer
      */
     private ProgramInspector load( Source s ) throws ModuleException
     {
-        SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
-        configuration.setCheckForMain( false );
         Program program;
         try {
-            Scanner scanner = new Scanner( s.stream(), s.source(), this.config.charset );
-            program = ParsingUtils.parseProgram( scanner, this.config.includePaths,
-                    this.config.classLoader, this.config.definedConstants, configuration, this );
-        } catch (IOException | ParserException | SemanticException e) {
-            throw new ModuleException( e );
+            switch (s.type()) {
+                case FILE:
+                    program = parseSource( (FileSource) s );
+                    break;
+                case JAP:
+                    program = parseSource( (JapSource) s );
+                    break;
+                default:
+                    throw new ModuleException( "unknown source type" );
+            }
+        } catch (IOException | ParserException e) {
+            throw new ModuleException( "unable to parse module " + s.source(), e );
         }
         ProgramInspector pi = ParsingUtils.createInspector( program );
         return pi;
     }
+
+    private Program parseSource( FileSource s ) throws IOException, ParserException
+    {
+        Scanner scanner = new Scanner( s.stream(), s.source(), this.config.charset );
+        Program program = ParsingUtils.parseProgram( scanner, this.config.includePaths,
+                this.config.classLoader, this.config.definedConstants, this );
+        return program;
+    }
+
+    private Program parseSource( JapSource s ) throws IOException, ParserException
+    {
+        System.out.println( s.source().toString() );
+        String[] includePaths = new String[this.config.includePaths.length + 1];
+        System.arraycopy( config.includePaths, 0, includePaths, 0, config.includePaths.length );
+        includePaths[config.includePaths.length] = s.includePath();
+        Scanner scanner = new Scanner( s.stream(), s.source(), this.config.charset );
+        Program program = ParsingUtils.parseProgram( scanner, includePaths, this.config.classLoader,
+                this.config.definedConstants, this );
+        return program;
+
+    }
+
 
     /**
      * perform import module from a statement
@@ -123,7 +151,6 @@ public class Importer
      */
     public ImportResult importModule( ImportStatement stmt ) throws ModuleException
     {
-        // ModuleRecord rc = moduleLookUp(source, stmt.importTarget());
         Source targetSource = moduleLookUp( stmt.importTarget() );
 
         // perform cache lookup
@@ -138,7 +165,7 @@ public class Importer
         moduleRecord = new ModuleRecord( targetSource.source() );
         cache.put( targetSource.source(), moduleRecord );
         ProgramInspector pi = load( targetSource );
-        moduleRecord.setInspector(pi);
+        moduleRecord.setInspector( pi );
         if ( stmt.isNamespaceImport() ) {
             return moduleRecord.resolveNameSpace( stmt.context() );
         } else {

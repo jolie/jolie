@@ -97,10 +97,9 @@ public class ParsingUtils
 		String[] includePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
-		SemanticVerifier.Configuration configuration,
 		Importer importer
 	)
-		throws IOException, ParserException, SemanticException
+		throws IOException, ParserException
 	{
 		OLParser olParser = new OLParser( scanner, includePaths, classLoader, importer );
 		olParser.putConstants( definedConstants );

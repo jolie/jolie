@@ -6,12 +6,20 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import jolie.lang.Constants;
+import jolie.util.UriUtils;
 
 /**
  * Finder find a module target, it is divided into two class, a finder for relative path or absolute
@@ -144,13 +152,25 @@ public abstract class Finder
     }
 
 
-    protected File locateModule( Path basePath )
+    protected Source locateModule( Path basePath ) throws ModuleException
     {
         Path packagePath = this.locatePackage( basePath );
         if ( packagePath == null ) {
             return null;
         }
-        return this.olLookup( packagePath, this.moduleName() );
+        File moduleFile = this.olLookup( packagePath, this.moduleName() );
+        if ( moduleFile != null ) {
+            return new FileSource( moduleFile );
+        }
+        moduleFile = this.japLookup( packagePath, this.moduleName() );
+        if ( moduleFile != null ) {
+            try {
+                return new JapSource( moduleFile );
+            } catch (IOException e) {
+                throw new ModuleException( "error jap file lookup", e );
+            }
+        }
+        return null;
     }
 }
 
@@ -189,13 +209,8 @@ class RelativePathFinder extends Finder
     Source find() throws ModuleException
     {
         Path basePath = resolveDotPrefix();
-        File moduleFile = super.locateModule( basePath );
-        if ( moduleFile == null ) {
-            return null;
-        }
-        FileSource moduleSource = new FileSource( super.locateModule( basePath ) );
-        // @TODO handle jap file
-        return moduleSource;
+        Source moduleFile = super.locateModule( basePath );
+        return moduleFile;
     }
 
     @Override
@@ -222,10 +237,9 @@ class AbsolutePathFinder extends Finder
     {
         for (String baseDir : this.includePathStrings) {
             Path basePath = Paths.get( baseDir );
-            FileSource moduleFile = new FileSource( super.locateModule( basePath ) );
-
-            if ( moduleFile != null ) {
-                return moduleFile;
+            Source module = super.locateModule( basePath );
+            if ( module != null ) {
+                return module;
             }
         }
         return null;
@@ -240,9 +254,16 @@ class AbsolutePathFinder extends Finder
 }
 
 
+enum SourceType {
+    FILE, JAP
+}
+
+
 interface Source
 {
     URI source();
+
+    SourceType type();
 
     InputStream stream() throws FileNotFoundException, IOException;
 }
@@ -251,11 +272,17 @@ interface Source
 class FileSource implements Source
 {
 
-    File file;
+    final File file;
 
     public FileSource( File f )
     {
         this.file = f;
+    }
+
+    @Override
+    public SourceType type()
+    {
+        return SourceType.FILE;
     }
 
     @Override
@@ -272,5 +299,92 @@ class FileSource implements Source
         } catch (FileNotFoundException e) {
         }
         return null;
+    }
+}
+
+
+class JapSource implements Source
+{
+
+    final JarFile japFile;
+    final URI source;
+    final String filePath;
+    final String parentPath;
+
+    public JapSource( File f ) throws IOException
+    {
+        this.japFile = new JarFile( f );
+        this.source = f.toURI();
+        Manifest manifest = this.japFile.getManifest();
+
+        if ( manifest != null ) { // See if a main program is defined through a Manifest attribute
+            Attributes attrs = manifest.getMainAttributes();
+            this.filePath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
+            this.parentPath = Paths.get( this.filePath ).getParent().toString();
+        } else {
+            throw new IOException( "unable to find main program for library " + f.getName() );
+        }
+    }
+
+    public String includePath()
+    {
+        return "jap:" + this.source.toString() + "!/" + this.parentPath;
+    }
+
+    @Override
+    public SourceType type()
+    {
+        return SourceType.JAP;
+    }
+
+    @Override
+    public URI source()
+    {
+        return this.source;
+    }
+
+    @Override
+    public InputStream stream()
+    {
+        try {
+            ZipEntry z = japFile.getEntry( this.filePath );
+            return this.japFile.getInputStream( z );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * copied from CommandLineParser, needed to be refactor
+     */
+    private static String parseJapManifestForMainProgram( Manifest manifest, JarFile japFile )
+    {
+        String filepath = null;
+        if ( manifest != null ) { // See if a main program is defined through a Manifest attribute
+            Attributes attrs = manifest.getMainAttributes();
+            filepath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
+        }
+
+        if ( filepath == null ) { // Main program not defined, we make <japName>.ol and
+                                  // <japName>.olc guesses
+            String name = new File( japFile.getName() ).getName();
+            filepath =
+                    new StringBuilder().append( name.subSequence( 0, name.lastIndexOf( ".jap" ) ) )
+                            .append( ".ol" ).toString();
+            if ( japFile.getEntry( filepath ) == null ) {
+                filepath = null;
+                filepath = filepath + 'c';
+                if ( japFile.getEntry( filepath ) == null ) {
+                    filepath = null;
+                }
+            }
+        }
+
+        if ( filepath != null ) {
+            filepath = new StringBuilder().append( "jap:file:" ).append( japFile.getName() )
+                    .append( "!/" ).append( filepath ).toString();
+        }
+        return filepath;
     }
 }

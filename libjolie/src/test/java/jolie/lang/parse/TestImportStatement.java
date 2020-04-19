@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -28,8 +29,13 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 
+
 public class TestImportStatement
 {
+
+    static {
+        JolieURLStreamHandlerFactory.registerInVM();
+    }
 
     private static String BASE_DIR = "imports";
     InputStream is;
@@ -37,6 +43,29 @@ public class TestImportStatement
     private static Path packageDir =
             Paths.get( TestImportStatement.class.getClassLoader().getResource( BASE_DIR ).getPath(),
                     Constants.PACKAGES_DIR );
+
+
+    @Test
+    void testImportJAP()
+    {
+        String code = "from twice import TwiceAPI";
+        this.is = new ByteArrayInputStream( code.getBytes() );
+        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        assertDoesNotThrow( () -> {
+            OLParser olParser = oc.createOLParser( is );
+            Program p = olParser.parse();
+            ProgramInspector pi = ParsingUtils.createInspector( p );
+
+            for (InterfaceDefinition id : pi.getInterfaces()) {
+                if ( id.name().equals( "TwiceAPI" )
+                        && id.operationsMap().containsKey( "twice" ) ) {
+                    return;
+                }
+            }
+            throw new Exception(
+                    "interface \"TwiceAPI\" not found and operation \"twice\" not found" );
+        } );
+    }
 
     @Test
     void testCyclicDependencyValid()
@@ -73,7 +102,7 @@ public class TestImportStatement
     void testCyclicDependency() throws URISyntaxException, IOException
     {
         String errorMessage = "cyclic dependency detected";
-        
+
         URL src = getClass().getClassLoader().getResource( "imports/cyclic/A.ol" );
         assertDoesNotThrow( () -> {
             is = src.openStream();
@@ -97,7 +126,8 @@ public class TestImportStatement
         this.is = new ByteArrayInputStream( code.getBytes() );
         InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( Paths.get(source.getPath(), "import.ol").toUri(), is );
+            OLParser olParser =
+                    oc.createOLParser( Paths.get( source.getPath(), "import.ol" ).toUri(), is );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
