@@ -30,12 +30,19 @@ public class DefinitionNode extends OLSyntaxNode implements Importable
 {
 	private final String id;
 	private final OLSyntaxNode body;
+	private final boolean allowAccess;
 
 	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body )
+	{
+		this( context, id, body, true );
+	}
+
+	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body, boolean allowAccess )
 	{
 		super( context );
 		this.id = id;
 		this.body = body;
+		this.allowAccess = allowAccess;
 	}
 	
 	public String id()
@@ -64,5 +71,10 @@ public class DefinitionNode extends OLSyntaxNode implements Importable
 	public OLSyntaxNode resolve( ParsingContext context, String localID )
 	{
 		return new DefinitionNode(context, localID, this.body);
+	}
+
+	@Override
+	public boolean allowAccess(){
+		return this.allowAccess;
 	}
 }

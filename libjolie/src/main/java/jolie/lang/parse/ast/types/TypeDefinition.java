@@ -45,6 +45,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	private final String id;
 	private final Range cardinality;
 	private String document = null;
+	private final boolean allowAccess;
 
 	/**
 	 * Constructor
@@ -54,9 +55,22 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 	public TypeDefinition( ParsingContext context, String id, Range cardinality )
 	{
+		this( context, id, cardinality, true );
+	}
+
+	/**
+	 * Constructor
+	 * @param context the parsing context for this AST node
+	 * @param id the name identifier for this type definition
+	 * @param cardinality the cardinality of this type
+	 * @param allowAccess this access specifier
+	 */
+	public TypeDefinition( ParsingContext context, String id, Range cardinality, boolean allowAccess )
+	{
 		super( context );
 		this.id = id;
 		this.cardinality = cardinality;
+		this.allowAccess = allowAccess;
 	}
 
 	public String id()
@@ -259,11 +273,15 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		return hash;
 	}
 
-
 	@Override
 	public String name()
 	{
 		return this.id;
+	}
+
+	@Override
+	public boolean allowAccess(){
+		return this.allowAccess;
 	}
 
 	/* public abstract TypeDefinition getSubType( String id );

@@ -38,11 +38,18 @@ public class InterfaceDefinition extends OLSyntaxNode
 	private final Map< String, OperationDeclaration > operationsMap = new HashMap<>();
 	private final String name;
 	private String documentation;
+	private final boolean allowAccess;
 
 	public InterfaceDefinition( ParsingContext context, String name )
 	{
+		this( context, name, true);
+	}
+
+	public InterfaceDefinition( ParsingContext context, String name, boolean allowAccess )
+	{
 		super( context );
 		this.name = name;
+		this.allowAccess = allowAccess;
 	}
 
 	@Override
@@ -92,5 +99,10 @@ public class InterfaceDefinition extends OLSyntaxNode
 		localIface.setDocumentation( this.getDocumentation() );
 		this.copyTo( localIface );
 		return localIface;
+	}
+
+	@Override
+	public boolean allowAccess(){
+		return this.allowAccess;
 	}
 }
