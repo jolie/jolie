@@ -143,37 +143,6 @@ public class ModuleRecord
     }
 
     /**
-     * find and resolve dependency of InterfaceDefinition
-     */
-    private List< Importable > resolveDependency( InterfaceDefinition interfaceDefinition )
-            throws ModuleException
-    {
-        List< Importable > res = new ArrayList<>();
-        for (OperationDeclaration op : interfaceDefinition.operationsMap().values()) {
-            if ( op instanceof OneWayOperationDeclaration ) {
-                OneWayOperationDeclaration ow = (OneWayOperationDeclaration) op;
-                if ( !ow.requestType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                    res.addAll( Arrays.asList( this.findSymbol( ow.requestType().id() ) ) );
-                }
-            } else if ( op instanceof RequestResponseOperationDeclaration ) {
-                RequestResponseOperationDeclaration rr = (RequestResponseOperationDeclaration) op;
-                if ( !rr.requestType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                    res.addAll( Arrays.asList( this.findSymbol( rr.requestType().id() ) ) );
-                }
-                if ( !rr.responseType().id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                    res.addAll( Arrays.asList( this.findSymbol( rr.responseType().id() ) ) );
-                }
-                for (TypeDefinition fault : rr.faults().values()) {
-                    if ( !fault.id().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                        res.addAll( Arrays.asList( this.findSymbol( fault.id() ) ) );
-                    }
-                }
-            }
-        }
-        return res;
-    }
-
-    /**
      * find a symbol and returns list of importable node which contain the modules' symbol node and
      * its' dependencies
      */
