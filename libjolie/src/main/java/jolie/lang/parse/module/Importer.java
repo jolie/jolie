@@ -36,31 +36,27 @@ import jolie.lang.parse.util.ProgramInspector;
 public class Importer
 {
 
-    public static String PACKAGE_FOLDER = "packages";
     public static String JOLIE_HOME = System.getenv( "JOLIE_HOME" );
     private final Map< URI, ModuleRecord > cache;
     private final Configuration config;
 
     public static class Configuration
     {
-        private URI source;
         private String charset;
         private String[] includePaths;
         private ClassLoader classLoader;
         private Map< String, Scanner.Token > definedConstants;
 
         /**
-         * @param source
          * @param charset
          * @param includePaths
          * @param classLoader
          * @param definedConstants
          * @param includeDocumentation
          */
-        public Configuration( URI source, String charset, String[] includePaths,
-                ClassLoader classLoader, Map< String, Token > definedConstants )
+        public Configuration( String charset, String[] includePaths, ClassLoader classLoader,
+                Map< String, Token > definedConstants )
         {
-            this.source = source;
             this.charset = charset;
             this.includePaths = includePaths;
             this.classLoader = classLoader;
