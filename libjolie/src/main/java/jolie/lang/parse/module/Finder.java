@@ -284,7 +284,7 @@ interface Source
 class FileSource implements Source
 {
 
-    final File file;
+    private final File file;
 
     public FileSource( File f )
     {
@@ -318,10 +318,10 @@ class FileSource implements Source
 class JapSource implements Source
 {
 
-    final JarFile japFile;
-    final URI source;
-    final String filePath;
-    final String parentPath;
+    private final JarFile japFile;
+    private final URI source;
+    private final String filePath;
+    private final String parentPath;
 
     public JapSource( File f ) throws IOException
     {
