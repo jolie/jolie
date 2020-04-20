@@ -175,8 +175,7 @@ public class OLParser extends AbstractParser
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
 		this.definedTypes = createTypeDeclarationMap( context );
-		this.importer = new Importer( new Importer.Configuration( scanner.source(),
-				scanner.charset(), includePaths, classLoader, constantsMap ) );
+		this.importer = new Importer( new Importer.Configuration( scanner.charset(), includePaths, classLoader, constantsMap ) );
 	}
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader,
@@ -2975,41 +2974,35 @@ public class OLParser extends AbstractParser
 					}
 				} while (keepRun);
 			}
-			ImportStatement stmt = new ImportStatement(getContext(), importTarget.toArray(new String[0]),
-					isNamespaceImport, pathNodes);
+			ImportStatement stmt = new ImportStatement( getContext(),
+					importTarget.toArray( new String[0] ), isNamespaceImport, pathNodes );
 			ImportResult importResult = null;
 
 			try {
-				importResult = this.importer.importModule(stmt);
+				importResult = this.importer.importModule( stmt );
 			} catch (ModuleException e) {
 				throwException( e );
 			}
 
 			for (OLSyntaxNode importingNode : importResult.nodes()) {
+				if ( importingNode instanceof TypeDefinition ) {
+					TypeDefinition importingType = (TypeDefinition) importingNode;
+					if ( definedTypes.containsKey( importingType.id() ) ) {
+						throwException( "reimporting symbol of type name " + importingType.id() );
+					} else {
+						definedTypes.put( importingType.id(), importingType );
+					}
+				} else if ( importingNode instanceof InterfaceDefinition ) {
+					InterfaceDefinition importingInterface = (InterfaceDefinition) importingNode;
+					if ( interfaces.containsKey( importingInterface.name() ) ) {
+						throwException( "reimporting symbol of interface name "
+								+ importingInterface.name() );
+					} else {
+						interfaces.put( importingInterface.name(), importingInterface );
+					}
+				}
+
 				programBuilder.addChild( importingNode );
-			}
-
-			for (Map.Entry< String, TypeDefinition > entry : importResult.types().entrySet()) {
-				if ( definedTypes.containsKey( entry.getKey() ) ) {
-					if ( !definedTypes.get( entry.getKey() )
-							.isEquivalentTo( (entry.getValue()) ) ) {
-						System.err.println(
-								"warning, imported type of '" + entry.getKey()
-										+ "' is already defined" );
-					}
-				}
-				definedTypes.put( entry.getKey(), entry.getValue() );
-			}
-
-			for(Map.Entry<String, InterfaceDefinition> entry: importResult.interfaces().entrySet()){
-				if (interfaces.containsKey(entry.getKey())){
-					if (!interfaces.get(entry.getKey()).equals(entry.getValue())){
-						System.err.println(
-								"warning, imported interface '" + entry.getKey()
-										+ "' is already defined" );
-					}
-				}
-				interfaces.put(entry.getKey(), entry.getValue());
 			}
 		}
 	}
