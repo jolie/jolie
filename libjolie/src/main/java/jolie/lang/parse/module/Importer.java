@@ -17,13 +17,15 @@
  * MA 02110-1301  USA
  */
 
- package jolie.lang.parse.module;
+package jolie.lang.parse.module;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.Scanner.Token;
@@ -91,16 +93,15 @@ public class Importer
 
     private Source moduleLookUp( URI source, String[] target ) throws ModuleException
     {
-        Finder finder =
-                Finder.getFinderForTarget( source, this.config.includePaths, target );
-        Source targetFile = finder.find();
-        if ( targetFile == null ) {
+        Finder finder = Finder.getFinderForTarget( source, this.config.includePaths, target );
+        try {
+            Source targetFile = finder.find();
+            return targetFile;
+        } catch (ModuleException e) {
             throw new ModuleException(
                     "Unable to locate or read module " + prettyPrintTarget( target )
                             + ", looked path " + Arrays.toString( finder.lookupedPath() ) );
         }
-
-        return targetFile;
     }
 
 
@@ -115,15 +116,12 @@ public class Importer
     {
         Program program;
         try {
-            switch (s.type()) {
-                case FILE:
-                    program = parseSource( (FileSource) s );
-                    break;
-                case JAP:
-                    program = parseSource( (JapSource) s );
-                    break;
-                default:
-                    throw new ModuleException( "unknown source type" );
+            if ( s instanceof FileSource ) {
+                program = parseSource( (FileSource) s );
+            } else if ( s instanceof JapSource ) {
+                program = parseSource( (JapSource) s );
+            } else {
+                throw new ModuleException( "unknown source type" );
             }
         } catch (IOException | ParserException e) {
             throw new ModuleException( "unable to parse module " + s.source(), e );
@@ -134,10 +132,12 @@ public class Importer
 
     private Program parseSource( FileSource s ) throws IOException, ParserException
     {
-        Scanner scanner = new Scanner( s.stream(), s.source(), this.config.charset );
-        Program program = ParsingUtils.parseProgram( scanner, this.config.includePaths,
-                this.config.classLoader, this.config.definedConstants, this );
-        return program;
+        try (InputStream stream = s.stream().get()) {
+            Scanner scanner = new Scanner( stream, s.source(), this.config.charset );
+            Program program = ParsingUtils.parseProgram( scanner, this.config.includePaths,
+                    this.config.classLoader, this.config.definedConstants, this );
+            return program;
+        }
     }
 
     private Program parseSource( JapSource s ) throws IOException, ParserException
@@ -145,25 +145,36 @@ public class Importer
         String[] includePaths = new String[this.config.includePaths.length + 1];
         System.arraycopy( config.includePaths, 0, includePaths, 0, config.includePaths.length );
         includePaths[config.includePaths.length] = s.includePath();
-        Scanner scanner = new Scanner( s.stream(), s.source(), this.config.charset );
-        Program program = ParsingUtils.parseProgram( scanner, includePaths, this.config.classLoader,
-                this.config.definedConstants, this );
-        return program;
 
+        try (InputStream stream = s.stream().get()) {
+            Scanner scanner = new Scanner( stream, s.source(), this.config.charset );
+            Program program = ParsingUtils.parseProgram( scanner, includePaths,
+                    this.config.classLoader, this.config.definedConstants, this );
+            return program;
+        }
+    }
+
+    private ImportResult resolveImportStatement( ImportStatement stmt, ModuleRecord mc )
+            throws ModuleException
+    {
+        if ( stmt.isNamespaceImport() ) {
+            return mc.resolveNameSpace( stmt.context() );
+        } else {
+            return mc.resolve( stmt.context(), stmt.importSymbolTargets() );
+        }
     }
 
     /**
      * perform import module from a statement
      * this method is null safety
      * 
-     * @param stmt
+     * @param stmt an import statement
      * @return
      * @throws ModuleException
      */
     public ImportResult importModule( ImportStatement stmt ) throws ModuleException
     {
         Source targetSource = moduleLookUp( stmt.context().source(), stmt.importTarget() );
-
         // perform cache lookup
         ModuleRecord moduleRecord;
         if ( cache.containsKey( targetSource.source() ) ) {
@@ -172,15 +183,12 @@ public class Importer
                 moduleRecord.loadPartial();
                 return new ImportResult();
             }
+            return resolveImportStatement( stmt, moduleRecord );
         }
         moduleRecord = new ModuleRecord( targetSource.source() );
         cache.put( targetSource.source(), moduleRecord );
         ProgramInspector pi = load( targetSource );
         moduleRecord.setInspector( pi );
-        if ( stmt.isNamespaceImport() ) {
-            return moduleRecord.resolveNameSpace( stmt.context() );
-        } else {
-            return moduleRecord.resolve( stmt.context(), stmt.importSymbolTargets() );
-        }
+        return resolveImportStatement( stmt, moduleRecord );
     }
 }

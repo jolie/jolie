@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import jolie.lang.Constants;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.Program;
@@ -38,11 +36,10 @@ public class TestImportStatement
         JolieURLStreamHandlerFactory.registerInVM();
     }
 
-    private static String BASE_DIR = "imports";
+    private static String BASE_DIR = "imports/";
     InputStream is;
     static SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
-    private static String packageDir =
-            TestImportStatement.class.getClassLoader().getResource( BASE_DIR ).getPath();
+    private static URL baseDir = TestImportStatement.class.getClassLoader().getResource( BASE_DIR );
 
 
     @Test
@@ -50,9 +47,9 @@ public class TestImportStatement
     {
         String code = "from twice import TwiceAPI";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -73,7 +70,7 @@ public class TestImportStatement
         assertDoesNotThrow( () -> {
             is = src.openStream();
         } );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
 
         Set< String > expectedType = new HashSet<>();
         expectedType.add( "foo" );
@@ -102,14 +99,13 @@ public class TestImportStatement
     {
         String errorMessage = "cyclic dependency detected";
 
-        URL src = getClass().getClassLoader().getResource( "imports/cyclic/A.ol" );
+        URL src = getClass().getClassLoader().getResource( BASE_DIR + "cyclic/A.ol" );
         assertDoesNotThrow( () -> {
             is = src.openStream();
         } );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
 
-        URI source = Paths.get( src.toURI() ).getParent().toUri();
-        OLParser olParser = oc.createOLParser( new Scanner( is, source, null ) );
+        OLParser olParser = oc.createOLParser( src.toURI(), is );
 
         Exception exception = assertThrows( ParserException.class, () -> olParser.parse(),
                 "Expected parse() to throw, with " + errorMessage + " but it didn't" );
@@ -120,13 +116,11 @@ public class TestImportStatement
     void testImportTestSuite()
     {
         String code = "from .private.imports.point import point";
-        URL source = TestImportStatement.class.getClassLoader().getResource( BASE_DIR );
-        assert source != null;
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
             OLParser olParser =
-                    oc.createOLParser( Paths.get( source.getPath(), "import.ol" ).toUri(), is );
+                    oc.createOLParser( Paths.get( baseDir.getPath(), "import.ol" ).toUri(), is );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -144,9 +138,9 @@ public class TestImportStatement
     {
         String code = "from procedure import foo";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -164,9 +158,9 @@ public class TestImportStatement
     {
         String code = "from interface import twiceIface";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -186,9 +180,9 @@ public class TestImportStatement
     {
         String code = "from interface import aIface";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -207,9 +201,9 @@ public class TestImportStatement
     {
         String code = "from interface import bIface";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -229,13 +223,13 @@ public class TestImportStatement
     {
         String code = "from interface import fooIface";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         Set< String > expectedType = new HashSet<>();
         expectedType.add( "foo" );
         expectedType.add( "bar" );
         expectedType.add( "err" );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -262,9 +256,9 @@ public class TestImportStatement
     {
         String code = "from type import number";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -282,9 +276,9 @@ public class TestImportStatement
     {
         String code = "from type import baz";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -302,13 +296,13 @@ public class TestImportStatement
     {
         String code = "from type import dateFoo";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         Set< String > expectedType = new HashSet<>();
         expectedType.add( "dateFoo" );
         expectedType.add( "date" );
         expectedType.add( "foo" );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -330,9 +324,10 @@ public class TestImportStatement
     {
         String code = "from type import date";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        URL source = TestImportStatement.class.getClassLoader().getResource( BASE_DIR );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, source.toURI(), null ) );
             Program p = olParser.parse();
             ProgramInspector pi = ParsingUtils.createInspector( p );
 
@@ -350,9 +345,9 @@ public class TestImportStatement
     void testImportStatementParsing( String code )
     {
         this.is = new ByteArrayInputStream( code.getBytes() );
-        InstanceCreator oc = new InstanceCreator( new String[] {packageDir.toString()} );
+        InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
-            OLParser olParser = oc.createOLParser( is );
+            OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
             olParser.parse();
         } );
     }
@@ -373,7 +368,7 @@ public class TestImportStatement
     {
         this.is = new ByteArrayInputStream( code.getBytes() );
         InstanceCreator oc = new InstanceCreator( new String[] {} );
-        OLParser olParser = oc.createOLParser( is );
+        OLParser olParser = oc.createOLParser( new Scanner( is, baseDir.toURI(), null ) );
 
         Exception exception = assertThrows( ParserException.class, () -> olParser.parse(),
                 "Expected parse() to throw, with " + errorMessage + " but it didn't" );
