@@ -5,8 +5,8 @@ package jolie.lang.parse.ast;
  */
 public class ImportSymbolTarget
 {
-    private String moduleSymbol;
-    private String localSymbol;
+    private final String moduleSymbol;
+    private final String localSymbol;
 
     /**
      * @param moduleSymbol a symbol of taring module
@@ -24,7 +24,7 @@ public class ImportSymbolTarget
         if ( this.moduleSymbol.equals( this.localSymbol ) ) {
             return this.moduleSymbol;
         }
-        return this.moduleSymbol + "as" + this.localSymbol;
+        return this.moduleSymbol + " as " + this.localSymbol;
     }
 
     public String moduleSymbol()
