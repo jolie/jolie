@@ -32,10 +32,10 @@ import jolie.lang.parse.module.Importable;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector, DocumentedNode, Importable
+public class InterfaceDefinition extends OLSyntaxNode
+		implements OperationCollector, DocumentedNode, Importable
 {
-	private final Map<String, OperationDeclaration> operationsMap =
-		new HashMap<>();
+	private final Map< String, OperationDeclaration > operationsMap = new HashMap<>();
 	private final String name;
 	private String documentation;
 
@@ -85,13 +85,12 @@ public class InterfaceDefinition extends OLSyntaxNode implements OperationCollec
 		return this.documentation;
 	}
 
-	
 	@Override
 	public InterfaceDefinition resolve( ParsingContext ctx, String localID )
 	{
-        InterfaceDefinition localIface = new InterfaceDefinition( ctx, localID );
+		InterfaceDefinition localIface = new InterfaceDefinition( ctx, localID );
 		localIface.setDocumentation( this.getDocumentation() );
-        this.copyTo( localIface );
+		this.copyTo( localIface );
 		return localIface;
 	}
 }
