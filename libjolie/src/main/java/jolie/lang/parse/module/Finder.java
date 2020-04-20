@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
+
 package jolie.lang.parse.module;
 
 import java.io.File;
@@ -52,7 +71,7 @@ public abstract class Finder
      * @return
      * @throws ModuleException if there is finder cannot locate any file.
      */
-    abstract Source find() throws ModuleException;
+    public abstract Source find() throws ModuleException;
 
     /**
      * returns a Finder object corresponding to target either it is a relative import(starts with .)
@@ -205,7 +224,7 @@ class RelativePathFinder extends Finder
     }
 
     @Override
-    Source find() throws ModuleException
+    public Source find() throws ModuleException
     {
         Path basePath = resolveDotPrefix();
         Source moduleFile = super.locateModule( basePath );
@@ -234,7 +253,7 @@ class AbsolutePathFinder extends Finder
     }
 
     @Override
-    Source find() throws ModuleException
+    public Source find() throws ModuleException
     {
         Path sourcePath = Paths.get( source );
         Path basePath;

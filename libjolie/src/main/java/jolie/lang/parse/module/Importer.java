@@ -1,4 +1,23 @@
-package jolie.lang.parse.module;
+/*
+ * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
+
+ package jolie.lang.parse.module;
 
 import java.io.IOException;
 import java.net.URI;
@@ -137,7 +156,6 @@ public class Importer
 
     }
 
-
     /**
      * perform import module from a statement
      * this method is null safety
@@ -154,7 +172,7 @@ public class Importer
         ModuleRecord moduleRecord;
         if ( cache.containsKey( targetSource.source() ) ) {
             moduleRecord = cache.get( targetSource.source() );
-            if ( moduleRecord.status() == Status.LOADING ) { // check importStatus is finishes
+            if ( moduleRecord.status() == Status.LOADING ) { // check importStatus is finished
                 moduleRecord.loadPartial();
                 return new ImportResult();
             }
