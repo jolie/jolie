@@ -2973,34 +2973,8 @@ public class OLParser extends AbstractParser
 			}
 			ImportStatement stmt = new ImportStatement( getContext(),
 					importTarget.toArray( new String[0] ), isNamespaceImport, pathNodes );
-			ImportResult importResult = null;
-
-			try {
-				importResult = this.importer.importModule( stmt );
-			} catch (ModuleException e) {
-				throwException( e );
-			}
-
-			for (OLSyntaxNode importingNode : importResult.nodes()) {
-				if ( importingNode instanceof TypeDefinition ) {
-					TypeDefinition importingType = (TypeDefinition) importingNode;
-					if ( definedTypes.containsKey( importingType.id() ) ) {
-						throwException( "reimporting symbol of type name " + importingType.id() );
-					} else {
-						definedTypes.put( importingType.id(), importingType );
-					}
-				} else if ( importingNode instanceof InterfaceDefinition ) {
-					InterfaceDefinition importingInterface = (InterfaceDefinition) importingNode;
-					if ( interfaces.containsKey( importingInterface.name() ) ) {
-						throwException( "reimporting symbol of interface name "
-								+ importingInterface.name() );
-					} else {
-						interfaces.put( importingInterface.name(), importingInterface );
-					}
-				}
-
-				programBuilder.addChild( importingNode );
-			}
+			programBuilder.addChild( stmt );
+			return;
 		}
 	}
 	
