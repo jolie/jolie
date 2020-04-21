@@ -2558,10 +2558,7 @@ public class OLParser extends AbstractParser
 			if ( nativeType == null ) { // It's a user-defined type
 				assertToken( Scanner.TokenType.ID, "expected type name after instanceof" );
 			}
-			if ( definedTypes.containsKey( token.content() ) == false ) {
-				throwException( "invalid type: " + token.content() );
-			}
-			type = definedTypes.get( token.content() );
+			type = new TypeDefinitionLink( getContext(), token.content(), Constants.RANGE_ONE_TO_ONE, token.content() );
 			ret = new InstanceOfExpressionNode( getContext(), expr1, type );
 			getToken();
 		} else {
