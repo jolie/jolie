@@ -221,6 +221,12 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		getToken();
+		if ( token.is( Scanner.TokenType.HASH ) ) {
+			// Shebang scripting
+			scanner().readLine();
+			getToken();
+		}
+
 		Scanner.Token t;
 		do {
 			t = token;

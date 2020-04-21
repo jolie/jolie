@@ -280,7 +280,7 @@ public class CommandLineParser implements Closeable
 	{
 		StringBuilder helpBuilder = new StringBuilder();
 		helpBuilder.append( getVersionString() );
-		helpBuilder.append( "\n\nUsage: jolie [options] behaviour_file [program arguments]\n\n" );
+		helpBuilder.append( "\n\nUsage: jolie [options] program_file [program arguments]\n\n" );
 		helpBuilder.append( "Available options:\n" );
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
@@ -572,24 +572,12 @@ public class CommandLineParser implements Closeable
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
-			} else if (
-				argsList.get( i ).endsWith( ".ol" )
-				||
-				argsList.get( i ).endsWith( ".iol" )
-				||
-				argsList.get( i ).endsWith( ".olc" )
-			) {
-				if ( olFilepath == null ) {
-					olFilepath = argsList.get( i );
-				} else {
-					programArgumentsList.add( argsList.get( i ) );
-				}
-			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
-				String japPath = argsList.get( i );
-				if ( olFilepath == null ) {
+			} else if ( olFilepath == null ) {
+				final String path = argsList.get( i );
+				if ( path.endsWith( ".jap" ) ) {
 					for( String includePath : prepend( "", includeList ) ) {
 						try {
-							String japFilename = UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, japPath ) );
+							String japFilename = UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, path ) );
 							if ( Files.exists( Paths.get( japFilename ) ) ) {
 								try( JarFile japFile = new JarFile( japFilename ) ) {
 									Manifest manifest = japFile.getManifest();
@@ -605,11 +593,13 @@ public class CommandLineParser implements Closeable
 						} catch( URISyntaxException e ) {}
 					}
 					if ( olFilepath == null ) {
-						throw new IOException( "Could not locate " + japPath );
+						throw new IOException( "Could not locate " + path );
 					}
 				} else {
-					programArgumentsList.add( japPath );
+					olFilepath = path;
 				}
+			} else if ( olFilepath != null ) {
+				programArgumentsList.add( argsList.get( i ) );
 			} else {
 				// It's an unrecognized argument
 				int newIndex = argHandler.onUnrecognizedArgument( argsList, i );
