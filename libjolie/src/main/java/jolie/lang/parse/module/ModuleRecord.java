@@ -165,10 +165,7 @@ public class ModuleRecord
         InterfaceDefinition moduleInterfaceDef = this.findInterface( id );
         if ( moduleInterfaceDef != null ) {
             res.add( moduleInterfaceDef );
-            List< Importable > dependency = this.resolveDependency( moduleInterfaceDef );
-            res.addAll( 0, dependency );
         }
-
 
         DefinitionNode moduleProcedureDef = this.findProcedureDefinition( id );
         if ( moduleProcedureDef != null ) {
