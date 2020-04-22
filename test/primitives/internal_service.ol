@@ -21,6 +21,7 @@
 
 include "../AbstractTestUnit.iol"
 include "math.iol"
+include "string_utils.iol"
 
 interface SrvIface {
 RequestResponse:
@@ -95,6 +96,12 @@ define doTest
 	myOperation@RecursionService( 0 )( x );
 	if ( x != 6 ) {
 		throw( TestFailed, "Unexpected result" )
+	}
+
+	valueToPrettyString@StringUtils( Math )( s )
+	find@StringUtils( s { .regex = "protocol" })( result )
+	if ( result == 1 ) {
+		throw( TestFailed, "Unexpected node protocol in port Math" )
 	}
 	
 }
