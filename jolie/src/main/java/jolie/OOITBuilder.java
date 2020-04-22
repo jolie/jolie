@@ -61,6 +61,7 @@ import jolie.lang.parse.ast.ForEachArrayItemStatement;
 import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
@@ -1764,5 +1765,8 @@ public class OOITBuilder implements OLVisitor
 			error( n.context(), e );
 		}
 	}
+	
+	@Override
+	public void visit( ImportStatement n ){}
 }
 

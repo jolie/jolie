@@ -41,10 +41,10 @@ public class ImportStatement extends OLSyntaxNode
     /**
      * Constructor for namespace import
      * 
-     * @param context      parsing context
+     * @param context        parsing context
      * @param importTarget[] tokenized import target, empty denote a dot token (
-     *                     import target for .A.B should give this field ["", "A",
-     *                     "", "B"])
+     *                       import target for .A.B should give this field ["", "A",
+     *                       "", "B"])
      */
     public ImportStatement( ParsingContext context, String[] importTarget )
     {
@@ -97,11 +97,28 @@ public class ImportStatement extends OLSyntaxNode
         return importSymbolTargets;
     }
 
+    public String prettyPrintTarget()
+    {
+        String ret = "";
+        boolean relativeEnded = false;
+        for (String token : this.importTarget) {
+            if ( token.isEmpty() ) {
+                ret += ".";
+            } else {
+                if ( relativeEnded ) {
+                    ret += ".";
+                }
+                relativeEnded = true;
+                ret += token;
+            }
+        }
+        return ret;
+    }
+
     @Override
     public String toString()
     {
-        String importIDs = (this.isNamespaceImport) ? "*"
-                : Arrays.toString( this.importSymbolTargets );
+        String importIDs = (this.isNamespaceImport) ? "*" : prettyPrintTarget();
         return "from " + Arrays.toString( this.importTarget ) + " import " + importIDs;
     }
 
@@ -110,5 +127,6 @@ public class ImportStatement extends OLSyntaxNode
     @Override
     public void accept( OLVisitor visitor )
     {
+        visitor.visit(this);
     }
 }
