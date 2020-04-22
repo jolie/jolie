@@ -165,7 +165,7 @@ public class OLParser extends AbstractParser
 
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
 
-	private final Importer importer;
+	// private final Importer importer;
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
@@ -175,7 +175,7 @@ public class OLParser extends AbstractParser
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
 		this.definedTypes = createTypeDeclarationMap( context );
-		this.importer = new Importer( new Importer.Configuration( scanner.charset(), includePaths, classLoader, constantsMap ) );
+		// this.importer = new Importer( new Importer.Configuration( scanner.charset(), includePaths, classLoader, constantsMap ) );
 	}
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader,
@@ -187,7 +187,7 @@ public class OLParser extends AbstractParser
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
 		this.definedTypes = createTypeDeclarationMap( context );
-		this.importer = importer;
+		// this.importer = importer;
 	}
 
 	public void putConstants( Map< String, Scanner.Token > constantsToPut )
