@@ -1,5 +1,7 @@
 package jolie.lang.parse.module;
 
+import java.util.Map;
+import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -35,6 +37,7 @@ import jolie.lang.parse.ast.NullProcessStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
@@ -80,6 +83,7 @@ import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
@@ -127,16 +131,28 @@ public class SymbolTableGenerator
         @Override
         public void visit( OneWayOperationDeclaration decl )
         {
+            decl.requestType().accept( this );
         }
 
         @Override
         public void visit( RequestResponseOperationDeclaration decl )
         {
+            decl.requestType().accept( this );
+            decl.responseType().accept( this );
+            for (Map.Entry< String, TypeDefinition > fault : decl.faults().entrySet()) {
+                fault.getValue().accept( this );
+            }
         }
 
         @Override
         public void visit( DefinitionNode n )
         {
+            try {
+                this.symbolTable.addSymbol( n.name(), n );
+            } catch (ModuleException e) {
+                this.valid = false;
+                this.error = e;
+            }
         }
 
         @Override
@@ -442,16 +458,40 @@ public class SymbolTableGenerator
         @Override
         public void visit( TypeInlineDefinition n )
         {
+            if ( NativeType.isNativeTypeKeyword( n.id() ) ) {
+                return;
+            }
+            try {
+                this.symbolTable.addSymbol( n.name(), n );
+            } catch (ModuleException e) {
+                this.valid = false;
+                this.error = e;
+            }
         }
 
         @Override
         public void visit( TypeDefinitionLink n )
         {
+            try {
+                this.symbolTable.addSymbol( n.id(), n );
+            } catch (ModuleException e) {
+                this.valid = false;
+                this.error = e;
+            }
         }
 
         @Override
         public void visit( InterfaceDefinition n )
         {
+            try {
+                this.symbolTable.addSymbol( n.name(), n );
+            } catch (ModuleException e) {
+                this.valid = false;
+                this.error = e;
+            }
+            for (Map.Entry< String, OperationDeclaration > op : n.operationsMap().entrySet()) {
+                op.getValue().accept( this );
+            }
         }
 
         @Override
@@ -507,12 +547,48 @@ public class SymbolTableGenerator
         @Override
         public void visit( TypeChoiceDefinition n )
         {
+            try {
+                this.symbolTable.addSymbol( n.id(), n );
+            } catch (ModuleException e) {
+                this.valid = false;
+                this.error = e;
+            }
+            n.left().accept( this );
+            if ( n.right() != null ) {
+                n.right().accept( this );
+            }
         }
 
         @Override
         public void visit( ImportStatement n )
         {
+            Finder finder = Finder.getFinderForTarget( this.context.source(), this.includePaths,
+                    n.importTarget() );
+            Source targetFile = null;
+            try {
+                targetFile = finder.find();
+            } catch (ModuleException e) {
+                this.valid = false;
+                this.error = new ModuleException(
+                        "Unable to locate or read module " + n.prettyPrintTarget(), e );
+            }
+
+            if ( n.isNamespaceImport() ) {
+                this.symbolTable.addNamespaceSymbol( targetFile );
+            } else {
+                for (ImportSymbolTarget targetSymbol : n.importSymbolTargets()) {
+                    this.symbolTable.addSymbol( targetSymbol.localSymbol(), targetFile,
+                            targetSymbol.moduleSymbol() );
+                }
+            }
         }
+    }
+
+    public static SymbolTable generate( Program program )
+            throws ModuleException
+    {
+        return (new SymbolTableGeneratorVisitor( program.context(), new String[0] ))
+                .generate( program );
     }
 
     public static SymbolTable generate( Program program, String[] includePaths )

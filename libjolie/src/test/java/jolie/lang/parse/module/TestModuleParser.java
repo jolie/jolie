@@ -44,13 +44,13 @@ public class TestModuleParser
                     expectedType.remove( td.id() );
                 }
             }
+            
             if ( !expectedType.isEmpty() ) {
                 throw new Exception(
                         "type " + Arrays.toString( expectedType.toArray() ) + " not found" );
-
             }
 
-            SymbolTable st = SymbolTableGenerator.generate( p, new String[0] );
+            SymbolTable st = SymbolTableGenerator.generate( p );
             System.out.println(st);
         } );
     }

@@ -13,6 +13,12 @@ public abstract class SymbolInfo
     private Scope scope;
     private OLSyntaxNode node;
 
+    public SymbolInfo( String name, Scope scope, OLSyntaxNode node )
+    {
+        this(name, scope);
+        this.node = node;
+    }
+
     public SymbolInfo( String name, Scope scope )
     {
         this.name = name;

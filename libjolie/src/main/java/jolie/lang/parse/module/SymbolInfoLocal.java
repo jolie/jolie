@@ -5,9 +5,9 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 public class SymbolInfoLocal extends SymbolInfo
 {
 
-    public SymbolInfoLocal( String name )
+    public SymbolInfoLocal( String name, OLSyntaxNode node )
     {
-        super( name, Scope.LOCAL );
+        super( name, Scope.LOCAL, node );
     }
 
 }
