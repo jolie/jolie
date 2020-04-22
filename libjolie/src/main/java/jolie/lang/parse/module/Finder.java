@@ -183,11 +183,13 @@ public abstract class Finder
                 }
             } );
         } catch (FileNotFoundException e) {
-            throw new ModuleException( "unable to locate package", e );
+            throw new ModuleException( "unable to locate package, lookup path: "
+                    + Arrays.toString( this.lookupedPath() ) );
         }
 
         if ( source.isEmpty() ) {
-            throw new ModuleException( "unable to locate module" );
+            throw new ModuleException( "unable to locate module , lookup path: "
+                    + Arrays.toString( this.lookupedPath() ) );
         }
         return source.get();
     }
@@ -288,7 +290,8 @@ class AbsolutePathFinder extends Finder
         }
 
         // throw if module not found
-        throw new ModuleException( "unable to locate module" );
+        throw new ModuleException(
+                "unable to locate module, lookup path: " + Arrays.toString( this.lookupedPath() ) );
     }
 
     @Override

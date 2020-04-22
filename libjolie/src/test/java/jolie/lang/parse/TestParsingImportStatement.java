@@ -29,7 +29,7 @@ import jolie.util.InstanceCreator;
 import jolie.util.jap.JolieURLStreamHandlerFactory;
 
 
-public class TestImportStatement
+public class TestParsingImportStatement
 {
 
     static {
@@ -39,7 +39,8 @@ public class TestImportStatement
     private static String BASE_DIR = "imports/";
     InputStream is;
     static SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
-    private static URL baseDir = TestImportStatement.class.getClassLoader().getResource( BASE_DIR );
+    private static URL baseDir =
+            TestParsingImportStatement.class.getClassLoader().getResource( BASE_DIR );
 
 
     @Test
@@ -324,7 +325,7 @@ public class TestImportStatement
     {
         String code = "from type import date";
         this.is = new ByteArrayInputStream( code.getBytes() );
-        URL source = TestImportStatement.class.getClassLoader().getResource( BASE_DIR );
+        URL source = TestParsingImportStatement.class.getClassLoader().getResource( BASE_DIR );
         InstanceCreator oc = new InstanceCreator( new String[0] );
         assertDoesNotThrow( () -> {
             OLParser olParser = oc.createOLParser( new Scanner( is, source.toURI(), null ) );
