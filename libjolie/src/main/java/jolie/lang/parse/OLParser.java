@@ -39,7 +39,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -130,9 +129,6 @@ import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
-import jolie.lang.parse.module.ImportResult;
-import jolie.lang.parse.module.Importer;
-import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ProgramBuilder;
 import jolie.util.Helpers;
 import jolie.util.Pair;
@@ -175,19 +171,6 @@ public class OLParser extends AbstractParser
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
 		this.definedTypes = createTypeDeclarationMap( context );
-		// this.importer = new Importer( new Importer.Configuration( scanner.charset(), includePaths, classLoader, constantsMap ) );
-	}
-
-	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader,
-			Importer importer )
-	{
-		super( scanner );
-		final ParsingContext context = new URIParsingContext( scanner.source(), 0 );
-		this.programBuilder = new ProgramBuilder( context );
-		this.includePaths = includePaths;
-		this.classLoader = classLoader;
-		this.definedTypes = createTypeDeclarationMap( context );
-		// this.importer = importer;
 	}
 
 	public void putConstants( Map< String, Scanner.Token > constantsToPut )
