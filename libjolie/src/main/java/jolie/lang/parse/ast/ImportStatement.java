@@ -118,8 +118,8 @@ public class ImportStatement extends OLSyntaxNode
     @Override
     public String toString()
     {
-        String importIDs = (this.isNamespaceImport) ? "*" : prettyPrintTarget();
-        return "from " + Arrays.toString( this.importTarget ) + " import " + importIDs;
+        String target = (this.isNamespaceImport) ? "*" : prettyPrintTarget();
+        return "from " + target + " import " + Arrays.toString(this.importSymbolTargets);
     }
 
     // ImportStatement is resolved at OLParser.parse(), thus this function is
