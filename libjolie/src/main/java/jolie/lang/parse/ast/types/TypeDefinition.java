@@ -223,7 +223,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	}
 
 	/**
-	 * Checks if this TypeDeclaration is equivalent to otherType.
+	 * Checks if this TypeDeclaration is equivalent to other
 	 * @author Fabrizio Montesi
 	 * @param other
 	 * @return 
