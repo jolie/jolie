@@ -1,7 +1,8 @@
 package jolie.lang.parse.module;
 
+import java.net.URI;
 import java.util.Map;
-import jolie.lang.NativeType;
+import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -22,8 +23,8 @@ import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.ImportStatement;
-import jolie.lang.parse.ast.ImportSymbolTarget;
 import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InputPortInfo.AggregationItemInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -50,7 +51,6 @@ import jolie.lang.parse.ast.ProvideUntilStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
-import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
@@ -63,6 +63,10 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement.InterfaceOneWayBranch;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement.InterfaceRequestResponseBranch;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement.OperationOneWayBranch;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement.OperationRequestResponseBranch;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
@@ -82,41 +86,46 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode.AssignmentOperation;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode.Operation;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.module.SymbolInfo.Scope;
+import jolie.util.Pair;
 
-public class SymbolTableGenerator
+public class GlobalSymbolReferenceResolver
 {
+    private final Map< URI, ModuleRecord > moduleMap;
 
-    private static class SymbolTableGeneratorVisitor implements OLVisitor
+    public GlobalSymbolReferenceResolver( Map< URI, ModuleRecord > moduleMap )
     {
-        private final ParsingContext context;
-        private final SymbolTable symbolTable;
-        private final String[] includePaths;
+        this.moduleMap = moduleMap;
+    }
+
+    private class SymbolReferenceResolverVisitor implements OLVisitor
+    {
+
+        final private Map< URI, ModuleRecord > moduleMap;
+
         private boolean valid = true;
         private ModuleException error;
 
-
-        protected SymbolTableGeneratorVisitor( ParsingContext context, String[] includePaths )
+        protected SymbolReferenceResolverVisitor( Map< URI, ModuleRecord > moduleMap )
         {
-            this.context = context;
-            this.symbolTable = new SymbolTable( context.source() );
-            this.includePaths = includePaths;
+            this.moduleMap = moduleMap;
         }
 
-        public SymbolTable generate( Program p ) throws ModuleException
+        public void resolve( Program p ) throws ModuleException
         {
             visit( p );
-            System.out.println("generating Symboltable for " + p.context().sourceName());
+            System.out.println( "resolve Symbol for " + p.context().sourceName() );
             if ( !this.valid ) {
                 throw error;
             }
-            return this.symbolTable;
+            return;
         }
-
 
         @Override
         public void visit( Program n )
@@ -140,35 +149,40 @@ public class SymbolTableGenerator
         {
             decl.requestType().accept( this );
             decl.responseType().accept( this );
-            for (Map.Entry< String, TypeDefinition > fault : decl.faults().entrySet()) {
-                fault.getValue().accept( this );
+            for (TypeDefinition fault : decl.faults().values()) {
+                fault.accept( this );
             }
         }
 
         @Override
         public void visit( DefinitionNode n )
         {
-            try {
-                this.symbolTable.addSymbol( n.name(), n );
-            } catch (ModuleException e) {
-                this.valid = false;
-                this.error = e;
-            }
+            n.body().accept( this );
         }
 
         @Override
         public void visit( ParallelStatement n )
         {
+            for (OLSyntaxNode node : n.children()) {
+                node.accept( this );
+            }
         }
 
         @Override
         public void visit( SequenceStatement n )
         {
+            for (OLSyntaxNode node : n.children()) {
+                node.accept( this );
+            }
         }
 
         @Override
         public void visit( NDChoiceStatement n )
         {
+            for (Pair< OLSyntaxNode, OLSyntaxNode > child : n.children()) {
+                child.key().accept( this );
+                child.value().accept( this );
+            }
         }
 
         @Override
@@ -179,6 +193,7 @@ public class SymbolTableGenerator
         @Override
         public void visit( RequestResponseOperationStatement n )
         {
+            n.process().accept( this );
         }
 
         @Override
@@ -189,6 +204,9 @@ public class SymbolTableGenerator
         @Override
         public void visit( SolicitResponseOperationStatement n )
         {
+            for (Pair< String, OLSyntaxNode > handler : n.handlersFunction().pairs()) {
+                handler.value().accept( this );
+            }
         }
 
         @Override
@@ -204,31 +222,43 @@ public class SymbolTableGenerator
         @Override
         public void visit( AssignStatement n )
         {
+            n.expression().accept( this );
         }
 
         @Override
         public void visit( AddAssignStatement n )
         {
+            n.expression().accept( this );
         }
 
         @Override
         public void visit( SubtractAssignStatement n )
         {
+            n.expression().accept( this );
         }
 
         @Override
         public void visit( MultiplyAssignStatement n )
         {
+            n.expression().accept( this );
         }
 
         @Override
         public void visit( DivideAssignStatement n )
         {
+            n.expression().accept( this );
         }
 
         @Override
         public void visit( IfStatement n )
         {
+            for (Pair< OLSyntaxNode, OLSyntaxNode > child : n.children()) {
+                child.key().accept( this );
+                child.value().accept( this );
+            }
+            if ( n.elseProcess() != null ) {
+                n.elseProcess().accept( this );
+            }
         }
 
         @Override
@@ -239,26 +269,37 @@ public class SymbolTableGenerator
         @Override
         public void visit( WhileStatement n )
         {
+            n.condition().accept( this );
+            n.body().accept( this );
         }
 
         @Override
         public void visit( OrConditionNode n )
         {
+            for (OLSyntaxNode node : n.children()) {
+                node.accept( this );
+            }
         }
 
         @Override
         public void visit( AndConditionNode n )
         {
+            for (OLSyntaxNode node : n.children()) {
+                node.accept( this );
+            }
         }
 
         @Override
         public void visit( NotExpressionNode n )
         {
+            n.expression().accept( this );
         }
 
         @Override
         public void visit( CompareConditionNode n )
         {
+            n.leftExpression().accept( this );
+            n.rightExpression().accept( this );
         }
 
         @Override
@@ -289,11 +330,17 @@ public class SymbolTableGenerator
         @Override
         public void visit( ProductExpressionNode n )
         {
+            for (Pair< OperandType, OLSyntaxNode > node : n.operands()) {
+                node.value().accept( this );
+            }
         }
 
         @Override
         public void visit( SumExpressionNode n )
         {
+            for (Pair< OperandType, OLSyntaxNode > node : n.operands()) {
+                node.value().accept( this );
+            }
         }
 
         @Override
@@ -307,13 +354,17 @@ public class SymbolTableGenerator
         }
 
         @Override
-        public void visit( Scope n )
+        public void visit( jolie.lang.parse.ast.Scope n )
         {
+            n.body().accept( this );
         }
 
         @Override
         public void visit( InstallStatement n )
         {
+            for (Pair< String, OLSyntaxNode > handlerFunction : n.handlersFunction().pairs()) {
+                handlerFunction.value().accept( this );
+            }
         }
 
         @Override
@@ -324,6 +375,7 @@ public class SymbolTableGenerator
         @Override
         public void visit( ThrowStatement n )
         {
+            n.expression().accept( this );
         }
 
         @Override
@@ -344,11 +396,26 @@ public class SymbolTableGenerator
         @Override
         public void visit( InputPortInfo n )
         {
+            for (InterfaceDefinition iface : n.getInterfaceList()) {
+                iface.accept( this );
+            }
+            for (OperationDeclaration op : n.operations()) {
+                op.accept( this );
+            }
+            for (AggregationItemInfo aggregationItem : n.aggregationList()) {
+                aggregationItem.interfaceExtender().accept( this );
+            }
         }
 
         @Override
         public void visit( OutputPortInfo n )
         {
+            for (InterfaceDefinition iface : n.getInterfaceList()) {
+                iface.accept( this );
+            }
+            for (OperationDeclaration op : n.operations()) {
+                op.accept( this );
+            }
         }
 
         @Override
@@ -359,6 +426,7 @@ public class SymbolTableGenerator
         @Override
         public void visit( DeepCopyStatement n )
         {
+            n.rightExpression().accept( this );
         }
 
         @Override
@@ -399,21 +467,25 @@ public class SymbolTableGenerator
         @Override
         public void visit( ForStatement n )
         {
+            n.body().accept( this );
         }
 
         @Override
         public void visit( ForEachSubNodeStatement n )
         {
+            n.body().accept( this );
         }
 
         @Override
         public void visit( ForEachArrayItemStatement n )
         {
+            n.body().accept( this );
         }
 
         @Override
         public void visit( SpawnStatement n )
         {
+            n.body().accept( this );
         }
 
         @Override
@@ -424,6 +496,7 @@ public class SymbolTableGenerator
         @Override
         public void visit( InstanceOfExpressionNode n )
         {
+            n.type().accept( this );
         }
 
         @Override
@@ -434,6 +507,7 @@ public class SymbolTableGenerator
         @Override
         public void visit( SynchronizedStatement n )
         {
+            n.body().accept( this );
         }
 
         @Override
@@ -459,39 +533,26 @@ public class SymbolTableGenerator
         @Override
         public void visit( TypeInlineDefinition n )
         {
-            if ( NativeType.isNativeTypeKeyword( n.id() ) ) {
-                return;
-            }
-            try {
-                this.symbolTable.addSymbol( n.name(), n );
-            } catch (ModuleException e) {
-                this.valid = false;
-                this.error = e;
+            if ( n.hasSubTypes() ) {
+                for (Map.Entry< String, TypeDefinition > subType : n.subTypes()) {
+                    subType.getValue().accept( this );
+                }
             }
         }
 
         @Override
         public void visit( TypeDefinitionLink n )
         {
-            try {
-                this.symbolTable.addSymbol( n.id(), n );
-            } catch (ModuleException e) {
-                this.valid = false;
-                this.error = e;
-            }
+            SymbolInfo targetSymbolInfo = this.moduleMap.get( n.context().source() ).symbolTable()
+                    .symbol( n.linkedTypeName() );
+            n.setLinkedType( (TypeDefinition) targetSymbolInfo.node() );
         }
 
         @Override
         public void visit( InterfaceDefinition n )
         {
-            try {
-                this.symbolTable.addSymbol( n.name(), n );
-            } catch (ModuleException e) {
-                this.valid = false;
-                this.error = e;
-            }
-            for (Map.Entry< String, OperationDeclaration > op : n.operationsMap().entrySet()) {
-                op.getValue().accept( this );
+            for (OperationDeclaration op : n.operationsMap().values()) {
+                op.accept( this );
             }
         }
 
@@ -508,11 +569,30 @@ public class SymbolTableGenerator
         @Override
         public void visit( CourierDefinitionNode n )
         {
+            n.body().accept( this );
         }
 
         @Override
         public void visit( CourierChoiceStatement n )
         {
+            for (InterfaceOneWayBranch owIfaceBranch : n.interfaceOneWayBranches()) {
+                owIfaceBranch.interfaceDefinition.accept( this );
+                owIfaceBranch.body.accept( this );
+            }
+
+            for (InterfaceRequestResponseBranch rrIfaceBranch : n
+                    .interfaceRequestResponseBranches()) {
+                rrIfaceBranch.interfaceDefinition.accept( this );
+                rrIfaceBranch.body.accept( this );
+            }
+
+            for (OperationOneWayBranch owBranch : n.operationOneWayBranches()) {
+                owBranch.body.accept( this );
+            }
+
+            for (OperationRequestResponseBranch rrBranch : n.operationRequestResponseBranches()) {
+                rrBranch.body.accept( this );
+            }
         }
 
         @Override
@@ -528,11 +608,29 @@ public class SymbolTableGenerator
         @Override
         public void visit( InterfaceExtenderDefinition n )
         {
+            if ( n.defaultOneWayOperation() != null ) {
+                n.defaultOneWayOperation().accept( this );
+            }
+            if ( n.defaultRequestResponseOperation() != null ) {
+                n.defaultRequestResponseOperation().accept( this );
+            }
+            for (OperationDeclaration op : n.operationsMap().values()) {
+                op.accept( this );
+            }
         }
 
         @Override
         public void visit( InlineTreeExpressionNode n )
         {
+            for (Operation operation : n.operations()) {
+                if ( operation instanceof InlineTreeExpressionNode.AssignmentOperation ) {
+                    ((InlineTreeExpressionNode.AssignmentOperation) operation).expression()
+                            .accept( this );;
+                } else if ( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
+                    ((InlineTreeExpressionNode.DeepCopyOperation) operation).expression()
+                            .accept( this );;
+                }
+            }
         }
 
         @Override
@@ -543,56 +641,70 @@ public class SymbolTableGenerator
         @Override
         public void visit( ProvideUntilStatement n )
         {
+            n.provide().accept(this);
+            n.until().accept(null);
         }
 
         @Override
         public void visit( TypeChoiceDefinition n )
         {
-            try {
-                this.symbolTable.addSymbol( n.id(), n );
-            } catch (ModuleException e) {
-                this.valid = false;
-                this.error = e;
+            n.left().accept( this );
+            if ( n.right() != null ) {
+                n.right().accept( this );
             }
         }
 
         @Override
         public void visit( ImportStatement n )
         {
-            Finder finder = Finder.getFinderForTarget( this.context.source(), this.includePaths,
-                    n.importTarget() );
-            Source targetFile = null;
-            try {
-                targetFile = finder.find();
-            } catch (ModuleException e) {
-                this.valid = false;
-                this.error = new ModuleException(
-                        "Unable to locate or read module " + n.prettyPrintTarget(), e );
-            }
+        }
+    }
 
-            if ( n.isNamespaceImport() ) {
-                this.symbolTable.addNamespaceSymbol( targetFile );
-            } else {
-                for (ImportSymbolTarget targetSymbol : n.importSymbolTargets()) {
-                    this.symbolTable.addSymbol( targetSymbol.localSymbol(), targetFile,
-                            targetSymbol.moduleSymbol() );
+    public SymbolInfo symbolLookup( SymbolInfoExternal symbolInfo ) throws ModuleException
+    {
+        System.out.println( "resolving " + symbolInfo.name() + " by looking at "
+                + symbolInfo.moduleSymbol() + "@" + symbolInfo.module().source().toString() );
+
+        ModuleRecord externalSourceRecord = this.moduleMap.get( symbolInfo.module().source() );
+        SymbolInfo externalSourceSymbol =
+                externalSourceRecord.symbolTable().symbol( symbolInfo.moduleSymbol() );
+        if ( externalSourceSymbol.scope() == Scope.LOCAL ) {
+            return externalSourceSymbol;
+        } else {
+            return symbolLookup( (SymbolInfoExternal) externalSourceSymbol );
+        }
+    }
+
+    public void resolveExternalSymbols() throws ModuleException
+    {
+        for (ModuleRecord md : moduleMap.values()) {
+            for (SymbolInfo si : md.symbolTable().symbols()) {
+                if ( si.scope() == Scope.EXTERNAL ) {
+                    SymbolInfoExternal localSymbol = (SymbolInfoExternal) si;
+                    SymbolInfo targetSymbol = symbolLookup(localSymbol);
+                    si.setPointer(targetSymbol.node());
                 }
             }
         }
     }
 
-    public static SymbolTable generate( Program program )
-            throws ModuleException
+    public void resolveSymbol( TypeDefinition type )
     {
-        return (new SymbolTableGeneratorVisitor( program.context(), new String[0] ))
-                .generate( program );
+        if ( type instanceof TypeDefinitionLink ) {
+            resolveSymbol( (TypeDefinitionLink) type );
+        } else if ( type instanceof TypeInlineDefinition ) {
+            resolveSymbol( (TypeInlineDefinition) type );
+        } else if ( type instanceof TypeChoiceDefinition ) {
+            resolveSymbol( (TypeChoiceDefinition) type );
+        }
     }
 
-    public static SymbolTable generate( Program program, String[] includePaths )
-            throws ModuleException
+    public void resolveLinkedType() throws ModuleException
     {
-        return (new SymbolTableGeneratorVisitor( program.context(), includePaths ))
-                .generate( program );
+        SymbolReferenceResolverVisitor resolver =
+                new SymbolReferenceResolverVisitor( this.moduleMap );
+        for (ModuleRecord md : moduleMap.values()) {
+            resolver.resolve( md.program() );
+        }
     }
-
 }

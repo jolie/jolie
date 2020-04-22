@@ -14,6 +14,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.util.InstanceCreator;
@@ -38,6 +39,52 @@ public class TestModuleParser
                     + " not found in table " + st.source().toString() );
         }
     }
+    @Test
+    void testReferenceResolver() throws URISyntaxException
+    {
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],
+                InstanceCreator.class.getClassLoader(), false );
+
+        Map< URI, Set< String > > expectedSymbols = new HashMap<>();
+
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri(),
+                new HashSet< String >( Arrays.asList( "A", "from_b" ) ) );
+
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B.ol" ).toUri(),
+                new HashSet< String >( Arrays.asList( "C_type", "b_type", "b_type" ) ) );
+
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B" ).resolve( "packages" ).toUri(),
+        new HashSet< String >( Arrays.asList( "b_type", "c" ) ) );
+
+        assertDoesNotThrow( () -> {
+            URI target = Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri();
+            Program p = parser.parse( target );
+
+            SymbolTable st = SymbolTableGenerator.generate( p );
+            ModuleRecord mainRecord = new ModuleRecord( target, p, st );
+            Map< URI, ModuleRecord > crawlResult = ModuleCrawler.crawl( mainRecord, parser );
+            GlobalSymbolReferenceResolver symbolResolver = new GlobalSymbolReferenceResolver(crawlResult);
+            symbolResolver.resolveExternalSymbols();
+
+            for (ModuleRecord mr : crawlResult.values()){
+                for (SymbolInfo si : mr.symbolTable().symbols()){
+                    if (si.scope() == Scope.EXTERNAL && si.node() == null){
+                        throw new Exception("external symbolinfo " + si.name() + " has no node reference");
+                    }
+                }
+            }
+
+            symbolResolver.resolveLinkedType();
+
+            for (ModuleRecord mr : crawlResult.values()){
+                Program pro = mr.program();
+                System.out.println(pro);
+            }
+            System.out.println(crawlResult);
+        } );
+
+    }
+
 
     @Test
     void testGenerateSymbolTable() throws URISyntaxException

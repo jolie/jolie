@@ -16,7 +16,7 @@ public class ModuleCrawler
     public static Map< URI, ModuleRecord > crawl( ModuleRecord parentRecord, ModuleParser parser )
             throws ParserException, IOException, ModuleException
     {
-        Map< URI, ModuleRecord > result = new HashMap< URI, ModuleRecord >();
+        final Map< URI, ModuleRecord > result = new HashMap< URI, ModuleRecord >();
         result.put( parentRecord.source(), parentRecord );
         List< Source > sourceList = new ArrayList<>( Arrays.asList( parentRecord.dependency() ) );
 
