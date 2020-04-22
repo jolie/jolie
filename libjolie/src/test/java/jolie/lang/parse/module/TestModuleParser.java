@@ -2,11 +2,14 @@ package jolie.lang.parse.module;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import jolie.lang.parse.ast.Program;
@@ -24,6 +27,50 @@ public class TestModuleParser
     }
     private static String BASE_DIR = "imports/";
     private static URL baseDir = TestModuleParser.class.getClassLoader().getResource( BASE_DIR );
+
+    void checkSymbols( Set< String > expectedSymbols, SymbolTable st ) throws Exception
+    {
+        for (SymbolInfo symbolInfo : st.symbols()) {
+            expectedSymbols.remove( symbolInfo.name() );
+        }
+        if ( !expectedSymbols.isEmpty() ) {
+            throw new Exception( "Symbols " + Arrays.toString( expectedSymbols.toArray() )
+                    + " not found in table " + st.source().toString() );
+        }
+    }
+
+    @Test
+    void testGenerateSymbolTable() throws URISyntaxException
+    {
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],
+                InstanceCreator.class.getClassLoader(), false );
+
+        Map< URI, Set< String > > expectedSymbols = new HashMap<>();
+
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri(),
+                new HashSet< String >( Arrays.asList( "A", "from_b" ) ) );
+
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B.ol" ).toUri(),
+                new HashSet< String >( Arrays.asList( "C_type", "b_type" ) ) );
+
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B" ).resolve( "packages" ).toUri(),
+        new HashSet< String >( Arrays.asList( "b_type", "c" ) ) );
+
+        assertDoesNotThrow( () -> {
+            URI target = Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri();
+            Program p = parser.parse( target );
+
+            SymbolTable st = SymbolTableGenerator.generate( p );
+            ModuleRecord parentRecord = new ModuleRecord( target, p, st );
+            Map< URI, ModuleRecord > crawlResult = ModuleCrawler.crawl( parentRecord, parser );
+            for (ModuleRecord mr : crawlResult.values()) {
+                if ( expectedSymbols.containsKey( mr.source() ) ) {
+                    checkSymbols( expectedSymbols.get( mr.source() ), mr.symbolTable() );
+                }
+            }
+        } );
+
+    }
 
     @Test
     void testParse()
@@ -44,14 +91,10 @@ public class TestModuleParser
                     expectedType.remove( td.id() );
                 }
             }
-            
             if ( !expectedType.isEmpty() ) {
                 throw new Exception(
                         "type " + Arrays.toString( expectedType.toArray() ) + " not found" );
             }
-
-            SymbolTable st = SymbolTableGenerator.generate( p );
-            System.out.println(st);
         } );
     }
 }

@@ -10,24 +10,24 @@ import jolie.lang.parse.module.SymbolInfo.Scope;
 
 public class SymbolTable
 {
-    private final URI context;
+    private final URI source;
     private final List<Source> dependency;
     private final Map< String, SymbolInfo > symbols;
 
     /**
-     * @param context
+     * @param source
      * @param symbols
      */
-    public SymbolTable( URI context )
+    public SymbolTable( URI source )
     {
-        this.context = context;
+        this.source = source;
         this.symbols = new HashMap<>();
         this.dependency = new ArrayList<>();
     }
 
-    public URI context()
+    public URI source()
     {
-        return this.context;
+        return this.source;
     }
 
     public void addSymbol( String name, OLSyntaxNode node ) throws ModuleException
@@ -75,6 +75,13 @@ public class SymbolTable
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SymbolTable [source=" + source + ", dependency=" + dependency + ", symbols="
+                + symbols + "]";
     }
 
 }

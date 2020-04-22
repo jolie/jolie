@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
@@ -29,12 +31,35 @@ public class ModuleParser
 
     public Program parse( URI uri ) throws ParserException, IOException
     {
-        OLParser olParser = null;
         URL url = uri.toURL();
         InputStream stream = url.openStream();
-        olParser = new OLParser(
-                new Scanner( stream, uri, this.charset, this.includeDocumentation ),
-                this.includePaths, this.classLoader );
+        OLParser olParser =
+                new OLParser( new Scanner( stream, uri, this.charset, this.includeDocumentation ),
+                        this.includePaths, this.classLoader );
+        Program program = olParser.parse();
+        program = OLParseTreeOptimizer.optimize( program );
+        return program;
+    }
+
+    public Program parse( URI uri, String[] includePaths ) throws ParserException, IOException
+    {
+        return parse( uri, includePaths, false );
+    }
+
+    public Program parse( URI uri, String[] additionalIncludePaths, boolean joinPaths )
+            throws ParserException, IOException
+    {
+        URL url = uri.toURL();
+        InputStream stream = url.openStream();
+        String[] inculdePaths = includePaths;
+        if ( joinPaths ) {
+            inculdePaths = Stream
+                    .concat( Arrays.stream( this.includePaths ), Arrays.stream( additionalIncludePaths ) )
+                    .distinct().toArray( String[]::new );
+        }
+        OLParser olParser =
+                new OLParser( new Scanner( stream, uri, this.charset, this.includeDocumentation ),
+                        inculdePaths, this.classLoader );
         Program program = olParser.parse();
         program = OLParseTreeOptimizer.optimize( program );
         return program;

@@ -18,7 +18,9 @@ public interface Source
 {
     URI source();
 
-    Optional<InputStream> stream();
+    Optional< String > includePath();
+
+    Optional< InputStream > stream();
 }
 
 
@@ -39,11 +41,19 @@ class FileSource implements Source
     }
 
     @Override
-    public Optional<InputStream> stream()
+    public Optional< String > includePath()
+    {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional< InputStream > stream()
     {
         try {
-            return Optional.of(new FileInputStream( this.file ));
-        } catch (FileNotFoundException e) { return Optional.empty(); }
+            return Optional.of( new FileInputStream( this.file ) );
+        } catch (FileNotFoundException e) {
+            return Optional.empty();
+        }
     }
 }
 
@@ -71,9 +81,10 @@ class JapSource implements Source
         }
     }
 
-    public String includePath()
+    @Override
+    public Optional< String > includePath()
     {
-        return "jap:" + this.source.toString() + "!/" + this.parentPath;
+        return Optional.of( "jap:" + this.source.toString() + "!/" + this.parentPath );
     }
 
     @Override
@@ -83,11 +94,13 @@ class JapSource implements Source
     }
 
     @Override
-    public Optional<InputStream> stream()
+    public Optional< InputStream > stream()
     {
         try {
             ZipEntry z = japFile.getEntry( this.filePath );
-            return Optional.of(this.japFile.getInputStream( z ));
-        } catch (IOException e) { return Optional.empty(); }
+            return Optional.of( this.japFile.getInputStream( z ) );
+        } catch (IOException e) {
+            return Optional.empty();
+        }
     }
 }

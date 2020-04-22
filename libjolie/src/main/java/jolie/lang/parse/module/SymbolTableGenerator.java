@@ -100,7 +100,7 @@ public class SymbolTableGenerator
         private ModuleException error;
 
 
-        public SymbolTableGeneratorVisitor( ParsingContext context, String[] includePaths )
+        protected SymbolTableGeneratorVisitor( ParsingContext context, String[] includePaths )
         {
             this.context = context;
             this.symbolTable = new SymbolTable( context.source() );
@@ -110,6 +110,7 @@ public class SymbolTableGenerator
         public SymbolTable generate( Program p ) throws ModuleException
         {
             visit( p );
+            System.out.println("generating Symboltable for " + p.context().sourceName());
             if ( !this.valid ) {
                 throw error;
             }
