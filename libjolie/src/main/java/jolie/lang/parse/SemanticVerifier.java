@@ -176,7 +176,7 @@ public class SemanticVerifier implements OLVisitor
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes;
-	// private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
+	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
 	//private TypeDefinition rootType; // the type representing the whole session state
 	private final Map< String, Boolean > isConstantMap = new HashMap<>();
 	
@@ -279,15 +279,15 @@ public class SemanticVerifier implements OLVisitor
 		semanticException.addSemanticError( node, message);		
 	}
 
-	// private void resolveLazyLinks()
-	// {
-	// 	for( TypeDefinitionLink l : definedTypeLinks ) {
-	// 		l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
-	// 		if ( l.linkedType() == null ) {
-	// 			error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
-	// 		}
-	// 	}
-	// }
+	private void resolveLazyLinks()
+	{
+		for( TypeDefinitionLink l : definedTypeLinks ) {
+			l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
+			if ( l.linkedType() == null ) {
+				error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
+			}
+		}
+	}
 
 	private void checkToBeEqualTypes()
 	{
@@ -375,7 +375,7 @@ public class SemanticVerifier implements OLVisitor
 		throws SemanticException
 	{
 		program.accept( this );
-		// resolveLazyLinks();
+		resolveLazyLinks();
 		checkToBeEqualTypes();
 		checkCorrelationSets();
 		
@@ -385,9 +385,9 @@ public class SemanticVerifier implements OLVisitor
 
 		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
-			for( SemanticException.SemanticError e : semanticException.getErrorList() ){
+			/* for( SemanticException.SemanticError e : semanticException.getErrorList() ){
 				logger.severe( e.getMessage() );
-			}
+			} */
 			throw semanticException;
 		}
 	}
@@ -434,7 +434,7 @@ public class SemanticVerifier implements OLVisitor
 			}
 			definedTypes.put( n.id(), n );
 		}
-		// definedTypeLinks.add( n );
+		definedTypeLinks.add( n );
 	}
 
 	public void visit( TypeChoiceDefinition n )
