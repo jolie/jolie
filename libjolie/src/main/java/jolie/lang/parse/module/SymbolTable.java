@@ -1,9 +1,8 @@
 package jolie.lang.parse.module;
 
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.module.SymbolInfo.Scope;
@@ -11,7 +10,6 @@ import jolie.lang.parse.module.SymbolInfo.Scope;
 public class SymbolTable
 {
     private final URI source;
-    private final List<Source> dependency;
     private final Map< String, SymbolInfo > symbols;
 
     /**
@@ -22,7 +20,6 @@ public class SymbolTable
     {
         this.source = source;
         this.symbols = new HashMap<>();
-        this.dependency = new ArrayList<>();
     }
 
     public URI source()
@@ -32,46 +29,61 @@ public class SymbolTable
 
     public void addSymbol( String name, OLSyntaxNode node ) throws ModuleException
     {
-        if (isDuplicateSymbol( name )){
-            throw new ModuleException("detected redeclaration of symbol " + name);
+        if ( isDuplicateSymbol( name ) ) {
+            throw new ModuleException( "detected redeclaration of symbol " + name );
         }
         this.symbols.put( name, new SymbolInfoLocal( name, node ) );
     }
 
-    public void addSymbol( String name, Source module ) throws ModuleException
+    public void addSymbol( String name, String[] moduleTargetStrings ) throws ModuleException
     {
-        if (isDuplicateSymbol( name )){
-            throw new ModuleException("detected redeclaration of symbol " + name);
+        if ( isDuplicateSymbol( name ) ) {
+            throw new ModuleException( "detected redeclaration of symbol " + name );
         }
-        this.symbols.put( name, new SymbolInfoExternal( name, module, name ) );
+        this.symbols.put( name, new SymbolInfoExternal( name, moduleTargetStrings, name ) );
     }
 
-    public void addSymbol( String name, Source module, String moduleSymbol )
+    public void addSymbol( String name, String[] moduleTargetStrings, String moduleSymbol )
     {
-        dependency.add(module);
-        this.symbols.put( name, new SymbolInfoExternal( name, module, moduleSymbol ) );
+        this.symbols.put( name, new SymbolInfoExternal( name, moduleTargetStrings, moduleSymbol ) );
     }
 
-    public void addNamespaceSymbol( Source module ){
-        dependency.add(module);
-        this.symbols.put( module.source().toString(), new SymbolInfoExternal( "*", module, "*" ) );
+    public void addNamespaceSymbol( String[] moduleTargetStrings )
+    {
+        this.symbols.put( Arrays.toString( moduleTargetStrings ),
+                new SymbolInfoExternal( "*", moduleTargetStrings, "*" ) );
     }
 
-    public Source[] dependency(){
-        return this.dependency.toArray( new Source[0] );
-    }
+    // public Source[] dependency()
+    // {
+    // return this.dependency.toArray( new Source[0] );
+    // }
 
-    public SymbolInfo[] symbols(){
+    public SymbolInfo[] symbols()
+    {
         return this.symbols.values().toArray( new SymbolInfo[0] );
     }
 
-    public SymbolInfo symbol(String name){
-        return this.symbols.get(name);
+    public SymbolInfoLocal[] localSymbols()
+    {
+        return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.LOCAL )
+                .toArray( SymbolInfoLocal[]::new );
+    }
+
+    public SymbolInfoExternal[] externalSymbols()
+    {
+        return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.EXTERNAL )
+                .toArray( SymbolInfoExternal[]::new );
+    }
+
+    public SymbolInfo symbol( String name )
+    {
+        return this.symbols.get( name );
     }
 
     private boolean isDuplicateSymbol( String name )
     {
-        if (symbols.containsKey(name) && symbols.get(name).scope() != Scope.LOCAL){
+        if ( symbols.containsKey( name ) && symbols.get( name ).scope() != Scope.LOCAL ) {
             return true;
         }
         return false;
@@ -80,8 +92,7 @@ public class SymbolTable
     @Override
     public String toString()
     {
-        return "SymbolTable [source=" + source + ", dependency=" + dependency + ", symbols="
-                + symbols + "]";
+        return "SymbolTable [source=" + source + ", symbols=" + symbols + "]";
     }
 
 }

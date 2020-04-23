@@ -29,32 +29,37 @@ public class ModuleParser
         this.includeDocumentation = includeDocumentation;
     }
 
-    public Program parse( URI uri ) throws ParserException, IOException
+    public ModuleRecord parse( URI uri ) throws ParserException, IOException, ModuleException
     {
-        URL url = uri.toURL();
-        InputStream stream = url.openStream();
-        OLParser olParser =
-                new OLParser( new Scanner( stream, uri, this.charset, this.includeDocumentation ),
-                        this.includePaths, this.classLoader );
-        Program program = olParser.parse();
-        program = OLParseTreeOptimizer.optimize( program );
-        return program;
+        return parse(uri, this.includePaths, false);
     }
 
-    public Program parse( URI uri, String[] includePaths ) throws ParserException, IOException
+    public ModuleRecord parse( Source module ) throws ParserException, IOException, ModuleException
+    {
+        String[] additionalPath;
+        if ( module.includePath().isPresent() ) {
+            additionalPath = new String[] {module.includePath().get()};
+        } else {
+            additionalPath = new String[0];
+        }
+        return parse( module.source(), additionalPath, true );
+    }
+
+    public ModuleRecord parse( URI uri, String[] includePaths ) throws ParserException, IOException, ModuleException
     {
         return parse( uri, includePaths, false );
     }
 
-    public Program parse( URI uri, String[] additionalIncludePaths, boolean joinPaths )
-            throws ParserException, IOException
+    public ModuleRecord parse( URI uri, String[] additionalIncludePaths, boolean joinPaths )
+            throws ParserException, IOException, ModuleException
     {
         URL url = uri.toURL();
         InputStream stream = url.openStream();
         String[] inculdePaths = includePaths;
         if ( joinPaths ) {
             inculdePaths = Stream
-                    .concat( Arrays.stream( this.includePaths ), Arrays.stream( additionalIncludePaths ) )
+                    .concat( Arrays.stream( this.includePaths ),
+                            Arrays.stream( additionalIncludePaths ) )
                     .distinct().toArray( String[]::new );
         }
         OLParser olParser =
@@ -62,6 +67,7 @@ public class ModuleParser
                         inculdePaths, this.classLoader );
         Program program = olParser.parse();
         program = OLParseTreeOptimizer.optimize( program );
-        return program;
+        SymbolTable st = SymbolTableGenerator.generate( program );
+        return new ModuleRecord( uri, program, st );
     }
 }

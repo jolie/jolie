@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.module.SymbolInfo.Scope;
@@ -39,10 +40,12 @@ public class TestModuleParser
                     + " not found in table " + st.source().toString() );
         }
     }
+
     @Test
     void testReferenceResolver() throws URISyntaxException
     {
-        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],
+        String[] includePaths = new String[0];
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 InstanceCreator.class.getClassLoader(), false );
 
         Map< URI, Set< String > > expectedSymbols = new HashMap<>();
@@ -53,34 +56,39 @@ public class TestModuleParser
         expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B.ol" ).toUri(),
                 new HashSet< String >( Arrays.asList( "C_type", "b_type", "b_type" ) ) );
 
-        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B" ).resolve( "packages" ).toUri(),
-        new HashSet< String >( Arrays.asList( "b_type", "c" ) ) );
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B" )
+                .resolve( "packages" ).toUri(),
+                new HashSet< String >( Arrays.asList( "b_type", "c" ) ) );
 
         assertDoesNotThrow( () -> {
             URI target = Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri();
-            Program p = parser.parse( target );
+            ModuleRecord mainRecord = parser.parse( target, includePaths );
 
-            SymbolTable st = SymbolTableGenerator.generate( p );
-            ModuleRecord mainRecord = new ModuleRecord( target, p, st );
-            Map< URI, ModuleRecord > crawlResult = ModuleCrawler.crawl( mainRecord, parser );
-            GlobalSymbolReferenceResolver symbolResolver = new GlobalSymbolReferenceResolver(crawlResult);
+            ModuleCrawler crawler = new ModuleCrawler( includePaths );
+            Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+            GlobalSymbolReferenceResolver symbolResolver =
+                    new GlobalSymbolReferenceResolver( crawlResult );
             symbolResolver.resolveExternalSymbols();
 
-            for (ModuleRecord mr : crawlResult.values()){
-                for (SymbolInfo si : mr.symbolTable().symbols()){
-                    if (si.scope() == Scope.EXTERNAL && si.node() == null){
-                        throw new Exception("external symbolinfo " + si.name() + " has no node reference");
+            for (ModuleRecord mr : crawlResult.values()) {
+                for (SymbolInfo si : mr.symbolTable().symbols()) {
+                    if ( si.scope() == Scope.EXTERNAL && si.node() == null ) {
+                        throw new Exception(
+                                "external symbolinfo " + si.name() + " has no node reference" );
                     }
                 }
             }
 
             symbolResolver.resolveLinkedType();
 
-            for (ModuleRecord mr : crawlResult.values()){
+            for (ModuleRecord mr : crawlResult.values()) {
                 Program pro = mr.program();
-                System.out.println(pro);
+                System.out.println( pro );
             }
-            System.out.println(crawlResult);
+            SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program() );
+
+            semanticVerifier.validate();
+
         } );
 
     }
@@ -89,7 +97,8 @@ public class TestModuleParser
     @Test
     void testGenerateSymbolTable() throws URISyntaxException
     {
-        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],
+        String[] includePaths = new String[0];
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 InstanceCreator.class.getClassLoader(), false );
 
         Map< URI, Set< String > > expectedSymbols = new HashMap<>();
@@ -100,16 +109,16 @@ public class TestModuleParser
         expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B.ol" ).toUri(),
                 new HashSet< String >( Arrays.asList( "C_type", "b_type" ) ) );
 
-        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B" ).resolve( "packages" ).toUri(),
-        new HashSet< String >( Arrays.asList( "b_type", "c" ) ) );
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "A" ).resolve( "B" )
+                .resolve( "packages" ).toUri(),
+                new HashSet< String >( Arrays.asList( "b_type", "c" ) ) );
 
         assertDoesNotThrow( () -> {
             URI target = Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri();
-            Program p = parser.parse( target );
+            ModuleRecord mainRecord = parser.parse( target, includePaths );
 
-            SymbolTable st = SymbolTableGenerator.generate( p );
-            ModuleRecord parentRecord = new ModuleRecord( target, p, st );
-            Map< URI, ModuleRecord > crawlResult = ModuleCrawler.crawl( parentRecord, parser );
+            ModuleCrawler crawler = new ModuleCrawler( includePaths );
+            Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
             for (ModuleRecord mr : crawlResult.values()) {
                 if ( expectedSymbols.containsKey( mr.source() ) ) {
                     checkSymbols( expectedSymbols.get( mr.source() ), mr.symbolTable() );
@@ -129,9 +138,9 @@ public class TestModuleParser
         expectedType.add( "from_b" );
         assertDoesNotThrow( () -> {
             URI target = Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri();
-            Program p = parser.parse( target );
+            ModuleRecord p = parser.parse( target );
 
-            ProgramInspector pi = ParsingUtils.createInspector( p );
+            ProgramInspector pi = ParsingUtils.createInspector( p.program() );
 
             for (TypeDefinition td : pi.getTypes()) {
                 if ( expectedType.contains( td.id() ) ) {

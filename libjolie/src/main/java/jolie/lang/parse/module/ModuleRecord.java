@@ -7,7 +7,13 @@ public class ModuleRecord
 {
     private final URI source;
     private final Program program;
-    private final SymbolTable symbolTable;
+    private SymbolTable symbolTable;
+
+    public ModuleRecord( URI source, Program program )
+    {
+        this.source = source;
+        this.program = program;
+    }
 
     /**
      * @param program
@@ -36,17 +42,17 @@ public class ModuleRecord
         return program;
     }
 
+    public void setSymbolTable(SymbolTable symbolTable)
+    {
+        this.symbolTable = symbolTable;
+    }
+
     /**
      * @return the symbolTable
      */
     public SymbolTable symbolTable()
     {
         return symbolTable;
-    }
-
-    public Source[] dependency()
-    {
-        return this.symbolTable.dependency();
     }
 
     @Override

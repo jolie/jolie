@@ -663,9 +663,9 @@ public class GlobalSymbolReferenceResolver
     public SymbolInfo symbolLookup( SymbolInfoExternal symbolInfo ) throws ModuleException
     {
         System.out.println( "resolving " + symbolInfo.name() + " by looking at "
-                + symbolInfo.moduleSymbol() + "@" + symbolInfo.module().source().toString() );
+                + symbolInfo.moduleSymbol() + "@" + symbolInfo.moduleSource().get().source().toString() );
 
-        ModuleRecord externalSourceRecord = this.moduleMap.get( symbolInfo.module().source() );
+        ModuleRecord externalSourceRecord = this.moduleMap.get( symbolInfo.moduleSource().get().source() );
         SymbolInfo externalSourceSymbol =
                 externalSourceRecord.symbolTable().symbol( symbolInfo.moduleSymbol() );
         if ( externalSourceSymbol.scope() == Scope.LOCAL ) {

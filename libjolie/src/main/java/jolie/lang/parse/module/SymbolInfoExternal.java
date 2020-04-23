@@ -1,21 +1,38 @@
 package jolie.lang.parse.module;
 
+import java.util.Optional;
+
 public class SymbolInfoExternal extends SymbolInfo
 {
 
-    private Source module;
-    private String moduleSymbol;
+    private final String[] moduleTargets;
+    private final String moduleSymbol;
+    private Source moduleSource;
 
-    public SymbolInfoExternal( String name, Source module, String moduleSymbol )
+    public SymbolInfoExternal( String name, String[] moduleTargets, String moduleSymbol )
     {
         super( name, Scope.EXTERNAL );
-        this.module = module;
+        this.moduleTargets = moduleTargets;
         this.moduleSymbol = moduleSymbol;
     }
 
-    public Source module()
+    public void setModuleSource( Source moduleSource ) throws ModuleException
     {
-        return this.module;
+        if ( this.moduleSource != null ) {
+            new ModuleException( "Symbol " + this.name() + " has already defined moduleSource at "
+                    + this.moduleSource.source().toString() );
+        }
+        this.moduleSource = moduleSource;
+    }
+
+    public String[] moduleTargets()
+    {
+        return this.moduleTargets;
+    }
+
+    public Optional<Source> moduleSource()
+    {
+        return Optional.of(this.moduleSource);
     }
 
     public String moduleSymbol()

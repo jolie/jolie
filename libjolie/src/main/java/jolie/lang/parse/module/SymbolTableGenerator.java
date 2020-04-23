@@ -93,24 +93,19 @@ public class SymbolTableGenerator
 
     private static class SymbolTableGeneratorVisitor implements OLVisitor
     {
-        private final ParsingContext context;
         private final SymbolTable symbolTable;
-        private final String[] includePaths;
         private boolean valid = true;
         private ModuleException error;
 
 
-        protected SymbolTableGeneratorVisitor( ParsingContext context, String[] includePaths )
+        protected SymbolTableGeneratorVisitor( ParsingContext context )
         {
-            this.context = context;
             this.symbolTable = new SymbolTable( context.source() );
-            this.includePaths = includePaths;
         }
 
         public SymbolTable generate( Program p ) throws ModuleException
         {
             visit( p );
-            System.out.println("generating Symboltable for " + p.context().sourceName());
             if ( !this.valid ) {
                 throw error;
             }
@@ -559,22 +554,22 @@ public class SymbolTableGenerator
         @Override
         public void visit( ImportStatement n )
         {
-            Finder finder = Finder.getFinderForTarget( this.context.source(), this.includePaths,
-                    n.importTarget() );
-            Source targetFile = null;
-            try {
-                targetFile = finder.find();
-            } catch (ModuleException e) {
-                this.valid = false;
-                this.error = new ModuleException(
-                        "Unable to locate or read module " + n.prettyPrintTarget(), e );
-            }
+            // Finder finder = Finder.getFinderForTarget( this.context.source(), this.includePaths,
+            //         n.importTarget() );
+            // Source targetFile = null;
+            // try {
+            //     targetFile = finder.find();
+            // } catch (ModuleException e) {
+            //     this.valid = false;
+            //     this.error = new ModuleException(
+            //             "Unable to locate or read module " + n.prettyPrintTarget(), e );
+            // }
 
             if ( n.isNamespaceImport() ) {
-                this.symbolTable.addNamespaceSymbol( targetFile );
+                this.symbolTable.addNamespaceSymbol( n.importTarget() );
             } else {
                 for (ImportSymbolTarget targetSymbol : n.importSymbolTargets()) {
-                    this.symbolTable.addSymbol( targetSymbol.localSymbol(), targetFile,
+                    this.symbolTable.addSymbol( targetSymbol.localSymbol(), n.importTarget(),
                             targetSymbol.moduleSymbol() );
                 }
             }
@@ -584,14 +579,7 @@ public class SymbolTableGenerator
     public static SymbolTable generate( Program program )
             throws ModuleException
     {
-        return (new SymbolTableGeneratorVisitor( program.context(), new String[0] ))
-                .generate( program );
-    }
-
-    public static SymbolTable generate( Program program, String[] includePaths )
-            throws ModuleException
-    {
-        return (new SymbolTableGeneratorVisitor( program.context(), includePaths ))
+        return (new SymbolTableGeneratorVisitor( program.context() ))
                 .generate( program );
     }
 
