@@ -92,6 +92,7 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.util.Pair;
 
@@ -108,7 +109,7 @@ public class GlobalSymbolReferenceResolver
     {
 
         final private Map< URI, ModuleRecord > moduleMap;
-
+        private URI currentURI;
         private boolean valid = true;
         private ModuleException error;
 
@@ -119,6 +120,7 @@ public class GlobalSymbolReferenceResolver
 
         public void resolve( Program p ) throws ModuleException
         {
+            currentURI = p.context().source();
             visit( p );
             System.out.println( "resolve Symbol for " + p.context().sourceName() );
             if ( !this.valid ) {
@@ -204,8 +206,10 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( SolicitResponseOperationStatement n )
         {
-            for (Pair< String, OLSyntaxNode > handler : n.handlersFunction().pairs()) {
-                handler.value().accept( this );
+            if ( n.handlersFunction() != null ) {
+                for (Pair< String, OLSyntaxNode > handler : n.handlersFunction().pairs()) {
+                    handler.value().accept( this );
+                }
             }
         }
 
@@ -543,8 +547,8 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( TypeDefinitionLink n )
         {
-            SymbolInfo targetSymbolInfo = this.moduleMap.get( n.context().source() ).symbolTable()
-                    .symbol( n.linkedTypeName() );
+            SymbolInfo targetSymbolInfo =
+                    this.moduleMap.get( currentURI ).symbolTable().symbol( n.linkedTypeName() );
             n.setLinkedType( (TypeDefinition) targetSymbolInfo.node() );
         }
 
@@ -641,8 +645,8 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( ProvideUntilStatement n )
         {
-            n.provide().accept(this);
-            n.until().accept(null);
+            n.provide().accept( this );
+            n.until().accept( null );
         }
 
         @Override
@@ -662,10 +666,12 @@ public class GlobalSymbolReferenceResolver
 
     public SymbolInfo symbolLookup( SymbolInfoExternal symbolInfo ) throws ModuleException
     {
-        System.out.println( "resolving " + symbolInfo.name() + " by looking at "
-                + symbolInfo.moduleSymbol() + "@" + symbolInfo.moduleSource().get().source().toString() );
+        System.out.println(
+                "resolving " + symbolInfo.name() + " by looking at " + symbolInfo.moduleSymbol()
+                        + "@" + symbolInfo.moduleSource().get().source().toString() );
 
-        ModuleRecord externalSourceRecord = this.moduleMap.get( symbolInfo.moduleSource().get().source() );
+        ModuleRecord externalSourceRecord =
+                this.moduleMap.get( symbolInfo.moduleSource().get().source() );
         SymbolInfo externalSourceSymbol =
                 externalSourceRecord.symbolTable().symbol( symbolInfo.moduleSymbol() );
         if ( externalSourceSymbol.scope() == Scope.LOCAL ) {
@@ -681,8 +687,8 @@ public class GlobalSymbolReferenceResolver
             for (SymbolInfo si : md.symbolTable().symbols()) {
                 if ( si.scope() == Scope.EXTERNAL ) {
                     SymbolInfoExternal localSymbol = (SymbolInfoExternal) si;
-                    SymbolInfo targetSymbol = symbolLookup(localSymbol);
-                    si.setPointer(targetSymbol.node());
+                    SymbolInfo targetSymbol = symbolLookup( localSymbol );
+                    si.setPointer( targetSymbol.node() );
                 }
             }
         }
