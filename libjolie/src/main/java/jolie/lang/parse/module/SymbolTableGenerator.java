@@ -554,33 +554,26 @@ public class SymbolTableGenerator
         @Override
         public void visit( ImportStatement n )
         {
-            // Finder finder = Finder.getFinderForTarget( this.context.source(), this.includePaths,
-            //         n.importTarget() );
-            // Source targetFile = null;
-            // try {
-            //     targetFile = finder.find();
-            // } catch (ModuleException e) {
-            //     this.valid = false;
-            //     this.error = new ModuleException(
-            //             "Unable to locate or read module " + n.prettyPrintTarget(), e );
-            // }
 
             if ( n.isNamespaceImport() ) {
                 this.symbolTable.addNamespaceSymbol( n.importTarget() );
             } else {
                 for (ImportSymbolTarget targetSymbol : n.importSymbolTargets()) {
-                    this.symbolTable.addSymbol( targetSymbol.localSymbol(), n.importTarget(),
-                            targetSymbol.moduleSymbol() );
+                    try {
+                        this.symbolTable.addSymbol( targetSymbol.localSymbol(), n.importTarget(),
+                                targetSymbol.moduleSymbol() );
+                    } catch (ModuleException e) {
+                        this.valid = false;
+                        this.error = e;
+                    }
                 }
             }
         }
     }
 
-    public static SymbolTable generate( Program program )
-            throws ModuleException
+    public static SymbolTable generate( Program program ) throws ModuleException
     {
-        return (new SymbolTableGeneratorVisitor( program.context() ))
-                .generate( program );
+        return (new SymbolTableGeneratorVisitor( program.context() )).generate( program );
     }
 
 }

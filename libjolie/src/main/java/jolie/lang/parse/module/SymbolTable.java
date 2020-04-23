@@ -44,7 +44,11 @@ public class SymbolTable
     }
 
     public void addSymbol( String name, String[] moduleTargetStrings, String moduleSymbol )
+            throws ModuleException
     {
+        if ( isDuplicateSymbol( name ) ) {
+            throw new ModuleException( "detected redeclaration of symbol " + name );
+        }
         this.symbols.put( name, new SymbolInfoExternal( name, moduleTargetStrings, moduleSymbol ) );
     }
 
@@ -53,11 +57,6 @@ public class SymbolTable
         this.symbols.put( Arrays.toString( moduleTargetStrings ),
                 new SymbolInfoExternal( "*", moduleTargetStrings, "*" ) );
     }
-
-    // public Source[] dependency()
-    // {
-    // return this.dependency.toArray( new Source[0] );
-    // }
 
     public SymbolInfo[] symbols()
     {

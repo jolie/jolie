@@ -30,6 +30,7 @@ import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 
 /**
@@ -47,7 +48,7 @@ public class Compiler
 	}
 	
 	public void compile( OutputStream ostream )
-		throws IOException, ParserException, SemanticException
+		throws IOException, ParserException, SemanticException, ModuleException
 	{
 		Program program = ParsingUtils.parseProgram(
 			cmdParser.programStream(),
@@ -62,7 +63,7 @@ public class Compiler
 	}
 	
 	public void compile()
-		throws IOException, ParserException, SemanticException
+		throws IOException, ParserException, SemanticException, ModuleException
 	{
 		try( OutputStream os = new FileOutputStream( cmdParser.programFilepath() + "c" ) ) {
 			compile( os );

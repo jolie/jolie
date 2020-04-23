@@ -34,6 +34,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -736,6 +737,8 @@ public class MetaJolie extends JavaService {
             throw new FaultException("InputPortMetaDataFault", e);
         } catch (IOException e) {
             throw new FaultException("InputPortMetaDataFault", e);
+        } catch (ModuleException e) {
+            throw new FaultException("InputPortMetaDataFault", e);
         } catch (ParserException e) {
             Value fault = Value.create();
             fault.getFirstChild("message").setValue(e.getMessage());
@@ -785,6 +788,8 @@ public class MetaJolie extends JavaService {
             throw new FaultException("OutputPortMetaDataFault", e);
         } catch (IOException e) {
             throw new FaultException("OutputPortMetaDataFault", e);
+        } catch (ModuleException e) {
+            throw new FaultException("InputPortMetaDataFault", e);
         } catch (ParserException e) {
             Value fault = Value.create();
             fault.getFirstChild("message").setValue(e.getMessage());
@@ -942,7 +947,9 @@ public class MetaJolie extends JavaService {
 
         } catch (CommandLineException e) {
         } catch (IOException e) {
-        } catch (ParserException e) {
+        } catch (ModuleException e) {
+            throw new FaultException("InputPortMetaDataFault", e);
+        }  catch (ParserException e) {
             Value fault = Value.create();
             fault.getFirstChild("message").setValue(e.getMessage());
             fault.getFirstChild("line").setValue(e.context().line());

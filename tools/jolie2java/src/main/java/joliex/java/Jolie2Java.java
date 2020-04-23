@@ -8,6 +8,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
@@ -27,6 +28,7 @@ public class Jolie2Java {
 
             Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create(args, Jolie2Java.class.getClassLoader());
 
+            
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
                     cmdParser.programFilepath().toURI(), cmdParser.charset(),
@@ -61,7 +63,9 @@ public class Jolie2Java {
             e.printStackTrace();
         } catch (SemanticException e) {
             e.printStackTrace();
-        } catch( FaultException e ) {
+        } catch (FaultException e ) {
+            e.printStackTrace();
+        } catch (ModuleException e ) {
             e.printStackTrace();
         }
     }

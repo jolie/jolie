@@ -26,6 +26,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import joliex.dummycreator.impl.JolieDummyDocumentCreator;
@@ -56,7 +57,9 @@ public class JolieDummyCreator {
 			e.printStackTrace();
 		} catch( SemanticException e ) {
 			e.printStackTrace();
-		}
+		} catch( ModuleException e ) {
+			e.printStackTrace();
+        } 
 	}
 
 }

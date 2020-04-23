@@ -47,6 +47,7 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -134,7 +135,7 @@ public class Inspector extends JavaService
 				inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
 			}
 			return buildPortInspectionResponse( inspector );
-		} catch( CommandLineException | IOException | ParserException ex ) {
+		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
 		} catch( SemanticException ex ) {
 			throw new FaultException(
@@ -151,7 +152,7 @@ public class Inspector extends JavaService
 		try {
 			ProgramInspector inspector = getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
 			return buildProgramTypeInfo( inspector );
-		} catch( CommandLineException | IOException | ParserException ex ) {
+		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
 		} catch( SemanticException ex ) {
 			throw new FaultException(
@@ -162,7 +163,7 @@ public class Inspector extends JavaService
 	}
 
 	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths )
-		throws CommandLineException, IOException, ParserException, SemanticException
+		throws CommandLineException, IOException, ParserException, SemanticException, ModuleException
 	{
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );

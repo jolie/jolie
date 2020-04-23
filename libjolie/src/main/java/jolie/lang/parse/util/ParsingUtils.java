@@ -32,6 +32,11 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.GlobalSymbolReferenceResolver;
+import jolie.lang.parse.module.ModuleCrawler;
+import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.module.ModuleParser;
+import jolie.lang.parse.module.ModuleRecord;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
@@ -55,15 +60,26 @@ public class ParsingUtils
 		SemanticVerifier.Configuration configuration,
 		boolean includeDocumentation
 	)
-		throws IOException, ParserException, SemanticException
+		throws IOException, ParserException, SemanticException, ModuleException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ), includePaths, classLoader );
-		olParser.putConstants( definedConstants );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
+
+		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader );
+		parser.putConstants( definedConstants );
+		ModuleRecord mainRecord = parser.parse( source );
+
+		ModuleCrawler crawler = new ModuleCrawler( includePaths );
+		Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+
+		GlobalSymbolReferenceResolver symbolResolver =
+				new GlobalSymbolReferenceResolver( crawlResult );
+		symbolResolver.resolveExternalSymbols();
+
+		symbolResolver.resolveLinkedType();
+
+		Program program = mainRecord.program();
+
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
 		semanticVerifier.validate();
-
 		return program;
 	}
 	
@@ -76,12 +92,23 @@ public class ParsingUtils
 		Map< String, Scanner.Token > definedConstants,
 		boolean includeDocumentation
 	)
-		throws IOException, ParserException, SemanticException
+		throws IOException, ParserException, SemanticException, ModuleException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ), includePaths, classLoader );
-		olParser.putConstants( definedConstants );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
+		
+		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader );
+		parser.putConstants( definedConstants );
+		ModuleRecord mainRecord = parser.parse( source );
+
+		ModuleCrawler crawler = new ModuleCrawler( includePaths );
+		Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+
+		GlobalSymbolReferenceResolver symbolResolver =
+				new GlobalSymbolReferenceResolver( crawlResult );
+		symbolResolver.resolveExternalSymbols();
+
+		symbolResolver.resolveLinkedType();
+
+		Program program = mainRecord.program();
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
 		semanticVerifier.validate();
 

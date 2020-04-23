@@ -46,7 +46,7 @@ public class TestModuleParser
     {
         String[] includePaths = new String[0];
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
-                InstanceCreator.class.getClassLoader(), false );
+                InstanceCreator.class.getClassLoader() );
 
         Map< URI, Set< String > > expectedSymbols = new HashMap<>();
 
@@ -99,7 +99,7 @@ public class TestModuleParser
     {
         String[] includePaths = new String[0];
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
-                InstanceCreator.class.getClassLoader(), false );
+                InstanceCreator.class.getClassLoader() );
 
         Map< URI, Set< String > > expectedSymbols = new HashMap<>();
 
@@ -132,7 +132,7 @@ public class TestModuleParser
     void testParse()
     {
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],
-                InstanceCreator.class.getClassLoader(), false );
+                InstanceCreator.class.getClassLoader() );
         Set< String > expectedType = new HashSet<>();
         expectedType.add( "A" );
         expectedType.add( "from_b" );

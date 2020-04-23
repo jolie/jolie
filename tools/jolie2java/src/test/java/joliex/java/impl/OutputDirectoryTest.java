@@ -18,20 +18,20 @@
  */
 package joliex.java.impl;
 
+import static org.junit.Assert.assertEquals;
+import java.io.File;
+import java.io.IOException;
+import org.junit.AfterClass;
+import org.junit.Test;
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import joliex.java.Jolie2Java;
 import joliex.java.Jolie2JavaCommandLineParser;
-import org.junit.AfterClass;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import static org.junit.Assert.*;
 
 public class OutputDirectoryTest {
 
@@ -50,7 +50,7 @@ public class OutputDirectoryTest {
 
 
     @Test
-    public void checkEmptyOutputDirecotry() throws IOException, ParserException, SemanticException, CommandLineException {
+    public void checkEmptyOutputDirecotry() throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
         String[] args = { "src/test/resources/main.ol" };
         Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
@@ -70,7 +70,7 @@ public class OutputDirectoryTest {
     }
 
     @Test
-    public void checkJavaserviceTrue() throws IOException, ParserException, SemanticException, CommandLineException {
+    public void checkJavaserviceTrue() throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
         String[] args = {"src/test/resources/main.ol"};
         Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
