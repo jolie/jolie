@@ -81,11 +81,9 @@ public class TestModuleParser
 
             symbolResolver.resolveLinkedType();
 
-            for (ModuleRecord mr : crawlResult.values()) {
-                Program pro = mr.program();
-                System.out.println( pro );
-            }
-            SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program() );
+            SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
+            conf.setCheckForMain( false );
+            SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),conf );
 
             semanticVerifier.validate();
 

@@ -122,7 +122,6 @@ public class GlobalSymbolReferenceResolver
         {
             currentURI = p.context().source();
             visit( p );
-            System.out.println( "resolve Symbol for " + p.context().sourceName() );
             if ( !this.valid ) {
                 throw error;
             }
@@ -379,7 +378,9 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( ThrowStatement n )
         {
-            n.expression().accept( this );
+            if ( n.expression() != null ) {
+                n.expression().accept( this );
+            }
         }
 
         @Override
@@ -407,7 +408,9 @@ public class GlobalSymbolReferenceResolver
                 op.accept( this );
             }
             for (AggregationItemInfo aggregationItem : n.aggregationList()) {
-                aggregationItem.interfaceExtender().accept( this );
+                if (aggregationItem.interfaceExtender() != null){
+                    aggregationItem.interfaceExtender().accept( this );
+                }
             }
         }
 

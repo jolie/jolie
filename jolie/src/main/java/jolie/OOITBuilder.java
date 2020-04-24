@@ -360,6 +360,11 @@ public class OOITBuilder implements OLVisitor
 		Type type;
 		for( Pair< Type.TypeLink, TypeDefinition > pair : typeLinks ) {
 			type = types.get( pair.key().linkedTypeName() );
+			if ( type == null ){
+				insideType = true;
+				type = buildType(((TypeDefinitionLink) pair.value()).linkedType());
+				insideType = false;
+			}
 			pair.key().setLinkedType( type );
 			if ( type == null ) {
 				error( pair.value().context(), "type link to " + pair.key().linkedTypeName() + " cannot be resolved" );

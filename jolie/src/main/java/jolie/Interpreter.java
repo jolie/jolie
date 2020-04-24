@@ -1271,7 +1271,14 @@ public class Interpreter
 					final ModuleParser parser =
 							new ModuleParser( cmdParser.charset(), includePaths, classLoader );
 					parser.putConstants( cmdParser.definedConstants() );
-					ModuleRecord mainRecord = parser.parse( cmdParser.programFilepath().toURI() );
+					ModuleRecord mainRecord = null;
+					try {
+						mainRecord = parser.parse( new Scanner( cmdParser.programStream(),
+								new URI(cmdParser.programFilepath().getPath()), cmdParser.charset() ) );
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 
 					ModuleCrawler crawler = new ModuleCrawler( includePaths );
 					Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );

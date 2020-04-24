@@ -1,5 +1,6 @@
 package jolie.lang.parse.module;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -48,6 +49,12 @@ public class ModuleParser
         return parse( uri, this.includePaths, false );
     }
 
+
+    public ModuleRecord parse( File file ) throws ParserException, IOException, ModuleException
+    {
+        return parse( file.toURI(), this.includePaths, false );
+    }
+
     public ModuleRecord parse( Source module ) throws ParserException, IOException, ModuleException
     {
         String[] additionalPath;
@@ -63,6 +70,32 @@ public class ModuleParser
             throws ParserException, IOException, ModuleException
     {
         return parse( uri, includePaths, false );
+    }
+
+    public ModuleRecord parse( Scanner scanner )
+            throws ParserException, IOException, ModuleException
+    {
+        return parse( scanner, includePaths, false );
+    }
+
+    public ModuleRecord parse( Scanner scanner, String[] additionalIncludePaths, boolean joinPaths )
+            throws ParserException, IOException, ModuleException
+    {
+        String[] inculdePaths = includePaths;
+        if ( joinPaths ) {
+            inculdePaths = Stream
+                    .concat( Arrays.stream( this.includePaths ),
+                            Arrays.stream( additionalIncludePaths ) )
+                    .distinct().toArray( String[]::new );
+        }
+        OLParser olParser =
+                new OLParser( scanner,
+                        inculdePaths, this.classLoader );
+        olParser.putConstants( constantsMap );
+        Program program = olParser.parse();
+        program = OLParseTreeOptimizer.optimize( program );
+        SymbolTable st = SymbolTableGenerator.generate( program );
+        return new ModuleRecord( scanner.source(), program, st );
     }
 
     public ModuleRecord parse( URI uri, String[] additionalIncludePaths, boolean joinPaths )
