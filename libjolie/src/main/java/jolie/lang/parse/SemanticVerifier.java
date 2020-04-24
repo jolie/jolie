@@ -283,7 +283,6 @@ public class SemanticVerifier implements OLVisitor
 	{
 		for( TypeDefinitionLink l : definedTypeLinks ) {
 			if (l.linkedType() == null){
-				System.out.println("LinkType " + l.id() + "is null");
 				l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
 				if ( l.linkedType() == null ) {
 					error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
