@@ -183,7 +183,7 @@ public abstract class Finder
                     + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ), e );
         }
 
-        if ( source.isEmpty() ) {
+        if ( !source.isPresent() ) {
             throw new ModuleException( "module " + Arrays.toString( target )
                     + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ) );
         }
