@@ -27,7 +27,7 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"unix.jar"})
+@AndJarDeps({"cx.ath.matthew.jar"})
 public class LocalSocketListenerFactory extends CommListenerFactory
 {
 	public LocalSocketListenerFactory( CommCore commCore )
