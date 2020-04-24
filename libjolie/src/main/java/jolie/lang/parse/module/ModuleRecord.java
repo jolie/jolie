@@ -55,6 +55,22 @@ public class ModuleRecord
         return symbolTable;
     }
 
+    public SymbolInfo symbol(String name){
+        return this.symbolTable.symbol(name);
+    }
+
+    public SymbolInfoExternal[] externalSymbols(){
+        return this.symbolTable.externalSymbols();
+    }
+
+    public SymbolInfoLocal[] localSymbols(){
+        return this.symbolTable.localSymbols();
+    }
+
+    public SymbolInfo[] symbols(){
+        return this.symbolTable.symbols();
+    }
+
     @Override
     public String toString()
     {

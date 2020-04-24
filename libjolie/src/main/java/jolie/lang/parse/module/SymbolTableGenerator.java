@@ -556,7 +556,7 @@ public class SymbolTableGenerator
         {
 
             if ( n.isNamespaceImport() ) {
-                this.symbolTable.addNamespaceSymbol( n.importTarget() );
+                this.symbolTable.addWildCardSymbol( n.importTarget() );
             } else {
                 for (ImportSymbolTarget targetSymbol : n.importSymbolTargets()) {
                     try {

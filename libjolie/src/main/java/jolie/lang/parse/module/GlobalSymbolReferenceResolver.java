@@ -556,11 +556,11 @@ public class GlobalSymbolReferenceResolver
         public void visit( TypeDefinitionLink n )
         {
             TypeDefinition linkedType = null;
-            if (n.linkedTypeName().equals(TypeDefinitionUndefined.UNDEFINED_KEYWORD) ){
+            if ( n.linkedTypeName().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
                 linkedType = TypeDefinitionUndefined.getInstance();
-            }else{
+            } else {
                 SymbolInfo targetSymbolInfo =
-                        this.moduleMap.get( currentURI ).symbolTable().symbol( n.linkedTypeName() );
+                        this.moduleMap.get( currentURI ).symbol( n.linkedTypeName() );
                 // if symbol is not found, try look up at wildcard import table
                 if ( targetSymbolInfo == null ) {
                     targetSymbolInfo = this.wildcardImported.get( n.linkedTypeName() );
@@ -693,7 +693,7 @@ public class GlobalSymbolReferenceResolver
         ModuleRecord externalSourceRecord =
                 this.moduleMap.get( symbolInfo.moduleSource().get().source() );
         SymbolInfo externalSourceSymbol =
-                externalSourceRecord.symbolTable().symbol( symbolInfo.moduleSymbol() );
+                externalSourceRecord.symbol( symbolInfo.moduleSymbol() );
         if ( externalSourceSymbol.scope() == Scope.LOCAL ) {
             return externalSourceSymbol;
         } else {
@@ -703,7 +703,7 @@ public class GlobalSymbolReferenceResolver
 
     public void addWildCardImportedModule( ModuleRecord module ) throws ModuleException
     {
-        for (SymbolInfo si : module.symbolTable().symbols()) {
+        for (SymbolInfo si : module.symbols()) {
             if ( this.wildcardImportedSymbols.containsKey( si.name() ) ) {
                 throw new ModuleException( "import wildcard found duplicate symbol " + si.name() );
             }
@@ -714,17 +714,15 @@ public class GlobalSymbolReferenceResolver
     public void resolveExternalSymbols() throws ModuleException
     {
         for (ModuleRecord md : moduleMap.values()) {
-            for (SymbolInfo si : md.symbolTable().symbols()) {
-                if ( si.scope() == Scope.EXTERNAL ) {
-                    SymbolInfoExternal localSymbol = (SymbolInfoExternal) si;
-                    if ( si.name().equals( "*" ) ) {
-                        ModuleRecord wildcardImportedRecord =
-                                this.moduleMap.get( localSymbol.moduleSource().get().source() );
-                        this.addWildCardImportedModule(wildcardImportedRecord);
-                    } else {
-                        SymbolInfo targetSymbol = symbolLookup( localSymbol );
-                        si.setPointer( targetSymbol.node() );
-                    }
+            for (SymbolInfoExternal si : md.externalSymbols()) {
+                SymbolInfoExternal localSymbol = (SymbolInfoExternal) si;
+                if ( si instanceof SymbolWildCard ) {
+                    ModuleRecord wildcardImportedRecord =
+                            this.moduleMap.get( localSymbol.moduleSource().get().source() );
+                    this.addWildCardImportedModule( wildcardImportedRecord );
+                } else {
+                    SymbolInfo targetSymbol = symbolLookup( localSymbol );
+                    si.setPointer( targetSymbol.node() );
                 }
             }
         }

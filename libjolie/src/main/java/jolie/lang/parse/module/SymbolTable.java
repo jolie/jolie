@@ -52,10 +52,10 @@ public class SymbolTable
         this.symbols.put( name, new SymbolInfoExternal( name, moduleTargetStrings, moduleSymbol ) );
     }
 
-    public void addNamespaceSymbol( String[] moduleTargetStrings )
+    public void addWildCardSymbol( String[] moduleTargetStrings )
     {
         this.symbols.put( Arrays.toString( moduleTargetStrings ),
-                new SymbolInfoExternal( "*", moduleTargetStrings, "*" ) );
+                new SymbolWildCard( moduleTargetStrings ) );
     }
 
     public SymbolInfo[] symbols()
