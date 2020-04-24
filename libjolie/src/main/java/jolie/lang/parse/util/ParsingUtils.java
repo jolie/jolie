@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
-import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
@@ -63,7 +61,7 @@ public class ParsingUtils
 		throws IOException, ParserException, SemanticException, ModuleException
 	{
 
-		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader );
+		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader, includeDocumentation );
 		parser.putConstants( definedConstants );
 		ModuleRecord mainRecord = parser.parse( source );
 
@@ -95,7 +93,7 @@ public class ParsingUtils
 		throws IOException, ParserException, SemanticException, ModuleException
 	{
 		
-		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader );
+		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader, includeDocumentation );
 		parser.putConstants( definedConstants );
 		ModuleRecord mainRecord = parser.parse( source );
 
