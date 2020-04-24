@@ -150,14 +150,10 @@ public abstract class Finder
 
     protected Path locatePackage( Path basePath ) throws FileNotFoundException
     {
-        Path ret = basePath;
         for (String pathString : this.packagesToken()) {
-            ret = this.directoryLookup( basePath, pathString );
-            if ( ret != null ) {
-                return ret;
-            }
+            basePath = this.directoryLookup( basePath, pathString );
         }
-        return ret;
+        return basePath;
     }
 
 
@@ -183,13 +179,13 @@ public abstract class Finder
                 }
             } );
         } catch (FileNotFoundException e) {
-            throw new ModuleException( "unable to locate package, lookup path: "
-                    + Arrays.toString( this.lookupedPath() ) );
+            throw new ModuleException( "package " + Arrays.toString( this.packagesToken() )
+                    + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ), e );
         }
 
         if ( source.isEmpty() ) {
-            throw new ModuleException( "unable to locate module , lookup path: "
-                    + Arrays.toString( this.lookupedPath() ) );
+            throw new ModuleException( "module " + Arrays.toString( target )
+                    + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ) );
         }
         return source.get();
     }

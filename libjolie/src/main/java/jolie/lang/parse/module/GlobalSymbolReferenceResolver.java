@@ -1,6 +1,7 @@
 package jolie.lang.parse.module;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.OLVisitor;
@@ -78,6 +79,7 @@ import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode.Operation;
 import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
@@ -86,36 +88,39 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode.AssignmentOperation;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode.Operation;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.util.Pair;
 
 public class GlobalSymbolReferenceResolver
 {
     private final Map< URI, ModuleRecord > moduleMap;
+    private final Map< String, SymbolInfo > wildcardImportedSymbols;
 
     public GlobalSymbolReferenceResolver( Map< URI, ModuleRecord > moduleMap )
     {
         this.moduleMap = moduleMap;
+        this.wildcardImportedSymbols = new HashMap<>();
     }
 
     private class SymbolReferenceResolverVisitor implements OLVisitor
     {
 
-        final private Map< URI, ModuleRecord > moduleMap;
+        private final Map< URI, ModuleRecord > moduleMap;
+        private final Map< String, SymbolInfo > wildcardImported;
         private URI currentURI;
         private boolean valid = true;
         private ModuleException error;
 
-        protected SymbolReferenceResolverVisitor( Map< URI, ModuleRecord > moduleMap )
+        protected SymbolReferenceResolverVisitor( Map< URI, ModuleRecord > moduleMap,
+                Map< String, SymbolInfo > wildcardImported )
         {
             this.moduleMap = moduleMap;
+            this.wildcardImported = wildcardImported;
         }
 
         public void resolve( Program p ) throws ModuleException
@@ -408,7 +413,7 @@ public class GlobalSymbolReferenceResolver
                 op.accept( this );
             }
             for (AggregationItemInfo aggregationItem : n.aggregationList()) {
-                if (aggregationItem.interfaceExtender() != null){
+                if ( aggregationItem.interfaceExtender() != null ) {
                     aggregationItem.interfaceExtender().accept( this );
                 }
             }
@@ -550,9 +555,25 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( TypeDefinitionLink n )
         {
-            SymbolInfo targetSymbolInfo =
-                    this.moduleMap.get( currentURI ).symbolTable().symbol( n.linkedTypeName() );
-            n.setLinkedType( (TypeDefinition) targetSymbolInfo.node() );
+            TypeDefinition linkedType = null;
+            if (n.linkedTypeName().equals(TypeDefinitionUndefined.UNDEFINED_KEYWORD) ){
+                linkedType = TypeDefinitionUndefined.getInstance();
+            }else{
+                SymbolInfo targetSymbolInfo =
+                        this.moduleMap.get( currentURI ).symbolTable().symbol( n.linkedTypeName() );
+                // if symbol is not found, try look up at wildcard import table
+                if ( targetSymbolInfo == null ) {
+                    targetSymbolInfo = this.wildcardImported.get( n.linkedTypeName() );
+                }
+                linkedType = (TypeDefinition) targetSymbolInfo.node();
+            }
+            if ( linkedType == null ) {
+                this.valid = false;
+                this.error = new ModuleException( "type " + n.id()
+                        + " points to an undefined type (" + n.linkedTypeName() + ")" );
+                return;
+            }
+            n.setLinkedType( linkedType );
         }
 
         @Override
@@ -649,7 +670,7 @@ public class GlobalSymbolReferenceResolver
         public void visit( ProvideUntilStatement n )
         {
             n.provide().accept( this );
-            n.until().accept( null );
+            n.until().accept( this );
         }
 
         @Override
@@ -669,10 +690,6 @@ public class GlobalSymbolReferenceResolver
 
     public SymbolInfo symbolLookup( SymbolInfoExternal symbolInfo ) throws ModuleException
     {
-        System.out.println(
-                "resolving " + symbolInfo.name() + " by looking at " + symbolInfo.moduleSymbol()
-                        + "@" + symbolInfo.moduleSource().get().source().toString() );
-
         ModuleRecord externalSourceRecord =
                 this.moduleMap.get( symbolInfo.moduleSource().get().source() );
         SymbolInfo externalSourceSymbol =
@@ -684,14 +701,30 @@ public class GlobalSymbolReferenceResolver
         }
     }
 
+    public void addWildCardImportedModule( ModuleRecord module ) throws ModuleException
+    {
+        for (SymbolInfo si : module.symbolTable().symbols()) {
+            if ( this.wildcardImportedSymbols.containsKey( si.name() ) ) {
+                throw new ModuleException( "import wildcard found duplicate symbol " + si.name() );
+            }
+            this.wildcardImportedSymbols.put( si.name(), si );
+        }
+    }
+
     public void resolveExternalSymbols() throws ModuleException
     {
         for (ModuleRecord md : moduleMap.values()) {
             for (SymbolInfo si : md.symbolTable().symbols()) {
                 if ( si.scope() == Scope.EXTERNAL ) {
                     SymbolInfoExternal localSymbol = (SymbolInfoExternal) si;
-                    SymbolInfo targetSymbol = symbolLookup( localSymbol );
-                    si.setPointer( targetSymbol.node() );
+                    if ( si.name().equals( "*" ) ) {
+                        ModuleRecord wildcardImportedRecord =
+                                this.moduleMap.get( localSymbol.moduleSource().get().source() );
+                        this.addWildCardImportedModule(wildcardImportedRecord);
+                    } else {
+                        SymbolInfo targetSymbol = symbolLookup( localSymbol );
+                        si.setPointer( targetSymbol.node() );
+                    }
                 }
             }
         }
@@ -711,7 +744,7 @@ public class GlobalSymbolReferenceResolver
     public void resolveLinkedType() throws ModuleException
     {
         SymbolReferenceResolverVisitor resolver =
-                new SymbolReferenceResolverVisitor( this.moduleMap );
+                new SymbolReferenceResolverVisitor( this.moduleMap, this.wildcardImportedSymbols );
         for (ModuleRecord md : moduleMap.values()) {
             resolver.resolve( md.program() );
         }
