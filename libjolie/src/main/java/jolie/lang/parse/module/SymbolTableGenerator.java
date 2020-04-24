@@ -144,7 +144,7 @@ public class SymbolTableGenerator
         public void visit( DefinitionNode n )
         {
             try {
-                this.symbolTable.addSymbol( n.name(), n );
+                this.symbolTable.addSymbol( n.id(), n );
             } catch (ModuleException e) {
                 this.valid = false;
                 this.error = e;
@@ -458,7 +458,7 @@ public class SymbolTableGenerator
                 return;
             }
             try {
-                this.symbolTable.addSymbol( n.name(), n );
+                this.symbolTable.addSymbol( n.id(), n );
             } catch (ModuleException e) {
                 this.valid = false;
                 this.error = e;

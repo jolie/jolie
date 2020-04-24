@@ -133,19 +133,4 @@ public class TypeInlineDefinition extends TypeDefinition
 		visitor.visit( this );
 	}
 
-	@Override
-	public TypeDefinition resolve( ParsingContext ctx, String localID )
-	{
-		TypeInlineDefinition localType =
-				new TypeInlineDefinition( ctx, localID, this.nativeType(), this.cardinality() );
-		localType.setDocumentation( this.getDocumentation() );
-		if ( this.hasSubTypes() ) {
-			for (Map.Entry< String, TypeDefinition > entry : this.subTypes()) {
-				TypeDefinition subType =
-						(TypeDefinition) entry.getValue().resolve( ctx, entry.getKey() );
-				localType.putSubType( subType );
-			}
-		}
-		return localType;
-	}
 }

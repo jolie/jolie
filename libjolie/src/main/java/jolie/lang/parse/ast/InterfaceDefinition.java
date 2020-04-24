@@ -26,30 +26,22 @@ import java.util.Map;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.module.Importable;
 
 /**
  *
  * @author Fabrizio Montesi
  */
 public class InterfaceDefinition extends OLSyntaxNode
-		implements OperationCollector, DocumentedNode, Importable
+		implements OperationCollector, DocumentedNode
 {
 	private final Map< String, OperationDeclaration > operationsMap = new HashMap<>();
 	private final String name;
 	private String documentation;
-	private final boolean allowAccess;
 
 	public InterfaceDefinition( ParsingContext context, String name )
 	{
-		this( context, name, true);
-	}
-
-	public InterfaceDefinition( ParsingContext context, String name, boolean allowAccess )
-	{
 		super( context );
 		this.name = name;
-		this.allowAccess = allowAccess;
 	}
 
 	@Override
@@ -91,18 +83,5 @@ public class InterfaceDefinition extends OLSyntaxNode
 	{
 		return this.documentation;
 	}
-
-	@Override
-	public InterfaceDefinition resolve( ParsingContext ctx, String localID )
-	{
-		InterfaceDefinition localIface = new InterfaceDefinition( ctx, localID );
-		localIface.setDocumentation( this.getDocumentation() );
-		this.copyTo( localIface );
-		return localIface;
-	}
-
-	@Override
-	public boolean allowAccess(){
-		return this.allowAccess;
-	}
+	
 }
