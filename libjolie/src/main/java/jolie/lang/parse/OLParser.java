@@ -353,20 +353,25 @@ public class OLParser extends AbstractParser
 			} else {
 				TypeDefinition currentSubType;
 				while( !token.is( Scanner.TokenType.RCURLY ) ) {
-					
 					if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 						haveComment = true;
 						commentToken = token;
 						getToken();
 					} else {
-						maybeEat( Scanner.TokenType.DOT );
+						if ( token.is( Scanner.TokenType.DOT ) ) {
+							if ( hasMetNewline() ) {
+								getToken();
+							} else {
+								throwException( "the dot prefix operator for type nodes is allowed only after a newline" );
+							}
+						}
 
 						// SubType id
 						String id = token.content();
 						if ( token.is( Scanner.TokenType.STRING ) ) {
 							getToken();
 						} else {
-							eatIdentifier( "expected type name" );
+							eatIdentifier( "expected type node name" );
 						}
 
 						Range cardinality = parseCardinality();
@@ -379,7 +384,7 @@ public class OLParser extends AbstractParser
 
 						currentSubType = parseSubType( id, cardinality );
 
-						if( haveComment ){ haveComment = false; }
+						if ( haveComment ) { haveComment = false; }
 						parseBackwardAndSetDocumentation( currentSubType, Optional.ofNullable( commentToken ) );
 						commentToken = null;
 
@@ -400,7 +405,7 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
 	}
 
-	private TypeDefinition parseSubType(String id, Range cardinality)
+	private TypeDefinition parseSubType( String id, Range cardinality )
 			throws IOException, ParserException
 	{
 		NativeType nativeType = readNativeType();
