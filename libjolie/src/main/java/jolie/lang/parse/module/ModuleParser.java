@@ -63,7 +63,19 @@ public class ModuleParser
         } else {
             additionalPath = new String[0];
         }
-        return parse( module.source(), additionalPath, true );
+        String[] inculdePaths = Stream
+                .concat( Arrays.stream( this.includePaths ),
+                        Arrays.stream( additionalPath ) )
+                .distinct().toArray( String[]::new );
+
+        OLParser olParser =
+                new OLParser( new Scanner( module.stream().get(), module.source(), this.charset, includeDocumentation ),
+                        inculdePaths, this.classLoader );
+        olParser.putConstants( constantsMap );
+        Program program = olParser.parse();
+        program = OLParseTreeOptimizer.optimize( program );
+        SymbolTable st = SymbolTableGenerator.generate( program );
+        return new ModuleRecord( module.source(), program, st );
     }
 
     public ModuleRecord parse( URI uri, String[] includePaths )
