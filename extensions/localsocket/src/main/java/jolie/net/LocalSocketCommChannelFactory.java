@@ -30,7 +30,7 @@ import java.net.URISyntaxException;
 import jolie.net.ext.CommChannelFactory;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"unix.jar"})
+@AndJarDeps({"cx.ath.matthew.jar"})
 public class LocalSocketCommChannelFactory extends CommChannelFactory
 {
 	public LocalSocketCommChannelFactory( CommCore commCore )
