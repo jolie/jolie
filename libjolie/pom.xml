@@ -17,7 +17,6 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<junit.jupiter.version>5.5.2</junit.jupiter.version>
-		<maven.test.skip>true</maven.test.skip>
 	</properties>
 	<name>libjolie</name>
 	<description>The basic library used for Jolie code parsing and analysis.</description>

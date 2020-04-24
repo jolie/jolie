@@ -43,7 +43,7 @@ public class TestJolieImportSystem
     @Test
     void testImport()
     {
-        String filePath = "imports/A.ol";
+        String filePath = "src/test/resources/imports/A.ol";
         String[] args = new String[launcherArgs.length + 1];
         System.arraycopy( launcherArgs, 0, args, 0, launcherArgs.length );
         args[args.length - 1] = filePath;
