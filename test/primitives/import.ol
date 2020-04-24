@@ -1,7 +1,7 @@
 from .private.imports.point import point
 from .private.imports.point import point as p
-from .private.imports.iface import fooIface
-from .private.imports.procedure import proc
+// from .private.imports.iface import fooIface
+// from .private.imports.procedure import proc
 from .private.imports.namespace import *
 from .private.imports.namespace import n1 as asN1, n2 as asN2
 from .private.twice import TwiceAPI
@@ -21,18 +21,18 @@ define doTest {
 		throw( TestFailed, "point is not imported" )
 	}
 
-	// test interface
-	f << { a = "test" }
-	if ( !(f instanceof foo) ) {
-		throw( TestFailed, "foo type is not imported with fooIface" )
-	}
+	// // test interface
+	// f << { a = "test" }
+	// if ( !(f instanceof foo) ) {
+	// 	throw( TestFailed, "foo type is not imported with fooIface" )
+	// }
 
 	// test procedure
-	proc
+	// proc
 
-	if ( !(p_proc instanceof point) ) {
-		throw( TestFailed, "proc was not called" )
-	}
+	// if ( !(p_proc instanceof point) ) {
+	// 	throw( TestFailed, "proc was not called" )
+	// }
 
 	// test namespace
 	n1_val << { n1_f = 1}
