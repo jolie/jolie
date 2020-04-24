@@ -2542,12 +2542,13 @@ public class OLParser extends AbstractParser
 				assertToken( Scanner.TokenType.ID, "expected type name after instanceof" );
 			}
 
-			if ( definedTypes.containsKey( token.content() ) == false ) {
-				throwException( "invalid type: " + token.content() );
+			// check for native type
+			if ( definedTypes.containsKey( token.content() ) ) {
+				type = definedTypes.get( token.content() );
+			} else {
+				type = new TypeDefinitionLink( getContext(), token.content(),
+						Constants.RANGE_ONE_TO_ONE, token.content() );
 			}
-			type = definedTypes.get( token.content() );
-			
-			// type = new TypeDefinitionLink( getContext(), token.content(), Constants.RANGE_ONE_TO_ONE, token.content() );
 			ret = new InstanceOfExpressionNode( getContext(), expr1, type );
 			getToken();
 		} else {
