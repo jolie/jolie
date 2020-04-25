@@ -40,6 +40,48 @@ public class TestModuleParser
                     + " not found in table " + st.source().toString() );
         }
     }
+    @Test
+    void testInterfaceReferenceResolver() throws URISyntaxException
+    {
+        String[] includePaths = new String[0];
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
+                InstanceCreator.class.getClassLoader() );
+
+        Map< URI, Set< String > > expectedSymbols = new HashMap<>();
+
+        expectedSymbols.put( Paths.get( baseDir.toURI() ).resolve( "test_iface.ol" ).toUri(),
+                new HashSet< String >( Arrays.asList( "twiceIface" ) ) );
+
+        assertDoesNotThrow( () -> {
+            URI target = Paths.get( baseDir.toURI() ).resolve( "test_iface.ol" ).toUri();
+            ModuleRecord mainRecord = parser.parse( target, includePaths );
+
+            ModuleCrawler crawler = new ModuleCrawler( includePaths );
+            Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+            GlobalSymbolReferenceResolver symbolResolver =
+                    new GlobalSymbolReferenceResolver( crawlResult );
+            symbolResolver.resolveExternalSymbols();
+
+            for (ModuleRecord mr : crawlResult.values()) {
+                for (SymbolInfo si : mr.symbolTable().symbols()) {
+                    if ( si.scope() == Scope.EXTERNAL && si.node() == null ) {
+                        throw new Exception(
+                                "external symbolinfo " + si.name() + " has no node reference" );
+                    }
+                }
+            }
+
+            symbolResolver.resolveLinkedType();
+
+            SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
+            conf.setCheckForMain( false );
+            SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),conf );
+
+            semanticVerifier.validate();
+
+        } );
+
+    }
 
     @Test
     void testReferenceResolver() throws URISyntaxException

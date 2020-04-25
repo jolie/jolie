@@ -1134,14 +1134,16 @@ public class OLParser extends AbstractParser
 				eat( Scanner.TokenType.COLON, "expected : after interfaces" );
                 boolean keepRun = true;
                 while( keepRun ) {
-                    assertToken( Scanner.TokenType.ID, "expected interface name" );
-                    InterfaceDefinition i = interfaces.get( token.content() );
-                    if ( i == null ) {
-                        throwException( "Invalid interface name: " + token.content() );
-                    }
-                    i.copyTo( iface );
-                    interfaceList.add( i );
-                    getToken();
+					assertToken( Scanner.TokenType.ID, "expected interface name" );
+					InterfaceDefinition i =
+							new InterfaceDefinition( getContext(), token.content() );
+					// InterfaceDefinition i = interfaces.get( token.content() );
+					// if ( i == null ) {
+					// // throwException( "Invalid interface name: " + token.content() );
+					// }
+					// i.copyTo( iface );
+					interfaceList.add( i );
+					getToken();
 
                     if ( token.is( Scanner.TokenType.COMMA ) ) {
                         getToken();
@@ -1203,7 +1205,7 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.RCURLY, "} expected" );
 		if ( inputPortLocation == null ) {
 			throwException( "expected location URI for " + inputPortName );
-		} else if ( iface.operationsMap().isEmpty() && redirectionMap.isEmpty() && aggregationList.isEmpty() ) {
+		} else if ( (interfaceList.isEmpty() &&  iface.operationsMap().isEmpty()) && redirectionMap.isEmpty() && aggregationList.isEmpty() ) {
 			throwException( "expected at least one operation, interface, aggregation or redirection for inputPort " + inputPortName );
 		} else if ( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) && !inputPortLocation.getScheme().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			throwException( "expected protocol for inputPort " + inputPortName );
@@ -1335,11 +1337,12 @@ public class OLParser extends AbstractParser
 				boolean r = true;
 				while( r ) {
 					assertToken( Scanner.TokenType.ID, "expected interface name" );
-					InterfaceDefinition i = interfaces.get( token.content() );
-					if ( i == null ) {
-						throwException( "Invalid interface name: " + token.content() );
-					}
-					i.copyTo( p );
+					InterfaceDefinition i = new InterfaceDefinition( getContext(), token.content());
+					// InterfaceDefinition i = interfaces.get( token.content() );
+					// if ( i == null ) {
+						// throwException( "Invalid interface name: " + token.content() );
+					// }
+					// i.copyTo( p );
 					p.addInterface( i );
 					getToken();
 					

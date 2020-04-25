@@ -406,8 +406,15 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( InputPortInfo n )
         {
+            // resolve interface definition
             for (InterfaceDefinition iface : n.getInterfaceList()) {
-                iface.accept( this );
+                InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) this.moduleMap
+                        .get( currentURI ).symbol( iface.name() ).node();
+                ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
+                    iface.addOperation( op );
+                    n.addOperation( op );
+                } );
+                // iface.accept( this );
             }
             for (OperationDeclaration op : n.operations()) {
                 op.accept( this );
@@ -422,8 +429,15 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( OutputPortInfo n )
         {
+            // resolve interface definition
             for (InterfaceDefinition iface : n.getInterfaceList()) {
-                iface.accept( this );
+                InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) this.moduleMap
+                        .get( currentURI ).symbol( iface.name() ).node();
+                ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
+                    iface.addOperation( op );
+                    n.addOperation( op );
+                } );
+                // iface.accept( this );
             }
             for (OperationDeclaration op : n.operations()) {
                 op.accept( this );
@@ -692,8 +706,7 @@ public class GlobalSymbolReferenceResolver
     {
         ModuleRecord externalSourceRecord =
                 this.moduleMap.get( symbolInfo.moduleSource().get().source() );
-        SymbolInfo externalSourceSymbol =
-                externalSourceRecord.symbol( symbolInfo.moduleSymbol() );
+        SymbolInfo externalSourceSymbol = externalSourceRecord.symbol( symbolInfo.moduleSymbol() );
         if ( externalSourceSymbol.scope() == Scope.LOCAL ) {
             return externalSourceSymbol;
         } else {
