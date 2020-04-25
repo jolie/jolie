@@ -944,7 +944,7 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( DefinitionCallStatement n )
 	{
-		if ( !subroutineNames.contains( n.id() ) ) {
+		if ( !subroutineNames.contains( n.id() ) && n.definition() == null ) {
 			error( n, "Call to undefined definition: " + n.id() );
 		}
 	}
