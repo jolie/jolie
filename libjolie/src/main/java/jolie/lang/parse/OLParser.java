@@ -29,6 +29,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -714,7 +715,6 @@ public class OLParser extends AbstractParser
 		IncludeFile ret;
 
 		String urlStr = UriUtils.normalizeJolieUri( UriUtils.resolve( context, target ) );
-		
 		ret = tryAccessIncludeFile( urlStr );
 
 		if ( ret == null ) {
@@ -749,7 +749,7 @@ public class OLParser extends AbstractParser
 				try {
 					Path path = Paths.get( includeStr );
 					return new IncludeFile( new BufferedInputStream( Files.newInputStream( path ) ), path.getParent().toString(), path.toUri() );
-				} catch( FileSystemNotFoundException | IOException e ) {
+				} catch( FileSystemNotFoundException | IOException | InvalidPathException e ) {
 					return null;
 				}
 			},
