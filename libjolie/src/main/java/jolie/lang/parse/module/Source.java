@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 package jolie.lang.parse.module;
 
 import java.io.File;
@@ -14,16 +32,32 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import jolie.lang.Constants;
 
+/**
+ * an Interface of Joile module Source
+ */
 public interface Source
 {
+
+    /**
+     * @return URI location of the module
+     */
     URI source();
 
+    /**
+     * @return an optional include path for parsing this module
+     */
     Optional< String > includePath();
 
+    /**
+     * @return an InputStream of source
+     */
     Optional< InputStream > stream();
 }
 
 
+/**
+ * Jolie Module in file (an .ol file)
+ */
 class FileSource implements Source
 {
 
@@ -40,6 +74,9 @@ class FileSource implements Source
         return this.file.toURI();
     }
 
+    /**
+     * the include path of ol file should be empty
+     */
     @Override
     public Optional< String > includePath()
     {
@@ -81,6 +118,10 @@ class JapSource implements Source
         }
     }
 
+    /**
+     * additional includePath of JAP source is a parent path of the main execution file defined at
+     * main program
+     */
     @Override
     public Optional< String > includePath()
     {

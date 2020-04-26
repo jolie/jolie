@@ -2933,7 +2933,7 @@ public class OLParser extends AbstractParser
 					importTargetIDStarted = true;
 					getToken();
 				} else {
-					throwException( "expected identifier, dot or import for an import statement" );
+					throwException( "expected Identifier, dot or import for an import statement" );
 				}
 			} while (keepRun);
 

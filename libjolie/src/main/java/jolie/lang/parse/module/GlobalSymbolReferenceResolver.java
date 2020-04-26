@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 package jolie.lang.parse.module;
 
 import java.net.URI;
@@ -116,6 +134,11 @@ public class GlobalSymbolReferenceResolver
         private boolean valid = true;
         private ModuleException error;
 
+        /**
+         * @param moduleMap        a map of module source URI and it's ModuleRecord object, result
+         *                         form resolving all pointer of external Symbols
+         * @param wildcardImported a map of SymbolInfo from wildcard imports
+         */
         protected SymbolReferenceResolverVisitor( Map< URI, ModuleRecord > moduleMap,
                 Map< String, SymbolInfo > wildcardImported )
         {
@@ -123,6 +146,10 @@ public class GlobalSymbolReferenceResolver
             this.wildcardImported = wildcardImported;
         }
 
+
+        /**
+         * Walk through the Jolie AST tree and resolve the call of external Symbols.
+         */
         public void resolve( Program p ) throws ModuleException
         {
             currentURI = p.context().source();
@@ -702,7 +729,7 @@ public class GlobalSymbolReferenceResolver
         }
     }
 
-    public SymbolInfo symbolLookup( SymbolInfoExternal symbolInfo ) throws ModuleException
+    private SymbolInfo symbolLookup( SymbolInfoExternal symbolInfo ) throws ModuleException
     {
         ModuleRecord externalSourceRecord =
                 this.moduleMap.get( symbolInfo.moduleSource().get().source() );
@@ -714,7 +741,7 @@ public class GlobalSymbolReferenceResolver
         }
     }
 
-    public void addWildCardImportedModule( ModuleRecord module ) throws ModuleException
+    private void addWildCardImportedModule( ModuleRecord module ) throws ModuleException
     {
         for (SymbolInfo si : module.symbols()) {
             if ( this.wildcardImportedSymbols.containsKey( si.name() ) ) {
@@ -724,6 +751,12 @@ public class GlobalSymbolReferenceResolver
         }
     }
 
+    /**
+     * Find and set a pointer of externalSymbol to it's corresponding AST node by
+     * perform lookup at ModuleRecord Map, a result from ModuleCrawler.
+     * 
+     * @throws ModuleException when the target module or the target Symbol is not found.
+     */
     public void resolveExternalSymbols() throws ModuleException
     {
         for (ModuleRecord md : moduleMap.values()) {
@@ -741,17 +774,9 @@ public class GlobalSymbolReferenceResolver
         }
     }
 
-    public void resolveSymbol( TypeDefinition type )
-    {
-        if ( type instanceof TypeDefinitionLink ) {
-            resolveSymbol( (TypeDefinitionLink) type );
-        } else if ( type instanceof TypeInlineDefinition ) {
-            resolveSymbol( (TypeInlineDefinition) type );
-        } else if ( type instanceof TypeChoiceDefinition ) {
-            resolveSymbol( (TypeChoiceDefinition) type );
-        }
-    }
-
+    /**
+     * resolve LinkedType of each ModuleRecord AST node in the Map. 
+     */
     public void resolveLinkedType() throws ModuleException
     {
         SymbolReferenceResolverVisitor resolver =

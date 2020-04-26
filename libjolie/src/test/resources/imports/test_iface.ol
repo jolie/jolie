@@ -1,14 +1,13 @@
 from interface import twiceIface
 
-inputPort IP{
+inputPort IP {
     interfaces : twiceIface
     location: "socket://localhost:3000"
     protocol: sodep
 }
 
-
-main {
-    [twice(req)(res){
-        res = req * 2
-    }]
+outputPort OP {
+    interfaces : twiceIface
+    location: "socket://localhost:3000"
+    protocol: sodep
 }

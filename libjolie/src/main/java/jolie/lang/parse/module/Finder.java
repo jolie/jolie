@@ -51,11 +51,17 @@ public abstract class Finder
         this.lookedPaths = new ArrayList<>();
     }
 
+    /**
+     * @return list of looked path during finding process
+     */
     public String[] lookupedPath()
     {
         return lookedPaths.toArray( new String[0] );
     }
 
+    /**
+     * @return an index of module string token of the importstatement module target
+     */
     protected int moduleIndex()
     {
         return target.length - 1;
@@ -64,7 +70,7 @@ public abstract class Finder
     /**
      * Find a module target, return a File object points to first found path.
      * 
-     * @return instance of Source object
+     * @return Source object
      * @throws ModuleException if there is finder cannot locate any file.
      */
     public abstract Source find() throws ModuleException;
@@ -102,7 +108,8 @@ public abstract class Finder
      * 
      * @param basePath base path for lookup
      * @param dirName  directory name
-     * @return a new path of directory, throw exception if file is not found
+     * @return a new path of directory,
+     * @throws FileNotFoundException file is not found
      */
     protected Path directoryLookup( Path basePath, String dirName ) throws FileNotFoundException
     {
@@ -148,6 +155,13 @@ public abstract class Finder
         throw new FileNotFoundException( olPath.toString() );
     }
 
+    /**
+     * perform lookup to the target module's package path
+     * 
+     * @param basePath base path for lookup
+     * @return a path corresponding to the package
+     * @throws FileNotFoundException package directory is not found.
+     */
     protected Path locatePackage( Path basePath ) throws FileNotFoundException
     {
         for (String pathString : this.packagesToken()) {
@@ -156,8 +170,13 @@ public abstract class Finder
         return basePath;
     }
 
-
-
+    /**
+     * perform lookup to the target module's
+     * 
+     * @param basePath base path for lookup
+     * @return Source object corresponding to the module.
+     * @throws ModuleException when a module is not found
+     */
     protected Source locateModule( Path basePath ) throws ModuleException
     {
         Optional< Source > source = Optional.empty();
@@ -179,8 +198,10 @@ public abstract class Finder
                 }
             } );
         } catch (FileNotFoundException e) {
-            throw new ModuleException( "package " + Arrays.toString( this.packagesToken() )
-                    + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ), e );
+            throw new ModuleException(
+                    "package " + Arrays.toString( this.packagesToken() )
+                            + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ),
+                    e );
         }
 
         if ( !source.isPresent() ) {
@@ -193,9 +214,15 @@ public abstract class Finder
 }
 
 
+/**
+ * A class represent the finder for relative path importstatement
+ */
 class RelativePathFinder extends Finder
 {
 
+    /**
+     * an URI source of the caller
+     */
     private final URI source;
     private int packagesTokenStartIndex = 0;
 
@@ -207,6 +234,9 @@ class RelativePathFinder extends Finder
     }
 
 
+    /**
+     * resolve path from source, each dot prefix means 1 level higer from the caller path directory
+     */
     private Path resolveDotPrefix()
     {
         Path sourcePath = Paths.get( source );
@@ -245,6 +275,9 @@ class RelativePathFinder extends Finder
 }
 
 
+/**
+ * A class represent the finder for absolute path importstatement
+ */
 class AbsolutePathFinder extends Finder
 {
     private final String[] includePathStrings;
@@ -263,7 +296,7 @@ class AbsolutePathFinder extends Finder
         Path sourcePath = Paths.get( source );
         Path basePath;
 
-        // try lookup at package directory
+        // try lookup in package directory
         try {
             if ( !sourcePath.toFile().isDirectory() ) {
                 basePath = Paths.get( sourcePath.getParent().toString(), Constants.PACKAGES_DIR );
@@ -275,7 +308,7 @@ class AbsolutePathFinder extends Finder
         } catch (ModuleException e) {
         }
 
-        // try lookup at includePaths
+        // try lookup in includePaths
         try {
             for (String baseDir : this.includePathStrings) {
                 basePath = Paths.get( baseDir, Constants.PACKAGES_DIR );

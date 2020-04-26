@@ -1,24 +1,36 @@
+/*
+ * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 package jolie.lang.parse.module;
 
 import java.net.URI;
 import jolie.lang.parse.ast.Program;
 
+/**
+ * A class represent a Jolie module record, which contain an URI of source, a AST tree and
+ * Symboltable
+ */
 public class ModuleRecord
 {
     private final URI source;
     private final Program program;
     private SymbolTable symbolTable;
 
-    public ModuleRecord( URI source, Program program )
-    {
-        this.source = source;
-        this.program = program;
-    }
-
-    /**
-     * @param program
-     * @param symbolTable
-     */
     public ModuleRecord( URI source, Program program, SymbolTable symbolTable )
     {
         this.source = source;
@@ -42,8 +54,12 @@ public class ModuleRecord
         return program;
     }
 
-    public void setSymbolTable(SymbolTable symbolTable)
+    public void setSymbolTable( SymbolTable symbolTable ) throws ModuleException
     {
+        if ( this.symbolTable != null ) {
+            new ModuleException(
+                    "Module " + this.source().toString() + " SymbolTable is already defined" );
+        }
         this.symbolTable = symbolTable;
     }
 
@@ -55,28 +71,31 @@ public class ModuleRecord
         return symbolTable;
     }
 
-    public SymbolInfo symbol(String name){
-        return this.symbolTable.symbol(name);
+    public SymbolInfo symbol( String name )
+    {
+        return this.symbolTable.symbol( name );
     }
 
-    public SymbolInfoExternal[] externalSymbols(){
+    public SymbolInfoExternal[] externalSymbols()
+    {
         return this.symbolTable.externalSymbols();
     }
 
-    public SymbolInfoLocal[] localSymbols(){
+    public SymbolInfoLocal[] localSymbols()
+    {
         return this.symbolTable.localSymbols();
     }
 
-    public SymbolInfo[] symbols(){
+    public SymbolInfo[] symbols()
+    {
         return this.symbolTable.symbols();
     }
 
     @Override
     public String toString()
     {
-        return "ModuleRecord [source=" + source + ", symbolTable="
-                + symbolTable + "]";
+        return "ModuleRecord [source=" + source + ", symbolTable=" + symbolTable + "]";
     }
-    
+
 
 }

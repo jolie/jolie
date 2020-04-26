@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
+
 package jolie.lang.parse.module;
 
 import java.io.File;
@@ -15,11 +34,18 @@ import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.Program;
 
+/**
+ * A class represent parser for the parser of Jolie module.
+ */
 public class ModuleParser
 {
 
-    private final String charset;
+    /**
+     * an array of string for lookup path of include statement in Module
+     */
     private final String[] includePaths;
+
+    private final String charset;
     private final ClassLoader classLoader;
     private final boolean includeDocumentation;
 
@@ -63,14 +89,12 @@ public class ModuleParser
         } else {
             additionalPath = new String[0];
         }
-        String[] inculdePaths = Stream
-                .concat( Arrays.stream( this.includePaths ),
-                        Arrays.stream( additionalPath ) )
-                .distinct().toArray( String[]::new );
+        String[] inculdePaths =
+                Stream.concat( Arrays.stream( this.includePaths ), Arrays.stream( additionalPath ) )
+                        .distinct().toArray( String[]::new );
 
-        OLParser olParser =
-                new OLParser( new Scanner( module.stream().get(), module.source(), this.charset, includeDocumentation ),
-                        inculdePaths, this.classLoader );
+        OLParser olParser = new OLParser( new Scanner( module.stream().get(), module.source(),
+                this.charset, includeDocumentation ), inculdePaths, this.classLoader );
         olParser.putConstants( constantsMap );
         Program program = olParser.parse();
         program = OLParseTreeOptimizer.optimize( program );
@@ -100,9 +124,7 @@ public class ModuleParser
                             Arrays.stream( additionalIncludePaths ) )
                     .distinct().toArray( String[]::new );
         }
-        OLParser olParser =
-                new OLParser( scanner,
-                        inculdePaths, this.classLoader );
+        OLParser olParser = new OLParser( scanner, inculdePaths, this.classLoader );
         olParser.putConstants( constantsMap );
         Program program = olParser.parse();
         program = OLParseTreeOptimizer.optimize( program );
