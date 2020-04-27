@@ -19,6 +19,9 @@
 package jolie.lang.parse.module;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import jolie.lang.parse.ast.Program;
 
 /**
@@ -30,12 +33,14 @@ public class ModuleRecord
     private final URI source;
     private final Program program;
     private SymbolTable symbolTable;
+    private Map< String, SymbolInfo > wildcardImports;
 
     public ModuleRecord( URI source, Program program, SymbolTable symbolTable )
     {
         this.source = source;
         this.program = program;
         this.symbolTable = symbolTable;
+        this.wildcardImports = new HashMap<>();
     }
 
     /**
@@ -63,6 +68,17 @@ public class ModuleRecord
         this.symbolTable = symbolTable;
     }
 
+    public void addWildcardImportedRecord( ModuleRecord importedRecord ) throws ModuleException
+    {
+        for (SymbolInfo symbolInfo : importedRecord.symbols()) {
+            if ( this.wildcardImports.containsKey( symbolInfo.name() ) ) {
+                new ModuleException(
+                        "Module " + symbolInfo.name() + " SymbolTable is already defined" );
+            }
+            this.wildcardImports.put( symbolInfo.name(), symbolInfo );
+        }
+    }
+
     /**
      * @return the symbolTable
      */
@@ -71,7 +87,7 @@ public class ModuleRecord
         return symbolTable;
     }
 
-    public SymbolInfo symbol( String name )
+    public Optional<SymbolInfo> symbol( String name )
     {
         return this.symbolTable.symbol( name );
     }

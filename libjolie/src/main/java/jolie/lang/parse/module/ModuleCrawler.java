@@ -22,9 +22,11 @@ package jolie.lang.parse.module;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import jolie.lang.parse.ParserException;
 
 public class ModuleCrawler
@@ -60,7 +62,7 @@ public class ModuleCrawler
         moduleCrawled.put( record.source(), record );
     }
 
-    public Map< URI, ModuleRecord > crawl( ModuleRecord parentRecord, ModuleParser parser )
+    public Set< ModuleRecord > crawl( ModuleRecord parentRecord, ModuleParser parser )
 
             throws ParserException, IOException, ModuleException
     {
@@ -79,6 +81,6 @@ public class ModuleCrawler
             ModuleRecord p = parser.parse( module );
             crawlModule( p );
         }
-        return moduleCrawled;
+        return new HashSet<ModuleRecord> (moduleCrawled.values());
     }
 }

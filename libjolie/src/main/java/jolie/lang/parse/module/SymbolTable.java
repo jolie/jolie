@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 
@@ -128,9 +129,9 @@ public class SymbolTable
                 .toArray( SymbolInfoExternal[]::new );
     }
 
-    public SymbolInfo symbol( String name )
+    public Optional<SymbolInfo> symbol( String name )
     {
-        return this.symbols.get( name );
+        return Optional.of(this.symbols.get( name ));
     }
 
     private boolean isDuplicateSymbol( String name )

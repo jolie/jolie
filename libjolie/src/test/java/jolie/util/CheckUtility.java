@@ -3,6 +3,8 @@ package jolie.util;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import jolie.lang.parse.SemanticException;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
@@ -258,5 +260,13 @@ public class CheckUtility
                         "external symbolinfo " + si.name() + " has no node reference" );
             }
         }
+    }
+
+    public static void checkSemantic( Program p, boolean checkForMain ) throws SemanticException
+    {
+        SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
+        conf.setCheckForMain( checkForMain );
+        SemanticVerifier semanticVerifier = new SemanticVerifier( p, conf );
+        semanticVerifier.validate();
     }
 }

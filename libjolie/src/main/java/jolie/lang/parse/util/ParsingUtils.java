@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
@@ -66,7 +67,7 @@ public class ParsingUtils
 		ModuleRecord mainRecord = parser.parse( source );
 
 		ModuleCrawler crawler = new ModuleCrawler( includePaths );
-		Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+		Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
 
 		GlobalSymbolReferenceResolver symbolResolver =
 				new GlobalSymbolReferenceResolver( crawlResult );
@@ -98,7 +99,7 @@ public class ParsingUtils
 		ModuleRecord mainRecord = parser.parse( source );
 
 		ModuleCrawler crawler = new ModuleCrawler( includePaths );
-		Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+		Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
 
 		GlobalSymbolReferenceResolver symbolResolver =
 				new GlobalSymbolReferenceResolver( crawlResult );

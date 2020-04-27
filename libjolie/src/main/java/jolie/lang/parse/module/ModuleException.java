@@ -28,6 +28,12 @@ public class ModuleException extends Exception
     private static final long serialVersionUID = Constants.serialVersionUID();
     private ParsingContext context = null;
 
+    public ModuleException( ParsingContext context, String message )
+    {
+        super( message );
+        this.context = context;
+    }
+
     public ModuleException( String message )
     {
         super( message );
@@ -43,7 +49,8 @@ public class ModuleException extends Exception
         super( arg0 );
     }
 
-    public void setContext(ParsingContext context){
+    public void setContext( ParsingContext context )
+    {
         this.context = context;
     }
 
@@ -51,13 +58,9 @@ public class ModuleException extends Exception
     public String getMessage()
     {
         if ( context != null ) {
-            return new StringBuilder()
-            .append( context.sourceName() )
-            .append( ':' )        
-            .append( context.line() )
-            .append( ": error: " )
-            .append( super.getMessage() )
-            .toString();
+            return new StringBuilder().append( context.sourceName() ).append( ':' )
+                    .append( context.line() ).append( ": error: " ).append( super.getMessage() )
+                    .toString();
         }
         return super.getMessage();
     }
