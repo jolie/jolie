@@ -12,6 +12,8 @@ type myChoice :
     // subtype type choice
     .d: void
       | int 
-      | double { .e: string /*< very, nested, bwd comment */ }
+      | double {
+		  .e: string /*< very, nested, bwd comment */
+	}
   } 
 //< backward comment choice
