@@ -150,7 +150,7 @@ public class FileService extends JavaService
 					fileTypeMap = new MimetypesFileTypeMap( mimeIS );
 				}
 			}
-		} catch( IOException | URISyntaxException e ) {
+		} catch( IOException | URISyntaxException | InvalidPathException e ) {
 			throw new FaultException( "IOException", e );
 		}
 	}
@@ -727,7 +727,12 @@ public class FileService extends JavaService
 	public Value list( Value request )
 		throws FaultException
 	{
-		final Path dir = Paths.get( request.getFirstChild( "directory" ).strValue() );
+		final Path dir;
+		try {
+			dir = Paths.get( request.getFirstChild( "directory" ).strValue() );
+		} catch ( InvalidPathException e ) {
+			throw new FaultException( e );
+		}
 		final boolean fileInfo =
 			( request.getFirstChild( "info" ).isDefined() )
 			? request.getFirstChild( "info" ).boolValue()

@@ -32,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -930,7 +931,7 @@ public class CommandLineParser implements Closeable
 						return Optional.of( url.toString() );
 					}
 				}
-			} catch( URISyntaxException e ) {}
+			} catch( URISyntaxException | InvalidPathException e ) {}
 		}
 
 		return Optional.empty();
