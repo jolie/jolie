@@ -714,7 +714,7 @@ public class OLParser extends AbstractParser
 	{
 		IncludeFile ret;
 
-		String urlStr = UriUtils.normalizeJolieUri( UriUtils.resolve( context, target ) );
+		String urlStr = UriUtils.normalizeJolieUri( UriUtils.resolve( UriUtils.normalizeWindowsPath( context ), target ) );
 		ret = tryAccessIncludeFile( urlStr );
 
 		if ( ret == null ) {
