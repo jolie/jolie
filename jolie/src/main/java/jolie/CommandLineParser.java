@@ -32,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -146,7 +147,7 @@ public class CommandLineParser implements Closeable
 		return tracer;
 	}
         
-        	/**
+    /**
 	 * Returns
 	 * <code>true</code> if the check option has been specified, false
 	 * otherwise.
@@ -431,7 +432,7 @@ public class CommandLineParser implements Closeable
 		int cLimit = -1;
 		int cCache = 100;
 		long rTimeout = 36000 * 1000; // 10 minutes
-		String pwd = new File( "" ).getCanonicalPath();
+		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
 		includeList.add( pwd );
 		includeList.add( "include" );
 		libList.add( pwd );
@@ -582,7 +583,7 @@ public class CommandLineParser implements Closeable
 								try( JarFile japFile = new JarFile( japFilename ) ) {
 									Manifest manifest = japFile.getManifest();
 									olFilepath = UriUtils.normalizeWindowsPath( parseJapManifestForMainProgram( manifest, japFile ) );
-									libList.add( japFilename );
+									libList.add( UriUtils.normalizeWindowsPath( japFilename ) );
 									Collection< String> japOptions = parseJapManifestForOptions( manifest );
 									argsList.addAll( i + 1, japOptions );
 									japUrl = japFilename + "!";
@@ -650,14 +651,14 @@ public class CommandLineParser implements Closeable
 				}
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
-			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
+			} else if ( path.endsWith( "/*" ) ) {
 				Path dir = Paths.get( path.substring( 0, path.length() - 2 ) );
 				if ( Files.isDirectory( dir ) ) {
 					dir = dir.toRealPath();
 					List< String > archives = Files.list( dir ).map( Path::toString ).filter( p -> p.endsWith( ".jar" ) || p.endsWith( ".jap" ) ).collect( Collectors.toList() );
 					for( String archive : archives ) {
 						String scheme = archive.substring( archive.length() - 3, archive.length() ); // "jap" or "jar"
-						urls.add( new URL( scheme + ":file:" + archive + "!/" ) );
+						urls.add( new URL( scheme + ":" + Paths.get( archive ).toUri().toString() + "!/" ) );
 					}
 				}
 			} else if ( path.contains( ":" ) ) { // Try to avoid unnecessary MalformedURLExceptions, filling up the stack trace eats time.
@@ -792,7 +793,7 @@ public class CommandLineParser implements Closeable
 		if ( filepath != null ) {
 			filepath = new StringBuilder()
 						.append( "jap:file:" )
-						.append( japFile.getName() )
+						.append( UriUtils.normalizeWindowsPath( japFile.getName() ) )
 						.append( "!/" )
 						.append( filepath )
 						.toString();
@@ -914,9 +915,11 @@ public class CommandLineParser implements Closeable
 		for( String context : prepend( "", includePaths ) ) {
 			try {
 				String path = UriUtils.normalizeJolieUri(
-					UriUtils.resolve(
-						context,
-						UriUtils.normalizeWindowsPath( libPath )
+					UriUtils.normalizeWindowsPath(
+						UriUtils.resolve(
+							context,
+							UriUtils.normalizeWindowsPath( libPath )
+						)
 					)
 				);
 
@@ -928,7 +931,7 @@ public class CommandLineParser implements Closeable
 						return Optional.of( url.toString() );
 					}
 				}
-			} catch( URISyntaxException e ) {}
+			} catch( URISyntaxException | InvalidPathException e ) {}
 		}
 
 		return Optional.empty();

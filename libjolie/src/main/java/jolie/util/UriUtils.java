@@ -64,9 +64,9 @@ public class UriUtils
 		
 		if ( target.startsWith( JAP_FILE_PREFIX ) ) {
 			if ( Files.exists( Paths.get( context ) ) ) {
-				result = JAP_FILE_PREFIX + context + Constants.fileSeparator + target.substring( JAP_FILE_PREFIX.length() );
+				result = JAP_FILE_PREFIX + context + "/" + target.substring( JAP_FILE_PREFIX.length() );
 			} else if ( context.startsWith( JAP_FILE_PREFIX ) ) {
-				result = context + Constants.fileSeparator + target.substring( JAP_FILE_PREFIX.length() );
+				result = context + "/" + target.substring( JAP_FILE_PREFIX.length() );
 			}
 		}
 
