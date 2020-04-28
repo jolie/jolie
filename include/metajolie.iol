@@ -116,6 +116,23 @@ type CompareValuesRequest: bool | void {
     .v2: undefined
 }
 
+
+type Type1LeqType2Request: void {
+	.type1: void {
+		.name: string 
+		.types*: Type
+	}
+}
+
+type TypeDefinitionLessThanRequest: void {
+	.t1: string {
+		.types*: TypeDefinition
+	}
+	.t2: string {
+		.types*: TypeDefinition
+	}
+}
+
 interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
@@ -145,7 +162,12 @@ RequestResponse:
 	vectors are compared by element presence without testing the index
 	returns void if the comparison had success, raises ComparisonFailed fault otherwise 
 	**/
-  compareValuesVectorLight( CompareValuesRequest )( void ) throws ComparisonFailed( string )
+  compareValuesVectorLight( CompareValuesRequest )( void ) throws ComparisonFailed( string ),
+
+  /**!
+	it checks if a type is less than another type. A type is less than another if it is contained in it
+	*/
+	typeDefinitionLessThan( TypeDefinitionLessThanRequest )( bool ) throws TypeMissing( string )
 }
 
 
