@@ -83,6 +83,24 @@
 			"projectName": "jolie",
 			"cwd": "${workspaceFolder}/test",
 			"args": ["-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "test.ol", ".*http_get.*"]
+		},
+		{
+			"type": "java",
+			"name": "Tests - HTTP GET (Windows)",
+			"request": "launch",
+			"mainClass": "jolie.Jolie",
+			"projectName": "jolie",
+			"cwd": "${workspaceFolder}/test",
+			"args": ["-l", ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices/*;${workspaceFolder}\\dist\\jolie\\extensions\\*", "-i", "${workspaceFolder}\\include", "test.ol", ".*http_get.*"]
+		},
+		{
+			"type": "java",
+			"name": "Tests - Jap (Windows)",
+			"request": "launch",
+			"mainClass": "jolie.Jolie",
+			"projectName": "jolie",
+			"cwd": "${workspaceFolder}/test",
+			"args": ["-l", ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices/*;${workspaceFolder}\\dist\\jolie\\extensions\\*", "-i", "${workspaceFolder}\\include", "test.ol", ".*jap.*"]
 		}
 	]
 }
