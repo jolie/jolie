@@ -204,4 +204,102 @@ define doTest
        }
    }
 
+
+   // testing lessThan operations
+   with( rq ) {
+      .filename = "private/sample_service3.ol"
+   }
+   getInputPortMetaData@MetaJolie( rq )( meta_description );
+   undef( rq )
+   rq.t1 = "T2" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T2"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T2" )
+   }
+
+
+   rq.t2 = "T1"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T2 against T1" )
+   }
+
+
+   undef( rq )
+   rq.t1 = "T5" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T7"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T5 against T7" )
+   }
+
+   undef( rq )
+   rq.t1 = "T1" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T6"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T1 against T6" )
+   }
+
+   undef( rq )
+   rq.t1 = "T6" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T1"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T6 against T1" )
+   }
+
+   undef( rq )
+   rq.t1 = "T8" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T3"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T8 against T3" )
+   }
+
+   undef( rq )
+   rq.t1 = "T3" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T8"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T3 against T8" )
+   }
+
+   undef( rq )
+   rq.t1 = "T9" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T2"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T9 against T2" )
+   }
+
+   undef( rq )
+   rq.t1 = "T2" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T9"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T2 against T9" )
+   }
+
+
+
+
 }

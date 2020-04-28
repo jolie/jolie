@@ -21,11 +21,146 @@
 include "public/interfaces/metajolie_javaservice.iol"
 include "public/interfaces/metajolie_service.iol"
 include "runtime.iol"
+include "console.iol"
+include "string_utils.iol"
 
 execution{ concurrent }
 
 outputPort MySelf {
     Interfaces: MetaJolieServiceInterface
+}
+
+type TypeLessThanRequest: void {
+	t1 {
+        type: Type
+		types*: TypeDefinition
+	}
+	t2 {
+        type: Type
+		types*: TypeDefinition
+	}
+}
+
+interface MetaJolieUtilsInterface {
+    RequestResponse: 
+        typeLessThan( TypeLessThanRequest )( bool )
+        
+}
+service Utils {
+    Interfaces: MetaJolieUtilsInterface
+
+    main {
+        [ typeLessThan( request )( response ) {
+
+            for( t in request.t1.types ) { types1.( t.name ) << t }
+            for( t in request.t2.types ) { types2.( t.name ) << t }
+
+            t1 -> request.t1.type
+            t2 -> request.t2.type
+            
+            response = true
+            if ( !( t2 instanceof TypeUndefined ) ) {
+                if ( t1 instanceof TypeInLine ) {
+                    if ( t2 instanceof TypeLink ) {
+                        rq.t1 -> request.t1
+                        // replace link with type undefined in order to avoid infinite loop of recursive types
+                        for ( ty in request.t2.types ) {
+                            if ( ty.name == t2.link_name ) {
+                                foreach ( tf : ty ) { undef( ty.( tf ) ) }
+                                ty.type.undefined = true
+                                ty.name = t1.link_name
+                            }
+                        }
+                        rq.t2.types -> request.t2.types
+                        typeLessThan@Utils( rq )( response )
+                    } else if ( t2 instanceof TypeChoice ) {
+                        rq.t1 -> request.t1
+                        rq.t2.types -> request.t2.types
+                        rq.t2.type -> t2.choice.left_type
+                        typeLessThan@Utils( rq  )( response_left )
+                        rq.t2.type -> t2.choice.right_type
+                        typeLessThan@Utils( rq  )( response_right )
+                        reponse = response_left && response_right
+                    } else if ( t2 instanceof TypeInLine ) {
+                        // check the root type
+                        if ( !is_defined( t2.root_type.any_type ) ) {
+                            foreach( f : t1.root_type ) {
+                                if ( !is_defined( t2.root_type.( f ) ) ) {
+                                    response = false
+                                }
+                            }
+                        } 
+                        // check the body if the root is ok
+                        if ( response ) {
+                            // creating hashmap of subtypes
+                            for( sb in t2.sub_type ) { subtypes2.( sb.name ) << sb }
+                            // performing check
+                            for( sb in t1.sub_type ) {
+                                // check cardinality
+                                if ( !is_defined( subtypes2.( sb.name ) ) ) {
+                                    response = false
+                                } else {
+                                    if ( sb.cardinality.min <  subtypes2.( sb.name ).cardinality.min ) {
+                                        response = false
+                                    }
+                                    if ( !is_defined( subtypes2.( sb.name ).cardinality.infinite ) ) {
+                                        if ( sb.cardinality.max >  subtypes2.( sb.name ).cardinality.max ) {
+                                            response = false
+                                        }
+                                    }
+                                }
+                                // if cardianity is ok check the types
+                                if ( response ) {
+                                    rq.t1.type -> sb.type
+                                    rq.t1.types -> request.t1.types
+                                    rq.t2.type -> subtypes2.( sb.name ).type
+                                    rq.t2.types -> request.t2.types
+                                    typeLessThan@Utils( rq )( response )
+                                }
+                            }
+                        }
+                    }
+
+                } else if ( t1 instanceof TypeLink ) {
+                    if ( t2 instanceof TypeLink ) {
+                        rq.t2.type << types2.( t2.link_name ).type
+                        // replace link with type undefined in order to avoid infinite loop of recursive types
+                        for ( ty in request.t2.types ) {
+                            if ( ty.name == t2.link_name ) {
+                                foreach ( tf : ty ) { undef( ty.( tf ) ) }
+                                ty.type.undefined = true
+                                ty.name = t2.link_name
+                            }
+                        }
+                        rq.t2.types -> request.t2.types
+                    } else {
+                        rq.t2 -> request.t2
+                    }
+                    rq.t1.type << types1.( t1.link_name ).type
+                    // replace link with type undefined in order to avoid infinite loop of recursive types
+                    for ( ty in request.t1.types ) {
+                        if ( ty.name == t1.link_name ) {
+                            foreach ( tf : ty ) { undef( ty.( tf ) ) }
+                            ty.type.undefined = true
+                            ty.name = t1.link_name
+                        }
+                    }
+                    rq.t1.types -> request.t1.types
+                    typeLessThan@Utils( rq )( response )
+                } else if ( t1 instanceof TypeChoice ) {
+                    rq.t2 -> request.t2
+                    rq.t1.types -> request.t1.types
+                    rq.t1.type -> t1.choice.left_type
+                    typeLessThan@Utils( rq  )( response_left )
+                    rq.t1.type -> t1.choice.right_type
+                    typeLessThan@Utils( rq )( response_right )
+                    response = response_left && response_right
+                } else if ( t1 instanceof TypeUndefined ) {
+                    response = false
+                }
+            }
+        }]
+    }
 }
 
 inputPort MetaJolie {
@@ -118,6 +253,19 @@ main {
             __vfirst -> request.v2
             __vsecond -> request.v1
             check_light
+        }]
+
+        [ typeDefinitionLessThan( request )( response ) {
+            // creating hashmap of the types
+            for( t in request.t1.types ) { types1.( t.name ) << t }
+            for( t in request.t2.types ) { types2.( t.name ) << t }
+
+            rq.t1.type -> types1.( request.t1 ).type
+            rq.t1.types -> request.t1.types
+            rq.t2.type -> types2.( request.t2 ).type
+            rq.t2.types -> request.t2.types
+            typeLessThan@Utils( rq )( response )
+        
         }]
 }
 
