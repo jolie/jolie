@@ -340,13 +340,11 @@ public class OLParser extends AbstractParser
 	{
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		
-		Scanner.Token commentToken = null;
+		Optional< Scanner.Token > commentToken = Optional.empty();
 		boolean keepRun = true;
-		boolean haveComment = false;
 		while( keepRun ) {
 			if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
-				haveComment = true;
-				commentToken = token;
+				commentToken = Optional.of( token );
 				getToken();
 			} else if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
 				type.setUntypedSubTypes( true );
@@ -355,8 +353,7 @@ public class OLParser extends AbstractParser
 				TypeDefinition currentSubType;
 				while( !token.is( Scanner.TokenType.RCURLY ) ) {
 					if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
-						haveComment = true;
-						commentToken = token;
+						commentToken = Optional.of( token );
 						getToken();
 					} else {
 						if ( token.is( Scanner.TokenType.DOT ) ) {
@@ -385,9 +382,8 @@ public class OLParser extends AbstractParser
 
 						currentSubType = parseSubType( id, cardinality );
 
-						if ( haveComment ) { haveComment = false; }
-						parseBackwardAndSetDocumentation( currentSubType, Optional.ofNullable( commentToken ) );
-						commentToken = null;
+						parseBackwardAndSetDocumentation( currentSubType, commentToken );
+						commentToken = Optional.empty();
 
 						if ( type.hasSubType( currentSubType.id() ) ) {
 							throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
@@ -395,12 +391,13 @@ public class OLParser extends AbstractParser
 						type.putSubType( currentSubType );
 					}
 				}
+
 				keepRun = false;
-				if ( haveComment ) {
-					addToken( commentToken );
-					addToken( token );
-					getToken();
-				}
+				// if ( haveComment ) {
+				// 	addToken( commentToken );
+				// 	addToken( token );
+				// 	getToken();
+				// }
 			}
 		}
 		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
@@ -419,18 +416,18 @@ public class OLParser extends AbstractParser
 		} else {
 			getToken();
 			subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
-			boolean haveComment = false;
-			Scanner.Token commentToken = null;
+
+			Optional< Scanner.Token > commentToken = Optional.empty();
 			if ( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD ) ){
-				haveComment = true;
-				commentToken = token;
+				commentToken = Optional.of( token );
 				getToken();
 			}
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
 				parseSubTypes((TypeInlineDefinition) subType);
 			}
-			if( haveComment ){ // we return the backward comment token and the eaten one, to be parsed by the super type
-				addToken( commentToken );
+			if ( commentToken.isPresent() ){ // we return the backward comment token and the eaten one, to be parsed by the super type
+				addToken( commentToken.get() );
+				addToken( new Scanner.Token( Scanner.TokenType.NEWLINE ) );
 				addToken( token );
 				getToken();
 			}
