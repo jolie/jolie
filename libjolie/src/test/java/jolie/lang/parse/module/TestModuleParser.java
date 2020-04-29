@@ -162,7 +162,8 @@ public class TestModuleParser
             // check types
             CheckUtility.checkOutputPorts( mainRecord.program(), expectedOutputPorts );
             // check semantic, all linked type should be set
-            CheckUtility.checkSemantic( mainRecord.program(), false );
+            CheckUtility.checkSemantic( mainRecord.program(), symbolResolver.symbolTables(),
+                    false );
 
         } );
     }
@@ -218,7 +219,8 @@ public class TestModuleParser
             // check types
             CheckUtility.checkTypes( mainRecord.program(), expectedType );
             // check semantic, all linked type should be set
-            CheckUtility.checkSemantic( mainRecord.program(), false );
+            CheckUtility.checkSemantic( mainRecord.program(), symbolResolver.symbolTables(),
+                    false );
 
         } );
     }
@@ -257,7 +259,8 @@ public class TestModuleParser
             CheckUtility.checkOutputPorts( mainRecord.program(), expectedOutputPorts );
 
             // check semantic, all linked type should be set
-            CheckUtility.checkSemantic( mainRecord.program(), false );
+            CheckUtility.checkSemantic( mainRecord.program(), symbolResolver.symbolTables(),
+                    false );
 
         } );
     }
@@ -298,7 +301,8 @@ public class TestModuleParser
             CheckUtility.checkOutputPorts( mainRecord.program(), expectedOutputPorts );
 
             // check semantic, all linked type should be set
-            CheckUtility.checkSemantic( mainRecord.program(), false );
+            CheckUtility.checkSemantic( mainRecord.program(), symbolResolver.symbolTables(),
+                    false );
 
         } );
     }

@@ -119,12 +119,15 @@ import jolie.util.Pair;
 public class GlobalSymbolReferenceResolver
 {
     private final Map< URI, ModuleRecord > moduleMap;
+    private final Map< URI, SymbolTable > symbolTables;
 
     public GlobalSymbolReferenceResolver( Set< ModuleRecord > moduleMap )
     {
         this.moduleMap = new HashMap<>();
+        this.symbolTables = new HashMap<>();
         for (ModuleRecord mr: moduleMap){
             this.moduleMap.put(mr.source(), mr);
+            this.symbolTables.put(mr.source(), mr.symbolTable());
         }
     }
 
@@ -453,6 +456,7 @@ public class GlobalSymbolReferenceResolver
                     iface.addOperation( op );
                     n.addOperation( op );
                 } );
+                iface.setDocumentation(ifaceDeclFromSymbol.getDocumentation());
             }
             for (OperationDeclaration op : n.operations()) {
                 op.accept( this );
@@ -488,6 +492,7 @@ public class GlobalSymbolReferenceResolver
                     iface.addOperation( op );
                     n.addOperation( op );
                 } );
+                iface.setDocumentation(ifaceDeclFromSymbol.getDocumentation());
             }
             for (OperationDeclaration op : n.operations()) {
                 op.accept( this );
@@ -804,5 +809,9 @@ public class GlobalSymbolReferenceResolver
         for (ModuleRecord md : moduleMap.values()) {
             resolver.resolve( md.program() );
         }
+    }
+
+    public Map<URI, SymbolTable> symbolTables(){
+        return this.symbolTables;
     }
 }

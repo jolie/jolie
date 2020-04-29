@@ -75,13 +75,12 @@ public class ParsingUtils
 
 		symbolResolver.resolveLinkedType();
 
-		Program program = mainRecord.program();
-
-		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
+		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
+				symbolResolver.symbolTables(), configuration );
 		semanticVerifier.validate();
-		return program;
+		return mainRecord.program();
 	}
-	
+
 	public static Program parseProgram(
 		InputStream inputStream,
 		URI source,
@@ -107,11 +106,10 @@ public class ParsingUtils
 
 		symbolResolver.resolveLinkedType();
 
-		Program program = mainRecord.program();
-		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
+		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
+				symbolResolver.symbolTables() );
 		semanticVerifier.validate();
-
-		return program;
+		return mainRecord.program();
 	}
 	
 	/**

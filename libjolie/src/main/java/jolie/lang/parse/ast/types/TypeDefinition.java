@@ -44,7 +44,6 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	private final String id;
 	private final Range cardinality;
 	private String document = null;
-	private final boolean allowAccess;
 
 	/**
 	 * Constructor
@@ -54,22 +53,9 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 	public TypeDefinition( ParsingContext context, String id, Range cardinality )
 	{
-		this( context, id, cardinality, true );
-	}
-
-	/**
-	 * Constructor
-	 * @param context the parsing context for this AST node
-	 * @param id the name identifier for this type definition
-	 * @param cardinality the cardinality of this type
-	 * @param allowAccess this access specifier
-	 */
-	public TypeDefinition( ParsingContext context, String id, Range cardinality, boolean allowAccess )
-	{
 		super( context );
 		this.id = id;
 		this.cardinality = cardinality;
-		this.allowAccess = allowAccess;
 	}
 
 	public String id()
@@ -257,11 +243,12 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		return cardinality.equals( other.cardinality ) && checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
-	@Override
-	public boolean equals( Object other )
-	{
-		return this == other;
-	}
+	// @Override
+	// public boolean equals( Object other )
+	// {
+	// 	return this == other;
+	// }
+
 
 	@Override
 	public int hashCode()
@@ -271,6 +258,20 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		hash = 31 * hash + this.cardinality.hashCode();
 		return hash;
 	}
+	
+	@Override
+	public boolean equals( Object obj )
+	{
+		if ( getClass() != obj.getClass() ) return false;
+		TypeDefinition other = (TypeDefinition) obj;
+		if ( cardinality == null ) {
+			if ( other.cardinality != null ) return false;
+		} else if ( !cardinality.equals( other.cardinality ) ) return false;
+		if ( id == null ) {
+			if ( other.id != null ) return false;
+		} else if ( !id.equals( other.id ) ) return false;
+		return true;
+	}
 
 	/* public abstract TypeDefinition getSubType( String id );
 	public abstract Set< Map.Entry< String, TypeDefinition > > subTypes();
@@ -279,4 +280,5 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	public abstract NativeType nativeType();
 	public abstract boolean hasSubType( String id );
 	*/
+	
 }

@@ -115,4 +115,14 @@ public class TypeDefinitionLink extends TypeDefinition
 		visitor.visit( this );
 	}
 
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		// result = prime * result + ((linkedType == null) ? 0 : linkedType.hashCode());
+		result = prime * result + ((linkedTypeName == null) ? 0 : linkedTypeName.hashCode());
+		return result;
+	}
+
 }

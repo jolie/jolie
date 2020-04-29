@@ -1,5 +1,6 @@
 package jolie.util;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -262,11 +263,12 @@ public class CheckUtility
         }
     }
 
-    public static void checkSemantic( Program p, boolean checkForMain ) throws SemanticException
+    public static void checkSemantic( Program program, Map<URI, SymbolTable> symbolTables , boolean checkForMain )
+            throws SemanticException
     {
         SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
         conf.setCheckForMain( checkForMain );
-        SemanticVerifier semanticVerifier = new SemanticVerifier( p, conf );
+        SemanticVerifier semanticVerifier = new SemanticVerifier( program, symbolTables, conf );
         semanticVerifier.validate();
     }
 }
