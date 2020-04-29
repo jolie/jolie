@@ -29,5 +29,15 @@ define doTest
 	if ( #a != #b ) {
 		throw( TestFailed, "vector deep copy cardinality does not match original" )
 	}
+
+
+	for( i = 0, i < 10, i++ ) {
+		z.u[ i ] = i
+	}
+	w.u << z.u
+	if ( #w.u != #z.u ) {
+		throw( TestFailed, "vector deep copy cardinality of subnodes does not match original" )
+	}
+
 }
 
