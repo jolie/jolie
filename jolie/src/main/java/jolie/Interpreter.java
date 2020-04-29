@@ -1253,6 +1253,7 @@ public class Interpreter
 	{ 
 		try {
 			Program program;
+			Map<URI, SymbolTable> symbolTables = null;
 			if ( cmdParser.isProgramCompiled() ) {
 				try ( final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() ) ) {
 					final Object o = istream.readObject();
@@ -1271,22 +1272,24 @@ public class Interpreter
 					final ModuleParser parser =
 							new ModuleParser( cmdParser.charset(), includePaths, classLoader );
 					parser.putConstants( cmdParser.definedConstants() );
-					ModuleRecord mainRecord = null;
-					mainRecord = parser.parse( new Scanner( cmdParser.programStream(),
+					ModuleRecord mainRecord = parser.parse( new Scanner( cmdParser.programStream(),
 							cmdParser.programFilepath().toURI(), cmdParser.charset() ) );
 
 					ModuleCrawler crawler = new ModuleCrawler( includePaths );
-					Map< URI, ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+					Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
 
 					GlobalSymbolReferenceResolver symbolResolver =
 							new GlobalSymbolReferenceResolver( crawlResult );
 					symbolResolver.resolveExternalSymbols();
 
 					symbolResolver.resolveLinkedType();
+					symbolTables = symbolResolver.symbolTables();
 					program = mainRecord.program();
 				}
 			}
-			
+			if (symbolTables == null){
+				symbolTables = new HashMap<>();
+			}
 			cmdParser.close();
 
 			check = cmdParser.check();
@@ -1296,9 +1299,9 @@ public class Interpreter
 			if ( check ) {
 				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
 				conf.setCheckForMain( false );
-				semanticVerifier = new SemanticVerifier( program, conf );
+				semanticVerifier = new SemanticVerifier( program, symbolTables, conf );
 			} else {
-				semanticVerifier = new SemanticVerifier( program );
+				semanticVerifier = new SemanticVerifier( program, symbolTables );
 			}
 
 			try {
