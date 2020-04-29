@@ -784,7 +784,8 @@ public class GlobalSymbolReferenceResolver
                 if ( si instanceof SymbolWildCard ) {
                     ModuleRecord wildcardImportedRecord =
                             this.moduleMap.get( localSymbol.moduleSource().get().source() );
-                    md.addWildcardImportedRecord( wildcardImportedRecord );
+                    md.addWildcardImportedRecord( (SymbolWildCard) si,
+                            wildcardImportedRecord.symbols() );
                 } else {
                     SymbolInfo targetSymbol = symbolLookup( localSymbol );
                     si.setPointer( targetSymbol.node() );

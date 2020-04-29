@@ -58,7 +58,23 @@ public class SymbolTable
     }
 
     /**
-     * add a local Symbol with it's ASTNode to the table
+     * resolve the wildcard symbol by replace with array of symbol rely in it's symbolTable
+     * 
+     * @throws ModuleException when adding name duplicate name to the symbol
+     */
+    public void replaceWildCardSymbol( SymbolWildCard wildCardSymbol, SymbolInfo ... symbolsFromWildcard ) throws ModuleException
+    {
+        for (SymbolInfo symbolFromWildcard: symbolsFromWildcard){
+            if ( isDuplicateSymbol( symbolFromWildcard.name() ) ) {
+                throw new ModuleException( "detected redeclaration of symbol " + symbolFromWildcard.name() );
+            }
+            this.symbols.put( symbolFromWildcard.name(), symbolFromWildcard );
+        }
+        this.symbols.remove(wildCardSymbol.moduleSource().get(), wildCardSymbol);
+    }
+
+    /**
+     * create and add a local Symbol with it's ASTNode to the table
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */
@@ -71,7 +87,7 @@ public class SymbolTable
     }
 
     /**
-     * add an external Symbol with it's module target to the table
+     * create and add an external Symbol with it's module target to the table
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */
@@ -84,7 +100,7 @@ public class SymbolTable
     }
 
     /**
-     * add an external Symbol
+     * create and add an external Symbol
      * 
      * @param name                Symbol name
      * @param moduleTargetStrings an array of String defined at import statement

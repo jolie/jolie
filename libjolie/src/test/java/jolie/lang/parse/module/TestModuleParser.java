@@ -101,9 +101,173 @@ public class TestModuleParser
     }
 
     @Test
+    void testImportWildCard() throws URISyntaxException
+    {
+        String[] includePaths = new String[0];
+        URI target = Paths.get( baseDir.toURI() ).resolve( "test_wildcard.ol" ).toUri();
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
+                this.getClass().getClassLoader() );
+        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+
+        Map.Entry< URI, Set< String > > expectedSymbolsRoot = TestCasesCreator.createURISymbolsMap(
+                target, "date", "number", "foo", "bar", "baz", "dateFoo", "fooIface", "TwiceAPI" );
+        Map.Entry< URI, Set< String > > expectedSymbolsExt =
+                TestCasesCreator.createURISymbolsMap(
+                        Paths.get( baseDir.toURI() ).resolve( "packages" ).resolve( "type.ol" )
+                                .toFile().toURI(),
+                        "date", "number", "foo", "bar", "baz", "dateFoo" );
+
+        Map< URI, Set< String > > expectedSourceSymbols =
+                Map.ofEntries( expectedSymbolsRoot, expectedSymbolsExt );
+
+        Map.Entry< String, Set< String > > ifaceEntry =
+                TestCasesCreator.createInterfaceStub( "TwiceAPI", "twice" );
+
+        PortStub opPort = new PortStub( "OP", Map.ofEntries( ifaceEntry ), "twice" );
+
+        Map.Entry< String, Set< String > > ifaceEntry2 =
+                TestCasesCreator.createInterfaceStub( "fooIface", "fooOp" );
+
+        PortStub opPort2 = new PortStub( "OP2", Map.ofEntries( ifaceEntry2 ), "fooOp" );
+
+        Map< String, PortStub > expectedOutputPorts =
+                TestCasesCreator.createExpectedPortMap( opPort, opPort2 );
+
+        assertDoesNotThrow( () -> {
+
+            // parse a program
+            ModuleRecord mainRecord = parser.parse( target, includePaths );
+
+            Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+            GlobalSymbolReferenceResolver symbolResolver =
+                    new GlobalSymbolReferenceResolver( crawlResult );
+            symbolResolver.resolveExternalSymbols();
+
+            // check symbols
+            Set< URI > visitedURI = new HashSet<>();
+            for (ModuleRecord mr : crawlResult) {
+                if ( expectedSourceSymbols.containsKey( mr.source() ) ) {
+                    Set< String > expectedSymbols = expectedSourceSymbols.get( mr.source() );
+                    CheckUtility.checkSymbols( mr.symbolTable(), expectedSymbols );
+                    visitedURI.add( mr.source() );
+                }
+            }
+
+            if ( !visitedURI.removeAll( expectedSourceSymbols.keySet() ) ) {
+                throw new Exception( "source " + Arrays.toString( visitedURI.toArray() )
+                        + " not found in crawl result" );
+            }
+
+            symbolResolver.resolveLinkedType();
+            // check types
+            CheckUtility.checkOutputPorts( mainRecord.program(), expectedOutputPorts );
+            // check semantic, all linked type should be set
+            CheckUtility.checkSemantic( mainRecord.program(), false );
+
+        } );
+    }
+
+
+    @Test
+    void testImportCyclicDependency() throws URISyntaxException
+    {
+        String[] includePaths = new String[0];
+        URI target = Paths.get( baseDir.toURI() ).resolve( "cyclic" ).resolve( "A.ol" ).toUri();
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
+                this.getClass().getClassLoader() );
+        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+
+        Map.Entry< URI, Set< String > > expectedSymbolsRoot =
+                TestCasesCreator.createURISymbolsMap( target, "foo", "bar" );
+        Map.Entry< URI, Set< String > > expectedSymbolsExt =
+                TestCasesCreator.createURISymbolsMap( target.resolve( "B.ol" ), "foo", "bar" );
+
+        Map< URI, Set< String > > expectedSourceSymbols =
+                Map.ofEntries( expectedSymbolsRoot, expectedSymbolsExt );
+
+        Set< String > expectedType = new HashSet<>( Arrays.asList( "foo" ) );
+
+        assertDoesNotThrow( () -> {
+
+            // parse a program
+            ModuleRecord mainRecord = parser.parse( target, includePaths );
+
+            Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+            GlobalSymbolReferenceResolver symbolResolver =
+                    new GlobalSymbolReferenceResolver( crawlResult );
+            symbolResolver.resolveExternalSymbols();
+
+            // check symbols
+            Set< URI > visitedURI = new HashSet<>();
+            for (ModuleRecord mr : crawlResult) {
+                if ( expectedSourceSymbols.containsKey( mr.source() ) ) {
+                    Set< String > expectedSymbols = expectedSourceSymbols.get( mr.source() );
+                    CheckUtility.checkSymbols( mr.symbolTable(), expectedSymbols );
+                    visitedURI.add( mr.source() );
+                } else {
+                    throw new Exception( "unexpected source " + mr.source().toString() );
+                }
+            }
+
+            if ( !visitedURI.removeAll( expectedSourceSymbols.keySet() ) ) {
+                throw new Exception( "source " + Arrays.toString( visitedURI.toArray() )
+                        + " not found in crawl result" );
+            }
+
+            symbolResolver.resolveLinkedType();
+            // check types
+            CheckUtility.checkTypes( mainRecord.program(), expectedType );
+            // check semantic, all linked type should be set
+            CheckUtility.checkSemantic( mainRecord.program(), false );
+
+        } );
+    }
+
+
+    @Test
+    void testImportJap() throws URISyntaxException
+    {
+        String[] includePaths = new String[0];
+        URI target = Paths.get( baseDir.toURI() ).resolve( "test_jap.ol" ).toUri();
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
+                this.getClass().getClassLoader() );
+        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+
+        Map.Entry< String, Set< String > > ifaceEntry =
+                TestCasesCreator.createInterfaceStub( "TwiceAPI", "twice" );
+
+        PortStub opPort = new PortStub( "OP", Map.ofEntries( ifaceEntry ), "twice" );
+
+        Map< String, PortStub > expectedOutputPorts =
+                TestCasesCreator.createExpectedPortMap( opPort );
+
+        assertDoesNotThrow( () -> {
+
+            // parse a program
+            ModuleRecord mainRecord = parser.parse( target, includePaths );
+
+            Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+            GlobalSymbolReferenceResolver symbolResolver =
+                    new GlobalSymbolReferenceResolver( crawlResult );
+            symbolResolver.resolveExternalSymbols();
+
+            symbolResolver.resolveLinkedType();
+
+            // check interface in outputPort
+            CheckUtility.checkOutputPorts( mainRecord.program(), expectedOutputPorts );
+
+            // check semantic, all linked type should be set
+            CheckUtility.checkSemantic( mainRecord.program(), false );
+
+        } );
+    }
+
+
+    @Test
     void testImportInterface() throws URISyntaxException
     {
         String[] includePaths = new String[0];
+        URI target = Paths.get( baseDir.toURI() ).resolve( "test_iface.ol" ).toUri();
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 this.getClass().getClassLoader() );
         ModuleCrawler crawler = new ModuleCrawler( includePaths );
@@ -120,7 +284,6 @@ public class TestModuleParser
                 TestCasesCreator.createExpectedPortMap( opPort );
 
         assertDoesNotThrow( () -> {
-            URI target = Paths.get( baseDir.toURI() ).resolve( "test_iface.ol" ).toUri();
 
             // parse a program
             ModuleRecord mainRecord = parser.parse( target, includePaths );
@@ -144,7 +307,6 @@ public class TestModuleParser
     void testImportType() throws IOException, ParserException, ModuleException, URISyntaxException
     {
         String[] includePaths = new String[0];
-
         String code = "from type import date, number, foo, bar, baz, dateFoo";
         InputStream is = new ByteArrayInputStream( code.getBytes() );
 

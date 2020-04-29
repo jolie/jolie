@@ -33,14 +33,12 @@ public class ModuleRecord
     private final URI source;
     private final Program program;
     private SymbolTable symbolTable;
-    private Map< String, SymbolInfo > wildcardImports;
 
     public ModuleRecord( URI source, Program program, SymbolTable symbolTable )
     {
         this.source = source;
         this.program = program;
         this.symbolTable = symbolTable;
-        this.wildcardImports = new HashMap<>();
     }
 
     /**
@@ -68,15 +66,9 @@ public class ModuleRecord
         this.symbolTable = symbolTable;
     }
 
-    public void addWildcardImportedRecord( ModuleRecord importedRecord ) throws ModuleException
+    public void addWildcardImportedRecord( SymbolWildCard symbol, SymbolInfo ... symbolsFromWildcard ) throws ModuleException
     {
-        for (SymbolInfo symbolInfo : importedRecord.symbols()) {
-            if ( this.wildcardImports.containsKey( symbolInfo.name() ) ) {
-                new ModuleException(
-                        "Module " + symbolInfo.name() + " SymbolTable is already defined" );
-            }
-            this.wildcardImports.put( symbolInfo.name(), symbolInfo );
-        }
+        this.symbolTable.replaceWildCardSymbol(symbol, symbolsFromWildcard);
     }
 
     /**
