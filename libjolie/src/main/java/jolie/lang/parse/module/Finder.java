@@ -177,36 +177,28 @@ public abstract class Finder
      * @return Source object corresponding to the module.
      * @throws ModuleException when a module is not found
      */
-    protected Source locateModule( Path basePath ) throws ModuleException
+    protected Source locateModule( Path basePath ) throws FileNotFoundException
     {
         Optional< Source > source = Optional.empty();
-        try {
-            final Path packagePath = this.locatePackage( basePath );
-            source = Helpers.firstNonNull( () -> {
-                try {
-                    File olTargetFile = this.olLookup( packagePath, this.moduleName() );
-                    return new FileSource( olTargetFile );
-                } catch (FileNotFoundException e) {
-                    return null;
-                }
-            }, () -> {
-                try {
-                    File japTargetFile = this.japLookup( packagePath, this.moduleName() );
-                    return new JapSource( japTargetFile );
-                } catch (IOException e) {
-                    return null;
-                }
-            } );
-        } catch (FileNotFoundException e) {
-            throw new ModuleException(
-                    "package " + Arrays.toString( this.packagesToken() )
-                            + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ),
-                    e );
-        }
+        final Path packagePath = this.locatePackage( basePath );
+        source = Helpers.firstNonNull( () -> {
+            try {
+                File olTargetFile = this.olLookup( packagePath, this.moduleName() );
+                return new FileSource( olTargetFile );
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+        }, () -> {
+            try {
+                File japTargetFile = this.japLookup( packagePath, this.moduleName() );
+                return new JapSource( japTargetFile );
+            } catch (IOException e) {
+                return null;
+            }
+        } );
 
         if ( !source.isPresent() ) {
-            throw new ModuleException( "module " + Arrays.toString( target )
-                    + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ) );
+            throw new FileNotFoundException( );
         }
         return source.get();
     }
@@ -262,8 +254,13 @@ class RelativePathFinder extends Finder
     public Source find() throws ModuleException
     {
         Path basePath = resolveDotPrefix();
-        Source moduleFile = super.locateModule( basePath );
-        return moduleFile;
+        try {
+            Source moduleFile = super.locateModule( basePath );
+            return moduleFile;
+        } catch (FileNotFoundException e) {
+            throw new ModuleException( "module " + Arrays.toString( target )
+                    + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ) );
+        }
     }
 
     @Override
@@ -305,17 +302,16 @@ class AbsolutePathFinder extends Finder
             }
             Source module = super.locateModule( basePath );
             return module;
-        } catch (ModuleException e) {
+        } catch (FileNotFoundException e) {
         }
 
         // try lookup in includePaths
-        try {
-            for (String baseDir : this.includePathStrings) {
-                basePath = Paths.get( baseDir, Constants.PACKAGES_DIR );
+        for (String baseDir : this.includePathStrings) {
+            basePath = Paths.get( baseDir, Constants.PACKAGES_DIR );
+            try {
                 Source module = super.locateModule( basePath );
                 return module;
-            }
-        } catch (ModuleException e) {
+            } catch (FileNotFoundException e) { }
         }
 
         // throw if module not found
