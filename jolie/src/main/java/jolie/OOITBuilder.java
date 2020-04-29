@@ -357,23 +357,20 @@ public class OOITBuilder implements OLVisitor
 
 	private void resolveTypeLinks()
 	{
-		Type type;
-		for( Pair< Type.TypeLink, TypeDefinition > pair : typeLinks) {
-			if ( pair.key().linkedTypeName().equals( pair.value().id() ) ) {
-				insideType = true;
-				type = buildType( ((TypeDefinitionLink) pair.value()).linkedType() );
-				insideType = false;
-			} else if ( types.containsKey( pair.key().linkedTypeName() ) ) {
-				type = types.get( pair.key().linkedTypeName() );
-			} else {
-				insideType = true;
-				type = buildType( ((TypeDefinitionLink) pair.value()).linkedType() );
-				insideType = false;
-			}
-			pair.key().setLinkedType( type );
-			if ( type == null ) {
+		// Type type;
+		Type linkedType;
+		for ( int i = 0 ; i < typeLinks.size(); i++){
+			Pair< Type.TypeLink, TypeDefinition > pair  = typeLinks.get(i);
+
+			linkedType = getOrBuildType(pair.value());
+
+			if ( linkedType == null ) {
 				error( pair.value().context(),
 						"type link to " + pair.key().linkedTypeName() + " cannot be resolved" );
+			}else{
+				pair.key().setLinkedType( linkedType );
+				typeLinks.remove(i);
+				i--;
 			}
 		}
 	}
@@ -677,19 +674,23 @@ public class OOITBuilder implements OLVisitor
 
 		insideType = backupInsideType;
 
-		if ( insideType == false && insideOperationDeclaration == false ) {
+		if ( insideType == false && insideOperationDeclarationOrInstanceOf == false ) {
 			types.put( n.id(), currType );
+			typeMap.put( n, currType );
 		}
 	}
+
+	private Map< TypeDefinition, Type > typeMap = new HashMap<>();
 
 	public void visit( TypeDefinitionLink n )
 	{
 		Type.TypeLink link = Type.createLink( n.linkedTypeName(), n.cardinality() );
 		currType = link;
-		typeLinks.add( new Pair<>( link, n ) );
+		typeLinks.add( new Pair<>( link, n.linkedType() ) );
 
-		if ( insideType == false && insideOperationDeclaration == false ) {
+		if ( insideType == false && insideOperationDeclarationOrInstanceOf == false ) {
 			types.put( n.id(), currType );
+			typeMap.put( n, currType );
 		}
 	}
 
@@ -699,19 +700,15 @@ public class OOITBuilder implements OLVisitor
 			node.accept( this );
 	}
 
-	private boolean insideOperationDeclaration = false;
+	private boolean insideOperationDeclarationOrInstanceOf = false;
 	
 	private OneWayTypeDescription buildOneWayTypeDescription( OneWayOperationDeclaration decl )
 	{
 		if ( decl == null ) {
 			return null;
 		}
-		
-		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
-			return new OneWayTypeDescription( types.get( decl.requestType().id() ) );
-		} else {
-			return new OneWayTypeDescription( buildType( decl.requestType() ) );
-		}
+
+		return new OneWayTypeDescription( getOrBuildType( decl.requestType() ) );
 	}
 	
 	private RequestResponseTypeDescription buildRequestResponseTypeDescription( RequestResponseOperationDeclaration decl )
@@ -722,32 +719,19 @@ public class OOITBuilder implements OLVisitor
 		
 		RequestResponseTypeDescription typeDescription;
 		Map< String, Type > faults = new HashMap< String, Type >();
-		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
-			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
-				faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
-			}
-			typeDescription = new RequestResponseTypeDescription(
-				types.get( decl.requestType().id() ),
-				types.get( decl.responseType().id() ),
-				faults
-			);
-		} else {
-			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
-				faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
-			}
-			typeDescription = new RequestResponseTypeDescription(
-				buildType( decl.requestType() ),
-				buildType( decl.responseType() ),
-				faults
-			);
+		for (Entry< String, TypeDefinition > entry : decl.faults().entrySet()) {
+			faults.put( entry.getKey(), getOrBuildType( entry.getValue() ) );
 		}
+		typeDescription = new RequestResponseTypeDescription( 
+			getOrBuildType( decl.requestType() ),
+			getOrBuildType( decl.responseType() ), 
+			faults );
 		return typeDescription;
 	}
 
 	public void visit( OneWayOperationDeclaration decl )
 	{
-		boolean backup = insideOperationDeclaration;
-		insideOperationDeclaration = true;
+		insideOperationDeclarationOrInstanceOf = true;
 		OneWayTypeDescription typeDescription;
 		if ( currentOutputPort == null ) { // We are in an input port
 			// Register if not already present
@@ -755,7 +739,13 @@ public class OOITBuilder implements OLVisitor
 			try {
 				interpreter.getOneWayOperation( decl.id() );
 			} catch( InvalidIdException e ) {
-				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
+				interpreter.register( 
+					decl.id(), 
+					new OneWayOperation( 
+						decl.id(), 
+						getOrBuildType( decl.requestType() )
+					)
+				);
 			}
 		} else {
 			typeDescription = buildOneWayTypeDescription( decl );
@@ -766,11 +756,13 @@ public class OOITBuilder implements OLVisitor
 			currentPortInterface.oneWayOperations().put( decl.id(), typeDescription );
 		}
 
-		insideOperationDeclaration = backup;
+		insideOperationDeclarationOrInstanceOf = false;
 	}
 
 	public void visit( RequestResponseOperationDeclaration decl )
 	{
+		boolean backup = insideOperationDeclarationOrInstanceOf;
+		insideOperationDeclarationOrInstanceOf = true;
 		RequestResponseTypeDescription typeDescription;
 		if ( currentOutputPort == null ) {
 			// Register if not already present
@@ -792,6 +784,7 @@ public class OOITBuilder implements OLVisitor
 		if ( currentPortInterface != null ) {
 			currentPortInterface.requestResponseOperations().put( decl.id(), typeDescription );
 		}
+		insideOperationDeclarationOrInstanceOf = backup;
 	}
 	
 	public void visit( DefinitionNode n )
@@ -1427,12 +1420,15 @@ public class OOITBuilder implements OLVisitor
 		
 		currExpression = new InlineTreeExpression( rootExpression, operations );
 	}
-	
+
 	public void visit( InstanceOfExpressionNode n )
 	{
-		currExpression = new InstanceOfExpression( buildExpression( n.expression() ), buildType( n.type() ) );
+		insideOperationDeclarationOrInstanceOf = true;
+		currExpression = new InstanceOfExpression( buildExpression( n.expression() ),
+				getOrBuildType( n.type() ) );
+		insideOperationDeclarationOrInstanceOf = false;
 	}
-	
+
 	public void visit( TypeCastExpressionNode n )
 	{
 		n.expression().accept( this );
@@ -1531,6 +1527,14 @@ public class OOITBuilder implements OLVisitor
 		}
 		n.accept( this );
 		return currType;
+	}
+
+	private Type getOrBuildType( TypeDefinition typeDefinition )
+	{
+		if ( typeMap.containsKey( typeDefinition ) ) {
+			return typeMap.get( typeDefinition );
+		}
+		return buildType( typeDefinition );
 	}
 
 	public void visit( SpawnStatement n )
@@ -1744,12 +1748,14 @@ public class OOITBuilder implements OLVisitor
 	{
 		final boolean wasInsideType = insideType;
 		insideType = true;
-		
-		currType = Type.createChoice( n.cardinality(), buildType( n.left() ), buildType( n.right() ) );
-		
-		insideType = wasInsideType;		
-		if ( insideType == false && insideOperationDeclaration == false ) {
+
+		currType =
+				Type.createChoice( n.cardinality(), buildType( n.left() ), buildType( n.right() ) );
+
+		insideType = wasInsideType;
+		if ( insideType == false && insideOperationDeclarationOrInstanceOf == false ) {
 			types.put( n.id(), currType );
+			typeMap.put( n, currType );
 		}
 	}
 
