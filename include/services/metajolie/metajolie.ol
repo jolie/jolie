@@ -30,7 +30,7 @@ outputPort MySelf {
     Interfaces: MetaJolieServiceInterface
 }
 
-type CheckOperationNativeTypesRequest: void {
+type CheckOperationTypesRequest: void {
     t1: string {
         types*: TypeDefinition
     }
@@ -53,11 +53,15 @@ type TypeLessThanRequest: void {
 interface MetaJolieUtilsInterface {
     RequestResponse: 
         typeLessThan( TypeLessThanRequest )( bool ) throws TypeMissing( string ),
-        checkOperationNativeTypes( CheckOperationNativeTypesRequest )( bool ) throws TypeMissing( string )       
+        checkOperationTypes( CheckOperationTypesRequest )( bool ) throws TypeMissing( string )       
 }
 
 service Utils {
     Interfaces: MetaJolieUtilsInterface
+
+    init {
+        install( TypeMissing => nullProcess )
+    }
 
     main {
         [ typeLessThan( request )( response ) {
@@ -72,6 +76,7 @@ service Utils {
             if ( !( t2 instanceof TypeUndefined ) ) {
                 if ( t1 instanceof TypeInLine ) {
                     if ( t2 instanceof TypeLink ) {
+                        undef( rq )
                         rq.t1 -> request.t1
                         // replace link with type undefined in order to avoid infinite loop of recursive types
                         if ( !is_defined( types2.( t2.link_name ) ) ) {
@@ -81,19 +86,21 @@ service Utils {
                             if ( ty.name == t2.link_name ) {
                                 foreach ( tf : ty ) { undef( ty.( tf ) ) }
                                 ty.type.undefined = true
-                                ty.name = t1.link_name
+                                ty.name = t2.link_name
                             }
                         }
+                        rq.t2.type -> types2.( t2.link_name ).type
                         rq.t2.types -> request.t2.types
                         typeLessThan@Utils( rq )( response )
                     } else if ( t2 instanceof TypeChoice ) {
+                        undef( rq )
                         rq.t1 -> request.t1
                         rq.t2.types -> request.t2.types
                         rq.t2.type -> t2.choice.left_type
                         typeLessThan@Utils( rq  )( response_left )
                         rq.t2.type -> t2.choice.right_type
                         typeLessThan@Utils( rq  )( response_right )
-                        reponse = response_left && response_right
+                        response = response_left || response_right
                     } else if ( t2 instanceof TypeInLine ) {
                         // check the root type
                         if ( !is_defined( t2.root_type.any_type ) ) {
@@ -124,6 +131,7 @@ service Utils {
                                 }
                                 // if cardianity is ok check the types
                                 if ( response ) {
+                                    undef( rq )
                                     rq.t1.type -> sb.type
                                     rq.t1.types -> request.t1.types
                                     rq.t2.type -> subtypes2.( sb.name ).type
@@ -139,10 +147,11 @@ service Utils {
                             throw( TypeMissing, "Type " + t1.link_name + " is missing" )
                     }
                     if ( t2 instanceof TypeLink ) {
+                        undef( rq )
                         if ( !is_defined( types2.( t2.link_name ) ) ) {
                             throw( TypeMissing, "Type " + t2.link_name + " is missing" )
                         }
-                        rq.t2.type << types2.( t2.link_name ).type
+
                         // replace link with type undefined in order to avoid infinite loop of recursive types
                         for ( ty in request.t2.types ) {
                             if ( ty.name == t2.link_name ) {
@@ -151,11 +160,12 @@ service Utils {
                                 ty.name = t2.link_name
                             }
                         }
+                        rq.t2.type -> types2.( t2.link_name ).type
                         rq.t2.types -> request.t2.types
                     } else {
                         rq.t2 -> request.t2
                     }
-                    rq.t1.type << types1.( t1.link_name ).type
+                    
                     // replace link with type undefined in order to avoid infinite loop of recursive types
                     for ( ty in request.t1.types ) {
                         if ( ty.name == t1.link_name ) {
@@ -164,9 +174,11 @@ service Utils {
                             ty.name = t1.link_name
                         }
                     }
+                    rq.t1.type -> types1.( t1.link_name ).type
                     rq.t1.types -> request.t1.types
                     typeLessThan@Utils( rq )( response )
                 } else if ( t1 instanceof TypeChoice ) {
+                    undef( rq )
                     rq.t2 -> request.t2
                     rq.t1.types -> request.t1.types
                     rq.t1.type -> t1.choice.left_type
@@ -178,9 +190,10 @@ service Utils {
                     response = false
                 }
             }
+            
         }]
 
-        [ checkOperationNativeTypes( request )( response ) {
+        [ checkOperationTypes( request )( response ) {
             t1 -> request.t1; t2 -> request.t2
 
             checkNativeType@MetaJolieJavaService( { .type_name = t1 })( t1_is_native_type )
@@ -200,7 +213,6 @@ service Utils {
             rq.t2.types -> request.t2.types
             
             typeLessThan@Utils( rq )( response )
-            
         }]
     }
 }
@@ -329,149 +341,117 @@ main {
                 if ( !is_defined( operations2.( o1.operation_name ) ) ) {
                     response.result = false
                     errors[ #errors ] = "Operation " + o1.operation_name + " is missing in " + i2.name
-                }
-                // checking request type
-                scope( tinput_check ) {
-                    install( TypeMissing => 
-                            response.result = false 
-                            errors[#errors] = tinput_check.TypeMissing
-                    )
-            
-                    rq_ck.t1 = o1.input
-                    rq_ck.t1.types -> i1.types
-                    rq_ck.t2 = operations2.( o1.operation_name ).input
-                    rq_ck.t2.types -> i2.types
-                    checkOperationTypes@Utils( rq )( nt_ck )
-                    if ( !nt_ck ) {
-                        reponse.result = false 
-                        errors[#errors] = "Type " + o1.input + " is not less than " + operations2.( o1.operation_name ).input 
-                    }
-                    
-                /*
-
-                    install( TypeMissing => 
-                        response.result = false
-                        errors[ #errors ] = tinput_check.TypeMissing 
-                    )
-                    with( rq ) {
-                        .t1 = o1.input;
-                        .t1.types -> i1.types;
-                        .t2 = operations2.( o1.operation_name ).input;
-                        .t2.types -> i2.types
-                    }
-                    typeDefinitionLessThan@MySelf( rq )( type_check )
-                    if ( !type_check ) {
-                        response.result = false
-                        errors[ #errors ] = "Type " + o1.input + " is not less than " + operations2.( o1.operation_name ).input 
-                    }*/
-                }
-
-                // checking response type
-                if ( is_defined( o1.output ) ) {
-                    if ( is_defined( operations2.( o1.operation_name ).output ) ) {
-                        scope( toutput_check ) {
-                            install( TypeMissing => 
+                } else {
+                    // checking request type
+                    scope( tinput_check ) {
+                        install( TypeMissing => 
                                 response.result = false 
-                                errors[#errors] = toutput_check.TypeMissing
-                            )
-                    
-                            rq_ck.t1 = operations2.( o1.operation_name ).output
-                            rq_ck.t1.types -> i1.types
-                            rq_ck.t2 = o1.output
-                            rq_ck.t2.types -> i2.types
-                            checkOperationTypes@Utils( rq )( nt_ck )
-                            if ( !nt_ck ) {
-                                reponse.result = false 
-                                errors[#errors] = "Type " + operations2.( o1.operation_name ).output + " is not less than " + o1.output
-                            }
+                                errors[#errors] = tinput_check.TypeMissing
+                        )
+                
+                        rq_ck.t1 = o1.input
+                        rq_ck.t1.types -> i1.types
+                        rq_ck.t2 = operations2.( o1.operation_name ).input
+                        rq_ck.t2.types -> i2.types
+                        checkOperationTypes@Utils( rq_ck )( nt_ck )
+                        if ( !nt_ck ) {
+                            response.result = false 
+                            errors[#errors] = "Type " + o1.input + " is not less than " + operations2.( o1.operation_name ).input 
                         }
-                        /*scope( toutput_check ) {
-                            install( TypeMissing => 
-                                response.result = false
-                                errors[ #errors ] = toutput_check.TypeMissing 
-                            )
-                            with( rq ) {
-                                .t1 = operations2.( o1.operation_name ).output;
-                                .t1.types -> i2.types;
-                                .t2 = o1.output;
-                                .t2.types -> i1.types
-                            }
-                            typeDefinitionLessThan@MySelf( rq )( type_check )
-                            if ( !type_check ) {
-                                response.result = false
-                                errors[ #errors ] = "Type " + o1.input + " is not less than " + operations2.( o1.operation_name ).input 
-                            }
-                        }*/
-                    } else {
-                        response.result = false
-                        errors[ #errors ] = "Operation " + o1.operation_name + " is RequestResponse in " + i1.name + " but not in " + i2.name
                     }
-                } else if ( is_defined( operations2.( o1.operation_name ).output ) ) {
-                    response.result = false
-                    errors[ #errors ] = "Operation " + operations2.( o1.operation_name ).output + " is RequestResponse in " + i2.name + " but not in " + i1.name
-                }
 
-                // checking faults
-                // creating hashmap for faults of operation1
-                undef( o1faults )
-                for( f1 in o1.faults ) { o1faults.( f1.name ) << f1 }
-                for( f2 in operations2.( o1.operation_name ).faults ) {
-                    if ( !is_defined( o1faults.( f2.name ) ) ) {
-                        response.result = false
-                        errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " is not present in the " + i1.name                
-                    } else {
-                        // checking types
-                        if ( !( o1faults.( f2.name ).type instanceof TypeUndefined ) ) {
+                    // checking response type
+                    if ( is_defined( o1.output ) ) {
+                        if ( is_defined( operations2.( o1.operation_name ).output ) ) {
+                            scope( toutput_check ) {
+                                install( TypeMissing => 
+                                    response.result = false 
+                                    errors[#errors] = toutput_check.TypeMissing
+                                )
                         
-                            if ( o1faults.( f2.name ).type instanceof NativeType ) {
+                                rq_ck.t1 = operations2.( o1.operation_name ).output
+                                rq_ck.t1.types -> i2.types
+                                rq_ck.t2 = o1.output
+                                rq_ck.t2.types -> i1.types
+                                checkOperationTypes@Utils( rq_ck )( nt_ck )
+                                if ( !nt_ck ) {
+                                    response.result = false 
+                                    errors[#errors] = "Type " + operations2.( o1.operation_name ).output + " is not less than " + o1.output
+                                }
+                                
+                            }
+                        } else {
+                            response.result = false
+                            errors[ #errors ] = "Operation " + o1.operation_name + " is RequestResponse in " + i1.name + " but not in " + i2.name
+                        }
+                    } else if ( is_defined( operations2.( o1.operation_name ).output ) ) {
+                        response.result = false
+                        errors[ #errors ] = "Operation " + operations2.( o1.operation_name ).output + " is RequestResponse in " + i2.name + " but not in " + i1.name
+                    }
 
-                                // they are both native types
+                    // checking faults
+                    // creating hashmap for faults of operation1
+                    undef( o1faults )
+                    for( f1 in o1.faults ) { o1faults.( f1.name ) << f1 }
+                    for( f2 in operations2.( o1.operation_name ).faults ) {
+                        if ( !is_defined( o1faults.( f2.name ) ) ) {
+                            response.result = false
+                            errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " is not present in the " + i1.name                
+                        } else {
+                            // checking types
+                            if ( !( o1faults.( f2.name ).type instanceof TypeUndefined ) ) {
+                            
                                 if ( o1faults.( f2.name ).type instanceof NativeType ) {
-                                    if ( !is_defined( o1faults.( f2.name ).type.any_type ) ) {
-                                        foreach( e : f2.type ) {
-                                            if ( !is_defined( o1faults.( f2.name ).type.( e ) ) ) {
-                                                response.result = false
-                                                errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " has different type" 
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    // f1 is a TypeLink
-                                    if ( types1.(o1faults.( f2.name ).type.link_name ).type instanceof NativeType ) {
-                                        if ( !is_defined( types1.(o1faults.( f2.name ).type.link_name ).type.any_type ) ) {
+
+                                    // they are both native types
+                                    if ( o1faults.( f2.name ).type instanceof NativeType ) {
+                                        if ( !is_defined( o1faults.( f2.name ).type.any_type ) ) {
                                             foreach( e : f2.type ) {
-                                                if ( !is_defined( types1.(o1faults.( f2.name ).type.link_name ).type.( e ) ) ) {
+                                                if ( !is_defined( o1faults.( f2.name ).type.( e ) ) ) {
                                                     response.result = false
                                                     errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " has different type" 
                                                 }
                                             }
                                         }
                                     } else {
+                                        // f1 is a TypeLink
+                                        if ( types1.(o1faults.( f2.name ).type.link_name ).type instanceof NativeType ) {
+                                            if ( !is_defined( types1.(o1faults.( f2.name ).type.link_name ).type.any_type ) ) {
+                                                foreach( e : f2.type ) {
+                                                    if ( !is_defined( types1.(o1faults.( f2.name ).type.link_name ).type.( e ) ) ) {
+                                                        response.result = false
+                                                        errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " has different type" 
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            response.result = false
+                                            errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " has different type"
+                                        }
+                                    }
+                                } else {
+                                    install( TypeMissing => 
                                         response.result = false
-                                        errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " has different type"
+                                        errors[ #errors ] = toutput_check.TypeMissing 
+                                    )
+                                    with( rq ) {
+                                        .t1 = f2.name;
+                                        .t1.types -> i2.types;
+                                        .t2 = f1.name;
+                                        .t2.types -> i2.types
+                                    }
+                                    typeDefinitionLessThan@MySelf( rq )( type_check )
+                                    if ( !type_check ) {
+                                        response.result = false
+                                        errors[ #errors ] = "Type " + o1.input + " is not less than " + operations2.( o1.operation_name ).input 
                                     }
                                 }
-                            } else {
-                                install( TypeMissing => 
-                                    response.result = false
-                                    errors[ #errors ] = toutput_check.TypeMissing 
-                                )
-                                with( rq ) {
-                                    .t1 = f2.name;
-                                    .t1.types -> i2.types;
-                                    .t2 = f1.name;
-                                    .t2.types -> i2.types
-                                }
-                                typeDefinitionLessThan@MySelf( rq )( type_check )
-                                if ( !type_check ) {
-                                    response.result = false
-                                    errors[ #errors ] = "Type " + o1.input + " is not less than " + operations2.( o1.operation_name ).input 
-                                }
-                            }
-                        } 
+                            } 
+                        }
                     }
                 }
             }
+            response.errors -> errors
         }]
 }
 
