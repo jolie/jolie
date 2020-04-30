@@ -59,12 +59,13 @@ public class InlineTreeExpression implements Expression
 		public void run( Value inlineValue )
 		{
 			if ( expression instanceof VariablePath ) {
-				Object myObj = (((VariablePath) expression).getValueOrValueVector());
+				Object myObj = ((VariablePath) expression).getValueOrValueVector();
 				if ( myObj instanceof Value ) {
 					path.getValue(inlineValue).deepCopyWithLinks((Value) myObj);
-				}
-				if ( myObj instanceof ValueVector ) {
+				} else if ( myObj instanceof ValueVector ) {
 					path.getValueVector(inlineValue).deepCopyWithLinks((ValueVector) myObj);
+				} else {
+					throw new RuntimeException( "incomplete case analysis" );
 				}
 			} else {
 				path.getValue(inlineValue).deepCopyWithLinks(expression.evaluate());

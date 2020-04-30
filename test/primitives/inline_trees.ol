@@ -62,7 +62,7 @@ define doTest
 	for( i = 0, i < 10, i++ ) {
 		z.u[ i ] = i
 	}
-	w << { .u << z.u }
+	w << { u << z.u }
 
 	if ( #w.u != #z.u ) {
 		throw( TestFailed, "vector deep copy cardinality of subnodes does not match original" )
