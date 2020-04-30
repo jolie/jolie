@@ -24,6 +24,7 @@ package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 
@@ -57,7 +58,17 @@ public class InlineTreeExpression implements Expression
 		@Override
 		public void run( Value inlineValue )
 		{
-			path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
+			if ( expression instanceof VariablePath ) {
+				Object myObj = (((VariablePath) expression).getValueOrValueVector());
+				if ( myObj instanceof Value ) {
+					path.getValue(inlineValue).deepCopyWithLinks((Value) myObj);
+				}
+				if ( myObj instanceof ValueVector ) {
+					path.getValueVector(inlineValue).deepCopyWithLinks((ValueVector) myObj);
+				}
+			} else {
+				path.getValue(inlineValue).deepCopyWithLinks(expression.evaluate());
+			}
 		}
 	}
 	

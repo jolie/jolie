@@ -63,9 +63,13 @@ define doTest
 		z.u[ i ] = i
 	}
 	w << { .u << z.u }
-	valueToPrettyString@StringUtils( w )( s ); println@Console( "a)" + s )()
-	valueToPrettyString@StringUtils( z )( s ); println@Console( "b)" + s )()
+
 	if ( #w.u != #z.u ) {
 		throw( TestFailed, "vector deep copy cardinality of subnodes does not match original" )
+	}
+	for( i = 0, i < #w.u, i++ ) {
+		if ( w.u[ i ] != z.u[i ]) {
+			throw( TestFailed, "Element " + i + " of path w.u is different from the corresponding element of z.u" )
+		}
 	}	
 }
