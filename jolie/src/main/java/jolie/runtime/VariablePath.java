@@ -408,7 +408,7 @@ public class VariablePath implements Expression
 		}
 	}
 	
-	private Object getValueOrValueVector()
+	public Object getValueOrValueVector()
 	{	
 		Pair< Expression, Expression > pair;
 		ValueVector currVector;

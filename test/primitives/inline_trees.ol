@@ -21,6 +21,7 @@
 
 include "../AbstractTestUnit.iol"
 include "string_utils.iol"
+include "console.iol"
 
 define doTest
 {
@@ -57,4 +58,18 @@ define doTest
 	if ( s_b != s_inline ) {
 		throw( TestFailed, "Inline tree does not match composition of sub-trees" )
 	}
+
+	for( i = 0, i < 10, i++ ) {
+		z.u[ i ] = i
+	}
+	w << { u << z.u }
+
+	if ( #w.u != #z.u ) {
+		throw( TestFailed, "vector deep copy cardinality of subnodes does not match original" )
+	}
+	for( i = 0, i < #w.u, i++ ) {
+		if ( w.u[ i ] != z.u[i ]) {
+			throw( TestFailed, "Element " + i + " of path w.u is different from the corresponding element of z.u" )
+		}
+	}	
 }
