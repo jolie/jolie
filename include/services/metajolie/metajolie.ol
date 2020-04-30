@@ -440,7 +440,7 @@ main {
                                     if ( types1.(o1faults.( f2.name ).type.link_name ).type instanceof NativeType ) {
                                         if ( !is_defined( types1.(o1faults.( f2.name ).type.link_name ).type.any_type ) ) {
                                             foreach( e : f2.type ) {
-                                                if ( !is_defined( types1.(o1faults.( f2.name ).type.link_name ).type.( e ) ) {
+                                                if ( !is_defined( types1.(o1faults.( f2.name ).type.link_name ).type.( e ) ) ) {
                                                     response.result = false
                                                     errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " has different type" 
                                                 }
