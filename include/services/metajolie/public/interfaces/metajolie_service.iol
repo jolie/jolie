@@ -26,6 +26,15 @@ type CompareValuesRequest: bool | void {
     v2: undefined
 }
 
+type InterfaceDefinitionLessThanRequest: void {
+	i1: Interface 
+	i2: Interface
+}
+type InterfaceDefinitionLessThanResponse: void {
+	result: bool 
+	errors*: string
+}
+
 type TypeDefinitionLessThanRequest: void {
 	t1: string {
 		types*: TypeDefinition
@@ -54,6 +63,14 @@ RequestResponse:
 	/**!
 	it checks if a type is less than another type. A type is less than another if it is contained in it
 	*/
-	typeDefinitionLessThan( TypeDefinitionLessThanRequest )( bool ) throws TypeMissing( string )
+	typeDefinitionLessThan( TypeDefinitionLessThanRequest )( bool ) throws TypeMissing( string ),
+
+	/**!
+	it checks if an interface is less than another interface. An interface is less than another if it has at least all the 
+	operations declared by the second one, and all the used types are less than the target ones. 
+	*/
+	interfaceDefinitionLessThan( InterfaceDefinitionLessThanRequest )( InterfaceDefinitionLessThanResponse ) throws TypeMissing( string )
+
+	
 }
 

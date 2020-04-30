@@ -299,6 +299,14 @@ define doTest
        throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T2 against T9" )
    }
 
+   // checking interfaces
+   undef( rq )
+   rq.i1 -> meta_description.input.interfaces
+   rq.i2 -> meta_description.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for interfaceDefinitionLessThan between the same interface" )
+   }
 
 
 
