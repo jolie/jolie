@@ -19,6 +19,7 @@
 
 package jolie.lang.parse.module;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
@@ -43,10 +44,11 @@ public class ModuleCrawler
         this.includePaths = includePaths;
     }
 
-    private Source findModule( URI parentURI, String[] importTargetStrings ) throws ModuleException
+    private Source findModule( URI parentURI, String[] importTargetStrings ) throws FileNotFoundException
     {
         Finder finder =
                 Finder.getFinderForTarget( parentURI, this.includePaths, importTargetStrings );
+        
         Source targetFile = finder.find();
         return targetFile;
     }
@@ -54,8 +56,12 @@ public class ModuleCrawler
     private void crawlModule( ModuleRecord record ) throws ModuleException
     {
         for (SymbolInfoExternal externalSymbol : record.symbolTable().externalSymbols()) {
-            Source moduleSource =
-                    this.findModule( record.source(), externalSymbol.moduleTargets() );
+            Source moduleSource;
+            try{
+                moduleSource = this.findModule( record.source(), externalSymbol.moduleTargets() );
+            }catch (FileNotFoundException e){
+                throw new ModuleException(e);
+            }
             externalSymbol.setModuleSource( moduleSource );
             modulesToCrawl.add( moduleSource );
         }

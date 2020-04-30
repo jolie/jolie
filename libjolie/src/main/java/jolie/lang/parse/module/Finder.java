@@ -43,12 +43,15 @@ import jolie.util.Helpers;
 public abstract class Finder
 {
     protected final String[] target;
+    private final List< String > remainingToken;
     private final List< String > lookedPaths;
+    private boolean isJapPackage = false;
 
     protected Finder( String[] target )
     {
         this.target = target;
         this.lookedPaths = new ArrayList<>();
+        this.remainingToken = new ArrayList<>( Arrays.asList( target ) );
     }
 
     /**
@@ -71,9 +74,9 @@ public abstract class Finder
      * Find a module target, return a File object points to first found path.
      * 
      * @return Source object
-     * @throws ModuleException if there is finder cannot locate any file.
+     * @throws FileNotFoundException if there is finder cannot locate any file.
      */
-    public abstract Source find() throws ModuleException;
+    public abstract Source find() throws FileNotFoundException;
 
     /**
      * returns a Finder object corresponding to target either it is a relative import(starts with .)
@@ -118,7 +121,7 @@ public abstract class Finder
         if ( Files.exists( dirPath ) && Files.isDirectory( dirPath ) ) {
             return dirPath;
         }
-        throw new FileNotFoundException( dirPath.toString() );
+        throw new FileNotFoundException();
     }
 
     /**
@@ -135,7 +138,7 @@ public abstract class Finder
         if ( Files.exists( japPath ) ) {
             return japPath.toFile();
         }
-        throw new FileNotFoundException( japPath.toString() );
+        throw new FileNotFoundException();
     }
 
     /**
@@ -152,7 +155,7 @@ public abstract class Finder
         if ( Files.exists( olPath ) ) {
             return olPath.toFile();
         }
-        throw new FileNotFoundException( olPath.toString() );
+        throw new FileNotFoundException();
     }
 
     /**
@@ -164,8 +167,28 @@ public abstract class Finder
      */
     protected Path locatePackage( Path basePath ) throws FileNotFoundException
     {
-        for (String pathString : this.packagesToken()) {
-            basePath = this.directoryLookup( basePath, pathString );
+        String[] packagesToken = this.packagesToken();
+        for (int i = 0; i < packagesToken.length; i++) {
+            if ( isJapPackage ) {
+                break;
+            }
+            String pathString = packagesToken[i];
+            // try directory lookup
+            try {
+                basePath = this.directoryLookup( basePath, pathString );
+                remainingToken.remove( i );
+                continue;
+            } catch (FileNotFoundException e) {
+            }
+
+            // try jap lookup
+            try {
+                basePath = this.japLookup( basePath, pathString ).toPath();
+                isJapPackage = true;
+                remainingToken.remove( i );
+            } catch (FileNotFoundException e) {
+                throw e;
+            }
         }
         return basePath;
     }
@@ -181,6 +204,14 @@ public abstract class Finder
     {
         Optional< Source > source = Optional.empty();
         final Path packagePath = this.locatePackage( basePath );
+        if ( isJapPackage ) {
+            try {
+                return new JapSource( packagePath.toFile(),
+                        String.join( Constants.fileSeparator, remainingToken ) );
+            } catch (IOException e) {
+                throw new FileNotFoundException();
+            }
+        }
         source = Helpers.firstNonNull( () -> {
             try {
                 File olTargetFile = this.olLookup( packagePath, this.moduleName() );
@@ -198,7 +229,7 @@ public abstract class Finder
         } );
 
         if ( !source.isPresent() ) {
-            throw new FileNotFoundException( );
+            throw new FileNotFoundException();
         }
         return source.get();
     }
@@ -251,14 +282,14 @@ class RelativePathFinder extends Finder
     }
 
     @Override
-    public Source find() throws ModuleException
+    public Source find() throws FileNotFoundException
     {
         Path basePath = resolveDotPrefix();
         try {
             Source moduleFile = super.locateModule( basePath );
             return moduleFile;
         } catch (FileNotFoundException e) {
-            throw new ModuleException( "module " + Arrays.toString( target )
+            throw new FileNotFoundException( "module " + Arrays.toString( target )
                     + " not found, lookup path: " + Arrays.toString( this.lookupedPath() ) );
         }
     }
@@ -283,12 +314,13 @@ class AbsolutePathFinder extends Finder
     protected AbsolutePathFinder( String[] target, URI source, String[] includePathStrings )
     {
         super( target );
+        assert source != null;
         this.includePathStrings = includePathStrings;
         this.source = source;
     }
 
     @Override
-    public Source find() throws ModuleException
+    public Source find() throws FileNotFoundException
     {
         Path sourcePath = Paths.get( source );
         Path basePath;
@@ -311,12 +343,14 @@ class AbsolutePathFinder extends Finder
             try {
                 Source module = super.locateModule( basePath );
                 return module;
-            } catch (FileNotFoundException e) { }
+            } catch (FileNotFoundException e) {
+            }
         }
 
         // throw if module not found
-        throw new ModuleException(
-                "unable to locate module, lookup path: " + Arrays.toString( this.lookupedPath() ) );
+        throw new FileNotFoundException(
+                "unable to locate module " + String.join( ".", this.target ) + " , lookup path: "
+                        + Arrays.toString( this.lookupedPath() ) );
     }
 
     @Override

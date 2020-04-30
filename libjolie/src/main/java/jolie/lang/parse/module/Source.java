@@ -30,6 +30,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import jolie.lang.Constants;
 
 /**
@@ -102,6 +103,7 @@ class JapSource implements Source
     private final URI source;
     private final String filePath;
     private final String parentPath;
+    private final ZipEntry moduleEntry;
 
     public JapSource( File f ) throws IOException
     {
@@ -113,9 +115,25 @@ class JapSource implements Source
             Attributes attrs = manifest.getMainAttributes();
             this.filePath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
             this.parentPath = Paths.get( this.filePath ).getParent().toString();
+            moduleEntry = japFile.getEntry( this.filePath );
+            if (moduleEntry == null ){
+                throw new IOException();
+            }
         } else {
-            throw new IOException( "unable to find main program for library " + f.getName() );
+            throw new IOException();
         }
+    }
+
+    public JapSource( File f, String path ) throws IOException
+    {
+        this.japFile = new JarFile( f );
+        this.source = f.toURI();
+        this.filePath = path;
+        moduleEntry = japFile.getEntry( this.filePath + ".ol" );
+        if (moduleEntry == null ){
+            throw new IOException();
+        }
+        this.parentPath = Paths.get( this.filePath ).getParent().toString();
     }
 
     /**
@@ -138,8 +156,7 @@ class JapSource implements Source
     public Optional< InputStream > stream()
     {
         try {
-            ZipEntry z = japFile.getEntry( this.filePath );
-            return Optional.of( this.japFile.getInputStream( z ) );
+            return Optional.of( this.japFile.getInputStream( this.moduleEntry ) );
         } catch (IOException e) {
             return Optional.empty();
         }
