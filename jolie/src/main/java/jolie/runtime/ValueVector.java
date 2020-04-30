@@ -221,6 +221,13 @@ public abstract class ValueVector implements Iterable< Value >
 		}
 	}
 
+	public synchronized void deepCopyWithLinks( ValueVector vec ) {
+		for( int i = 0; i < vec.size(); i++ ) {
+			get( i ).deepCopyWithLinks( vec.get( i ) );
+		}
+	}
+
+
 	protected abstract List< Value > values();
 	public abstract boolean isLink();
 	
