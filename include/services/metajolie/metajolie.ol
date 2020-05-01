@@ -200,7 +200,8 @@ service Utils {
             if ( t1_is_native_type ) {
                 getNativeTypeFromString@MetaJolieJavaService( { .type_name = t1 })( rq.t1.type.root_type ) 
             } else {
-                rq.t1.type.link_name = t1
+                if ( t1 != "undefined" ) { rq.t1.type.link_name = t1 }
+                else { rq.t1.type.undefined = true }
             }
             rq.t1.types -> request.t1.types
 
@@ -208,7 +209,8 @@ service Utils {
             if ( t2_is_native_type ) {
                 getNativeTypeFromString@MetaJolieJavaService( { .type_name = t2 })( rq.t2.type.root_type ) 
             } else {
-                rq.t2.type.link_name = t2
+                 if ( t2 != "undefined" ) { rq.t2.type.link_name = t2 }
+                 else { rq.t2.type.undefined = true }
             }
             rq.t2.types -> request.t2.types
             
@@ -321,11 +323,23 @@ main {
                 throw( TypeMissing, "Type " + request.t2 + " is missing" )
             } 
 
-            rq.t1.type -> types1.( request.t1 ).type
-            rq.t1.types -> request.t1.types
-            rq.t2.type -> types2.( request.t2 ).type
-            rq.t2.types -> request.t2.types
-            typeLessThan@Utils( rq )( response )
+            if ( (types1.( request.t1 ).type instanceof TypeLink) 
+                  || (types2.( request.t2 ).type instanceof TypeLink)  ) {
+                // this is for avoinding unblanced tree navigation in case of recursion
+                if ( types1.( request.t1 ).type instanceof TypeLink ) {
+                    request.t1 = types1.( request.t1 ).type.link_name
+                }
+                if ( types2.( request.t2 ).type instanceof TypeLink ) {
+                    request.t2 = types2.( request.t2 ).type.link_name
+                }
+                typeDefinitionLessThan@MySelf( request )( response )
+            } else {
+                rq.t1.type -> types1.( request.t1 ).type
+                rq.t1.types -> request.t1.types
+                rq.t2.type -> types2.( request.t2 ).type
+                rq.t2.types -> request.t2.types
+                typeLessThan@Utils( rq )( response )
+            }
         
         }]
 
@@ -392,8 +406,9 @@ main {
                     // checking faults
                     // creating hashmap for faults of operation1
                     undef( o1faults )
-                    for( f1 in o1.faults ) { o1faults.( f1.name ) << f1 }
-                    for( f2 in operations2.( o1.operation_name ).faults ) {
+                    for( f1 in o1.fault ) { o1faults.( f1.name ) << f1 }
+                    for( f2 in operations2.( o1.operation_name ).fault ) {
+
                         if ( !is_defined( o1faults.( f2.name ) ) ) {
                             response.result = false
                             errors[ #errors ] = "Fault " + f2.name + " of operation " + o1.operation_name + " is not present in the " + i1.name                
@@ -434,16 +449,29 @@ main {
                                         response.result = false
                                         errors[ #errors ] = toutput_check.TypeMissing 
                                     )
+                                    undef( rq )
+                                    if ( ( f2.type instanceof TypeLink) || ( o1faults.( f2.name ).type instanceof TypeLink)  ) {
+                                        // this is for avoinding unblanced tree navigation in case of recursion
+                                        if ( f2.type instanceof TypeLink ) {
+                                            rq.t1.type -> types2.( f2.type.link_name ).type
+                                        } else {
+                                            rq.t1.type -> f2.type
+                                        }
+                                        if ( o1faults.( f2.name ).type instanceof TypeLink ) {
+                                            rq.t2.type -> types1.( o1faults.( f2.name ).type.link_name ).type
+                                        } else {
+                                            rq.t2.type -> o1faults.( f2.name ).type
+                                        }
+                                    } 
                                     with( rq ) {
-                                        .t1 = f2.name;
                                         .t1.types -> i2.types;
-                                        .t2 = f1.name;
-                                        .t2.types -> i2.types
+                                        .t2.types -> i1.types
                                     }
-                                    typeDefinitionLessThan@MySelf( rq )( type_check )
+                                    typeLessThan@Utils( rq )( type_check )
                                     if ( !type_check ) {
                                         response.result = false
-                                        errors[ #errors ] = "Type " + o1.input + " is not less than " + operations2.( o1.operation_name ).input 
+                                        errors[ #errors ] = "Type of fault " + f2.name + " of interface " + i2.name 
+                                            + " is not less than type of fault " + f1.name + " of interface " + i1.name 
                                     }
                                 }
                             } 
@@ -452,6 +480,45 @@ main {
                 }
             }
             response.errors -> errors
+        }]
+
+        [ portDefinitionLessThan( request )( response ) {
+            response.result = true
+            if ( request.p1.protocol != request.p2.protocol ) {
+                response.result = false
+                response.errors[ #errors ] = "Protocols are different"
+            }
+
+            // aggregating interfaces into a single interface
+            for ( intf in request.p1.interfaces ) {
+                for ( o in intf.operations ) {
+                    i1.operations[ #i1.operations ] << o
+                }
+                for ( t in intf.types ) {
+                    i1.types[ #i1.types ] << t
+                }
+            }
+            i1.name = "Port1AggregatedInterface"
+
+            for ( intf in request.p2.interfaces ) {
+                for ( o in intf.operations ) {
+                    i2.operations[ #i2.operations ] << o
+                }
+                for ( t in intf.types ) {
+                    i2.types[ #i2.types ] << t
+                }
+            }
+            i2.name = "Port2AggregatedInterface"
+
+            interfaceDefinitionLessThan@MySelf( { .i1 -> i1, .i2 -> i2 } )( result ) 
+            if ( !result.result ) {
+                response.result = false
+                for( e in result.errors ) {
+                    response.errors[ #errors ] << e
+                }
+            }
+            
+
         }]
 }
 
