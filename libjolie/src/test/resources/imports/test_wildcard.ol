@@ -1,10 +1,9 @@
-from type import *
-from interface import fooIface
-from twice import *
+from packages.type import *
+from packages.interface import fooIface
 
 
 outputPort OP {
-    interfaces: TwiceAPI
+    interfaces: fooIface
 }
 
 
@@ -13,7 +12,7 @@ outputPort OP2 {
 }
 
 main{
-    twice@OP(2)()
+    fooOp@OP(2)()
     t = 2 instanceof number
     t = { a=2 } instanceof foo
 }

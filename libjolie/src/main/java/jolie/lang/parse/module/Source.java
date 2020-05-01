@@ -116,7 +116,7 @@ class JapSource implements Source
             this.filePath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
             this.parentPath = Paths.get( this.filePath ).getParent().toString();
             moduleEntry = japFile.getEntry( this.filePath );
-            if (moduleEntry == null ){
+            if ( moduleEntry == null ) {
                 throw new IOException();
             }
         } else {
@@ -130,8 +130,9 @@ class JapSource implements Source
         this.source = f.toURI();
         this.filePath = path;
         moduleEntry = japFile.getEntry( this.filePath + ".ol" );
-        if (moduleEntry == null ){
-            throw new IOException();
+        if ( moduleEntry == null ) {
+            throw new IOException(
+                    "unable to find entry " + this.filePath + " in " + f.toString() );
         }
         this.parentPath = Paths.get( this.filePath ).getParent().toString();
     }

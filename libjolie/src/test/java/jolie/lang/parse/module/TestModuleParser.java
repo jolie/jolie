@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -36,14 +37,14 @@ public class TestModuleParser
     private static String BASE_DIR = "imports/";
     private static URL baseDir = TestModuleParser.class.getClassLoader().getResource( BASE_DIR );
 
+    private static String[] includePaths = new String[0];
 
     @Test
-    void testImportNestedModules() throws URISyntaxException
+    void testImportNestedModules() throws FileNotFoundException, URISyntaxException
     {
-        String[] includePaths = new String[0];
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 this.getClass().getClassLoader() );
-        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+        ModuleCrawler crawler = new ModuleCrawler( Paths.get( baseDir.toURI() ), includePaths );
 
         URI target = Paths.get( baseDir.toURI() ).resolve( "A.ol" ).toUri();
 
@@ -101,16 +102,15 @@ public class TestModuleParser
     }
 
     @Test
-    void testImportWildCard() throws URISyntaxException
+    void testImportWildCard() throws FileNotFoundException, URISyntaxException
     {
-        String[] includePaths = new String[0];
         URI target = Paths.get( baseDir.toURI() ).resolve( "test_wildcard.ol" ).toUri();
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 this.getClass().getClassLoader() );
-        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+        ModuleCrawler crawler = new ModuleCrawler( Paths.get( baseDir.toURI() ), includePaths );
 
         Map.Entry< URI, Set< String > > expectedSymbolsRoot = TestCasesCreator.createURISymbolsMap(
-                target, "date", "number", "foo", "bar", "baz", "dateFoo", "fooIface", "TwiceAPI" );
+                target, "date", "number", "foo", "bar", "baz", "dateFoo", "fooIface" );
         Map.Entry< URI, Set< String > > expectedSymbolsExt =
                 TestCasesCreator.createURISymbolsMap(
                         Paths.get( baseDir.toURI() ).resolve( "packages" ).resolve( "type.ol" )
@@ -121,9 +121,9 @@ public class TestModuleParser
                 Map.ofEntries( expectedSymbolsRoot, expectedSymbolsExt );
 
         Map.Entry< String, Set< String > > ifaceEntry =
-                TestCasesCreator.createInterfaceStub( "TwiceAPI", "twice" );
+                TestCasesCreator.createInterfaceStub( "fooIface", "fooOp" );
 
-        PortStub opPort = new PortStub( "OP", Map.ofEntries( ifaceEntry ), "twice" );
+        PortStub opPort = new PortStub( "OP", Map.ofEntries( ifaceEntry ), "fooOp" );
 
         Map.Entry< String, Set< String > > ifaceEntry2 =
                 TestCasesCreator.createInterfaceStub( "fooIface", "fooOp" );
@@ -170,13 +170,12 @@ public class TestModuleParser
 
 
     @Test
-    void testImportCyclicDependency() throws URISyntaxException
+    void testImportCyclicDependency() throws FileNotFoundException, URISyntaxException
     {
-        String[] includePaths = new String[0];
         URI target = Paths.get( baseDir.toURI() ).resolve( "cyclic" ).resolve( "A.ol" ).toUri();
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 this.getClass().getClassLoader() );
-        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+        ModuleCrawler crawler = new ModuleCrawler( Paths.get( baseDir.toURI() ), includePaths );
 
         Map.Entry< URI, Set< String > > expectedSymbolsRoot =
                 TestCasesCreator.createURISymbolsMap( target, "foo", "bar" );
@@ -227,13 +226,12 @@ public class TestModuleParser
 
 
     @Test
-    void testImportJap() throws URISyntaxException
+    void testImportJap() throws URISyntaxException, FileNotFoundException
     {
-        String[] includePaths = new String[0];
         URI target = Paths.get( baseDir.toURI() ).resolve( "test_jap.ol" ).toUri();
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 this.getClass().getClassLoader() );
-        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+        ModuleCrawler crawler = new ModuleCrawler( Paths.get( baseDir.toURI() ), includePaths );
 
         Map.Entry< String, Set< String > > ifaceEntry =
                 TestCasesCreator.createInterfaceStub( "TwiceAPI", "twice" );
@@ -267,13 +265,13 @@ public class TestModuleParser
 
 
     @Test
-    void testImportInterface() throws URISyntaxException
+    void testImportInterface()
+            throws FileNotFoundException, URISyntaxException, FileNotFoundException
     {
-        String[] includePaths = new String[0];
         URI target = Paths.get( baseDir.toURI() ).resolve( "test_iface.ol" ).toUri();
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), includePaths,
                 this.getClass().getClassLoader() );
-        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+        ModuleCrawler crawler = new ModuleCrawler( Paths.get( baseDir.toURI() ), includePaths );
 
         Map.Entry< String, Set< String > > ifaceEntry =
                 TestCasesCreator.createInterfaceStub( "twiceIface", "twice" );
@@ -308,15 +306,15 @@ public class TestModuleParser
     }
 
     @Test
-    void testImportType() throws IOException, ParserException, ModuleException, URISyntaxException
+    void testImportType() throws FileNotFoundException, IOException, ParserException,
+            ModuleException, URISyntaxException
     {
-        String[] includePaths = new String[0];
-        String code = "from type import date, number, foo, bar, baz, dateFoo";
+        String code = "from packages.type import date, number, foo, bar, baz, dateFoo";
         InputStream is = new ByteArrayInputStream( code.getBytes() );
 
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],
                 this.getClass().getClassLoader() );
-        ModuleCrawler crawler = new ModuleCrawler( includePaths );
+        ModuleCrawler crawler = new ModuleCrawler( Paths.get( baseDir.toURI() ), includePaths );
         Scanner s = new Scanner( is, baseDir.toURI(), null );
 
         Map.Entry< URI, Set< String > > expectedSymbolsRoot =
@@ -371,8 +369,8 @@ public class TestModuleParser
     }
 
     @Test
-    void testDuplicateSymbolDeclError()
-            throws IOException, ParserException, ModuleException, URISyntaxException
+    void testDuplicateSymbolDeclError() throws FileNotFoundException, IOException, ParserException,
+            ModuleException, URISyntaxException
     {
 
         String code = "from A import A\n from B import A";
@@ -410,7 +408,7 @@ public class TestModuleParser
     @ParameterizedTest
     @MethodSource("importStatementExceptionTestProvider")
     void testImportStatementExceptions( String code, String errorMessage )
-            throws RuntimeException, IOException, URISyntaxException
+            throws FileNotFoundException, RuntimeException, IOException, URISyntaxException
     {
         InputStream is = new ByteArrayInputStream( code.getBytes() );
         ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],

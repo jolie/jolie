@@ -1,4 +1,4 @@
-from interface import twiceIface
+from packages.interface import twiceIface
 
 inputPort IP {
     interfaces : twiceIface

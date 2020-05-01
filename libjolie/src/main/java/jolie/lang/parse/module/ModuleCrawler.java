@@ -22,6 +22,7 @@ package jolie.lang.parse.module;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -35,20 +36,30 @@ public class ModuleCrawler
 
     private final Queue< Source > modulesToCrawl;
     private final Map< URI, ModuleRecord > moduleCrawled;
-    private final String[] includePaths;
+    private final String[] packagesPath;
+    private final FinderCreator finderCreator;
 
-    public ModuleCrawler( String[] includePaths )
+    public ModuleCrawler( String[] packagesPath ) throws FileNotFoundException
     {
-        modulesToCrawl = new LinkedList<>();
-        moduleCrawled = new HashMap<>();
-        this.includePaths = includePaths;
+        this.modulesToCrawl = new LinkedList<>();
+        this.moduleCrawled = new HashMap<>();
+        this.packagesPath = packagesPath;
+        this.finderCreator = new FinderCreator( packagesPath );
     }
 
-    private Source findModule( URI parentURI, String[] importTargetStrings ) throws FileNotFoundException
+    public ModuleCrawler( Path workingDirectory, String[] packagesPath )
+            throws FileNotFoundException
     {
-        Finder finder =
-                Finder.getFinderForTarget( parentURI, this.includePaths, importTargetStrings );
-        
+        this.modulesToCrawl = new LinkedList<>();
+        this.moduleCrawled = new HashMap<>();
+        this.packagesPath = packagesPath;
+        this.finderCreator = new FinderCreator( workingDirectory, packagesPath );
+    }
+
+    private Source findModule( URI parentURI, String[] importTargetStrings )
+            throws FileNotFoundException
+    {
+        Finder finder = finderCreator.getFinderForTarget( parentURI, importTargetStrings );
         Source targetFile = finder.find();
         return targetFile;
     }
@@ -57,10 +68,10 @@ public class ModuleCrawler
     {
         for (SymbolInfoExternal externalSymbol : record.symbolTable().externalSymbols()) {
             Source moduleSource;
-            try{
+            try {
                 moduleSource = this.findModule( record.source(), externalSymbol.moduleTargets() );
-            }catch (FileNotFoundException e){
-                throw new ModuleException(e);
+            } catch (FileNotFoundException e) {
+                throw new ModuleException( e );
             }
             externalSymbol.setModuleSource( moduleSource );
             modulesToCrawl.add( moduleSource );
@@ -87,6 +98,6 @@ public class ModuleCrawler
             ModuleRecord p = parser.parse( module );
             crawlModule( p );
         }
-        return new HashSet<ModuleRecord> (moduleCrawled.values());
+        return new HashSet< ModuleRecord >( moduleCrawled.values() );
     }
 }
