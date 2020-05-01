@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,7 +61,8 @@ public class TestModuleParser
                         .resolve( "packages" ).resolve( "C.ol" ).toUri(), "b_type", "c" );
 
         Map< URI, Set< String > > expectedSourceSymbols =
-                Map.ofEntries( aOLSymbols, packageBDotBSymbols, packageCSymbols );
+                Stream.of( aOLSymbols, packageBDotBSymbols, packageCSymbols ).collect(
+                        Collectors.toMap( elem -> (URI) elem.getKey(), elem -> elem.getValue() ) );
 
         assertDoesNotThrow( () -> {
             // parse a program
@@ -118,17 +120,24 @@ public class TestModuleParser
                         "date", "number", "foo", "bar", "baz", "dateFoo" );
 
         Map< URI, Set< String > > expectedSourceSymbols =
-                Map.ofEntries( expectedSymbolsRoot, expectedSymbolsExt );
+                Stream.of( expectedSymbolsRoot, expectedSymbolsExt ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) );
 
         Map.Entry< String, Set< String > > ifaceEntry =
                 TestCasesCreator.createInterfaceStub( "fooIface", "fooOp" );
 
-        PortStub opPort = new PortStub( "OP", Map.ofEntries( ifaceEntry ), "fooOp" );
+        PortStub opPort = new PortStub( "OP",
+                Stream.of( ifaceEntry ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) ),
+                "fooOp" );
 
         Map.Entry< String, Set< String > > ifaceEntry2 =
                 TestCasesCreator.createInterfaceStub( "fooIface", "fooOp" );
 
-        PortStub opPort2 = new PortStub( "OP2", Map.ofEntries( ifaceEntry2 ), "fooOp" );
+        PortStub opPort2 = new PortStub( "OP2",
+                Stream.of( ifaceEntry2 ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) ),
+                "fooOp" );
 
         Map< String, PortStub > expectedOutputPorts =
                 TestCasesCreator.createExpectedPortMap( opPort, opPort2 );
@@ -183,7 +192,8 @@ public class TestModuleParser
                 TestCasesCreator.createURISymbolsMap( target.resolve( "B.ol" ), "foo", "bar" );
 
         Map< URI, Set< String > > expectedSourceSymbols =
-                Map.ofEntries( expectedSymbolsRoot, expectedSymbolsExt );
+                Stream.of( expectedSymbolsRoot, expectedSymbolsExt ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) );
 
         Set< String > expectedType = new HashSet<>( Arrays.asList( "foo" ) );
 
@@ -236,7 +246,10 @@ public class TestModuleParser
         Map.Entry< String, Set< String > > ifaceEntry =
                 TestCasesCreator.createInterfaceStub( "TwiceAPI", "twice" );
 
-        PortStub opPort = new PortStub( "OP", Map.ofEntries( ifaceEntry ), "twice" );
+        PortStub opPort = new PortStub( "OP",
+                Stream.of( ifaceEntry ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) ),
+                "twice" );
 
         Map< String, PortStub > expectedOutputPorts =
                 TestCasesCreator.createExpectedPortMap( opPort );
@@ -276,8 +289,14 @@ public class TestModuleParser
         Map.Entry< String, Set< String > > ifaceEntry =
                 TestCasesCreator.createInterfaceStub( "twiceIface", "twice" );
 
-        PortStub ipPort = new PortStub( "IP", Map.ofEntries( ifaceEntry ), "twice" );
-        PortStub opPort = new PortStub( "OP", Map.ofEntries( ifaceEntry ), "twice" );
+        PortStub ipPort = new PortStub( "IP",
+                Stream.of( ifaceEntry ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) ),
+                "twice" );
+        PortStub opPort = new PortStub( "OP",
+                Stream.of( ifaceEntry ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) ),
+                "twice" );
 
         Map< String, PortStub > expectedInputPorts =
                 TestCasesCreator.createExpectedPortMap( ipPort );
@@ -327,7 +346,8 @@ public class TestModuleParser
                         "date", "number", "foo", "bar", "baz", "dateFoo" );
 
         Map< URI, Set< String > > expectedSourceSymbols =
-                Map.ofEntries( expectedSymbolsRoot, expectedSymbolsExt );
+                Stream.of( expectedSymbolsRoot, expectedSymbolsExt ).collect(
+                        Collectors.toMap( elem -> elem.getKey(), elem -> elem.getValue() ) );
 
         assertDoesNotThrow( () -> {
             // parse a program
