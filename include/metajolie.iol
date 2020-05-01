@@ -143,6 +143,16 @@ type TypeDefinitionLessThanRequest: void {
 	}
 }
 
+type PortDefinitionLessThanRequest: void {
+	p1: Port 
+	p2: Port
+}
+type PortDefinitionLessThanResponse: void {
+	result: bool 
+	errors*: string
+}
+
+
 interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
@@ -183,7 +193,14 @@ RequestResponse:
 	it checks if an interface is less than another interface. An interface is less than another if it has at least all the 
 	operations declared by the second one, and all the used types are less than the target ones. 
 	*/
-	interfaceDefinitionLessThan( InterfaceDefinitionLessThanRequest )( InterfaceDefinitionLessThanResponse ) throws TypeMissing( string )
+	interfaceDefinitionLessThan( InterfaceDefinitionLessThanRequest )( InterfaceDefinitionLessThanResponse ) throws TypeMissing( string ),
+
+  /**!
+	it checks if a port is less than another port. It checks of there is the same protocol declared and then it checks if all the aggregated interfaces
+	with the interfaceDefinitionLessThan
+	*/
+	portDefinitionLessThan( PortDefinitionLessThanRequest )( PortDefinitionLessThanResponse ) throws TypeMissing( string )
+
 }
 
 

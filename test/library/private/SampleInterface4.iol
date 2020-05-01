@@ -57,13 +57,27 @@ string {
   .fieldChoice4: int
 } 
 
+type T11: void {
+  .fieldChoice: double
+  .field11?: string
+}
+|
+string {
+  .fieldChoice2: string
+  .fieldChoice3: T2
+}
+
+type T12: T3
+
+type T13: T11
+
 /**! documentation of interface */
 interface TmpInterface4 {
   RequestResponse:
     /**!documentation of operation tmp*/
-    tmp( T1 )( T2 ) throws Fault1( string ),
+    tmp( T1 )( T2 ) throws Fault1( T11 ),
     /**!documentation of operation tmp2*/
-    tmp2( T3 )( T4 ),
-    tmp3( T10 )( T6 ) throws Fault3( string ),
+    tmp2( T3 )( T4 ) throws Fault2 fault3,
+    tmp3( T10 )( T6 ) throws Fault3( string ) Fault4( T7 ) Fault5( T11 ) Faults6( T12 ) Fault7( T13 ),
     tmp4( T8 )( undefined )
 }
