@@ -4,9 +4,9 @@ from .private.imports.point import point as p
 // from .private.imports.procedure import proc
 from .private.imports.namespace import *
 from .private.imports.namespace import n1 as asN1, n2 as asN2
-from .private.twice import TwiceAPI
-from t import test
-from bar.foo import type_foo, type_bar, type_bar_package
+from twice.twice.main import TwiceAPI
+from .packages.t import test
+from .packages.bar.foo import type_foo, type_bar, type_bar_package
 include "../AbstractTestUnit.iol"
 
 define doTest {

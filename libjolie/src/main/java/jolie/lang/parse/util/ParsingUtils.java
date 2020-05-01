@@ -24,6 +24,7 @@ package jolie.lang.parse.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 import jolie.lang.parse.ParserException;
@@ -54,6 +55,7 @@ public class ParsingUtils
 		URI source,
 		String charset,
 		String[] includePaths,
+		String[] packagesPaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration configuration,
@@ -66,7 +68,7 @@ public class ParsingUtils
 		parser.putConstants( definedConstants );
 		ModuleRecord mainRecord = parser.parse( source );
 
-		ModuleCrawler crawler = new ModuleCrawler( includePaths );
+		ModuleCrawler crawler = new ModuleCrawler( Paths.get(source).getParent(), packagesPaths );
 		Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
 
 		GlobalSymbolReferenceResolver symbolResolver =
@@ -88,28 +90,43 @@ public class ParsingUtils
 		String[] includePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
+		SemanticVerifier.Configuration configuration,
 		boolean includeDocumentation
 	)
 		throws IOException, ParserException, SemanticException, ModuleException
 	{
-		
-		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader, includeDocumentation );
-		parser.putConstants( definedConstants );
-		ModuleRecord mainRecord = parser.parse( source );
+		return parseProgram(
+			inputStream,
+			source,
+			charset,
+			includePaths,
+			new String[0],
+			classLoader,
+			definedConstants,
+			configuration,
+			includeDocumentation);
+	}
 
-		ModuleCrawler crawler = new ModuleCrawler( includePaths );
-		Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
-
-		GlobalSymbolReferenceResolver symbolResolver =
-				new GlobalSymbolReferenceResolver( crawlResult );
-		symbolResolver.resolveExternalSymbols();
-
-		symbolResolver.resolveLinkedType();
-
-		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
-				symbolResolver.symbolTables() );
-		semanticVerifier.validate();
-		return mainRecord.program();
+	public static Program parseProgram(
+		InputStream inputStream,
+		URI source,
+		String charset,
+		String[] includePaths,
+		ClassLoader classLoader,
+		Map< String, Scanner.Token > definedConstants,
+		boolean includeDocumentation
+	)
+		throws IOException, ParserException, SemanticException, ModuleException
+	{
+		return parseProgram(
+			inputStream,
+			source,
+			charset,
+			includePaths,
+			classLoader,
+			definedConstants,
+			new SemanticVerifier.Configuration(),
+			includeDocumentation);
 	}
 	
 	/**
