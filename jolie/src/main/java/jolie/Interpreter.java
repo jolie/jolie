@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
@@ -71,6 +72,7 @@ import jolie.lang.parse.module.ModuleCrawler;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParser;
 import jolie.lang.parse.module.ModuleRecord;
+import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
@@ -1275,7 +1277,7 @@ public class Interpreter
 					ModuleRecord mainRecord = parser.parse( new Scanner( cmdParser.programStream(),
 							cmdParser.programFilepath().toURI(), cmdParser.charset() ) );
 
-					ModuleCrawler crawler = new ModuleCrawler( includePaths );
+					ModuleCrawler crawler = new ModuleCrawler( cmdParser.packagesPaths() );
 					Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
 
 					GlobalSymbolReferenceResolver symbolResolver =
