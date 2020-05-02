@@ -578,12 +578,12 @@ public class CommandLineParser implements Closeable
 				if ( path.endsWith( ".jap" ) ) {
 					for( String includePath : prepend( "", includeList ) ) {
 						try {
-							String japFilename = UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, path ) );
+							String japFilename = UriUtils.normalizeJolieUri( UriUtils.normalizeWindowsPath( UriUtils.resolve( includePath, path ) ) );
 							if ( Files.exists( Paths.get( japFilename ) ) ) {
 								try( JarFile japFile = new JarFile( japFilename ) ) {
 									Manifest manifest = japFile.getManifest();
 									olFilepath = UriUtils.normalizeWindowsPath( parseJapManifestForMainProgram( manifest, japFile ) );
-									libList.add( UriUtils.normalizeWindowsPath( japFilename ) );
+									libList.add( japFilename );
 									Collection< String> japOptions = parseJapManifestForOptions( manifest );
 									argsList.addAll( i + 1, japOptions );
 									japUrl = japFilename + "!";
@@ -839,7 +839,7 @@ public class CommandLineParser implements Closeable
 			for( String includePath : includePaths ) {
 				if ( includePath.startsWith( "jap:" ) ) {
 					try {
-						olURL = new URL( UriUtils.normalizeWindowsPath( UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, olFilepath ) ) ) );
+						olURL = new URL( UriUtils.normalizeJolieUri( UriUtils.normalizeWindowsPath( UriUtils.resolve( includePath, olFilepath ) ) ) );
 						result.stream = olURL.openStream();
 						result.source = olURL.toString();
 						break;
@@ -918,7 +918,7 @@ public class CommandLineParser implements Closeable
 					UriUtils.normalizeWindowsPath(
 						UriUtils.resolve(
 							context,
-							UriUtils.normalizeWindowsPath( libPath )
+							libPath
 						)
 					)
 				);
