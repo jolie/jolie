@@ -591,7 +591,7 @@ public class CommandLineParser implements Closeable
 								}
 								break;
 							}
-						} catch( URISyntaxException e ) {}
+						} catch( URISyntaxException | InvalidPathException e ) {}
 					}
 					if ( olFilepath == null ) {
 						throw new IOException( "Could not locate " + path );
