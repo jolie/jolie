@@ -599,9 +599,7 @@ public class CommandLineParser implements Closeable
 				} else {
 					olFilepath = path;
 				}
-			} else if ( olFilepath != null ) {
-				programArgumentsList.add( argsList.get( i ) );
-			} else {
+			} else { // FIXME: Dead code?
 				// It's an unrecognized argument
 				int newIndex = argHandler.onUnrecognizedArgument( argsList, i );
 				if ( newIndex == i ) {
