@@ -18,7 +18,7 @@
  */
 package jolie.lang.parse.module;
 
-import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.SymbolNode;
 
 /**
  * A class represent Symbol define within local execution environment
@@ -26,7 +26,7 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 public class SymbolInfoLocal extends SymbolInfo
 {
 
-    public SymbolInfoLocal( String name, OLSyntaxNode node )
+    public SymbolInfoLocal( String name, SymbolNode node )
     {
         super( name, Scope.LOCAL, node );
     }

@@ -19,6 +19,8 @@
 package jolie.lang.parse.module;
 
 import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.SymbolNode;
+import jolie.lang.parse.context.ParsingContext;
 
 
 /**
@@ -30,10 +32,19 @@ public abstract class SymbolInfo
     /**
      * Scope of symbol,
      * LOCAL means the symbol's AST node is declared within the local execution environment
-     * EXTERNAL means the symbol's AST node is declared in other exceution environment
+     * EXTERNAL means the symbol's AST node is declared in other execution environment
      */
     public enum Scope {
         LOCAL, EXTERNAL
+    }
+
+    /**
+     * Symbol privacy,
+     * PUBLIC means the symbol's AST node is allowed to be imported by external modules
+     * PRIVATE means the symbol's AST node is not allowed to be imported by external modules
+     */
+    public enum Privacy {
+        PUBLIC, PRIVATE
     }
 
     /**
@@ -52,6 +63,16 @@ public abstract class SymbolInfo
     private OLSyntaxNode node;
 
     /**
+     * privacy of this symbol
+     */
+    private Privacy privacy;
+
+    /**
+     * Declaration context of the symbol
+     */
+    final private ParsingContext context;
+
+    /**
      * constructor for SymbolInfo, this constructor is used when it knows the ASTnode to point to
      * corresponding to this symbol
      * 
@@ -59,20 +80,22 @@ public abstract class SymbolInfo
      * @param scope scope of Symbol
      * @param node  an ASTNode
      */
-    public SymbolInfo( String name, Scope scope, OLSyntaxNode node )
+    public SymbolInfo( String name, Scope scope, SymbolNode node )
     {
-        this( name, scope );
-        this.node = node;
+        this( node.node().context(), name, scope );
+        this.privacy = node.privacy();
+        this.node = node.node();
     }
 
     /**
-     * constructor for SymbolInfo, this constructor is used when ASTnode is unknown
+     * constructor for SymbolInfo, this constructor is used when AST Node is unknown
      * 
      * @param name  Symbol name
      * @param scope scope of Symbol
      */
-    public SymbolInfo( String name, Scope scope )
+    public SymbolInfo( ParsingContext context, String name, Scope scope )
     {
+        this.context = context;
         this.name = name;
         this.scope = scope;
     }
@@ -101,6 +124,16 @@ public abstract class SymbolInfo
     public Scope scope()
     {
         return scope;
+    }
+
+    public Privacy privacy()
+    {
+        return privacy;
+    }
+
+    public ParsingContext context()
+    {
+        return context;
     }
 
     @Override

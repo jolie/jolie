@@ -40,6 +40,29 @@ public class TestModuleParser
 
     private static String[] includePaths = new String[0];
 
+
+    @Test
+    void testImportPrivateError() throws IOException, URISyntaxException
+    {
+
+        String code = "from A import privateType";
+        InputStream is = new ByteArrayInputStream( code.getBytes() );
+
+        ModuleParser parser = new ModuleParser( StandardCharsets.UTF_8.name(), new String[0],
+                this.getClass().getClassLoader() );
+        ModuleCrawler crawler = new ModuleCrawler( Paths.get( baseDir.toURI() ), includePaths );
+        Scanner s = new Scanner( is, baseDir.toURI(), null );
+        Exception exception = assertThrows( ModuleException.class, () -> {
+            ModuleRecord mr = parser.parse( s );
+            Set< ModuleRecord > crawlResult = crawler.crawl( mr, parser );
+            GlobalSymbolReferenceResolver symbolResolver =
+                    new GlobalSymbolReferenceResolver( crawlResult );
+            // resolve symbols
+            symbolResolver.resolveExternalSymbols();
+        } );
+        assertTrue(exception.getMessage().contains("cannot refer to private name privateType"));
+    }
+
     @Test
     void testImportNestedModules() throws FileNotFoundException, URISyntaxException
     {
@@ -386,6 +409,7 @@ public class TestModuleParser
             }
 
         } );
+        is.close();
     }
 
     @Test

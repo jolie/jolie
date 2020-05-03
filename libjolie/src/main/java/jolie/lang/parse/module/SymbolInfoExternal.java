@@ -19,6 +19,7 @@
 package jolie.lang.parse.module;
 
 import java.util.Optional;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * A class represent a Symbol defined within external execution environment. Create when consuming an
@@ -31,9 +32,9 @@ public class SymbolInfoExternal extends SymbolInfo
     private final String moduleSymbol;
     private Source moduleSource;
 
-    public SymbolInfoExternal( String name, String[] moduleTargets, String moduleSymbol )
+    public SymbolInfoExternal( ParsingContext context, String name, String[] moduleTargets, String moduleSymbol )
     {
-        super( name, Scope.EXTERNAL );
+        super( context, name, Scope.EXTERNAL );
         this.moduleTargets = moduleTargets;
         this.moduleSymbol = moduleSymbol;
     }

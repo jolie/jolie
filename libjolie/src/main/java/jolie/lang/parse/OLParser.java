@@ -129,6 +129,8 @@ import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.module.SymbolInfo;
+import jolie.lang.parse.module.SymbolInfo.Privacy;
 import jolie.lang.parse.util.ProgramBuilder;
 import jolie.util.Helpers;
 import jolie.util.Pair;
@@ -250,58 +252,70 @@ public class OLParser extends AbstractParser
 			this::parseConstants,
 			this::parseExecution,
 			this::parseCorrelationSets,
-			this::parseTypes,
-			this::parseInterfaceOrPort,
+			this::parseSymbols,
+			this::parsePorts,
 			this::parseEmbedded,
 			this::parseInternalService,
 			this::parseCode
 		);
 	}
 
-	private void parseTypes()
-		throws IOException, ParserException
+	private void parseSymbols() throws IOException, ParserException
 	{
-		Scanner.Token commentToken = null;
-		boolean keepRun = true;
-		boolean haveComment = false;
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
-				haveComment = true;
-				commentToken = token;
-				getToken();
-			} else if ( token.isKeyword( "type" ) ) {
-				String typeName;
-				TypeDefinition currentType;
+		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
 
-				getToken();
-				typeName = token.content();
-				eat( Scanner.TokenType.ID, "expected type name" );
-				if ( token.is( Scanner.TokenType.COLON ) ) {
-					getToken();
-				} else {
-					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
-					getToken();
-				}
-
-				currentType = parseType( typeName );
-
-				if( haveComment ){ haveComment = false; }
-				parseBackwardAndSetDocumentation( currentType, Optional.ofNullable( commentToken ) );
-				commentToken = null;
-				
-				typeName = currentType.id();
-
-				definedTypes.put( typeName, currentType );
-				programBuilder.addChild( currentType );
-			} else {
-				keepRun = false;
-				if ( haveComment ) { //  we return the comment and the subsequent token since we did not use them
-					addToken( commentToken );
-					addToken( token );
-					getToken();
-				}
-			}
+		DocumentedNode docNode = null;
+		OLSyntaxNode node = null;
+		SymbolInfo.Privacy privacy = SymbolInfo.Privacy.PUBLIC;
+		
+		// parse symbol privacy
+		if ( token.isKeyword( "private" ) ) {
+			privacy = SymbolInfo.Privacy.PRIVATE;
+			getToken();
 		}
+
+		if ( token.isKeyword( "type" ) ) {
+			String typeName;
+			TypeDefinition currentType;
+			getToken();
+			typeName = token.content();
+			eat( Scanner.TokenType.ID, "expected type name" );
+			if ( token.is( Scanner.TokenType.COLON ) ) {
+				getToken();
+			} else {
+				prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+				getToken();
+			}
+
+			currentType = parseType( typeName );
+			currentType.setPrivacy(privacy);
+			node = currentType;
+			docNode = currentType;
+			definedTypes.put( typeName, currentType );
+		} else if ( token.isKeyword( "interface" ) ) {
+			getToken();
+			final InterfaceDefinition iface;
+			if ( token.isKeyword( "extender" ) ) {
+				getToken();
+				iface = parseInterfaceExtender();
+				node = iface;
+				docNode = iface;
+			} else {
+				iface = parseInterface();
+				node = iface;
+				docNode = iface;
+			}
+			iface.setPrivacy(privacy);
+		} else {
+			return;
+		}
+		if (docNode != null){
+			parseBackwardAndSetDocumentation( docNode, forwardDocToken );
+		}
+		if (node != null) {
+			programBuilder.addChild( node );
+		}
+
 	}
 	
 	private TypeDefinition parseType( String typeName )
@@ -913,21 +927,13 @@ public class OLParser extends AbstractParser
 		}
 	}
 	
-	private void parseInterfaceOrPort()
+	private void parsePorts()
 		throws IOException, ParserException
 	{
 		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
 		
 		final DocumentedNode node;
-		if ( token.isKeyword( "interface" ) ) {
-			getToken();
-			if ( token.isKeyword( "extender") ) {
-				getToken();
-				node = parseInterfaceExtender();
-			} else {
-				node = parseInterface();
-			}
-		} else if ( token.isKeyword( "inputPort" ) ) {
+		if ( token.isKeyword( "inputPort" ) ) {
 			node = parsePort();
 		} else if ( token.isKeyword( "outputPort" ) ) {
 			node = parsePort();
@@ -1281,7 +1287,6 @@ public class OLParser extends AbstractParser
 				new InterfaceExtenderDefinition( getContext(), name );
 		parseOperations( currInterfaceExtender );
 		interfaceExtenders.put( name, extender );
-		programBuilder.addChild( currInterfaceExtender );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 		currInterfaceExtender = null;
 		return extender;
@@ -1299,7 +1304,6 @@ public class OLParser extends AbstractParser
 		iface = new InterfaceDefinition( getContext(), name );
 		parseOperations( iface );
 		interfaces.put( name, iface );
-		programBuilder.addChild( iface );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 
 		return iface;

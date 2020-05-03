@@ -113,6 +113,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.module.SymbolInfo.Privacy;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.util.Pair;
 
@@ -125,9 +126,9 @@ public class GlobalSymbolReferenceResolver
     {
         this.moduleMap = new HashMap<>();
         this.symbolTables = new HashMap<>();
-        for (ModuleRecord mr: moduleMap){
-            this.moduleMap.put(mr.source(), mr);
-            this.symbolTables.put(mr.source(), mr.symbolTable());
+        for (ModuleRecord mr : moduleMap) {
+            this.moduleMap.put( mr.source(), mr );
+            this.symbolTables.put( mr.source(), mr.symbolTable() );
         }
     }
 
@@ -456,7 +457,7 @@ public class GlobalSymbolReferenceResolver
                     iface.addOperation( op );
                     n.addOperation( op );
                 } );
-                iface.setDocumentation(ifaceDeclFromSymbol.getDocumentation());
+                iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
             }
             for (OperationDeclaration op : n.operations()) {
                 op.accept( this );
@@ -492,7 +493,7 @@ public class GlobalSymbolReferenceResolver
                     iface.addOperation( op );
                     n.addOperation( op );
                 } );
-                iface.setDocumentation(ifaceDeclFromSymbol.getDocumentation());
+                iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
             }
             for (OperationDeclaration op : n.operations()) {
                 op.accept( this );
@@ -636,7 +637,7 @@ public class GlobalSymbolReferenceResolver
                             n.id() + " is not defined in symbolTable" );
                     return;
                 }
-                if ( !(targetSymbolInfo.get().node() instanceof TypeDefinition)){
+                if ( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
                     this.valid = false;
                     this.error = new ModuleException( n.context(),
                             n.id() + " is not defined as a type definition" );
@@ -763,9 +764,11 @@ public class GlobalSymbolReferenceResolver
     {
         ModuleRecord externalSourceRecord =
                 this.moduleMap.get( symbolInfo.moduleSource().get().source() );
-        SymbolInfo externalSourceSymbol = externalSourceRecord.symbol( symbolInfo.moduleSymbol() ).get();
-        if (externalSourceSymbol == null){
-            throw new ModuleException( symbolInfo.name() + " is not defined in " + externalSourceRecord.source() );
+        SymbolInfo externalSourceSymbol =
+                externalSourceRecord.symbol( symbolInfo.moduleSymbol() ).get();
+        if ( externalSourceSymbol == null ) {
+            throw new ModuleException(
+                    symbolInfo.name() + " is not defined in " + externalSourceRecord.source() );
         }
         if ( externalSourceSymbol.scope() == Scope.LOCAL ) {
             return externalSourceSymbol;
@@ -793,6 +796,11 @@ public class GlobalSymbolReferenceResolver
                             wildcardImportedRecord.symbols() );
                 } else {
                     SymbolInfo targetSymbol = symbolLookup( localSymbol );
+                    if ( targetSymbol.privacy() == Privacy.PRIVATE ) {
+                        throw new ModuleException( si.context(),
+                                "cannot refer to private name " + si.name() + " of module "
+                                        + si.moduleTargets()[si.moduleTargets().length - 1] );
+                    }
                     si.setPointer( targetSymbol.node() );
                 }
             }
@@ -811,7 +819,8 @@ public class GlobalSymbolReferenceResolver
         }
     }
 
-    public Map<URI, SymbolTable> symbolTables(){
+    public Map< URI, SymbolTable > symbolTables()
+    {
         return this.symbolTables;
     }
 }

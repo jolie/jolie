@@ -161,13 +161,6 @@ public class SymbolTableGenerator
         @Override
         public void visit( DefinitionNode n )
         {
-            try {
-                this.symbolTable.addSymbol( n.id(), n );
-            } catch (ModuleException e) {
-                this.valid = false;
-                e.setContext( n.context() );
-                this.error = e;
-            }
         }
 
         @Override
@@ -580,12 +573,12 @@ public class SymbolTableGenerator
         {
 
             if ( n.isNamespaceImport() ) {
-                this.symbolTable.addWildCardSymbol( n.importTarget() );
+                this.symbolTable.addWildCardSymbol( n.context(), n.importTarget() );
             } else {
                 for (ImportSymbolTarget targetSymbol : n.importSymbolTargets()) {
                     try {
-                        this.symbolTable.addSymbol( targetSymbol.localSymbol(), n.importTarget(),
-                                targetSymbol.moduleSymbol() );
+                        this.symbolTable.addSymbol( n.context(), targetSymbol.localSymbol(),
+                                n.importTarget(), targetSymbol.moduleSymbol() );
                     } catch (ModuleException e) {
                         this.valid = false;
                         e.setContext( n.context() );

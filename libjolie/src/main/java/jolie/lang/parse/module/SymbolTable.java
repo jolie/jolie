@@ -23,7 +23,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.SymbolNode;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.module.SymbolInfo.Privacy;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 
 /**
@@ -62,15 +64,19 @@ public class SymbolTable
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */
-    public void replaceWildCardSymbol( SymbolWildCard wildCardSymbol, SymbolInfo ... symbolsFromWildcard ) throws ModuleException
+    public void replaceWildCardSymbol( SymbolWildCard wildCardSymbol,
+            SymbolInfo... symbolsFromWildcard ) throws ModuleException
     {
-        for (SymbolInfo symbolFromWildcard: symbolsFromWildcard){
+        for (SymbolInfo symbolFromWildcard : symbolsFromWildcard) {
             if ( isDuplicateSymbol( symbolFromWildcard.name() ) ) {
-                throw new ModuleException( "detected redeclaration of symbol " + symbolFromWildcard.name() );
+                throw new ModuleException(
+                        "detected redeclaration of symbol " + symbolFromWildcard.name() );
             }
-            this.symbols.put( symbolFromWildcard.name(), symbolFromWildcard );
+            if ( symbolFromWildcard.privacy() == Privacy.PUBLIC ) {
+                this.symbols.put( symbolFromWildcard.name(), symbolFromWildcard );
+            }
         }
-        this.symbols.remove(wildCardSymbol.moduleSource().get(), wildCardSymbol);
+        this.symbols.remove( wildCardSymbol.moduleSource().get(), wildCardSymbol );
     }
 
     /**
@@ -78,7 +84,7 @@ public class SymbolTable
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */
-    public void addSymbol( String name, OLSyntaxNode node ) throws ModuleException
+    public void addSymbol( String name, SymbolNode node ) throws ModuleException
     {
         if ( isDuplicateSymbol( name ) ) {
             throw new ModuleException( "detected redeclaration of symbol " + name );
@@ -91,30 +97,34 @@ public class SymbolTable
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */
-    public void addSymbol( String name, String[] moduleTargetStrings ) throws ModuleException
-    {
-        if ( isDuplicateSymbol( name ) ) {
-            throw new ModuleException( "detected redeclaration of symbol " + name );
-        }
-        this.symbols.put( name, new SymbolInfoExternal( name, moduleTargetStrings, name ) );
-    }
-
-    /**
-     * create and add an external Symbol
-     * 
-     * @param name                Symbol name
-     * @param moduleTargetStrings an array of String defined at import statement
-     * @param moduleSymbol        a name for local environment
-     * 
-     * @throws ModuleException when adding name duplicate name to the symbol
-     */
-    public void addSymbol( String name, String[] moduleTargetStrings, String moduleSymbol )
+    public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings )
             throws ModuleException
     {
         if ( isDuplicateSymbol( name ) ) {
             throw new ModuleException( "detected redeclaration of symbol " + name );
         }
-        this.symbols.put( name, new SymbolInfoExternal( name, moduleTargetStrings, moduleSymbol ) );
+        this.symbols.put( name,
+                new SymbolInfoExternal( context, name, moduleTargetStrings, name ) );
+    }
+
+    /**
+     * create and add an external Symbol
+     * 
+     * @param context             Context where symbol is declare
+     * @param name                Symbol name
+     * @param moduleTargetStrings String array defined at import statement
+     * @param moduleSymbol        Name for binding result to local environment
+     * 
+     * @throws ModuleException when adding name duplicate name to the symbol
+     */
+    public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings,
+            String moduleSymbol ) throws ModuleException
+    {
+        if ( isDuplicateSymbol( name ) ) {
+            throw new ModuleException( "detected redeclaration of symbol " + name );
+        }
+        this.symbols.put( name,
+                new SymbolInfoExternal( context, name, moduleTargetStrings, moduleSymbol ) );
     }
 
     /**
@@ -122,10 +132,10 @@ public class SymbolTable
      * 
      * @param moduleTargetStrings an array of String defined at import statement
      */
-    public void addWildCardSymbol( String[] moduleTargetStrings )
+    public void addWildCardSymbol( ParsingContext context, String[] moduleTargetStrings )
     {
         this.symbols.put( Arrays.toString( moduleTargetStrings ),
-                new SymbolWildCard( moduleTargetStrings ) );
+                new SymbolWildCard( context, moduleTargetStrings ) );
     }
 
     public SymbolInfo[] symbols()
@@ -145,9 +155,9 @@ public class SymbolTable
                 .toArray( SymbolInfoExternal[]::new );
     }
 
-    public Optional<SymbolInfo> symbol( String name )
+    public Optional< SymbolInfo > symbol( String name )
     {
-        return Optional.of(this.symbols.get( name ));
+        return Optional.of( this.symbols.get( name ) );
     }
 
     private boolean isDuplicateSymbol( String name )

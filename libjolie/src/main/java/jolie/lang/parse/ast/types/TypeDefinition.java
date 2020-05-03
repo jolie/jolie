@@ -30,8 +30,10 @@ import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.SymbolNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.module.SymbolInfo.Privacy;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -39,7 +41,7 @@ import jolie.util.Range;
  * Representation for a type definition.
  * @author Fabrizio Montesi
  */
-public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode
+public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, SymbolNode
 {
 	private final String id;
 	private final Range cardinality;
@@ -281,4 +283,28 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	public abstract boolean hasSubType( String id );
 	*/
 	
+	/**
+	 * SymbolNode related methods
+	 */
+	private Privacy privacy = Privacy.PUBLIC;
+
+	@Override
+    public Privacy privacy(){
+		return this.privacy;
+	}
+
+	@Override
+    public void setPrivacy(Privacy privacy){
+		this.privacy = privacy;
+	}
+
+	@Override
+    public String name(){
+		return this.id;
+	}
+
+	@Override
+    public OLSyntaxNode node(){
+		return this;
+	}
 }

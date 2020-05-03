@@ -9,3 +9,5 @@ type A_linked {
 }
 
 type from_b: b_imported
+
+private type privateType: string

@@ -26,17 +26,19 @@ import java.util.Map;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.module.SymbolInfo.Privacy;
 
 /**
  *
  * @author Fabrizio Montesi
  */
 public class InterfaceDefinition extends OLSyntaxNode
-		implements OperationCollector, DocumentedNode
+		implements OperationCollector, DocumentedNode, SymbolNode
 {
 	private final Map< String, OperationDeclaration > operationsMap = new HashMap<>();
 	private final String name;
 	private String documentation;
+	private Privacy privacy;
 
 	public InterfaceDefinition( ParsingContext context, String name )
 	{
@@ -82,6 +84,24 @@ public class InterfaceDefinition extends OLSyntaxNode
 	public String getDocumentation()
 	{
 		return this.documentation;
+	}
+
+	@Override
+	public Privacy privacy()
+	{
+		return this.privacy;
+	}
+
+	@Override
+	public void setPrivacy( Privacy privacy )
+	{
+		this.privacy = privacy;
+	}
+
+	@Override
+	public OLSyntaxNode node()
+	{
+		return this;
 	}
 	
 }

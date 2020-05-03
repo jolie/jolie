@@ -19,6 +19,7 @@
 package jolie.lang.parse.module;
 
 import java.util.Arrays;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * A class represent a Symbol defined within external execution environment. Create when consuming a
@@ -27,9 +28,9 @@ import java.util.Arrays;
 public class SymbolWildCard extends SymbolInfoExternal
 {
 
-    public SymbolWildCard( String[] moduleTarget )
+    public SymbolWildCard( ParsingContext context, String[] moduleTarget )
     {
-        super( Arrays.toString( moduleTarget ), moduleTarget, null );
+        super( context, Arrays.toString( moduleTarget ), moduleTarget, null );
     }
 
 }
