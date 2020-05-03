@@ -28,8 +28,7 @@
 				<configuration>	
 					<archive>
 						<manifestEntries>
-							<X-JOLIE-ChannelExtension>local:jolie.net.LocalCommChannelFactory </X-JOLIE-ChannelExtension>
-							<X-JOLIE-ListenerExtension>local:jolie.net.LocalListenerFactory</X-JOLIE-ListenerExtension>
+							<X-JOLIE-ProtocolExtension>jsonrpc:jolie.net.JsonRpcProtocolFactory</X-JOLIE-ProtocolExtension>
 						</manifestEntries>
 					</archive>
 				</configuration>
@@ -56,7 +55,6 @@
 								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions</outputDirectory>
-          
 						</configuration>
 					</execution>
 				</executions>
@@ -70,5 +68,4 @@
 			<version>${jolie.version}</version>
 		</dependency>
 	</dependencies>
-  
 </project>

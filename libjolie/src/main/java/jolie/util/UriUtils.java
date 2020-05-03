@@ -49,7 +49,7 @@ public class UriUtils
 			// 	normalizedUrl = normalizedUri.normalize().toString();
 			// } else {
 			normalizedUrl = uri;
-			// }			
+			// }
 		}
 		return normalizedUrl;
 	}
@@ -61,12 +61,12 @@ public class UriUtils
 		}
 
 		String result = null;
-		
+
 		if ( target.startsWith( JAP_FILE_PREFIX ) ) {
-			if ( Files.exists( Paths.get( context ) ) ) {
-				result = JAP_FILE_PREFIX + context + Constants.fileSeparator + target.substring( JAP_FILE_PREFIX.length() );
-			} else if ( context.startsWith( JAP_FILE_PREFIX ) ) {
-				result = context + Constants.fileSeparator + target.substring( JAP_FILE_PREFIX.length() );
+			if ( context.startsWith( JAP_FILE_PREFIX ) ) {
+				result = context + "/" + target.substring( JAP_FILE_PREFIX.length() );
+			} else if ( Files.exists( Paths.get( context ) ) ) {
+				result = JAP_FILE_PREFIX + context + "/" + target.substring( JAP_FILE_PREFIX.length() );
 			}
 		}
 

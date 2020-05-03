@@ -32,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -147,7 +148,7 @@ public class CommandLineParser implements Closeable
 		return tracer;
 	}
         
-        	/**
+    /**
 	 * Returns
 	 * <code>true</code> if the check option has been specified, false
 	 * otherwise.
@@ -290,7 +291,7 @@ public class CommandLineParser implements Closeable
 	{
 		StringBuilder helpBuilder = new StringBuilder();
 		helpBuilder.append( getVersionString() );
-		helpBuilder.append( "\n\nUsage: jolie [options] behaviour_file [program arguments]\n\n" );
+		helpBuilder.append( "\n\nUsage: jolie [options] program_file [program arguments]\n\n" );
 		helpBuilder.append( "Available options:\n" );
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
@@ -442,7 +443,7 @@ public class CommandLineParser implements Closeable
 		int cLimit = -1;
 		int cCache = 100;
 		long rTimeout = 36000 * 1000; // 10 minutes
-		String pwd = new File( "" ).getCanonicalPath();
+		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
 		includeList.add( pwd );
 		includeList.add( "include" );
 		libList.add( pwd );
@@ -583,24 +584,12 @@ public class CommandLineParser implements Closeable
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
-			} else if (
-				argsList.get( i ).endsWith( ".ol" )
-				||
-				argsList.get( i ).endsWith( ".iol" )
-				||
-				argsList.get( i ).endsWith( ".olc" )
-			) {
-				if ( olFilepath == null ) {
-					olFilepath = argsList.get( i );
-				} else {
-					programArgumentsList.add( argsList.get( i ) );
-				}
-			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
-				String japPath = argsList.get( i );
-				if ( olFilepath == null ) {
+			} else if ( olFilepath == null ) {
+				final String path = argsList.get( i );
+				if ( path.endsWith( ".jap" ) ) {
 					for( String includePath : prepend( "", includeList ) ) {
 						try {
-							String japFilename = UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, japPath ) );
+							String japFilename = UriUtils.normalizeJolieUri( UriUtils.normalizeWindowsPath( UriUtils.resolve( includePath, path ) ) );
 							if ( Files.exists( Paths.get( japFilename ) ) ) {
 								try( JarFile japFile = new JarFile( japFilename ) ) {
 									Manifest manifest = japFile.getManifest();
@@ -613,15 +602,15 @@ public class CommandLineParser implements Closeable
 								}
 								break;
 							}
-						} catch( URISyntaxException e ) {}
+						} catch( URISyntaxException | InvalidPathException e ) {}
 					}
 					if ( olFilepath == null ) {
-						throw new IOException( "Could not locate " + japPath );
+						throw new IOException( "Could not locate " + path );
 					}
 				} else {
-					programArgumentsList.add( japPath );
+					olFilepath = path;
 				}
-			} else {
+			} else { // FIXME: Dead code?
 				// It's an unrecognized argument
 				int newIndex = argHandler.onUnrecognizedArgument( argsList, i );
 				if ( newIndex == i ) {
@@ -671,14 +660,14 @@ public class CommandLineParser implements Closeable
 				}
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
-			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
+			} else if ( path.endsWith( "/*" ) ) {
 				Path dir = Paths.get( path.substring( 0, path.length() - 2 ) );
 				if ( Files.isDirectory( dir ) ) {
 					dir = dir.toRealPath();
 					List< String > archives = Files.list( dir ).map( Path::toString ).filter( p -> p.endsWith( ".jar" ) || p.endsWith( ".jap" ) ).collect( Collectors.toList() );
 					for( String archive : archives ) {
 						String scheme = archive.substring( archive.length() - 3, archive.length() ); // "jap" or "jar"
-						urls.add( new URL( scheme + ":file:" + archive + "!/" ) );
+						urls.add( new URL( scheme + ":" + Paths.get( archive ).toUri().toString() + "!/" ) );
 					}
 				}
 			} else if ( path.contains( ":" ) ) { // Try to avoid unnecessary MalformedURLExceptions, filling up the stack trace eats time.
@@ -814,7 +803,7 @@ public class CommandLineParser implements Closeable
 		if ( filepath != null ) {
 			filepath = new StringBuilder()
 						.append( "jap:file:" )
-						.append( japFile.getName() )
+						.append( UriUtils.normalizeWindowsPath( japFile.getName() ) )
 						.append( "!/" )
 						.append( filepath )
 						.toString();
@@ -860,7 +849,7 @@ public class CommandLineParser implements Closeable
 			for( String includePath : includePaths ) {
 				if ( includePath.startsWith( "jap:" ) ) {
 					try {
-						olURL = new URL( UriUtils.normalizeWindowsPath( UriUtils.normalizeJolieUri( UriUtils.resolve( includePath, olFilepath ) ) ) );
+						olURL = new URL( UriUtils.normalizeJolieUri( UriUtils.normalizeWindowsPath( UriUtils.resolve( includePath, olFilepath ) ) ) );
 						result.stream = olURL.openStream();
 						result.source = olURL.toString();
 						break;
@@ -936,9 +925,11 @@ public class CommandLineParser implements Closeable
 		for( String context : prepend( "", includePaths ) ) {
 			try {
 				String path = UriUtils.normalizeJolieUri(
-					UriUtils.resolve(
-						context,
-						UriUtils.normalizeWindowsPath( libPath )
+					UriUtils.normalizeWindowsPath(
+						UriUtils.resolve(
+							context,
+							libPath
+						)
 					)
 				);
 
@@ -950,7 +941,7 @@ public class CommandLineParser implements Closeable
 						return Optional.of( url.toString() );
 					}
 				}
-			} catch( URISyntaxException e ) {}
+			} catch( URISyntaxException | InvalidPathException e ) {}
 		}
 
 		return Optional.empty();

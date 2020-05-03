@@ -231,7 +231,7 @@ public class JavaDocumentCreatorTest
 
 
 		Jolie2JavaInterface flatStructureTypeEmpty = (Jolie2JavaInterface) FlatStructureType.newInstance();
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 		// check methods
 		checkMethods( FlatStructureType, getFlatStructuredType() );
 		System.out.println( testName + " checking methods OK" );
@@ -257,7 +257,7 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( getFlatStructuredVectorsType(), (Value) FlatStructureVectorsType.getMethod("toValue", FlatStructureVectorsType ).invoke( flatStructureVectorsType, flatStructureVectorsType ), 0 ) );
 
 		Jolie2JavaInterface flatStructureVectorsTypeEmpty = (Jolie2JavaInterface) FlatStructureVectorsType.newInstance();
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
 		checkMethods( FlatStructureVectorsType, getFlatStructuredVectorsType() );
@@ -292,7 +292,7 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( getInlineStructureType(), (Value) InLineStructureType.getMethod("toValue", InLineStructureType ).invoke( inLineStructureType, inLineStructureType ), 0 ) );
 
 		Jolie2JavaInterface inLineStructureTypeEmpty = (Jolie2JavaInterface) InLineStructureType.newInstance();
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
 		checkMethods( InLineStructureType, getInlineStructureType() );
@@ -318,7 +318,7 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( getInlineStructureVectorsType(), (Value) InLineStructureVectorsType.getMethod("toValue", InLineStructureVectorsType ).invoke( inLineStructureVectorsType, inLineStructureVectorsType ), 0 ) );
 
 		Jolie2JavaInterface inLineStructureVectorsTypeEmpty = (Jolie2JavaInterface) InLineStructureVectorsType.newInstance();
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
 		checkMethods( InLineStructureVectorsType, getInlineStructureVectorsType() );
@@ -344,7 +344,7 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( getLinkedTypeStructureType(), (Value) LinkedTypeStructureType.getMethod("toValue", LinkedTypeStructureType ).invoke( linkedTypeStructureType, linkedTypeStructureType ), 0 ) );
 
 		Jolie2JavaInterface linkedTypeStructureTypeEmpty = (Jolie2JavaInterface) LinkedTypeStructureType.newInstance();
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
 		checkMethods( LinkedTypeStructureType, getLinkedTypeStructureType() );
@@ -411,7 +411,7 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( choiceLinkedType.getValue(), ((Jolie2JavaInterface) ChoiceLinkedType.getMethod("fromValue", Value.class ).invoke( choiceLinkedType, testValue )).getValue(), 0 ));
 		assertTrue( compareValues( testValue, (Value) ChoiceLinkedType.getMethod("toValue", ChoiceLinkedType ).invoke( choiceLinkedType, choiceLinkedType ), 0 ) );
 
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 		// Exception
 		try {
 			testValue.setValue( TESTBOOL );
@@ -480,7 +480,7 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( testValue, (Value) ChoiceInlineType.getMethod("toValue", ChoiceInlineType ).invoke( choiceInlineType, choiceInlineType ), 0 ) );
 
 
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 		// Exception
 		try {
 			testValue.setValue( TESTBOOL );
@@ -549,7 +549,7 @@ public class JavaDocumentCreatorTest
 		assertTrue( compareValues( testValue, (Value) ChoiceSimpleType.getMethod("toValue", ChoiceSimpleType ).invoke( choiceSimpleType, choiceSimpleType ), 0 ) );
 
 
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 		// Exception
 		try {
 			testValue.setValue( TESTBOOL );
@@ -590,7 +590,7 @@ public class JavaDocumentCreatorTest
 
 
 		Jolie2JavaInterface linkedTypeStructureVectorsTypeEmpty = (Jolie2JavaInterface) LinkedTypeStructureVectorsType.newInstance();
-		System.out.println( testName + " contructors and getValue() OK" );
+		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
 		checkMethods( LinkedTypeStructureVectorsType, getLinkedTypeStructureVectorsType() );
@@ -615,7 +615,7 @@ public class JavaDocumentCreatorTest
 
 
 			Jolie2JavaInterface rootValueTypeInstanceEmpty = (Jolie2JavaInterface) RootValueType.newInstance();
-			System.out.println( testName + " contructors and getValue() OK" );
+			System.out.println( testName + " constructors and getValue() OK" );
 			// check methods
 			checkMethods( RootValueType, getRootValue( i ) );
 			System.out.println( testName + " checking methods OK" );
@@ -657,7 +657,7 @@ public class JavaDocumentCreatorTest
 
 
 			Jolie2JavaInterface simpleTypeInstanceEmpty = (Jolie2JavaInterface) simpleType.newInstance();
-			System.out.println( testName + " contructors and getValue() OK" );
+			System.out.println( testName + " constructors and getValue() OK" );
 			// check methods
 			checkMethods( simpleType, v );
 			System.out.println( testName + " checking methods OK" );
