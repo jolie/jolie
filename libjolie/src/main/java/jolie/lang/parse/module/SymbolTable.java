@@ -100,8 +100,10 @@ public class SymbolTable
     /**
      * create and add an external Symbol with it's module target to the table
      * 
-     * @param name Symbol name in local execution context
-     * @param node an AST node implementing SymbolNode
+     * @param context             Context where symbol is declare
+     * @param name                Symbol name
+     * @param moduleTargetStrings String array defining target module location defined at import
+     *                            statement
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */
@@ -120,7 +122,8 @@ public class SymbolTable
      * 
      * @param context             Context where symbol is declare
      * @param name                Symbol name
-     * @param moduleTargetStrings String array defined at import statement
+     * @param moduleTargetStrings String array defining target module location defined at import
+     *                            statement
      * @param moduleSymbol        Name for binding result to local environment
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
@@ -138,7 +141,8 @@ public class SymbolTable
     /**
      * add an wildcard Symbol to table
      * 
-     * @param moduleTargetStrings an array of String defined at import statement
+     * @param moduleTargetStrings an array of defining target module locationString defined at
+     *                            import statement
      */
     public void addWildCardSymbol( ParsingContext context, String[] moduleTargetStrings )
     {
