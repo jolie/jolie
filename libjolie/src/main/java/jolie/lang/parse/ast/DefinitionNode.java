@@ -23,12 +23,14 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.module.SymbolInfo.Privacy;
 
 
-public class DefinitionNode extends OLSyntaxNode
+public class DefinitionNode extends OLSyntaxNode implements SymbolNode
 {
 	private final String id;
 	private final OLSyntaxNode body;
+	private Privacy privacy;
 
 	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body )
 	{
@@ -51,5 +53,29 @@ public class DefinitionNode extends OLSyntaxNode
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
+	}
+
+	@Override
+	public Privacy privacy()
+	{
+		return privacy;
+	}
+
+	@Override
+	public void setPrivacy( Privacy privacy )
+	{
+		this.privacy = privacy;
+	}
+
+	@Override
+	public String name()
+	{
+		return this.id;
+	}
+
+	@Override
+	public OLSyntaxNode node()
+	{
+		return this;
 	}
 }

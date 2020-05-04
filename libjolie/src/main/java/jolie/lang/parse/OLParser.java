@@ -281,7 +281,11 @@ public class OLParser extends AbstractParser
 			getToken();
 		}
 
-		if ( token.isKeyword( "type" ) ) {
+		if ( token.is( Scanner.TokenType.DEFINE ) ) {
+			DefinitionNode defNode = parseDefinition();
+			defNode.setPrivacy( privacy );
+			node = defNode;
+		} else if ( token.isKeyword( "type" ) ) {
 			String typeName;
 			TypeDefinition currentType;
 			getToken();
@@ -1566,9 +1570,7 @@ public class OLParser extends AbstractParser
 		boolean keepRun = true;
 
 		do {
-			if ( token.is( Scanner.TokenType.DEFINE ) ) {
-				programBuilder.addChild( parseDefinition() );
-			} else if ( token.isKeyword( "courier" ) ) {
+			if ( token.isKeyword( "courier" ) ) {
 				programBuilder.addChild( parseCourierDefinition() );
 			} else if ( token.isKeyword( "main" ) ) {
 				if ( main != null ) {

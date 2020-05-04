@@ -161,6 +161,13 @@ public class SymbolTableGenerator
         @Override
         public void visit( DefinitionNode n )
         {
+            try {
+                this.symbolTable.addSymbol( n.id(), n );
+            } catch (ModuleException e) {
+                this.valid = false;
+                e.setContext( n.context() );
+                this.error = e;
+            }
         }
 
         @Override

@@ -302,13 +302,22 @@ public class GlobalSymbolReferenceResolver
         @Override
         public void visit( DefinitionCallStatement n )
         {
-            SymbolInfo targetSymbol = this.moduleMap.get( currentURI ).symbol( n.id() );
 
-            // if symbol is not found, try look up at wildcard import table
-            if ( targetSymbol == null ) {
-                targetSymbol = this.wildcardImported.get( n.id() );
+            Optional< SymbolInfo > symbol = this.moduleMap.get( currentURI ).symbol( n.id() );
+            if ( !symbol.isPresent() ) {
+                this.valid = false;
+                this.error = new ModuleException( n.context(),
+                        n.id() + " is not defined in symbolTable" );
+                return;
             }
-            DefinitionNode linkedNode = (DefinitionNode) targetSymbol.node();
+            if ( !(symbol.get().node() instanceof DefinitionNode) ) {
+                this.valid = false;
+                this.error = new ModuleException( n.context(),
+                        n.id() + " is not defined as an procedure definition" );
+                return;
+            }
+
+            DefinitionNode linkedNode = (DefinitionNode) symbol.get().node();
             if ( linkedNode == null ) {
                 this.valid = false;
                 this.error = new ModuleException(
