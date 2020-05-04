@@ -357,7 +357,6 @@ public class OOITBuilder implements OLVisitor
 
 	private void resolveTypeLinks()
 	{
-		// Type type;
 		Type linkedType;
 		for ( int i = 0 ; i < typeLinks.size(); i++){
 			Pair< Type.TypeLink, TypeDefinition > pair  = typeLinks.get(i);
@@ -644,7 +643,7 @@ public class OOITBuilder implements OLVisitor
 	private Type currType;
 	boolean insideType = false;
 	
-	private final Map< String, Type > types = new HashMap< String, Type >();
+	private final Map< TypeDefinition, Type > typeMap = new HashMap<>();
 	private final Map< String, Map< String, OneWayTypeDescription > > notificationTypes =
 		new HashMap< String, Map< String, OneWayTypeDescription > >(); // Maps output ports to their OW operation types
 	private final Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
@@ -675,12 +674,9 @@ public class OOITBuilder implements OLVisitor
 		insideType = backupInsideType;
 
 		if ( insideType == false && insideOperationDeclarationOrInstanceOf == false ) {
-			types.put( n.id(), currType );
 			typeMap.put( n, currType );
 		}
 	}
-
-	private Map< TypeDefinition, Type > typeMap = new HashMap<>();
 
 	public void visit( TypeDefinitionLink n )
 	{
@@ -689,7 +685,6 @@ public class OOITBuilder implements OLVisitor
 		typeLinks.add( new Pair<>( link, n.linkedType() ) );
 
 		if ( insideType == false && insideOperationDeclarationOrInstanceOf == false ) {
-			types.put( n.id(), currType );
 			typeMap.put( n, currType );
 		}
 	}
@@ -1754,7 +1749,6 @@ public class OOITBuilder implements OLVisitor
 
 		insideType = wasInsideType;
 		if ( insideType == false && insideOperationDeclarationOrInstanceOf == false ) {
-			types.put( n.id(), currType );
 			typeMap.put( n, currType );
 		}
 	}

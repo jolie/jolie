@@ -180,7 +180,7 @@ class RelativePathFinder extends Finder
 
 
 /**
- * A class represent the finder for absolute path importstatement
+ * A class represent the finder for absolute path import statement
  */
 class AbsolutePathFinder extends Finder
 {

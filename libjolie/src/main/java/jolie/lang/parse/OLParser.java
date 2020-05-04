@@ -2976,8 +2976,13 @@ public class OLParser extends AbstractParser
 					}
 				} while (keepRun);
 			}
-			ImportStatement stmt = new ImportStatement( getContext(),
-					importTarget.toArray( new String[0] ), isNamespaceImport, pathNodes );
+			ImportStatement stmt = null;
+			if ( isNamespaceImport ) {
+				stmt = new ImportStatement( getContext(), importTarget.toArray( new String[0] ) );
+			} else {
+				stmt = new ImportStatement( getContext(), importTarget.toArray( new String[0] ),
+						pathNodes );
+			}
 			programBuilder.addChild( stmt );
 			return;
 		}

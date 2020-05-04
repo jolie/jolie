@@ -120,9 +120,22 @@ public class TypeDefinitionLink extends TypeDefinition
 	{
 		final int prime = 31;
 		int result = super.hashCode();
-		// result = prime * result + ((linkedType == null) ? 0 : linkedType.hashCode());
 		result = prime * result + ((linkedTypeName == null) ? 0 : linkedTypeName.hashCode());
 		return result;
 	}
+
+	@Override
+	public boolean equals( Object obj )
+	{
+		if ( this == obj ) return true;
+		if ( !super.equals( obj ) ) return false;
+		if ( getClass() != obj.getClass() ) return false;
+		TypeDefinitionLink other = (TypeDefinitionLink) obj;
+		if ( linkedTypeName == null ) {
+			if ( other.linkedTypeName != null ) return false;
+		} else if ( !linkedTypeName.equals( other.linkedTypeName ) ) return false;
+		return true;
+	}
+	
 
 }

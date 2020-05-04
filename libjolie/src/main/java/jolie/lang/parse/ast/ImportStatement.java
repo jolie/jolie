@@ -41,10 +41,10 @@ public class ImportStatement extends OLSyntaxNode
     /**
      * Constructor for namespace import
      * 
-     * @param context        parsing context
-     * @param importTarget[] tokenized import target, empty denote a dot token (
-     *                       import target for .A.B should give this field ["", "A",
-     *                       "", "B"])
+     * @param context      parsing context
+     * @param importTarget tokenized import target, empty denote a dot token (
+     *                     import target for .A.B should give this field ["", "A",
+     *                     "", "B"])
      */
     public ImportStatement( ParsingContext context, String[] importTarget )
     {
@@ -54,10 +54,12 @@ public class ImportStatement extends OLSyntaxNode
     /**
      * Constructor for qualified import
      * 
-     * @param context        a parsing context
-     * @param importTarget[] tokenized import target, empty denote a dot token (
-     *                       import target for .A.B should give this field ["", "A",
-     *                       "", "B"])
+     * @param context      a parsing context
+     * @param importTarget tokenized import target, empty denote a dot token (
+     *                     import target for .A.B should give this field ["", "A",
+     *                     "", "B"])
+     * @param pathNodes    list of parsed Symbol token in target Symbol each element in list refer
+     *                     to pair of <moduleSymbolName: localSymbolName>
      */
     public ImportStatement( ParsingContext context, String[] importTarget,
             List< Pair< String, String > > pathNodes )
@@ -65,7 +67,19 @@ public class ImportStatement extends OLSyntaxNode
         this( context, importTarget, false, pathNodes );
     }
 
-    public ImportStatement( ParsingContext context, String[] importTarget,
+
+    /**
+     * Constructor for qualified import
+     * 
+     * @param context      a parsing context
+     * @param importTarget tokenized import target, empty denote a dot token (
+     *                     import target for .A.B should give this field ["", "A",
+     *                     "", "B"])
+     * @param isNamespaceImport a boolean flag if the 
+     * @param pathNodes    list of parsed Symbol token in target Symbol each element in list refer
+     *                     to pair of <moduleSymbolName: localSymbolName>
+     */
+    private ImportStatement( ParsingContext context, String[] importTarget,
             boolean isNamespaceImport, List< Pair< String, String > > pathNodes )
     {
         super( context );
@@ -119,14 +133,12 @@ public class ImportStatement extends OLSyntaxNode
     public String toString()
     {
         String target = (this.isNamespaceImport) ? "*" : prettyPrintTarget();
-        return "from " + target + " import " + Arrays.toString(this.importSymbolTargets);
+        return "from " + target + " import " + Arrays.toString( this.importSymbolTargets );
     }
 
-    // ImportStatement is resolved at OLParser.parse(), thus this function is
-    // unused.
     @Override
     public void accept( OLVisitor visitor )
     {
-        visitor.visit(this);
+        visitor.visit( this );
     }
 }

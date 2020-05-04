@@ -62,6 +62,8 @@ public class SymbolTable
     /**
      * resolve the wildcard symbol by replace with array of symbol rely in it's symbolTable
      * 
+     * @param wildCardSymbol      a wildcard symbol in symbol table to replace
+     * @param symbolsFromWildcard array of symbols in parsed wildcardSymbol's module
      * @throws ModuleException when adding name duplicate name to the symbol
      */
     public void replaceWildCardSymbol( SymbolWildCard wildCardSymbol,
@@ -82,6 +84,9 @@ public class SymbolTable
     /**
      * create and add a local Symbol with it's ASTNode to the table
      * 
+     * @param name Symbol name in local execution context
+     * @param node an AST node implementing SymbolNode
+     * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */
     public void addSymbol( String name, SymbolNode node ) throws ModuleException
@@ -94,6 +99,9 @@ public class SymbolTable
 
     /**
      * create and add an external Symbol with it's module target to the table
+     * 
+     * @param name Symbol name in local execution context
+     * @param node an AST node implementing SymbolNode
      * 
      * @throws ModuleException when adding name duplicate name to the symbol
      */

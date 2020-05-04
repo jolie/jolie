@@ -38,6 +38,7 @@ public class SymbolInfoExternal extends SymbolInfo
         this.moduleTargets = moduleTargets;
         this.moduleSymbol = moduleSymbol;
     }
+    
     /**
      * set a destination source of the symbol, this should be called once
      */

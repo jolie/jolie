@@ -65,7 +65,7 @@ public abstract class SymbolInfo
     /**
      * privacy of this symbol
      */
-    private Privacy privacy;
+    final private Privacy privacy;
 
     /**
      * Declaration context of the symbol
@@ -78,26 +78,31 @@ public abstract class SymbolInfo
      * 
      * @param name  Symbol name
      * @param scope scope of Symbol
-     * @param node  an ASTNode
+     * @param node  an ASTNode implementing SymbolNode
      */
     public SymbolInfo( String name, Scope scope, SymbolNode node )
     {
-        this( node.node().context(), name, scope );
+        this.context = node.node().context();
+        this.name = name;
+        this.scope = scope;
         this.privacy = node.privacy();
         this.node = node.node();
     }
 
     /**
-     * constructor for SymbolInfo, this constructor is used when AST Node is unknown
+     * constructor for SymbolInfo, this constructor is used when AST Node is unknown at creating
+     * time or in an external context
      * 
-     * @param name  Symbol name
-     * @param scope scope of Symbol
+     * @param context context of creating Symbol
+     * @param name    Symbol name
+     * @param scope   scope of Symbol
      */
     public SymbolInfo( ParsingContext context, String name, Scope scope )
     {
         this.context = context;
         this.name = name;
         this.scope = scope;
+        this.privacy = Privacy.PRIVATE;
     }
 
     public String name()
