@@ -178,7 +178,6 @@ public class SemanticVerifier implements OLVisitor
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes;
-	// private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
 	//private TypeDefinition rootType; // the type representing the whole session state
 	private final Map< String, Boolean > isConstantMap = new HashMap<>();
 	
@@ -293,18 +292,6 @@ public class SemanticVerifier implements OLVisitor
 		semanticException.addSemanticError( node, message);		
 	}
 
-	// private void resolveLazyLinks()
-	// {
-	// 	for( TypeDefinitionLink l : definedTypeLinks ) {
-	// 		if (l.linkedType() == null){
-	// 			l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
-	// 			if ( l.linkedType() == null ) {
-	// 				error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 	private void checkToBeEqualTypes()
 	{
 		for( Entry< TypeDefinition, List< TypeDefinition > > entry : typesToBeEqual.entrySet() ) {
@@ -391,7 +378,6 @@ public class SemanticVerifier implements OLVisitor
 		throws SemanticException
 	{
 		program.accept( this );
-		// resolveLazyLinks();
 		checkToBeEqualTypes();
 		checkCorrelationSets();
 		
@@ -450,7 +436,6 @@ public class SemanticVerifier implements OLVisitor
 			}
 			definedTypes.put( n.id(), n );
 		}
-		// definedTypeLinks.add( n );
 	}
 
 	public void visit( TypeChoiceDefinition n )
@@ -1214,7 +1199,8 @@ public class SemanticVerifier implements OLVisitor
 	}
 
 	@Override
-	public void visit(ForEachArrayItemStatement n) {
+	public void visit( ForEachArrayItemStatement n )
+	{
 		n.keyPath().accept( this );
 		n.targetPath().accept( this );
 		n.body().accept( this );

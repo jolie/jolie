@@ -100,11 +100,7 @@ import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
-import jolie.tracer.DummyTracer;
-import jolie.tracer.FileTracer;
-import jolie.tracer.PrintingTracer;
-import jolie.tracer.Tracer;
-import jolie.tracer.TracerUtils;
+import jolie.tracer.*;
 
 /**
  * The Jolie interpreter engine.
@@ -1282,9 +1278,7 @@ public class Interpreter
 
 					GlobalSymbolReferenceResolver symbolResolver =
 							new GlobalSymbolReferenceResolver( crawlResult );
-					symbolResolver.resolveExternalSymbols();
-
-					symbolResolver.resolveLinkedType();
+					symbolResolver.resolve();
 					symbolTables = symbolResolver.symbolTables();
 					program = mainRecord.program();
 				}

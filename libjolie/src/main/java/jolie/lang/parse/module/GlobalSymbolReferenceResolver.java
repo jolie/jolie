@@ -809,6 +809,8 @@ public class GlobalSymbolReferenceResolver
 
     /**
      * resolve LinkedType of each ModuleRecord AST node in the Map.
+     * 
+     * @throws ModuleException if the linked type cannot find it's referencing node
      */
     public void resolveLinkedType() throws ModuleException
     {
@@ -817,6 +819,17 @@ public class GlobalSymbolReferenceResolver
         for (ModuleRecord md : moduleMap.values()) {
             resolver.resolve( md.program() );
         }
+    }
+
+    /**
+     * Resolve symbols the is imported from external modules and resolve linked type's pointer
+     * 
+     * @throws ModuleException if the process is failed
+     */
+    public void resolve() throws ModuleException
+    {
+        this.resolveExternalSymbols();
+        this.resolveLinkedType();
     }
 
     public Map< URI, SymbolTable > symbolTables()

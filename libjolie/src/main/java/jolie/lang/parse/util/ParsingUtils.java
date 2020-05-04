@@ -73,9 +73,8 @@ public class ParsingUtils
 
 		GlobalSymbolReferenceResolver symbolResolver =
 				new GlobalSymbolReferenceResolver( crawlResult );
-		symbolResolver.resolveExternalSymbols();
-
-		symbolResolver.resolveLinkedType();
+				
+		symbolResolver.resolve();
 
 		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
 				symbolResolver.symbolTables(), configuration );
