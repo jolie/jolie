@@ -78,7 +78,7 @@ public class SymbolTable
                 this.symbols.put( symbolFromWildcard.name(), symbolFromWildcard );
             }
         }
-        this.symbols.remove( wildCardSymbol.moduleSource().get(), wildCardSymbol );
+        this.symbols.remove( wildCardSymbol.name(), wildCardSymbol );
     }
 
     /**
