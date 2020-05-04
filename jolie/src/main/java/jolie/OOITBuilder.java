@@ -1185,6 +1185,11 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( DefinitionCallStatement n )
 	{
+		try {
+			interpreter.getDefinition( n.id() );
+		} catch (InvalidIdException e) {
+			n.definition().accept( this );
+		}
 		currProcess = new CallProcess( n.id() );
 	}
 

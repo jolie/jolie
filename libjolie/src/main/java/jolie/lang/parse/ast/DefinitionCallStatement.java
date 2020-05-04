@@ -28,6 +28,7 @@ import jolie.lang.parse.context.ParsingContext;
 public class DefinitionCallStatement extends OLSyntaxNode
 {
 	private final String id;
+	private DefinitionNode definition;
 
 	public DefinitionCallStatement( ParsingContext context, String id )
 	{
@@ -39,7 +40,17 @@ public class DefinitionCallStatement extends OLSyntaxNode
 	{
 		return id;
 	}
-	
+
+	public void setDefinitionLink( DefinitionNode definitionNode )
+	{
+		this.definition = definitionNode;
+	}
+
+	public DefinitionNode definition()
+	{
+		return this.definition;
+	}
+
 	@Override
 	public void accept( OLVisitor visitor )
 	{
