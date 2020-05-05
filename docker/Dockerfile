@@ -3,9 +3,10 @@ FROM openjdk:alpine as JolieBuild
 # Download and install Jolie. We need it for running the release tools.
 RUN apk update
 RUN apk add git maven
-RUN git clone --depth=1 https://github.com/jolie/jolie.git jolie-git
+# RUN git clone --depth=1 https://github.com/jolie/jolie.git jolie-git
+COPY . /jolie-git
 WORKDIR /jolie-git
-RUN mvn install
+RUN mvn -T 1C -Dmaven.test.skip -DskipTests -pl '!test' clean install
 RUN cp -avr /jolie-git/dist/jolie/ /usr/lib/jolie/
 RUN cp -a /jolie-git/dist/launchers/unix/.  /usr/bin/
 ENV JOLIE_HOME /usr/lib/jolie
@@ -14,7 +15,7 @@ ENV JOLIE_HOME /usr/lib/jolie
 WORKDIR /
 RUN git clone --depth=1 https://github.com/jolie/release_tools.git
 WORKDIR /release_tools/jolie_installer
-RUN mvn install
+RUN mvn -T 1C -Dmaven.test.skip -DskipTests clean install
 WORKDIR /release_tools
 RUN apk add zip
 RUN jolie release.ol ../jolie-git
