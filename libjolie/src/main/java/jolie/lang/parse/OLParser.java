@@ -711,7 +711,7 @@ public class OLParser extends AbstractParser
 	{
 		IncludeFile ret;
 
-		String urlStr = UriUtils.normalizeJolieUri( UriUtils.resolve( UriUtils.normalizeWindowsPath( context ), target ) );
+		String urlStr = UriUtils.normalizeJolieUri( UriUtils.normalizeWindowsPath( UriUtils.resolve( context , target ) ) );
 		ret = tryAccessIncludeFile( urlStr );
 
 		if ( ret == null ) {
@@ -723,9 +723,9 @@ public class OLParser extends AbstractParser
 
 		return ret;
 	}
-	
+
 	private final Map< String, URL > resourceCache = new HashMap<>();
-	
+
 	private IncludeFile tryAccessIncludeFile( String origIncludeStr )
 	{
 		final String includeStr = UriUtils.normalizeWindowsPath( origIncludeStr );
