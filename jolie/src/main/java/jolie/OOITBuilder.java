@@ -1119,6 +1119,9 @@ public class OOITBuilder implements OLVisitor
 	{
 		if (!isLHS) return buildVariablePath(path);
 
+		if ( path == null )
+			return null;
+			
 		final Expression backupExpr = currExpression;
 
 		@SuppressWarnings("unchecked")
