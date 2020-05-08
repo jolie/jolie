@@ -486,7 +486,7 @@ main {
             response.result = true
             if ( request.p1.protocol != request.p2.protocol ) {
                 response.result = false
-                response.errors[ #errors ] = "Protocols are different"
+                response.errors[ #response.errors ] = "Protocols are different"
             }
 
             // aggregating interfaces into a single interface
@@ -514,7 +514,7 @@ main {
             if ( !result.result ) {
                 response.result = false
                 for( e in result.errors ) {
-                    response.errors[ #errors ] << e
+                    response.errors[ #response.errors ] << e
                 }
             }
             
