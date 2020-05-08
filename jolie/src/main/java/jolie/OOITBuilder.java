@@ -248,6 +248,7 @@ public class OOITBuilder implements OLVisitor
 		new HashMap<>();
 	private final Deque< OLSyntaxNode > lazyVisits = new LinkedList<>();	
 	private boolean firstPass = true;
+	private String currentScopeId = null;
 
 	private static class AggregationConfiguration {
 		private final OutputPort defaultOutputPort;
@@ -294,6 +295,11 @@ public class OOITBuilder implements OLVisitor
 		return context.sourceName() + ":" + context.line() + ": " + message;
 	}
 	
+	private void warning( ParsingContext context, String message )
+	{
+		interpreter.logWarning( buildErrorMessage( context, message ) );
+	}
+
 	private void error( ParsingContext context, String message )
 	{
 		valid = false;
@@ -1016,7 +1022,9 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( Scope n )
 	{
+		currentScopeId = n.id();
 		n.body().accept( this );
+		currentScopeId = null;
 		currProcess = new ScopeProcess( n.id(), currProcess );
 	}
 		
@@ -1115,17 +1123,34 @@ public class OOITBuilder implements OLVisitor
 		final Expression backupExpr = currExpression;
 
 		@SuppressWarnings("unchecked")
-		Pair< Expression, Expression >[] internalPath = new Pair[ path.path().size() ];
-		int i = 0;
-		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
-			pair.key().accept( this );
-			Expression keyExpr = currExpression;
-			if ( pair.value() != null ) {
-				pair.value().accept( this );
+		int pathSize = path.path().size();
+		Pair< Expression, Expression >[] internalPath = new Pair[ pathSize ];
+		
+		// perform check if variable root path is conflicted with scope name
+		Pair< OLSyntaxNode, OLSyntaxNode > currPathPair = path.path().get(0);
+		currPathPair.key().accept( this );
+		Expression keyExpr = currExpression;
+		if (currentScopeId != null && keyExpr.evaluate().strValue().equals( currentScopeId ) ) {
+			warning( path.context(), "DEPRECATION: usage of same variable name as scope name "
+					+ currentScopeId );
+		}
+		if ( currPathPair.value() != null ) {
+			currPathPair.value().accept( this );
+		} else {
+			currExpression = null;
+		}
+		internalPath[ 0 ] = new Pair<>( keyExpr, currExpression );
+
+		for (int i = 1 ; i < pathSize ; i++ ){
+			currPathPair = path.path().get(i);
+			currPathPair.key().accept( this );
+			keyExpr = currExpression;
+			if ( currPathPair.value() != null ) {
+				currPathPair.value().accept( this );
 			} else {
 				currExpression = null;
 			}
-			internalPath[ i++ ] = new Pair<>( keyExpr, currExpression );
+			internalPath[ i ] = new Pair<>( keyExpr, currExpression );
 		}
 		
 		currExpression = backupExpr;
