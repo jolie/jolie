@@ -248,7 +248,6 @@ public class OOITBuilder implements OLVisitor
 		new HashMap<>();
 	private final Deque< OLSyntaxNode > lazyVisits = new LinkedList<>();	
 	private boolean firstPass = true;
-	private String currentScopeId = null;
 
 	private static class AggregationConfiguration {
 		private final OutputPort defaultOutputPort;
@@ -295,11 +294,6 @@ public class OOITBuilder implements OLVisitor
 		return context.sourceName() + ":" + context.line() + ": " + message;
 	}
 	
-	private void warning( ParsingContext context, String message )
-	{
-		interpreter.logWarning( buildErrorMessage( context, message ) );
-	}
-
 	private void error( ParsingContext context, String message )
 	{
 		valid = false;
@@ -1022,9 +1016,7 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( Scope n )
 	{
-		currentScopeId = n.id();
 		n.body().accept( this );
-		currentScopeId = null;
 		currProcess = new ScopeProcess( n.id(), currProcess );
 	}
 		
@@ -1049,7 +1041,7 @@ public class OOITBuilder implements OLVisitor
 			
 		AssignmentProcess p = 
 			new AssignmentProcess(
-				buildVariablePath( n.variablePath(), true ),
+				buildVariablePath( n.variablePath() ),
 				currExpression, n.context()
 				);
 		currProcess = p;
@@ -1062,7 +1054,7 @@ public class OOITBuilder implements OLVisitor
 
 		AddAssignmentProcess p =
 			new AddAssignmentProcess(
-			buildVariablePath( n.variablePath(), true ),
+			buildVariablePath( n.variablePath() ),
 			currExpression );
 		currProcess = p;
 		currExpression = p;
@@ -1074,7 +1066,7 @@ public class OOITBuilder implements OLVisitor
 
 		SubtractAssignmentProcess p =
 			new SubtractAssignmentProcess(
-			buildVariablePath( n.variablePath(), true ),
+			buildVariablePath( n.variablePath() ),
 			currExpression, n.context() );
 		currProcess = p;
 		currExpression = p;
@@ -1086,7 +1078,7 @@ public class OOITBuilder implements OLVisitor
 
 		MultiplyAssignmentProcess p =
 			new MultiplyAssignmentProcess(
-			buildVariablePath( n.variablePath(), true ),
+			buildVariablePath( n.variablePath() ),
 			currExpression );
 		currProcess = p;
 		currExpression = p;
@@ -1098,7 +1090,7 @@ public class OOITBuilder implements OLVisitor
 
 		DivideAssignmentProcess p =
 			new DivideAssignmentProcess(
-			buildVariablePath( n.variablePath(), true ),
+			buildVariablePath( n.variablePath() ),
 			currExpression );
 		currProcess = p;
 		currExpression = p;
@@ -1113,53 +1105,6 @@ public class OOITBuilder implements OLVisitor
 		));
 		csetVarPathNode.path().addAll( path.path() );
 		return buildVariablePath( csetVarPathNode );
-	}
-
-	private VariablePath buildVariablePath( VariablePathNode path, boolean isLHS )
-	{
-		if (!isLHS) return buildVariablePath(path);
-
-		if ( path == null )
-			return null;
-			
-		final Expression backupExpr = currExpression;
-
-		@SuppressWarnings("unchecked")
-		int pathSize = path.path().size();
-		Pair< Expression, Expression >[] internalPath = new Pair[ pathSize ];
-		
-		// perform check if variable root path is conflicted with scope name
-		Pair< OLSyntaxNode, OLSyntaxNode > currPathPair = path.path().get( 0 );
-		currPathPair.key().accept( this );
-		Expression keyExpr = currExpression;
-		if ( currentScopeId != null && keyExpr.evaluate().strValue().equals( currentScopeId ) ) {
-			warning( path.context(),
-					"DEPRECATION: usage of same variable name as scope name " + currentScopeId );
-		}
-		if ( currPathPair.value() != null ) {
-			currPathPair.value().accept( this );
-		} else {
-			currExpression = null;
-		}
-		internalPath[0] = new Pair<>( keyExpr, currExpression );
-
-		for (int i = 1; i < pathSize; i++) {
-			currPathPair = path.path().get( i );
-			currPathPair.key().accept( this );
-			keyExpr = currExpression;
-			if ( currPathPair.value() != null ) {
-				currPathPair.value().accept( this );
-			} else {
-				currExpression = null;
-			}
-			internalPath[i] = new Pair<>( keyExpr, currExpression );
-		}
-
-		currExpression = backupExpr;
-
-		return path.isGlobal() ? new GlobalVariablePath( internalPath )
-				: new VariablePath( internalPath );
-
 	}
 	
 	private VariablePath buildVariablePath( VariablePathNode path )
@@ -1196,7 +1141,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		currProcess =
 			new MakePointerProcess(
-				buildVariablePath( n.leftPath(), true ),
+				buildVariablePath( n.leftPath() ),
 				buildVariablePath( n.rightPath() ), n.context()
 			);
 	}
@@ -1205,7 +1150,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		currProcess =
 			new DeepCopyProcess(
-				buildVariablePath( n.leftPath(), true ),
+				buildVariablePath( n.leftPath() ),
 				buildExpression( n.rightExpression() ),
 				n.copyLinks(), n.context()
 			);

@@ -182,6 +182,8 @@ public class SemanticVerifier implements OLVisitor
 	private OperationType insideCourierOperationType = null;
 	private InputPortInfo courierInputPort = null;
 
+	private Scope currentScope = null;
+
 	public SemanticVerifier( Program program, Configuration configuration )
 	{
 		this.program = program;
@@ -212,6 +214,10 @@ public class SemanticVerifier implements OLVisitor
 
 	private void encounteredAssignment( String varName )
 	{
+		if ( this.currentScope != null && this.currentScope.id().equals( varName ) ) {
+			warning( currentScope, "DEPRECATION: usage of same variable name \""+ varName + "\" inside scope \""+ varName + "\"" );
+		}
+
 		if ( isConstantMap.containsKey( varName ) ) {
 			isConstantMap.put( varName, false );
 		} else {
@@ -806,7 +812,9 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( Scope n )
 	{
+		currentScope = n;
 		n.body().accept( this );
+		currentScope = null;
 	}
 	
 	@Override
