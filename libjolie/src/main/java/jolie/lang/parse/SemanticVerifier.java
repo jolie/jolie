@@ -182,7 +182,7 @@ public class SemanticVerifier implements OLVisitor
 	private OperationType insideCourierOperationType = null;
 	private InputPortInfo courierInputPort = null;
 
-	private Scope currentScope = null;
+	private String currentScopeId = null;
 
 	public SemanticVerifier( Program program, Configuration configuration )
 	{
@@ -214,10 +214,6 @@ public class SemanticVerifier implements OLVisitor
 
 	private void encounteredAssignment( String varName )
 	{
-		if ( this.currentScope != null && this.currentScope.id().equals( varName ) ) {
-			warning( currentScope, "DEPRECATION: usage of same variable name \""+ varName + "\" inside scope \""+ varName + "\"" );
-		}
-
 		if ( isConstantMap.containsKey( varName ) ) {
 			isConstantMap.put( varName, false );
 		} else {
@@ -258,7 +254,11 @@ public class SemanticVerifier implements OLVisitor
 	private void encounteredAssignment( VariablePathNode path )
 	{
 		try {
-			encounteredAssignment( ( ( ConstantStringExpression ) path.path().get( 0 ).key()).value() );
+			String varName = ( ( ConstantStringExpression ) path.path().get( 0 ).key()).value();
+			if ( this.currentScopeId != null && this.currentScopeId.equals( varName ) ) {
+				warning( path, "DEPRECATION: usage of same variable name \""+ varName + "\" inside scope \""+ varName + "\"" );
+			}
+			encounteredAssignment( varName );
 		} catch ( IndexOutOfBoundsException | ClassCastException e ){
 			error( path, path.toPrettyString() + " is an invalid path" );
 		}
@@ -812,9 +812,9 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( Scope n )
 	{
-		currentScope = n;
+		this.currentScopeId = n.id();
 		n.body().accept( this );
-		currentScope = null;
+		this.currentScopeId = null;
 	}
 	
 	@Override
