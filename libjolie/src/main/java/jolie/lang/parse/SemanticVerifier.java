@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import jolie.lang.Constants.ExecutionMode;
@@ -117,9 +118,11 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.util.ArrayListMultiMap;
+import jolie.util.Helpers;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
 
@@ -374,6 +377,29 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	private boolean hasSymbolDefined( ParsingContext context, String name )
+	{
+		Optional< Boolean > hasSymbol = Helpers.firstNonNull( () -> {
+			if ( symbolTables.get( program.context().source() ) == null ) {
+				return null;
+			}
+			if ( !symbolTables.get( program.context().source() ).symbol( name ).isPresent() ) {
+				return null;
+			}
+			return Boolean.TRUE;
+		}, () -> {
+			if ( symbolTables.get( context.source() ) == null ) {
+				return null;
+			}
+			if ( !symbolTables.get( context.source() ).symbol( name ).isPresent() ) {
+				return null;
+			}
+			return Boolean.TRUE;
+		} );
+		return hasSymbol.isPresent();
+	}
+
+	
 	public void validate()
 		throws SemanticException
 	{
@@ -599,8 +625,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
 			// check from symbolTable
-			if ( symbolTables.get( n.context().source() ) == null || !symbolTables
-					.get( n.context().source() ).symbol( n.requestType().id() ).isPresent() ) {
+			if ( !hasSymbolDefined( n.context(), n.requestType().id()) ) {
 				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
 			}
 		}
@@ -620,23 +645,20 @@ public class SemanticVerifier implements OLVisitor
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
 			// check form symbolTable
-			if ( symbolTables.get( n.context().source() ) == null || !symbolTables
-					.get( n.context().source() ).symbol( n.requestType().id() ).isPresent() ) {
+			if ( !hasSymbolDefined( n.context(), n.requestType().id()) ) {
 				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
 			}
 		}
 		if ( definedTypes.get( n.responseType().id() ) == null ) {
 			// check form symbolTable
-			if ( symbolTables.get( n.context().source() ) == null || !symbolTables
-					.get( n.context().source() ).symbol( n.responseType().id() ).isPresent() ) {
+			if ( !hasSymbolDefined( n.context(), n.responseType().id()) ) {
 				error( n, "unknown type: " + n.responseType().id() + " for operation " + n.id() );
 			}
 		}
 		for (Entry< String, TypeDefinition > fault : n.faults().entrySet()) {
 			if ( definedTypes.containsKey( fault.getValue().id() ) == false ) {
 				// check form symbolTable
-				if ( symbolTables.get( n.context().source() ) == null || !symbolTables
-						.get( n.context().source() ).symbol( fault.getValue().id() ).isPresent() ) {
+				if ( !hasSymbolDefined( n.context(), fault.getValue().id() ) ) {
 					error( n, "unknown type for fault " + fault.getKey() );
 				}
 			}
@@ -962,6 +984,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( !subroutineNames.contains( n.id() ) && n.definition() == null ) {
 			error( n, "Call to undefined definition: " + n.id() );
 		}
+		n.definition().body().accept(this);
 	}
 
 	@Override

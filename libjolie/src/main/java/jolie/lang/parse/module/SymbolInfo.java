@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
+
 package jolie.lang.parse.module;
 
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -113,11 +114,8 @@ public abstract class SymbolInfo
     /**
      * set a pointer to an AST node. the pointer should be only defined once
      */
-    public void setPointer( OLSyntaxNode pointer ) throws ModuleException
+    public void setPointer( OLSyntaxNode pointer )
     {
-        if ( this.node != null ) {
-            new ModuleException( "Symbol " + this.name() + " AST node pointer is already defined" );
-        }
         this.node = pointer;
     }
 

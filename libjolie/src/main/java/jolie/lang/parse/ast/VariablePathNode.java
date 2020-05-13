@@ -230,4 +230,10 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 		}
 		return builder.toString();
 	}
+
+	@Override
+	public String toString()
+	{
+		return this.toPrettyString();
+	}
 }

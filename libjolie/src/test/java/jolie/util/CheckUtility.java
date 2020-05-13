@@ -221,8 +221,9 @@ public class CheckUtility
         }
     }
 
+
     /**
-     * checks if the ASTNode has all given OutputPort name in expectedPorts, throws an Exception is
+     * checks if the ASTNode has all given OutputPort in expectedPorts, throws an Exception is
      * a
      * port is not found or has different declaration
      * 

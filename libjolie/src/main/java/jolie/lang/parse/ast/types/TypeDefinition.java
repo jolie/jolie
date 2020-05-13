@@ -251,30 +251,6 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	// 	return this == other;
 	// }
 
-
-	@Override
-	public int hashCode()
-	{
-		int hash = 7;
-		hash = 31 * hash + this.id.hashCode();
-		hash = 31 * hash + this.cardinality.hashCode();
-		return hash;
-	}
-	
-	@Override
-	public boolean equals( Object obj )
-	{
-		if ( getClass() != obj.getClass() ) return false;
-		TypeDefinition other = (TypeDefinition) obj;
-		if ( cardinality == null ) {
-			if ( other.cardinality != null ) return false;
-		} else if ( !cardinality.equals( other.cardinality ) ) return false;
-		if ( id == null ) {
-			if ( other.id != null ) return false;
-		} else if ( !id.equals( other.id ) ) return false;
-		return true;
-	}
-
 	/* public abstract TypeDefinition getSubType( String id );
 	public abstract Set< Map.Entry< String, TypeDefinition > > subTypes();
 	public abstract boolean hasSubTypes();
@@ -294,8 +270,9 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	}
 
 	@Override
-    public void setPrivacy(Privacy privacy){
-		this.privacy = privacy;
+	public void setPrivate( boolean isPrivate )
+	{
+		this.privacy = isPrivate ? Privacy.PRIVATE : Privacy.PUBLIC;
 	}
 
 	@Override
@@ -306,5 +283,34 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	@Override
     public OLSyntaxNode node(){
 		return this;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((cardinality == null) ? 0 : cardinality.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((privacy == null) ? 0 : privacy.hashCode());
+		return result;
+	}
+
+	
+	@Override
+	public boolean equals( Object obj )
+	{
+		if ( this == obj ) return true;
+		if ( obj == null ) return false;
+		if ( getClass() != obj.getClass() ) return false;
+		TypeDefinition other = (TypeDefinition) obj;
+		if ( cardinality == null ) {
+			if ( other.cardinality != null ) return false;
+		} else if ( !cardinality.equals( other.cardinality ) ) return false;
+		if ( id == null ) {
+			if ( other.id != null ) return false;
+		} else if ( !id.equals( other.id ) ) return false;
+		if ( privacy != other.privacy ) return false;
+		return true;
 	}
 }

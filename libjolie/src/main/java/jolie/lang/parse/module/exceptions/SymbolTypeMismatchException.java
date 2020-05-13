@@ -17,34 +17,29 @@
  * MA 02110-1301  USA
  */
 
-package jolie.lang.parse.ast;
+ package jolie.lang.parse.module.exceptions;
 
-import jolie.lang.parse.module.SymbolInfo.Privacy;
+import jolie.lang.Constants;
 
-/**
- * An interface of Symbol defines an importable symbols in Jolie
- */
-public interface SymbolNode
+public class SymbolTypeMismatchException extends Exception
 {
-    /**
-     * returns the privacy of the symbol, can be either PRIVATE or PUBLIC
-     */
-    public Privacy privacy();
 
-    /**
-     * set Privacy of the symbol
-     * 
-     * @param isPrivate a boolean defines the private status of the symbol
-     */
-    public void setPrivate(boolean isPrivate);
+    private static final long serialVersionUID = Constants.serialVersionUID();
+    private final String symbolName;
+    private final String expectType;
+    private final String actualType;
 
-    /**
-     * returns qualify name of the symbol in local execution
-     */
-    public String name();
+    public SymbolTypeMismatchException( String symbolName, String expectType, String actualType )
+    {
+        super( symbolName );
+        this.symbolName = symbolName;
+        this.expectType = expectType;
+        this.actualType = actualType;
+    }
 
-    /**
-     * returns linking AST node of the symbol.
-     */
-    public OLSyntaxNode node();
+    @Override
+    public String getMessage()
+    {
+        return symbolName + " is not defined as a " + expectType + " found symbol of type " + actualType;
+    }
 }

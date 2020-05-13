@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
+
 package jolie.lang.parse.module;
 
 import java.util.Map;
@@ -105,6 +106,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 
 public class SymbolTableGenerator
 {
@@ -163,10 +165,9 @@ public class SymbolTableGenerator
         {
             try {
                 this.symbolTable.addSymbol( n.id(), n );
-            } catch (ModuleException e) {
+            } catch (DuplicateSymbolException e) {
                 this.valid = false;
-                e.setContext( n.context() );
-                this.error = e;
+                this.error = new ModuleException( n.context(), e );
             }
         }
 
@@ -478,10 +479,9 @@ public class SymbolTableGenerator
             }
             try {
                 this.symbolTable.addSymbol( n.id(), n );
-            } catch (ModuleException e) {
+            } catch (DuplicateSymbolException e) {
                 this.valid = false;
-                e.setContext( n.context() );
-                this.error = e;
+                this.error = new ModuleException( n.context(), e );
             }
         }
 
@@ -490,10 +490,9 @@ public class SymbolTableGenerator
         {
             try {
                 this.symbolTable.addSymbol( n.id(), n );
-            } catch (ModuleException e) {
+            } catch (DuplicateSymbolException e) {
                 this.valid = false;
-                e.setContext( n.context() );
-                this.error = e;
+                this.error = new ModuleException( n.context(), e );
             }
         }
 
@@ -502,10 +501,9 @@ public class SymbolTableGenerator
         {
             try {
                 this.symbolTable.addSymbol( n.name(), n );
-            } catch (ModuleException e) {
+            } catch (DuplicateSymbolException e) {
                 this.valid = false;
-                e.setContext( n.context() );
-                this.error = e;
+                this.error = new ModuleException( n.context(), e );
                 return;
             }
             for (Map.Entry< String, OperationDeclaration > op : n.operationsMap().entrySet()) {
@@ -568,10 +566,9 @@ public class SymbolTableGenerator
         {
             try {
                 this.symbolTable.addSymbol( n.id(), n );
-            } catch (ModuleException e) {
+            } catch (DuplicateSymbolException e) {
                 this.valid = false;
-                e.setContext( n.context() );
-                this.error = e;
+                this.error = new ModuleException(n.context(), e);
             }
         }
 
@@ -586,23 +583,23 @@ public class SymbolTableGenerator
                     try {
                         this.symbolTable.addSymbol( n.context(), targetSymbol.localSymbol(),
                                 n.importTarget(), targetSymbol.moduleSymbol() );
-                    } catch (ModuleException e) {
+                    } catch (DuplicateSymbolException e) {
                         this.valid = false;
-                        e.setContext( n.context() );
-                        this.error = e;
+                        this.error = new ModuleException(n.context(), e);
                     }
                 }
             }
         }
+
     }
 
     /**
-     * generate a SymbolTable of a Jolie ASTree. As the current implementation, it is walk through
+     * generate a SymbolTable of a Jolie AST. As the current implementation, it is walk through
      * the Jolie's program and read the definition of types and interfaces and create a SymbolInfo
-     * node for the ASTree. The import statement is consumed here to create an external SymbolInfo
+     * node for the AST. The import statement is consumed here to create an external SymbolInfo
      * to be resolve later by SymbolReferenceResolver class
      * 
-     * @param program a Jolie AST tree
+     * @param program a Jolie AST
      * @throws ModuleException when the duplication of SymbolDeclaration is detected.
      */
     public static SymbolTable generate( Program program ) throws ModuleException

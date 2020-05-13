@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Set;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
@@ -34,6 +33,7 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.GlobalSymbolReferenceResolver;
 import jolie.lang.parse.module.ModuleCrawler;
+import jolie.lang.parse.module.ModuleCrawler.ModuleCrawlerResult;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParser;
 import jolie.lang.parse.module.ModuleRecord;
@@ -68,8 +68,8 @@ public class ParsingUtils
 		parser.putConstants( definedConstants );
 		ModuleRecord mainRecord = parser.parse( source );
 
-		ModuleCrawler crawler = new ModuleCrawler( Paths.get(source).getParent(), packagesPaths );
-		Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+		ModuleCrawler crawler = new ModuleCrawler( Paths.get(source).getParent(), packagesPaths, parser );
+		ModuleCrawlerResult crawlResult = crawler.crawl( mainRecord );
 
 		GlobalSymbolReferenceResolver symbolResolver =
 				new GlobalSymbolReferenceResolver( crawlResult );

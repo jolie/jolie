@@ -67,12 +67,14 @@ import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.FinderCreator;
 import jolie.lang.parse.module.GlobalSymbolReferenceResolver;
 import jolie.lang.parse.module.ModuleCrawler;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParser;
 import jolie.lang.parse.module.ModuleRecord;
 import jolie.lang.parse.module.SymbolTable;
+import jolie.lang.parse.module.ModuleCrawler.ModuleCrawlerResult;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
@@ -308,6 +310,11 @@ public class Interpreter
 	private final File programDirectory;
 	private OutputPort monitor = null;
 
+	private Map<URI, SymbolTable> symbolTables;
+	private final FinderCreator finderCreator;
+	private final ModuleParser parser;
+	private final ModuleCrawler moduleCrawler;
+
 	public void setMonitor( OutputPort monitor )
 	{
 		this.monitor = monitor;
@@ -458,6 +465,33 @@ public class Interpreter
 		return includePaths;
 	}
 
+	/**
+	 * Returns the finder creator this Interpreter is considering.
+	 * @return the finder creator this Interpreter is considering
+	 */
+	public FinderCreator finderCreator()
+	{
+		return finderCreator;
+	}
+
+	/**
+	 * Returns the parser this Interpreter is considering.
+	 * @return the parser this Interpreter is considering
+	 */
+	public ModuleParser moduleParser()
+	{
+		return parser;
+	}
+
+	/**
+	 * Returns the module crawler this Interpreter is considering.
+	 * @return the module crawler this Interpreter is considering
+	 */
+	public ModuleCrawler moduleCrawler()
+	{
+		return moduleCrawler;
+	}
+	
 	/**
 	 * Registers a session starter on this <code>Interpreter</code>.
 	 * @param guard the input guard for this session starter
@@ -893,7 +927,7 @@ public class Interpreter
 		programFilepath = cmdParser.programFilepath().toString();
 		arguments = cmdParser.arguments();
 		printStackTraces = cmdParser.printStackTraces();
-		
+		finderCreator = new FinderCreator(cmdParser.packagesPaths());
 		responseTimeout = cmdParser.responseTimeout();
 
 		switch( cmdParser.tracerLevel() ) {
@@ -909,6 +943,8 @@ public class Interpreter
 		
         commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
+		parser = new ModuleParser( cmdParser.charset(), includePaths, classLoader );
+		moduleCrawler = new ModuleCrawler( cmdParser.packagesPaths(), parser );
 
 		StringBuilder builder = new StringBuilder();
 		builder.append( '[' );
@@ -959,6 +995,7 @@ public class Interpreter
         
 		this.parentInterpreter = parentInterpreter;
         this.internalServiceProgram = internalServiceProgram;
+		this.symbolTables = parentInterpreter.symbolTables();
 	}
 
 	/**
@@ -973,6 +1010,15 @@ public class Interpreter
 	public Interpreter parentInterpreter()
 	{
 		return parentInterpreter;
+	}
+
+	/**
+	 * Returns the program symbol tabal this interpreter was assigned from SymbolGenerator.
+	 * @return the program symbol tabal this interpreter was assigned from SymbolGenerator
+	 */
+	public Map <URI, SymbolTable> symbolTables()
+	{
+		return symbolTables;
 	}
 
 	/**
@@ -1069,7 +1115,7 @@ public class Interpreter
              * 1 - CommCore needs the OOIT to be initialized.
              * 2 - initExec must be instantiated before we can receive communications.
              */
-            if ( buildOOIT2() == false && !check ) {
+            if ( buildOOIT() == false && !check ) {
                 throw new InterpreterException( "Error: service initialisation failed" );
             }
             if ( check ){
@@ -1246,12 +1292,11 @@ public class Interpreter
 		return commCore;
 	}
 
-	private boolean buildOOIT2()
+	private boolean buildOOIT()
 		throws InterpreterException
 	{ 
 		try {
 			Program program;
-			Map<URI, SymbolTable> symbolTables = null;
 			if ( cmdParser.isProgramCompiled() ) {
 				try ( final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() ) ) {
 					final Object o = istream.readObject();
@@ -1267,14 +1312,12 @@ public class Interpreter
 					program = this.internalServiceProgram;
 					program = OLParseTreeOptimizer.optimize( program );
 				} else {
-					final ModuleParser parser =
-							new ModuleParser( cmdParser.charset(), includePaths, classLoader );
 					parser.putConstants( cmdParser.definedConstants() );
 					ModuleRecord mainRecord = parser.parse( new Scanner( cmdParser.programStream(),
 							cmdParser.programFilepath().toURI(), cmdParser.charset() ) );
 
-					ModuleCrawler crawler = new ModuleCrawler( cmdParser.packagesPaths() );
-					Set< ModuleRecord > crawlResult = crawler.crawl( mainRecord, parser );
+					ModuleCrawler crawler = new ModuleCrawler( cmdParser.packagesPaths(), parser );
+					ModuleCrawler.ModuleCrawlerResult crawlResult = crawler.crawl( mainRecord );
 
 					GlobalSymbolReferenceResolver symbolResolver =
 							new GlobalSymbolReferenceResolver( crawlResult );
@@ -1335,82 +1378,6 @@ public class Interpreter
 			cmdParser = null; // Free memory
 		}
 
-	}
-	
-	private boolean buildOOIT()
-		throws InterpreterException
-	{        
-		try {
-			Program program;
-			if ( cmdParser.isProgramCompiled() ) {
-				try ( final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() ) ) {
-					final Object o = istream.readObject();
-					if ( o instanceof Program ) {
-						program = (Program)o;
-					} else {
-						throw new InterpreterException( "Input compiled program is not a JOLIE program" );
-					}
-				}
-			} else {
-				if ( this.internalServiceProgram != null ) {
-					program = this.internalServiceProgram;
-				} else {
-					final OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
-
-					olParser.putConstants( cmdParser.definedConstants() );
-					program = olParser.parse();
-				}
-				program = OLParseTreeOptimizer.optimize( program );
-			}
-			
-			cmdParser.close();
-
-			check = cmdParser.check();
-
-			final SemanticVerifier semanticVerifier;
-
-			if ( check ) {
-				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
-				conf.setCheckForMain( false );
-				semanticVerifier = new SemanticVerifier( program, conf );
-			} else {
-				semanticVerifier = new SemanticVerifier( program );
-			}
-
-			try {
-				semanticVerifier.validate();
-			} catch( SemanticException e ) {
-				logger.severe( e.getErrorMessages() );
-				throw new InterpreterException( "Exiting" );
-			}
-
-			if ( cmdParser.typeCheck() ) {
-				TypeChecker typeChecker = new TypeChecker(
-					program,
-					semanticVerifier.executionMode(),
-					semanticVerifier.correlationFunctionInfo()
-				);
-				if ( !typeChecker.check() ) {
-					throw new InterpreterException( "Exiting" );
-				}
-			}
-
-			if ( check ) {
-				return false;
-			} else {
-				return (new OOITBuilder(
-					this,
-					program,
-					semanticVerifier.isConstantMap(),
-					semanticVerifier.correlationFunctionInfo() ))
-					.build();
-			}
-
-		} catch( IOException | ParserException | ClassNotFoundException e ) {
-			throw new InterpreterException( e );
-		} finally {
-			cmdParser = null; // Free memory
-		}
 	}
 	
 	/**

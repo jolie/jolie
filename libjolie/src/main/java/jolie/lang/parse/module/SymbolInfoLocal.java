@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
+
 package jolie.lang.parse.module;
 
 import jolie.lang.parse.ast.SymbolNode;

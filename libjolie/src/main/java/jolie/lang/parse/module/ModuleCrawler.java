@@ -24,40 +24,69 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 public class ModuleCrawler
 {
 
-    private final Queue< Source > modulesToCrawl;
-    private final Map< URI, ModuleRecord > moduleCrawled;
-    private final String[] packagesPath;
-    private final FinderCreator finderCreator;
-
-    public ModuleCrawler( String[] packagesPath ) throws FileNotFoundException
+    public class ModuleCrawlerResult
     {
-        this.modulesToCrawl = new LinkedList<>();
-        this.moduleCrawled = new HashMap<>();
-        this.packagesPath = packagesPath;
-        this.finderCreator = new FinderCreator( packagesPath );
+        private final Map< URI, ModuleRecord > moduleCrawled;
+
+        public ModuleCrawlerResult()
+        {
+            this.moduleCrawled = new HashMap<>();
+        }
+
+        public void addModuleRecord( ModuleRecord mr )
+        {
+            this.moduleCrawled.put( mr.source(), mr );
+        }
+
+        public boolean isRecordInResult( URI source )
+        {
+            return this.moduleCrawled.containsKey( source );
+        }
+
+        public Map< URI, ModuleRecord > toMap()
+        {
+            return this.moduleCrawled;
+        }
+
     }
 
-    public ModuleCrawler( Path workingDirectory, String[] packagesPath )
-            throws FileNotFoundException
+    private final Queue< Source > modulesToCrawl;
+    private final Map<URI, ModuleRecord> cache;
+    private final ModuleCrawlerResult result;
+    private final FinderCreator finderCreator;
+    private final ModuleParser parser;
+
+    public ModuleCrawler( String[] packagesPath, ModuleParser parser ) throws FileNotFoundException
+    {
+        this( new FinderCreator( packagesPath ), parser );
+    }
+
+    public ModuleCrawler( FinderCreator finderCreator, ModuleParser parser ) throws FileNotFoundException
     {
         this.modulesToCrawl = new LinkedList<>();
-        this.moduleCrawled = new HashMap<>();
-        this.packagesPath = packagesPath;
-        this.finderCreator = new FinderCreator( workingDirectory, packagesPath );
+        this.result = new ModuleCrawlerResult();
+        this.finderCreator = finderCreator;
+        this.parser = parser;
+        this.cache = new HashMap<>();
+    }
+
+    public ModuleCrawler( Path workingDirectory, String[] packagesPath, ModuleParser parser )
+            throws FileNotFoundException
+    {
+        this( new FinderCreator( workingDirectory, packagesPath ), parser );
     }
 
     private Source findModule( URI parentURI, String[] importTargetStrings )
-            throws FileNotFoundException
+            throws ModuleNotFoundException
     {
         Finder finder = finderCreator.getFinderForTarget( parentURI, importTargetStrings );
         Source targetFile = finder.find();
@@ -67,23 +96,21 @@ public class ModuleCrawler
     private void crawlModule( ModuleRecord record ) throws ModuleException
     {
         for (SymbolInfoExternal externalSymbol : record.symbolTable().externalSymbols()) {
-            Source moduleSource;
             try {
-                moduleSource = this.findModule( record.source(), externalSymbol.moduleTargets() );
-            } catch (FileNotFoundException e) {
-                throw new ModuleException( e );
+                Source moduleSource =
+                        this.findModule( record.source(), externalSymbol.moduleTargets() );
+                externalSymbol.setModuleSource( moduleSource );
+                modulesToCrawl.add( moduleSource );
+            } catch (ModuleNotFoundException e) {
+                throw new ModuleException( externalSymbol.context(), e );
             }
-            externalSymbol.setModuleSource( moduleSource );
-            modulesToCrawl.add( moduleSource );
         }
-        moduleCrawled.put( record.source(), record );
+        this.result.addModuleRecord( record );
     }
 
-    public Set< ModuleRecord > crawl( ModuleRecord parentRecord, ModuleParser parser )
-
+    public ModuleCrawlerResult crawl( ModuleRecord parentRecord )
             throws ParserException, IOException, ModuleException
     {
-
         // start with parentRecord
         crawlModule( parentRecord );
 
@@ -91,13 +118,19 @@ public class ModuleCrawler
         while (modulesToCrawl.peek() != null) {
             Source module = modulesToCrawl.poll();
 
-            if ( moduleCrawled.containsKey( module.source() ) ) {
+            if ( this.result.isRecordInResult( module.source() ) ) {
+                continue;
+            }
+
+            if (this.cache.containsKey(module.source())){
+                this.result.addModuleRecord(this.cache.get(module.source()));
                 continue;
             }
 
             ModuleRecord p = parser.parse( module );
             crawlModule( p );
         }
-        return new HashSet< ModuleRecord >( moduleCrawled.values() );
+
+        return this.result;
     }
 }

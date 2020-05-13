@@ -249,6 +249,7 @@ public class OOITBuilder implements OLVisitor
 		new HashMap<>();
 	private final Deque< OLSyntaxNode > lazyVisits = new LinkedList<>();	
 	private boolean firstPass = true;
+	private final Map<String, DefinitionNode> definitionNodes = new HashMap<>();
 
 	private static class AggregationConfiguration {
 		private final OutputPort defaultOutputPort;
@@ -726,6 +727,7 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( OneWayOperationDeclaration decl )
 	{
+		boolean backup = insideOperationDeclarationOrInstanceOf;
 		insideOperationDeclarationOrInstanceOf = true;
 		OneWayTypeDescription typeDescription;
 		if ( currentOutputPort == null ) { // We are in an input port
@@ -751,7 +753,7 @@ public class OOITBuilder implements OLVisitor
 			currentPortInterface.oneWayOperations().put( decl.id(), typeDescription );
 		}
 
-		insideOperationDeclarationOrInstanceOf = false;
+		insideOperationDeclarationOrInstanceOf = backup;
 	}
 
 	public void visit( RequestResponseOperationDeclaration decl )
@@ -784,7 +786,7 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( DefinitionNode n )
 	{
-		final DefinitionProcess def;
+		DefinitionProcess def = null;
 		
 		switch( n.id() ) {
 		case "main":
@@ -809,8 +811,9 @@ public class OOITBuilder implements OLVisitor
 			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
 			break;
 		default:
-			def = new DefinitionProcess( buildProcess( n.body() ) );
-			break;
+			// to be evaluate at first Definition call statement
+			definitionNodes.put( n.id(), n );
+			return;
 		}
 
 		interpreter.register( n.id(), def );
@@ -1188,7 +1191,8 @@ public class OOITBuilder implements OLVisitor
 		try {
 			interpreter.getDefinition( n.id() );
 		} catch (InvalidIdException e) {
-			n.definition().accept( this );
+			interpreter.register( n.id(),
+					new DefinitionProcess( buildProcess( n.definition().body() ) ) );
 		}
 		currProcess = new CallProcess( n.id() );
 	}
@@ -1636,8 +1640,6 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 		
-		
-		
 		return new RequestResponseOperation(
 			operationName,
 			new RequestResponseTypeDescription(
@@ -1749,9 +1751,8 @@ public class OOITBuilder implements OLVisitor
 		final boolean wasInsideType = insideType;
 		insideType = true;
 
-		currType =
-				Type.createChoice( n.cardinality(), buildType( n.left() ), buildType( n.right() ) );
-
+		currType = Type.createChoice( n.cardinality(), buildType( n.left() ), buildType( n.right() ) );
+		
 		insideType = wasInsideType;
 		if ( insideType == false && insideOperationDeclarationOrInstanceOf == false ) {
 			typeMap.put( n, currType );

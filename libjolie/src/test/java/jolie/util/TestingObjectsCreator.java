@@ -10,11 +10,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * A utility class for create instances of tests
+ * A utility class for create objects for testing
  */
-public class TestCasesCreator
+public class TestingObjectsCreator
 {
-
 
     /**
      * create a Map of interface name and list of operateion string

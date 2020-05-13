@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
+
 package jolie.lang.parse.module;
 
 import java.io.File;
@@ -131,8 +132,8 @@ class JapSource implements Source
         this.filePath = path;
         moduleEntry = japFile.getEntry( this.filePath + ".ol" );
         if ( moduleEntry == null ) {
-            throw new IOException(
-                    "unable to find entry " + this.filePath + " in " + f.toString() );
+            throw new FileNotFoundException(
+                    this.filePath + " in " + f.toString() );
         }
         this.parentPath = Paths.get( this.filePath ).getParent().toString();
     }

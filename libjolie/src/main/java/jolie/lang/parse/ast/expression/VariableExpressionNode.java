@@ -47,4 +47,10 @@ public class VariableExpressionNode extends OLSyntaxNode
 	{
 		visitor.visit( this );
 	}
+
+	@Override
+	public String toString()
+	{
+		return variablePath.toString();
+	}
 }

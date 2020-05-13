@@ -17,34 +17,29 @@
  * MA 02110-1301  USA
  */
 
-package jolie.lang.parse.ast;
+ package jolie.lang.parse.module.exceptions;
 
-import jolie.lang.parse.module.SymbolInfo.Privacy;
+import jolie.lang.Constants;
 
-/**
- * An interface of Symbol defines an importable symbols in Jolie
- */
-public interface SymbolNode
+public class IllegalAccessSymbolException extends Exception
 {
-    /**
-     * returns the privacy of the symbol, can be either PRIVATE or PUBLIC
-     */
-    public Privacy privacy();
 
-    /**
-     * set Privacy of the symbol
-     * 
-     * @param isPrivate a boolean defines the private status of the symbol
-     */
-    public void setPrivate(boolean isPrivate);
+    private static final long serialVersionUID = Constants.serialVersionUID();
 
-    /**
-     * returns qualify name of the symbol in local execution
-     */
-    public String name();
+    private final String symbolName;
+    private final String[] moduleTargets;
 
-    /**
-     * returns linking AST node of the symbol.
-     */
-    public OLSyntaxNode node();
+    public IllegalAccessSymbolException( String symbolName, String[] moduleTargets )
+    {
+        super( symbolName );
+        this.symbolName = symbolName;
+        this.moduleTargets = moduleTargets;
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return "Illegal access to symbol " + this.symbolName + " of module " + String.join(".", moduleTargets);
+    }
+    
 }
