@@ -114,6 +114,7 @@ main{
                 i++
             } else if ( args[ i ] == "-debug" ) {
                 debug = true
+                i++
             } else if ( args[ i ] == "-debug-file" ) {
                 debug_file = true
                 i++

@@ -204,4 +204,231 @@ define doTest
        }
    }
 
+
+   // testing lessThan operations
+   with( rq ) {
+      .filename = "private/sample_service3.ol"
+   }
+   getInputPortMetaData@MetaJolie( rq )( meta_description );
+   undef( rq )
+   rq.t1 = "T2" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T2"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T2" )
+   }
+
+
+   rq.t2 = "T1"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T2 against T1" )
+   }
+
+
+   undef( rq )
+   rq.t1 = "T5" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T7"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T5 against T7" )
+   }
+
+   undef( rq )
+   rq.t1 = "T1" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T6"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T1 against T6" )
+   }
+
+   undef( rq )
+   rq.t1 = "T6" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T1"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T6 against T1, found " + result )
+   }
+
+   undef( rq )
+   rq.t1 = "T8" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T3"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T8 against T3" )
+   }
+
+   undef( rq )
+   rq.t1 = "T3" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T8"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T3 against T8" )
+   }
+
+   undef( rq )
+   rq.t1 = "T9" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T2"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T9 against T2" )
+   }
+
+   undef( rq )
+   rq.t1 = "T2" 
+   rq.t1.types << meta_description.input.interfaces.types
+   rq.t2 = "T9"
+   rq.t2.types << meta_description.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result ) {
+       throw( TestFailed, "Expected false for typeDefinitionLessThan between the same type T2 against T9" )
+   }
+
+   // checking interfaces
+   undef( rq )
+   rq.i1 -> meta_description.input.interfaces
+   rq.i2 -> meta_description.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result.result ) {
+       throw( TestFailed, "Expected true for interfaceDefinitionLessThan between the same interface" )
+   }
+
+   /// testing lessThan operations
+   undef( rq )
+   rq.filename = "private/sample_service.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description2 )
+   undef( rq )
+   rq.i1 -> meta_description2.input.interfaces
+   rq.i2 -> meta_description.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result.result ) {
+       throw( TestFailed, "Expected true for interfaceDefinitionLessThan between TmpInterface and TmpInterface2" )
+   }
+
+   undef( rq )
+   rq.i1 -> meta_description.input.interfaces
+   rq.i2 -> meta_description2.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result.result ) {
+       throw( TestFailed, "Expected false for interfaceDefinitionLessThan between TmpInterface2 and TmpInterface" )
+   }
+   if ( #result.errors != 1 ) {
+       throw( TestFailed, "Expected 1 error for interfaceDefinitionLessThan between TmpInterface2 and TmpInterface" )
+   }
+   if ( result.errors[ 0 ] != "Operation tmp4 is missing in TmpInterface" ) {
+       throw( TestFailed, "Expected 1 error message: Operation tmp4 is missing in TmpInterface. Found: " + result.errors[ 0 ] )
+   }
+
+   undef( rq )
+   rq.filename = "private/sample_service4.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description3 )
+
+   undef( rq )
+   rq.i1 -> meta_description2.input.interfaces
+   rq.i2 -> meta_description3.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result.result ) {
+       throw( TestFailed, "Expected true for interfaceDefinitionLessThan between " + rq.i1.name + " and " + rq.i2.name  )
+   }
+
+   undef( rq )
+   rq.i1 -> meta_description3.input.interfaces
+   rq.i2 -> meta_description2.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result.result ) {
+       throw( TestFailed, "Expected false for interfaceDefinitionLessThan between TmpInterface3 and TmpInterface" )
+   }
+   if ( #result.errors != 2 ) {
+       throw( TestFailed, "Expected 2 errors for interfaceDefinitionLessThan between TmpInterface3 and TmpInterface" )
+   }
+
+   undef( rq )
+   rq.filename = "private/sample_service5.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description4 )
+
+
+   undef( rq )
+   rq.t1 = "T3" 
+   rq.t1.types << meta_description4.input.interfaces.types
+   rq.t2 = "T11"
+   rq.t2.types << meta_description4.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T3 against T11" )
+   }
+
+   undef( rq )
+   rq.t1 = "T12" 
+   rq.t1.types << meta_description4.input.interfaces.types
+   rq.t2 = "T13"
+   rq.t2.types << meta_description4.input.interfaces.types
+   typeDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result ) {
+       throw( TestFailed, "Expected true for typeDefinitionLessThan between the same type T12 against T13" )
+   }
+
+
+   undef( rq )
+   rq.i1 -> meta_description4.input.interfaces
+   rq.i2 -> meta_description3.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result.result ) {
+       throw( TestFailed, "Expected true for interfaceDefinitionLessThan between TmpInterface4 and TmpInterface3" )
+   }
+
+
+   undef( rq )
+   rq.i1 -> meta_description3.input.interfaces
+   rq.i2 -> meta_description4.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( result.result ) {
+       throw( TestFailed, "Expected false for interfaceDefinitionLessThan between TmpInterface3 and TmpInterface4" )
+   }
+
+   with ( exp ) {
+        .errors[0] = "Type of fault Fault1 of interface TmpInterface4 is not less than type of fault Fault1 of interface TmpInterface3";
+        .errors[1] = "Fault fault3 of operation tmp2 is not present in the TmpInterface3";
+        .errors[2] = "Fault Fault5 of operation tmp3 is not present in the TmpInterface3";
+        .errors[3] = "Fault Fault7 of operation tmp3 is not present in the TmpInterface3";
+        .errors[4] = "Fault Faults6 of operation tmp3 is not present in the TmpInterface3";
+        .errors[5] = "Type undefined is not less than T9";
+        .result = false
+   }
+   scope( compare_values ) {
+      install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
+      compareValuesVectorLight@MetaJolie( { .v1 << result, .v2 << exp } )()
+   }
+
+   undef( rq )
+   rq.p1 -> meta_description4.input
+   rq.p2 -> meta_description3.input
+   portDefinitionLessThan@MetaJolie( rq )( result ) 
+   if ( !result.result ) {
+       throw( TestFailed, "Expected true for portDefinitionLessThan between meta_description4.input and meta_description3.input" )
+   }
+
+   undef( rq )
+   rq.p1 -> meta_description3.input
+   rq.p2 -> meta_description4.input
+   portDefinitionLessThan@MetaJolie( rq )( result ) 
+   if ( result.result ) {
+       throw( TestFailed, "Expected false for portDefinitionLessThan between meta_description3.input and meta_description4.input" )
+   }
+
+
 }
