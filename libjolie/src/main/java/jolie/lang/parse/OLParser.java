@@ -153,8 +153,6 @@ public class OLParser extends AbstractParser
 		new HashMap<>();
 	private boolean insideInstallFunction = false;
 	private String[] includePaths;
-	private final Map< String, InterfaceDefinition > interfaces =
-		new HashMap<>();
 	private final Map< String, InterfaceExtenderDefinition > interfaceExtenders =
 		new HashMap<>();
 
@@ -1366,7 +1364,6 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		iface = new InterfaceDefinition( getContext(), name );
 		parseOperations( iface );
-		interfaces.put( name, iface );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 
 		return iface;
