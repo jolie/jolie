@@ -59,8 +59,8 @@ public class ModuleCrawler
 
     }
 
+    private final Map<URI, ModuleRecord> cache = new HashMap<>();
     private final Queue< Source > modulesToCrawl;
-    private final Map<URI, ModuleRecord> cache;
     private final ModuleCrawlerResult result;
     private final FinderCreator finderCreator;
     private final ModuleParser parser;
@@ -76,7 +76,6 @@ public class ModuleCrawler
         this.result = new ModuleCrawlerResult();
         this.finderCreator = finderCreator;
         this.parser = parser;
-        this.cache = new HashMap<>();
     }
 
     public ModuleCrawler( Path workingDirectory, String[] packagesPath, ModuleParser parser )

@@ -20,8 +20,6 @@
 package jolie.lang.parse.module;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
