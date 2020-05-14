@@ -249,7 +249,6 @@ public class OOITBuilder implements OLVisitor
 		new HashMap<>();
 	private final Deque< OLSyntaxNode > lazyVisits = new LinkedList<>();	
 	private boolean firstPass = true;
-	private final Map<String, DefinitionNode> definitionNodes = new HashMap<>();
 
 	private static class AggregationConfiguration {
 		private final OutputPort defaultOutputPort;
@@ -811,8 +810,7 @@ public class OOITBuilder implements OLVisitor
 			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
 			break;
 		default:
-			// to be evaluate at first Definition call statement
-			definitionNodes.put( n.id(), n );
+			// other user-defined procedure to be evaluate at first Definition call statement
 			return;
 		}
 
@@ -1186,13 +1184,14 @@ public class OOITBuilder implements OLVisitor
 		currProcess = CurrentHandlerProcess.getInstance();
 	}
 
+	
 	public void visit( DefinitionCallStatement n )
 	{
 		try {
 			interpreter.getDefinition( n.id() );
 		} catch (InvalidIdException e) {
-			interpreter.register( n.id(),
-					new DefinitionProcess( buildProcess( n.definition().body() ) ) );
+			interpreter.register( n.id(), new DefinitionProcess(
+					buildProcess( n.definition().body() ) ) );
 		}
 		currProcess = new CallProcess( n.id() );
 	}
