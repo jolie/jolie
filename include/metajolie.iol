@@ -111,7 +111,7 @@ type GetNativeTypeStringListResponse: void {
   .native_type*: string
 }
 
-type CompareValuesRequest: bool | void {
+type CompareValuesRequest: void {
     .v1: undefined
     .v2: undefined
 }
@@ -156,8 +156,8 @@ type PortDefinitionLessThanResponse: void {
 interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
-  getNativeTypeFromString( GetNativeTypeFromStringRequest )( NativeType ) throws NativeTypeDoesNotExist,
-  getNativeTypeStringList( void )( GetNativeTypeStringListResponse ),
+	getNativeTypeFromString( GetNativeTypeFromStringRequest )( NativeType ) throws NativeTypeDoesNotExist,
+	getNativeTypeStringList( void )( GetNativeTypeStringListResponse ),
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
 	    throws  ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
@@ -165,13 +165,13 @@ RequestResponse:
 	    throws  InputPortMetaDataFault
 		          ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
-  getOutputPortMetaData( GetMetaDataRequest )( GetOutputPortMetaDataResponse )
+	getOutputPortMetaData( GetMetaDataRequest )( GetOutputPortMetaDataResponse )
 	    throws  OutputPortMetaDataFault
 		          ParserException( ParserExceptionType )
 		          SemanticException( SemanticExceptionType ),
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )
 	    throws  TypeMismatch,
- /**!
+	/**!
 	it checks if two values are exactly the same
 	vectors are strictly compared by index
 	returns void if the comparison had success, raises ComparisonFailed fault otherwise 
@@ -182,20 +182,20 @@ RequestResponse:
 	vectors are compared by element presence without testing the index
 	returns void if the comparison had success, raises ComparisonFailed fault otherwise 
 	**/
-  compareValuesVectorLight( CompareValuesRequest )( void ) throws ComparisonFailed( string ),
+	compareValuesVectorLight( CompareValuesRequest )( void ) throws ComparisonFailed( string ),
 
-  /**!
+	/**!
 	it checks if a type is less than another type. A type is less than another if it is contained in it
 	*/
 	typeDefinitionLessThan( TypeDefinitionLessThanRequest )( bool ) throws TypeMissing( string ),
 
-  /**!
+	/**!
 	it checks if an interface is less than another interface. An interface is less than another if it has at least all the 
 	operations declared by the second one, and all the used types are less than the target ones. 
 	*/
 	interfaceDefinitionLessThan( InterfaceDefinitionLessThanRequest )( InterfaceDefinitionLessThanResponse ) throws TypeMissing( string ),
 
-  /**!
+	/**!
 	it checks if a port is less than another port. It checks of there is the same protocol declared and then it checks if all the aggregated interfaces
 	with the interfaceDefinitionLessThan
 	*/
