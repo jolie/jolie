@@ -910,11 +910,11 @@ public abstract class Value implements Expression, Cloneable
 				setValue( strValue() + val.strValue() );
 			} else if ( isDouble() || val.isDouble() ) {
 				setValue( doubleValue() + val.doubleValue() );
-			} else if ( isLong()  || val.isLong() ) {
+			} else if ( isLong() || val.isLong() ) {
 				setValue( longValue() + val.longValue() );
-			} else if ( isInt()  || val.isInt() ) {
+			} else if ( isInt() || val.isInt() ) {
 				setValue( intValue() + val.intValue() );
-			} else if ( isBool()  || val.isBool() ) {
+			} else if ( isBool() || val.isBool() ) {
 				setValue( boolValue() || val.boolValue() );
 			} else {
 				setValue( strValue() + val.strValue() );
@@ -940,7 +940,7 @@ public abstract class Value implements Expression, Cloneable
 			}
 		} else if ( isDouble() || val.isDouble() ) {
 			setValue( doubleValue() - val.doubleValue() );
-		} else if ( isLong() || val.isLong()  ) {
+		} else if ( isLong() || val.isLong() ) {
 			setValue( longValue() - val.longValue() );
 		} else if ( isInt() || val.isInt() ) {
 			setValue( intValue() - val.intValue() );
