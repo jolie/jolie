@@ -19,7 +19,9 @@
 
 package jolie.lang.parse;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -182,7 +184,7 @@ public class SemanticVerifier implements OLVisitor
 	private OperationType insideCourierOperationType = null;
 	private InputPortInfo courierInputPort = null;
 
-	private String currentScopeId = null;
+	private Deque<String> inScopes = new ArrayDeque<>();
 
 	public SemanticVerifier( Program program, Configuration configuration )
 	{
@@ -255,8 +257,8 @@ public class SemanticVerifier implements OLVisitor
 	{
 		try {
 			String varName = ( ( ConstantStringExpression ) path.path().get( 0 ).key()).value();
-			if ( this.currentScopeId != null && this.currentScopeId.equals( varName ) ) {
-				warning( path, "DEPRECATION: usage of same variable name \""+ varName + "\" inside scope \""+ varName + "\"" );
+			if ( this.inScopes.contains( varName ) ) {
+				warning( path, "DEPRECATION: usage of same variable name \""+ varName + "\" inside scope \""+ this.inScopes.toString() + "\"" );
 			}
 			encounteredAssignment( varName );
 		} catch ( IndexOutOfBoundsException | ClassCastException e ){
@@ -812,9 +814,9 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( Scope n )
 	{
-		this.currentScopeId = n.id();
+		this.inScopes.push( n.id() );
 		n.body().accept( this );
-		this.currentScopeId = null;
+		this.inScopes.pop();
 	}
 	
 	@Override
