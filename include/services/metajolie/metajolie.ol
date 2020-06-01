@@ -238,7 +238,7 @@ define check_strict {
                 compareValuesStrict@MySelf( cmp_rq )( response )
             }
         } else {
-            throw( ComparisonFailed,  "Node " + v + " in is not present in the target value" )
+            throw( ComparisonFailed,  "Node " + v + " is not present in the target value" )
         }
     }
 }
@@ -265,7 +265,7 @@ define check_light {
                 }
             }
         } else {
-            throw( ComparisonFailed,  "Node " + v + " in is not present in the target value" )
+            throw( ComparisonFailed,  "Node " + v + " is not present in the target value" )
         }
     }
 }
