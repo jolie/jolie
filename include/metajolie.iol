@@ -81,7 +81,7 @@ type MessageTypeCastRequest: void {
   /// the types to use for casting the message
   .types: void {                
 	     .messageTypeName: string   //< starting type to user for casting
-	     .types*: Type            //< list of all the required types
+	     .types*: TypeDefinition    //< list of all the required types
   }
 }
 
