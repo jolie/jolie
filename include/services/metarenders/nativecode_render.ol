@@ -209,10 +209,13 @@ main
 					if ( f == 0 ) {
 							response = response + " throws "
 					};
-					response = response + .fault[ f ].name.name;
-					if ( is_defined( .fault[ f ].type_name ) ) {
-							response = response + "(" + .fault[ f ].type_name.name + ") "
-					};
+					response = response + .fault[ f ].name;
+					if ( .fault[ f ].type instanceof TypeLink ) {
+							response = response + "( " + .fault[ f ].type.link_name + " ) "
+					} else if ( .fault[ f ].type instanceof NativeType ) {
+							getNativeType@MySelf(.fault[ f ].type  )( ntype )
+							response = response + "( " + ntype + " ) "
+					}
 					response = response + " "
 				}
 				;
