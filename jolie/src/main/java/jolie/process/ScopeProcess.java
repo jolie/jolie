@@ -77,6 +77,7 @@ public class ScopeProcess implements Process
 				}
 			} catch( FaultException f ) {
 				p = ethread.getFaultHandler( f.faultName(), true );
+
 				if ( p != null ) {
 					Value scopeValue =
 							new VariablePathBuilder( false )

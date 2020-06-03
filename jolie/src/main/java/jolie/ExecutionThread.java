@@ -118,7 +118,7 @@ public abstract class ExecutionThread extends JolieThread
 				}
 				if ( p != null ) {
 					// Could still be null if there was not a default handler
-					faultMap.remove( faultName );
+					faultMap.clear();
 				}
 			}
 				
