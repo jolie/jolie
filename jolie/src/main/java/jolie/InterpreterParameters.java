@@ -34,15 +34,12 @@ public class InterpreterParameters {
     private boolean printStackTraces = false;
     private Level logLevel = Level.OFF;
     private File programDirectory = null;
-    private List< String > libList = new ArrayList<>();
+
 
     public InterpreterParameters() throws IOException {
         String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
         includePaths.add( pwd );
         includePaths.add("include");
-        libList.add( pwd );
-        libList.add( "ext" );
-        libList.add( "lib" );
     }
 
 
@@ -111,6 +108,7 @@ public class InterpreterParameters {
     }
 
     public void setLibUrls(URL [] libUrls ){
+        libURLs.clear();
         Collections.addAll( this.libURLs, libUrls);
     }
 
@@ -118,7 +116,7 @@ public class InterpreterParameters {
         this.libURLs.add(libUrlItem);
     }
 
-    public URL[] setLibUrls(){
+    public URL[] libUrls(){
         return libURLs.toArray( new URL[]{});
     }
 

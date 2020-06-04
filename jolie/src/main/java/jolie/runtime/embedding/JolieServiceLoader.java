@@ -66,6 +66,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
         InterpreterParameters interpreterParameters = new InterpreterParameters();
         interpreterParameters.setOptionArgs(currInterpreter.optionArgs());
         interpreterParameters.includePaths( currInterpreter.getInterpreterParameters().includePaths() );
+        interpreterParameters.setLibUrls(currInterpreter.getInterpreterParameters().libUrls());
         interpreterParameters.setProgramFilepath(new File( "#native_code" ));
         interpreterParameters.setJolieClassLoader(currInterpreter.getClassLoader());
         interpreterParameters.setInputStream(new ByteArrayInputStream( code.getBytes()));
