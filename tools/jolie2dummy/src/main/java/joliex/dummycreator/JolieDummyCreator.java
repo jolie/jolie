@@ -37,18 +37,16 @@ import joliex.dummycreator.impl.JolieDummyDocumentCreator;
 public class JolieDummyCreator {
 
 	/**
-	 * @param args the command line arguments
-	 */
-	public static void main( String[] args ) {
-		try {
-			JolieDummyCommandLineParser cmdParser =
-				JolieDummyCommandLineParser.create( args, JolieDummyCommandLineParser.class.getClassLoader() );
-			Program program = ParsingUtils.parseProgram( cmdParser.programStream(),
-				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
-			ProgramInspector inspector = ParsingUtils.createInspector( program );
-			JolieDummyDocumentCreator document =
-				new JolieDummyDocumentCreator( inspector, cmdParser.programFilepath() );
+	* @param args the command line arguments
+	*/
+	public static void main(String[] args) {
+		try{
+			JolieDummyCommandLineParser cmdParser= JolieDummyCommandLineParser.create( args, JolieDummyCommandLineParser.class.getClassLoader() );
+			Program program = ParsingUtils.parseProgram( cmdParser.getInterpreterParameters().inputStream(),
+			cmdParser.getInterpreterParameters().programFilepath().toURI(), cmdParser.getInterpreterParameters().charset(),
+			cmdParser.getInterpreterParameters().includePaths(), cmdParser.getInterpreterParameters().jolieClassLoader(), cmdParser.getInterpreterParameters().constants(), false );
+			ProgramInspector inspector=ParsingUtils.createInspector( program );
+			JolieDummyDocumentCreator document= new JolieDummyDocumentCreator( inspector,cmdParser.getInterpreterParameters().programFilepath());
 			document.createDocument();
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );

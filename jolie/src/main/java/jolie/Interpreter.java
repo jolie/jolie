@@ -19,13 +19,7 @@
 
 package jolie;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.PrintStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.lang.ref.WeakReference;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -95,31 +89,37 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 import jolie.tracer.*;
 
 /**
- * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
- * is used, e.g., for service embedding.
- * 
+ * The Jolie interpreter engine.
+ * Multiple Interpreter instances can be run in the same JavaVM;
+ * this is used, e.g., for service embedding.
  * @author Fabrizio Montesi
  */
-public class Interpreter {
-	private final class InitSessionThread extends SessionThread {
-		public InitSessionThread( Interpreter interpreter, jolie.process.Process process ) {
+public class Interpreter
+{
+    private final class InitSessionThread extends SessionThread
+	{
+		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
+		{
 			super( interpreter, process );
 			addSessionListener( new SessionListener() {
-
+				
 				@Override
-				public void onSessionExecuted( SessionThread session ) {
+				public void onSessionExecuted( SessionThread session )
+				{
 					onSuccessfulInitExecution();
 				}
-
+				
 				@Override
-				public void onSessionError( SessionThread session, FaultException fault ) {
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
 					exit();
 				}
-			} );
+			});
 		}
-
-		private void onSuccessfulInitExecution() {
-			if( executionMode == Constants.ExecutionMode.SINGLE ) {
+		
+		private void onSuccessfulInitExecution()
+		{
+			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 				synchronized( correlationEngine ) {
 					try {
 						mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
@@ -135,22 +135,21 @@ public class Interpreter {
 			}
 
 			/*
-			 * We need to relay the messages we did not consume during the init procedure. We do this
-			 * asynchronously, because calling correlationEngine.onMessageReceive will trigger a join() on this
-			 * thread, leading to a deadlock if we were to call that directly from here.
+			 * We need to relay the messages we did not consume during the init procedure.
+			 * We do this asynchronously, because calling correlationEngine.onMessageReceive
+			 * will trigger a join() on this thread, leading to a deadlock if we
+			 * were to call that directly from here.
 			 */
 			execute( new Runnable() {
-				private void pushMessages( Deque< SessionMessage > queue ) {
+				private void pushMessages( Deque< SessionMessage > queue )
+				{
 					for( SessionMessage message : queue ) {
 						try {
 							correlationEngine.onMessageReceive( message.message(), message.channel() );
 						} catch( CorrelationError e ) {
 							logWarning( e );
 							try {
-								message.channel()
-									.send( CommMessage.createFaultResponse( message.message(), new FaultException(
-										"CorrelationError",
-										"The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+								message.channel().send( CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
 							} catch( IOException ioe ) {
 								logSevere( ioe );
 							}
@@ -159,75 +158,86 @@ public class Interpreter {
 				}
 
 				@Override
-				public void run() {
+				public void run()
+				{
 					for( Deque< SessionMessage > queue : messageQueues.values() ) {
 						pushMessages( queue );
 					}
 					pushMessages( uncorrelatedMessageQueue );
 				}
-			} );
+			});
 		}
-
+		
 		@Override
-		public boolean isInitialisingThread() {
+		public boolean isInitialisingThread()
+		{
 			return true;
 		}
-
+		
 	}
-
+	
 	private static class JolieExecutionThreadFactory implements ThreadFactory {
 		private final Interpreter interpreter;
-
-		public JolieExecutionThreadFactory( Interpreter interpreter ) {
+		public JolieExecutionThreadFactory( Interpreter interpreter )
+		{
 			this.interpreter = interpreter;
 		}
-
+		
 		@Override
-		public Thread newThread( Runnable r ) {
+		public Thread newThread( Runnable r )
+		{
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
-			if( r instanceof ExecutionThread ) {
-				t.setExecutionThread( (ExecutionThread) r );
+			if ( r instanceof ExecutionThread ) {
+				t.setExecutionThread( ( ExecutionThread ) r );
 			}
 			return t;
 		}
 	}
-
+	
 	private static class NativeJolieThreadFactory implements ThreadFactory {
 		private final Interpreter interpreter;
-
-		public NativeJolieThreadFactory( Interpreter interpreter ) {
+		
+		public NativeJolieThreadFactory( Interpreter interpreter )
+		{
 			this.interpreter = interpreter;
 		}
-
+		
 		@Override
-		public Thread newThread( Runnable r ) {
+		public Thread newThread( Runnable r )
+		{
 			return new NativeJolieThread( interpreter, r );
 		}
 	}
-
-	public static class SessionStarter {
+	
+	public static class SessionStarter
+	{
 		private final InputOperationProcess guard;
 		private final jolie.process.Process body;
 		private CorrelationSet correlationInitializer = null;
 
-		public SessionStarter( InputOperationProcess guard, jolie.process.Process body ) {
+		public SessionStarter( InputOperationProcess guard, jolie.process.Process body )
+		{
 			this.guard = guard;
 			this.body = body;
 		}
 
-		public InputOperationProcess guard() {
+		public InputOperationProcess guard()
+		{
 			return guard;
 		}
 
-		public jolie.process.Process body() {
+		public jolie.process.Process body()
+		{
 			return body;
 		}
 
-		public void setCorrelationInitializer( CorrelationSet cset ) {
+		public void setCorrelationInitializer( CorrelationSet cset )
+		{
 			correlationInitializer = cset;
 		}
 
-		public CorrelationSet correlationInitializer() {
+		public CorrelationSet correlationInitializer()
+		{
 			return correlationInitializer;
 		}
 	}
@@ -235,7 +245,6 @@ public class Interpreter {
 	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
 	private CommCore commCore;
-	private CommandLineParser cmdParser;
 	private Program internalServiceProgram = null;
 	private Interpreter parentInterpreter = null;
 
@@ -248,65 +257,74 @@ public class Interpreter {
 	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap<>();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
-	private final String[] arguments;
 	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
-
+	
 	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
 	private final Map< String, OutputPort > outputPorts = new HashMap<>();
 	private final Map< String, InputOperation > inputOperations = new HashMap<>();
-
+	
 	private final HashMap< String, Object > locksMap = new HashMap<>();
-
+	
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
-	private final String[] optionArgs;
+
 	private final String logPrefix;
 	private final Tracer tracer;
-	private final boolean printStackTraces;
 	private boolean check = false;
 	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
-	private final long responseTimeout;
+
+
+
+
+
+
+    private InterpreterParameters interpreterParameters;
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
 	// 11 is the default initial capacity for PriorityQueue
 	private final Queue< WeakReference< TimeoutHandler > > timeoutHandlerQueue =
 		new PriorityQueue<>( 11, new TimeoutHandler.Comparator() );
-
+	
 	private final ExecutorService timeoutHandlerExecutor =
 		Executors.newSingleThreadExecutor( new NativeJolieThreadFactory( this ) );
 
-	private final String programFilename;
-	private final String programFilepath;
+
 	private final File programDirectory;
 	private OutputPort monitor = null;
 
-	public void setMonitor( OutputPort monitor ) {
+	public void setMonitor( OutputPort monitor )
+	{
 		this.monitor = monitor;
 		fireMonitorEvent( new MonitorAttachedEvent() );
 	}
-
-	public boolean isMonitoring() {
+	
+	public boolean isMonitoring()
+	{
 		return monitor != null;
 	}
-
-	/*
-	 * public long inputMessageTimeout() { return inputMessageTimeout; }
-	 */
-
-	public String logPrefix() {
+	
+	/*public long inputMessageTimeout()
+	{
+		return inputMessageTimeout;
+	}*/
+	
+	public String logPrefix()
+	{
 		return logPrefix;
 	}
-
-	public Tracer tracer() {
+	
+	public Tracer tracer()
+	{
 		return tracer;
 	}
-
-	public void fireMonitorEvent( MonitoringEvent event ) {
-		if( monitor != null ) {
+	
+	public void fireMonitorEvent( MonitoringEvent event )
+	{
+		if ( monitor != null ) {
 			CommMessage m = CommMessage.createRequest( "pushEvent", "/", MonitoringEvent.toValue( event ) );
 			CommChannel channel = null;
 			try {
@@ -319,7 +337,7 @@ public class Interpreter {
 			} catch( URISyntaxException | InterruptedException | ExecutionException | IOException e ) {
 				logWarning( e );
 			} finally {
-				if( channel != null ) {
+				if ( channel != null ) {
 					try {
 						channel.release();
 					} catch( IOException e ) {
@@ -330,38 +348,45 @@ public class Interpreter {
 		}
 	}
 
-	public long persistentConnectionTimeout() {
+	public long persistentConnectionTimeout()
+	{
 		return persistentConnectionTimeout;
 	}
-
-	public long responseTimeout() {
-		return responseTimeout;
+	
+	public long responseTimeout()
+	{
+		return interpreterParameters.responseTimeout();
 	}
 
-	public CorrelationEngine correlationEngine() {
+	public CorrelationEngine correlationEngine()
+	{
 		return correlationEngine;
 	}
-
-	private Timer timer() {
-		if( timer == null ) {
-			timer = new Timer( programFilename + "-Timer" );
+	
+	private Timer timer()
+	{
+		if ( timer == null ) {
+			timer = new Timer( interpreterParameters.programFilepath().getName() + "-Timer" );
 		}
 		return timer;
 	}
 
-	public void schedule( TimerTask task, long delay ) {
-		if( exiting == false ) {
+	public void schedule( TimerTask task, long delay )
+	{
+		if ( exiting == false ) {
 			timer().schedule( task, delay );
 		}
 	}
 
-	public void addTimeoutHandler( TimeoutHandler handler ) {
+	public void addTimeoutHandler( TimeoutHandler handler )
+	{
 		synchronized( timeoutHandlerQueue ) {
 			timeoutHandlerQueue.add( new WeakReference<>( handler ) );
-			if( timeoutHandlerQueue.size() == 1 ) {
+			if ( timeoutHandlerQueue.size() == 1 ) {
 				schedule( new TimerTask() {
 					@Override
-					public void run() {
+					public void run()
+					{
 						synchronized( timeoutHandlerQueue ) {
 							checkForExpiredTimeoutHandlers();
 						}
@@ -373,22 +398,26 @@ public class Interpreter {
 		}
 	}
 
-	/*
-	 * public void removeTimeoutHandler( TimeoutHandler handler ) { synchronized( timeoutHandlerQueue )
-	 * { timeoutHandlerQueue.remove( handler ); checkForExpiredTimeoutHandlers(); } }
-	 */
+	/*public void removeTimeoutHandler( TimeoutHandler handler )
+	{
+		synchronized( timeoutHandlerQueue ) {
+			timeoutHandlerQueue.remove( handler );
+			checkForExpiredTimeoutHandlers();
+		}
+	}*/
 
-	private void checkForExpiredTimeoutHandlers() {
+	private void checkForExpiredTimeoutHandlers()
+	{
 		long currentTime = System.currentTimeMillis();
 		WeakReference< TimeoutHandler > whandler = timeoutHandlerQueue.peek();
 		boolean keepRun = true;
 		TimeoutHandler handler;
 		while( whandler != null && keepRun ) {
 			handler = whandler.get();
-			if( handler == null ) {
+			if ( handler == null ) {
 				timeoutHandlerQueue.remove();
 				whandler = timeoutHandlerQueue.peek();
-			} else if( handler.time() < currentTime || exiting ) {
+			} else if ( handler.time() < currentTime || exiting ) {
 				// final TimeoutHandler h = handler;
 				timeoutHandlerExecutor.execute( handler );
 				timeoutHandlerQueue.poll();
@@ -398,220 +427,214 @@ public class Interpreter {
 			}
 		}
 	}
-
+	
 	/**
 	 * Returns the option arguments passed to this Interpreter.
-	 * 
 	 * @return the option arguments passed to this Interpreter
 	 */
-	public String[] optionArgs() {
-		return optionArgs;
+	public String[] optionArgs()
+	{
+		return interpreterParameters.optionArgs();
 	}
-
+	
 	/**
 	 * Returns the include paths this Interpreter is considering.
-	 * 
 	 * @return the include paths this Interpreter is considering
 	 */
-	public String[] includePaths() {
+	public String[] includePaths()
+	{
 		return includePaths;
 	}
 
 	/**
 	 * Registers a session starter on this <code>Interpreter</code>.
-	 * 
 	 * @param guard the input guard for this session starter
 	 * @param body the body of this session starter
 	 */
-	public void registerSessionStarter( InputOperationProcess guard, jolie.process.Process body ) {
+	public void registerSessionStarter( InputOperationProcess guard, jolie.process.Process body )
+	{
 		sessionStarters.put( guard.inputOperation().id(), new SessionStarter( guard, body ) );
 	}
-
-	private JolieClassLoader classLoader;
-
+	
 	/**
 	 * Returns the output ports of this Interpreter.
-	 * 
 	 * @return the output ports of this Interpreter
 	 */
-	public Collection< OutputPort > outputPorts() {
+	public Collection< OutputPort > outputPorts()
+	{
 		return outputPorts.values();
 	}
-
+		
 	/**
 	 * Returns the InputOperation identified by key.
-	 * 
 	 * @param key the name of the InputOperation to return
 	 * @return the InputOperation identified by key
-	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
-	 *         InputOperation
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested InputOperation
 	 * @see InputOperation
 	 */
 	public InputOperation getInputOperation( String key )
-		throws InvalidIdException {
+		throws InvalidIdException
+	{
 		InputOperation ret = inputOperations.get( key );
-		if( ret == null ) {
+		if ( ret == null ) {
 			throw new InvalidIdException( key );
 		}
 		return ret;
 	}
-
+	
 	/**
-	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key
-	 * must identify a OneWayOperation.
-	 * 
+	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key must identify a OneWayOperation.
 	 * @param key the name of the OneWayOperation to return
 	 * @return the OneWayOperation identified by key
-	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
-	 *         OneWayOperation
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested OneWayOperation
 	 * @see OneWayOperation
 	 */
 	public OneWayOperation getOneWayOperation( String key )
-		throws InvalidIdException {
+		throws InvalidIdException
+	{
 		InputOperation ret;
-		if( (ret = inputOperations.get( key )) == null || !(ret instanceof OneWayOperation) )
+		if ( (ret=inputOperations.get( key )) == null || !(ret instanceof OneWayOperation) )
 			throw new InvalidIdException( key );
-		return (OneWayOperation) ret;
+		return (OneWayOperation)ret;
 	}
-
+	
 	/**
-	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key
-	 * must identify a RequestResponseOperation.
-	 * 
+	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key must identify a RequestResponseOperation.
 	 * @param key the name of the RequestResponseOperation to return
 	 * @return the RequestResponseOperation identified by key
-	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
-	 *         RequestResponseOperation
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested RequestResponseOperation
 	 * @see RequestResponseOperation
 	 */
 	public RequestResponseOperation getRequestResponseOperation( String key )
-		throws InvalidIdException {
+		throws InvalidIdException
+	{
 		InputOperation ret;
-		if( (ret = inputOperations.get( key )) == null || !(ret instanceof RequestResponseOperation) )
+		if ( (ret=inputOperations.get( key )) == null || !(ret instanceof RequestResponseOperation) )
 			throw new InvalidIdException( key );
-		return (RequestResponseOperation) ret;
+		return (RequestResponseOperation)ret;
 	}
-
+	
 	/**
 	 * Returns the OutputPort identified by key.
-	 * 
 	 * @param key the name of the OutputPort to return
 	 * @return the OutputPort identified by key
-	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
-	 *         OutputPort
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested OutputPort
 	 */
 	public synchronized OutputPort getOutputPort( String key )
-		throws InvalidIdException {
+		throws InvalidIdException
+	{
 		OutputPort ret;
-		if( (ret = outputPorts.get( key )) == null )
+		if ( (ret=outputPorts.get( key )) == null )
 			throw new InvalidIdException( key );
-		return (OutputPort) ret;
+		return (OutputPort)ret;
 	}
-
+	
 	/**
 	 * Removes a registered OutputPort.
-	 * 
 	 * @param key the name of the OutputPort to remove
 	 */
-	public synchronized void removeOutputPort( String key ) {
+	public synchronized void removeOutputPort( String key )
+	{
 		outputPorts.remove( key );
 	}
 
 	/**
 	 * Returns the Definition identified by key.
-	 * 
 	 * @param key the name of the Definition to return
 	 * @return the Definition identified by key
-	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
-	 *         Definition
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested Definition
 	 */
 	public DefinitionProcess getDefinition( String key )
-		throws InvalidIdException {
+		throws InvalidIdException
+	{
 		DefinitionProcess ret;
-		if( (ret = definitions.get( key )) == null )
+		if ( (ret=definitions.get( key )) == null )
 			throw new InvalidIdException( key );
 		return ret;
 	}
 
 	/**
 	 * Registers an <code>OutputPort</code> on this interpreter.
-	 * 
 	 * @param key the name of the <code>OutputPort</code> to register
 	 * @param value the <code>OutputPort</code> to register
 	 */
-	public void register( String key, OutputPort value ) {
+	public void register( String key, OutputPort value )
+	{
 		outputPorts.put( key, value );
 	}
 
 	/**
 	 * Registers a defined sub-routine on this interpreter.
-	 * 
 	 * @param key the name of the defined sub-routine to register
 	 * @param value the defined sub-routine to register
 	 */
-	public void register( String key, DefinitionProcess value ) {
+	public void register( String key, DefinitionProcess value )
+	{
 		definitions.put( key, value );
 	}
 
 	/**
 	 * Registers an <code>InputOperation</code> on this interpreter.
-	 * 
 	 * @param key the name of the <code>InputOperation</code> to register
 	 * @param value the <code>InputOperation</code> to register
 	 */
-	public void register( String key, InputOperation value ) {
+	public void register( String key, InputOperation value )
+	{
 		inputOperations.put( key, value );
 	}
 
 	/**
 	 * Registers an <code>EmbeddedServiceLoader</code> on this interpreter.
-	 * 
 	 * @param n the <code>EmbeddedServiceLoader</code> to register
 	 */
-	public void addEmbeddedServiceLoader( EmbeddedServiceLoader n ) {
+	public void addEmbeddedServiceLoader( EmbeddedServiceLoader n )
+	{
 		embeddedServiceLoaders.add( n );
 	}
 
 	/**
 	 * Returns the <code>EmbeddedServiceLoader</code> instances registered on this interpreter.
-	 * 
 	 * @return the <code>EmbeddedServiceLoader</code> instances registered on this interpreter
 	 */
-	public Collection< EmbeddedServiceLoader > embeddedServiceLoaders() {
+	public Collection< EmbeddedServiceLoader > embeddedServiceLoaders()
+	{
 		return embeddedServiceLoaders;
 	}
-
+	
 	/**
-	 * Makes this <code>Interpreter</code> entering in exiting mode. When in exiting mode, an
-	 * interpreter waits for each session to finish its execution and then terminates gracefully the
-	 * execution of the entire program. An interpreter in exiting mode cannot receive any more messages.
+	 * Makes this <code>Interpreter</code> entering in exiting mode.
+	 * When in exiting mode, an interpreter waits for each session to finish
+	 * its execution and then terminates gracefully the execution of the entire program.
+	 * An interpreter in exiting mode cannot receive any more messages.
 	 *
 	 * Multiple calls of this method are redundant.
 	 *
-	 * The fact that the interpreter cannot receive any more messages after entering exiting mode can
-	 * cause deadlocks if a session is waiting for a message to finish its execution. Use this method
-	 * with caution.
+	 * The fact that the interpreter cannot receive any more messages after
+	 * entering exiting mode can cause deadlocks if a session is waiting for a
+	 * message to finish its execution. Use this method with caution.
 	 */
-	public void exit() {
+	public void exit()
+	{
 		exit( awaitTerminationTimeout );
 	}
 
 	/**
-	 * Makes this <code>Interpreter</code> entering in exiting mode. When in exiting mode, an
-	 * interpreter waits for each session to finish its execution and then terminates gracefully the
-	 * execution of the entire program. An interpreter in exiting mode cannot receive any more messages.
+	 * Makes this <code>Interpreter</code> entering in exiting mode.
+	 * When in exiting mode, an interpreter waits for each session to finish
+	 * its execution and then terminates gracefully the execution of the entire program.
+	 * An interpreter in exiting mode cannot receive any more messages.
 	 *
 	 * Multiple calls of this method are redundant.
 	 *
-	 * The fact that the interpreter cannot receive any more messages after entering exiting mode can
-	 * cause deadlocks if a session is waiting for a message to finish its execution. Use this method
-	 * with caution.
-	 * 
+	 * The fact that the interpreter cannot receive any more messages after
+	 * entering exiting mode can cause deadlocks if a session is waiting for a
+	 * message to finish its execution. Use this method with caution.
 	 * @param terminationTimeout the timeout for the wait of the termination of running processes
 	 */
-	public void exit( long terminationTimeout ) {
+	public void exit( long terminationTimeout )
+	{
 		synchronized( this ) {
-			if( exiting ) {
+			if ( exiting ) {
 				return;
 			} else {
 				exiting = true;
@@ -623,7 +646,7 @@ public class Interpreter {
 		} finally {
 			exitingLock.unlock();
 		}
-		if( timer != null ) {
+		if ( timer != null ) {
 			timer.cancel();
 		}
 		checkForExpiredTimeoutHandlers();
@@ -633,71 +656,70 @@ public class Interpreter {
 		commCore.shutdown( terminationTimeout );
 		try {
 			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
-		} catch( InterruptedException e ) {
-		}
+		} catch ( InterruptedException e ) {}
 		try {
 			processExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
-		} catch( InterruptedException e ) {
-		}
+		} catch ( InterruptedException e ) {}
 		try {
 			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
-		} catch( InterruptedException e ) {
-		}
+		} catch ( InterruptedException e ) {}
 		free();
 	}
 
 	/**
 	 * Returns <code>true</code> if this interpreter is in exiting mode, <code>false</code> otherwise.
-	 * 
 	 * @return <code>true</code> if this interpreter is in exiting mode, <code>false</code> otherwise
 	 * @see #exit()
 	 */
-	public boolean exiting() {
+	public boolean exiting()
+	{
 		return exiting;
 	}
 
 	/**
-	 * Logs an unhandled fault using the logger of this interpreter. This method is used by sessions
-	 * that had to terminate due to a fault which could not be handled, due to a missing fault handler.
-	 * 
+	 * Logs an unhandled fault using the logger of this interpreter.
+	 * This method is used by sessions that had to terminate due to a fault
+	 * which could not be handled, due to a missing fault handler.
 	 * @param fault the <code>FaultException</code> that could not be handled
 	 */
-	public void logUnhandledFault( FaultException fault ) {
+	public void logUnhandledFault( FaultException fault )
+	{
 		StringWriter writer = new StringWriter();
 		try {
-			new ValuePrettyPrinter( fault.value(), writer,
-				"Thrown unhandled fault: " + fault.faultName() + "\nContent (if any)" ).run();
+			new ValuePrettyPrinter( fault.value(), writer, "Thrown unhandled fault: " + fault.faultName() + "\nContent (if any)" ).run();
 			logInfo( writer.toString() );
 		} catch( IOException e ) {
 			logInfo( "Thrown unhandled fault: " + fault.faultName() );
 		}
 	}
-
-	private String buildLogMessage( String message ) {
+	
+	private String buildLogMessage( String message )
+	{
 		return logPrefix + message;
 	}
 
 	/**
 	 * Logs an information message using the logger of this interpreter.
-	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
-	public void logInfo( String message ) {
+	public void logInfo( String message )
+	{
 		logger.log( buildLogRecord( Level.INFO, buildLogMessage( message ) ) );
 	}
-
+	
 	/**
 	 * Logs an information message using the logger of this interpreter (logger level: fine).
-	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
-	public void logFine( String message ) {
+	public void logFine( String message )
+	{
 		logger.log( buildLogRecord( Level.FINE, buildLogMessage( message ) ) );
 	}
-
-	private String buildLogMessage( Throwable t ) {
+	
+	private String buildLogMessage( Throwable t )
+	{
 		String ret;
-		if( printStackTraces ) {
+		if ( interpreterParameters.printStackTraces() ) {
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
 			t.printStackTrace( new PrintStream( bs ) );
 			ret = bs.toString();
@@ -706,384 +728,384 @@ public class Interpreter {
 		}
 		return ret;
 	}
-
-	private LogRecord buildLogRecord( Level level, String message ) {
+	
+	private LogRecord buildLogRecord( Level level, String message )
+	{
 		LogRecord record = new LogRecord( level, message );
-		record.setSourceClassName( programFilename );
+		record.setSourceClassName( interpreterParameters.programFilepath().getName() );
 		return record;
 	}
-
+	
 	/**
 	 * Logs an information message using the logger of this interpreter (logger level: fine).
-	 * 
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
-	public void logFine( Throwable t ) {
+	public void logFine( Throwable t )
+	{
 		logger.log( buildLogRecord( Level.FINE, buildLogMessage( t ) ) );
 	}
 
 	/**
 	 * Logs a severe error message using the logger of this interpreter.
-	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
-	public void logSevere( String message ) {
+	public void logSevere( String message )
+	{
 		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( message ) ) );
 	}
 
 	/**
 	 * Logs a warning message using the logger of this interpreter.
-	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
-	public void logWarning( String message ) {
+	public void logWarning( String message )
+	{
 		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( message ) ) );
 	}
 
 	/**
 	 * Logs a severe error message, created by reading the stack trace of the passed
 	 * <code>Throwable</code>, using the logger of this interpreter.
-	 * 
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
-	public void logSevere( Throwable t ) {
+	public void logSevere( Throwable t )
+	{
 		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( t ) ) );
 	}
 
 	/**
-	 * Logs a warning message, created by reading the stack trace of the passed <code>Throwable</code>,
-	 * using the logger of this interpreter.
-	 * 
+	 * Logs a warning message, created by reading the stack trace of the passed
+	 * <code>Throwable</code>, using the logger of this interpreter.
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
-	public void logWarning( Throwable t ) {
+	public void logWarning( Throwable t )
+	{
 		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( t ) ) );
 	}
-
+	
 	/**
 	 * Returns the execution mode of this Interpreter.
-	 * 
 	 * @return the execution mode of this Interpreter
 	 * @see Constants.ExecutionMode
 	 */
-	public Constants.ExecutionMode executionMode() {
+	public Constants.ExecutionMode executionMode()
+	{
 		return executionMode;
 	}
-
+	
 	/**
 	 * Sets the execution mode of this Interpreter.
-	 * 
 	 * @param mode the execution mode to set
 	 * @see Constants.ExecutionMode
 	 */
-	public void setExecutionMode( Constants.ExecutionMode mode ) {
+	public void setExecutionMode( Constants.ExecutionMode mode )
+	{
 		executionMode = mode;
 	}
 
 	/**
 	 * Adds a correlation set to this interpreter.
-	 * 
 	 * @param set the correlation set to add
 	 */
-	public void addCorrelationSet( CorrelationSet set ) {
+	public void addCorrelationSet( CorrelationSet set )
+	{
 		correlationSets.add( set );
 		for( String operation : set.correlatingOperations() ) {
 			operationCorrelationSetMap.put( operation, set );
 		}
 	}
 
-	public CorrelationSet getCorrelationSetForOperation( String operationName ) {
+	public CorrelationSet getCorrelationSetForOperation( String operationName )
+	{
 		return operationCorrelationSetMap.get( operationName );
 	}
-
+	
 	/**
 	 * Returns the correlation sets of this Interpreter.
-	 * 
 	 * @return the correlation sets of this Interpreter
 	 */
-	public List< CorrelationSet > correlationSets() {
+	public List< CorrelationSet > correlationSets()
+	{
 		return correlationSets;
 	}
-
+	
 	/**
 	 * Returns the Interpreter the current thread is referring to.
-	 * 
 	 * @return the Interpreter the current thread is referring to
 	 */
-	public static Interpreter getInstance() {
+	public static Interpreter getInstance()
+	{
 		Thread t = Thread.currentThread();
-		if( t instanceof InterpreterThread ) {
-			return ((InterpreterThread) t).interpreter();
+		if ( t instanceof InterpreterThread ) {
+			return ((InterpreterThread)t).interpreter();
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Returns the JolieClassLoader this Interpreter is using.
-	 * 
 	 * @return the JolieClassLoader this Interpreter is using
 	 */
 	public JolieClassLoader getClassLoader() {
-		return classLoader;
+		return interpreterParameters.jolieClassLoader();
 	}
 
 	/**
-	 * Constructor.
-	 *
-	 * @param args The command line arguments.
-	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
-	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
-	 *        a JAP file.
-	 * @throws CommandLineException if the command line is not valid or asks for simple information.
-	 *         (like --help and --version)
-	 * @throws FileNotFoundException if one of the passed input files is not found.
-	 * @throws IOException if a Scanner constructor signals an error.
+	 * returns the interpreter parameters
+	 * @return
 	 */
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory )
-		throws CommandLineException, FileNotFoundException, IOException {
-		this( args, parentClassLoader, programDirectory, false );
+	public InterpreterParameters getInterpreterParameters() {
+		return interpreterParameters;
 	}
 
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, boolean ignoreFile )
-		throws CommandLineException, FileNotFoundException, IOException {
+	/** Constructor.
+	 *
+	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
+     * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @throws IOException if a Scanner constructor signals an error.
+	 */
+	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,  File programDirectory )
+		throws IOException
+	{
+        this( parentClassLoader, interpreterParameters, programDirectory, false );
+	}
+    
+    public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,  File programDirectory, boolean ignoreFile )
+		throws IOException
+	{
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.parentClassLoader = parentClassLoader;
+		this.interpreterParameters = interpreterParameters;
 
-		cmdParser = new CommandLineParser( args, parentClassLoader, ignoreFile );
-		classLoader = cmdParser.jolieClassLoader();
-		optionArgs = cmdParser.optionArgs();
-		programFilename = cmdParser.programFilepath().getName();
-		programFilepath = cmdParser.programFilepath().toString();
-		arguments = cmdParser.arguments();
-		printStackTraces = cmdParser.printStackTraces();
 
-		responseTimeout = cmdParser.responseTimeout();
 
-		switch( cmdParser.tracerLevel() ) {
-		case "comm":
-			tracerLevel = TracerUtils.TracerLevels.COMM;
-			break;
-		case "comp":
-			tracerLevel = TracerUtils.TracerLevels.COMP;
-			break;
+		switch( interpreterParameters.tracerLevel() ) {
+			case "comm":
+				tracerLevel = TracerUtils.TracerLevels.COMM;
+				break;
+			case "comp":
+				tracerLevel = TracerUtils.TracerLevels.COMP;
+				break;
 		}
-
-		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
-
-		commCore = new CommCore( this, cmdParser.connectionsLimit() /* , cmdParser.connectionsCache() */ );
-		includePaths = cmdParser.includePaths();
+        
+		this.correlationEngine = interpreterParameters.correlationAlgorithm().createInstance( this );
+		
+        commCore = new CommCore( this, interpreterParameters.connectionsLimit() /*, cmdParser.connectionsCache() */ );
+		includePaths = interpreterParameters.includePaths();
 
 		StringBuilder builder = new StringBuilder();
 		builder.append( '[' );
-		builder.append( programFilename );
+		builder.append( interpreterParameters.programFilepath().getName() );
 		builder.append( "] " );
 		logPrefix = builder.toString();
 
-		if( cmdParser.tracer() ) {
-			if( cmdParser.tracerMode().equals( "file" ) ) {
+		if ( interpreterParameters.tracer() ) {
+			if ( interpreterParameters.tracerMode().equals("file")) {
 				tracer = new FileTracer( this, tracerLevel );
 			} else {
-				tracer = new PrintingTracer( this, tracerLevel );
+				tracer = new PrintingTracer(this, tracerLevel );
 			}
 		} else {
 			tracer = new DummyTracer();
 		}
-
-		logger.setLevel( cmdParser.logLevel() );
-
+		
+		logger.setLevel( interpreterParameters.logLevel() );
+		
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
 
-		if( cmdParser.programDirectory() == null ) {
+		if ( interpreterParameters.programDirectory() == null ) {
 			this.programDirectory = programDirectory;
 		} else {
-			this.programDirectory = cmdParser.programDirectory();
+			this.programDirectory = interpreterParameters.programDirectory();
 		}
-		if( this.programDirectory == null ) {
-			throw new IOException(
-				"Could not localize the service execution directory. This is probably a bug in the JOLIE interpreter, please report it to jolie-devel@lists.sf.net" );
+		if ( this.programDirectory == null ) {
+			throw new IOException( "Could not localize the service execution directory. This is probably a bug in the JOLIE interpreter, please report it to jolie-devel@lists.sf.net" );
 		}
 	}
-
-	/**
-	 * Constructor.
+   
+    /** Constructor.
 	 *
-	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
-	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
-	 *        a JAP file.
+	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
 	 * @param parentInterpreter
 	 * @param internalServiceProgram
-	 * @throws CommandLineException if the command line is not valid or asks for simple information.
-	 *         (like --help and --version)
+	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory,
-		Interpreter parentInterpreter, Program internalServiceProgram )
-		throws CommandLineException, FileNotFoundException, IOException {
-		this( args, parentClassLoader, programDirectory, true );
-
+	public Interpreter( InterpreterParameters interpreterParameters, ClassLoader parentClassLoader, File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
+		throws FileNotFoundException, IOException
+	{
+        this( parentClassLoader, interpreterParameters, programDirectory, true );
+        
 		this.parentInterpreter = parentInterpreter;
-		this.internalServiceProgram = internalServiceProgram;
+        this.internalServiceProgram = internalServiceProgram;
 	}
 
 	/**
 	 * Returns the parent directory of the program executed by this Interpreter.
-	 * 
 	 * @return the parent directory of the program executed by this Interpreter.
 	 */
-	public File programDirectory() {
+	public File programDirectory()
+	{
 		return programDirectory;
 	}
-
-	public Interpreter parentInterpreter() {
+	
+	public Interpreter parentInterpreter()
+	{
 		return parentInterpreter;
 	}
 
 	/**
 	 * Returns the program filename this interpreter was launched with.
-	 * 
 	 * @return the program filename this interpreter was launched with
 	 */
-	public String programFilename() {
-		return programFilename;
+	public String programFilename()
+	{
+		return interpreterParameters.programFilepath().getName();
 	}
 
 	/**
 	 * Returns the path at which the file to be interpreted has been found
-	 * 
 	 * @return the path at which the file to be interpreted has been found
 	 */
-	public String programFilepath() {
-		return programFilepath;
+	public String programFilepath()
+	{
+		return interpreterParameters.programFilepath().getName();
 	}
 
 	/**
 	 * Returns the parent class loader passed to the constructor of this interpreter.
-	 * 
 	 * @return the parent class loader passed to the constructor of this interpreter
 	 */
-	public ClassLoader parentClassLoader() {
+	public ClassLoader parentClassLoader()
+	{
 		return parentClassLoader;
 	}
 
 	/**
-	 * Returns the global lock registered on this interpreter with the passed identifier. If a global
-	 * lock with such identifier is not registered, a new one is automatically created, registered and
-	 * returned.
-	 * 
+	 * Returns the global lock registered on this interpreter with the passed identifier.
+	 * If a global lock with such identifier is not registered, a new one is
+	 * automatically created, registered and returned.
 	 * @param id the global lock identifier
 	 * @return the global lock registered on this interpreter with the specified identifier
 	 */
-	public synchronized Object getLock( String id ) {
+	public synchronized Object getLock( String id )
+	{
 		Object l = locksMap.get( id );
-		if( l == null ) {
+		if ( l == null ) {
 			l = new Object();
 			locksMap.put( id, l );
 		}
 		return l;
 	}
 
-	public SessionStarter getSessionStarter( String operationName ) {
+	public SessionStarter getSessionStarter( String operationName )
+	{
 		return sessionStarters.get( operationName );
 	}
 
 	/**
 	 * Returns the {@code global} value of this Interpreter.
-	 * 
 	 * @return the {@code global} value of this Interpreter
 	 */
-	public Value globalValue() {
+	public Value globalValue()
+	{
 		return globalValue;
 	}
-
+	
 	private InitSessionThread initExecutionThread;
 	private SessionThread mainSession = null;
 	private final Queue< SessionThread > waitingSessionThreads = new LinkedList<>();
-
+	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
-	 * 
 	 * @return the {@link SessionThread} of the Interpreter that started the program execution
 	 */
-	public SessionThread initThread() {
+	public SessionThread initThread()
+	{
 		return initExecutionThread;
 	}
-
+	
 	/**
-	 * Starts this interpreter, returning a <code>Future</code> which can be interrogated to know when
-	 * the interpreter start procedure has been completed and the interpreter is ready to receive
-	 * messages.
-	 * 
-	 * @return a <code>Future</code> which can be interrogated to know when the interpreter start
-	 *         procedure has been completed and the interpreter is ready to receive messages.
+	 * Starts this interpreter, returning a <code>Future</code> which can
+	 * be interrogated to know when the interpreter start procedure has been 
+	 * completed and the interpreter is ready to receive messages.
+	 * @return a <code>Future</code> which can
+	 *		be interrogated to know when the interpreter start procedure has been 
+	 *		completed and the interpreter is ready to receive messages.
 	 */
-	public Future< Exception > start() {
+	public Future< Exception > start()
+	{
 		CompletableFuture< Exception > f = new CompletableFuture<>();
 		(new StarterThread( f )).start();
 		return f;
 	}
-
+	
 	private void init()
-		throws InterpreterException, IOException {
-		/**
-		 * Order is important. 1 - CommCore needs the OOIT to be initialized. 2 - initExec must be
-		 * instantiated before we can receive communications.
-		 */
-		if( buildOOIT() == false && !check ) {
-			throw new InterpreterException( "Error: service initialisation failed" );
-		}
-		if( check ) {
-			exit();
-		} else {
-			sessionStarters = Collections.unmodifiableMap( sessionStarters );
-			try {
-				initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
+		throws InterpreterException, IOException
+	{
+            /**
+            * Order is important.
+             * 1 - CommCore needs the OOIT to be initialized.
+             * 2 - initExec must be instantiated before we can receive communications.
+             */
+            if ( buildOOIT() == false && !check ) {
+                throw new InterpreterException( "Error: service initialisation failed" );
+            }
+            if ( check ){
+                exit();
+            } else {
+                sessionStarters = Collections.unmodifiableMap( sessionStarters );
+                try {
+                    initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
 
-				commCore.init();
+                    commCore.init();
 
-				// Initialize program arguments in the args variabile.
-				ValueVector jArgs = ValueVector.create();
-				for( String s : arguments ) {
-					jArgs.add( Value.create( s ) );
-				}
-				initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
-				/*
-				 * initExecutionThread.addSessionListener( new SessionListener() { public void onSessionExecuted(
-				 * SessionThread session ) {} public void onSessionError( SessionThread session, FaultException
-				 * fault ) { exit(); } });
-				 */
+                    // Initialize program arguments in the args variabile.
+                    ValueVector jArgs = ValueVector.create();
+                    for( String s : interpreterParameters.arguments() ) {
+                        jArgs.add( Value.create( s ) );
+                    }
+                    initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
+                    /* initExecutionThread.addSessionListener( new SessionListener() {
+                            public void onSessionExecuted( SessionThread session )
+                            {}
+                            public void onSessionError( SessionThread session, FaultException fault )
+                            {
+                                    exit();
+                            }
+                    }); */
 
-				correlationEngine.onSingleExecutionSessionStart( initExecutionThread );
-				// initExecutionThread.addSessionListener( correlationEngine );
-				initExecutionThread.start();
-			} catch( InvalidIdException e ) {
-				assert false;
-			}
-		}
+                    correlationEngine.onSingleExecutionSessionStart( initExecutionThread );
+                    // initExecutionThread.addSessionListener( correlationEngine );
+                    initExecutionThread.start();
+                } catch( InvalidIdException e ) { assert false; }
+            }
 	}
-
-	private void runCode() {
-		if( !check ) {
+	
+	private void runCode()
+	{
+		if ( !check ) {
 			SessionThread t;
 			synchronized( this ) {
 				t = initExecutionThread;
 			}
 			try {
-				if( t != null ) {
+				if ( t != null ) {
 					t.join();
 				}
 			} catch( InterruptedException e ) {
 				logSevere( e );
 			}
 
-			if( executionMode == Constants.ExecutionMode.SINGLE ) {
+			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 				synchronized( this ) {
 					t = mainSession;
 				}
 				try {
-					if( t != null ) {
+					if ( t != null ) {
 						mainSession.start();
 						mainSession.join();
 					}
@@ -1102,63 +1124,69 @@ public class Interpreter {
 			}
 		}
 	}
-
+	
 	/**
-	 * Runs the interpreter behaviour specified by command line. The default behaviour is to execute the
-	 * input code.
+	 * Runs the interpreter behaviour specified by command line.
+	 * The default behaviour is to execute the input code.
 	 *
-	 * Note that you must shutdown the CommCore of this Interpreter manually after calling this method.
-	 * 
+	 * Note that you must shutdown the CommCore of this Interpreter
+	 * manually after calling this method.
 	 * @throws IOException if a Parser propagates a Scanner exception
 	 * @throws InterpreterException if the interpretation tree could not be built
 	 */
 	public void run()
-		throws InterpreterException, IOException {
+		throws InterpreterException, IOException
+	{
 		init();
 		runCode();
 	}
 
 	private final ExecutorService nativeExecutorService =
 		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
-	// Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
+		// Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
 	private final ExecutorService processExecutorService =
 		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
-	// Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
+		// Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
-	 * 
 	 * @param r the Runnable object to execute
 	 */
-	public void execute( Runnable r ) {
+	public void execute( Runnable r )
+	{
 		nativeExecutorService.execute( r );
 	}
-
-	public Executor taskExecutor() {
+	
+	public Executor taskExecutor()
+	{
 		return nativeExecutorService;
 	}
-
-	public Future< ? > runJolieThread( Runnable task ) {
+	
+	public Future<?> runJolieThread( Runnable task )
+	{
 		return processExecutorService.submit( task );
 	}
 
 	private static final AtomicInteger starterThreadCounter = new AtomicInteger();
 
-	private static String createStarterThreadName( String programFilename ) {
+	private static String createStarterThreadName( String programFilename )
+	{
 		return programFilename + "-StarterThread-" + starterThreadCounter.incrementAndGet();
 	}
 
-	private class StarterThread extends Thread {
+	private class StarterThread extends Thread
+	{
 		private final CompletableFuture< Exception > future;
-
-		public StarterThread( CompletableFuture< Exception > future ) {
-			super( createStarterThreadName( programFilename ) );
+		public StarterThread( CompletableFuture< Exception > future )
+		{
+			super( createStarterThreadName( interpreterParameters.programFilepath().getName() ) );
 			this.future = future;
-			setContextClassLoader( classLoader );
+			setContextClassLoader( interpreterParameters.jolieClassLoader() );
 		}
-
+		
 		@Override
-		public void run() {
+		public void run()
+		{
 			try {
 				init();
 				future.complete( null );
@@ -1166,15 +1194,16 @@ public class Interpreter {
 				future.complete( e );
 			}
 			runCode();
-			// commCore.shutdown();
+			//commCore.shutdown();
 			exit();
 		}
 	}
-
-	private void free() {
-		/*
-		 * We help the Java(tm) Garbage Collector. Looks like it needs this or the Interpreter does not get
-		 * collected.
+	
+	private void free()
+	{
+		/* We help the Java(tm) Garbage Collector.
+		 * Looks like it needs this or the Interpreter
+		 * does not get collected.
 		 */
 		definitions.clear();
 		inputOperations.clear();
@@ -1185,53 +1214,55 @@ public class Interpreter {
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
-		classLoader = null;
+		interpreterParameters.setJolieClassLoader(null);
 		commCore = null;
 		// System.gc();
 	}
-
+	
 	/**
 	 * Returns the CommCore of this Interpreter.
-	 * 
 	 * @return the CommCore of this Interpreter
 	 */
-	public CommCore commCore() {
+	public CommCore commCore()
+	{
 		return commCore;
 	}
-
+	
 	private boolean buildOOIT()
-		throws InterpreterException {
+		throws InterpreterException
+	{
+
 		try {
 			Program program;
-			if( cmdParser.isProgramCompiled() ) {
-				try( final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() ) ) {
+			if ( interpreterParameters.isProgramCompiled() ) {
+				try ( final ObjectInputStream istream = new ObjectInputStream( interpreterParameters.inputStream() ) ) {
 					final Object o = istream.readObject();
-					if( o instanceof Program ) {
-						program = (Program) o;
+					if ( o instanceof Program ) {
+						program = (Program)o;
 					} else {
 						throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 					}
 				}
 			} else {
-				if( this.internalServiceProgram != null ) {
+				if ( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 				} else {
-					final OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(),
-						cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
+					final OLParser olParser = new OLParser( new Scanner( interpreterParameters.inputStream(),
+                            interpreterParameters.programFilepath().toURI(), interpreterParameters.charset() ), includePaths, interpreterParameters.jolieClassLoader() );
 
-					olParser.putConstants( cmdParser.definedConstants() );
+					olParser.putConstants( interpreterParameters.constants() );
 					program = olParser.parse();
 				}
 				program = OLParseTreeOptimizer.optimize( program );
 			}
+			
+			interpreterParameters.inputStream().close();
 
-			cmdParser.close();
-
-			check = cmdParser.check();
+			check = interpreterParameters.check();
 
 			final SemanticVerifier semanticVerifier;
 
-			if( check ) {
+			if ( check ) {
 				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
 				conf.setCheckForMain( false );
 				semanticVerifier = new SemanticVerifier( program, conf );
@@ -1246,17 +1277,18 @@ public class Interpreter {
 				throw new InterpreterException( "Exiting" );
 			}
 
-			if( cmdParser.typeCheck() ) {
+			if ( interpreterParameters.typeCheck() ) {
 				TypeChecker typeChecker = new TypeChecker(
 					program,
 					semanticVerifier.executionMode(),
-					semanticVerifier.correlationFunctionInfo() );
-				if( !typeChecker.check() ) {
+					semanticVerifier.correlationFunctionInfo()
+				);
+				if ( !typeChecker.check() ) {
 					throw new InterpreterException( "Exiting" );
 				}
 			}
 
-			if( check ) {
+			if ( check ) {
 				return false;
 			} else {
 				return (new OOITBuilder(
@@ -1264,30 +1296,28 @@ public class Interpreter {
 					program,
 					semanticVerifier.isConstantMap(),
 					semanticVerifier.correlationFunctionInfo() ))
-						.build();
+					.build();
 			}
 
 		} catch( IOException | ParserException | ClassNotFoundException e ) {
 			throw new InterpreterException( e );
-		} finally {
-			cmdParser = null; // Free memory
 		}
 	}
-
+	
 	/**
 	 * Starts a service session.
-	 * 
 	 * @param message the message triggering the session start
 	 * @param channel the channel of the message triggering the session start
 	 * @return {@code true} if the service session is started, {@code false} otherwise
 	 */
-	public boolean startServiceSession( final CommMessage message, CommChannel channel ) {
-		if( executionMode == Constants.ExecutionMode.SINGLE ) {
+	public boolean startServiceSession( final CommMessage message, CommChannel channel )
+	{
+		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 			return false;
 		}
 
 		SessionStarter starter = sessionStarters.get( message.operationName() );
-		if( starter == null ) {
+		if ( starter == null ) {
 			return false;
 		}
 
@@ -1296,32 +1326,35 @@ public class Interpreter {
 		} catch( InterruptedException e ) {
 			return false;
 		}
-
+		
 		final SessionThread spawnedSession;
 
-		if( executionMode == Constants.ExecutionMode.CONCURRENT ) {
+		if ( executionMode == Constants.ExecutionMode.CONCURRENT ) {
 			State state = initExecutionThread.state().clone();
 			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
 				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
 				starter.body
 			} );
 			spawnedSession = new SessionThread(
-				sequence, state, initExecutionThread );
+				sequence, state, initExecutionThread
+			);
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), message.value() );
+			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
+							message.id(), message.value() );
 			spawnedSession.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session ) {
+				public void onSessionExecuted( SessionThread session )
+				{
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
-
-				public void onSessionError( SessionThread session, FaultException fault ) {
+				
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 			} );
 			spawnedSession.start();
-		} else if( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
+		} else if ( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
 			/*
 			 * We use sessionThreads to handle sequential execution of spawn requests
 			 */
@@ -1331,15 +1364,17 @@ public class Interpreter {
 				starter.body
 			} );
 			spawnedSession = new SessionThread(
-				sequence, state, initExecutionThread );
+				sequence, state, initExecutionThread
+			);
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session ) {
+				public void onSessionExecuted( SessionThread session )
+				{
 					synchronized( waitingSessionThreads ) {
-						if( !waitingSessionThreads.isEmpty() ) {
+						if ( !waitingSessionThreads.isEmpty() ) {
 							waitingSessionThreads.poll();
-							if( !waitingSessionThreads.isEmpty() ) {
+							if ( !waitingSessionThreads.isEmpty() ) {
 								waitingSessionThreads.peek().start();
 							}
 						}
@@ -1347,11 +1382,12 @@ public class Interpreter {
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 
-				public void onSessionError( SessionThread session, FaultException fault ) {
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
 					synchronized( waitingSessionThreads ) {
-						if( !waitingSessionThreads.isEmpty() ) {
+						if ( !waitingSessionThreads.isEmpty() ) {
 							waitingSessionThreads.poll();
-							if( !waitingSessionThreads.isEmpty() ) {
+							if( !waitingSessionThreads.isEmpty() ){
 								waitingSessionThreads.peek().start();
 							}
 						}
@@ -1359,8 +1395,8 @@ public class Interpreter {
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 			} );
-			synchronized( waitingSessionThreads ) {
-				if( waitingSessionThreads.isEmpty() ) {
+			synchronized ( waitingSessionThreads ) {
+				if ( waitingSessionThreads.isEmpty() ) {
 					waitingSessionThreads.add( spawnedSession );
 					waitingSessionThreads.peek().start();
 				} else {
@@ -1370,29 +1406,31 @@ public class Interpreter {
 		}
 		return true;
 	}
-
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message ) {
-		if( isMonitoring() ) {
+	
+	private void logSessionStart( String operationName, String sessionId, long messageId, Value message )
+	{
+		if ( isMonitoring() ) {
 			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
-			fireMonitorEvent(
-				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
+			fireMonitorEvent( new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
 		}
 	}
-
-	private void logSessionEnd( String operationName, String sessionId ) {
-		if( isMonitoring() ) {
+	
+	private void logSessionEnd( String operationName, String sessionId )
+	{
+		if ( isMonitoring() ) {
 			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
 		}
 	}
-
-	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<>();
-
+	
+	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<> ();
+	
 	public EmbeddedServiceLoaderFactory getEmbeddedServiceLoaderFactory( String name )
-		throws IOException {
+		throws IOException
+	{
 		EmbeddedServiceLoaderFactory factory = embeddingFactories.get( name );
-		if( factory == null ) {
+		if ( factory == null ) {
 			factory = getClassLoader().createEmbeddedServiceLoaderFactory( name, this );
-			if( factory != null ) {
+			if ( factory != null ) {
 				embeddingFactories.put( name, factory );
 			}
 		}
