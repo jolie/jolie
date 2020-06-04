@@ -55,12 +55,12 @@ public class OutputDirectoryTest {
         Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
         Program program = ParsingUtils.parseProgram(
-                cmdParser.programStream(),
-                cmdParser.programFilepath().toURI(),
-                cmdParser.charset(),
-                cmdParser.includePaths(),
-                cmdParser.jolieClassLoader(),
-                cmdParser.definedConstants(),
+                cmdParser.getInterpreterParameters().inputStream(),
+                cmdParser.getInterpreterParameters().programFilepath().toURI(),
+                cmdParser.getInterpreterParameters().charset(),
+                cmdParser.getInterpreterParameters().includePaths(),
+                cmdParser.getInterpreterParameters().jolieClassLoader(),
+                cmdParser.getInterpreterParameters().constants(),
                 false );
 
         //Program program = parser.parse();
@@ -75,12 +75,12 @@ public class OutputDirectoryTest {
         Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
         Program program = ParsingUtils.parseProgram(
-                cmdParser.programStream(),
-                cmdParser.programFilepath().toURI(),
-                cmdParser.charset(),
-                cmdParser.includePaths(),
-                cmdParser.jolieClassLoader(),
-                cmdParser.definedConstants(),
+                cmdParser.getInterpreterParameters().inputStream(),
+                cmdParser.getInterpreterParameters().programFilepath().toURI(),
+                cmdParser.getInterpreterParameters().charset(),
+                cmdParser.getInterpreterParameters().includePaths(),
+                cmdParser.getInterpreterParameters().jolieClassLoader(),
+                cmdParser.getInterpreterParameters().constants(),
                 false );
 
         //Program program = parser.parse();

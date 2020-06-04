@@ -52,13 +52,20 @@ public abstract class EmbeddedServiceLoader
 				InternalEmbeddedServiceConfiguration internalConfiguration = (InternalEmbeddedServiceConfiguration) configuration;
 				ret = new InternalJolieServiceLoader( channelDest, interpreter, internalConfiguration.serviceName(), internalConfiguration.program() );
 			} else {
-				ExternalEmbeddedServiceConfiguration externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
+                ExternalEmbeddedServiceConfiguration externalConfiguration;
 				switch( configuration.type() ) {
 					case JAVA:
+                        externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
 						ret = new JavaServiceLoader( channelDest, externalConfiguration.servicePath(), interpreter );
 						break;
 					case JOLIE:
-						ret = new JolieServiceLoader( channelDest, interpreter, externalConfiguration.servicePath() );
+					    if ( configuration instanceof ExternalEmbeddedServiceConfiguration ) {
+                            externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
+                            ret = new JolieServiceLoader(channelDest, interpreter, externalConfiguration.servicePath());
+                        } else {
+                            ExternalEmbeddedNativeCodeConfiguration externalEmbeddedNativeCodeConfiguration = (ExternalEmbeddedNativeCodeConfiguration) configuration;
+                            ret = new JolieServiceLoader( externalEmbeddedNativeCodeConfiguration.code(), channelDest, interpreter );
+                        }
 						break;
 					default:
 						String serviceType = configuration.type().toString();
@@ -66,6 +73,7 @@ public abstract class EmbeddedServiceLoader
 						if ( factory == null ) {
 							throw new EmbeddedServiceLoaderCreationException( "Could not find extension to load services of type " + serviceType );
 						}
+                        externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
 						ret = factory.createLoader( interpreter, serviceType, externalConfiguration.servicePath(), channelDest );
 						break;
 				}
@@ -183,4 +191,28 @@ public abstract class EmbeddedServiceLoader
 		}
 
 	}
+
+    public static class ExternalEmbeddedNativeCodeConfiguration extends EmbeddedServiceConfiguration
+    {
+        private final String code;
+
+        /**
+         *
+         * @param type Type of embedded service, cannot be INTERNAL
+         * @param code code of service
+         */
+        public ExternalEmbeddedNativeCodeConfiguration( Constants.EmbeddedServiceType type, String code )
+        {
+            super( type );
+            this.code = code;
+
+            assert type != Constants.EmbeddedServiceType.INTERNAL;
+        }
+
+        public String code()
+        {
+            return code;
+        }
+
+    }
 }

@@ -717,9 +717,9 @@ public class MetaJolie extends JavaService {
 
             CommandLineParser cmdParser = new CommandLineParser(args, interpreter().getClassLoader());
             Program program = ParsingUtils.parseProgram(
-                    cmdParser.programStream(),
-                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), true
+                    cmdParser.getInterpreterParameters().inputStream(),
+                    cmdParser.getInterpreterParameters().programFilepath().toURI(), cmdParser.getInterpreterParameters().charset(),
+                    cmdParser.getInterpreterParameters().includePaths(), cmdParser.getInterpreterParameters().jolieClassLoader(), cmdParser.getInterpreterParameters().constants(),  true
             );
             ProgramInspector inspector = ParsingUtils.createInspector(program);
 
@@ -768,9 +768,9 @@ public class MetaJolie extends JavaService {
 
             CommandLineParser cmdParser = new CommandLineParser(args, interpreter().getClassLoader());
             Program program = ParsingUtils.parseProgram(
-                    cmdParser.programStream(),
-                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), true
+                    cmdParser.getInterpreterParameters().inputStream(),
+                    cmdParser.getInterpreterParameters().programFilepath().toURI(), cmdParser.getInterpreterParameters().charset(),
+                    cmdParser.getInterpreterParameters().includePaths(), cmdParser.getInterpreterParameters().jolieClassLoader(), cmdParser.getInterpreterParameters().constants(),  true
             );
             ProgramInspector inspector = ParsingUtils.createInspector(program);
 
@@ -845,9 +845,9 @@ public class MetaJolie extends JavaService {
 
             CommandLineParser cmdParser = new CommandLineParser(args, MetaJolie.class.getClassLoader());
             Program program = ParsingUtils.parseProgram(
-                    cmdParser.programStream(),
-                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), true);
+                    cmdParser.getInterpreterParameters().inputStream(),
+                    cmdParser.getInterpreterParameters().programFilepath().toURI(), cmdParser.getInterpreterParameters().charset(),
+                    cmdParser.getInterpreterParameters().includePaths(), cmdParser.getInterpreterParameters().jolieClassLoader(), cmdParser.getInterpreterParameters().constants(), true);
             ProgramInspector inspector = ParsingUtils.createInspector(program);
 
             URI originalFile = program.context().source();

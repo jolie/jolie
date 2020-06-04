@@ -94,7 +94,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the arguments passed to the JOLIE program.
 	 * @return the arguments passed to the JOLIE program.
 	 */
-	public final String[] arguments()
+	private final String[] arguments()
 	{
 		return arguments;
 	}
@@ -103,7 +103,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the {@link Level} of the logger of this interpreter.
 	 * @return the {@link Level} of the logger of this interpreter.
 	 */
-	public Level logLevel()
+	private Level logLevel()
 	{
 		return logLevel;
 	}
@@ -116,7 +116,7 @@ public class CommandLineParser implements Closeable
 	 * comp: only computation traces
 	 * comm: only communication traces
 	 */
-	public String tracerLevel()
+	private String tracerLevel()
 	{
 		return tracerLevel;
 	}
@@ -142,7 +142,7 @@ public class CommandLineParser implements Closeable
 	 * @return <code>true</code> if the verbose option has been specified, false
 	 * otherwise
 	 */
-	public boolean tracer()
+	private boolean tracer()
 	{
 		return tracer;
 	}
@@ -155,7 +155,7 @@ public class CommandLineParser implements Closeable
 	 * @return <code>true</code> if the verbose option has been specified, false
 	 * otherwise
 	 */
-	public boolean check()
+	private boolean check()
 	{
 		return check;
 	}
@@ -164,7 +164,7 @@ public class CommandLineParser implements Closeable
 	 * Returns {@code true} if the program is compiled, {@code false} otherwise.
 	 * @return {@code true} if the program is compiled, {@code false} otherwise.
 	 */
-	public boolean isProgramCompiled()
+	private boolean isProgramCompiled()
 	{
 		return isProgramCompiled;
 	}
@@ -173,7 +173,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the file path of the JOLIE program to execute.
 	 * @return the file path of the JOLIE program to execute
 	 */
-	public File programFilepath()
+	private File programFilepath()
 	{
 		return programFilepath;
 	}
@@ -182,7 +182,7 @@ public class CommandLineParser implements Closeable
 	 * Returns an InputStream for the program code to execute.
 	 * @return an InputStream for the program code to execute
 	 */
-	public InputStream programStream()
+	private InputStream programStream()
 	{
 		return programStream;
 	}
@@ -191,7 +191,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the program's character encoding
 	 * @return the program's character encoding
 	 */
-	public String charset()
+	private String charset()
 	{
 		return charset;
 	}
@@ -210,7 +210,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the library URLs passed by command line with the -l option.
 	 * @return the library URLs passed by command line
 	 */
-	public URL[] libURLs()
+	private URL[] libURLs()
 	{
 		return libURLs;
 	}
@@ -219,7 +219,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the include paths passed by command line with the -i option.
 	 * @return the include paths passed by command line
 	 */
-	public String[] includePaths()
+	private String[] includePaths()
 	{
 		return includePaths;
 	}
@@ -229,7 +229,7 @@ public class CommandLineParser implements Closeable
 	 * passed by command line with the -c option.
 	 * @return the connection limit parameter passed by command line
 	 */
-	public int connectionsLimit()
+	private int connectionsLimit()
 	{
 		return connectionsLimit;
 	}
@@ -239,7 +239,7 @@ public class CommandLineParser implements Closeable
 	 * passed by command line with the --responseTimeout option.
 	 * @return the response timeout parameter passed by command line
 	 */
-	public long responseTimeout()
+	private long responseTimeout()
 	{
 		return responseTimeout;
 	}
@@ -249,7 +249,7 @@ public class CommandLineParser implements Closeable
 	 * passed by command line with the --conncache option.
 	 * @return the connection cache parameter passed by command line
 	 */
-	public int connectionsCache()
+	private int connectionsCache()
 	{
 		return connectionsCache;
 	}
@@ -268,7 +268,7 @@ public class CommandLineParser implements Closeable
 	 * Returns a map containing the constants defined by command line.
 	 * @return a map containing the constants defined by command line
 	 */
-	public Map< String, Scanner.Token > definedConstants()
+	private Map< String, Scanner.Token > definedConstants()
 	{
 		return constants;
 	}
@@ -357,7 +357,7 @@ public class CommandLineParser implements Closeable
 	 * @return the type of correlation algorithm that has been specified.
 	 * @see CorrelationEngine
 	 */
-	public CorrelationEngine.Type correlationAlgorithmType()
+	private CorrelationEngine.Type correlationAlgorithmType()
 	{
 		return correlationAlgorithmType;
 	}
@@ -722,7 +722,7 @@ public class CommandLineParser implements Closeable
 		}
 	} */
 
-	public boolean printStackTraces()
+	private boolean printStackTraces()
 	{
 		return printStackTraces;
 	}
@@ -731,7 +731,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the directory in which the main program is located.
 	 * @return the directory in which the main program is located.
 	 */
-	public File programDirectory()
+	private File programDirectory()
 	{
 		return programDirectory;
 	}
@@ -740,7 +740,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the value of the --typecheck option.
 	 * @return the value of the --typecheck option.
 	 */
-	public boolean typeCheck()
+	private boolean typeCheck()
 	{
 		return typeCheck;
 	}
@@ -749,7 +749,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the classloader to use for the program.
 	 * @return the classloader to use for the program.
 	 */
-	public JolieClassLoader jolieClassLoader()
+	private JolieClassLoader jolieClassLoader()
 	{
 		return jolieClassLoader;
 	}
@@ -760,7 +760,7 @@ public class CommandLineParser implements Closeable
 	 * 
 	 * @return the command line options passed to this command line parser.
 	 */
-	public String[] optionArgs()
+	private String[] optionArgs()
 	{
 		return optionArgs;
 	}
@@ -943,6 +943,33 @@ public class CommandLineParser implements Closeable
 		return result;
 	}
 
+	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
+		InterpreterParameters interpreterParameters = new InterpreterParameters();
+		interpreterParameters.setConnectionsLimit( connectionsLimit() );
+		interpreterParameters.setConnectionCache( connectionsCache() );
+		interpreterParameters.correlationAlgorithm( correlationAlgorithmType() );
+		interpreterParameters.includePaths( includePaths() );
+		interpreterParameters.setOptionArgs(optionArgs());
+		interpreterParameters.setLibUrls(libURLs());
+		interpreterParameters.setInputStream(programStream());
+		interpreterParameters.setCharset(charset());
+		interpreterParameters.setProgramFilepath(programFilepath());
+		interpreterParameters.setArguments(arguments());
+		interpreterParameters.setConstants(definedConstants());
+		interpreterParameters.setJolieClassLoader(jolieClassLoader());
+		interpreterParameters.setProgramCompiled(isProgramCompiled());
+		interpreterParameters.setTypeCheck(typeCheck());
+		interpreterParameters.setTracer(tracer());
+		interpreterParameters.setTracerLevel(tracerLevel());
+		interpreterParameters.setTracerMode(tracerMode());
+		interpreterParameters.setCheck(check());
+		interpreterParameters.setResponseTimeout(responseTimeout());
+		interpreterParameters.setLogLevel(logLevel());
+		interpreterParameters.setProgramDirectory(programDirectory());
+
+		return interpreterParameters;
+
+	}
 	/**
 	 * A handler for unrecognized arguments, meant to be implemented
 	 * by classes that wants to extend the behaviour of {@link jolie.CommandLineParser}.

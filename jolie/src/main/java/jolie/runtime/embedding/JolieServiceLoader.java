@@ -21,12 +21,16 @@
 
 package jolie.runtime.embedding;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
+import jolie.CommandLineParser;
 import jolie.Interpreter;
+import jolie.InterpreterParameters;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader
@@ -47,12 +51,30 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
+		CommandLineParser commandLineParser = new CommandLineParser( newArgs,currInterpreter.getClassLoader(), false );
 		interpreter = new Interpreter(
-			newArgs,
 			currInterpreter.getClassLoader(),
+			commandLineParser.getInterpreterParameters(),
 			currInterpreter.programDirectory()
 		);
 	}
+
+    public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
+            throws IOException
+    {
+        super( channelDest );
+        InterpreterParameters interpreterParameters = new InterpreterParameters();
+        interpreterParameters.setOptionArgs(currInterpreter.optionArgs());
+        interpreterParameters.includePaths( currInterpreter.getInterpreterParameters().includePaths() );
+        interpreterParameters.setProgramFilepath(new File( "#native_code" ));
+        interpreterParameters.setJolieClassLoader(currInterpreter.getClassLoader());
+        interpreterParameters.setInputStream(new ByteArrayInputStream( code.getBytes()));
+        interpreter = new Interpreter(
+                currInterpreter.getClassLoader(),
+                interpreterParameters,
+                currInterpreter.programDirectory()
+        );
+    }
 
 	@Override
 	public void load()

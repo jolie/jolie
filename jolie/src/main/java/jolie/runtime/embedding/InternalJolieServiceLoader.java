@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.CommandLineException;
+import jolie.CommandLineParser;
 import jolie.Interpreter;
 import jolie.lang.parse.ast.Program;
 import jolie.runtime.expression.Expression;
@@ -46,12 +47,13 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 		String[] options = currInterpreter.optionArgs();
 		newArgs.addAll( Arrays.asList( options ) );
         newArgs.add( "#" + serviceName + ".ol" );
+        CommandLineParser commandLineParser = new CommandLineParser( newArgs.toArray(new String[]{}),currInterpreter.getClassLoader(), true );
 		interpreter = new Interpreter(
-			newArgs.toArray( new String[ newArgs.size() ] ),
-			currInterpreter.getClassLoader(),
-			currInterpreter.programDirectory(),
-			currInterpreter,
-            program
+			    commandLineParser.getInterpreterParameters(),
+                currInterpreter.getClassLoader(),
+			    currInterpreter.programDirectory(),
+			    currInterpreter,
+                program
 		);
 	}
 
