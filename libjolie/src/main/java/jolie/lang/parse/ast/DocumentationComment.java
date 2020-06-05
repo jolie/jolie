@@ -28,24 +28,20 @@ import jolie.lang.parse.OLVisitor;
  *
  * @author Balint Maschio
  */
-public class DocumentationComment extends OLSyntaxNode
-{
+public class DocumentationComment extends OLSyntaxNode {
 	final private String comment;
 
-	public DocumentationComment( ParsingContext context, String InputComment )
-	{
+	public DocumentationComment( ParsingContext context, String InputComment ) {
 		super( context );
 		this.comment = InputComment;
 	}
 
-	public String comment()
-	{
+	public String comment() {
 		return comment;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

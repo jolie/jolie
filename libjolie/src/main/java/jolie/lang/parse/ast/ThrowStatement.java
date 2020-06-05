@@ -25,38 +25,32 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class ThrowStatement extends OLSyntaxNode
-{
+public class ThrowStatement extends OLSyntaxNode {
 	private final String id;
 	private final OLSyntaxNode expression;
 
-	public ThrowStatement( ParsingContext context, String id )
-	{
+	public ThrowStatement( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 		this.expression = null;
 	}
-	
-	public ThrowStatement( ParsingContext context, String id, OLSyntaxNode expression )
-	{
+
+	public ThrowStatement( ParsingContext context, String id, OLSyntaxNode expression ) {
 		super( context );
 		this.id = id;
 		this.expression = expression;
 	}
-	
-	public OLSyntaxNode expression()
-	{
+
+	public OLSyntaxNode expression() {
 		return expression;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

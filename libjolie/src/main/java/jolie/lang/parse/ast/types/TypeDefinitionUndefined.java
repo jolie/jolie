@@ -27,23 +27,21 @@ import jolie.lang.parse.context.URIParsingContext;
  *
  * @author Fabrizio Montesi
  */
-public class TypeDefinitionUndefined extends TypeInlineDefinition
-{
+public class TypeDefinitionUndefined extends TypeInlineDefinition {
 	public static final String UNDEFINED_KEYWORD = "undefined";
 
 	private static class LazyHolder {
 		private LazyHolder() {}
+
 		private final static TypeDefinitionUndefined instance = new TypeDefinitionUndefined();
 	}
 
-	private TypeDefinitionUndefined()
-	{
+	private TypeDefinitionUndefined() {
 		super( URIParsingContext.DEFAULT, UNDEFINED_KEYWORD, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
 		super.setUntypedSubTypes( true );
 	}
 
-	public static TypeDefinitionUndefined getInstance()
-	{
+	public static TypeDefinitionUndefined getInstance() {
 		return LazyHolder.instance;
 	}
 }

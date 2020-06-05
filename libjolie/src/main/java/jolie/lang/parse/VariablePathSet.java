@@ -32,29 +32,25 @@ import jolie.lang.parse.ast.VariablePathNode;
  *
  * @author Fabrizio Montesi
  */
-public class VariablePathSet <T extends VariablePathNode> implements Set< T >
-{
+public class VariablePathSet< T extends VariablePathNode > implements Set< T > {
 	private final List< T > elements = new ArrayList<>();
 
 	@Override
-	public int size()
-	{
+	public int size() {
 		return elements.size();
 	}
 
 	@Override
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return elements.isEmpty();
 	}
 
 	@Override
-	public boolean contains( Object o )
-	{
-		if ( o instanceof VariablePathNode ) {
+	public boolean contains( Object o ) {
+		if( o instanceof VariablePathNode ) {
 			VariablePathNode path = (VariablePathNode) o;
 			for( VariablePathNode element : elements ) {
-				if ( path.isEquivalentTo( element ) ) {
+				if( path.isEquivalentTo( element ) ) {
 					return true;
 				}
 			}
@@ -64,28 +60,24 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 	}
 
 	@Override
-	public Iterator< T > iterator()
-	{
+	public Iterator< T > iterator() {
 		return elements.iterator();
 	}
 
 	@Override
-	public Object[] toArray()
-	{
+	public Object[] toArray() {
 		return elements.toArray();
 	}
 
 	@Override
-	public <K> K[] toArray( K[] a )
-	{
+	public < K > K[] toArray( K[] a ) {
 		return elements.toArray( a );
 	}
 
 	@Override
-	public boolean add( T e )
-	{
+	public boolean add( T e ) {
 		for( VariablePathNode element : elements ) {
-			if ( e.isEquivalentTo( element ) ) {
+			if( e.isEquivalentTo( element ) ) {
 				return false;
 			}
 		}
@@ -93,10 +85,9 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 		return true;
 	}
 
-	public T getContained( VariablePathNode e )
-	{
+	public T getContained( VariablePathNode e ) {
 		for( T element : elements ) {
-			if ( e.isEquivalentTo( element ) ) {
+			if( e.isEquivalentTo( element ) ) {
 				return element;
 			}
 		}
@@ -104,13 +95,12 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 	}
 
 	@Override
-	public boolean remove( Object o )
-	{
-		if ( o instanceof VariablePathNode ) {
+	public boolean remove( Object o ) {
+		if( o instanceof VariablePathNode ) {
 			VariablePathNode path = (VariablePathNode) o;
 
 			for( int i = 0; i < elements.size(); i++ ) {
-				if ( path.isEquivalentTo( elements.get( i ) ) ) {
+				if( path.isEquivalentTo( elements.get( i ) ) ) {
 					elements.remove( i );
 					return true;
 				}
@@ -121,10 +111,9 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 	}
 
 	@Override
-	public boolean containsAll( Collection<?> c )
-	{
+	public boolean containsAll( Collection< ? > c ) {
 		for( Object o : c ) {
-			if ( !contains( o ) ) {
+			if( !contains( o ) ) {
 				return false;
 			}
 		}
@@ -133,8 +122,7 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 	}
 
 	@Override
-	public boolean addAll( Collection<? extends T> c )
-	{
+	public boolean addAll( Collection< ? extends T > c ) {
 		for( T n : c ) {
 			add( n );
 		}
@@ -142,20 +130,17 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 	}
 
 	@Override
-	public boolean retainAll( Collection<?> c )
-	{
+	public boolean retainAll( Collection< ? > c ) {
 		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 
 	@Override
-	public boolean removeAll( Collection<?> c )
-	{
+	public boolean removeAll( Collection< ? > c ) {
 		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 
 	@Override
-	public void clear()
-	{
+	public void clear() {
 		elements.clear();
 	}
 }

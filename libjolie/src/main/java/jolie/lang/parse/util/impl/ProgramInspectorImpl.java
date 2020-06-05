@@ -33,17 +33,17 @@ import jolie.lang.parse.util.ProgramInspector;
 
 /**
  * Implementation of {@link jolie.lang.parse.util.ProgramInspector}.
+ * 
  * @author Fabrizio Montesi
  */
-public class ProgramInspectorImpl implements ProgramInspector
-{
+public class ProgramInspectorImpl implements ProgramInspector {
 	private final URI[] sources;
 	private final Map< URI, List< TypeDefinition > > types;
 	private final Map< URI, List< InterfaceDefinition > > interfaces;
 	private final Map< URI, List< InputPortInfo > > inputPorts;
 	private final Map< URI, List< OutputPortInfo > > outputPorts;
 	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices;
-	private final Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies;
+	private final Map< URI, Map< OLSyntaxNode, List< OLSyntaxNode > > > behaviouralDependencies;
 
 	public ProgramInspectorImpl(
 		URI[] sources,
@@ -52,8 +52,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 		Map< URI, List< InputPortInfo > > inputPorts,
 		Map< URI, List< OutputPortInfo > > outputPorts,
 		Map< URI, List< EmbeddedServiceNode > > embeddedServices,
-		Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies
-	) {
+		Map< URI, Map< OLSyntaxNode, List< OLSyntaxNode > > > behaviouralDependencies ) {
 		this.sources = sources;
 		this.interfaces = interfaces;
 		this.inputPorts = inputPorts;
@@ -64,19 +63,17 @@ public class ProgramInspectorImpl implements ProgramInspector
 	}
 
 	@Override
-	public URI[] getSources()
-	{
+	public URI[] getSources() {
 		return sources;
 	}
 
 	@Override
-	public TypeDefinition[] getTypes()
-	{
+	public TypeDefinition[] getTypes() {
 		List< TypeDefinition > result = new ArrayList<>();
 		List< TypeDefinition > list;
 		for( URI source : sources ) {
 			list = types.get( source );
-			if ( list != null ) {
+			if( list != null ) {
 				result.addAll( list );
 			}
 		}
@@ -84,23 +81,21 @@ public class ProgramInspectorImpl implements ProgramInspector
 	}
 
 	@Override
-	public TypeDefinition[] getTypes( URI source )
-	{
+	public TypeDefinition[] getTypes( URI source ) {
 		List< TypeDefinition > list = types.get( source );
-		if ( list == null ) {
+		if( list == null ) {
 			return new TypeDefinition[ 0 ];
 		}
 		return list.toArray( new TypeDefinition[ 0 ] );
 	}
 
 	@Override
-	public InterfaceDefinition[] getInterfaces()
-	{
+	public InterfaceDefinition[] getInterfaces() {
 		List< InterfaceDefinition > result = new ArrayList<>();
 		List< InterfaceDefinition > list;
 		for( URI source : sources ) {
 			list = interfaces.get( source );
-			if ( list != null ) {
+			if( list != null ) {
 				result.addAll( list );
 			}
 		}
@@ -108,23 +103,21 @@ public class ProgramInspectorImpl implements ProgramInspector
 	}
 
 	@Override
-	public InterfaceDefinition[] getInterfaces( URI source )
-	{
+	public InterfaceDefinition[] getInterfaces( URI source ) {
 		List< InterfaceDefinition > list = interfaces.get( source );
-		if ( list == null ) {
+		if( list == null ) {
 			return new InterfaceDefinition[ 0 ];
 		}
 		return list.toArray( new InterfaceDefinition[ 0 ] );
 	}
 
 	@Override
-	public InputPortInfo[] getInputPorts()
-	{
+	public InputPortInfo[] getInputPorts() {
 		List< InputPortInfo > result = new ArrayList<>();
 		List< InputPortInfo > list;
 		for( URI source : sources ) {
 			list = inputPorts.get( source );
-			if ( list != null ) {
+			if( list != null ) {
 				result.addAll( list );
 			}
 		}
@@ -132,23 +125,21 @@ public class ProgramInspectorImpl implements ProgramInspector
 	}
 
 	@Override
-	public InputPortInfo[] getInputPorts( URI source )
-	{
+	public InputPortInfo[] getInputPorts( URI source ) {
 		List< InputPortInfo > list = inputPorts.get( source );
-		if ( list == null ) {
+		if( list == null ) {
 			return new InputPortInfo[ 0 ];
 		}
 		return list.toArray( new InputPortInfo[ 0 ] );
 	}
 
 	@Override
-	public OutputPortInfo[] getOutputPorts()
-	{
+	public OutputPortInfo[] getOutputPorts() {
 		List< OutputPortInfo > result = new ArrayList<>();
 		List< OutputPortInfo > list;
 		for( URI source : sources ) {
 			list = outputPorts.get( source );
-			if ( list != null ) {
+			if( list != null ) {
 				result.addAll( list );
 			}
 		}
@@ -156,23 +147,21 @@ public class ProgramInspectorImpl implements ProgramInspector
 	}
 
 	@Override
-	public OutputPortInfo[] getOutputPorts( URI source )
-	{
+	public OutputPortInfo[] getOutputPorts( URI source ) {
 		List< OutputPortInfo > list = outputPorts.get( source );
-		if ( list == null ) {
+		if( list == null ) {
 			return new OutputPortInfo[ 0 ];
 		}
 		return list.toArray( new OutputPortInfo[ 0 ] );
 	}
 
 	@Override
-	public EmbeddedServiceNode[] getEmbeddedServices()
-	{
-		List< EmbeddedServiceNode > result = new ArrayList< >();
+	public EmbeddedServiceNode[] getEmbeddedServices() {
+		List< EmbeddedServiceNode > result = new ArrayList<>();
 		List< EmbeddedServiceNode > list;
 		for( URI source : sources ) {
 			list = embeddedServices.get( source );
-			if ( list != null ) {
+			if( list != null ) {
 				result.addAll( list );
 			}
 		}
@@ -180,32 +169,31 @@ public class ProgramInspectorImpl implements ProgramInspector
 	}
 
 	@Override
-	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies() {
-		Map<OLSyntaxNode, List<OLSyntaxNode>> result = new HashMap<>();
-		Map<OLSyntaxNode, List<OLSyntaxNode>> list;
+	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies() {
+		Map< OLSyntaxNode, List< OLSyntaxNode > > result = new HashMap<>();
+		Map< OLSyntaxNode, List< OLSyntaxNode > > list;
 		for( URI source : sources ) {
 			list = behaviouralDependencies.get( source );
-			if ( list != null ) {
-				result.putAll(list);
+			if( list != null ) {
+				result.putAll( list );
 			}
 		}
 		return result;
 	}
 
 	@Override
-	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies(URI source) {
-		Map<OLSyntaxNode, List<OLSyntaxNode>> list  = behaviouralDependencies.get( source );;
-		if ( list == null ) {
+	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies( URI source ) {
+		Map< OLSyntaxNode, List< OLSyntaxNode > > list = behaviouralDependencies.get( source );;
+		if( list == null ) {
 			return new HashMap<>();
 		}
 		return list;
 	}
 
 	@Override
-	public EmbeddedServiceNode[] getEmbeddedServices( URI source )
-	{
+	public EmbeddedServiceNode[] getEmbeddedServices( URI source ) {
 		List< EmbeddedServiceNode > list = embeddedServices.get( source );
-		if ( list == null ) {
+		if( list == null ) {
 			return new EmbeddedServiceNode[ 0 ];
 		}
 		return list.toArray( new EmbeddedServiceNode[ 0 ] );

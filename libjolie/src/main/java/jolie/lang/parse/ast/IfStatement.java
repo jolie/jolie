@@ -30,41 +30,34 @@ import jolie.util.Pair;
 
 
 
-public class IfStatement extends OLSyntaxNode
-{
+public class IfStatement extends OLSyntaxNode {
 	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 	private OLSyntaxNode elseProcess;
 
-	public IfStatement( ParsingContext context )
-	{
+	public IfStatement( ParsingContext context ) {
 		super( context );
 		children = new LinkedList<>();
 		elseProcess = null;
 	}
-	
-	public void setElseProcess( OLSyntaxNode elseProcess )
-	{
+
+	public void setElseProcess( OLSyntaxNode elseProcess ) {
 		this.elseProcess = elseProcess;
 	}
-	
-	public OLSyntaxNode elseProcess()
-	{
+
+	public OLSyntaxNode elseProcess() {
 		return elseProcess;
 	}
-	
-	public List< Pair< OLSyntaxNode, OLSyntaxNode > > children()
-	{
+
+	public List< Pair< OLSyntaxNode, OLSyntaxNode > > children() {
 		return children;
 	}
-	
-	public void addChild( Pair< OLSyntaxNode, OLSyntaxNode > node )
-	{
+
+	public void addChild( Pair< OLSyntaxNode, OLSyntaxNode > node ) {
 		children.add( node );
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

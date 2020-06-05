@@ -30,86 +30,55 @@ import jolie.util.Range;
  *
  * @author Fabrizio Montesi
  */
-public class TypeDefinitionLink extends TypeDefinition
-{
+public class TypeDefinitionLink extends TypeDefinition {
 	private TypeDefinition linkedType;
 	private final String linkedTypeName;
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, String linkedTypeName )
-	{
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, String linkedTypeName ) {
 		super( context, id, cardinality );
 		this.linkedTypeName = linkedTypeName;
 	}
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType )
-	{
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType ) {
 		super( context, id, cardinality );
 		this.linkedTypeName = linkedType.id();
 		this.linkedType = linkedType;
 	}
 
-	public String linkedTypeName()
-	{
+	public String linkedTypeName() {
 		return linkedTypeName;
 	}
 
-	public void setLinkedType( TypeDefinition linkedType )
-	{
+	public void setLinkedType( TypeDefinition linkedType ) {
 		this.linkedType = linkedType;
 	}
 
-	public TypeDefinition linkedType()
-	{
+	public TypeDefinition linkedType() {
 		return linkedType;
 	}
-	
+
 	@Override
-	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
-	{
+	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it ) {
 		return linkedType.containsPath( it );
 	}
 
 	/*
-	@Override
-	public boolean untypedSubTypes()
-	{
-		return linkedType.untypedSubTypes();
-	}
+	 * @Override public boolean untypedSubTypes() { return linkedType.untypedSubTypes(); }
+	 * 
+	 * @Override public boolean hasSubTypes() { return linkedType.hasSubTypes(); }
+	 * 
+	 * @Override public TypeDefinition getSubType( String id ) { return linkedType.getSubType( id ); }
+	 * 
+	 * @Override public NativeType nativeType() { return linkedType.nativeType(); }
+	 * 
+	 * @Override public Set< Map.Entry< String, TypeDefinition > > subTypes() { return
+	 * linkedType.subTypes(); }
+	 * 
+	 * @Override public boolean hasSubType( String id ) { return linkedType.hasSubType( id ); }
+	 */
 
 	@Override
-	public boolean hasSubTypes()
-	{
-		return linkedType.hasSubTypes();
-	}
-
-	@Override
-	public TypeDefinition getSubType( String id )
-	{
-		return linkedType.getSubType( id );
-	}
-
-	@Override
-	public NativeType nativeType()
-	{
-		return linkedType.nativeType();
-	}
-
-	@Override
-	public Set< Map.Entry< String, TypeDefinition > > subTypes()
-	{
-		return linkedType.subTypes();
-	}
-
-	@Override
-	public boolean hasSubType( String id )
-	{
-		return linkedType.hasSubType( id );
-	}
-	*/
-
-	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

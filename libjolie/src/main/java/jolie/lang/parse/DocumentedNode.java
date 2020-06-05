@@ -25,8 +25,8 @@ package jolie.lang.parse;
  *
  * @author Balint Maschio
  */
-public interface DocumentedNode
-{
+public interface DocumentedNode {
 	public void setDocumentation( String documentation );
+
 	public String getDocumentation();
 }

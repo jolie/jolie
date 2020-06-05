@@ -30,29 +30,24 @@ import jolie.util.Pair;
 
 
 
-public class NDChoiceStatement extends OLSyntaxNode
-{
+public class NDChoiceStatement extends OLSyntaxNode {
 	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 
-	public NDChoiceStatement( ParsingContext context )
-	{
+	public NDChoiceStatement( ParsingContext context ) {
 		super( context );
 		children = new LinkedList<>();
 	}
-	
-	public List< Pair< OLSyntaxNode, OLSyntaxNode > > children()
-	{
+
+	public List< Pair< OLSyntaxNode, OLSyntaxNode > > children() {
 		return children;
 	}
-	
-	public void addChild( Pair< OLSyntaxNode, OLSyntaxNode > node )
-	{
+
+	public void addChild( Pair< OLSyntaxNode, OLSyntaxNode > node ) {
 		children.add( node );
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

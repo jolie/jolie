@@ -25,8 +25,7 @@ import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public class EmbeddedServiceNode extends OLSyntaxNode
-{
+public class EmbeddedServiceNode extends OLSyntaxNode {
 	private final String servicePath;
 	private final String portId;
 	private final Constants.EmbeddedServiceType type;
@@ -34,45 +33,38 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 	private Program program = null;
 
 	public EmbeddedServiceNode(
-			ParsingContext context,
-			Constants.EmbeddedServiceType type,
-			String servicePath,
-			String portId )
-	{
+		ParsingContext context,
+		Constants.EmbeddedServiceType type,
+		String servicePath,
+		String portId ) {
 		super( context );
 		this.type = type;
 		this.servicePath = servicePath;
 		this.portId = portId;
 	}
-	
-	public Constants.EmbeddedServiceType type()
-	{
+
+	public Constants.EmbeddedServiceType type() {
 		return type;
 	}
-	
-	public String servicePath()
-	{
+
+	public String servicePath() {
 		return servicePath;
 	}
-	
-	public String portId()
-	{
+
+	public String portId() {
 		return portId;
 	}
 
-	public void setProgram( Program program )
-	{
+	public void setProgram( Program program ) {
 		this.program = program;
 	}
 
-	public Program program()
-	{
+	public Program program() {
 		return program;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

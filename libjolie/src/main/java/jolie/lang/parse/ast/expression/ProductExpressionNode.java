@@ -31,38 +31,31 @@ import jolie.util.Pair;
 
 
 
-public class ProductExpressionNode extends OLSyntaxNode
-{
+public class ProductExpressionNode extends OLSyntaxNode {
 	private final List< Pair< Constants.OperandType, OLSyntaxNode > > operands = new ArrayList<>();
 
-	public ProductExpressionNode( ParsingContext context )
-	{
+	public ProductExpressionNode( ParsingContext context ) {
 		super( context );
 	}
-	
-	public void multiply( OLSyntaxNode expression )
-	{
+
+	public void multiply( OLSyntaxNode expression ) {
 		operands.add( new Pair<>( Constants.OperandType.MULTIPLY, expression ) );
 	}
-	
-	public void divide( OLSyntaxNode expression )
-	{
+
+	public void divide( OLSyntaxNode expression ) {
 		operands.add( new Pair<>( Constants.OperandType.DIVIDE, expression ) );
 	}
-	
-	public void modulo( OLSyntaxNode expression )
-	{
+
+	public void modulo( OLSyntaxNode expression ) {
 		operands.add( new Pair<>( Constants.OperandType.MODULUS, expression ) );
 	}
-	
-	public List< Pair< Constants.OperandType, OLSyntaxNode > > operands()
-	{
+
+	public List< Pair< Constants.OperandType, OLSyntaxNode > > operands() {
 		return operands;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

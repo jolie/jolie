@@ -32,42 +32,43 @@ import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
  *
  * @author Claudio Guidi
  */
-public class Interfaces
-{
+public class Interfaces {
 	public static InterfaceDefinition extend(
 		InterfaceDefinition inputInterface,
 		InterfaceExtenderDefinition extender,
-		String namePrefix
-	) {
+		String namePrefix ) {
 		InterfaceDefinition outputInterface = inputInterface;
-		if ( extender != null ) {
+		if( extender != null ) {
 			outputInterface = new InterfaceDefinition( inputInterface.context(), inputInterface.name() );
 
 			// for each operation of the interface, the extension is performed
-			for( Entry<String, OperationDeclaration> op : inputInterface.operationsMap().entrySet() ) {
+			for( Entry< String, OperationDeclaration > op : inputInterface.operationsMap().entrySet() ) {
 
-				if ( op.getValue() instanceof RequestResponseOperationDeclaration ) {
+				if( op.getValue() instanceof RequestResponseOperationDeclaration ) {
 					RequestResponseOperationDeclaration extenderOperation;
 					// check if the extension is defined for the current operation or if the default one must be used.
-					if ( extender.operationsMap().containsKey( op.getKey() ) ) {
-						extenderOperation = (RequestResponseOperationDeclaration) extender.operationsMap().get( op.getKey() );
+					if( extender.operationsMap().containsKey( op.getKey() ) ) {
+						extenderOperation =
+							(RequestResponseOperationDeclaration) extender.operationsMap().get( op.getKey() );
 					} else {
 						extenderOperation = extender.defaultRequestResponseOperation();
 					}
 
-					RequestResponseOperationDeclaration newOp = Operations.extend( (RequestResponseOperationDeclaration) op.getValue(), extenderOperation, namePrefix );
+					RequestResponseOperationDeclaration newOp = Operations
+						.extend( (RequestResponseOperationDeclaration) op.getValue(), extenderOperation, namePrefix );
 					outputInterface.addOperation( newOp );
 
-				} else if ( op.getValue() instanceof OneWayOperationDeclaration ) {
+				} else if( op.getValue() instanceof OneWayOperationDeclaration ) {
 					OneWayOperationDeclaration extenderOperation;
 					// check if the extension is defined for the current operation or if the default one must be used.
-					if ( extender.operationsMap().containsKey( op.getKey() ) ) {
+					if( extender.operationsMap().containsKey( op.getKey() ) ) {
 						extenderOperation = (OneWayOperationDeclaration) extender.operationsMap().get( op.getKey() );
 					} else {
 						extenderOperation = extender.defaultOneWayOperation();
 					}
 
-					OneWayOperationDeclaration newOp = Operations.extend( (OneWayOperationDeclaration) op.getValue(), extenderOperation, namePrefix );
+					OneWayOperationDeclaration newOp =
+						Operations.extend( (OneWayOperationDeclaration) op.getValue(), extenderOperation, namePrefix );
 					outputInterface.addOperation( newOp );
 				}
 			}

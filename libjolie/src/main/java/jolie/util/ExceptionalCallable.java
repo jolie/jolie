@@ -21,11 +21,11 @@ package jolie.util;
 
 /**
  * A callable that can throw an exception.
+ * 
  * @param <R> the return type of the callable
  * @param <T> the type of the exception that the callable can throw
  */
 @FunctionalInterface
-public interface ExceptionalCallable<R, T extends Throwable>
-{
+public interface ExceptionalCallable< R, T extends Throwable > {
 	public R call() throws T;
 }

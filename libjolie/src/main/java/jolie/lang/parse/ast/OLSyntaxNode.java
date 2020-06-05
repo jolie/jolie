@@ -26,19 +26,16 @@ import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public abstract class OLSyntaxNode implements Serializable
-{
+public abstract class OLSyntaxNode implements Serializable {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+
 	private final ParsingContext context;
-	
-	public OLSyntaxNode( ParsingContext context )
-	{
+
+	public OLSyntaxNode( ParsingContext context ) {
 		this.context = context;
 	}
-	
-	public ParsingContext context()
-	{
+
+	public ParsingContext context() {
 		return context;
 	}
 

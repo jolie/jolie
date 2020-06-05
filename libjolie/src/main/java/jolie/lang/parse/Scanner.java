@@ -33,8 +33,7 @@ import jolie.lang.NativeType;
  * @author Fabrizio Montesi
  *
  */
-public class Scanner
-{
+public class Scanner {
 	// @formatter:off
 	/** Token types */
 	public enum TokenType {

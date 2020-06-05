@@ -25,31 +25,26 @@ import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public abstract class OperationDeclaration extends OLSyntaxNode implements DocumentedNode
-{
+public abstract class OperationDeclaration extends OLSyntaxNode implements DocumentedNode {
 	private final String id;
 	private String document = null;
 
-	public OperationDeclaration( ParsingContext context, String id )
-	{
+	public OperationDeclaration( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
 
 	@Override
-	public void setDocumentation( String document )
-	{
+	public void setDocumentation( String document ) {
 		this.document = document;
 	}
 
 	@Override
-	public String getDocumentation()
-	{
+	public String getDocumentation() {
 		return this.document;
 	}
 }

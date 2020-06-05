@@ -26,28 +26,23 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.context.ParsingContext;
 
-public class ProgramBuilder
-{
+public class ProgramBuilder {
 	private final ParsingContext context;
 	private final List< OLSyntaxNode > children = new ArrayList<>();
 
-	public ProgramBuilder( ParsingContext context )
-	{
+	public ProgramBuilder( ParsingContext context ) {
 		this.context = context;
 	}
 
-	public void addChild( OLSyntaxNode node )
-	{
+	public void addChild( OLSyntaxNode node ) {
 		children.add( node );
 	}
 
-	public List< OLSyntaxNode > children()
-	{
+	public List< OLSyntaxNode > children() {
 		return children;
 	}
 
-	public Program toProgram()
-	{
+	public Program toProgram() {
 		return new Program( context, children );
 	}
 }

@@ -28,34 +28,29 @@ import jolie.lang.parse.context.ParsingContext;
  * 
  * @author Fabrizio Montesi
  */
-public class NotificationForwardStatement extends OLSyntaxNode
-{
+public class NotificationForwardStatement extends OLSyntaxNode {
 	private final String outputPortName;
 	private final VariablePathNode outputVariablePath;
-	
+
 	public NotificationForwardStatement(
-			ParsingContext context,
-			String outputPortName,
-			VariablePathNode outputVariablePath
-	) {
+		ParsingContext context,
+		String outputPortName,
+		VariablePathNode outputVariablePath ) {
 		super( context );
 		this.outputPortName = outputPortName;
 		this.outputVariablePath = outputVariablePath;
 	}
-	
-	public String outputPortName()
-	{
+
+	public String outputPortName() {
 		return outputPortName;
 	}
-	
-	public VariablePathNode outputVariablePath()
-	{
+
+	public VariablePathNode outputVariablePath() {
 		return outputVariablePath;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

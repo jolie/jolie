@@ -24,16 +24,13 @@ package jolie.lang.parse.ast;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public class CurrentHandlerStatement extends OLSyntaxNode
-{
-	public CurrentHandlerStatement( ParsingContext context )
-	{
+public class CurrentHandlerStatement extends OLSyntaxNode {
+	public CurrentHandlerStatement( ParsingContext context ) {
 		super( context );
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

@@ -25,24 +25,20 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class ConstantStringExpression extends OLSyntaxNode
-{
+public class ConstantStringExpression extends OLSyntaxNode {
 	private final String value;
 
-	public ConstantStringExpression( ParsingContext context, String value )
-	{
+	public ConstantStringExpression( ParsingContext context, String value ) {
 		super( context );
 		this.value = value;
 	}
-	
-	public String value()
-	{
+
+	public String value() {
 		return value;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

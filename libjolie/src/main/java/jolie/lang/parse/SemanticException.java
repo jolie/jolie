@@ -30,48 +30,41 @@ import jolie.lang.parse.context.URIParsingContext;
 
 /**
  *
- * @author claudio
- * Sep 2014, Fabrizio Montesi: use ParsingContext instead of custom fields
+ * @author claudio Sep 2014, Fabrizio Montesi: use ParsingContext instead of custom fields
  */
-public class SemanticException extends Exception
-{
+public class SemanticException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+
 	private final List< SemanticError > errorList = new ArrayList<>();
 
-	public static class SemanticError
-	{
+	public static class SemanticError {
 		private final ParsingContext context;
 		private final String mesg;
 
-		public SemanticError( ParsingContext context, String mesg )
-		{
+		public SemanticError( ParsingContext context, String mesg ) {
 			this.context = context;
 			this.mesg = mesg;
 		}
 
-		public String getMessage()
-		{
+		public String getMessage() {
 			return new StringBuilder()
-					.append( context.sourceName() )
-					.append( ':' )
-					.append( context.line() )
-					.append( ": error: " )
-					.append( mesg )
-					.toString();
+				.append( context.sourceName() )
+				.append( ':' )
+				.append( context.line() )
+				.append( ": error: " )
+				.append( mesg )
+				.toString();
 		}
 
-		public ParsingContext context()
-		{
+		public ParsingContext context() {
 			return context;
 		}
 	}
 
 	public SemanticException() {}
 
-	public void addSemanticError( OLSyntaxNode node, String message )
-	{
-		if ( node != null ) {
+	public void addSemanticError( OLSyntaxNode node, String message ) {
+		if( node != null ) {
 			errorList.add( new SemanticError( node.context(), message ) );
 		} else {
 			errorList.add( new SemanticError( URIParsingContext.DEFAULT, message ) );
@@ -79,13 +72,11 @@ public class SemanticException extends Exception
 
 	}
 
-	public List< SemanticError > getErrorList()
-	{
+	public List< SemanticError > getErrorList() {
 		return errorList;
 	}
 
-	public String getErrorMessages()
-	{
+	public String getErrorMessages() {
 		StringBuilder message = new StringBuilder();
 		for( SemanticError error : errorList ) {
 			message.append( error.getMessage() ).append( '\n' );

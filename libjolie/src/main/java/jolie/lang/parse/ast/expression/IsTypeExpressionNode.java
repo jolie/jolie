@@ -25,40 +25,30 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class IsTypeExpressionNode extends OLSyntaxNode
-{
+public class IsTypeExpressionNode extends OLSyntaxNode {
 	public enum CheckType {
-		DEFINED,
-		INT,
-		STRING,
-		DOUBLE,
-		LONG,
-		BOOL
+		DEFINED, INT, STRING, DOUBLE, LONG, BOOL
 	}
-	
+
 	private final VariablePathNode variablePath;
 	private final CheckType type;
 
-	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePathNode variablePath )
-	{
+	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePathNode variablePath ) {
 		super( context );
 		this.type = type;
 		this.variablePath = variablePath;
 	}
-	
-	public CheckType type()
-	{
+
+	public CheckType type() {
 		return type;
 	}
-	
-	public VariablePathNode variablePath()
-	{
+
+	public VariablePathNode variablePath() {
 		return variablePath;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }
