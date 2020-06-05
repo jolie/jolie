@@ -246,7 +246,7 @@
 				<executions>
 					<execution>
 						<goals>
-							<goal>build</goal>
+							<goal>format</goal>
 							<goal>validate</goal>
 						</goals>
 					</execution>
