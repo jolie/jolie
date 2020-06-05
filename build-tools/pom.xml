@@ -13,4 +13,17 @@
 	<packaging>jar</packaging>
 	<name>build-tools</name>
 	<description>Resources for building and formatting automation.</description>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>net.revelc.code.formatter</groupId>
+					<artifactId>formatter-maven-plugin</artifactId>
+					<configuration>
+						<skip>true</skip>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>
