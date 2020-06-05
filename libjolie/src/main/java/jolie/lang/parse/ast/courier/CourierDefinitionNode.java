@@ -25,31 +25,26 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class CourierDefinitionNode extends OLSyntaxNode
-{
+public class CourierDefinitionNode extends OLSyntaxNode {
 	private final String inputPortName;
 	private final OLSyntaxNode body;
 
-	public CourierDefinitionNode( ParsingContext context, String inputPortName, OLSyntaxNode body )
-	{
+	public CourierDefinitionNode( ParsingContext context, String inputPortName, OLSyntaxNode body ) {
 		super( context );
 		this.inputPortName = inputPortName;
 		this.body = body;
 	}
-	
-	public String inputPortName()
-	{
+
+	public String inputPortName() {
 		return inputPortName;
 	}
-	
-	public OLSyntaxNode body()
-	{
+
+	public OLSyntaxNode body() {
 		return body;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

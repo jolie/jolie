@@ -28,39 +28,32 @@ import jolie.lang.parse.context.ParsingContext;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceExtenderDefinition extends InterfaceDefinition
-{
+public class InterfaceExtenderDefinition extends InterfaceDefinition {
 	private OneWayOperationDeclaration defaultOneWayOperation = null;
 	private RequestResponseOperationDeclaration defaultRequestResponseOperation = null;
-	
-	public InterfaceExtenderDefinition( ParsingContext context, String name )
-	{
+
+	public InterfaceExtenderDefinition( ParsingContext context, String name ) {
 		super( context, name );
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
-	
-	public OneWayOperationDeclaration defaultOneWayOperation()
-	{
+
+	public OneWayOperationDeclaration defaultOneWayOperation() {
 		return defaultOneWayOperation;
 	}
-	
-	public RequestResponseOperationDeclaration defaultRequestResponseOperation()
-	{
+
+	public RequestResponseOperationDeclaration defaultRequestResponseOperation() {
 		return defaultRequestResponseOperation;
 	}
 
-	public void setDefaultOneWayOperation( OneWayOperationDeclaration owDecl )
-	{
+	public void setDefaultOneWayOperation( OneWayOperationDeclaration owDecl ) {
 		defaultOneWayOperation = owDecl;
 	}
-	
-	public void setDefaultRequestResponseOperation( RequestResponseOperationDeclaration rrDecl )
-	{
+
+	public void setDefaultRequestResponseOperation( RequestResponseOperationDeclaration rrDecl ) {
 		defaultRequestResponseOperation = rrDecl;
 	}
 }

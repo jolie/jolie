@@ -25,30 +25,27 @@ import java.io.Serializable;
 
 /**
  * A convenience class for expressing a pair of objects.
+ * 
  * @author Fabrizio Montesi
  * @param <K> The type of the first element in the pair
  * @param <V> The type of the second element in the pair
  */
-public final class Pair< K, V > implements Serializable
-{
+public final class Pair< K, V > implements Serializable {
 	public final static long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 
 	private final K key;
 	private final V value;
-	
-	public Pair( K key, V value )
-	{
+
+	public Pair( K key, V value ) {
 		this.key = key;
 		this.value = value;
 	}
-	
-	public final K key()
-	{
+
+	public final K key() {
 		return key;
 	}
-	
-	public final V value()
-	{
+
+	public final V value() {
 		return value;
 	}
 }

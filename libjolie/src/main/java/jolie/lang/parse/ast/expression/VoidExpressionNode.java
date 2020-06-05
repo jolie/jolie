@@ -24,16 +24,13 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class VoidExpressionNode extends OLSyntaxNode
-{
-	public VoidExpressionNode( ParsingContext context )
-	{
+public class VoidExpressionNode extends OLSyntaxNode {
+	public VoidExpressionNode( ParsingContext context ) {
 		super( context );
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

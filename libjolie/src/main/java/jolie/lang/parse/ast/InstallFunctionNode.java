@@ -25,17 +25,14 @@ import java.io.Serializable;
 import jolie.util.Pair;
 
 
-public class InstallFunctionNode implements Serializable
-{
+public class InstallFunctionNode implements Serializable {
 	private final Pair< String, OLSyntaxNode >[] pairs;
 
-	public InstallFunctionNode( Pair< String, OLSyntaxNode >[] pairs )
-	{
+	public InstallFunctionNode( Pair< String, OLSyntaxNode >[] pairs ) {
 		this.pairs = pairs;
 	}
-	
-	public Pair< String, OLSyntaxNode >[] pairs()
-	{
+
+	public Pair< String, OLSyntaxNode >[] pairs() {
 		return pairs;
 	}
 }

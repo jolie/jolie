@@ -27,99 +27,86 @@ import jolie.lang.parse.context.ParsingContext;
 import java.io.Serializable;
 
 
-public class InlineTreeExpressionNode extends OLSyntaxNode
-{
-	public static interface Operation {}
-	
+public class InlineTreeExpressionNode extends OLSyntaxNode {
+	public static interface Operation {
+	}
+
 	public static class AssignmentOperation implements Operation, Serializable {
 		private final VariablePathNode path;
 		private final OLSyntaxNode expression;
-		
-		public AssignmentOperation( VariablePathNode path, OLSyntaxNode expression )
-		{
+
+		public AssignmentOperation( VariablePathNode path, OLSyntaxNode expression ) {
 			this.path = path;
 			this.expression = expression;
 		}
-		
-		public VariablePathNode path()
-		{
+
+		public VariablePathNode path() {
 			return path;
 		}
-		
-		public OLSyntaxNode expression()
-		{
+
+		public OLSyntaxNode expression() {
 			return expression;
 		}
 	}
-	
+
 	public static class DeepCopyOperation implements Operation, Serializable {
 		private final VariablePathNode path;
 		private final OLSyntaxNode expression;
-		
-		public DeepCopyOperation( VariablePathNode path, OLSyntaxNode expression )
-		{
+
+		public DeepCopyOperation( VariablePathNode path, OLSyntaxNode expression ) {
 			this.path = path;
 			this.expression = expression;
 		}
-		
-		public VariablePathNode path()
-		{
+
+		public VariablePathNode path() {
 			return path;
 		}
-		
-		public OLSyntaxNode expression()
-		{
+
+		public OLSyntaxNode expression() {
 			return expression;
 		}
 	}
-	
+
 	public static class PointsToOperation implements Operation, Serializable {
 		private final VariablePathNode path;
 		private final VariablePathNode target;
-		
-		public PointsToOperation( VariablePathNode path, VariablePathNode target )
-		{
+
+		public PointsToOperation( VariablePathNode path, VariablePathNode target ) {
 			this.path = path;
 			this.target = target;
 		}
-		
-		public VariablePathNode path()
-		{
+
+		public VariablePathNode path() {
 			return path;
 		}
-		
-		public VariablePathNode target()
-		{
+
+		public VariablePathNode target() {
 			return target;
 		}
 	}
-	
+
 	private final OLSyntaxNode rootExpression;
 	private final Operation[] operations;
 
 	public InlineTreeExpressionNode(
 		ParsingContext context,
 		OLSyntaxNode rootExpression,
-		Operation[] operations
-	) {
+		Operation[] operations ) {
 		super( context );
 		this.rootExpression = rootExpression;
 		this.operations = operations;
 	}
-	
-	public OLSyntaxNode rootExpression()
-	{
+
+	public OLSyntaxNode rootExpression() {
 		return rootExpression;
 	}
-	
-	public Operation[] operations()
-	{
+
+	public Operation[] operations() {
 		return operations;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

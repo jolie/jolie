@@ -25,24 +25,20 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class LinkOutStatement extends OLSyntaxNode
-{
+public class LinkOutStatement extends OLSyntaxNode {
 	private final String id;
 
-	public LinkOutStatement( ParsingContext context, String id )
-	{
+	public LinkOutStatement( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

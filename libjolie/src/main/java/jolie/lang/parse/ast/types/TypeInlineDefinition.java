@@ -35,60 +35,53 @@ import jolie.util.Range;
 /**
  * @author Fabrizio Montesi
  */
-public class TypeInlineDefinition extends TypeDefinition
-{
+public class TypeInlineDefinition extends TypeDefinition {
 	private final NativeType nativeType;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality )
-	{
+	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality ) {
 		super( context, id, cardinality );
 		this.nativeType = nativeType;
 	}
 
-	public NativeType nativeType()
-	{
+	public NativeType nativeType() {
 		return nativeType;
 	}
 
-	public void setUntypedSubTypes( boolean b )
-	{
+	public void setUntypedSubTypes( boolean b ) {
 		untypedSubTypes = b;
 	}
 
-	public boolean hasSubType( String id )
-	{
-		if ( subTypes == null ) {
+	public boolean hasSubType( String id ) {
+		if( subTypes == null ) {
 			return false;
 		} else {
 			return subTypes.containsKey( id );
 		}
 	}
 
-	public Set< Map.Entry< String, TypeDefinition > > subTypes()
-	{
-		if ( subTypes == null ) {
+	public Set< Map.Entry< String, TypeDefinition > > subTypes() {
+		if( subTypes == null ) {
 			return null;
 		}
 
 		return subTypes.entrySet();
 	}
-	
+
 	@Override
-	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
-	{
-		if ( it.hasNext() == false ) {
+	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it ) {
+		if( it.hasNext() == false ) {
 			return nativeType() != NativeType.VOID;
 		}
 
-		if ( untypedSubTypes() ) {
+		if( untypedSubTypes() ) {
 			return true;
 		}
 
 		Pair< OLSyntaxNode, OLSyntaxNode > pair = it.next();
-		String nodeName = ((ConstantStringExpression)pair.key()).value();
-		if ( hasSubType( nodeName ) ) {
+		String nodeName = ((ConstantStringExpression) pair.key()).value();
+		if( hasSubType( nodeName ) ) {
 			TypeDefinition subType = getSubType( nodeName );
 			return subType.containsPath( it );
 		}
@@ -96,38 +89,33 @@ public class TypeInlineDefinition extends TypeDefinition
 		return false;
 	}
 
-	public TypeDefinition getSubType( String id )
-	{
-		if ( subTypes != null ) {
+	public TypeDefinition getSubType( String id ) {
+		if( subTypes != null ) {
 			return subTypes.get( id );
 		}
 		return null;
 	}
 
-	public boolean hasSubTypes()
-	{
-		if ( subTypes != null && subTypes.isEmpty() == false ) {
+	public boolean hasSubTypes() {
+		if( subTypes != null && subTypes.isEmpty() == false ) {
 			return true;
 		}
 		return false;
 	}
 
-	public void putSubType( TypeDefinition type )
-	{
-		if ( subTypes == null ) {
+	public void putSubType( TypeDefinition type ) {
+		if( subTypes == null ) {
 			subTypes = new HashMap<>();
 		}
 		subTypes.put( type.id(), type );
 	}
 
-	public boolean untypedSubTypes()
-	{
+	public boolean untypedSubTypes() {
 		return untypedSubTypes;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

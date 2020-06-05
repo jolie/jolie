@@ -25,24 +25,20 @@ import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public class ExecutionInfo extends OLSyntaxNode
-{
+public class ExecutionInfo extends OLSyntaxNode {
 	private final Constants.ExecutionMode mode;
-	
-	public ExecutionInfo( ParsingContext context, Constants.ExecutionMode mode )
-	{
+
+	public ExecutionInfo( ParsingContext context, Constants.ExecutionMode mode ) {
 		super( context );
 		this.mode = mode;
 	}
-	
-	public Constants.ExecutionMode mode()
-	{
+
+	public Constants.ExecutionMode mode() {
 		return mode;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

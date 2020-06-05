@@ -28,29 +28,25 @@ import java.util.Map;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public class InputPortInfo extends PortInfo
-{
+public class InputPortInfo extends PortInfo {
 	public static class AggregationItemInfo implements Serializable {
 		private final String[] outputPortList;
 		private final InterfaceExtenderDefinition interfaceExtender;
-		
-		public AggregationItemInfo( String[] outputPortList, InterfaceExtenderDefinition extender )
-		{
+
+		public AggregationItemInfo( String[] outputPortList, InterfaceExtenderDefinition extender ) {
 			this.outputPortList = outputPortList;
 			this.interfaceExtender = extender;
 		}
-		
-		public String[] outputPortList()
-		{
-			 return outputPortList;
+
+		public String[] outputPortList() {
+			return outputPortList;
 		}
-		
-		public InterfaceExtenderDefinition interfaceExtender()
-		{
+
+		public InterfaceExtenderDefinition interfaceExtender() {
 			return interfaceExtender;
 		}
 	}
-	
+
 	private final URI location;
 	private final String protocolId;
 	private final OLSyntaxNode protocolConfiguration;
@@ -64,8 +60,7 @@ public class InputPortInfo extends PortInfo
 		String protocolId,
 		OLSyntaxNode protocolConfiguration,
 		AggregationItemInfo[] aggregationList,
-		Map< String, String > redirectionMap
-	) {
+		Map< String, String > redirectionMap ) {
 		super( context, id );
 		this.location = location;
 		this.protocolId = protocolId;
@@ -74,34 +69,28 @@ public class InputPortInfo extends PortInfo
 		this.redirectionMap = redirectionMap;
 	}
 
-	public AggregationItemInfo[] aggregationList()
-	{
+	public AggregationItemInfo[] aggregationList() {
 		return aggregationList;
 	}
 
-	public Map< String, String > redirectionMap()
-	{
+	public Map< String, String > redirectionMap() {
 		return redirectionMap;
 	}
 
-	public OLSyntaxNode protocolConfiguration()
-	{
+	public OLSyntaxNode protocolConfiguration() {
 		return protocolConfiguration;
 	}
 
-	public String protocolId()
-	{
+	public String protocolId() {
 		return protocolId;
 	}
 
-	public URI location()
-	{
+	public URI location() {
 		return location;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

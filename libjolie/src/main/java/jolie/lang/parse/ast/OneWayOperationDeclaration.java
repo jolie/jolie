@@ -27,28 +27,23 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 
 
-public class OneWayOperationDeclaration extends OperationDeclaration
-{
+public class OneWayOperationDeclaration extends OperationDeclaration {
 	private TypeDefinition requestType = TypeDefinitionUndefined.getInstance();
 
-	public OneWayOperationDeclaration( ParsingContext context, String id )
-	{
+	public OneWayOperationDeclaration( ParsingContext context, String id ) {
 		super( context, id );
 	}
 
-	public void setRequestType( TypeDefinition type )
-	{
+	public void setRequestType( TypeDefinition type ) {
 		this.requestType = type;
 	}
 
-	public TypeDefinition requestType()
-	{
+	public TypeDefinition requestType() {
 		return requestType;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

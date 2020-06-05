@@ -25,50 +25,42 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class RequestResponseOperationStatement extends OLSyntaxNode
-{
+public class RequestResponseOperationStatement extends OLSyntaxNode {
 	private final VariablePathNode inputVarPath;
 	private final OLSyntaxNode process, outputExpression;
 	private final String id;
-	
+
 	public RequestResponseOperationStatement(
-			ParsingContext context,
-			String id,
-			VariablePathNode inputVarPath,
-			OLSyntaxNode outputExpression,
-			OLSyntaxNode process
-			)
-	{
+		ParsingContext context,
+		String id,
+		VariablePathNode inputVarPath,
+		OLSyntaxNode outputExpression,
+		OLSyntaxNode process ) {
 		super( context );
 		this.id = id;
 		this.inputVarPath = inputVarPath;
 		this.outputExpression = outputExpression;
 		this.process = process;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
-	public OLSyntaxNode process()
-	{
+
+	public OLSyntaxNode process() {
 		return process;
 	}
-	
-	public VariablePathNode inputVarPath()
-	{
+
+	public VariablePathNode inputVarPath() {
 		return inputVarPath;
 	}
-	
-	public OLSyntaxNode outputExpression()
-	{
+
+	public OLSyntaxNode outputExpression() {
 		return outputExpression;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

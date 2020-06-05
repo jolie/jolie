@@ -31,56 +31,47 @@ import jolie.lang.parse.context.ParsingContext;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector, DocumentedNode
-{
-	private final Map<String, OperationDeclaration> operationsMap =
+public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector, DocumentedNode {
+	private final Map< String, OperationDeclaration > operationsMap =
 		new HashMap<>();
 	private final String name;
 	private String documentation;
 
-	public InterfaceDefinition( ParsingContext context, String name )
-	{
+	public InterfaceDefinition( ParsingContext context, String name ) {
 		super( context );
 		this.name = name;
 	}
 
 	@Override
-	public Map< String, OperationDeclaration > operationsMap()
-	{
+	public Map< String, OperationDeclaration > operationsMap() {
 		return operationsMap;
 	}
 
-	public String name()
-	{
+	public String name() {
 		return name;
 	}
 
 	@Override
-	public void addOperation( OperationDeclaration decl )
-	{
+	public void addOperation( OperationDeclaration decl ) {
 		operationsMap.put( decl.id(), decl );
 	}
 
-	public void copyTo( OperationCollector oc )
-	{
+	public void copyTo( OperationCollector oc ) {
 		oc.operationsMap().putAll( operationsMap );
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 
 	@Override
-	public void setDocumentation( String documentation )
-	{
+	public void setDocumentation( String documentation ) {
 		this.documentation = documentation;
 	}
 
 	@Override
-	public String getDocumentation()
-	{
+	public String getDocumentation() {
 		return this.documentation;
 	}
 }

@@ -34,78 +34,77 @@ import jolie.lang.parse.context.ParsingContext;
  * 
  * @author Fabrizio Montesi
  */
-public class CourierChoiceStatement extends OLSyntaxNode
-{
+public class CourierChoiceStatement extends OLSyntaxNode {
 	public static class InterfaceOneWayBranch implements Serializable {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final InterfaceDefinition interfaceDefinition;
 		public final VariablePathNode inputVariablePath;
 		public final OLSyntaxNode body;
+
 		public InterfaceOneWayBranch(
 			InterfaceDefinition interfaceDefinition,
 			VariablePathNode inputVariablePath,
-			OLSyntaxNode body )
-		{
+			OLSyntaxNode body ) {
 			this.interfaceDefinition = interfaceDefinition;
 			this.inputVariablePath = inputVariablePath;
 			this.body = body;
 		}
 	}
-	
+
 	public static class InterfaceRequestResponseBranch implements Serializable {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final InterfaceDefinition interfaceDefinition;
 		public final VariablePathNode inputVariablePath;
 		public final VariablePathNode outputVariablePath;
 		public final OLSyntaxNode body;
+
 		public InterfaceRequestResponseBranch(
 			InterfaceDefinition interfaceDefinition,
 			VariablePathNode inputVariablePath,
 			VariablePathNode outputVariablePath,
-			OLSyntaxNode body )
-		{
+			OLSyntaxNode body ) {
 			this.interfaceDefinition = interfaceDefinition;
 			this.inputVariablePath = inputVariablePath;
 			this.outputVariablePath = outputVariablePath;
 			this.body = body;
 		}
 	}
-	
+
 	public static class OperationOneWayBranch implements Serializable {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final String operation;
 		public final VariablePathNode inputVariablePath;
 		public final OLSyntaxNode body;
+
 		public OperationOneWayBranch(
 			String operation,
 			VariablePathNode inputVariablePath,
-			OLSyntaxNode body )
-		{
+			OLSyntaxNode body ) {
 			this.operation = operation;
 			this.inputVariablePath = inputVariablePath;
 			this.body = body;
 		}
 	}
-	
+
 	public static class OperationRequestResponseBranch implements Serializable {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final String operation;
 		public final VariablePathNode inputVariablePath;
 		public final VariablePathNode outputVariablePath;
 		public final OLSyntaxNode body;
+
 		public OperationRequestResponseBranch(
 			String operation,
 			VariablePathNode inputVariablePath,
 			VariablePathNode outputVariablePath,
-			OLSyntaxNode body )
-		{
+			OLSyntaxNode body ) {
 			this.operation = operation;
 			this.inputVariablePath = inputVariablePath;
 			this.outputVariablePath = outputVariablePath;
 			this.body = body;
 		}
 	}
-	
+
 	private final List< InterfaceOneWayBranch > interfaceOneWayBranches =
 		new LinkedList<>();
 	private final List< InterfaceRequestResponseBranch > interfaceRequestResponseBranches =
@@ -115,34 +114,28 @@ public class CourierChoiceStatement extends OLSyntaxNode
 	private final List< OperationRequestResponseBranch > operationRequestResponseBranches =
 		new LinkedList<>();
 
-	public CourierChoiceStatement( ParsingContext context )
-	{
+	public CourierChoiceStatement( ParsingContext context ) {
 		super( context );
 	}
-	
-	public List< InterfaceOneWayBranch > interfaceOneWayBranches()
-	{
+
+	public List< InterfaceOneWayBranch > interfaceOneWayBranches() {
 		return interfaceOneWayBranches;
 	}
-	
-	public List< InterfaceRequestResponseBranch > interfaceRequestResponseBranches()
-	{
+
+	public List< InterfaceRequestResponseBranch > interfaceRequestResponseBranches() {
 		return interfaceRequestResponseBranches;
 	}
-	
-	public List< OperationOneWayBranch > operationOneWayBranches()
-	{
+
+	public List< OperationOneWayBranch > operationOneWayBranches() {
 		return operationOneWayBranches;
 	}
-	
-	public List< OperationRequestResponseBranch > operationRequestResponseBranches()
-	{
+
+	public List< OperationRequestResponseBranch > operationRequestResponseBranches() {
 		return operationRequestResponseBranches;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

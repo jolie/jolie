@@ -28,37 +28,32 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
-public class TypeChoiceDefinition extends TypeDefinition
-{
+public class TypeChoiceDefinition extends TypeDefinition {
 	private final TypeDefinition left;
 	private final TypeDefinition right;
 
-	public TypeChoiceDefinition( ParsingContext context, String id, Range cardinality, TypeDefinition left, TypeDefinition right )
-	{
+	public TypeChoiceDefinition( ParsingContext context, String id, Range cardinality, TypeDefinition left,
+		TypeDefinition right ) {
 		super( context, id, cardinality );
 		this.left = left;
 		this.right = right;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 
-	public TypeDefinition left()
-	{
+	public TypeDefinition left() {
 		return left;
 	}
 
-	public TypeDefinition right()
-	{
+	public TypeDefinition right() {
 		return right;
 	}
-	
+
 	@Override
-	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
-	{
+	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it ) {
 		final List< Pair< OLSyntaxNode, OLSyntaxNode > > path = new LinkedList<>();
 		it.forEachRemaining( pair -> path.add( pair ) );
 		return left.containsPath( path.iterator() ) && right.containsPath( path.iterator() );

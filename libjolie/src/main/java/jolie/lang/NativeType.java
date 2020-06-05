@@ -26,17 +26,10 @@ import java.util.Map;
  *
  * @author Fabrizio Montesi
  */
-public enum NativeType
-{
-	//UNDEFINED( "undefined" ),
-	STRING( "string" ),
-	INT( "int" ),
-	LONG( "long" ),
-	BOOL( "bool" ),
-	DOUBLE( "double" ),
-	VOID( "void" ),
-	RAW( "raw" ),
-	ANY( "any" );
+public enum NativeType {
+	// UNDEFINED( "undefined" ),
+	STRING( "string" ), INT( "int" ), LONG( "long" ), BOOL( "bool" ), DOUBLE( "double" ), VOID( "void" ), RAW(
+		"raw" ), ANY( "any" );
 
 	private final static Map< String, NativeType > idMap = new HashMap<>();
 
@@ -47,24 +40,20 @@ public enum NativeType
 	}
 
 	private final String id;
-	
-	private NativeType( String id )
-	{
+
+	private NativeType( String id ) {
 		this.id = id;
 	}
 
-	public String id()
-	{
+	public String id() {
 		return id;
 	}
 
-	public static NativeType fromString( String id )
-	{
+	public static NativeType fromString( String id ) {
 		return idMap.get( id );
 	}
 
-	public static boolean isNativeTypeKeyword( String id )
-	{
+	public static boolean isNativeTypeKeyword( String id ) {
 		return idMap.containsKey( id );
 	}
 }

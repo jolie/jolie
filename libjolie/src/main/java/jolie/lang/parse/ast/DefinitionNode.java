@@ -25,31 +25,26 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class DefinitionNode extends OLSyntaxNode
-{
+public class DefinitionNode extends OLSyntaxNode {
 	private final String id;
 	private final OLSyntaxNode body;
 
-	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body )
-	{
+	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body ) {
 		super( context );
 		this.id = id;
 		this.body = body;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
-	public OLSyntaxNode body()
-	{
+
+	public OLSyntaxNode body() {
 		return body;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

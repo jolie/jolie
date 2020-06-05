@@ -35,15 +35,13 @@ import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
- * Utility class for accessing the functionalities of the JOLIE parsing
- * library without having to worry about correctly instantiating all
- * the related objects (parser, scanner, etc.).
+ * Utility class for accessing the functionalities of the JOLIE parsing library without having to
+ * worry about correctly instantiating all the related objects (parser, scanner, etc.).
+ * 
  * @author Fabrizio Montesi
  */
-public class ParsingUtils
-{
-	private ParsingUtils()
-	{}
+public class ParsingUtils {
+	private ParsingUtils() {}
 
 	public static Program parseProgram(
 		InputStream inputStream,
@@ -53,11 +51,10 @@ public class ParsingUtils
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration configuration,
-		boolean includeDocumentation
-	)
-		throws IOException, ParserException, SemanticException
-	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ), includePaths, classLoader );
+		boolean includeDocumentation )
+		throws IOException, ParserException, SemanticException {
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ),
+			includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
@@ -66,7 +63,7 @@ public class ParsingUtils
 
 		return program;
 	}
-	
+
 	public static Program parseProgram(
 		InputStream inputStream,
 		URI source,
@@ -74,11 +71,10 @@ public class ParsingUtils
 		String[] includePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
-		boolean includeDocumentation
-	)
-		throws IOException, ParserException, SemanticException
-	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ), includePaths, classLoader );
+		boolean includeDocumentation )
+		throws IOException, ParserException, SemanticException {
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ),
+			includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
@@ -87,15 +83,15 @@ public class ParsingUtils
 
 		return program;
 	}
-	
+
 	/**
 	 * Creates a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}.
+	 * 
 	 * @param program the {@link jolie.lang.parse.ast.Program} to inspect
 	 * @return a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}
 	 * @see ProgramInspector
 	 */
-	public static ProgramInspector createInspector( Program program )
-	{
+	public static ProgramInspector createInspector( Program program ) {
 		return new ProgramInspectorCreatorVisitor( program ).createInspector();
 	}
 }

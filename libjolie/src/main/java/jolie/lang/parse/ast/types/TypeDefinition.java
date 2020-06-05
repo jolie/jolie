@@ -35,99 +35,95 @@ import jolie.util.Range;
 
 /**
  * Representation for a type definition.
+ * 
  * @author Fabrizio Montesi
  */
-public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode
-{
+public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode {
 	private final String id;
 	private final Range cardinality;
 	private String document = null;
 
 	/**
 	 * Constructor
+	 * 
 	 * @param context the parsing context for this AST node
 	 * @param id the name identifier for this type definition
 	 * @param cardinality the cardinality of this type
 	 */
-	public TypeDefinition( ParsingContext context, String id, Range cardinality )
-	{
+	public TypeDefinition( ParsingContext context, String id, Range cardinality ) {
 		super( context );
 		this.id = id;
 		this.cardinality = cardinality;
 	}
 
-	public String id()
-	{
+	public String id() {
 		return id;
 	}
 
-	public Range cardinality()
-	{
+	public Range cardinality() {
 		return cardinality;
 	}
-	
+
 	@Override
-	public void setDocumentation( String document )
-	{
+	public void setDocumentation( String document ) {
 		this.document = document;
 	}
 
 	@Override
-	public String getDocumentation()
-	{
+	public String getDocumentation() {
 		return this.document;
 	}
 
-	public boolean containsPath( VariablePathNode variablePath )
-	{
+	public boolean containsPath( VariablePathNode variablePath ) {
 		return containsPath( variablePath.path().iterator() );
 	}
-	
+
 	protected abstract boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it );
 
-	private static boolean checkTypeEqualnessChoiceChoice( TypeChoiceDefinition left, TypeChoiceDefinition right, Set< String > recursiveTypesChecked )
-	{
-		return
-			checkTypeEqualness( left.left(), right.left(), recursiveTypesChecked )
+	private static boolean checkTypeEqualnessChoiceChoice( TypeChoiceDefinition left, TypeChoiceDefinition right,
+		Set< String > recursiveTypesChecked ) {
+		return checkTypeEqualness( left.left(), right.left(), recursiveTypesChecked )
 			&&
 			checkTypeEqualness( left.right(), right.right(), recursiveTypesChecked );
 	}
-	
+
 	/*
-	 * 13/10/2011 - Claudio Guidi: added recursiveTypesChecked list for checking recursive types equalness
+	 * 13/10/2011 - Claudio Guidi: added recursiveTypesChecked list for checking recursive types
+	 * equalness
 	 */
-	private static boolean checkTypeEqualnessInline( TypeInlineDefinition left, TypeInlineDefinition right, Set< String > recursiveTypesChecked )
-	{
-		if ( left.nativeType() != right.nativeType() ) {
+	private static boolean checkTypeEqualnessInline( TypeInlineDefinition left, TypeInlineDefinition right,
+		Set< String > recursiveTypesChecked ) {
+		if( left.nativeType() != right.nativeType() ) {
 			return false;
 		}
 
-		if ( left.untypedSubTypes() ) {
+		if( left.untypedSubTypes() ) {
 			return right.untypedSubTypes();
 		} else {
-			if ( right.untypedSubTypes() ) {
+			if( right.untypedSubTypes() ) {
 				return false;
 			}
-			if ( left.hasSubTypes() ) {
-				if ( !right.hasSubTypes() ) {
+			if( left.hasSubTypes() ) {
+				if( !right.hasSubTypes() ) {
 					return false;
 				}
 
-				if ( left.subTypes().size() != right.subTypes().size() ) {
+				if( left.subTypes().size() != right.subTypes().size() ) {
 					return false;
 				}
 
 				for( Entry< String, TypeDefinition > entry : left.subTypes() ) {
 					final TypeDefinition rightSubType = right.getSubType( entry.getKey() );
-					if ( rightSubType == null ) {
+					if( rightSubType == null ) {
 						return false;
 					}
-					if ( recursiveTypesChecked.contains( rightSubType.id ) ) {
+					if( recursiveTypesChecked.contains( rightSubType.id ) ) {
 						return true;
 					} else {
 						recursiveTypesChecked.add( rightSubType.id );
 					}
-					if ( entry.getValue().isEquivalentTo_recursive( right.getSubType( entry.getKey() ), recursiveTypesChecked ) == false ) {
+					if( entry.getValue().isEquivalentTo_recursive( right.getSubType( entry.getKey() ),
+						recursiveTypesChecked ) == false ) {
 						return false;
 					}
 				}
@@ -138,81 +134,80 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 		return true;
 	}
-	
-	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right, Set< String > recursiveTypesChecked )
-	{
-		if ( left instanceof TypeChoiceDefinition ) {
+
+	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right,
+		Set< String > recursiveTypesChecked ) {
+		if( left instanceof TypeChoiceDefinition ) {
 			final TypeChoiceDefinition choice = (TypeChoiceDefinition) left;
-			if ( right instanceof TypeInlineDefinition ) {
-				return
-					checkTypeEqualness( choice.left(), right, recursiveTypesChecked )
+			if( right instanceof TypeInlineDefinition ) {
+				return checkTypeEqualness( choice.left(), right, recursiveTypesChecked )
 					&&
 					checkTypeEqualness( choice.right(), right, recursiveTypesChecked );
-			} else if ( right instanceof TypeDefinitionLink ) {
-				return checkTypeEqualness( left, ((TypeDefinitionLink)right).linkedType(), recursiveTypesChecked );
-			} else if ( right instanceof TypeChoiceDefinition ) {
-				return checkTypeEqualnessChoiceChoice( choice, (TypeChoiceDefinition)right, recursiveTypesChecked );
+			} else if( right instanceof TypeDefinitionLink ) {
+				return checkTypeEqualness( left, ((TypeDefinitionLink) right).linkedType(), recursiveTypesChecked );
+			} else if( right instanceof TypeChoiceDefinition ) {
+				return checkTypeEqualnessChoiceChoice( choice, (TypeChoiceDefinition) right, recursiveTypesChecked );
 			}
-		} else if ( left instanceof TypeDefinitionLink ) {
-			return checkTypeEqualness( ((TypeDefinitionLink)left).linkedType(), right, recursiveTypesChecked );
-		} else if ( left instanceof TypeInlineDefinition ) {
-			if ( right instanceof TypeInlineDefinition ) {
-				return checkTypeEqualnessInline( (TypeInlineDefinition)left, (TypeInlineDefinition)right, recursiveTypesChecked );
-			} else if ( right instanceof TypeDefinitionLink ) {
-				return checkTypeEqualness( left, ((TypeDefinitionLink)right).linkedType(), recursiveTypesChecked );
-			} else if ( right instanceof TypeChoiceDefinition ) {
+		} else if( left instanceof TypeDefinitionLink ) {
+			return checkTypeEqualness( ((TypeDefinitionLink) left).linkedType(), right, recursiveTypesChecked );
+		} else if( left instanceof TypeInlineDefinition ) {
+			if( right instanceof TypeInlineDefinition ) {
+				return checkTypeEqualnessInline( (TypeInlineDefinition) left, (TypeInlineDefinition) right,
+					recursiveTypesChecked );
+			} else if( right instanceof TypeDefinitionLink ) {
+				return checkTypeEqualness( left, ((TypeDefinitionLink) right).linkedType(), recursiveTypesChecked );
+			} else if( right instanceof TypeChoiceDefinition ) {
 				final TypeChoiceDefinition choice = (TypeChoiceDefinition) right;
-				return
-					checkTypeEqualness( left, choice.left(), recursiveTypesChecked )
+				return checkTypeEqualness( left, choice.left(), recursiveTypesChecked )
 					&&
 					checkTypeEqualness( right, choice.right(), recursiveTypesChecked );
 			}
 		}
-		
+
 		return false; // Unaccounted cases, fail fast.
 	}
 
 	/**
-	 * @author Claudio Guidi
-	 * 01-Sep-2011 Fabrizio Montesi: removed some type casting
+	 * @author Claudio Guidi 01-Sep-2011 Fabrizio Montesi: removed some type casting
 	 * @param inputType
 	 * @param extender
 	 * @param namePrefix
-	 * @return 
+	 * @return
 	 */
-	public static TypeDefinition extend( TypeDefinition inputType, TypeDefinition extender, String namePrefix )
-	{
-		if ( inputType instanceof TypeChoiceDefinition || extender instanceof TypeChoiceDefinition ) {
+	public static TypeDefinition extend( TypeDefinition inputType, TypeDefinition extender, String namePrefix ) {
+		if( inputType instanceof TypeChoiceDefinition || extender instanceof TypeChoiceDefinition ) {
 			throw new UnsupportedOperationException( "extension does not support choice types yet" );
 		}
-		
-		if ( inputType instanceof TypeDefinitionLink ) {
-			return extend( ((TypeDefinitionLink)inputType).linkedType(), extender, namePrefix );
-		} else if ( extender instanceof TypeDefinitionLink ) {
-			return extend( inputType, ((TypeDefinitionLink)extender).linkedType(), namePrefix );
-		}
-		
-		final TypeInlineDefinition left = (TypeInlineDefinition)inputType;
-		final TypeInlineDefinition right = (TypeInlineDefinition)extender;
-		
-		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), left.nativeType(), inputType.cardinality );
 
-		if ( left instanceof TypeDefinitionUndefined ) {
-			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), NativeType.ANY, inputType.cardinality );
-			if ( right.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
+		if( inputType instanceof TypeDefinitionLink ) {
+			return extend( ((TypeDefinitionLink) inputType).linkedType(), extender, namePrefix );
+		} else if( extender instanceof TypeDefinitionLink ) {
+			return extend( inputType, ((TypeDefinitionLink) extender).linkedType(), namePrefix );
+		}
+
+		final TypeInlineDefinition left = (TypeInlineDefinition) inputType;
+		final TypeInlineDefinition right = (TypeInlineDefinition) extender;
+
+		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(),
+			left.nativeType(), inputType.cardinality );
+
+		if( left instanceof TypeDefinitionUndefined ) {
+			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(),
+				namePrefix + "_" + inputType.id(), NativeType.ANY, inputType.cardinality );
+			if( right.hasSubTypes() ) {
+				for( Entry< String, TypeDefinition > subType : right.subTypes() ) {
 					newTid.putSubType( subType.getValue() );
 				}
 			}
 			newType = newTid;
 		} else {
-			if ( left.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> subType : left.subTypes() ) {
+			if( left.hasSubTypes() ) {
+				for( Entry< String, TypeDefinition > subType : left.subTypes() ) {
 					newType.putSubType( subType.getValue() );
 				}
 			}
-			if ( right.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
+			if( right.hasSubTypes() ) {
+				for( Entry< String, TypeDefinition > subType : right.subTypes() ) {
 					newType.putSubType( subType.getValue() );
 				}
 			}
@@ -222,45 +217,42 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 	/**
 	 * Checks if this TypeDeclaration is equivalent to other
+	 * 
 	 * @author Fabrizio Montesi
 	 * @param other
-	 * @return 
+	 * @return
 	 */
-	public boolean isEquivalentTo( TypeDefinition other )
-	{
+	public boolean isEquivalentTo( TypeDefinition other ) {
 		Set< String > recursiveTypeChecked = new HashSet<>();
 		return cardinality.equals( other.cardinality ) && checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
 	/**
 	 * introduced for checking also recursive type equalness
+	 * 
 	 * @author Claudio Guidi
 	 */
-	private boolean isEquivalentTo_recursive( TypeDefinition other, Set< String > recursiveTypeChecked )
-	{
+	private boolean isEquivalentTo_recursive( TypeDefinition other, Set< String > recursiveTypeChecked ) {
 		return cardinality.equals( other.cardinality ) && checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
 	@Override
-	public boolean equals( Object other )
-	{
+	public boolean equals( Object other ) {
 		return this == other;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		int hash = 7;
 		hash = 31 * hash + this.id.hashCode();
 		hash = 31 * hash + this.cardinality.hashCode();
 		return hash;
 	}
 
-	/* public abstract TypeDefinition getSubType( String id );
-	public abstract Set< Map.Entry< String, TypeDefinition > > subTypes();
-	public abstract boolean hasSubTypes();
-	public abstract boolean untypedSubTypes();
-	public abstract NativeType nativeType();
-	public abstract boolean hasSubType( String id );
-	*/
+	/*
+	 * public abstract TypeDefinition getSubType( String id ); public abstract Set< Map.Entry< String,
+	 * TypeDefinition > > subTypes(); public abstract boolean hasSubTypes(); public abstract boolean
+	 * untypedSubTypes(); public abstract NativeType nativeType(); public abstract boolean hasSubType(
+	 * String id );
+	 */
 }

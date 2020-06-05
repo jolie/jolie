@@ -25,24 +25,20 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class InstallStatement extends OLSyntaxNode
-{
+public class InstallStatement extends OLSyntaxNode {
 	private final InstallFunctionNode handlersFunction;
 
-	public InstallStatement( ParsingContext context, InstallFunctionNode handlersFunction )
-	{
+	public InstallStatement( ParsingContext context, InstallFunctionNode handlersFunction ) {
 		super( context );
 		this.handlersFunction = handlersFunction;
 	}
-	
-	public InstallFunctionNode handlersFunction()
-	{
+
+	public InstallFunctionNode handlersFunction() {
 		return handlersFunction;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

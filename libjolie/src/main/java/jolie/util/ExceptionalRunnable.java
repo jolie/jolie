@@ -21,10 +21,10 @@ package jolie.util;
 
 /**
  * A runnable that can throw an exception.
+ * 
  * @param <T> the type of the exception that the callable can throw
  */
 @FunctionalInterface
-public interface ExceptionalRunnable<T extends Throwable>
-{
+public interface ExceptionalRunnable< T extends Throwable > {
 	public void run() throws T;
 }

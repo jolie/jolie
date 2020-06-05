@@ -27,28 +27,23 @@ import jolie.lang.parse.context.ParsingContext;
 
 
 
-public class AndConditionNode extends OLSyntaxNode
-{
+public class AndConditionNode extends OLSyntaxNode {
 	private final List< OLSyntaxNode > children = new ArrayList<>();
 
-	public AndConditionNode( ParsingContext context )
-	{
+	public AndConditionNode( ParsingContext context ) {
 		super( context );
 	}
-	
-	public List< OLSyntaxNode > children()
-	{
+
+	public List< OLSyntaxNode > children() {
 		return children;
 	}
-	
-	public void addChild( OLSyntaxNode node )
-	{
+
+	public void addChild( OLSyntaxNode node ) {
 		children.add( node );
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

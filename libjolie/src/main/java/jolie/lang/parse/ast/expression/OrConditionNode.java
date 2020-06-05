@@ -27,29 +27,24 @@ import jolie.lang.parse.context.ParsingContext;
 
 
 
-public class OrConditionNode extends OLSyntaxNode
-{
+public class OrConditionNode extends OLSyntaxNode {
 	private final List< OLSyntaxNode > children;
 
-	public OrConditionNode( ParsingContext context )
-	{
+	public OrConditionNode( ParsingContext context ) {
 		super( context );
 		children = new ArrayList<>();
 	}
-	
-	public List< OLSyntaxNode > children()
-	{
+
+	public List< OLSyntaxNode > children() {
 		return children;
 	}
-	
-	public void addChild( OLSyntaxNode node )
-	{
+
+	public void addChild( OLSyntaxNode node ) {
 		children.add( node );
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

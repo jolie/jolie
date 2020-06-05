@@ -26,41 +26,36 @@ import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class DeepCopyStatement extends OLSyntaxNode
-{
+public class DeepCopyStatement extends OLSyntaxNode {
 	private final VariablePathNode leftPath;
 	private final OLSyntaxNode rightExpression;
 	private final boolean copyLinks;
 
-	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression, boolean copyLinks )
-	{
+	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression,
+		boolean copyLinks ) {
 		super( context );
-		if ( rightExpression instanceof VariableExpressionNode ) {
+		if( rightExpression instanceof VariableExpressionNode ) {
 			VariablePathNode.levelPaths( leftPath, ((VariableExpressionNode) rightExpression).variablePath() );
 		}
 		this.leftPath = leftPath;
 		this.rightExpression = rightExpression;
 		this.copyLinks = copyLinks;
 	}
-	
-	public VariablePathNode leftPath()
-	{
+
+	public VariablePathNode leftPath() {
 		return leftPath;
 	}
-	
-	public OLSyntaxNode rightExpression()
-	{
+
+	public OLSyntaxNode rightExpression() {
 		return rightExpression;
 	}
-	
-	public boolean copyLinks()
-	{
+
+	public boolean copyLinks() {
 		return copyLinks;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

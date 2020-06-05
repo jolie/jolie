@@ -31,30 +31,27 @@ import jolie.lang.Constants;
 
 /**
  * A very simple {@code ParsingContext} based upon an URI.
+ * 
  * @author Fabrizio Montesi
  */
-public class URIParsingContext extends AbstractParsingContext
-{
+public class URIParsingContext extends AbstractParsingContext {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final URI uri;
 
 	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0 );
 
-	public URIParsingContext( URI uri, int line )
-	{
+	public URIParsingContext( URI uri, int line ) {
 		super( line );
 		this.uri = uri;
 	}
 
 	@Override
-	public URI source()
-	{
+	public URI source() {
 		return uri;
 	}
 
 	@Override
-	public String sourceName()
-	{
+	public String sourceName() {
 		try {
 			Path path = Paths.get( uri );
 			return path.toString();

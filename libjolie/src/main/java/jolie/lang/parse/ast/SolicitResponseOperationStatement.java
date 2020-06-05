@@ -25,22 +25,19 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class SolicitResponseOperationStatement extends OLSyntaxNode
-{
+public class SolicitResponseOperationStatement extends OLSyntaxNode {
 	private final VariablePathNode inputVarPath;
 	private final String id, outputPortId;
 	private final OLSyntaxNode outputExpression;
 	private final InstallFunctionNode handlersFunction;
-	
+
 	public SolicitResponseOperationStatement(
-			ParsingContext context,
-			String id,
-			String outputPortId,
-			OLSyntaxNode outputExpression,
-			VariablePathNode inputVarPath,
-			InstallFunctionNode handlersFunction
-		)
-	{
+		ParsingContext context,
+		String id,
+		String outputPortId,
+		OLSyntaxNode outputExpression,
+		VariablePathNode inputVarPath,
+		InstallFunctionNode handlersFunction ) {
 		super( context );
 		this.id = id;
 		this.outputExpression = outputExpression;
@@ -48,35 +45,29 @@ public class SolicitResponseOperationStatement extends OLSyntaxNode
 		this.outputPortId = outputPortId;
 		this.handlersFunction = handlersFunction;
 	}
-	
-	public InstallFunctionNode handlersFunction()
-	{
+
+	public InstallFunctionNode handlersFunction() {
 		return handlersFunction;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
-	public String outputPortId()
-	{
+
+	public String outputPortId() {
 		return outputPortId;
 	}
-	
-	public OLSyntaxNode outputExpression()
-	{
+
+	public OLSyntaxNode outputExpression() {
 		return outputExpression;
 	}
-	
-	public VariablePathNode inputVarPath()
-	{
+
+	public VariablePathNode inputVarPath() {
 		return inputVarPath;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

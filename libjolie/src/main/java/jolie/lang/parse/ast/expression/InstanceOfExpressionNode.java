@@ -25,31 +25,26 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class InstanceOfExpressionNode extends OLSyntaxNode
-{
+public class InstanceOfExpressionNode extends OLSyntaxNode {
 	private final OLSyntaxNode expression;
 	private final TypeDefinition type;
 
-	public InstanceOfExpressionNode( ParsingContext context, OLSyntaxNode expression, TypeDefinition type )
-	{
+	public InstanceOfExpressionNode( ParsingContext context, OLSyntaxNode expression, TypeDefinition type ) {
 		super( context );
 		this.type = type;
 		this.expression = expression;
 	}
-	
-	public TypeDefinition type()
-	{
+
+	public TypeDefinition type() {
 		return type;
 	}
-	
-	public OLSyntaxNode expression()
-	{
+
+	public OLSyntaxNode expression() {
 		return expression;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

@@ -25,24 +25,20 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class CompensateStatement extends OLSyntaxNode
-{
+public class CompensateStatement extends OLSyntaxNode {
 	private final String id;
 
-	public CompensateStatement( ParsingContext context, String id )
-	{
+	public CompensateStatement( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

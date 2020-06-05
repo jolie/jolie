@@ -24,16 +24,13 @@ package jolie.lang.parse.ast;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public class ExitStatement extends OLSyntaxNode
-{
-	public ExitStatement( ParsingContext context )
-	{
+public class ExitStatement extends OLSyntaxNode {
+	public ExitStatement( ParsingContext context ) {
 		super( context );
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }
