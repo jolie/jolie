@@ -30,13 +30,11 @@ import jolie.runtime.expression.Expression;
 import jolie.tracer.EmbeddingTraceAction;
 
 
-public class JavaServiceLoader extends EmbeddedServiceLoader
-{
+public class JavaServiceLoader extends EmbeddedServiceLoader {
 	private final String servicePath;
 	private final Interpreter interpreter;
-	
-	public JavaServiceLoader( Expression channelDest, String servicePath, Interpreter interpreter )
-	{
+
+	public JavaServiceLoader( Expression channelDest, String servicePath, Interpreter interpreter ) {
 		super( channelDest );
 		this.interpreter = interpreter;
 		this.servicePath = servicePath;
@@ -44,26 +42,25 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 
 	@Override
 	public void load()
-		throws EmbeddedServiceLoadingException
-	{
+		throws EmbeddedServiceLoadingException {
 		try {
 			final JolieClassLoader cl = interpreter.getClassLoader();
-			final Class<?> c = cl.loadClass( servicePath );
+			final Class< ? > c = cl.loadClass( servicePath );
 			final Object obj = c.getDeclaredConstructor().newInstance();
-			if ( !(obj instanceof JavaService) ) {
+			if( !(obj instanceof JavaService) ) {
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
 			}
-			final JavaService service = (JavaService)obj;
+			final JavaService service = (JavaService) obj;
 			service.setInterpreter( interpreter );
-			setChannel(	new JavaCommChannel( service ) );
-			
-			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
+			setChannel( new JavaCommChannel( service ) );
+
+			interpreter.tracer().trace( () -> new EmbeddingTraceAction(
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
 				"Java Service Loader",
 				c.getCanonicalName(),
-				null
-			) );
-		} catch( InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e ) {
+				null ) );
+		} catch( InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException
+			| ClassNotFoundException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}
 	}

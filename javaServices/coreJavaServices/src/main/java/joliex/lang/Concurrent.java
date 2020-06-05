@@ -26,28 +26,25 @@ import jolie.Interpreter;
 import jolie.runtime.FaultException;
 import jolie.runtime.embedding.RequestResponse;
 
-public class Concurrent
-{
+public class Concurrent {
 	@RequestResponse
 	public void notify( String lockName )
-		throws FaultException
-	{
+		throws FaultException {
 		Interpreter.getInstance().getLock( lockName ).notify();
 	}
 
 	@RequestResponse
 	public void notifyAll( String lockName )
-		throws FaultException
-	{
+		throws FaultException {
 		Interpreter.getInstance().getLock( lockName ).notifyAll();
 	}
 
 	@RequestResponse
 	public void wait( String lockName )
-		throws FaultException
-	{
+		throws FaultException {
 		try {
 			Interpreter.getInstance().getLock( lockName ).wait();
-		} catch( InterruptedException ie ) {}
+		} catch( InterruptedException ie ) {
+		}
 	}
 }

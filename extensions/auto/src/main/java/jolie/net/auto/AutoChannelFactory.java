@@ -33,35 +33,37 @@ import jolie.runtime.AndJarDeps;
  *
  * @author Claudio Guidi
  */
-@AndJarDeps({
+@AndJarDeps( {
 	"ini4j.jar", "jolie-js.jar", "json_simple.jar"
-})
+} )
 public class AutoChannelFactory extends CommChannelFactory {
-	
-	private final CommCore commCore;
-	private final HashMap<URI,String> locationMap = new HashMap<>(); // TODO: check whether this can be invoked concurrently
 
-	public AutoChannelFactory(CommCore commCore) {
-		super(commCore);
+	private final CommCore commCore;
+	private final HashMap< URI, String > locationMap = new HashMap<>(); // TODO: check whether this can be invoked
+																		// concurrently
+
+	public AutoChannelFactory( CommCore commCore ) {
+		super( commCore );
 		this.commCore = commCore;
 	}
 
 	@Override
-	public CommChannel createChannel(URI locationURI, OutputPort port) throws IOException {
+	public CommChannel createChannel( URI locationURI, OutputPort port ) throws IOException {
 
-		String location = locationMap.get(locationURI);
-		if ( location == null ) {
+		String location = locationMap.get( locationURI );
+		if( location == null ) {
 			String[] ss = locationURI.getSchemeSpecificPart().split( ":", 2 );
-			location = AutoHelper.getLocationFromUrl( ss[0], ss[1] );
-			locationMap.put(locationURI, location);
+			location = AutoHelper.getLocationFromUrl( ss[ 0 ], ss[ 1 ] );
+			locationMap.put( locationURI, location );
 		}
 
 		AutoHelper.assertIOException( location == null, "internal error: location is null" );
-		AutoHelper.assertIOException( Constants.LOCAL_LOCATION_KEYWORD.equals( location ), "autoconf does not support local locations" );
-		
+		AutoHelper.assertIOException( Constants.LOCAL_LOCATION_KEYWORD.equals( location ),
+			"autoconf does not support local locations" );
+
 		try {
 			URI uri = new URI( location );
-			return commCore.createCommChannel(uri, port);
+			return commCore.createCommChannel( uri, port );
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}

@@ -27,8 +27,7 @@ import java.util.function.Supplier;
  *
  * @author Fabrizio Montesi
  */
-public interface Tracer
-{
+public interface Tracer {
 
 	public void trace( Supplier< ? extends TraceAction > supplier );
 }

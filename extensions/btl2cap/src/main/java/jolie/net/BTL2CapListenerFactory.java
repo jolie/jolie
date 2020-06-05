@@ -27,21 +27,17 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"bluetooth.jar"})
-public class BTL2CapListenerFactory extends CommListenerFactory
-{
-	public BTL2CapListenerFactory( CommCore commCore )
-	{
+@AndJarDeps( { "bluetooth.jar" } )
+public class BTL2CapListenerFactory extends CommListenerFactory {
+	public BTL2CapListenerFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommListener createListener(
-					Interpreter interpreter,
-					CommProtocolFactory protocolFactory,
-					InputPort inputPort
-				)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		return new BTL2CapListener( interpreter, protocolFactory, inputPort );
 	}
 }

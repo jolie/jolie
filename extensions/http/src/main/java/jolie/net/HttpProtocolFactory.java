@@ -33,16 +33,14 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"jolie-xml.jar","jolie-js.jar","json_simple.jar"})
-public class HttpProtocolFactory extends CommProtocolFactory
-{
+@AndJarDeps( { "jolie-xml.jar", "jolie-js.jar", "json_simple.jar" } )
+public class HttpProtocolFactory extends CommProtocolFactory {
 	private final TransformerFactory transformerFactory;
 	private final DocumentBuilderFactory docBuilderFactory;
 	private final DocumentBuilder docBuilder;
 
 	public HttpProtocolFactory( CommCore commCore )
-		throws ParserConfigurationException, TransformerConfigurationException
-	{
+		throws ParserConfigurationException, TransformerConfigurationException {
 		super( commCore );
 		docBuilderFactory = DocumentBuilderFactory.newInstance();
 		docBuilderFactory.setNamespaceAware( true );
@@ -52,8 +50,7 @@ public class HttpProtocolFactory extends CommProtocolFactory
 
 	@Override
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			return new HttpProtocol(
 				configurationPath,
@@ -61,8 +58,7 @@ public class HttpProtocolFactory extends CommProtocolFactory
 				true,
 				transformerFactory,
 				docBuilderFactory,
-				docBuilder
-			);
+				docBuilder );
 		} catch( TransformerConfigurationException e ) {
 			throw new IOException( e );
 		}
@@ -70,8 +66,7 @@ public class HttpProtocolFactory extends CommProtocolFactory
 
 	@Override
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			return new HttpProtocol(
 				configurationPath,
@@ -79,8 +74,7 @@ public class HttpProtocolFactory extends CommProtocolFactory
 				false,
 				transformerFactory,
 				docBuilderFactory,
-				docBuilder
-			);
+				docBuilder );
 		} catch( TransformerConfigurationException e ) {
 			throw new IOException( e );
 		}

@@ -36,35 +36,30 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 
-public class JsUtils
-{
+public class JsUtils {
 	/**
-	 * Jolie values consist of a root value with optional attribute/child
-	 * values. JSON defines primitive values, arrays and objects. JSON objects
-	 * may contain attributes, but no root value. For this reason Jolie
-	 * introduces a "ROOT_SIGN" named attribute on each mapped Jolie value with
-	 * a root value set.
+	 * Jolie values consist of a root value with optional attribute/child values. JSON defines primitive
+	 * values, arrays and objects. JSON objects may contain attributes, but no root value. For this
+	 * reason Jolie introduces a "ROOT_SIGN" named attribute on each mapped Jolie value with a root
+	 * value set.
 	 */
 	private static final String ROOT_SIGN = "$";
 
 	/**
-	 * Jolie values do not support multi-dimensional arrays as JSON, hence
-	 * val[i][j] in Jolie becomes val._[i]._[j] with two nested single-
-	 * dimensional arrays "JSONARRAY_KEY".
+	 * Jolie values do not support multi-dimensional arrays as JSON, hence val[i][j] in Jolie becomes
+	 * val._[i]._[j] with two nested single- dimensional arrays "JSONARRAY_KEY".
 	 */
 	public static final String JSONARRAY_KEY = "_";
 
-    // Jolie value -> JSON string
-	private static void appendKeyColon( StringBuilder builder, String key )
-	{
+	// Jolie value -> JSON string
+	private static void appendKeyColon( StringBuilder builder, String key ) {
 		builder.append( '"' ).append( key ).append( "\":" );
 	}
 
-	private static String nativeValueToJsonString( Value value ) throws IOException
-	{
-		if ( !value.isDefined() ) {
+	private static String nativeValueToJsonString( Value value ) throws IOException {
+		if( !value.isDefined() ) {
 			return "null";
-		} else if ( value.isInt() || value.isLong() || value.isBool() || value.isDouble() ) {
+		} else if( value.isInt() || value.isLong() || value.isBool() || value.isDouble() ) {
 			return value.strValue();
 		} else {
 			return '"' + JSONValue.escape( value.strValue() ) + '"';
@@ -72,13 +67,12 @@ public class JsUtils
 	}
 
 	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray, Type type )
-		throws IOException
-	{
-		if ( vector.size() > 1 || isArray || ( type != null && type.cardinality().max() > 1 ) ) {
+		throws IOException {
+		if( vector.size() > 1 || isArray || (type != null && type.cardinality().max() > 1) ) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
 				valueToJsonString( vector.get( i ), false, type, builder );
-				if ( i < vector.size() - 1 ) {
+				if( i < vector.size() - 1 ) {
 					builder.append( ',' );
 				}
 			}
@@ -88,18 +82,18 @@ public class JsUtils
 		}
 	}
 
-	public static void valueToJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder ) throws IOException
-	{
-		if ( value.hasChildren( JSONARRAY_KEY ) ) {
-			Type subType = ( type != null ? type.findSubType( JSONARRAY_KEY ) : null );
+	public static void valueToJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder )
+		throws IOException {
+		if( value.hasChildren( JSONARRAY_KEY ) ) {
+			Type subType = (type != null ? type.findSubType( JSONARRAY_KEY ) : null);
 			valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, subType );
 			return;
 		}
 		int size = value.children().size();
-		if ( size == 0 ) {
-			if ( extendedRoot ) {
+		if( size == 0 ) {
+			if( extendedRoot ) {
 				builder.append( '{' );
-				if ( value.isDefined() ) {
+				if( value.isDefined() ) {
 					appendKeyColon( builder, ROOT_SIGN );
 					builder.append( nativeValueToJsonString( value ) );
 				}
@@ -109,34 +103,34 @@ public class JsUtils
 			}
 		} else {
 			builder.append( '{' );
-			if ( value.isDefined() ) {
+			if( value.isDefined() ) {
 				appendKeyColon( builder, ROOT_SIGN );
 				builder.append( nativeValueToJsonString( value ) );
 				builder.append( ',' );
 			}
 			int i = 0;
-			for( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {                               
-				final Type subType = ( type != null ? type.findSubType( child.getKey() ) : null );
+			for( Map.Entry< String, ValueVector > child : value.children().entrySet() ) {
+				final Type subType = (type != null ? type.findSubType( child.getKey() ) : null);
 				appendKeyColon( builder, child.getKey() );
 				valueVectorToJsonString( child.getValue(), builder, false, subType );
-				if ( i++ < size - 1 ) {
+				if( i++ < size - 1 ) {
 					builder.append( ',' );
 				}
 			}
 			builder.append( '}' );
 		}
 	}
-	public static void valueToNdJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder ) throws IOException
-	{
+
+	public static void valueToNdJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder )
+		throws IOException {
 		for( Value item : value.getChildren( "item" ) ) {
 			valueToJsonString( item, extendedRoot, type, builder );
 			builder.append( '\n' );
 		}
 	}
 
-	
-	public static void faultValueToJsonString( Value value, Type type, StringBuilder builder ) throws IOException
-	{
+
+	public static void faultValueToJsonString( Value value, Type type, StringBuilder builder ) throws IOException {
 		builder.append( "{\"error\":{\"message\":\"" );
 		builder.append( value.getFirstChild( "error" ).getFirstChild( "message" ).strValue() );
 		builder.append( "\",\"code\":" );
@@ -146,33 +140,31 @@ public class JsUtils
 		builder.append( "}}" );
 	}
 
-    // JSON string -> Jolie value
-	private static void getBasicValue( Object obj, Value val )
-	{
-		if ( obj instanceof String ) {
+	// JSON string -> Jolie value
+	private static void getBasicValue( Object obj, Value val ) {
+		if( obj instanceof String ) {
 			val.setValue( (String) obj );
-		} else if ( obj instanceof Double ) {
+		} else if( obj instanceof Double ) {
 			val.setValue( (Double) obj );
-		} else if ( obj instanceof Long ) {
+		} else if( obj instanceof Long ) {
 			long lval = (Long) obj;
-			if ( lval > Integer.MAX_VALUE || lval < Integer.MIN_VALUE ) {
+			if( lval > Integer.MAX_VALUE || lval < Integer.MIN_VALUE ) {
 				val.setValue( lval );
 			} else {
 				val.setValue( (int) lval );
 			}
-		} else if ( obj instanceof Boolean ) {
+		} else if( obj instanceof Boolean ) {
 			val.setValue( (Boolean) obj );
-		} else if ( obj != null ) {
+		} else if( obj != null ) {
 			val.setValue( obj.toString() );
 		}
 	}
 
-	private static void jsonObjectToValue( JSONObject obj, Value value, boolean strictEncoding )
-	{
-		Map<String, Object> map = (Map<String, Object>) obj;
+	private static void jsonObjectToValue( JSONObject obj, Value value, boolean strictEncoding ) {
+		Map< String, Object > map = (Map< String, Object >) obj;
 		ValueVector vec;
-		for( Map.Entry<String, Object> entry : map.entrySet() ) {
-			if ( entry.getKey().equals( ROOT_SIGN ) ) {
+		for( Map.Entry< String, Object > entry : map.entrySet() ) {
+			if( entry.getKey().equals( ROOT_SIGN ) ) {
 				getBasicValue( entry.getValue(), value );
 			} else {
 				vec = jsonObjectToValueVector( entry.getValue(), strictEncoding );
@@ -181,18 +173,17 @@ public class JsUtils
 		}
 	}
 
-	private static ValueVector jsonObjectToValueVector( Object obj, boolean strictEncoding )
-	{
+	private static ValueVector jsonObjectToValueVector( Object obj, boolean strictEncoding ) {
 		ValueVector vec = ValueVector.create();
-		if ( obj instanceof JSONObject ) {
+		if( obj instanceof JSONObject ) {
 			Value val = Value.create();
 			jsonObjectToValue( (JSONObject) obj, val, strictEncoding );
 			vec.add( val );
-		} else if ( obj instanceof JSONArray && strictEncoding ) {
+		} else if( obj instanceof JSONArray && strictEncoding ) {
 			Value arrayValue = Value.create();
 			vec.add( arrayValue );
 			arrayValue.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
-		} else if ( obj instanceof JSONArray && !strictEncoding ) {
+		} else if( obj instanceof JSONArray && !strictEncoding ) {
 			vec = jsonArrayToValueVector( (JSONArray) obj, strictEncoding );
 		} else {
 			Value val = Value.create();
@@ -202,14 +193,13 @@ public class JsUtils
 		return vec;
 	}
 
-	private static ValueVector jsonArrayToValueVector( JSONArray array, boolean strictEncoding )
-	{
+	private static ValueVector jsonArrayToValueVector( JSONArray array, boolean strictEncoding ) {
 		ValueVector vec = ValueVector.create();
 		for( Object element : array ) {
 			Value value = Value.create();
-			if ( element instanceof JSONArray ) {
+			if( element instanceof JSONArray ) {
 				value.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) element, strictEncoding ) );
-			} else if ( element instanceof JSONObject ) {
+			} else if( element instanceof JSONObject ) {
 				jsonObjectToValue( (JSONObject) element, value, strictEncoding );
 			} else {
 				getBasicValue( element, value );
@@ -220,13 +210,12 @@ public class JsUtils
 	}
 
 	public static void parseJsonIntoValue( Reader reader, Value value, boolean strictEncoding )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			Object obj = JSONValue.parseWithException( reader );
-			if ( obj instanceof JSONArray ) {
+			if( obj instanceof JSONArray ) {
 				value.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
-			} else if ( obj instanceof JSONObject ) {
+			} else if( obj instanceof JSONObject ) {
 				jsonObjectToValue( (JSONObject) obj, value, strictEncoding );
 			} else {
 				getBasicValue( obj, value );
@@ -237,21 +226,21 @@ public class JsUtils
 			throw new IOException( e );
 		}
 	}
-	
+
 
 	public static void parseNdJsonIntoValue( BufferedReader reader, Value value, boolean strictEncoding )
-		throws IOException
-	{
-		List<String> stringItemVector = reader.lines().collect( Collectors.toList() );
-	
+		throws IOException {
+		List< String > stringItemVector = reader.lines().collect( Collectors.toList() );
+
 		for( String stringItem : stringItemVector ) {
 			StringReader itemReader = new StringReader( stringItem );
 			try {
 				Value itemValue = Value.create();
 				Object obj = JSONValue.parseWithException( itemReader );
-				if ( obj instanceof JSONArray ) {
-					itemValue.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
-				} else if ( obj instanceof JSONObject ) {
+				if( obj instanceof JSONArray ) {
+					itemValue.children().put( JSONARRAY_KEY,
+						jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
+				} else if( obj instanceof JSONObject ) {
 					jsonObjectToValue( (JSONObject) obj, itemValue, strictEncoding );
 				} else {
 					getBasicValue( obj, itemValue );

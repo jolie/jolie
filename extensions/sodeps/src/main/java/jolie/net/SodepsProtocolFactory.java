@@ -30,34 +30,28 @@ import jolie.net.ssl.SSLProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"jolie-ssl.jar"})
-public class SodepsProtocolFactory extends CommProtocolFactory
-{
+@AndJarDeps( { "jolie-ssl.jar" } )
+public class SodepsProtocolFactory extends CommProtocolFactory {
 	public SodepsProtocolFactory( CommCore commCore )
-		throws ParserConfigurationException, TransformerConfigurationException
-	{
+		throws ParserConfigurationException, TransformerConfigurationException {
 		super( commCore );
 	}
 
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new SSLProtocol(
 			configurationPath,
 			location,
 			commCore().createInputCommProtocol( "sodep", configurationPath, location ),
-			false
-		);
+			false );
 	}
 
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new SSLProtocol(
 			configurationPath,
 			location,
 			commCore().createOutputCommProtocol( "sodep", configurationPath, location ),
-			true
-		);
+			true );
 	}
 }

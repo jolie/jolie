@@ -24,34 +24,29 @@ package jolie.process;
 import jolie.runtime.FaultException;
 import jolie.runtime.ParallelExecution;
 
-public class ParallelProcess implements Process
-{
+public class ParallelProcess implements Process {
 	final private Process[] children;
 
-	public ParallelProcess( Process[] children )
-	{
+	public ParallelProcess( Process[] children ) {
 		this.children = children;
 	}
 
 	public void run()
-		throws FaultException
-	{
+		throws FaultException {
 		(new ParallelExecution( children )).run();
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new ParallelProcess( children );
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		for( Process child : children ) {
-			if ( child.isKillable() == false ) {
+			if( child.isKillable() == false ) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 }

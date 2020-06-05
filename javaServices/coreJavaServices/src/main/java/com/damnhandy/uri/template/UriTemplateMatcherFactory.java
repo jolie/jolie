@@ -25,12 +25,11 @@ import java.util.regex.Pattern;
 
 /**
  * Helper class for accessing reverse matchers for uri templates.
+ * 
  * @author Fabrizio Montesi
  */
-public class UriTemplateMatcherFactory
-{
-	public static Pattern getReverseMatchPattern( UriTemplate t )
-	{
+public class UriTemplateMatcherFactory {
+	public static Pattern getReverseMatchPattern( UriTemplate t ) {
 		return t.getReverseMatchPattern();
 	}
 }

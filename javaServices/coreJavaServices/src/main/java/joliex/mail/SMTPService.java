@@ -50,43 +50,37 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 
-@AndJarDeps( {"mailapi.jar", "smtp.jar"} )
-public class SMTPService extends JavaService
-{
-	private class SimpleAuthenticator extends Authenticator
-	{
+@AndJarDeps( { "mailapi.jar", "smtp.jar" } )
+public class SMTPService extends JavaService {
+	private class SimpleAuthenticator extends Authenticator {
 		private final String username, password;
 
-		public SimpleAuthenticator( String username, String password )
-		{
+		public SimpleAuthenticator( String username, String password ) {
 			this.username = username;
 			this.password = password;
 		}
 
 		@Override
-		public PasswordAuthentication getPasswordAuthentication()
-		{
+		public PasswordAuthentication getPasswordAuthentication() {
 			return new PasswordAuthentication( username, password );
 		}
 	}
 
 	@RequestResponse
 	public void sendMail( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		/*
 		 * Host & Authentication
 		 */
 		Authenticator authenticator = null;
 		Properties props = new Properties();
 		props.put( "mail.smtp.host", request.getFirstChild( "host" ).strValue() );
-		if ( request.hasChildren( "authenticate" ) ) {
+		if( request.hasChildren( "authenticate" ) ) {
 			Value auth = request.getFirstChild( "authenticate" );
 			props.put( "mail.smtp.auth", "true" );
 			authenticator = new SimpleAuthenticator(
 				auth.getFirstChild( "username" ).strValue(),
-				auth.getFirstChild( "password" ).strValue()
-			);
+				auth.getFirstChild( "password" ).strValue() );
 		}
 		Session session = Session.getDefaultInstance( props, authenticator );
 		Message msg = new MimeMessage( session );
@@ -114,81 +108,76 @@ public class SMTPService extends JavaService
 			/*
 			 * Content
 			 */
-            final String contentText = request.getFirstChild( "content" ).strValue();
+			final String contentText = request.getFirstChild( "content" ).strValue();
 			String type = "text/plain";
-			if ( request.hasChildren( "contentType" ) ) {
+			if( request.hasChildren( "contentType" ) ) {
 				type = request.getFirstChild( "contentType" ).strValue();
 			}
 			final String contentType = type;
-			
-			DataHandler dh = new DataHandler( new DataSource()
-			{
+
+			DataHandler dh = new DataHandler( new DataSource() {
 				public InputStream getInputStream()
-					throws IOException
-				{
+					throws IOException {
 					return new ByteArrayInputStream( contentText.getBytes() );
 				}
 
 				public OutputStream getOutputStream()
-					throws IOException
-				{
+					throws IOException {
 					throw new IOException( "Operation not supported" );
 				}
 
-				public String getContentType()
-				{
+				public String getContentType() {
 					return contentType;
 				}
 
-				public String getName()
-				{
+				public String getName() {
 					return "mail attachment";
 				}
 			} );
 			msg.setDataHandler( dh );
-			
-			if ( request.hasChildren( "attachment" ) ) {
-				MailcapCommandMap mailcapCommandMap = (MailcapCommandMap) CommandMap.getDefaultCommandMap(); 
+
+			if( request.hasChildren( "attachment" ) ) {
+				MailcapCommandMap mailcapCommandMap = (MailcapCommandMap) CommandMap.getDefaultCommandMap();
 				mailcapCommandMap.addMailcap( "text/html;; x-java-content-handler=com.sun.mail.handlers.text_html" );
 				mailcapCommandMap.addMailcap( "text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml" );
 				mailcapCommandMap.addMailcap( "text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain" );
-				mailcapCommandMap.addMailcap( "multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed" );
-				mailcapCommandMap.addMailcap( "message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822" );
+				mailcapCommandMap
+					.addMailcap( "multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed" );
+				mailcapCommandMap
+					.addMailcap( "message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822" );
 				Multipart multipart = new MimeMultipart();
 				BodyPart messagePart = new MimeBodyPart();
 				messagePart.setContent( request.getFirstChild( "content" ).strValue(), type );
 				multipart.addBodyPart( messagePart );
 
 				for( int counter = 0; counter < request.getChildren( "attachment" ).size(); counter++ ) {
-					final String contentTypeMulti = request.getChildren( "attachment" ).get( counter ).getFirstChild( "contentType" ).strValue();
-					final byte[] content = request.getChildren( "attachment" ).get( counter ).getFirstChild( "content" ).byteArrayValue().getBytes();
-					dh = new DataHandler( new DataSource()
-					{
+					final String contentTypeMulti =
+						request.getChildren( "attachment" ).get( counter ).getFirstChild( "contentType" ).strValue();
+					final byte[] content = request.getChildren( "attachment" ).get( counter ).getFirstChild( "content" )
+						.byteArrayValue().getBytes();
+					dh = new DataHandler( new DataSource() {
 						public InputStream getInputStream()
-							throws IOException
-						{
+							throws IOException {
 							return new ByteArrayInputStream( content );
 						}
 
 						public OutputStream getOutputStream()
-							throws IOException
-						{
+							throws IOException {
 							throw new IOException( "Operation not supported" );
 						}
 
-						public String getContentType()
-						{
+						public String getContentType() {
 							return contentTypeMulti;
 						}
 
-						public String getName()
-						{
+						public String getName() {
 							return "mail attachemt";
 						}
 					} );
 					BodyPart attachmentPart = new MimeBodyPart();
 					attachmentPart.setDataHandler( dh );
-					attachmentPart.setFileName( request.getChildren( "attachment" ).get( counter ).getFirstChild( "filename" ).strValue() );
+					attachmentPart.setFileName(
+						request.getChildren( "attachment" ).get( counter ).getFirstChild( "filename" ).strValue() );
 					multipart.addBodyPart( attachmentPart );
 				}
 

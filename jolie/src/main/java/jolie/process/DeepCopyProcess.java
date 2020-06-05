@@ -33,15 +33,14 @@ import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
 import jolie.util.Pair;
 
-public class DeepCopyProcess implements Process
-{
+public class DeepCopyProcess implements Process {
 	private final VariablePath leftPath;
 	private final Expression rightExpression;
 	private final boolean copyLinks;
 	private final ParsingContext context;
 
-	public DeepCopyProcess( VariablePath leftPath, Expression rightExpression, boolean copyLinks, ParsingContext context )
-	{
+	public DeepCopyProcess( VariablePath leftPath, Expression rightExpression, boolean copyLinks,
+		ParsingContext context ) {
 		this.leftPath = leftPath;
 		this.rightExpression = rightExpression;
 		this.copyLinks = copyLinks;
@@ -50,26 +49,23 @@ public class DeepCopyProcess implements Process
 
 
 	@Override
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return new DeepCopyProcess(
-			(VariablePath)leftPath.cloneExpression( reason ),
+			(VariablePath) leftPath.cloneExpression( reason ),
 			rightExpression.cloneExpression( reason ),
 			copyLinks,
-				context
-		);
+			context );
 	}
 
 	@Override
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
 
-		if ( rightExpression instanceof VariablePath ) {
+		if( rightExpression instanceof VariablePath ) {
 			leftPath.deepCopy( (VariablePath) rightExpression );
 		} else {
-			if ( copyLinks ) {
+			if( copyLinks ) {
 				leftPath.getValue().deepCopyWithLinks( rightExpression.evaluate() );
 			} else {
 				leftPath.getValue().deepCopy( rightExpression.evaluate() );
@@ -77,19 +73,17 @@ public class DeepCopyProcess implements Process
 		}
 		final Tracer tracer = Interpreter.getInstance().tracer();
 
-		tracer.trace(() -> new AssignmentTraceAction(
-				AssignmentTraceAction.Type.DEEPCOPY,
-				"COPIED",
-				null,
-				leftPath.getValue(ExecutionThread.currentThread().state().root().clone()),
-				context
-		));
+		tracer.trace( () -> new AssignmentTraceAction(
+			AssignmentTraceAction.Type.DEEPCOPY,
+			"COPIED",
+			null,
+			leftPath.getValue( ExecutionThread.currentThread().state().root().clone() ),
+			context ) );
 
 	}
 
 	@Override
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

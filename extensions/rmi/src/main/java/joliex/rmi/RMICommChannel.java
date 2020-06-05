@@ -28,54 +28,46 @@ import jolie.net.AbstractCommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
 
-public class RMICommChannel extends AbstractCommChannel implements PollableCommChannel
-{
+public class RMICommChannel extends AbstractCommChannel implements PollableCommChannel {
 	final private RemoteBasicChannel remoteChannel;
 
-	public RMICommChannel( RemoteBasicChannel remoteChannel )
-	{
+	public RMICommChannel( RemoteBasicChannel remoteChannel ) {
 		super();
 		this.remoteChannel = remoteChannel;
 	}
 
 	@Override
 	protected void sendImpl( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		remoteChannel.send( message );
 	}
 
 	@Override
 	protected CommMessage recvImpl()
-		throws IOException
-	{
+		throws IOException {
 		throw new IOException( "Unsupported operation" );
-		//return remoteChannel.recv();
+		// return remoteChannel.recv();
 	}
-	
+
 	public Future< CommMessage > recvResponseFor( CommMessage request )
-		throws IOException
-	{
+		throws IOException {
 		return remoteChannel.recvResponseFor( request );
 	}
 
 	public boolean isReady()
-		throws IOException
-	{
+		throws IOException {
 		return remoteChannel.isReady();
 	}
 
 	@Override
 	protected void closeImpl()
-		throws IOException
-	{
+		throws IOException {
 		remoteChannel.close();
 	}
 
 	@Override
 	protected void disposeForInputImpl()
-		throws IOException
-	{
+		throws IOException {
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 }

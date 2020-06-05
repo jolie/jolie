@@ -43,47 +43,45 @@ import jolie.util.Range;
  *
  * @author Claudio Guidi
  * 
- * Modified by Francesco Bullini, 05/07/2012
+ *         Modified by Francesco Bullini, 05/07/2012
  */
-public class SurfaceCreator
-{
+public class SurfaceCreator {
 	private ProgramInspector inspector;
 	private URI originalFile;
-	private ArrayList<RequestResponseOperationDeclaration> rr_vector;
-	private ArrayList<OneWayOperationDeclaration> ow_vector;
-	private ArrayList<String> types_vector;
-	private ArrayList<TypeDefinition> aux_types_vector;
+	private ArrayList< RequestResponseOperationDeclaration > rr_vector;
+	private ArrayList< OneWayOperationDeclaration > ow_vector;
+	private ArrayList< String > types_vector;
+	private ArrayList< TypeDefinition > aux_types_vector;
 	private int MAX_CARD = 2147483647;
 
-	
-	public SurfaceCreator( ProgramInspector inspector, URI originalFile )
-	{
+
+	public SurfaceCreator( ProgramInspector inspector, URI originalFile ) {
 
 		this.inspector = inspector;
 		this.originalFile = originalFile;
 
 	}
 
-	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation, boolean noProtocol )
-	{
+	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation,
+		boolean noProtocol ) {
 
-		ArrayList<InterfaceDefinition> interface_vector = new ArrayList<InterfaceDefinition>();
-		rr_vector = new ArrayList<RequestResponseOperationDeclaration>();
-		ow_vector = new ArrayList<OneWayOperationDeclaration>();
-		types_vector = new ArrayList<String>();
-		aux_types_vector = new ArrayList<TypeDefinition>();
-             
+		ArrayList< InterfaceDefinition > interface_vector = new ArrayList< InterfaceDefinition >();
+		rr_vector = new ArrayList< RequestResponseOperationDeclaration >();
+		ow_vector = new ArrayList< OneWayOperationDeclaration >();
+		types_vector = new ArrayList< String >();
+		aux_types_vector = new ArrayList< TypeDefinition >();
+
 		// find inputPort
-               
-		InputPortInfo[] inputPortList = inspector.getInputPorts( );
-            
+
+		InputPortInfo[] inputPortList = inspector.getInputPorts();
+
 		InputPortInfo inputPort = null;
 		for( InputPortInfo iP : inputPortList ) {
-			if ( iP.id().equals( inputPortToCreate ) ) {
+			if( iP.id().equals( inputPortToCreate ) ) {
 				inputPort = iP;
 			}
 		}
-		if ( inputPort == null ) {
+		if( inputPort == null ) {
 			throw new IllegalArgumentException( "Error! inputPort not found!" );
 		}
 
@@ -92,20 +90,21 @@ public class SurfaceCreator
 		for( InterfaceDefinition interfaceDefinition : inputPort.getInterfaceList() ) {
 			interface_vector.add( interfaceDefinition );
 		}
-		OutputPortInfo[] outputPortList = inspector.getOutputPorts( );
+		OutputPortInfo[] outputPortList = inspector.getOutputPorts();
 		// extracts interfaces from aggregated outputPorts
 		for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
 			int i = 0;
-			while( !inputPort.aggregationList()[x].outputPortList()[0].equals( outputPortList[i].id() ) ) {
-                                i++;
-                                
+			while( !inputPort.aggregationList()[ x ].outputPortList()[ 0 ].equals( outputPortList[ i ].id() ) ) {
+				i++;
+
 			}
-			for( InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList() ) {
-				interface_vector.add( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[x].interfaceExtender(), inputPort.id() ) );
+			for( InterfaceDefinition interfaceDefinition : outputPortList[ i ].getInterfaceList() ) {
+				interface_vector.add( Interfaces.extend( interfaceDefinition,
+					inputPort.aggregationList()[ x ].interfaceExtender(), inputPort.id() ) );
 			}
 		}
 
-		//  for each interface extract the list of all the available operations and types
+		// for each interface extract the list of all the available operations and types
 		for( InterfaceDefinition interfaceDefinition : interface_vector ) {
 			addOperation( interfaceDefinition );
 		}
@@ -115,10 +114,9 @@ public class SurfaceCreator
 
 	}
 
-	private void addOperation( InterfaceDefinition interfaceDefinition )
-	{
+	private void addOperation( InterfaceDefinition interfaceDefinition ) {
 		for( OperationDeclaration op : interfaceDefinition.operationsMap().values() ) {
-			if ( op instanceof RequestResponseOperationDeclaration ) {
+			if( op instanceof RequestResponseOperationDeclaration ) {
 				rr_vector.add( (RequestResponseOperationDeclaration) op );
 			} else {
 				ow_vector.add( (OneWayOperationDeclaration) op );
@@ -126,26 +124,24 @@ public class SurfaceCreator
 		}
 	}
 
-	private String getOWString( OneWayOperationDeclaration ow )
-	{
+	private String getOWString( OneWayOperationDeclaration ow ) {
 		String ret = ow.id() + "( " + ow.requestType().id() + " )";
 		return ret;
 	}
 
-	private String getRRString( RequestResponseOperationDeclaration rr )
-	{
+	private String getRRString( RequestResponseOperationDeclaration rr ) {
 		String ret = rr.id() + "( " + rr.requestType().id() + " )( " + rr.responseType().id() + " )";
-		if ( rr.faults().size() > 0 ) {
+		if( rr.faults().size() > 0 ) {
 			ret = ret + " throws ";
 			boolean flag = false;
-			for( Entry<String, TypeDefinition> fault : rr.faults().entrySet() ) {
-				if ( flag == false ) {
+			for( Entry< String, TypeDefinition > fault : rr.faults().entrySet() ) {
+				if( flag == false ) {
 					flag = true;
 				} else {
 					ret = ret + " ";
 				}
 				ret = ret + fault.getKey();
-				if ( fault.getValue() != null ) {
+				if( fault.getValue() != null ) {
 					ret = ret + "( " + fault.getValue().id() + " )";
 				}
 			}
@@ -153,74 +149,72 @@ public class SurfaceCreator
 		return ret;
 	}
 
-	private String getMax( int max )
-	{
-		if ( max == MAX_CARD ) {
+	private String getMax( int max ) {
+		if( max == MAX_CARD ) {
 			return "*";
 		} else {
 			return new Integer( max ).toString();
 		}
 	}
 
-	private String getCardinality( Range card )
-	{
-		return ( card.min() == 1 && card.max() == 1 ) ? "" : ("[" + card.min() + "," + getMax(card.max()) + "]");
+	private String getCardinality( Range card ) {
+		return (card.min() == 1 && card.max() == 1) ? "" : ("[" + card.min() + "," + getMax( card.max() ) + "]");
 	}
 
 	private boolean choice;
-	private String getSubType( TypeDefinition type, int indent )
-	{
+
+	private String getSubType( TypeDefinition type, int indent ) {
 		String ret = "";
 
-		if ( choice ) {
+		if( choice ) {
 			choice = false;
 		} else {
-			for ( int y = 0; y < indent; y++ ) {
+			for( int y = 0; y < indent; y++ ) {
 				ret = ret + "\t";
 			}
 
 			ret = ret + "." + type.id() + getCardinality( type.cardinality() ) + ":";
 		}
 
-		if ( type instanceof TypeDefinitionLink ) {
-			ret = ret + ( (TypeDefinitionLink) type ).linkedTypeName();
-			if ( !aux_types_vector.contains( ((TypeDefinitionLink) type ).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type ).linkedType() );
+		if( type instanceof TypeDefinitionLink ) {
+			ret = ret + ((TypeDefinitionLink) type).linkedTypeName();
+			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 
-		} else if ( type instanceof TypeInlineDefinition ) {
-			TypeInlineDefinition def = (TypeInlineDefinition)type;
+		} else if( type instanceof TypeInlineDefinition ) {
+			TypeInlineDefinition def = (TypeInlineDefinition) type;
 			ret = ret + def.nativeType().id();
-			if ( def.hasSubTypes() ) {
+			if( def.hasSubTypes() ) {
 				ret = ret + "{ \n";
-				for( Entry<String, TypeDefinition> entry : def.subTypes() ) {
-					ret = ret + getSubType(entry.getValue(), indent + 1) + "\n";
+				for( Entry< String, TypeDefinition > entry : def.subTypes() ) {
+					ret = ret + getSubType( entry.getValue(), indent + 1 ) + "\n";
 				}
 				for( int y = 0; y < indent; y++ ) {
 					ret = ret + "\t";
 				}
 				ret = ret + "}";
-			} else if ( ( (TypeInlineDefinition) type ).untypedSubTypes() ){
-				ret = ret+ "{ ? }";
+			} else if( ((TypeInlineDefinition) type).untypedSubTypes() ) {
+				ret = ret + "{ ? }";
 			}
-		} else if ( type instanceof TypeChoiceDefinition ){
+		} else if( type instanceof TypeChoiceDefinition ) {
 			choice = true;
-			ret += getSubType( ( (TypeChoiceDefinition) type).left(), indent ) + " | ";
+			ret += getSubType( ((TypeChoiceDefinition) type).left(), indent ) + " | ";
 			choice = true;
-			ret += getSubType( ( (TypeChoiceDefinition) type ).right(), indent );
+			ret += getSubType( ((TypeChoiceDefinition) type).right(), indent );
 
 		}
 
 		return ret;
 	}
 
-	private String getType( TypeDefinition type )
-	{
-		String ret = "";                            
-		if ( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )  && !type.id().equals( "undefined" ) ) {
+	private String getType( TypeDefinition type ) {
+		String ret = "";
+		if( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
+			&& !type.id().equals( "undefined" ) ) {
 
 			System.out.print( "type " + type.id() + ":" );
-			checkType(type);
+			checkType( type );
 			System.out.println( "" );
 			types_vector.add( type.id() );
 		}
@@ -228,62 +222,61 @@ public class SurfaceCreator
 		return ret;
 	}
 
-	private void checkType( TypeDefinition type ){
-		if ( type instanceof TypeDefinitionLink ) {
-			System.out.print( ( (TypeDefinitionLink) type ).linkedTypeName() );
-			if ( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+	private void checkType( TypeDefinition type ) {
+		if( type instanceof TypeDefinitionLink ) {
+			System.out.print( ((TypeDefinitionLink) type).linkedTypeName() );
+			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
 				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
-		} else  if ( type instanceof TypeInlineDefinition ){
-			TypeInlineDefinition def = (TypeInlineDefinition)type;
+		} else if( type instanceof TypeInlineDefinition ) {
+			TypeInlineDefinition def = (TypeInlineDefinition) type;
 			System.out.print( def.nativeType().id() );
-			if ( def.hasSubTypes() ) {
+			if( def.hasSubTypes() ) {
 				System.out.print( "{\n" );
-				for( Entry<String, TypeDefinition> entry : def.subTypes() ) {
-					System.out.print( getSubType( entry.getValue(), 1) + "\n" );
+				for( Entry< String, TypeDefinition > entry : def.subTypes() ) {
+					System.out.print( getSubType( entry.getValue(), 1 ) + "\n" );
 				}
 
-				System.out.print("}");
+				System.out.print( "}" );
 			} else {
 
-				if ( ( (TypeInlineDefinition) type ).untypedSubTypes() ) {
-					System.out.print( " { ? }" );}
+				if( ((TypeInlineDefinition) type).untypedSubTypes() ) {
+					System.out.print( " { ? }" );
+				}
 
 			}
-		} else if ( type instanceof TypeChoiceDefinition ){
-			checkType( ( (TypeChoiceDefinition) type ).left());
+		} else if( type instanceof TypeChoiceDefinition ) {
+			checkType( ((TypeChoiceDefinition) type).left() );
 			System.out.print( " | " );
-			checkType( ( (TypeChoiceDefinition) type ).right());
+			checkType( ((TypeChoiceDefinition) type).right() );
 		}
 
 	}
 
-	private void printType( String type )
-	{
-		if ( !type.equals( "" ) ) {
+	private void printType( String type ) {
+		if( !type.equals( "" ) ) {
 			System.out.println( type );
 		}
 
 	}
 
-	private void createOutput( InputPortInfo inputPort, boolean noOutputPort, boolean noLocation, boolean noProtocol )
-	{
+	private void createOutput( InputPortInfo inputPort, boolean noOutputPort, boolean noLocation, boolean noProtocol ) {
 		// types creation
-		if ( ow_vector.size() > 0 ) {
+		if( ow_vector.size() > 0 ) {
 			for( int x = 0; x < ow_vector.size(); x++ ) {
-				//System.out.println("// types for operation " + ow_vector.get(x).id() );
+				// System.out.println("// types for operation " + ow_vector.get(x).id() );
 				printType( getType( ow_vector.get( x ).requestType() ) );
 			}
 			System.out.println();
 		}
 
-		if ( rr_vector.size() > 0 ) {
+		if( rr_vector.size() > 0 ) {
 			for( int x = 0; x < rr_vector.size(); x++ ) {
-				//System.out.println("// types for operation " + rr_vector.get(x).id() );
+				// System.out.println("// types for operation " + rr_vector.get(x).id() );
 				printType( getType( rr_vector.get( x ).requestType() ) );
 				printType( getType( rr_vector.get( x ).responseType() ) );
-				for( Entry<String, TypeDefinition> fault : rr_vector.get( x ).faults().entrySet() ) {
-					if ( !fault.getValue().id().equals( "undefined" ) ) {
+				for( Entry< String, TypeDefinition > fault : rr_vector.get( x ).faults().entrySet() ) {
+					if( !fault.getValue().id().equals( "undefined" ) ) {
 						System.out.println( getType( fault.getValue() ) );
 					}
 				}
@@ -293,7 +286,7 @@ public class SurfaceCreator
 
 		// add auxiliary types
 		while( !aux_types_vector.isEmpty() ) {
-			ArrayList<TypeDefinition> aux_types_temp_vector = new ArrayList<TypeDefinition>();
+			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList< TypeDefinition >();
 			aux_types_temp_vector.addAll( aux_types_vector );
 			aux_types_vector.clear();
 			Iterator it = aux_types_temp_vector.iterator();
@@ -307,10 +300,10 @@ public class SurfaceCreator
 		// interface creation
 		System.out.println( "interface " + inputPort.id() + "Surface {" );
 		// oneway declaration
-		if ( ow_vector.size() > 0 ) {
+		if( ow_vector.size() > 0 ) {
 			System.out.println( "OneWay:" );
 			for( int x = 0; x < ow_vector.size(); x++ ) {
-				if ( x != 0 ) {
+				if( x != 0 ) {
 					System.out.println( "," );
 				}
 				System.out.print( "\t" + getOWString( ow_vector.get( x ) ) );
@@ -318,10 +311,10 @@ public class SurfaceCreator
 			System.out.println();
 		}
 		// request response declaration
-		if ( rr_vector.size() > 0 ) {
+		if( rr_vector.size() > 0 ) {
 			System.out.println( "RequestResponse:" );
 			for( int x = 0; x < rr_vector.size(); x++ ) {
-				if ( x != 0 ) {
+				if( x != 0 ) {
 					System.out.println( "," );
 				}
 				System.out.print( "\t" + getRRString( rr_vector.get( x ) ) );
@@ -332,10 +325,12 @@ public class SurfaceCreator
 		System.out.println();
 
 		// outputPort definition
-		if ( !noOutputPort ) {
+		if( !noOutputPort ) {
 			System.out.println( "outputPort " + inputPort.id() + "{" );
-			if ( !noLocation ) System.out.println( "\tLocation:\"" + inputPort.location() + "\"" );
-			if ( !noProtocol ) System.out.println( "\tProtocol:" + inputPort.protocolId() );
+			if( !noLocation )
+				System.out.println( "\tLocation:\"" + inputPort.location() + "\"" );
+			if( !noProtocol )
+				System.out.println( "\tProtocol:" + inputPort.protocolId() );
 			System.out.println( "\tInterfaces:" + inputPort.id() + "Surface" );
 			System.out.println( "}" );
 		}

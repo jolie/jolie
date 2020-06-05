@@ -33,13 +33,12 @@ import jolie.runtime.expression.Expression;
  * 
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"jolie-js.jar","json_simple.jar"})
-public class JavaScriptServiceLoaderFactory implements EmbeddedServiceLoaderFactory
-{
+@AndJarDeps( { "jolie-js.jar", "json_simple.jar" } )
+public class JavaScriptServiceLoaderFactory implements EmbeddedServiceLoaderFactory {
 	@Override
-	public EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath, Expression channelDest )
-		throws EmbeddedServiceLoaderCreationException
-	{
+	public EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath,
+		Expression channelDest )
+		throws EmbeddedServiceLoaderCreationException {
 		return new JavaScriptServiceLoader( channelDest, servicePath );
 	}
 }

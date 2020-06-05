@@ -41,16 +41,14 @@ import jolie.lang.parse.util.ProgramInspector;
  *
  * @author Balint Maschio
  */
-public class JolieDummyDocumentCreator
-{
+public class JolieDummyDocumentCreator {
 	private ProgramInspector inspector;
 	private StringBuilder stringBuilder;
 	private File sourceFile;
 	private final int MAX_ARRAY_ITEMS = 5;
 	private final String mockFilename = "mock_main.ol";
 
-	public JolieDummyDocumentCreator( ProgramInspector inspector, File sourceFile )
-	{
+	public JolieDummyDocumentCreator( ProgramInspector inspector, File sourceFile ) {
 
 		this.inspector = inspector;
 		stringBuilder = new StringBuilder();
@@ -58,31 +56,31 @@ public class JolieDummyDocumentCreator
 	}
 
 	public void createDocument()
-		throws FileNotFoundException, IOException
-	{
+		throws FileNotFoundException, IOException {
 		String fileContent = new String( Files.readAllBytes( sourceFile.toPath() ) );
 		stringBuilder.append( "main {\n" );
 		for( InputPortInfo inputPortInfo : inspector.getInputPorts() ) {
 			for( OperationDeclaration operationDeclaration : inputPortInfo.operations() ) {
-					convertOperation( operationDeclaration, stringBuilder );
+				convertOperation( operationDeclaration, stringBuilder );
 			}
 		}
 
 		stringBuilder.append( "}" );
-		int mainIndex = fileContent.indexOf("main");
-		stringBuilder.insert(0, fileContent.substring(0, mainIndex) );
+		int mainIndex = fileContent.indexOf( "main" );
+		stringBuilder.insert( 0, fileContent.substring( 0, mainIndex ) );
 		BufferedWriter writer = new BufferedWriter( new FileWriter( mockFilename ) );
 		writer.append( stringBuilder.toString() );
 		writer.flush();
 		writer.close();
 	}
 
-	private void convertOperation( OperationDeclaration operatationDeclaration, StringBuilder stringBuilder )
-	{
+	private void convertOperation( OperationDeclaration operatationDeclaration, StringBuilder stringBuilder ) {
 
-		if ( operatationDeclaration instanceof RequestResponseOperationDeclaration ) {
-			stringBuilder.append( "\n[ " ).append( operatationDeclaration.id() ).append( "( request )( response ){ \n" );
-			TypeDefinition typeDefinition = ( ( RequestResponseOperationDeclaration ) operatationDeclaration ).responseType();
+		if( operatationDeclaration instanceof RequestResponseOperationDeclaration ) {
+			stringBuilder.append( "\n[ " ).append( operatationDeclaration.id() )
+				.append( "( request )( response ){ \n" );
+			TypeDefinition typeDefinition =
+				((RequestResponseOperationDeclaration) operatationDeclaration).responseType();
 			convertTypes( typeDefinition, stringBuilder, "dummyResponse" );
 			stringBuilder.append( "\tresponse << dummyResponse\n" );
 			stringBuilder.append( "} ] { nullProcess }\n\n" );
@@ -91,35 +89,42 @@ public class JolieDummyDocumentCreator
 	}
 
 	private void convertTypes( TypeDefinition typeDefinition, StringBuilder stringBuilder, String nameVariable ) {
-		if ( typeDefinition instanceof TypeChoiceDefinition ) {
-			TypeChoiceDefinition typeChoiceDefinition = ( TypeChoiceDefinition ) typeDefinition;
+		if( typeDefinition instanceof TypeChoiceDefinition ) {
+			TypeChoiceDefinition typeChoiceDefinition = (TypeChoiceDefinition) typeDefinition;
 			convertTypes( typeChoiceDefinition.left(), stringBuilder, nameVariable );
 
-		} else if ( typeDefinition instanceof TypeDefinitionLink ) {
-			TypeDefinitionLink typeDefinitionLink = ( TypeDefinitionLink ) typeDefinition;
+		} else if( typeDefinition instanceof TypeDefinitionLink ) {
+			TypeDefinitionLink typeDefinitionLink = (TypeDefinitionLink) typeDefinition;
 			convertTypes( typeDefinitionLink.linkedType(), stringBuilder, nameVariable );
 
-		} else if ( typeDefinition instanceof TypeInlineDefinition ) {
-			TypeInlineDefinition typeInlineDefinition = ( TypeInlineDefinition ) typeDefinition;
-			//check subtypes
-			if ( typeInlineDefinition.hasSubTypes() ) {
-				for ( Entry<String, TypeDefinition> entry : typeInlineDefinition.subTypes() ) {
+		} else if( typeDefinition instanceof TypeInlineDefinition ) {
+			TypeInlineDefinition typeInlineDefinition = (TypeInlineDefinition) typeDefinition;
+			// check subtypes
+			if( typeInlineDefinition.hasSubTypes() ) {
+				for( Entry< String, TypeDefinition > entry : typeInlineDefinition.subTypes() ) {
 					convertTypes( entry.getValue(), stringBuilder, nameVariable + "." + entry.getKey() );
 				}
 			} else {
-				//get cardinality indexes. if maximum cardinality is considerably big (more than 5), print only first 5 entries; or print less otherwise; don't print cardinality, if it equals 1
-				int typeCardinality = ( typeInlineDefinition.cardinality().max() > MAX_ARRAY_ITEMS ? MAX_ARRAY_ITEMS : typeInlineDefinition.cardinality().max() );
-				for ( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
-					String cardinalityString = typeCardinality == 1 ? "" : "[ " + String.valueOf( cardinalityIndex ) + " ]";
-					if ( !( typeInlineDefinition.nativeType().id().equals( "void" ) ) ) {
-						if ( typeInlineDefinition.nativeType().id().equals( "int" ) ) {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "42;\n" );
-						} else if ( typeInlineDefinition.nativeType().id().equals( "double" ) ) {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "1.54;\n" );
-						} else if ( typeInlineDefinition.nativeType().id().equals( "long" ) ) {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "424242L;\n" );
+				// get cardinality indexes. if maximum cardinality is considerably big (more than 5), print only
+				// first 5 entries; or print less otherwise; don't print cardinality, if it equals 1
+				int typeCardinality = (typeInlineDefinition.cardinality().max() > MAX_ARRAY_ITEMS ? MAX_ARRAY_ITEMS
+					: typeInlineDefinition.cardinality().max());
+				for( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
+					String cardinalityString =
+						typeCardinality == 1 ? "" : "[ " + String.valueOf( cardinalityIndex ) + " ]";
+					if( !(typeInlineDefinition.nativeType().id().equals( "void" )) ) {
+						if( typeInlineDefinition.nativeType().id().equals( "int" ) ) {
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+								.append( "42;\n" );
+						} else if( typeInlineDefinition.nativeType().id().equals( "double" ) ) {
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+								.append( "1.54;\n" );
+						} else if( typeInlineDefinition.nativeType().id().equals( "long" ) ) {
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+								.append( "424242L;\n" );
 						} else {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+								.append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
 						}
 					}
 				}

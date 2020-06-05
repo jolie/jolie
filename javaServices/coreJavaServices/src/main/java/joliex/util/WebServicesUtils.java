@@ -32,12 +32,10 @@ import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import joliex.wsdl.WSDLConverter;
 
-@AndJarDeps({"wsdl4j.jar","jolie-xml.jar","xsom.jar","relaxngDatatype.jar"})
-public class WebServicesUtils extends JavaService
-{
+@AndJarDeps( { "wsdl4j.jar", "jolie-xml.jar", "xsom.jar", "relaxngDatatype.jar" } )
+public class WebServicesUtils extends JavaService {
 	public String wsdlToJolie( String wsdlUrl )
-		throws FaultException
-	{
+		throws FaultException {
 		StringWriter writer = new StringWriter();
 		try {
 			WSDLFactory factory = WSDLFactory.newInstance();

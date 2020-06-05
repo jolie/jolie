@@ -11,5 +11,6 @@
 	<artifactId>build-tools</artifactId>
 	<version>${project.parent.version}</version>
 	<packaging>jar</packaging>
-	<name>Resources for building and formatting automation.</name>
+	<name>build-tools</name>
+	<description>Resources for building and formatting automation.</description>
 </project>

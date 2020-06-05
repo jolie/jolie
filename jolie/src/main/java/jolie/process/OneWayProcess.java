@@ -36,48 +36,43 @@ import jolie.runtime.VariablePath;
 import jolie.tracer.MessageTraceAction;
 import jolie.tracer.Tracer;
 
-public class OneWayProcess implements InputOperationProcess
-{
+public class OneWayProcess implements InputOperationProcess {
 	private final OneWayOperation operation;
 	private final VariablePath varPath;
 	private boolean isSessionStarter = false;
 	private final ParsingContext context;
 
-	public OneWayProcess( OneWayOperation operation, VariablePath varPath, ParsingContext context )
-	{
+	public OneWayProcess( OneWayOperation operation, VariablePath varPath, ParsingContext context ) {
 		this.operation = operation;
 		this.varPath = varPath;
 		this.context = context;
 	}
 
-	public void setSessionStarter( boolean isSessionStarter )
-	{
+	public void setSessionStarter( boolean isSessionStarter ) {
 		this.isSessionStarter = isSessionStarter;
 	}
-	
-	public InputOperation inputOperation()
-	{
+
+	public InputOperation inputOperation() {
 		return operation;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new OneWayProcess( operation, varPath, context );
 	}
-	
-	public VariablePath inputVarPath()
-	{
+
+	public VariablePath inputVarPath() {
 		return varPath;
 	}
 
-	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
-	{
-		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
+	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
+		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
+					Long.valueOf( sessionMessage.message().id() ).toString(), sessionMessage.message().value() ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
-		if ( varPath != null ) {
+		if( varPath != null ) {
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
 		}
 
@@ -85,10 +80,9 @@ public class OneWayProcess implements InputOperationProcess
 	}
 
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if( ethread.isKilled() ) {
 			return;
 		}
 
@@ -96,10 +90,10 @@ public class OneWayProcess implements InputOperationProcess
 		try {
 			try {
 				SessionMessage m = f.get();
-				if ( m != null ) { // If it is null, we got killed by a fault
+				if( m != null ) { // If it is null, we got killed by a fault
 					receiveMessage( m, ethread.state() ).run();
 				}
-			} catch ( FaultException.RuntimeFaultException rf ){
+			} catch( FaultException.RuntimeFaultException rf ) {
 				throw rf.faultException();
 			}
 		} catch( FaultException e ) {
@@ -113,24 +107,21 @@ public class OneWayProcess implements InputOperationProcess
 		} catch( Exception e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
-		
+
 	}
 
-	private void log( String log, CommMessage message )
-	{
+	private void log( String log, CommMessage message ) {
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.ONE_WAY,
 			operation.id(),
 			log,
 			message,
-			context
-		) );
+			context ) );
 	}
 
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

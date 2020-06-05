@@ -40,8 +40,7 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.tracer.MessageTraceAction;
 import jolie.tracer.Tracer;
 
-public class NotificationProcess implements Process
-{
+public class NotificationProcess implements Process {
 	private final String operationId;
 	private final OutputPort outputPort;
 	private final Expression outputExpression; // may be null
@@ -49,77 +48,77 @@ public class NotificationProcess implements Process
 	private final ParsingContext context;
 
 	public NotificationProcess(
-			String operationId,
-			OutputPort outputPort,
-			Expression outputExpression,
-			OneWayTypeDescription outputType,
-			ParsingContext context
-			)
-	{
+		String operationId,
+		OutputPort outputPort,
+		Expression outputExpression,
+		OneWayTypeDescription outputType,
+		ParsingContext context ) {
 		this.operationId = operationId;
 		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
 		this.oneWayDescription = outputType;
 		this.context = context;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new NotificationProcess(
-					operationId,
-					outputPort,
-					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
-					oneWayDescription,
-					context
-				);
+			operationId,
+			outputPort,
+			(outputExpression == null) ? null : outputExpression.cloneExpression( reason ),
+			oneWayDescription,
+			context );
 	}
 
-	private void log( String log, CommMessage message )
-	{
+	private void log( String log, CommMessage message ) {
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.NOTIFICATION,
 			operationId + "@" + outputPort.id(),
 			log,
 			message,
-			context
-		) );
+			context ) );
 	}
 
 	public void run()
-		throws FaultException
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		throws FaultException {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 
 		CommChannel channel = null;
 		try {
 			CommMessage message =
-				( outputExpression == null ) ?
-						CommMessage.createRequest( operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE ) :
-						CommMessage.createRequest( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
-			if ( oneWayDescription != null ) {
-				try  {
-				oneWayDescription.requestType().check( message.value() );
+				(outputExpression == null)
+					? CommMessage.createRequest( operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE )
+					: CommMessage.createRequest( operationId, outputPort.getResourcePath(),
+						outputExpression.evaluate() );
+			if( oneWayDescription != null ) {
+				try {
+					oneWayDescription.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
-					if ( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+					if( Interpreter.getInstance().isMonitoring() ) {
+						Interpreter.getInstance().fireMonitorEvent(
+							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
+								Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT,
+								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
-					throw( e );
+					throw (e);
 				}
 			}
 			channel = outputPort.getCommChannel();
 
 			log( "SENDING", message );
-			
+
 			channel.send( message );
-			
+
 			log( "SENT", message );
-			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+			if( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance()
+					.fireMonitorEvent( new OperationCallEvent( operationId,
+						ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id() ).toString(),
+						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
 			}
-			
+
 			CommMessage response = null;
 			do {
 				try {
@@ -128,17 +127,17 @@ public class NotificationProcess implements Process
 					Interpreter.getInstance().logFine( e );
 				}
 			} while( response == null );
-			
+
 			log( "RECEIVED ACK", response );
-			
-			if ( response.isFault() ) {
-				if ( response.fault().faultName().equals( "CorrelationError" )
+
+			if( response.isFault() ) {
+				if( response.fault().faultName().equals( "CorrelationError" )
 					|| response.fault().faultName().equals( "IOException" )
-					|| response.fault().faultName().equals( "TypeMismatch" )
-					) {
+					|| response.fault().faultName().equals( "TypeMismatch" ) ) {
 					throw response.fault();
 				} else {
-					Interpreter.getInstance().logSevere( "Notification process for operation " + operationId + " received an unexpected fault: " + response.fault().faultName() );
+					Interpreter.getInstance().logSevere( "Notification process for operation " + operationId
+						+ " received an unexpected fault: " + response.fault().faultName() );
 				}
 			}
 		} catch( IOException e ) {
@@ -146,9 +145,10 @@ public class NotificationProcess implements Process
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
-			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
+				"TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
-			if ( channel != null ) {
+			if( channel != null ) {
 				try {
 					channel.release();
 				} catch( IOException e ) {
@@ -157,9 +157,8 @@ public class NotificationProcess implements Process
 			}
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

@@ -33,60 +33,51 @@ import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
 import jolie.util.Pair;
 
-public class MakePointerProcess implements Process
-{
+public class MakePointerProcess implements Process {
 	final private VariablePath leftPath, rightPath;
 	final private ParsingContext context;
 
-	public MakePointerProcess( VariablePath leftPath, VariablePath rightPath, ParsingContext context )
-	{
+	public MakePointerProcess( VariablePath leftPath, VariablePath rightPath, ParsingContext context ) {
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 		this.context = context;
 	}
 
-	private void log(String description, Value value, String name )
-	{
+	private void log( String description, Value value, String name ) {
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new AssignmentTraceAction(
-				AssignmentTraceAction.Type.POINTER,
-				name,
-				description,
-				value,
-				context
-		) );
+			AssignmentTraceAction.Type.POINTER,
+			name,
+			description,
+			value,
+			context ) );
 	}
 
 
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return new MakePointerProcess(
-				( VariablePath ) leftPath.cloneExpression( reason ),
-				( VariablePath ) rightPath.cloneExpression( reason ),
-				context
-				);
+			(VariablePath) leftPath.cloneExpression( reason ),
+			(VariablePath) rightPath.cloneExpression( reason ),
+			context );
 	}
-	
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
 
 		leftPath.makePointer( rightPath );
 		final Tracer tracer = Interpreter.getInstance().tracer();
 
-		tracer.trace(() -> new AssignmentTraceAction(
-				AssignmentTraceAction.Type.ASSIGNMENT,
-				"POINTS",
-				null,
-				rightPath.getValue(ExecutionThread.currentThread().state().root().clone()),
-				context
-		));
-		
+		tracer.trace( () -> new AssignmentTraceAction(
+			AssignmentTraceAction.Type.ASSIGNMENT,
+			"POINTS",
+			null,
+			rightPath.getValue( ExecutionThread.currentThread().state().root().clone() ),
+			context ) );
+
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 

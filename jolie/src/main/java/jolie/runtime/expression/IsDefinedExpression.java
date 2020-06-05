@@ -26,26 +26,22 @@ import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
-public class IsDefinedExpression implements Expression
-{
+public class IsDefinedExpression implements Expression {
 	final private VariablePath path;
-	
-	public IsDefinedExpression( VariablePath path )
-	{
+
+	public IsDefinedExpression( VariablePath path ) {
 		this.path = path;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new IsDefinedExpression( path );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		Value v = path.getValueOrNull();
 		boolean def = false;
-		if ( v != null ) {
-			if ( v.isDefined() ) {
+		if( v != null ) {
+			if( v.isDefined() ) {
 				def = true;
 			} else {
 				def = !v.children().isEmpty();

@@ -29,15 +29,13 @@ import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
-public class MessageDigestService extends JavaService
-{
+public class MessageDigestService extends JavaService {
 	public String md5( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		MessageDigest md = null;
 		try {
 			md = MessageDigest.getInstance( "MD5" );
-			if ( request.isByteArray() ) {
+			if( request.isByteArray() ) {
 				md.update( request.byteArrayValue().getBytes() );
 			} else {
 				md.update( request.strValue().getBytes( "UTF8" ) );
@@ -45,14 +43,14 @@ public class MessageDigestService extends JavaService
 		} catch( UnsupportedEncodingException | NoSuchAlgorithmException e ) {
 			throw new FaultException( "UnsupportedOperation", e );
 		}
-		
+
 		int radix = request.getFirstChild( "radix" ).intValue();
-		if ( radix < 2 ) {
+		if( radix < 2 ) {
 			radix = 16;
 		}
 
 		String response = new BigInteger( 1, md.digest() ).toString( radix );
-		if ( response.length() < 32 ) {
+		if( response.length() < 32 ) {
 			int paddingLength = 32 - response.length();
 			StringBuilder sb = new StringBuilder();
 			for( int i = 0; i < paddingLength; i++ ) {

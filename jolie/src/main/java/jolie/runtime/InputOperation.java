@@ -29,65 +29,45 @@ import jolie.runtime.typing.Type;
  * @author Fabrizio Montesi
  * 
  */
-public abstract class InputOperation extends AbstractIdentifiableObject
-{
+public abstract class InputOperation extends AbstractIdentifiableObject {
 	/**
 	 * Constructor
+	 * 
 	 * @param id the name that identified this input operation
 	 */
-	public InputOperation( String id )
-	{
+	public InputOperation( String id ) {
 		super( id );
 	}
 
 	public abstract Type requestType();
 
 	/**
-	 * Receives a message from CommCore and passes it to the right InputProcess.
-	 * If no suitable InputProcess is found, the message is enqueued in memory.
-	 * @param channel The channel which received the message. Useful if the operation wants to send a response.
+	 * Receives a message from CommCore and passes it to the right InputProcess. If no suitable
+	 * InputProcess is found, the message is enqueued in memory.
+	 * 
+	 * @param channel The channel which received the message. Useful if the operation wants to send a
+	 *        response.
 	 * @param message The received message.
 	 */
-	/*public synchronized void recvMessage( CommChannel channel, final CommMessage message )
-	{
-		VariablePath path = null;
-		InputProcessExecution pe = null;
-		for( Entry< InputProcessExecution, ExecutionThread > entry : procsMap.entrySet() ) {
-			pe = entry.getKey();
-			if ( pe instanceof NDChoiceProcess.Execution ) {
-				path = ((NDChoiceProcess.Execution)pe).inputVarPath( message.operationName() );
-			} else if ( pe.parent() instanceof InputOperationProcess ) {
-				path = ((InputOperationProcess)pe.parent()).inputVarPath();
-			}
-			
-			CommChannelHandler.currentThread().setExecutionThread( entry.getValue() );
-			if ( entry.getValue().checkCorrelation( path, message ) ) {
-				try {
-					if ( entry.getKey().recvMessage( channel, message ) ) {
-						procsMap.remove( entry.getKey() );
-						return;
-					}
-				} catch( TypeCheckingException e ) {
-					return;
-				}
-			}
-		}
-
-		final Pair< CommChannel, CommMessage > pair = new Pair< CommChannel, CommMessage >( channel, message );
-		mesgList.add( pair );
-		final Interpreter interpreter = Interpreter.getInstance();
-		interpreter.addTimeoutHandler( new TimeoutHandler( interpreter.inputMessageTimeout() ) {
-			@Override
-			public void onTimeout()
-			{
-				boolean removed;
-				synchronized( this ) {
-					removed = mesgList.remove( pair );
-				}
-				if ( removed && interpreter.verbose() ) {
-					interpreter.logInfo( "Message " + message.id() + " discarded for timeout" );
-				}
-			}
-		} );
-	}*/
+	/*
+	 * public synchronized void recvMessage( CommChannel channel, final CommMessage message ) {
+	 * VariablePath path = null; InputProcessExecution pe = null; for( Entry< InputProcessExecution,
+	 * ExecutionThread > entry : procsMap.entrySet() ) { pe = entry.getKey(); if ( pe instanceof
+	 * NDChoiceProcess.Execution ) { path = ((NDChoiceProcess.Execution)pe).inputVarPath(
+	 * message.operationName() ); } else if ( pe.parent() instanceof InputOperationProcess ) { path =
+	 * ((InputOperationProcess)pe.parent()).inputVarPath(); }
+	 * 
+	 * CommChannelHandler.currentThread().setExecutionThread( entry.getValue() ); if (
+	 * entry.getValue().checkCorrelation( path, message ) ) { try { if ( entry.getKey().recvMessage(
+	 * channel, message ) ) { procsMap.remove( entry.getKey() ); return; } } catch(
+	 * TypeCheckingException e ) { return; } } }
+	 * 
+	 * final Pair< CommChannel, CommMessage > pair = new Pair< CommChannel, CommMessage >( channel,
+	 * message ); mesgList.add( pair ); final Interpreter interpreter = Interpreter.getInstance();
+	 * interpreter.addTimeoutHandler( new TimeoutHandler( interpreter.inputMessageTimeout() ) {
+	 * 
+	 * @Override public void onTimeout() { boolean removed; synchronized( this ) { removed =
+	 * mesgList.remove( pair ); } if ( removed && interpreter.verbose() ) { interpreter.logInfo(
+	 * "Message " + message.id() + " discarded for timeout" ); } } } ); }
+	 */
 }

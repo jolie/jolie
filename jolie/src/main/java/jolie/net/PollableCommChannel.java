@@ -24,17 +24,20 @@ package jolie.net;
 import java.io.IOException;
 
 /**
- * This interface is to be implemented by communication channels that are
- * to be polled by <code>CommCore</code>.
+ * This interface is to be implemented by communication channels that are to be polled by
+ * <code>CommCore</code>.
+ * 
  * @author Fabrizio Montesi
  * @see CommCore
  * @see CommChannel
  */
-public interface PollableCommChannel
-{
+public interface PollableCommChannel {
 	/**
-	 * Returns <code>true</code> if this channel is ready for receiving an input message, <code>false</code> otherwise.
-	 * @return <code>true</code> if this channel is ready for receiving an input message, <code>false</code> otherwise
+	 * Returns <code>true</code> if this channel is ready for receiving an input message,
+	 * <code>false</code> otherwise.
+	 * 
+	 * @return <code>true</code> if this channel is ready for receiving an input message,
+	 *         <code>false</code> otherwise
 	 * @throws java.io.IOException
 	 */
 	public boolean isReady()

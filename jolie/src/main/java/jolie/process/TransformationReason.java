@@ -21,5 +21,5 @@
 
 package jolie.process;
 
-public interface TransformationReason
-{}
+public interface TransformationReason {
+}

@@ -26,29 +26,25 @@ import jolie.lang.Constants;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-public interface Expression
-{
+public interface Expression {
 	public Value evaluate();
+
 	public Expression cloneExpression( TransformationReason reason );
-	
-	public class Operand
-	{
+
+	public class Operand {
 		private final Constants.OperandType type;
 		private final Expression expression;
-						
-		public Operand( Constants.OperandType type, Expression expression )
-		{
+
+		public Operand( Constants.OperandType type, Expression expression ) {
 			this.type = type;
 			this.expression = expression;
 		}
-		
-		public Expression expression()
-		{
+
+		public Expression expression() {
 			return expression;
 		}
-		
-		public Constants.OperandType type()
-		{
+
+		public Constants.OperandType type() {
 			return type;
 		}
 	}

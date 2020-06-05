@@ -35,47 +35,40 @@ import jolie.runtime.embedding.RequestResponse;
 	portName = "CalcServicePort",
 	targetNamespace = "http://calc.id" )
 @SOAPBinding( style = SOAPBinding.Style.DOCUMENT, use = SOAPBinding.Use.LITERAL )
-public class WSTest extends JavaService
-{
+public class WSTest extends JavaService {
 	@XmlRootElement( name = "CalculatorWs", namespace = "http://calculator.id" )
 	@XmlAccessorType( XmlAccessType.FIELD )
-	static public class Calculator
-	{
+	static public class Calculator {
 
-		static public Integer sum( Integer x, Integer y )
-		{
-                      return x + y;
+		static public Integer sum( Integer x, Integer y ) {
+			return x + y;
 		}
 
-		static public Integer prod( Integer x, Integer y )
-		{
+		static public Integer prod( Integer x, Integer y ) {
 			return x * y;
 		}
 	}
 
 	@WebMethod( operationName = "sum", action = "tns:sum" )
-	public Integer sum( @WebParam( name = "x" ) Integer x, @WebParam( name = "y" ) Integer y )
-	{
+	public Integer sum( @WebParam( name = "x" ) Integer x, @WebParam( name = "y" ) Integer y ) {
 		return Calculator.sum( x, y );
 	}
 
 	@WebMethod( operationName = "prod", action = "tns:prod" )
-	public Integer prod( @WebParam( name = "x" ) Integer x, @WebParam( name = "y" ) Integer y )
-	{
+	public Integer prod( @WebParam( name = "x" ) Integer x, @WebParam( name = "y" ) Integer y ) {
 		return Calculator.prod( x, y );
 	}
 
 	private static Endpoint e;
 
 	@RequestResponse
-	public void start( String url )
-	{
+	public void start( String url ) {
 		url = url.length() > 0 ? url : "http://localhost:14000/";
 		e = Endpoint.publish( url, new WSTest() );
 	}
-	
+
 	@RequestResponse
-	public void close(){
+	public void close() {
 		e.stop();
 	}
 

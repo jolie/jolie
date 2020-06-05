@@ -27,12 +27,10 @@ import jolie.lang.Constants;
  *
  * @author Fabrizio Montesi
  */
-public class TypeCheckingException extends Exception
-{
+public class TypeCheckingException extends Exception {
 	public final static long serialVersionUID = Constants.serialVersionUID();
 
-	public TypeCheckingException( String message )
-	{
+	public TypeCheckingException( String message ) {
 		super( message );
 	}
 }

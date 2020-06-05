@@ -29,23 +29,20 @@ import jolie.net.ports.InputPort;
 
 /**
  * A factory for <code>SocketListener</code>.
+ * 
  * @see SocketListener
  * @author Fabrizio Montesi
  */
-public class SocketListenerFactory extends CommListenerFactory
-{
-	public SocketListenerFactory( CommCore commCore )
-	{
+public class SocketListenerFactory extends CommListenerFactory {
+	public SocketListenerFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommListener createListener(
-					Interpreter interpreter,
-					CommProtocolFactory protocolFactory,
-					InputPort inputPort
-				)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		return new SocketListener( interpreter, protocolFactory, inputPort );
 	}
 }

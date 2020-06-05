@@ -27,39 +27,35 @@ import jolie.lang.Constants;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-public final class SumExpression implements Expression
-{
+public final class SumExpression implements Expression {
 	private final Operand[] children;
-	
-	public SumExpression( Operand[] children )
-	{
+
+	public SumExpression( Operand[] children ) {
 		this.children = children;
 	}
-	
+
 	@Override
-	public Expression cloneExpression( TransformationReason reason )
-	{
+	public Expression cloneExpression( TransformationReason reason ) {
 		Operand[] cc = new Operand[ children.length ];
-		
+
 		int i = 0;
 		for( Operand operand : children ) {
-			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
+			cc[ i++ ] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
 		}
 		return new SumExpression( cc );
 	}
-	
+
 	@Override
-	public Value evaluate()
-	{
-		final Value val = Value.create( children[0].expression().evaluate() );
+	public Value evaluate() {
+		final Value val = Value.create( children[ 0 ].expression().evaluate() );
 		for( int i = 1; i < children.length; i++ ) {
-			if ( children[i].type() == Constants.OperandType.ADD ) {
-				val.add( children[i].expression().evaluate() );
+			if( children[ i ].type() == Constants.OperandType.ADD ) {
+				val.add( children[ i ].expression().evaluate() );
 			} else {
-				val.subtract( children[i].expression().evaluate() );
+				val.subtract( children[ i ].expression().evaluate() );
 			}
 		}
-		
+
 		return val;
 	}
 }

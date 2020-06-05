@@ -31,37 +31,32 @@ import javax.wsdl.xml.WSDLReader;
 /**
  * Implements a WSDL document cache for the SOAP protocol.
  *
- * @author Fabrizio Montesi
- * TODO: WSDL document removal after some time
+ * @author Fabrizio Montesi TODO: WSDL document removal after some time
  */
-public class WSDLCache
-{
+public class WSDLCache {
 	private static WSDLCache instance = null;
 
 	private final Map< String, Definition > cache;
 	private final WSDLFactory factory;
 
 	private WSDLCache()
-		throws WSDLException
-	{
+		throws WSDLException {
 		cache = new HashMap< String, Definition >();
 		factory = WSDLFactory.newInstance();
 	}
 
 	public static synchronized WSDLCache getInstance()
-		throws WSDLException
-	{
-		if ( instance == null ) {
+		throws WSDLException {
+		if( instance == null ) {
 			instance = new WSDLCache();
 		}
 		return instance;
 	}
 
 	public synchronized Definition get( String url )
-		throws WSDLException
-	{
+		throws WSDLException {
 		Definition definition = cache.get( url );
-		if ( definition == null ) {
+		if( definition == null ) {
 			WSDLReader reader = factory.newWSDLReader();
 			reader.setFeature( "javax.wsdl.verbose", false );
 			definition = reader.readWSDL( url );

@@ -28,22 +28,18 @@ import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
-public class LocalListenerFactory extends CommListenerFactory
-{
+public class LocalListenerFactory extends CommListenerFactory {
 	static {
 		StaticUtils.create(
 			LocalListenerFactory.class,
-			() -> new ConcurrentHashMap<>()
-		);
+			() -> new ConcurrentHashMap<>() );
 	}
 
-	private static Map< String, LocalListener > locationToListener()
-	{
+	private static Map< String, LocalListener > locationToListener() {
 		return StaticUtils.retrieve( LocalListenerFactory.class, Map.class );
 	}
 
-	public LocalListenerFactory( CommCore commCore )
-	{
+	public LocalListenerFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
@@ -52,12 +48,11 @@ public class LocalListenerFactory extends CommListenerFactory
 		Interpreter interpreter,
 		CommProtocolFactory protocolFactory,
 		InputPort inputPort )
-		throws IOException
-	{
-		if ( inputPort.location() == null || inputPort.location().getHost() == null ) {
+		throws IOException {
+		if( inputPort.location() == null || inputPort.location().getHost() == null ) {
 			throw new IOException( "No address given" );
 		}
-		if ( LocalListenerFactory.getListener( inputPort.location().getHost() ) != null ) {
+		if( LocalListenerFactory.getListener( inputPort.location().getHost() ) != null ) {
 			throw new IOException( "Address already in use" );
 		}
 
@@ -66,13 +61,11 @@ public class LocalListenerFactory extends CommListenerFactory
 		return localListener;
 	}
 
-	public static LocalListener getListener( String location )
-	{
+	public static LocalListener getListener( String location ) {
 		return locationToListener().get( location );
 	}
 
-	public static void addListener( String hostname, LocalListener listener )
-	{
+	public static void addListener( String hostname, LocalListener listener ) {
 		locationToListener().put( hostname, listener );
 	}
 

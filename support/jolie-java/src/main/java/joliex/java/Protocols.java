@@ -25,7 +25,6 @@ package joliex.java;
  *
  * @author Fabrizio Montesi
  */
-public class Protocols
-{
+public class Protocols {
 	public static final String SODEP = "sodep";
 }

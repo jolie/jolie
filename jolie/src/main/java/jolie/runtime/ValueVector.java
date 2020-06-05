@@ -30,87 +30,74 @@ import java.util.stream.StreamSupport;
 
 import jolie.lang.Constants;
 
-class ValueVectorLink extends ValueVector implements Cloneable
-{
+class ValueVectorLink extends ValueVector implements Cloneable {
 	private final VariablePath linkPath;
 
 	@Override
-	public ValueVectorLink clone()
-	{
+	public ValueVectorLink clone() {
 		return new ValueVectorLink( linkPath );
 	}
 
 	@Override
-	public Value get( int i )
-	{
+	public Value get( int i ) {
 		return getLinkedValueVector().get( i );
 	}
 
 	@Override
-	public void set( int i, Value value )
-	{
+	public void set( int i, Value value ) {
 		getLinkedValueVector().set( i, value );
 	}
 
-	public ValueVectorLink( VariablePath path )
-	{
+	public ValueVectorLink( VariablePath path ) {
 		linkPath = path;
 	}
 
 	@Override
-	public boolean isLink()
-	{
+	public boolean isLink() {
 		return true;
 	}
-	
-	private ValueVector getLinkedValueVector()
-	{
+
+	private ValueVector getLinkedValueVector() {
 		return linkPath.getValueVector( this );
 	}
-	
+
 	@Override
-	protected List< Value > values()
-	{
+	protected List< Value > values() {
 		return getLinkedValueVector().values();
 	}
-	
+
 	@Override
-	public List< Value > valuesCopy()
-	{
+	public List< Value > valuesCopy() {
 		return getLinkedValueVector().valuesCopy();
 	}
-	
+
 	@Override
-	public int size()
-	{
+	public int size() {
 		ValueVector vector = linkPath.getValueVectorOrNull();
-		return ( vector == null ) ? 0 : vector.size();
+		return (vector == null) ? 0 : vector.size();
 	}
 }
 
-class ValueVectorImpl extends ValueVector implements Serializable
-{
+
+class ValueVectorImpl extends ValueVector implements Serializable {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	private final ArrayList<Value> values;
-	
+	private final ArrayList< Value > values;
+
 	@Override
-	protected List< Value > values()
-	{
+	protected List< Value > values() {
 		return values;
 	}
-	
+
 	@Override
-	public synchronized int size()
-	{
+	public synchronized int size() {
 		return values().size();
 	}
 
 	@Override
-	public Value get( int i )
-	{
-		if ( i >= values.size() ) {
+	public Value get( int i ) {
+		if( i >= values.size() ) {
 			synchronized( this ) {
-				if ( i >= values.size() ) {
+				if( i >= values.size() ) {
 					values.ensureCapacity( i + 1 );
 					for( int k = values.size(); k <= i; k++ ) {
 						values.add( Value.create() );
@@ -122,9 +109,8 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	}
 
 	@Override
-	public synchronized void set( int i, Value value )
-	{
-		if ( i >= values.size() ) {
+	public synchronized void set( int i, Value value ) {
+		if( i >= values.size() ) {
 			values.ensureCapacity( i + 1 );
 			for( int k = values.size(); k < i; k++ ) {
 				values.add( Value.create() );
@@ -134,88 +120,79 @@ class ValueVectorImpl extends ValueVector implements Serializable
 			values.set( i, value );
 		}
 	}
-	
+
 	@Override
-	public boolean isLink()
-	{
+	public boolean isLink() {
 		return false;
 	}
-	
+
 	@Override
-	public synchronized List< Value > valuesCopy()
-	{
+	public synchronized List< Value > valuesCopy() {
 		return new ArrayList<>( values );
 	}
-	
-	public ValueVectorImpl()
-	{
+
+	public ValueVectorImpl() {
 		values = new ArrayList<>( 1 );
 	}
 }
 
-public abstract class ValueVector implements Iterable< Value >
-{
-	public static ValueVector create()
-	{
+
+public abstract class ValueVector implements Iterable< Value > {
+	public static ValueVector create() {
 		return new ValueVectorImpl();
 	}
-	
-	public synchronized Value remove( int i )
-	{
+
+	public synchronized Value remove( int i ) {
 		return values().remove( i );
 	}
-	
-	public static ValueVector createLink( VariablePath path )
-	{
+
+	public static ValueVector createLink( VariablePath path ) {
 		return new ValueVectorLink( path );
 	}
-	
-	public static ValueVector createClone( ValueVector vec )
-	{
+
+	public static ValueVector createClone( ValueVector vec ) {
 		ValueVector retVec;
-		
-		if ( vec.isLink() ) {
-			retVec = ((ValueVectorLink)vec).clone();
+
+		if( vec.isLink() ) {
+			retVec = ((ValueVectorLink) vec).clone();
 		} else {
 			retVec = create();
 			for( Value v : vec ) {
 				retVec.add( Value.createClone( v ) );
 			}
 		}
-		
+
 		return retVec;
 	}
-	
-	public synchronized Value first()
-	{
+
+	public synchronized Value first() {
 		return get( 0 );
 	}
-	
-	public synchronized boolean isEmpty()
-	{
+
+	public synchronized boolean isEmpty() {
 		return values().isEmpty();
 	}
-	
+
 	@Override
-	public synchronized Iterator< Value > iterator()
-	{
+	public synchronized Iterator< Value > iterator() {
 		return values().iterator();
 	}
-	
+
 	public abstract Value get( int i );
+
 	public abstract void set( int i, Value value );
+
 	public abstract int size();
+
 	public abstract List< Value > valuesCopy();
-	
-	
-	public synchronized void add( Value value )
-	{
+
+
+	public synchronized void add( Value value ) {
 		values().add( value );
 	}
-	
+
 	// TODO: improve performance
-	public synchronized void deepCopy( ValueVector vec )
-	{
+	public synchronized void deepCopy( ValueVector vec ) {
 		for( int i = 0; i < vec.size(); i++ ) {
 			get( i ).deepCopy( vec.get( i ) );
 		}
@@ -229,10 +206,10 @@ public abstract class ValueVector implements Iterable< Value >
 
 
 	protected abstract List< Value > values();
+
 	public abstract boolean isLink();
-	
-	public final Stream< Value > stream()
-	{
-        return StreamSupport.stream( spliterator(), false );
-    }
+
+	public final Stream< Value > stream() {
+		return StreamSupport.stream( spliterator(), false );
+	}
 }

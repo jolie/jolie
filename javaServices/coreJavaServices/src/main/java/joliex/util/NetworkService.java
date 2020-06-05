@@ -34,25 +34,25 @@ import jolie.runtime.ValueVector;
  *
  * @author claudio
  */
-public class NetworkService extends JavaService  {
+public class NetworkService extends JavaService {
 
 	public Value getNetworkInterfaceNames()
 		throws FaultException {
 
 		Value response = Value.create();
-		ValueVector interfaces = response.getChildren( "interfaceName");
+		ValueVector interfaces = response.getChildren( "interfaceName" );
 
 		try {
-			Enumeration<NetworkInterface> list = NetworkInterface.getNetworkInterfaces();
+			Enumeration< NetworkInterface > list = NetworkInterface.getNetworkInterfaces();
 			int index = 0;
-			while (list.hasMoreElements()) {
+			while( list.hasMoreElements() ) {
 				NetworkInterface n = list.nextElement();
 				interfaces.get( index ).setValue( n.getName() );
-                                if ( n.getDisplayName() == null ) {
-                                        interfaces.get( index ).getFirstChild("displayName").setValue( "" );
-                                } else {
-                                        interfaces.get( index ).getFirstChild("displayName").setValue( n.getDisplayName() );
-                                }
+				if( n.getDisplayName() == null ) {
+					interfaces.get( index ).getFirstChild( "displayName" ).setValue( "" );
+				} else {
+					interfaces.get( index ).getFirstChild( "displayName" ).setValue( n.getDisplayName() );
+				}
 				index++;
 			}
 		} catch( SocketException e ) {
@@ -67,33 +67,33 @@ public class NetworkService extends JavaService  {
 		Value response = Value.create();
 
 		try {
-			Enumeration<NetworkInterface> list = NetworkInterface.getNetworkInterfaces();
+			Enumeration< NetworkInterface > list = NetworkInterface.getNetworkInterfaces();
 			boolean found = false;
-			while (list.hasMoreElements()) {
+			while( list.hasMoreElements() ) {
 				NetworkInterface n = list.nextElement();
-				
-				if ( n.getName().equals( request.getFirstChild("interfaceName").strValue())) {
+
+				if( n.getName().equals( request.getFirstChild( "interfaceName" ).strValue() ) ) {
 					found = true;
-		
-					Enumeration<InetAddress> ad = n.getInetAddresses();
+
+					Enumeration< InetAddress > ad = n.getInetAddresses();
 					while( ad.hasMoreElements() ) {
 						InetAddress ia = ad.nextElement();
-						
-						if ( ia.getHostName().contains( "." ) ) {
+
+						if( ia.getHostName().contains( "." ) ) {
 							// it is an IP4 address
-							response.getFirstChild( "ip4").setValue( ia.getHostName() );
+							response.getFirstChild( "ip4" ).setValue( ia.getHostName() );
 						} else {
 							// it is an IP6
-							response.getFirstChild( "ip6").setValue( ia.getHostName() );
+							response.getFirstChild( "ip6" ).setValue( ia.getHostName() );
 						}
 
 					}
 				}
 
 			}
-			if ( !found ) {
-				
-				throw new FaultException("InterfaceNotFound", new Exception() );
+			if( !found ) {
+
+				throw new FaultException( "InterfaceNotFound", new Exception() );
 			}
 		} catch( SocketException e ) {
 			throw new FaultException( e );

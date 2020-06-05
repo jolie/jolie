@@ -35,11 +35,9 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
-public class ExecService extends JavaService
-{
+public class ExecService extends JavaService {
 	public Value exec( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		List< String > command = new LinkedList< String >();
 		String[] str = request.strValue().split( " " );
 		command.addAll( Arrays.asList( str ) );
@@ -49,7 +47,7 @@ public class ExecService extends JavaService
 		}
 
 		ProcessBuilder builder = new ProcessBuilder( command );
-		if ( request.hasChildren( "workingDirectory" ) ) {
+		if( request.hasChildren( "workingDirectory" ) ) {
 			builder.directory( new File( request.getFirstChild( "workingDirectory" ).strValue() ) );
 		}
 		try {
@@ -58,37 +56,39 @@ public class ExecService extends JavaService
 			boolean stdOutConsoleEnable = false;
 			Process p = builder.start();
 			StreamGobbler outputStreamGobbler = new StreamGobbler( p.getInputStream() );
-			if ( request.hasChildren( "stdOutConsoleEnable" ) ) {
-				if ( request.getFirstChild( "stdOutConsoleEnable" ).boolValue() ) {
+			if( request.hasChildren( "stdOutConsoleEnable" ) ) {
+				if( request.getFirstChild( "stdOutConsoleEnable" ).boolValue() ) {
 					outputStreamGobbler.start();
 					stdOutConsoleEnable = true;
 				}
 			}
 			ValueVector waitFor = request.children().get( "waitFor" );
-			if ( waitFor == null || waitFor.first().intValue() > 0 ) {
+			if( waitFor == null || waitFor.first().intValue() > 0 ) {
 				int exitCode = p.waitFor();
 				response.getNewChild( "exitCode" ).setValue( exitCode );
-				if ( !stdOutConsoleEnable ) {
+				if( !stdOutConsoleEnable ) {
 					int len = p.getInputStream().available();
-					if ( len > 0 ) {
+					if( len > 0 ) {
 						char[] buffer = new char[ len ];
-						try( BufferedReader reader = new BufferedReader( new InputStreamReader( p.getInputStream() ) ) ) {
+						try( BufferedReader reader =
+							new BufferedReader( new InputStreamReader( p.getInputStream() ) ) ) {
 							reader.read( buffer, 0, len );
 						}
 						response.setValue( new String( buffer ) );
 					}
 				}
-				if ( p.getErrorStream() != null ) {
+				if( p.getErrorStream() != null ) {
 					int len = p.getErrorStream().available();
-					if ( len > 0 ) {
+					if( len > 0 ) {
 						char[] buffer = new char[ len ];
-						try( BufferedReader reader = new BufferedReader( new InputStreamReader( p.getErrorStream() ) ) ) {
+						try( BufferedReader reader =
+							new BufferedReader( new InputStreamReader( p.getErrorStream() ) ) ) {
 							reader.read( buffer, 0, len );
 						}
 						response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
 					}
 				}
-				if ( outputStreamGobbler.isAlive() ) {
+				if( outputStreamGobbler.isAlive() ) {
 					outputStreamGobbler.join();
 				}
 				p.getInputStream().close();
@@ -101,19 +101,16 @@ public class ExecService extends JavaService
 		}
 	}
 
-	private class StreamGobbler extends Thread
-	{
+	private class StreamGobbler extends Thread {
 
 		InputStream is;
 
-		private StreamGobbler( InputStream is )
-		{
+		private StreamGobbler( InputStream is ) {
 			this.is = is;
 		}
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			try {
 				InputStreamReader isr = new InputStreamReader( is );
 				BufferedReader br = new BufferedReader( isr );

@@ -28,11 +28,12 @@ import java.util.stream.Stream;
 import jolie.lang.parse.ParserException;
 
 
-/** Starter class of the Interpreter.
+/**
+ * Starter class of the Interpreter.
+ * 
  * @author Fabrizio Montesi
  */
-public class Jolie
-{
+public class Jolie {
 	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
 
 	static {
@@ -41,10 +42,9 @@ public class Jolie
 
 	private Jolie() {}
 
-	private static void printErr( Throwable t, boolean printStackTraces )
-	{
+	private static void printErr( Throwable t, boolean printStackTraces ) {
 		String mesg;
-		if ( printStackTraces ) {
+		if( printStackTraces ) {
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
 			t.printStackTrace( new PrintStream( bs ) );
 			mesg = bs.toString();
@@ -56,11 +56,10 @@ public class Jolie
 
 	/**
 	 * Entry point of program execution.
-	 * @param args the command line arguments
-	 * TODO Standardize the exit codes.
+	 * 
+	 * @param args the command line arguments TODO Standardize the exit codes.
 	 */
-	public static void main( String[] args )
-	{
+	public static void main( String[] args ) {
 		int exitCode = 0;
 		// TODO: remove this hack by extracting CommandLineParser here
 		boolean printStackTraces = Stream.of( args ).anyMatch( s -> s.equals( "--stackTraces" ) );
@@ -70,8 +69,7 @@ public class Jolie
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread() {
 				@Override
-				public void run()
-				{
+				public void run() {
 					interpreter.exit( TERMINATION_TIMEOUT );
 				}
 			} );
@@ -85,7 +83,7 @@ public class Jolie
 			printErr( ioe, printStackTraces );
 			exitCode = 2;
 		} catch( InterpreterException ie ) {
-			if ( ie.getCause() instanceof ParserException ) {
+			if( ie.getCause() instanceof ParserException ) {
 				printErr( ie.getCause(), printStackTraces );
 			} else {
 				printErr( ie, printStackTraces );

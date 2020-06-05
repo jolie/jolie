@@ -25,13 +25,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Instructs the JolieClassLoader to load the specified
- * jar library files before instantiating a JavaService.
+ * Instructs the JolieClassLoader to load the specified jar library files before instantiating a
+ * JavaService.
  *
  * @author Fabrizio Montesi
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface CanUseJars
-{
+@Retention( RetentionPolicy.RUNTIME )
+public @interface CanUseJars {
 	String[] value();
 }

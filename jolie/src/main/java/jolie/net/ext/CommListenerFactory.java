@@ -29,24 +29,23 @@ import jolie.net.ports.InputPort;
 
 /**
  * A factory for delegating the creation of communication listeners to extensions.
+ * 
  * @author Fabrizio Montesi
  */
-public abstract class CommListenerFactory
-{
+public abstract class CommListenerFactory {
 	private final CommCore commCore;
 
-	protected CommListenerFactory( CommCore commCore )
-	{
+	protected CommListenerFactory( CommCore commCore ) {
 		this.commCore = commCore;
 	}
 
-	protected final CommCore commCore()
-	{
+	protected final CommCore commCore() {
 		return commCore;
 	}
 
 	/**
 	 * Creates and returns a valid communication listener.
+	 * 
 	 * @param interpreter the interpreter to refer to
 	 * @param protocolFactory the protocol factory the listener has to use
 	 * @param inputPort the input port for this listener
@@ -54,9 +53,8 @@ public abstract class CommListenerFactory
 	 * @throws java.io.IOException if the listener could not be created
 	 */
 	abstract public CommListener createListener(
-									Interpreter interpreter,
-									CommProtocolFactory protocolFactory,
-									InputPort inputPort
-								)
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
 		throws IOException;
 }

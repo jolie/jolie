@@ -29,17 +29,18 @@ import jolie.runtime.expression.Expression;
  * 
  * @author Fabrizio Montesi
  */
-public interface EmbeddedServiceLoaderFactory
-{
+public interface EmbeddedServiceLoaderFactory {
 	/**
 	 * Create an {@link EmbeddedServiceLoader}.
+	 * 
 	 * @param interpreter the embedding {@link Interpreter}
 	 * @param type the type of the service (e.g., Jolie, Java, ...)
 	 * @param servicePath the path identifying the service to embed
 	 * @param channelDest the intended destination for the channel towards the embedded service
-	 * @return 
-	 * @throws EmbeddedServiceLoaderCreationException 
+	 * @return
+	 * @throws EmbeddedServiceLoaderCreationException
 	 */
-	public EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath, Expression channelDest )
+	public EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath,
+		Expression channelDest )
 		throws EmbeddedServiceLoaderCreationException;
 }

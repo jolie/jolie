@@ -34,15 +34,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 
-public class StringUtils extends JavaService
-{
-	public Integer length( String request )
-	{
+public class StringUtils extends JavaService {
+	public Integer length( String request ) {
 		return request.length();
 	}
-	
-	public Value sort( Value request )
-	{
+
+	public Value sort( Value request ) {
 		String[] list = new String[ request.getChildren( "item" ).size() ];
 		int i = 0;
 		for( Value v : request.getChildren( "item" ) ) {
@@ -57,20 +54,20 @@ public class StringUtils extends JavaService
 		return ret;
 	}
 
-	public static class ReplaceRequest implements ValueConverter
-	{
+	public static class ReplaceRequest implements ValueConverter {
 		private String self, regex, replacement;
+
 		private ReplaceRequest() {}
-		public static ReplaceRequest fromValue( Value value )
-		{
+
+		public static ReplaceRequest fromValue( Value value ) {
 			ReplaceRequest ret = new ReplaceRequest();
 			ret.self = value.strValue();
 			ret.regex = value.getFirstChild( "regex" ).strValue();
 			ret.replacement = value.getFirstChild( "replacement" ).strValue();
 			return ret;
 		}
-		public static Value toValue( ReplaceRequest p )
-		{
+
+		public static Value toValue( ReplaceRequest p ) {
 			Value ret = Value.create();
 			ret.setValue( p.self );
 			ret.getFirstChild( "regex" ).setValue( p.regex );
@@ -78,33 +75,31 @@ public class StringUtils extends JavaService
 			return ret;
 		}
 	}
-        
-        
 
-	public String replaceAll( ReplaceRequest request )
-	{
+
+
+	public String replaceAll( ReplaceRequest request ) {
 		return request.self.replaceAll( request.regex, request.replacement );
 	}
-               
 
-	public String replaceFirst( ReplaceRequest request )
-	{
+
+	public String replaceFirst( ReplaceRequest request ) {
 		return request.self.replaceFirst( request.regex, request.replacement );
 	}
-	
-	public static class StartsWithRequest implements ValueConverter
-	{
+
+	public static class StartsWithRequest implements ValueConverter {
 		private String self, prefix;
+
 		private StartsWithRequest() {}
-		public static StartsWithRequest fromValue( Value value )
-		{
+
+		public static StartsWithRequest fromValue( Value value ) {
 			StartsWithRequest ret = new StartsWithRequest();
 			ret.self = value.strValue();
 			ret.prefix = value.getFirstChild( "prefix" ).strValue();
 			return ret;
 		}
-		public static Value toValue( StartsWithRequest p )
-		{
+
+		public static Value toValue( StartsWithRequest p ) {
 			Value ret = Value.create();
 			ret.setValue( p.self );
 			ret.getFirstChild( "prefix" ).setValue( p.prefix );
@@ -112,61 +107,60 @@ public class StringUtils extends JavaService
 		}
 	}
 
-	public Boolean startsWith( StartsWithRequest request )
-	{
+	public Boolean startsWith( StartsWithRequest request ) {
 		return request.self.startsWith( request.prefix );
 	}
-        
-        public static class EndsWithRequest implements ValueConverter
-        {
-            private String self, suffix;
-            private EndsWithRequest() {}
-            public static EndsWithRequest fromValue( Value value ) {
-                EndsWithRequest ret = new EndsWithRequest();
-                ret.self = value.strValue();
-                ret.suffix = value.getFirstChild("suffix").strValue();
-                return ret;
-            }
-            public static Value toValue( EndsWithRequest request ) {
-                Value ret = Value.create();
-                ret.setValue( request.self );
-                ret.getFirstChild("suffix").setValue( request.suffix );
-                return ret;
-            }
-        }
-        
-        public Boolean endsWith( EndsWithRequest request )
-	{
+
+	public static class EndsWithRequest implements ValueConverter {
+		private String self, suffix;
+
+		private EndsWithRequest() {}
+
+		public static EndsWithRequest fromValue( Value value ) {
+			EndsWithRequest ret = new EndsWithRequest();
+			ret.self = value.strValue();
+			ret.suffix = value.getFirstChild( "suffix" ).strValue();
+			return ret;
+		}
+
+		public static Value toValue( EndsWithRequest request ) {
+			Value ret = Value.create();
+			ret.setValue( request.self );
+			ret.getFirstChild( "suffix" ).setValue( request.suffix );
+			return ret;
+		}
+	}
+
+	public Boolean endsWith( EndsWithRequest request ) {
 		return request.self.endsWith( request.suffix );
 	}
 
-	public static class JoinRequest implements ValueConverter
-	{
+	public static class JoinRequest implements ValueConverter {
 		private String delimiter;
 		private ValueVector pieces;
+
 		private JoinRequest() {}
-		public static JoinRequest fromValue( Value value )
-		{
+
+		public static JoinRequest fromValue( Value value ) {
 			JoinRequest ret = new JoinRequest();
 			ret.delimiter = value.getFirstChild( "delimiter" ).strValue();
 			ret.pieces = value.getChildren( "piece" );
 			return ret;
 		}
-		public static Value toValue( JoinRequest p )
-		{
+
+		public static Value toValue( JoinRequest p ) {
 			Value ret = Value.create();
 			ret.getFirstChild( "delimiter" ).setValue( p.delimiter );
 			ret.children().put( "piece", p.pieces );
 			return ret;
 		}
 	}
-        
 
-	public String join( JoinRequest request )
-	{
+
+	public String join( JoinRequest request ) {
 		int size = request.pieces.size() - 1;
 		StringBuilder builder = new StringBuilder();
-		if ( size >= 0 ) {
+		if( size >= 0 ) {
 			int i;
 			for( i = 0; i < size; i++ ) {
 				builder.append( request.pieces.get( i ).strValue() ).append( request.delimiter );
@@ -175,36 +169,32 @@ public class StringUtils extends JavaService
 		}
 		return builder.toString();
 	}
-	
-	public String trim( String s )
-	{
+
+	public String trim( String s ) {
 		return s.trim();
 	}
 
-	public String substring( Value request )
-	{
+	public String substring( Value request ) {
 		final int end;
-		if ( request.hasChildren( "end" ) ) {
+		if( request.hasChildren( "end" ) ) {
 			end = Math.min( request.getFirstChild( "end" ).intValue(), request.strValue().length() );
 		} else {
 			end = request.strValue().length();
 		}
-		
+
 		return request.strValue().substring( request.getFirstChild( "begin" ).intValue(), end );
 	}
 
-	public Value split( Value request )
-	{
+	public Value split( Value request ) {
 		String str = request.strValue();
 		int limit = 0;
 		Value lValue = request.getFirstChild( "limit" );
-		if ( lValue.isDefined() ) {
+		if( lValue.isDefined() ) {
 			limit = lValue.intValue();
 		}
 		String[] ss = str.split(
-				request.getFirstChild( "regex" ).strValue(),
-				limit
-			);
+			request.getFirstChild( "regex" ).strValue(),
+			limit );
 		Value value = Value.create();
 		for( String s : ss ) {
 			value.getNewChild( "result" ).add( Value.create( s ) );
@@ -213,8 +203,7 @@ public class StringUtils extends JavaService
 		return value;
 	}
 
-	public Value splitByLength( Value request )
-	{
+	public Value splitByLength( Value request ) {
 		String str = request.strValue();
 		int length = request.getFirstChild( "length" ).intValue();
 		Value responseValue = Value.create();
@@ -223,7 +212,7 @@ public class StringUtils extends JavaService
 		boolean keepRun = true;
 		int offset = 0;
 		while( keepRun ) {
-			if ( offset + length >= stringLength ) {
+			if( offset + length >= stringLength ) {
 				keepRun = false;
 				length = stringLength - offset;
 			}
@@ -233,38 +222,17 @@ public class StringUtils extends JavaService
 		return responseValue;
 	}
 
-	public Value match( Value request )
-	{
+	public Value match( Value request ) {
 		Pattern p = Pattern.compile( request.getFirstChild( "regex" ).strValue() );
 		Matcher m = p.matcher( request.strValue() );
 		Value response = Value.create();
-		if ( m.matches() ) {
+		if( m.matches() ) {
 			response.setValue( 1 );
-			if ( m.groupCount() > 0 ) {
+			if( m.groupCount() > 0 ) {
 				ValueVector groups = response.getChildren( "group" );
-				groups.add( Value.create( ( m.group( 0 ) == null ) ? "" : m.group( 0 ) ) );
+				groups.add( Value.create( (m.group( 0 ) == null) ? "" : m.group( 0 ) ) );
 				for( int i = 0; i < m.groupCount(); i++ ) {
-					groups.add( Value.create( ( m.group( i+1 ) == null ) ? "" : m.group( i+1 ) ) );
-				}
-			}
-		} else {
-			response.setValue( 0 );
-		}
-		return response;
-	}
-	
-	public Value find( Value request )
-	{
-		Pattern p = Pattern.compile( request.getFirstChild( "regex" ).strValue() );
-		Matcher m = p.matcher( request.strValue() );
-		Value response = Value.create();
-		if ( m.find() ) {
-			response.setValue( 1 );
-			if ( m.groupCount() > 0 ) {
-				ValueVector groups = response.getChildren( "group" );
-				groups.add( Value.create( ( m.group( 0 ) == null ) ? "" : m.group( 0 ) ) );
-				for( int i = 0; i < m.groupCount(); i++ ) {
-					groups.add( Value.create( ( m.group( i+1 ) == null ) ? "" : m.group( i+1 ) ) );
+					groups.add( Value.create( (m.group( i + 1 ) == null) ? "" : m.group( i + 1 ) ) );
 				}
 			}
 		} else {
@@ -273,11 +241,29 @@ public class StringUtils extends JavaService
 		return response;
 	}
 
-	public String leftPad( Value request )
-	{
+	public Value find( Value request ) {
+		Pattern p = Pattern.compile( request.getFirstChild( "regex" ).strValue() );
+		Matcher m = p.matcher( request.strValue() );
+		Value response = Value.create();
+		if( m.find() ) {
+			response.setValue( 1 );
+			if( m.groupCount() > 0 ) {
+				ValueVector groups = response.getChildren( "group" );
+				groups.add( Value.create( (m.group( 0 ) == null) ? "" : m.group( 0 ) ) );
+				for( int i = 0; i < m.groupCount(); i++ ) {
+					groups.add( Value.create( (m.group( i + 1 ) == null) ? "" : m.group( i + 1 ) ) );
+				}
+			}
+		} else {
+			response.setValue( 0 );
+		}
+		return response;
+	}
+
+	public String leftPad( Value request ) {
 		String orig = request.strValue();
 		int length = request.getFirstChild( "length" ).intValue();
-		if ( orig.length() >= length ) {
+		if( orig.length() >= length ) {
 			return orig;
 		}
 
@@ -292,26 +278,24 @@ public class StringUtils extends JavaService
 		return builder.toString();
 	}
 
-	public String valueToPrettyString( Value request )
-	{
+	public String valueToPrettyString( Value request ) {
 		Writer writer = new StringWriter();
 		ValuePrettyPrinter printer = new ValuePrettyPrinter( request, writer, "Value" );
 		try {
 			printer.run();
-		} catch( IOException e ) {} // Should never happen
+		} catch( IOException e ) {
+		} // Should never happen
 		return writer.toString();
 	}
-	
-	public Integer indexOf( Value request )
-	{
+
+	public Integer indexOf( Value request ) {
 		return request.strValue().indexOf( request.getFirstChild( "word" ).strValue() );
 	}
 
-	public String rightPad( Value request )
-	{
+	public String rightPad( Value request ) {
 		String orig = request.strValue();
 		int length = request.getFirstChild( "length" ).intValue();
-		if ( orig.length() >= length ) {
+		if( orig.length() >= length ) {
 			return orig;
 		}
 
@@ -326,23 +310,19 @@ public class StringUtils extends JavaService
 		return builder.toString();
 	}
 
-	public String getRandomUUID( Value request )
-	{
+	public String getRandomUUID( Value request ) {
 		return UUID.randomUUID().toString();
 	}
 
-	public String toLowerCase( String str )
-	{
+	public String toLowerCase( String str ) {
 		return str.toLowerCase();
 	}
 
-	public String toUpperCase( String str )
-	{
+	public String toUpperCase( String str ) {
 		return str.toUpperCase();
 	}
-	
-	public Boolean contains( Value request )
-	{
+
+	public Boolean contains( Value request ) {
 		return request.strValue().contains( request.getFirstChild( "substring" ).strValue() );
 	}
 }

@@ -24,30 +24,25 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.runtime.VariablePath;
 
-public class UndefProcess implements Process
-{
+public class UndefProcess implements Process {
 	private final VariablePath varPath;
 
-	public UndefProcess( VariablePath varPath )
-	{
+	public UndefProcess( VariablePath varPath ) {
 		this.varPath = varPath;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
-		return new UndefProcess( (VariablePath)varPath.cloneExpression( reason ) );
+
+	public Process copy( TransformationReason reason ) {
+		return new UndefProcess( (VariablePath) varPath.cloneExpression( reason ) );
 	}
-	
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
-		
+
 		varPath.undef();
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

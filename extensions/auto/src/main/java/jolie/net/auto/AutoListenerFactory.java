@@ -35,33 +35,30 @@ import jolie.util.Helpers;
 
 /**
  * Listener factory for the auto communication medium.
+ * 
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"ini4j.jar", "jolie-js.jar", "json_simple.jar"})
-public class AutoListenerFactory extends CommListenerFactory
-{
-	public AutoListenerFactory( CommCore commCore )
-	{
+@AndJarDeps( { "ini4j.jar", "jolie-js.jar", "json_simple.jar" } )
+public class AutoListenerFactory extends CommListenerFactory {
+	public AutoListenerFactory( CommCore commCore ) {
 		super( commCore );
 	}
-	
+
 	@Override
 	public CommListener createListener(
-					Interpreter interpreter,
-					CommProtocolFactory protocolFactory,
-					InputPort inputPort
-				)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		// Format: "auto:autoconf_uri"
 		URI locationURI = inputPort.location();
 
 		String[] ss = locationURI.getSchemeSpecificPart().split( ":", 2 );
-		String location = AutoHelper.getLocationFromUrl( ss[0], ss[1] );
+		String location = AutoHelper.getLocationFromUrl( ss[ 0 ], ss[ 1 ] );
 
 		AutoHelper.assertIOException( location == null, "internal error: location is null" );
-		
-		if ( Constants.LOCAL_LOCATION_KEYWORD.equals( location ) ) {
+
+		if( Constants.LOCAL_LOCATION_KEYWORD.equals( location ) ) {
 			interpreter.commCore().addLocalInputPort( inputPort );
 			inputPort.setLocation( location );
 			return interpreter.commCore().localListener();

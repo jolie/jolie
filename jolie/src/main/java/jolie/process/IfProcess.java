@@ -24,69 +24,59 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 
-public final class IfProcess implements Process
-{
-	public static class CPPair
-	{
+public final class IfProcess implements Process {
+	public static class CPPair {
 		private final Expression condition;
 		private final Process process;
-		
-		public CPPair( Expression condition, Process process )
-		{
+
+		public CPPair( Expression condition, Process process ) {
 			this.condition = condition;
 			this.process = process;
 		}
-		
-		public Expression condition()
-		{
+
+		public Expression condition() {
 			return condition;
 		}
-		
-		public Process process()
-		{
+
+		public Process process() {
 			return process;
 		}
 	}
-	
+
 	private final CPPair[] pairs;
 	private final Process elseProcess;
-	
-	public IfProcess( CPPair[] pairs, Process elseProcess )
-	{
+
+	public IfProcess( CPPair[] pairs, Process elseProcess ) {
 		this.pairs = pairs;
 		this.elseProcess = elseProcess;
 	}
-	
+
 	@Override
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		CPPair[] pairsCopy = new CPPair[ pairs.length ];
 		for( int i = 0; i < pairs.length; i++ ) {
 			pairsCopy[ i ] = new CPPair(
 				pairs[ i ].condition.cloneExpression( reason ),
-				pairs[ i ].process.copy( reason )
-			);
+				pairs[ i ].process.copy( reason ) );
 		}
 		return new IfProcess(
 			pairsCopy,
-			( elseProcess == null ) ? null : elseProcess.copy( reason )
-		);
+			(elseProcess == null) ? null : elseProcess.copy( reason ) );
 	}
-	
+
 	@Override
 	public void run()
-		throws FaultException, ExitingException
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		throws FaultException, ExitingException {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 
 		boolean keepRun = true;
 		int i = 0;
-	
+
 		while( keepRun && i < pairs.length ) {
 			final CPPair pair = pairs[ i ];
-			if ( pair.condition().evaluate().boolValue() ) {
+			if( pair.condition().evaluate().boolValue() ) {
 				keepRun = false;
 				pair.process().run();
 			}
@@ -94,14 +84,13 @@ public final class IfProcess implements Process
 		}
 
 		// No valid condition found, run the else process
-		if ( keepRun && elseProcess != null ) {
+		if( keepRun && elseProcess != null ) {
 			elseProcess.run();
 		}
 	}
-	
+
 	@Override
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

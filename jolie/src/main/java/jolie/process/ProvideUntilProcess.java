@@ -35,37 +35,34 @@ import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.util.Pair;
 
-/** 
+/**
  * @author Fabrizio Montesi
  */
-public class ProvideUntilProcess implements Process
-{
+public class ProvideUntilProcess implements Process {
 	private final NDChoiceProcess provide, until;
 	private Map< String, InputOperation > inputOperationsMap =
 		new HashMap< String, InputOperation >();
-	
-	public ProvideUntilProcess( NDChoiceProcess provide, NDChoiceProcess until )
-	{
+
+	public ProvideUntilProcess( NDChoiceProcess provide, NDChoiceProcess until ) {
 		this.provide = provide;
 		this.until = until;
 		this.inputOperationsMap.putAll( provide.inputOperations() );
 		this.inputOperationsMap.putAll( until.inputOperations() );
 		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
-		return new ProvideUntilProcess( (NDChoiceProcess)provide.copy( reason ), (NDChoiceProcess)until.copy( reason ) );
+
+	public Process copy( TransformationReason reason ) {
+		return new ProvideUntilProcess( (NDChoiceProcess) provide.copy( reason ),
+			(NDChoiceProcess) until.copy( reason ) );
 	}
 
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if( ethread.isKilled() ) {
 			return;
 		}
-		
+
 		boolean keepRun = true;
 
 		try {
@@ -74,7 +71,7 @@ public class ProvideUntilProcess implements Process
 
 				SessionMessage m = f.get();
 				Pair< InputOperationProcess, Process > branch = provide.branches().get( m.message().operationName() );
-				if ( branch == null ) {
+				if( branch == null ) {
 					// It is an until branch
 					branch = until.branches().get( m.message().operationName() );
 					keepRun = false;
@@ -90,9 +87,8 @@ public class ProvideUntilProcess implements Process
 			Interpreter.getInstance().logSevere( e );
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

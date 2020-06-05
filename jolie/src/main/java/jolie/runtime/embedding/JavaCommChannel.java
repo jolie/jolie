@@ -41,49 +41,42 @@ import jolie.runtime.JavaService;
 /**
  * @author Fabrizio Montesi
  */
-public class JavaCommChannel extends CommChannel implements PollableCommChannel
-{
+public class JavaCommChannel extends CommChannel implements PollableCommChannel {
 	private final JavaService javaService;
 	private final Map< Long, Future< CommMessage > > messages = new ConcurrentHashMap<>();
-	
-	public JavaCommChannel( JavaService javaService )
-	{
+
+	public JavaCommChannel( JavaService javaService ) {
 		this.javaService = javaService;
 	}
 
 	@Override
-	public boolean isReady()
-	{
+	public boolean isReady() {
 		return messages.isEmpty() == false;
 	}
 
 	@Override
 	protected void disposeForInputImpl()
-		throws IOException
-	{
+		throws IOException {
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
 	@Override
-	public CommChannel createDuplicate()
-	{
+	public CommChannel createDuplicate() {
 		return new JavaCommChannel( javaService );
 	}
 
 	@Override
 	public void send( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		sendImpl( message );
 	}
 
 	@Override
 	protected void sendImpl( final CommMessage message )
-		throws IOException
-	{
-		final CompletableFuture<CommMessage> f = new CompletableFuture<>();
+		throws IOException {
+		final CompletableFuture< CommMessage > f = new CompletableFuture<>();
 		messages.put( message.id(), f );
-	
+
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		Interpreter.getInstance().commCore().executor().submit( () -> {
 			CommChannelHandler.currentThread().setExecutionThread( ethread );
@@ -99,19 +92,16 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 
 	@Override
 	protected CommMessage recvImpl()
-		throws IOException
-	{
+		throws IOException {
 		throw new IOException( "Unsupported operation" );
 	}
 
 	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
-		throws IOException
-	{
+		throws IOException {
 		return messages.remove( request.id() );
 	}
 
 	@Override
-	protected void closeImpl()
-	{}
+	protected void closeImpl() {}
 }

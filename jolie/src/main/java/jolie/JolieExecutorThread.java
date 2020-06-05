@@ -26,42 +26,41 @@ package jolie;
  *
  * @author Fabrizio Montesi
  */
-public class JolieExecutorThread extends Thread implements InterpreterThread
-{
+public class JolieExecutorThread extends Thread implements InterpreterThread {
 	private ExecutionThread executionThread;
-	
-	public JolieExecutorThread( Runnable r, Interpreter interpreter )
-	{
+
+	public JolieExecutorThread( Runnable r, Interpreter interpreter ) {
 		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
 	}
-	
+
 	/**
 	 * Sets the <code>ExecutionThread</code> this thread must refer to.
-	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state resolution
+	 * 
+	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state
+	 *        resolution
 	 */
-	public final void setExecutionThread( ExecutionThread thread )
-	{
+	public final void setExecutionThread( ExecutionThread thread ) {
 		executionThread = thread;
 	}
 
 	/**
-	 * Returns the <code>ExecutionThread</code> this thread is referring to for variable state resolution.
-	 * @return the <code>ExecutionThread</code> this thread is referring to for variable state resolution
+	 * Returns the <code>ExecutionThread</code> this thread is referring to for variable state
+	 * resolution.
+	 * 
+	 * @return the <code>ExecutionThread</code> this thread is referring to for variable state
+	 *         resolution
 	 */
-	public final ExecutionThread executionThread()
-	{
+	public final ExecutionThread executionThread() {
 		return executionThread;
 	}
-	
+
 	@Override
-	public Interpreter interpreter()
-	{
+	public Interpreter interpreter() {
 		return executionThread.interpreter();
 	}
-	
-	public static JolieExecutorThread currentThread()
-	{
+
+	public static JolieExecutorThread currentThread() {
 		final Thread t = Thread.currentThread();
-		return ( t instanceof JolieExecutorThread ) ? (JolieExecutorThread)t : null;
+		return (t instanceof JolieExecutorThread) ? (JolieExecutorThread) t : null;
 	}
 }

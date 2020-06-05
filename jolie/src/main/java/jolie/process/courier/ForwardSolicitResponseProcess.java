@@ -46,8 +46,7 @@ import jolie.tracer.Tracer;
  * 
  * @author Fabrizio Montesi
  */
-public class ForwardSolicitResponseProcess implements Process
-{
+public class ForwardSolicitResponseProcess implements Process {
 	private final String operationName;
 	private final OutputPort outputPort;
 	private final VariablePath outputVariablePath, inputVariablePath;
@@ -55,14 +54,13 @@ public class ForwardSolicitResponseProcess implements Process
 	private final ParsingContext context;
 
 	public ForwardSolicitResponseProcess(
-			String operationName,
-			OutputPort outputPort,
-			VariablePath outputVariablePath,
-			VariablePath inputVariablePath,
-			RequestResponseTypeDescription aggregatedTypeDescription,
-			RequestResponseTypeDescription extenderTypeDescription,
-			ParsingContext context
-	) {
+		String operationName,
+		OutputPort outputPort,
+		VariablePath outputVariablePath,
+		VariablePath inputVariablePath,
+		RequestResponseTypeDescription aggregatedTypeDescription,
+		RequestResponseTypeDescription extenderTypeDescription,
+		ParsingContext context ) {
 		this.operationName = operationName;
 		this.outputPort = outputPort;
 		this.outputVariablePath = outputVariablePath;
@@ -71,9 +69,8 @@ public class ForwardSolicitResponseProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 		this.context = context;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new ForwardSolicitResponseProcess(
 			operationName,
 			outputPort,
@@ -81,44 +78,41 @@ public class ForwardSolicitResponseProcess implements Process
 			inputVariablePath,
 			aggregatedTypeDescription,
 			extenderTypeDescription,
-			context
-		);
+			context );
 	}
-	
-	private void log( String log, CommMessage message )
-	{
+
+	private void log( String log, CommMessage message ) {
 		Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.COURIER_SOLICIT_RESPONSE,
 			operationName + "@" + outputPort.id(),
 			log,
 			message,
-			context
-		) );
+			context ) );
 	}
 
 	public void run()
-		throws FaultException
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		throws FaultException {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 
 		CommChannel channel = null;
 		try {
 			Value messageValue = outputVariablePath.evaluate();
-			if ( extenderTypeDescription != null ) {
+			if( extenderTypeDescription != null ) {
 				extenderTypeDescription.requestType().cutChildrenFromValue( messageValue );
 			}
 			aggregatedTypeDescription.requestType().check( messageValue );
-			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
+			CommMessage message =
+				CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
 			channel = outputPort.getCommChannel();
-			
+
 			log( "SENDING", message );
-			
+
 			channel.send( message );
-			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
+			// channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
 			CommMessage response = null;
 			do {
@@ -129,42 +123,46 @@ public class ForwardSolicitResponseProcess implements Process
 				}
 			} while( response == null );
 			log( "RECEIVED", message );
-			
-			if ( inputVariablePath != null )	 {
+
+			if( inputVariablePath != null ) {
 				inputVariablePath.setValue( response.value() );
 			}
-			
-			if ( response.isFault() ) {
+
+			if( response.isFault() ) {
 				Type faultType = aggregatedTypeDescription.getFaultType( response.fault().faultName() );
-				if ( faultType != null ) {
+				if( faultType != null ) {
 					try {
 						faultType.check( response.fault().value() );
 					} catch( TypeCheckingException e ) {
-						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault " + response.fault().faultName() + " TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
+							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationName + "@"
+								+ outputPort.id() + "): " + e.getMessage() );
 					}
 				}
 				throw response.fault();
 			} else {
-				if ( aggregatedTypeDescription.responseType() != null ) {
+				if( aggregatedTypeDescription.responseType() != null ) {
 					try {
 						aggregatedTypeDescription.responseType().check( response.value() );
 					} catch( TypeCheckingException e ) {
-						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
+							+ operationName + "@" + outputPort.id() + "): " + e.getMessage() );
 					}
 				}
 			}
 
-			/*try {
-				installProcess.run();
-			} catch( ExitingException e ) { assert false; }*/
+			/*
+			 * try { installProcess.run(); } catch( ExitingException e ) { assert false; }
+			 */
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
-			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
+				"Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
-			if ( channel != null ) {
+			if( channel != null ) {
 				try {
 					channel.release();
 				} catch( IOException e ) {
@@ -173,9 +171,8 @@ public class ForwardSolicitResponseProcess implements Process
 			}
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

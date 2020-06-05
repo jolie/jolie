@@ -23,31 +23,27 @@ package jolie.process;
 
 /**
  * No-op process.
+ * 
  * @author Fabrizio Montesi
  */
-public class NullProcess implements Process
-{
+public class NullProcess implements Process {
 	private NullProcess() {}
-	
+
 	private static class LazyHolder {
 		private static final NullProcess instance = new NullProcess();
 	}
-	
-	static public NullProcess getInstance()
-	{
+
+	static public NullProcess getInstance() {
 		return NullProcess.LazyHolder.instance;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return this;
 	}
-	
-	public void run()
-	{}
-	
-	public boolean isKillable()
-	{
+
+	public void run() {}
+
+	public boolean isKillable() {
 		return true;
 	}
 }

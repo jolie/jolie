@@ -40,34 +40,30 @@ import jolie.runtime.typing.Type;
 /**
  * @author Fabrizio Montesi
  * 
- * TODO: this shouldn't be polled
+ *         TODO: this shouldn't be polled
  */
-public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel
-{
+public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel {
 	private final Invocable invocable;
 	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
 	private final Object json;
-	
+
 	private final static class JsonMethods {
 		private final static String STRINGIFY = "stringify", PARSE = "parse";
 	}
-	
-	public JavaScriptCommChannel( Invocable invocable, Object json )
-	{
+
+	public JavaScriptCommChannel( Invocable invocable, Object json ) {
 		this.invocable = invocable;
 		this.json = json;
 	}
 
 	@Override
-	public CommChannel createDuplicate()
-	{
+	public CommChannel createDuplicate() {
 		return new JavaScriptCommChannel( invocable, json );
 	}
 
 	@Override
 	protected void sendImpl( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		Object returnValue = null;
 		try {
 			StringBuilder builder = new StringBuilder();
@@ -77,68 +73,62 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 		} catch( ScriptException | NoSuchMethodException e ) {
 			throw new IOException( e );
 		}
-		
+
 		CommMessage response;
-		if ( returnValue != null ) {
+		if( returnValue != null ) {
 			Value value = Value.create();
-			
-			if ( returnValue instanceof Value ) {
-				value.refCopy( (Value)returnValue );
+
+			if( returnValue instanceof Value ) {
+				value.refCopy( (Value) returnValue );
 			} else {
 				try {
 					Object s = invocable.invokeMethod( json, JsonMethods.STRINGIFY, returnValue );
-					JsUtils.parseJsonIntoValue( new StringReader( (String)s ), value, true );
+					JsUtils.parseJsonIntoValue( new StringReader( (String) s ), value, true );
 				} catch( ScriptException e ) {
 					// TODO: do something here, maybe encode an internal server error
 				} catch( NoSuchMethodException e ) {
 					// TODO: do something here, maybe encode an internal server error
 				}
-				
+
 				value.setValue( returnValue );
 			}
-			
+
 			response = new CommMessage(
 				message.id(),
 				message.operationName(),
 				message.resourcePath(),
 				value,
-				null
-			);
+				null );
 		} else {
 			response = CommMessage.createEmptyResponse( message );
 		}
-		
+
 		messages.put( message.id(), response );
 	}
-	
+
 	@Override
 	protected CommMessage recvImpl()
-		throws IOException
-	{
+		throws IOException {
 		throw new IOException( "Unsupported operation" );
 	}
-	
+
 	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
-		throws IOException
-	{
+		throws IOException {
 		return CompletableFuture.completedFuture( messages.remove( request.id() ) );
 	}
 
 	@Override
 	protected void disposeForInputImpl()
-		throws IOException
-	{
+		throws IOException {
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
 	@Override
-	protected void closeImpl()
-	{}
+	protected void closeImpl() {}
 
 	@Override
-	public boolean isReady()
-	{
-		return( !messages.isEmpty() );
+	public boolean isReady() {
+		return (!messages.isEmpty());
 	}
 }

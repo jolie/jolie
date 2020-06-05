@@ -36,32 +36,27 @@ import joliex.java.impl.InterfaceVisitor.InterfaceNotFound;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceConverter
-{
+public class InterfaceConverter {
 	private final Program program;
 	private final String[] interfaceNames;
 	private Writer writer;
 	private int indentationLevel = 0;
 
-	public InterfaceConverter( Program program, String[] interfaceNames, Logger logger )
-	{
+	public InterfaceConverter( Program program, String[] interfaceNames, Logger logger ) {
 		this.program = program;
 		this.interfaceNames = interfaceNames;
 	}
 
-	private void indent()
-	{
+	private void indent() {
 		indentationLevel++;
 	}
 
-	private void unindent()
-	{
+	private void unindent() {
 		indentationLevel--;
 	}
 
 	public void convert( Writer writer )
-		throws InterfaceNotFound, IOException
-	{
+		throws InterfaceNotFound, IOException {
 		this.writer = writer;
 		InterfaceDefinition[] interfaceDefinitions =
 			new InterfaceVisitor( program, interfaceNames ).getInterfaceDefinitions();
@@ -78,14 +73,12 @@ public class InterfaceConverter
 	}
 
 	private void writeFooter()
-		throws IOException
-	{
+		throws IOException {
 		writeLine( "}" );
 	}
 
 	private void writeHeader()
-		throws IOException
-	{
+		throws IOException {
 		String className = "Tmp";
 		writeLine( "public class " + className );
 		writeLine( "{" );
@@ -101,8 +94,7 @@ public class InterfaceConverter
 	}
 
 	private void writeLine( String s )
-		throws IOException
-	{
+		throws IOException {
 		for( int i = 0; i < indentationLevel; i++ ) {
 			writer.write( "\t" );
 		}
@@ -111,21 +103,19 @@ public class InterfaceConverter
 	}
 
 	private void convertInterfaceDefinition( InterfaceDefinition iface )
-		throws IOException
-	{
+		throws IOException {
 		for( Entry< String, OperationDeclaration > entry : iface.operationsMap().entrySet() ) {
 			writeLine( "" );
-			if ( entry.getValue() instanceof OneWayOperationDeclaration ) { // It's a One-Way
-				writeOperation( (OneWayOperationDeclaration)entry.getValue() );
+			if( entry.getValue() instanceof OneWayOperationDeclaration ) { // It's a One-Way
+				writeOperation( (OneWayOperationDeclaration) entry.getValue() );
 			} else { // It's a Request-Response
-				writeOperation( (RequestResponseOperationDeclaration)entry.getValue() );
+				writeOperation( (RequestResponseOperationDeclaration) entry.getValue() );
 			}
 		}
 	}
 
 	private void writeOperation( OneWayOperationDeclaration op )
-		throws IOException
-	{
+		throws IOException {
 		writeLine( "public void " + op.id() + "( Value request )" );
 		writeLine( "{" );
 		indent();
@@ -135,10 +125,11 @@ public class InterfaceConverter
 	}
 
 	private void writeOperation( RequestResponseOperationDeclaration op )
-		throws IOException
-	{
+		throws IOException {
 		writeLine( "public Value " + op.id() + "( Value request )" );
-		indent(); writeLine( "throws FaultException"); unindent();
+		indent();
+		writeLine( "throws FaultException" );
+		unindent();
 		writeLine( "{" );
 		indent();
 		writeLine( "return service.callRequestResponse( \"" + op.id() + "\", request );" );

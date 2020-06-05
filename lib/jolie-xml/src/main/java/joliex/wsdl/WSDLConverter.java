@@ -81,12 +81,9 @@ import org.xml.sax.SAXParseException;
  *
  * @author Fabrizio Montesi
  */
-public class WSDLConverter
-{
+public class WSDLConverter {
 	private enum Style {
-		DOCUMENT,
-		HTTP,
-		RPC;
+		DOCUMENT, HTTP, RPC;
 	}
 
 
@@ -99,46 +96,39 @@ public class WSDLConverter
 	private final XSOMParser schemaParser;
 	private final TransformerFactory transformerFactory;
 
-	public WSDLConverter( Definition definition, Writer writer )
-	{
+	public WSDLConverter( Definition definition, Writer writer ) {
 		this.writer = writer;
 		this.definition = definition;
 		transformerFactory = TransformerFactory.newInstance();
 		schemaParser = new XSOMParser();
 		schemaParser.setErrorHandler( new ErrorHandler() {
 			public void warning( SAXParseException exception )
-				throws SAXException
-			{
+				throws SAXException {
 				throw new SAXException( exception );
 			}
 
 			public void error( SAXParseException exception )
-				throws SAXException
-			{
+				throws SAXException {
 				throw new SAXException( exception );
 			}
 
 			public void fatalError( SAXParseException exception )
-				throws SAXException
-			{
+				throws SAXException {
 				throw new SAXException( exception );
 			}
 		} );
 	}
 
-	private void indent()
-	{
+	private void indent() {
 		indentationLevel++;
 	}
 
-	private void unindent()
-	{
+	private void unindent() {
 		indentationLevel--;
 	}
 
 	private void writeLine( String s )
-		throws IOException
-	{
+		throws IOException {
 		for( int i = 0; i < indentationLevel; i++ ) {
 			writer.write( "\t" );
 		}
@@ -147,8 +137,7 @@ public class WSDLConverter
 	}
 
 	private void parseSchemaElement( Element element )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty( "indent", "yes" );
@@ -169,8 +158,7 @@ public class WSDLConverter
 	}
 
 	public void convert()
-		throws IOException
-	{
+		throws IOException {
 		convertTypes();
 		Map< QName, Service > services = definition.getServices();
 		for( Entry< QName, Service > service : services.entrySet() ) {
@@ -180,18 +168,17 @@ public class WSDLConverter
 	}
 
 	private void convertTypes()
-		throws IOException
-	{
+		throws IOException {
 		Types types = definition.getTypes();
-		if ( types != null ) {
+		if( types != null ) {
 			List< ExtensibilityElement > list = types.getExtensibilityElements();
 			for( ExtensibilityElement element : list ) {
-				if ( element instanceof SchemaImpl ) {
-					Element schemaElement = ((SchemaImpl)element).getElement();
+				if( element instanceof SchemaImpl ) {
+					Element schemaElement = ((SchemaImpl) element).getElement();
 					// We need to inject the namespaces declared in parent nodes into the schema element
 					Map< String, String > namespaces = definition.getNamespaces();
 					for( Entry< String, String > entry : namespaces.entrySet() ) {
-						if ( schemaElement.getAttribute( "xmlns:" + entry.getKey() ).isEmpty() ) {
+						if( schemaElement.getAttribute( "xmlns:" + entry.getKey() ).isEmpty() ) {
 							schemaElement.setAttribute( "xmlns:" + entry.getKey(), entry.getValue() );
 						}
 					}
@@ -201,8 +188,8 @@ public class WSDLConverter
 
 			try {
 				XSSchemaSet schemaSet = schemaParser.getResult();
-				if ( schemaSet == null ) {
-					throw new IOException( "An error occurred while parsing the WSDL types section" ) ;
+				if( schemaSet == null ) {
+					throw new IOException( "An error occurred while parsing the WSDL types section" );
 				}
 				XsdToJolieConverter schemaConverter = new XsdToJolieConverterImpl( schemaSet, false, null );
 				typeDefinitions.addAll( schemaConverter.convert() );
@@ -214,13 +201,12 @@ public class WSDLConverter
 		}
 	}
 
-	private String getCardinalityString( TypeDefinition type )
-	{
-		if ( type.cardinality().equals( Constants.RANGE_ONE_TO_ONE ) ) {
+	private String getCardinalityString( TypeDefinition type ) {
+		if( type.cardinality().equals( Constants.RANGE_ONE_TO_ONE ) ) {
 			return "";
-		} else if ( type.cardinality().min() == 0 && type.cardinality().max() == 1 ) {
+		} else if( type.cardinality().min() == 0 && type.cardinality().max() == 1 ) {
 			return "?";
-		} else if ( type.cardinality().min() == 0 && type.cardinality().max() == Integer.MAX_VALUE ) {
+		} else if( type.cardinality().min() == 0 && type.cardinality().max() == Integer.MAX_VALUE ) {
 			return "*";
 		} else {
 			return new StringBuilder()
@@ -234,10 +220,9 @@ public class WSDLConverter
 	}
 
 	private void writeType( TypeDefinition type, boolean subType )
-		throws IOException
-	{
+		throws IOException {
 		StringBuilder builder = new StringBuilder();
-		if ( subType ) {
+		if( subType ) {
 			builder.append( '.' );
 		} else {
 			builder.append( "type " );
@@ -245,26 +230,26 @@ public class WSDLConverter
 		builder.append( type.id() )
 			.append( getCardinalityString( type ) )
 			.append( ':' );
-		if ( type instanceof TypeDefinitionLink ) {
-			TypeDefinitionLink link = (TypeDefinitionLink)type;
+		if( type instanceof TypeDefinitionLink ) {
+			TypeDefinitionLink link = (TypeDefinitionLink) type;
 			builder.append( link.linkedTypeName() );
-			if ( subType == false ) {
+			if( subType == false ) {
 				builder.append( '\n' );
 			}
 			writeLine( builder.toString() );
-		} else if ( type instanceof TypeInlineDefinition ) {
-			TypeInlineDefinition def = (TypeInlineDefinition)type;
-			if ( def.untypedSubTypes() ) {
+		} else if( type instanceof TypeInlineDefinition ) {
+			TypeInlineDefinition def = (TypeInlineDefinition) type;
+			if( def.untypedSubTypes() ) {
 				builder.append( "undefined" );
 				writeLine( builder.toString() );
 				writeLine( "" );
 			} else {
 				builder.append( nativeTypeToString( def.nativeType() ) );
-				if ( def.hasSubTypes() ) {
+				if( def.hasSubTypes() ) {
 					builder.append( " {" );
 				}
 				writeLine( builder.toString() );
-				if ( def.hasSubTypes() ) {
+				if( def.hasSubTypes() ) {
 					indent();
 					for( Entry< String, TypeDefinition > entry : def.subTypes() ) {
 						writeType( entry.getValue(), true );
@@ -272,19 +257,19 @@ public class WSDLConverter
 					unindent();
 					writeLine( "}" );
 				}
-				if ( subType == false ) {
+				if( subType == false ) {
 					writeLine( "" );
 				}
 			}
-		} else if ( type instanceof TypeChoiceDefinition ) {
-			TypeChoiceDefinition choice = (TypeChoiceDefinition)type;
-			if ( choice.left() instanceof TypeInlineDefinition 
+		} else if( type instanceof TypeChoiceDefinition ) {
+			TypeChoiceDefinition choice = (TypeChoiceDefinition) type;
+			if( choice.left() instanceof TypeInlineDefinition
 				&& !((TypeInlineDefinition) choice.left()).hasSubTypes()
-				&& choice.right() instanceof TypeInlineDefinition 
-				&& !((TypeInlineDefinition) choice.right()).hasSubTypes()) {
-				builder.append( ((TypeInlineDefinition) choice.left()).nativeType().id());
+				&& choice.right() instanceof TypeInlineDefinition
+				&& !((TypeInlineDefinition) choice.right()).hasSubTypes() ) {
+				builder.append( ((TypeInlineDefinition) choice.left()).nativeType().id() );
 				builder.append( " | " );
-				builder.append(((TypeInlineDefinition) choice.right()).nativeType().id());
+				builder.append( ((TypeInlineDefinition) choice.right()).nativeType().id() );
 				writeLine( builder.toString() );
 			} else {
 				writeLine( builder.toString() );
@@ -295,14 +280,12 @@ public class WSDLConverter
 		}
 	}
 
-	private static String nativeTypeToString( NativeType nativeType )
-	{
+	private static String nativeTypeToString( NativeType nativeType ) {
 		return (nativeType == null) ? "" : nativeType.id();
-    }
+	}
 
 	private void writeData()
-		throws IOException
-	{
+		throws IOException {
 		for( TypeDefinition typeDefinition : typeDefinitions ) {
 			writeType( typeDefinition, false );
 		}
@@ -318,8 +301,7 @@ public class WSDLConverter
 	}
 
 	private void writeOutputPort( OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		writeLine( "outputPort " + port.name() + " {" );
 		writeLine( "Location: \"" + port.location() + "\"" );
 		writeLine( "Protocol: " + port.protocol() );
@@ -327,12 +309,11 @@ public class WSDLConverter
 		writeLine( "}" );
 	}
 
-	private String owOperationToString( joliex.wsdl.impl.Operation operation )
-	{
+	private String owOperationToString( joliex.wsdl.impl.Operation operation ) {
 		StringBuilder builder = new StringBuilder();
 		builder.append( operation.name() );
 		builder.append( '(' );
-		if ( operation.requestTypeName() == null ) {
+		if( operation.requestTypeName() == null ) {
 			builder.append( "void" );
 		} else {
 			builder.append( operation.requestTypeName() );
@@ -341,25 +322,24 @@ public class WSDLConverter
 		return builder.toString();
 	}
 
-	private String rrOperationToString( joliex.wsdl.impl.Operation operation )
-	{
+	private String rrOperationToString( joliex.wsdl.impl.Operation operation ) {
 		StringBuilder builder = new StringBuilder();
 		builder.append( operation.name() );
 		builder.append( '(' );
-		if ( operation.requestTypeName() == null ) {
+		if( operation.requestTypeName() == null ) {
 			builder.append( "void" );
 		} else {
 			builder.append( operation.requestTypeName() );
 		}
 		builder.append( ')' );
 		builder.append( '(' );
-		if ( operation.responseTypeName() == null ) {
+		if( operation.responseTypeName() == null ) {
 			builder.append( "void" );
 		} else {
 			builder.append( operation.responseTypeName() );
 		}
 		builder.append( ')' );
-		if ( operation.faults().isEmpty() == false ) {
+		if( operation.faults().isEmpty() == false ) {
 			builder.append( " throws " );
 			List< Pair< String, String > > faults = operation.faults();
 			int i = 0;
@@ -371,18 +351,17 @@ public class WSDLConverter
 					.append( ' ' );
 			}
 			builder.append( faults.get( i ).key() )
-					.append( '(' )
-					.append( faults.get( i ).value() )
-					.append( ')' );
+				.append( '(' )
+				.append( faults.get( i ).value() )
+				.append( ')' );
 		}
 		return builder.toString();
 	}
 
 	private void writeInterface( Interface iface )
-		throws IOException
-	{
+		throws IOException {
 		writeLine( "interface " + iface.name() + " {" );
-		if ( iface.oneWayOperations().isEmpty() == false ) {
+		if( iface.oneWayOperations().isEmpty() == false ) {
 			writeLine( "OneWay:" );
 			indent();
 			int i;
@@ -392,14 +371,15 @@ public class WSDLConverter
 			writeLine( owOperationToString( iface.oneWayOperations().get( i ) ) );
 			unindent();
 		}
-		if ( iface.requestResponseOperations().isEmpty() == false ) {
+		if( iface.requestResponseOperations().isEmpty() == false ) {
 			writeLine( "RequestResponse:" );
 			indent();
 			int i;
 			for( i = 0; i < iface.requestResponseOperations().size() - 1; i++ ) {
-				/*if ( iface.requestResponseOperations().get( i ).comment().isEmpty() == false ) {
-					writeLine( "// " + iface.requestResponseOperations().get( i ).comment() );
-				}*/
+				/*
+				 * if ( iface.requestResponseOperations().get( i ).comment().isEmpty() == false ) { writeLine( "// "
+				 * + iface.requestResponseOperations().get( i ).comment() ); }
+				 */
 				writeLine( rrOperationToString( iface.requestResponseOperations().get( i ) ) + "," );
 			}
 			writeLine( rrOperationToString( iface.requestResponseOperations().get( i ) ) );
@@ -409,28 +389,26 @@ public class WSDLConverter
 	}
 
 	private void convertService( Service service )
-		throws IOException
-	{
-		//String comment = service.getDocumentationElement().getNodeValue();
-		for( Entry< String, Port > entry : (Set< Entry<String, Port> >)service.getPorts().entrySet() ) {
+		throws IOException {
+		// String comment = service.getDocumentationElement().getNodeValue();
+		for( Entry< String, Port > entry : (Set< Entry< String, Port > >) service.getPorts().entrySet() ) {
 			convertPort( entry.getValue() );
 		}
 	}
 
 	private void convertPort( Port port )
-		throws IOException
-	{
+		throws IOException {
 		String comment = "";
 		String name = port.getName();
 		String protocol = "soap";
 		String location = "socket://localhost:80/";
-		if ( port.getDocumentationElement() != null ) {
+		if( port.getDocumentationElement() != null ) {
 			comment = port.getDocumentationElement().getNodeValue();
 		}
 		List< ExtensibilityElement > extElements = port.getExtensibilityElements();
 		for( ExtensibilityElement element : extElements ) {
-			if ( element instanceof SOAPAddress ) {
-				location = ((SOAPAddress)element).getLocationURI().toString();
+			if( element instanceof SOAPAddress ) {
+				location = ((SOAPAddress) element).getLocationURI().toString();
 				StringBuilder builder = new StringBuilder();
 				builder.append( "soap {\n" )
 					.append( "\t.wsdl = \"" )
@@ -438,11 +416,11 @@ public class WSDLConverter
 					.append( "\";\n" )
 					.append( "\t.wsdl.port = \"" )
 					.append( port.getName() )
-					.append( "\"\n}");
+					.append( "\"\n}" );
 				protocol = builder.toString();
 
-			} else if ( element instanceof HTTPAddress ) {
-				location = ((HTTPAddress)element).getLocationURI().toString();
+			} else if( element instanceof HTTPAddress ) {
+				location = ((HTTPAddress) element).getLocationURI().toString();
 				protocol = "http";
 			}
 		}
@@ -452,11 +430,10 @@ public class WSDLConverter
 				"socket",
 				uri.getUserInfo(),
 				uri.getHost(),
-				( uri.getPort() < 1 ) ? 80 : uri.getPort(),
+				(uri.getPort() < 1) ? 80 : uri.getPort(),
 				uri.getPath(),
 				uri.getQuery(),
-				uri.getFragment()
-			);
+				uri.getFragment() );
 			location = uri.toString();
 		} catch( URISyntaxException e ) {
 			e.printStackTrace();
@@ -465,32 +442,30 @@ public class WSDLConverter
 		PortType portType = binding.getPortType();
 		convertPortType( portType, binding );
 		outputPorts.put( name, new OutputPort(
-			name, location, protocol, portType.getQName().getLocalPart(), comment
-		) );
+			name, location, protocol, portType.getQName().getLocalPart(), comment ) );
 	}
 
 	private void convertPortType( PortType portType, Binding binding )
-		throws IOException
-	{
+		throws IOException {
 		String comment = "";
-		if ( portType.getDocumentationElement() != null ) {
+		if( portType.getDocumentationElement() != null ) {
 			comment = portType.getDocumentationElement().getNodeValue();
 		}
-		
+
 		Style style = Style.DOCUMENT;
-		for( ExtensibilityElement element : (List<ExtensibilityElement>)binding.getExtensibilityElements() ) {
-			if ( element instanceof SOAPBinding ) {
-				if ( "rpc".equals(((SOAPBinding)element).getStyle()) ) {
+		for( ExtensibilityElement element : (List< ExtensibilityElement >) binding.getExtensibilityElements() ) {
+			if( element instanceof SOAPBinding ) {
+				if( "rpc".equals( ((SOAPBinding) element).getStyle() ) ) {
 					style = Style.RPC;
 				}
-			} else if ( element instanceof HTTPBinding ) {
+			} else if( element instanceof HTTPBinding ) {
 				style = Style.HTTP;
 			}
 		}
 		Interface iface = new Interface( portType.getQName().getLocalPart(), comment );
 		List< Operation > operations = portType.getOperations();
 		for( Operation operation : operations ) {
-			if ( operation.getOutput() == null ) {
+			if( operation.getOutput() == null ) {
 				iface.addOneWayOperation( convertOperation( operation, style ) );
 			} else {
 				iface.addRequestResponseOperation( convertOperation( operation, style ) );
@@ -500,33 +475,32 @@ public class WSDLConverter
 	}
 
 	private String convertOperationMessage( Message message, String operationName, Style style )
-		throws IOException
-	{
+		throws IOException {
 		String typeName = null; // "void" datatype per default
 		Map< String, Part > parts = message.getParts();
-		if ( parts.size() > 1 || style == Style.RPC ) {
+		if( parts.size() > 1 || style == Style.RPC ) {
 			typeName = message.getQName().getLocalPart();
-			TypeInlineDefinition requestType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName, NativeType.VOID, jolie.lang.Constants.RANGE_ONE_TO_ONE );
+			TypeInlineDefinition requestType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
+				NativeType.VOID, jolie.lang.Constants.RANGE_ONE_TO_ONE );
 			for( Entry< String, Part > entry : parts.entrySet() ) {
 				Part part = entry.getValue();
-				if ( part.getElementName() == null ) {
-					if ( part.getTypeName() == null ) {
-						throw new IOException( "Could not parse message part " + entry.getKey() + " for operation " + operationName + "." );
+				if( part.getElementName() == null ) {
+					if( part.getTypeName() == null ) {
+						throw new IOException( "Could not parse message part " + entry.getKey() + " for operation "
+							+ operationName + "." );
 					}
 					TypeDefinitionLink link = new TypeDefinitionLink(
 						URIParsingContext.DEFAULT,
 						part.getName(),
 						jolie.lang.Constants.RANGE_ONE_TO_ONE,
-						XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id()
-					);
+						XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id() );
 					requestType.putSubType( link );
 				} else {
 					TypeDefinitionLink link = new TypeDefinitionLink(
 						URIParsingContext.DEFAULT,
 						part.getName(),
 						jolie.lang.Constants.RANGE_ONE_TO_ONE,
-						part.getElementName().getLocalPart()
-					);
+						part.getElementName().getLocalPart() );
 					requestType.putSubType( link );
 				}
 			}
@@ -534,15 +508,16 @@ public class WSDLConverter
 		} else {
 			for( Entry< String, Part > entry : parts.entrySet() ) {
 				Part part = entry.getValue();
-				if ( part.getElementName() == null ) {
-					if ( part.getTypeName() == null ) {
-						throw new IOException( "Could not parse message part " + entry.getKey() + " for operation " + operationName + "." );
+				if( part.getElementName() == null ) {
+					if( part.getTypeName() == null ) {
+						throw new IOException( "Could not parse message part " + entry.getKey() + " for operation "
+							+ operationName + "." );
 					}
 					typeName = XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id();
 				} else {
 					typeName = part.getElementName().getLocalPart();
 					NativeType nativeType = XsdUtils.xsdToNativeType( typeName );
-					if ( nativeType != null ) {
+					if( nativeType != null ) {
 						typeName = nativeType.id();
 					}
 				}
@@ -553,17 +528,18 @@ public class WSDLConverter
 	}
 
 	private joliex.wsdl.impl.Operation convertOperation( Operation operation, Style style )
-		throws IOException
-	{
+		throws IOException {
 		String comment = "";
-		if ( operation.getDocumentationElement() != null ) {
+		if( operation.getDocumentationElement() != null ) {
 			operation.getDocumentationElement().getNodeValue();
 		}
-        String responseTypeName = null;
-                
-		String requestTypeName = convertOperationMessage( operation.getInput().getMessage(), operation.getName(), style );
-		if ( operation.getOutput() != null ) {
-				responseTypeName = convertOperationMessage( operation.getOutput().getMessage(), operation.getName(), style );
+		String responseTypeName = null;
+
+		String requestTypeName =
+			convertOperationMessage( operation.getInput().getMessage(), operation.getName(), style );
+		if( operation.getOutput() != null ) {
+			responseTypeName =
+				convertOperationMessage( operation.getOutput().getMessage(), operation.getName(), style );
 		}
 
 		Map< String, Part > parts;
@@ -573,29 +549,29 @@ public class WSDLConverter
 			String faultName = entry.getKey();
 			String faultTypeName = null;
 			parts = entry.getValue().getMessage().getParts();
-			if ( parts.size() > 1 ) {
+			if( parts.size() > 1 ) {
 				String typeName = faultName = faultTypeName;
-				TypeInlineDefinition faultType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName, NativeType.VOID, jolie.lang.Constants.RANGE_ONE_TO_ONE );
+				TypeInlineDefinition faultType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
+					NativeType.VOID, jolie.lang.Constants.RANGE_ONE_TO_ONE );
 				for( Entry< String, Part > partEntry : parts.entrySet() ) {
 					Part part = partEntry.getValue();
-					if ( part.getElementName() == null ) {
-						if ( part.getTypeName() == null ) {
-							throw new IOException( "Could not parse message part " + entry.getKey() + " for operation " + operation.getName() + "." );
+					if( part.getElementName() == null ) {
+						if( part.getTypeName() == null ) {
+							throw new IOException( "Could not parse message part " + entry.getKey() + " for operation "
+								+ operation.getName() + "." );
 						}
 						TypeDefinitionLink link = new TypeDefinitionLink(
 							URIParsingContext.DEFAULT,
 							part.getName(),
 							jolie.lang.Constants.RANGE_ONE_TO_ONE,
-							XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id()
-						);
+							XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id() );
 						faultType.putSubType( link );
 					} else {
 						TypeDefinitionLink link = new TypeDefinitionLink(
 							URIParsingContext.DEFAULT,
 							part.getName(),
 							jolie.lang.Constants.RANGE_ONE_TO_ONE,
-							part.getElementName().getLocalPart()
-						);
+							part.getElementName().getLocalPart() );
 						faultType.putSubType( link );
 					}
 				}
@@ -603,15 +579,16 @@ public class WSDLConverter
 			} else {
 				for( Entry< String, Part > e : parts.entrySet() ) {
 					Part part = e.getValue();
-					if ( part.getElementName() == null ) {
-						if ( part.getTypeName() == null ) {
-							throw new IOException( "Could not parse message part " + e.getKey() + " for operation " + operation.getName() + ", fault " + entry.getKey() + "." );
+					if( part.getElementName() == null ) {
+						if( part.getTypeName() == null ) {
+							throw new IOException( "Could not parse message part " + e.getKey() + " for operation "
+								+ operation.getName() + ", fault " + entry.getKey() + "." );
 						}
 						faultTypeName = XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id();
 					} else {
 						faultTypeName = part.getElementName().getLocalPart();
 						NativeType nativeType = XsdUtils.xsdToNativeType( faultTypeName );
-						if ( nativeType != null ) {
+						if( nativeType != null ) {
 							faultTypeName = nativeType.id();
 						}
 					}
@@ -625,7 +602,6 @@ public class WSDLConverter
 			requestTypeName,
 			responseTypeName,
 			faultList,
-			comment
-		);
+			comment );
 	}
 }

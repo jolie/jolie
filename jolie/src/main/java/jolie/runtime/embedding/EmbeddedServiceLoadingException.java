@@ -23,17 +23,14 @@ package jolie.runtime.embedding;
 
 import jolie.lang.Constants;
 
-public class EmbeddedServiceLoadingException extends Exception
-{
+public class EmbeddedServiceLoadingException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	public EmbeddedServiceLoadingException( String message )
-	{
+
+	public EmbeddedServiceLoadingException( String message ) {
 		super( message );
 	}
-	
-	public EmbeddedServiceLoadingException( Exception e )
-	{
+
+	public EmbeddedServiceLoadingException( Exception e ) {
 		super( e );
 	}
 }

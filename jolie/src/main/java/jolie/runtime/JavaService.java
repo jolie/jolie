@@ -42,15 +42,15 @@ import jolie.runtime.embedding.RequestResponse;
  *
  * @author Fabrizio Montesi
  */
-public abstract class JavaService
-{
+public abstract class JavaService {
 	@FunctionalInterface
 	private interface JavaOperationCallable {
 		public CommMessage call( JavaService service, JavaOperation javaOperation, CommMessage message )
 			throws IllegalAccessException;
 	}
-	
-	public interface ValueConverter {}
+
+	public interface ValueConverter {
+	}
 
 	private static class JavaOperation {
 		private final Method method;
@@ -59,11 +59,10 @@ public abstract class JavaService
 		private final JavaOperationCallable callable;
 
 		private JavaOperation(
-				Method method,
-				Method parameterConstructor,
-				Method returnValueConstructor,
-				JavaOperationCallable callable
-		) {
+			Method method,
+			Method parameterConstructor,
+			Method returnValueConstructor,
+			JavaOperationCallable callable ) {
 			this.method = method;
 			this.parameterConstructor = parameterConstructor;
 			this.returnValueConstructor = returnValueConstructor;
@@ -71,17 +70,14 @@ public abstract class JavaService
 		}
 	}
 
-	protected static class Embedder
-	{
+	protected static class Embedder {
 		private final Interpreter interpreter;
-		
-		private Embedder( Interpreter interpreter )
-		{
+
+		private Embedder( Interpreter interpreter ) {
 			this.interpreter = interpreter;
 		}
 
-		public void callOneWay( CommMessage message )
-		{
+		public void callOneWay( CommMessage message ) {
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
 				c.send( message );
@@ -92,13 +88,12 @@ public abstract class JavaService
 		}
 
 		public Value callRequestResponse( CommMessage request )
-			throws FaultException
-		{
+			throws FaultException {
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
 				c.send( request );
 				CommMessage response = c.recvResponseFor( request ).get();
-				if ( response.isFault() ) {
+				if( response.isFault() ) {
 					throw response.fault();
 				}
 				return response.value();
@@ -111,18 +106,17 @@ public abstract class JavaService
 	private Interpreter interpreter;
 	private final Map< String, JavaOperation > operations;
 
-	public JavaService()
-	{
-		Map< String, JavaOperation > ops  = new HashMap<>();
-		
-		Class<?>[] params;
-		for( Method method : this.getClass().getDeclaredMethods() ) {
-			if ( Modifier.isPublic( method.getModifiers() ) ) {
-				params = method.getParameterTypes();
-				if ( params.length == 1 ) {
-					checkMethod( ops, method, getFromValueConverter( params[0] ) );
+	public JavaService() {
+		Map< String, JavaOperation > ops = new HashMap<>();
 
-				} else if ( params.length == 0 ) {
+		Class< ? >[] params;
+		for( Method method : this.getClass().getDeclaredMethods() ) {
+			if( Modifier.isPublic( method.getModifiers() ) ) {
+				params = method.getParameterTypes();
+				if( params.length == 1 ) {
+					checkMethod( ops, method, getFromValueConverter( params[ 0 ] ) );
+
+				} else if( params.length == 0 ) {
 					checkMethod( ops, method, null );
 				}
 			}
@@ -130,10 +124,9 @@ public abstract class JavaService
 		this.operations = Collections.unmodifiableMap( ops );
 	}
 
-	private static String getMethodName( Method method )
-	{
+	private static String getMethodName( Method method ) {
 		Identifier identifier = method.getAnnotation( Identifier.class );
-		if ( identifier == null ) {
+		if( identifier == null ) {
 			return method.getName();
 		}
 
@@ -141,10 +134,11 @@ public abstract class JavaService
 	}
 
 	// Warning: this MUST NOT contain void.
-	/* When you add something here, be sure that you define the appropriate
-	 * "create..." static method in JavaServiceHelpers.
+	/*
+	 * When you add something here, be sure that you define the appropriate "create..." static method in
+	 * JavaServiceHelpers.
 	 */
-	private static final Class<?>[] supportedTypes = new Class[] {
+	private static final Class< ? >[] supportedTypes = new Class[] {
 		Value.class, String.class, Integer.class, Double.class, Boolean.class,
 		Long.class, ByteArray.class
 	};
@@ -154,7 +148,7 @@ public abstract class JavaService
 	static {
 		toValueConverters = new Method[ supportedTypes.length ];
 		try {
-			toValueConverters[0] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
+			toValueConverters[ 0 ] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
 			for( int i = 1; i < supportedTypes.length; i++ ) {
 				toValueConverters[ i ] = Value.class.getMethod( "create", supportedTypes[ i ] );
 			}
@@ -165,9 +159,10 @@ public abstract class JavaService
 
 		fromValueConverters = new Method[ supportedTypes.length ];
 		try {
-			fromValueConverters[0] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
+			fromValueConverters[ 0 ] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
 			for( int i = 1; i < supportedTypes.length; i++ ) {
-				fromValueConverters[ i ] = JavaServiceHelpers.class.getMethod( "valueTo" + supportedTypes[i].getSimpleName(), Value.class );
+				fromValueConverters[ i ] =
+					JavaServiceHelpers.class.getMethod( "valueTo" + supportedTypes[ i ].getSimpleName(), Value.class );
 			}
 		} catch( NoSuchMethodException e ) {
 			e.printStackTrace();
@@ -175,13 +170,12 @@ public abstract class JavaService
 		}
 	}
 
-	private static Method getToValueConverter( Class<?> param )
-	{
-		if ( param == null ) {
+	private static Method getToValueConverter( Class< ? > param ) {
+		if( param == null ) {
 			return null;
 		}
 
-		if ( ValueConverter.class.isAssignableFrom( param ) ) {
+		if( ValueConverter.class.isAssignableFrom( param ) ) {
 			try {
 				return param.getMethod( "toValue", param );
 			} catch( NoSuchMethodException e ) {
@@ -190,22 +184,21 @@ public abstract class JavaService
 		}
 
 		int i = 0;
-		for( Class<?> type : supportedTypes ) {
-			if ( param.isAssignableFrom( type ) ) {
-				return toValueConverters[i];
+		for( Class< ? > type : supportedTypes ) {
+			if( param.isAssignableFrom( type ) ) {
+				return toValueConverters[ i ];
 			}
 			i++;
 		}
 		return null;
 	}
 
-	private static Method getFromValueConverter( Class<?> param )
-	{
-		if ( param == null ) {
+	private static Method getFromValueConverter( Class< ? > param ) {
+		if( param == null ) {
 			return null;
 		}
 
-		if ( ValueConverter.class.isAssignableFrom( param ) ) {
+		if( ValueConverter.class.isAssignableFrom( param ) ) {
 			try {
 				return param.getMethod( "fromValue", Value.class );
 			} catch( NoSuchMethodException e ) {
@@ -214,18 +207,18 @@ public abstract class JavaService
 		}
 
 		int i = 0;
-		for( Class<?> type : supportedTypes ) {
-			if ( param.isAssignableFrom( type ) ) {
-				return fromValueConverters[i];
+		for( Class< ? > type : supportedTypes ) {
+			if( param.isAssignableFrom( type ) ) {
+				return fromValueConverters[ i ];
 			}
 			i++;
 		}
 		return null;
 	}
-	
-	private static CommMessage oneWayCallable( JavaService javaService, JavaOperation javaOperation, CommMessage message )
-		throws IllegalAccessException
-	{
+
+	private static CommMessage oneWayCallable( JavaService javaService, JavaOperation javaOperation,
+		CommMessage message )
+		throws IllegalAccessException {
 		final Object[] args = getArguments( javaOperation, message );
 		javaService.interpreter.execute( () -> {
 			try {
@@ -237,88 +230,79 @@ public abstract class JavaService
 		} );
 		return CommMessage.createEmptyResponse( message );
 	}
-	
-	private static CommMessage requestResponseCallable( JavaService javaService, JavaOperation javaOperation, CommMessage message )
-		throws IllegalAccessException
-	{
+
+	private static CommMessage requestResponseCallable( JavaService javaService, JavaOperation javaOperation,
+		CommMessage message )
+		throws IllegalAccessException {
 		final Object[] args = getArguments( javaOperation, message );
 		try {
 			final Object retObject = javaOperation.method.invoke( javaService, args );
-			if ( retObject == null ) {
+			if( retObject == null ) {
 				return CommMessage.createEmptyResponse( message );
 			} else {
-				return CommMessage.createResponse( message, (Value)javaOperation.returnValueConstructor.invoke( null, retObject ) );
+				return CommMessage.createResponse( message,
+					(Value) javaOperation.returnValueConstructor.invoke( null, retObject ) );
 			}
 		} catch( InvocationTargetException e ) {
 			final FaultException fault =
-				( e.getCause() instanceof FaultException )
-				? (FaultException)e.getCause()
-				: new FaultException( e.getCause() );
+				(e.getCause() instanceof FaultException)
+					? (FaultException) e.getCause()
+					: new FaultException( e.getCause() );
 			return CommMessage.createFaultResponse(
 				message,
-				fault
-			);
+				fault );
 		}
 	}
 
-	private void checkMethod( Map< String, JavaOperation > ops, Method method, Method parameterConstructor )
-	{
-		final Class<?> returnType;
-		final Class<?>[] exceptions;
+	private void checkMethod( Map< String, JavaOperation > ops, Method method, Method parameterConstructor ) {
+		final Class< ? > returnType;
+		final Class< ? >[] exceptions;
 		final Method returnValueConstructor;
 
 		returnType = method.getReturnType();
-		if ( void.class.isAssignableFrom( returnType ) ) {
+		if( void.class.isAssignableFrom( returnType ) ) {
 			final boolean isRequestResponse = method.getAnnotation( RequestResponse.class ) != null;
 			exceptions = method.getExceptionTypes();
-			if ( isRequestResponse ) { // && ( exceptions.length == 0 || (exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
+			if( isRequestResponse ) { // && ( exceptions.length == 0 || (exceptions.length == 1 &&
+										// FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
 				ops.put(
 					method.getName(),
 					new JavaOperation(
 						method,
 						parameterConstructor,
 						null,
-						JavaService::requestResponseCallable
-					)
-				);
-			} else if ( exceptions.length == 0 ) {
+						JavaService::requestResponseCallable ) );
+			} else if( exceptions.length == 0 ) {
 				ops.put(
 					method.getName(),
 					new JavaOperation(
 						method,
 						parameterConstructor,
 						null,
-						JavaService::oneWayCallable
-					)
-				);
+						JavaService::oneWayCallable ) );
 			}
 		} else {
 			returnValueConstructor = getToValueConverter( returnType );
-			if ( returnValueConstructor != null ) {
+			if( returnValueConstructor != null ) {
 				exceptions = method.getExceptionTypes();
-				if ( exceptions.length == 0 ||
-					( exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0] ) )
-					)
-				{
+				if( exceptions.length == 0 ||
+					(exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[ 0 ] )) ) {
 					ops.put(
 						getMethodName( method ),
 						new JavaOperation(
 							method,
 							parameterConstructor,
 							returnValueConstructor,
-							JavaService::requestResponseCallable
-						)
-					);
+							JavaService::requestResponseCallable ) );
 				}
 			}
 		}
 	}
 
 	private static Object[] getArguments( final JavaOperation javaOperation, final CommMessage message )
-		throws IllegalAccessException
-	{
-		if ( javaOperation.parameterConstructor == null ) {
-			return new Object[0];
+		throws IllegalAccessException {
+		if( javaOperation.parameterConstructor == null ) {
+			return new Object[ 0 ];
 		} else {
 			try {
 				return new Object[] { javaOperation.parameterConstructor.invoke( null, message.value() ) };
@@ -327,30 +311,26 @@ public abstract class JavaService
 			}
 		}
 	}
-	
+
 	public CommMessage callOperation( CommMessage message )
-		throws InvalidIdException, IllegalAccessException
-	{
+		throws InvalidIdException, IllegalAccessException {
 		final JavaOperation javaOperation = operations.get( message.operationName() );
-		if ( javaOperation == null ) {
+		if( javaOperation == null ) {
 			throw new InvalidIdException( message.operationName() );
 		}
 
 		return javaOperation.callable.call( this, javaOperation, message );
 	}
-	
-	public final void setInterpreter( Interpreter interpreter )
-	{
+
+	public final void setInterpreter( Interpreter interpreter ) {
 		this.interpreter = interpreter;
 	}
-	
-	protected Interpreter interpreter()
-	{
+
+	protected Interpreter interpreter() {
 		return interpreter;
 	}
-	
-	public CommChannel sendMessage( CommMessage message )
-	{
+
+	public CommChannel sendMessage( CommMessage message ) {
 		LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 		try {
 			c.send( message );

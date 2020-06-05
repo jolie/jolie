@@ -46,13 +46,12 @@ import jolie.runtime.typing.OperationTypeDescription;
 import jolie.util.LocationParser;
 
 /**
- * This class represents a JOLIE output port, offering methods for getting
- * proper communication channels for it.
+ * This class represents a JOLIE output port, offering methods for getting proper communication
+ * channels for it.
  *
  * @author Fabrizio Montesi
  */
-public class OutputPort extends AbstractIdentifiableObject implements Port
-{
+public class OutputPort extends AbstractIdentifiableObject implements Port {
 	private final Interpreter interpreter;
 	private final Process configurationProcess;
 	private Expression locationExpression;
@@ -60,25 +59,24 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private final boolean isConstant;
 	private final Interface iface;
 
-	/* To be called at runtime, after main is run.
-	 * Requires the caller to set the variables by itself.
+	/*
+	 * To be called at runtime, after main is run. Requires the caller to set the variables by itself.
 	 */
-	public OutputPort( Interpreter interpreter, String id )
-	{
+	public OutputPort( Interpreter interpreter, String id ) {
 		super( id );
 		this.interpreter = interpreter;
 
 		this.protocolVariablePath =
-					new VariablePathBuilder( false )
-					.add( id(), 0 )
-					.add( Constants.PROTOCOL_NODE_NAME, 0 )
-					.toVariablePath();
-		
+			new VariablePathBuilder( false )
+				.add( id(), 0 )
+				.add( Constants.PROTOCOL_NODE_NAME, 0 )
+				.toVariablePath();
+
 		this.locationVariablePath =
-					new VariablePathBuilder( false )
-					.add( id(), 0 )
-					.add( Constants.LOCATION_NODE_NAME, 0 )
-					.toVariablePath();
+			new VariablePathBuilder( false )
+				.add( id(), 0 )
+				.add( Constants.LOCATION_NODE_NAME, 0 )
+				.toVariablePath();
 
 		this.locationExpression = this.locationVariablePath;
 
@@ -87,15 +85,14 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 
 		this.iface = Interface.UNDEFINED;
 	}
-	
+
 	public OutputPort(
 		Interpreter interpreter,
 		String id,
 		VariablePath locationVariablePath,
 		VariablePath protocolVariablePath,
 		Interface iface,
-		boolean isConstant
-	) {
+		boolean isConstant ) {
 		super( id );
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
@@ -105,9 +102,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.locationExpression = locationVariablePath;
 		this.configurationProcess = NullProcess.getInstance();
 	}
-	
+
 	/**
 	 * To be called by OOITBuilder
+	 * 
 	 * @param interpreter
 	 * @param id
 	 * @param protocolId
@@ -117,128 +115,121 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @param isConstant
 	 */
 	public OutputPort(
-			Interpreter interpreter,
-			String id,
-			String protocolId,
-			Process protocolConfigurationProcess,
-			URI locationURI,
-			Interface iface,
-			boolean isConstant
-	) {
+		Interpreter interpreter,
+		String id,
+		String protocolId,
+		Process protocolConfigurationProcess,
+		URI locationURI,
+		Interface iface,
+		boolean isConstant ) {
 		super( id );
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
 		this.iface = iface;
 
 		this.protocolVariablePath =
-					new VariablePathBuilder( false )
-					.add( id(), 0 )
-					.add( Constants.PROTOCOL_NODE_NAME, 0 )
-					.toVariablePath();
+			new VariablePathBuilder( false )
+				.add( id(), 0 )
+				.add( Constants.PROTOCOL_NODE_NAME, 0 )
+				.toVariablePath();
 
 		this.locationVariablePath =
-					new VariablePathBuilder( false )
-					.add( id(), 0 )
-					.add( Constants.LOCATION_NODE_NAME, 0 )
-					.toVariablePath();
+			new VariablePathBuilder( false )
+				.add( id(), 0 )
+				.add( Constants.LOCATION_NODE_NAME, 0 )
+				.toVariablePath();
 
 		this.locationExpression = locationVariablePath;
-		
+
 		// Create the configuration Process
-		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
-			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ), null );
+		Process a = (locationURI == null) ? NullProcess.getInstance()
+			: new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ), null );
 
 		List< Process > children = new LinkedList<>();
 		children.add( a );
-		if ( protocolConfigurationProcess != null ) {
+		if( protocolConfigurationProcess != null ) {
 			children.add( protocolConfigurationProcess );
 		}
-		if ( protocolId != null ) {
+		if( protocolId != null ) {
 			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ), null ) );
 		}
 		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
 	}
-	
+
 	/**
-	 * Returns a new message with same operation and value, but resourcePath
-	 * updated to the current one of this output port.
+	 * Returns a new message with same operation and value, but resourcePath updated to the current one
+	 * of this output port.
+	 * 
 	 * @param message the original message
 	 * @return a new message with same operation and value, but updated resource
 	 * @throws java.net.URISyntaxException
 	 */
 	public CommMessage createAggregatedRequest( CommMessage message )
-		throws URISyntaxException
-	{
+		throws URISyntaxException {
 		return new CommMessage(
 			CommMessage.getNewMessageId(),
 			message.operationName(),
 			getResourcePath(),
 			message.value(),
-			message.fault()
-		);
+			message.fault() );
 	}
 
 	@Override
-	public Interface getInterface()
-	{
+	public Interface getInterface() {
 		return iface;
 	}
 
-	public void optimizeLocation()
-	{
-		if ( isConstant ) {
+	public void optimizeLocation() {
+		if( isConstant ) {
 			locationExpression = locationVariablePath.getValue();
 		}
 	}
 
 	@Override
-	public VariablePath protocolConfigurationPath()
-	{
+	public VariablePath protocolConfigurationPath() {
 		return protocolVariablePath;
 	}
 
 	/**
 	 * Gets the protocol to be used for communicating with this output port.
+	 * 
 	 * @return the protocol to be used for communicating with this output port.
 	 * @throws java.io.IOException
 	 * @throws java.net.URISyntaxException
 	 */
 	public CommProtocol getProtocol()
-		throws IOException, URISyntaxException
-	{
+		throws IOException, URISyntaxException {
 		String protocolId = protocolVariablePath.getValue().strValue();
-		if ( protocolId.isEmpty() ) {
+		if( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
 		}
 		return interpreter.commCore().createOutputCommProtocol(
 			protocolId,
 			protocolVariablePath,
-			new URI( locationExpression.evaluate().strValue() )
-		);
+			new URI( locationExpression.evaluate().strValue() ) );
 	}
 
-	
+
 	private CommChannel getCommChannel( boolean forceNew )
-		throws URISyntaxException, IOException
-	{
+		throws URISyntaxException, IOException {
 		CommChannel ret;
 		Value loc = locationExpression.evaluate();
-		if ( loc.isChannel() ) {
+		if( loc.isChannel() ) {
 			// It's a local channel
 			ret = loc.channelValue();
-			if ( forceNew ) {
+			if( forceNew ) {
 				ret = ret.createDuplicate();
 			}
 		} else {
 			URI uri = getLocation( loc );
-			if ( forceNew ) {
+			if( forceNew ) {
 				// A fresh channel was requested
 				ret = interpreter.commCore().createCommChannel( uri, this );
 			} else {
 				// Try reusing an existing channel first
 				String protocol = protocolVariablePath.getValue().strValue();
 				ret = interpreter.commCore().getPersistentChannel( uri, protocol );
-				if ( ret == null ) {
+				if( ret == null ) {
 					ret = interpreter.commCore().createCommChannel( uri, this );
 				}
 			}
@@ -250,6 +241,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 
 	private static class LazyLocalUriHolder {
 		private LazyLocalUriHolder() {}
+
 		private static final URI uri = URI.create( "local" );
 	}
 
@@ -257,29 +249,28 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 
 	/**
 	 * Returns the resource path of the location of this output port.
+	 * 
 	 * @return the resource path of the location of this output port
 	 * @throws java.net.URISyntaxException
 	 */
 	public String getResourcePath()
-		throws URISyntaxException
-	{
+		throws URISyntaxException {
 		Value location = locationExpression.evaluate();
-		if ( location.isChannel() ) {
+		if( location.isChannel() ) {
 			return "/";
 		}
 		return LocationParser.getResourcePath( getLocation( location ) );
 	}
 
 	private URI getLocation( Value location )
-		throws URISyntaxException
-	{
-		if ( location.isChannel() ) {
+		throws URISyntaxException {
+		if( location.isChannel() ) {
 			return LazyLocalUriHolder.uri;
 		}
 		String s = location.strValue();
 		URI ret;
 		synchronized( uriCache ) {
-			if ( (ret=uriCache.get( s )) == null ) {
+			if( (ret = uriCache.get( s )) == null ) {
 				ret = new URI( s );
 				uriCache.put( s, ret );
 			}
@@ -289,54 +280,52 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 
 	/**
 	 * Returns a new and unused CommChannel for this OutputPort
+	 * 
 	 * @return a CommChannel for this OutputPort
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
 	public final CommChannel getNewCommChannel()
-		throws URISyntaxException, IOException
-	{
+		throws URISyntaxException, IOException {
 		return getCommChannel( true );
 	}
 
 	/**
-	 * Returns a CommChannel for this OutputPort, possibly reusing an
-	 * open persistent channel.
+	 * Returns a CommChannel for this OutputPort, possibly reusing an open persistent channel.
+	 * 
 	 * @return a CommChannel for this OutputPort
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
 	public final CommChannel getCommChannel()
-		throws URISyntaxException, IOException
-	{
+		throws URISyntaxException, IOException {
 		return getCommChannel( false );
 	}
 
 	/**
 	 * Returns the location variable path of this output port.
+	 * 
 	 * @return the location variable path of this output port
 	 */
-	public VariablePath locationVariablePath()
-	{
+	public VariablePath locationVariablePath() {
 		return locationVariablePath;
 	}
 
 	/**
 	 * Returns the protocol configuration process of this output port.
+	 * 
 	 * @return the protocol configuration process of this output port
 	 */
-	public Process configurationProcess()
-	{
+	public Process configurationProcess() {
 		return configurationProcess;
 	}
-	
-	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath )
-	{
+
+	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath ) {
 		OperationTypeDescription ret = iface.oneWayOperations().get( operationName );
-		if ( ret == null ) {
+		if( ret == null ) {
 			ret = iface.requestResponseOperations().get( operationName );
 		}
-		
+
 		return ret;
 	}
 }

@@ -28,59 +28,54 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePathBuilder;
 
-public class ScopeProcess implements Process
-{
-	private class Execution
-	{
+public class ScopeProcess implements Process {
+	private class Execution {
 		final private ScopeProcess parent;
 		final private ExecutionThread ethread;
 		private boolean shouldMerge = true;
 		private FaultException fault = null;
-		
-		public Execution( ScopeProcess parent )
-		{
+
+		public Execution( ScopeProcess parent ) {
 			this.parent = parent;
 			this.ethread = ExecutionThread.currentThread();
 		}
-		
+
 		public void run()
-			throws FaultException, ExitingException
-		{
+			throws FaultException, ExitingException {
 			ethread.pushScope( parent.id );
 			runScope( parent.process );
-			if ( autoPop ) {
+			if( autoPop ) {
 				ethread.popScope( shouldMerge );
 			}
-			if ( shouldMerge && fault != null ) {
+			if( shouldMerge && fault != null ) {
 				throw fault;
 			}
 		}
-		
+
 		private void runScope( Process p )
-			throws ExitingException
-		{
+			throws ExitingException {
 			try {
 				try {
 					p.run();
-					if ( ethread.isKilled() ) {
+					if( ethread.isKilled() ) {
 						shouldMerge = false;
 						p = ethread.getCompensation( id );
-						if ( p != null ) { // Termination handling
+						if( p != null ) { // Termination handling
 							FaultException f = ethread.killerFault();
 							ethread.clearKill();
 							this.runScope( p );
 							ethread.kill( f );
 						}
 					}
-				} catch( FaultException.RuntimeFaultException rf ){
+				} catch( FaultException.RuntimeFaultException rf ) {
 					throw rf.faultException();
 				}
 			} catch( FaultException f ) {
 				p = ethread.getFaultHandler( f.faultName(), true );
 
-				if ( p != null ) {
+				if( p != null ) {
 					Value scopeValue =
-							new VariablePathBuilder( false )
+						new VariablePathBuilder( false )
 							.add( ethread.currentScopeId(), 0 )
 							.toVariablePath()
 							.getValue();
@@ -93,36 +88,31 @@ public class ScopeProcess implements Process
 			}
 		}
 	}
-	
+
 	private final String id;
 	private final Process process;
 	private final boolean autoPop;
-	
-	public ScopeProcess( String id, Process process, boolean autoPop )
-	{
+
+	public ScopeProcess( String id, Process process, boolean autoPop ) {
 		this.id = id;
 		this.process = process;
 		this.autoPop = autoPop;
 	}
 
-	public ScopeProcess( String id, Process process )
-	{
+	public ScopeProcess( String id, Process process ) {
 		this( id, process, true );
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new ScopeProcess( id, process.copy( reason ), autoPop );
 	}
-	
+
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		(new Execution( this )).run();
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return process.isKillable();
 	}
 }
