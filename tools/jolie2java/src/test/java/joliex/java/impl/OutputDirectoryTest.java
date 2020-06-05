@@ -35,62 +35,68 @@ import static org.junit.Assert.*;
 
 public class OutputDirectoryTest {
 
-    private static ProgramInspector inspector;
-    private static final String outputDirectory = "./target/jolie2java-generated-sources/";
+	private static ProgramInspector inspector;
+	private static final String outputDirectory = "./target/jolie2java-generated-sources/";
 
-    @AfterClass
-    public static void tearDownClass()
-    {
-        File generatedPath = new File( JavaDocumentCreator.defaultOutputDirectory );
-        if ( generatedPath.exists() ) {
-            TestUtils.deleteFolder( generatedPath );
-            generatedPath.delete();
-        }
-    }
+	@AfterClass
+	public static void tearDownClass() {
+		File generatedPath = new File( JavaDocumentCreator.defaultOutputDirectory );
+		if( generatedPath.exists() ) {
+			TestUtils.deleteFolder( generatedPath );
+			generatedPath.delete();
+		}
+	}
 
 
-    @Test
-    public void checkEmptyOutputDirecotry() throws IOException, ParserException, SemanticException, CommandLineException {
-        String[] args = { "src/test/resources/main.ol" };
-        Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
+	@Test
+	public void checkEmptyOutputDirecotry()
+		throws IOException, ParserException, SemanticException, CommandLineException {
+		String[] args = { "src/test/resources/main.ol" };
+		Jolie2JavaCommandLineParser cmdParser =
+			Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
-        Program program = ParsingUtils.parseProgram(
-                cmdParser.getInterpreterParameters().inputStream(),
-                cmdParser.getInterpreterParameters().programFilepath().toURI(),
-                cmdParser.getInterpreterParameters().charset(),
-                cmdParser.getInterpreterParameters().includePaths(),
-                cmdParser.getInterpreterParameters().jolieClassLoader(),
-                cmdParser.getInterpreterParameters().constants(),
-                false );
+		Program program = ParsingUtils.parseProgram(
+			cmdParser.getInterpreterParameters().inputStream(),
+			cmdParser.getInterpreterParameters().programFilepath().toURI(),
+			cmdParser.getInterpreterParameters().charset(),
+			cmdParser.getInterpreterParameters().includePaths(),
+			cmdParser.getInterpreterParameters().jolieClassLoader(),
+			cmdParser.getInterpreterParameters().constants(),
+			false );
 
-        //Program program = parser.parse();
-        inspector = ParsingUtils.createInspector( program );
-        JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, null, true, false);
-        instance.ConvertDocument();
-    }
+		// Program program = parser.parse();
+		inspector = ParsingUtils.createInspector( program );
+		JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, null, true, false );
+		instance.ConvertDocument();
+	}
 
-    @Test
-    public void checkJavaserviceTrue() throws IOException, ParserException, SemanticException, CommandLineException {
-        String[] args = {"src/test/resources/main.ol"};
-        Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
+	@Test
+	public void checkJavaserviceTrue() throws IOException, ParserException, SemanticException, CommandLineException {
+		String[] args = { "src/test/resources/main.ol" };
+		Jolie2JavaCommandLineParser cmdParser =
+			Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
-        Program program = ParsingUtils.parseProgram(
-                cmdParser.getInterpreterParameters().inputStream(),
-                cmdParser.getInterpreterParameters().programFilepath().toURI(),
-                cmdParser.getInterpreterParameters().charset(),
-                cmdParser.getInterpreterParameters().includePaths(),
-                cmdParser.getInterpreterParameters().jolieClassLoader(),
-                cmdParser.getInterpreterParameters().constants(),
-                false );
+		Program program = ParsingUtils.parseProgram(
+			cmdParser.getInterpreterParameters().inputStream(),
+			cmdParser.getInterpreterParameters().programFilepath().toURI(),
+			cmdParser.getInterpreterParameters().charset(),
+			cmdParser.getInterpreterParameters().includePaths(),
+			cmdParser.getInterpreterParameters().jolieClassLoader(),
+			cmdParser.getInterpreterParameters().constants(),
+			false );
 
-        //Program program = parser.parse();
-        inspector = ParsingUtils.createInspector( program );
-        JavaDocumentCreator instance = new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true, true);
-        instance.ConvertDocument();
+		// Program program = parser.parse();
+		inspector = ParsingUtils.createInspector( program );
+		JavaDocumentCreator instance =
+			new JavaDocumentCreator( inspector, "com.test", null, false, outputDirectory, true, true );
+		instance.ConvertDocument();
 
-        assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 43, new File( outputDirectory + "com/test/types" ).list().length );
-        assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 2, new File( outputDirectory +"com/test" ).list().length );
-        assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 2, new File( outputDirectory ).list().length );
-    }
+		assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 43,
+			new File( outputDirectory + "com/test/types" ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 2,
+			new File( outputDirectory + "com/test" ).list().length );
+		assertEquals( "The number of generated files is wrong (interfaceOnly=true)", 2,
+			new File( outputDirectory ).list().length );
+	}
 
 }

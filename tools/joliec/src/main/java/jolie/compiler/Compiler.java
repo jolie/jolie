@@ -36,37 +36,32 @@ import jolie.lang.parse.util.ParsingUtils;
  *
  * @author Fabrizio Montesi
  */
-public class Compiler
-{
+public class Compiler {
 	private final CommandLineParser cmdParser;
-	
+
 	public Compiler( String[] args )
-		throws CommandLineException, IOException
-	{
+		throws CommandLineException, IOException {
 		cmdParser = new CommandLineParser( args, Compiler.class.getClassLoader() );
 	}
-	
+
 	public void compile( OutputStream ostream )
-		throws IOException, ParserException, SemanticException, CommandLineException
-	{
+		throws IOException, ParserException, SemanticException, CommandLineException {
 		Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterParameters().inputStream(),
-				cmdParser.getInterpreterParameters().programFilepath().toURI(),
-				cmdParser.getInterpreterParameters().charset(),
-				cmdParser.getInterpreterParameters().includePaths(),
-				cmdParser.getInterpreterParameters().jolieClassLoader(),
-				cmdParser.getInterpreterParameters().constants(), false
-		);
-		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
+			cmdParser.getInterpreterParameters().inputStream(),
+			cmdParser.getInterpreterParameters().programFilepath().toURI(),
+			cmdParser.getInterpreterParameters().charset(),
+			cmdParser.getInterpreterParameters().includePaths(),
+			cmdParser.getInterpreterParameters().jolieClassLoader(),
+			cmdParser.getInterpreterParameters().constants(), false );
+		// GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( program );
 		ostream.flush();
-		//gzipstream.close();
+		// gzipstream.close();
 	}
-	
+
 	public void compile()
-		throws IOException, ParserException, SemanticException, CommandLineException
-	{
+		throws IOException, ParserException, SemanticException, CommandLineException {
 		try( OutputStream os = new FileOutputStream( cmdParser.getInterpreterParameters().programFilepath() + "c" ) ) {
 			compile( os );
 		}

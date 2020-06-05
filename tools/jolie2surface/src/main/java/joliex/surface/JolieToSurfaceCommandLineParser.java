@@ -28,39 +28,32 @@ import jolie.CommandLineParser;
  *
  * @author Fabrizio Montesi
  */
-public class JolieToSurfaceCommandLineParser extends CommandLineParser
-{
+public class JolieToSurfaceCommandLineParser extends CommandLineParser {
 	private final String inputPortName;
 	private final boolean noOutputPort, noLocation, noProtocol;
 
-	public boolean noOutputPort()
-	{
+	public boolean noOutputPort() {
 		return noOutputPort;
 	}
-	
-	public boolean noLocation()
-	{
+
+	public boolean noLocation() {
 		return noLocation;
 	}
-	
-	public boolean noProtocol()
-	{
+
+	public boolean noProtocol() {
 		return noProtocol;
 	}
 
-	public String inputPortName()
-	{
+	public String inputPortName() {
 		return inputPortName;
 	}
 
-	private static class JolieDocArgumentHandler implements CommandLineParser.ArgumentHandler
-	{
+	private static class JolieDocArgumentHandler implements CommandLineParser.ArgumentHandler {
 		private boolean noOutputPort, noLocation, noProtocol;
 
 		@Override
 		public int onUnrecognizedArgument( List< String > argumentsList, int index )
-			throws CommandLineException
-		{
+			throws CommandLineException {
 			switch( argumentsList.get( index ) ) {
 			case "--noOutputPort":
 				noOutputPort = true;
@@ -80,27 +73,25 @@ public class JolieToSurfaceCommandLineParser extends CommandLineParser
 	}
 
 	public static JolieToSurfaceCommandLineParser create( String[] args, ClassLoader parentClassLoader )
-		throws CommandLineException, IOException
-	{
+		throws CommandLineException, IOException {
 		return new JolieToSurfaceCommandLineParser( args, parentClassLoader, new JolieDocArgumentHandler() );
 	}
 
-	private JolieToSurfaceCommandLineParser( String[] args, ClassLoader parentClassLoader, JolieDocArgumentHandler argHandler )
-		throws CommandLineException, IOException
-	{
+	private JolieToSurfaceCommandLineParser( String[] args, ClassLoader parentClassLoader,
+		JolieDocArgumentHandler argHandler )
+		throws CommandLineException, IOException {
 		super( args, parentClassLoader, argHandler );
-		if ( getInterpreterParameters().arguments().length < 1 ) {
+		if( getInterpreterParameters().arguments().length < 1 ) {
 			throw new CommandLineException( "no input port name provided (try jolie2surface --help for help)" );
 		}
-		inputPortName = getInterpreterParameters().arguments()[0];
+		inputPortName = getInterpreterParameters().arguments()[ 0 ];
 		noLocation = argHandler.noLocation;
 		noOutputPort = argHandler.noOutputPort;
 		noProtocol = argHandler.noProtocol;
 	}
 
 	@Override
-	protected String getHelpString()
-	{
+	protected String getHelpString() {
 		return "Usage: jolie2surface [ --noOutputPort ] [ --noLocation ] [ --noProtocol ] <filename.ol|filename.iol> <input port name>";
 	}
 }

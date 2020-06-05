@@ -33,26 +33,26 @@ import jolie.lang.parse.util.ProgramInspector;
  *
  * @author Claudio Guidi
  */
-public class GetSurface
-{
+public class GetSurface {
 	/**
 	 * @param args the command line arguments
 	 */
-	public static void main( String[] args )
-	{
+	public static void main( String[] args ) {
 		// TODO code application logic here
 		try {
-			JolieToSurfaceCommandLineParser cmdParser = JolieToSurfaceCommandLineParser.create( args, GetSurface.class.getClassLoader() );
+			JolieToSurfaceCommandLineParser cmdParser =
+				JolieToSurfaceCommandLineParser.create( args, GetSurface.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
-					cmdParser.getInterpreterParameters().inputStream(),
-					cmdParser.getInterpreterParameters().programFilepath().toURI(),
-					cmdParser.getInterpreterParameters().charset(),
-					cmdParser.getInterpreterParameters().includePaths(),
-					cmdParser.getInterpreterParameters().jolieClassLoader(),
-					cmdParser.getInterpreterParameters().constants(),false );
+				cmdParser.getInterpreterParameters().inputStream(),
+				cmdParser.getInterpreterParameters().programFilepath().toURI(),
+				cmdParser.getInterpreterParameters().charset(),
+				cmdParser.getInterpreterParameters().includePaths(),
+				cmdParser.getInterpreterParameters().jolieClassLoader(),
+				cmdParser.getInterpreterParameters().constants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
-			document.ConvertDocument( cmdParser.getInterpreterParameters().arguments()[0], cmdParser.noOutputPort(), cmdParser.noLocation(), cmdParser.noProtocol() );
+			document.ConvertDocument( cmdParser.getInterpreterParameters().arguments()[ 0 ], cmdParser.noOutputPort(),
+				cmdParser.noLocation(), cmdParser.noProtocol() );
 		} catch( CommandLineException | ParserException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException | SemanticException e ) {

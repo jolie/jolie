@@ -65,8 +65,9 @@ public class Jolie {
 		boolean printStackTraces = Stream.of( args ).anyMatch( s -> s.equals( "--stackTraces" ) );
 
 		try {
-		    CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
-			final Interpreter interpreter = new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null );
+			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
+			final Interpreter interpreter =
+				new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread() {
 				@Override
