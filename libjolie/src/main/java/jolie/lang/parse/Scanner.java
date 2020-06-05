@@ -37,6 +37,7 @@ import jolie.lang.NativeType;
  */
 public class Scanner
 {
+	// @formatter:off
 	/** Token types */
 	public enum TokenType {
 		EOF,				///< End Of File
@@ -111,14 +112,14 @@ public class Scanner
 		UNDEF,				///< undef
 		HASH,				///< #
 		PERCENT_SIGN,		///< %
-		FOR,					///< for
+		FOR,				///< for
 		FOREACH,			///< foreach
 		WITH,				///< with
 		DECREMENT,			///< --
 		IS_STRING,			///< is_string
 		IS_INT,				///< is_int
 		IS_DOUBLE,			///< is_double
-		IS_BOOL,				///< is_bool
+		IS_BOOL,			///< is_bool
 		IS_LONG,			///< is_long
 		IS_DEFINED,			///< is_defined
 		CAST_INT,			///< int
@@ -134,7 +135,8 @@ public class Scanner
 		NEWLINE,			///< a newline token
 		ERROR				///< Scanner error
 	}
-
+	// @formatter:off
+	
 	/*
 	 * Map of unreserved keywords,
 	 * which can be considered as IDs in certain places (e.g. variables).
