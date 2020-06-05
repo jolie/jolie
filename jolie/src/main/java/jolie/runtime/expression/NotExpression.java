@@ -25,22 +25,18 @@ package jolie.runtime.expression;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-public class NotExpression implements Expression
-{
+public class NotExpression implements Expression {
 	private final Expression expression;
-	
-	public NotExpression( Expression expression )
-	{
+
+	public NotExpression( Expression expression ) {
 		this.expression = expression;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new NotExpression( expression.cloneExpression( reason ) );
 	}
-	
-	public Value evaluate()
-	{
-		return Value.create( !( expression.evaluate().boolValue() ) );
+
+	public Value evaluate() {
+		return Value.create( !(expression.evaluate().boolValue()) );
 	}
 }

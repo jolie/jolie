@@ -25,29 +25,24 @@ import jolie.ExecutionThread;
 import jolie.runtime.InternalLink;
 
 
-public class LinkOutProcess implements Process
-{
+public class LinkOutProcess implements Process {
 	final private String link;
-	
-	public LinkOutProcess( String link )
-	{
+
+	public LinkOutProcess( String link ) {
 		this.link = link;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new LinkOutProcess( link );
 	}
-	
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
 		InternalLink.getById( link ).recvMessage( null, null );
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

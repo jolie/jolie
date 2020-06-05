@@ -26,10 +26,10 @@ import jolie.lang.Constants;
 
 /**
  * An IOException for denoting that a required communication medium cannot be used.
+ * 
  * @author Fabrizio Montesi
  */
-public class UnsupportedCommMediumException extends IOException
-{
+public class UnsupportedCommMediumException extends IOException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	/**
@@ -37,8 +37,7 @@ public class UnsupportedCommMediumException extends IOException
 	 *
 	 * @param medium the name of the medium that could not be used
 	 */
-	public UnsupportedCommMediumException( String medium )
-	{
+	public UnsupportedCommMediumException( String medium ) {
 		super( "Unsupported communication medium: " + medium );
 	}
 }

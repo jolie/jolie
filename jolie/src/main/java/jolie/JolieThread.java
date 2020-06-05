@@ -24,55 +24,52 @@ package jolie;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A thread that can refer to its generating <code>Interpreter</code>.
- * The name of <code>JolieThread</code> is prefixed with the program file name
- * of the generating <code>Interpreter</code>.
+ * A thread that can refer to its generating <code>Interpreter</code>. The name of
+ * <code>JolieThread</code> is prefixed with the program file name of the generating
+ * <code>Interpreter</code>.
+ * 
  * @see Interpreter
  * @author Fabrizio Montesi
  */
-public abstract class JolieThread implements Runnable
-{
+public abstract class JolieThread implements Runnable {
 	private final Interpreter interpreter;
 	private final String name;
 	private static final AtomicInteger counter = new AtomicInteger( 0 );
 
-	protected static String createThreadName()
-	{
+	protected static String createThreadName() {
 		return "JolieThread-" + counter.getAndIncrement();
 	}
-	
-	public String name()
-	{
+
+	public String name() {
 		return name;
 	}
 
 	/**
 	 * Constructor
+	 * 
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @param name the suffix name for this thread
 	 * @see Interpreter
 	 */
-	public JolieThread( Interpreter interpreter, String name )
-	{
+	public JolieThread( Interpreter interpreter, String name ) {
 		this.interpreter = interpreter;
 		this.name = interpreter.programFilename() + "-" + name;
 	}
 
 	/**
 	 * Constructor
+	 * 
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @see Interpreter
 	 */
-	public JolieThread( Interpreter interpreter )
-	{
+	public JolieThread( Interpreter interpreter ) {
 		this( interpreter, createThreadName() );
 	}
-	
+
 	/**
 	 * Returns the interpreter that this thread refers to.
 	 */
-	public Interpreter interpreter()
-	{
+	public Interpreter interpreter() {
 		return interpreter;
 	}
 }

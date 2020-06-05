@@ -28,33 +28,27 @@ import jolie.runtime.Value;
 
 
 /**
- * @author Fabrizio Montesi
- * TODO Clean up code.
+ * @author Fabrizio Montesi TODO Clean up code.
  *
  */
-public class CompareCondition implements Expression
-{
+public class CompareCondition implements Expression {
 	private final Expression leftExpression, rightExpression;
 	private final BiPredicate< Value, Value > compareOperator;
-	
-	public CompareCondition( Expression left, Expression right, BiPredicate< Value, Value > compareOperator )
-	{
+
+	public CompareCondition( Expression left, Expression right, BiPredicate< Value, Value > compareOperator ) {
 		this.leftExpression = left;
 		this.rightExpression = right;
 		this.compareOperator = compareOperator;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new CompareCondition(
-					leftExpression.cloneExpression( reason ),
-					rightExpression.cloneExpression( reason ),
-					compareOperator
-				);
+			leftExpression.cloneExpression( reason ),
+			rightExpression.cloneExpression( reason ),
+			compareOperator );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		return Value.create( compareOperator.test( leftExpression.evaluate(), rightExpression.evaluate() ) );
 	}
 }

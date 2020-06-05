@@ -30,95 +30,85 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 /**
- * The state of a process, containing the values of its variables (inside of the root tree),
- * its internal links, and data structures for detecting alias loops.
+ * The state of a process, containing the values of its variables (inside of the root tree), its
+ * internal links, and data structures for detecting alias loops.
+ * 
  * @see Value
  * @see InternalLink
  * @author Fabrizio Montesi
  */
-public final class State implements Cloneable
-{
+public final class State implements Cloneable {
 	private final Value root;
 	private final ConcurrentHashMap< String, InternalLink > linksMap = new ConcurrentHashMap<>();
 	private final LoopDetectionMap< Value > valueLoopDetectionMap = new LoopDetectionMap<>();
 	private final LoopDetectionMap< ValueVector > valueVectorLoopDetectionMap = new LoopDetectionMap<>();
-	
-	private State( Value root )
-	{
+
+	private State( Value root ) {
 		this.root = root;
 	}
-	
+
 	/**
 	 * Returns the InternalLink identified by id in this State scope.
+	 * 
 	 * @param id the identifier of the requested InternalLink
 	 * @return the InternalLink identified by id
 	 */
-	public InternalLink getLink( String id )
-	{
+	public InternalLink getLink( String id ) {
 		return linksMap.computeIfAbsent( id, k -> new InternalLink( k ) );
 	}
-	
+
 	/**
 	 * Constructs a new State, using a fresh memory state.
 	 */
-	public State()
-	{
+	public State() {
 		this.root = Value.createRootValue();
 	}
-	
+
 	@Override
-	public State clone()
-	{
+	public State clone() {
 		return new State( Value.createClone( root ) );
 	}
-	
+
 	/**
 	 * Returns the root Value of this State.
+	 * 
 	 * @return the root Value of this State
 	 * @see Value
 	 */
-	public Value root()
-	{
+	public Value root() {
 		return root;
 	}
-	
-	public void putAlias( VariablePath p, Value l )
-	{
+
+	public void putAlias( VariablePath p, Value l ) {
 		valueLoopDetectionMap.put( p, l );
 	}
 
-	public void putAlias( VariablePath p, ValueVector l )
-	{
+	public void putAlias( VariablePath p, ValueVector l ) {
 		valueVectorLoopDetectionMap.put( p, l );
 	}
 
-	public void removeAlias( VariablePath p, Value l )
-	{
+	public void removeAlias( VariablePath p, Value l ) {
 		valueLoopDetectionMap.remove( p, l );
 	}
 
-	public void removeAlias( VariablePath p, ValueVector l )
-	{
+	public void removeAlias( VariablePath p, ValueVector l ) {
 		valueVectorLoopDetectionMap.remove( p, l );
 	}
 
-	public boolean hasAlias( VariablePath p, Value l )
-	{
+	public boolean hasAlias( VariablePath p, Value l ) {
 		return valueLoopDetectionMap.contains( p, l );
 	}
 
-	public boolean hasAlias( VariablePath p, ValueVector l )
-	{
+	public boolean hasAlias( VariablePath p, ValueVector l ) {
 		return valueVectorLoopDetectionMap.contains( p, l );
 	}
-	
+
 	private static class LoopDetectionMap< V > {
 		private final Map< VariablePath, Set< V > > m = new ConcurrentHashMap<>();
-		
-		public synchronized void put( VariablePath p, V v )
-		{
+
+		public synchronized void put( VariablePath p, V v ) {
 			m.compute( p, ( path, set ) -> {
-				if ( set == null ) {
+				if( set == null ) {
 					Set< V > s = new HashSet<>();
 					s.add( v );
 					return s;
@@ -128,18 +118,16 @@ public final class State implements Cloneable
 				}
 			} );
 		}
-		
-		public synchronized boolean contains( VariablePath p, V v )
-		{
+
+		public synchronized boolean contains( VariablePath p, V v ) {
 			return m.containsKey( p ) && m.get( p ).contains( v );
 		}
-		
-		public synchronized void remove( VariablePath p, V v )
-		{
+
+		public synchronized void remove( VariablePath p, V v ) {
 			m.computeIfPresent( p, ( path, set ) -> {
 				set.remove( v );
 				return set.isEmpty() ? null : set;
 			} );
 		}
-	}	
+	}
 }

@@ -27,21 +27,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
-public class QueueUtils extends JavaService
-{
+public class QueueUtils extends JavaService {
 	private final Map< String, LinkedList< Value > > queue_map = new ConcurrentHashMap< String, LinkedList< Value > >();
-	
-	private boolean has_queue( String queue_name ){
+
+	private boolean has_queue( String queue_name ) {
 		return queue_map.containsKey( queue_name );
 	}
-	
+
 	/**
 	 * Creates a new queue in the HashMap with the given queue_name as key
+	 * 
 	 * @param queue_name the key corresponding to the queue
 	 * @return Boolean - false if the queue_name is already in use
 	 */
-	public Boolean new_queue( String queue_name ){
-		if( has_queue( queue_name ) ){
+	public Boolean new_queue( String queue_name ) {
+		if( has_queue( queue_name ) ) {
 			return false;
 		} else {
 			LinkedList< Value > new_queue = new LinkedList< Value >();
@@ -49,29 +49,31 @@ public class QueueUtils extends JavaService
 			return true;
 		}
 	}
-	
+
 	/**
 	 * Removes an existing queue from the HashMap
+	 * 
 	 * @param queue_name the key corresponding to the queue
 	 * @return Boolean - false if the queue_name does not exist
 	 */
-	public Boolean delete_queue( String queue_name ){
-		if( has_queue( queue_name )){
+	public Boolean delete_queue( String queue_name ) {
+		if( has_queue( queue_name ) ) {
 			queue_map.remove( queue_name );
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Pushes an element at the end of an existing queue
+	 * 
 	 * @param request
 	 * @return Boolean - false if the queue does not exist
 	 */
-	public Boolean push( Value request ){
+	public Boolean push( Value request ) {
 		String queue_key = request.getFirstChild( "queue_name" ).strValue();
-		if( has_queue( queue_key ) ){
+		if( has_queue( queue_key ) ) {
 			Value element = request.getFirstChild( "element" );
 			LinkedList queue = queue_map.get( queue_key );
 			queue.offerLast( element );
@@ -80,45 +82,48 @@ public class QueueUtils extends JavaService
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Retrieves, but does not remove, the head of the queue
-	 * @param queue_name 
+	 * 
+	 * @param queue_name
 	 * @return The element, null otherwise
 	 */
-	public Value peek( String queue_name ){
+	public Value peek( String queue_name ) {
 		Value element = null;
-		if ( has_queue( queue_name ) ){
+		if( has_queue( queue_name ) ) {
 			element = queue_map.get( queue_name ).peekFirst();
 		}
 		return element;
 	}
-	
+
 	/**
 	 * Removes and returns the head of the queue
-	 * @param queue_name 
+	 * 
+	 * @param queue_name
 	 * @return The element, null otherwise
 	 */
-	public Value poll( String queue_name ){
+	public Value poll( String queue_name ) {
 		Value element = null;
-		if ( has_queue( queue_name ) ){
+		if( has_queue( queue_name ) ) {
 			element = queue_map.get( queue_name ).pollFirst();
 		}
 		return element;
 	}
-	
+
 	/**
 	 * Returns the size of an existing queue, null otherwise
+	 * 
 	 * @param queue_name
 	 * @return The size of the queue, null otherwise
 	 */
-	public Integer size( String queue_name ){
+	public Integer size( String queue_name ) {
 		Integer queue_size = null;
-		if( has_queue( queue_name ) ){
+		if( has_queue( queue_name ) ) {
 			LinkedList queue = queue_map.get( queue_name );
 			queue_size = queue.size();
 		}
 		return queue_size;
 	}
-	
+
 }

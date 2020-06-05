@@ -25,27 +25,22 @@ package jolie.runtime.typing;
  *
  * @author Fabrizio Montesi
  */
-public class OneWayTypeDescription implements OperationTypeDescription
-{
+public class OneWayTypeDescription implements OperationTypeDescription {
 	private final Type requestType;
 
-	public OneWayTypeDescription( Type requestType )
-	{
+	public OneWayTypeDescription( Type requestType ) {
 		this.requestType = requestType;
 	}
 
-	public Type requestType()
-	{
+	public Type requestType() {
 		return requestType;
 	}
-	
-	public OneWayTypeDescription asOneWayTypeDescription()
-	{
+
+	public OneWayTypeDescription asOneWayTypeDescription() {
 		return this;
 	}
-	
-	public RequestResponseTypeDescription asRequestResponseTypeDescription()
-	{
+
+	public RequestResponseTypeDescription asRequestResponseTypeDescription() {
 		return null;
 	}
 }

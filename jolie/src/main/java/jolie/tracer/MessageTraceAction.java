@@ -29,25 +29,19 @@ import jolie.net.CommMessage;
  *
  * @author Fabrizio Montesi
  */
-public class MessageTraceAction implements TraceAction
-{
+public class MessageTraceAction implements TraceAction {
 	public static enum Type {
-		SOLICIT_RESPONSE,
-		NOTIFICATION,
-		ONE_WAY,
-		REQUEST_RESPONSE,
-		COURIER_NOTIFICATION,
-		COURIER_SOLICIT_RESPONSE
+		SOLICIT_RESPONSE, NOTIFICATION, ONE_WAY, REQUEST_RESPONSE, COURIER_NOTIFICATION, COURIER_SOLICIT_RESPONSE
 	}
-	
+
 	private final Type type;
 	private final String name;
 	private final String description;
 	private final CommMessage message;
 	private final ParsingContext context;
-	
-	public MessageTraceAction(Type type, String name, String description, CommMessage message, ParsingContext context )
-	{
+
+	public MessageTraceAction( Type type, String name, String description, CommMessage message,
+		ParsingContext context ) {
 		this.type = type;
 		this.name = name;
 		this.description = description;
@@ -55,25 +49,23 @@ public class MessageTraceAction implements TraceAction
 		this.context = context;
 	}
 
-	public Type type()
-	{
+	public Type type() {
 		return type;
 	}
-	
-	public String name()
-	{
+
+	public String name() {
 		return name;
 	}
-	
-	public String description()
-	{
-		return description;	
+
+	public String description() {
+		return description;
 	}
-	
-	public CommMessage message()
-	{
+
+	public CommMessage message() {
 		return message;
 	}
 
-	public ParsingContext context() { return context; }
+	public ParsingContext context() {
+		return context;
+	}
 }

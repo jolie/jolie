@@ -44,28 +44,26 @@ import org.ini4j.Ini;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"ini4j.jar"})
-public class IniUtils extends JavaService
-{
+@AndJarDeps( { "ini4j.jar" } )
+public class IniUtils extends JavaService {
 	public Value parseIniFile( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		String filename = request.strValue();
 		File file = new File( filename );
 		InputStream istream = null;
 		String charset = null;
-		if ( request.hasChildren( "charset" ) ) {
+		if( request.hasChildren( "charset" ) ) {
 			charset = request.getFirstChild( "charset" ).strValue();
 		}
 
 		try {
-			if (file.exists()) {
-				istream = new FileInputStream(file);
+			if( file.exists() ) {
+				istream = new FileInputStream( file );
 			} else {
 				URL fileURL = interpreter().getClassLoader().findResource( filename );
-				if (fileURL != null && fileURL.getProtocol().equals("jap")) {
+				if( fileURL != null && fileURL.getProtocol().equals( "jap" ) ) {
 					URLConnection conn = fileURL.openConnection();
-					if (conn instanceof JapURLConnection) {
+					if( conn instanceof JapURLConnection ) {
 						JapURLConnection jarConn = (JapURLConnection) conn;
 						istream = jarConn.getInputStream();
 					} else {
@@ -76,7 +74,7 @@ public class IniUtils extends JavaService
 				}
 			}
 			Reader reader;
-			if ( charset != null ) {
+			if( charset != null ) {
 				reader = new InputStreamReader( istream, charset );
 			} else {
 				reader = new InputStreamReader( istream );
@@ -96,7 +94,7 @@ public class IniUtils extends JavaService
 			throw new FaultException( "IOException", e );
 		} finally {
 			try {
-				if ( istream != null ) {
+				if( istream != null ) {
 					istream.close();
 				}
 			} catch( IOException e ) {

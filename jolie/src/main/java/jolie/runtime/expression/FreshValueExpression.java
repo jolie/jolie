@@ -25,27 +25,24 @@ import java.util.UUID;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-public class FreshValueExpression implements Expression
-{
+public class FreshValueExpression implements Expression {
 	private FreshValueExpression() {}
-	
+
 	private static class LazyHolder {
 		private LazyHolder() {}
+
 		static final FreshValueExpression instance = new FreshValueExpression();
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return this;
 	}
-	
-	public static FreshValueExpression getInstance()
-	{
+
+	public static FreshValueExpression getInstance() {
 		return FreshValueExpression.LazyHolder.instance;
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		return Value.create( UUID.randomUUID().toString() );
 	}
 }

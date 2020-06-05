@@ -31,10 +31,10 @@ import joliex.storage.types.SaveRequest;
  *
  * @author Fabrizio Montesi
  */
-public abstract class AbstractStorageService extends JavaService
-{
+public abstract class AbstractStorageService extends JavaService {
 	public abstract Value load( LoadRequest request )
 		throws FaultException;
+
 	public abstract void save( SaveRequest request )
 		throws FaultException;
 }

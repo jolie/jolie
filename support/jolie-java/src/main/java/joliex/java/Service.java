@@ -28,36 +28,35 @@ import jolie.runtime.Value;
 import jolie.util.LocationParser;
 
 /**
- * The {@code Service} class provides methods for calling a JOLIE service.
- * This is an abstract class, which must be instantiated by using the createInstance method.
+ * The {@code Service} class provides methods for calling a JOLIE service. This is an abstract
+ * class, which must be instantiated by using the createInstance method.
  *
  * @author Fabrizio Montesi
  */
-public abstract class Service
-{
+public abstract class Service {
 	protected static final String DEFAULT_RESOURCE_PATH = "/";
 	private final ServiceFactory factory;
 	private final String resourcePath;
 
-	public Service( ServiceFactory factory, URI location )
-	{
+	public Service( ServiceFactory factory, URI location ) {
 		this.factory = factory;
 		resourcePath = LocationParser.getResourcePath( location );
 	}
 
-	public void callRequestResponse( String operationName, Value requestValue, Callback callback )
-	{
-		factory.execute( createRequestResponseRunnable( CommMessage.createRequest( operationName, resourcePath, requestValue ), callback ) );
+	public void callRequestResponse( String operationName, Value requestValue, Callback callback ) {
+		factory.execute( createRequestResponseRunnable(
+			CommMessage.createRequest( operationName, resourcePath, requestValue ), callback ) );
 	}
 
-	public void callOneWay( String operationName, Value requestValue, Callback callback )
-	{
-		factory.execute( createOneWayRunnable( CommMessage.createRequest( operationName, resourcePath, requestValue ), callback ) );
+	public void callOneWay( String operationName, Value requestValue, Callback callback ) {
+		factory.execute(
+			createOneWayRunnable( CommMessage.createRequest( operationName, resourcePath, requestValue ), callback ) );
 	}
 
 	public abstract void close()
 		throws IOException;
 
 	protected abstract Runnable createOneWayRunnable( CommMessage message, Callback callback );
+
 	protected abstract Runnable createRequestResponseRunnable( CommMessage request, Callback callback );
 }

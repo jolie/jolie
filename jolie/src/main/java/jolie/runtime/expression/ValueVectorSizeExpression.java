@@ -25,23 +25,19 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
-public class ValueVectorSizeExpression implements Expression
-{
+public class ValueVectorSizeExpression implements Expression {
 	private final VariablePath path;
-	
-	public ValueVectorSizeExpression( VariablePath path )
-	{
+
+	public ValueVectorSizeExpression( VariablePath path ) {
 		this.path = path;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new ValueVectorSizeExpression( path );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		ValueVector vector = path.getValueVectorOrNull();
-		return Value.create( ( vector == null ) ? 0 : vector.size() );
+		return Value.create( (vector == null) ? 0 : vector.size() );
 	}
 }

@@ -26,34 +26,29 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 
-public class CompensateProcess implements Process
-{
+public class CompensateProcess implements Process {
 	final private String id;
-	
-	public CompensateProcess( String id )
-	{
+
+	public CompensateProcess( String id ) {
 		this.id = id;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new CompensateProcess( id );
 	}
-	
+
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		ExecutionThread t = ExecutionThread.currentThread();
-		if ( t.isKilled() )
+		if( t.isKilled() )
 			return;
-		Process c = t.getCompensation( id ); 
-		if ( c != null ) {
+		Process c = t.getCompensation( id );
+		if( c != null ) {
 			c.run();
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

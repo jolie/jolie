@@ -33,23 +33,19 @@ import org.quartz.SchedulerException;
  *
  * @author claudio guidi
  */
-public class SchedulerServiceJob implements org.quartz.Job
-{
+public class SchedulerServiceJob implements org.quartz.Job {
 
-	public SchedulerServiceJob() 
-	{
-	}
+	public SchedulerServiceJob() {}
 
 	@Override
-	public void execute( JobExecutionContext context ) throws JobExecutionException
-	{
+	public void execute( JobExecutionContext context ) throws JobExecutionException {
 		try {
 			SchedulerContext schedulerContext = context.getScheduler().getContext();
 			SchedulerService service = (SchedulerService) schedulerContext.get( "schedulerService" );
 			Value toSend = Value.create();
 			toSend.getFirstChild( "jobName" ).setValue( context.getJobDetail().getKey().getName() );
 			toSend.getFirstChild( "groupName" ).setValue( context.getJobDetail().getKey().getGroup() );
-			service.sendMessage( CommMessage.createRequest( service.getOperationName(), "/", toSend ));
+			service.sendMessage( CommMessage.createRequest( service.getOperationName(), "/", toSend ) );
 		} catch( SchedulerException ex ) {
 			Interpreter.getInstance().logSevere( ex );
 		}

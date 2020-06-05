@@ -27,21 +27,17 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"cx.ath.matthew.jar"})
-public class LocalSocketListenerFactory extends CommListenerFactory
-{
-	public LocalSocketListenerFactory( CommCore commCore )
-	{
+@AndJarDeps( { "cx.ath.matthew.jar" } )
+public class LocalSocketListenerFactory extends CommListenerFactory {
+	public LocalSocketListenerFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommListener createListener(
-							Interpreter interpreter,
-							CommProtocolFactory protocolFactory,
-							InputPort inputPort
-						)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		return new LocalSocketListener( interpreter, protocolFactory, inputPort );
 	}
 }

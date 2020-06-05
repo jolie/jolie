@@ -27,54 +27,48 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
-public class ForEachSubNodeProcess implements Process
-{
+public class ForEachSubNodeProcess implements Process {
 	final private VariablePath keyPath, targetPath;
 	final private Process process;
 
 	public ForEachSubNodeProcess(
-			VariablePath keyPath,
-			VariablePath targetPath,
-			Process process )
-	{
+		VariablePath keyPath,
+		VariablePath targetPath,
+		Process process ) {
 		this.keyPath = keyPath;
 		this.targetPath = targetPath;
 		this.process = process;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new ForEachSubNodeProcess(
-					(VariablePath) keyPath.cloneExpression( reason ),
-					(VariablePath) targetPath.cloneExpression( reason ),
-					process.copy( reason )
-				);
+			(VariablePath) keyPath.cloneExpression( reason ),
+			(VariablePath) targetPath.cloneExpression( reason ),
+			process.copy( reason ) );
 	}
-	
+
 	public void run()
-		throws FaultException, ExitingException
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		throws FaultException, ExitingException {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 
 		Value v = targetPath.getValueOrNull();
-		if ( v != null && v.hasChildren() ) {
+		if( v != null && v.hasChildren() ) {
 			String keys[];
 			synchronized( v ) {
 				keys = new String[ v.children().keySet().size() ];
 				keys = v.children().keySet().toArray( keys );
 			}
-			
+
 			for( String id : keys ) {
 				keyPath.getValue().setValue( id );
 				process.run();
 			}
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

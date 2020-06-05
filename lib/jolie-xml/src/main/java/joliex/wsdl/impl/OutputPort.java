@@ -25,16 +25,14 @@ package joliex.wsdl.impl;
  *
  * @author Fabrizio Montesi
  */
-public class OutputPort
-{
+public class OutputPort {
 	private final String comment;
 	private final String name;
 	private final String protocol;
 	private final String interfaceName;
 	private final String location;
 
-	public OutputPort( String name, String location, String protocol, String interfaceName, String comment )
-	{
+	public OutputPort( String name, String location, String protocol, String interfaceName, String comment ) {
 		this.comment = comment;
 		this.name = name;
 		this.protocol = protocol;
@@ -42,28 +40,23 @@ public class OutputPort
 		this.interfaceName = interfaceName;
 	}
 
-	public String location()
-	{
+	public String location() {
 		return location;
 	}
 
-	public String interfaceName()
-	{
+	public String interfaceName() {
 		return interfaceName;
 	}
 
-	public String name()
-	{
+	public String name() {
 		return name;
 	}
 
-	public String comment()
-	{
+	public String comment() {
 		return comment;
 	}
 
-	public String protocol()
-	{
+	public String protocol() {
 		return protocol;
 	}
 }

@@ -27,32 +27,28 @@ import jolie.runtime.Value;
 
 /**
  * JavaService offering various math related functionalities.
+ * 
  * @author Fabrizio Montesi
  */
-public class MathService extends JavaService
-{
-	public Double pi()
-	{
+public class MathService extends JavaService {
+	public Double pi() {
 		return Math.PI;
 	}
-	
-	public Double random()
-	{
+
+	public Double random() {
 		return Math.random();
 	}
 
-	public Integer abs( Integer i )
-	{
+	public Integer abs( Integer i ) {
 		return Math.abs( i );
 	}
 
-	public Double pow( Value request )
-	{
-		return Math.pow( request.getFirstChild( "base" ).doubleValue(), request.getFirstChild( "exponent" ).doubleValue() );
+	public Double pow( Value request ) {
+		return Math.pow( request.getFirstChild( "base" ).doubleValue(),
+			request.getFirstChild( "exponent" ).doubleValue() );
 	}
 
-	public Integer summation( Value request )
-	{
+	public Integer summation( Value request ) {
 		int from = request.getFirstChild( "from" ).intValue();
 		int to = request.getFirstChild( "to" ).intValue();
 		int result = 0;
@@ -67,25 +63,24 @@ public class MathService extends JavaService
 	 * @author Claudio Guidi
 	 * @author Fabrizio Montesi
 	 * @param v
-	 * @return 
+	 * @return
 	 */
-	public Double round( Value v )
-	{
+	public Double round( Value v ) {
 		int decimals = 0;
-		if ( v.hasChildren( "decimals" ) ) {
+		if( v.hasChildren( "decimals" ) ) {
 			decimals = v.getFirstChild( "decimals" ).intValue();
 		}
 		double orig = v.doubleValue();
 		double power = Math.pow( 10, decimals );
 		double ret = orig * power;
-		if ( ret == Double.POSITIVE_INFINITY ) {
+		if( ret == Double.POSITIVE_INFINITY ) {
 			BigDecimal b = new BigDecimal( orig );
 			b = b.setScale( decimals, BigDecimal.ROUND_HALF_UP );
 			ret = b.doubleValue();
 		} else {
 			ret = Math.round( ret ) / power;
 		}
-		
+
 		return ret;
 	}
 }

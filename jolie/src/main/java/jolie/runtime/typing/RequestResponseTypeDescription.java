@@ -27,46 +27,38 @@ import java.util.Map;
  *
  * @author Fabrizio Montesi
  */
-public class RequestResponseTypeDescription implements OperationTypeDescription
-{
+public class RequestResponseTypeDescription implements OperationTypeDescription {
 	private final Type requestType;
 	private final Type responseType;
 	private final Map< String, Type > faultTypes;
 
-	public RequestResponseTypeDescription( Type requestType, Type responseType, Map<String, Type> faultTypes )
-	{
+	public RequestResponseTypeDescription( Type requestType, Type responseType, Map< String, Type > faultTypes ) {
 		this.requestType = requestType;
 		this.responseType = responseType;
 		this.faultTypes = faultTypes;
 	}
 
-	public Type requestType()
-	{
+	public Type requestType() {
 		return requestType;
 	}
 
-	public Type responseType()
-	{
+	public Type responseType() {
 		return responseType;
 	}
 
-	public Type getFaultType( String faultName )
-	{
+	public Type getFaultType( String faultName ) {
 		return faultTypes.get( faultName );
 	}
 
-	public Map< String, Type > faults()
-	{
+	public Map< String, Type > faults() {
 		return faultTypes;
 	}
-	
-	public OneWayTypeDescription asOneWayTypeDescription()
-	{
+
+	public OneWayTypeDescription asOneWayTypeDescription() {
 		return null;
 	}
-	
-	public RequestResponseTypeDescription asRequestResponseTypeDescription()
-	{
+
+	public RequestResponseTypeDescription asRequestResponseTypeDescription() {
 		return this;
 	}
 }

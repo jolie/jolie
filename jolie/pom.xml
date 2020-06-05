@@ -59,21 +59,6 @@
 				</executions>
 			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>net.revelc.code.formatter</groupId>
-					<artifactId>formatter-maven-plugin</artifactId>
-					<dependencies>
-						<dependency>
-							<groupId>org.jolielang</groupId>
-							<artifactId>build-tools</artifactId>
-							<version>${project.parent.version}</version>
-						</dependency>
-					</dependencies>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 	<description>The Jolie interpreter and runtime library.</description>
 	<dependencies>

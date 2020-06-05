@@ -25,50 +25,47 @@ import jolie.process.TransformationReason;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
-public class ProductExpression implements Expression
-{
+public class ProductExpression implements Expression {
 	private final Operand[] children;
-	
-	public ProductExpression( Operand[] children )
-	{
+
+	public ProductExpression( Operand[] children ) {
 		this.children = children;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		Operand[] cc = new Operand[ children.length ];
-		
+
 		int i = 0;
 		for( Operand operand : children ) {
-			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
+			cc[ i++ ] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
 		}
 		return new ProductExpression( cc );
 	}
-	
+
 	@Override
-	public Value evaluate()
-	{
-		Value val = Value.create( children[0].expression().evaluate() );
+	public Value evaluate() {
+		Value val = Value.create( children[ 0 ].expression().evaluate() );
 		for( int i = 1; i < children.length; i++ ) {
-			switch( children[i].type() ) {
+			switch( children[ i ].type() ) {
 			case MULTIPLY:
-				val.multiply( children[i].expression().evaluate() );
+				val.multiply( children[ i ].expression().evaluate() );
 				break;
 			case DIVIDE:
 				try {
-					val.divide( children[i].expression().evaluate() );
-				} catch ( ArithmeticException ae ){
-					throw new FaultException( "ArithmeticException", ae.getLocalizedMessage() ).toRuntimeFaultException();
+					val.divide( children[ i ].expression().evaluate() );
+				} catch( ArithmeticException ae ) {
+					throw new FaultException( "ArithmeticException", ae.getLocalizedMessage() )
+						.toRuntimeFaultException();
 				}
 				break;
 			case MODULUS:
-				val.modulo( children[i].expression().evaluate() );
+				val.modulo( children[ i ].expression().evaluate() );
 				break;
 			default:
 				throw new IllegalStateException( "Invalid operator in product expression" );
 			}
 		}
-		
+
 		return val;
 	}
 }

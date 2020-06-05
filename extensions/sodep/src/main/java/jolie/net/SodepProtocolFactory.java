@@ -27,22 +27,18 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;
 
-public class SodepProtocolFactory extends CommProtocolFactory
-{
-	public SodepProtocolFactory( CommCore commCore )
-	{
+public class SodepProtocolFactory extends CommProtocolFactory {
+	public SodepProtocolFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new SodepProtocol( configurationPath );
 	}
 
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new SodepProtocol( configurationPath );
 	}
 }

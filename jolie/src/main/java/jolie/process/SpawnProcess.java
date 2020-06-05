@@ -26,63 +26,53 @@ import jolie.runtime.SpawnExecution;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 
-public class SpawnProcess implements Process
-{
+public class SpawnProcess implements Process {
 	private final VariablePath indexPath;
 	private final VariablePath inPath; // may be null
 	private final Expression upperBound;
 	private final Process process;
 
 	public SpawnProcess(
-			VariablePath indexPath,
-			Expression upperBound,
-			VariablePath inPath,
-			Process process
-	) {
+		VariablePath indexPath,
+		Expression upperBound,
+		VariablePath inPath,
+		Process process ) {
 		this.indexPath = indexPath;
 		this.inPath = inPath;
 		this.upperBound = upperBound;
 		this.process = process;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new SpawnProcess(
-					(VariablePath) indexPath.cloneExpression( reason ),
-					upperBound.cloneExpression( reason ),
-					( inPath == null ) ? null : (VariablePath) inPath.cloneExpression( reason ),
-					process.copy( reason )
-				);
+			(VariablePath) indexPath.cloneExpression( reason ),
+			upperBound.cloneExpression( reason ),
+			(inPath == null) ? null : (VariablePath) inPath.cloneExpression( reason ),
+			process.copy( reason ) );
 	}
-	
+
 	public void run()
-		throws FaultException
-	{
+		throws FaultException {
 		new SpawnExecution( this ).run();
 	}
 
-	public Expression upperBound()
-	{
+	public Expression upperBound() {
 		return upperBound;
 	}
 
-	public VariablePath indexPath()
-	{
+	public VariablePath indexPath() {
 		return indexPath;
 	}
 
-	public VariablePath inPath()
-	{
+	public VariablePath inPath() {
 		return inPath;
 	}
 
-	public Process body()
-	{
+	public Process body() {
 		return process;
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return process.isKillable();
 	}
 }

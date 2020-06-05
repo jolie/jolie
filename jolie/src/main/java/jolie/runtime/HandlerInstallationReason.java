@@ -24,16 +24,14 @@ package jolie.runtime;
 
 import jolie.process.TransformationReason;
 
-public class HandlerInstallationReason implements TransformationReason
-{
+public class HandlerInstallationReason implements TransformationReason {
 	final private String handlerId;
-	
-	public HandlerInstallationReason( String handlerId )
-	{
+
+	public HandlerInstallationReason( String handlerId ) {
 		this.handlerId = handlerId;
 	}
-	public String handlerId()
-	{
+
+	public String handlerId() {
 		return handlerId;
 	}
 }

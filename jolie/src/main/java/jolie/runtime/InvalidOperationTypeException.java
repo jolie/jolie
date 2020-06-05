@@ -24,7 +24,6 @@ package jolie.runtime;
 
 import jolie.lang.Constants;
 
-public class InvalidOperationTypeException extends Exception
-{
+public class InvalidOperationTypeException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 }

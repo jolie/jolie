@@ -27,60 +27,56 @@ import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 
 /**
- * Add an expression value to a VariablePath's value, assigning the resulting
- * value to the VariablePath.
+ * Add an expression value to a VariablePath's value, assigning the resulting value to the
+ * VariablePath.
+ * 
  * @see Expression
  * @see VariablePath
  * @author Karoly Szanto
  */
-public class AddAssignmentProcess implements Process, Expression
-{
+public class AddAssignmentProcess implements Process, Expression {
 	final private VariablePath varPath;
 	final private Expression expression;
 
-	/** Constructor.
+	/**
+	 * Constructor.
 	 *
 	 * @param varPath the variable which will receive the value
-	 * @param expression the expression of which the evaluation will be added to the the variable's value
+	 * @param expression the expression of which the evaluation will be added to the the variable's
+	 *        value
 	 */
-	public AddAssignmentProcess( VariablePath varPath, Expression expression )
-	{
+	public AddAssignmentProcess( VariablePath varPath, Expression expression ) {
 		this.varPath = varPath;
 		this.expression = expression;
 	}
 
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return new AddAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ) );
 	}
 
-	public Expression cloneExpression( TransformationReason reason )
-	{
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new AddAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ) );
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 		varPath.getValue().add( expression.evaluate() );
 	}
 
-	public Value evaluate()
-	{
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.add( expression.evaluate() );
 		return val;
 	}
 
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

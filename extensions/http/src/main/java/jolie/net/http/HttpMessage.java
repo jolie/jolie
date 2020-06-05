@@ -29,29 +29,26 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 
-public class HttpMessage
-{
+public class HttpMessage {
 	public enum Type {
 		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, UNSUPPORTED, ERROR
 	}
-	
+
 	public enum Version {
 		HTTP_1_0, HTTP_1_1
 	}
-	
+
 	static public class Cookie {
 		private final String name, value, domain, path, expirationDate;
 		private final boolean secure;
-		
+
 		public Cookie(
-				String name,
-				String value,
-				String domain,
-				String path,
-				String expirationDate,
-				boolean secure
-			)
-		{
+			String name,
+			String value,
+			String domain,
+			String path,
+			String expirationDate,
+			boolean secure ) {
 			this.name = name;
 			this.value = value;
 			this.domain = domain;
@@ -59,46 +56,37 @@ public class HttpMessage
 			this.expirationDate = expirationDate;
 			this.secure = secure;
 		}
-		
+
 		@Override
-		public String toString()
-		{
-			return(
-				name + "=" + value + "; " +
+		public String toString() {
+			return (name + "=" + value + "; " +
 				"expires=" + expirationDate + "; " +
 				"domain=" + domain + "; " +
 				"path=" + path +
-				( ( secure ) ? ( "; secure" ) : "" )
-			);
+				((secure) ? ("; secure") : ""));
 		}
-		
-		public String name()
-		{
+
+		public String name() {
 			return name;
 		}
-		
-		public String value()
-		{
+
+		public String value() {
 			return value;
 		}
-		
-		public String path()
-		{
+
+		public String path() {
 			return path;
 		}
-		
-		public String domain()
-		{
+
+		public String domain() {
 			return domain;
 		}
-		
-		public String expirationDate()
-		{
+
+		public String expirationDate() {
 			return expirationDate;
 		}
-		
-		public boolean secure()
-		{
+
+		public boolean secure() {
 			return secure;
 		}
 	}
@@ -106,161 +94,132 @@ public class HttpMessage
 	private Version version;
 	private final Type type;
 	private byte[] content = null;
-	final private Map< String, String > propMap = new HashMap<> ();
-	final private List< Cookie > setCookies = new ArrayList<> ();
-	
+	final private Map< String, String > propMap = new HashMap<>();
+	final private List< Cookie > setCookies = new ArrayList<>();
+
 	final private Map< String, String > cookies = new HashMap<>();
-	
+
 	private int statusCode;
 	private String requestPath;
 	private String reason;
 	private String userAgent = null;
 
-	public boolean isSupported()
-	{
+	public boolean isSupported() {
 		return type != Type.UNSUPPORTED;
 	}
 
-	public boolean isGet()
-	{
+	public boolean isGet() {
 		return type == Type.GET;
 	}
 
-	public boolean isHead()
-	{
+	public boolean isHead() {
 		return type == Type.HEAD;
 	}
 
-	public boolean isDelete()
-	{
+	public boolean isDelete() {
 		return type == Type.DELETE;
 	}
 
-	public void addCookie( String name, String value )
-	{
-		cookies.put( name, value);
+	public void addCookie( String name, String value ) {
+		cookies.put( name, value );
 	}
-	
-	public Map< String, String > cookies()
-	{
+
+	public Map< String, String > cookies() {
 		return cookies;
 	}
-	
-	public void addSetCookie( Cookie cookie )
-	{
+
+	public void addSetCookie( Cookie cookie ) {
 		setCookies.add( cookie );
 	}
-	
-	public List< Cookie > setCookies()
-	{
+
+	public List< Cookie > setCookies() {
 		return setCookies;
 	}
-	
-	public HttpMessage( Type type )
-	{
+
+	public HttpMessage( Type type ) {
 		this.type = type;
 	}
-	
-	protected void setVersion( Version version )
-	{
+
+	protected void setVersion( Version version ) {
 		this.version = version;
 	}
-	
-	public Version version()
-	{
+
+	public Version version() {
 		return version;
 	}
-	
-	public void setContent( byte[] content )
-	{
+
+	public void setContent( byte[] content ) {
 		this.content = content;
 	}
-	
-	public Collection< Entry< String, String > > properties()
-	{
+
+	public Collection< Entry< String, String > > properties() {
 		return propMap.entrySet();
 	}
-	
-	public void setRequestPath( String path )
-	{
+
+	public void setRequestPath( String path ) {
 		requestPath = path;
 	}
 
-	public void setUserAgent( String userAgent )
-	{
+	public void setUserAgent( String userAgent ) {
 		this.userAgent = userAgent;
 	}
 
-	public void setProperty( String name, String value )
-	{
+	public void setProperty( String name, String value ) {
 		propMap.put( name.toLowerCase(), value );
 	}
-	
-	public String getProperty( String name )
-	{
+
+	public String getProperty( String name ) {
 		return propMap.get( name.toLowerCase() );
 	}
-	
-	public String getPropertyOrEmptyString( String name )
-	{
+
+	public String getPropertyOrEmptyString( String name ) {
 		String ret = propMap.get( name.toLowerCase() );
-		return ( ret == null ) ? "" : ret;
+		return (ret == null) ? "" : ret;
 	}
-	
-	public String reason()
-	{
+
+	public String reason() {
 		return reason;
 	}
-	
-	public void setReason( String reason )
-	{
+
+	public void setReason( String reason ) {
 		this.reason = reason;
 	}
-	
-	public int size()
-	{
-		if ( content == null )
+
+	public int size() {
+		if( content == null )
 			return 0;
 		return content.length;
 	}
-	
-	public String requestPath()
-	{
+
+	public String requestPath() {
 		return requestPath;
 	}
 
-	public String userAgent()
-	{
+	public String userAgent() {
 		return userAgent;
 	}
 
-	public Type type()
-	{
+	public Type type() {
 		return type;
 	}
-	
-	public boolean isResponse()
-	{
+
+	public boolean isResponse() {
 		return type == Type.RESPONSE;
 	}
-	
-	public boolean isError()
-	{
+
+	public boolean isError() {
 		return type == Type.ERROR;
 	}
-	
-	public int statusCode()
-	{
+
+	public int statusCode() {
 		return statusCode;
 	}
-	
-	public void setStatusCode( int code )
-	{
+
+	public void setStatusCode( int code ) {
 		statusCode = code;
 	}
-	
-	public byte[] content()
-	{
+
+	public byte[] content() {
 		return content;
 	}
 }

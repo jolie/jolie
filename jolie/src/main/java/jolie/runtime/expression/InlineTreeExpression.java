@@ -30,131 +30,119 @@ import jolie.runtime.VariablePath;
 
 /**
  * Implements inline tree definitions.
+ * 
  * @author Fabrizio Montesi
  */
-public class InlineTreeExpression implements Expression
-{
+public class InlineTreeExpression implements Expression {
 	public static interface Operation {
 		public Operation cloneOperation( TransformationReason reason );
+
 		public void run( Value inlineValue );
 	}
-	
+
 	public static class DeepCopyOperation implements Operation {
 		private final VariablePath path;
 		private final Expression expression;
-		
-		public DeepCopyOperation( VariablePath path, Expression expression )
-		{
+
+		public DeepCopyOperation( VariablePath path, Expression expression ) {
 			this.path = path;
 			this.expression = expression;
 		}
-		
+
 		@Override
-		public Operation cloneOperation( TransformationReason reason )
-		{
+		public Operation cloneOperation( TransformationReason reason ) {
 			return new DeepCopyOperation( path.copy(), expression.cloneExpression( reason ) );
 		}
-		
+
 		@Override
-		public void run( Value inlineValue )
-		{
-			if ( expression instanceof VariablePath ) {
+		public void run( Value inlineValue ) {
+			if( expression instanceof VariablePath ) {
 				Object myObj = ((VariablePath) expression).getValueOrValueVector();
-				if ( myObj instanceof Value ) {
-					path.getValue(inlineValue).deepCopyWithLinks((Value) myObj);
-				} else if ( myObj instanceof ValueVector ) {
-					path.getValueVector(inlineValue).deepCopyWithLinks((ValueVector) myObj);
+				if( myObj instanceof Value ) {
+					path.getValue( inlineValue ).deepCopyWithLinks( (Value) myObj );
+				} else if( myObj instanceof ValueVector ) {
+					path.getValueVector( inlineValue ).deepCopyWithLinks( (ValueVector) myObj );
 				} else {
 					throw new RuntimeException( "incomplete case analysis" );
 				}
 			} else {
-				path.getValue(inlineValue).deepCopyWithLinks(expression.evaluate());
+				path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
 			}
 		}
 	}
-	
+
 	public static class AssignmentOperation implements Operation {
 		private final VariablePath path;
 		private final Expression expression;
-		
-		public AssignmentOperation( VariablePath path, Expression expression )
-		{
+
+		public AssignmentOperation( VariablePath path, Expression expression ) {
 			this.path = path;
 			this.expression = expression;
 		}
-		
+
 		@Override
-		public Operation cloneOperation( TransformationReason reason )
-		{
+		public Operation cloneOperation( TransformationReason reason ) {
 			return new AssignmentOperation( path.copy(), expression.cloneExpression( reason ) );
 		}
-		
+
 		@Override
-		public void run( Value inlineValue )
-		{
+		public void run( Value inlineValue ) {
 			path.getValue( inlineValue ).assignValue( expression.evaluate() );
 		}
 	}
-	
+
 	public static class PointsToOperation implements Operation {
 		private final VariablePath path;
 		private final VariablePath target;
-		
-		public PointsToOperation( VariablePath path, VariablePath target )
-		{
+
+		public PointsToOperation( VariablePath path, VariablePath target ) {
 			this.path = path;
 			this.target = target;
 		}
-		
+
 		@Override
-		public Operation cloneOperation( TransformationReason reason )
-		{
+		public Operation cloneOperation( TransformationReason reason ) {
 			return new PointsToOperation( path.copy(), target.copy() );
 		}
-		
+
 		@Override
-		public void run( Value inlineValue )
-		{
+		public void run( Value inlineValue ) {
 			path.makePointer( inlineValue, target );
 		}
 	}
-	
+
 	private final Expression rootExpression;
 	private final Operation[] operations;
-	
+
 	public InlineTreeExpression(
 		Expression rootExpression,
-		Operation[] operations
-	) {
+		Operation[] operations ) {
 		this.rootExpression = rootExpression;
 		this.operations = operations;
 	}
-	
+
 	@Override
-	public Expression cloneExpression( TransformationReason reason )
-	{
+	public Expression cloneExpression( TransformationReason reason ) {
 		Operation[] clonedOperations = new Operation[ operations.length ];
 		int i = 0;
 		for( Operation operation : operations ) {
 			clonedOperations[ i++ ] = operation.cloneOperation( reason );
 		}
-		
+
 		return new InlineTreeExpression(
 			rootExpression.cloneExpression( reason ),
-			clonedOperations
-		);
+			clonedOperations );
 	}
-	
+
 	@Override
-	public Value evaluate()
-	{
+	public Value evaluate() {
 		Value inlineValue = Value.create();
 		inlineValue.assignValue( rootExpression.evaluate() );
-		
+
 		for( Operation operation : operations ) {
 			operation.run( inlineValue );
 		}
-		
+
 		return inlineValue;
 	}
 }

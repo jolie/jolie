@@ -24,12 +24,11 @@ package jolie.process;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
-public interface Process
-{	
+public interface Process {
 	public void run()
 		throws FaultException, ExitingException;
-	
+
 	public Process copy( TransformationReason reason );
-	
+
 	public boolean isKillable();
 }

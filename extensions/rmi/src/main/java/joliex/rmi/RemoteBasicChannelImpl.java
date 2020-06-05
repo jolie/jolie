@@ -30,43 +30,36 @@ import jolie.net.LocalCommChannel;
  *
  * @author Fabrizio Montesi
  */
-public class RemoteBasicChannelImpl implements RemoteBasicChannel
-{
+public class RemoteBasicChannelImpl implements RemoteBasicChannel {
 	final private LocalCommChannel channel;
 	final private JolieRemoteImpl parent;
 
-	public RemoteBasicChannelImpl( LocalCommChannel channel, JolieRemoteImpl parent )
-	{
+	public RemoteBasicChannelImpl( LocalCommChannel channel, JolieRemoteImpl parent ) {
 		this.channel = channel;
 		this.parent = parent;
 	}
 
 	public void send( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		channel.send( message );
 	}
 
-	public boolean isReady()
-	{
+	public boolean isReady() {
 		return channel.isReady();
 	}
 
-	public void close()
-	{
+	public void close() {
 		parent.disposeOf( this );
 	}
 
 	public CommMessage recv()
-		throws IOException
-	{
+		throws IOException {
 		throw new IOException( "Unsupported operation" );
-		//return channel.recv();
+		// return channel.recv();
 	}
-	
+
 	public Future< CommMessage > recvResponseFor( CommMessage request )
-		throws IOException
-	{
+		throws IOException {
 		return channel.recvResponseFor( request );
 	}
 }

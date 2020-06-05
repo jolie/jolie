@@ -22,30 +22,31 @@
 
 package jolie.runtime;
 
-/** Generic abstract class for an univocally identifiable object (among its kind).
+/**
+ * Generic abstract class for an univocally identifiable object (among its kind).
  * 
  * @author Fabrizio Montesi
  * @version 0.1
  *
  */
-abstract public class AbstractIdentifiableObject
-{
+abstract public class AbstractIdentifiableObject {
 	final protected String id;
 
-	/** Constructor.
+	/**
+	 * Constructor.
 	 * 
 	 * @param id The identifier of the object in the global map.
 	 */
-	public AbstractIdentifiableObject( String id )
-	{
+	public AbstractIdentifiableObject( String id ) {
 		this.id = id;
 	}
-	
-	/** Returns this object identifier.
+
+	/**
+	 * Returns this object identifier.
+	 * 
 	 * @return the identifier of this object
 	 */
-	public final String id()
-	{
+	public final String id() {
 		return id;
 	}
 }

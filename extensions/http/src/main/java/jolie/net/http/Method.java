@@ -28,13 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Fabrizio Montesi
  */
-public enum Method
-{
-	POST( "POST" ),
-	GET( "GET" ),
-	PUT( "PUT" ),
-	DELETE( "DELETE" ),
-        OPTIONS ("OPTIONS");
+public enum Method {
+	POST( "POST" ), GET( "GET" ), PUT( "PUT" ), DELETE( "DELETE" ), OPTIONS( "OPTIONS" );
 
 	private final static Map< String, Method > idMap = new ConcurrentHashMap<>();
 
@@ -45,22 +40,19 @@ public enum Method
 	}
 
 	private final String id;
-	
-	private Method( String id )
-	{
+
+	private Method( String id ) {
 		this.id = id;
 	}
 
-	public String id()
-	{
+	public String id() {
 		return id;
 	}
 
 	public static Method fromString( String id )
-		throws UnsupportedMethodException
-	{
+		throws UnsupportedMethodException {
 		Method m = idMap.get( id.toUpperCase() );
-		if ( m == null ) {
+		if( m == null ) {
 			throw new UnsupportedMethodException( id );
 		}
 		return m;

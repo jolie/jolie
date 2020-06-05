@@ -31,12 +31,10 @@ import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
 
 
-public class Converter extends JavaService
-{
+public class Converter extends JavaService {
 
 	@RequestResponse
-	public String rawToBase64( Value value )
-	{
+	public String rawToBase64( Value value ) {
 		byte[] buffer = value.byteArrayValue().getBytes();
 		Base64.Encoder encoder = Base64.getEncoder();
 		return encoder.encodeToString( buffer );
@@ -44,8 +42,7 @@ public class Converter extends JavaService
 
 	@RequestResponse
 	public ByteArray base64ToRaw( Value value )
-		throws FaultException
-	{
+		throws FaultException {
 		String stringValue = value.strValue();
 		Base64.Decoder decoder = Base64.getDecoder();
 		byte[] supportArray = decoder.decode( stringValue );
@@ -54,16 +51,15 @@ public class Converter extends JavaService
 
 	@RequestResponse
 	public String rawToString( Value value )
-		throws FaultException
-	{
+		throws FaultException {
 		byte[] buffer = value.byteArrayValue().getBytes();
 
 		String charset = null;
-		if ( value.hasChildren( "charset" ) ) {
+		if( value.hasChildren( "charset" ) ) {
 			charset = value.getFirstChild( "charset" ).strValue();
 		}
 		try {
-			if ( charset != null ) {
+			if( charset != null ) {
 				return new String( buffer, charset );
 			} else {
 				return new String( buffer );
@@ -75,16 +71,15 @@ public class Converter extends JavaService
 
 	@RequestResponse
 	public ByteArray stringToRaw( Value value )
-		throws FaultException
-	{
+		throws FaultException {
 		String str = value.strValue();
 
 		String charset = null;
-		if ( value.hasChildren( "charset" ) ) {
+		if( value.hasChildren( "charset" ) ) {
 			charset = value.getFirstChild( "charset" ).strValue();
 		}
 		try {
-			if ( charset != null ) {
+			if( charset != null ) {
 				return new ByteArray( str.getBytes( charset ) );
 			} else {
 				return new ByteArray( str.getBytes() );

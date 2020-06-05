@@ -28,37 +28,30 @@ import jolie.runtime.Value;
  *
  * @author Fabrizio Montesi
  */
-public class SaveRequest implements ValueConverter
-{
+public class SaveRequest implements ValueConverter {
 	private final StoragePath storagePath;
 	private final Value value;
 
-	private SaveRequest( StoragePath storagePath, Value value )
-	{
+	private SaveRequest( StoragePath storagePath, Value value ) {
 		this.storagePath = storagePath;
 		this.value = value;
 	}
 
-	public StoragePath storagePath()
-	{
+	public StoragePath storagePath() {
 		return storagePath;
 	}
 
-	public Value value()
-	{
+	public Value value() {
 		return value;
 	}
 
-	public static SaveRequest fromValue( Value value )
-	{
+	public static SaveRequest fromValue( Value value ) {
 		return new SaveRequest(
 			StoragePath.fromValue( value.getFirstChild( "path" ) ),
-			value
-		);
+			value );
 	}
 
-	public static Value toValue( SaveRequest request )
-	{
+	public static Value toValue( SaveRequest request ) {
 		Value ret = Value.create();
 		ret.getChildren( "path" ).add( StoragePath.toValue( request.storagePath ) );
 		ret.getChildren( "value" ).add( request.value );

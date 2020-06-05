@@ -28,23 +28,19 @@ import jolie.ExecutionThread;
 import jolie.TransparentExecutionThread;
 import jolie.process.Process;
 
-public class ParallelExecution
-{
-	private class ParallelThread extends TransparentExecutionThread
-	{
-		public ParallelThread( Process process )
-		{
+public class ParallelExecution {
+	private class ParallelThread extends TransparentExecutionThread {
+		public ParallelThread( Process process ) {
 			super( process, ExecutionThread.currentThread() );
 		}
 
 		@Override
-		public void runProcess()
-		{
+		public void runProcess() {
 			try {
 				try {
 					process().run();
 					terminationNotify( this );
-				} catch ( FaultException.RuntimeFaultException rf ){
+				} catch( FaultException.RuntimeFaultException rf ) {
 					throw rf.faultException();
 				}
 			} catch( FaultException f ) {
@@ -54,28 +50,26 @@ public class ParallelExecution
 			}
 		}
 	}
-	
+
 	final private Collection< ParallelThread > threads = new HashSet< ParallelThread >();
 	private FaultException fault = null;
 	private boolean isKilled = false;
 
-	public ParallelExecution( Process[] procs )
-	{
+	public ParallelExecution( Process[] procs ) {
 		for( Process proc : procs ) {
 			threads.add( new ParallelThread( proc ) );
 		}
 	}
-	
+
 	public void run()
-		throws FaultException
-	{
+		throws FaultException {
 		synchronized( this ) {
 			for( ParallelThread t : threads ) {
 				t.start();
 			}
 
 			ExecutionThread ethread;
-			while ( fault == null && !threads.isEmpty() ) {
+			while( fault == null && !threads.isEmpty() ) {
 				ethread = ExecutionThread.currentThread();
 				try {
 					ethread.setCanBeInterrupted( true );
@@ -83,58 +77,58 @@ public class ParallelExecution
 					ethread.setCanBeInterrupted( false );
 				} catch( InterruptedException e ) {
 					synchronized( this ) {
-						if ( ethread.isKilled() && !threads.isEmpty() ) {
+						if( ethread.isKilled() && !threads.isEmpty() ) {
 							isKilled = true;
 							for( ParallelThread t : threads ) {
 								t.kill( ethread.killerFault() );
 							}
 							try {
 								wait();
-							} catch( InterruptedException ie ) {}
+							} catch( InterruptedException ie ) {
+							}
 						}
 					}
 				}
 			}
 
-			if ( fault != null ) {
+			if( fault != null ) {
 				for( ParallelThread t : threads ) {
 					t.kill( fault );
 				}
-				while ( !threads.isEmpty() ) {
+				while( !threads.isEmpty() ) {
 					try {
 						wait();
-					} catch( InterruptedException e ) {}
+					} catch( InterruptedException e ) {
+					}
 				}
 				throw fault;
 			}
 		}
 	}
-	
-	private void terminationNotify( ParallelThread thread )
-	{
+
+	private void terminationNotify( ParallelThread thread ) {
 		synchronized( this ) {
 			threads.remove( thread );
-			
-			if ( threads.isEmpty() ) {
+
+			if( threads.isEmpty() ) {
 				notify();
 			}
 		}
 	}
-	
-		
-	private void signalFault( ParallelThread thread, FaultException f )
-	{
+
+
+	private void signalFault( ParallelThread thread, FaultException f ) {
 		synchronized( this ) {
 			threads.remove( thread );
-			if ( isKilled ) {
-				if ( threads.isEmpty() ) {
+			if( isKilled ) {
+				if( threads.isEmpty() ) {
 					notify();
 				}
 			} else {
-				if ( fault == null ) {
+				if( fault == null ) {
 					fault = f;
 					notify();
-				} else if ( threads.isEmpty() ) {
+				} else if( threads.isEmpty() ) {
 					notify();
 				}
 			}

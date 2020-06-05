@@ -27,24 +27,19 @@ import jolie.lang.Constants;
  *
  * @author Fabrizio Montesi
  */
-public class TypeCastingException extends Exception
-{
+public class TypeCastingException extends Exception {
 	public final static long serialVersionUID = Constants.serialVersionUID();
 
-	public TypeCastingException()
-	{
+	public TypeCastingException() {
 		super();
 	}
-	
-	public TypeCastingException( String message )
-	{
+
+	public TypeCastingException( String message ) {
 		super( message );
 	}
-	
-	/* @Override
-	public Throwable fillInStackTrace()
-	{
-		return this;
-	} */
+
+	/*
+	 * @Override public Throwable fillInStackTrace() { return this; }
+	 */
 }
 

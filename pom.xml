@@ -247,7 +247,7 @@
 					<execution>
 						<goals>
 							<goal>format</goal>
-							<goal>validate</goal>
+							<!-- <goal>validate</goal> -->
 						</goals>
 					</execution>
 				</executions>
@@ -259,6 +259,13 @@
 					<encoding>UTF-8</encoding>
 					<configFile>java-jolie-style.xml</configFile>
 				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.jolielang</groupId>
+						<artifactId>build-tools</artifactId>
+						<version>1.0.0</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

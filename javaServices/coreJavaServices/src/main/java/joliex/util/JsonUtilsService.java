@@ -37,11 +37,9 @@ import jolie.runtime.typing.Type;
  * @author claudio guidi
  */
 @AndJarDeps( { "jolie-js.jar", "json_simple.jar" } )
-public class JsonUtilsService extends JavaService
-{
+public class JsonUtilsService extends JavaService {
 
-	public Value getJsonString( Value request ) throws FaultException
-	{
+	public Value getJsonString( Value request ) throws FaultException {
 		Value ret = Value.create();
 
 		StringBuilder stringBuilder = new StringBuilder();
@@ -55,23 +53,23 @@ public class JsonUtilsService extends JavaService
 		return ret;
 	}
 
-	public Value getJsonValue( Value request ) throws FaultException
-	{
+	public Value getJsonValue( Value request ) throws FaultException {
 		Value ret = Value.create();
 
 		String charset = null;
-		if ( request.hasChildren( "charset" ) ) {
+		if( request.hasChildren( "charset" ) ) {
 			charset = request.getFirstChild( "charset" ).strValue();
 		}
 
 		try {
 			String str;
-			if ( request.isByteArray() && charset != null ) {
+			if( request.isByteArray() && charset != null ) {
 				str = new String( request.byteArrayValue().getBytes(), charset );
 			} else {
 				str = request.strValue();
 			}
-			JsUtils.parseJsonIntoValue( new StringReader( str ), ret, request.getFirstChild( "strictEncoding" ).boolValue() );
+			JsUtils.parseJsonIntoValue( new StringReader( str ), ret,
+				request.getFirstChild( "strictEncoding" ).boolValue() );
 		} catch( IOException e ) {
 			throw new FaultException( "Jolie value generation from JSON string failed" );
 		}

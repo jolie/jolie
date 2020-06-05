@@ -24,18 +24,15 @@ package jolie.runtime;
 
 import jolie.lang.Constants;
 
-public class InvalidIdException extends Exception
-{
+public class InvalidIdException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	public InvalidIdException( String id )
-	{
+
+	public InvalidIdException( String id ) {
 		super( "invalid identifier: " + id );
 	}
-	
+
 	@Override
-	public synchronized Throwable fillInStackTrace()
-	{
+	public synchronized Throwable fillInStackTrace() {
 		return this;
 	}
 }

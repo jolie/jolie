@@ -28,20 +28,17 @@ import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
-public class SecurityUtils extends JavaService
-{
+public class SecurityUtils extends JavaService {
 	private final SecureRandom random = new SecureRandom();
 
 	public ByteArray secureRandom( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		byte[] bb = new byte[ request.getFirstChild( "size" ).intValue() ];
 		random.nextBytes( bb );
 		return new ByteArray( bb );
 	}
 
-	public String createSecureToken()
-	{
+	public String createSecureToken() {
 		return UUID.randomUUID().toString();
 	}
 }

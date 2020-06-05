@@ -29,35 +29,33 @@ import jolie.util.Helpers;
 
 /**
  * This abstract class implements a communication channel based on a <code>CommProtocol</code>.
+ * 
  * @author Fabrizio Montesi
  * @see SelectableStreamingCommChannel
  */
-public abstract class StreamingCommChannel extends AbstractCommChannel
-{
+public abstract class StreamingCommChannel extends AbstractCommChannel {
 	private final URI location;
 	private final CommProtocol protocol;
-	public StreamingCommChannel( URI location, CommProtocol protocol )
-	{
+
+	public StreamingCommChannel( URI location, CommProtocol protocol ) {
 		this.location = location;
 		this.protocol = protocol;
 		protocol.setChannel( this );
 	}
 
-	protected CommProtocol protocol()
-	{
+	protected CommProtocol protocol() {
 		return protocol;
 	}
-	
+
 	@Override
-	protected boolean isThreadSafe()
-	{
+	protected boolean isThreadSafe() {
 		return protocol.isThreadSafe();
 	}
 
 	@Override
 	protected void releaseImpl()
-		throws IOException
-	{
-		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this ) );
+		throws IOException {
+		Helpers.lockAndThen( lock,
+			() -> Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this ) );
 	}
 }

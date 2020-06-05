@@ -25,32 +25,27 @@ import jolie.runtime.FaultException;
 import jolie.Interpreter;
 import jolie.runtime.ExitingException;
 
-public class SynchronizedProcess implements Process
-{
+public class SynchronizedProcess implements Process {
 	final private String id;
 	final private Process process;
-	
-	public SynchronizedProcess( String id, Process process )
-	{
+
+	public SynchronizedProcess( String id, Process process ) {
 		this.id = id;
 		this.process = process;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new SynchronizedProcess( id, process.copy( reason ) );
 	}
-	
+
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		synchronized( Interpreter.getInstance().getLock( id ) ) {
 			process.run();
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return process.isKillable();
 	}
 }

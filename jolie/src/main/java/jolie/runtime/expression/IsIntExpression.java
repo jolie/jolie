@@ -26,22 +26,18 @@ import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
-public class IsIntExpression implements Expression
-{
+public class IsIntExpression implements Expression {
 	private final VariablePath path;
-	
-	public IsIntExpression( VariablePath path )
-	{
+
+	public IsIntExpression( VariablePath path ) {
 		this.path = path;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new IsIntExpression( path );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		Value value = path.getValueOrNull();
 		return Value.create( value != null && value.isInt() );
 	}

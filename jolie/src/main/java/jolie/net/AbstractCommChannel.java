@@ -36,8 +36,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 
-public abstract class AbstractCommChannel extends CommChannel
-{
+public abstract class AbstractCommChannel extends CommChannel {
 	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
 	private final Map< Long, CommMessage > pendingResponses = new HashMap<>();
@@ -46,46 +45,45 @@ public abstract class AbstractCommChannel extends CommChannel
 	private ResponseReceiver responseReceiver = null;
 	private final Object responseRecvMutex = new Object();
 
-	private static class ResponseContainer
-	{
+	private static class ResponseContainer {
 		private ResponseContainer() {}
+
 		private CommMessage response = null;
 	}
 
 	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
-		throws IOException
-	{
+		throws IOException {
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		return CompletableFuture.supplyAsync( () -> {
 			CommMessage response;
 			ResponseContainer monitor = null;
 			synchronized( responseRecvMutex ) {
 				response = pendingResponses.remove( request.id() );
-				if ( response == null ) {
-					if ( pendingGenericResponses.isEmpty() ) {
-						assert( waiters.containsKey( request.id() ) == false );
+				if( response == null ) {
+					if( pendingGenericResponses.isEmpty() ) {
+						assert (waiters.containsKey( request.id() ) == false);
 						monitor = new ResponseContainer();
 						waiters.put( request.id(), monitor );
-						//responseRecvMutex.notify();
+						// responseRecvMutex.notify();
 					} else {
 						response = pendingGenericResponses.remove( 0 );
 					}
 				}
 			}
-			if ( response == null ) {
+			if( response == null ) {
 				synchronized( responseRecvMutex ) {
-					if ( responseReceiver == null ) {
+					if( responseReceiver == null ) {
 						responseReceiver = new ResponseReceiver( this, ethread );
 						ethread.interpreter().commCore().startCommChannelHandler( responseReceiver );
 					} else {
 						responseReceiver.wakeUp();
 					}
 				}
-				
-				if ( monitor != null ) {
+
+				if( monitor != null ) {
 					synchronized( monitor ) {
-						if ( monitor.response == null ) {
+						if( monitor.response == null ) {
 							try {
 								monitor.wait();
 							} catch( InterruptedException e ) {
@@ -100,18 +98,16 @@ public abstract class AbstractCommChannel extends CommChannel
 		}, Interpreter.getInstance().commCore().executor() );
 	}
 
-	private static class ResponseReceiver implements Runnable
-	{
+	private static class ResponseReceiver implements Runnable {
 		private final AbstractCommChannel parent;
 		private final ExecutionThread ethread;
 		private boolean keepRun;
 		private TimeoutHandler timeoutHandler;
 
-		private void timeout()
-		{
+		private void timeout() {
 			synchronized( parent.responseRecvMutex ) {
-				if ( keepRun == false ) {
-					if ( parent.waiters.isEmpty() ) {
+				if( keepRun == false ) {
+					if( parent.waiters.isEmpty() ) {
 						timeoutHandler = null;
 						parent.responseReceiver = null;
 					} else {
@@ -122,18 +118,16 @@ public abstract class AbstractCommChannel extends CommChannel
 			}
 		}
 
-		private void wakeUp()
-		{
+		private void wakeUp() {
 			// TODO: check race conditions on timeoutHandler, should we sync it?
-			if ( timeoutHandler != null ) {
+			if( timeoutHandler != null ) {
 				timeoutHandler.cancel();
 			}
 			keepRun = true;
 			parent.responseRecvMutex.notify();
 		}
 
-		private void sleep()
-		{
+		private void sleep() {
 			final ResponseReceiver receiver = this;
 			timeoutHandler = new TimeoutHandler( RECEIVER_KEEP_ALIVE ) {
 				@Override
@@ -150,18 +144,16 @@ public abstract class AbstractCommChannel extends CommChannel
 			}
 		}
 
-		private ResponseReceiver( AbstractCommChannel parent, ExecutionThread ethread )
-		{
+		private ResponseReceiver( AbstractCommChannel parent, ExecutionThread ethread ) {
 			this.ethread = ethread;
 			this.parent = parent;
 			this.keepRun = true;
 			this.timeoutHandler = null;
 		}
 
-		private void handleGenericMessage( CommMessage response )
-		{
+		private void handleGenericMessage( CommMessage response ) {
 			ResponseContainer monitor;
-			if ( parent.waiters.isEmpty() ) {
+			if( parent.waiters.isEmpty() ) {
 				parent.pendingGenericResponses.add( response );
 			} else {
 				Entry< Long, ResponseContainer > entry =
@@ -174,17 +166,15 @@ public abstract class AbstractCommChannel extends CommChannel
 						response.operationName(),
 						response.resourcePath(),
 						response.value(),
-						response.fault()
-					);
+						response.fault() );
 					monitor.notify();
 				}
 			}
 		}
 
-		private void handleMessage( CommMessage response )
-		{
+		private void handleMessage( CommMessage response ) {
 			ResponseContainer monitor;
-			if ( (monitor=parent.waiters.remove( response.id() )) == null ) {
+			if( (monitor = parent.waiters.remove( response.id() )) == null ) {
 				parent.pendingResponses.put( response.id(), response );
 			} else {
 				synchronized( monitor ) {
@@ -194,9 +184,8 @@ public abstract class AbstractCommChannel extends CommChannel
 			}
 		}
 
-		private void throwIOExceptionFault( IOException e )
-		{
-			if ( parent.waiters.isEmpty() == false ) {
+		private void throwIOExceptionFault( IOException e ) {
+			if( parent.waiters.isEmpty() == false ) {
 				ResponseContainer monitor;
 				for( Entry< Long, ResponseContainer > entry : parent.waiters.entrySet() ) {
 					monitor = entry.getValue();
@@ -206,8 +195,7 @@ public abstract class AbstractCommChannel extends CommChannel
 							"",
 							Constants.ROOT_RESOURCE_PATH,
 							Value.create(),
-							new FaultException( "IOException", e )
-						);
+							new FaultException( "IOException", e ) );
 						monitor.notify();
 					}
 				}
@@ -216,12 +204,10 @@ public abstract class AbstractCommChannel extends CommChannel
 		}
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			/*
-			 * Warning: the following line implies that this
-			 * whole thing is safe iff the CommChannel is used only for outputs,
-			 * otherwise we are messing with correlation set checking.
+			 * Warning: the following line implies that this whole thing is safe iff the CommChannel is used
+			 * only for outputs, otherwise we are messing with correlation set checking.
 			 */
 			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
 
@@ -230,14 +216,14 @@ public abstract class AbstractCommChannel extends CommChannel
 				synchronized( parent.responseRecvMutex ) {
 					try {
 						response = parent.recv();
-						if ( response != null ) {
-							if ( response.hasGenericId() ) {
+						if( response != null ) {
+							if( response.hasGenericId() ) {
 								handleGenericMessage( response );
 							} else {
 								handleMessage( response );
 							}
 						}
-						if ( parent.waiters.isEmpty() ) {
+						if( parent.waiters.isEmpty() ) {
 							sleep();
 						}
 					} catch( IOException e ) {

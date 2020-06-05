@@ -31,73 +31,66 @@ import jolie.runtime.expression.Expression;
 import jolie.tracer.*;
 import jolie.util.Pair;
 
-/** Assigns an expression value to a VariablePath.
+/**
+ * Assigns an expression value to a VariablePath.
+ * 
  * @see Expression
  * @see VariablePath
  * @author Fabrizio Montesi
  */
-public class AssignmentProcess implements Process, Expression
-{
+public class AssignmentProcess implements Process, Expression {
 	final private VariablePath varPath;
 	final private Expression expression;
 	final private ParsingContext context;
 
-	/** Constructor.
+	/**
+	 * Constructor.
 	 * 
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression of which the evaluation will be stored in the variable
 	 */
-	public AssignmentProcess( VariablePath varPath, Expression expression, ParsingContext context )
-	{
+	public AssignmentProcess( VariablePath varPath, Expression expression, ParsingContext context ) {
 		this.varPath = varPath;
 		this.expression = expression;
 		this.context = context;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new AssignmentProcess(
-					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason ),
-					context
-				);
+			(VariablePath) varPath.cloneExpression( reason ),
+			expression.cloneExpression( reason ),
+			context );
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new AssignmentProcess(
-					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason ),
-					context
-				);
+			(VariablePath) varPath.cloneExpression( reason ),
+			expression.cloneExpression( reason ),
+			context );
 	}
-	
+
 	/** Evaluates the expression and stores its value in the variable. */
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
 		Value evaluationValue = expression.evaluate();
 		varPath.getValue().assignValue( evaluationValue );
 		final Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace(() -> new AssignmentTraceAction(
-				AssignmentTraceAction.Type.ASSIGNMENT,
-				"ASSIGN",
-				null,
-				evaluationValue.clone(),
-				context
-		));
+		tracer.trace( () -> new AssignmentTraceAction(
+			AssignmentTraceAction.Type.ASSIGNMENT,
+			"ASSIGN",
+			null,
+			evaluationValue.clone(),
+			context ) );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.assignValue( expression.evaluate() );
 		return val;
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 

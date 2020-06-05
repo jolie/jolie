@@ -29,8 +29,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * @author Fabrizio Montesi
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Identifier
-{
+@Retention( RetentionPolicy.RUNTIME )
+public @interface Identifier {
 	String value();
 }

@@ -26,41 +26,35 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 
-public class WhileProcess implements Process
-{
+public class WhileProcess implements Process {
 	private final Expression condition;
 	private final Process process;
 
-	public WhileProcess( Expression condition, Process process )
-	{
+	public WhileProcess( Expression condition, Process process ) {
 		this.condition = condition;
 		this.process = process;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new WhileProcess(
-					condition.cloneExpression( reason ),
-					process.copy( reason )
-				);
+			condition.cloneExpression( reason ),
+			process.copy( reason ) );
 	}
-	
+
 	public void run()
-		throws FaultException, ExitingException
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		throws FaultException, ExitingException {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 		while( condition.evaluate().boolValue() ) {
 			process.run();
-			if ( ExecutionThread.currentThread().isKilled() ) {
+			if( ExecutionThread.currentThread().isKilled() ) {
 				return;
 			}
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

@@ -28,64 +28,56 @@ import java.util.Map.Entry;
 import jolie.lang.NativeType;
 
 /**
- * Pretty printer for {@link Value} objects.
- * This class is not thread safe.
+ * Pretty printer for {@link Value} objects. This class is not thread safe.
+ * 
  * @author Fabrizio Montesi
  */
-public class ValuePrettyPrinter
-{
+public class ValuePrettyPrinter {
 	private final Value root;
 	private final Writer writer;
 	private final String header;
 	private int indentation = 0;
 	private int byteTruncation = -1; // Default: no truncation
 
-	public ValuePrettyPrinter( Value root, Writer writer, String header )
-	{
+	public ValuePrettyPrinter( Value root, Writer writer, String header ) {
 		this.root = root;
 		this.writer = writer;
 		this.header = header;
 	}
 
-	private void indent()
-	{
+	private void indent() {
 		indentation++;
 	}
 
-	private void unindent()
-	{
+	private void unindent() {
 		indentation--;
 	}
-	
-	public void setByteTruncation( int truncation )
-	{
+
+	public void setByteTruncation( int truncation ) {
 		this.byteTruncation = truncation;
 	}
 
 	public void run()
-		throws IOException
-	{
+		throws IOException {
 		writeIndented( header );
 		writeNativeValue( root );
 		indent();
 		writeChildren( root );
 		unindent();
 	}
-	
-	public void setIndentationOffset( int offset )
-	{
+
+	public void setIndentationOffset( int offset ) {
 		this.indentation = offset;
 	}
 
 	private void writeNativeValue( Value value )
-		throws IOException
-	{
-		if ( value.isUsedInCorrelation() ) {
+		throws IOException {
+		if( value.isUsedInCorrelation() ) {
 			writer.write( " (cset)" );
 		}
-		if ( value.valueObject() != null ) {
+		if( value.valueObject() != null ) {
 			writer.write( " = " );
-			if ( value.valueObject() instanceof ByteArray && byteTruncation > -1 ) {
+			if( value.valueObject() instanceof ByteArray && byteTruncation > -1 ) {
 				String s = value.byteArrayValue().toString();
 				writer.write( s.substring( 0, Math.min( byteTruncation, s.length() ) ) + "..." );
 			} else {
@@ -96,22 +88,21 @@ public class ValuePrettyPrinter
 		}
 		writer.write( '\n' );
 	}
-	
-	private static String prettyNativeTypeName( Value v )
-	{
-		if ( v.isBool() ) {
+
+	private static String prettyNativeTypeName( Value v ) {
+		if( v.isBool() ) {
 			return NativeType.BOOL.id();
-		} else if ( v.isByteArray() ) {
+		} else if( v.isByteArray() ) {
 			return NativeType.RAW.id();
-		} else if ( v.isChannel() ) {
+		} else if( v.isChannel() ) {
 			return v.valueObject().getClass().getName();
-		} else if ( v.isDouble() ) {
+		} else if( v.isDouble() ) {
 			return NativeType.DOUBLE.id();
-		} else if ( v.isInt() ) {
+		} else if( v.isInt() ) {
 			return NativeType.INT.id();
-		} else if ( v.isLong() ) {
+		} else if( v.isLong() ) {
 			return NativeType.LONG.id();
-		} else if ( v.isString() ) {
+		} else if( v.isString() ) {
 			return NativeType.STRING.id();
 		} else {
 			return v.valueObject().getClass().getName();
@@ -119,10 +110,9 @@ public class ValuePrettyPrinter
 	}
 
 	private void writeChildren( Value value )
-		throws IOException
-	{
+		throws IOException {
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			if ( entry.getValue().isEmpty() ) {
+			if( entry.getValue().isEmpty() ) {
 				writeIndented( "." );
 				writer.write( entry.getKey() );
 				writer.write( " (empty)" );
@@ -145,8 +135,7 @@ public class ValuePrettyPrinter
 	}
 
 	private void writeIndented( String s )
-		throws IOException
-	{
+		throws IOException {
 		for( int i = 0; i < indentation; i++ ) {
 			writer.write( '\t' );
 		}

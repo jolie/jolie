@@ -20,39 +20,38 @@
  ***************************************************************************/
 
 package jolie.process;
+
 import jolie.Interpreter;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
 
 
-/** Executes a sub-routine.
+/**
+ * Executes a sub-routine.
  * 
  * @see DefinitionProcess
  * @author Fabrizio Montesi
  */
-public class CallProcess implements Process
-{
+public class CallProcess implements Process {
 	private final String definitionName;
-	
-	/** Constructor
+
+	/**
+	 * Constructor
 	 * 
 	 * @param definitionName the name of the definition to execute.
 	 */
-	public CallProcess( String definitionName )
-	{
+	public CallProcess( String definitionName ) {
 		this.definitionName = definitionName;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new CallProcess( definitionName );
 	}
-	
+
 	/** Executes the definition. */
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		try {
 			DefinitionProcess definition = Interpreter.getInstance().getDefinition( definitionName );
 			definition.run();
@@ -60,9 +59,8 @@ public class CallProcess implements Process
 			throw new FaultException( "FatalError", "Definition not found: " + definitionName );
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		try {
 			DefinitionProcess definition = Interpreter.getInstance().getDefinition( definitionName );
 			return definition.isKillable();

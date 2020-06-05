@@ -30,39 +30,36 @@ import javax.bluetooth.L2CAPConnection;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
-public class BTL2CapCommChannel extends StreamingCommChannel implements PollableCommChannel
-{
+public class BTL2CapCommChannel extends StreamingCommChannel implements PollableCommChannel {
 	private final L2CAPConnection connection;
 	private final int sendMTU;
 	private final int recvMTU;
-	
+
 	public BTL2CapCommChannel( L2CAPConnection connection, URI location, CommProtocol protocol )
-		throws IOException
-	{
+		throws IOException {
 		super( location, protocol );
 		this.connection = connection;
 		sendMTU = connection.getTransmitMTU();
 		recvMTU = connection.getReceiveMTU();
 		setToBeClosed( false ); // Bluetooth connections are kept open by default.
 	}
-	
+
 	protected void sendImpl( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		protocol().send( ostream, message, null ); // TODO Fix this null pointer.
 		byte[] result = ostream.toByteArray();
-		if ( result.length > sendMTU ) {
+		if( result.length > sendMTU ) {
 			int times = (result.length / sendMTU);
 			byte[] chunk;
 			int i;
 			for( i = 0; i < times; i++ ) {
-				chunk = Arrays.copyOfRange( result, i*sendMTU, ((i+1)*sendMTU) );
+				chunk = Arrays.copyOfRange( result, i * sendMTU, ((i + 1) * sendMTU) );
 				connection.send( chunk );
 			}
 			int remaining = result.length % sendMTU;
-			if ( remaining > 0 ) {
-				chunk = Arrays.copyOfRange( result, i*sendMTU, (i*sendMTU) + remaining );
+			if( remaining > 0 ) {
+				chunk = Arrays.copyOfRange( result, i * sendMTU, (i * sendMTU) + remaining );
 				connection.send( chunk );
 			}
 		} else {
@@ -71,8 +68,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 	}
 
 	protected CommMessage recvImpl()
-		throws IOException
-	{
+		throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		byte[] chunk;
 		int len = recvMTU;
@@ -84,22 +80,19 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		ByteArrayInputStream istream = new ByteArrayInputStream( ostream.toByteArray() );
 		return protocol().recv( istream, null ); // TODO fix this null pointer
 	}
-	
+
 	protected void closeImpl()
-		throws IOException
-	{
+		throws IOException {
 		connection.close();
 	}
-	
+
 	@Override
 	protected void disposeForInputImpl()
-		throws IOException
-	{
+		throws IOException {
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
-	
-	public boolean isReady()
-	{
+
+	public boolean isReady() {
 		try {
 			return connection.ready();
 		} catch( IOException e ) {

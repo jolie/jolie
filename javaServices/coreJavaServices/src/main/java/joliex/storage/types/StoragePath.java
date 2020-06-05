@@ -31,91 +31,76 @@ import joliex.storage.types.StoragePath.Node;
  *
  * @author Fabrizio Montesi
  */
-public class StoragePath implements Iterable< Node >
-{
-	public static class Node
-	{
+public class StoragePath implements Iterable< Node > {
+	public static class Node {
 		private final String name;
 		private final int index;
 
-		private Node( String name, int index )
-		{
+		private Node( String name, int index ) {
 			this.name = name;
 			this.index = index;
 		}
 
-		public String name()
-		{
+		public String name() {
 			return name;
 		}
 
-		public int index()
-		{
+		public int index() {
 			return index;
 		}
 	}
 
-	private static class ArrayIterator< T > implements Iterator< T >
-	{
+	private static class ArrayIterator< T > implements Iterator< T > {
 		private final T[] array;
 		private int index = 0;
-		public ArrayIterator( T[] array )
-		{
+
+		public ArrayIterator( T[] array ) {
 			this.array = array;
 		}
 
-		public T next()
-		{
-			if ( index + 1 >= array.length ) {
+		public T next() {
+			if( index + 1 >= array.length ) {
 				throw new NoSuchElementException();
 			}
 			return array[ index++ ];
 		}
 
-		public boolean hasNext()
-		{
+		public boolean hasNext() {
 			return index + 1 < array.length;
 		}
 
-		public void remove()
-		{
+		public void remove() {
 			throw new UnsupportedOperationException();
 		}
 	}
 
 	private final Node[] nodes;
 
-	private StoragePath( Node[] nodes )
-	{
+	private StoragePath( Node[] nodes ) {
 		this.nodes = nodes;
 	}
 
-	public Node[] nodes()
-	{
+	public Node[] nodes() {
 		return nodes;
 	}
 
-	public Iterator< Node > iterator()
-	{
+	public Iterator< Node > iterator() {
 		return new ArrayIterator< Node >( nodes );
 	}
 
-	public static StoragePath fromValue( Value value )
-	{
+	public static StoragePath fromValue( Value value ) {
 		ValueVector nodesVector = value.getChildren( "node" );
 		Node[] nodes = new Node[ nodesVector.size() ];
 		int i = 0;
 		for( Value nodeValue : nodesVector ) {
 			nodes[ i++ ] = new Node(
 				nodeValue.getFirstChild( "name" ).strValue(),
-				nodeValue.getFirstChild( "index" ).intValue()
-			);
+				nodeValue.getFirstChild( "index" ).intValue() );
 		}
 		return new StoragePath( nodes );
 	}
 
-	public static Value toValue( StoragePath path )
-	{
+	public static Value toValue( StoragePath path ) {
 		ValueVector nodesVector = ValueVector.create();
 		Value nodeValue;
 		for( Node node : path.nodes ) {

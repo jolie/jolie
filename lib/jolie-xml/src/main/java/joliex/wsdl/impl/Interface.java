@@ -28,46 +28,38 @@ import java.util.List;
  *
  * @author Fabrizio Montesi
  */
-public class Interface
-{
+public class Interface {
 	private final String name;
 	private final String comment;
 	private final List< Operation > oneWayOperations = new ArrayList< Operation >();
 	private final List< Operation > requestResponseOperations = new ArrayList< Operation >();
 
-	public Interface( String name, String comment )
-	{
+	public Interface( String name, String comment ) {
 		this.name = name;
 		this.comment = comment;
 	}
 
-	public List< Operation > requestResponseOperations()
-	{
+	public List< Operation > requestResponseOperations() {
 		return requestResponseOperations;
 	}
 
-	public List< Operation > oneWayOperations()
-	{
+	public List< Operation > oneWayOperations() {
 		return oneWayOperations;
 	}
 
-	public String name()
-	{
+	public String name() {
 		return name;
 	}
 
-	public String comment()
-	{
+	public String comment() {
 		return comment;
 	}
 
-	public void addOneWayOperation( Operation operation )
-	{
+	public void addOneWayOperation( Operation operation ) {
 		oneWayOperations.add( operation );
 	}
 
-	public void addRequestResponseOperation( Operation operation )
-	{
+	public void addRequestResponseOperation( Operation operation ) {
 		requestResponseOperations.add( operation );
 	}
 }

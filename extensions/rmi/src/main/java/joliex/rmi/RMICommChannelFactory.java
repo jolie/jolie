@@ -30,19 +30,16 @@ import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.ports.OutputPort;
 
-public class RMICommChannelFactory extends CommChannelFactory
-{
-	public RMICommChannelFactory( CommCore commCore )
-	{
+public class RMICommChannelFactory extends CommChannelFactory {
+	public RMICommChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			Registry registry = LocateRegistry.getRegistry( location.getHost(), location.getPort() );
-			JolieRemote remote = (JolieRemote)registry.lookup( location.getPath() );
+			JolieRemote remote = (JolieRemote) registry.lookup( location.getPath() );
 			return new RMICommChannel( remote.createRemoteBasicChannel() );
 		} catch( NotBoundException e ) {
 			throw new IOException( e );

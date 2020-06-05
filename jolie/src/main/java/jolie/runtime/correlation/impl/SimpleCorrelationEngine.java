@@ -38,24 +38,21 @@ import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 
 /**
- * A simple correlation algorithm that performs a sequential check
- * of each running session every time a new message arrives
- * or a session changes one of its correlation values.
+ * A simple correlation algorithm that performs a sequential check of each running session every
+ * time a new message arrives or a session changes one of its correlation values.
+ * 
  * @author Fabrizio Montesi
  */
-public class SimpleCorrelationEngine extends CorrelationEngine
-{
+public class SimpleCorrelationEngine extends CorrelationEngine {
 	private final Set< SessionThread > sessions = Collections.newSetFromMap( new ConcurrentHashMap<>() );
 
-	public SimpleCorrelationEngine( Interpreter interpreter )
-	{
+	public SimpleCorrelationEngine( Interpreter interpreter ) {
 		super( interpreter );
 	}
 
-	public boolean routeMessage( CommMessage message, CommChannel channel )
-	{
+	public boolean routeMessage( CommMessage message, CommChannel channel ) {
 		for( SessionThread session : sessions ) {
-			if ( correlate( session, message ) ) {
+			if( correlate( session, message ) ) {
 				session.pushMessage( new SessionMessage( message, channel ) );
 				return true;
 			}
@@ -63,53 +60,48 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 		return false;
 	}
 
-	public void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message )
-	{
+	public void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message ) {
 		sessions.add( session );
 		initCorrelationValues( session, starter, message );
 	}
 
-	public void onSingleExecutionSessionStart( SessionThread session )
-	{
+	public void onSingleExecutionSessionStart( SessionThread session ) {
 		sessions.add( session );
 	}
 
-	public void onSessionExecuted( SessionThread session )
-	{
+	public void onSessionExecuted( SessionThread session ) {
 		sessions.remove( session );
 	}
 
-	public void onSessionError( SessionThread session, FaultException fault )
-	{
+	public void onSessionError( SessionThread session, FaultException fault ) {
 		onSessionExecuted( session );
 	}
 
-	private boolean correlate( SessionThread session, CommMessage message )
-	{
-		if ( (interpreter().correlationSets().isEmpty()
+	private boolean correlate( SessionThread session, CommMessage message ) {
+		if( (interpreter().correlationSets().isEmpty()
 			&& interpreter().executionMode() == ExecutionMode.SINGLE)
 			||
-			session.isInitialisingThread()
-		) {
+			session.isInitialisingThread() ) {
 			return true;
 		}
 
 		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
-		if ( cset == null ) {
+		if( cset == null ) {
 			return interpreter().executionMode() == ExecutionMode.SINGLE; // It must be a session starter.
 		}
 		final List< CorrelationPair > pairs = cset.getOperationCorrelationPairs( message.operationName() );
 		for( CorrelationPair cpair : pairs ) {
 			final Value sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
-			if ( sessionValue == null ) {
+			if( sessionValue == null ) {
 				return false;
 			} else {
 				Value messageValue = cpair.messagePath().getValueOrNull( message.value() );
-				if ( messageValue == null ) {
+				if( messageValue == null ) {
 					return false;
 				} else {
 					// TODO: Value.equals is type insensitive, fix this with an additional check.
-					if ( !sessionValue.isDefined() || !messageValue.isDefined() || !sessionValue.equals( messageValue ) ) {
+					if( !sessionValue.isDefined() || !messageValue.isDefined()
+						|| !sessionValue.equals( messageValue ) ) {
 						return false;
 					}
 				}

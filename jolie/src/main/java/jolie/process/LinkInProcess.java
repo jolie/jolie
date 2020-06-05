@@ -29,21 +29,17 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InternalLink;
 
-public class LinkInProcess implements Process
-{
-	public static class Execution
-	{
+public class LinkInProcess implements Process {
+	public static class Execution {
 		private CommMessage message = null;
 		private final LinkInProcess parent;
-		
-		public Execution( LinkInProcess parent )
-		{
+
+		public Execution( LinkInProcess parent ) {
 			this.parent = parent;
 		}
 
 		private void run()
-			throws FaultException
-		{
+			throws FaultException {
 			InternalLink link = InternalLink.getById( parent.linkId );
 			try {
 				link.signForMessage( this );
@@ -60,43 +56,37 @@ public class LinkInProcess implements Process
 			}
 		}
 
-		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
-		{
+		public synchronized boolean recvMessage( CommChannel channel, CommMessage message ) {
 			this.message = message;
 			this.notify();
 			return true;
 		}
-		
-		public boolean isKillable()
-		{
+
+		public boolean isKillable() {
 			return true;
 		}
 	}
-	
+
 	private final String linkId;
-	
-	public LinkInProcess( String link )
-	{
+
+	public LinkInProcess( String link ) {
 		this.linkId = link;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new LinkInProcess( linkId );
 	}
 
 	public void run()
-		throws FaultException, ExitingException
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		throws FaultException, ExitingException {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 
 		(new Execution( this )).run();
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

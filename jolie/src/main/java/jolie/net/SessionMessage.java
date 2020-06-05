@@ -26,24 +26,20 @@ package jolie.net;
  *
  * @author Fabrizio Montesi
  */
-public class SessionMessage
-{
+public class SessionMessage {
 	private final CommMessage message;
 	private final CommChannel channel;
 
-	public SessionMessage( CommMessage message, CommChannel channel )
-	{
+	public SessionMessage( CommMessage message, CommChannel channel ) {
 		this.message = message;
 		this.channel = channel;
 	}
 
-	public CommMessage message()
-	{
+	public CommMessage message() {
 		return message;
 	}
 
-	public CommChannel channel()
-	{
+	public CommChannel channel() {
 		return channel;
 	}
 }

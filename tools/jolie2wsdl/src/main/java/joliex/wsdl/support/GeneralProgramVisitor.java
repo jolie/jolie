@@ -15,16 +15,21 @@ import jolie.lang.parse.ast.Program;
  *
  * @author balint
  */
-public abstract class GeneralProgramVisitor  implements GeneralProgramVisitorInterface{
+public abstract class GeneralProgramVisitor implements GeneralProgramVisitorInterface {
 
-    protected Program program;
+	protected Program program;
 
-    public GeneralProgramVisitor(Program program){
-        this.program=program;
-       }
-   abstract public void run();
-   abstract public void clearLists();
-   abstract public InterfaceDefinition[] getInterfaceDefinitions();
-   abstract public OutputPortInfo[] getOutputPortInfo();
-   abstract public InputPortInfo[] getInputPortInfo();
+	public GeneralProgramVisitor( Program program ) {
+		this.program = program;
+	}
+
+	abstract public void run();
+
+	abstract public void clearLists();
+
+	abstract public InterfaceDefinition[] getInterfaceDefinitions();
+
+	abstract public OutputPortInfo[] getOutputPortInfo();
+
+	abstract public InputPortInfo[] getInputPortInfo();
 }

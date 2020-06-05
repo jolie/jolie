@@ -28,10 +28,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Fabrizio Montesi
  */
-public final class JolieThreadPoolExecutor extends ThreadPoolExecutor
-{
-	public JolieThreadPoolExecutor( final ThreadFactory factory )
-	{
+public final class JolieThreadPoolExecutor extends ThreadPoolExecutor {
+	public JolieThreadPoolExecutor( final ThreadFactory factory ) {
 		super(
 			0,
 			Integer.MAX_VALUE - 8,
@@ -39,7 +37,6 @@ public final class JolieThreadPoolExecutor extends ThreadPoolExecutor
 			TimeUnit.SECONDS,
 			new SynchronousQueue<>(),
 			factory,
-			new ThreadPoolExecutor.AbortPolicy()
-		);
+			new ThreadPoolExecutor.AbortPolicy() );
 	}
 }

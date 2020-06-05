@@ -28,63 +28,58 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 /**
- * Subtract an expression value from a VariablePath's value, assigning the resulting
- * value to the VariablePath.
+ * Subtract an expression value from a VariablePath's value, assigning the resulting value to the
+ * VariablePath.
+ * 
  * @see Expression
  * @see VariablePath
  * @author Karoly Szanto
  */
-public class SubtractAssignmentProcess implements Process, Expression
-{
+public class SubtractAssignmentProcess implements Process, Expression {
 	final private VariablePath varPath;
 	final private Expression expression;
 	final private ParsingContext context;
 
-	/** Constructor.
+	/**
+	 * Constructor.
 	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression to be evaluated and subtracted from the variable's value
 	 */
-	public SubtractAssignmentProcess(VariablePath varPath, Expression expression, ParsingContext context )
-	{
+	public SubtractAssignmentProcess( VariablePath varPath, Expression expression, ParsingContext context ) {
 		this.varPath = varPath;
 		this.expression = expression;
 		this.context = context;
 	}
 
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ), context );
 	}
 
-	public Expression cloneExpression( TransformationReason reason )
-	{
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ), context );
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 
 		varPath.getValue().subtract( expression.evaluate() );
 	}
 
-	public Value evaluate()
-	{
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.subtract( expression.evaluate() );
 		return val;
 	}
 
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

@@ -25,38 +25,31 @@ import java.util.Arrays;
 
 import java.io.UnsupportedEncodingException;
 
-public class ByteArray
-{
+public class ByteArray {
 	final private byte[] buffer;
-	
-	public ByteArray( byte[] buffer )
-	{
+
+	public ByteArray( byte[] buffer ) {
 		this.buffer = buffer;
 	}
-	
-	public int size()
-	{
+
+	public int size() {
 		return buffer.length;
 	}
-	
-	public byte[] getBytes()
-	{
+
+	public byte[] getBytes() {
 		return buffer;
 	}
 
-	public boolean equals( ByteArray other )
-	{
+	public boolean equals( ByteArray other ) {
 		return Arrays.equals( buffer, other.buffer );
 	}
-	
+
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return new String( buffer );
 	}
 
-	public String toString( String charset ) throws UnsupportedEncodingException
-	{
+	public String toString( String charset ) throws UnsupportedEncodingException {
 		return new String( buffer, charset );
 	}
 }

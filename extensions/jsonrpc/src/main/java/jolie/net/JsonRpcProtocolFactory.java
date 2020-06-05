@@ -28,25 +28,21 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"jolie-js.jar","json_simple.jar"})
-public class JsonRpcProtocolFactory extends CommProtocolFactory
-{
-	public JsonRpcProtocolFactory( CommCore commCore )
-	{
+@AndJarDeps( { "jolie-js.jar", "json_simple.jar" } )
+public class JsonRpcProtocolFactory extends CommProtocolFactory {
+	public JsonRpcProtocolFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new JsonRpcProtocol( configurationPath, location,
-					    commCore().interpreter(), false );
+			commCore().interpreter(), false );
 	}
 
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new JsonRpcProtocol( configurationPath, location,
-					    commCore().interpreter(), true );
+			commCore().interpreter(), true );
 	}
 }
