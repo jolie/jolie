@@ -40,37 +40,32 @@ import org.jivesoftware.smack.packet.Message;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"smack.jar", "smackx.jar"})
-public class XMPPService extends JavaService
-{
+@AndJarDeps( { "smack.jar", "smackx.jar" } )
+public class XMPPService extends JavaService {
 	private XMPPConnection connection = null;
 
 	private final Map< String, Chat > chats = new HashMap< String, Chat >();
-	
-	private Chat getChat( String userJID )
-	{
+
+	private Chat getChat( String userJID ) {
 		Chat chat = chats.get( userJID );
-		if ( chat == null ) {
+		if( chat == null ) {
 			chat = connection.getChatManager().createChat(
 				userJID,
 				new MessageListener() {
-					public void processMessage( Chat chat, Message message )
-					{
+					public void processMessage( Chat chat, Message message ) {
 						// TODO redirect to embedder
 					}
-				}
-			);
+				} );
 			chats.put( userJID, chat );
 		}
 
 		return chat;
 	}
 
-	@Identifier("sendMessage")
+	@Identifier( "sendMessage" )
 	@RequestResponse
 	public void _sendMessage( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		Chat chat = getChat( request.getFirstChild( "to" ).strValue() );
 		try {
 			chat.sendMessage( request.strValue() );
@@ -81,42 +76,37 @@ public class XMPPService extends JavaService
 
 	@RequestResponse
 	public void connect( Value request )
-		throws FaultException
-	{
-		if ( connection != null ) {
+		throws FaultException {
+		if( connection != null ) {
 			connection.disconnect();
 		}
-		
+
 		ConnectionConfiguration config;
 
 		int port = request.getFirstChild( "port" ).intValue();
-		if ( request.hasChildren( "host" ) && port > 0 ) {
+		if( request.hasChildren( "host" ) && port > 0 ) {
 			config = new ConnectionConfiguration(
 				request.getFirstChild( "host" ).strValue(),
 				port,
-				request.getFirstChild( "serviceName" ).strValue()
-			);
+				request.getFirstChild( "serviceName" ).strValue() );
 		} else {
 			config = new ConnectionConfiguration(
-				request.getFirstChild( "serviceName" ).strValue()
-			);
+				request.getFirstChild( "serviceName" ).strValue() );
 		}
 
 		connection = new XMPPConnection( config );
 		try {
 			connection.connect();
-			if ( request.hasChildren( "resource" ) ) {
+			if( request.hasChildren( "resource" ) ) {
 				connection.login(
 					request.getFirstChild( "username" ).strValue(),
 					request.getFirstChild( "password" ).strValue(),
-					request.getFirstChild( "resource" ).strValue()
-				);
+					request.getFirstChild( "resource" ).strValue() );
 			} else {
 				connection.login(
 					request.getFirstChild( "username" ).strValue(),
 					request.getFirstChild( "password" ).strValue(),
-					"Jolie"
-				);
+					"Jolie" );
 			}
 		} catch( XMPPException e ) {
 			throw new FaultException( "XMPPException", e );

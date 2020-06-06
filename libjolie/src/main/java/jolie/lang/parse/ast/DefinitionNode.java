@@ -26,56 +26,47 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.SymbolInfo.Privacy;
 
 
-public class DefinitionNode extends OLSyntaxNode implements SymbolNode
-{
+public class DefinitionNode extends OLSyntaxNode implements SymbolNode {
 	private final String id;
 	private final OLSyntaxNode body;
 	private Privacy privacy;
 
-	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body )
-	{
+	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body ) {
 		super( context );
 		this.id = id;
 		this.body = body;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
-	public OLSyntaxNode body()
-	{
+
+	public OLSyntaxNode body() {
 		return body;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 
 	@Override
-	public Privacy privacy()
-	{
+	public Privacy privacy() {
 		return privacy;
 	}
 
 	@Override
-	public void setPrivate( boolean isPrivate )
-	{
+	public void setPrivate( boolean isPrivate ) {
 		this.privacy = isPrivate ? Privacy.PRIVATE : Privacy.PUBLIC;
 	}
 
 	@Override
-	public String name()
-	{
+	public String name() {
 		return this.id;
 	}
 
 	@Override
-	public OLSyntaxNode node()
-	{
+	public OLSyntaxNode node() {
 		return this;
 	}
 }

@@ -25,67 +25,57 @@ import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.Value;
 
 /**
- * A monitoring event, supporting the {@link ValueConverter} interface for automatic
- * transformation between Jolie messages and Java objects.
+ * A monitoring event, supporting the {@link ValueConverter} interface for automatic transformation
+ * between Jolie messages and Java objects.
+ * 
  * @author Fabrizio Montesi
  */
-public class MonitoringEvent implements ValueConverter
-{
+public class MonitoringEvent implements ValueConverter {
 	private final String type;
 	private final long timestamp;
 	private final long memory;
 	private final Value data;
-	
-	public MonitoringEvent( String type, Value data )
-	{
+
+	public MonitoringEvent( String type, Value data ) {
 		this(
 			type,
 			System.currentTimeMillis(),
 			Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
-			data
-		);
+			data );
 	}
-	
-	private MonitoringEvent( String type, long timestamp, long memory, Value data )
-	{
+
+	private MonitoringEvent( String type, long timestamp, long memory, Value data ) {
 		this.type = type;
 		this.timestamp = timestamp;
 		this.memory = memory;
 		this.data = data;
 	}
-	
-	public String type()
-	{
+
+	public String type() {
 		return type;
 	}
-	
-	public long timestamp()
-	{
+
+	public long timestamp() {
 		return timestamp;
 	}
 
-	public long memory()
-	{
+	public long memory() {
 		return memory;
 	}
-	
-	public Value data()
-	{
+
+	public Value data() {
 		return data;
 	}
-	
-	public static MonitoringEvent fromValue( Value value )
-	{
+
+	public static MonitoringEvent fromValue( Value value ) {
 		return new MonitoringEvent(
 			value.getFirstChild( "type" ).strValue(),
 			value.getFirstChild( "timestamp" ).longValue(),
 			value.getFirstChild( "memory" ).longValue(),
-			value.getFirstChild( "data" )
-		);
+			value.getFirstChild( "data" ) );
 	}
-	
-	public static Value toValue( MonitoringEvent e )
-	{
+
+	public static Value toValue( MonitoringEvent e ) {
 		Value ret = Value.create();
 		ret.getFirstChild( "type" ).setValue( e.type );
 		ret.getFirstChild( "timestamp" ).setValue( e.timestamp );

@@ -29,59 +29,52 @@ import jolie.runtime.Value;
 
 /**
  * A simple channel for exchanging messages with a service powered by MetaService.
+ * 
  * @author Fabrizio Montesi
  */
-public class MetaServiceChannel implements Cloneable
-{
+public class MetaServiceChannel implements Cloneable {
 	private final MetaService metaService;
 	private final String resourceName;
 	private final CommChannel channel;
-	//private final boolean persistent;
-	
+	// private final boolean persistent;
+
 	public MetaServiceChannel( MetaService metaService, String resourceName )
-		throws IOException
-	{
+		throws IOException {
 		this.metaService = metaService;
 		this.resourceName = resourceName;
 		this.channel = metaService.createCommChannel();
-		/*this.persistent = persistent;
-		if ( persistent ) {
-			channel = metaService.createCommChannel();
-		}*/
+		/*
+		 * this.persistent = persistent; if ( persistent ) { channel = metaService.createCommChannel(); }
+		 */
 	}
-	
+
 	@Override
 	public MetaServiceChannel clone()
-		throws CloneNotSupportedException
-	{
+		throws CloneNotSupportedException {
 		try {
 			return new MetaServiceChannel( metaService, resourceName );
 		} catch( IOException e ) {
 			throw new CloneNotSupportedException();
 		}
 	}
-	
-	public String resourceName()
-	{
+
+	public String resourceName() {
 		return resourceName;
 	}
 
 	public void send( String operationName, Value value )
-		throws IOException
-	{
-		/*if ( !persistent ) {
-			channel = metaService.createCommChannel();
-		}*/
+		throws IOException {
+		/*
+		 * if ( !persistent ) { channel = metaService.createCommChannel(); }
+		 */
 		channel.send(
-			CommMessage.createRequest( operationName, resourceName, value )
-		);
+			CommMessage.createRequest( operationName, resourceName, value ) );
 	}
-	
+
 	public Value recv()
-		throws IOException, FaultException
-	{
+		throws IOException, FaultException {
 		CommMessage message = channel.recv();
-		if ( message.isFault() ) {
+		if( message.isFault() ) {
 			throw message.fault();
 		}
 		return message.value();

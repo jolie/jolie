@@ -31,30 +31,26 @@ import java.util.Set;
  *
  * @author Fabrizio Montesi
  */
-public abstract class MultiMap< K, V >
-{
+public abstract class MultiMap< K, V > {
 	private final Map< K, Collection< V > > map = new HashMap<>();
 
 	protected abstract Collection< V > createCollection();
 
-	public boolean containsKey( K key )
-	{
+	public boolean containsKey( K key ) {
 		return map.containsKey( key );
 	}
 
-	public Collection< V > get( K key )
-	{
+	public Collection< V > get( K key ) {
 		Collection< V > r = map.get( key );
-		if ( r == null ) {
+		if( r == null ) {
 			return Collections.emptyList();
 		}
 		return r;
 	}
 
-	public V put( K key, V value )
-	{
+	public V put( K key, V value ) {
 		Collection< V > r = map.get( key );
-		if ( r == null ) {
+		if( r == null ) {
 			r = createCollection();
 			map.put( key, r );
 		}
@@ -62,13 +58,11 @@ public abstract class MultiMap< K, V >
 		return value;
 	}
 
-	public void clear()
-	{
+	public void clear() {
 		map.clear();
 	}
 
-	public Set< K > keySet()
-	{
+	public Set< K > keySet() {
 		return map.keySet();
 	}
 }

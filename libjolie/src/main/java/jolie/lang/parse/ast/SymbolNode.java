@@ -24,27 +24,26 @@ import jolie.lang.parse.module.SymbolInfo.Privacy;
 /**
  * An interface of Symbol defines an importable symbols in Jolie
  */
-public interface SymbolNode
-{
-    /**
-     * returns the privacy of the symbol, can be either PRIVATE or PUBLIC
-     */
-    public Privacy privacy();
+public interface SymbolNode {
+	/**
+	 * returns the privacy of the symbol, can be either PRIVATE or PUBLIC
+	 */
+	public Privacy privacy();
 
-    /**
-     * set Privacy of the symbol
-     * 
-     * @param isPrivate a boolean defines the private status of the symbol
-     */
-    public void setPrivate(boolean isPrivate);
+	/**
+	 * set Privacy of the symbol
+	 * 
+	 * @param isPrivate a boolean defines the private status of the symbol
+	 */
+	public void setPrivate( boolean isPrivate );
 
-    /**
-     * returns qualify name of the symbol in local execution
-     */
-    public String name();
+	/**
+	 * returns qualify name of the symbol in local execution
+	 */
+	public String name();
 
-    /**
-     * returns linking AST node of the symbol.
-     */
-    public OLSyntaxNode node();
+	/**
+	 * returns linking AST node of the symbol.
+	 */
+	public OLSyntaxNode node();
 }

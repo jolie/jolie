@@ -25,20 +25,18 @@ import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class LocationParser
-{
+public final class LocationParser {
 	private LocationParser() {}
 
 	public final static String RESOURCE_SEPARATOR = "!/";
 	public final static Pattern RESOURCE_SEPARATOR_PATTERN = Pattern.compile( RESOURCE_SEPARATOR );
 
-	public static String getResourcePath( URI uri )
-	{
+	public static String getResourcePath( URI uri ) {
 		String ret = "/";
 		String path = uri.getPath();
-		if ( path != null ) {
+		if( path != null ) {
 			Matcher m = RESOURCE_SEPARATOR_PATTERN.matcher( path );
-			if ( m.find() ) {
+			if( m.find() ) {
 				ret += path.substring( m.end(), path.length() );
 			}
 		}

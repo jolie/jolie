@@ -30,39 +30,36 @@ import java.text.ParseException;
  *
  * @author Fabrizio Montesi
  */
-public class EmbeddingTraceAction implements TraceAction
-{
+public class EmbeddingTraceAction implements TraceAction {
 	public static enum Type {
 		SERVICE_LOAD
 	}
-	
+
 	private final Type type;
 	private final String name;
 	private final String description;
 	private final ParsingContext context;
-	
-	public EmbeddingTraceAction(Type type, String name, String description, ParsingContext context )
-	{
+
+	public EmbeddingTraceAction( Type type, String name, String description, ParsingContext context ) {
 		this.type = type;
 		this.name = name;
 		this.description = description;
 		this.context = context;
 	}
-	
-	public Type type()
-	{
+
+	public Type type() {
 		return type;
 	}
-	
-	public String name()
-	{
+
+	public String name() {
 		return name;
 	}
-	
-	public String description()
-	{
+
+	public String description() {
 		return description;
 	}
 
-	public ParsingContext context() { return context; }
+	public ParsingContext context() {
+		return context;
+	}
 }

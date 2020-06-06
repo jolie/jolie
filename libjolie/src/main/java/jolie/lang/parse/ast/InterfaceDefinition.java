@@ -33,75 +33,63 @@ import jolie.lang.parse.module.SymbolInfo.Privacy;
  * @author Fabrizio Montesi
  */
 public class InterfaceDefinition extends OLSyntaxNode
-		implements OperationCollector, DocumentedNode, SymbolNode
-{
+	implements OperationCollector, DocumentedNode, SymbolNode {
 	private final Map< String, OperationDeclaration > operationsMap = new HashMap<>();
 	private final String name;
 	private String documentation;
 	private Privacy privacy;
 
-	public InterfaceDefinition( ParsingContext context, String name )
-	{
+	public InterfaceDefinition( ParsingContext context, String name ) {
 		super( context );
 		this.name = name;
 	}
 
 	@Override
-	public Map< String, OperationDeclaration > operationsMap()
-	{
+	public Map< String, OperationDeclaration > operationsMap() {
 		return operationsMap;
 	}
 
-	public String name()
-	{
+	public String name() {
 		return name;
 	}
 
 	@Override
-	public void addOperation( OperationDeclaration decl )
-	{
+	public void addOperation( OperationDeclaration decl ) {
 		operationsMap.put( decl.id(), decl );
 	}
 
-	public void copyTo( OperationCollector oc )
-	{
+	public void copyTo( OperationCollector oc ) {
 		oc.operationsMap().putAll( operationsMap );
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 
 	@Override
-	public void setDocumentation( String documentation )
-	{
+	public void setDocumentation( String documentation ) {
 		this.documentation = documentation;
 	}
 
 	@Override
-	public String getDocumentation()
-	{
+	public String getDocumentation() {
 		return this.documentation;
 	}
 
 	@Override
-	public Privacy privacy()
-	{
+	public Privacy privacy() {
 		return this.privacy;
 	}
 
 	@Override
-	public void setPrivate( boolean isPrivate )
-	{
+	public void setPrivate( boolean isPrivate ) {
 		this.privacy = isPrivate ? Privacy.PRIVATE : Privacy.PUBLIC;
 	}
 
 	@Override
-	public OLSyntaxNode node()
-	{
+	public OLSyntaxNode node() {
 		return this;
 	}
-	
+
 }

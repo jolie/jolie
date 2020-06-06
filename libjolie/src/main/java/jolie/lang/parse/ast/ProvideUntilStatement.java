@@ -25,30 +25,25 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class ProvideUntilStatement extends OLSyntaxNode
-{
+public class ProvideUntilStatement extends OLSyntaxNode {
 	private final OLSyntaxNode provide, until;
 
-	public ProvideUntilStatement( ParsingContext context, OLSyntaxNode provide, OLSyntaxNode until)
-	{
+	public ProvideUntilStatement( ParsingContext context, OLSyntaxNode provide, OLSyntaxNode until ) {
 		super( context );
 		this.provide = provide;
 		this.until = until;
 	}
-	
-	public OLSyntaxNode provide()
-	{
+
+	public OLSyntaxNode provide() {
 		return provide;
 	}
-	
-	public OLSyntaxNode until()
-	{
+
+	public OLSyntaxNode until() {
 		return until;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

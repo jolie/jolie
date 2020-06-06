@@ -29,48 +29,48 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
 public class SemaphoreUtils extends JavaService {
-	
-	private final HashMap< String, Semaphore > semaphores = new HashMap<String, Semaphore>();
-	
-	private String getSemaphoreName( Value v ){
+
+	private final HashMap< String, Semaphore > semaphores = new HashMap< String, Semaphore >();
+
+	private String getSemaphoreName( Value v ) {
 		return v.getFirstChild( "name" ).strValue();
 	}
-	
-	private int getPermits( Value v ){
-		if( v.getFirstChild( "permits" ) != null && 
-			v.getFirstChild( "permits" ).intValue() != 0 ){
+
+	private int getPermits( Value v ) {
+		if( v.getFirstChild( "permits" ) != null &&
+			v.getFirstChild( "permits" ).intValue() != 0 ) {
 			return v.getFirstChild( "permits" ).intValue();
 		} else {
 			return 1;
 		}
 	}
-	
-	private void checkSemaphore( String name ){
-		synchronized( semaphores ){
-			if( !semaphores.containsKey( name ) ){		
-				semaphores.put( name , new Semaphore( 0 ));
+
+	private void checkSemaphore( String name ) {
+		synchronized( semaphores ) {
+			if( !semaphores.containsKey( name ) ) {
+				semaphores.put( name, new Semaphore( 0 ) );
 			}
 		}
 	}
-		
-	public Boolean release( Value v ){
+
+	public Boolean release( Value v ) {
 		String name = getSemaphoreName( v );
 		int permits = getPermits( v );
 		checkSemaphore( name );
 		semaphores.get( name ).release( permits );
 		return true;
 	}
-	
-	public Boolean acquire( Value v ){
+
+	public Boolean acquire( Value v ) {
 		String name = getSemaphoreName( v );
 		int permits = getPermits( v );
 		checkSemaphore( name );
 		try {
 			semaphores.get( name ).acquire( permits );
-		} catch (InterruptedException ex) {
-			Logger.getLogger(SemaphoreUtils.class.getName()).log(Level.SEVERE, null, ex);
+		} catch( InterruptedException ex ) {
+			Logger.getLogger( SemaphoreUtils.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 		return true;
 	}
-	
+
 }

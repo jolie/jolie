@@ -39,17 +39,18 @@ import jolie.util.Helpers;
 
 /**
  * A CommChannel using a socket to implement communications.
+ * 
  * @author Fabrizio Montesi
  */
-public class SocketCommChannel extends SelectableStreamingCommChannel
-{
+public class SocketCommChannel extends SelectableStreamingCommChannel {
 	private final SocketChannel socketChannel;
 	private final PreBufferedInputStream istream;
 	private final OutputStream ostream;
-	
+
 	private static final int SO_LINGER = 10000;
-	
-	/** Constructor.
+
+	/**
+	 * Constructor.
 	 * 
 	 * @param socketChannel the SocketChannel underlying this SocketCommChannel
 	 * @param location the location for this channel
@@ -59,60 +60,59 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @see SocketChannel
 	 */
 	public SocketCommChannel( SocketChannel socketChannel, URI location, CommProtocol protocol )
-		throws IOException
-	{
+		throws IOException {
 		super( location, protocol );
 		this.socketChannel = socketChannel;
 		socketChannel.socket().setSoLinger( true, SO_LINGER );
-		// this.istream = new PreBufferedInputStream( new BufferedInputStream( Channels.newInputStream( socketChannel ) ) );
+		// this.istream = new PreBufferedInputStream( new BufferedInputStream( Channels.newInputStream(
+		// socketChannel ) ) );
 		this.istream = new PreBufferedInputStream( Channels.newInputStream( socketChannel ) );
 		this.ostream = new BufferedOutputStream( Channels.newOutputStream( socketChannel ) );
 		setToBeClosed( false ); // Socket connections are kept open by default
 	}
-	
+
 	/**
 	 * Returns the SocketChannel underlying this SocketCommChannel
+	 * 
 	 * @return the SocketChannel underlying this SocketCommChannel
 	 */
 	@Override
-	public SelectableChannel selectableChannel()
-	{
+	public SelectableChannel selectableChannel() {
 		return socketChannel;
 	}
-	
+
 	@Override
-	public InputStream inputStream()
-	{
+	public InputStream inputStream() {
 		return istream;
 	}
-	
+
 	/**
 	 * Receives a message from the channel.
+	 * 
 	 * @return the received CommMessage
 	 * @throws java.io.IOException
 	 * @see CommMessage
 	 */
 	@Override
 	protected CommMessage recvImpl()
-		throws IOException
-	{
+		throws IOException {
 		try {
 			return protocol().recv( istream, ostream );
 		} catch( IllegalBlockingModeException e ) {
 			throw new IOException( e );
 		}
 	}
-	
+
 	/**
 	 * Sends a message through the channel.
+	 * 
 	 * @param message the CommMessage to send
 	 * @see CommMessage
 	 * @throws IOException if an error sending the message occurs
 	 */
 	@Override
 	protected void sendImpl( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			protocol().send( ostream, message, istream );
 			ostream.flush();
@@ -120,48 +120,45 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			throw new IOException( e );
 		}
 	}
-	
+
 	@Override
 	protected void closeImpl()
-		throws IOException
-	{
+		throws IOException {
 		final Interpreter interpreter = Interpreter.getInstance();
-		if ( interpreter != null && interpreter.commCore().isSelecting( this ) ) {
+		if( interpreter != null && interpreter.commCore().isSelecting( this ) ) {
 			interpreter.commCore().unregisterForSelection( this );
 		}
 		socketChannel.close();
 	}
-	
+
 	private final ByteBuffer buffer = ByteBuffer.allocateDirect( 1024 );
-	
+
 	private boolean _isOpenImpl()
-		throws IOException
-	{
+		throws IOException {
 		buffer.clear();
-		
+
 		final boolean wasBlocking = socketChannel.isBlocking();
-		
-		if ( wasBlocking ) {
+
+		if( wasBlocking ) {
 			socketChannel.configureBlocking( false );
 		}
 		final int read;
 		try {
 			read = socketChannel.read( buffer );
 		} catch( IOException e ) {
-			/* This should never happen in non Windows systems.
-			 * In Windows systems an IOException is thrown
-			 * whenever a client has closed its output connection
-			 * towards this channel and this method is called by
-			 * CommCore. 
+			/*
+			 * This should never happen in non Windows systems. In Windows systems an IOException is thrown
+			 * whenever a client has closed its output connection towards this channel and this method is called
+			 * by CommCore.
 			 */
 			return false;
 		}
-		if ( wasBlocking ) {
+		if( wasBlocking ) {
 			socketChannel.configureBlocking( true );
 		}
-		if ( read == -1 ) {
+		if( read == -1 ) {
 			return false;
-		} else if ( read > 0 ) {
+		} else if( read > 0 ) {
 			buffer.limit( read );
 			buffer.rewind();
 			istream.append( buffer );
@@ -170,9 +167,8 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	}
 
 	@Override
-	protected boolean isOpenImpl()
-	{
-		if ( socketChannel.isConnected() == false || socketChannel.isOpen() == false ) {
+	protected boolean isOpenImpl() {
+		if( socketChannel.isConnected() == false || socketChannel.isOpen() == false ) {
 			return false;
 		}
 

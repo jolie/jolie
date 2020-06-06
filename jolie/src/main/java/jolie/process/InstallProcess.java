@@ -27,36 +27,31 @@ import jolie.runtime.HandlerInstallationReason;
 import jolie.util.Pair;
 
 
-public class InstallProcess implements Process
-{
+public class InstallProcess implements Process {
 	// The compensation is identified by an empty string
 	private final List< Pair< String, Process > > pairs;
 
-	public InstallProcess( List< Pair< String, Process > > pairs )
-	{
+	public InstallProcess( List< Pair< String, Process > > pairs ) {
 		this.pairs = pairs;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new InstallProcess( pairs );
 	}
 
-	public void run()
-	{
+	public void run() {
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Pair< String, Process > pair : pairs ) {
 			final Process handler = pair.value().copy( new HandlerInstallationReason( pair.key() ) );
-			if ( pair.key() == null ) {
+			if( pair.key() == null ) {
 				ethread.installCompensation( handler );
 			} else {
 				ethread.installFaultHandler( pair.key(), handler );
 			}
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return false;
 	}
 }

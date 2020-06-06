@@ -23,45 +23,39 @@ import java.util.Optional;
 import jolie.lang.parse.context.ParsingContext;
 
 /**
- * A class represent a Symbol defined within external execution environment. Create when consuming an
- * import statement
+ * A class represent a Symbol defined within external execution environment. Create when consuming
+ * an import statement
  */
-public class SymbolInfoExternal extends SymbolInfo
-{
+public class SymbolInfoExternal extends SymbolInfo {
 
-    private final String[] moduleTargets;
-    private final String moduleSymbol;
-    private Source moduleSource;
+	private final String[] moduleTargets;
+	private final String moduleSymbol;
+	private Source moduleSource;
 
-    public SymbolInfoExternal( ParsingContext context, String name, String[] moduleTargets, String moduleSymbol )
-    {
-        super( context, name, Scope.EXTERNAL );
-        this.moduleTargets = moduleTargets;
-        this.moduleSymbol = moduleSymbol;
-    }
-    
-    /**
-     * set a destination source of the symbol
-     */
-    public void setModuleSource( Source moduleSource )
-    {
-        this.moduleSource = moduleSource;
-    }
+	public SymbolInfoExternal( ParsingContext context, String name, String[] moduleTargets, String moduleSymbol ) {
+		super( context, name, Scope.EXTERNAL );
+		this.moduleTargets = moduleTargets;
+		this.moduleSymbol = moduleSymbol;
+	}
 
-    public String[] moduleTargets()
-    {
-        return this.moduleTargets;
-    }
+	/**
+	 * set a destination source of the symbol
+	 */
+	public void setModuleSource( Source moduleSource ) {
+		this.moduleSource = moduleSource;
+	}
 
-    public Optional< Source > moduleSource()
-    {
-        return Optional.of( this.moduleSource );
-    }
+	public String[] moduleTargets() {
+		return this.moduleTargets;
+	}
 
-    public String moduleSymbol()
-    {
-        return this.moduleSymbol;
-    }
+	public Optional< Source > moduleSource() {
+		return Optional.of( this.moduleSource );
+	}
+
+	public String moduleSymbol() {
+		return this.moduleSymbol;
+	}
 
 
 }

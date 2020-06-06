@@ -33,198 +33,191 @@ import jolie.runtime.ValuePrettyPrinter;
 
 /**
  *
- * @author Claudio Guidi
- * 15 Sep 2014 - Fabrizio Montesi: Updated interface
+ * @author Claudio Guidi 15 Sep 2014 - Fabrizio Montesi: Updated interface
  */
-public class PrintingTracer implements Tracer
-{
+public class PrintingTracer implements Tracer {
 	private int actionCounter = 0;
 	private final Interpreter interpreter;
 	private TracerUtils.TracerLevels tracerLevels;
-	
-	public PrintingTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel  )
-	{
-	    this.interpreter = interpreter;
-	    this.tracerLevels = tLevel;
+
+	public PrintingTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel ) {
+		this.interpreter = interpreter;
+		this.tracerLevels = tLevel;
 	}
 
 	@Override
-	public synchronized void trace( Supplier< ? extends TraceAction > supplier )
-	{
+	public synchronized void trace( Supplier< ? extends TraceAction > supplier ) {
 		final TraceAction action = supplier.get();
 		actionCounter++;
-		if ( action instanceof MessageTraceAction ) {
+		if( action instanceof MessageTraceAction ) {
 			trace( (MessageTraceAction) action );
-		} else if ( action instanceof EmbeddingTraceAction ) {
+		} else if( action instanceof EmbeddingTraceAction ) {
 			trace( (EmbeddingTraceAction) action );
-		} else if ( action instanceof AssignmentTraceAction ) {
+		} else if( action instanceof AssignmentTraceAction ) {
 			trace( (AssignmentTraceAction) action );
-		} else if ( action instanceof ProtocolTraceAction ) {
+		} else if( action instanceof ProtocolTraceAction ) {
 			trace( (ProtocolTraceAction) action );
 		}
 	}
-	
-	private void trace( EmbeddingTraceAction action )
-	{
-        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL )) {
 
-            StringBuilder stBuilder = new StringBuilder();
+	private void trace( EmbeddingTraceAction action ) {
+		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) ) {
 
-            stBuilder.append(interpreter.logPrefix()).append("\t");
-            stBuilder.append(Integer.toString(actionCounter)).append(".\t");
-            switch (action.type()) {
-                case SERVICE_LOAD:
-                    stBuilder.append("^ LOAD");
-                    break;
-                default:
-                    break;
-            }
-            stBuilder
-                    .append("\t").append(action.name())
-                    .append("\t\t\t").append(action.description());
-            System.out.println(stBuilder.toString());
-        }
-	}
-	
-	private void trace( MessageTraceAction action )
-	{
-        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) || (tracerLevels.equals(TracerUtils.TracerLevels.COMM))) {
+			StringBuilder stBuilder = new StringBuilder();
 
-            StringBuilder stBuilder = new StringBuilder();
-            if (action.context() == null) {
-                stBuilder.append(interpreter.logPrefix()).append("\t");
-            } else {
-                stBuilder.append(action.context().sourceName()).append(":").append(action.context().line());
-            }
-            stBuilder.append(Integer.toString(actionCounter)).append(".\t");
-            switch (action.type()) {
-                case SOLICIT_RESPONSE:
-                    stBuilder.append("<< SR");
-                    break;
-                case NOTIFICATION:
-                    stBuilder.append("< N");
-                    break;
-                case ONE_WAY:
-                    stBuilder.append("> OW");
-                    break;
-                case REQUEST_RESPONSE:
-                    stBuilder.append(">> RR");
-                    break;
-                case COURIER_NOTIFICATION:
-                    stBuilder.append(">> CN");
-                    break;
-                case COURIER_SOLICIT_RESPONSE:
-                    stBuilder.append(">> CSR");
-                    break;
-                default:
-                    break;
-            }
-            stBuilder
-                    .append("\t").append(action.name())
-                    .append("\t\t\t").append(action.description());
-            if (action.message() != null) {
-                stBuilder.append("\tMSG_ID:").append(action.message().id()).append("\n");
-                Writer writer = new StringWriter();
-                Value messageValue = action.message().value().clone();
-                if (action.message().isFault()) {
-                    messageValue = action.message().fault().value().clone();
-                    messageValue.getFirstChild("__faultname").setValue(action.message().fault().faultName());
-                }
-                ValuePrettyPrinter printer = new ValuePrettyPrinter(
-                        messageValue,
-                        writer,
-                        "Value:"
-                );
-                printer.setByteTruncation(50);
-                printer.setIndentationOffset(6);
-                try {
-                    printer.run();
-                } catch (IOException e) {
-                } // Should never happen
-                stBuilder.append(writer.toString());
-            }
-            System.out.println(stBuilder.toString());
-        }
+			stBuilder.append( interpreter.logPrefix() ).append( "\t" );
+			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			switch( action.type() ) {
+			case SERVICE_LOAD:
+				stBuilder.append( "^ LOAD" );
+				break;
+			default:
+				break;
+			}
+			stBuilder
+				.append( "\t" ).append( action.name() )
+				.append( "\t\t\t" ).append( action.description() );
+			System.out.println( stBuilder.toString() );
+		}
 	}
 
-	private void trace( AssignmentTraceAction action )
-	{
-        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) || (tracerLevels.equals(TracerUtils.TracerLevels.COMP))) {
+	private void trace( MessageTraceAction action ) {
+		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL )
+			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMM )) ) {
 
-            StringBuilder stBuilder = new StringBuilder();
-            if (action.context() == null) {
-                stBuilder.append(interpreter.logPrefix()).append("\t");
-            } else {
-                stBuilder.append(action.context().sourceName()).append(":").append(action.context().line());
-            }
-            stBuilder.append(Integer.toString(actionCounter)).append(".\t");
-            switch (action.type()) {
-                case ASSIGNMENT:
-                    stBuilder.append(":: ASSIGNMENT");
-                    break;
-                case POINTER:
-                    stBuilder.append(":: POINTER");
-                    break;
-                case DEEPCOPY:
-                    stBuilder.append(":: DEEPCOPY");
-                    break;
-                default:
-                    break;
-            }
-            stBuilder
-                    .append("\t").append(action.name())
-                    .append("\t\t\t").append(action.description());
-            if (action.value() != null) {
-                Writer writer = new StringWriter();
-                Value value = action.value().clone();
-
-                ValuePrettyPrinter printer = new ValuePrettyPrinter(
-                        value,
-                        writer,
-                        "Value:"
-                );
-                printer.setByteTruncation(50);
-                printer.setIndentationOffset(6);
-                try {
-                    printer.run();
-                } catch (IOException e) {
-                } // Should never happen
-                stBuilder.append(writer.toString());
-            }
-            System.out.println(stBuilder.toString());
-        }
+			StringBuilder stBuilder = new StringBuilder();
+			if( action.context() == null ) {
+				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
+			} else {
+				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
+			}
+			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			switch( action.type() ) {
+			case SOLICIT_RESPONSE:
+				stBuilder.append( "<< SR" );
+				break;
+			case NOTIFICATION:
+				stBuilder.append( "< N" );
+				break;
+			case ONE_WAY:
+				stBuilder.append( "> OW" );
+				break;
+			case REQUEST_RESPONSE:
+				stBuilder.append( ">> RR" );
+				break;
+			case COURIER_NOTIFICATION:
+				stBuilder.append( ">> CN" );
+				break;
+			case COURIER_SOLICIT_RESPONSE:
+				stBuilder.append( ">> CSR" );
+				break;
+			default:
+				break;
+			}
+			stBuilder
+				.append( "\t" ).append( action.name() )
+				.append( "\t\t\t" ).append( action.description() );
+			if( action.message() != null ) {
+				stBuilder.append( "\tMSG_ID:" ).append( action.message().id() ).append( "\n" );
+				Writer writer = new StringWriter();
+				Value messageValue = action.message().value().clone();
+				if( action.message().isFault() ) {
+					messageValue = action.message().fault().value().clone();
+					messageValue.getFirstChild( "__faultname" ).setValue( action.message().fault().faultName() );
+				}
+				ValuePrettyPrinter printer = new ValuePrettyPrinter(
+					messageValue,
+					writer,
+					"Value:" );
+				printer.setByteTruncation( 50 );
+				printer.setIndentationOffset( 6 );
+				try {
+					printer.run();
+				} catch( IOException e ) {
+				} // Should never happen
+				stBuilder.append( writer.toString() );
+			}
+			System.out.println( stBuilder.toString() );
+		}
 	}
 
-	private void trace( ProtocolTraceAction action )
-	{
-        if ( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) || (tracerLevels.equals(TracerUtils.TracerLevels.COMM))) {
+	private void trace( AssignmentTraceAction action ) {
+		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL )
+			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMP )) ) {
 
-            StringBuilder stBuilder = new StringBuilder();
-            if (action.context() == null) {
-                stBuilder.append(interpreter.logPrefix()).append("\t");
-            } else {
-                stBuilder.append(action.context().sourceName()).append(":").append(action.context().line());
-            }
-            stBuilder.append(Integer.toString(actionCounter)).append(".\t");
-            switch (action.type()) {
-                case HTTP:
-                    stBuilder.append("HTTP");
-                    break;
-                case SOAP:
-                    stBuilder.append("SOAP");
-                    break;
-                default:
-                    break;
-            }
-            stBuilder
-                    .append("\t").append(action.name())
-                    .append("\t\t\t").append(action.description());
-            if (action.message() != null) {
-                Writer writer = new StringWriter();
+			StringBuilder stBuilder = new StringBuilder();
+			if( action.context() == null ) {
+				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
+			} else {
+				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
+			}
+			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			switch( action.type() ) {
+			case ASSIGNMENT:
+				stBuilder.append( ":: ASSIGNMENT" );
+				break;
+			case POINTER:
+				stBuilder.append( ":: POINTER" );
+				break;
+			case DEEPCOPY:
+				stBuilder.append( ":: DEEPCOPY" );
+				break;
+			default:
+				break;
+			}
+			stBuilder
+				.append( "\t" ).append( action.name() )
+				.append( "\t\t\t" ).append( action.description() );
+			if( action.value() != null ) {
+				Writer writer = new StringWriter();
+				Value value = action.value().clone();
 
-                stBuilder.append(action.message());
-            }
-            System.out.println(stBuilder.toString());
-        }
+				ValuePrettyPrinter printer = new ValuePrettyPrinter(
+					value,
+					writer,
+					"Value:" );
+				printer.setByteTruncation( 50 );
+				printer.setIndentationOffset( 6 );
+				try {
+					printer.run();
+				} catch( IOException e ) {
+				} // Should never happen
+				stBuilder.append( writer.toString() );
+			}
+			System.out.println( stBuilder.toString() );
+		}
+	}
+
+	private void trace( ProtocolTraceAction action ) {
+		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL )
+			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMM )) ) {
+
+			StringBuilder stBuilder = new StringBuilder();
+			if( action.context() == null ) {
+				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
+			} else {
+				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
+			}
+			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			switch( action.type() ) {
+			case HTTP:
+				stBuilder.append( "HTTP" );
+				break;
+			case SOAP:
+				stBuilder.append( "SOAP" );
+				break;
+			default:
+				break;
+			}
+			stBuilder
+				.append( "\t" ).append( action.name() )
+				.append( "\t\t\t" ).append( action.description() );
+			if( action.message() != null ) {
+				Writer writer = new StringWriter();
+
+				stBuilder.append( action.message() );
+			}
+			System.out.println( stBuilder.toString() );
+		}
 	}
 }

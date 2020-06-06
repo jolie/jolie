@@ -24,8 +24,7 @@ import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
-public class ForEachArrayItemStatement extends OLSyntaxNode
-{
+public class ForEachArrayItemStatement extends OLSyntaxNode {
 	private final VariablePathNode keyPath, targetPath;
 	private final OLSyntaxNode body;
 
@@ -33,18 +32,16 @@ public class ForEachArrayItemStatement extends OLSyntaxNode
 		ParsingContext context,
 		VariablePathNode keyPath,
 		VariablePathNode targetPath,
-		OLSyntaxNode body
-	) {
+		OLSyntaxNode body ) {
 
 		super( context );
 
 		final int index = keyPath.path().size() - 1;
 		Pair< OLSyntaxNode, OLSyntaxNode > pair = keyPath.path().get( index );
-		if ( pair.value() == null ) {
+		if( pair.value() == null ) {
 			pair = new Pair<>(
 				pair.key(),
-				new ConstantIntegerExpression( keyPath.context(), 0 )
-			);
+				new ConstantIntegerExpression( keyPath.context(), 0 ) );
 			keyPath.path().set( index, pair );
 		}
 
@@ -53,24 +50,20 @@ public class ForEachArrayItemStatement extends OLSyntaxNode
 		this.body = body;
 	}
 
-	public OLSyntaxNode body()
-	{
+	public OLSyntaxNode body() {
 		return body;
 	}
 
-	public VariablePathNode keyPath()
-	{
+	public VariablePathNode keyPath() {
 		return keyPath;
 	}
 
-	public VariablePathNode targetPath()
-	{
+	public VariablePathNode targetPath() {
 		return targetPath;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

@@ -45,8 +45,7 @@ import jolie.tracer.Tracer;
  * 
  * @author Fabrizio Montesi
  */
-public class ForwardNotificationProcess implements Process
-{
+public class ForwardNotificationProcess implements Process {
 	private final String operationName;
 	private final OutputPort outputPort;
 	private final VariablePath outputVariablePath;
@@ -54,13 +53,12 @@ public class ForwardNotificationProcess implements Process
 	private final ParsingContext context;
 
 	public ForwardNotificationProcess(
-			String operationName,
-			OutputPort outputPort,
-			VariablePath outputVariablePath,
-			OneWayTypeDescription aggregatedTypeDescription,
-			OneWayTypeDescription extenderTypeDescription,
-			ParsingContext context
-	) {
+		String operationName,
+		OutputPort outputPort,
+		VariablePath outputVariablePath,
+		OneWayTypeDescription aggregatedTypeDescription,
+		OneWayTypeDescription extenderTypeDescription,
+		ParsingContext context ) {
 		this.operationName = operationName;
 		this.outputPort = outputPort;
 		this.outputVariablePath = outputVariablePath;
@@ -68,55 +66,51 @@ public class ForwardNotificationProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 		this.context = context;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new ForwardNotificationProcess(
 			operationName,
 			outputPort,
 			outputVariablePath,
 			aggregatedTypeDescription,
 			extenderTypeDescription,
-			context
-		);
+			context );
 	}
-	
-	private void log( String log, CommMessage message )
-	{
+
+	private void log( String log, CommMessage message ) {
 		Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.COURIER_NOTIFICATION,
 			operationName + "@" + outputPort.id(),
 			log,
 			message,
-			context
-		) );
+			context ) );
 	}
 
 	public void run()
-		throws FaultException
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		throws FaultException {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 
 		CommChannel channel = null;
 		try {
 			Value messageValue = outputVariablePath.evaluate();
-			if ( extenderTypeDescription != null ) {
+			if( extenderTypeDescription != null ) {
 				extenderTypeDescription.requestType().cutChildrenFromValue( messageValue );
 			}
 			aggregatedTypeDescription.requestType().check( messageValue );
-			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
+			CommMessage message =
+				CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
 			channel = outputPort.getCommChannel();
-			
+
 			log( "SENDING", message );
-			
+
 			channel.send( message );
-			
+
 			log( "SENT", message );
-			
+
 			CommMessage response = null;
 			do {
 				try {
@@ -125,17 +119,17 @@ public class ForwardNotificationProcess implements Process
 					Interpreter.getInstance().logFine( e );
 				}
 			} while( response == null );
-			
+
 			log( "RECEIVED ACK", response );
-			
-			if ( response.isFault() ) {
-				if ( response.fault().faultName().equals( "CorrelationError" )
+
+			if( response.isFault() ) {
+				if( response.fault().faultName().equals( "CorrelationError" )
 					|| response.fault().faultName().equals( "IOException" )
-					|| response.fault().faultName().equals( "TypeMismatch" )
-					) {
+					|| response.fault().faultName().equals( "TypeMismatch" ) ) {
 					throw response.fault();
 				} else {
-					Interpreter.getInstance().logSevere( "Forward notification process for operation " + operationName + " received an unexpected fault: " + response.fault().faultName() );
+					Interpreter.getInstance().logSevere( "Forward notification process for operation " + operationName
+						+ " received an unexpected fault: " + response.fault().faultName() );
 				}
 			}
 		} catch( IOException e ) {
@@ -143,9 +137,10 @@ public class ForwardNotificationProcess implements Process
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
-			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
+				"TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
-			if ( channel != null ) {
+			if( channel != null ) {
 				try {
 					channel.release();
 				} catch( IOException e ) {
@@ -154,9 +149,8 @@ public class ForwardNotificationProcess implements Process
 			}
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

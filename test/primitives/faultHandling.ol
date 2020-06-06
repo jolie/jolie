@@ -95,11 +95,72 @@ define runtimeExceptionTest {
 	}
 }
 
+define scoperethrow {
+	scope( sr_parent ) {
+		install( f2 => nullProcess )
+		scope( sr ) {
+			install( f1 => throw( f2 ) )
+			install( default => 
+				throw( TestFailed, "default handler should not be triggered" )
+			)
+
+			throw( f1 )
+		}
+	}
+}
+
+define scoperethrowparallel {
+	scope( sr_parent ) {
+		install( f2 => nullProcess )
+		{
+			{
+				scope( sr ) {
+					install( f1 => throw( f2 ) )
+					install( default => 
+						throw( TestFailed, "default handler should not be triggered" )
+					)
+
+					throw( f1 )
+				}
+			}
+			|
+			{
+				scope( sr_parallel ) {
+					install( this =>
+						scope( sr_handler ) {
+							install( f3 => nullProcess )
+							throw( f3 )
+						} 
+					)
+					while( true ) { nullProcess }
+				}
+			}
+		}
+	}
+}
+
+define scopedefault {
+	scope( sr_parent ) {
+		install( f2 => nullProcess )
+		scope( sr ) {
+			install( default => throw( f2 ) )
+			install( f2 => throw( TestFailed, "handler for f2 should not be triggered" ) )
+			throw( f3 )
+		}
+	}
+}
+
+
+
+
 define doTest
 {
 	simpleFaultTest
 	terminationTest
 	runtimeExceptionTest
+	scoperethrow
+	scoperethrowparallel
+	scopedefault
 	reply@FaultHandlingMain(42)(x)
 	if ( x != 42 ) {
 		throw( TestFailed, "Fault handling main error" )

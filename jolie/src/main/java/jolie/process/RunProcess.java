@@ -25,60 +25,40 @@ package jolie.process;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
 
-public class RunProcess implements Process
-{
+public class RunProcess implements Process {
 	private final Expression expression;
-	
-	public RunProcess( Expression expression )
-	{
+
+	public RunProcess( Expression expression ) {
 		this.expression = expression;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new RunProcess( expression.cloneExpression( reason ) );
 	}
-	
+
 	public void run()
-		throws FaultException
-	{
+		throws FaultException {
 		throw new FaultException( "UnsupportedStatement" );
-		/*if ( ExecutionThread.currentThread().isKilled() )
-			return;
-		Value val = expression.evaluate();
-		if ( val.isString() ) {
-			try {
-				String codeStr = val.strValue();
-				// for run-time code use the system's default charset (null)
-				OLParser parser =
-					new OLParser(
-							new Scanner( new ByteArrayInputStream( codeStr.getBytes() ), "unknown", null ),
-							Interpreter.getInstance().includePaths(),
-							Interpreter.getInstance().parentClassLoader()
-						);
-				Program program = parser.parse();
-				program = (new OLParseTreeOptimizer( program )).optimize();
-				SemanticVerifier semanticVerifier = new SemanticVerifier( program );
-				if ( !semanticVerifier.validate() ) {
-					throw new FaultException( "fInvalidCode" );
-				}
-			
-				Interpreter parentInterpreter = Interpreter.getInstance();
-				Interpreter runInterpreter = new Interpreter( parentInterpreter.args() );
-				(new OOITBuilder( runInterpreter, program, semanticVerifier.isConstantMap() )).build();
-			} catch( IOException e ) {
-				throw new FaultException( "fInvalidCode" );
-			} catch( ParserException e ) {
-				throw new FaultException( "fInvalidCode" );
-			} catch( CommandLineException e ) {
-				throw new FaultException( "fInvalidCode" );
-			}
-		} else
-			throw new FaultException( "fInvalidCode" );*/
+		/*
+		 * if ( ExecutionThread.currentThread().isKilled() ) return; Value val = expression.evaluate(); if (
+		 * val.isString() ) { try { String codeStr = val.strValue(); // for run-time code use the system's
+		 * default charset (null) OLParser parser = new OLParser( new Scanner( new ByteArrayInputStream(
+		 * codeStr.getBytes() ), "unknown", null ), Interpreter.getInstance().includePaths(),
+		 * Interpreter.getInstance().parentClassLoader() ); Program program = parser.parse(); program = (new
+		 * OLParseTreeOptimizer( program )).optimize(); SemanticVerifier semanticVerifier = new
+		 * SemanticVerifier( program ); if ( !semanticVerifier.validate() ) { throw new FaultException(
+		 * "fInvalidCode" ); }
+		 * 
+		 * Interpreter parentInterpreter = Interpreter.getInstance(); Interpreter runInterpreter = new
+		 * Interpreter( parentInterpreter.args() ); (new OOITBuilder( runInterpreter, program,
+		 * semanticVerifier.isConstantMap() )).build(); } catch( IOException e ) { throw new FaultException(
+		 * "fInvalidCode" ); } catch( ParserException e ) { throw new FaultException( "fInvalidCode" ); }
+		 * catch( CommandLineException e ) { throw new FaultException( "fInvalidCode" ); } } else throw new
+		 * FaultException( "fInvalidCode" );
+		 */
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

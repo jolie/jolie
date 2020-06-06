@@ -25,17 +25,14 @@ package jolie.runtime.expression;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-public class VoidExpression implements Expression
-{	
+public class VoidExpression implements Expression {
 	public VoidExpression() {}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new VoidExpression();
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		return Value.create();
 	}
 }

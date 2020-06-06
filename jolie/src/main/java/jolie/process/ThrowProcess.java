@@ -26,37 +26,32 @@ import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 
 
-public class ThrowProcess implements Process
-{
+public class ThrowProcess implements Process {
 	final private String faultName;
 	final private Expression expression;
-	
-	public ThrowProcess( String faultName, Expression expression )
-	{
+
+	public ThrowProcess( String faultName, Expression expression ) {
 		this.faultName = faultName;
 		this.expression = expression;
 	}
 
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return new ThrowProcess( faultName, expression );
 	}
-	
+
 	public void run()
-		throws FaultException
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		throws FaultException {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
-		
-		if ( expression == null ) {
+
+		if( expression == null ) {
 			throw new FaultException( faultName );
 		} else {
 			throw new FaultException( faultName, expression.evaluate() );
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

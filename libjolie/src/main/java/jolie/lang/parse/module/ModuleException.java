@@ -19,55 +19,52 @@
 
 package jolie.lang.parse.module;
 
+import java.util.Optional;
 import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
 
-public class ModuleException extends Exception
-{
+public class ModuleException extends Exception {
 
-    private static final long serialVersionUID = Constants.serialVersionUID();
-    private ParsingContext context = null;
+	private static final long serialVersionUID = Constants.serialVersionUID();
+	private ParsingContext context = null;
 
-    public ModuleException( ParsingContext context, String message )
-    {
-        super( message );
-        this.context = context;
-    }
+	public ModuleException( ParsingContext context, String message ) {
+		super( message );
+		this.context = context;
+	}
 
-    public ModuleException( String message )
-    {
-        super( message );
-    }
+	public ModuleException( String message ) {
+		super( message );
+	}
 
-    public ModuleException( ParsingContext context, Throwable arg1 )
-    {
-        super( arg1 );
-        this.context = context;
-    }
+	public ModuleException( ParsingContext context, Throwable arg1 ) {
+		super( arg1 );
+		this.context = context;
+	}
 
-    public ModuleException( String arg0, Throwable arg1 )
-    {
-        super( arg0, arg1 );
-    }
+	public ModuleException( String arg0, Throwable arg1 ) {
+		super( arg0, arg1 );
+	}
 
-    public ModuleException( Throwable arg0 )
-    {
-        super( arg0 );
-    }
+	public ModuleException( Throwable arg0 ) {
+		super( arg0 );
+	}
 
-    public void setContext( ParsingContext context )
-    {
-        this.context = context;
-    }
+	public void setContext( ParsingContext context ) {
+		this.context = context;
+	}
 
-    @Override
-    public String getMessage()
-    {
-        if ( context != null ) {
-            return new StringBuilder().append( context.sourceName() ).append( ':' )
-                    .append( context.line() ).append( ": error: " ).append( super.getMessage() )
-                    .toString();
-        }
-        return super.getMessage();
-    }
+	public Optional< ParsingContext > context() {
+		return Optional.of( context );
+	}
+
+	@Override
+	public String getMessage() {
+		if( context != null ) {
+			return new StringBuilder().append( context.sourceName() ).append( ':' )
+				.append( context.line() ).append( ": error: " ).append( super.getMessage() )
+				.toString();
+		}
+		return super.getMessage();
+	}
 }

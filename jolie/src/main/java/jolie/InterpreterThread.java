@@ -25,7 +25,6 @@ package jolie;
  *
  * @author Fabrizio Montesi
  */
-public interface InterpreterThread
-{
+public interface InterpreterThread {
 	public Interpreter interpreter();
 }

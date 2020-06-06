@@ -31,11 +31,9 @@ import java.net.URLStreamHandler;
  *
  * @author Fabrizio Montesi
  */
-public class JapURLStreamHandler extends URLStreamHandler
-{
+public class JapURLStreamHandler extends URLStreamHandler {
 	protected URLConnection openConnection( URL url )
-		throws MalformedURLException, IOException
-	{
+		throws MalformedURLException, IOException {
 		return new JapURLConnection( url );
 	}
 }

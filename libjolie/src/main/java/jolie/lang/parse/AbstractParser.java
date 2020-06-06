@@ -31,72 +31,67 @@ import jolie.lang.parse.context.URIParsingContext;
 
 
 /**
- * Skeleton implementation of a parser based on {@link jolie.lang.parse.Scanner}.
- * Note that the parsing process is not re-entrant.
+ * Skeleton implementation of a parser based on {@link jolie.lang.parse.Scanner}. Note that the
+ * parsing process is not re-entrant.
+ * 
  * @author Fabrizio Montesi
  * @see Scanner
  */
-public abstract class AbstractParser
-{
-	private Scanner scanner;		// Input scanner.
-	protected Scanner.Token token;	///< The current token.
+public abstract class AbstractParser {
+	private Scanner scanner; // Input scanner.
+	protected Scanner.Token token; /// < The current token.
 	private final List< Scanner.Token > tokens = new ArrayList<>();
 	private final StringBuilder stringBuilder = new StringBuilder( 256 );
 	private boolean backup = false;
 	private final List< Scanner.Token > backupTokens = new ArrayList<>();
 	private boolean metNewline = false;
-	
-	protected final String build( String... args )
-	{
+
+	protected final String build( String... args ) {
 		stringBuilder.setLength( 0 );
 		for( String s : args ) {
 			stringBuilder.append( s );
 		}
 		return stringBuilder.toString();
 	}
-	
-	/** Constructor
+
+	/**
+	 * Constructor
 	 * 
 	 * @param scanner The scanner to use during the parsing procedure.
 	 */
-	public AbstractParser( Scanner scanner )
-	{
+	public AbstractParser( Scanner scanner ) {
 		this.scanner = scanner;
 	}
-	
-	protected final void addTokens( Collection< Scanner.Token > tokens )
-	{
+
+	protected final void addTokens( Collection< Scanner.Token > tokens ) {
 		this.tokens.addAll( tokens );
 	}
-	
-	protected final void addToken( Scanner.Token token )
-	{
+
+	protected final void addToken( Scanner.Token token ) {
 		this.tokens.add( token );
 	}
-	
-	protected final void prependToken( Scanner.Token prefixToken )
-	{
+
+	protected final void prependToken( Scanner.Token prefixToken ) {
 		addToken( prefixToken );
 		addToken( token );
 	}
-	
+
 	private final void readToken()
-		throws IOException
-	{
-		if ( tokens.size() > 0 ) {
+		throws IOException {
+		if( tokens.size() > 0 ) {
 			token = tokens.remove( 0 );
 		} else {
 			token = scanner.getToken();
 		}
 	}
-	
-	/** Gets a new token. Whitespace tokens are ignored, but the metNewline flag is set.
+
+	/**
+	 * Gets a new token. Whitespace tokens are ignored, but the metNewline flag is set.
 	 * 
 	 * @throws IOException If the internal scanner raises one.
 	 */
 	protected final void getToken()
-		throws IOException
-	{
+		throws IOException {
 		metNewline = false;
 		boolean run;
 		do {
@@ -104,186 +99,181 @@ public abstract class AbstractParser
 			run = token.is( Scanner.TokenType.NEWLINE );
 			metNewline = metNewline || run;
 		} while( run );
-		
-		if ( backup ) {
+
+		if( backup ) {
 			backupTokens.add( token );
 		}
 	}
-	
-	protected final boolean hasMetNewline()
-	{
+
+	protected final boolean hasMetNewline() {
 		return metNewline;
 	}
-	
+
 	/** Recovers the backed up tokens. */
 	protected final void recoverBackup()
-		throws IOException
-	{
+		throws IOException {
 		backup = false;
-		if ( !backupTokens.isEmpty() ) {
+		if( !backupTokens.isEmpty() ) {
 			addTokens( backupTokens );
 			backupTokens.clear();
 			getToken();
 		}
 	}
-	
+
 	/** Discards the backed up tokens. */
-	protected final void discardBackup()
-	{
+	protected final void discardBackup() {
 		backup = false;
 		backupTokens.clear();
 	}
-	
-	protected void startBackup()
-	{
-		if ( token != null ) {
+
+	protected void startBackup() {
+		if( token != null ) {
 			backupTokens.add( token );
 		}
 		backup = true;
 	}
-	
-	
-	/** Gets a new token, and throws an {@link EOFException} if such token is of type {@code jolie.lang.parse.Scanner.TokenType.EOF}.
+
+
+	/**
+	 * Gets a new token, and throws an {@link EOFException} if such token is of type
+	 * {@code jolie.lang.parse.Scanner.TokenType.EOF}.
 	 * 
 	 * @throws IOException If the internal scanner raises one.
 	 * @throws EOFException If the next token is of type {@code jolie.lang.parse.Scanner.Token.EOF}
 	 */
 	protected final void getTokenNotEOF()
-		throws IOException, EOFException
-	{
+		throws IOException, EOFException {
 		getToken();
-		if ( token.isEOF() ) {
+		if( token.isEOF() ) {
 			throw new EOFException();
 		}
 	}
-	
+
 	/**
 	 * Returns the Scanner object used by this parser.
+	 * 
 	 * @return The Scanner used by this parser.
 	 */
-	public final Scanner scanner()
-	{
+	public final Scanner scanner() {
 		return scanner;
 	}
-	
-	protected final void setScanner( Scanner scanner )
-	{
+
+	protected final void setScanner( Scanner scanner ) {
 		this.scanner = scanner;
 	}
-	
+
 	/**
 	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
+	 * 
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
-	public final ParsingContext getContext()
-	{
+	public final ParsingContext getContext() {
 		return new URIParsingContext( scanner.source(), scanner.line() );
 	}
 
 	/**
-	 * Eats the current token, asserting its type.
-	 * Calling eat( type, errorMessage ) is equivalent to call subsequently
-	 * tokenAssert( type, errorMessage ) and getToken().
+	 * Eats the current token, asserting its type. Calling eat( type, errorMessage ) is equivalent to
+	 * call subsequently tokenAssert( type, errorMessage ) and getToken().
+	 * 
 	 * @param type The type of the token to eat.
 	 * @param errorMessage The error message to display in case of a wrong token type.
 	 * @throws ParserException If the token type is wrong.
 	 * @throws IOException If the internal scanner raises one.
 	 */
 	protected final void eat( Scanner.TokenType type, String errorMessage )
-		throws ParserException, IOException
-	{
+		throws ParserException, IOException {
 		assertToken( type, errorMessage );
 		getToken();
 	}
-	
+
 	protected final void maybeEat( Scanner.TokenType... types )
-		throws ParserException, IOException
-	{
+		throws ParserException, IOException {
 		for( Scanner.TokenType type : types ) {
-			if ( token.is( type ) ) {
+			if( token.is( type ) ) {
 				getToken();
 				break;
 			}
 		}
 	}
-	
+
 	protected final void eatKeyword( String keyword, String errorMessage )
-		throws ParserException, IOException
-	{
+		throws ParserException, IOException {
 		assertToken( Scanner.TokenType.ID, errorMessage );
-		if ( !token.content().equals( keyword ) ) {
+		if( !token.content().equals( keyword ) ) {
 			throwException( errorMessage );
 		}
 		getToken();
 	}
-	
+
 	/**
-	 * Eats the current token, asserting that it is an identifier (or an unreserved keyword).
-	 * Calling eatIdentifier( errorMessage ) is equivalent to call subsequently
-	 * assertIdentifier( errorMessage ) and getToken().
-	 * @param errorMessage The error message to throw as a {@link ParserException} in case the current token is not an identifier.
+	 * Eats the current token, asserting that it is an identifier (or an unreserved keyword). Calling
+	 * eatIdentifier( errorMessage ) is equivalent to call subsequently assertIdentifier( errorMessage )
+	 * and getToken().
+	 * 
+	 * @param errorMessage The error message to throw as a {@link ParserException} in case the current
+	 *        token is not an identifier.
 	 * @throws ParserException If the current token is not an identifier.
 	 * @throws IOException If the internal scanner cannot read the next token.
 	 */
 	protected final void eatIdentifier( String errorMessage )
-		throws ParserException, IOException
-	{
+		throws ParserException, IOException {
 		assertIdentifier( errorMessage );
 		getToken();
 	}
-	
+
 	/**
 	 * Asserts that the current token is an identifier (or an unreserved keyword).
-	 * @param errorMessage the error message to throw as a {@link ParserException}
-	 * if the current token is not an identifier.
+	 * 
+	 * @param errorMessage the error message to throw as a {@link ParserException} if the current token
+	 *        is not an identifier.
 	 * @throws ParserException if the current token is not an identifier.
 	 */
 	protected final void assertIdentifier( String errorMessage )
-		throws ParserException
-	{
-		if ( !token.isIdentifier() ) {
+		throws ParserException {
+		if( !token.isIdentifier() ) {
 			throwException( errorMessage );
 		}
 	}
-	
+
 	/**
 	 * Asserts the current token type.
+	 * 
 	 * @param type The token type to assert.
 	 * @param errorMessage The error message to display in case of a wrong token type.
 	 * @throws ParserException If the token type is wrong.
 	 */
 	protected final void assertToken( Scanner.TokenType type, String errorMessage )
-		throws ParserException
-	{
-		if ( token.isNot( type ) ) {
+		throws ParserException {
+		if( token.isNot( type ) ) {
 			throwException( errorMessage );
 		}
 	}
-	
+
 	/**
 	 * Shortcut to throw a correctly formed ParserException.
+	 * 
 	 * @param mesg The message to insert in the ParserException.
 	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
 	protected final void throwException( String mesg )
-		throws ParserException
-	{
+		throws ParserException {
 		String m = mesg + ". Found token type " + token.type().toString();
-		if ( !token.content().equals( "" ) ) {
+		if( !token.content().equals( "" ) ) {
 			m += ", token content " + token.content();
 		}
 
 		throw new ParserException( getContext(), m );
 	}
-	
+
 	/**
-	 * Shortcut to throw a correctly formed ParserException, getting the message from an existing exception.
+	 * Shortcut to throw a correctly formed ParserException, getting the message from an existing
+	 * exception.
+	 * 
 	 * @param exception The exception to get the message from.
 	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
 	protected final void throwException( Exception exception )
-		throws ParserException
-	{
+		throws ParserException {
 		throw new ParserException( getContext(), exception.getMessage() );
 	}
 }

@@ -43,77 +43,71 @@ import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.util.Pair;
 
-public class Reflection extends JavaService
-{
+public class Reflection extends JavaService {
 	private static class FaultReference {
 		private FaultException fault = null;
 	}
-	
+
 	private final Interpreter interpreter;
 
-	public Reflection()
-	{
+	public Reflection() {
 		this.interpreter = Interpreter.getInstance();
 	}
-	
-	private Value runSolicitResponseInvocation( String operationName, OutputPort port, Value data, RequestResponseTypeDescription desc )
-		throws FaultException, InterruptedException
-	{
+
+	private Value runSolicitResponseInvocation( String operationName, OutputPort port, Value data,
+		RequestResponseTypeDescription desc )
+		throws FaultException, InterruptedException {
 		Value ret = Value.create();
 		jolie.process.Process p = new SolicitResponseProcess(
 			operationName,
 			port,
 			data,
-			new ClosedVariablePath( new Pair[0], ret ),
+			new ClosedVariablePath( new Pair[ 0 ], ret ),
 			NullProcess.getInstance(),
 			desc,
-			null
-		);
+			null );
 		final FaultReference ref = new FaultReference();
 		ExecutionThread t = new TransparentExecutionThread( p, ExecutionThread.currentThread() ) {
 			@Override
-			public void runProcess()
-			{
+			public void runProcess() {
 				try {
 					process().run();
 				} catch( FaultException f ) {
 					ref.fault = f;
-				} catch( ExitingException e ) {}
+				} catch( ExitingException e ) {
+				}
 			}
 		};
 		t.start();
 		t.join();
-		if ( ref.fault != null ) {
+		if( ref.fault != null ) {
 			throw ref.fault;
 		}
 		return ret;
 	}
-	
-	private Value runNotificationInvocation( String operationName, OutputPort port, Value data, OneWayTypeDescription desc )
-		throws FaultException, InterruptedException
-	{
+
+	private Value runNotificationInvocation( String operationName, OutputPort port, Value data,
+		OneWayTypeDescription desc )
+		throws FaultException, InterruptedException {
 		Value ret = Value.create();
 		jolie.process.Process p = new NotificationProcess(
 			operationName,
 			port,
 			data,
 			desc,
-			null
-		);
+			null );
 		SessionThread t = new SessionThread( p, interpreter.initThread() );
 		final FaultReference ref = new FaultReference();
 		t.addSessionListener( new SessionListener() {
-			public void onSessionExecuted( SessionThread session )
-			{}
+			public void onSessionExecuted( SessionThread session ) {}
 
-			public void onSessionError( SessionThread session, FaultException fault )
-			{
+			public void onSessionError( SessionThread session, FaultException fault ) {
 				ref.fault = fault;
 			}
 		} );
 		t.start();
 		t.join();
-		if ( ref.fault != null ) {
+		if( ref.fault != null ) {
 			throw ref.fault;
 		}
 		return ret;
@@ -121,25 +115,26 @@ public class Reflection extends JavaService
 
 	@RequestResponse
 	public Value invoke( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		final String operation = request.getFirstChild( "operation" ).strValue();
 		final String outputPortName = request.getFirstChild( "outputPort" ).strValue();
-		final String resourcePath = ( request.hasChildren( "resourcePath" ) ) ? request.getFirstChild( "resourcePath" ).strValue() : "/";
+		final String resourcePath =
+			(request.hasChildren( "resourcePath" )) ? request.getFirstChild( "resourcePath" ).strValue() : "/";
 		final Value data = request.getFirstChild( "data" );
 		try {
-			OutputPort port = interpreter.getOutputPort( request.getFirstChild( "outputPort").strValue() );
+			OutputPort port = interpreter.getOutputPort( request.getFirstChild( "outputPort" ).strValue() );
 			OperationTypeDescription opDesc = port.getOperationTypeDescription( operation, resourcePath );
-			if ( opDesc == null ) {
+			if( opDesc == null ) {
 				throw new InvalidIdException( operation );
-			} else if ( opDesc instanceof RequestResponseTypeDescription ) {
+			} else if( opDesc instanceof RequestResponseTypeDescription ) {
 				return runSolicitResponseInvocation( operation, port, data, opDesc.asRequestResponseTypeDescription() );
-			} else if ( opDesc instanceof OneWayTypeDescription ) {
+			} else if( opDesc instanceof OneWayTypeDescription ) {
 				return runNotificationInvocation( operation, port, data, opDesc.asOneWayTypeDescription() );
 			}
 			throw new InvalidIdException( operation );
 		} catch( InvalidIdException e ) {
-			throw new FaultException( "OperationNotFound", "Could not find operation " + operation + "@" + outputPortName );
+			throw new FaultException( "OperationNotFound",
+				"Could not find operation " + operation + "@" + outputPortName );
 		} catch( InterruptedException e ) {
 			interpreter.logSevere( e );
 			throw new FaultException( new IOException( "Interrupted" ) );

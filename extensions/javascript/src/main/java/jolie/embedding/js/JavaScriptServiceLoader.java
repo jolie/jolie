@@ -38,28 +38,27 @@ import jolie.runtime.expression.Expression;
  *
  * @author Fabrizio Montesi
  */
-public class JavaScriptServiceLoader extends EmbeddedServiceLoader
-{
+public class JavaScriptServiceLoader extends EmbeddedServiceLoader {
 	private final ScriptEngine engine;
 
 	public JavaScriptServiceLoader( Expression channelDest, String jsPathString )
-		throws EmbeddedServiceLoaderCreationException
-	{
+		throws EmbeddedServiceLoaderCreationException {
 		super( channelDest );
 		try {
 			final Path jsPath = Paths.get( jsPathString ).toAbsolutePath();
-			if ( !Files.isRegularFile( jsPath ) ) {
+			if( !Files.isRegularFile( jsPath ) ) {
 				throw new EmbeddedServiceLoaderCreationException( jsPathString + " is not a regular file" );
 			}
 
 			final ScriptEngineManager manager = new ScriptEngineManager();
 			this.engine = manager.getEngineByName( "JavaScript" );
-			if ( engine == null ) {
+			if( engine == null ) {
 				throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
 			}
-			
+
 			try {
-				// Nashorn (Java JS interpreter) on Windows requires '/' as a path separator. Hence use jsPath.toUri().toString() instead of jsPath().toString()
+				// Nashorn (Java JS interpreter) on Windows requires '/' as a path separator. Hence use
+				// jsPath.toUri().toString() instead of jsPath().toString()
 				engine.eval( "load('" + jsPath.toUri().toString() + "');" );
 			} catch( ScriptException e ) {
 				throw new EmbeddedServiceLoaderCreationException( e );
@@ -71,11 +70,10 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 
 	@Override
 	public void load()
-		throws EmbeddedServiceLoadingException
-	{
+		throws EmbeddedServiceLoadingException {
 		try {
 			final Object json = engine.eval( "JSON" );
-			setChannel( new JavaScriptCommChannel( (Invocable)engine, json ) );
+			setChannel( new JavaScriptCommChannel( (Invocable) engine, json ) );
 		} catch( ScriptException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}

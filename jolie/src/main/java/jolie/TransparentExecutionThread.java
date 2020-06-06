@@ -32,31 +32,26 @@ import jolie.runtime.InputOperation;
  *
  * @author Fabrizio Montesi
  */
-public abstract class TransparentExecutionThread extends ExecutionThread
-{
-	public TransparentExecutionThread( jolie.process.Process process, ExecutionThread parent )
-	{
+public abstract class TransparentExecutionThread extends ExecutionThread {
+	public TransparentExecutionThread( jolie.process.Process process, ExecutionThread parent ) {
 		super( process, parent );
 	}
 
-	public jolie.State state()
-	{
+	public jolie.State state() {
 		return parent.state();
 	}
-	
-	public Future< SessionMessage> requestMessage( InputOperation operation, ExecutionThread ethread )
-	{
+
+	public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread ) {
 		return parent.requestMessage( operation, ethread );
 	}
 
-	public Future< SessionMessage> requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
-	{
+	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations,
+		ExecutionThread ethread ) {
 		return parent.requestMessage( operations, ethread );
 	}
 
 	@Override
-	public String getSessionId()
-	{
+	public String getSessionId() {
 		return parent.getSessionId();
 	}
 }

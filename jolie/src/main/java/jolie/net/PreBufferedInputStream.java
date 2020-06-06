@@ -28,41 +28,36 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-public class PreBufferedInputStream extends BufferedInputStream
-{
+public class PreBufferedInputStream extends BufferedInputStream {
 	private final static int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
-	
-	public PreBufferedInputStream( InputStream istream )
-	{
+
+	public PreBufferedInputStream( InputStream istream ) {
 		super( istream );
 	}
 
-	public boolean hasCachedData()
-	{
+	public boolean hasCachedData() {
 		return pos < count;
 	}
 
-	public void append( ByteBuffer b )
-	{
+	public void append( ByteBuffer b ) {
 		final int bufferSize = b.remaining();
 		enlargeIfNecessary( bufferSize );
 		b.get( buf, count, bufferSize );
 		count += bufferSize;
 	}
-	
-	private void enlargeIfNecessary( int toBeWritten )
-	{
-		if ( count + toBeWritten >= buf.length ) {
+
+	private void enlargeIfNecessary( int toBeWritten ) {
+		if( count + toBeWritten >= buf.length ) {
 			int tentative = Math.max( count * 2, count + toBeWritten );
-			if ( tentative >= MAX_BUFFER_SIZE ) {
-				if ( count + toBeWritten < MAX_BUFFER_SIZE ) {
+			if( tentative >= MAX_BUFFER_SIZE ) {
+				if( count + toBeWritten < MAX_BUFFER_SIZE ) {
 					tentative = count + toBeWritten;
 				} else {
 					throw new OutOfMemoryError( "Required array size too large" );
 				}
 			}
-			
-			final byte nbuf[] = new byte[tentative];
+
+			final byte nbuf[] = new byte[ tentative ];
 			final int remaining = count - pos;
 			System.arraycopy( buf, pos, nbuf, 0, remaining );
 			buf = nbuf;
@@ -70,9 +65,8 @@ public class PreBufferedInputStream extends BufferedInputStream
 			count = remaining;
 		}
 	}
-	
-	public void append( byte b )
-	{
+
+	public void append( byte b ) {
 		enlargeIfNecessary( 1 );
 		buf[ count++ ] = b;
 	}

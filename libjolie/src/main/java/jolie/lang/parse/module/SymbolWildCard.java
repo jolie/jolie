@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  */
 
- package jolie.lang.parse.module;
+package jolie.lang.parse.module;
 
 import java.util.Arrays;
 import jolie.lang.parse.context.ParsingContext;
@@ -26,12 +26,10 @@ import jolie.lang.parse.context.ParsingContext;
  * A class represent a Symbol defined within external execution environment. Create when consuming a
  * wildcard import statement
  */
-public class SymbolWildCard extends SymbolInfoExternal
-{
+public class SymbolWildCard extends SymbolInfoExternal {
 
-    public SymbolWildCard( ParsingContext context, String[] moduleTarget )
-    {
-        super( context, Arrays.toString( moduleTarget ), moduleTarget, null );
-    }
+	public SymbolWildCard( ParsingContext context, String[] moduleTarget ) {
+		super( context, Arrays.toString( moduleTarget ), moduleTarget, null );
+	}
 
 }

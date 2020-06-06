@@ -24,12 +24,10 @@ import jolie.lang.parse.ast.SymbolNode;
 /**
  * A class represent Symbol define within local execution environment
  */
-public class SymbolInfoLocal extends SymbolInfo
-{
+public class SymbolInfoLocal extends SymbolInfo {
 
-    public SymbolInfoLocal( String name, SymbolNode node )
-    {
-        super( name, Scope.LOCAL, node );
-    }
+	public SymbolInfoLocal( String name, SymbolNode node ) {
+		super( name, Scope.LOCAL, node );
+	}
 
 }

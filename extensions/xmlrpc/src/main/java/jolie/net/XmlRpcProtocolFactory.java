@@ -37,16 +37,14 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.OutputKeys;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps( {"jolie-xml.jar"} )
-public class XmlRpcProtocolFactory extends CommProtocolFactory
-{
+@AndJarDeps( { "jolie-xml.jar" } )
+public class XmlRpcProtocolFactory extends CommProtocolFactory {
 	final private Transformer transformer;
 	final private DocumentBuilderFactory docBuilderFactory;
 	final private DocumentBuilder docBuilder;
 
 	public XmlRpcProtocolFactory( CommCore commCore )
-		throws ParserConfigurationException, TransformerConfigurationException
-	{
+		throws ParserConfigurationException, TransformerConfigurationException {
 		super( commCore );
 		docBuilderFactory = DocumentBuilderFactory.newInstance();
 		docBuilderFactory.setNamespaceAware( true );
@@ -56,8 +54,7 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory
 	}
 
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new XmlRpcProtocol(
 			configurationPath,
 			location,
@@ -65,13 +62,11 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory
 			transformer,
 			docBuilderFactory,
 			docBuilder,
-			commCore().interpreter()
-		);
+			commCore().interpreter() );
 	}
 
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		return new XmlRpcProtocol(
 			configurationPath,
 			location,
@@ -79,7 +74,6 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory
 			transformer,
 			docBuilderFactory,
 			docBuilder,
-			commCore().interpreter()
-		);
+			commCore().interpreter() );
 	}
 }

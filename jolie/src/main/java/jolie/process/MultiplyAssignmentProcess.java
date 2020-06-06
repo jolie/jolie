@@ -27,60 +27,55 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 /**
- * Multiply a VariablePath's value with an expression value, assigning the resulting
- * value to the VariablePath.
+ * Multiply a VariablePath's value with an expression value, assigning the resulting value to the
+ * VariablePath.
+ * 
  * @see Expression
  * @see VariablePath
  * @author Karoly Szanto
  */
-public class MultiplyAssignmentProcess implements Process, Expression
-{
+public class MultiplyAssignmentProcess implements Process, Expression {
 	final private VariablePath varPath;
 	final private Expression expression;
 
-	/** Constructor.
+	/**
+	 * Constructor.
 	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression to be evaluated and multiplied to the the variable's value
 	 */
-	public MultiplyAssignmentProcess( VariablePath varPath, Expression expression )
-	{
+	public MultiplyAssignmentProcess( VariablePath varPath, Expression expression ) {
 		this.varPath = varPath;
 		this.expression = expression;
 	}
 
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return new MultiplyAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ) );
 	}
 
-	public Expression cloneExpression( TransformationReason reason )
-	{
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new MultiplyAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ) );
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 		varPath.getValue().multiply( expression.evaluate() );
 	}
 
-	public Value evaluate()
-	{
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.multiply( expression.evaluate() );
 		return val;
 	}
 
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

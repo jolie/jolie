@@ -26,37 +26,32 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.Scanner;
 
 
-public class CompareConditionNode extends OLSyntaxNode
-{
+public class CompareConditionNode extends OLSyntaxNode {
 	private final OLSyntaxNode leftExpression, rightExpression;
 	private final Scanner.TokenType opType;
 
-	public CompareConditionNode( ParsingContext context, OLSyntaxNode leftExpr, OLSyntaxNode rightExpr, Scanner.TokenType opType )
-	{
+	public CompareConditionNode( ParsingContext context, OLSyntaxNode leftExpr, OLSyntaxNode rightExpr,
+		Scanner.TokenType opType ) {
 		super( context );
 		this.leftExpression = leftExpr;
 		this.rightExpression = rightExpr;
 		this.opType = opType;
 	}
-	
-	public OLSyntaxNode leftExpression()
-	{
+
+	public OLSyntaxNode leftExpression() {
 		return leftExpression;
 	}
-	
-	public OLSyntaxNode rightExpression()
-	{
+
+	public OLSyntaxNode rightExpression() {
 		return rightExpression;
 	}
-	
-	public Scanner.TokenType opType()
-	{
+
+	public Scanner.TokenType opType() {
 		return opType;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

@@ -30,14 +30,13 @@ import jolie.net.ports.InputPort;
 import jolie.net.protocols.CommProtocol;
 
 /**
- * Base class for a communication input listener. A <code>CommListener</code>
- * exposes an input port, receiving message for it.
- * This abstract class is meant to be extended by classes which implement
+ * Base class for a communication input listener. A <code>CommListener</code> exposes an input port,
+ * receiving message for it. This abstract class is meant to be extended by classes which implement
  * an input receiving loop. See {@link SocketListener <code>SocketListener</code>} as an example.
+ * 
  * @author Fabrizio Montesi
  */
-public abstract class CommListener extends NativeJolieThread
-{
+public abstract class CommListener extends NativeJolieThread {
 	private static int index = 0;
 
 	private final CommProtocolFactory protocolFactory;
@@ -45,49 +44,45 @@ public abstract class CommListener extends NativeJolieThread
 
 	/**
 	 * Constructor
+	 * 
 	 * @param interpreter the interpreter this listener will refer to
 	 * @param protocolFactory the protocol factory for this listener
 	 * @param inputPort the {@link InputPort} for this listener
 	 */
 	public CommListener(
-				Interpreter interpreter,
-				CommProtocolFactory protocolFactory,
-				InputPort inputPort
-			)
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort ) {
 		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
 		this.protocolFactory = protocolFactory;
 		this.inputPort = inputPort;
 	}
-	
-	protected CommListener(	Interpreter interpreter, InputPort inputPort )
-	{
+
+	protected CommListener( Interpreter interpreter, InputPort inputPort ) {
 		super( interpreter );
 		this.protocolFactory = null;
 		this.inputPort = inputPort;
 	}
 
 	protected CommProtocol createProtocol()
-		throws IOException
-	{
+		throws IOException {
 		return protocolFactory.createInputProtocol( inputPort.protocolConfigurationPath(), inputPort.location() );
 	}
 
 	/**
 	 * Returns the {@link InputPort} associated to this listener.
+	 * 
 	 * @return the input port associated to this listener.
 	 */
-	public InputPort inputPort()
-	{
+	public InputPort inputPort() {
 		return inputPort;
 	}
 
 	/**
 	 * Requests the shutdown of this listener, so that it receives no more messages.
 	 *
-	 * The behaviour of this method depends on the implementation: there is no
-	 * guarantee that the shutdown has been completed on return of this method,
-	 * only that it has been requested.
+	 * The behaviour of this method depends on the implementation: there is no guarantee that the
+	 * shutdown has been completed on return of this method, only that it has been requested.
 	 */
 	abstract public void shutdown();
 }

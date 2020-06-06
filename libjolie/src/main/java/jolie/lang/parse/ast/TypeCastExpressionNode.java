@@ -26,31 +26,26 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class TypeCastExpressionNode extends OLSyntaxNode
-{
+public class TypeCastExpressionNode extends OLSyntaxNode {
 	private final OLSyntaxNode expression;
 	private final NativeType type;
 
-	public TypeCastExpressionNode( ParsingContext context, NativeType type, OLSyntaxNode expression )
-	{
+	public TypeCastExpressionNode( ParsingContext context, NativeType type, OLSyntaxNode expression ) {
 		super( context );
 		this.type = type;
 		this.expression = expression;
 	}
-	
-	public NativeType type()
-	{
+
+	public NativeType type() {
 		return type;
 	}
-	
-	public OLSyntaxNode expression()
-	{
+
+	public OLSyntaxNode expression() {
 		return expression;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

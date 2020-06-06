@@ -119,27 +119,23 @@ import jolie.util.Pair;
  *
  * @author Fabrizio Montesi
  */
-public class TypeChecker implements OLVisitor
-{
-	private static class FlaggedVariablePathNode extends VariablePathNode
-	{
+public class TypeChecker implements OLVisitor {
+	private static class FlaggedVariablePathNode extends VariablePathNode {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 		private final boolean isFresh;
-		public FlaggedVariablePathNode( VariablePathNode path, boolean isFresh )
-		{
+
+		public FlaggedVariablePathNode( VariablePathNode path, boolean isFresh ) {
 			super( path.context(), path.type() );
 			this.path().addAll( path.path() );
 			this.isFresh = isFresh;
 		}
 
-		public boolean isFresh()
-		{
+		public boolean isFresh() {
 			return isFresh;
 		}
 	}
 
-	private class TypingResult
-	{
+	private class TypingResult {
 		private final VariablePathSet< VariablePathNode > neededCorrPaths;
 		private final VariablePathSet< FlaggedVariablePathNode > providedCorrPaths;
 		private final VariablePathSet< VariablePathNode > neededVarPaths;
@@ -149,8 +145,7 @@ public class TypeChecker implements OLVisitor
 
 		private final VariablePathSet< VariablePathNode > invalidatedVarPaths;
 
-		public TypingResult()
-		{
+		public TypingResult() {
 			neededCorrPaths = new VariablePathSet<>();
 			providedCorrPaths = new VariablePathSet<>();
 			neededVarPaths = new VariablePathSet<>();
@@ -159,62 +154,55 @@ public class TypeChecker implements OLVisitor
 			sessionOperations = new HashSet<>();
 		}
 
-		public void registerOperationInput( String operation, boolean isStartingOperation )
-		{
-			if ( isStartingOperation ) {
+		public void registerOperationInput( String operation, boolean isStartingOperation ) {
+			if( isStartingOperation ) {
 				startingOperation = operation;
 			} else {
 				sessionOperations.add( operation );
 			}
 		}
 
-		public void registerOperations( TypingResult other )
-		{
-			if ( this.startingOperation == null ) {
+		public void registerOperations( TypingResult other ) {
+			if( this.startingOperation == null ) {
 				this.startingOperation = other.startingOperation;
 			}
 
 			sessionOperations.addAll( other.sessionOperations );
 		}
 
-		public void provide( VariablePathNode path, boolean isFresh )
-		{
-			if ( path.isCSet() ) {
+		public void provide( VariablePathNode path, boolean isFresh ) {
+			if( path.isCSet() ) {
 				providedCorrPaths.add( new FlaggedVariablePathNode( path, isFresh ) );
 			} else {
 				providedVarPaths.add( path );
 			}
 		}
 
-		public void provide( FlaggedVariablePathNode path )
-		{
-			if ( path.isCSet() ) {
+		public void provide( FlaggedVariablePathNode path ) {
+			if( path.isCSet() ) {
 				providedCorrPaths.add( path );
 			} else {
 				providedVarPaths.add( path );
 			}
 		}
 
-		public void provide( VariablePathNode path )
-		{
-			if ( path instanceof FlaggedVariablePathNode ) {
+		public void provide( VariablePathNode path ) {
+			if( path instanceof FlaggedVariablePathNode ) {
 				provide( (FlaggedVariablePathNode) path );
 			} else {
 				provide( path, false );
 			}
 		}
 
-		public void need( VariablePathNode path )
-		{
-			if ( path.isCSet() ) {
+		public void need( VariablePathNode path ) {
+			if( path.isCSet() ) {
 				neededCorrPaths.add( path );
 			} else {
 				neededVarPaths.add( path );
 			}
 		}
 
-		public void needAll( TypingResult other )
-		{
+		public void needAll( TypingResult other ) {
 			for( VariablePathNode path : other.neededCorrPaths ) {
 				need( path );
 			}
@@ -223,8 +211,7 @@ public class TypeChecker implements OLVisitor
 			}
 		}
 
-		public void provideAll( TypingResult other )
-		{
+		public void provideAll( TypingResult other ) {
 			for( VariablePathNode path : other.providedCorrPaths ) {
 				provide( path );
 			}
@@ -233,8 +220,7 @@ public class TypeChecker implements OLVisitor
 			}
 		}
 
-		public void provideAll( VariablePathSet< ? extends VariablePathNode > other )
-		{
+		public void provideAll( VariablePathSet< ? extends VariablePathNode > other ) {
 			for( VariablePathNode path : other ) {
 				provide( path );
 			}
@@ -242,29 +228,26 @@ public class TypeChecker implements OLVisitor
 
 		// public void needAll( VariablePathSet< ? extends VariablePathNode > other )
 		// {
-		// 	for( VariablePathNode path : other ) {
-		// 		need( path );
-		// 	}
+		// for( VariablePathNode path : other ) {
+		// need( path );
+		// }
 		// }
 
-		public void invalidateAll( TypingResult other )
-		{
+		public void invalidateAll( TypingResult other ) {
 			for( VariablePathNode path : other.invalidatedVarPaths ) {
 				invalidate( path );
 			}
 		}
 
-		public void invalidate( VariablePathNode path )
-		{
+		public void invalidate( VariablePathNode path ) {
 			invalidatedVarPaths.add( path );
 			providedVarPaths.remove( path );
 		}
 
-		public void removeUnsharedProvided( TypingResult other )
-		{
+		public void removeUnsharedProvided( TypingResult other ) {
 			List< VariablePathNode > toBeRemoved = new LinkedList<>();
 			for( VariablePathNode path : providedVarPaths ) {
-				if ( !other.providedVarPaths.contains( path ) ) {
+				if( !other.providedVarPaths.contains( path ) ) {
 					toBeRemoved.add( path );
 				}
 			}
@@ -286,17 +269,16 @@ public class TypeChecker implements OLVisitor
 	private final Map< String, TypingResult > definitionTyping = new HashMap<>();
 	private boolean sessionStarter = false;
 
-	public TypeChecker( Program program, ExecutionMode executionMode, CorrelationFunctionInfo correlationFunctionInfo )
-	{
+	public TypeChecker( Program program, ExecutionMode executionMode,
+		CorrelationFunctionInfo correlationFunctionInfo ) {
 		this.program = program;
 		this.executionMode = executionMode;
 		this.correlationFunctionInfo = correlationFunctionInfo;
 	}
 
-	private void error( OLSyntaxNode node, String message )
-	{
+	private void error( OLSyntaxNode node, String message ) {
 		valid = false;
-		if ( node != null ) {
+		if( node != null ) {
 			ParsingContext context = node.context();
 			logger.severe( context.sourceName() + ":" + context.line() + ": " + message );
 		} else {
@@ -304,19 +286,17 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 
-	private boolean isDefinedBefore( VariablePathNode path )
-	{
-		if ( entryTyping.providedVarPaths.contains( path ) || entryTyping.providedCorrPaths.contains( path ) ) {
+	private boolean isDefinedBefore( VariablePathNode path ) {
+		if( entryTyping.providedVarPaths.contains( path ) || entryTyping.providedCorrPaths.contains( path ) ) {
 			return true;
 		}
 		return false;
 	}
 
-	public boolean check()
-	{
+	public boolean check() {
 		check( program, new TypingResult() );
 		typingResult = definitionTyping.get( "main" );
-		if ( typingResult == null ) {
+		if( typingResult == null ) {
 			error( program, "Cannot find the main entry point" );
 		} else {
 			checkMainTyping();
@@ -324,10 +304,9 @@ public class TypeChecker implements OLVisitor
 		return valid;
 	}
 
-	private void checkMainTyping()
-	{
+	private void checkMainTyping() {
 		TypingResult initTyping = definitionTyping.get( "init" );
-		if ( initTyping != null ) {
+		if( initTyping != null ) {
 			addInitTypingToMain();
 		}
 
@@ -336,7 +315,8 @@ public class TypeChecker implements OLVisitor
 		}
 
 		for( VariablePathNode path : typingResult.neededVarPaths ) {
-			error( path, "Variable " + path.toPrettyString() + " is not initialised before using it to initialise a correlation variable." );
+			error( path, "Variable " + path.toPrettyString()
+				+ " is not initialised before using it to initialise a correlation variable." );
 		}
 
 		VariablePathNode path;
@@ -347,30 +327,30 @@ public class TypeChecker implements OLVisitor
 				path = new VariablePathNode( cvar.correlationVariablePath().context(), VariablePathNode.Type.CSET );
 				path.path().add( new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
-					new ConstantIntegerExpression( cset.context(), 0 )
-				) );
+					new ConstantIntegerExpression( cset.context(), 0 ) ) );
 				path.path().addAll( cvar.correlationVariablePath().path() );
 				FlaggedVariablePathNode flaggedPath = typingResult.providedCorrPaths.getContained( path );
-				if ( flaggedPath == null ) { // The two cases could be merged in a single if-then-else condition, but they are logically different.
+				if( flaggedPath == null ) { // The two cases could be merged in a single if-then-else condition, but
+											// they are logically different.
 					isCorrelationSetFresh = true; // We can set this because the correlation set is not used at all.
 					break;
-				} else if ( flaggedPath.isFresh() ) {
+				} else if( flaggedPath.isFresh() ) {
 					isCorrelationSetFresh = true;
 					break;
 				}
 			}
-			if ( !isCorrelationSetFresh ) {
-				error( cset, "Every correlation set must have at least one fresh value (maybe you are not using new?)." );
+			if( !isCorrelationSetFresh ) {
+				error( cset,
+					"Every correlation set must have at least one fresh value (maybe you are not using new?)." );
 			}
 		}
 	}
 
-	private void addInitTypingToMain()
-	{
+	private void addInitTypingToMain() {
 		TypingResult right = typingResult;
 		typingResult = definitionTyping.get( "init" );
 		for( VariablePathNode path : right.providedCorrPaths ) {
-			if ( typingResult.providedCorrPaths.contains( path ) ) {
+			if( typingResult.providedCorrPaths.contains( path ) ) {
 				error( path, "Correlation variables cannot be defined more than one time." );
 			} else {
 				typingResult.provide( path );
@@ -383,13 +363,13 @@ public class TypeChecker implements OLVisitor
 		}
 
 		for( VariablePathNode path : right.neededVarPaths ) {
-			if ( !typingResult.providedVarPaths.contains( path ) ) {
+			if( !typingResult.providedVarPaths.contains( path ) ) {
 				typingResult.need( path );
 			}
 		}
 
 		for( VariablePathNode path : right.neededCorrPaths ) {
-			if ( !typingResult.providedCorrPaths.contains( path ) ) {
+			if( !typingResult.providedCorrPaths.contains( path ) ) {
 				typingResult.need( path );
 			}
 		}
@@ -397,8 +377,7 @@ public class TypeChecker implements OLVisitor
 		typingResult.invalidateAll( right );
 	}
 
-	private TypingResult check( OLSyntaxNode n, TypingResult entryTyping )
-	{
+	private TypingResult check( OLSyntaxNode n, TypingResult entryTyping ) {
 		this.entryTyping = entryTyping;
 		TypingResult backup = typingResult;
 		typingResult = new TypingResult();
@@ -409,41 +388,37 @@ public class TypeChecker implements OLVisitor
 	}
 
 	@Override
-	public void visit( Program n )
-	{
+	public void visit( Program n ) {
 		for( OLSyntaxNode node : n.children() ) {
 			check( node, new TypingResult() );
 		}
 	}
 
 	@Override
-	public void visit( OneWayOperationDeclaration decl )
-	{}
+	public void visit( OneWayOperationDeclaration decl ) {}
 
 	@Override
-	public void visit( RequestResponseOperationDeclaration decl )
-	{}
+	public void visit( RequestResponseOperationDeclaration decl ) {}
 
 	@Override
-	public void visit( DefinitionNode n )
-	{
+	public void visit( DefinitionNode n ) {
 		insideInit = false;
 		TypingResult entry = null;
 		switch( n.id() ) {
-			case "main":
-				sessionStarter = true;
-				entry = definitionTyping.get( "init" );
-				break;
-			case "init":
-				insideInit = true;
-				break;
+		case "main":
+			sessionStarter = true;
+			entry = definitionTyping.get( "init" );
+			break;
+		case "init":
+			insideInit = true;
+			break;
 		}
-		if ( entry == null ) {
+		if( entry == null ) {
 			entry = new TypingResult();
 		}
 		definitionTyping.put( n.id(), check( n.body(), entry ) );
-		
-		if ( n.id().equals( "init" ) ) {
+
+		if( n.id().equals( "init" ) ) {
 			for( VariablePathNode path : typingResult.providedCorrPaths ) {
 				error( path, "Correlation variables can not be initialised in the init procedure." );
 			}
@@ -451,9 +426,8 @@ public class TypeChecker implements OLVisitor
 	}
 
 	@Override
-	public void visit( ParallelStatement n )
-	{
-		if ( n.children().isEmpty() ) {
+	public void visit( ParallelStatement n ) {
+		if( n.children().isEmpty() ) {
 			return;
 		}
 		TypingResult entry = entryTyping;
@@ -462,7 +436,7 @@ public class TypeChecker implements OLVisitor
 		for( int i = 1; i < n.children().size(); i++ ) {
 			right = check( n.children().get( i ), entry );
 			for( VariablePathNode path : right.providedCorrPaths ) {
-				if ( typingResult.providedCorrPaths.contains( path ) ) {
+				if( typingResult.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables can not be defined more than one time." );
 				} else {
 					typingResult.provide( path );
@@ -476,9 +450,8 @@ public class TypeChecker implements OLVisitor
 	}
 
 	@Override
-	public void visit( SequenceStatement n )
-	{
-		if ( n.children().isEmpty() ) {
+	public void visit( SequenceStatement n ) {
+		if( n.children().isEmpty() ) {
 			return;
 		}
 
@@ -488,7 +461,7 @@ public class TypeChecker implements OLVisitor
 		for( int i = 1; i < n.children().size(); i++ ) {
 			right = check( n.children().get( i ), typingResult );
 			for( VariablePathNode path : right.providedCorrPaths ) {
-				if ( typingResult.providedCorrPaths.contains( path ) ) {
+				if( typingResult.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables can not be defined more than one time." );
 				} else {
 					typingResult.provide( path );
@@ -501,13 +474,13 @@ public class TypeChecker implements OLVisitor
 			}
 
 			for( VariablePathNode path : right.neededVarPaths ) {
-				if ( !typingResult.providedVarPaths.contains( path ) ) {
+				if( !typingResult.providedVarPaths.contains( path ) ) {
 					typingResult.need( path );
 				}
 			}
 
 			for( VariablePathNode path : right.neededCorrPaths ) {
-				if ( !typingResult.providedCorrPaths.contains( path ) ) {
+				if( !typingResult.providedCorrPaths.contains( path ) ) {
 					typingResult.need( path );
 				}
 			}
@@ -518,9 +491,8 @@ public class TypeChecker implements OLVisitor
 	}
 
 	@Override
-	public void visit( NDChoiceStatement n )
-	{
-		if ( n.children().isEmpty() ) {
+	public void visit( NDChoiceStatement n ) {
+		if( n.children().isEmpty() ) {
 			return;
 		}
 
@@ -546,14 +518,14 @@ public class TypeChecker implements OLVisitor
 			branchTypings.add( right );
 			typingResult.needAll( right );
 			typingResult.invalidateAll( right );
-			if ( !origSessionStarter ) {
+			if( !origSessionStarter ) {
 				for( VariablePathNode path : typingResult.providedCorrPaths ) {
-					if ( !right.providedCorrPaths.contains( path ) ) {
+					if( !right.providedCorrPaths.contains( path ) ) {
 						error( path, "Correlation variables must be initialized in every branch." );
 					}
 				}
 				for( VariablePathNode path : right.providedCorrPaths ) {
-					if ( !typingResult.providedCorrPaths.contains( path ) ) {
+					if( !typingResult.providedCorrPaths.contains( path ) ) {
 						error( path, "Correlation variables must be initialized in every branch." );
 					}
 				}
@@ -563,11 +535,12 @@ public class TypeChecker implements OLVisitor
 			sessionStarter = false;
 		}
 
-		if ( origSessionStarter ) {
+		if( origSessionStarter ) {
 			for( TypingResult top : branchTypings ) {
 				for( TypingResult branch : branchTypings ) {
-					if ( top != branch && branch.sessionOperations.contains( top.startingOperation ) ) {
-						error( program, "Operation " + top.startingOperation + " can not be used both as a starter and in the body of another session branch." );
+					if( top != branch && branch.sessionOperations.contains( top.startingOperation ) ) {
+						error( program, "Operation " + top.startingOperation
+							+ " can not be used both as a starter and in the body of another session branch." );
 					}
 				}
 			}
@@ -577,72 +550,68 @@ public class TypeChecker implements OLVisitor
 	}
 
 	@Override
-	public void visit( OneWayOperationStatement n )
-	{
-		if ( executionMode == ExecutionMode.SINGLE ) {
+	public void visit( OneWayOperationStatement n ) {
+		if( executionMode == ExecutionMode.SINGLE ) {
 			return;
 		}
 
 		typingResult.registerOperationInput( n.id(), sessionStarter );
 
-		if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
+		if( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
 			error( n, "Input operations can not receive on a correlation variable" );
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if ( !sessionStarter && !insideInit ) {
-			if ( cset == null || cset.variables().isEmpty() ) {
+		if( !sessionStarter && !insideInit ) {
+			if( cset == null || cset.variables().isEmpty() ) {
 				error( n, "No correlation set defined for operation " + n.id() );
 			}
 		}
-		if ( cset != null ) {
+		if( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
-				path.path().add(new Pair<>(
+				path.path().add( new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
-					new ConstantIntegerExpression( cset.context(), 0 )
-				) );
+					new ConstantIntegerExpression( cset.context(), 0 ) ) );
 				path.path().addAll( cvar.correlationVariablePath().path() );
-				if ( sessionStarter ) {
+				if( sessionStarter ) {
 					typingResult.provide( path, true );
 				} else {
 					typingResult.need( path );
 				}
 			}
 		}
-		
+
 		sessionStarter = false;
 	}
 
 	@Override
-	public void visit( RequestResponseOperationStatement n )
-	{
-		if ( executionMode == ExecutionMode.SINGLE ) {
+	public void visit( RequestResponseOperationStatement n ) {
+		if( executionMode == ExecutionMode.SINGLE ) {
 			return;
 		}
 
 		typingResult.registerOperationInput( n.id(), sessionStarter );
 
-		if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
+		if( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
 			error( n, "Input operations can not receive on a correlation variable" );
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if ( !sessionStarter && !insideInit ) {
-			if ( cset == null || cset.variables().isEmpty() ) {
+		if( !sessionStarter && !insideInit ) {
+			if( cset == null || cset.variables().isEmpty() ) {
 				error( n, "No correlation set defined for operation " + n.id() );
 			}
 		}
 
-		if ( cset != null ) {
+		if( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
-				path.path().add(new Pair<>(
+				path.path().add( new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
-					new ConstantIntegerExpression( cset.context(), 0 )
-				) );
+					new ConstantIntegerExpression( cset.context(), 0 ) ) );
 				path.path().addAll( cvar.correlationVariablePath().path() );
-				if ( sessionStarter ) {
+				if( sessionStarter ) {
 					typingResult.provide( path, true );
 				} else {
 					typingResult.need( path );
@@ -659,86 +628,79 @@ public class TypeChecker implements OLVisitor
 	}
 
 	@Override
-	public void visit( NotificationOperationStatement n )
-	{}
+	public void visit( NotificationOperationStatement n ) {}
 
 	@Override
-	public void visit( SolicitResponseOperationStatement n )
-	{
-		if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
+	public void visit( SolicitResponseOperationStatement n ) {
+		if( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
 			error( n, "Solicit-response statements can not receive on a correlation variable" );
 		}
 	}
-	
-	@Override
-	public void visit( FreshValueExpressionNode n )
-	{}
 
 	@Override
-	public void visit( LinkInStatement n )
-	{}
+	public void visit( FreshValueExpressionNode n ) {}
 
 	@Override
-	public void visit( LinkOutStatement n )
-	{}
+	public void visit( LinkInStatement n ) {}
 
 	@Override
-	public void visit( AssignStatement n )
-	{
-		if ( n.variablePath().isStatic() ) {
-			if ( n.expression() instanceof ConstantIntegerExpression ) {
+	public void visit( LinkOutStatement n ) {}
+
+	@Override
+	public void visit( AssignStatement n ) {
+		if( n.variablePath().isStatic() ) {
+			if( n.expression() instanceof ConstantIntegerExpression ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof ConstantDoubleExpression ) {
+			} else if( n.expression() instanceof ConstantDoubleExpression ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof ConstantBoolExpression ) {
+			} else if( n.expression() instanceof ConstantBoolExpression ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof ConstantLongExpression ) {
+			} else if( n.expression() instanceof ConstantLongExpression ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof ConstantStringExpression ) {
+			} else if( n.expression() instanceof ConstantStringExpression ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof PostDecrementStatement ) {
+			} else if( n.expression() instanceof PostDecrementStatement ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof PostIncrementStatement ) {
+			} else if( n.expression() instanceof PostIncrementStatement ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof PreDecrementStatement ) {
+			} else if( n.expression() instanceof PreDecrementStatement ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof PreIncrementStatement ) {
+			} else if( n.expression() instanceof PreIncrementStatement ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.expression() instanceof VariableExpressionNode ) {
-				VariablePathNode rightPath = ((VariableExpressionNode)n.expression()).variablePath();
-				if ( rightPath.isStatic() && isDefinedBefore( rightPath ) ) {
+			} else if( n.expression() instanceof VariableExpressionNode ) {
+				VariablePathNode rightPath = ((VariableExpressionNode) n.expression()).variablePath();
+				if( rightPath.isStatic() && isDefinedBefore( rightPath ) ) {
 					typingResult.provide( n.variablePath() );
-				} else if ( n.variablePath().isCSet() ) {
-					error( n, "Variable " + rightPath.toPrettyString() + " may be undefined before being used for defining correlation variable " + n.variablePath().toPrettyString() );
+				} else if( n.variablePath().isCSet() ) {
+					error( n,
+						"Variable " + rightPath.toPrettyString()
+							+ " may be undefined before being used for defining correlation variable "
+							+ n.variablePath().toPrettyString() );
 				}
-			} else if ( n.expression() instanceof FreshValueExpressionNode ) {
+			} else if( n.expression() instanceof FreshValueExpressionNode ) {
 				typingResult.provide( n.variablePath(), true );
-			} else if ( n.variablePath().isCSet() ) {
-				error( n, "Correlation variables must either be initialised with createSecureToken@SecurityUtils, a variable or a constant." );
+			} else if( n.variablePath().isCSet() ) {
+				error( n,
+					"Correlation variables must either be initialised with createSecureToken@SecurityUtils, a variable or a constant." );
 			}
 		}
 	}
 
 	@Override
-	public void visit( AddAssignStatement n )
-	{}
+	public void visit( AddAssignStatement n ) {}
 
 	@Override
-	public void visit( SubtractAssignStatement n )
-	{}
+	public void visit( SubtractAssignStatement n ) {}
 
 	@Override
-	public void visit( MultiplyAssignStatement n )
-	{}
+	public void visit( MultiplyAssignStatement n ) {}
 
 	@Override
-	public void visit( DivideAssignStatement n )
-	{}
+	public void visit( DivideAssignStatement n ) {}
 
 	@Override
-	public void visit( IfStatement n )
-	{
-		if ( n.children().isEmpty() ) {
+	public void visit( IfStatement n ) {
+		if( n.children().isEmpty() ) {
 			return;
 		}
 
@@ -751,168 +713,140 @@ public class TypeChecker implements OLVisitor
 			typingResult.registerOperations( right );
 			typingResult.invalidateAll( right );
 			for( VariablePathNode path : typingResult.providedCorrPaths ) {
-				if ( !right.providedCorrPaths.contains( path ) ) {
+				if( !right.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables must be initialized in every if-then-else branch." );
 				}
 			}
 			for( VariablePathNode path : right.providedCorrPaths ) {
-				if ( !typingResult.providedCorrPaths.contains( path ) ) {
+				if( !typingResult.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables must be initialized in every if-then-else branch." );
 				}
 			}
 			typingResult.removeUnsharedProvided( right );
 		}
 
-		if ( n.elseProcess() != null ) {
+		if( n.elseProcess() != null ) {
 			right = check( n.elseProcess(), entry );
 			typingResult.needAll( right );
 			typingResult.registerOperations( right );
 			typingResult.invalidateAll( right );
 			for( VariablePathNode path : typingResult.providedCorrPaths ) {
-				if ( !right.providedCorrPaths.contains( path ) ) {
+				if( !right.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables must be initialized in every if-then-else branch." );
 				}
 			}
 			for( VariablePathNode path : right.providedCorrPaths ) {
-				if ( !typingResult.providedCorrPaths.contains( path ) ) {
+				if( !typingResult.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables must be initialized in every if-then-else branch." );
 				}
 			}
 			typingResult.removeUnsharedProvided( right );
 		}
 	}
-	
-	@Override
-	public void visit( InstanceOfExpressionNode n )
-	{}
 
 	@Override
-	public void visit( DefinitionCallStatement n )
-	{
+	public void visit( InstanceOfExpressionNode n ) {}
+
+	@Override
+	public void visit( DefinitionCallStatement n ) {
 		typingResult = definitionTyping.get( n.id() );
-		if ( typingResult == null ) {
+		if( typingResult == null ) {
 			typingResult = new TypingResult();
 			error( n, "Can not find definition " + n.id() );
 		}
 	}
-	
-	@Override
-	public void visit( InlineTreeExpressionNode n )
-	{}
 
 	@Override
-	public void visit( WhileStatement n )
-	{
+	public void visit( InlineTreeExpressionNode n ) {}
+
+	@Override
+	public void visit( WhileStatement n ) {
 		typingResult = check( n.body(), entryTyping );
-		if ( !typingResult.providedCorrPaths.isEmpty() ) {
+		if( !typingResult.providedCorrPaths.isEmpty() ) {
 			error( n, "Initialising correlation variables in while loops is forbidden." );
 		}
 		typingResult.providedVarPaths.clear();
 	}
 
 	@Override
-	public void visit( OrConditionNode n )
-	{}
+	public void visit( OrConditionNode n ) {}
 
 	@Override
-	public void visit( AndConditionNode n )
-	{}
+	public void visit( AndConditionNode n ) {}
 
 	@Override
-	public void visit( NotExpressionNode n )
-	{}
+	public void visit( NotExpressionNode n ) {}
 
 	@Override
-	public void visit( CompareConditionNode n )
-	{}
+	public void visit( CompareConditionNode n ) {}
 
 	@Override
-	public void visit( ConstantIntegerExpression n )
-	{}
-	
-	@Override
-	public void visit( ConstantLongExpression n )
-	{}
-	
-	@Override
-	public void visit( ConstantBoolExpression n )
-	{}
+	public void visit( ConstantIntegerExpression n ) {}
 
 	@Override
-	public void visit( ConstantDoubleExpression n )
-	{}
+	public void visit( ConstantLongExpression n ) {}
 
 	@Override
-	public void visit( ConstantStringExpression n )
-	{}
+	public void visit( ConstantBoolExpression n ) {}
 
 	@Override
-	public void visit( ProductExpressionNode n )
-	{}
+	public void visit( ConstantDoubleExpression n ) {}
 
 	@Override
-	public void visit( SumExpressionNode n )
-	{}
+	public void visit( ConstantStringExpression n ) {}
 
 	@Override
-	public void visit( VariableExpressionNode n )
-	{}
+	public void visit( ProductExpressionNode n ) {}
 
 	@Override
-	public void visit( NullProcessStatement n )
-	{}
+	public void visit( SumExpressionNode n ) {}
 
 	@Override
-	public void visit( Scope n )
-	{
+	public void visit( VariableExpressionNode n ) {}
+
+	@Override
+	public void visit( NullProcessStatement n ) {}
+
+	@Override
+	public void visit( Scope n ) {
 		typingResult = check( n.body(), entryTyping );
 	}
 
 	@Override
-	public void visit( InstallStatement n )
-	{ // TODO check code inside install
+	public void visit( InstallStatement n ) { // TODO check code inside install
 
 	}
 
 	@Override
-	public void visit( CompensateStatement n )
-	{}
+	public void visit( CompensateStatement n ) {}
 
 	@Override
-	public void visit( ThrowStatement n )
-	{}
+	public void visit( ThrowStatement n ) {}
 
 	@Override
-	public void visit( ExitStatement n )
-	{}
+	public void visit( ExitStatement n ) {}
 
 	@Override
-	public void visit( ExecutionInfo n )
-	{}
+	public void visit( ExecutionInfo n ) {}
 
 	@Override
-	public void visit( CorrelationSetInfo n )
-	{}
+	public void visit( CorrelationSetInfo n ) {}
 
 	@Override
-	public void visit( InputPortInfo n )
-	{}
+	public void visit( InputPortInfo n ) {}
 
 	@Override
-	public void visit( OutputPortInfo n )
-	{}
+	public void visit( OutputPortInfo n ) {}
 
 	@Override
-	public void visit( PointerStatement n )
-	{
+	public void visit( PointerStatement n ) {
 		typingResult.invalidate( n.rightPath() );
 		typingResult.invalidate( n.leftPath() );
 	}
 
 	@Override
-	public void visit( DeepCopyStatement n )
-	{
-		if ( n.rightExpression() instanceof VariableExpressionNode ) {
+	public void visit( DeepCopyStatement n ) {
+		if( n.rightExpression() instanceof VariableExpressionNode ) {
 			// TODO: check whether to invalidate all variable paths in other expression cases
 			typingResult.invalidate( ((VariableExpressionNode) n.rightExpression()).variablePath() );
 		}
@@ -920,133 +854,114 @@ public class TypeChecker implements OLVisitor
 	}
 
 	@Override
-	public void visit( RunStatement n )
-	{}
+	public void visit( RunStatement n ) {}
 
 	@Override
-	public void visit( UndefStatement n )
-	{
+	public void visit( UndefStatement n ) {
 		typingResult.invalidate( n.variablePath() );
 	}
 
 	@Override
-	public void visit( ValueVectorSizeExpressionNode n )
-	{}
+	public void visit( ValueVectorSizeExpressionNode n ) {}
 
 	@Override
-	public void visit( PreIncrementStatement n )
-	{}
+	public void visit( PreIncrementStatement n ) {}
 
 	@Override
-	public void visit( PostIncrementStatement n )
-	{}
+	public void visit( PostIncrementStatement n ) {}
 
 	@Override
-	public void visit( PreDecrementStatement n )
-	{}
+	public void visit( PreDecrementStatement n ) {}
 
 	@Override
-	public void visit( PostDecrementStatement n )
-	{}
+	public void visit( PostDecrementStatement n ) {}
 
 	@Override
-	public void visit( ForStatement n )
-	{
+	public void visit( ForStatement n ) {
 		typingResult = check( n.body(), entryTyping );
-		if ( !typingResult.providedCorrPaths.isEmpty() ) {
+		if( !typingResult.providedCorrPaths.isEmpty() ) {
 			error( n, "Initialising correlation variables in while loops is forbidden." );
 		}
 		typingResult.providedVarPaths.clear();
 	}
 
 	@Override
-	public void visit( ForEachSubNodeStatement n )
-	{
+	public void visit( ForEachSubNodeStatement n ) {
 		typingResult = check( n.body(), entryTyping );
-		if ( !typingResult.providedCorrPaths.isEmpty() ) {
+		if( !typingResult.providedCorrPaths.isEmpty() ) {
 			error( n, "Initialising correlation variables in while loops is forbidden." );
 		}
 		typingResult.providedVarPaths.clear();
 	}
 
 	@Override
-	public void visit( ForEachArrayItemStatement n )
-	{}
+	public void visit( ForEachArrayItemStatement n ) {}
 
 	@Override
-	public void visit( SpawnStatement n )
-	{}
+	public void visit( SpawnStatement n ) {}
 
 	@Override
-	public void visit( IsTypeExpressionNode n )
-	{}
+	public void visit( IsTypeExpressionNode n ) {}
 
 	@Override
-	public void visit( TypeCastExpressionNode n )
-	{}
+	public void visit( TypeCastExpressionNode n ) {}
 
 	@Override
-	public void visit( SynchronizedStatement n )
-	{
+	public void visit( SynchronizedStatement n ) {
 		typingResult = check( n.body(), entryTyping );
 	}
 
 	@Override
-	public void visit( CurrentHandlerStatement n )
-	{}
+	public void visit( CurrentHandlerStatement n ) {}
 
 	@Override
-	public void visit( EmbeddedServiceNode n )
-	{}
+	public void visit( EmbeddedServiceNode n ) {}
 
 	@Override
-	public void visit( InstallFixedVariableExpressionNode n )
-	{}
+	public void visit( InstallFixedVariableExpressionNode n ) {}
 
 	@Override
-	public void visit( VariablePathNode n )
-	{}
+	public void visit( VariablePathNode n ) {}
 
 	@Override
-	public void visit( TypeInlineDefinition n )
-	{}
+	public void visit( TypeInlineDefinition n ) {}
 
 	@Override
-	public void visit( TypeDefinitionLink n )
-	{}
+	public void visit( TypeDefinitionLink n ) {}
 
 	@Override
-	public void visit( InterfaceDefinition n )
-	{}
+	public void visit( InterfaceDefinition n ) {}
 
 	@Override
-	public void visit( DocumentationComment n )
-	{}
-	
+	public void visit( DocumentationComment n ) {}
+
 	@Override
 	public void visit( InterfaceExtenderDefinition n ) {}
+
 	@Override
 	public void visit( CourierDefinitionNode n ) {}
+
 	@Override
 	public void visit( CourierChoiceStatement n ) {}
+
 	@Override
 	public void visit( NotificationForwardStatement n ) {}
+
 	@Override
 	public void visit( SolicitResponseForwardStatement n ) {}
-	
+
 	@Override
 	public void visit( VoidExpressionNode n ) {}
-	
+
 	@Override
-	public void visit( ProvideUntilStatement n )
-	{
+	public void visit( ProvideUntilStatement n ) {
 		n.provide().accept( this );
 		n.until().accept( this );
 	}
 
 	@Override
 	public void visit( TypeChoiceDefinition n ) {
-		//todo
+		// todo
 	}
 
 	@Override

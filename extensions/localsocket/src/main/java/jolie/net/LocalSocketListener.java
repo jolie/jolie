@@ -33,47 +33,43 @@ import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
-public class LocalSocketListener extends CommListener
-{
+public class LocalSocketListener extends CommListener {
 	final private UnixServerSocket serverSocket;
 	final private UnixSocketAddress socketAddress;
+
 	public LocalSocketListener(
-				Interpreter interpreter,
-				CommProtocolFactory protocolFactory,
-				InputPort inputPort
-			)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		super( interpreter, protocolFactory, inputPort );
 
 		String path = inputPort.location().getPath();
-		if ( path == null || path.isEmpty() ) {
+		if( path == null || path.isEmpty() ) {
 			throw new FileNotFoundException( "Local socket path not specified!" );
 		}
-		socketAddress = new UnixSocketAddress( path, inputPort.location().getHost() != null ? inputPort.location().getHost().equals( "abs" ) : false );
+		socketAddress = new UnixSocketAddress( path,
+			inputPort.location().getHost() != null ? inputPort.location().getHost().equals( "abs" ) : false );
 		serverSocket = new UnixServerSocket( socketAddress );
 	}
-	
+
 	@Override
-	public void shutdown()
-	{
-		if ( !socketAddress.isAbstract() ) {
+	public void shutdown() {
+		if( !socketAddress.isAbstract() ) {
 			new File( socketAddress.getPath() ).delete();
 		}
 	}
 
 	@Override
-	public void run()
-	{
+	public void run() {
 		try {
 			UnixSocket socket;
 			CommChannel channel;
-			while ( (socket = serverSocket.accept()) != null ) {
+			while( (socket = serverSocket.accept()) != null ) {
 				channel = new LocalSocketCommChannel(
-								socket,
-								inputPort().location(),
-								createProtocol()
-							);
+					socket,
+					inputPort().location(),
+					createProtocol() );
 				channel.setParentInputPort( inputPort() );
 				interpreter().commCore().scheduleReceive( channel, inputPort() );
 				channel = null; // Dispose for garbage collection

@@ -33,19 +33,16 @@ import jolie.net.CommListener;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
-public class RMIListener extends CommListener
-{
+public class RMIListener extends CommListener {
 	private Registry registry;
 	final private String entryName;
 	final private JolieRemote jolieRemoteStub;
 
 	public RMIListener(
-				Interpreter interpreter,
-				CommProtocolFactory protocolFactory,
-				InputPort inputPort
-			)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		super( interpreter, protocolFactory, inputPort );
 
 		JolieRemote jolieRemote = new JolieRemoteImpl( interpreter, this );
@@ -57,7 +54,7 @@ public class RMIListener extends CommListener
 		} catch( AlreadyBoundException e ) {
 			throw new IOException( e );
 		} catch( RemoteException e ) {
-			if ( e instanceof java.rmi.ConnectException ) {
+			if( e instanceof java.rmi.ConnectException ) {
 				registry = LocateRegistry.createRegistry( inputPort.location().getPort() );
 				try {
 					registry.bind( entryName, jolieRemoteStub );
@@ -71,20 +68,17 @@ public class RMIListener extends CommListener
 	}
 
 	@Override
-	public void shutdown()
-	{
+	public void shutdown() {
 		try {
 			registry.unbind( entryName );
+		} catch( RemoteException e ) {
+		} catch( NotBoundException e ) {
 		}
-		catch( RemoteException e ) {}
-		catch( NotBoundException e ) {}
 	}
 
 	@Override
-	public void run()
-	{}
+	public void run() {}
 
 	@Override
-	public synchronized void start()
-	{}
+	public synchronized void start() {}
 }

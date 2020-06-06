@@ -26,8 +26,7 @@ import jolie.runtime.Value;
 
 /**
  *
- * @author claudio guidi
- * 27/01/2012
+ * @author claudio guidi 27/01/2012
  */
 public class OperationStartedEvent extends MonitoringEvent {
 
@@ -38,8 +37,8 @@ public class OperationStartedEvent extends MonitoringEvent {
 		data().getFirstChild( "operationName" ).setValue( operationName );
 		data().getFirstChild( "processId" ).setValue( processId );
 		data().getFirstChild( "messageId" ).setValue( messageId );
-        data().getFirstChild( "message" ).deepCopy( message );
-		
+		data().getFirstChild( "message" ).deepCopy( message );
+
 	}
 
 }

@@ -26,16 +26,13 @@ import jolie.runtime.JavaService;
 import org.apache.commons.lang3.StringEscapeUtils;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"commons-lang3.jar"})
-public class HTMLUtils extends JavaService
-{
-	public String unescapeHTML( String s )
-	{
+@AndJarDeps( { "commons-lang3.jar" } )
+public class HTMLUtils extends JavaService {
+	public String unescapeHTML( String s ) {
 		return StringEscapeUtils.unescapeHtml4( s );
 	}
 
-	public String escapeHTML( String s )
-	{
+	public String escapeHTML( String s ) {
 		return StringEscapeUtils.escapeHtml4( s );
 	}
 }

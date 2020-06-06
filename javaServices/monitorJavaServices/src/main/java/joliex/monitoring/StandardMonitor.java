@@ -30,20 +30,18 @@ import jolie.runtime.Value;
 
 /**
  *
- * @author Claudio Guidi 24/01/2012
- * supported events: start_session, stop_session, start_operation, stop_operation
+ * @author Claudio Guidi 24/01/2012 supported events: start_session, stop_session, start_operation,
+ *         stop_operation
  *
  */
-public class StandardMonitor extends AbstractMonitorJavaService
-{
-	private Deque q = new LinkedList();		// event list
+public class StandardMonitor extends AbstractMonitorJavaService {
+	private Deque q = new LinkedList(); // event list
 	private boolean triggerEnabled;
 	private int queueMax;
 	private int triggerThreshold;
 	private boolean alert;
 
-	public StandardMonitor()
-	{
+	public StandardMonitor() {
 		triggerEnabled = false;
 		triggerThreshold = 75;
 		queueMax = 100;
@@ -53,17 +51,16 @@ public class StandardMonitor extends AbstractMonitorJavaService
 
 
 	@Override
-	public void pushEvent( MonitoringEvent e )
-	{
-		
+	public void pushEvent( MonitoringEvent e ) {
+
 		synchronized( this ) {
-			if ( q.size() >= queueMax ) {
+			if( q.size() >= queueMax ) {
 				q.removeFirst();
 			}
 			q.addLast( e );
-			if ( triggerEnabled && !alert ) {
-				if ( q.size() >= triggerThreshold ) {
-					sendMessage( CommMessage.createRequest( "monitorAlert", "/", Value.create( ) ) );
+			if( triggerEnabled && !alert ) {
+				if( q.size() >= triggerThreshold ) {
+					sendMessage( CommMessage.createRequest( "monitorAlert", "/", Value.create() ) );
 					alert = true;
 				}
 			}
@@ -73,10 +70,10 @@ public class StandardMonitor extends AbstractMonitorJavaService
 
 	public Value flush() {
 		synchronized( this ) {
-			Iterator<MonitoringEvent> it = q.iterator();
+			Iterator< MonitoringEvent > it = q.iterator();
 			int index = 0;
 			Value response = Value.create();
-			while ( it.hasNext() ) {
+			while( it.hasNext() ) {
 				MonitoringEvent e = it.next();
 				response.getChildren( "events" ).get( index ).getFirstChild( "data" ).deepCopy( e.data() );
 				response.getChildren( "events" ).get( index ).getFirstChild( "memory" ).setValue( e.memory() );
@@ -93,20 +90,17 @@ public class StandardMonitor extends AbstractMonitorJavaService
 
 
 	/*
-	 * request:
-	 *	   .triggered_enabled?: bool
-	 *	   .triggerThreshold?: int
-	 *     .queueMax?: int
+	 * request: .triggered_enabled?: bool .triggerThreshold?: int .queueMax?: int
 	 *
 	 */
 	public void setMonitor( Value request ) {
-		if ( request.getFirstChild( "triggeredEnabled" ).isDefined() ) {
+		if( request.getFirstChild( "triggeredEnabled" ).isDefined() ) {
 			triggerEnabled = request.getFirstChild( "triggeredEnabled" ).boolValue();
 		}
-		if ( request.getFirstChild( "triggerThreshold" ).isDefined() ) {
+		if( request.getFirstChild( "triggerThreshold" ).isDefined() ) {
 			triggerThreshold = request.getFirstChild( "triggerThreshold" ).intValue();
 		}
-		if ( request.getFirstChild( "queueMax" ).isDefined() ) {
+		if( request.getFirstChild( "queueMax" ).isDefined() ) {
 			queueMax = request.getFirstChild( "queueMax" ).intValue();
 		}
 	}

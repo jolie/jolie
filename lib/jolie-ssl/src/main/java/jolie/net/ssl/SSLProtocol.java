@@ -52,14 +52,11 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 /**
- * Commodity class for supporting the implementation
- * of SSL-based protocols through wrapping.
- * @author Fabrizio Montesi
- * 2010: complete rewrite
- * 2015: major fixups
+ * Commodity class for supporting the implementation of SSL-based protocols through wrapping.
+ * 
+ * @author Fabrizio Montesi 2010: complete rewrite 2015: major fixups
  */
-public class SSLProtocol extends SequentialCommProtocol
-{
+public class SSLProtocol extends SequentialCommProtocol {
 	private static final int INITIAL_BUFFER_SIZE = 8192;
 
 	private final boolean isClient;
@@ -74,42 +71,39 @@ public class SSLProtocol extends SequentialCommProtocol
 	private final SSLInputStream sslInputStream = new SSLInputStream();
 	private final SSLOutputStream sslOutputStream = new SSLOutputStream();
 
-	private class SSLInputStream extends InputStream
-	{
+	private class SSLInputStream extends InputStream {
 		private ByteBuffer clearInputBuffer = ByteBuffer.allocate( 0 );
 
 		@Override
 		public int read()
-			throws IOException
-		{
-			if ( !clearInputBuffer.hasRemaining() ) {
+			throws IOException {
+			if( !clearInputBuffer.hasRemaining() ) {
 				handshake();
 				unwrap( this );
 				// EOF reached?
-				if ( !clearInputBuffer.hasRemaining() ) {
+				if( !clearInputBuffer.hasRemaining() ) {
 					return -1;
 				}
 			}
 
 			try {
 				return clearInputBuffer.get();
-			} catch ( BufferUnderflowException e ) {
+			} catch( BufferUnderflowException e ) {
 				return -1;
 			}
 		}
 
 		@Override
 		public int read( byte[] b, int off, int len )
-			throws IOException
-		{
-			if ( len == 0 )
+			throws IOException {
+			if( len == 0 )
 				return 0;
 
-			if ( !clearInputBuffer.hasRemaining() ) {
+			if( !clearInputBuffer.hasRemaining() ) {
 				handshake();
 				unwrap( this );
 				// EOF reached?
-				if ( !clearInputBuffer.hasRemaining() ) {
+				if( !clearInputBuffer.hasRemaining() ) {
 					return -1;
 				}
 			}
@@ -117,7 +111,7 @@ public class SSLProtocol extends SequentialCommProtocol
 			try {
 				clearInputBuffer.get( b, off, len );
 				return len;
-			} catch ( BufferUnderflowException e ) {
+			} catch( BufferUnderflowException e ) {
 				// okay, just return the maximum possible
 				len = clearInputBuffer.remaining();
 				clearInputBuffer.get( b, off, len );
@@ -127,14 +121,13 @@ public class SSLProtocol extends SequentialCommProtocol
 
 		@Override
 		public long skip( long n )
-			throws IOException
-		{
-			if ( n <= 0 ) {
+			throws IOException {
+			if( n <= 0 ) {
 				return 0;
 			}
 
 			long skipped = 0;
-			while ( skipped < n && clearInputBuffer.hasRemaining() ) {
+			while( skipped < n && clearInputBuffer.hasRemaining() ) {
 				clearInputBuffer.get();
 				++skipped;
 			}
@@ -143,22 +136,19 @@ public class SSLProtocol extends SequentialCommProtocol
 
 		@Override
 		public int available()
-			throws IOException
-		{
+			throws IOException {
 			return clearInputBuffer.remaining();
 		}
 
 		// close() not necessary, does nothing
 	}
 
-	private class SSLOutputStream extends OutputStream
-	{
+	private class SSLOutputStream extends OutputStream {
 		private final ByteBuffer internalBuffer = ByteBuffer.allocate( INITIAL_BUFFER_SIZE );
 
 		private void writeCache()
-			throws IOException
-		{
-			if ( internalBuffer.hasRemaining() ) {
+			throws IOException {
+			if( internalBuffer.hasRemaining() ) {
 				handshake();
 				internalBuffer.flip();
 				wrap( internalBuffer );
@@ -168,53 +158,49 @@ public class SSLProtocol extends SequentialCommProtocol
 
 		@Override
 		public void write( int b )
-			throws IOException
-		{
+			throws IOException {
 			try {
-				internalBuffer.put( ( byte ) b );
-			} catch ( BufferOverflowException e ) {
+				internalBuffer.put( (byte) b );
+			} catch( BufferOverflowException e ) {
 				// let us retry after freeing the buffer
 				writeCache();
-				internalBuffer.put( ( byte ) b );
+				internalBuffer.put( (byte) b );
 			}
 		}
 
 		@Override
 		public void write( byte[] b, int off, int len )
-			throws IOException
-		{
+			throws IOException {
 			try {
 
-				if ( INITIAL_BUFFER_SIZE < ( len - off ) ) {
-					internalBuffer.put( b, off, ( INITIAL_BUFFER_SIZE - 1 ) ); // otherwise it won't work in writeCache wrt .remaining
+				if( INITIAL_BUFFER_SIZE < (len - off) ) {
+					internalBuffer.put( b, off, (INITIAL_BUFFER_SIZE - 1) ); // otherwise it won't work in writeCache
+																				// wrt .remaining
 					writeCache();
-					write( b, ( off + ( INITIAL_BUFFER_SIZE - 1 ) ), len );
+					write( b, (off + (INITIAL_BUFFER_SIZE - 1)), len );
 				} else {
-					internalBuffer.put( b, off, ( len - off ) );
+					internalBuffer.put( b, off, (len - off) );
 					writeCache();
 				}
-			} catch ( BufferOverflowException e ) {
+			} catch( BufferOverflowException e ) {
 				throw new IOException( e.fillInStackTrace() );
 			}
 		}
 
 		@Override
 		public void flush()
-			throws IOException
-		{
+			throws IOException {
 			writeCache();
 		}
 
 		// close() not necessary, does nothing
 	}
 
-	private class SSLResult
-	{
+	private class SSLResult {
 		private ByteBuffer buffer;
 		private SSLEngineResult log;
 
-		public SSLResult( int capacity )
-		{
+		public SSLResult( int capacity ) {
 			buffer = ByteBuffer.allocate( capacity );
 		}
 	}
@@ -223,8 +209,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		VariablePath configurationPath,
 		URI uri,
 		CommProtocol wrappedProtocol,
-		boolean isClient
-	) {
+		boolean isClient ) {
 		super( configurationPath );
 		this.wrappedProtocol = wrappedProtocol;
 		this.isClient = isClient;
@@ -233,27 +218,24 @@ public class SSLProtocol extends SequentialCommProtocol
 	}
 
 	@Override
-	public String name()
-	{
+	public String name() {
 		return wrappedProtocol.name() + "s";
 	}
 
-	private String getSSLStringParameter( String parameterName, String defaultValue )
-	{
-		if ( hasParameter( "ssl" ) ) {
+	private String getSSLStringParameter( String parameterName, String defaultValue ) {
+		if( hasParameter( "ssl" ) ) {
 			Value sslParams = getParameterFirstValue( "ssl" );
-			if ( sslParams.hasChildren( parameterName ) ) {
+			if( sslParams.hasChildren( parameterName ) ) {
 				return sslParams.getFirstChild( parameterName ).strValue();
 			}
 		}
 		return defaultValue;
 	}
 
-	private int getSSLIntegerParameter( String parameterName, int defaultValue )
-	{
-		if ( hasParameter( "ssl" ) ) {
+	private int getSSLIntegerParameter( String parameterName, int defaultValue ) {
+		if( hasParameter( "ssl" ) ) {
 			Value sslParams = getParameterFirstValue( "ssl" );
-			if ( sslParams.hasChildren( parameterName ) ) {
+			if( sslParams.hasChildren( parameterName ) ) {
 				return sslParams.getFirstChild( parameterName ).intValue();
 			}
 		}
@@ -261,17 +243,17 @@ public class SSLProtocol extends SequentialCommProtocol
 	}
 
 	private void init()
-		throws IOException
-	{
+		throws IOException {
 		// Set default parameters
 		String protocol = getSSLStringParameter( "protocol", "TLSv1.2" ),
 			keyStoreFormat = getSSLStringParameter( "keyStoreFormat", "JKS" ),
 			trustStoreFormat = getSSLStringParameter( "trustStoreFormat", "JKS" ),
 			keyStoreFile = getSSLStringParameter( "keyStore", null ),
 			keyStorePassword = getSSLStringParameter( "keyStorePassword", null ),
-			trustStoreFile = getSSLStringParameter( "trustStore", System.getProperty( "java.home" ) + "/lib/security/cacerts" ),
+			trustStoreFile =
+				getSSLStringParameter( "trustStore", System.getProperty( "java.home" ) + "/lib/security/cacerts" ),
 			trustStorePassword = getSSLStringParameter( "trustStorePassword", null );
-		if ( keyStoreFile == null && isClient == false ) {
+		if( keyStoreFile == null && isClient == false ) {
 			throw new IOException( "Compulsory parameter needed for server mode: ssl.keyStore" );
 		}
 		try {
@@ -280,13 +262,13 @@ public class SSLProtocol extends SequentialCommProtocol
 			KeyStore ts = KeyStore.getInstance( trustStoreFormat );
 
 			char[] passphrase;
-			if ( keyStorePassword != null ) {
+			if( keyStorePassword != null ) {
 				passphrase = keyStorePassword.toCharArray();
 			} else {
 				passphrase = null;
 			}
 
-			if ( keyStoreFile != null ) {
+			if( keyStoreFile != null ) {
 				try( InputStream is = new FileInputStream( keyStoreFile ) ) {
 					ks.load( is, passphrase );
 				}
@@ -297,8 +279,8 @@ public class SSLProtocol extends SequentialCommProtocol
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance( "SunX509" );
 			kmf.init( ks, passphrase );
 
-			
-			if ( trustStorePassword != null ) {
+
+			if( trustStorePassword != null ) {
 				passphrase = trustStorePassword.toCharArray();
 			} else {
 				passphrase = null;
@@ -312,37 +294,36 @@ public class SSLProtocol extends SequentialCommProtocol
 
 			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
 
-			if ( location.getHost() != null && location.getPort() != -1 ) {
+			if( location.getHost() != null && location.getPort() != -1 ) {
 				sslEngine = context.createSSLEngine( location.getHost(), location.getPort() );
 			} else {
 				sslEngine = context.createSSLEngine();
 			}
-			sslEngine.setEnabledProtocols( new String[]{ protocol } );
+			sslEngine.setEnabledProtocols( new String[] { protocol } );
 			sslEngine.setUseClientMode( isClient );
-			if ( isClient == false ) {
-				if ( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 ) {
+			if( isClient == false ) {
+				if( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 ) {
 					sslEngine.setWantClientAuth( true );
 				} else {
 					sslEngine.setWantClientAuth( false );
 				}
 			}
-		} catch ( NoSuchAlgorithmException e ) {
+		} catch( NoSuchAlgorithmException e ) {
 			throw new IOException( e );
-		} catch ( KeyManagementException e ) {
+		} catch( KeyManagementException e ) {
 			throw new IOException( e );
-		} catch ( KeyStoreException e ) {
+		} catch( KeyStoreException e ) {
 			throw new IOException( e );
-		} catch ( UnrecoverableKeyException e ) {
+		} catch( UnrecoverableKeyException e ) {
 			throw new IOException( e );
-		} catch ( CertificateException e ) {
+		} catch( CertificateException e ) {
 			throw new IOException( e );
 		}
 	}
 
 	private void handshake()
-		throws IOException, SSLException
-	{
-		if ( firstTime ) {
+		throws IOException, SSLException {
+		if( firstTime ) {
 			init();
 			sslEngine.beginHandshake();
 			firstTime = false;
@@ -351,31 +332,30 @@ public class SSLProtocol extends SequentialCommProtocol
 		boolean keepRun = true;
 
 		Runnable runnable;
-		while ( keepRun
+		while( keepRun
 			&& sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED
 			&& sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING ) {
-			switch ( sslEngine.getHandshakeStatus() ) {
-				case NEED_TASK:
-					while ( ( runnable = sslEngine.getDelegatedTask() ) != null ) {
-						runnable.run();
-					}
-					break;
-				case NEED_WRAP:
-					wrap( ByteBuffer.allocate( INITIAL_BUFFER_SIZE ) );
-					break;
-				case NEED_UNWRAP:
-					keepRun = unwrap( null );
-					if ( sslEngine.isInboundDone() && sslEngine.isOutboundDone() ) {
-						keepRun = false;
-					}
-					break;
+			switch( sslEngine.getHandshakeStatus() ) {
+			case NEED_TASK:
+				while( (runnable = sslEngine.getDelegatedTask()) != null ) {
+					runnable.run();
+				}
+				break;
+			case NEED_WRAP:
+				wrap( ByteBuffer.allocate( INITIAL_BUFFER_SIZE ) );
+				break;
+			case NEED_UNWRAP:
+				keepRun = unwrap( null );
+				if( sslEngine.isInboundDone() && sslEngine.isOutboundDone() ) {
+					keepRun = false;
+				}
+				break;
 			}
 		}
 	}
 
 	private boolean unwrap( SSLInputStream sslInputStream )
-		throws IOException
-	{
+		throws IOException {
 
 		ByteBuffer cryptBuffer = ByteBuffer.allocate( 0 );
 		final SSLResult result = new SSLResult( INITIAL_BUFFER_SIZE );
@@ -383,74 +363,73 @@ public class SSLProtocol extends SequentialCommProtocol
 		boolean keepRun = true;
 		boolean returnResult = true;
 
-		while ( keepRun ) {
+		while( keepRun ) {
 			result.log = sslEngine.unwrap( cryptBuffer, result.buffer );
 
-			switch ( result.log.getStatus() ) {
-				case BUFFER_OVERFLOW:
-					final int appSize = sslEngine.getSession().getApplicationBufferSize();
-					// Resize "result.buffer" if needed
-					if ( appSize > result.buffer.capacity() ) {
-						final ByteBuffer b = ByteBuffer.allocate( appSize );
-						result.buffer.flip();
-						b.put( result.buffer );
-						result.buffer = b;
-					} else {
-						result.buffer.compact();
-					}
-					break;
-				case BUFFER_UNDERFLOW:
-					final int netSize = sslEngine.getSession().getPacketBufferSize();
-					// Resize "cryptBuffer" if needed
-					if ( netSize > cryptBuffer.capacity() ) {
-						final ByteBuffer b = ByteBuffer.allocate( netSize );
-						cryptBuffer.flip();
-						b.put( cryptBuffer );
-						cryptBuffer = b;
-					} else {
-						cryptBuffer.compact();
-					}
+			switch( result.log.getStatus() ) {
+			case BUFFER_OVERFLOW:
+				final int appSize = sslEngine.getSession().getApplicationBufferSize();
+				// Resize "result.buffer" if needed
+				if( appSize > result.buffer.capacity() ) {
+					final ByteBuffer b = ByteBuffer.allocate( appSize );
+					result.buffer.flip();
+					b.put( result.buffer );
+					result.buffer = b;
+				} else {
+					result.buffer.compact();
+				}
+				break;
+			case BUFFER_UNDERFLOW:
+				final int netSize = sslEngine.getSession().getPacketBufferSize();
+				// Resize "cryptBuffer" if needed
+				if( netSize > cryptBuffer.capacity() ) {
+					final ByteBuffer b = ByteBuffer.allocate( netSize );
+					cryptBuffer.flip();
+					b.put( cryptBuffer );
+					cryptBuffer = b;
+				} else {
+					cryptBuffer.compact();
+				}
 
-					int currByte = inputStream.read();
-					if ( currByte >= 0 ) {
-						cryptBuffer.put( ( byte ) currByte );
-						cryptBuffer.flip();
-					} else {
-						// input stream EOF reached, we may not continue
-						returnResult = false;
-						keepRun = false;
-					}
-					break;
-				case CLOSED:
+				int currByte = inputStream.read();
+				if( currByte >= 0 ) {
+					cryptBuffer.put( (byte) currByte );
+					cryptBuffer.flip();
+				} else {
+					// input stream EOF reached, we may not continue
 					returnResult = false;
-				case OK:
-					if ( result.log.bytesConsumed() > 0 && sslInputStream != null ) {
-						sslInputStream.clearInputBuffer = result.buffer;
-						sslInputStream.clearInputBuffer.flip();
-					}
 					keepRun = false;
-					break;
+				}
+				break;
+			case CLOSED:
+				returnResult = false;
+			case OK:
+				if( result.log.bytesConsumed() > 0 && sslInputStream != null ) {
+					sslInputStream.clearInputBuffer = result.buffer;
+					sslInputStream.clearInputBuffer.flip();
+				}
+				keepRun = false;
+				break;
 			}
 		}
 		return returnResult;
 	}
 
 	private void wrap( ByteBuffer source )
-		throws IOException
-	{
+		throws IOException {
 		final SSLResult result = new SSLResult( source.capacity() );
 		result.log = sslEngine.wrap( source, result.buffer );
-		while ( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
+		while( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
 			final int appSize = sslEngine.getSession().getApplicationBufferSize();
 			// Resize "result.buffer" if needed
-//			if ( appSize > result.buffer.capacity() ) {
-//				final ByteBuffer b = ByteBuffer.allocate( appSize );
-//				result.buffer.flip();
-//				b.put( result.buffer );
-//				result.buffer = b;
-//			} else {
-//				result.buffer.compact();
-//			}
+			// if ( appSize > result.buffer.capacity() ) {
+			// final ByteBuffer b = ByteBuffer.allocate( appSize );
+			// result.buffer.flip();
+			// b.put( result.buffer );
+			// result.buffer = b;
+			// } else {
+			// result.buffer.compact();
+			// }
 			// From the docs: "The size of the outbound application data buffer generally does not matter."
 			// For the time being we can double it and later implement some smarter optimisations.
 			result.buffer = ByteBuffer.allocate( result.buffer.capacity() * 2 );
@@ -458,10 +437,10 @@ public class SSLProtocol extends SequentialCommProtocol
 			result.log = sslEngine.wrap( source, result.buffer );
 		}
 		// must be Status.OK or Status.CLOSED here
-		if ( result.log.bytesProduced() > 0 ) {
+		if( result.log.bytesProduced() > 0 ) {
 			final WritableByteChannel outputChannel = Channels.newChannel( outputStream );
 			result.buffer.flip();
-			while ( result.buffer.hasRemaining() )
+			while( result.buffer.hasRemaining() )
 				outputChannel.write( result.buffer );
 			outputStream.flush();
 		}
@@ -469,12 +448,11 @@ public class SSLProtocol extends SequentialCommProtocol
 
 	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
-		throws IOException
-	{
+		throws IOException {
 		outputStream = ostream;
 		inputStream = istream;
 
-		if ( firstTime ) {
+		if( firstTime ) {
 			wrappedProtocol.setChannel( this.channel() );
 		}
 
@@ -484,12 +462,11 @@ public class SSLProtocol extends SequentialCommProtocol
 
 	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
-		throws IOException
-	{
+		throws IOException {
 		outputStream = ostream;
 		inputStream = istream;
 
-		if ( firstTime ) {
+		if( firstTime ) {
 			wrappedProtocol.setChannel( this.channel() );
 		}
 

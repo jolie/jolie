@@ -23,25 +23,24 @@ package jolie;
 
 import jolie.lang.Constants;
 
-/** Interpreter command line exception.
+/**
+ * Interpreter command line exception.
  * 
- * Thrown when the Interpreter constructor finds a command line option which
- * requires a simple console information rather than a real Interpreter execution.
- * For example, a CommandLineException is thrown in response to the "--version"
- * option, containing the response message.
+ * Thrown when the Interpreter constructor finds a command line option which requires a simple
+ * console information rather than a real Interpreter execution. For example, a CommandLineException
+ * is thrown in response to the "--version" option, containing the response message.
  * 
  * @author Fabrizio Montesi
  */
-public class CommandLineException extends Exception
-{
+public class CommandLineException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+
 	/**
 	 * Constructor
+	 * 
 	 * @param message The exception message.
 	 */
-	public CommandLineException( String message )
-	{
+	public CommandLineException( String message ) {
 		super( message );
 	}
 }

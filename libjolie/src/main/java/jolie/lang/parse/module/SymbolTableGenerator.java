@@ -108,503 +108,349 @@ import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 
-public class SymbolTableGenerator
-{
-
-    private static class SymbolTableGeneratorVisitor implements OLVisitor
-    {
-        private final SymbolTable symbolTable;
-        private boolean valid = true;
-        private ModuleException error;
-
-
-        protected SymbolTableGeneratorVisitor( ParsingContext context )
-        {
-            this.symbolTable = new SymbolTable( context.source() );
-        }
-
-        public SymbolTable generate( Program p ) throws ModuleException
-        {
-            visit( p );
-            if ( !this.valid ) {
-                throw error;
-            }
-            return this.symbolTable;
-        }
-
-
-        @Override
-        public void visit( Program n )
-        {
-            for (OLSyntaxNode node : n.children()) {
-                if ( !this.valid ) {
-                    return;
-                }
-                node.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( OneWayOperationDeclaration decl )
-        {
-            decl.requestType().accept( this );
-        }
-
-        @Override
-        public void visit( RequestResponseOperationDeclaration decl )
-        {
-            decl.requestType().accept( this );
-            decl.responseType().accept( this );
-            for (Map.Entry< String, TypeDefinition > fault : decl.faults().entrySet()) {
-                fault.getValue().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( DefinitionNode n )
-        {
-            try {
-                this.symbolTable.addSymbol( n.id(), n );
-            } catch (DuplicateSymbolException e) {
-                this.valid = false;
-                this.error = new ModuleException( n.context(), e );
-            }
-        }
-
-        @Override
-        public void visit( ParallelStatement n )
-        {
-        }
-
-        @Override
-        public void visit( SequenceStatement n )
-        {
-        }
-
-        @Override
-        public void visit( NDChoiceStatement n )
-        {
-        }
-
-        @Override
-        public void visit( OneWayOperationStatement n )
-        {
-        }
-
-        @Override
-        public void visit( RequestResponseOperationStatement n )
-        {
-        }
-
-        @Override
-        public void visit( NotificationOperationStatement n )
-        {
-        }
-
-        @Override
-        public void visit( SolicitResponseOperationStatement n )
-        {
-        }
-
-        @Override
-        public void visit( LinkInStatement n )
-        {
-        }
-
-        @Override
-        public void visit( LinkOutStatement n )
-        {
-        }
-
-        @Override
-        public void visit( AssignStatement n )
-        {
-        }
-
-        @Override
-        public void visit( AddAssignStatement n )
-        {
-        }
-
-        @Override
-        public void visit( SubtractAssignStatement n )
-        {
-        }
-
-        @Override
-        public void visit( MultiplyAssignStatement n )
-        {
-        }
-
-        @Override
-        public void visit( DivideAssignStatement n )
-        {
-        }
-
-        @Override
-        public void visit( IfStatement n )
-        {
-        }
-
-        @Override
-        public void visit( DefinitionCallStatement n )
-        {
-        }
-
-        @Override
-        public void visit( WhileStatement n )
-        {
-        }
-
-        @Override
-        public void visit( OrConditionNode n )
-        {
-        }
-
-        @Override
-        public void visit( AndConditionNode n )
-        {
-        }
-
-        @Override
-        public void visit( NotExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( CompareConditionNode n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantIntegerExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantDoubleExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantBoolExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantLongExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantStringExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ProductExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( SumExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( VariableExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( NullProcessStatement n )
-        {
-        }
-
-        @Override
-        public void visit( Scope n )
-        {
-        }
-
-        @Override
-        public void visit( InstallStatement n )
-        {
-        }
-
-        @Override
-        public void visit( CompensateStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ThrowStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ExitStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ExecutionInfo n )
-        {
-        }
-
-        @Override
-        public void visit( CorrelationSetInfo n )
-        {
-        }
-
-        @Override
-        public void visit( InputPortInfo n )
-        {
-        }
-
-        @Override
-        public void visit( OutputPortInfo n )
-        {
-        }
-
-        @Override
-        public void visit( PointerStatement n )
-        {
-        }
-
-        @Override
-        public void visit( DeepCopyStatement n )
-        {
-        }
-
-        @Override
-        public void visit( RunStatement n )
-        {
-        }
-
-        @Override
-        public void visit( UndefStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ValueVectorSizeExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( PreIncrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( PostIncrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( PreDecrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( PostDecrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ForStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ForEachSubNodeStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ForEachArrayItemStatement n )
-        {
-        }
-
-        @Override
-        public void visit( SpawnStatement n )
-        {
-        }
-
-        @Override
-        public void visit( IsTypeExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( InstanceOfExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( TypeCastExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( SynchronizedStatement n )
-        {
-        }
-
-        @Override
-        public void visit( CurrentHandlerStatement n )
-        {
-        }
-
-        @Override
-        public void visit( EmbeddedServiceNode n )
-        {
-        }
-
-        @Override
-        public void visit( InstallFixedVariableExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( VariablePathNode n )
-        {
-        }
-
-        @Override
-        public void visit( TypeInlineDefinition n )
-        {
-            if ( NativeType.isNativeTypeKeyword( n.id() ) ) {
-                return;
-            }
-            try {
-                this.symbolTable.addSymbol( n.id(), n );
-            } catch (DuplicateSymbolException e) {
-                this.valid = false;
-                this.error = new ModuleException( n.context(), e );
-            }
-        }
-
-        @Override
-        public void visit( TypeDefinitionLink n )
-        {
-            try {
-                this.symbolTable.addSymbol( n.id(), n );
-            } catch (DuplicateSymbolException e) {
-                this.valid = false;
-                this.error = new ModuleException( n.context(), e );
-            }
-        }
-
-        @Override
-        public void visit( InterfaceDefinition n )
-        {
-            try {
-                this.symbolTable.addSymbol( n.name(), n );
-            } catch (DuplicateSymbolException e) {
-                this.valid = false;
-                this.error = new ModuleException( n.context(), e );
-                return;
-            }
-            for (Map.Entry< String, OperationDeclaration > op : n.operationsMap().entrySet()) {
-                op.getValue().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( DocumentationComment n )
-        {
-        }
-
-        @Override
-        public void visit( FreshValueExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( CourierDefinitionNode n )
-        {
-        }
-
-        @Override
-        public void visit( CourierChoiceStatement n )
-        {
-        }
-
-        @Override
-        public void visit( NotificationForwardStatement n )
-        {
-        }
-
-        @Override
-        public void visit( SolicitResponseForwardStatement n )
-        {
-        }
-
-        @Override
-        public void visit( InterfaceExtenderDefinition n )
-        {
-        }
-
-        @Override
-        public void visit( InlineTreeExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( VoidExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( ProvideUntilStatement n )
-        {
-        }
-
-        @Override
-        public void visit( TypeChoiceDefinition n )
-        {
-            try {
-                this.symbolTable.addSymbol( n.id(), n );
-            } catch (DuplicateSymbolException e) {
-                this.valid = false;
-                this.error = new ModuleException(n.context(), e);
-            }
-        }
-
-        @Override
-        public void visit( ImportStatement n )
-        {
-
-            if ( n.isNamespaceImport() ) {
-                this.symbolTable.addWildCardSymbol( n.context(), n.importTarget() );
-            } else {
-                for (ImportSymbolTarget targetSymbol : n.importSymbolTargets()) {
-                    try {
-                        this.symbolTable.addSymbol( n.context(), targetSymbol.localSymbol(),
-                                n.importTarget(), targetSymbol.moduleSymbol() );
-                    } catch (DuplicateSymbolException e) {
-                        this.valid = false;
-                        this.error = new ModuleException(n.context(), e);
-                    }
-                }
-            }
-        }
-
-    }
-
-    /**
-     * generate a SymbolTable of a Jolie AST. As the current implementation, it is walk through
-     * the Jolie's program and read the definition of types and interfaces and create a SymbolInfo
-     * node for the AST. The import statement is consumed here to create an external SymbolInfo
-     * to be resolve later by SymbolReferenceResolver class
-     * 
-     * @param program a Jolie AST
-     * @throws ModuleException when the duplication of SymbolDeclaration is detected.
-     */
-    public static SymbolTable generate( Program program ) throws ModuleException
-    {
-        return (new SymbolTableGeneratorVisitor( program.context() )).generate( program );
-    }
+public class SymbolTableGenerator {
+
+	private static class SymbolTableGeneratorVisitor implements OLVisitor {
+		private final SymbolTable symbolTable;
+		private boolean valid = true;
+		private ModuleException error;
+
+
+		protected SymbolTableGeneratorVisitor( ParsingContext context ) {
+			this.symbolTable = new SymbolTable( context.source() );
+		}
+
+		public SymbolTable generate( Program p ) throws ModuleException {
+			visit( p );
+			if( !this.valid ) {
+				throw error;
+			}
+			return this.symbolTable;
+		}
+
+
+		@Override
+		public void visit( Program n ) {
+			for( OLSyntaxNode node : n.children() ) {
+				if( !this.valid ) {
+					return;
+				}
+				node.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( OneWayOperationDeclaration decl ) {
+			decl.requestType().accept( this );
+		}
+
+		@Override
+		public void visit( RequestResponseOperationDeclaration decl ) {
+			decl.requestType().accept( this );
+			decl.responseType().accept( this );
+			for( Map.Entry< String, TypeDefinition > fault : decl.faults().entrySet() ) {
+				fault.getValue().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( DefinitionNode n ) {
+			try {
+				this.symbolTable.addSymbol( n.id(), n );
+			} catch( DuplicateSymbolException e ) {
+				this.valid = false;
+				this.error = new ModuleException( n.context(), e );
+			}
+		}
+
+		@Override
+		public void visit( ParallelStatement n ) {}
+
+		@Override
+		public void visit( SequenceStatement n ) {}
+
+		@Override
+		public void visit( NDChoiceStatement n ) {}
+
+		@Override
+		public void visit( OneWayOperationStatement n ) {}
+
+		@Override
+		public void visit( RequestResponseOperationStatement n ) {}
+
+		@Override
+		public void visit( NotificationOperationStatement n ) {}
+
+		@Override
+		public void visit( SolicitResponseOperationStatement n ) {}
+
+		@Override
+		public void visit( LinkInStatement n ) {}
+
+		@Override
+		public void visit( LinkOutStatement n ) {}
+
+		@Override
+		public void visit( AssignStatement n ) {}
+
+		@Override
+		public void visit( AddAssignStatement n ) {}
+
+		@Override
+		public void visit( SubtractAssignStatement n ) {}
+
+		@Override
+		public void visit( MultiplyAssignStatement n ) {}
+
+		@Override
+		public void visit( DivideAssignStatement n ) {}
+
+		@Override
+		public void visit( IfStatement n ) {}
+
+		@Override
+		public void visit( DefinitionCallStatement n ) {}
+
+		@Override
+		public void visit( WhileStatement n ) {}
+
+		@Override
+		public void visit( OrConditionNode n ) {}
+
+		@Override
+		public void visit( AndConditionNode n ) {}
+
+		@Override
+		public void visit( NotExpressionNode n ) {}
+
+		@Override
+		public void visit( CompareConditionNode n ) {}
+
+		@Override
+		public void visit( ConstantIntegerExpression n ) {}
+
+		@Override
+		public void visit( ConstantDoubleExpression n ) {}
+
+		@Override
+		public void visit( ConstantBoolExpression n ) {}
+
+		@Override
+		public void visit( ConstantLongExpression n ) {}
+
+		@Override
+		public void visit( ConstantStringExpression n ) {}
+
+		@Override
+		public void visit( ProductExpressionNode n ) {}
+
+		@Override
+		public void visit( SumExpressionNode n ) {}
+
+		@Override
+		public void visit( VariableExpressionNode n ) {}
+
+		@Override
+		public void visit( NullProcessStatement n ) {}
+
+		@Override
+		public void visit( Scope n ) {}
+
+		@Override
+		public void visit( InstallStatement n ) {}
+
+		@Override
+		public void visit( CompensateStatement n ) {}
+
+		@Override
+		public void visit( ThrowStatement n ) {}
+
+		@Override
+		public void visit( ExitStatement n ) {}
+
+		@Override
+		public void visit( ExecutionInfo n ) {}
+
+		@Override
+		public void visit( CorrelationSetInfo n ) {}
+
+		@Override
+		public void visit( InputPortInfo n ) {}
+
+		@Override
+		public void visit( OutputPortInfo n ) {}
+
+		@Override
+		public void visit( PointerStatement n ) {}
+
+		@Override
+		public void visit( DeepCopyStatement n ) {}
+
+		@Override
+		public void visit( RunStatement n ) {}
+
+		@Override
+		public void visit( UndefStatement n ) {}
+
+		@Override
+		public void visit( ValueVectorSizeExpressionNode n ) {}
+
+		@Override
+		public void visit( PreIncrementStatement n ) {}
+
+		@Override
+		public void visit( PostIncrementStatement n ) {}
+
+		@Override
+		public void visit( PreDecrementStatement n ) {}
+
+		@Override
+		public void visit( PostDecrementStatement n ) {}
+
+		@Override
+		public void visit( ForStatement n ) {}
+
+		@Override
+		public void visit( ForEachSubNodeStatement n ) {}
+
+		@Override
+		public void visit( ForEachArrayItemStatement n ) {}
+
+		@Override
+		public void visit( SpawnStatement n ) {}
+
+		@Override
+		public void visit( IsTypeExpressionNode n ) {}
+
+		@Override
+		public void visit( InstanceOfExpressionNode n ) {}
+
+		@Override
+		public void visit( TypeCastExpressionNode n ) {}
+
+		@Override
+		public void visit( SynchronizedStatement n ) {}
+
+		@Override
+		public void visit( CurrentHandlerStatement n ) {}
+
+		@Override
+		public void visit( EmbeddedServiceNode n ) {}
+
+		@Override
+		public void visit( InstallFixedVariableExpressionNode n ) {}
+
+		@Override
+		public void visit( VariablePathNode n ) {}
+
+		@Override
+		public void visit( TypeInlineDefinition n ) {
+			if( NativeType.isNativeTypeKeyword( n.id() ) ) {
+				return;
+			}
+			try {
+				this.symbolTable.addSymbol( n.id(), n );
+			} catch( DuplicateSymbolException e ) {
+				this.valid = false;
+				this.error = new ModuleException( n.context(), e );
+			}
+		}
+
+		@Override
+		public void visit( TypeDefinitionLink n ) {
+			try {
+				this.symbolTable.addSymbol( n.id(), n );
+			} catch( DuplicateSymbolException e ) {
+				this.valid = false;
+				this.error = new ModuleException( n.context(), e );
+			}
+		}
+
+		@Override
+		public void visit( InterfaceDefinition n ) {
+			try {
+				this.symbolTable.addSymbol( n.name(), n );
+			} catch( DuplicateSymbolException e ) {
+				this.valid = false;
+				this.error = new ModuleException( n.context(), e );
+				return;
+			}
+			for( Map.Entry< String, OperationDeclaration > op : n.operationsMap().entrySet() ) {
+				op.getValue().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( DocumentationComment n ) {}
+
+		@Override
+		public void visit( FreshValueExpressionNode n ) {}
+
+		@Override
+		public void visit( CourierDefinitionNode n ) {}
+
+		@Override
+		public void visit( CourierChoiceStatement n ) {}
+
+		@Override
+		public void visit( NotificationForwardStatement n ) {}
+
+		@Override
+		public void visit( SolicitResponseForwardStatement n ) {}
+
+		@Override
+		public void visit( InterfaceExtenderDefinition n ) {}
+
+		@Override
+		public void visit( InlineTreeExpressionNode n ) {}
+
+		@Override
+		public void visit( VoidExpressionNode n ) {}
+
+		@Override
+		public void visit( ProvideUntilStatement n ) {}
+
+		@Override
+		public void visit( TypeChoiceDefinition n ) {
+			try {
+				this.symbolTable.addSymbol( n.id(), n );
+			} catch( DuplicateSymbolException e ) {
+				this.valid = false;
+				this.error = new ModuleException( n.context(), e );
+			}
+		}
+
+		@Override
+		public void visit( ImportStatement n ) {
+
+			if( n.isNamespaceImport() ) {
+				this.symbolTable.addWildCardSymbol( n.context(), n.importTarget() );
+			} else {
+				for( ImportSymbolTarget targetSymbol : n.importSymbolTargets() ) {
+					try {
+						this.symbolTable.addSymbol( n.context(), targetSymbol.localSymbol(),
+							n.importTarget(), targetSymbol.moduleSymbol() );
+					} catch( DuplicateSymbolException e ) {
+						this.valid = false;
+						this.error = new ModuleException( n.context(), e );
+					}
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * generate a SymbolTable of a Jolie AST. As the current implementation, it is walk through the
+	 * Jolie's program and read the definition of types and interfaces and create a SymbolInfo node for
+	 * the AST. The import statement is consumed here to create an external SymbolInfo to be resolve
+	 * later by SymbolReferenceResolver class
+	 * 
+	 * @param program a Jolie AST
+	 * @throws ModuleException when the duplication of SymbolDeclaration is detected.
+	 */
+	public static SymbolTable generate( Program program ) throws ModuleException {
+		return (new SymbolTableGeneratorVisitor( program.context() )).generate( program );
+	}
 
 }

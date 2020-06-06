@@ -35,29 +35,27 @@ import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.util.Pair;
 
-/** Implements a non-deterministic choice.
- * An NDChoiceProcess instance collects pairs which couple an 
- * InputOperationProcess object with a Process object.
- * When the ChoiceProcess object is run, it waits for 
- * the receiving of a communication on one of its InputProcess objects.
- * When a communication is received, the following happens:
- * \li the communication is resolved by the corresponding InputProcess instance.
- * \li the paired Process object is executed.
+/**
+ * Implements a non-deterministic choice. An NDChoiceProcess instance collects pairs which couple an
+ * InputOperationProcess object with a Process object. When the ChoiceProcess object is run, it
+ * waits for the receiving of a communication on one of its InputProcess objects. When a
+ * communication is received, the following happens: \li the communication is resolved by the
+ * corresponding InputProcess instance. \li the paired Process object is executed.
  * 
  * After that, the ChoiceProcess terminates, so the other pairs are ignored.
  * 
  * @author Fabrizio Montesi
  */
-public class NDChoiceProcess implements Process
-{
+public class NDChoiceProcess implements Process {
 	private Map< String, Pair< InputOperationProcess, Process > > branches = new HashMap<>();
 	private Map< String, InputOperation > inputOperationsMap = new HashMap<>();
-	
-	/** Constructor
+
+	/**
+	 * Constructor
+	 * 
 	 * @param branches
 	 */
-	public NDChoiceProcess( Pair< InputOperationProcess, Process >[] branches )
-	{
+	public NDChoiceProcess( Pair< InputOperationProcess, Process >[] branches ) {
 		for( Pair< InputOperationProcess, Process > pair : branches ) {
 			this.branches.put( pair.key().inputOperation().id(), pair );
 			this.inputOperationsMap.put( pair.key().inputOperation().id(), pair.key().inputOperation() );
@@ -65,20 +63,17 @@ public class NDChoiceProcess implements Process
 		this.branches = Collections.unmodifiableMap( this.branches );
 		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
 	}
-	
-	protected Map< String, Pair< InputOperationProcess, Process > > branches()
-	{
+
+	protected Map< String, Pair< InputOperationProcess, Process > > branches() {
 		return branches;
 	}
-	
-	protected Map< String, InputOperation > inputOperations()
-	{
+
+	protected Map< String, InputOperation > inputOperations() {
 		return inputOperationsMap;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
-		@SuppressWarnings("unchecked")
+
+	public Process copy( TransformationReason reason ) {
+		@SuppressWarnings( "unchecked" )
 		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
 		int i = 0;
 		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {
@@ -86,16 +81,17 @@ public class NDChoiceProcess implements Process
 		}
 		return new NDChoiceProcess( b );
 	}
-	
-	/** Runs the non-deterministic choice behaviour.
+
+	/**
+	 * Runs the non-deterministic choice behaviour.
+	 * 
 	 * @throws jolie.runtime.FaultException
 	 * @throws jolie.runtime.ExitingException
 	 */
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if( ethread.isKilled() ) {
 			return;
 		}
 
@@ -109,9 +105,8 @@ public class NDChoiceProcess implements Process
 			Interpreter.getInstance().logSevere( e );
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

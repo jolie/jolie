@@ -32,16 +32,14 @@ import jolie.util.Range;
  * 
  * @author Fabrizio Montesi
  */
-public final class Constants
-{
+public final class Constants {
 	// Release information
 	public static final String VERSION = readVersionFromProperties();
 	public static final String COPYRIGHT = "(C) 2006-2020 the Jolie team";
 
-	private static String readVersionFromProperties()
-	{
+	private static String readVersionFromProperties() {
 		try( InputStream is = Constants.class.getClassLoader().getResourceAsStream( "libjolie.properties" ) ) {
-			if ( is == null ) {
+			if( is == null ) {
 				return "ERROR: could not find libjolie.properties. Your distribution of Jolie might be corrupted.";
 			}
 			Properties prop = new Properties();
@@ -56,8 +54,7 @@ public final class Constants
 		}
 	}
 
-	public interface Manifest
-	{
+	public interface Manifest {
 		// Jolie Extensions
 		public final static Attributes.Name CHANNEL_EXTENSION = new Attributes.Name( "X-JOLIE-ChannelExtension" );
 		public final static Attributes.Name LISTENER_EXTENSION = new Attributes.Name( "X-JOLIE-ListenerExtension" );
@@ -67,60 +64,52 @@ public final class Constants
 		// JAP Manifest
 		public final static Attributes.Name MAIN_PROGRAM = new Attributes.Name( "X-JOLIE-Main-Program" );
 		public final static Attributes.Name OPTIONS = new Attributes.Name( "X-JOLIE-Options" );
-		//public final static String Libraries = "X-JOLIE-Libraries";
+		// public final static String Libraries = "X-JOLIE-Libraries";
 	}
 
-	static public enum Predefined
-	{
-		ATTRIBUTES( "@Attributes", "@Attributes" ),
-		HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication", "@HttpBasicAuthentication" ),
-		PI( "PI", java.lang.Math.PI );
+	static public enum Predefined {
+		ATTRIBUTES( "@Attributes", "@Attributes" ), HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication",
+			"@HttpBasicAuthentication" ), PI( "PI", java.lang.Math.PI );
+
 		private final String id;
 		private final Scanner.Token token;
 
-		public static Predefined get( String id )
-		{
-			for ( Predefined p : Predefined.values() ) {
-				if ( p.id.equals( id ) ) {
+		public static Predefined get( String id ) {
+			for( Predefined p : Predefined.values() ) {
+				if( p.id.equals( id ) ) {
 					return p;
 				}
 			}
 			return null;
 		}
 
-		Predefined( String id, String content )
-		{
+		Predefined( String id, String content ) {
 			this.id = id;
 			this.token = new Scanner.Token( Scanner.TokenType.STRING, content );
 		}
 
-		Predefined( String id, Integer content )
-		{
+		Predefined( String id, Integer content ) {
 			this.id = id;
 			this.token = new Scanner.Token( Scanner.TokenType.INT, content.toString() );
 		}
 
-		Predefined( String id, Double content )
-		{
+		Predefined( String id, Double content ) {
 			this.id = id;
 			this.token = new Scanner.Token( Scanner.TokenType.DOUBLE, content.toString() );
 		}
 
-		public final String id()
-		{
+		public final String id() {
 			return id;
 		}
 
-		public final Scanner.Token token()
-		{
+		public final Scanner.Token token() {
 			return token;
 		}
 	}
 
 	public final static Range RANGE_ONE_TO_ONE = new Range( 1, 1 );
 
-	public static interface Keywords
-	{
+	public static interface Keywords {
 		public static final String DEFAULT_HANDLER_NAME = "default";
 	}
 
@@ -134,7 +123,7 @@ public final class Constants
 	public static final String LOCATION_NODE_NAME = "location";
 	public static final String LOCAL_LOCATION_KEYWORD = "local";
 	public static final String LOCAL_INPUT_PORT_NAME = "LocalInputPort";
-	//public static String newLineString = System.getProperty( "line.separator" );
+	// public static String newLineString = System.getProperty( "line.separator" );
 	public static final String fileSeparator = System.getProperty( "file.separator" );
 	public static final String pathSeparator = System.getProperty( "path.separator" );
 	public static final String GLOBAL = "global";
@@ -143,58 +132,48 @@ public final class Constants
 	public static final String JOLIE_LOGGER_NAME = "Jolie";
 	public static final String PACKAGES_DIR = "packages";
 
-	public enum EmbeddedServiceType
-	{
-		JOLIE("Jolie"), JAVA("Java"), JAVASCRIPT("JavaScript"), INTERNAL("JolieInternal"), UNSUPPORTED("Unsupported");
-		
+	public enum EmbeddedServiceType {
+		JOLIE( "Jolie" ), JAVA( "Java" ), JAVASCRIPT( "JavaScript" ), INTERNAL( "JolieInternal" ), UNSUPPORTED(
+			"Unsupported" );
+
 		private final String str;
-		
-		EmbeddedServiceType( String str )
-		{
+
+		EmbeddedServiceType( String str ) {
 			this.str = str;
 		}
 
 		@Override
-		public String toString()
-		{
+		public String toString() {
 			return str;
 		}
 	}
 
-	public static EmbeddedServiceType stringToEmbeddedServiceType( String str )
-	{
+	public static EmbeddedServiceType stringToEmbeddedServiceType( String str ) {
 		switch( str.toLowerCase() ) {
-			case "jolie":
-				return EmbeddedServiceType.JOLIE;
-			case "java":
-				return EmbeddedServiceType.JAVA;
-			case "javascript":
-				return EmbeddedServiceType.JAVASCRIPT;
-			default:
-				return EmbeddedServiceType.UNSUPPORTED;
+		case "jolie":
+			return EmbeddedServiceType.JOLIE;
+		case "java":
+			return EmbeddedServiceType.JAVA;
+		case "javascript":
+			return EmbeddedServiceType.JAVASCRIPT;
+		default:
+			return EmbeddedServiceType.UNSUPPORTED;
 		}
 	}
 
-	public enum ExecutionMode
-	{
+	public enum ExecutionMode {
 		SINGLE, SEQUENTIAL, CONCURRENT
 	}
 
-	public enum OperationType
-	{
-		ONE_WAY,
-		REQUEST_RESPONSE
+	public enum OperationType {
+		ONE_WAY, REQUEST_RESPONSE
 	}
 
-	public enum OperandType
-	{
-		ADD, SUBTRACT,
-		MULTIPLY, DIVIDE,
-		MODULUS
+	public enum OperandType {
+		ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULUS
 	}
 
-	public static long serialVersionUID()
-	{
+	public static long serialVersionUID() {
 		return 1L;
 	}
 }

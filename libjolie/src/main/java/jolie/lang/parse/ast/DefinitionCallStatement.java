@@ -25,35 +25,29 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class DefinitionCallStatement extends OLSyntaxNode
-{
+public class DefinitionCallStatement extends OLSyntaxNode {
 	private final String id;
 	private DefinitionNode definition;
 
-	public DefinitionCallStatement( ParsingContext context, String id )
-	{
+	public DefinitionCallStatement( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
 
-	public void setDefinitionLink( DefinitionNode definitionNode )
-	{
+	public void setDefinitionLink( DefinitionNode definitionNode ) {
 		this.definition = definitionNode;
 	}
 
-	public DefinitionNode definition()
-	{
+	public DefinitionNode definition() {
 		return this.definition;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

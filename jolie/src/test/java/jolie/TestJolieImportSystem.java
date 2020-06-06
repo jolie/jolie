@@ -7,47 +7,43 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestJolieImportSystem
-{
+public class TestJolieImportSystem {
 
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
 	}
-    private static final String[] launcherArgs = new String[] {"-l",
-    "../lib/*:../dist/jolie/lib:../dist/jolie/javaServices/*:../dist/jolie/extensions/*"};
-    
-    private PrintStream originalSystemOut;
-    private ByteArrayOutputStream systemOutContent;
+	private static final String[] launcherArgs = new String[] { "-l",
+		"../lib/*:../dist/jolie/lib:../dist/jolie/javaServices/*:../dist/jolie/extensions/*" };
 
-    @BeforeEach
-    void redirectSystemOutStream()
-    {
+	private PrintStream originalSystemOut;
+	private ByteArrayOutputStream systemOutContent;
 
-        originalSystemOut = System.out;
+	@BeforeEach
+	void redirectSystemOutStream() {
 
-        // given
-        systemOutContent = new ByteArrayOutputStream();
-        System.setOut( new PrintStream( systemOutContent ) );
-    }
+		originalSystemOut = System.out;
 
-    @AfterEach
-    void restoreSystemOutStream()
-    {
-        System.setOut( originalSystemOut );
-        // print buffer
-        System.out.println( systemOutContent.toString() );
-    }
+		// given
+		systemOutContent = new ByteArrayOutputStream();
+		System.setOut( new PrintStream( systemOutContent ) );
+	}
 
-    @Test
-    void testImport()
-    {
-        String filePath = "src/test/resources/imports/A.ol";
-        String[] args = new String[launcherArgs.length + 1];
-        System.arraycopy( launcherArgs, 0, args, 0, launcherArgs.length );
-        args[args.length - 1] = filePath;
+	@AfterEach
+	void restoreSystemOutStream() {
+		System.setOut( originalSystemOut );
+		// print buffer
+		System.out.println( systemOutContent.toString() );
+	}
 
-        assertDoesNotThrow(
-            () -> JolieRunner.run( args, this.getClass().getClassLoader(), null ) );
-    }
+	@Test
+	void testImport() {
+		String filePath = "src/test/resources/imports/A.ol";
+		String[] args = new String[ launcherArgs.length + 1 ];
+		System.arraycopy( launcherArgs, 0, args, 0, launcherArgs.length );
+		args[ args.length - 1 ] = filePath;
+
+		assertDoesNotThrow(
+			() -> JolieRunner.run( args, this.getClass().getClassLoader(), null ) );
+	}
 
 }

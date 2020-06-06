@@ -30,115 +30,102 @@ import jolie.util.Pair;
 /**
  * A class for holding the information of an import statement in jolie.
  */
-public class ImportStatement extends OLSyntaxNode
-{
+public class ImportStatement extends OLSyntaxNode {
 
-    private static final long serialVersionUID = Constants.serialVersionUID();
-    private final ImportSymbolTarget[] importSymbolTargets;
-    private final String[] importTarget;
-    private final boolean isNamespaceImport;
+	private static final long serialVersionUID = Constants.serialVersionUID();
+	private final ImportSymbolTarget[] importSymbolTargets;
+	private final String[] importTarget;
+	private final boolean isNamespaceImport;
 
-    /**
-     * Constructor for namespace import
-     * 
-     * @param context      parsing context
-     * @param importTarget tokenized import target, empty denote a dot token (
-     *                     import target for .A.B should give this field ["", "A",
-     *                     "", "B"])
-     */
-    public ImportStatement( ParsingContext context, String[] importTarget )
-    {
-        this( context, importTarget, true, null );
-    }
+	/**
+	 * Constructor for namespace import
+	 * 
+	 * @param context parsing context
+	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
+	 *        should give this field ["", "A", "", "B"])
+	 */
+	public ImportStatement( ParsingContext context, String[] importTarget ) {
+		this( context, importTarget, true, null );
+	}
 
-    /**
-     * Constructor for qualified import
-     * 
-     * @param context      a parsing context
-     * @param importTarget tokenized import target, empty denote a dot token (
-     *                     import target for .A.B should give this field ["", "A",
-     *                     "", "B"])
-     * @param pathNodes    list of parsed Symbol token in target Symbol each element in list refer
-     *                     to pair of <moduleSymbolName: localSymbolName>
-     */
-    public ImportStatement( ParsingContext context, String[] importTarget,
-            List< Pair< String, String > > pathNodes )
-    {
-        this( context, importTarget, false, pathNodes );
-    }
+	/**
+	 * Constructor for qualified import
+	 * 
+	 * @param context a parsing context
+	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
+	 *        should give this field ["", "A", "", "B"])
+	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
+	 *        of <moduleSymbolName: localSymbolName>
+	 */
+	public ImportStatement( ParsingContext context, String[] importTarget,
+		List< Pair< String, String > > pathNodes ) {
+		this( context, importTarget, false, pathNodes );
+	}
 
 
-    /**
-     * Constructor for qualified import
-     * 
-     * @param context      a parsing context
-     * @param importTarget tokenized import target, empty denote a dot token (
-     *                     import target for .A.B should give this field ["", "A",
-     *                     "", "B"])
-     * @param isNamespaceImport a boolean flag if the 
-     * @param pathNodes    list of parsed Symbol token in target Symbol each element in list refer
-     *                     to pair of <moduleSymbolName: localSymbolName>
-     */
-    private ImportStatement( ParsingContext context, String[] importTarget,
-            boolean isNamespaceImport, List< Pair< String, String > > pathNodes )
-    {
-        super( context );
-        this.importTarget = importTarget;
-        this.isNamespaceImport = isNamespaceImport;
-        if ( pathNodes != null ) {
-            importSymbolTargets = new ImportSymbolTarget[pathNodes.size()];
-            for (int i = 0; i < pathNodes.size(); i++) {
-                importSymbolTargets[i] = new ImportSymbolTarget( pathNodes.get( i ).key(),
-                        pathNodes.get( i ).value() );
-            }
-        } else {
-            importSymbolTargets = null;
-        }
-    }
+	/**
+	 * Constructor for qualified import
+	 * 
+	 * @param context a parsing context
+	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
+	 *        should give this field ["", "A", "", "B"])
+	 * @param isNamespaceImport a boolean flag if the
+	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
+	 *        of <moduleSymbolName: localSymbolName>
+	 */
+	private ImportStatement( ParsingContext context, String[] importTarget,
+		boolean isNamespaceImport, List< Pair< String, String > > pathNodes ) {
+		super( context );
+		this.importTarget = importTarget;
+		this.isNamespaceImport = isNamespaceImport;
+		if( pathNodes != null ) {
+			importSymbolTargets = new ImportSymbolTarget[ pathNodes.size() ];
+			for( int i = 0; i < pathNodes.size(); i++ ) {
+				importSymbolTargets[ i ] = new ImportSymbolTarget( pathNodes.get( i ).key(),
+					pathNodes.get( i ).value() );
+			}
+		} else {
+			importSymbolTargets = null;
+		}
+	}
 
-    public String[] importTarget()
-    {
-        return importTarget;
-    }
+	public String[] importTarget() {
+		return importTarget;
+	}
 
-    public boolean isNamespaceImport()
-    {
-        return isNamespaceImport;
-    }
+	public boolean isNamespaceImport() {
+		return isNamespaceImport;
+	}
 
-    public ImportSymbolTarget[] importSymbolTargets()
-    {
-        return importSymbolTargets;
-    }
+	public ImportSymbolTarget[] importSymbolTargets() {
+		return importSymbolTargets;
+	}
 
-    public String prettyPrintTarget()
-    {
-        String ret = "";
-        boolean relativeEnded = false;
-        for (String token : this.importTarget) {
-            if ( token.isEmpty() ) {
-                ret += ".";
-            } else {
-                if ( relativeEnded ) {
-                    ret += ".";
-                }
-                relativeEnded = true;
-                ret += token;
-            }
-        }
-        return ret;
-    }
+	public String prettyPrintTarget() {
+		String ret = "";
+		boolean relativeEnded = false;
+		for( String token : this.importTarget ) {
+			if( token.isEmpty() ) {
+				ret += ".";
+			} else {
+				if( relativeEnded ) {
+					ret += ".";
+				}
+				relativeEnded = true;
+				ret += token;
+			}
+		}
+		return ret;
+	}
 
-    @Override
-    public String toString()
-    {
-        String target = (this.isNamespaceImport) ? "*" : prettyPrintTarget();
-        return "from " + target + " import " + Arrays.toString( this.importSymbolTargets );
-    }
+	@Override
+	public String toString() {
+		String target = (this.isNamespaceImport) ? "*" : prettyPrintTarget();
+		return "from " + target + " import " + Arrays.toString( this.importSymbolTargets );
+	}
 
-    @Override
-    public void accept( OLVisitor visitor )
-    {
-        visitor.visit( this );
-    }
+	@Override
+	public void accept( OLVisitor visitor ) {
+		visitor.visit( this );
+	}
 }

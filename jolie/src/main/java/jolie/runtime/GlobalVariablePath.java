@@ -30,35 +30,29 @@ import jolie.util.Pair;
 /**
  * @author Fabrizio Montesi
  */
-public class GlobalVariablePath extends VariablePath
-{	
-	public GlobalVariablePath( Pair< Expression, Expression >[] path )
-	{
+public class GlobalVariablePath extends VariablePath {
+	public GlobalVariablePath( Pair< Expression, Expression >[] path ) {
 		super( path );
 	}
 
 	@Override
-	public boolean isGlobal()
-	{
+	public boolean isGlobal() {
 		return true;
 	}
 
 	@Override
-	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path )
-	{
+	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path ) {
 		return new GlobalVariablePath( path );
 	}
 
 	@Override
-	public Expression cloneExpression( TransformationReason reason )
-	{
+	public Expression cloneExpression( TransformationReason reason ) {
 		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path(), reason );
 		return new GlobalVariablePath( clonedPath );
 	}
 
 	@Override
-	protected Value getRootValue()
-	{
+	protected Value getRootValue() {
 		return Interpreter.getInstance().globalValue();
 	}
 }

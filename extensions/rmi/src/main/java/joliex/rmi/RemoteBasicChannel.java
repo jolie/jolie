@@ -31,16 +31,19 @@ import jolie.net.CommMessage;
  *
  * @author Fabrizio Montesi
  */
-public interface RemoteBasicChannel extends Remote
-{
+public interface RemoteBasicChannel extends Remote {
 	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws RemoteException, IOException;
+
 	public CommMessage recv()
 		throws IOException;
+
 	public void send( CommMessage message )
 		throws IOException;
+
 	public boolean isReady()
 		throws RemoteException;
+
 	public void close()
 		throws RemoteException;
 }

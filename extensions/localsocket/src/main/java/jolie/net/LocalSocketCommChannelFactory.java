@@ -30,22 +30,20 @@ import java.net.URISyntaxException;
 import jolie.net.ext.CommChannelFactory;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"cx.ath.matthew.jar"})
-public class LocalSocketCommChannelFactory extends CommChannelFactory
-{
-	public LocalSocketCommChannelFactory( CommCore commCore )
-	{
+@AndJarDeps( { "cx.ath.matthew.jar" } )
+public class LocalSocketCommChannelFactory extends CommChannelFactory {
+	public LocalSocketCommChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		String path = location.getPath();
-		if ( path == null || path.isEmpty() ) {
+		if( path == null || path.isEmpty() ) {
 			throw new FileNotFoundException( "Local socket path not specified!" );
 		}
-		UnixSocket socket = new UnixSocket( new UnixSocketAddress( path, location.getHost() != null ? location.getHost().equals( "abs" ) : false ) );
+		UnixSocket socket = new UnixSocket(
+			new UnixSocketAddress( path, location.getHost() != null ? location.getHost().equals( "abs" ) : false ) );
 		CommChannel ret = null;
 		try {
 			ret = new LocalSocketCommChannel( socket, location, port.getProtocol() );

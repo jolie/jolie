@@ -31,36 +31,32 @@ import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
-public class BTL2CapListener extends CommListener
-{
+public class BTL2CapListener extends CommListener {
 	private final L2CAPConnectionNotifier connectionNotifier;
+
 	public BTL2CapListener(
-				Interpreter interpreter,
-				CommProtocolFactory protocolFactory,
-				InputPort inputPort
-			)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		super(
 			interpreter,
 			protocolFactory,
-			inputPort
-		);
+			inputPort );
 		connectionNotifier =
-				(L2CAPConnectionNotifier)Connector.open( inputPort().location().toString() );
+			(L2CAPConnectionNotifier) Connector.open( inputPort().location().toString() );
 	}
-	
+
 	@Override
-	public void run()
-	{
+	public void run() {
 		try {
 			L2CAPConnection clientConnection;
 			CommChannel channel;
-			while ( (clientConnection = connectionNotifier.acceptAndOpen()) != null ) {
+			while( (clientConnection = connectionNotifier.acceptAndOpen()) != null ) {
 				channel = new BTL2CapCommChannel(
-							clientConnection,
-							inputPort().location(),
-							createProtocol() );
+					clientConnection,
+					inputPort().location(),
+					createProtocol() );
 				channel.setParentInputPort( inputPort() );
 				interpreter().commCore().scheduleReceive( channel, inputPort() );
 				channel = null; // Dispose for garbage collection
@@ -77,10 +73,10 @@ public class BTL2CapListener extends CommListener
 	}
 
 	@Override
-	public void shutdown()
-	{
+	public void shutdown() {
 		try {
 			connectionNotifier.close();
-		} catch( IOException e ) {}
+		} catch( IOException e ) {
+		}
 	}
 }

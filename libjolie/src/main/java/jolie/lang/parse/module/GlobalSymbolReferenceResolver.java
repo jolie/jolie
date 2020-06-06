@@ -124,804 +124,679 @@ import jolie.lang.parse.module.exceptions.SymbolTypeMismatchException;
 import jolie.util.Helpers;
 import jolie.util.Pair;
 
-public class GlobalSymbolReferenceResolver
-{
-    private final Map< URI, ModuleRecord > moduleMap;
-    private final Map< URI, SymbolTable > symbolTables;
-
-    public GlobalSymbolReferenceResolver( ModuleCrawlerResult moduleMap )
-    {
-        this.moduleMap = moduleMap.toMap();
-        this.symbolTables = new HashMap<>();
-        for (ModuleRecord mr : this.moduleMap.values()) {
-            this.symbolTables.put( mr.source(), mr.symbolTable() );
-        }
-    }
-
-    private class SymbolReferenceResolverVisitor implements OLVisitor
-    {
-
-        private URI currentURI;
-        private boolean valid = true;
-        private Exception error;
-
-        protected SymbolReferenceResolverVisitor()
-        {
-        }
-
-
-        /**
-         * Walk through the Jolie AST tree and resolve the call of external Symbols.
-         */
-        public void resolve( Program p ) throws ModuleException
-        {
-            currentURI = p.context().source();
-            visit( p );
-            if ( !this.valid ) {
-                throw new ModuleException( p.context(), this.error );
-            }
-            return;
-        }
-
-        @Override
-        public void visit( Program n )
-        {
-            for (OLSyntaxNode node : n.children()) {
-                if ( !this.valid ) {
-                    return;
-                }
-                node.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( OneWayOperationDeclaration decl )
-        {
-            decl.requestType().accept( this );
-        }
-
-        @Override
-        public void visit( RequestResponseOperationDeclaration decl )
-        {
-            decl.requestType().accept( this );
-            decl.responseType().accept( this );
-            for (TypeDefinition fault : decl.faults().values()) {
-                fault.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( DefinitionNode n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( ParallelStatement n )
-        {
-            for (OLSyntaxNode node : n.children()) {
-                node.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( SequenceStatement n )
-        {
-            for (OLSyntaxNode node : n.children()) {
-                node.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( NDChoiceStatement n )
-        {
-            for (Pair< OLSyntaxNode, OLSyntaxNode > child : n.children()) {
-                child.key().accept( this );
-                child.value().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( OneWayOperationStatement n )
-        {
-        }
-
-        @Override
-        public void visit( RequestResponseOperationStatement n )
-        {
-            n.process().accept( this );
-        }
-
-        @Override
-        public void visit( NotificationOperationStatement n )
-        {
-        }
-
-        @Override
-        public void visit( SolicitResponseOperationStatement n )
-        {
-            if ( n.handlersFunction() != null ) {
-                for (Pair< String, OLSyntaxNode > handler : n.handlersFunction().pairs()) {
-                    handler.value().accept( this );
-                }
-            }
-        }
-
-        @Override
-        public void visit( LinkInStatement n )
-        {
-        }
-
-        @Override
-        public void visit( LinkOutStatement n )
-        {
-        }
-
-        @Override
-        public void visit( AssignStatement n )
-        {
-            n.expression().accept( this );
-        }
-
-        @Override
-        public void visit( AddAssignStatement n )
-        {
-            n.expression().accept( this );
-        }
-
-        @Override
-        public void visit( SubtractAssignStatement n )
-        {
-            n.expression().accept( this );
-        }
-
-        @Override
-        public void visit( MultiplyAssignStatement n )
-        {
-            n.expression().accept( this );
-        }
-
-        @Override
-        public void visit( DivideAssignStatement n )
-        {
-            n.expression().accept( this );
-        }
-
-        @Override
-        public void visit( IfStatement n )
-        {
-            for (Pair< OLSyntaxNode, OLSyntaxNode > child : n.children()) {
-                child.key().accept( this );
-                child.value().accept( this );
-            }
-            if ( n.elseProcess() != null ) {
-                n.elseProcess().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( DefinitionCallStatement n )
-        {
-
-            Optional< SymbolInfo > symbol = getSymbol( n.context(), n.id() );
-            if ( !symbol.isPresent() ) {
-                this.valid = false;
-                this.error = new SymbolNotFoundException( n.id() );
-                return;
-            }
-            if ( !(symbol.get().node() instanceof DefinitionNode) ) {
-                this.valid = false;
-                this.error = new SymbolTypeMismatchException( n.id(), "DefintionNode",
-                        symbol.get().node().getClass().getSimpleName() );
-                return;
-            }
-
-            DefinitionNode linkedNode = (DefinitionNode) symbol.get().node();
-            n.setDefinitionLink( linkedNode );
-        }
-
-        @Override
-        public void visit( WhileStatement n )
-        {
-            n.condition().accept( this );
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( OrConditionNode n )
-        {
-            for (OLSyntaxNode node : n.children()) {
-                node.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( AndConditionNode n )
-        {
-            for (OLSyntaxNode node : n.children()) {
-                node.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( NotExpressionNode n )
-        {
-            n.expression().accept( this );
-        }
-
-        @Override
-        public void visit( CompareConditionNode n )
-        {
-            n.leftExpression().accept( this );
-            n.rightExpression().accept( this );
-        }
-
-        @Override
-        public void visit( ConstantIntegerExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantDoubleExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantBoolExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantLongExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ConstantStringExpression n )
-        {
-        }
-
-        @Override
-        public void visit( ProductExpressionNode n )
-        {
-            for (Pair< OperandType, OLSyntaxNode > node : n.operands()) {
-                node.value().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( SumExpressionNode n )
-        {
-            for (Pair< OperandType, OLSyntaxNode > node : n.operands()) {
-                node.value().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( VariableExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( NullProcessStatement n )
-        {
-        }
-
-        @Override
-        public void visit( jolie.lang.parse.ast.Scope n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( InstallStatement n )
-        {
-            for (Pair< String, OLSyntaxNode > handlerFunction : n.handlersFunction().pairs()) {
-                handlerFunction.value().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( CompensateStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ThrowStatement n )
-        {
-            if ( n.expression() != null ) {
-                n.expression().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( ExitStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ExecutionInfo n )
-        {
-        }
-
-        @Override
-        public void visit( CorrelationSetInfo n )
-        {
-        }
-
-        @Override
-        public void visit( InputPortInfo n )
-        {
-            // resolve interface definition
-            for (InterfaceDefinition iface : n.getInterfaceList()) {
-                Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
-                if ( !symbol.isPresent() ) {
-                    this.valid = false;
-                    this.error = new SymbolNotFoundException( iface.name() );
-                    return;
-                }
-                if ( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-                    this.valid = false;
-                    this.error = new SymbolTypeMismatchException( n.id(), "InterfaceDefinition",
-                            symbol.get().node().getClass().getSimpleName() );
-                    return;
-                }
-                InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
-                ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
-                    iface.addOperation( op );
-                    n.addOperation( op );
-                } );
-                iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
-            }
-            for (OperationDeclaration op : n.operations()) {
-                op.accept( this );
-            }
-            for (AggregationItemInfo aggregationItem : n.aggregationList()) {
-                if ( aggregationItem.interfaceExtender() != null ) {
-                    aggregationItem.interfaceExtender().accept( this );
-                }
-            }
-        }
-
-        @Override
-        public void visit( OutputPortInfo n )
-        {
-            // resolve interface definition
-            for (InterfaceDefinition iface : n.getInterfaceList()) {
-                Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
-                if ( !symbol.isPresent() ) {
-                    this.valid = false;
-                    this.error = new SymbolNotFoundException( iface.name() );
-                    return;
-                }
-                if ( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-                    this.valid = false;
-                    this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-                            symbol.get().node().getClass().getSimpleName() );
-                    return;
-                }
-                InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
-                ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
-                    iface.addOperation( op );
-                    n.addOperation( op );
-                } );
-                iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
-            }
-            for (OperationDeclaration op : n.operations()) {
-                op.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( PointerStatement n )
-        {
-        }
-
-        @Override
-        public void visit( DeepCopyStatement n )
-        {
-            n.rightExpression().accept( this );
-        }
-
-        @Override
-        public void visit( RunStatement n )
-        {
-        }
-
-        @Override
-        public void visit( UndefStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ValueVectorSizeExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( PreIncrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( PostIncrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( PreDecrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( PostDecrementStatement n )
-        {
-        }
-
-        @Override
-        public void visit( ForStatement n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( ForEachSubNodeStatement n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( ForEachArrayItemStatement n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( SpawnStatement n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( IsTypeExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( InstanceOfExpressionNode n )
-        {
-            n.type().accept( this );
-        }
-
-        @Override
-        public void visit( TypeCastExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( SynchronizedStatement n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( CurrentHandlerStatement n )
-        {
-        }
-
-        @Override
-        public void visit( EmbeddedServiceNode n )
-        {
-            if ( n.program() != null ) {
-                n.program().accept( this );
-            }
-        }
-
-
-        @Override
-        public void visit( InstallFixedVariableExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( VariablePathNode n )
-        {
-        }
-
-        @Override
-        public void visit( TypeInlineDefinition n )
-        {
-            if ( n.hasSubTypes() ) {
-                for (Map.Entry< String, TypeDefinition > subType : n.subTypes()) {
-                    subType.getValue().accept( this );
-                }
-            }
-        }
-
-        @Override
-        public void visit( TypeDefinitionLink n )
-        {
-            TypeDefinition linkedType = null;
-            if ( n.linkedTypeName().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
-                linkedType = TypeDefinitionUndefined.getInstance();
-            } else {
-                Optional< SymbolInfo > targetSymbolInfo =
-                        getSymbol( n.context(), n.linkedTypeName() );
-                if ( !targetSymbolInfo.isPresent() ) {
-                    this.valid = false;
-                    this.error = new SymbolNotFoundException( n.id() );
-                    return;
-                }
-                if ( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
-                    this.valid = false;
-                    this.error = new SymbolTypeMismatchException( n.id(), "TypeDefinition",
-                            targetSymbolInfo.get().node().getClass().getSimpleName() );
-                    return;
-                }
-                linkedType = (TypeDefinition) targetSymbolInfo.get().node();
-                if ( linkedType.equals( n ) ) {
-                    this.valid = false;
-                    this.error = new SymbolNotFoundException( n.id() );
-                    return;
-                }
-            }
-            n.setLinkedType( linkedType );
-        }
-
-        @Override
-        public void visit( InterfaceDefinition n )
-        {
-            for (OperationDeclaration op : n.operationsMap().values()) {
-                op.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( DocumentationComment n )
-        {
-        }
-
-        @Override
-        public void visit( FreshValueExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( CourierDefinitionNode n )
-        {
-            n.body().accept( this );
-        }
-
-        @Override
-        public void visit( CourierChoiceStatement n )
-        {
-            for (InterfaceOneWayBranch owIfaceBranch : n.interfaceOneWayBranches()) {
-                InterfaceDefinition iface = owIfaceBranch.interfaceDefinition;
-
-                Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
-                if ( !symbol.isPresent() ) {
-                    this.valid = false;
-                    this.error = new SymbolNotFoundException( iface.name() );
-                    return;
-                }
-                if ( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-                    this.valid = false;
-                    this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-                            symbol.get().node().getClass().getSimpleName() );
-                    return;
-                }
-                InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
-                ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
-                    iface.addOperation( op );
-                    op.accept( this );
-                } );
-                iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
-                
-                owIfaceBranch.body.accept( this );
-            }
-
-            for (InterfaceRequestResponseBranch rrIfaceBranch : n
-                    .interfaceRequestResponseBranches()) {
-                InterfaceDefinition iface = rrIfaceBranch.interfaceDefinition;
-
-                Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
-                if ( !symbol.isPresent() ) {
-                    this.valid = false;
-                    this.error = new SymbolNotFoundException( iface.name() );
-                    return;
-                }
-                if ( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-                    this.valid = false;
-                    this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-                            symbol.get().node().getClass().getSimpleName() );
-                    return;
-                }
-                InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
-                ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
-                    iface.addOperation( op );
-                    op.accept( this );
-                } );
-                iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
-
-                rrIfaceBranch.body.accept( this );
-            }
-
-            for (OperationOneWayBranch owBranch : n.operationOneWayBranches()) {
-                owBranch.body.accept( this );
-            }
-
-            for (OperationRequestResponseBranch rrBranch : n.operationRequestResponseBranches()) {
-                rrBranch.body.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( NotificationForwardStatement n )
-        {
-        }
-
-        @Override
-        public void visit( SolicitResponseForwardStatement n )
-        {
-        }
-
-        @Override
-        public void visit( InterfaceExtenderDefinition n )
-        {
-            if ( n.defaultOneWayOperation() != null ) {
-                n.defaultOneWayOperation().accept( this );
-            }
-            if ( n.defaultRequestResponseOperation() != null ) {
-                n.defaultRequestResponseOperation().accept( this );
-            }
-            for (OperationDeclaration op : n.operationsMap().values()) {
-                op.accept( this );
-            }
-        }
-
-        @Override
-        public void visit( InlineTreeExpressionNode n )
-        {
-            for (Operation operation : n.operations()) {
-                if ( operation instanceof InlineTreeExpressionNode.AssignmentOperation ) {
-                    ((InlineTreeExpressionNode.AssignmentOperation) operation).expression()
-                            .accept( this );;
-                } else if ( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
-                    ((InlineTreeExpressionNode.DeepCopyOperation) operation).expression()
-                            .accept( this );;
-                }
-            }
-        }
-
-        @Override
-        public void visit( VoidExpressionNode n )
-        {
-        }
-
-        @Override
-        public void visit( ProvideUntilStatement n )
-        {
-            n.provide().accept( this );
-            n.until().accept( this );
-        }
-
-        @Override
-        public void visit( TypeChoiceDefinition n )
-        {
-            n.left().accept( this );
-            if ( n.right() != null ) {
-                n.right().accept( this );
-            }
-        }
-
-        @Override
-        public void visit( ImportStatement n )
-        {
-        }
-
-        private Optional< SymbolInfo > getSymbol( ParsingContext context, String name )
-        {
-            Optional< SymbolInfo > symbol = Helpers.firstNonNull( () -> {
-                if ( !symbolTables.containsKey( currentURI )
-                        || !symbolTables.get( currentURI ).symbol( name ).isPresent() ) {
-                    return null;
-                }
-                return symbolTables.get( currentURI ).symbol( name ).get();
-            }, () -> {
-                if ( !symbolTables.containsKey( context.source() )
-                        || !symbolTables.get( context.source() ).symbol( name ).isPresent() ) {
-                    return null;
-                }
-                return symbolTables.get( context.source() ).symbol( name ).get();
-            } );
-            return symbol;
-        }
-    }
-
-    /**
-     * perform lookup to external symbol's source of AST node
-     * 
-     * @throws SymbolNotFoundException
-     */
-    private SymbolInfo symbolSourceLookup( SymbolInfoExternal symbolInfo )
-            throws SymbolNotFoundException
-    {
-        ModuleRecord externalSourceRecord =
-                this.moduleMap.get( symbolInfo.moduleSource().get().source() );
-        Optional< SymbolInfo > externalSourceSymbol =
-                externalSourceRecord.symbol( symbolInfo.moduleSymbol() );
-        if ( !externalSourceSymbol.isPresent() ) {
-            throw new SymbolNotFoundException( symbolInfo.name(), symbolInfo.moduleTargets() );
-        }
-        if ( externalSourceSymbol.get().scope() == Scope.LOCAL ) {
-            return externalSourceSymbol.get();
-        } else {
-            return symbolSourceLookup( (SymbolInfoExternal) externalSourceSymbol.get() );
-        }
-    }
-
-    /**
-     * Find and set a pointer of externalSymbol to it's corresponding AST node by
-     * perform lookup at ModuleRecord Map, a result from ModuleCrawler.
-     * 
-     * @throws DuplicateSymbolException
-     * @throws IllegalAccessSymbolException
-     * @throws SymbolNotFoundException
-     * 
-     */
-    public void resolveExternalSymbols()
-            throws SymbolNotFoundException, IllegalAccessSymbolException, DuplicateSymbolException
-    {
-        for (ModuleRecord md : moduleMap.values()) {
-            for (SymbolInfoExternal localSymbol : md.externalSymbols()) {
-                if ( localSymbol instanceof SymbolWildCard ) {
-                    ModuleRecord wildcardImportedRecord =
-                            this.moduleMap.get( localSymbol.moduleSource().get().source() );
-                    md.addWildcardImportedRecord( (SymbolWildCard) localSymbol,
-                            wildcardImportedRecord.symbols() );
-                } else {
-                    SymbolInfo targetSymbol = symbolSourceLookup( localSymbol );
-                    if ( targetSymbol.privacy() == Privacy.PRIVATE ) {
-                        throw new IllegalAccessSymbolException( localSymbol.name(),
-                                localSymbol.moduleTargets() );
-                    }
-                    localSymbol.setPointer( targetSymbol.node() );
-                }
-            }
-        }
-    }
-
-    /**
-     * resolve LinkedType of each ModuleRecord AST node in the Map.
-     * 
-     * @throws ModuleException if the linked type cannot find it's referencing node
-     */
-    public void resolveLinkedType() throws ModuleException
-    {
-        SymbolReferenceResolverVisitor resolver = new SymbolReferenceResolverVisitor();
-        for (ModuleRecord md : moduleMap.values()) {
-            resolver.resolve( md.program() );
-        }
-    }
-
-    /**
-     * Resolve symbols the is imported from external modules and resolve linked type's pointer
-     * 
-     * @throws ModuleException if the process is failed
-     */
-    public void resolve() throws ModuleException
-    {
-        try {
-            this.resolveExternalSymbols();
-        } catch (SymbolNotFoundException | IllegalAccessSymbolException
-                | DuplicateSymbolException e) {
-            throw new ModuleException( e );
-        }
-        this.resolveLinkedType();
-    }
-
-    public Map< URI, SymbolTable > symbolTables()
-    {
-        return this.symbolTables;
-    }
+public class GlobalSymbolReferenceResolver {
+	private final Map< URI, ModuleRecord > moduleMap;
+	private final Map< URI, SymbolTable > symbolTables;
+
+	public GlobalSymbolReferenceResolver( ModuleCrawlerResult moduleMap ) {
+		this.moduleMap = moduleMap.toMap();
+		this.symbolTables = new HashMap<>();
+		for( ModuleRecord mr : this.moduleMap.values() ) {
+			this.symbolTables.put( mr.source(), mr.symbolTable() );
+		}
+	}
+
+	private class SymbolReferenceResolverVisitor implements OLVisitor {
+
+		private URI currentURI;
+		private boolean valid = true;
+		private Exception error;
+
+		protected SymbolReferenceResolverVisitor() {}
+
+
+		/**
+		 * Walk through the Jolie AST tree and resolve the call of external Symbols.
+		 */
+		public void resolve( Program p ) throws ModuleException {
+			currentURI = p.context().source();
+			visit( p );
+			if( !this.valid ) {
+				throw new ModuleException( p.context(), this.error );
+			}
+			return;
+		}
+
+		@Override
+		public void visit( Program n ) {
+			for( OLSyntaxNode node : n.children() ) {
+				if( !this.valid ) {
+					return;
+				}
+				node.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( OneWayOperationDeclaration decl ) {
+			decl.requestType().accept( this );
+		}
+
+		@Override
+		public void visit( RequestResponseOperationDeclaration decl ) {
+			decl.requestType().accept( this );
+			decl.responseType().accept( this );
+			for( TypeDefinition fault : decl.faults().values() ) {
+				fault.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( DefinitionNode n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( ParallelStatement n ) {
+			for( OLSyntaxNode node : n.children() ) {
+				node.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( SequenceStatement n ) {
+			for( OLSyntaxNode node : n.children() ) {
+				node.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( NDChoiceStatement n ) {
+			for( Pair< OLSyntaxNode, OLSyntaxNode > child : n.children() ) {
+				child.key().accept( this );
+				child.value().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( OneWayOperationStatement n ) {}
+
+		@Override
+		public void visit( RequestResponseOperationStatement n ) {
+			n.process().accept( this );
+		}
+
+		@Override
+		public void visit( NotificationOperationStatement n ) {}
+
+		@Override
+		public void visit( SolicitResponseOperationStatement n ) {
+			if( n.handlersFunction() != null ) {
+				for( Pair< String, OLSyntaxNode > handler : n.handlersFunction().pairs() ) {
+					handler.value().accept( this );
+				}
+			}
+		}
+
+		@Override
+		public void visit( LinkInStatement n ) {}
+
+		@Override
+		public void visit( LinkOutStatement n ) {}
+
+		@Override
+		public void visit( AssignStatement n ) {
+			n.expression().accept( this );
+		}
+
+		@Override
+		public void visit( AddAssignStatement n ) {
+			n.expression().accept( this );
+		}
+
+		@Override
+		public void visit( SubtractAssignStatement n ) {
+			n.expression().accept( this );
+		}
+
+		@Override
+		public void visit( MultiplyAssignStatement n ) {
+			n.expression().accept( this );
+		}
+
+		@Override
+		public void visit( DivideAssignStatement n ) {
+			n.expression().accept( this );
+		}
+
+		@Override
+		public void visit( IfStatement n ) {
+			for( Pair< OLSyntaxNode, OLSyntaxNode > child : n.children() ) {
+				child.key().accept( this );
+				child.value().accept( this );
+			}
+			if( n.elseProcess() != null ) {
+				n.elseProcess().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( DefinitionCallStatement n ) {
+
+			Optional< SymbolInfo > symbol = getSymbol( n.context(), n.id() );
+			if( !symbol.isPresent() ) {
+				this.valid = false;
+				this.error = new SymbolNotFoundException( n.id() );
+				return;
+			}
+			if( !(symbol.get().node() instanceof DefinitionNode) ) {
+				this.valid = false;
+				this.error = new SymbolTypeMismatchException( n.id(), "DefintionNode",
+					symbol.get().node().getClass().getSimpleName() );
+				return;
+			}
+
+			DefinitionNode linkedNode = (DefinitionNode) symbol.get().node();
+			n.setDefinitionLink( linkedNode );
+		}
+
+		@Override
+		public void visit( WhileStatement n ) {
+			n.condition().accept( this );
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( OrConditionNode n ) {
+			for( OLSyntaxNode node : n.children() ) {
+				node.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( AndConditionNode n ) {
+			for( OLSyntaxNode node : n.children() ) {
+				node.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( NotExpressionNode n ) {
+			n.expression().accept( this );
+		}
+
+		@Override
+		public void visit( CompareConditionNode n ) {
+			n.leftExpression().accept( this );
+			n.rightExpression().accept( this );
+		}
+
+		@Override
+		public void visit( ConstantIntegerExpression n ) {}
+
+		@Override
+		public void visit( ConstantDoubleExpression n ) {}
+
+		@Override
+		public void visit( ConstantBoolExpression n ) {}
+
+		@Override
+		public void visit( ConstantLongExpression n ) {}
+
+		@Override
+		public void visit( ConstantStringExpression n ) {}
+
+		@Override
+		public void visit( ProductExpressionNode n ) {
+			for( Pair< OperandType, OLSyntaxNode > node : n.operands() ) {
+				node.value().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( SumExpressionNode n ) {
+			for( Pair< OperandType, OLSyntaxNode > node : n.operands() ) {
+				node.value().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( VariableExpressionNode n ) {}
+
+		@Override
+		public void visit( NullProcessStatement n ) {}
+
+		@Override
+		public void visit( jolie.lang.parse.ast.Scope n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( InstallStatement n ) {
+			for( Pair< String, OLSyntaxNode > handlerFunction : n.handlersFunction().pairs() ) {
+				handlerFunction.value().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( CompensateStatement n ) {}
+
+		@Override
+		public void visit( ThrowStatement n ) {
+			if( n.expression() != null ) {
+				n.expression().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( ExitStatement n ) {}
+
+		@Override
+		public void visit( ExecutionInfo n ) {}
+
+		@Override
+		public void visit( CorrelationSetInfo n ) {}
+
+		@Override
+		public void visit( InputPortInfo n ) {
+			// resolve interface definition
+			for( InterfaceDefinition iface : n.getInterfaceList() ) {
+				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
+				if( !symbol.isPresent() ) {
+					this.valid = false;
+					this.error = new SymbolNotFoundException( iface.name() );
+					return;
+				}
+				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
+					this.valid = false;
+					this.error = new SymbolTypeMismatchException( n.id(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() );
+					return;
+				}
+				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
+				ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
+					iface.addOperation( op );
+					n.addOperation( op );
+				} );
+				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+			}
+			for( OperationDeclaration op : n.operations() ) {
+				op.accept( this );
+			}
+			for( AggregationItemInfo aggregationItem : n.aggregationList() ) {
+				if( aggregationItem.interfaceExtender() != null ) {
+					aggregationItem.interfaceExtender().accept( this );
+				}
+			}
+		}
+
+		@Override
+		public void visit( OutputPortInfo n ) {
+			// resolve interface definition
+			for( InterfaceDefinition iface : n.getInterfaceList() ) {
+				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
+				if( !symbol.isPresent() ) {
+					this.valid = false;
+					this.error = new SymbolNotFoundException( iface.name() );
+					return;
+				}
+				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
+					this.valid = false;
+					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() );
+					return;
+				}
+				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
+				ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
+					iface.addOperation( op );
+					n.addOperation( op );
+				} );
+				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+			}
+			for( OperationDeclaration op : n.operations() ) {
+				op.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( PointerStatement n ) {}
+
+		@Override
+		public void visit( DeepCopyStatement n ) {
+			n.rightExpression().accept( this );
+		}
+
+		@Override
+		public void visit( RunStatement n ) {}
+
+		@Override
+		public void visit( UndefStatement n ) {}
+
+		@Override
+		public void visit( ValueVectorSizeExpressionNode n ) {}
+
+		@Override
+		public void visit( PreIncrementStatement n ) {}
+
+		@Override
+		public void visit( PostIncrementStatement n ) {}
+
+		@Override
+		public void visit( PreDecrementStatement n ) {}
+
+		@Override
+		public void visit( PostDecrementStatement n ) {}
+
+		@Override
+		public void visit( ForStatement n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( ForEachSubNodeStatement n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( ForEachArrayItemStatement n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( SpawnStatement n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( IsTypeExpressionNode n ) {}
+
+		@Override
+		public void visit( InstanceOfExpressionNode n ) {
+			n.type().accept( this );
+		}
+
+		@Override
+		public void visit( TypeCastExpressionNode n ) {}
+
+		@Override
+		public void visit( SynchronizedStatement n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( CurrentHandlerStatement n ) {}
+
+		@Override
+		public void visit( EmbeddedServiceNode n ) {
+			if( n.program() != null ) {
+				n.program().accept( this );
+			}
+		}
+
+
+		@Override
+		public void visit( InstallFixedVariableExpressionNode n ) {}
+
+		@Override
+		public void visit( VariablePathNode n ) {}
+
+		@Override
+		public void visit( TypeInlineDefinition n ) {
+			if( n.hasSubTypes() ) {
+				for( Map.Entry< String, TypeDefinition > subType : n.subTypes() ) {
+					subType.getValue().accept( this );
+				}
+			}
+		}
+
+		@Override
+		public void visit( TypeDefinitionLink n ) {
+			TypeDefinition linkedType = null;
+			if( n.linkedTypeName().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
+				linkedType = TypeDefinitionUndefined.getInstance();
+			} else {
+				Optional< SymbolInfo > targetSymbolInfo =
+					getSymbol( n.context(), n.linkedTypeName() );
+				if( !targetSymbolInfo.isPresent() ) {
+					this.valid = false;
+					this.error = new SymbolNotFoundException( n.id() );
+					return;
+				}
+				if( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
+					this.valid = false;
+					this.error = new SymbolTypeMismatchException( n.id(), "TypeDefinition",
+						targetSymbolInfo.get().node().getClass().getSimpleName() );
+					return;
+				}
+				linkedType = (TypeDefinition) targetSymbolInfo.get().node();
+				if( linkedType.equals( n ) ) {
+					this.valid = false;
+					this.error = new SymbolNotFoundException( n.id() );
+					return;
+				}
+			}
+			n.setLinkedType( linkedType );
+		}
+
+		@Override
+		public void visit( InterfaceDefinition n ) {
+			for( OperationDeclaration op : n.operationsMap().values() ) {
+				op.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( DocumentationComment n ) {}
+
+		@Override
+		public void visit( FreshValueExpressionNode n ) {}
+
+		@Override
+		public void visit( CourierDefinitionNode n ) {
+			n.body().accept( this );
+		}
+
+		@Override
+		public void visit( CourierChoiceStatement n ) {
+			for( InterfaceOneWayBranch owIfaceBranch : n.interfaceOneWayBranches() ) {
+				InterfaceDefinition iface = owIfaceBranch.interfaceDefinition;
+
+				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
+				if( !symbol.isPresent() ) {
+					this.valid = false;
+					this.error = new SymbolNotFoundException( iface.name() );
+					return;
+				}
+				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
+					this.valid = false;
+					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() );
+					return;
+				}
+				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
+				ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
+					iface.addOperation( op );
+					op.accept( this );
+				} );
+				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+
+				owIfaceBranch.body.accept( this );
+			}
+
+			for( InterfaceRequestResponseBranch rrIfaceBranch : n
+				.interfaceRequestResponseBranches() ) {
+				InterfaceDefinition iface = rrIfaceBranch.interfaceDefinition;
+
+				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
+				if( !symbol.isPresent() ) {
+					this.valid = false;
+					this.error = new SymbolNotFoundException( iface.name() );
+					return;
+				}
+				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
+					this.valid = false;
+					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() );
+					return;
+				}
+				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
+				ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
+					iface.addOperation( op );
+					op.accept( this );
+				} );
+				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+
+				rrIfaceBranch.body.accept( this );
+			}
+
+			for( OperationOneWayBranch owBranch : n.operationOneWayBranches() ) {
+				owBranch.body.accept( this );
+			}
+
+			for( OperationRequestResponseBranch rrBranch : n.operationRequestResponseBranches() ) {
+				rrBranch.body.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( NotificationForwardStatement n ) {}
+
+		@Override
+		public void visit( SolicitResponseForwardStatement n ) {}
+
+		@Override
+		public void visit( InterfaceExtenderDefinition n ) {
+			if( n.defaultOneWayOperation() != null ) {
+				n.defaultOneWayOperation().accept( this );
+			}
+			if( n.defaultRequestResponseOperation() != null ) {
+				n.defaultRequestResponseOperation().accept( this );
+			}
+			for( OperationDeclaration op : n.operationsMap().values() ) {
+				op.accept( this );
+			}
+		}
+
+		@Override
+		public void visit( InlineTreeExpressionNode n ) {
+			for( Operation operation : n.operations() ) {
+				if( operation instanceof InlineTreeExpressionNode.AssignmentOperation ) {
+					((InlineTreeExpressionNode.AssignmentOperation) operation).expression()
+						.accept( this );;
+				} else if( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
+					((InlineTreeExpressionNode.DeepCopyOperation) operation).expression()
+						.accept( this );;
+				}
+			}
+		}
+
+		@Override
+		public void visit( VoidExpressionNode n ) {}
+
+		@Override
+		public void visit( ProvideUntilStatement n ) {
+			n.provide().accept( this );
+			n.until().accept( this );
+		}
+
+		@Override
+		public void visit( TypeChoiceDefinition n ) {
+			n.left().accept( this );
+			if( n.right() != null ) {
+				n.right().accept( this );
+			}
+		}
+
+		@Override
+		public void visit( ImportStatement n ) {}
+
+		private Optional< SymbolInfo > getSymbol( ParsingContext context, String name ) {
+			Optional< SymbolInfo > symbol = Helpers.firstNonNull( () -> {
+				if( !symbolTables.containsKey( currentURI )
+					|| !symbolTables.get( currentURI ).symbol( name ).isPresent() ) {
+					return null;
+				}
+				return symbolTables.get( currentURI ).symbol( name ).get();
+			}, () -> {
+				if( !symbolTables.containsKey( context.source() )
+					|| !symbolTables.get( context.source() ).symbol( name ).isPresent() ) {
+					return null;
+				}
+				return symbolTables.get( context.source() ).symbol( name ).get();
+			} );
+			return symbol;
+		}
+	}
+
+	/**
+	 * perform lookup to external symbol's source of AST node
+	 * 
+	 * @throws SymbolNotFoundException
+	 */
+	private SymbolInfo symbolSourceLookup( SymbolInfoExternal symbolInfo )
+		throws SymbolNotFoundException {
+		ModuleRecord externalSourceRecord =
+			this.moduleMap.get( symbolInfo.moduleSource().get().source() );
+		Optional< SymbolInfo > externalSourceSymbol =
+			externalSourceRecord.symbol( symbolInfo.moduleSymbol() );
+		if( !externalSourceSymbol.isPresent() ) {
+			throw new SymbolNotFoundException( symbolInfo.name(), symbolInfo.moduleTargets() );
+		}
+		if( externalSourceSymbol.get().scope() == Scope.LOCAL ) {
+			return externalSourceSymbol.get();
+		} else {
+			return symbolSourceLookup( (SymbolInfoExternal) externalSourceSymbol.get() );
+		}
+	}
+
+	/**
+	 * Find and set a pointer of externalSymbol to it's corresponding AST node by perform lookup at
+	 * ModuleRecord Map, a result from ModuleCrawler.
+	 * 
+	 * @throws DuplicateSymbolException
+	 * @throws IllegalAccessSymbolException
+	 * @throws SymbolNotFoundException
+	 * 
+	 */
+	public void resolveExternalSymbols()
+		throws SymbolNotFoundException, IllegalAccessSymbolException, DuplicateSymbolException {
+		for( ModuleRecord md : moduleMap.values() ) {
+			for( SymbolInfoExternal localSymbol : md.externalSymbols() ) {
+				if( localSymbol instanceof SymbolWildCard ) {
+					ModuleRecord wildcardImportedRecord =
+						this.moduleMap.get( localSymbol.moduleSource().get().source() );
+					md.addWildcardImportedRecord( (SymbolWildCard) localSymbol,
+						wildcardImportedRecord.symbols() );
+				} else {
+					SymbolInfo targetSymbol = symbolSourceLookup( localSymbol );
+					if( targetSymbol.privacy() == Privacy.PRIVATE ) {
+						throw new IllegalAccessSymbolException( localSymbol.name(),
+							localSymbol.moduleTargets() );
+					}
+					localSymbol.setPointer( targetSymbol.node() );
+				}
+			}
+		}
+	}
+
+	/**
+	 * resolve LinkedType of each ModuleRecord AST node in the Map.
+	 * 
+	 * @throws ModuleException if the linked type cannot find it's referencing node
+	 */
+	public void resolveLinkedType() throws ModuleException {
+		SymbolReferenceResolverVisitor resolver = new SymbolReferenceResolverVisitor();
+		for( ModuleRecord md : moduleMap.values() ) {
+			resolver.resolve( md.program() );
+		}
+	}
+
+	/**
+	 * Resolve symbols the is imported from external modules and resolve linked type's pointer
+	 * 
+	 * @throws ModuleException if the process is failed
+	 */
+	public void resolve() throws ModuleException {
+		try {
+			this.resolveExternalSymbols();
+		} catch( SymbolNotFoundException | IllegalAccessSymbolException
+			| DuplicateSymbolException e ) {
+			throw new ModuleException( e );
+		}
+		this.resolveLinkedType();
+	}
+
+	public Map< URI, SymbolTable > symbolTables() {
+		return this.symbolTables;
+	}
 }

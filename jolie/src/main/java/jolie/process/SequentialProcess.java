@@ -26,20 +26,17 @@ import jolie.ExecutionThread;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
-public class SequentialProcess implements Process
-{
+public class SequentialProcess implements Process {
 	final private Process[] children;
-	
-	public SequentialProcess( Process[] children )
-	{
-		if ( children.length < 1 ) {
+
+	public SequentialProcess( Process[] children ) {
+		if( children.length < 1 ) {
 			throw new IllegalArgumentException( "Process sequences must contain at least one child." );
 		}
 		this.children = children;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		Process[] p = new Process[ children.length ];
 		int i = 0;
 		for( Process child : children ) {
@@ -47,21 +44,19 @@ public class SequentialProcess implements Process
 		}
 		return new SequentialProcess( p );
 	}
-	
+
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Process proc : children ) {
-			if ( ethread.isKilled() && proc.isKillable() ){
+			if( ethread.isKilled() && proc.isKillable() ) {
 				return;
 			}
 			proc.run();
 		}
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return children[ 0 ].isKillable();
 	}
 }

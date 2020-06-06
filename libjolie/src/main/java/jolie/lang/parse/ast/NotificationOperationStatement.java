@@ -25,42 +25,35 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class NotificationOperationStatement extends OLSyntaxNode
-{
+public class NotificationOperationStatement extends OLSyntaxNode {
 	private final String id, outputPortId;
 	private final OLSyntaxNode outputExpression;
-	
+
 	public NotificationOperationStatement(
-			ParsingContext context,
-			String id,
-			String outputPortId,
-			OLSyntaxNode outputExpression
-			)
-	{
+		ParsingContext context,
+		String id,
+		String outputPortId,
+		OLSyntaxNode outputExpression ) {
 		super( context );
 		this.id = id;
 		this.outputExpression = outputExpression;
 		this.outputPortId = outputPortId;
 	}
-	
-	public String id()
-	{
+
+	public String id() {
 		return id;
 	}
-	
-	public String outputPortId()
-	{
+
+	public String outputPortId() {
 		return outputPortId;
 	}
-	
-	public OLSyntaxNode outputExpression()
-	{
+
+	public OLSyntaxNode outputExpression() {
 		return outputExpression;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

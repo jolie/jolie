@@ -26,43 +26,36 @@ import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
-public class PostDecrementProcess implements Process, Expression
-{
+public class PostDecrementProcess implements Process, Expression {
 	final private VariablePath path;
 
-	public PostDecrementProcess( VariablePath varPath )
-	{
+	public PostDecrementProcess( VariablePath varPath ) {
 		this.path = varPath;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
-		return new PostDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
-	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
-	
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+
+	public Expression cloneExpression( TransformationReason reason ) {
+		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
+	}
+
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
 		Value val = path.getValue();
 		val.setValue( val.intValue() - 1 );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		Value val = path.getValue();
 		Value orig = Value.create( val.intValue() );
 		val.setValue( val.intValue() - 1 );
 		return orig;
 	}
-	
-	public boolean isKillable()
-	{
+
+	public boolean isKillable() {
 		return true;
 	}
 }

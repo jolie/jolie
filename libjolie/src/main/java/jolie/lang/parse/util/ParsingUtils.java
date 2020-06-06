@@ -40,15 +40,13 @@ import jolie.lang.parse.module.ModuleRecord;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
- * Utility class for accessing the functionalities of the JOLIE parsing
- * library without having to worry about correctly instantiating all
- * the related objects (parser, scanner, etc.).
+ * Utility class for accessing the functionalities of the JOLIE parsing library without having to
+ * worry about correctly instantiating all the related objects (parser, scanner, etc.).
+ * 
  * @author Fabrizio Montesi
  */
-public class ParsingUtils
-{
-	private ParsingUtils()
-	{}
+public class ParsingUtils {
+	private ParsingUtils() {}
 
 	public static Program parseProgram(
 		InputStream inputStream,
@@ -59,25 +57,23 @@ public class ParsingUtils
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration configuration,
-		boolean includeDocumentation
-	)
-		throws IOException, ParserException, SemanticException, ModuleException
-	{
+		boolean includeDocumentation )
+		throws IOException, ParserException, SemanticException, ModuleException {
 
 		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader, includeDocumentation );
 		parser.putConstants( definedConstants );
 		ModuleRecord mainRecord = parser.parse( source );
 
-		ModuleCrawler crawler = new ModuleCrawler( Paths.get(source).getParent(), packagesPaths, parser );
+		ModuleCrawler crawler = new ModuleCrawler( Paths.get( source ).getParent(), packagesPaths, parser );
 		ModuleCrawlerResult crawlResult = crawler.crawl( mainRecord );
 
 		GlobalSymbolReferenceResolver symbolResolver =
-				new GlobalSymbolReferenceResolver( crawlResult );
-				
+			new GlobalSymbolReferenceResolver( crawlResult );
+
 		symbolResolver.resolve();
 
 		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
-				symbolResolver.symbolTables(), configuration );
+			symbolResolver.symbolTables(), configuration );
 		semanticVerifier.validate();
 		return mainRecord.program();
 	}
@@ -90,20 +86,18 @@ public class ParsingUtils
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration configuration,
-		boolean includeDocumentation
-	)
-		throws IOException, ParserException, SemanticException, ModuleException
-	{
+		boolean includeDocumentation )
+		throws IOException, ParserException, SemanticException, ModuleException {
 		return parseProgram(
 			inputStream,
 			source,
 			charset,
 			includePaths,
-			new String[0],
+			new String[ 0 ],
 			classLoader,
 			definedConstants,
 			configuration,
-			includeDocumentation);
+			includeDocumentation );
 	}
 
 	public static Program parseProgram(
@@ -113,10 +107,8 @@ public class ParsingUtils
 		String[] includePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
-		boolean includeDocumentation
-	)
-		throws IOException, ParserException, SemanticException, ModuleException
-	{
+		boolean includeDocumentation )
+		throws IOException, ParserException, SemanticException, ModuleException {
 		return parseProgram(
 			inputStream,
 			source,
@@ -125,17 +117,17 @@ public class ParsingUtils
 			classLoader,
 			definedConstants,
 			new SemanticVerifier.Configuration(),
-			includeDocumentation);
+			includeDocumentation );
 	}
-	
+
 	/**
 	 * Creates a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}.
+	 * 
 	 * @param program the {@link jolie.lang.parse.ast.Program} to inspect
 	 * @return a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}
 	 * @see ProgramInspector
 	 */
-	public static ProgramInspector createInspector( Program program )
-	{
+	public static ProgramInspector createInspector( Program program ) {
 		return new ProgramInspectorCreatorVisitor( program ).createInspector();
 	}
 }

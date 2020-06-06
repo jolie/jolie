@@ -36,79 +36,63 @@ import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 
 /**
- * <code>LocalListener</code> is used internally by the interpreter for receiving
- * local messages.
+ * <code>LocalListener</code> is used internally by the interpreter for receiving local messages.
  * 
  * @author Fabrizio Montesi
  */
-public class LocalListener extends CommListener
-{
-	public static LocalListener create( Interpreter interpreter, InputPort inputPort )
-	{
+public class LocalListener extends CommListener {
+	public static LocalListener create( Interpreter interpreter, InputPort inputPort ) {
 		VariablePath locationPath =
 			new ClosedVariablePath(
 				new VariablePathBuilder( true )
-				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( Constants.LOCAL_INPUT_PORT_NAME, 0 )
-				.add( Constants.LOCATION_NODE_NAME, 0 )
-				.toVariablePath(),
-				interpreter.globalValue()
-			);
+					.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+					.add( Constants.LOCAL_INPUT_PORT_NAME, 0 )
+					.add( Constants.LOCATION_NODE_NAME, 0 )
+					.toVariablePath(),
+				interpreter.globalValue() );
 		return new LocalListener( interpreter, locationPath, inputPort );
 	}
-	
-	public static LocalListener create( Interpreter interpreter )
-	{
-		return create(interpreter, null );
+
+	public static LocalListener create( Interpreter interpreter ) {
+		return create( interpreter, null );
 	}
-	
-	private LocalListener( Interpreter interpreter, VariablePath locationPath, InputPort inputPort )
-	{
+
+	private LocalListener( Interpreter interpreter, VariablePath locationPath, InputPort inputPort ) {
 		super( interpreter, inputPort == null ? new InputPort(
-				Constants.LOCAL_INPUT_PORT_NAME,
-				locationPath,
-				new VariablePathBuilder( true ).toVariablePath(),
-				new Interface(
-					new HashMap< String, OneWayTypeDescription >(),
-					new HashMap< String, RequestResponseTypeDescription >()
-				),
-				new HashMap< String, AggregatedOperation >(),
-				new HashMap< String, OutputPort >()
-			) : inputPort
-		);
+			Constants.LOCAL_INPUT_PORT_NAME,
+			locationPath,
+			new VariablePathBuilder( true ).toVariablePath(),
+			new Interface(
+				new HashMap< String, OneWayTypeDescription >(),
+				new HashMap< String, RequestResponseTypeDescription >() ),
+			new HashMap< String, AggregatedOperation >(),
+			new HashMap< String, OutputPort >() ) : inputPort );
 		locationPath.getValue().setValue( Constants.LOCAL_LOCATION_KEYWORD );
 	}
-	
-	public void mergeInterface( Interface iface )
-	{
+
+	public void mergeInterface( Interface iface ) {
 		inputPort().getInterface().merge( iface );
 	}
-	
-	public void addRedirections( Map< String, OutputPort > redirectionMap )
-	{
+
+	public void addRedirections( Map< String, OutputPort > redirectionMap ) {
 		inputPort().redirectionMap().putAll( redirectionMap );
 	}
 
-	public void addAggregations( Map< String, AggregatedOperation > aggregationMap )
-	{
+	public void addAggregations( Map< String, AggregatedOperation > aggregationMap ) {
 		inputPort().aggregationMap().putAll( aggregationMap );
 	}
 
 	@Override
-	public void shutdown()
-	{}
-	
+	public void shutdown() {}
+
 	@Override
-	public void run()
-	{}
-	
+	public void run() {}
+
 	@Override
-	public CommProtocol createProtocol()
-	{
+	public CommProtocol createProtocol() {
 		return null;
 	}
-	
+
 	@Override
-	final public synchronized void start()
-	{}
+	final public synchronized void start() {}
 }

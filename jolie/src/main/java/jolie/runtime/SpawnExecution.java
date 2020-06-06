@@ -31,61 +31,54 @@ import jolie.SessionThread;
 import jolie.process.Process;
 import jolie.process.SpawnProcess;
 
-public class SpawnExecution
-{
-	private class SpawnedThread extends SessionThread
-	{
+public class SpawnExecution {
+	private class SpawnedThread extends SessionThread {
 		private final int index;
 
 		public SpawnedThread(
 			ExecutionThread parentThread,
 			Process process,
-			int index
-		)
-		{
+			int index ) {
 			super( process, parentThread );
 			this.index = index;
 		}
 
 		@Override
-		public void runProcess()
-		{
+		public void runProcess() {
 			parentSpawnProcess.indexPath().getValue().setValue( index );
 			try {
 				process().run();
-			} catch( FaultException | ExitingException | FaultException.RuntimeFaultException f ) {}
-			
+			} catch( FaultException | ExitingException | FaultException.RuntimeFaultException f ) {
+			}
+
 			terminationNotify( this );
 		}
 	}
-	
+
 	private final Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
 	private final SpawnProcess parentSpawnProcess;
 	private final ExecutionThread ethread;
 	private CountDownLatch latch;
 
-	public SpawnExecution( SpawnProcess parent )
-	{
+	public SpawnExecution( SpawnProcess parent ) {
 		this.parentSpawnProcess = parent;
 		this.ethread = ExecutionThread.currentThread();
 	}
-	
+
 	public void run()
-		throws FaultException
-	{		
-		if ( parentSpawnProcess.inPath() != null ) {
+		throws FaultException {
+		if( parentSpawnProcess.inPath() != null ) {
 			parentSpawnProcess.inPath().undef();
 		}
 		int upperBound = parentSpawnProcess.upperBound().evaluate().intValue();
 		latch = new CountDownLatch( upperBound );
 		SpawnedThread thread;
-		
+
 		for( int i = 0; i < upperBound; i++ ) {
 			thread = new SpawnedThread(
 				ethread,
 				parentSpawnProcess.body(),
-				i
-			);
+				i );
 			threads.add( thread );
 		}
 
@@ -93,22 +86,21 @@ public class SpawnExecution
 			// We start threads in this other cycle to avoid race conditions on inPath
 			t.start();
 		}
-		
+
 		try {
 			latch.await();
 		} catch( InterruptedException e ) {
 			Interpreter.getInstance().logWarning( e );
 		}
 	}
-	
-	private void terminationNotify( SpawnedThread thread )
-	{
+
+	private void terminationNotify( SpawnedThread thread ) {
 		synchronized( this ) {
-			if ( parentSpawnProcess.inPath() != null ) {
+			if( parentSpawnProcess.inPath() != null ) {
 				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( thread.index )
 					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
 			}
-			
+
 			latch.countDown();
 		}
 	}

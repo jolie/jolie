@@ -25,31 +25,26 @@ package jolie.process;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
-public class DefinitionProcess implements Process
-{
+public class DefinitionProcess implements Process {
 	final protected Process process;
 
-	public DefinitionProcess( Process process )
-	{
+	public DefinitionProcess( Process process ) {
 		this.process = process;
 	}
-	
-	public Process copy( TransformationReason reason )
-	{
+
+	public Process copy( TransformationReason reason ) {
 		return new DefinitionProcess( process.copy( reason ) );
 	}
 
 	public void run()
-		throws FaultException, ExitingException
-	{
-		if ( process != null ) {
+		throws FaultException, ExitingException {
+		if( process != null ) {
 			process.run();
 		}
 	}
-	
-	public boolean isKillable()
-	{
-		if ( process != null ) {
+
+	public boolean isKillable() {
+		if( process != null ) {
 			return process.isKillable();
 		}
 		return true;

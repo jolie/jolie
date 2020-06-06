@@ -29,39 +29,35 @@ import jolie.CommandLineException;
 import jolie.Interpreter;
 import jolie.runtime.expression.Expression;
 
-public class JolieServiceLoader extends EmbeddedServiceLoader
-{
+public class JolieServiceLoader extends EmbeddedServiceLoader {
 	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
 	private final Interpreter interpreter;
-	
+
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
-		throws IOException, CommandLineException
-	{
+		throws IOException, CommandLineException {
 		super( channelDest );
 		final String[] ss = servicePathSplitPattern.split( servicePath );
 		final String[] options = currInterpreter.optionArgs();
 
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
-		newArgs[0] = "-i";
-		newArgs[1] = currInterpreter.programDirectory().getAbsolutePath();
+		newArgs[ 0 ] = "-i";
+		newArgs[ 1 ] = currInterpreter.programDirectory().getAbsolutePath();
 
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		interpreter = new Interpreter(
 			newArgs,
 			currInterpreter.getClassLoader(),
-			currInterpreter.programDirectory()
-		);
+			currInterpreter.programDirectory() );
 	}
 
 	@Override
 	public void load()
-		throws EmbeddedServiceLoadingException
-	{
+		throws EmbeddedServiceLoadingException {
 		Future< Exception > f = interpreter.start();
 		try {
 			Exception e = f.get();
-			if ( e == null ) {
+			if( e == null ) {
 				setChannel( interpreter.commCore().getLocalCommChannel() );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
@@ -71,8 +67,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		}
 	}
 
-	public Interpreter interpreter()
-	{
+	public Interpreter interpreter() {
 		return interpreter;
 	}
 }

@@ -25,25 +25,21 @@ package jolie.runtime;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 
-public class RequestResponseOperation extends InputOperation
-{
+public class RequestResponseOperation extends InputOperation {
 	private RequestResponseTypeDescription typeDescription;
 
 	public RequestResponseOperation(
 		String id,
-		RequestResponseTypeDescription typeDescription
-	) {
+		RequestResponseTypeDescription typeDescription ) {
 		super( id );
 		this.typeDescription = typeDescription;
 	}
 
-	public RequestResponseTypeDescription typeDescription()
-	{
+	public RequestResponseTypeDescription typeDescription() {
 		return typeDescription;
 	}
 
-	public Type requestType()
-	{
+	public Type requestType() {
 		return typeDescription.requestType();
 	}
 }

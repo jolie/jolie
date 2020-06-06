@@ -430,5 +430,95 @@ define doTest
        throw( TestFailed, "Expected false for portDefinitionLessThan between meta_description3.input and meta_description4.input" )
    }
 
+   // messageTypeCast
+   undef( rq )
+   rq.filename = "private/sample_service.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description )
+   rq_mtc << {
+       message << {
+           testf = "hello"
+       },
+       types << {
+           messageTypeName = "T1",
+           types << meta_description.input.interfaces.types
+       }
+   }
+   scope( test_type_mismatch ) {
+       install( TypeMismatch => nullProcess )
+       messageTypeCast@MetaJolie( rq_mtc )( rq_mtc_res )
+       throw( TestFailed, "Expected fault TypeMismatch for type T1" )
+   }
+
+   rq_mtc << {
+       message << {
+           fieldchoice4 = "hello"
+       },
+       types << {
+           messageTypeName = "T3",
+           types << meta_description.input.interfaces.types
+       }
+   }
+   scope( test_type_mismatch ) {
+       install( TypeMismatch => nullProcess )
+       messageTypeCast@MetaJolie( rq_mtc )( rq_mtc_res )
+       throw( TestFailed, "Expected fault TypeMismatch for type T3" )
+   }
+
+   rq_mtc << {
+       message << {
+           fieldChoice2 = 1,
+           fieldChoice3 << {
+               field = 10.0,
+               recursion << {
+                   fieldChoice = "11.1"
+               }
+           }
+       },
+       types << {
+           messageTypeName = "T3",
+           types << meta_description.input.interfaces.types
+       }
+   }
+   scope( compare_values ) {
+      install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
+      install( TypeMismatch => throw( TestFailed, "TypeMismatch not expected here") )
+      messageTypeCast@MetaJolie( rq_mtc )( rq_mtc_res )
+      compareValuesVectorLight@MetaJolie( { .v1 << rq_mtc_res.message, .v2 << "" {
+           fieldChoice2 = "1",
+           fieldChoice3 << {
+               field = "10.0",
+               recursion << {
+                   fieldChoice = 11.1
+               }
+           }
+      } } )()
+   }
+
+   undef( rq_mtc )
+   rq_mtc << {
+       message << {
+           fieldChoice3 << {
+               field = 10.0,
+               recursion << {
+                   fieldChoice = "11.1"
+               }
+           }
+       },
+       types << {
+           messageTypeName = "T3",
+           types << meta_description.input.interfaces.types
+       }
+   }
+   scope( test_type_mismatch ) {
+       install( TypeMismatch => nullProcess )
+       messageTypeCast@MetaJolie( rq_mtc )( rq_mtc_res )
+       throw( TestFailed, "Expected fault TypeMismatch for type T3 in the case fieldChoice2 is missing" )
+   }
+   
+
+ 
+
+
+
 
 }

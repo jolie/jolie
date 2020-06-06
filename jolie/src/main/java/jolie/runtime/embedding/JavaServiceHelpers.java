@@ -29,40 +29,32 @@ import jolie.runtime.Value;
  *
  * @author Fabrizio Montesi
  */
-public class JavaServiceHelpers
-{
-	public static Value createValue( Value value )
-	{
+public class JavaServiceHelpers {
+	public static Value createValue( Value value ) {
 		return value;
 	}
-	
-	public static Long valueToLong( Value value )
-	{
+
+	public static Long valueToLong( Value value ) {
 		return value.longValue();
 	}
-	
-	public static Boolean valueToBoolean( Value value )
-	{
+
+	public static Boolean valueToBoolean( Value value ) {
 		return value.boolValue();
 	}
 
-	public static Integer valueToInteger( Value value )
-	{
+	public static Integer valueToInteger( Value value ) {
 		return value.intValue();
 	}
 
-	public static String valueToString( Value value )
-	{
+	public static String valueToString( Value value ) {
 		return value.strValue();
 	}
 
-	public static Double valueToDouble( Value value )
-	{
+	public static Double valueToDouble( Value value ) {
 		return value.doubleValue();
 	}
 
-	public static ByteArray valueToByteArray( Value value )
-	{
+	public static ByteArray valueToByteArray( Value value ) {
 		return value.byteArrayValue();
 	}
 }

@@ -27,123 +27,111 @@ import jolie.lang.parse.context.ParsingContext;
 /**
  * an abstract class of Symbol declaration in Jolie
  */
-public abstract class SymbolInfo
-{
+public abstract class SymbolInfo {
 
-    /**
-     * Scope of symbol,
-     * LOCAL means the symbol's AST node is declared within the local execution environment
-     * EXTERNAL means the symbol's AST node is declared in other execution environment
-     */
-    public enum Scope {
-        LOCAL, EXTERNAL
-    }
+	/**
+	 * Scope of symbol, LOCAL means the symbol's AST node is declared within the local execution
+	 * environment EXTERNAL means the symbol's AST node is declared in other execution environment
+	 */
+	public enum Scope {
+		LOCAL, EXTERNAL
+	}
 
-    /**
-     * Symbol privacy,
-     * PUBLIC means the symbol's AST node is allowed to be imported by external modules
-     * PRIVATE means the symbol's AST node is not allowed to be imported by external modules
-     */
-    public enum Privacy {
-        PUBLIC, PRIVATE
-    }
+	/**
+	 * Symbol privacy, PUBLIC means the symbol's AST node is allowed to be imported by external modules
+	 * PRIVATE means the symbol's AST node is not allowed to be imported by external modules
+	 */
+	public enum Privacy {
+		PUBLIC, PRIVATE
+	}
 
-    /**
-     * name of the symbol
-     */
-    private String name;
+	/**
+	 * name of the symbol
+	 */
+	private String name;
 
-    /**
-     * scope of this symbol
-     */
-    private Scope scope;
+	/**
+	 * scope of this symbol
+	 */
+	private Scope scope;
 
-    /**
-     * pointer to an AST node
-     */
-    private OLSyntaxNode node;
+	/**
+	 * pointer to an AST node
+	 */
+	private OLSyntaxNode node;
 
-    /**
-     * privacy of this symbol
-     */
-    final private Privacy privacy;
+	/**
+	 * privacy of this symbol
+	 */
+	final private Privacy privacy;
 
-    /**
-     * Declaration context of the symbol
-     */
-    final private ParsingContext context;
+	/**
+	 * Declaration context of the symbol
+	 */
+	final private ParsingContext context;
 
-    /**
-     * constructor for SymbolInfo, this constructor is used when it knows the ASTnode to point to
-     * corresponding to this symbol
-     * 
-     * @param name  Symbol name
-     * @param scope scope of Symbol
-     * @param node  an ASTNode implementing SymbolNode
-     */
-    public SymbolInfo( String name, Scope scope, SymbolNode node )
-    {
-        this.context = node.node().context();
-        this.name = name;
-        this.scope = scope;
-        this.privacy = node.privacy();
-        this.node = node.node();
-    }
+	/**
+	 * constructor for SymbolInfo, this constructor is used when it knows the ASTnode to point to
+	 * corresponding to this symbol
+	 * 
+	 * @param name Symbol name
+	 * @param scope scope of Symbol
+	 * @param node an ASTNode implementing SymbolNode
+	 */
+	public SymbolInfo( String name, Scope scope, SymbolNode node ) {
+		this.context = node.node().context();
+		this.name = name;
+		this.scope = scope;
+		this.privacy = node.privacy();
+		this.node = node.node();
+	}
 
-    /**
-     * constructor for SymbolInfo, this constructor is used when AST Node is unknown at creating
-     * time or in an external context
-     * 
-     * @param context context of creating Symbol
-     * @param name    Symbol name
-     * @param scope   scope of Symbol
-     */
-    public SymbolInfo( ParsingContext context, String name, Scope scope )
-    {
-        this.context = context;
-        this.name = name;
-        this.scope = scope;
-        this.privacy = Privacy.PRIVATE;
-    }
+	/**
+	 * constructor for SymbolInfo, this constructor is used when AST Node is unknown at creating time or
+	 * in an external context
+	 * 
+	 * @param context context of creating Symbol
+	 * @param name Symbol name
+	 * @param scope scope of Symbol
+	 */
+	public SymbolInfo( ParsingContext context, String name, Scope scope ) {
+		this.context = context;
+		this.name = name;
+		this.scope = scope;
+		this.privacy = Privacy.PRIVATE;
+	}
 
-    public String name()
-    {
-        return name;
-    }
+	public String name() {
+		return name;
+	}
 
-    /**
-     * set a pointer to an AST node. the pointer should be only defined once
-     */
-    public void setPointer( OLSyntaxNode pointer )
-    {
-        this.node = pointer;
-    }
+	/**
+	 * set a pointer to an AST node. the pointer should be only defined once
+	 */
+	public void setPointer( OLSyntaxNode pointer ) {
+		this.node = pointer;
+	}
 
-    public OLSyntaxNode node()
-    {
-        return node;
-    }
+	public OLSyntaxNode node() {
+		return node;
+	}
 
-    public Scope scope()
-    {
-        return scope;
-    }
+	public Scope scope() {
+		return scope;
+	}
 
-    public Privacy privacy()
-    {
-        return privacy;
-    }
+	public Privacy privacy() {
+		return privacy;
+	}
 
-    public ParsingContext context()
-    {
-        return context;
-    }
+	public ParsingContext context() {
+		return context;
+	}
 
-    @Override
-    public String toString()
-    {
-        return "SymbolInfo [name=" + name + ", scope=" + scope + "]";
-    }
+	@Override
+	public String toString() {
+		return "SymbolInfo [name=" + name + ", scope=" + scope + "]";
+	}
 
 
 }

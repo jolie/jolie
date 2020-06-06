@@ -30,24 +30,23 @@ import jolie.lang.parse.ast.types.TypeDefinition;
  *
  * @author Claudio Guidi
  */
-public class Operations
-{
+public class Operations {
 	public static RequestResponseOperationDeclaration extend(
 		RequestResponseOperationDeclaration operation,
 		RequestResponseOperationDeclaration extender,
-		String namePrefix
-	) {
+		String namePrefix ) {
 		TypeDefinition newRequestType = operation.requestType();
 		TypeDefinition newResponseType = operation.responseType();
-		Map<String, TypeDefinition> extendedFaultMap = new HashMap<>();
+		Map< String, TypeDefinition > extendedFaultMap = new HashMap<>();
 		extendedFaultMap.putAll( operation.faults() );
-		if ( extender != null ) {
+		if( extender != null ) {
 			newRequestType = TypeDefinition.extend( operation.requestType(), extender.requestType(), namePrefix );
 			newResponseType = TypeDefinition.extend( operation.responseType(), extender.responseType(), namePrefix );
 			extendedFaultMap.putAll( extender.faults() );
 		}
 		RequestResponseOperationDeclaration newOp =
-			new RequestResponseOperationDeclaration( operation.context(), operation.id(), newRequestType, newResponseType, extendedFaultMap );
+			new RequestResponseOperationDeclaration( operation.context(), operation.id(), newRequestType,
+				newResponseType, extendedFaultMap );
 
 		return newOp;
 	}
@@ -55,11 +54,10 @@ public class Operations
 	public static OneWayOperationDeclaration extend(
 		OneWayOperationDeclaration operation,
 		OneWayOperationDeclaration extender,
-		String namePrefix
-	) {
+		String namePrefix ) {
 
 		TypeDefinition newRequestType = operation.requestType();
-		if ( extender != null ) {
+		if( extender != null ) {
 			newRequestType = TypeDefinition.extend( operation.requestType(), extender.requestType(), namePrefix );
 		}
 		OneWayOperationDeclaration newOp =

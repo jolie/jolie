@@ -28,25 +28,24 @@ import jolie.lang.Constants;
 
 /**
  * Java representation for a Jolie fault.
+ * 
  * @author Fabrizio Montesi
  */
-public class FaultException extends Exception
-{
+public class FaultException extends Exception {
 	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 	private final String faultName;
 	private final Value value;
-	
+
 	/**
-	 * Constructor.
-	 * This constructor behaves as
-	 * {@code FaultException( faultName, Value.create( t.getMessage() ) )}, but
-	 * it also adds a {@code stackTrace} subnode to the value of this fault
-	 * containing the stack trace of the passed {@link Throwable} t.
+	 * Constructor. This constructor behaves as
+	 * {@code FaultException( faultName, Value.create( t.getMessage() ) )}, but it also adds a
+	 * {@code stackTrace} subnode to the value of this fault containing the stack trace of the passed
+	 * {@link Throwable} t.
+	 * 
 	 * @param faultName the name of the fault
 	 * @param t the {@link Throwable} whose message and stack trace should be read
 	 */
-	public FaultException( String faultName, Throwable t )
-	{
+	public FaultException( String faultName, Throwable t ) {
 		this( faultName, Value.create( t.getMessage() ) );
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
@@ -54,51 +53,47 @@ public class FaultException extends Exception
 	}
 
 	/**
-	 * Constructor.
-	 * Shortcut for {@code FaultException( t.getClass().getSimpleName(), t )}.
+	 * Constructor. Shortcut for {@code FaultException( t.getClass().getSimpleName(), t )}.
+	 * 
 	 * @param t
 	 */
-	public FaultException( Throwable t )
-	{
+	public FaultException( Throwable t ) {
 		this( t.getClass().getSimpleName(), t );
 	}
 
 	/**
-	 * Constructor.
-	 * Shortcut for {@code FaultException( faultName, Value.create( message ) )}
+	 * Constructor. Shortcut for {@code FaultException( faultName, Value.create( message ) )}
+	 * 
 	 * @param faultName
 	 * @param message
 	 */
-	public FaultException( String faultName, String message )
-	{
+	public FaultException( String faultName, String message ) {
 		this( faultName, Value.create( message ) );
 	}
 
 	/**
 	 * Constructor.
+	 * 
 	 * @param faultName the name of the fault
 	 * @param value the {@link Value} containing the fault data
 	 */
-	public FaultException( String faultName, Value value )
-	{
+	public FaultException( String faultName, Value value ) {
 		super();
 		this.faultName = faultName;
 		this.value = value;
 	}
 
 	/**
-	 * Constructor.
-	 * Shortcut for {@code FaultException( faultName, Value.create() )}
+	 * Constructor. Shortcut for {@code FaultException( faultName, Value.create() )}
+	 * 
 	 * @param faultName
 	 */
-	public FaultException( String faultName )
-	{
+	public FaultException( String faultName ) {
 		this( faultName, Value.create() );
 	}
-	
+
 	@Override
-	public String getMessage()
-	{
+	public String getMessage() {
 		StringBuilder builder = new StringBuilder();
 		builder.append( faultName );
 		builder.append( ": " );
@@ -108,30 +103,29 @@ public class FaultException extends Exception
 
 	/**
 	 * Returns the {@link Value} of this fault.
+	 * 
 	 * @return the {@link Value} of this fault.
 	 */
-	public Value value()
-	{
+	public Value value() {
 		return value;
 	}
 
 	/**
 	 * Returns the name of this fault instance.
+	 * 
 	 * @return the name of this fault instance
 	 */
-	public String faultName()
-	{
+	public String faultName() {
 		return faultName;
 	}
 
-	public RuntimeFaultException toRuntimeFaultException()
-	{
+	public RuntimeFaultException toRuntimeFaultException() {
 		return new RuntimeFaultException( this );
 	}
-	
-	// A RuntimeFaultException is used for runtime errors from which it is 
+
+	// A RuntimeFaultException is used for runtime errors from which it is
 	// impossible to recover from and continue the execution.
-	// A RuntimeFaultException wraps a FaultException. 
+	// A RuntimeFaultException wraps a FaultException.
 	// A thrown RuntimeFaultException is caught by the enclosing execution
 	// instance and used to report to the user the enclosed FaultException
 	public static class RuntimeFaultException extends RuntimeException {
@@ -139,13 +133,11 @@ public class FaultException extends Exception
 
 		private final FaultException faultException;
 
-		private RuntimeFaultException( FaultException faultException )
-		{
+		private RuntimeFaultException( FaultException faultException ) {
 			this.faultException = faultException;
 		}
-		
-		public FaultException faultException()
-		{
+
+		public FaultException faultException() {
 			return this.faultException;
 		}
 	}

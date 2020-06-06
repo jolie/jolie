@@ -26,29 +26,25 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class Program extends OLSyntaxNode
-{
+public class Program extends OLSyntaxNode {
 	private final List< OLSyntaxNode > children;
-	
-	public Program( ParsingContext context, List< OLSyntaxNode > children )
-	{
+
+	public Program( ParsingContext context, List< OLSyntaxNode > children ) {
 		super( context );
 		this.children = children;
 	}
-	
-//	public void addChild( OLSyntaxNode node )
-//	{
-//		children.add( node );
-//	}
-	
-	public List< OLSyntaxNode > children()
-	{
+
+	// public void addChild( OLSyntaxNode node )
+	// {
+	// children.add( node );
+	// }
+
+	public List< OLSyntaxNode > children() {
 		return children;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

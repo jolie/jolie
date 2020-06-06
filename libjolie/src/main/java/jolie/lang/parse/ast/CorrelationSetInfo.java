@@ -28,70 +28,61 @@ import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public class CorrelationSetInfo extends OLSyntaxNode
-{
+public class CorrelationSetInfo extends OLSyntaxNode {
 	public static class CorrelationAliasInfo implements Serializable {
 		private static final long serialVersionUID = Constants.serialVersionUID();
-		
+
 		private final String guardName;
 		private final VariablePathNode variablePath;
 
-		public CorrelationAliasInfo( String guardName, VariablePathNode variablePath )
-		{
+		public CorrelationAliasInfo( String guardName, VariablePathNode variablePath ) {
 			this.guardName = guardName;
 			this.variablePath = variablePath;
 		}
 
-		public String guardName()
-		{
+		public String guardName() {
 			return guardName;
 		}
 
-		public VariablePathNode variablePath()
-		{
+		public VariablePathNode variablePath() {
 			return variablePath;
 		}
 	}
 
 	public static class CorrelationVariableInfo implements Serializable {
 		private static final long serialVersionUID = Constants.serialVersionUID();
-		
+
 		private final VariablePathNode correlationVariablePath;
 		private final List< CorrelationAliasInfo > aliases;
 
-		public CorrelationVariableInfo( VariablePathNode correlationVariablePath, List< CorrelationAliasInfo > aliases )
-		{
+		public CorrelationVariableInfo( VariablePathNode correlationVariablePath,
+			List< CorrelationAliasInfo > aliases ) {
 			this.correlationVariablePath = correlationVariablePath;
 			this.aliases = aliases;
 		}
 
-		public List< CorrelationAliasInfo > aliases()
-		{
+		public List< CorrelationAliasInfo > aliases() {
 			return aliases;
 		}
 
-		public VariablePathNode correlationVariablePath()
-		{
+		public VariablePathNode correlationVariablePath() {
 			return correlationVariablePath;
 		}
 	}
 
 	private final List< CorrelationVariableInfo > variables;
-	
-	public CorrelationSetInfo( ParsingContext context, List< CorrelationVariableInfo > variables )
-	{
+
+	public CorrelationSetInfo( ParsingContext context, List< CorrelationVariableInfo > variables ) {
 		super( context );
 		this.variables = variables;
 	}
-	
-	public List< CorrelationVariableInfo > variables()
-	{
+
+	public List< CorrelationVariableInfo > variables() {
 		return variables;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

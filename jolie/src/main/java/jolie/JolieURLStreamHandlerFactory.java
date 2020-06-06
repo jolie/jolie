@@ -33,31 +33,26 @@ import jolie.jap.JapURLStreamHandler;
  *
  * @author Fabrizio Montesi
  */
-public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory
-{
+public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory {
 	private final static AtomicBoolean registered = new AtomicBoolean( false );
 
 	private final Map< String, URLStreamHandler > handlers = new HashMap<>();
 
-	public JolieURLStreamHandlerFactory()
-	{
+	public JolieURLStreamHandlerFactory() {
 		handlers.put( "jap", new JapURLStreamHandler() );
 	}
 
 	@Override
-	public URLStreamHandler createURLStreamHandler( String protocol )
-	{
+	public URLStreamHandler createURLStreamHandler( String protocol ) {
 		return handlers.get( protocol );
 	}
 
-	public void putURLStreamHandler( String protocol, URLStreamHandler handler )
-	{
+	public void putURLStreamHandler( String protocol, URLStreamHandler handler ) {
 		handlers.put( protocol, handler );
 	}
 
-	public static void registerInVM()
-	{
-		if ( registered.compareAndSet( false, true ) ) {
+	public static void registerInVM() {
+		if( registered.compareAndSet( false, true ) ) {
 			URL.setURLStreamHandlerFactory( new JolieURLStreamHandlerFactory() );
 		}
 	}

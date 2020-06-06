@@ -27,26 +27,24 @@ import java.nio.file.Paths;
 import jolie.lang.Constants;
 
 /** Utilities to handle paths to locate files. */
-public class UriUtils
-{
+public class UriUtils {
 	private final static String JAR_PREFIX = "jar:";
 	private final static String JAP_PREFIX = "jap:";
 	private final static String JAP_FILE_PREFIX = "jap:file:";
 
 	public static String normalizeJolieUri( String uri )
-		throws URISyntaxException
-	{
+		throws URISyntaxException {
 		final String normalizedUrl;
-		if ( uri.startsWith( JAP_PREFIX ) || uri.startsWith( JAR_PREFIX ) ) {
+		if( uri.startsWith( JAP_PREFIX ) || uri.startsWith( JAR_PREFIX ) ) {
 			final String prefix = uri.substring( 0, 4 );
 			final String[] parts = uri.substring( 4 ).split( "!/", 2 );
 			normalizedUrl = prefix
-				+ new URI( parts[0] ).normalize().toString()
-				+ (parts.length > 1 ? "!/" + new URI( parts[1] ).normalize().toString() : "");
+				+ new URI( parts[ 0 ] ).normalize().toString()
+				+ (parts.length > 1 ? "!/" + new URI( parts[ 1 ] ).normalize().toString() : "");
 		} else {
 			// URI normalizedUri = URI.create( uri );
 			// if ( normalizedUri != null ) {
-			// 	normalizedUrl = normalizedUri.normalize().toString();
+			// normalizedUrl = normalizedUri.normalize().toString();
 			// } else {
 			normalizedUrl = uri;
 			// }
@@ -54,24 +52,23 @@ public class UriUtils
 		return normalizedUrl;
 	}
 
-	public static String resolve( String context, String target )
-	{
-		if ( "".equals( context ) ) {
+	public static String resolve( String context, String target ) {
+		if( "".equals( context ) ) {
 			return target;
 		}
 
 		String result = null;
 
-		if ( target.startsWith( JAP_FILE_PREFIX ) ) {
-			if ( context.startsWith( JAP_FILE_PREFIX ) ) {
+		if( target.startsWith( JAP_FILE_PREFIX ) ) {
+			if( context.startsWith( JAP_FILE_PREFIX ) ) {
 				result = context + "/" + target.substring( JAP_FILE_PREFIX.length() );
-			} else if ( Files.exists( Paths.get( context ) ) ) {
+			} else if( Files.exists( Paths.get( context ) ) ) {
 				result = JAP_FILE_PREFIX + context + "/" + target.substring( JAP_FILE_PREFIX.length() );
 			}
 		}
 
-		if ( result == null ) {
-			if ( !context.endsWith( Constants.fileSeparator ) ) {
+		if( result == null ) {
+			if( !context.endsWith( Constants.fileSeparator ) ) {
 				context += Constants.fileSeparator;
 			}
 			result = context + target;
@@ -80,12 +77,11 @@ public class UriUtils
 		return result;
 	}
 
-	public static String normalizeWindowsPath( String path )
-	{
+	public static String normalizeWindowsPath( String path ) {
 		String result = path;
-		if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
+		if( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
 			result = result.replace( "\\", "/" );
-			if ( result.charAt( 1 ) == ':' ) {
+			if( result.charAt( 1 ) == ':' ) {
 				// Remove the drive name if present
 				result = result.substring( 2 );
 			}

@@ -32,36 +32,30 @@ import joliex.java.impl.SocketSodepService;
 /**
  * A factory for creating {@link Service} instances.
  *
- * <strong>NOTE:</strong> if your program does not exit correctly after execution
- * you probably need to call the shutdown method of the service factories you
- * created.
+ * <strong>NOTE:</strong> if your program does not exit correctly after execution you probably need
+ * to call the shutdown method of the service factories you created.
  *
  * @author Fabrizio Montesi
  */
-public class ServiceFactory implements Executor
-{
+public class ServiceFactory implements Executor {
 	private final ExecutorService executor;
-	
-	public ServiceFactory()
-	{
+
+	public ServiceFactory() {
 		this( Executors.newCachedThreadPool() );
 	}
 
-	public ServiceFactory( ExecutorService executor )
-	{
+	public ServiceFactory( ExecutorService executor ) {
 		this.executor = executor;
 	}
 
-	public void execute( Runnable runnable )
-	{
+	public void execute( Runnable runnable ) {
 		executor.execute( runnable );
 	}
 
 	/**
 	 * Shutdown this factory.
 	 */
-	public void shutdown()
-	{
+	public void shutdown() {
 		executor.shutdown();
 	}
 
@@ -75,15 +69,14 @@ public class ServiceFactory implements Executor
 	 * @throws IOException if the service creation failed.
 	 */
 	public Service create( URI location, String protocolName, Value protocolConfiguration )
-		throws IOException
-	{
-		if ( executor.isShutdown() ) {
+		throws IOException {
+		if( executor.isShutdown() ) {
 			throw new IOException( "Service factory has been shut down" );
 		}
 
 		String mediumName = location.getScheme();
-		if ( "socket".equals( mediumName ) ) {
-			if ( "sodep".equals( protocolName ) ) {
+		if( "socket".equals( mediumName ) ) {
+			if( "sodep".equals( protocolName ) ) {
 				return new SocketSodepService( this, location, protocolConfiguration );
 			} else {
 				throw new IOException( "Unsupported communication protocol: " + protocolName );

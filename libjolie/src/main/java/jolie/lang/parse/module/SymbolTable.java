@@ -33,161 +33,147 @@ import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 /**
  * A class represent the Symbol table of a Jolie module
  */
-public class SymbolTable
-{
-    /**
-     * Symbol target source
-     */
-    private final URI source;
+public class SymbolTable {
+	/**
+	 * Symbol target source
+	 */
+	private final URI source;
 
-    /**
-     * Maps of Symbolname an corresponding SymbolInfo object
-     */
-    private final Map< String, SymbolInfo > symbols;
+	/**
+	 * Maps of Symbolname an corresponding SymbolInfo object
+	 */
+	private final Map< String, SymbolInfo > symbols;
 
-    /**
-     * A constructor of SymbolTable
-     * 
-     * @param source source of Jolie module
-     */
-    public SymbolTable( URI source )
-    {
-        this.source = source;
-        this.symbols = new HashMap<>();
-    }
+	/**
+	 * A constructor of SymbolTable
+	 * 
+	 * @param source source of Jolie module
+	 */
+	public SymbolTable( URI source ) {
+		this.source = source;
+		this.symbols = new HashMap<>();
+	}
 
-    public URI source()
-    {
-        return this.source;
-    }
+	public URI source() {
+		return this.source;
+	}
 
-    /**
-     * resolve the wildcard symbol by replace with array of symbol rely in it's symbolTable
-     * 
-     * @param wildCardSymbol      a wildcard symbol in symbol table to replace
-     * @param symbolsFromWildcard array of symbols in parsed wildcardSymbol's module
-     * @throws ModuleException when adding name duplicate name to the symbol
-     */
-    public void replaceWildCardSymbol( SymbolWildCard wildCardSymbol,
-            SymbolInfo... symbolsFromWildcard ) throws DuplicateSymbolException
-    {
-        for (SymbolInfo symbolFromWildcard : symbolsFromWildcard) {
-            if ( isDuplicateSymbol( symbolFromWildcard.name() ) ) {
-                throw new DuplicateSymbolException( symbolFromWildcard.name() );
-            }
-            if ( symbolFromWildcard.privacy() == Privacy.PUBLIC ) {
-                this.symbols.put( symbolFromWildcard.name(), symbolFromWildcard );
-            }
-        }
-        this.symbols.remove( wildCardSymbol.name(), wildCardSymbol );
-    }
+	/**
+	 * resolve the wildcard symbol by replace with array of symbol rely in it's symbolTable
+	 * 
+	 * @param wildCardSymbol a wildcard symbol in symbol table to replace
+	 * @param symbolsFromWildcard array of symbols in parsed wildcardSymbol's module
+	 * @throws ModuleException when adding name duplicate name to the symbol
+	 */
+	public void replaceWildCardSymbol( SymbolWildCard wildCardSymbol,
+		SymbolInfo... symbolsFromWildcard ) throws DuplicateSymbolException {
+		for( SymbolInfo symbolFromWildcard : symbolsFromWildcard ) {
+			if( isDuplicateSymbol( symbolFromWildcard.name() ) ) {
+				throw new DuplicateSymbolException( symbolFromWildcard.name() );
+			}
+			if( symbolFromWildcard.privacy() == Privacy.PUBLIC ) {
+				this.symbols.put( symbolFromWildcard.name(), symbolFromWildcard );
+			}
+		}
+		this.symbols.remove( wildCardSymbol.name(), wildCardSymbol );
+	}
 
-    /**
-     * create and add a local Symbol with it's ASTNode to the table
-     * 
-     * @param name Symbol name in local execution context
-     * @param node an AST node implementing SymbolNode
-     * 
-     * @throws ModuleException when adding name duplicate name to the symbol
-     */
-    public void addSymbol( String name, SymbolNode node ) throws DuplicateSymbolException
-    {
-        if ( isDuplicateSymbol( name ) ) {
-            throw new DuplicateSymbolException( name );
-        }
-        this.symbols.put( name, new SymbolInfoLocal( name, node ) );
-    }
+	/**
+	 * create and add a local Symbol with it's ASTNode to the table
+	 * 
+	 * @param name Symbol name in local execution context
+	 * @param node an AST node implementing SymbolNode
+	 * 
+	 * @throws ModuleException when adding name duplicate name to the symbol
+	 */
+	public void addSymbol( String name, SymbolNode node ) throws DuplicateSymbolException {
+		if( isDuplicateSymbol( name ) ) {
+			throw new DuplicateSymbolException( name );
+		}
+		this.symbols.put( name, new SymbolInfoLocal( name, node ) );
+	}
 
-    /**
-     * create and add an external Symbol with it's module target to the table
-     * 
-     * @param context             Context where symbol is declare
-     * @param name                Symbol name
-     * @param moduleTargetStrings String array defining target module location defined at import
-     *                            statement
-     * 
-     * @throws ModuleException when adding name duplicate name to the symbol
-     */
-    public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings )
-            throws DuplicateSymbolException
-    {
-        if ( isDuplicateSymbol( name ) ) {
-            throw new DuplicateSymbolException( name );
-         }
-        this.symbols.put( name,
-                new SymbolInfoExternal( context, name, moduleTargetStrings, name ) );
-    }
+	/**
+	 * create and add an external Symbol with it's module target to the table
+	 * 
+	 * @param context Context where symbol is declare
+	 * @param name Symbol name
+	 * @param moduleTargetStrings String array defining target module location defined at import
+	 *        statement
+	 * 
+	 * @throws ModuleException when adding name duplicate name to the symbol
+	 */
+	public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings )
+		throws DuplicateSymbolException {
+		if( isDuplicateSymbol( name ) ) {
+			throw new DuplicateSymbolException( name );
+		}
+		this.symbols.put( name,
+			new SymbolInfoExternal( context, name, moduleTargetStrings, name ) );
+	}
 
-    /**
-     * create and add an external Symbol
-     * 
-     * @param context             Context where symbol is declare
-     * @param name                Symbol name
-     * @param moduleTargetStrings String array defining target module location defined at import
-     *                            statement
-     * @param moduleSymbol        Name for binding result to local environment
-     * 
-     * @throws ModuleException when adding name duplicate name to the symbol
-     */
-    public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings,
-            String moduleSymbol ) throws DuplicateSymbolException
-    {
-        if ( isDuplicateSymbol( name ) ) {
-            throw new DuplicateSymbolException( name );
-        }
-        this.symbols.put( name,
-                new SymbolInfoExternal( context, name, moduleTargetStrings, moduleSymbol ) );
-    }
+	/**
+	 * create and add an external Symbol
+	 * 
+	 * @param context Context where symbol is declare
+	 * @param name Symbol name
+	 * @param moduleTargetStrings String array defining target module location defined at import
+	 *        statement
+	 * @param moduleSymbol Name for binding result to local environment
+	 * 
+	 * @throws ModuleException when adding name duplicate name to the symbol
+	 */
+	public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings,
+		String moduleSymbol ) throws DuplicateSymbolException {
+		if( isDuplicateSymbol( name ) ) {
+			throw new DuplicateSymbolException( name );
+		}
+		this.symbols.put( name,
+			new SymbolInfoExternal( context, name, moduleTargetStrings, moduleSymbol ) );
+	}
 
-    /**
-     * add an wildcard Symbol to table
-     * 
-     * @param moduleTargetStrings an array of defining target module locationString defined at
-     *                            import statement
-     */
-    public void addWildCardSymbol( ParsingContext context, String[] moduleTargetStrings )
-    {
-        this.symbols.put( Arrays.toString( moduleTargetStrings ),
-                new SymbolWildCard( context, moduleTargetStrings ) );
-    }
+	/**
+	 * add an wildcard Symbol to table
+	 * 
+	 * @param moduleTargetStrings an array of defining target module locationString defined at import
+	 *        statement
+	 */
+	public void addWildCardSymbol( ParsingContext context, String[] moduleTargetStrings ) {
+		this.symbols.put( Arrays.toString( moduleTargetStrings ),
+			new SymbolWildCard( context, moduleTargetStrings ) );
+	}
 
-    public SymbolInfo[] symbols()
-    {
-        return this.symbols.values().toArray( new SymbolInfo[0] );
-    }
+	public SymbolInfo[] symbols() {
+		return this.symbols.values().toArray( new SymbolInfo[ 0 ] );
+	}
 
-    public SymbolInfoLocal[] localSymbols()
-    {
-        return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.LOCAL )
-                .toArray( SymbolInfoLocal[]::new );
-    }
+	public SymbolInfoLocal[] localSymbols() {
+		return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.LOCAL )
+			.toArray( SymbolInfoLocal[]::new );
+	}
 
-    public SymbolInfoExternal[] externalSymbols()
-    {
-        return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.EXTERNAL )
-                .toArray( SymbolInfoExternal[]::new );
-    }
+	public SymbolInfoExternal[] externalSymbols() {
+		return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.EXTERNAL )
+			.toArray( SymbolInfoExternal[]::new );
+	}
 
-    public Optional< SymbolInfo > symbol( String name )
-    {
-        if (this.symbols.containsKey(name)){
-            return Optional.of( this.symbols.get( name ) );
-        }
-        return Optional.empty();
-    }
+	public Optional< SymbolInfo > symbol( String name ) {
+		if( this.symbols.containsKey( name ) ) {
+			return Optional.of( this.symbols.get( name ) );
+		}
+		return Optional.empty();
+	}
 
-    private boolean isDuplicateSymbol( String name )
-    {
-        if ( symbols.containsKey( name ) && symbols.get( name ).scope() != Scope.LOCAL ) {
-            return true;
-        }
-        return false;
-    }
+	private boolean isDuplicateSymbol( String name ) {
+		if( symbols.containsKey( name ) && symbols.get( name ).scope() != Scope.LOCAL ) {
+			return true;
+		}
+		return false;
+	}
 
-    @Override
-    public String toString()
-    {
-        return "SymbolTable [source=" + source + ", symbols=" + symbols + "]";
-    }
+	@Override
+	public String toString() {
+		return "SymbolTable [source=" + source + ", symbols=" + symbols + "]";
+	}
 
 }

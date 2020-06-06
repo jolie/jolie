@@ -28,45 +28,39 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
-public class TypeChoiceDefinition extends TypeDefinition
-{
+public class TypeChoiceDefinition extends TypeDefinition {
 	private final TypeDefinition left;
 	private final TypeDefinition right;
 
-	public TypeChoiceDefinition( ParsingContext context, String id, Range cardinality, TypeDefinition left, TypeDefinition right )
-	{
+	public TypeChoiceDefinition( ParsingContext context, String id, Range cardinality, TypeDefinition left,
+		TypeDefinition right ) {
 		super( context, id, cardinality );
 		this.left = left;
 		this.right = right;
 	}
 
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 
-	public TypeDefinition left()
-	{
+	public TypeDefinition left() {
 		return left;
 	}
 
-	public TypeDefinition right()
-	{
+	public TypeDefinition right() {
 		return right;
 	}
-	
+
 	@Override
-	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
-	{
+	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it ) {
 		final List< Pair< OLSyntaxNode, OLSyntaxNode > > path = new LinkedList<>();
 		it.forEachRemaining( pair -> path.add( pair ) );
 		return left.containsPath( path.iterator() ) && right.containsPath( path.iterator() );
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((left == null) ? 0 : left.hashCode());
@@ -75,19 +69,25 @@ public class TypeChoiceDefinition extends TypeDefinition
 	}
 
 	@Override
-	public boolean equals( Object obj )
-	{
-		if ( this == obj ) return true;
-		if ( !super.equals( obj ) ) return false;
-		if ( getClass() != obj.getClass() ) return false;
+	public boolean equals( Object obj ) {
+		if( this == obj )
+			return true;
+		if( !super.equals( obj ) )
+			return false;
+		if( getClass() != obj.getClass() )
+			return false;
 		TypeChoiceDefinition other = (TypeChoiceDefinition) obj;
-		if ( left == null ) {
-			if ( other.left != null ) return false;
-		} else if ( !left.equals( other.left ) ) return false;
-		if ( right == null ) {
-			if ( other.right != null ) return false;
-		} else if ( !right.equals( other.right ) ) return false;
+		if( left == null ) {
+			if( other.left != null )
+				return false;
+		} else if( !left.equals( other.left ) )
+			return false;
+		if( right == null ) {
+			if( other.right != null )
+				return false;
+		} else if( !right.equals( other.right ) )
+			return false;
 		return true;
 	}
-	
+
 }

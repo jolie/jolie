@@ -24,8 +24,8 @@ package jolie.lang.parse.ast;
 import java.util.Map;
 
 
-public interface OperationCollector
-{
+public interface OperationCollector {
 	public Map< String, OperationDeclaration > operationsMap();
+
 	public void addOperation( OperationDeclaration decl );
 }

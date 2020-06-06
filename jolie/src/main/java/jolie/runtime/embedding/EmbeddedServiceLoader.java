@@ -30,44 +30,45 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 
-public abstract class EmbeddedServiceLoader
-{
+public abstract class EmbeddedServiceLoader {
 	private final Expression channelDest;
 
-	protected EmbeddedServiceLoader( Expression channelDest )
-	{
+	protected EmbeddedServiceLoader( Expression channelDest ) {
 		this.channelDest = channelDest;
 	}
 
 	private static EmbeddedServiceLoader createLoader(
 		Interpreter interpreter,
 		EmbeddedServiceConfiguration configuration,
-		Expression channelDest
-	)
-		throws EmbeddedServiceLoaderCreationException
-	{
+		Expression channelDest )
+		throws EmbeddedServiceLoaderCreationException {
 		EmbeddedServiceLoader ret = null;
 		try {
-			if ( configuration.isInternal() ) {
-				InternalEmbeddedServiceConfiguration internalConfiguration = (InternalEmbeddedServiceConfiguration) configuration;
-				ret = new InternalJolieServiceLoader( channelDest, interpreter, internalConfiguration.serviceName(), internalConfiguration.program() );
+			if( configuration.isInternal() ) {
+				InternalEmbeddedServiceConfiguration internalConfiguration =
+					(InternalEmbeddedServiceConfiguration) configuration;
+				ret = new InternalJolieServiceLoader( channelDest, interpreter, internalConfiguration.serviceName(),
+					internalConfiguration.program() );
 			} else {
-				ExternalEmbeddedServiceConfiguration externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
+				ExternalEmbeddedServiceConfiguration externalConfiguration =
+					(ExternalEmbeddedServiceConfiguration) configuration;
 				switch( configuration.type() ) {
-					case JAVA:
-						ret = new JavaServiceLoader( channelDest, externalConfiguration.servicePath(), interpreter );
-						break;
-					case JOLIE:
-						ret = new JolieServiceLoader( channelDest, interpreter, externalConfiguration.servicePath() );
-						break;
-					default:
-						String serviceType = configuration.type().toString();
-						EmbeddedServiceLoaderFactory factory = interpreter.getEmbeddedServiceLoaderFactory( serviceType );
-						if ( factory == null ) {
-							throw new EmbeddedServiceLoaderCreationException( "Could not find extension to load services of type " + serviceType );
-						}
-						ret = factory.createLoader( interpreter, serviceType, externalConfiguration.servicePath(), channelDest );
-						break;
+				case JAVA:
+					ret = new JavaServiceLoader( channelDest, externalConfiguration.servicePath(), interpreter );
+					break;
+				case JOLIE:
+					ret = new JolieServiceLoader( channelDest, interpreter, externalConfiguration.servicePath() );
+					break;
+				default:
+					String serviceType = configuration.type().toString();
+					EmbeddedServiceLoaderFactory factory = interpreter.getEmbeddedServiceLoaderFactory( serviceType );
+					if( factory == null ) {
+						throw new EmbeddedServiceLoaderCreationException(
+							"Could not find extension to load services of type " + serviceType );
+					}
+					ret = factory.createLoader( interpreter, serviceType, externalConfiguration.servicePath(),
+						channelDest );
+					break;
 				}
 			}
 		} catch( Exception e ) {
@@ -80,59 +81,49 @@ public abstract class EmbeddedServiceLoader
 	public static EmbeddedServiceLoader create(
 		Interpreter interpreter,
 		EmbeddedServiceConfiguration configuration,
-		Value channelValue
-	)
-		throws EmbeddedServiceLoaderCreationException
-	{
+		Value channelValue )
+		throws EmbeddedServiceLoaderCreationException {
 		return createLoader( interpreter, configuration, channelValue );
 	}
 
 	public static EmbeddedServiceLoader create(
 		Interpreter interpreter,
 		EmbeddedServiceConfiguration configuration,
-		VariablePath channelPath
-	)
-		throws EmbeddedServiceLoaderCreationException
-	{
+		VariablePath channelPath )
+		throws EmbeddedServiceLoaderCreationException {
 		return createLoader( interpreter, configuration, channelPath );
 	}
 
-	protected void setChannel( CommChannel channel )
-	{
-		if ( channelDest != null ) {
-			if ( channelDest instanceof VariablePath ) {
+	protected void setChannel( CommChannel channel ) {
+		if( channelDest != null ) {
+			if( channelDest instanceof VariablePath ) {
 				((VariablePath) channelDest).getValue().setValue( channel );
-			} else if ( channelDest instanceof Value ) {
+			} else if( channelDest instanceof Value ) {
 				((Value) channelDest).setValue( channel );
 			}
 		}
 	}
-	
+
 	public abstract void load()
 		throws EmbeddedServiceLoadingException;
 
-	public static abstract class EmbeddedServiceConfiguration
-	{
+	public static abstract class EmbeddedServiceConfiguration {
 		private final Constants.EmbeddedServiceType type;
 
-		public EmbeddedServiceConfiguration( Constants.EmbeddedServiceType type )
-		{
+		public EmbeddedServiceConfiguration( Constants.EmbeddedServiceType type ) {
 			this.type = type;
 		}
 
-		public Constants.EmbeddedServiceType type()
-		{
+		public Constants.EmbeddedServiceType type() {
 			return this.type;
 		}
 
-		public boolean isInternal()
-		{
+		public boolean isInternal() {
 			return this.type.equals( Constants.EmbeddedServiceType.INTERNAL );
 		}
 	}
 
-	public static class InternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration
-	{
+	public static class InternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration {
 		private final String serviceName;
 		private final Program program;
 
@@ -141,27 +132,23 @@ public abstract class EmbeddedServiceLoader
 		 * @param serviceName Name of the internal service.
 		 * @param program the program containing the service
 		 */
-		public InternalEmbeddedServiceConfiguration( String serviceName, Program program )
-		{
+		public InternalEmbeddedServiceConfiguration( String serviceName, Program program ) {
 			super( Constants.EmbeddedServiceType.INTERNAL );
 
 			this.serviceName = serviceName;
 			this.program = program;
 		}
 
-		public String serviceName()
-		{
+		public String serviceName() {
 			return serviceName;
 		}
 
-		public Program program()
-		{
+		public Program program() {
 			return program;
 		}
 	}
 
-	public static class ExternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration
-	{
+	public static class ExternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration {
 		private final String servicePath;
 
 		/**
@@ -169,16 +156,14 @@ public abstract class EmbeddedServiceLoader
 		 * @param type Type of embedded service, cannot be INTERNAL
 		 * @param servicePath path of service
 		 */
-		public ExternalEmbeddedServiceConfiguration( Constants.EmbeddedServiceType type, String servicePath )
-		{
+		public ExternalEmbeddedServiceConfiguration( Constants.EmbeddedServiceType type, String servicePath ) {
 			super( type );
 			this.servicePath = servicePath;
 
 			assert type != Constants.EmbeddedServiceType.INTERNAL;
 		}
 
-		public String servicePath()
-		{
+		public String servicePath() {
 			return servicePath;
 		}
 

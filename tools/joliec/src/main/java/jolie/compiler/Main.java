@@ -31,10 +31,8 @@ import jolie.lang.parse.module.ModuleException;
  *
  * @author Fabrizio Montesi
  */
-public class Main
-{
-    public static void main( String[] args )
-	{
+public class Main {
+	public static void main( String[] args ) {
 		try {
 			Compiler compiler = new Compiler( args );
 			compiler.compile();
@@ -47,7 +45,7 @@ public class Main
 		} catch( SemanticException e ) {
 			e.printStackTrace();
 		} catch( ModuleException e ) {
-            e.printStackTrace();
-        }
-    }
+			e.printStackTrace();
+		}
+	}
 }

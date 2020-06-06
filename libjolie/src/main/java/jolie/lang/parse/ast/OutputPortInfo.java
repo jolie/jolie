@@ -26,50 +26,41 @@ import java.net.URI;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
-public class OutputPortInfo extends PortInfo
-{	
+public class OutputPortInfo extends PortInfo {
 	private String protocolId = null;
 	private OLSyntaxNode protocolConfiguration = null;
 	private URI location = null;
-	
-	public OutputPortInfo( ParsingContext context, String id )
-	{
+
+	public OutputPortInfo( ParsingContext context, String id ) {
 		super( context, id );
 	}
-	
-	public void setProtocolId( String protocolId )
-	{
+
+	public void setProtocolId( String protocolId ) {
 		this.protocolId = protocolId;
 	}
-	
-	public void setProtocolConfiguration( OLSyntaxNode protocolConfiguration )
-	{
+
+	public void setProtocolConfiguration( OLSyntaxNode protocolConfiguration ) {
 		this.protocolConfiguration = protocolConfiguration;
 	}
-	
-	public void setLocation( URI location )
-	{
+
+	public void setLocation( URI location ) {
 		this.location = location;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
-	
-	public String protocolId()
-	{
+
+	public String protocolId() {
 		return protocolId;
 	}
-	
-	public OLSyntaxNode protocolConfiguration()
-	{
+
+	public OLSyntaxNode protocolConfiguration() {
 		return protocolConfiguration;
 	}
-	
-	public URI location()
-	{
+
+	public URI location() {
 		return location;
 	}
 }
