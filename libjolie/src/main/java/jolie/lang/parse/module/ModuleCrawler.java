@@ -100,6 +100,7 @@ public class ModuleCrawler {
 		throws ParserException, IOException, ModuleException {
 		// start with parentRecord
 		crawlModule( parentRecord );
+		this.cache.put( parentRecord.source(), parentRecord );
 
 		// walk through dependencies
 		while( modulesToCrawl.peek() != null ) {
@@ -115,6 +116,8 @@ public class ModuleCrawler {
 			}
 
 			ModuleRecord p = parser.parse( module );
+			this.cache.put( p.source(), p );
+
 			crawlModule( p );
 		}
 
