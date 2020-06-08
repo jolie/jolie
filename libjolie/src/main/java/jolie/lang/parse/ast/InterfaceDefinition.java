@@ -31,11 +31,12 @@ import jolie.lang.parse.context.ParsingContext;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector, DocumentedNode {
-	private final Map< String, OperationDeclaration > operationsMap =
-		new HashMap<>();
+public class InterfaceDefinition extends OLSyntaxNode
+	implements OperationCollector, DocumentedNode, SymbolNode {
+	private final Map< String, OperationDeclaration > operationsMap = new HashMap<>();
 	private final String name;
 	private String documentation;
+	private Privacy privacy;
 
 	public InterfaceDefinition( ParsingContext context, String name ) {
 		super( context );
@@ -74,4 +75,20 @@ public class InterfaceDefinition extends OLSyntaxNode implements OperationCollec
 	public String getDocumentation() {
 		return this.documentation;
 	}
+
+	@Override
+	public Privacy privacy() {
+		return this.privacy;
+	}
+
+	@Override
+	public void setPrivate( boolean isPrivate ) {
+		this.privacy = isPrivate ? Privacy.PRIVATE : Privacy.PUBLIC;
+	}
+
+	@Override
+	public OLSyntaxNode node() {
+		return this;
+	}
+
 }

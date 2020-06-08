@@ -28,6 +28,7 @@ import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.SymbolNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
@@ -38,10 +39,13 @@ import jolie.util.Range;
  * 
  * @author Fabrizio Montesi
  */
-public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode {
+public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, SymbolNode {
 	private final String id;
 	private final Range cardinality;
 	private String document = null;
+
+	// Symbol privacy
+	private Privacy privacy = Privacy.PUBLIC;
 
 	/**
 	 * Constructor
@@ -237,16 +241,37 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	}
 
 	@Override
-	public boolean equals( Object other ) {
-		return this == other;
+	public boolean equals( Object obj ) {
+		if( this == obj )
+			return true;
+		if( obj == null )
+			return false;
+		if( getClass() != obj.getClass() )
+			return false;
+		TypeDefinition other = (TypeDefinition) obj;
+		if( cardinality == null ) {
+			if( other.cardinality != null )
+				return false;
+		} else if( !cardinality.equals( other.cardinality ) )
+			return false;
+		if( id == null ) {
+			if( other.id != null )
+				return false;
+		} else if( !id.equals( other.id ) )
+			return false;
+		if( privacy != other.privacy )
+			return false;
+		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 31 * hash + this.id.hashCode();
-		hash = 31 * hash + this.cardinality.hashCode();
-		return hash;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((cardinality == null) ? 0 : cardinality.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((privacy == null) ? 0 : privacy.hashCode());
+		return result;
 	}
 
 	/*
@@ -255,4 +280,25 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 * untypedSubTypes(); public abstract NativeType nativeType(); public abstract boolean hasSubType(
 	 * String id );
 	 */
+
+	@Override
+	public Privacy privacy() {
+		return this.privacy;
+	}
+
+	@Override
+	public void setPrivate( boolean isPrivate ) {
+		this.privacy = isPrivate ? Privacy.PRIVATE : Privacy.PUBLIC;
+	}
+
+	@Override
+	public String name() {
+		return this.id;
+	}
+
+	@Override
+	public OLSyntaxNode node() {
+		return this;
+	}
+
 }
