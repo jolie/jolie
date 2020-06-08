@@ -22,6 +22,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.ByteArray;
@@ -80,7 +81,8 @@ public class JavaDocumentCreatorTest {
 	public JavaDocumentCreatorTest() {}
 
 	@BeforeClass
-	public static void setUpClass() throws IOException, ParserException, SemanticException, CommandLineException {
+	public static void setUpClass()
+		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
 		// clean past generated files if they exist
 		File generatedPath = new File( outputDirectory );
 		if( generatedPath.exists() ) {

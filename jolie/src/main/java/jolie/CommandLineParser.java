@@ -70,6 +70,7 @@ public class CommandLineParser implements Closeable {
 	private final int connectionsCache;
 	private final CorrelationEngine.Type correlationAlgorithmType;
 	private final String[] includePaths;
+	private final String[] packagesPaths;
 	private final String[] optionArgs;
 	private final URL[] libURLs;
 	private final InputStream programStream;
@@ -204,6 +205,15 @@ public class CommandLineParser implements Closeable {
 	 */
 	private String[] includePaths() {
 		return includePaths;
+	}
+
+	/**
+	 * Returns the paths passed by command line with the -p option.
+	 * 
+	 * @return the packagesPaths
+	 */
+	public String[] packagesPaths() {
+		return packagesPaths;
 	}
 
 	/**
@@ -417,6 +427,7 @@ public class CommandLineParser implements Closeable {
 		List< String > programArgumentsList = new ArrayList<>();
 		Deque< String > includeList = new LinkedList<>();
 		List< String > libList = new ArrayList<>();
+		List< String > packagesList = new ArrayList<>();
 		int cLimit = -1;
 		int cCache = 100;
 		long rTimeout = 36000 * 1000; // 10 minutes
@@ -694,6 +705,7 @@ public class CommandLineParser implements Closeable {
 		programStream = olResult.stream;
 
 		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
+		packagesPaths = new LinkedHashSet<>( packagesList ).toArray( new String[] {} );
 		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 	}
 

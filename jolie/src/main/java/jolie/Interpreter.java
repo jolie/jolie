@@ -70,6 +70,7 @@ import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -289,6 +290,12 @@ public class Interpreter {
 	private final File programDirectory;
 	private OutputPort monitor = null;
 
+	private Map< URI, SymbolTable > symbolTables;
+	private final FinderCreator finderCreator;
+	private final ModuleParser parser;
+	private final ModuleCrawler moduleCrawler;
+
+
 	public void setMonitor( OutputPort monitor ) {
 		this.monitor = monitor;
 		fireMonitorEvent( new MonitorAttachedEvent() );
@@ -421,6 +428,34 @@ public class Interpreter {
 	public String[] includePaths() {
 		return includePaths;
 	}
+
+	/**
+	 * Returns the finder creator this Interpreter is considering.
+	 * 
+	 * @return the finder creator this Interpreter is considering
+	 */
+	public FinderCreator finderCreator() {
+		return finderCreator;
+	}
+
+	/**
+	 * Returns the parser this Interpreter is considering.
+	 * 
+	 * @return the parser this Interpreter is considering
+	 */
+	public ModuleParser moduleParser() {
+		return parser;
+	}
+
+	/**
+	 * Returns the module crawler this Interpreter is considering.
+	 * 
+	 * @return the module crawler this Interpreter is considering
+	 */
+	public ModuleCrawler moduleCrawler() {
+		return moduleCrawler;
+	}
+
 
 	/**
 	 * Registers a session starter on this <code>Interpreter</code>.
@@ -928,6 +963,8 @@ public class Interpreter {
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
+		this.symbolTables = parentInterpreter.symbolTables();
+
 	}
 
 	/**
@@ -941,6 +978,15 @@ public class Interpreter {
 
 	public Interpreter parentInterpreter() {
 		return parentInterpreter;
+	}
+
+	/**
+	 * Returns the program symbol tabal this interpreter was assigned from SymbolGenerator.
+	 * 
+	 * @return the program symbol tabal this interpreter was assigned from SymbolGenerator
+	 */
+	public Map< URI, SymbolTable > symbolTables() {
+		return symbolTables;
 	}
 
 	/**
@@ -1212,12 +1258,14 @@ public class Interpreter {
 					if( o instanceof Program ) {
 						program = (Program) o;
 					} else {
-						throw new InterpreterException( "Input compiled program is not a JOLIE program" );
+						throw new InterpreterException(
+							"Input compiled program is not a JOLIE program" );
 					}
 				}
 			} else {
 				if( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
+					program = OLParseTreeOptimizer.optimize( program );
 				} else {
 					final OLParser olParser = new OLParser( new Scanner( interpreterParameters.inputStream(),
 						interpreterParameters.programFilepath().toURI(), interpreterParameters.charset() ),
@@ -1226,7 +1274,6 @@ public class Interpreter {
 					olParser.putConstants( interpreterParameters.constants() );
 					program = olParser.parse();
 				}
-				program = OLParseTreeOptimizer.optimize( program );
 			}
 
 			interpreterParameters.inputStream().close();
@@ -1238,9 +1285,9 @@ public class Interpreter {
 			if( check ) {
 				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
 				conf.setCheckForMain( false );
-				semanticVerifier = new SemanticVerifier( program, conf );
+				semanticVerifier = new SemanticVerifier( program, symbolTables, conf );
 			} else {
-				semanticVerifier = new SemanticVerifier( program );
+				semanticVerifier = new SemanticVerifier( program, symbolTables );
 			}
 
 			try {
@@ -1271,9 +1318,10 @@ public class Interpreter {
 						.build();
 			}
 
-		} catch( IOException | ParserException | ClassNotFoundException e ) {
+		} catch( IOException | ParserException | ClassNotFoundException | ModuleException e ) {
 			throw new InterpreterException( e );
 		}
+
 	}
 
 	/**

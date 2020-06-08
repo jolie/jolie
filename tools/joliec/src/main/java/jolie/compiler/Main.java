@@ -25,6 +25,7 @@ import java.io.IOException;
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
+import jolie.lang.parse.module.ModuleException;
 
 /**
  *
@@ -42,6 +43,8 @@ public class Main {
 		} catch( ParserException e ) {
 			e.printStackTrace();
 		} catch( SemanticException e ) {
+			e.printStackTrace();
+		} catch( ModuleException e ) {
 			e.printStackTrace();
 		}
 	}

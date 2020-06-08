@@ -24,14 +24,21 @@ package jolie.lang.parse.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.Map;
-import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.GlobalSymbolReferenceResolver;
+import jolie.lang.parse.module.InputStreamSource;
+import jolie.lang.parse.module.ModuleCrawler;
+import jolie.lang.parse.module.ModuleCrawler.ModuleCrawlerResult;
+import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.module.ModuleParser;
+import jolie.lang.parse.module.ModuleRecord;
+import jolie.lang.parse.module.Source;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
@@ -48,20 +55,53 @@ public class ParsingUtils {
 		URI source,
 		String charset,
 		String[] includePaths,
+		String[] packagesPaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration configuration,
 		boolean includeDocumentation )
-		throws IOException, ParserException, SemanticException {
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ),
-			includePaths, classLoader );
-		olParser.putConstants( definedConstants );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
-		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
-		semanticVerifier.validate();
+		throws IOException, ParserException, SemanticException, ModuleException {
 
-		return program;
+		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader, includeDocumentation );
+		parser.putConstants( definedConstants );
+
+		Source isSource = new InputStreamSource( inputStream, source );
+		ModuleRecord mainRecord = parser.parse( isSource );
+
+		ModuleCrawler crawler = new ModuleCrawler( Paths.get( isSource.source() ).getParent(), packagesPaths, parser );
+		ModuleCrawlerResult crawlResult = crawler.crawl( mainRecord );
+
+		GlobalSymbolReferenceResolver symbolResolver =
+			new GlobalSymbolReferenceResolver( crawlResult );
+
+		symbolResolver.resolve();
+
+		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
+			symbolResolver.symbolTables(), configuration );
+		semanticVerifier.validate();
+		return mainRecord.program();
+	}
+
+	public static Program parseProgram(
+		InputStream inputStream,
+		URI source,
+		String charset,
+		String[] includePaths,
+		ClassLoader classLoader,
+		Map< String, Scanner.Token > definedConstants,
+		SemanticVerifier.Configuration configuration,
+		boolean includeDocumentation )
+		throws IOException, ParserException, SemanticException, ModuleException {
+		return parseProgram(
+			inputStream,
+			source,
+			charset,
+			includePaths,
+			new String[ 0 ],
+			classLoader,
+			definedConstants,
+			configuration,
+			includeDocumentation );
 	}
 
 	public static Program parseProgram(
@@ -72,16 +112,16 @@ public class ParsingUtils {
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		boolean includeDocumentation )
-		throws IOException, ParserException, SemanticException {
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ),
-			includePaths, classLoader );
-		olParser.putConstants( definedConstants );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
-		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
-		semanticVerifier.validate();
-
-		return program;
+		throws IOException, ParserException, SemanticException, ModuleException {
+		return parseProgram(
+			inputStream,
+			source,
+			charset,
+			includePaths,
+			classLoader,
+			definedConstants,
+			new SemanticVerifier.Configuration(),
+			includeDocumentation );
 	}
 
 	/**

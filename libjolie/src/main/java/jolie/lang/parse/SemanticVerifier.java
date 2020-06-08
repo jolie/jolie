@@ -19,6 +19,7 @@
 
 package jolie.lang.parse;
 
+import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -28,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import jolie.lang.Constants.ExecutionMode;
@@ -118,8 +120,11 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.module.SymbolTable;
 import jolie.util.ArrayListMultiMap;
+import jolie.util.Helpers;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
 
@@ -176,23 +181,29 @@ public class SemanticVerifier implements OLVisitor {
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 
 	private final Map< String, TypeDefinition > definedTypes;
-	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
 	// private TypeDefinition rootType; // the type representing the whole session state
 	private final Map< String, Boolean > isConstantMap = new HashMap<>();
 
 	private OperationType insideCourierOperationType = null;
 	private InputPortInfo courierInputPort = null;
+	private final Map< URI, SymbolTable > symbolTables;
 
 	private Deque< String > inScopes = new ArrayDeque<>();
 
-	public SemanticVerifier( Program program, Configuration configuration ) {
+	public SemanticVerifier( Program program, Map< URI, SymbolTable > symbolTables,
+		Configuration configuration ) {
 		this.program = program;
 		this.definedTypes = OLParser.createTypeDeclarationMap( program.context() );
 		this.configuration = configuration;
-		/*
-		 * rootType = new TypeInlineDefinition( new ParsingContext(), "#RootType", NativeType.VOID,
-		 * jolie.lang.Constants.RANGE_ONE_TO_ONE );
-		 */
+		this.symbolTables = symbolTables;
+	}
+
+	public SemanticVerifier( Program program, Map< URI, SymbolTable > symbolTables ) {
+		this( program, symbolTables, new Configuration() );
+	}
+
+	public SemanticVerifier( Program program, Configuration configuration ) {
+		this( program, new HashMap<>(), configuration );
 	}
 
 	public SemanticVerifier( Program program ) {
@@ -273,15 +284,6 @@ public class SemanticVerifier implements OLVisitor {
 		semanticException.addSemanticError( node, message );
 	}
 
-	private void resolveLazyLinks() {
-		for( TypeDefinitionLink l : definedTypeLinks ) {
-			l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
-			if( l.linkedType() == null ) {
-				error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
-			}
-		}
-	}
-
 	private void checkToBeEqualTypes() {
 		for( Entry< TypeDefinition, List< TypeDefinition > > entry : typesToBeEqual.entrySet() ) {
 			for( TypeDefinition type : entry.getValue() ) {
@@ -359,10 +361,39 @@ public class SemanticVerifier implements OLVisitor {
 		}
 	}
 
+	/**
+	 * Finds declared symbol by name, perform lookup at both from a program's source or from the given
+	 * context. Since the context can be differ from program source if the symbol declared in the
+	 * include directive case.
+	 * 
+	 * @param context
+	 * @param name
+	 * @return
+	 */
+	private boolean hasSymbolDefined( String name, ParsingContext context ) {
+		Optional< Boolean > hasSymbol = Helpers.firstNonNull( () -> {
+			if( symbolTables.get( program.context().source() ) == null ) {
+				return null;
+			}
+			if( !symbolTables.get( program.context().source() ).symbol( name ).isPresent() ) {
+				return null;
+			}
+			return Boolean.TRUE;
+		}, () -> {
+			if( symbolTables.get( context.source() ) == null ) {
+				return null;
+			}
+			if( !symbolTables.get( context.source() ).symbol( name ).isPresent() ) {
+				return null;
+			}
+			return Boolean.TRUE;
+		} );
+		return hasSymbol.isPresent();
+	}
+
 	public void validate()
 		throws SemanticException {
 		program.accept( this );
-		resolveLazyLinks();
 		checkToBeEqualTypes();
 		checkCorrelationSets();
 
@@ -420,7 +451,6 @@ public class SemanticVerifier implements OLVisitor {
 			}
 			definedTypes.put( n.id(), n );
 		}
-		definedTypeLinks.add( n );
 	}
 
 	public void visit( TypeChoiceDefinition n ) {
@@ -571,9 +601,13 @@ public class SemanticVerifier implements OLVisitor {
 
 	@Override
 	public void visit( OneWayOperationDeclaration n ) {
+
 		if( definedTypes.get( n.requestType().id() ) == null ) {
-			error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			if( !hasSymbolDefined( n.requestType().id(), n.context() ) ) {
+				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			}
 		}
+
 		if( insideInputPort ) { // Input operation
 			if( oneWayOperations.containsKey( n.id() ) ) {
 				OneWayOperationDeclaration other = oneWayOperations.get( n.id() );
@@ -588,14 +622,20 @@ public class SemanticVerifier implements OLVisitor {
 	@Override
 	public void visit( RequestResponseOperationDeclaration n ) {
 		if( definedTypes.get( n.requestType().id() ) == null ) {
-			error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			if( !hasSymbolDefined( n.requestType().id(), n.context() ) ) {
+				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			}
 		}
 		if( definedTypes.get( n.responseType().id() ) == null ) {
-			error( n, "unknown type: " + n.responseType().id() + " for operation " + n.id() );
+			if( !hasSymbolDefined( n.responseType().id(), n.context() ) ) {
+				error( n, "unknown type: " + n.responseType().id() + " for operation " + n.id() );
+			}
 		}
 		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
-			if( definedTypes.containsKey( fault.getValue().id() ) == false ) {
-				error( n, "unknown type for fault " + fault.getKey() );
+			if( definedTypes.get( fault.getValue().id() ) == null ) {
+				if( !hasSymbolDefined( fault.getValue().id(), n.context() ) ) {
+					error( n, "unknown type for fault " + fault.getKey() );
+				}
 			}
 		}
 

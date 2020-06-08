@@ -146,7 +146,9 @@ public class Scanner {
 	static {
 		// Initialise the unreserved keywords map.
 		unreservedKeywords.put( "OneWay", TokenType.OP_OW );
+		unreservedKeywords.put( "oneWay", TokenType.OP_OW );
 		unreservedKeywords.put( "RequestResponse", TokenType.OP_RR );
+		unreservedKeywords.put( "requestResponse", TokenType.OP_RR );
 		unreservedKeywords.put( "linkIn", TokenType.LINKIN );
 		unreservedKeywords.put( "linkOut", TokenType.LINKOUT );
 		unreservedKeywords.put( "if", TokenType.IF );
