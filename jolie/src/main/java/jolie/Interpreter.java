@@ -92,7 +92,11 @@ import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
-import jolie.tracer.*;
+import jolie.tracer.DummyTracer;
+import jolie.tracer.FileTracer;
+import jolie.tracer.PrintingTracer;
+import jolie.tracer.Tracer;
+import jolie.tracer.TracerUtils;
 
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
