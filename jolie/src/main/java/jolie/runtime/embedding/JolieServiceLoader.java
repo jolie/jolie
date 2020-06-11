@@ -59,13 +59,13 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
 		throws IOException {
 		super( channelDest );
-		InterpreterParameters interpreterParameters = new InterpreterParameters();
-		interpreterParameters.setOptionArgs( currInterpreter.optionArgs() );
-		interpreterParameters.includePaths( currInterpreter.getInterpreterParameters().includePaths() );
-		interpreterParameters.setLibUrls( currInterpreter.getInterpreterParameters().libUrls() );
-		interpreterParameters.setProgramFilepath( new File( "#native_code" ) );
-		interpreterParameters.setJolieClassLoader( currInterpreter.getClassLoader() );
-		interpreterParameters.setInputStream( new ByteArrayInputStream( code.getBytes() ) );
+		InterpreterParameters interpreterParameters = new InterpreterParameters(
+			currInterpreter.optionArgs(),
+			currInterpreter.getInterpreterParameters().includePaths(),
+			currInterpreter.getInterpreterParameters().libUrls(),
+			new File( "#native_code" ),
+			currInterpreter.getClassLoader(),
+			new ByteArrayInputStream( code.getBytes() ) );
 		interpreter = new Interpreter(
 			currInterpreter.getClassLoader(),
 			interpreterParameters,

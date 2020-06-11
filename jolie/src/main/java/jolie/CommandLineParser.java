@@ -927,28 +927,28 @@ public class CommandLineParser implements Closeable {
 	}
 
 	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
-		InterpreterParameters interpreterParameters = new InterpreterParameters();
-		interpreterParameters.setConnectionsLimit( connectionsLimit() );
-		interpreterParameters.setConnectionCache( connectionsCache() );
-		interpreterParameters.correlationAlgorithm( correlationAlgorithmType() );
-		interpreterParameters.includePaths( includePaths() );
-		interpreterParameters.setOptionArgs( optionArgs() );
-		interpreterParameters.setLibUrls( libURLs() );
-		interpreterParameters.setInputStream( programStream() );
-		interpreterParameters.setCharset( charset() );
-		interpreterParameters.setProgramFilepath( programFilepath() );
-		interpreterParameters.setArguments( arguments() );
-		interpreterParameters.setConstants( definedConstants() );
-		interpreterParameters.setJolieClassLoader( jolieClassLoader() );
-		interpreterParameters.setProgramCompiled( isProgramCompiled() );
-		interpreterParameters.setTypeCheck( typeCheck() );
-		interpreterParameters.setTracer( tracer() );
-		interpreterParameters.setTracerLevel( tracerLevel() );
-		interpreterParameters.setTracerMode( tracerMode() );
-		interpreterParameters.setCheck( check() );
-		interpreterParameters.setResponseTimeout( responseTimeout() );
-		interpreterParameters.setLogLevel( logLevel() );
-		interpreterParameters.setProgramDirectory( programDirectory() );
+		InterpreterParameters interpreterParameters = new InterpreterParameters(
+			connectionsLimit(),
+			connectionsCache(),
+			correlationAlgorithmType(),
+			includePaths(),
+			optionArgs(),
+			libURLs(),
+			programStream(),
+			charset(),
+			programFilepath(),
+			arguments(),
+			definedConstants(),
+			jolieClassLoader(),
+			isProgramCompiled(),
+			typeCheck(),
+			tracer(),
+			tracerLevel(),
+			tracerMode(),
+			check(),
+			responseTimeout(),
+			logLevel(),
+			programDirectory() );
 
 		return interpreterParameters;
 

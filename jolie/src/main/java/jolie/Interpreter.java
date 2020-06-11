@@ -1175,7 +1175,7 @@ public class Interpreter {
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
-		interpreterParameters.setJolieClassLoader( null );
+		interpreterParameters.clear();
 		commCore = null;
 		// System.gc();
 	}

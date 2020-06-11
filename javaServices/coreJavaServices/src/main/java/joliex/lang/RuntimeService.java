@@ -238,7 +238,7 @@ public class RuntimeService extends JavaService {
 		throws FaultException {
 		try {
 			Value channel = Value.create();
-			if( request.getChildren( "filepath" ).size() > 0 ) {
+			if( request.hasChildren( "filepath" ) ) {
 				String filePath = request.getFirstChild( "filepath" ).strValue();
 				String typeStr = request.getFirstChild( "type" ).strValue();
 				EmbeddedServiceType type =
