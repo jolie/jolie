@@ -24,6 +24,9 @@ package jolie.runtime.embedding;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
@@ -59,11 +62,13 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
 		throws IOException {
 		super( channelDest );
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss.SSS" );
+		LocalDateTime now = LocalDateTime.now();
 		InterpreterParameters interpreterParameters = new InterpreterParameters(
 			currInterpreter.optionArgs(),
 			currInterpreter.getInterpreterParameters().includePaths(),
 			currInterpreter.getInterpreterParameters().libUrls(),
-			new File( "#native_code" ),
+			new File( "#native_" + dtf.format( now ) ),
 			currInterpreter.getClassLoader(),
 			new ByteArrayInputStream( code.getBytes() ) );
 		interpreter = new Interpreter(
