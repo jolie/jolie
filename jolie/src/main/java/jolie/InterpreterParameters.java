@@ -42,37 +42,6 @@ public class InterpreterParameters {
 		includePaths.add( "include" );
 	}
 
-	/**
-	 *
-	 * @param connectionsLimit: the connection limit parameter passed by command line with the -c
-	 *        option.
-	 * @param connectionCache: the connection cache parameter passed by command line with the
-	 *        --conncache option.
-	 * @param correlationAlgorithm: the type of correlation algorithm that has been specified.
-	 * @param includeList: the include paths passed by command line with the -i option.
-	 * @param optionArgs: the command line options passed to this command line parser. This does not
-	 *        include the name of the program.
-	 * @param libUrls: the library URLs passed by command line with the -l option.
-	 * @param inputStream: an InputStream for the program code to execute.
-	 * @param charset: the program's character encoding
-	 * @param programFilepath: the file path of the JOLIE program to execute.
-	 * @param arguments: the arguments passed to the JOLIE program.
-	 * @param constants: a map containing the constants defined by command line.
-	 * @param jolieClassLoader: the classloader to use for the program.
-	 * @param programCompiled: {@code true} if the program is compiled, {@code false} otherwise.
-	 * @param typeCheck: the value of the --typecheck option.
-	 * @param tracer: <code>true</code> if the tracer option has been specified, false otherwise.
-	 * @param tracerLevel: the selected tracer level [all | comm | comp] all: all the traces comp: only
-	 *        computation traces comm: only communication traces
-	 * @param tracerMode: <code>true</code> if the tracer option has been specified, false otherwise.
-	 * @param check: <code>true</code> if the check option has been specified, false otherwise.
-	 * @param responseTimeout: the response timeout parameter passed by command line with the
-	 *        --responseTimeout option.
-	 * @param logLevel: the {@link Level} of the logger of this interpreter.
-	 * @param programDirectory: the directory in which the main program is located.
-	 * @throws IOException
-	 */
-
 	public InterpreterParameters( int connectionsLimit,
 		int connectionCache,
 		CorrelationEngine.Type correlationAlgorithm,
@@ -140,75 +109,167 @@ public class InterpreterParameters {
 	}
 
 
-
+	/**
+	 * Returns the connection limit parameter passed by command line with the -c option.
+	 *
+	 * @return the connection limit parameter passed by command line
+	 */
 	public Integer connectionsLimit() {
 		return this.connectionsLimit;
 	}
 
+	/**
+	 * Returns the type of correlation algorithm that has been specified.
+	 *
+	 * @return the type of correlation algorithm that has been specified.
+	 * @see CorrelationEngine
+	 */
 	public CorrelationEngine.Type correlationAlgorithm() {
 		return this.correlationAlgorithm;
 	}
 
+	/**
+	 * Returns the include paths passed by command line with the -i option.
+	 *
+	 * @return the include paths passed by command line
+	 */
 	public String[] includePaths() {
 		return includePaths.toArray( new String[] {} );
 	}
 
+	/**
+	 * Returns the command line options passed to this command line parser. This does not include the
+	 * name of the program.
+	 *
+	 * @return the command line options passed to this command line parser.
+	 */
 	public String[] optionArgs() {
 		return optionArgs.toArray( new String[] {} );
 	}
 
+	/**
+	 * Returns the library URLs passed by command line with the -l option.
+	 *
+	 * @return the library URLs passed by command line
+	 */
 	public URL[] libUrls() {
 		return libURLs.toArray( new URL[] {} );
 	}
 
+	/**
+	 * Returns an InputStream for the program code to execute.
+	 *
+	 * @return an InputStream for the program code to execute
+	 */
 	public InputStream inputStream() {
 		return this.inputStream;
 	}
 
+	/**
+	 * Returns the program's character encoding
+	 *
+	 * @return the program's character encoding
+	 */
 	public String charset() {
 		return this.charset;
 	}
 
+	/**
+	 * Returns the file path of the JOLIE program to execute.
+	 *
+	 * @return the file path of the JOLIE program to execute
+	 */
 	public File programFilepath() {
 		return this.programFilepath;
 	}
 
+	/**
+	 * Returns the arguments passed to the JOLIE program.
+	 *
+	 * @return the arguments passed to the JOLIE program.
+	 */
 	public String[] arguments() {
 		return arguments.toArray( new String[] {} );
 	}
 
+
+	/**
+	 * Returns a map containing the constants defined by command line.
+	 *
+	 * @return a map containing the constants defined by command line
+	 */
 	public Map< String, Scanner.Token > constants() {
 		return this.constants;
 	}
 
+	/**
+	 * Returns the classloader to use for the program.
+	 *
+	 * @return the classloader to use for the program.
+	 */
 	public JolieClassLoader jolieClassLoader() {
 		return jolieClassLoader;
 	}
 
+	/**
+	 * Returns {@code true} if the program is compiled, {@code false} otherwise.
+	 *
+	 * @return {@code true} if the program is compiled, {@code false} otherwise.
+	 */
 	public boolean isProgramCompiled() {
 		return isProgramCompiled;
 	}
 
+	/**
+	 * Returns the value of the --typecheck option.
+	 *
+	 * @return the value of the --typecheck option.
+	 */
 	public boolean typeCheck() {
 		return this.typeCheck;
 	}
 
+	/**
+	 * Returns <code>true</code> if the tracer option has been specified, false otherwise.
+	 *
+	 * @return <code>true</code> if the verbose option has been specified, false otherwise
+	 */
 	public boolean tracer() {
 		return this.tracer;
 	}
 
+	/**
+	 * Returns <code>true</code> if the tracer option has been specified, false otherwise.
+	 *
+	 * @return <code>true</code> if the verbose option has been specified, false otherwise
+	 */
 	public String tracerMode() {
 		return tracerMode;
 	}
 
+	/**
+	 * Returns the selected tracer level [all | comm | comp]
+	 *
+	 * all: all the traces comp: only computation traces comm: only communication traces
+	 */
 	public String tracerLevel() {
 		return tracerLevel;
 	}
 
+	/**
+	 * Returns <code>true</code> if the check option has been specified, false otherwise.
+	 *
+	 * @return <code>true</code> if the verbose option has been specified, false otherwise
+	 */
 	public boolean check() {
 		return this.check;
 	}
 
+	/**
+	 * Returns the response timeout parameter passed by command line with the --responseTimeout option.
+	 *
+	 * @return the response timeout parameter passed by command line
+	 */
 	public long responseTimeout() {
 		return responseTimeout;
 	}
@@ -217,10 +278,21 @@ public class InterpreterParameters {
 		return printStackTraces;
 	}
 
+	/**
+	 * Returns the {@link Level} of the logger of this interpreter.
+	 *
+	 * @return the {@link Level} of the logger of this interpreter.
+	 */
 	public Level logLevel() {
 		return this.logLevel;
 	}
 
+
+	/**
+	 * Returns the directory in which the main program is located.
+	 *
+	 * @return the directory in which the main program is located.
+	 */
 	public File programDirectory() {
 		return programDirectory;
 	}

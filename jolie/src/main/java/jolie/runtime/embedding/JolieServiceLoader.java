@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
@@ -38,6 +39,7 @@ import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
 	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
+	private final static AtomicLong serviceLoaderCounter = new AtomicLong();
 	private final Interpreter interpreter;
 
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
@@ -62,15 +64,14 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
 		throws IOException {
 		super( channelDest );
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss.SSS" );
-		LocalDateTime now = LocalDateTime.now();
 		InterpreterParameters interpreterParameters = new InterpreterParameters(
 			currInterpreter.optionArgs(),
 			currInterpreter.getInterpreterParameters().includePaths(),
 			currInterpreter.getInterpreterParameters().libUrls(),
-			new File( "#native_" + dtf.format( now ) ),
+			new File( "#native_code_" + serviceLoaderCounter.getAndIncrement() ),
 			currInterpreter.getClassLoader(),
 			new ByteArrayInputStream( code.getBytes() ) );
+
 		interpreter = new Interpreter(
 			currInterpreter.getClassLoader(),
 			interpreterParameters,
