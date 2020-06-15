@@ -26,10 +26,10 @@ import jolie.lang.Constants;
 
 /**
  * An exception for invalid/unsupported HTTP versions
+ * 
  * @author Matthias Dieter Wallnöfer
  */
-public class UnsupportedHttpVersionException extends IOException
-{
+public class UnsupportedHttpVersionException extends IOException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	/**
@@ -37,8 +37,7 @@ public class UnsupportedHttpVersionException extends IOException
 	 *
 	 * @param message
 	 */
-	public UnsupportedHttpVersionException( String message )
-	{
+	public UnsupportedHttpVersionException( String message ) {
 		super( message );
 	}
 }

@@ -22,36 +22,32 @@ package jolie.process;
 import jolie.Interpreter;
 
 
-public class ExitProcess implements Process
-{
-	private ExitProcess(){}
-	
+public class ExitProcess implements Process {
+	private ExitProcess() {}
+
 	private static class LazyHolder {
 		private LazyHolder() {}
+
 		private static final ExitProcess instance = new ExitProcess();
 	}
-	
-	static public ExitProcess getInstance()
-	{
+
+	static public ExitProcess getInstance() {
 		return ExitProcess.LazyHolder.instance;
 	}
-	
+
 	@Override
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return getInstance();
 	}
-	
+
 	@Override
-	public void run()
-	{
+	public void run() {
 		final Interpreter interpreter = Interpreter.getInstance();
 		interpreter.execute( () -> interpreter.exit() );
 	}
-	
+
 	@Override
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

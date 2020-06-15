@@ -35,26 +35,21 @@ import jolie.util.MultiMap;
  *
  * @author Fabrizio Montesi
  */
-public class CorrelationFunctionInfo
-{
-	public static class CorrelationPairInfo
-	{
+public class CorrelationFunctionInfo {
+	public static class CorrelationPairInfo {
 		private final VariablePathNode sessionPath;
 		private final VariablePathNode messagePath;
 
-		public CorrelationPairInfo( VariablePathNode sessionPath, VariablePathNode messagePath )
-		{
+		public CorrelationPairInfo( VariablePathNode sessionPath, VariablePathNode messagePath ) {
 			this.sessionPath = sessionPath;
 			this.messagePath = messagePath;
 		}
 
-		public VariablePathNode sessionPath()
-		{
+		public VariablePathNode sessionPath() {
 			return sessionPath;
 		}
 
-		public VariablePathNode messagePath()
-		{
+		public VariablePathNode messagePath() {
 			return messagePath;
 		}
 	}
@@ -64,28 +59,23 @@ public class CorrelationFunctionInfo
 	private final MultiMap< String, CorrelationPairInfo > correlationPairs = new ArrayListMultiMap<>();
 	private final MultiMap< CorrelationSetInfo, String > correlationSetOperations = new ArrayListMultiMap<>();
 
-	public List< CorrelationSetInfo > correlationSets()
-	{
+	public List< CorrelationSetInfo > correlationSets() {
 		return correlationSets;
 	}
 
-	public Collection< CorrelationPairInfo > getOperationCorrelationPairs( String operationName )
-	{
+	public Collection< CorrelationPairInfo > getOperationCorrelationPairs( String operationName ) {
 		return correlationPairs.get( operationName );
 	}
 
-	public void putCorrelationPair( String operationName, CorrelationPairInfo pair )
-	{
+	public void putCorrelationPair( String operationName, CorrelationPairInfo pair ) {
 		correlationPairs.put( operationName, pair );
 	}
 
-	public Map< String, CorrelationSetInfo > operationCorrelationSetMap()
-	{
+	public Map< String, CorrelationSetInfo > operationCorrelationSetMap() {
 		return operationCorrelationSetMap;
 	}
 
-	public MultiMap< CorrelationSetInfo, String > correlationSetOperations()
-	{
+	public MultiMap< CorrelationSetInfo, String > correlationSetOperations() {
 		return correlationSetOperations;
 	}
 }

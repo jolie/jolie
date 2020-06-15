@@ -28,20 +28,16 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.CommListener;
 import jolie.net.ports.InputPort;
 
-public class RMIListenerFactory extends CommListenerFactory
-{
-	public RMIListenerFactory( CommCore commCore )
-	{
+public class RMIListenerFactory extends CommListenerFactory {
+	public RMIListenerFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommListener createListener(
-							Interpreter interpreter,
-							CommProtocolFactory protocolFactory,
-							InputPort inputPort
-						)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		return new RMIListener( interpreter, protocolFactory, inputPort );
 	}
 }

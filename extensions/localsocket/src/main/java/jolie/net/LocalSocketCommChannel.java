@@ -29,67 +29,60 @@ import java.net.URI;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
-public class LocalSocketCommChannel extends StreamingCommChannel implements PollableCommChannel
-{
+public class LocalSocketCommChannel extends StreamingCommChannel implements PollableCommChannel {
 	private final UnixSocket socket;
 	private final PreBufferedInputStream bufferedInputStream;
 	private final InputStream socketInputStream;
 	private final OutputStream socketOutputStream;
-	
+
 	public LocalSocketCommChannel( UnixSocket socket, URI location, CommProtocol protocol )
-		throws IOException
-	{
+		throws IOException {
 		super( location, protocol );
-		
+
 		this.socket = socket;
 		this.socketInputStream = socket.getInputStream();
 		this.socketOutputStream = socket.getOutputStream();
 		this.bufferedInputStream = new PreBufferedInputStream( socketInputStream );
-		
+
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
 	}
 
 	protected void sendImpl( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		protocol().send( socketOutputStream, message, bufferedInputStream );
 		socketOutputStream.flush();
 	}
-	
+
 	protected CommMessage recvImpl()
-		throws IOException
-	{
+		throws IOException {
 		return protocol().recv( bufferedInputStream, socketOutputStream );
 	}
-	
+
 	protected void closeImpl()
-		throws IOException
-	{
+		throws IOException {
 		socket.close();
 	}
 
 	public synchronized boolean isReady()
-		throws IOException
-	{
+		throws IOException {
 		boolean ret = false;
 
-		if ( bufferedInputStream.hasCachedData() ) {
+		if( bufferedInputStream.hasCachedData() ) {
 			ret = true;
 		} else {
-			byte[] r = new byte[1];
-			if ( socketInputStream.read( r ) > 0 ) {
-				bufferedInputStream.append( r[0] );
+			byte[] r = new byte[ 1 ];
+			if( socketInputStream.read( r ) > 0 ) {
+				bufferedInputStream.append( r[ 0 ] );
 				ret = true;
 			}
 		}
 
 		return ret;
 	}
-	
+
 	@Override
 	public void disposeForInputImpl()
-		throws IOException
-	{
+		throws IOException {
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 }

@@ -25,31 +25,26 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class PointerStatement extends OLSyntaxNode
-{
+public class PointerStatement extends OLSyntaxNode {
 	private final VariablePathNode leftPath, rightPath;
 
-	public PointerStatement( ParsingContext context, VariablePathNode leftPath, VariablePathNode rightPath )
-	{
+	public PointerStatement( ParsingContext context, VariablePathNode leftPath, VariablePathNode rightPath ) {
 		super( context );
 		VariablePathNode.levelPaths( leftPath, rightPath );
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 	}
-	
-	public VariablePathNode leftPath()
-	{
+
+	public VariablePathNode leftPath() {
 		return leftPath;
 	}
-	
-	public VariablePathNode rightPath()
-	{
+
+	public VariablePathNode rightPath() {
 		return rightPath;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

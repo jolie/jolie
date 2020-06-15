@@ -28,16 +28,15 @@ import jolie.util.Pair;
  *
  * @author Fabrizio Montesi
  */
-public class Operation
-{
+public class Operation {
 	private final String name;
 	private final String comment;
 	private final List< Pair< String, String > > faults;
 	private final String requestTypeName;
 	private final String responseTypeName;
 
-	public Operation( String name, String requestTypeName, String responseTypeName, List< Pair< String, String > > faults, String comment )
-	{
+	public Operation( String name, String requestTypeName, String responseTypeName,
+		List< Pair< String, String > > faults, String comment ) {
 		this.name = name;
 		this.faults = faults;
 		this.comment = comment;
@@ -45,28 +44,23 @@ public class Operation
 		this.responseTypeName = responseTypeName;
 	}
 
-	public String requestTypeName()
-	{
+	public String requestTypeName() {
 		return requestTypeName;
 	}
 
-	public String responseTypeName()
-	{
+	public String responseTypeName() {
 		return responseTypeName;
 	}
 
-	public List< Pair< String, String > > faults()
-	{
+	public List< Pair< String, String > > faults() {
 		return faults;
 	}
 
-	public String name()
-	{
+	public String name() {
 		return name;
 	}
 
-	public String comment()
-	{
+	public String comment() {
 		return comment;
 	}
 }

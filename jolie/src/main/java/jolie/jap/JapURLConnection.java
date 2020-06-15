@@ -44,8 +44,7 @@ import java.util.zip.ZipEntry;
  *
  * @author Fabrizio Montesi
  */
-public class JapURLConnection extends URLConnection
-{
+public class JapURLConnection extends URLConnection {
 	private static final int BUF_SIZE = 8192;
 	private static final Pattern urlPattern = Pattern.compile( "([^!]*!/[^!]*)(?:!/)?(.*)?" );
 	public static final Pattern nestingSeparatorPattern = Pattern.compile( "!/" );
@@ -56,26 +55,22 @@ public class JapURLConnection extends URLConnection
 	private long entrySize = 0L;
 
 	public JapURLConnection( URL url )
-		throws MalformedURLException, IOException
-	{
+		throws MalformedURLException, IOException {
 		super( url );
 	}
 
-	private static void putInCache( URL url, JarFile jar )
-	{
+	private static void putInCache( URL url, JarFile jar ) {
 		japCache.put( url, jar );
 	}
 
-	private static JarFile getFromCache( URL url )
-	{
+	private static JarFile getFromCache( URL url ) {
 		return japCache.get( url );
 	}
 
 	private static JarFile retrieve( URL url, final InputStream in )
-		throws IOException
-	{
+		throws IOException {
 		JarFile jar = getFromCache( url );
-		if ( jar == null ) {
+		if( jar == null ) {
 			try {
 				jar = AccessController.doPrivileged( (PrivilegedExceptionAction< JarFile >) () -> {
 					File tmpFile = null;
@@ -86,26 +81,26 @@ public class JapURLConnection extends URLConnection
 						out = new FileOutputStream( tmpFile );
 						int read;
 						byte[] buf = new byte[ BUF_SIZE ];
-						while( (read = in.read(buf)) != -1 ) {
+						while( (read = in.read( buf )) != -1 ) {
 							out.write( buf, 0, read );
 						}
 						out.close();
 						out = null;
 						return new JarFile( tmpFile );
 					} catch( IOException e ) {
-						if ( tmpFile != null ) {
+						if( tmpFile != null ) {
 							tmpFile.delete();
 						}
 						throw e;
 					} finally {
-						if ( in != null ) {
+						if( in != null ) {
 							in.close();
 						}
-						if ( out != null ) {
+						if( out != null ) {
 							out.close();
 						}
 					}
-				});
+				} );
 				putInCache( url, jar );
 			} catch( PrivilegedActionException e ) {
 				throw new IOException( e );
@@ -115,25 +110,23 @@ public class JapURLConnection extends URLConnection
 	}
 
 	public long getEntrySize()
-		throws IOException
-	{
+		throws IOException {
 		connect();
 		return entrySize;
 	}
 
 	@Override
 	public void connect()
-		throws IOException
-	{
-		if ( !connected ) {
+		throws IOException {
+		if( !connected ) {
 			final String urlPath = url.getPath();
 			final Matcher matcher = urlPattern.matcher( urlPath );
-			if ( matcher.matches() ) {
+			if( matcher.matches() ) {
 				final String path = matcher.group( 1 );
 				final String subPath = matcher.group( 2 );
 				final JarURLConnection jarURLConnection = (JarURLConnection) new URL( "jar:" + path ).openConnection();
 				inputStream = jarURLConnection.getInputStream();
-				if ( subPath.isEmpty() == false ) {
+				if( subPath.isEmpty() == false ) {
 					JarFile jar = retrieve( new URL( path ), inputStream );
 					final String[] nodes = nestingSeparatorPattern.split( subPath );
 					int i;
@@ -143,7 +136,7 @@ public class JapURLConnection extends URLConnection
 						builder.append( "!/" ).append( nodes[ i ] );
 						jar = retrieve( new URL( builder.toString() ), inputStream );
 					}
-					final ZipEntry entry = jar.getEntry( nodes[i] );
+					final ZipEntry entry = jar.getEntry( nodes[ i ] );
 					entrySize = entry.getSize();
 					inputStream = jar.getInputStream( entry );
 				}
@@ -157,9 +150,8 @@ public class JapURLConnection extends URLConnection
 
 	@Override
 	public InputStream getInputStream()
-		throws IOException
-	{
+		throws IOException {
 		connect();
 		return inputStream;
-    }
+	}
 }

@@ -29,7 +29,7 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"relaxngDatatype.jar","xsom.jar","wsdl4j.jar",
+@AndJarDeps( { "relaxngDatatype.jar", "xsom.jar", "wsdl4j.jar",
 	"jaxws/FastInfoset.jar",
 	"jaxws/gmbal-api-only.jar",
 	"jaxws/ha-api.jar",
@@ -49,17 +49,14 @@ import jolie.runtime.VariablePath;
 	"jaxws/stax-ex.jar",
 	"jaxws/streambuffer.jar",
 	"jaxws/woodstox-core-asl.jar"
-})
-public class SoapProtocolFactory extends CommProtocolFactory
-{
-	public SoapProtocolFactory( CommCore commCore )
-	{
+} )
+public class SoapProtocolFactory extends CommProtocolFactory {
+	public SoapProtocolFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			return new SoapProtocol( configurationPath, location, true, commCore().interpreter() );
 		} catch( SOAPException e ) {
@@ -68,8 +65,7 @@ public class SoapProtocolFactory extends CommProtocolFactory
 	}
 
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
-		throws IOException
-	{
+		throws IOException {
 		try {
 			return new SoapProtocol( configurationPath, location, false, commCore().interpreter() );
 		} catch( SOAPException e ) {

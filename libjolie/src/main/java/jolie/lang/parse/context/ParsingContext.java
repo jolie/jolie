@@ -26,30 +26,31 @@ import java.io.Serializable;
 import java.net.URI;
 
 /**
- * A {@code ParsingContext} allows for the retrieval of information
- * regarding the context in which an {@link jolie.lang.parse.ast.OLSyntaxNode}
- * was parsed.
+ * A {@code ParsingContext} allows for the retrieval of information regarding the context in which
+ * an {@link jolie.lang.parse.ast.OLSyntaxNode} was parsed.
+ * 
  * @author Fabrizio Montesi
  * @see jolie.lang.parse.ast.OLSyntaxNode
  */
-public interface ParsingContext extends Serializable
-{
+public interface ParsingContext extends Serializable {
 	/**
 	 * Returns an URI for the source from which the node has been read.
+	 * 
 	 * @return an URI for the source from which the node has been read.
 	 */
 	public URI source();
 
 	/**
-	 * Returns the simple name of the source from which the node has been read.
-	 * This could be, e.g., the simple name of a file (instead of its complete
-	 * absolute path).
+	 * Returns the simple name of the source from which the node has been read. This could be, e.g., the
+	 * simple name of a file (instead of its complete absolute path).
+	 * 
 	 * @return the simple name of the source from which the node has been read
 	 */
 	public String sourceName();
 
 	/**
 	 * Returns the line at which the node has been read.
+	 * 
 	 * @return the line at which the node has been read
 	 */
 	public int line();

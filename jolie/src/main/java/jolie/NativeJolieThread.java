@@ -21,55 +21,51 @@
 
 package jolie;
 
-public class NativeJolieThread extends Thread implements InterpreterThread
-{
+public class NativeJolieThread extends Thread implements InterpreterThread {
 	private final Interpreter interpreter;
-	
+
 	/**
 	 * Constructor
 	 */
-	public NativeJolieThread( Interpreter interpreter, ThreadGroup group, String name )
-	{
+	public NativeJolieThread( Interpreter interpreter, ThreadGroup group, String name ) {
 		super( group, interpreter.programFilename() + "-" + name );
 		this.interpreter = interpreter;
 	}
 
 	/**
 	 * Constructor
+	 * 
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @param name the suffix name for this thread
 	 * @see Interpreter
 	 */
-	public NativeJolieThread( Interpreter interpreter, String name )
-	{
+	public NativeJolieThread( Interpreter interpreter, String name ) {
 		super( interpreter.programFilename() + "-" + name );
 		this.interpreter = interpreter;
 	}
 
 	/**
 	 * Constructor
+	 * 
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @see Interpreter
 	 */
-	public NativeJolieThread( Interpreter interpreter )
-	{
+	public NativeJolieThread( Interpreter interpreter ) {
 		this( interpreter, JolieThread.createThreadName() );
 	}
-	
+
 	/**
 	 * Constructor
 	 */
-	public NativeJolieThread( Interpreter interpreter, Runnable r )
-	{
+	public NativeJolieThread( Interpreter interpreter, Runnable r ) {
 		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
 		this.interpreter = interpreter;
 	}
-	
+
 	/**
 	 * Returns the interpreter that this thread refers to.
 	 */
-	public Interpreter interpreter()
-	{
+	public Interpreter interpreter() {
 		return interpreter;
 	}
 }

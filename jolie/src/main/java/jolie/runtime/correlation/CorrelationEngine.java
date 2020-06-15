@@ -32,10 +32,10 @@ import jolie.runtime.correlation.impl.SimpleCorrelationEngine;
 
 /**
  * Generic abstract class for correlation algorithm implementations.
+ * 
  * @author Fabrizio Montesi
  */
-public abstract class CorrelationEngine implements SessionListener
-{
+public abstract class CorrelationEngine implements SessionListener {
 	public enum Type {
 		SIMPLE {
 			@Override
@@ -46,15 +46,14 @@ public abstract class CorrelationEngine implements SessionListener
 		HASH {
 			@Override
 			public CorrelationEngine createInstance( Interpreter interpreter ) {
-				//return new HashCorrelationEngine( interpreter );
+				// return new HashCorrelationEngine( interpreter );
 				return null;
 			}
 		};
 
 		public abstract CorrelationEngine createInstance( Interpreter interpreter );
 
-		public static Type fromString( String name )
-		{
+		public static Type fromString( String name ) {
 			switch( name ) {
 			case "simple":
 				return SIMPLE;
@@ -66,48 +65,48 @@ public abstract class CorrelationEngine implements SessionListener
 		}
 	}
 
-	public abstract void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message );
+	public abstract void onSessionStart( SessionThread session, Interpreter.SessionStarter starter,
+		CommMessage message );
+
 	public abstract void onSingleExecutionSessionStart( SessionThread session );
+
 	protected abstract boolean routeMessage( CommMessage message, CommChannel channel );
 
 	private final Interpreter interpreter;
 
-	public CorrelationEngine( Interpreter interpreter )
-	{
+	public CorrelationEngine( Interpreter interpreter ) {
 		this.interpreter = interpreter;
 	}
 
-	protected Interpreter interpreter()
-	{
+	protected Interpreter interpreter() {
 		return interpreter;
 	}
 
-	protected void initCorrelationValues( SessionThread session, Interpreter.SessionStarter starter, CommMessage message )
-	{
+	protected void initCorrelationValues( SessionThread session, Interpreter.SessionStarter starter,
+		CommMessage message ) {
 		Value messageValue;
 		CorrelationSet correlationSet = starter.correlationInitializer();
-		if ( correlationSet == null ) { // TODO check this w.r.t. the type system
+		if( correlationSet == null ) { // TODO check this w.r.t. the type system
 			return;
 		}
-		for( CorrelationPair pair : starter.correlationInitializer().getOperationCorrelationPairs( starter.guard().inputOperation().id() ) ) {
+		for( CorrelationPair pair : starter.correlationInitializer()
+			.getOperationCorrelationPairs( starter.guard().inputOperation().id() ) ) {
 			messageValue = pair.messagePath().getValueOrNull( message.value() );
-			if ( messageValue == null ) {
+			if( messageValue == null ) {
 				messageValue = Value.create();
 			}
 			pair.sessionPath().getValue( session.state().root() ).assignValue( messageValue );
 		}
 	}
-	
+
 	public synchronized void onMessageReceive( final CommMessage message, final CommChannel channel )
-		throws CorrelationError
-	{
-		if ( !(
-			// We try to find a correlating process.
-			routeMessage( message, channel )
+		throws CorrelationError {
+		if( !(
+		// We try to find a correlating process.
+		routeMessage( message, channel )
 			||
 			// If there is none, we must be able to start a new process with this message.
-			interpreter.startServiceSession( message, channel )
-		) ) {
+			interpreter.startServiceSession( message, channel )) ) {
 			// Otherwise, exception.
 			throw new CorrelationError();
 		}

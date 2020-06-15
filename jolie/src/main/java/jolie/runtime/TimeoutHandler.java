@@ -26,29 +26,24 @@ import java.lang.ref.WeakReference;
 /**
  * @author Fabrizio Montesi
  */
-public abstract class TimeoutHandler implements Runnable
-{
+public abstract class TimeoutHandler implements Runnable {
 	private final long time;
 	private volatile boolean cancelled = false;
 
-	public TimeoutHandler( long timeout )
-	{
+	public TimeoutHandler( long timeout ) {
 		this.time = System.currentTimeMillis() + timeout;
 	}
 
-	public long time()
-	{
+	public long time() {
 		return time;
 	}
-	
-	public void cancel()
-	{
+
+	public void cancel() {
 		cancelled = true;
 	}
-	
-	public void run()
-	{
-		if ( !cancelled ) {
+
+	public void run() {
+		if( !cancelled ) {
 			onTimeout();
 		}
 	}
@@ -58,24 +53,22 @@ public abstract class TimeoutHandler implements Runnable
 	/**
 	 * Note: this comparator imposes orderings that are inconsistent with equals.
 	 */
-	public static class Comparator implements java.util.Comparator< WeakReference< TimeoutHandler > >
-	{
+	public static class Comparator implements java.util.Comparator< WeakReference< TimeoutHandler > > {
 		@Override
-		public int compare( WeakReference< TimeoutHandler > wt1, WeakReference< TimeoutHandler > wt2 )
-		{
-			TimeoutHandler t1 = ( wt1 != null ) ? wt1.get() : null;
-			TimeoutHandler t2 = ( wt2 != null ) ? wt2.get() : null;
-			if ( t1 == null ) {
+		public int compare( WeakReference< TimeoutHandler > wt1, WeakReference< TimeoutHandler > wt2 ) {
+			TimeoutHandler t1 = (wt1 != null) ? wt1.get() : null;
+			TimeoutHandler t2 = (wt2 != null) ? wt2.get() : null;
+			if( t1 == null ) {
 				return -1;
-			} else if ( t2 == null ) {
+			} else if( t2 == null ) {
 				return 1;
 			}
-			
+
 			// Both are not null after this
 
-			if ( t1.time < t2.time ) {
+			if( t1.time < t2.time ) {
 				return -1;
-			} else if ( t1.time == t2.time ) {
+			} else if( t1.time == t2.time ) {
 				return 0;
 			} else {
 				return 1;

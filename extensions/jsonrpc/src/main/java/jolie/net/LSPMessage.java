@@ -33,38 +33,39 @@ import java.util.Map.Entry;
  */
 public class LSPMessage {
 
-    private byte[] content = null;
-    final private Map< String, String > propMap = new HashMap<>();
+	private byte[] content = null;
+	final private Map< String, String > propMap = new HashMap<>();
 
-    public String getProperty( String name ) {
-        String property = getPropMap().get( name.toLowerCase() );
-        if(property!=null)
-            property=property.trim();
-        return property;
-    }
+	public String getProperty( String name ) {
+		String property = getPropMap().get( name.toLowerCase() );
+		if( property != null )
+			property = property.trim();
+		return property;
+	}
 
-    protected Map<String, String > getPropMap() {
-        return propMap;
-    }
-    public void setContent( byte[] content ) {
-        this.content = content;
-    }
+	protected Map< String, String > getPropMap() {
+		return propMap;
+	}
 
-    public void setProperty(String name, String value) {
-        propMap.put( name.toLowerCase(), value );
-    }
+	public void setContent( byte[] content ) {
+		this.content = content;
+	}
 
-    public Collection< Entry< String, String > > getProperties() {
-        return propMap.entrySet();
-    }
+	public void setProperty( String name, String value ) {
+		propMap.put( name.toLowerCase(), value );
+	}
 
-    public int size() {
-        if ( content == null )
-            return 0;
-        return content.length;
-    }
+	public Collection< Entry< String, String > > getProperties() {
+		return propMap.entrySet();
+	}
 
-    public byte[] content() {
-        return content;
-    }
+	public int size() {
+		if( content == null )
+			return 0;
+		return content.length;
+	}
+
+	public byte[] content() {
+		return content;
+	}
 }

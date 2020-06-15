@@ -43,8 +43,7 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
-public class SodepProtocol extends ConcurrentCommProtocol
-{
+public class SodepProtocol extends ConcurrentCommProtocol {
 	private static class DataTypeHeaderId {
 		private static final int NULL = 0;
 		private static final int STRING = 1;
@@ -54,30 +53,27 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		private static final int BOOL = 5;
 		private static final int LONG = 6;
 	}
-	
-	public String name()
-	{
+
+	public String name() {
 		return "sodep";
 	}
 
 	private Charset stringCharset = Charset.forName( "UTF8" );
-	
+
 	private String readString( DataInput in )
-		throws IOException
-	{
+		throws IOException {
 		int len = in.readInt();
-		if ( len > 0 ) {
+		if( len > 0 ) {
 			byte[] bb = new byte[ len ];
 			in.readFully( bb );
 			return new String( bb, stringCharset );
 		}
 		return "";
 	}
-	
+
 	private void writeString( DataOutput out, String str )
-		throws IOException
-	{
-		if ( str.isEmpty() ) {
+		throws IOException {
+		if( str.isEmpty() ) {
 			out.writeInt( 0 );
 		} else {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -89,73 +85,69 @@ public class SodepProtocol extends ConcurrentCommProtocol
 			out.write( bb );
 		}
 	}
-	
+
 	private ByteArray readByteArray( DataInput in )
-		throws IOException
-	{
+		throws IOException {
 		int size = in.readInt();
 		ByteArray ret;
-		if ( size > 0 ) {
+		if( size > 0 ) {
 			byte[] bytes = new byte[ size ];
 			in.readFully( bytes, 0, size );
 			ret = new ByteArray( bytes );
 		} else {
-			ret = new ByteArray( new byte[0] );
+			ret = new ByteArray( new byte[ 0 ] );
 		}
 		return ret;
 	}
 
 	private void writeByteArray( DataOutput out, ByteArray byteArray )
-		throws IOException
-	{
+		throws IOException {
 		int size = byteArray.size();
 		out.writeInt( size );
-		if ( size > 0 ) {
+		if( size > 0 ) {
 			out.write( byteArray.getBytes() );
 		}
 	}
-	
+
 	private void writeFault( DataOutput out, FaultException fault )
-		throws IOException
-	{
+		throws IOException {
 		writeString( out, fault.faultName() );
 		writeValue( out, fault.value() );
 	}
-	
+
 	private void writeValue( DataOutput out, Value value )
-		throws IOException
-	{
+		throws IOException {
 		Object valueObject = value.valueObject();
-		if ( valueObject == null ) {
+		if( valueObject == null ) {
 			out.writeByte( DataTypeHeaderId.NULL );
-		} else if ( valueObject instanceof String ) {
+		} else if( valueObject instanceof String ) {
 			out.writeByte( DataTypeHeaderId.STRING );
-			writeString( out, (String)valueObject );
-		} else if ( valueObject instanceof Integer ) {
+			writeString( out, (String) valueObject );
+		} else if( valueObject instanceof Integer ) {
 			out.writeByte( DataTypeHeaderId.INT );
-			out.writeInt( (Integer)valueObject );
-		} else if ( valueObject instanceof Double ) {
+			out.writeInt( (Integer) valueObject );
+		} else if( valueObject instanceof Double ) {
 			out.writeByte( DataTypeHeaderId.DOUBLE );
-			out.writeDouble( (Double)valueObject );
-		} else if ( valueObject instanceof ByteArray ) {
+			out.writeDouble( (Double) valueObject );
+		} else if( valueObject instanceof ByteArray ) {
 			out.writeByte( DataTypeHeaderId.BYTE_ARRAY );
-			writeByteArray( out, (ByteArray)valueObject );
-		} else if ( valueObject instanceof Boolean ) {
+			writeByteArray( out, (ByteArray) valueObject );
+		} else if( valueObject instanceof Boolean ) {
 			out.writeByte( DataTypeHeaderId.BOOL );
-			out.writeBoolean( (Boolean)valueObject );
-		} else if ( valueObject instanceof Long ) {
+			out.writeBoolean( (Boolean) valueObject );
+		} else if( valueObject instanceof Long ) {
 			out.writeByte( DataTypeHeaderId.LONG );
-			out.writeLong( (Long)valueObject );
+			out.writeLong( (Long) valueObject );
 		} else {
 			out.writeByte( DataTypeHeaderId.NULL );
 		}
 
 		Map< String, ValueVector > children = value.children();
 		List< Entry< String, ValueVector > > entries =
-					new LinkedList< Entry< String, ValueVector > >();
+			new LinkedList< Entry< String, ValueVector > >();
 		for( Entry< String, ValueVector > entry : children.entrySet() ) {
 			// if ( !entry.getKey().startsWith( "@" ) ) {
-				entries.add( entry );
+			entries.add( entry );
 			// }
 		}
 
@@ -168,15 +160,14 @@ public class SodepProtocol extends ConcurrentCommProtocol
 			}
 		}
 	}
-	
+
 	private void writeMessage( DataOutput out, CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		out.writeLong( message.id() );
 		writeString( out, message.resourcePath() );
 		writeString( out, message.operationName() );
 		FaultException fault = message.fault();
-		if ( fault == null ) {
+		if( fault == null ) {
 			out.writeBoolean( false );
 		} else {
 			out.writeBoolean( true );
@@ -184,45 +175,44 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		}
 		writeValue( out, message.value() );
 	}
-	
+
 	private Value readValue( DataInput in )
-		throws IOException
-	{
+		throws IOException {
 		Value value = Value.create();
 		Object valueObject = null;
 		byte b = in.readByte();
 		switch( b ) {
-			case DataTypeHeaderId.STRING:
-				valueObject = readString( in );
-				break;
-			case DataTypeHeaderId.INT:
-				valueObject = in.readInt();
-				break;
-			case DataTypeHeaderId.LONG:
-				valueObject = in.readLong();
-				break;
-			case DataTypeHeaderId.DOUBLE:
-				valueObject = in.readDouble();
-				break;
-			case DataTypeHeaderId.BYTE_ARRAY:
-				valueObject = readByteArray( in );
-				break;
-			case DataTypeHeaderId.BOOL:
-				valueObject = in.readBoolean();
-				break;
-			case DataTypeHeaderId.NULL:
-			default:
-				break;
+		case DataTypeHeaderId.STRING:
+			valueObject = readString( in );
+			break;
+		case DataTypeHeaderId.INT:
+			valueObject = in.readInt();
+			break;
+		case DataTypeHeaderId.LONG:
+			valueObject = in.readLong();
+			break;
+		case DataTypeHeaderId.DOUBLE:
+			valueObject = in.readDouble();
+			break;
+		case DataTypeHeaderId.BYTE_ARRAY:
+			valueObject = readByteArray( in );
+			break;
+		case DataTypeHeaderId.BOOL:
+			valueObject = in.readBoolean();
+			break;
+		case DataTypeHeaderId.NULL:
+		default:
+			break;
 		}
 
 		value.setValue( valueObject );
-				
+
 		Map< String, ValueVector > children = value.children();
 		String s;
 		int n, i, size, k;
 		n = in.readInt(); // How many children?
 		ValueVector vec;
-		
+
 		for( i = 0; i < n; i++ ) {
 			s = readString( in );
 			vec = ValueVector.create();
@@ -234,58 +224,53 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		}
 		return value;
 	}
-	
+
 	private FaultException readFault( DataInput in )
-		throws IOException
-	{
+		throws IOException {
 		String faultName = readString( in );
 		Value value = readValue( in );
 		return new FaultException( faultName, value );
 	}
-	
+
 	private CommMessage readMessage( DataInput in )
-		throws IOException
-	{
+		throws IOException {
 		long id = in.readLong();
 		String resourcePath = readString( in );
 		String operationName = readString( in );
 		FaultException fault = null;
-		if ( in.readBoolean() == true ) {
+		if( in.readBoolean() == true ) {
 			fault = readFault( in );
 		}
 		Value value = readValue( in );
 		return new CommMessage( id, operationName, resourcePath, value, fault );
 	}
-	
-	public SodepProtocol( VariablePath configurationPath )
-	{
+
+	public SodepProtocol( VariablePath configurationPath ) {
 		super( configurationPath );
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
-		throws IOException
-	{
+		throws IOException {
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 
 		String charset = getStringParameter( "charset" );
-		if ( !charset.isEmpty() ) {
+		if( !charset.isEmpty() ) {
 			stringCharset = Charset.forName( charset );
 		}
-		
+
 		final DataOutputStream oos = new DataOutputStream( ostream );
 		writeMessage( oos, message );
 	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
-		throws IOException
-	{
+		throws IOException {
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 
 		String charset = getStringParameter( "charset" );
-		if ( !charset.isEmpty() ) {
+		if( !charset.isEmpty() ) {
 			stringCharset = Charset.forName( charset );
 		}
-		
+
 		final DataInputStream ios = new DataInputStream( istream );
 		return readMessage( ios );
 	}

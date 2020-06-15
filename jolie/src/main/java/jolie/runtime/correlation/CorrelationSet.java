@@ -30,26 +30,21 @@ import jolie.util.MultiMap;
  *
  * @author Fabrizio Montesi
  */
-public class CorrelationSet
-{
-	public static class CorrelationPair
-	{
+public class CorrelationSet {
+	public static class CorrelationPair {
 		private final VariablePath sessionPath;
 		private final VariablePath messagePath;
 
-		public CorrelationPair( VariablePath sessionPath, VariablePath messagePath )
-		{
+		public CorrelationPair( VariablePath sessionPath, VariablePath messagePath ) {
 			this.sessionPath = sessionPath;
 			this.messagePath = messagePath;
 		}
 
-		public VariablePath sessionPath()
-		{
+		public VariablePath sessionPath() {
 			return sessionPath;
 		}
 
-		public VariablePath messagePath()
-		{
+		public VariablePath messagePath() {
 			return messagePath;
 		}
 	}
@@ -58,29 +53,28 @@ public class CorrelationSet
 	private final MultiMap< String, CorrelationPair > correlationMap;
 	private final List< VariablePath > correlationVariablePaths;
 
-	public CorrelationSet( List< VariablePath > correlationVariablePaths, MultiMap< String, CorrelationPair > correlationMap )
-	{
+	public CorrelationSet( List< VariablePath > correlationVariablePaths,
+		MultiMap< String, CorrelationPair > correlationMap ) {
 		this.correlationMap = correlationMap;
 		this.correlationVariablePaths = correlationVariablePaths;
 	}
 
 	/**
 	 * Returns the list of {@link CorrelationPair} defined for the operation.
+	 * 
 	 * @param operationName the operation name the list is defined for.
-	 * @return the list of {@link CorrelationPair} defined for the operation, or {@code null} if no such list is defined.
+	 * @return the list of {@link CorrelationPair} defined for the operation, or {@code null} if no such
+	 *         list is defined.
 	 */
-	public List< CorrelationPair > getOperationCorrelationPairs( String operationName )
-	{
-		return (List< CorrelationPair >)correlationMap.get( operationName );
+	public List< CorrelationPair > getOperationCorrelationPairs( String operationName ) {
+		return (List< CorrelationPair >) correlationMap.get( operationName );
 	}
 
-	public List< VariablePath > correlationVariablePaths()
-	{
+	public List< VariablePath > correlationVariablePaths() {
 		return correlationVariablePaths;
 	}
 
-	public Set< String > correlatingOperations()
-	{
+	public Set< String > correlatingOperations() {
 		return correlationMap.keySet();
 	}
 }

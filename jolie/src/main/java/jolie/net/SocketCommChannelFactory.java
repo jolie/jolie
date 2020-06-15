@@ -31,18 +31,16 @@ import jolie.net.ports.OutputPort;
 
 /**
  * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
+ * 
  * @author Fabrizio Montesi
  */
-public class SocketCommChannelFactory extends CommChannelFactory
-{
-	public SocketCommChannelFactory( CommCore commCore )
-	{
+public class SocketCommChannelFactory extends CommChannelFactory {
+	public SocketCommChannelFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
 	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
+		throws IOException {
 		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
 		SocketCommChannel ret = null;
 		try {

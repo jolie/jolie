@@ -25,50 +25,42 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class SpawnStatement extends OLSyntaxNode
-{
+public class SpawnStatement extends OLSyntaxNode {
 	private final VariablePathNode indexVariablePath;
 	private final VariablePathNode inVariablePath; // may be null
 	private final OLSyntaxNode upperBoundExpression, body;
 
 	public SpawnStatement(
-			ParsingContext context,
-			VariablePathNode indexVariablePath,
-			OLSyntaxNode upperBoundExpression,
-			VariablePathNode inVariablePath,
-			OLSyntaxNode body
-	)
-	{
+		ParsingContext context,
+		VariablePathNode indexVariablePath,
+		OLSyntaxNode upperBoundExpression,
+		VariablePathNode inVariablePath,
+		OLSyntaxNode body ) {
 		super( context );
 		this.indexVariablePath = indexVariablePath;
 		this.inVariablePath = inVariablePath;
 		this.upperBoundExpression = upperBoundExpression;
 		this.body = body;
 	}
-	
-	public OLSyntaxNode body()
-	{
+
+	public OLSyntaxNode body() {
 		return body;
 	}
 
-	public OLSyntaxNode upperBoundExpression()
-	{
+	public OLSyntaxNode upperBoundExpression() {
 		return upperBoundExpression;
 	}
 
-	public VariablePathNode indexVariablePath()
-	{
+	public VariablePathNode indexVariablePath() {
 		return indexVariablePath;
 	}
-	
-	public VariablePathNode inVariablePath()
-	{
+
+	public VariablePathNode inVariablePath() {
 		return inVariablePath;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

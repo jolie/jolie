@@ -52,31 +52,28 @@ import org.xml.sax.InputSource;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"jolie-xml.jar"})
-public class XmlStorage extends AbstractStorageService
-{	
+@AndJarDeps( { "jolie-xml.jar" } )
+public class XmlStorage extends AbstractStorageService {
 	private File xmlFile = null;
 	private Charset charset = null;
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
-	public XmlStorage()
-	{
+	public XmlStorage() {
 		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
 	}
 
 	@RequestResponse
 	public void connect( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		try {
 			xmlFile = new File( request.getFirstChild( "filename" ).strValue() );
-			if ( xmlFile.exists() == false ) {
+			if( xmlFile.exists() == false ) {
 				xmlFile.createNewFile();
 				valueToFile( Value.create() );
 			}
 
-			if ( request.hasChildren( "charset" ) ) {
+			if( request.hasChildren( "charset" ) ) {
 				charset = Charset.forName( request.getFirstChild( "charset" ).strValue() );
 			}
 		} catch( Exception e ) {
@@ -85,15 +82,14 @@ public class XmlStorage extends AbstractStorageService
 	}
 
 	private Value valueFromFile()
-		throws FaultException
-	{
+		throws FaultException {
 		Value value = Value.create();
 		try {
 			InputStream istream = new FileInputStream( xmlFile );
 			try {
 				DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new InputStreamReader( istream ) );
-				if ( charset != null ) {
+				if( charset != null ) {
 					src.setEncoding( charset.name() );
 				}
 				Document doc = builder.parse( src );
@@ -108,15 +104,14 @@ public class XmlStorage extends AbstractStorageService
 	}
 
 	private void valueToFile( Value value )
-		throws FaultException
-	{
+		throws FaultException {
 		try {
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			Document doc = builder.newDocument();
 			jolie.xml.XmlUtils.valueToDocument( value, "storage", doc );
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-			if ( charset != null ) {
+			if( charset != null ) {
 				transformer.setOutputProperty( OutputKeys.ENCODING, charset.name() );
 			}
 			try( Writer writer = new FileWriter( xmlFile ) ) {
@@ -129,9 +124,8 @@ public class XmlStorage extends AbstractStorageService
 	}
 
 	private void checkConnection()
-		throws IOException
-	{
-		if ( xmlFile == null ) {
+		throws IOException {
+		if( xmlFile == null ) {
 			throw new IOException( "XML file not specified (maybe you forgot to call connect?)" );
 		}
 	}
@@ -139,8 +133,7 @@ public class XmlStorage extends AbstractStorageService
 	@RequestResponse
 	@Override
 	public Value load( LoadRequest request )
-		throws FaultException
-	{
+		throws FaultException {
 		try {
 			checkConnection();
 			Value value = valueFromFile();
@@ -153,8 +146,7 @@ public class XmlStorage extends AbstractStorageService
 	@RequestResponse
 	@Override
 	public void save( SaveRequest request )
-		throws FaultException
-	{
+		throws FaultException {
 		try {
 			checkConnection();
 			valueToFile( request.value() );

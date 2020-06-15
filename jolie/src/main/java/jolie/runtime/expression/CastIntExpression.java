@@ -25,22 +25,18 @@ package jolie.runtime.expression;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-public class CastIntExpression implements Expression
-{
+public class CastIntExpression implements Expression {
 	final private Expression expression;
-	
-	public CastIntExpression( Expression expression )
-	{
+
+	public CastIntExpression( Expression expression ) {
 		this.expression = expression;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new CastIntExpression( expression.cloneExpression( reason ) );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		return Value.create( expression.evaluate().intValue() );
 	}
 }

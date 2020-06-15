@@ -78,7 +78,18 @@
                     <include>*.xsd</include>
                 </includes>
             </resource>
-        </resources>
+		</resources>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>net.revelc.code.formatter</groupId>
+					<artifactId>formatter-maven-plugin</artifactId>
+					<configuration>
+						<skip>true</skip>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
     </build>
     <dependencies>
         <dependency>

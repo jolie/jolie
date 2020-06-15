@@ -31,27 +31,25 @@ import jolie.net.CommMessage;
 import jolie.process.LinkInProcess;
 
 
-/** Internal synchronization link for parallel processes.
+/**
+ * Internal synchronization link for parallel processes.
  * 
  * @author Fabrizio Montesi
  */
-public class InternalLink extends AbstractIdentifiableObject
-{
+public class InternalLink extends AbstractIdentifiableObject {
 	private final List< LinkInProcess.Execution > procsList =
-					new LinkedList< LinkInProcess.Execution > ();
+		new LinkedList< LinkInProcess.Execution >();
 	private int signals = 0;
 	private final CommMessage linkMessage;
-	
-	public InternalLink( String id )
-	{
+
+	public InternalLink( String id ) {
 		super( id );
 		linkMessage = new CommMessage( CommMessage.GENERIC_ID, id, "/", Value.UNDEFINED_VALUE, null );
 	}
-	
-	public synchronized void recvMessage( CommChannel channel, CommMessage message )
-	{
+
+	public synchronized void recvMessage( CommChannel channel, CommMessage message ) {
 		for( int i = 0; i < procsList.size(); i++ ) {
-			if ( procsList.get( i ).recvMessage( null, linkMessage ) ) {
+			if( procsList.get( i ).recvMessage( null, linkMessage ) ) {
 				procsList.remove( i );
 				return;
 			}
@@ -59,22 +57,19 @@ public class InternalLink extends AbstractIdentifiableObject
 		signals++;
 	}
 
-	public synchronized void signForMessage( LinkInProcess.Execution process )
-	{
-		if ( signals > 0 && process.recvMessage( null, linkMessage ) ) {
+	public synchronized void signForMessage( LinkInProcess.Execution process ) {
+		if( signals > 0 && process.recvMessage( null, linkMessage ) ) {
 			signals--;
 		} else {
 			procsList.add( process );
 		}
 	}
-	
-	public synchronized void cancelWaiting( LinkInProcess.Execution process )
-	{
+
+	public synchronized void cancelWaiting( LinkInProcess.Execution process ) {
 		procsList.remove( process );
 	}
 
-	public static InternalLink getById( String id )
-	{
-		return ExecutionThread.currentThread().state().getLink( id ); 
+	public static InternalLink getById( String id ) {
+		return ExecutionThread.currentThread().state().getLink( id );
 	}
 }

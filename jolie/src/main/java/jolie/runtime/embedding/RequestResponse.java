@@ -29,6 +29,6 @@ import java.lang.annotation.RetentionPolicy;
  *
  * @author Fabrizio Montesi
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface RequestResponse
-{}
+@Retention( RetentionPolicy.RUNTIME )
+public @interface RequestResponse {
+}

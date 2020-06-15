@@ -25,24 +25,20 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class RunStatement extends OLSyntaxNode
-{
+public class RunStatement extends OLSyntaxNode {
 	private final OLSyntaxNode expression;
 
-	public RunStatement( ParsingContext context, OLSyntaxNode expression )
-	{
+	public RunStatement( ParsingContext context, OLSyntaxNode expression ) {
 		super( context );
 		this.expression = expression;
 	}
-	
-	public OLSyntaxNode expression()
-	{
+
+	public OLSyntaxNode expression() {
 		return expression;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

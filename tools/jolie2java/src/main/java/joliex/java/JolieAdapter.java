@@ -29,29 +29,27 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
 /**
- * An adapter for calling One-Way and Request-Response operations of the
- * embedder of a {@code JavaService}.
+ * An adapter for calling One-Way and Request-Response operations of the embedder of a
+ * {@code JavaService}.
+ * 
  * @see JavaService
  * @author Fabrizio Montesi
  */
-public class JolieAdapter
-{
+public class JolieAdapter {
 	private final JavaService javaService;
 	private final String resourcePath;
 
-	public JolieAdapter( JavaService javaService, String resourcePath )
-	{
-		 this.javaService = javaService;
+	public JolieAdapter( JavaService javaService, String resourcePath ) {
+		this.javaService = javaService;
 		this.resourcePath = resourcePath;
 	}
 
 	public Value callRequestResponse( String operationName, Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		CommMessage requestMesg = CommMessage.createRequest( operationName, resourcePath, request );
 		try {
 			CommMessage response = javaService.sendMessage( requestMesg ).recvResponseFor( requestMesg ).get();
-			if ( response.isFault() ) {
+			if( response.isFault() ) {
 				throw response.fault();
 			}
 			return response.value();
@@ -60,8 +58,7 @@ public class JolieAdapter
 		}
 	}
 
-	public void callOneWay( String operationName, Value request )
-	{
+	public void callOneWay( String operationName, Value request ) {
 		CommMessage requestMesg = CommMessage.createRequest( operationName, resourcePath, request );
 		javaService.sendMessage( requestMesg );
 	}

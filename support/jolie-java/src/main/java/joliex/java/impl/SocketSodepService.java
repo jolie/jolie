@@ -42,13 +42,13 @@ import joliex.java.Service;
 import joliex.java.ServiceFactory;
 
 /**
- * A {@link Service} using sockets as medium and sodep as protocol.
- * Do not instantiate this class directly, its API is due to change in the future!
- * Use {@link ServiceFactory#create(java.net.URI, java.lang.String, jolie.runtime.Value)} instead.
+ * A {@link Service} using sockets as medium and sodep as protocol. Do not instantiate this class
+ * directly, its API is due to change in the future! Use
+ * {@link ServiceFactory#create(java.net.URI, java.lang.String, jolie.runtime.Value)} instead.
+ * 
  * @author Fabrizio Montesi
  */
-public class SocketSodepService extends Service
-{
+public class SocketSodepService extends Service {
 	private final SocketChannel socketChannel;
 	private final CommProtocol protocol;
 	private final InputStream istream;
@@ -57,46 +57,39 @@ public class SocketSodepService extends Service
 	private final Lock lock = new ReentrantLock( true );
 
 	public SocketSodepService( ServiceFactory factory, URI location, Value protocolConfiguration )
-		throws IOException
-	{
+		throws IOException {
 		super( factory, location );
 		socketChannel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
-		protocol = new SodepProtocol( new ClosedVariablePath( new Pair[0], protocolConfiguration ) );
+		protocol = new SodepProtocol( new ClosedVariablePath( new Pair[ 0 ], protocolConfiguration ) );
 		istream = Channels.newInputStream( socketChannel );
 		ostream = Channels.newOutputStream( socketChannel );
 	}
 
 	public void close()
-		throws IOException
-	{
+		throws IOException {
 		socketChannel.close();
 	}
 
-	protected Runnable createRequestResponseRunnable( CommMessage request, Callback callback )
-	{
+	protected Runnable createRequestResponseRunnable( CommMessage request, Callback callback ) {
 		return new RequestResponseRunnable( this, request, callback );
 	}
 
-	protected Runnable createOneWayRunnable( CommMessage message, Callback callback )
-	{
+	protected Runnable createOneWayRunnable( CommMessage message, Callback callback ) {
 		return new OneWayRunnable( this, message, callback );
 	}
 
-	private static class RequestResponseRunnable implements Runnable
-	{
+	private static class RequestResponseRunnable implements Runnable {
 		private final SocketSodepService service;
 		private final CommMessage request;
 		private final Callback callback;
 
-		private RequestResponseRunnable( SocketSodepService service, CommMessage request, Callback callback )
-		{
+		private RequestResponseRunnable( SocketSodepService service, CommMessage request, Callback callback ) {
 			this.service = service;
 			this.request = request;
 			this.callback = callback;
 		}
 
-		public void run()
-		{
+		public void run() {
 			service.lock.lock();
 			try {
 				service.protocol.send( service.ostream, request, service.istream );
@@ -111,7 +104,7 @@ public class SocketSodepService extends Service
 			service.lock.lock();
 			try {
 				CommMessage response = service.protocol.recv( service.istream, service.ostream );
-				if ( response.isFault() ) {
+				if( response.isFault() ) {
 					callback.onFault( response.fault() );
 				} else {
 					callback.onSuccess( response.value() );
@@ -124,21 +117,18 @@ public class SocketSodepService extends Service
 		}
 	}
 
-	private static class OneWayRunnable implements Runnable
-	{
+	private static class OneWayRunnable implements Runnable {
 		private final SocketSodepService service;
 		private final CommMessage request;
 		private final Callback callback;
 
-		private OneWayRunnable( SocketSodepService service, CommMessage request, Callback callback )
-		{
+		private OneWayRunnable( SocketSodepService service, CommMessage request, Callback callback ) {
 			this.service = service;
 			this.request = request;
 			this.callback = callback;
 		}
 
-		public void run()
-		{
+		public void run() {
 			service.lock.lock();
 			try {
 				service.protocol.send( service.ostream, request, service.istream );

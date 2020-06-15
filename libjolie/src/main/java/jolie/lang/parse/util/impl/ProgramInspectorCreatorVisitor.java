@@ -110,56 +110,50 @@ import jolie.util.Pair;
 
 /**
  * Visitor for creating a {@link ProgramInspectorImpl} object.
+ * 
  * @author Fabrizio Montesi
  */
-public class ProgramInspectorCreatorVisitor implements OLVisitor
-{
+public class ProgramInspectorCreatorVisitor implements OLVisitor {
 	private final Map< URI, List< InterfaceDefinition > > interfaces = new HashMap<>();
 	private final Map< URI, List< InputPortInfo > > inputPorts = new HashMap<>();
 	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap<>();
 	private final Map< URI, List< TypeDefinition > > types = new HashMap<>();
 	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap<>();
-	private final Map< URI, Map<OLSyntaxNode, List<OLSyntaxNode>>> behaviouralDependencies = new HashMap<>();
+	private final Map< URI, Map< OLSyntaxNode, List< OLSyntaxNode > > > behaviouralDependencies = new HashMap<>();
 	private final Set< URI > sources = new HashSet<>();
 
 	private OLSyntaxNode currentFirstInput = null;
 
-	public ProgramInspectorCreatorVisitor( Program program )
-	{
+	public ProgramInspectorCreatorVisitor( Program program ) {
 		program.accept( this );
 	}
 
-	public ProgramInspector createInspector()
-	{
+	public ProgramInspector createInspector() {
 		return new ProgramInspectorImpl(
-			sources.toArray( new URI[0] ),
+			sources.toArray( new URI[ 0 ] ),
 			types,
 			interfaces,
 			inputPorts,
 			outputPorts,
 			embeddedServices,
-			behaviouralDependencies
-		);
+			behaviouralDependencies );
 	}
 
-	private void encounteredNode( OLSyntaxNode n )
-	{
+	private void encounteredNode( OLSyntaxNode n ) {
 		sources.add( n.context().source() );
 	}
 
 	@Override
-	public void visit( Program n )
-	{
+	public void visit( Program n ) {
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
 		}
 	}
 
 	@Override
-	public void visit( InterfaceDefinition n )
-	{
+	public void visit( InterfaceDefinition n ) {
 		List< InterfaceDefinition > list = interfaces.get( n.context().source() );
-		if ( list == null ) {
+		if( list == null ) {
 			list = new LinkedList<>();
 			interfaces.put( n.context().source(), list );
 		}
@@ -169,10 +163,9 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	}
 
 	@Override
-	public void visit( TypeInlineDefinition n )
-	{
+	public void visit( TypeInlineDefinition n ) {
 		List< TypeDefinition > list = types.get( n.context().source() );
-		if ( list == null ) {
+		if( list == null ) {
 			list = new LinkedList<>();
 			types.put( n.context().source(), list );
 		}
@@ -182,10 +175,9 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	}
 
 	@Override
-	public void visit( TypeDefinitionLink n )
-	{
+	public void visit( TypeDefinitionLink n ) {
 		List< TypeDefinition > list = types.get( n.context().source() );
-		if ( list == null ) {
+		if( list == null ) {
 			list = new LinkedList<>();
 			types.put( n.context().source(), list );
 		}
@@ -195,10 +187,9 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	}
 
 	@Override
-	public void visit( InputPortInfo n )
-	{
+	public void visit( InputPortInfo n ) {
 		List< InputPortInfo > list = inputPorts.get( n.context().source() );
-		if ( list == null ) {
+		if( list == null ) {
 			list = new LinkedList<>();
 			inputPorts.put( n.context().source(), list );
 		}
@@ -207,10 +198,9 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	}
 
 	@Override
-	public void visit( OutputPortInfo n )
-	{
+	public void visit( OutputPortInfo n ) {
 		List< OutputPortInfo > list = outputPorts.get( n.context().source() );
-		if ( list == null ) {
+		if( list == null ) {
 			list = new LinkedList<>();
 			outputPorts.put( n.context().source(), list );
 		}
@@ -220,241 +210,308 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	}
 
 	@Override
-	public void visit( EmbeddedServiceNode n )
-	{
-		List< EmbeddedServiceNode> list = embeddedServices.get( n.context().source() );
-		if ( list == null ) {
-			list = new LinkedList< >();
+	public void visit( EmbeddedServiceNode n ) {
+		List< EmbeddedServiceNode > list = embeddedServices.get( n.context().source() );
+		if( list == null ) {
+			list = new LinkedList<>();
 			embeddedServices.put( n.context().source(), list );
 		}
 		list.add( n );
 
 		encounteredNode( n );
 	}
-    
+
 	@Override
 	public void visit( OneWayOperationDeclaration decl ) {}
+
 	@Override
 	public void visit( RequestResponseOperationDeclaration decl ) {}
+
 	@Override
 	public void visit( DefinitionNode n ) {
 		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( ParallelStatement n ) {
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
 		}
 	}
+
 	@Override
 	public void visit( SequenceStatement n ) {
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
 		}
 	}
+
 	@Override
 	public void visit( NDChoiceStatement n ) {
-		if ( currentFirstInput != null ) {
-			for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
+		if( currentFirstInput != null ) {
+			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 				addOlSyntaxNodeToBehaviouralDependencies( pair.key() );
 				pair.value().accept( this );
 			}
 		} else {
-			for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
-				if ( pair.key() instanceof OneWayOperationStatement) {
+			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
+				if( pair.key() instanceof OneWayOperationStatement ) {
 					currentFirstInput = pair.key();
-				} else if ( pair.key() instanceof  RequestResponseOperationStatement ) {
+				} else if( pair.key() instanceof RequestResponseOperationStatement ) {
 					currentFirstInput = pair.key();
-					((RequestResponseOperationStatement) pair.key()).process().accept(this);
+					((RequestResponseOperationStatement) pair.key()).process().accept( this );
 				}
-				pair.value().accept(this );
+				pair.value().accept( this );
 				currentFirstInput = null;
 			}
 
 		}
 	}
+
 	@Override
 	public void visit( OneWayOperationStatement n ) {
-		if ( currentFirstInput == null ) {
+		if( currentFirstInput == null ) {
 			currentFirstInput = n;
 		} else {
 			addOlSyntaxNodeToBehaviouralDependencies( n );
 		}
 	}
+
 	@Override
 	public void visit( RequestResponseOperationStatement n ) {
-		if ( currentFirstInput == null ) {
+		if( currentFirstInput == null ) {
 			currentFirstInput = n;
 		} else {
 			addOlSyntaxNodeToBehaviouralDependencies( n );
 		}
-		n.process().accept(this );
+		n.process().accept( this );
 	}
+
 	@Override
 	public void visit( NotificationOperationStatement n ) {
 		addOlSyntaxNodeToBehaviouralDependencies( n );
 	}
+
 	@Override
 	public void visit( SolicitResponseOperationStatement n ) {
 		addOlSyntaxNodeToBehaviouralDependencies( n );
 	}
+
 	@Override
 	public void visit( LinkInStatement n ) {}
+
 	@Override
 	public void visit( LinkOutStatement n ) {}
+
 	@Override
 	public void visit( AssignStatement n ) {}
+
 	@Override
 	public void visit( IfStatement n ) {
-		for( Pair<OLSyntaxNode,OLSyntaxNode> pair : n.children() ) {
-			pair.key().accept(this);
-			pair.value().accept(this);
+		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
+			pair.key().accept( this );
+			pair.value().accept( this );
 		}
-		if ( n.elseProcess() != null ) {
-			n.elseProcess().accept(this);
+		if( n.elseProcess() != null ) {
+			n.elseProcess().accept( this );
 		}
 	}
+
 	@Override
 	public void visit( DefinitionCallStatement n ) {}
+
 	@Override
 	public void visit( WhileStatement n ) {
-		n.body().accept(this );
+		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( OrConditionNode n ) {}
+
 	@Override
 	public void visit( AndConditionNode n ) {}
+
 	@Override
 	public void visit( NotExpressionNode n ) {}
+
 	@Override
 	public void visit( CompareConditionNode n ) {}
+
 	@Override
 	public void visit( ConstantIntegerExpression n ) {}
+
 	@Override
 	public void visit( ConstantLongExpression n ) {}
+
 	@Override
 	public void visit( ConstantBoolExpression n ) {}
+
 	@Override
 	public void visit( ConstantDoubleExpression n ) {}
+
 	@Override
 	public void visit( ConstantStringExpression n ) {}
+
 	@Override
 	public void visit( ProductExpressionNode n ) {}
+
 	@Override
 	public void visit( SumExpressionNode n ) {}
+
 	@Override
 	public void visit( VariableExpressionNode n ) {}
+
 	@Override
 	public void visit( NullProcessStatement n ) {}
+
 	@Override
 	public void visit( Scope n ) {
-		n.body().accept(this );
+		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( InstallStatement n ) {
 		for( int i = 0; i < n.handlersFunction().pairs().length; i++ ) {
-			n.handlersFunction().pairs()[i].value().accept(this );
+			n.handlersFunction().pairs()[ i ].value().accept( this );
 		}
 	}
+
 	@Override
 	public void visit( CompensateStatement n ) {}
+
 	@Override
 	public void visit( ThrowStatement n ) {}
+
 	@Override
 	public void visit( ExitStatement n ) {}
+
 	@Override
 	public void visit( ExecutionInfo n ) {}
+
 	@Override
 	public void visit( CorrelationSetInfo n ) {}
+
 	@Override
 	public void visit( PointerStatement n ) {}
+
 	@Override
 	public void visit( DeepCopyStatement n ) {}
+
 	@Override
 	public void visit( RunStatement n ) {}
+
 	@Override
 	public void visit( UndefStatement n ) {}
+
 	@Override
 	public void visit( ValueVectorSizeExpressionNode n ) {}
+
 	@Override
 	public void visit( PreIncrementStatement n ) {}
+
 	@Override
 	public void visit( PostIncrementStatement n ) {}
+
 	@Override
 	public void visit( PreDecrementStatement n ) {}
+
 	@Override
 	public void visit( PostDecrementStatement n ) {}
+
 	@Override
 	public void visit( ForStatement n ) {
-		n.body().accept(this);
+		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( ForEachSubNodeStatement n ) {
-		n.body().accept(this);
+		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( ForEachArrayItemStatement n ) {
-		n.body().accept(this);
+		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( SpawnStatement n ) {
 		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( IsTypeExpressionNode n ) {}
+
 	@Override
 	public void visit( TypeCastExpressionNode n ) {}
+
 	@Override
 	public void visit( SynchronizedStatement n ) {
-		n.body().accept(this);
+		n.body().accept( this );
 	}
+
 	@Override
 	public void visit( CurrentHandlerStatement n ) {}
+
 	@Override
 	public void visit( InstallFixedVariableExpressionNode n ) {}
+
 	@Override
 	public void visit( VariablePathNode n ) {}
+
 	@Override
 	public void visit( DocumentationComment n ) {}
+
 	@Override
 	public void visit( AddAssignStatement n ) {}
+
 	@Override
 	public void visit( SubtractAssignStatement n ) {}
+
 	@Override
 	public void visit( MultiplyAssignStatement n ) {}
+
 	@Override
 	public void visit( DivideAssignStatement n ) {}
+
 	@Override
 	public void visit( FreshValueExpressionNode n ) {}
+
 	@Override
 	public void visit( InterfaceExtenderDefinition n ) {}
+
 	@Override
 	public void visit( CourierDefinitionNode n ) {}
+
 	@Override
 	public void visit( CourierChoiceStatement n ) {}
+
 	@Override
 	public void visit( NotificationForwardStatement n ) {}
+
 	@Override
 	public void visit( InstanceOfExpressionNode n ) {}
+
 	@Override
 	public void visit( SolicitResponseForwardStatement n ) {
 		addOlSyntaxNodeToBehaviouralDependencies( n );
 	}
+
 	@Override
 	public void visit( InlineTreeExpressionNode n ) {}
+
 	@Override
 	public void visit( VoidExpressionNode n ) {}
+
 	@Override
 	public void visit( ProvideUntilStatement n ) {
-		n.provide().accept(this );
-		n.until().accept(this);
+		n.provide().accept( this );
+		n.until().accept( this );
 	}
 
 	@Override
-	public void visit( TypeChoiceDefinition n )
-	{
+	public void visit( TypeChoiceDefinition n ) {
 		List< TypeDefinition > list = types.get( n.context().source() );
-		if ( list == null ) {
+		if( list == null ) {
 			list = new LinkedList<>();
 			types.put( n.context().source(), list );
 		}
@@ -464,15 +521,16 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	}
 
 	private void addOlSyntaxNodeToBehaviouralDependencies( OLSyntaxNode n ) {
-		if ( currentFirstInput != null ) {
-			if (behaviouralDependencies.get(n.context().source()) == null) {
-				behaviouralDependencies.put(n.context().source(), new HashMap<>());
+		if( currentFirstInput != null ) {
+			if( behaviouralDependencies.get( n.context().source() ) == null ) {
+				behaviouralDependencies.put( n.context().source(), new HashMap<>() );
 			}
-			Map<OLSyntaxNode, List<OLSyntaxNode>> sourceBehaviouralDependencies = behaviouralDependencies.get(n.context().source());
-			if (sourceBehaviouralDependencies.get(currentFirstInput) == null) {
-				sourceBehaviouralDependencies.put(currentFirstInput, new ArrayList<OLSyntaxNode>());
+			Map< OLSyntaxNode, List< OLSyntaxNode > > sourceBehaviouralDependencies =
+				behaviouralDependencies.get( n.context().source() );
+			if( sourceBehaviouralDependencies.get( currentFirstInput ) == null ) {
+				sourceBehaviouralDependencies.put( currentFirstInput, new ArrayList< OLSyntaxNode >() );
 			}
-			sourceBehaviouralDependencies.get(currentFirstInput).add(n);
+			sourceBehaviouralDependencies.get( currentFirstInput ).add( n );
 		}
 	}
 }

@@ -25,24 +25,19 @@ import javax.swing.JOptionPane;
 import jolie.runtime.JavaService;
 import jolie.runtime.embedding.RequestResponse;
 
-public class SwingService extends JavaService
-{
+public class SwingService extends JavaService {
 	@RequestResponse
-	public void showMessageDialog( String message )
-	{
+	public void showMessageDialog( String message ) {
 		JOptionPane.showMessageDialog( null, message );
 	}
 
-	public Integer showYesNoQuestionDialog( String message )
-	{
+	public Integer showYesNoQuestionDialog( String message ) {
 		return JOptionPane.showOptionDialog(
 			null, message, "", JOptionPane.YES_NO_OPTION,
-			JOptionPane.QUESTION_MESSAGE, null, null, null
-		);
+			JOptionPane.QUESTION_MESSAGE, null, null, null );
 	}
 
-	public String showInputDialog( String message )
-	{
+	public String showInputDialog( String message ) {
 		return JOptionPane.showInputDialog( message );
 	}
 }

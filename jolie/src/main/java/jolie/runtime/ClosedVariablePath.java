@@ -28,37 +28,31 @@ import jolie.util.Pair;
 /**
  * @author Fabrizio Montesi
  */
-public class ClosedVariablePath extends VariablePath
-{
+public class ClosedVariablePath extends VariablePath {
 	private final Value rootValue;
 
-	public ClosedVariablePath( Pair< Expression, Expression >[] path, Value rootValue )
-	{
+	public ClosedVariablePath( Pair< Expression, Expression >[] path, Value rootValue ) {
 		super( path );
 		this.rootValue = rootValue;
 	}
-	
-	public ClosedVariablePath( VariablePath otherPath, Value rootValue )
-	{
+
+	public ClosedVariablePath( VariablePath otherPath, Value rootValue ) {
 		this( otherPath.path(), rootValue );
 	}
 
 	@Override
-	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path )
-	{
+	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path ) {
 		return new ClosedVariablePath( path, rootValue );
 	}
 
 	@Override
-	public Expression cloneExpression( TransformationReason reason )
-	{
+	public Expression cloneExpression( TransformationReason reason ) {
 		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path(), reason );
 		return new ClosedVariablePath( clonedPath, rootValue );
 	}
 
 	@Override
-	protected Value getRootValue()
-	{
+	protected Value getRootValue() {
 		return rootValue;
 	}
 }

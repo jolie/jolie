@@ -31,30 +31,28 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
-@AndJarDeps({"uri-templates.jar", "joda-time.jar"})
-public class UriTemplates extends JavaService
-{
-	public Value match( Value request )
-	{
+@AndJarDeps( { "uri-templates.jar", "joda-time.jar" } )
+public class UriTemplates extends JavaService {
+	public Value match( Value request ) {
 		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
 		Pattern p = UriTemplateMatcherFactory.getReverseMatchPattern( t );
 		Matcher m = p.matcher( request.getFirstChild( "uri" ).strValue() );
 		Value response = Value.create();
 		boolean matches = m.matches();
 		response.setValue( matches );
-		if ( matches ) {
+		if( matches ) {
 			for( String param : t.getVariables() ) {
 				response.setFirstChild( param, m.group( param ) );
 			}
 		}
 		return response;
 	}
-	
-	public String expand( Value request )
-	{
+
+	public String expand( Value request ) {
 		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
-		if ( request.hasChildren( "params" ) ) {
-			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children().entrySet() ) {
+		if( request.hasChildren( "params" ) ) {
+			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children()
+				.entrySet() ) {
 				t.set( entry.getKey(), entry.getValue().first().valueObject() );
 			}
 		}

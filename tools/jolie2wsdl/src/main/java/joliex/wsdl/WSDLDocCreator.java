@@ -75,8 +75,7 @@ import org.w3c.dom.Element;
  *
  * @author Francesco Bullini and Claudio Guidi
  */
-public class WSDLDocCreator
-{
+public class WSDLDocCreator {
 	// Schema
 
 	private Document schemaDocument;
@@ -88,30 +87,29 @@ public class WSDLDocCreator
 	static ExtensionRegistry extensionRegistry;
 	private static WSDLFactory wsdlFactory;
 	private Definition localDef = null;
-	private final List<String> rootTypes = new ArrayList<String>();
+	private final List< String > rootTypes = new ArrayList< String >();
 	private final ProgramInspector inspector;
 	private final URI originalFile;
 
-	public WSDLDocCreator( ProgramInspector inspector, URI originalFile )
-	{
+	public WSDLDocCreator( ProgramInspector inspector, URI originalFile ) {
 		this.inspector = inspector;
 		this.originalFile = originalFile;
 	}
 
-	public Definition initWsdl( String serviceName, String filename )
-	{
+	public Definition initWsdl( String serviceName, String filename ) {
 		try {
 			wsdlFactory = WSDLFactory.newInstance();
 			localDef = wsdlFactory.newDefinition();
 			extensionRegistry = wsdlFactory.newPopulatedExtensionRegistry();
-			if ( serviceName != null ) {
+			if( serviceName != null ) {
 				QName servDefQN = new QName( serviceName );
 				localDef.setQName( servDefQN );
 			}
 			localDef.addNamespace( NameSpacesEnum.WSDL.getNameSpacePrefix(), NameSpacesEnum.WSDL.getNameSpaceURI() );
 			localDef.addNamespace( NameSpacesEnum.SOAP.getNameSpacePrefix(), NameSpacesEnum.SOAP.getNameSpaceURI() );
 			localDef.addNamespace( "tns", tns );
-			localDef.addNamespace( NameSpacesEnum.XML_SCH.getNameSpacePrefix(), NameSpacesEnum.XML_SCH.getNameSpaceURI() );
+			localDef.addNamespace( NameSpacesEnum.XML_SCH.getNameSpacePrefix(),
+				NameSpacesEnum.XML_SCH.getNameSpaceURI() );
 			localDef.setTargetNamespace( tns );
 			localDef.addNamespace( "xsd1", tns_schema );
 		} catch( WSDLException ex ) {
@@ -121,19 +119,17 @@ public class WSDLDocCreator
 		return localDef;
 	}
 
-	public void ConvertDocument( String filename, String tns, String portName, String location )
-	{
+	public void ConvertDocument( String filename, String tns, String portName, String location ) {
 		System.out.println( "Starting conversion..." );
 
 		this.tns = tns + ".wsdl";
 		this.tns_schema = tns + ".xsd";
 
 		initWsdl( null, filename );
-		
+
 		try(
 			Writer w = (filename != null) ? new FileWriter( filename ) : new OutputStreamWriter( System.out );
-			Writer fw =  new BufferedWriter( w )
-		) {
+			Writer fw = new BufferedWriter( w ) ) {
 			schemaDocument = this.createDOMdocument();
 			schemaRootElement = this.createSchemaRootElement( schemaDocument );
 
@@ -142,7 +138,7 @@ public class WSDLDocCreator
 			InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
 
 			for( InputPortInfo inputPort : inputPortList ) {
-				if ( inputPort.id().equals( portName ) ) {
+				if( inputPort.id().equals( portName ) ) {
 
 					// portType creation
 					String portTypeName = inputPort.id();
@@ -153,11 +149,11 @@ public class WSDLDocCreator
 
 					// service creation
 					String address;
-					if ( location.isEmpty() ) {
-						if ( inputPort.location().toString().equals( "local" ) ) {
+					if( location.isEmpty() ) {
+						if( inputPort.location().toString().equals( "local" ) ) {
 							address = "local";
 						} else {
-							address = inputPort.location().toString().substring( 6 );   // exclude socket word
+							address = inputPort.location().toString().substring( 6 ); // exclude socket word
 							address = "http" + address;
 						}
 					} else {
@@ -168,12 +164,14 @@ public class WSDLDocCreator
 					// scan aggregated ports
 					for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
 						int i = 0;
-						while( !inputPort.aggregationList()[ x ].outputPortList()[ 0 ].equals( outputPorts[ i ].id() ) ) {
+						while( !inputPort.aggregationList()[ x ].outputPortList()[ 0 ]
+							.equals( outputPorts[ i ].id() ) ) {
 							i++;
 						}
 						for( InterfaceDefinition interfaceDefinition : outputPorts[ i ].getInterfaceList() ) {
 
-							for( Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet() ) {
+							for( Entry< String, OperationDeclaration > entry : interfaceDefinition.operationsMap()
+								.entrySet() ) {
 								addOperation2WSDL( entry.getValue(), pt, bd );
 							}
 						}
@@ -182,9 +180,9 @@ public class WSDLDocCreator
 					// scans port interfaces
 					for( InterfaceDefinition interfaceDefinition : inputPort.getInterfaceList() ) {
 						// scan operations
-						Map< String, OperationDeclaration> operationMap = interfaceDefinition.operationsMap();
+						Map< String, OperationDeclaration > operationMap = interfaceDefinition.operationsMap();
 
-						for( Entry< String, OperationDeclaration> entry : operationMap.entrySet() ) {
+						for( Entry< String, OperationDeclaration > entry : operationMap.entrySet() ) {
 							addOperation2WSDL( entry.getValue(), pt, bd );
 						}
 
@@ -203,12 +201,11 @@ public class WSDLDocCreator
 		System.out.println( "Success: WSDL document generated!" );
 	}
 
-	private void addOperation2WSDL( OperationDeclaration operationDeclaration, PortType pt, Binding bd )
-	{
-		if ( operationDeclaration instanceof OneWayOperationDeclaration ) {
+	private void addOperation2WSDL( OperationDeclaration operationDeclaration, PortType pt, Binding bd ) {
+		if( operationDeclaration instanceof OneWayOperationDeclaration ) {
 			// OW
 
-			//-------------- adding operation
+			// -------------- adding operation
 			OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationDeclaration;
 			Operation wsdlOp = addOWOperation2PT( localDef, pt, oneWayOperation );
 
@@ -217,8 +214,9 @@ public class WSDLDocCreator
 
 		} else {
 			// RR
-			//-------------- adding operation
-			RequestResponseOperationDeclaration requestResponseOperation = (RequestResponseOperationDeclaration) operationDeclaration;
+			// -------------- adding operation
+			RequestResponseOperationDeclaration requestResponseOperation =
+				(RequestResponseOperationDeclaration) operationDeclaration;
 			Operation wsdlOp = addRROperation2PT( localDef, pt, requestResponseOperation );
 
 			// adding operation binding
@@ -227,80 +225,81 @@ public class WSDLDocCreator
 		}
 	}
 
-	private String getSchemaNativeType( NativeType nType )
-	{
+	private String getSchemaNativeType( NativeType nType ) {
 
 		/*
-         * TO DO:
-         * wsdl_types ANY, RAW, VOID
+		 * TO DO: wsdl_types ANY, RAW, VOID
 		 */
 		String prefix = "xs:";
 		String suffix = "";
-		if ( nType.equals( NativeType.STRING ) ) {
+		if( nType.equals( NativeType.STRING ) ) {
 			suffix = "string";
-		} else if ( nType.equals( NativeType.DOUBLE ) ) {
+		} else if( nType.equals( NativeType.DOUBLE ) ) {
 			suffix = "double";
-		} else if ( nType.equals( NativeType.INT ) ) {
+		} else if( nType.equals( NativeType.INT ) ) {
 			suffix = "int";
-		} else if ( nType.equals( NativeType.BOOL ) ) {
+		} else if( nType.equals( NativeType.BOOL ) ) {
 			suffix = "boolean";
 		}
-		if ( suffix.isEmpty() ) {
+		if( suffix.isEmpty() ) {
 			return "";
 		} else {
 			return prefix + suffix;
 		}
 	}
 
-	private void addRootType( TypeDefinition type ) throws Exception
-	{
-		if ( type instanceof TypeDefinitionLink ) {
-			throw (new Exception( "ERROR, type " + type.id() + ":conversion not allowed when the types defined as operation messages are linked type!" ));
+	private void addRootType( TypeDefinition type ) throws Exception {
+		if( type instanceof TypeDefinitionLink ) {
+			throw (new Exception( "ERROR, type " + type.id()
+				+ ":conversion not allowed when the types defined as operation messages are linked type!" ));
 		}
-		if ( !rootTypes.contains( type.id() ) ) {
+		if( !rootTypes.contains( type.id() ) ) {
 			schemaRootElement.appendChild( createTypeDefinition( (TypeInlineDefinition) type, false ) );
 		}
 		rootTypes.add( type.id() );
 	}
 
-	private Element createTypeDefinition( TypeInlineDefinition type, boolean inMessage ) throws Exception
-	{
-		if ( type.nativeType() != NativeType.VOID ) {
-			throw (new Exception( "ERROR, type " + type.id() + ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
+	private Element createTypeDefinition( TypeInlineDefinition type, boolean inMessage ) throws Exception {
+		if( type.nativeType() != NativeType.VOID ) {
+			throw (new Exception( "ERROR, type " + type.id()
+				+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 		}
 
 		Element newEl = schemaDocument.createElement( "xs:complexType" );
-		if ( inMessage == false ) {
+		if( inMessage == false ) {
 			String typename = type.id();
 			newEl.setAttribute( "name", typename );
 		}
 		Element sequence = schemaDocument.createElement( "xs:sequence" );
 
 		// adding subtypes
-		if ( type.hasSubTypes() ) {
+		if( type.hasSubTypes() ) {
 			Iterator it = type.subTypes().iterator();
 			while( it.hasNext() ) {
-				TypeDefinition curType = ((Entry<String, TypeDefinition>) it.next()).getValue();
+				TypeDefinition curType = ((Entry< String, TypeDefinition >) it.next()).getValue();
 				Element subEl = schemaDocument.createElement( "xs:element" );
 				subEl.setAttribute( "name", curType.id() );
 				subEl.setAttribute( "minOccurs", new Integer( curType.cardinality().min() ).toString() );
 				String maxOccurs = "unbounded";
-				if ( curType.cardinality().max() < MAX_CARD ) {
+				if( curType.cardinality().max() < MAX_CARD ) {
 					maxOccurs = new Integer( curType.cardinality().max() ).toString();
 				}
 				subEl.setAttribute( "maxOccurs", maxOccurs );
-				if ( curType instanceof TypeInlineDefinition ) {
-					if ( ((TypeInlineDefinition) curType).hasSubTypes() ) {
-						if ( ((TypeInlineDefinition) curType).nativeType() != NativeType.VOID ) {
-							throw (new Exception( "ERROR, type " + curType.id() + ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
+				if( curType instanceof TypeInlineDefinition ) {
+					if( ((TypeInlineDefinition) curType).hasSubTypes() ) {
+						if( ((TypeInlineDefinition) curType).nativeType() != NativeType.VOID ) {
+							throw (new Exception( "ERROR, type " + curType.id()
+								+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 						} else {
 							subEl.appendChild( createTypeDefinition( (TypeInlineDefinition) curType, true ) );
 						}
 					} else {
-						subEl.setAttribute( "type", getSchemaNativeType( ((TypeInlineDefinition) curType).nativeType() ) );
+						subEl.setAttribute( "type",
+							getSchemaNativeType( ((TypeInlineDefinition) curType).nativeType() ) );
 					}
-				} else if ( curType instanceof TypeDefinitionLink ) {
-					subEl.setAttribute( "type", tns_schema_prefix + ":" + ((TypeDefinitionLink) curType).linkedTypeName() );
+				} else if( curType instanceof TypeDefinitionLink ) {
+					subEl.setAttribute( "type",
+						tns_schema_prefix + ":" + ((TypeDefinitionLink) curType).linkedTypeName() );
 					addRootType( ((TypeDefinitionLink) curType).linkedType() );
 				}
 				sequence.appendChild( subEl );
@@ -310,34 +309,36 @@ public class WSDLDocCreator
 		return newEl;
 	}
 
-	private void addMessageType( TypeDefinition rootType, String typename ) throws Exception
-	{
+	private void addMessageType( TypeDefinition rootType, String typename ) throws Exception {
 		// when converting from Jolie type of messages must have root type = "void"
 		// no type link are allowed for conversion
 		// message types define elements
-		if ( !rootTypes.contains( rootType.id() ) ) {
+		if( !rootTypes.contains( rootType.id() ) ) {
 			Element newEl = schemaDocument.createElement( "xs:element" );
 			newEl.setAttribute( "name", typename );
-			if ( rootType instanceof TypeInlineDefinition ) {
+			if( rootType instanceof TypeInlineDefinition ) {
 				newEl.appendChild( createTypeDefinition( (TypeInlineDefinition) rootType, true ) );
 				rootTypes.add( typename );
 				schemaRootElement.appendChild( newEl );
-				if ( ((TypeInlineDefinition) rootType).nativeType() != NativeType.VOID ) {
-					throw (new Exception( "ERROR, type " + rootType.id() + ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
+				if( ((TypeInlineDefinition) rootType).nativeType() != NativeType.VOID ) {
+					throw (new Exception( "ERROR, type " + rootType.id()
+						+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 				}
-			} else if ( rootType instanceof TypeDefinitionLink ) {
-				throw (new Exception( "ERROR, type " + rootType.id() + ":conversion not allowed when the types defined as operation messages are linked type!" ));
+			} else if( rootType instanceof TypeDefinitionLink ) {
+				throw (new Exception( "ERROR, type " + rootType.id()
+					+ ":conversion not allowed when the types defined as operation messages are linked type!" ));
 				// newEl.appendChild( lookForLinkedType( (TypeDefinitionLink ) rootType, typename ));
-				//schemaRootElement.appendChild( createTypeDefinitionLink( ( TypeDefinitionLink ) rootType, true, typename ));
-			} else if ( rootType instanceof TypeChoiceDefinition ) {
-				throw (new Exception( "ERROR, type " + rootType.id() + ":conversion not allowed when the types defined as operation messages are choice types!" ));
+				// schemaRootElement.appendChild( createTypeDefinitionLink( ( TypeDefinitionLink ) rootType, true,
+				// typename ));
+			} else if( rootType instanceof TypeChoiceDefinition ) {
+				throw (new Exception( "ERROR, type " + rootType.id()
+					+ ":conversion not allowed when the types defined as operation messages are choice types!" ));
 			}
 		}
 
 	}
 
-	private Message addRequestMessage( Definition localDef, OperationDeclaration op )
-	{
+	private Message addRequestMessage( Definition localDef, OperationDeclaration op ) {
 
 		Message inputMessage = localDef.createMessage();
 		inputMessage.setUndefined( false );
@@ -346,7 +347,7 @@ public class WSDLDocCreator
 		inputPart.setName( "body" );
 		try {
 			// adding wsdl_types related to this message
-			if ( op instanceof OneWayOperationDeclaration ) {
+			if( op instanceof OneWayOperationDeclaration ) {
 				OneWayOperationDeclaration op_ow = (OneWayOperationDeclaration) op;
 
 				// set the message name as the name of the jolie request message type
@@ -373,8 +374,7 @@ public class WSDLDocCreator
 		return inputMessage;
 	}
 
-	private Message addResponseMessage( Definition localDef, OperationDeclaration op )
-	{
+	private Message addResponseMessage( Definition localDef, OperationDeclaration op ) {
 
 		Message outputMessage = localDef.createMessage();
 		outputMessage.setUndefined( false );
@@ -403,8 +403,8 @@ public class WSDLDocCreator
 
 	}
 
-	private Message addFaultMessage( Definition localDef, OperationDeclaration op, TypeDefinition tp, String faultName )
-	{
+	private Message addFaultMessage( Definition localDef, OperationDeclaration op, TypeDefinition tp,
+		String faultName ) {
 		Message faultMessage = localDef.createMessage();
 		faultMessage.setUndefined( false );
 
@@ -432,10 +432,9 @@ public class WSDLDocCreator
 
 	}
 
-	private PortType createPortType( Definition def, String portTypeName )
-	{
+	private PortType createPortType( Definition def, String portTypeName ) {
 		PortType pt = def.getPortType( new QName( portTypeName ) );
-		if ( pt == null ) {
+		if( pt == null ) {
 			pt = new PortTypeImpl();
 		}
 
@@ -448,8 +447,7 @@ public class WSDLDocCreator
 		return pt;
 	}
 
-	private Operation addOWOperation2PT( Definition def, PortType pt, OneWayOperationDeclaration op )
-	{
+	private Operation addOWOperation2PT( Definition def, PortType pt, OneWayOperationDeclaration op ) {
 		Operation wsdlOp = def.createOperation();
 
 		wsdlOp.setName( op.id() );
@@ -468,8 +466,7 @@ public class WSDLDocCreator
 		return wsdlOp;
 	}
 
-	private Operation addRROperation2PT( Definition def, PortType pt, RequestResponseOperationDeclaration op )
-	{
+	private Operation addRROperation2PT( Definition def, PortType pt, RequestResponseOperationDeclaration op ) {
 		Operation wsdlOp = def.createOperation();
 
 		wsdlOp.setName( op.id() );
@@ -489,7 +486,7 @@ public class WSDLDocCreator
 		wsdlOp.setOutput( out );
 
 		// creating faults
-		for( Entry<String, TypeDefinition> curFault : op.faults().entrySet() ) {
+		for( Entry< String, TypeDefinition > curFault : op.faults().entrySet() ) {
 			Fault fault = localDef.createFault();
 			fault.setName( curFault.getKey() );
 			Message flt_msg = addFaultMessage( localDef, op, curFault.getValue(), curFault.getKey() );
@@ -502,17 +499,17 @@ public class WSDLDocCreator
 		return wsdlOp;
 	}
 
-	private Binding createBindingSOAP( Definition def, PortType pt, String bindingName )
-	{
+	private Binding createBindingSOAP( Definition def, PortType pt, String bindingName ) {
 		Binding bind = def.getBinding( new QName( bindingName ) );
-		if ( bind == null ) {
+		if( bind == null ) {
 			bind = def.createBinding();
 			bind.setQName( new QName( tns, bindingName ) );
 		}
 		bind.setPortType( pt );
 		bind.setUndefined( false );
 		try {
-			SOAPBinding soapBinding = (SOAPBinding) extensionRegistry.createExtension( Binding.class, new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "binding" ) );
+			SOAPBinding soapBinding = (SOAPBinding) extensionRegistry.createExtension( Binding.class,
+				new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "binding" ) );
 			soapBinding.setTransportURI( NameSpacesEnum.SOAPoverHTTP.getNameSpaceURI() );
 			soapBinding.setStyle( "document" );
 			bind.addExtensibilityElement( soapBinding );
@@ -525,24 +522,25 @@ public class WSDLDocCreator
 
 	}
 
-	private void addOperationSOAPBinding( Definition localDef, PortType portType, Operation wsdlOp, Binding bind )
-	{
+	private void addOperationSOAPBinding( Definition localDef, PortType portType, Operation wsdlOp, Binding bind ) {
 		try {
 			// creating operation binding
 			BindingOperation bindOp = localDef.createBindingOperation();
 			bindOp.setName( wsdlOp.getName() );
 
 			// adding soap extensibility elements
-			SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension( BindingOperation.class, new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "operation" ) );
+			SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension( BindingOperation.class,
+				new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "operation" ) );
 			soapOperation.setStyle( "document" );
-			//NOTA-BENE: Come settare SOAPACTION? jolie usa SOAP1.1 o 1.2? COme usa la SoapAction?
+			// NOTA-BENE: Come settare SOAPACTION? jolie usa SOAP1.1 o 1.2? COme usa la SoapAction?
 			soapOperation.setSoapActionURI( wsdlOp.getName() );
 			bindOp.addExtensibilityElement( soapOperation );
 			bindOp.setOperation( wsdlOp );
 
 			// adding input
 			BindingInput bindingInput = localDef.createBindingInput();
-			SOAPBody body = (SOAPBody) extensionRegistry.createExtension( BindingInput.class, new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "body" ) );
+			SOAPBody body = (SOAPBody) extensionRegistry.createExtension( BindingInput.class,
+				new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "body" ) );
 			body.setUse( "literal" );
 			bindingInput.addExtensibilityElement( body );
 			bindOp.setBindingInput( bindingInput );
@@ -553,11 +551,12 @@ public class WSDLDocCreator
 			bindOp.setBindingOutput( bindingOutput );
 
 			// adding fault
-			if ( !wsdlOp.getFaults().isEmpty() ) {
+			if( !wsdlOp.getFaults().isEmpty() ) {
 				Iterator it = wsdlOp.getFaults().entrySet().iterator();
 				while( it.hasNext() ) {
 					BindingFault bindingFault = localDef.createBindingFault();
-					SOAPFault soapFault = (SOAPFault) extensionRegistry.createExtension( BindingFault.class, new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "fault" ) );
+					SOAPFault soapFault = (SOAPFault) extensionRegistry.createExtension( BindingFault.class,
+						new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "fault" ) );
 					soapFault.setUse( "literal" );
 					String faultName = ((Entry) it.next()).getKey().toString();
 					bindingFault.setName( faultName );
@@ -575,13 +574,13 @@ public class WSDLDocCreator
 
 	}
 
-	public Service createService( Definition localdef, String serviceName, Binding bind, String mySOAPAddress )
-	{
+	public Service createService( Definition localdef, String serviceName, Binding bind, String mySOAPAddress ) {
 		Port p = localDef.createPort();
 		p.setName( serviceName + "Port" );
 		try {
 
-			SOAPAddress soapAddress = (SOAPAddress) extensionRegistry.createExtension( Port.class, new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "address" ) );
+			SOAPAddress soapAddress = (SOAPAddress) extensionRegistry.createExtension( Port.class,
+				new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "address" ) );
 			soapAddress.setLocationURI( mySOAPAddress );
 			p.addExtensibilityElement( soapAddress );
 		} catch( WSDLException ex ) {
@@ -596,8 +595,7 @@ public class WSDLDocCreator
 		return s;
 	}
 
-	private Document createDOMdocument()
-	{
+	private Document createDOMdocument() {
 		Document document = null;
 		DocumentBuilder db;
 		try {
@@ -611,8 +609,7 @@ public class WSDLDocCreator
 		return document;
 	}
 
-	private Element createSchemaRootElement( Document document )
-	{
+	private Element createSchemaRootElement( Document document ) {
 		Element rootElement = document.createElement( "xs:schema" );
 		rootElement.setAttribute( "xmlns:xs", NameSpacesEnum.XML_SCH.getNameSpaceURI() );
 		rootElement.setAttribute( "targetNamespace", tns_schema );
@@ -622,12 +619,12 @@ public class WSDLDocCreator
 
 	}
 
-	public void setSchemaDocIntoWSDLTypes( Document doc )
-	{
+	public void setSchemaDocIntoWSDLTypes( Document doc ) {
 		try {
 
 			Types wsdl_types = localDef.createTypes();
-			Schema typesExt = (Schema) extensionRegistry.createExtension( Types.class, new QName( NameSpacesEnum.XML_SCH.getNameSpaceURI(), "schema" ) );
+			Schema typesExt = (Schema) extensionRegistry.createExtension( Types.class,
+				new QName( NameSpacesEnum.XML_SCH.getNameSpaceURI(), "schema" ) );
 			typesExt.setElement( (Element) doc.getFirstChild() );
 			wsdl_types.addExtensibilityElement( typesExt );
 			localDef.setTypes( wsdl_types );

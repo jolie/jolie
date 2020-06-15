@@ -24,51 +24,45 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 
-public final class ForProcess implements Process
-{
+public final class ForProcess implements Process {
 	private final Expression condition;
 	private final Process init, post, process;
 
-	public ForProcess( Process init, Expression condition, Process post, Process process )
-	{
+	public ForProcess( Process init, Expression condition, Process post, Process process ) {
 		this.init = init;
 		this.condition = condition;
 		this.post = post;
 		this.process = process;
 	}
-	
+
 	@Override
-	public Process copy( TransformationReason reason )
-	{
+	public Process copy( TransformationReason reason ) {
 		return new ForProcess(
 			init.copy( reason ),
 			condition.cloneExpression( reason ),
 			post.copy( reason ),
-			process.copy( reason )
-		);
+			process.copy( reason ) );
 	}
-	
+
 	@Override
 	public void run()
-		throws FaultException, ExitingException
-	{
+		throws FaultException, ExitingException {
 		final ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if( ethread.isKilled() ) {
 			return;
 		}
-		
+
 		init.run();
-		while ( condition.evaluate().boolValue() ) {
+		while( condition.evaluate().boolValue() ) {
 			process.run();
-			if ( ethread.isKilled() )
+			if( ethread.isKilled() )
 				return;
 			post.run();
 		}
 	}
-	
+
 	@Override
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

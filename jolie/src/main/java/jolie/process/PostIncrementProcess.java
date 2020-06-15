@@ -24,48 +24,41 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 
-public class PostIncrementProcess implements Process, Expression
-{
+public class PostIncrementProcess implements Process, Expression {
 	private final VariablePath path;
 
-	public PostIncrementProcess( VariablePath varPath )
-	{
+	public PostIncrementProcess( VariablePath varPath ) {
 		this.path = varPath;
 	}
-	
+
 	@Override
-	public Process copy( TransformationReason reason )
-	{
-		return new PostIncrementProcess( (VariablePath)path.cloneExpression( reason ) );
+	public Process copy( TransformationReason reason ) {
+		return new PostIncrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
-	
+
 	@Override
-	public Expression cloneExpression( TransformationReason reason )
-	{
-		return new PostIncrementProcess( (VariablePath)path.cloneExpression( reason ) );
+	public Expression cloneExpression( TransformationReason reason ) {
+		return new PostIncrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
-	
+
 	@Override
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
+	public void run() {
+		if( ExecutionThread.currentThread().isKilled() )
 			return;
 		final Value val = path.getValue();
 		val.setValue( val.intValue() + 1 );
 	}
-	
+
 	@Override
-	public Value evaluate()
-	{
+	public Value evaluate() {
 		final Value val = path.getValue();
 		final Value orig = Value.create( val.intValue() );
 		val.setValue( val.intValue() + 1 );
 		return orig;
 	}
-	
+
 	@Override
-	public boolean isKillable()
-	{
+	public boolean isKillable() {
 		return true;
 	}
 }

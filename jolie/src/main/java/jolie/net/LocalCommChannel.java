@@ -27,18 +27,16 @@ import java.util.concurrent.Future;
 import jolie.Interpreter;
 
 /**
- * An in-memory channel that can be used to communicate directly with a specific <code>Interpreter</code> instance.
+ * An in-memory channel that can be used to communicate directly with a specific
+ * <code>Interpreter</code> instance.
  */
-public class LocalCommChannel extends CommChannel implements PollableCommChannel
-{
-	private static class CoLocalCommChannel extends CommChannel
-	{
+public class LocalCommChannel extends CommChannel implements PollableCommChannel {
+	private static class CoLocalCommChannel extends CommChannel {
 		private CommMessage request;
 		private final long requestId;
-		private final CompletableFuture<CommMessage> responseFut;
+		private final CompletableFuture< CommMessage > responseFut;
 
-		private CoLocalCommChannel( CommMessage request, CompletableFuture<CommMessage> responseFut )
-		{
+		private CoLocalCommChannel( CommMessage request, CompletableFuture< CommMessage > responseFut ) {
 			this.request = request;
 			this.responseFut = responseFut;
 			this.requestId = request.id();
@@ -46,9 +44,8 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 		@Override
 		protected CommMessage recvImpl()
-			throws IOException
-		{
-			if ( request == null ) {
+			throws IOException {
+			if( request == null ) {
 				throw new IOException( "Unsupported operation" );
 			}
 			CommMessage r = request;
@@ -58,62 +55,54 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 		@Override
 		protected void sendImpl( CommMessage message )
-			throws IOException
-		{
-			if ( message.id() != requestId) {
-				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
+			throws IOException {
+			if( message.id() != requestId ) {
+				throw new IOException( "Unexpected response message with id " + message.id() + " for operation "
+					+ message.operationName() + " in local channel" );
 			}
 			responseFut.complete( message );
 		}
 
 		@Override
 		public Future< CommMessage > recvResponseFor( CommMessage request )
-			throws IOException
-		{
+			throws IOException {
 			throw new IOException( "Unsupported operation" );
 		}
 
 		@Override
 		protected void disposeForInputImpl()
-			throws IOException
-		{}
+			throws IOException {}
 
 		@Override
-		protected void closeImpl()
-		{}
+		protected void closeImpl() {}
 	}
 
 	private final Interpreter interpreter;
 	private final CommListener listener;
 	private final Map< Long, CompletableFuture< CommMessage > > responseWaiters = new ConcurrentHashMap<>();
-	
-	public LocalCommChannel( Interpreter interpreter, CommListener listener )
-	{
+
+	public LocalCommChannel( Interpreter interpreter, CommListener listener ) {
 		this.interpreter = interpreter;
 		this.listener = listener;
 	}
 
 	@Override
-	public CommChannel createDuplicate()
-	{
+	public CommChannel createDuplicate() {
 		return new LocalCommChannel( interpreter, listener );
 	}
 
-	public Interpreter interpreter()
-	{
+	public Interpreter interpreter() {
 		return interpreter;
 	}
 
 	@Override
 	protected CommMessage recvImpl()
-		throws IOException
-	{
+		throws IOException {
 		throw new IOException( "Unsupported operation" );
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message )
-	{
+	protected void sendImpl( CommMessage message ) {
 		CompletableFuture f = new CompletableFuture<>();
 		responseWaiters.put( message.id(), f );
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );
@@ -121,25 +110,21 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
-		throws IOException
-	{
+		throws IOException {
 		return responseWaiters.remove( request.id() );
 	}
-	
+
 	@Override
-	public boolean isReady()
-	{
+	public boolean isReady() {
 		return responseWaiters.isEmpty() == false;
 	}
-	
+
 	@Override
 	protected void disposeForInputImpl()
-		throws IOException
-	{
+		throws IOException {
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
 	@Override
-	protected void closeImpl()
-	{}
+	protected void closeImpl() {}
 }

@@ -28,11 +28,9 @@ import java.util.Collection;
  *
  * @author Fabrizio Montesi
  */
-public class ArrayListMultiMap< K, V > extends MultiMap< K, V >
-{
+public class ArrayListMultiMap< K, V > extends MultiMap< K, V > {
 	@Override
-	protected Collection< V > createCollection()
-	{
+	protected Collection< V > createCollection() {
 		return new ArrayList<>();
 	}
 }

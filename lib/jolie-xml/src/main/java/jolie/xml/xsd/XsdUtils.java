@@ -31,8 +31,7 @@ import jolie.lang.NativeType;
  *
  * @author Fabrizio Montesi
  */
-public class XsdUtils
-{
+public class XsdUtils {
 	private final static Map< String, NativeType > xsdToNativeTypeMap;
 
 	static {
@@ -78,10 +77,12 @@ public class XsdUtils
 		xsdToNativeTypeMap.put( "decimal", NativeType.DOUBLE );
 		xsdToNativeTypeMap.put( "ENTITIES", NativeType.STRING );
 		xsdToNativeTypeMap.put( "ENTITY", NativeType.STRING );
-		xsdToNativeTypeMap.put( "ID", NativeType.STRING );		// A string that represents the ID attribute in XML (only used with schema attributes)
-		xsdToNativeTypeMap.put( "IDREF", NativeType.STRING );	// A string that represents the IDREF attribute in XML (only used with schema attributes)
+		xsdToNativeTypeMap.put( "ID", NativeType.STRING ); // A string that represents the ID attribute in XML (only
+															// used with schema attributes)
+		xsdToNativeTypeMap.put( "IDREF", NativeType.STRING ); // A string that represents the IDREF attribute in XML
+																// (only used with schema attributes)
 		xsdToNativeTypeMap.put( "IDREFS", NativeType.STRING );
-		xsdToNativeTypeMap.put( "language", NativeType.STRING );  // A string that contains a valid language id
+		xsdToNativeTypeMap.put( "language", NativeType.STRING ); // A string that contains a valid language id
 		xsdToNativeTypeMap.put( "Name", NativeType.STRING );
 		xsdToNativeTypeMap.put( "NCName", NativeType.STRING );
 		xsdToNativeTypeMap.put( "NMTOKEN", NativeType.STRING );
@@ -91,8 +92,7 @@ public class XsdUtils
 		xsdToNativeTypeMap.put( "token", NativeType.STRING );
 	}
 
-	public static NativeType xsdToNativeType( String xsdTypeName )
-	{
+	public static NativeType xsdToNativeType( String xsdTypeName ) {
 		return xsdToNativeTypeMap.get( xsdTypeName );
 	}
 }

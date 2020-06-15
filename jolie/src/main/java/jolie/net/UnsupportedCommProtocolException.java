@@ -26,10 +26,10 @@ import jolie.lang.Constants;
 
 /**
  * An IOException for denoting that a required communication protocol cannot be used.
+ * 
  * @author Fabrizio Montesi
  */
-public class UnsupportedCommProtocolException extends IOException
-{
+public class UnsupportedCommProtocolException extends IOException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	/**
@@ -37,8 +37,7 @@ public class UnsupportedCommProtocolException extends IOException
 	 *
 	 * @param protocol the name of the medium that could not be used
 	 */
-	public UnsupportedCommProtocolException( String protocol )
-	{
+	public UnsupportedCommProtocolException( String protocol ) {
 		super( "Unsupported communication protocol: " + protocol );
 	}
 }

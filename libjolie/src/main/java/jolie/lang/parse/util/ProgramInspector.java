@@ -29,46 +29,51 @@ import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.TypeDefinition;
 
 /**
- * A {@code ProgramInspector} offers methods for accessing the data structures
- * of a {@link jolie.lang.parse.ast.Program} easily.
- * For instance, it is possible to obtain directly the list of interfaces
- * and ports defined in the referred JOLIE program.
+ * A {@code ProgramInspector} offers methods for accessing the data structures of a
+ * {@link jolie.lang.parse.ast.Program} easily. For instance, it is possible to obtain directly the
+ * list of interfaces and ports defined in the referred JOLIE program.
+ * 
  * @author Fabrizio Montesi
  */
-public interface ProgramInspector
-{
+public interface ProgramInspector {
 	/**
 	 * Returns an array with all the sources parsed for generating the program.
+	 * 
 	 * @return an array with all the sources parsed for generating the program
 	 */
 	public URI[] getSources();
 
 	/**
 	 * Returns an array of all the interfaces defined in the program.
+	 * 
 	 * @return an array of all the interfaces defined in the program
 	 */
 	public InterfaceDefinition[] getInterfaces();
 
 	/**
 	 * Returns an array of all the input ports defined in the program.
+	 * 
 	 * @return an array of all the input ports defined in the program
 	 */
 	public InputPortInfo[] getInputPorts();
 
 	/**
 	 * Returns an array of all the output ports defined in the program.
+	 * 
 	 * @return an array of all the output ports defined in the program
 	 */
 	public OutputPortInfo[] getOutputPorts();
 
 	/**
 	 * Returns an array of all the types defined in the program.
+	 * 
 	 * @return an array of all the types defined in the program
 	 */
 	public TypeDefinition[] getTypes();
 
 	/**
 	 * Returns an array of all the input ports defined in the specified source.
+	 * 
 	 * @param source the target source
 	 * @return an array of all the input ports defined in the specified source
 	 */
@@ -76,6 +81,7 @@ public interface ProgramInspector
 
 	/**
 	 * Returns an array of all the output ports defined in the specified source.
+	 * 
 	 * @param source the target source
 	 * @return an array of all the output ports defined in the specified source
 	 */
@@ -83,6 +89,7 @@ public interface ProgramInspector
 
 	/**
 	 * Returns an array of all the interfaces defined in the specified source.
+	 * 
 	 * @param source the target source
 	 * @return an array of all the interfaces defined in the specified source
 	 */
@@ -90,13 +97,15 @@ public interface ProgramInspector
 
 	/**
 	 * Returns an array of all the types defined in the specified source.
+	 * 
 	 * @param source the target source
 	 * @return an array of all the types defined in the specified source
 	 */
 	public TypeDefinition[] getTypes( URI source );
-        
-        /**
+
+	/**
 	 * Returns an array of all the embedded service nodes in the specified source.
+	 * 
 	 * @param source the target source
 	 * @return an array of all the embedded service nodes defined in the specified source
 	 */
@@ -104,18 +113,20 @@ public interface ProgramInspector
 
 	/**
 	 * Returns an array of all the embedded service nodes defined in the program.
+	 * 
 	 * @return an array of all the embedded service nodes defined in the program
 	 */
-	public EmbeddedServiceNode[] getEmbeddedServices( );
+	public EmbeddedServiceNode[] getEmbeddedServices();
 
 	/**
-	 * Returns a map between initial input operations an their related dependent communication primitive in the behaviour
+	 * Returns a map between initial input operations an their related dependent communication primitive
+	 * in the behaviour
 	 */
-	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies();
+	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies();
 
 	/**
-	 * Returns a map between initial input operations an their related dependent communication primitive in the behaviour
-	 * defined in the specific source
+	 * Returns a map between initial input operations an their related dependent communication primitive
+	 * in the behaviour defined in the specific source
 	 */
-	public Map<OLSyntaxNode, List<OLSyntaxNode>> getBehaviouralDependencies( URI source );
+	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies( URI source );
 }

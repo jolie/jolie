@@ -30,35 +30,30 @@ import jolie.util.Pair;
  *
  * @author Fabrizio Montesi
  */
-public final class VariablePathBuilder
-{
+public final class VariablePathBuilder {
 	private final List< Pair< Expression, Expression > > list = new LinkedList<>();
 	private final boolean global;
-	
-	public VariablePathBuilder( boolean global )
-	{
+
+	public VariablePathBuilder( boolean global ) {
 		this.global = global;
 	}
-	
-	public VariablePathBuilder add( String id, int index )
-	{
+
+	public VariablePathBuilder add( String id, int index ) {
 		list.add( new Pair<>( Value.create( id ), Value.create( index ) ) );
 		return this;
 	}
-	
-	@SuppressWarnings("unchecked")
-	public VariablePath toVariablePath()
-	{
-		if ( global ) {
-			return new GlobalVariablePath( list.toArray( new Pair[]{} ) );
+
+	@SuppressWarnings( "unchecked" )
+	public VariablePath toVariablePath() {
+		if( global ) {
+			return new GlobalVariablePath( list.toArray( new Pair[] {} ) );
 		} else {
-			return new VariablePath( list.toArray( new Pair[]{} ) );
+			return new VariablePath( list.toArray( new Pair[] {} ) );
 		}
 	}
-	
-	@SuppressWarnings("unchecked")
-	public VariablePath toClosedVariablePath( Value rootValue )
-	{
-		return new ClosedVariablePath( list.toArray( new Pair[0] ), rootValue );
+
+	@SuppressWarnings( "unchecked" )
+	public VariablePath toClosedVariablePath( Value rootValue ) {
+		return new ClosedVariablePath( list.toArray( new Pair[ 0 ] ), rootValue );
 	}
 }

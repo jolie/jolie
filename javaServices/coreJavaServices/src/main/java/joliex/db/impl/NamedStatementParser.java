@@ -37,14 +37,12 @@ import jolie.runtime.Value;
 
 
 /**
- * Commodity class for converting a parametrized
- * query in a valid JDBC {@link PreparedStatement}.
+ * Commodity class for converting a parametrized query in a valid JDBC {@link PreparedStatement}.
  *
  * @author Fabrizio Montesi
  * @see PreparedStatement
  */
-public class NamedStatementParser
-{
+public class NamedStatementParser {
 	private static class TypeKeywords {
 		private final static String DATE = "Date";
 		private final static String TIMESTAMP = "Timestamp";
@@ -56,71 +54,68 @@ public class NamedStatementParser
 	private final GregorianCalendar cal = new GregorianCalendar();
 
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
-		throws SQLException
-	{
+		throws SQLException {
 		String jdbcSql = parse( sql );
 
 		statement = connection.prepareStatement( jdbcSql );
 		Value v;
 		for( Entry< String, List< Integer > > entry : parameterPositions.entrySet() ) {
 			v = parameters.getFirstChild( entry.getKey() );
-			if ( v.isInt() ) {
+			if( v.isInt() ) {
 				for( Integer index : entry.getValue() ) {
 					statement.setInt( index, v.intValue() );
 				}
-			} else if ( v.isDouble() ) {
+			} else if( v.isDouble() ) {
 				for( Integer index : entry.getValue() ) {
 					statement.setDouble( index, v.doubleValue() );
 				}
-			} else if ( v.isLong() ) {
+			} else if( v.isLong() ) {
 				for( Integer index : entry.getValue() ) {
 					statement.setLong( index, v.longValue() );
 				}
-			} else if ( v.isBool() ) {
+			} else if( v.isBool() ) {
 				for( Integer index : entry.getValue() ) {
 					statement.setBoolean( index, v.boolValue() );
 				}
-			} else if ( v.isByteArray() ) {
+			} else if( v.isByteArray() ) {
 				for( Integer index : entry.getValue() ) {
 					statement.setBytes( index, v.byteArrayValue().getBytes() );
 				}
 			} else {
-				if ( v.hasChildren( TypeKeywords.DATE ) ) {
+				if( v.hasChildren( TypeKeywords.DATE ) ) {
 					Value date = v.getFirstChild( TypeKeywords.DATE );
 					for( Integer index : entry.getValue() ) {
-						String month = String.valueOf( date.getFirstChild( "month").intValue() );
-						String day = String.valueOf( date.getFirstChild( "day").intValue() );
-						if ( month.length() < 2 ) {
+						String month = String.valueOf( date.getFirstChild( "month" ).intValue() );
+						String day = String.valueOf( date.getFirstChild( "day" ).intValue() );
+						if( month.length() < 2 ) {
 							month = "0" + month;
 						}
-						if ( day.length() < 2 ) {
+						if( day.length() < 2 ) {
 							day = "0" + day;
 						}
 						statement.setDate( index,
 							Date.valueOf(
-								date.getFirstChild( "year").intValue()
-								+ "-" + month
-								+ "-" +day
-							)
-						);
+								date.getFirstChild( "year" ).intValue()
+									+ "-" + month
+									+ "-" + day ) );
 					}
-				} else if ( v.hasChildren( TypeKeywords.TIME ) ) {
+				} else if( v.hasChildren( TypeKeywords.TIME ) ) {
 					Value time = v.getFirstChild( TypeKeywords.TIME );
 					for( Integer index : entry.getValue() ) {
 						String hour = String.valueOf( time.getFirstChild( "hour" ).intValue() );
 						String minute = String.valueOf( time.getFirstChild( "minute" ).intValue() );
 						String second = String.valueOf( time.getFirstChild( "second" ).intValue() );
-						if ( hour.length() < 2 ) {
+						if( hour.length() < 2 ) {
 							hour = "0" + hour;
 						}
 						statement.setTime( index,
 							Time.valueOf( hour
-							+ ":" + minute
-							+ ":" + second ) );
+								+ ":" + minute
+								+ ":" + second ) );
 					}
-				} else if ( v.hasChildren( TypeKeywords.TIMESTAMP ) ) {
-					Value timestampValue = v.getFirstChild( TypeKeywords.TIMESTAMP );					
-					Timestamp timestamp = new Timestamp( timestampValue.getFirstChild( "epoch" ).longValue()  );
+				} else if( v.hasChildren( TypeKeywords.TIMESTAMP ) ) {
+					Value timestampValue = v.getFirstChild( TypeKeywords.TIMESTAMP );
+					Timestamp timestamp = new Timestamp( timestampValue.getFirstChild( "epoch" ).longValue() );
 					for( Integer index : entry.getValue() ) {
 						statement.setTimestamp( index, timestamp );
 					}
@@ -133,8 +128,7 @@ public class NamedStatementParser
 		}
 	}
 
-	private String parse( String sql )
-	{
+	private String parse( String sql ) {
 		int length = sql.length();
 		int index = 1;
 		boolean inDoubleQuote = false;
@@ -147,23 +141,21 @@ public class NamedStatementParser
 
 		for( int i = 0; i < length; i++ ) {
 			c = sql.charAt( i );
-			if ( inSingleQuote ) {
-				if ( c == '\'' ) {
+			if( inSingleQuote ) {
+				if( c == '\'' ) {
 					inSingleQuote = false;
 				}
-			} else if ( inDoubleQuote ) {
-				if ( c == '"' ) {
+			} else if( inDoubleQuote ) {
+				if( c == '"' ) {
 					inDoubleQuote = false;
 				}
 			} else {
-				if ( c == '\'' ) {
+				if( c == '\'' ) {
 					inSingleQuote = true;
-				} else if ( c == '"' ) {
+				} else if( c == '"' ) {
 					inDoubleQuote = true;
-				} else if (
-					c == ':' && i+1 < length && Character.isJavaIdentifierPart( sql.charAt( i+1 ) )
-					&& ( i == 0 || sql.charAt( i - 1 ) != ':' )
-				) {
+				} else if( c == ':' && i + 1 < length && Character.isJavaIdentifierPart( sql.charAt( i + 1 ) )
+					&& (i == 0 || sql.charAt( i - 1 ) != ':') ) {
 					j = i + 2;
 					while( j < length && Character.isJavaIdentifierPart( sql.charAt( j ) ) ) {
 						j++;
@@ -183,18 +175,16 @@ public class NamedStatementParser
 		return builder.toString();
 	}
 
-	private List< Integer > getParameterPositions( String parameterName )
-	{
+	private List< Integer > getParameterPositions( String parameterName ) {
 		List< Integer > ret = parameterPositions.get( parameterName );
-		if ( ret == null ) {
+		if( ret == null ) {
 			ret = new ArrayList< Integer >();
 			parameterPositions.put( parameterName, ret );
 		}
 		return ret;
 	}
 
-	public PreparedStatement getPreparedStatement()
-	{
+	public PreparedStatement getPreparedStatement() {
 		return statement;
 	}
 }

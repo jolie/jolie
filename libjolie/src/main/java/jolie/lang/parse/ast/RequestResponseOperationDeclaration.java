@@ -28,43 +28,36 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class RequestResponseOperationDeclaration extends OperationDeclaration
-{
+public class RequestResponseOperationDeclaration extends OperationDeclaration {
 	private final Map< String, TypeDefinition > faults;
 	private final TypeDefinition requestType, responseType;
 
 	public RequestResponseOperationDeclaration(
-			ParsingContext context,
-			String id,
-			TypeDefinition requestType,
-			TypeDefinition responseType,
-			Map< String, TypeDefinition > faults
-		)
-	{
+		ParsingContext context,
+		String id,
+		TypeDefinition requestType,
+		TypeDefinition responseType,
+		Map< String, TypeDefinition > faults ) {
 		super( context, id );
 		this.requestType = requestType;
 		this.responseType = responseType;
 		this.faults = faults;
 	}
 
-	public TypeDefinition requestType()
-	{
+	public TypeDefinition requestType() {
 		return requestType;
 	}
 
-	public TypeDefinition responseType()
-	{
+	public TypeDefinition responseType() {
 		return responseType;
 	}
-	
-	public Map< String, TypeDefinition > faults()
-	{
+
+	public Map< String, TypeDefinition > faults() {
 		return faults;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

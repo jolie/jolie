@@ -25,48 +25,40 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class ForStatement extends OLSyntaxNode
-{
+public class ForStatement extends OLSyntaxNode {
 	private final OLSyntaxNode init, condition, post, body;
 
 	public ForStatement(
-			ParsingContext context,
-			OLSyntaxNode init,
-			OLSyntaxNode condition,
-			OLSyntaxNode post,
-			OLSyntaxNode body
-			)
-	{
+		ParsingContext context,
+		OLSyntaxNode init,
+		OLSyntaxNode condition,
+		OLSyntaxNode post,
+		OLSyntaxNode body ) {
 		super( context );
 		this.init = init;
 		this.condition = condition;
 		this.post = post;
 		this.body = body;
 	}
-	
-	public OLSyntaxNode init()
-	{
+
+	public OLSyntaxNode init() {
 		return init;
 	}
-	
-	public OLSyntaxNode condition()
-	{
+
+	public OLSyntaxNode condition() {
 		return condition;
 	}
-	
-	public OLSyntaxNode post()
-	{
+
+	public OLSyntaxNode post() {
 		return post;
 	}
-	
-	public OLSyntaxNode body()
-	{
+
+	public OLSyntaxNode body() {
 		return body;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }

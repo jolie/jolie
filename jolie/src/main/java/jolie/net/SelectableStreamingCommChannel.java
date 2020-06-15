@@ -30,60 +30,56 @@ import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;
 
 /**
- * This class implements the support for a selectable channel.
- * A channel implementation based on this class must provide
- * methods for accessing its receiving <code>InputStream</code> and
+ * This class implements the support for a selectable channel. A channel implementation based on
+ * this class must provide methods for accessing its receiving <code>InputStream</code> and
  * <code>SelectableChannel</code>.
+ * 
  * @author Fabrizio Montesi
  */
-public abstract class SelectableStreamingCommChannel extends StreamingCommChannel
-{
+public abstract class SelectableStreamingCommChannel extends StreamingCommChannel {
 	private static final long LIFETIME = 5000; // 5 secs
-	
+
 	private final long creationTime = System.currentTimeMillis();
 	private int selectorIndex;
-	
-	public int selectorIndex()
-	{
+
+	public int selectorIndex() {
 		return selectorIndex;
 	}
-	
-	public void setSelectorIndex( int selectorIndex )
-	{
+
+	public void setSelectorIndex( int selectorIndex ) {
 		this.selectorIndex = selectorIndex;
 	}
-	
-	public SelectableStreamingCommChannel( URI location, CommProtocol protocol )
-	{
+
+	public SelectableStreamingCommChannel( URI location, CommProtocol protocol ) {
 		super( location, protocol );
 	}
 
 	/**
 	 * Returns the receiving <code>InputStream</code> of this channel.
+	 * 
 	 * @return the receiving <code>InputStream</code> of this channel
 	 */
 	abstract public InputStream inputStream();
 
 	/**
 	 * Returns the receiving <code>SelectableChannel</code> of this channel.
+	 * 
 	 * @return the receiving <code>SelectableChannel</code> of this channel
 	 */
 	abstract public SelectableChannel selectableChannel();
 
 	@Override
 	public final void send( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		Helpers.lockAndThen( lock, () -> _send( message ) );
 	}
 
 	private void _send( CommMessage message )
-		throws IOException
-	{
+		throws IOException {
 		final CommCore commCore = Interpreter.getInstance().commCore();
-		if ( commCore.isSelecting( this ) ) {
+		if( commCore.isSelecting( this ) ) {
 			commCore.unregisterForSelection( this );
-			if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
+			if( System.currentTimeMillis() - creationTime > LIFETIME ) {
 				setToBeClosed( true );
 			}
 			sendImpl( message );
@@ -95,18 +91,16 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 
 	@Override
 	protected void disposeForInputImpl()
-		throws IOException
-	{
+		throws IOException {
 		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().registerForSelection( this ) );
 	}
 
 	@Override
 	protected void releaseImpl()
-		throws IOException
-	{
+		throws IOException {
 		Helpers.lockAndThen( lock, () -> {
 			final CommCore commCore = Interpreter.getInstance().commCore();
-			if ( commCore.isSelecting( this ) == false ) {
+			if( commCore.isSelecting( this ) == false ) {
 				super.releaseImpl();
 			}
 		} );

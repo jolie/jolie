@@ -25,21 +25,19 @@ import jolie.lang.Constants;
 
 /**
  * Skeleton class provided for implementing {@link ParsingContext}.
+ * 
  * @author Fabrizio Montesi
  */
-public abstract class AbstractParsingContext implements ParsingContext
-{
+public abstract class AbstractParsingContext implements ParsingContext {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final int line;
 
-	public AbstractParsingContext( int line )
-	{
+	public AbstractParsingContext( int line ) {
 		this.line = line;
 	}
 
 	@Override
-	public int line()
-	{
+	public int line() {
 		return line;
 	}
 }

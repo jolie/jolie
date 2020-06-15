@@ -27,10 +27,10 @@ import jolie.lang.Constants;
 
 /**
  * A <code>Range</code> instance represents a range between two natural numbers.
+ * 
  * @author Fabrizio Montesi
  */
-public class Range implements Serializable
-{
+public class Range implements Serializable {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private static final int HASH_INIT_VALUE = 7;
 	private static final int HASH_FACTOR = 47;
@@ -40,13 +40,13 @@ public class Range implements Serializable
 
 	/**
 	 * Constructor
+	 * 
 	 * @param min
 	 * @param max
 	 * @throws IllegalArgumentException if min or max are less than zero
 	 */
-	public Range( int min, int max )
-	{
-		if ( min < 0 || max < 0 ) {
+	public Range( int min, int max ) {
+		if( min < 0 || max < 0 ) {
 			throw new IllegalArgumentException();
 		}
 
@@ -54,19 +54,16 @@ public class Range implements Serializable
 		this.max = max;
 	}
 
-	public final int min()
-	{
+	public final int min() {
 		return min;
 	}
 
-	public final int max()
-	{
+	public final int max() {
 		return max;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		int hash = HASH_INIT_VALUE;
 		hash = HASH_FACTOR * hash + this.min;
 		hash = HASH_FACTOR * hash + this.max;
@@ -74,14 +71,13 @@ public class Range implements Serializable
 	}
 
 	@Override
-	public boolean equals( Object other )
-	{
-		if ( this == other ) {
+	public boolean equals( Object other ) {
+		if( this == other ) {
 			return true;
 		}
 
-		if ( other instanceof Range ) {
-			Range otherRange = (Range)other;
+		if( other instanceof Range ) {
+			Range otherRange = (Range) other;
 			return min == otherRange.min && max == otherRange.max;
 		}
 

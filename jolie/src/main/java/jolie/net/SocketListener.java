@@ -34,56 +34,53 @@ import jolie.net.ports.InputPort;
 
 /**
  * A communication listener using sockets as backend.
+ * 
  * @author Fabrizio Montesi
  */
-public class SocketListener extends CommListener
-{
+public class SocketListener extends CommListener {
 	private final ServerSocketChannel serverChannel;
 
 	public SocketListener(
-				Interpreter interpreter,
-				CommProtocolFactory protocolFactory,
-				InputPort inputPort
-			)
-		throws IOException
-	{
+		Interpreter interpreter,
+		CommProtocolFactory protocolFactory,
+		InputPort inputPort )
+		throws IOException {
 		super(
 			interpreter,
 			protocolFactory,
-			inputPort
-		);
-		
+			inputPort );
+
 		serverChannel = ServerSocketChannel.open();
 		final ServerSocket socket = serverChannel.socket();
 		try {
 			socket.bind( new InetSocketAddress( inputPort.location().getPort() ) );
 		} catch( IOException e ) {
-			final IOException exception = new IOException( e.getMessage() + " [with location: " + inputPort.location().toString() + "]" );
+			final IOException exception =
+				new IOException( e.getMessage() + " [with location: " + inputPort.location().toString() + "]" );
 			exception.setStackTrace( e.getStackTrace() );
 			throw exception;
 		}
 	}
 
 	@Override
-	public void shutdown()
-	{
-		if ( serverChannel.isOpen() ) {
+	public void shutdown() {
+		if( serverChannel.isOpen() ) {
 			try {
 				serverChannel.close();
-			} catch( IOException e ) {}
+			} catch( IOException e ) {
+			}
 		}
 	}
-	
+
 	@Override
-	public void run()
-	{
+	public void run() {
 		try {
 			SocketChannel socketChannel;
-			while ( (socketChannel = serverChannel.accept()) != null ) {
+			while( (socketChannel = serverChannel.accept()) != null ) {
 				final CommChannel channel = new SocketCommChannel(
-							socketChannel,
-							inputPort().location(),
-							createProtocol() );
+					socketChannel,
+					inputPort().location(),
+					createProtocol() );
 				channel.setParentInputPort( inputPort() );
 				interpreter().commCore().scheduleReceive( channel, inputPort() );
 			}

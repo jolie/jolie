@@ -38,10 +38,9 @@ import jolie.runtime.embedding.RequestResponse;
 import joliex.db.impl.NamedStatementParser;
 
 /**
- * @author Fabrizio Montesi 2008
- * - Marco Montesi: connection string fix for Microsoft SQL Server (2009)
- * - Claudio Guidi: added support for SQLite (2013)
- * - Matthias Dieter Wallnöfer: added support for HSQLDB (2013)
+ * @author Fabrizio Montesi 2008 - Marco Montesi: connection string fix for Microsoft SQL Server
+ *         (2009) - Claudio Guidi: added support for SQLite (2013) - Matthias Dieter Wallnöfer:
+ *         added support for HSQLDB (2013)
  */
 @CanUseJars( {
 	"derby.jar", // Java DB - Embedded
@@ -54,8 +53,7 @@ import joliex.db.impl.NamedStatementParser;
 	"hsqldb.jar", // HSQLDB
 	"db2jcc.jar" // DB2
 } )
-public class DatabaseService extends JavaService
-{
+public class DatabaseService extends JavaService {
 	private Connection connection = null;
 	private String connectionString = null;
 	private String username = null;
@@ -69,10 +67,9 @@ public class DatabaseService extends JavaService
 
 	@Override
 	protected void finalize()
-		throws Throwable
-	{
+		throws Throwable {
 		try {
-			if ( connection != null ) {
+			if( connection != null ) {
 				try {
 					connection.close();
 				} catch( SQLException e ) {
@@ -84,9 +81,8 @@ public class DatabaseService extends JavaService
 	}
 
 	@RequestResponse
-	public void close()
-	{
-		if ( connection != null ) {
+	public void close() {
+		if( connection != null ) {
 			try {
 				connectionString = null;
 				username = null;
@@ -96,18 +92,19 @@ public class DatabaseService extends JavaService
 			}
 		}
 	}
-	
+
 	@RequestResponse
 	public void connect( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		close();
 
 		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
-		toLowerCase = request.getFirstChild( "toLowerCase" ).isDefined() && request.getFirstChild( "toLowerCase" ).boolValue();
+		toLowerCase =
+			request.getFirstChild( "toLowerCase" ).isDefined() && request.getFirstChild( "toLowerCase" ).boolValue();
 
-		toUpperCase = request.getFirstChild( "toUpperCase" ).isDefined() && request.getFirstChild( "toUpperCase" ).boolValue();
+		toUpperCase =
+			request.getFirstChild( "toUpperCase" ).isDefined() && request.getFirstChild( "toUpperCase" ).boolValue();
 
 		driver = request.getChildren( "driver" ).first().strValue();
 		String host = request.getChildren( "host" ).first().strValue();
@@ -120,46 +117,46 @@ public class DatabaseService extends JavaService
 		boolean isEmbedded = false;
 
 		try {
-			if ( "postgresql".equals( driver ) ) {
+			if( "postgresql".equals( driver ) ) {
 				Class.forName( "org.postgresql.Driver" );
-			} else if ( "mysql".equals( driver ) ) {
+			} else if( "mysql".equals( driver ) ) {
 				Class.forName( "com.mysql.jdbc.Driver" );
-			} else if ( "derby".equals( driver ) ) {
+			} else if( "derby".equals( driver ) ) {
 				Class.forName( "org.apache.derby.jdbc.ClientDriver" );
-			} else if ( "sqlite".equals( driver ) ) {
+			} else if( "sqlite".equals( driver ) ) {
 				Class.forName( "org.sqlite.JDBC" );
 				isEmbedded = true;
-			} else if ( "sqlserver".equals( driver ) ) {
+			} else if( "sqlserver".equals( driver ) ) {
 				Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
 				separator = ";";
 				databaseName = "databaseName=" + databaseName;
-			} else if ( "as400".equals( driver ) ) {
+			} else if( "as400".equals( driver ) ) {
 				Class.forName( "com.ibm.as400.access.AS400JDBCDriver" );
-			} else if ( "derby_embedded".equals( driver ) ) {
+			} else if( "derby_embedded".equals( driver ) ) {
 				Class.forName( "org.apache.derby.jdbc.EmbeddedDriver" );
 				isEmbedded = true;
 				driver = "derby";
-			} else if ( "hsqldb_hsql".equals( driver )
+			} else if( "hsqldb_hsql".equals( driver )
 				|| "hsqldb_hsqls".equals( driver )
 				|| "hsqldb_http".equals( driver )
 				|| "hsqldb_https".equals( driver ) ) {
 				Class.forName( "org.hsqldb.jdbcDriver" );
-			} else if ( "hsqldb_embedded".equals( driver ) ) {
+			} else if( "hsqldb_embedded".equals( driver ) ) {
 				Class.forName( "org.hsqldb.jdbcDriver" );
 				isEmbedded = true;
 				driver = "hsqldb";
-			} else if ( "db2".equals( driver ) ) {
+			} else if( "db2".equals( driver ) ) {
 				Class.forName( "com.ibm.db2.jcc.DB2Driver" );
 			} else {
 				throw new FaultException( "InvalidDriver", "Unknown type of driver: " + driver );
 			}
 
-			if ( isEmbedded ) {
+			if( isEmbedded ) {
 				connectionString = "jdbc:" + driver + ":" + databaseName;
-				if ( !attributes.isEmpty() ) {
+				if( !attributes.isEmpty() ) {
 					connectionString += ";" + attributes;
 				}
-				if ( "hsqldb".equals( driver ) ) {
+				if( "hsqldb".equals( driver ) ) {
 					connection = DriverManager.getConnection(
 						connectionString,
 						username,
@@ -168,10 +165,12 @@ public class DatabaseService extends JavaService
 					connection = DriverManager.getConnection( connectionString );
 				}
 			} else {
-				if ( driver.startsWith( "hsqldb" ) ) {
-					connectionString = "jdbc:" + driver + ":" + driver.substring( driver.indexOf( '_' ) + 1 ) + "//" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
+				if( driver.startsWith( "hsqldb" ) ) {
+					connectionString = "jdbc:" + driver + ":" + driver.substring( driver.indexOf( '_' ) + 1 ) + "//"
+						+ host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
 				} else {
-					connectionString = "jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
+					connectionString =
+						"jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
 				}
 				connection = DriverManager.getConnection(
 					connectionString,
@@ -179,7 +178,7 @@ public class DatabaseService extends JavaService
 					password );
 			}
 
-			if ( connection == null ) {
+			if( connection == null ) {
 				throw new FaultException( "ConnectionError" );
 			}
 		} catch( ClassNotFoundException e ) {
@@ -190,26 +189,25 @@ public class DatabaseService extends JavaService
 	}
 
 	private void _checkConnection()
-		throws FaultException
-	{
-		if ( connection == null ) {
+		throws FaultException {
+		if( connection == null ) {
 			throw new FaultException( "ConnectionError" );
 		}
-		if ( mustCheckConnection ) {
+		if( mustCheckConnection ) {
 			try {
-				if ( "postgresql".equals( driver ) ) {
-					/* The JDBC4 driver for postgresql does not implemented isValid().
-					 * We fallback to isClosed().
+				if( "postgresql".equals( driver ) ) {
+					/*
+					 * The JDBC4 driver for postgresql does not implemented isValid(). We fallback to isClosed().
 					 */
 
-					if ( connection.isClosed() ) {
+					if( connection.isClosed() ) {
 						connection = DriverManager.getConnection(
 							connectionString,
 							username,
 							password );
 					}
 				} else {
-					if ( !connection.isValid( 0 ) ) {
+					if( !connection.isValid( 0 ) ) {
 						connection = DriverManager.getConnection(
 							connectionString,
 							username,
@@ -224,20 +222,19 @@ public class DatabaseService extends JavaService
 
 	@RequestResponse
 	public void checkConnection()
-		throws FaultException
-	{
+		throws FaultException {
 		try {
-			if ( "postgresql".equals( driver ) ) {
-				/* The JDBC4 driver for postgresql does not implemented isValid().
-				 * We fallback to isClosed().
+			if( "postgresql".equals( driver ) ) {
+				/*
+				 * The JDBC4 driver for postgresql does not implemented isValid(). We fallback to isClosed().
 				 */
 
-				if ( connection == null || connection.isClosed() ) {
+				if( connection == null || connection.isClosed() ) {
 					throw new FaultException( "ConnectionError" );
 				}
 			} else {
 
-				if ( connection == null || !connection.isValid( 0 ) ) {
+				if( connection == null || !connection.isValid( 0 ) ) {
 					throw new FaultException( "ConnectionError" );
 				}
 			}
@@ -248,8 +245,7 @@ public class DatabaseService extends JavaService
 
 	@RequestResponse
 	public Value update( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		_checkConnection();
 		Value resultValue = Value.create();
 		PreparedStatement stm = null;
@@ -261,7 +257,7 @@ public class DatabaseService extends JavaService
 		} catch( SQLException e ) {
 			throw createFaultException( e );
 		} finally {
-			if ( stm != null ) {
+			if( stm != null ) {
 				try {
 					stm.close();
 				} catch( SQLException e ) {
@@ -272,107 +268,107 @@ public class DatabaseService extends JavaService
 	}
 
 	private static void setValue( Value fieldValue, ResultSet result, int columnType, int index )
-		throws SQLException
-	{
+		throws SQLException {
 		ByteArray supportByteArray;
 		switch( columnType ) {
-			case java.sql.Types.INTEGER:
-			case java.sql.Types.SMALLINT:
-			case java.sql.Types.TINYINT:
-				fieldValue.setValue( result.getInt( index ) );
-				break;
-			case java.sql.Types.BIGINT:
-				fieldValue.setValue( result.getLong( index ) );
-				break;
-			case java.sql.Types.REAL:
-			case java.sql.Types.DOUBLE:
-				fieldValue.setValue( result.getDouble( index ) );
-				break;
-			case java.sql.Types.DECIMAL: {
-				BigDecimal dec = result.getBigDecimal( index );
-				if ( dec == null ) {
-					fieldValue.setValue( 0 );
-				} else {
-					if ( dec.scale() <= 0 ) {
-                        // May lose information.
-						// Pay some attention to this when Long becomes supported by JOLIE.
-						fieldValue.setValue( dec.intValue() );
-					} else if ( dec.scale() > 0 ) {
-						fieldValue.setValue( dec.doubleValue() );
-					}
+		case java.sql.Types.INTEGER:
+		case java.sql.Types.SMALLINT:
+		case java.sql.Types.TINYINT:
+			fieldValue.setValue( result.getInt( index ) );
+			break;
+		case java.sql.Types.BIGINT:
+			fieldValue.setValue( result.getLong( index ) );
+			break;
+		case java.sql.Types.REAL:
+		case java.sql.Types.DOUBLE:
+			fieldValue.setValue( result.getDouble( index ) );
+			break;
+		case java.sql.Types.DECIMAL: {
+			BigDecimal dec = result.getBigDecimal( index );
+			if( dec == null ) {
+				fieldValue.setValue( 0 );
+			} else {
+				if( dec.scale() <= 0 ) {
+					// May lose information.
+					// Pay some attention to this when Long becomes supported by JOLIE.
+					fieldValue.setValue( dec.intValue() );
+				} else if( dec.scale() > 0 ) {
+					fieldValue.setValue( dec.doubleValue() );
 				}
-			}	break;
-			case java.sql.Types.FLOAT:
-				fieldValue.setValue( result.getFloat( index ) );
-				break;
-			case java.sql.Types.BLOB:
-				supportByteArray = new ByteArray( result.getBytes( index ) );
-				fieldValue.setValue( supportByteArray );
-				break;
-			case java.sql.Types.CLOB:
-				Clob clob = result.getClob( index );
-				fieldValue.setValue( clob.getSubString( 1, (int) clob.length() ) );
-				break;
-			case java.sql.Types.BINARY:
-				supportByteArray = new ByteArray( result.getBytes( index ) );
-				fieldValue.setValue( supportByteArray );
-				break;
-			case java.sql.Types.VARBINARY:
-				supportByteArray = new ByteArray( result.getBytes( index ) );
-				fieldValue.setValue( supportByteArray );
-				break;
-			case Types.LONGVARBINARY:
-				supportByteArray = new ByteArray( result.getBytes( index ) );
-				fieldValue.setValue( supportByteArray );
-				break;
-			case java.sql.Types.NVARCHAR:
-			case java.sql.Types.NCHAR:
-			case java.sql.Types.LONGNVARCHAR:
-				String s = result.getNString( index );
-				if ( s == null ) {
-					s = "";
-				}
-				fieldValue.setValue( s );
-				break;
-			case java.sql.Types.NUMERIC: {
-				BigDecimal dec = result.getBigDecimal( index );
+			}
+		}
+			break;
+		case java.sql.Types.FLOAT:
+			fieldValue.setValue( result.getFloat( index ) );
+			break;
+		case java.sql.Types.BLOB:
+			supportByteArray = new ByteArray( result.getBytes( index ) );
+			fieldValue.setValue( supportByteArray );
+			break;
+		case java.sql.Types.CLOB:
+			Clob clob = result.getClob( index );
+			fieldValue.setValue( clob.getSubString( 1, (int) clob.length() ) );
+			break;
+		case java.sql.Types.BINARY:
+			supportByteArray = new ByteArray( result.getBytes( index ) );
+			fieldValue.setValue( supportByteArray );
+			break;
+		case java.sql.Types.VARBINARY:
+			supportByteArray = new ByteArray( result.getBytes( index ) );
+			fieldValue.setValue( supportByteArray );
+			break;
+		case Types.LONGVARBINARY:
+			supportByteArray = new ByteArray( result.getBytes( index ) );
+			fieldValue.setValue( supportByteArray );
+			break;
+		case java.sql.Types.NVARCHAR:
+		case java.sql.Types.NCHAR:
+		case java.sql.Types.LONGNVARCHAR:
+			String s = result.getNString( index );
+			if( s == null ) {
+				s = "";
+			}
+			fieldValue.setValue( s );
+			break;
+		case java.sql.Types.NUMERIC: {
+			BigDecimal dec = result.getBigDecimal( index );
 
-				if ( dec == null ) {
-					fieldValue.setValue( 0 );
-				} else {
-					if ( dec.scale() <= 0 ) {
-                        // May lose information.
-						// Pay some attention to this when Long becomes supported by JOLIE.
-						fieldValue.setValue( dec.intValue() );
-					} else if ( dec.scale() > 0 ) {
-						fieldValue.setValue( dec.doubleValue() );
-					}
+			if( dec == null ) {
+				fieldValue.setValue( 0 );
+			} else {
+				if( dec.scale() <= 0 ) {
+					// May lose information.
+					// Pay some attention to this when Long becomes supported by JOLIE.
+					fieldValue.setValue( dec.intValue() );
+				} else if( dec.scale() > 0 ) {
+					fieldValue.setValue( dec.doubleValue() );
 				}
-			}	break;
-			case java.sql.Types.BIT:
-			case java.sql.Types.BOOLEAN:
-				fieldValue.setValue( result.getBoolean( index ) );
-				break;
-			case java.sql.Types.VARCHAR:
-			default:
-				String str = result.getString( index );
-				if ( str == null ) {
-					str = "";
-				}
-				fieldValue.setValue( str );
-				break;
+			}
+		}
+			break;
+		case java.sql.Types.BIT:
+		case java.sql.Types.BOOLEAN:
+			fieldValue.setValue( result.getBoolean( index ) );
+			break;
+		case java.sql.Types.VARCHAR:
+		default:
+			String str = result.getString( index );
+			if( str == null ) {
+				str = "";
+			}
+			fieldValue.setValue( str );
+			break;
 		}
 	}
 
 	private static void resultSetToValueVector( ResultSet result, ValueVector vector )
-		throws SQLException
-	{
+		throws SQLException {
 		Value rowValue, fieldValue;
 		ResultSetMetaData metadata = result.getMetaData();
 		int cols = metadata.getColumnCount();
 		int i;
 		int rowIndex = 0;
-		if ( toLowerCase ) {
+		if( toLowerCase ) {
 			while( result.next() ) {
 				rowValue = vector.get( rowIndex );
 				for( i = 1; i <= cols; i++ ) {
@@ -381,7 +377,7 @@ public class DatabaseService extends JavaService
 				}
 				rowIndex++;
 			}
-		} else if ( toUpperCase ) {
+		} else if( toUpperCase ) {
 			while( result.next() ) {
 				rowValue = vector.get( rowIndex );
 				for( i = 1; i <= cols; i++ ) {
@@ -404,17 +400,16 @@ public class DatabaseService extends JavaService
 
 	private static void _rowToValueWithTemplate(
 		Value resultValue, ResultSet result,
-		ResultSetMetaData metadata, Map< String, Integer> colIndexes,
+		ResultSetMetaData metadata, Map< String, Integer > colIndexes,
 		Value template )
-		throws SQLException
-	{
+		throws SQLException {
 		Value templateNode;
 		Value resultChild;
 		int colIndex;
-		for( Entry< String, ValueVector> child : template.children().entrySet() ) {
+		for( Entry< String, ValueVector > child : template.children().entrySet() ) {
 			templateNode = template.getFirstChild( child.getKey() );
 			resultChild = resultValue.getFirstChild( child.getKey() );
-			if ( templateNode.isString() ) {
+			if( templateNode.isString() ) {
 				colIndex = colIndexes.get( templateNode.strValue() );
 				setValue( resultChild, result, metadata.getColumnType( colIndex ), colIndex );
 			}
@@ -424,11 +419,10 @@ public class DatabaseService extends JavaService
 	}
 
 	private static void resultSetToValueVectorWithTemplate( ResultSet result, ValueVector vector, Value template )
-		throws SQLException
-	{
+		throws SQLException {
 		Value rowValue;
 		ResultSetMetaData metadata = result.getMetaData();
-		Map< String, Integer> colIndexes = new HashMap< String, Integer>();
+		Map< String, Integer > colIndexes = new HashMap< String, Integer >();
 		int cols = metadata.getColumnCount();
 		for( int i = 0; i < cols; i++ ) {
 			colIndexes.put( metadata.getColumnName( i ), i );
@@ -445,8 +439,7 @@ public class DatabaseService extends JavaService
 
 	@RequestResponse
 	public Value executeTransaction( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		_checkConnection();
 		Value resultValue = Value.create();
 		ValueVector resultVector = resultValue.getChildren( "result" );
@@ -466,12 +459,15 @@ public class DatabaseService extends JavaService
 				stm = null;
 				try {
 					updateCount = -1;
-					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue ).getPreparedStatement();
-					if ( stm.execute() == true ) {
+					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue )
+						.getPreparedStatement();
+					if( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
-						if ( updateCount == -1 ) {
-							if ( statementValue.hasChildren( templateField ) ) {
-								resultSetToValueVectorWithTemplate( stm.getResultSet(), currResultValue.getChildren( "row" ), statementValue.getFirstChild( templateField ) );
+						if( updateCount == -1 ) {
+							if( statementValue.hasChildren( templateField ) ) {
+								resultSetToValueVectorWithTemplate( stm.getResultSet(),
+									currResultValue.getChildren( "row" ),
+									statementValue.getFirstChild( templateField ) );
 							} else {
 								resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
 							}
@@ -488,7 +484,7 @@ public class DatabaseService extends JavaService
 					}
 					throw createFaultException( e );
 				} finally {
-					if ( stm != null ) {
+					if( stm != null ) {
 						try {
 							stm.close();
 						} catch( SQLException e ) {
@@ -513,8 +509,7 @@ public class DatabaseService extends JavaService
 		return resultValue;
 	}
 
-	static FaultException createFaultException( SQLException e )
-	{
+	static FaultException createFaultException( SQLException e ) {
 		Value v = Value.create();
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		e.printStackTrace( new PrintStream( bs ) );
@@ -527,8 +522,7 @@ public class DatabaseService extends JavaService
 
 	@RequestResponse
 	public Value query( Value request )
-		throws FaultException
-	{
+		throws FaultException {
 		_checkConnection();
 		Value resultValue = Value.create();
 		PreparedStatement stm = null;
@@ -537,8 +531,9 @@ public class DatabaseService extends JavaService
 			synchronized( transactionMutex ) {
 				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
 				ResultSet result = stm.executeQuery();
-				if ( request.hasChildren( templateField ) ) {
-					resultSetToValueVectorWithTemplate( result, resultValue.getChildren( "row" ), request.getFirstChild( templateField ) );
+				if( request.hasChildren( templateField ) ) {
+					resultSetToValueVectorWithTemplate( result, resultValue.getChildren( "row" ),
+						request.getFirstChild( templateField ) );
 				} else {
 					resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 				}
@@ -547,7 +542,7 @@ public class DatabaseService extends JavaService
 		} catch( SQLException e ) {
 			throw createFaultException( e );
 		} finally {
-			if ( stm != null ) {
+			if( stm != null ) {
 				try {
 					stm.close();
 				} catch( SQLException e ) {

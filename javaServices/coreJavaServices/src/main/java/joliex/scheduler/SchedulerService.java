@@ -38,19 +38,18 @@ import org.quartz.Trigger;
 import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.TriggerKey.triggerKey;
 import org.quartz.impl.StdSchedulerFactory;
+
 /**
  *
  * @author claudio guidi
  */
-@AndJarDeps({"quartz-2.2.1.jar","quartz-jobs-2.2.1.jar","slf4j-api-1.6.6.jar","c3p0-0.9.1.1.jar"})
-public class SchedulerService extends JavaService
-{
+@AndJarDeps( { "quartz-2.2.1.jar", "quartz-jobs-2.2.1.jar", "slf4j-api-1.6.6.jar", "c3p0-0.9.1.1.jar" } )
+public class SchedulerService extends JavaService {
 
 	private final Scheduler scheduler;
 	private String operationName = "schedulerCallback";
-	
-	public SchedulerService()
-	{
+
+	public SchedulerService() {
 		super();
 
 		try {
@@ -61,11 +60,11 @@ public class SchedulerService extends JavaService
 			throw new RuntimeException( e );
 		}
 	}
-	
+
 	public String getOperationName() {
 		return operationName;
 	}
-	
+
 	@RequestResponse
 	public void setCallbackOperation( Value request ) {
 		operationName = request.getFirstChild( "operationName" ).strValue();
@@ -73,8 +72,8 @@ public class SchedulerService extends JavaService
 
 	@RequestResponse
 	public Value setCronJob( Value request ) throws FaultException {
-		
-		String jobName = request.getFirstChild( "jobName").strValue();
+
+		String jobName = request.getFirstChild( "jobName" ).strValue();
 		String groupName = request.getFirstChild( "groupName" ).strValue();
 		String seconds = request.getFirstChild( "cronSpecs" ).getFirstChild( "second" ).strValue();
 		String minutes = request.getFirstChild( "cronSpecs" ).getFirstChild( "minute" ).strValue();
@@ -83,43 +82,43 @@ public class SchedulerService extends JavaService
 		String month = request.getFirstChild( "cronSpecs" ).getFirstChild( "month" ).strValue();
 		String dayOfWeek = request.getFirstChild( "cronSpecs" ).getFirstChild( "dayOfWeek" ).strValue();
 		String year = "";
-		if ( request.getFirstChild( "cronSpecs").getFirstChild( "year").isDefined() ) {
+		if( request.getFirstChild( "cronSpecs" ).getFirstChild( "year" ).isDefined() ) {
 			year = " " + request.getFirstChild( "cronSpecs" ).getFirstChild( "year" ).strValue();
 		}
 
 
-		JobDetail job = newJob(SchedulerServiceJob.class)
-			.withIdentity(jobName, groupName).build();
-				
+		JobDetail job = newJob( SchedulerServiceJob.class )
+			.withIdentity( jobName, groupName ).build();
+
 		Trigger trigger = newTrigger()
 			.withIdentity( jobName, groupName )
 			.startNow().withSchedule( cronSchedule(
-				seconds + " " + minutes + " " + hours + " " + dayOfMonth + " " + month + " " + dayOfWeek + year
-			)).forJob( jobName, groupName ).build();
-		
+				seconds + " " + minutes + " " + hours + " " + dayOfMonth + " " + month + " " + dayOfWeek + year ) )
+			.forJob( jobName, groupName ).build();
+
 
 		try {
-			if ( scheduler.checkExists( trigger.getJobKey() ) ) {
-				throw new FaultException("JobAlreadyExists");
+			if( scheduler.checkExists( trigger.getJobKey() ) ) {
+				throw new FaultException( "JobAlreadyExists" );
 			}
-			scheduler.scheduleJob(job, trigger);
+			scheduler.scheduleJob( job, trigger );
 		} catch( SchedulerException ex ) {
-			Logger.getLogger(SchedulerService.class.getName() ).log( Level.SEVERE, null, ex );
+			Logger.getLogger( SchedulerService.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 		return Value.create();
 	}
-	
+
 	@RequestResponse
 	public Value deleteCronJob( Value request ) {
 		String jobName = request.getFirstChild( "jobName" ).strValue();
 		String groupName = request.getFirstChild( "groupName" ).strValue();
 		try {
-			if ( scheduler.checkExists(triggerKey( jobName,  groupName )) ) {
-				scheduler.unscheduleJob(triggerKey( jobName,  groupName ));
-				scheduler.deleteJob(jobKey( jobName, groupName ));
+			if( scheduler.checkExists( triggerKey( jobName, groupName ) ) ) {
+				scheduler.unscheduleJob( triggerKey( jobName, groupName ) );
+				scheduler.deleteJob( jobKey( jobName, groupName ) );
 			}
 		} catch( SchedulerException ex ) {
-			Logger.getLogger(SchedulerService.class.getName() ).log( Level.SEVERE, null, ex );
+			Logger.getLogger( SchedulerService.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 		return Value.create();
 	}

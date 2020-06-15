@@ -38,40 +38,34 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
 
-public class ConsoleService extends JavaService
-{
+public class ConsoleService extends JavaService {
 	private Map< String, String > sessionTokens;
 	private boolean sessionListeners = false;
 	private boolean enableTimestamp = false;
 	private final String timestampFormatDefault = "dd/MM/yyyy HH:mm:ss";
 	private String timestampFormat = timestampFormatDefault;
 
-	private class ConsoleInputThread extends Thread
-	{
+	private class ConsoleInputThread extends Thread {
 		private boolean keepRun = true;
 
-		public void kill()
-		{
+		public void kill() {
 			keepRun = false;
 			this.interrupt();
 		}
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			try(
 				FileInputStream fis = new FileInputStream( FileDescriptor.in );
-				BufferedReader stdin
-				= new BufferedReader(
+				BufferedReader stdin = new BufferedReader(
 					new InputStreamReader(
 						Channels.newInputStream(
-							fis.getChannel() ) ) ) )
-			{
+							fis.getChannel() ) ) ) ) {
 				String line;
 				while( keepRun ) {
 					line = stdin.readLine();
 
-					if ( sessionListeners ) {
+					if( sessionListeners ) {
 						Iterator< String > it = sessionTokens.keySet().iterator();
 
 						while( it.hasNext() ) {
@@ -90,13 +84,13 @@ public class ConsoleService extends JavaService
 			}
 		}
 	}
+
 	private ConsoleInputThread consoleInputThread;
 
 	@RequestResponse
-	public void registerForInput( Value request )
-	{
-		if ( request.getFirstChild( "enableSessionListener" ).isDefined() ) {
-			if ( request.getFirstChild( "enableSessionListener" ).boolValue() ) {
+	public void registerForInput( Value request ) {
+		if( request.getFirstChild( "enableSessionListener" ).isDefined() ) {
+			if( request.getFirstChild( "enableSessionListener" ).boolValue() ) {
 				sessionListeners = true;
 				sessionTokens = new HashMap<>();
 			}
@@ -107,8 +101,7 @@ public class ConsoleService extends JavaService
 
 	@Override
 	protected void finalize()
-		throws Throwable
-	{
+		throws Throwable {
 		try {
 			consoleInputThread.kill();
 		} finally {
@@ -117,9 +110,8 @@ public class ConsoleService extends JavaService
 	}
 
 	@RequestResponse
-	public void print( String s )
-	{
-		if ( enableTimestamp ) {
+	public void print( String s ) {
+		if( enableTimestamp ) {
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
 				final Date now = new Date();
@@ -134,9 +126,8 @@ public class ConsoleService extends JavaService
 	}
 
 	@RequestResponse
-	public void println( String s )
-	{
-		if ( enableTimestamp ) {
+	public void println( String s ) {
+		if( enableTimestamp ) {
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
 				final Date now = new Date();
@@ -151,12 +142,11 @@ public class ConsoleService extends JavaService
 	}
 
 	@RequestResponse
-	public void enableTimestamp( Value request )
-	{
+	public void enableTimestamp( Value request ) {
 		boolean enable = request.boolValue();
-		if ( enable ) {
+		if( enable ) {
 			enableTimestamp = true;
-			if ( request.getFirstChild( "format" ).isDefined() ) {
+			if( request.getFirstChild( "format" ).isDefined() ) {
 				timestampFormat = request.getFirstChild( "format" ).strValue();
 			} else {
 				timestampFormat = timestampFormatDefault;
@@ -169,22 +159,20 @@ public class ConsoleService extends JavaService
 	}
 
 	@RequestResponse
-	public void subscribeSessionListener( Value request )
-	{
+	public void subscribeSessionListener( Value request ) {
 		String token = request.getFirstChild( "token" ).strValue();
 
-		if ( sessionListeners ) {
+		if( sessionListeners ) {
 			sessionTokens.put( token, token );
 
 		}
 	}
 
 	@RequestResponse
-	public void unsubscribeSessionListener( Value request )
-	{
+	public void unsubscribeSessionListener( Value request ) {
 		String token = request.getFirstChild( "token" ).strValue();
 
-		if ( sessionListeners ) {
+		if( sessionListeners ) {
 			sessionTokens.remove( token );
 		}
 	}

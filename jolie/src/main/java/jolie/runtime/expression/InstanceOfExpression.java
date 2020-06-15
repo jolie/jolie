@@ -29,26 +29,23 @@ import jolie.runtime.typing.TypeCheckingException;
 
 /**
  * Implements the instanceof operator.
+ * 
  * @author Fabrizio Montesi
  */
-public class InstanceOfExpression implements Expression
-{
+public class InstanceOfExpression implements Expression {
 	private final Expression expression;
 	private final Type type;
-	
-	public InstanceOfExpression( Expression expression, Type type )
-	{
+
+	public InstanceOfExpression( Expression expression, Type type ) {
 		this.expression = expression;
 		this.type = type;
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
+
+	public Expression cloneExpression( TransformationReason reason ) {
 		return new InstanceOfExpression( expression, type );
 	}
-	
-	public Value evaluate()
-	{
+
+	public Value evaluate() {
 		boolean ret = true;
 		try {
 			type.check( expression.evaluate() );

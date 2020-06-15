@@ -28,39 +28,39 @@ import jolie.runtime.Value;
 
 /**
  * The MetaService class is a bridge to a MetaService JOLIE service.
+ * 
  * @TODO: support nested paths
  * @author Fabrizio Montesi
  */
-abstract public class MetaService
-{
+abstract public class MetaService {
 	private final static String SHUTDOWN = "shutdown";
 	private final static String ADD_REDIRECTION = "addRedirection";
 	private final static String REMOVE_REDIRECTION = "removeRedirection";
 	private final static String LOAD_EMBEDDED_JOLIE_SERVICE = "loadEmbeddedJolieService";
 	private final static String UNLOAD_EMBEDDED_JOLIE_SERVICE = "unloadEmbeddedService";
-	
+
 	abstract public MetaServiceChannel getChannel()
 		throws IOException;
 
 	abstract protected CommChannel createCommChannel()
 		throws IOException;
-	
+
 	/**
 	 * Shuts down this MetaService instance.
+	 * 
 	 * @throws java.io.IOException
 	 */
 	public void shutdown()
-		throws IOException
-	{
+		throws IOException {
 		getChannel().send( SHUTDOWN, Value.create() );
 	}
-	
+
 	/**
 	 * Adds a redirection.
-	 * @param resourcePrefix the first part of the resource name
-	 * the redirection will be published under,
-	 * e.g. if resourceName="MediaPlayer" then the redirection
-	 * will be published in /MediaPlayer or in /MediaPlayer-s, where s is a string.
+	 * 
+	 * @param resourcePrefix the first part of the resource name the redirection will be published
+	 *        under, e.g. if resourceName="MediaPlayer" then the redirection will be published in
+	 *        /MediaPlayer or in /MediaPlayer-s, where s is a string.
 	 * @param location the location (in JOLIE format) the redirection has to point to.
 	 * @param protocol the protocol (in JOLIE format) the redirection has to use.
 	 * @param metadata additional descriptive metadata to be added to the redirection.
@@ -69,8 +69,7 @@ abstract public class MetaService
 	 * @throws jolie.runtime.FaultException in case of a fault sent by the MetaService service.
 	 */
 	public MetaServiceChannel addRedirection( String resourcePrefix, String location, Value protocol, Value metadata )
-		throws IOException, FaultException
-	{
+		throws IOException, FaultException {
 		final MetaServiceChannel channel = getChannel();
 		Value request = Value.create();
 		request.getFirstChild( "resourcePrefix" ).setValue( resourcePrefix );
@@ -81,14 +80,14 @@ abstract public class MetaService
 		Value ret = channel.recv();
 		return new MetaServiceChannel( this, '/' + ret.strValue() );
 	}
-	
+
 	/**
 	 * Removes a redirection.
+	 * 
 	 * @param resourceName the resource name identifying the redirection to remove.
 	 */
 	public void removeRedirection( String resourceName )
-		throws IOException
-	{
+		throws IOException {
 		final MetaServiceChannel channel = getChannel();
 		channel.send( REMOVE_REDIRECTION, Value.create( resourceName ) );
 		try {
@@ -97,14 +96,14 @@ abstract public class MetaService
 			throw new IOException( f );
 		}
 	}
-	
+
 	/**
-	 * Starts an embedded jolie service reading its source code file,
-	 * publishes it and returns the created resource name.
-	 * @param resourcePrefix the first part of the resource name
-	 * the redirection will be published under,
-	 * e.g. if resourceName="MediaPlayer" then the redirection
-	 * will be published in /MediaPlayer or in /MediaPlayer-s, where s is a string.
+	 * Starts an embedded jolie service reading its source code file, publishes it and returns the
+	 * created resource name.
+	 * 
+	 * @param resourcePrefix the first part of the resource name the redirection will be published
+	 *        under, e.g. if resourceName="MediaPlayer" then the redirection will be published in
+	 *        /MediaPlayer or in /MediaPlayer-s, where s is a string.
 	 * @param filepath the source file path of the jolie service to embed.
 	 * @param metadata additional descriptive metadata to be added to the embedded service.
 	 * @return a MetaServiceChannel pointing to the embedded service
@@ -112,8 +111,7 @@ abstract public class MetaService
 	 * @throws jolie.runtime.FaultException in case of a fault sent by the MetaService service.
 	 */
 	public MetaServiceChannel loadEmbeddedJolieService( String resourcePrefix, String filepath, Value metadata )
-		throws IOException, FaultException
-	{
+		throws IOException, FaultException {
 		final MetaServiceChannel channel = getChannel();
 		Value request = Value.create();
 		request.getFirstChild( "resourcePrefix" ).setValue( resourcePrefix );
@@ -126,11 +124,11 @@ abstract public class MetaService
 
 	/**
 	 * Unloads an embedded JOLIE service.
+	 * 
 	 * @param resourceName the resource name identifying the embedded service to remove.
 	 */
 	public void unloadEmbeddedJolieService( String resourceName )
-		throws IOException
-	{
+		throws IOException {
 		final MetaServiceChannel channel = getChannel();
 		channel.send( UNLOAD_EMBEDDED_JOLIE_SERVICE, Value.create( resourceName ) );
 		try {

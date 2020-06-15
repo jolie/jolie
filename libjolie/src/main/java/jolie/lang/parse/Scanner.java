@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2006-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2020 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.lang.parse;
 
@@ -35,8 +33,8 @@ import jolie.lang.NativeType;
  * @author Fabrizio Montesi
  *
  */
-public class Scanner
-{
+public class Scanner {
+	// @formatter:off
 	/** Token types */
 	public enum TokenType {
 		EOF,				///< End Of File
@@ -111,14 +109,14 @@ public class Scanner
 		UNDEF,				///< undef
 		HASH,				///< #
 		PERCENT_SIGN,		///< %
-		FOR,					///< for
+		FOR,				///< for
 		FOREACH,			///< foreach
 		WITH,				///< with
 		DECREMENT,			///< --
 		IS_STRING,			///< is_string
 		IS_INT,				///< is_int
 		IS_DOUBLE,			///< is_double
-		IS_BOOL,				///< is_bool
+		IS_BOOL,			///< is_bool
 		IS_LONG,			///< is_long
 		IS_DEFINED,			///< is_defined
 		CAST_INT,			///< int
@@ -134,7 +132,8 @@ public class Scanner
 		NEWLINE,			///< a newline token
 		ERROR				///< Scanner error
 	}
-
+	// @formatter:off
+	
 	/*
 	 * Map of unreserved keywords,
 	 * which can be considered as IDs in certain places (e.g. variables).

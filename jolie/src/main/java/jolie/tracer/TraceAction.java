@@ -26,7 +26,6 @@ package jolie.tracer;
  *
  * @author Fabrizio Montesi
  */
-public interface TraceAction
-{
-	
+public interface TraceAction {
+
 }

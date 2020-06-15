@@ -30,39 +30,36 @@ import jolie.lang.parse.ast.Program;
 import jolie.runtime.expression.Expression;
 
 
-public class InternalJolieServiceLoader extends EmbeddedServiceLoader
-{
+public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 	private final Interpreter interpreter;
-	
-	public InternalJolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String serviceName, Program program)
-		throws IOException, CommandLineException
-	{
+
+	public InternalJolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String serviceName,
+		Program program )
+		throws IOException, CommandLineException {
 		super( channelDest );
-        
+
 		List< String > newArgs = new ArrayList<>();
 		newArgs.add( "-i" );
 		newArgs.add( currInterpreter.programDirectory().getAbsolutePath() );
-		
+
 		String[] options = currInterpreter.optionArgs();
 		newArgs.addAll( Arrays.asList( options ) );
-        newArgs.add( "#" + serviceName + ".ol" );
+		newArgs.add( "#" + serviceName + ".ol" );
 		interpreter = new Interpreter(
 			newArgs.toArray( new String[ newArgs.size() ] ),
 			currInterpreter.getClassLoader(),
 			currInterpreter.programDirectory(),
 			currInterpreter,
-            program
-		);
+			program );
 	}
 
 	@Override
 	public void load()
-		throws EmbeddedServiceLoadingException
-	{
+		throws EmbeddedServiceLoadingException {
 		Future< Exception > f = interpreter.start();
 		try {
 			Exception e = f.get();
-			if ( e == null ) {
+			if( e == null ) {
 				setChannel( interpreter.commCore().getLocalCommChannel() );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
@@ -72,8 +69,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 		}
 	}
 
-	public Interpreter interpreter()
-	{
+	public Interpreter interpreter() {
 		return interpreter;
-	}    
+	}
 }

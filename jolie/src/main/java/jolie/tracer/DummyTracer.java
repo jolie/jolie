@@ -27,9 +27,7 @@ import java.util.function.Supplier;
  *
  * @author Fabrizio Montesi
  */
-public class DummyTracer implements Tracer
-{
+public class DummyTracer implements Tracer {
 	@Override
-	public void trace( Supplier< ? extends TraceAction > action )
-	{}
+	public void trace( Supplier< ? extends TraceAction > action ) {}
 }

@@ -30,27 +30,23 @@ import jolie.net.CommListener;
  *
  * @author Fabrizio Montesi
  */
-public class JolieRemoteImpl implements JolieRemote
-{
+public class JolieRemoteImpl implements JolieRemote {
 	final private Interpreter interpreter;
 	final private CommListener listener;
 
 	public JolieRemoteImpl( Interpreter interpreter, CommListener listener )
-		throws RemoteException
-	{
+		throws RemoteException {
 		this.interpreter = interpreter;
 		this.listener = listener;
 	}
 
 	@Override
 	public RemoteBasicChannel createRemoteBasicChannel()
-		throws RemoteException
-	{
-		RemoteBasicChannelImpl channel = new RemoteBasicChannelImpl( interpreter.commCore().getLocalCommChannel( listener ), this );
-		return (RemoteBasicChannel)UnicastRemoteObject.exportObject( channel );
+		throws RemoteException {
+		RemoteBasicChannelImpl channel =
+			new RemoteBasicChannelImpl( interpreter.commCore().getLocalCommChannel( listener ), this );
+		return (RemoteBasicChannel) UnicastRemoteObject.exportObject( channel );
 	}
 
-	protected void disposeOf( RemoteBasicChannel channel )
-	{
-	}
+	protected void disposeOf( RemoteBasicChannel channel ) {}
 }

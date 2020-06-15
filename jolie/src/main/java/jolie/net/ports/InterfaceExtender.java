@@ -27,47 +27,42 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 
 /**
  * Represents a (runtime) interface extender
+ * 
  * @author Fabrizio Montesi
  */
-public class InterfaceExtender extends Interface
-{
+public class InterfaceExtender extends Interface {
 	private final OneWayTypeDescription defaultOneWayTypeDescription;
 	private final RequestResponseTypeDescription defaultRequestResponseTypeDescription;
-	
+
 	public InterfaceExtender(
 		Map< String, OneWayTypeDescription > oneWayOperations,
 		Map< String, RequestResponseTypeDescription > requestResponseOperations,
 		OneWayTypeDescription defaultOneWayTypeDescription,
-		RequestResponseTypeDescription defaultRequestResponseTypeDescription
-	) {
+		RequestResponseTypeDescription defaultRequestResponseTypeDescription ) {
 		super( oneWayOperations, requestResponseOperations );
 		this.defaultOneWayTypeDescription = defaultOneWayTypeDescription;
 		this.defaultRequestResponseTypeDescription = defaultRequestResponseTypeDescription;
 	}
 
-	public OneWayTypeDescription defaulOneWayTypeDescription()
-	{
+	public OneWayTypeDescription defaulOneWayTypeDescription() {
 		return defaultOneWayTypeDescription;
 	}
 
-	public RequestResponseTypeDescription defaultRequestResponseTypeDescription()
-	{
+	public RequestResponseTypeDescription defaultRequestResponseTypeDescription() {
 		return defaultRequestResponseTypeDescription;
 	}
-	
-	public OneWayTypeDescription getOneWayTypeDescription( String operationName )
-	{
+
+	public OneWayTypeDescription getOneWayTypeDescription( String operationName ) {
 		OneWayTypeDescription ret = oneWayOperations().get( operationName );
-		if ( ret == null ) {
+		if( ret == null ) {
 			ret = defaultOneWayTypeDescription;
 		}
 		return ret;
 	}
-	
-	public RequestResponseTypeDescription getRequestResponseTypeDescription( String operationName )
-	{
+
+	public RequestResponseTypeDescription getRequestResponseTypeDescription( String operationName ) {
 		RequestResponseTypeDescription ret = requestResponseOperations().get( operationName );
-		if ( ret == null ) {
+		if( ret == null ) {
 			ret = defaultRequestResponseTypeDescription;
 		}
 		return ret;

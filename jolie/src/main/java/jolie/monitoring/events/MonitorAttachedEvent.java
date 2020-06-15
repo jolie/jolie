@@ -30,10 +30,8 @@ import jolie.runtime.Value;
  * 
  * @author Fabrizio Montesi
  */
-public class MonitorAttachedEvent extends MonitoringEvent
-{
-	public MonitorAttachedEvent()
-	{
+public class MonitorAttachedEvent extends MonitoringEvent {
+	public MonitorAttachedEvent() {
 		super( "MonitorAttached", Value.create() );
 	}
 }

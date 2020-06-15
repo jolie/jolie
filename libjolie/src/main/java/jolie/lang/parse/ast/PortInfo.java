@@ -32,79 +32,74 @@ import jolie.lang.parse.context.ParsingContext;
 
 /**
  * Abstract class representing a port (shared between input and output ports).
+ * 
  * @author Fabrizio Montesi
  */
-public abstract class PortInfo extends OLSyntaxNode implements OperationCollector, DocumentedNode
-{
+public abstract class PortInfo extends OLSyntaxNode implements OperationCollector, DocumentedNode {
 	private final String id;
 	private final Map< String, OperationDeclaration > operationsMap =
-		new HashMap<> ();
+		new HashMap<>();
 	private final List< InterfaceDefinition > interfaceList = new ArrayList<>();
 	private String document;
 
-	public PortInfo( ParsingContext context, String id )
-	{
+	public PortInfo( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}
 
 	/**
 	 * Returns the name identifier of the port.
+	 * 
 	 * @return the name identifier of the port
 	 */
-	public String id()
-	{
+	public String id() {
 		return id;
 	}
 
 	/**
 	 * Returns the operations of the port.
+	 * 
 	 * @return the operations of the port.
 	 */
-	public Collection< OperationDeclaration > operations()
-	{
+	public Collection< OperationDeclaration > operations() {
 		return operationsMap.values();
 	}
 
 	/**
 	 * Returns the operations of the port, mapped by their names.
+	 * 
 	 * @return the operations of the port, mapped by their names.
 	 */
 	@Override
-	public Map< String, OperationDeclaration > operationsMap()
-	{
+	public Map< String, OperationDeclaration > operationsMap() {
 		return operationsMap;
 	}
-	
+
 	@Override
-	public void addOperation( OperationDeclaration decl )
-	{
+	public void addOperation( OperationDeclaration decl ) {
 		operationsMap.put( decl.id(), decl );
 	}
 
 	@Override
-	public void setDocumentation( String document )
-	{
+	public void setDocumentation( String document ) {
 		this.document = document;
 	}
 
 	@Override
-	public String getDocumentation()
-	{
+	public String getDocumentation() {
 		return this.document;
 	}
 
 	/**
 	 * Returns the interfaces implemented by this port.
+	 * 
 	 * @return the interfaces implemented by this port.
 	 */
-	public List< InterfaceDefinition > getInterfaceList()
-	{
+	public List< InterfaceDefinition > getInterfaceList() {
 		return interfaceList;
 	}
 
-	public void addInterface( InterfaceDefinition iface )
-	{
+	public void addInterface( InterfaceDefinition iface ) {
 		interfaceList.add( iface );
 	}
 }

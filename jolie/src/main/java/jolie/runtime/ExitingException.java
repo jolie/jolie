@@ -21,9 +21,8 @@
 
 package jolie.runtime;
 
-public class ExitingException extends Exception
-{
+public class ExitingException extends Exception {
 	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
-	
+
 	private ExitingException() {}
 }

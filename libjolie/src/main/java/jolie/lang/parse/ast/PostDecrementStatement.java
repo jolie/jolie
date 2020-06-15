@@ -25,24 +25,20 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class PostDecrementStatement extends OLSyntaxNode
-{
+public class PostDecrementStatement extends OLSyntaxNode {
 	private final VariablePathNode variablePath;
 
-	public PostDecrementStatement( ParsingContext context, VariablePathNode variablePath )
-	{
+	public PostDecrementStatement( ParsingContext context, VariablePathNode variablePath ) {
 		super( context );
 		this.variablePath = variablePath;
 	}
-	
-	public VariablePathNode variablePath()
-	{
+
+	public VariablePathNode variablePath() {
 		return variablePath;
 	}
-	
+
 	@Override
-	public void accept( OLVisitor visitor )
-	{
+	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
 }
