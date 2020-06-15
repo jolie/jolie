@@ -42,6 +42,33 @@ public class InterpreterParameters {
 		includePaths.add( "include" );
 	}
 
+	/**
+	 *
+	 * @param connectionsLimit: the connection limit parameter passed by command line with the -c option.
+	 * @param connectionCache: the connection cache parameter passed by command line with the --conncache option.
+	 * @param correlationAlgorithm: the type of correlation algorithm that has been specified.
+	 * @param includeList: the include paths passed by command line with the -i option.
+	 * @param optionArgs: the command line options passed to this command line parser. This does not include the name of the program.
+	 * @param libUrls: the library URLs passed by command line with the -l option.
+	 * @param inputStream:  an InputStream for the program code to execute.
+	 * @param charset: the program's character encoding
+	 * @param programFilepath: the file path of the JOLIE program to execute.
+	 * @param arguments: the arguments passed to the JOLIE program.
+	 * @param constants:  a map containing the constants defined by command line.
+	 * @param jolieClassLoader:  the classloader to use for the program.
+	 * @param programCompiled: {@code true} if the program is compiled, {@code false} otherwise.
+	 * @param typeCheck: the value of the --typecheck option.
+	 * @param tracer: <code>true</code> if the tracer option has been specified, false otherwise.
+	 * @param tracerLevel: the selected tracer level [all | comm | comp]
+	 *  all: all the traces comp: only computation traces comm: only communication traces
+	 * @param tracerMode: <code>true</code> if the tracer option has been specified, false otherwise.
+	 * @param check: <code>true</code> if the check option has been specified, false otherwise.
+	 * @param responseTimeout: the response timeout parameter passed by command line with the --responseTimeout option.
+	 * @param logLevel: the {@link Level} of the logger of this interpreter.
+	 * @param programDirectory: the directory in which the main program is located.
+	 * @throws IOException
+	 */
+
 	public InterpreterParameters( int connectionsLimit,
 		int connectionCache,
 		CorrelationEngine.Type correlationAlgorithm,
