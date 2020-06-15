@@ -43,16 +43,20 @@ public class Jolie2Plasma {
 	public static void main( String[] args ) {
 		try {
 			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Plasma.class.getClassLoader() );
-			final String[] arguments = cmdParser.arguments();
+			final String[] arguments = cmdParser.getInterpreterParameters().arguments();
 			if( arguments.length < 2 ) {
 				throw new CommandLineException( "Insufficient number of arguments" );
 			}
 
 			try( Writer writer = new BufferedWriter( new FileWriter( arguments[ 0 ] ) ) ) {
 				Program program = ParsingUtils.parseProgram(
-					cmdParser.programStream(),
-					cmdParser.programFilepath().toURI(), cmdParser.charset(),
-					cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
+					cmdParser.getInterpreterParameters().inputStream(),
+					cmdParser.getInterpreterParameters().programFilepath().toURI(),
+					cmdParser.getInterpreterParameters().charset(),
+					cmdParser.getInterpreterParameters().includePaths(),
+					cmdParser.getInterpreterParameters().jolieClassLoader(),
+					cmdParser.getInterpreterParameters().constants(),
+					false );
 				new InterfaceConverter(
 					program,
 					Arrays.copyOfRange( arguments, 1, arguments.length ),

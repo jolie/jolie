@@ -81,10 +81,10 @@ public class JolieToSurfaceCommandLineParser extends CommandLineParser {
 		JolieDocArgumentHandler argHandler )
 		throws CommandLineException, IOException {
 		super( args, parentClassLoader, argHandler );
-		if( arguments().length < 1 ) {
+		if( getInterpreterParameters().arguments().length < 1 ) {
 			throw new CommandLineException( "no input port name provided (try jolie2surface --help for help)" );
 		}
-		inputPortName = arguments()[ 0 ];
+		inputPortName = getInterpreterParameters().arguments()[ 0 ];
 		noLocation = argHandler.noLocation;
 		noOutputPort = argHandler.noOutputPort;
 		noProtocol = argHandler.noProtocol;
