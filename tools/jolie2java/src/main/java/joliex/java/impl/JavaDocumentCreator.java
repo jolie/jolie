@@ -1295,7 +1295,8 @@ public class JavaDocumentCreator {
 						variableType = variableTypeFromVariableName( variableName );
 					} else {
 						variableName = checkReservedKeywords( subType.id() );
-						variableType = JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) subType).nativeType() );
+						variableType =
+							JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) subType).typeNative().nativeType() );
 					}
 				}
 
@@ -2151,7 +2152,7 @@ public class JavaDocumentCreator {
 		} else if( typeDefinition instanceof TypeDefinitionLink ) {
 			return getTypes( ((TypeDefinitionLink) typeDefinition).linkedType() );
 		} else if( typeDefinition instanceof TypeInlineDefinition ) {
-			choiceTypes.add( ((TypeInlineDefinition) typeDefinition).nativeType() );
+			choiceTypes.add( ((TypeInlineDefinition) typeDefinition).typeNative().nativeType() );
 		}
 		return choiceTypes;
 	}
@@ -2337,7 +2338,7 @@ public class JavaDocumentCreator {
 			if( Utils.hasSubTypes( type ) ) {
 				return variableTypeFromVariableName( getVariableName( type ) );
 			} else {
-				return JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) type).nativeType() );
+				return JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) type).typeNative().nativeType() );
 			}
 		}
 		return "err";

@@ -202,7 +202,7 @@ public class MetaJolie extends JavaService {
 	private Value getTypeInlineDefinition( TypeInlineDefinition typedef, boolean insertInInterfaceList,
 		TypeDefinition extension ) {
 		Value type = Value.create();
-		type.getFirstChild( "root_type" ).deepCopy( getNativeType( typedef.nativeType() ) );
+		type.getFirstChild( "root_type" ).deepCopy( getNativeType( typedef.typeNative().nativeType() ) );
 		if( typedef.hasSubTypes() ) {
 			int subtype_counter = 0;
 			for( Entry< String, TypeDefinition > entry : typedef.subTypes() ) {

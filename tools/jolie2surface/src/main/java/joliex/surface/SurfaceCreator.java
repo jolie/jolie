@@ -184,7 +184,7 @@ public class SurfaceCreator {
 
 		} else if( type instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition def = (TypeInlineDefinition) type;
-			ret = ret + def.nativeType().id();
+			ret = ret + def.typeNative().nativeType().id();
 			if( def.hasSubTypes() ) {
 				ret = ret + "{ \n";
 				for( Entry< String, TypeDefinition > entry : def.subTypes() ) {
@@ -230,7 +230,7 @@ public class SurfaceCreator {
 			}
 		} else if( type instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition def = (TypeInlineDefinition) type;
-			System.out.print( def.nativeType().id() );
+			System.out.print( def.typeNative().nativeType().id() );
 			if( def.hasSubTypes() ) {
 				System.out.print( "{\n" );
 				for( Entry< String, TypeDefinition > entry : def.subTypes() ) {

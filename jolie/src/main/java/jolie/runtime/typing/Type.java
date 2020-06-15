@@ -26,21 +26,22 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.TypeNative;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
 
 class TypeImpl extends Type {
 	private final Range cardinality;
-	private final NativeType nativeType;
+	private final TypeNative typeNative;
 	private final Map< String, Type > subTypes;
 
 	public TypeImpl(
-		NativeType nativeType,
+		TypeNative typeNative,
 		Range cardinality,
 		boolean undefinedSubTypes,
 		Map< String, Type > subTypes ) {
-		this.nativeType = nativeType;
+		this.typeNative = typeNative;
 		this.cardinality = cardinality;
 		this.subTypes = undefinedSubTypes ? null : subTypes;
 	}
@@ -60,7 +61,11 @@ class TypeImpl extends Type {
 	}
 
 	protected NativeType nativeType() {
-		return nativeType;
+		return typeNative.nativeType();
+	}
+
+	protected TypeNative typeNative() {
+		return typeNative;
 	}
 
 	@Override
@@ -122,9 +127,10 @@ class TypeImpl extends Type {
 	@Override
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException {
-		if( checkNativeType( value, nativeType ) == false ) {
+		if( checkNativeType( value, typeNative ) == false ) {
 			throw new TypeCheckingException(
-				"Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found "
+				"Invalid native type for node " + pathBuilder.toString() + ": expected " + typeNative.nativeType()
+					+ typeNative.nativeTypeConstraint().getConstraintDefinition() + ", found "
 					+ ((value.valueObject() == null) ? "void" : value.valueObject().getClass().getName()) );
 		}
 
@@ -171,15 +177,15 @@ class TypeImpl extends Type {
 
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException {
-		if( checkNativeType( value, nativeType ) == false ) {
+		if( checkNativeType( value, typeNative ) == false ) {
 			// ANY is not handled, because checkNativeType returns true for it anyway
-			switch( nativeType ) {
+			switch( typeNative.nativeType() ) {
 			case DOUBLE:
 				try {
 					value.setValue( value.doubleValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case INT:
@@ -187,7 +193,7 @@ class TypeImpl extends Type {
 					value.setValue( value.intValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case LONG:
@@ -195,7 +201,7 @@ class TypeImpl extends Type {
 					value.setValue( value.longValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case BOOL:
@@ -203,7 +209,7 @@ class TypeImpl extends Type {
 					value.setValue( value.boolValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case STRING:
@@ -211,7 +217,7 @@ class TypeImpl extends Type {
 					value.setValue( value.strValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case VOID:
@@ -227,20 +233,20 @@ class TypeImpl extends Type {
 					value.setValue( value.byteArrayValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			default:
 				throw new TypeCastingException(
-					"Expected " + nativeType.id() + ", found " +
+					"Expected " + typeNative.nativeType().id() + ", found " +
 						value.valueObject().getClass().getSimpleName() +
 						": " + pathBuilder.toString() );
 			}
 		}
 	}
 
-	private boolean checkNativeType( Value value, NativeType nativeType ) {
-		switch( nativeType ) {
+	private boolean checkNativeType( Value value, TypeNative typeNative ) {
+		switch( typeNative.nativeType() ) {
 		case ANY:
 			return true;
 		case DOUBLE:
@@ -252,7 +258,7 @@ class TypeImpl extends Type {
 		case INT:
 			return value.isInt();
 		case STRING:
-			return value.isString();
+			return value.isString() && typeNative.nativeTypeConstraint().checkConstraints( value.strValue() );
 		case VOID:
 			return value.valueObject() == null;
 		case RAW:
@@ -343,14 +349,14 @@ class TypeChoice extends Type {
  */
 public abstract class Type implements Cloneable {
 	public static final Type UNDEFINED =
-		Type.create( NativeType.ANY, new Range( 0, Integer.MAX_VALUE ), true, null );
+		Type.create( new TypeNative( NativeType.ANY ), new Range( 0, Integer.MAX_VALUE ), true, null );
 
 	public static Type create(
-		NativeType nativeType,
+		TypeNative typeNative,
 		Range cardinality,
 		boolean undefinedSubTypes,
 		Map< String, Type > subTypes ) {
-		return new TypeImpl( nativeType, cardinality, undefinedSubTypes, subTypes );
+		return new TypeImpl( typeNative, cardinality, undefinedSubTypes, subTypes );
 	}
 
 	public static TypeLink createLink( String linkedTypeName, Range cardinality ) {
@@ -417,14 +423,14 @@ public abstract class Type implements Cloneable {
 	}
 
 	private static Type extend( TypeImpl t1, TypeImpl t2 ) {
-		NativeType nativeType = t1.nativeType();
+		TypeNative typeNative = t1.typeNative();
 		Range cardinality = t1.cardinality();
 		Map< String, Type > subTypes = new HashMap<>();
 		t1.subTypes().entrySet().forEach( entry -> subTypes.put( entry.getKey(), entry.getValue() ) );
 		if( t2 != null ) {
 			t2.subTypes().entrySet().forEach( entry -> subTypes.put( entry.getKey(), entry.getValue() ) );
 		}
-		return create( nativeType, cardinality, false, subTypes );
+		return create( typeNative, cardinality, false, subTypes );
 	}
 
 	public void check( Value value )

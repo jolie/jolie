@@ -60,10 +60,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 import jolie.xml.xsd.XsdToJolieConverter;
@@ -244,7 +241,7 @@ public class WSDLConverter {
 				writeLine( builder.toString() );
 				writeLine( "" );
 			} else {
-				builder.append( nativeTypeToString( def.nativeType() ) );
+				builder.append( nativeTypeToString( def.typeNative().nativeType() ) );
 				if( def.hasSubTypes() ) {
 					builder.append( " {" );
 				}
@@ -267,9 +264,9 @@ public class WSDLConverter {
 				&& !((TypeInlineDefinition) choice.left()).hasSubTypes()
 				&& choice.right() instanceof TypeInlineDefinition
 				&& !((TypeInlineDefinition) choice.right()).hasSubTypes() ) {
-				builder.append( ((TypeInlineDefinition) choice.left()).nativeType().id() );
+				builder.append( ((TypeInlineDefinition) choice.left()).typeNative().nativeType().id() );
 				builder.append( " | " );
-				builder.append( ((TypeInlineDefinition) choice.right()).nativeType().id() );
+				builder.append( ((TypeInlineDefinition) choice.right()).typeNative().nativeType().id() );
 				writeLine( builder.toString() );
 			} else {
 				writeLine( builder.toString() );
@@ -481,7 +478,7 @@ public class WSDLConverter {
 		if( parts.size() > 1 || style == Style.RPC ) {
 			typeName = message.getQName().getLocalPart();
 			TypeInlineDefinition requestType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
-				NativeType.VOID, jolie.lang.Constants.RANGE_ONE_TO_ONE );
+				new TypeNative( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 			for( Entry< String, Part > entry : parts.entrySet() ) {
 				Part part = entry.getValue();
 				if( part.getElementName() == null ) {
@@ -552,7 +549,7 @@ public class WSDLConverter {
 			if( parts.size() > 1 ) {
 				String typeName = faultName = faultTypeName;
 				TypeInlineDefinition faultType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
-					NativeType.VOID, jolie.lang.Constants.RANGE_ONE_TO_ONE );
+					new TypeNative( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 				for( Entry< String, Part > partEntry : parts.entrySet() ) {
 					Part part = partEntry.getValue();
 					if( part.getElementName() == null ) {

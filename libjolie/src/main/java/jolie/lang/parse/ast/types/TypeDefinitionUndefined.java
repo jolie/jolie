@@ -37,7 +37,8 @@ public class TypeDefinitionUndefined extends TypeInlineDefinition {
 	}
 
 	private TypeDefinitionUndefined() {
-		super( URIParsingContext.DEFAULT, UNDEFINED_KEYWORD, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+		super( URIParsingContext.DEFAULT, UNDEFINED_KEYWORD, new TypeNative( NativeType.ANY ),
+			Constants.RANGE_ONE_TO_ONE );
 		super.setUntypedSubTypes( true );
 	}
 

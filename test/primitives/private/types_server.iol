@@ -52,10 +52,17 @@ type SomeTrickyType {
 
 type ChoiceResponse: int | string
 
+type ConstrainedStringType: string(4) {
+	f1: string( 10 )
+	f2: string
+	f3: string( 20 )
+}
+
 interface ServerInterface {
 RequestResponse:
 	call(ListNode)(int),
-	choice(ChoiceRequest)(ChoiceResponse)
+	choice(ChoiceRequest)(ChoiceResponse),
+	constrainedString(ConstrainedStringType)( void )
 OneWay:
 	shutdown(void)
 }

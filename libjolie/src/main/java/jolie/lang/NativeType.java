@@ -41,6 +41,7 @@ public enum NativeType {
 
 	private final String id;
 
+
 	private NativeType( String id ) {
 		this.id = id;
 	}
@@ -56,4 +57,5 @@ public enum NativeType {
 	public static boolean isNativeTypeKeyword( String id ) {
 		return idMap.containsKey( id );
 	}
+
 }

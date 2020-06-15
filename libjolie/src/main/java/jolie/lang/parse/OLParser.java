@@ -43,6 +43,7 @@ import java.util.Optional;
 
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.TypeNativeConstrainedString;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -123,11 +124,7 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.util.ProgramBuilder;
@@ -182,7 +179,7 @@ public class OLParser extends AbstractParser {
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
 			definedTypes.put( type.id(),
-				new TypeInlineDefinition( context, type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
+				new TypeInlineDefinition( context, type.id(), new TypeNative( type ), Constants.RANGE_ONE_TO_ONE ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
 
@@ -309,13 +306,13 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		TypeDefinition currentType;
 
-		NativeType nativeType = readNativeType();
-		if( nativeType == null ) { // It's a user-defined type
-			currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
-			getToken();
+		String currentTokenContent = token.content();
+		TypeNative typeNative = readTypeNative();
+		if( typeNative.nativeType() == null ) { // It's a user-defined type
+			currentType =
+				new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentTokenContent );
 		} else {
-			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
-			getToken();
+			currentType = new TypeInlineDefinition( getContext(), typeName, typeNative, Constants.RANGE_ONE_TO_ONE );
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
@@ -403,16 +400,15 @@ public class OLParser extends AbstractParser {
 
 	private TypeDefinition parseSubType( String id, Range cardinality )
 		throws IOException, ParserException {
-		NativeType nativeType = readNativeType();
+		String currentTokenContent = token.content();
+		TypeNative typeNative = readTypeNative();
 		TypeDefinition subType;
 		// SubType id
 
-		if( nativeType == null ) { // It's a user-defined type
-			subType = new TypeDefinitionLink( getContext(), id, cardinality, token.content() );
-			getToken();
+		if( typeNative.nativeType() == null ) { // It's a user-defined type
+			subType = new TypeDefinitionLink( getContext(), id, cardinality, currentTokenContent );
 		} else {
-			getToken();
-			subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
+			subType = new TypeInlineDefinition( getContext(), id, typeNative, cardinality );
 
 			Optional< Scanner.Token > commentToken = Optional.empty();
 			if( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD ) ) {
@@ -441,19 +437,40 @@ public class OLParser extends AbstractParser {
 		return subType;
 	}
 
-	private NativeType readNativeType() {
+	private TypeNative readTypeNative() throws IOException, ParserException {
 		if( token.is( Scanner.TokenType.CAST_INT ) ) {
-			return NativeType.INT;
+			getToken();
+			return new TypeNative( NativeType.INT );
 		} else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
-			return NativeType.DOUBLE;
+			getToken();
+			return new TypeNative( NativeType.DOUBLE );
 		} else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
-			return NativeType.STRING;
+			TypeNative stringNativeType;
+			getToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				getToken();
+				if( !token.type().equals( Scanner.TokenType.INT ) ) {
+					throwException( "Max string length number expected" );
+				}
+				TypeNativeConstrainedString typeNativeConstrainedString =
+					new TypeNativeConstrainedString( 0, new Integer( token.content() ) );
+				getToken();
+				eat( Scanner.TokenType.RPAREN, ") expected" );
+				stringNativeType = new TypeNative( NativeType.STRING, typeNativeConstrainedString );
+			} else {
+				stringNativeType = new TypeNative( NativeType.STRING );
+			}
+			return stringNativeType;
 		} else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
-			return NativeType.LONG;
+			getToken();
+			return new TypeNative( NativeType.LONG );
 		} else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
-			return NativeType.BOOL;
+			getToken();
+			return new TypeNative( NativeType.BOOL );
 		} else {
-			return NativeType.fromString( token.content() );
+			String currentTokenContent = token.content();
+			getToken();
+			return new TypeNative( NativeType.fromString( currentTokenContent ) );
 		}
 	}
 
@@ -2510,16 +2527,19 @@ public class OLParser extends AbstractParser {
 		} else if( opType == Scanner.TokenType.INSTANCE_OF ) {
 			getToken();
 			TypeDefinition type;
-			NativeType nativeType = readNativeType();
-			if( nativeType == null ) { // It's a user-defined type
-				assertToken( Scanner.TokenType.ID, "expected type name after instanceof" );
+			String currentTokenContent = token.content();
+			Scanner.TokenType currentTokenType = token.type();
+			TypeNative typeNative = readTypeNative();
+			if( typeNative.nativeType() == null ) { // It's a user-defined type
+				if( !currentTokenType.equals( Scanner.TokenType.ID ) ) {
+					throwException( "expected type name after instanceof" );
+				}
 			}
-			if( definedTypes.containsKey( token.content() ) == false ) {
-				throwException( "invalid type: " + token.content() );
+			if( definedTypes.containsKey( currentTokenContent ) == false ) {
+				throwException( "invalid type: " + currentTokenContent );
 			}
-			type = definedTypes.get( token.content() );
+			type = definedTypes.get( currentTokenContent );
 			ret = new InstanceOfExpressionNode( getContext(), expr1, type );
-			getToken();
 		} else {
 			ret = expr1;
 		}

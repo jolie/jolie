@@ -345,7 +345,7 @@ public class Inspector extends JavaService {
 			result.getChildren( TypeInfoType.RIGHT ).add( buildTypeInfo( tc.right() ) );
 		} else if( t instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition ti = (TypeInlineDefinition) t;
-			result.setFirstChild( TypeInfoType.NATIVE_TYPE, ti.nativeType().id() );
+			result.setFirstChild( TypeInfoType.NATIVE_TYPE, ti.typeNative().nativeType().id() );
 			result.setFirstChild( TypeInfoType.UNTYPED_FIELDS, ti.untypedSubTypes() );
 			if( ti.hasSubTypes() ) {
 				ValueVector fields = result.getChildren( TypeInfoType.FIELDS );

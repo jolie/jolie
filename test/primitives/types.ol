@@ -53,5 +53,52 @@ define doTest
 	if ( response != "3" ) {
 		throw( TestFailed, "Return value does not match input value" )
 	};
+
+	req << "hi" {
+		f1 = "hello"
+		f2 = "hello"
+		f3 = "hello"
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		// the root value should have less than 4 characters
+		req << "hi1234" {
+			f1 = "hello"
+			f2 = "hello"
+			f3 = "hello"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of root value" )
+	}
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		// f1 value should have less than 10 characters
+		req << "hi" {
+			f1 = "hello1234567890"
+			f2 = "hello"
+			f3 = "hello"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of f1 value" )
+	}
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		// f3 value should have less than 10 characters
+		req << "hi" {
+			f1 = "hello"
+			f2 = "hello"
+			f3 = "hello12345678901234567890"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of f3 value" )
+	}
+
 	shutdown@Server()
 }

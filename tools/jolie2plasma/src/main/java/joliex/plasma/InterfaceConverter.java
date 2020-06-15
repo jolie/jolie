@@ -103,7 +103,7 @@ public class InterfaceConverter {
 		if( type instanceof TypeInlineDefinition ) {
 			boolean empty = true;
 
-			if( ((TypeInlineDefinition) type).nativeType() != NativeType.VOID ) {
+			if( ((TypeInlineDefinition) type).typeNative().nativeType() != NativeType.VOID ) {
 				empty = false;
 				writer.write( ">\n" );
 				writeEntry( "/", getPlasmaParameterType( iface, operationName, "/", type ), writer );
@@ -152,7 +152,7 @@ public class InterfaceConverter {
 				unsupported( iface, operationName, "nested sub-elements under parameter " + parameterName );
 			}
 
-			NativeType nativeType = ((TypeInlineDefinition) type).nativeType();
+			NativeType nativeType = ((TypeInlineDefinition) type).typeNative().nativeType();
 			if( nativeType == NativeType.VOID ) {
 				unsupported( iface, operationName, "void native type for parameter " + parameterName );
 			} else if( nativeType == NativeType.INT ) {

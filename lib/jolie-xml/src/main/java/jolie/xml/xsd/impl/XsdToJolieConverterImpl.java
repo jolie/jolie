@@ -43,10 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Range;
@@ -330,7 +327,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				if( complexTypes.get( type.getName() + TYPE_SUFFIX ) == null ) {
 					// create lazy type
 					TypeDefinition jolieLazyType = new TypeInlineDefinition( parsingContext,
-						type.getName() + TYPE_SUFFIX, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+						type.getName() + TYPE_SUFFIX, new TypeNative( NativeType.ANY ), Constants.RANGE_ONE_TO_ONE );
 					complexTypes.put( type.getName() + TYPE_SUFFIX, jolieLazyType );
 				}
 				TypeDefinition jolieSimpleType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(),
@@ -401,12 +398,13 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				checkType( restriction.getBaseType() );
 				jolietype =
 					new TypeInlineDefinition( parsingContext, simpleType.getName().replace( "-", "_" ) + TYPE_SUFFIX,
-						XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
+						new TypeNative( XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ) ),
+						Constants.RANGE_ONE_TO_ONE );
 
 			} else {
 				log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() );
 				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName().replace( "-", "_" ),
-					NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
+					new TypeNative( NativeType.VOID ), Constants.RANGE_ONE_TO_ONE );
 
 			}
 		}
@@ -454,7 +452,8 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 	private TypeInlineDefinition createAnyOrUndefined( String typeName, XSComplexType complexType ) {
 		TypeInlineDefinition jolieType =
-			new TypeInlineDefinition( parsingContext, typeName, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+			new TypeInlineDefinition( parsingContext, typeName, new TypeNative( NativeType.ANY ),
+				Constants.RANGE_ONE_TO_ONE );
 		if( !complexType.isMixed() ) {
 			jolieType.setUntypedSubTypes( true );
 		}
@@ -485,10 +484,10 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 	private TypeDefinition createSimpleType( XSType type, XSElementDecl element, Range range ) {
 		checkType( type );
 		TypeInlineDefinition right = new TypeInlineDefinition( parsingContext, element.getName().replace( "-", "_" ),
-			XsdUtils.xsdToNativeType( type.getName() ), range );
+			new TypeNative( XsdUtils.xsdToNativeType( type.getName() ) ), range );
 		if( element.isNillable() ) {
 			TypeInlineDefinition left = new TypeInlineDefinition( parsingContext, element.getName().replace( "-", "_" ),
-				NativeType.VOID, range );
+				new TypeNative( NativeType.VOID ), range );
 			return new TypeChoiceDefinition( parsingContext, element.getName().replace( "-", "_" ), range, left,
 				right );
 		} else {
@@ -501,9 +500,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 	private TypeInlineDefinition createComplexType( XSComplexType complexType, String typeName, XSParticle particle ) {
 		if( complexType.isMixed() ) {
-			return new TypeInlineDefinition( parsingContext, typeName, NativeType.ANY, getRange( particle ) );
+			return new TypeInlineDefinition( parsingContext, typeName, new TypeNative( NativeType.ANY ),
+				getRange( particle ) );
 		} else {
-			return new TypeInlineDefinition( parsingContext, typeName, NativeType.VOID, getRange( particle ) );
+			return new TypeInlineDefinition( parsingContext, typeName, new TypeNative( NativeType.VOID ),
+				getRange( particle ) );
 		}
 	}
 

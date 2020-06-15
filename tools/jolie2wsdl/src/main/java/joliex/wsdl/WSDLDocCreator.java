@@ -260,7 +260,7 @@ public class WSDLDocCreator {
 	}
 
 	private Element createTypeDefinition( TypeInlineDefinition type, boolean inMessage ) throws Exception {
-		if( type.nativeType() != NativeType.VOID ) {
+		if( type.typeNative().nativeType() != NativeType.VOID ) {
 			throw (new Exception( "ERROR, type " + type.id()
 				+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 		}
@@ -287,7 +287,7 @@ public class WSDLDocCreator {
 				subEl.setAttribute( "maxOccurs", maxOccurs );
 				if( curType instanceof TypeInlineDefinition ) {
 					if( ((TypeInlineDefinition) curType).hasSubTypes() ) {
-						if( ((TypeInlineDefinition) curType).nativeType() != NativeType.VOID ) {
+						if( ((TypeInlineDefinition) curType).typeNative().nativeType() != NativeType.VOID ) {
 							throw (new Exception( "ERROR, type " + curType.id()
 								+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 						} else {
@@ -295,7 +295,7 @@ public class WSDLDocCreator {
 						}
 					} else {
 						subEl.setAttribute( "type",
-							getSchemaNativeType( ((TypeInlineDefinition) curType).nativeType() ) );
+							getSchemaNativeType( ((TypeInlineDefinition) curType).typeNative().nativeType() ) );
 					}
 				} else if( curType instanceof TypeDefinitionLink ) {
 					subEl.setAttribute( "type",
@@ -320,7 +320,7 @@ public class WSDLDocCreator {
 				newEl.appendChild( createTypeDefinition( (TypeInlineDefinition) rootType, true ) );
 				rootTypes.add( typename );
 				schemaRootElement.appendChild( newEl );
-				if( ((TypeInlineDefinition) rootType).nativeType() != NativeType.VOID ) {
+				if( ((TypeInlineDefinition) rootType).typeNative().nativeType() != NativeType.VOID ) {
 					throw (new Exception( "ERROR, type " + rootType.id()
 						+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 				}

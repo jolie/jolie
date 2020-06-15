@@ -627,7 +627,7 @@ public class OOITBuilder implements OLVisitor {
 		insideType = true;
 
 		if( n.untypedSubTypes() ) {
-			currType = Type.create( n.nativeType(), n.cardinality(), true, null );
+			currType = Type.create( n.typeNative(), n.cardinality(), true, null );
 		} else {
 			Map< String, Type > subTypes = new HashMap< String, Type >();
 			if( n.subTypes() != null ) {
@@ -636,7 +636,7 @@ public class OOITBuilder implements OLVisitor {
 				}
 			}
 			currType = Type.create(
-				n.nativeType(),
+				n.typeNative(),
 				n.cardinality(),
 				false,
 				subTypes );
