@@ -45,11 +45,14 @@ public class Compiler {
 	}
 
 	public void compile( OutputStream ostream )
-		throws IOException, ParserException, SemanticException {
+		throws IOException, ParserException, SemanticException, CommandLineException {
 		Program program = ParsingUtils.parseProgram(
-			cmdParser.programStream(),
-			cmdParser.programFilepath().toURI(), cmdParser.charset(),
-			cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
+			cmdParser.getInterpreterParameters().inputStream(),
+			cmdParser.getInterpreterParameters().programFilepath().toURI(),
+			cmdParser.getInterpreterParameters().charset(),
+			cmdParser.getInterpreterParameters().includePaths(),
+			cmdParser.getInterpreterParameters().jolieClassLoader(),
+			cmdParser.getInterpreterParameters().constants(), false );
 		// GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( program );
@@ -58,8 +61,8 @@ public class Compiler {
 	}
 
 	public void compile()
-		throws IOException, ParserException, SemanticException {
-		try( OutputStream os = new FileOutputStream( cmdParser.programFilepath() + "c" ) ) {
+		throws IOException, ParserException, SemanticException, CommandLineException {
+		try( OutputStream os = new FileOutputStream( cmdParser.getInterpreterParameters().programFilepath() + "c" ) ) {
 			compile( os );
 		}
 	}

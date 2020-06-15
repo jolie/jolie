@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.CommandLineException;
+import jolie.CommandLineParser;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import joliex.metaservice.MetaService;
@@ -101,9 +102,10 @@ public class EmbeddedMetaService extends MetaService {
 	public EmbeddedMetaService( String jolieHome, String metaserviceFilepath )
 		throws IOException, ExecutionException {
 		try {
+			CommandLineParser commandLineParser = new CommandLineParser(
+				buildInterpreterArguments( jolieHome, metaserviceFilepath ), this.getClass().getClassLoader(), false );
 			interpreter =
-				new Interpreter( buildInterpreterArguments( jolieHome, metaserviceFilepath ),
-					this.getClass().getClassLoader(), null );
+				new Interpreter( this.getClass().getClassLoader(), commandLineParser.getInterpreterParameters(), null );
 			startInterpreter();
 			channel = new MetaServiceChannel( this, "/" );
 		} catch( CommandLineException e ) {

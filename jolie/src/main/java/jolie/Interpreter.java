@@ -19,6 +19,49 @@
 
 package jolie;
 
+import jolie.lang.Constants;
+import jolie.lang.parse.OLParseTreeOptimizer;
+import jolie.lang.parse.OLParser;
+import jolie.lang.parse.ParserException;
+import jolie.lang.parse.Scanner;
+import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticException;
+import jolie.lang.parse.SemanticVerifier;
+import jolie.lang.parse.TypeChecker;
+import jolie.lang.parse.ast.Program;
+import jolie.monitoring.MonitoringEvent;
+import jolie.monitoring.events.MonitorAttachedEvent;
+import jolie.monitoring.events.OperationStartedEvent;
+import jolie.monitoring.events.SessionEndedEvent;
+import jolie.monitoring.events.SessionStartedEvent;
+import jolie.net.CommChannel;
+import jolie.net.CommCore;
+import jolie.net.CommMessage;
+import jolie.net.SessionMessage;
+import jolie.net.ports.OutputPort;
+import jolie.process.DefinitionProcess;
+import jolie.process.InputOperationProcess;
+import jolie.process.SequentialProcess;
+import jolie.runtime.FaultException;
+import jolie.runtime.InputOperation;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
+import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.TimeoutHandler;
+import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
+import jolie.runtime.ValueVector;
+import jolie.runtime.correlation.CorrelationEngine;
+import jolie.runtime.correlation.CorrelationError;
+import jolie.runtime.correlation.CorrelationSet;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
+import jolie.tracer.DummyTracer;
+import jolie.tracer.FileTracer;
+import jolie.tracer.PrintingTracer;
+import jolie.tracer.Tracer;
+import jolie.tracer.TracerUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -56,43 +99,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import jolie.lang.Constants;
-import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
-import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.TypeChecker;
-import jolie.lang.parse.ast.Program;
-import jolie.monitoring.MonitoringEvent;
-import jolie.monitoring.events.MonitorAttachedEvent;
-import jolie.monitoring.events.OperationStartedEvent;
-import jolie.monitoring.events.SessionEndedEvent;
-import jolie.monitoring.events.SessionStartedEvent;
-import jolie.net.CommChannel;
-import jolie.net.CommCore;
-import jolie.net.CommMessage;
-import jolie.net.SessionMessage;
-import jolie.net.ports.OutputPort;
-import jolie.process.DefinitionProcess;
-import jolie.process.InputOperationProcess;
-import jolie.process.SequentialProcess;
-import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.OneWayOperation;
-import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.TimeoutHandler;
-import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
-import jolie.runtime.ValueVector;
-import jolie.runtime.correlation.CorrelationEngine;
-import jolie.runtime.correlation.CorrelationError;
-import jolie.runtime.correlation.CorrelationSet;
-import jolie.runtime.embedding.EmbeddedServiceLoader;
-import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
-import jolie.tracer.*;
+
+;
 
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
@@ -235,7 +243,6 @@ public class Interpreter {
 	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
 	private CommCore commCore;
-	private CommandLineParser cmdParser;
 	private Program internalServiceProgram = null;
 	private Interpreter parentInterpreter = null;
 
@@ -248,7 +255,6 @@ public class Interpreter {
 	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap<>();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
-	private final String[] arguments;
 	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
 
 	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
@@ -259,16 +265,18 @@ public class Interpreter {
 
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
-	private final String[] optionArgs;
+
 	private final String logPrefix;
 	private final Tracer tracer;
-	private final boolean printStackTraces;
 	private boolean check = false;
 	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
-	private final long responseTimeout;
+
+
+
+	private InterpreterParameters interpreterParameters;
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
@@ -279,8 +287,7 @@ public class Interpreter {
 	private final ExecutorService timeoutHandlerExecutor =
 		Executors.newSingleThreadExecutor( new NativeJolieThreadFactory( this ) );
 
-	private final String programFilename;
-	private final String programFilepath;
+
 	private final File programDirectory;
 	private OutputPort monitor = null;
 
@@ -335,7 +342,7 @@ public class Interpreter {
 	}
 
 	public long responseTimeout() {
-		return responseTimeout;
+		return interpreterParameters.responseTimeout();
 	}
 
 	public CorrelationEngine correlationEngine() {
@@ -344,7 +351,7 @@ public class Interpreter {
 
 	private Timer timer() {
 		if( timer == null ) {
-			timer = new Timer( programFilename + "-Timer" );
+			timer = new Timer( interpreterParameters.programFilepath().getName() + "-Timer" );
 		}
 		return timer;
 	}
@@ -405,7 +412,7 @@ public class Interpreter {
 	 * @return the option arguments passed to this Interpreter
 	 */
 	public String[] optionArgs() {
-		return optionArgs;
+		return interpreterParameters.optionArgs();
 	}
 
 	/**
@@ -426,8 +433,6 @@ public class Interpreter {
 	public void registerSessionStarter( InputOperationProcess guard, jolie.process.Process body ) {
 		sessionStarters.put( guard.inputOperation().id(), new SessionStarter( guard, body ) );
 	}
-
-	private JolieClassLoader classLoader;
 
 	/**
 	 * Returns the output ports of this Interpreter.
@@ -680,7 +685,7 @@ public class Interpreter {
 	/**
 	 * Logs an information message using the logger of this interpreter.
 	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
 	public void logInfo( String message ) {
 		logger.log( buildLogRecord( Level.INFO, buildLogMessage( message ) ) );
@@ -689,7 +694,7 @@ public class Interpreter {
 	/**
 	 * Logs an information message using the logger of this interpreter (logger level: fine).
 	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
 	public void logFine( String message ) {
 		logger.log( buildLogRecord( Level.FINE, buildLogMessage( message ) ) );
@@ -697,7 +702,7 @@ public class Interpreter {
 
 	private String buildLogMessage( Throwable t ) {
 		String ret;
-		if( printStackTraces ) {
+		if( interpreterParameters.printStackTraces() ) {
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
 			t.printStackTrace( new PrintStream( bs ) );
 			ret = bs.toString();
@@ -709,7 +714,7 @@ public class Interpreter {
 
 	private LogRecord buildLogRecord( Level level, String message ) {
 		LogRecord record = new LogRecord( level, message );
-		record.setSourceClassName( programFilename );
+		record.setSourceClassName( interpreterParameters.programFilepath().getName() );
 		return record;
 	}
 
@@ -725,7 +730,7 @@ public class Interpreter {
 	/**
 	 * Logs a severe error message using the logger of this interpreter.
 	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
 	public void logSevere( String message ) {
 		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( message ) ) );
@@ -734,7 +739,7 @@ public class Interpreter {
 	/**
 	 * Logs a warning message using the logger of this interpreter.
 	 * 
-	 * @param message the message to log
+	 * @param message the message to logLevel
 	 */
 	public void logWarning( String message ) {
 		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( message ) ) );
@@ -824,42 +829,42 @@ public class Interpreter {
 	 * @return the JolieClassLoader this Interpreter is using
 	 */
 	public JolieClassLoader getClassLoader() {
-		return classLoader;
+		return interpreterParameters.jolieClassLoader();
+	}
+
+	/**
+	 * returns the interpreter parameters
+	 * 
+	 * @return
+	 */
+	public InterpreterParameters getInterpreterParameters() {
+		return interpreterParameters;
 	}
 
 	/**
 	 * Constructor.
 	 *
-	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
 	 *        a JAP file.
-	 * @throws CommandLineException if the command line is not valid or asks for simple information.
-	 *         (like --help and --version)
-	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory )
-		throws CommandLineException, FileNotFoundException, IOException {
-		this( args, parentClassLoader, programDirectory, false );
+	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,
+		File programDirectory )
+		throws IOException {
+		this( parentClassLoader, interpreterParameters, programDirectory, false );
 	}
 
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, boolean ignoreFile )
-		throws CommandLineException, FileNotFoundException, IOException {
+	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,
+		File programDirectory, boolean ignoreFile )
+		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.parentClassLoader = parentClassLoader;
+		this.interpreterParameters = interpreterParameters;
 
-		cmdParser = new CommandLineParser( args, parentClassLoader, ignoreFile );
-		classLoader = cmdParser.jolieClassLoader();
-		optionArgs = cmdParser.optionArgs();
-		programFilename = cmdParser.programFilepath().getName();
-		programFilepath = cmdParser.programFilepath().toString();
-		arguments = cmdParser.arguments();
-		printStackTraces = cmdParser.printStackTraces();
 
-		responseTimeout = cmdParser.responseTimeout();
 
-		switch( cmdParser.tracerLevel() ) {
+		switch( interpreterParameters.tracerLevel() ) {
 		case "comm":
 			tracerLevel = TracerUtils.TracerLevels.COMM;
 			break;
@@ -868,19 +873,19 @@ public class Interpreter {
 			break;
 		}
 
-		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
+		this.correlationEngine = interpreterParameters.correlationAlgorithm().createInstance( this );
 
-		commCore = new CommCore( this, cmdParser.connectionsLimit() /* , cmdParser.connectionsCache() */ );
-		includePaths = cmdParser.includePaths();
+		commCore = new CommCore( this, interpreterParameters.connectionsLimit() /* , cmdParser.connectionsCache() */ );
+		includePaths = interpreterParameters.includePaths();
 
 		StringBuilder builder = new StringBuilder();
 		builder.append( '[' );
-		builder.append( programFilename );
+		builder.append( interpreterParameters.programFilepath().getName() );
 		builder.append( "] " );
 		logPrefix = builder.toString();
 
-		if( cmdParser.tracer() ) {
-			if( cmdParser.tracerMode().equals( "file" ) ) {
+		if( interpreterParameters.tracer() ) {
+			if( interpreterParameters.tracerMode().equals( "file" ) ) {
 				tracer = new FileTracer( this, tracerLevel );
 			} else {
 				tracer = new PrintingTracer( this, tracerLevel );
@@ -889,15 +894,15 @@ public class Interpreter {
 			tracer = new DummyTracer();
 		}
 
-		logger.setLevel( cmdParser.logLevel() );
+		logger.setLevel( interpreterParameters.logLevel() );
 
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
 
-		if( cmdParser.programDirectory() == null ) {
+		if( interpreterParameters.programDirectory() == null ) {
 			this.programDirectory = programDirectory;
 		} else {
-			this.programDirectory = cmdParser.programDirectory();
+			this.programDirectory = interpreterParameters.programDirectory();
 		}
 		if( this.programDirectory == null ) {
 			throw new IOException(
@@ -908,7 +913,6 @@ public class Interpreter {
 	/**
 	 * Constructor.
 	 *
-	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
 	 *        a JAP file.
@@ -919,10 +923,10 @@ public class Interpreter {
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory,
-		Interpreter parentInterpreter, Program internalServiceProgram )
-		throws CommandLineException, FileNotFoundException, IOException {
-		this( args, parentClassLoader, programDirectory, true );
+	public Interpreter( InterpreterParameters interpreterParameters, ClassLoader parentClassLoader,
+		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
+		throws FileNotFoundException, IOException {
+		this( parentClassLoader, interpreterParameters, programDirectory, true );
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
@@ -947,7 +951,7 @@ public class Interpreter {
 	 * @return the program filename this interpreter was launched with
 	 */
 	public String programFilename() {
-		return programFilename;
+		return interpreterParameters.programFilepath().getName();
 	}
 
 	/**
@@ -956,7 +960,7 @@ public class Interpreter {
 	 * @return the path at which the file to be interpreted has been found
 	 */
 	public String programFilepath() {
-		return programFilepath;
+		return interpreterParameters.programFilepath().getName();
 	}
 
 	/**
@@ -1045,7 +1049,7 @@ public class Interpreter {
 
 				// Initialize program arguments in the args variabile.
 				ValueVector jArgs = ValueVector.create();
-				for( String s : arguments ) {
+				for( String s : interpreterParameters.arguments() ) {
 					jArgs.add( Value.create( s ) );
 				}
 				initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
@@ -1152,9 +1156,9 @@ public class Interpreter {
 		private final CompletableFuture< Exception > future;
 
 		public StarterThread( CompletableFuture< Exception > future ) {
-			super( createStarterThreadName( programFilename ) );
+			super( createStarterThreadName( interpreterParameters.programFilepath().getName() ) );
 			this.future = future;
-			setContextClassLoader( classLoader );
+			setContextClassLoader( interpreterParameters.jolieClassLoader() );
 		}
 
 		@Override
@@ -1185,7 +1189,7 @@ public class Interpreter {
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
-		classLoader = null;
+		interpreterParameters.clear();
 		commCore = null;
 		// System.gc();
 	}
@@ -1201,10 +1205,11 @@ public class Interpreter {
 
 	private boolean buildOOIT()
 		throws InterpreterException {
+
 		try {
 			Program program;
-			if( cmdParser.isProgramCompiled() ) {
-				try( final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() ) ) {
+			if( interpreterParameters.isProgramCompiled() ) {
+				try( final ObjectInputStream istream = new ObjectInputStream( interpreterParameters.inputStream() ) ) {
 					final Object o = istream.readObject();
 					if( o instanceof Program ) {
 						program = (Program) o;
@@ -1216,18 +1221,19 @@ public class Interpreter {
 				if( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 				} else {
-					final OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(),
-						cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
+					final OLParser olParser = new OLParser( new Scanner( interpreterParameters.inputStream(),
+						interpreterParameters.programFilepath().toURI(), interpreterParameters.charset() ),
+						includePaths, interpreterParameters.jolieClassLoader() );
 
-					olParser.putConstants( cmdParser.definedConstants() );
+					olParser.putConstants( interpreterParameters.constants() );
 					program = olParser.parse();
 				}
 				program = OLParseTreeOptimizer.optimize( program );
 			}
 
-			cmdParser.close();
+			interpreterParameters.inputStream().close();
 
-			check = cmdParser.check();
+			check = interpreterParameters.check();
 
 			final SemanticVerifier semanticVerifier;
 
@@ -1246,7 +1252,7 @@ public class Interpreter {
 				throw new InterpreterException( "Exiting" );
 			}
 
-			if( cmdParser.typeCheck() ) {
+			if( interpreterParameters.typeCheck() ) {
 				TypeChecker typeChecker = new TypeChecker(
 					program,
 					semanticVerifier.executionMode(),
@@ -1269,8 +1275,6 @@ public class Interpreter {
 
 		} catch( IOException | ParserException | ClassNotFoundException e ) {
 			throw new InterpreterException( e );
-		} finally {
-			cmdParser = null; // Free memory
 		}
 	}
 

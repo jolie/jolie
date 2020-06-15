@@ -29,6 +29,9 @@ type LoadEmbeddedServiceRequest:void {
 	.filepath:string //< The path to the service to load
 	.type:string //< The type of the service, e.g., Jolie, Java, or JavaScript
 }
+| void {
+	.code: string //< the jolie code to be embedded
+}
 
 type GetRedirectionRequest:void {
 	.inputPortName:string //< The target input port
