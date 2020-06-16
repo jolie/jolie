@@ -308,13 +308,10 @@ public class RuntimeService extends JavaService {
 		return writer.toString();
 	}
 
+	@RequestResponse
 	public void halt( Value request ) {
-		final String status_field = "status";
-		int status = 0;
-		if( request.hasChildren( status_field ) ) {
-			status = request.getFirstChild( status_field ).intValue();
-		}
-		Runtime.getRuntime().halt( status );
+		Runtime.getRuntime().halt(
+			request.firstChildOrDefault( "status", Value::intValue, 0 ) );
 	}
 
 	public Value stats() {
