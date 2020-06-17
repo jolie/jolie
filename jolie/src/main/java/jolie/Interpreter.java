@@ -291,7 +291,6 @@ public class Interpreter {
 	private OutputPort monitor = null;
 
 	private Map< URI, SymbolTable > symbolTables;
-	private final FinderCreator finderCreator;
 	private final ModuleParser parser;
 	private final ModuleCrawler moduleCrawler;
 
@@ -427,24 +426,6 @@ public class Interpreter {
 	 */
 	public String[] includePaths() {
 		return includePaths;
-	}
-
-	/**
-	 * Returns the finder creator this Interpreter is considering.
-	 * 
-	 * @return the finder creator this Interpreter is considering
-	 */
-	public FinderCreator finderCreator() {
-		return finderCreator;
-	}
-
-	/**
-	 * Returns the parser this Interpreter is considering.
-	 * 
-	 * @return the parser this Interpreter is considering
-	 */
-	public ModuleParser moduleParser() {
-		return parser;
 	}
 
 	/**

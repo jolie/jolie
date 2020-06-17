@@ -22,6 +22,7 @@ package jolie.lang.parse.module;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import jolie.lang.parse.ast.SymbolNode;
@@ -103,7 +104,7 @@ public class SymbolTable {
 	 * 
 	 * @throws ModuleException when adding name duplicate name to the symbol
 	 */
-	public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings )
+	public void addSymbol( ParsingContext context, String name, List< String > moduleTargetStrings )
 		throws DuplicateSymbolException {
 		if( isDuplicateSymbol( name ) ) {
 			throw new DuplicateSymbolException( name );
@@ -123,7 +124,7 @@ public class SymbolTable {
 	 * 
 	 * @throws ModuleException when adding name duplicate name to the symbol
 	 */
-	public void addSymbol( ParsingContext context, String name, String[] moduleTargetStrings,
+	public void addSymbol( ParsingContext context, String name, List< String > moduleTargetStrings,
 		String moduleSymbol ) throws DuplicateSymbolException {
 		if( isDuplicateSymbol( name ) ) {
 			throw new DuplicateSymbolException( name );
@@ -138,8 +139,8 @@ public class SymbolTable {
 	 * @param moduleTargetStrings an array of defining target module locationString defined at import
 	 *        statement
 	 */
-	public void addWildCardSymbol( ParsingContext context, String[] moduleTargetStrings ) {
-		this.symbols.put( Arrays.toString( moduleTargetStrings ),
+	public void addWildCardSymbol( ParsingContext context, List< String > moduleTargetStrings ) {
+		this.symbols.put( moduleTargetStrings.toString(),
 			new SymbolWildCard( context, moduleTargetStrings ) );
 	}
 

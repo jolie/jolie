@@ -25,6 +25,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import jolie.lang.parse.ParserException;
@@ -56,29 +57,28 @@ public class ModuleCrawler {
 	private final Map< URI, ModuleRecord > cache = new HashMap<>();
 	private final Queue< Source > modulesToCrawl;
 	private final ModuleCrawlerResult result;
-	private final FinderCreator finderCreator;
+	private final Finder finder;
 	private final ModuleParser parser;
 
-	public ModuleCrawler( String[] packagesPath, ModuleParser parser ) throws FileNotFoundException {
-		this( new FinderCreator( packagesPath ), parser );
+	public ModuleCrawler( String[] packagePaths, ModuleParser parser ) throws FileNotFoundException {
+		this( new FinderImpl( packagePaths ), parser );
 	}
 
-	public ModuleCrawler( FinderCreator finderCreator, ModuleParser parser ) throws FileNotFoundException {
+	public ModuleCrawler( Finder finder, ModuleParser parser ) throws FileNotFoundException {
 		this.modulesToCrawl = new LinkedList<>();
 		this.result = new ModuleCrawlerResult();
-		this.finderCreator = finderCreator;
+		this.finder = finder;
 		this.parser = parser;
 	}
 
-	public ModuleCrawler( Path workingDirectory, String[] packagesPath, ModuleParser parser )
+	public ModuleCrawler( Path workingDirectory, String[] packagePaths, ModuleParser parser )
 		throws FileNotFoundException {
-		this( new FinderCreator( workingDirectory, packagesPath ), parser );
+		this( new FinderImpl( workingDirectory, packagePaths ), parser );
 	}
 
-	private Source findModule( URI parentURI, String[] importTargetStrings )
+	private Source findModule( URI parentURI, List< String > importTargetStrings )
 		throws ModuleNotFoundException {
-		Finder finder = finderCreator.getFinderForTarget( parentURI, importTargetStrings );
-		Source targetFile = finder.find();
+		Source targetFile = finder.find( importTargetStrings, parentURI );
 		return targetFile;
 	}
 

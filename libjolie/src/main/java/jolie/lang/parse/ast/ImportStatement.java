@@ -34,7 +34,7 @@ public class ImportStatement extends OLSyntaxNode {
 
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final ImportSymbolTarget[] importSymbolTargets;
-	private final String[] importTarget;
+	private final List< String > importTarget;
 	private final boolean isNamespaceImport;
 
 	/**
@@ -44,7 +44,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
 	 *        should give this field ["", "A", "", "B"])
 	 */
-	public ImportStatement( ParsingContext context, String[] importTarget ) {
+	public ImportStatement( ParsingContext context, List< String > importTarget ) {
 		this( context, importTarget, true, null );
 	}
 
@@ -57,7 +57,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
 	 *        of <moduleSymbolName: localSymbolName>
 	 */
-	public ImportStatement( ParsingContext context, String[] importTarget,
+	public ImportStatement( ParsingContext context, List< String > importTarget,
 		List< Pair< String, String > > pathNodes ) {
 		this( context, importTarget, false, pathNodes );
 	}
@@ -73,7 +73,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
 	 *        of <moduleSymbolName: localSymbolName>
 	 */
-	private ImportStatement( ParsingContext context, String[] importTarget,
+	private ImportStatement( ParsingContext context, List< String > importTarget,
 		boolean isNamespaceImport, List< Pair< String, String > > pathNodes ) {
 		super( context );
 		this.importTarget = importTarget;
@@ -89,7 +89,7 @@ public class ImportStatement extends OLSyntaxNode {
 		}
 	}
 
-	public String[] importTarget() {
+	public List< String > importTarget() {
 		return importTarget;
 	}
 

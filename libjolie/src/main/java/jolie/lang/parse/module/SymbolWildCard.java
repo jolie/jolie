@@ -19,7 +19,7 @@
 
 package jolie.lang.parse.module;
 
-import java.util.Arrays;
+import java.util.List;
 import jolie.lang.parse.context.ParsingContext;
 
 /**
@@ -28,8 +28,8 @@ import jolie.lang.parse.context.ParsingContext;
  */
 public class SymbolWildCard extends SymbolInfoExternal {
 
-	public SymbolWildCard( ParsingContext context, String[] moduleTarget ) {
-		super( context, Arrays.toString( moduleTarget ), moduleTarget, null );
+	public SymbolWildCard( ParsingContext context, List< String > moduleTarget ) {
+		super( context, moduleTarget.toString(), moduleTarget, null );
 	}
 
 }

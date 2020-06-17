@@ -2975,10 +2975,10 @@ public class OLParser extends AbstractParser {
 			}
 			ImportStatement stmt = null;
 			if( isNamespaceImport ) {
-				stmt = new ImportStatement( getContext(), importTarget.toArray( new String[ 0 ] ) );
+				stmt = new ImportStatement( getContext(), Collections.unmodifiableList( importTarget ) );
 			} else {
-				stmt = new ImportStatement( getContext(), importTarget.toArray( new String[ 0 ] ),
-					pathNodes );
+				stmt = new ImportStatement( getContext(), Collections.unmodifiableList( importTarget ),
+					Collections.unmodifiableList( pathNodes ) );
 			}
 			programBuilder.addChild( stmt );
 			return;

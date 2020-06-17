@@ -19,6 +19,7 @@
 
 package jolie.lang.parse.module;
 
+import java.util.List;
 import java.util.Optional;
 import jolie.lang.parse.context.ParsingContext;
 
@@ -28,11 +29,12 @@ import jolie.lang.parse.context.ParsingContext;
  */
 public class SymbolInfoExternal extends SymbolInfo {
 
-	private final String[] moduleTargets;
+	private final List< String > moduleTargets;
 	private final String moduleSymbol;
 	private Source moduleSource;
 
-	public SymbolInfoExternal( ParsingContext context, String name, String[] moduleTargets, String moduleSymbol ) {
+	public SymbolInfoExternal( ParsingContext context, String name, List< String > moduleTargets,
+		String moduleSymbol ) {
 		super( context, name, Scope.EXTERNAL );
 		this.moduleTargets = moduleTargets;
 		this.moduleSymbol = moduleSymbol;
@@ -45,7 +47,7 @@ public class SymbolInfoExternal extends SymbolInfo {
 		this.moduleSource = moduleSource;
 	}
 
-	public String[] moduleTargets() {
+	public List< String > moduleTargets() {
 		return this.moduleTargets;
 	}
 

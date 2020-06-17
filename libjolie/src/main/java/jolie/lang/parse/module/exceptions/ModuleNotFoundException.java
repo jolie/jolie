@@ -29,32 +29,38 @@ public class ModuleNotFoundException extends FileNotFoundException {
 
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private List< String > lookedPath;
+	private List< String > lookedPaths;
 
 	private final String moduleName;
 
 	public ModuleNotFoundException( String moduleName ) {
 		super( moduleName );
 		this.moduleName = moduleName;
-		this.lookedPath = new ArrayList< String >();
+		this.lookedPaths = new ArrayList< String >();
+	}
+
+	public ModuleNotFoundException( String moduleName, List< String > lookedPaths ) {
+		super( moduleName );
+		this.moduleName = moduleName;
+		this.lookedPaths = lookedPaths;
 	}
 
 	public ModuleNotFoundException( String moduleName, String lookedPath ) {
 		super( moduleName );
 		this.moduleName = moduleName;
-		this.lookedPath = new ArrayList< String >();
-		this.lookedPath.add( lookedPath );
+		this.lookedPaths = new ArrayList< String >();
+		this.lookedPaths.add( lookedPath );
 	}
 
 	public void addLookedPath( String path ) {
-		this.lookedPath.add( path );
+		this.lookedPaths.add( path );
 	}
 
 
 	@Override
 	public String getMessage() {
 		return "Module \"" + this.moduleName + "\" not found from lookup path "
-			+ Arrays.toString( this.lookedPath.toArray() );
+			+ Arrays.toString( this.lookedPaths.toArray() );
 	}
 
 }

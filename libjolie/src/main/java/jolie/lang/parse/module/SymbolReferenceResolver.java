@@ -124,11 +124,11 @@ import jolie.lang.parse.module.exceptions.SymbolTypeMismatchException;
 import jolie.util.Helpers;
 import jolie.util.Pair;
 
-public class GlobalSymbolReferenceResolver {
+public class SymbolReferenceResolver {
 	private final Map< URI, ModuleRecord > moduleMap;
 	private final Map< URI, SymbolTable > symbolTables;
 
-	public GlobalSymbolReferenceResolver( ModuleCrawlerResult moduleMap ) {
+	public SymbolReferenceResolver( ModuleCrawlerResult moduleMap ) {
 		this.moduleMap = moduleMap.toMap();
 		this.symbolTables = new HashMap<>();
 		for( ModuleRecord mr : this.moduleMap.values() ) {

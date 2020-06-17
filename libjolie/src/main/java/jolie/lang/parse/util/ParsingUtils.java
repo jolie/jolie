@@ -31,7 +31,7 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.GlobalSymbolReferenceResolver;
+import jolie.lang.parse.module.SymbolReferenceResolver;
 import jolie.lang.parse.module.InputStreamSource;
 import jolie.lang.parse.module.ModuleCrawler;
 import jolie.lang.parse.module.ModuleCrawler.ModuleCrawlerResult;
@@ -71,8 +71,8 @@ public class ParsingUtils {
 		ModuleCrawler crawler = new ModuleCrawler( Paths.get( isSource.source() ).getParent(), packagesPaths, parser );
 		ModuleCrawlerResult crawlResult = crawler.crawl( mainRecord );
 
-		GlobalSymbolReferenceResolver symbolResolver =
-			new GlobalSymbolReferenceResolver( crawlResult );
+		SymbolReferenceResolver symbolResolver =
+			new SymbolReferenceResolver( crawlResult );
 
 		symbolResolver.resolve();
 

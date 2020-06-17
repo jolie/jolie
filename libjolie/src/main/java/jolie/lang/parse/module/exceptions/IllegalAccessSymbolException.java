@@ -19,6 +19,7 @@
 
 package jolie.lang.parse.module.exceptions;
 
+import java.util.List;
 import jolie.lang.Constants;
 
 public class IllegalAccessSymbolException extends Exception {
@@ -26,9 +27,9 @@ public class IllegalAccessSymbolException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	private final String symbolName;
-	private final String[] moduleTargets;
+	private final List< String > moduleTargets;
 
-	public IllegalAccessSymbolException( String symbolName, String[] moduleTargets ) {
+	public IllegalAccessSymbolException( String symbolName, List< String > moduleTargets ) {
 		super( symbolName );
 		this.symbolName = symbolName;
 		this.moduleTargets = moduleTargets;

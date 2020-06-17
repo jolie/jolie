@@ -19,13 +19,14 @@
 
 package jolie.lang.parse.module.exceptions;
 
+import java.util.List;
 import jolie.lang.Constants;
 
 public class SymbolNotFoundException extends Exception {
 
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final String symbolName;
-	private final String[] moduleTargets;
+	private final List< String > moduleTargets;
 
 	public SymbolNotFoundException( String symbolName ) {
 		super( symbolName );
@@ -33,7 +34,7 @@ public class SymbolNotFoundException extends Exception {
 		this.moduleTargets = null;
 	}
 
-	public SymbolNotFoundException( String symbolName, String[] moduleTargets ) {
+	public SymbolNotFoundException( String symbolName, List< String > moduleTargets ) {
 		super( symbolName );
 		this.symbolName = symbolName;
 		this.moduleTargets = moduleTargets;
