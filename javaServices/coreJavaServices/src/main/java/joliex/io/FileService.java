@@ -711,12 +711,12 @@ public class FileService extends JavaService {
 		final String regex = request.firstChildOrDefault(
 			"regex",
 			Value::strValue,
-			s -> ".*" );
+			".*" );
 
 		final boolean dirsOnly = request.firstChildOrDefault(
 			"dirsOnly",
 			Value::boolValue,
-			s -> false );
+			false );
 
 		final Pattern pattern = Pattern.compile( regex );
 

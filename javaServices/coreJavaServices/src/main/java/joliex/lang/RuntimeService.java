@@ -238,15 +238,24 @@ public class RuntimeService extends JavaService {
 		throws FaultException {
 		try {
 			Value channel = Value.create();
-			String filePath = request.getFirstChild( "filepath" ).strValue();
-			String typeStr = request.getFirstChild( "type" ).strValue();
-			EmbeddedServiceType type =
-				jolie.lang.Constants.stringToEmbeddedServiceType( typeStr );
-			EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration configuration =
-				new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( type, filePath );
-			EmbeddedServiceLoader loader =
-				EmbeddedServiceLoader.create( interpreter(), configuration, channel );
-			loader.load();
+			if( request.hasChildren( "filepath" ) ) {
+				String filePath = request.getFirstChild( "filepath" ).strValue();
+				String typeStr = request.getFirstChild( "type" ).strValue();
+				EmbeddedServiceType type =
+					jolie.lang.Constants.stringToEmbeddedServiceType( typeStr );
+				EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration configuration =
+					new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( type, filePath );
+				EmbeddedServiceLoader loader =
+					EmbeddedServiceLoader.create( interpreter(), configuration, channel );
+				loader.load();
+			} else {
+				String code = request.getFirstChild( "code" ).strValue();
+				EmbeddedServiceType type = EmbeddedServiceType.JOLIE;
+				EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration configuration =
+					new EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration( type, code );
+				EmbeddedServiceLoader loader = EmbeddedServiceLoader.create( interpreter(), configuration, channel );
+				loader.load();
+			}
 
 			return channel;
 		} catch( EmbeddedServiceLoaderCreationException e ) {
@@ -299,13 +308,10 @@ public class RuntimeService extends JavaService {
 		return writer.toString();
 	}
 
+	@RequestResponse
 	public void halt( Value request ) {
-		final String status_field = "status";
-		int status = 0;
-		if( request.hasChildren( status_field ) ) {
-			status = request.getFirstChild( status_field ).intValue();
-		}
-		Runtime.getRuntime().halt( status );
+		Runtime.getRuntime().halt(
+			request.firstChildOrDefault( "status", Value::intValue, 0 ) );
 	}
 
 	public Value stats() {

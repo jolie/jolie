@@ -31,6 +31,7 @@ type ConnectionInfo:void {
 	.checkConnection?:int // if true (> 0) check connection before each DB command (default: false (0))
 	.toLowerCase?: bool // lowercase attribute names
 	.toUpperCase?: bool // uppercase attribute names
+	.encoding?: string
 }
 
 type QueryResult:void {

@@ -158,20 +158,20 @@ public class Inspector extends JavaService {
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );
 		String args[] = { filename };
-		CommandLineParser commandLineParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
+		CommandLineParser cmdParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
 		final InputStream sourceIs;
 		if( source.isPresent() ) {
 			sourceIs = new ByteArrayInputStream( source.get().getBytes() );
 		} else {
-			sourceIs = commandLineParser.programStream();
+			sourceIs = cmdParser.getInterpreterParameters().inputStream();
 		}
 		Program program = ParsingUtils.parseProgram(
 			sourceIs,
-			commandLineParser.programFilepath().toURI(),
-			commandLineParser.charset(),
+			cmdParser.getInterpreterParameters().programFilepath().toURI(),
+			cmdParser.getInterpreterParameters().charset(),
 			includePaths,
-			commandLineParser.jolieClassLoader(),
-			commandLineParser.definedConstants(),
+			cmdParser.getInterpreterParameters().jolieClassLoader(),
+			cmdParser.getInterpreterParameters().constants(),
 			configuration,
 			true );
 		return ParsingUtils.createInspector( program );
