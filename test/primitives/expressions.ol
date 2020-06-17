@@ -69,6 +69,179 @@ define testCasts
 	}
 }
 
+define testAIsDouble{
+	if (!is_double(a) ) {
+		throw( TestFailed, "hierarchy error, " + a + " is not double " )
+	}
+}
+
+define testAIsLong{
+	if (!is_long(a) ) {
+		throw( TestFailed, "hierarchy error, " + a + " is not long " )
+	}
+}
+
+define testAIsInt{
+	if (!is_int(a) ) {
+		throw( TestFailed, "hierarchy error, " + a + " is not int " )
+	}
+}
+
+define testAIsString{
+	if (!is_string(a) ) {
+		throw( TestFailed, "hierarchy error, " + a + " is not string " )
+	}
+}
+
+define testTypeImplicitConversion{
+	// bool < int < long < double < string
+
+	// string + double
+	a = "A" + 1000.0
+	testAIsString
+	// double + string
+	a = 1000.0 + "A"
+	testAIsString
+	// string + long
+	a = "A" + 1000L
+	testAIsString
+	// long + string
+	a = 1000L + "A"
+	testAIsString
+	// string + int
+	a = "A" + 1000
+	testAIsString
+	// int + string
+	a = 1000 + "A"
+	testAIsString
+	// string + bool
+	a = "A" + true
+	testAIsString
+	// bool + string
+	a = true + "A"
+	testAIsString
+
+	// double _ double
+	a = 0.1 + 1000.0
+	testAIsDouble
+
+	a = 0.1 - 1000.0
+	testAIsDouble
+
+	a = 0.1 * 1000.0
+	testAIsDouble
+
+	a = 0.1 / 1000.0
+	testAIsDouble
+
+	// double _ long
+	a = 0.1 + 1000L
+	testAIsDouble
+
+	a = 0.1 - 1000L
+	testAIsDouble
+
+	a = 0.1 * 1000L
+	testAIsDouble
+
+	a = 0.1 / 1000L
+	testAIsDouble
+
+	// long _ double
+	a = 1000L + 0.1 
+	testAIsDouble
+
+	a = 1000L - 0.1 
+	testAIsDouble
+
+	a = 1000L * 0.1 
+	testAIsDouble
+
+	a = 1000L / 0.1 
+	testAIsDouble
+	
+	// double _ int
+	a = 0.1 + 1000
+	testAIsDouble
+
+	a = 0.1 - 1000
+	testAIsDouble
+
+	a = 0.1 * 1000
+	testAIsDouble
+
+	a = 0.1 / 1000
+	testAIsDouble
+
+	// int _ double 
+	a = 1000 + 0.1 
+	testAIsDouble
+
+	a = 1000 - 0.1 
+	testAIsDouble
+
+	a = 1000 * 0.1 
+	testAIsDouble
+
+	a = 1000 / 0.1 
+	testAIsDouble
+
+
+	// long _ long
+	a = 1000L + 1L
+	testAIsLong
+
+	a = 1000L - 1L
+	testAIsLong
+
+	a = 1000L * 1L
+	testAIsLong
+
+	a = 1000L / 1L
+	testAIsLong
+
+	
+	// int _ long 
+	a = 1 + 1000L
+	testAIsLong
+
+	a = 1 - 1000L
+	testAIsLong
+
+	a = 1 * 1000L
+	testAIsLong
+
+	a = 1 / 1000L
+	testAIsLong
+
+	// long _ int
+	a = 1000L + 2
+	testAIsLong
+
+	a = 1000L - 2
+	testAIsLong
+
+	a = 1000L * 2
+	testAIsLong
+
+	a = 1000L / 2
+	testAIsLong
+
+
+	// int _ int
+	a = 1000 + 2
+	testAIsInt
+
+	a = 1000 - 2
+	testAIsInt
+
+	a = 1000 * 2
+	testAIsInt
+
+	a = 1000 / 2
+	testAIsInt
+}
+
 define doTest
 {
 	if ( "Hello, " + "World!" != "Hello, World!" ) {
@@ -87,6 +260,7 @@ define doTest
 	};
 
 	testBooleans;
-	testCasts
+	testCasts;
+	testTypeImplicitConversion
 }
 
