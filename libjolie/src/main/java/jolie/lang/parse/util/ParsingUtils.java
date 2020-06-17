@@ -31,7 +31,6 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.SymbolReferenceResolver;
 import jolie.lang.parse.module.InputStreamSource;
 import jolie.lang.parse.module.ModuleCrawler;
 import jolie.lang.parse.module.ModuleCrawler.ModuleCrawlerResult;
@@ -39,6 +38,7 @@ import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParser;
 import jolie.lang.parse.module.ModuleRecord;
 import jolie.lang.parse.module.Source;
+import jolie.lang.parse.module.SymbolReferenceResolver;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
@@ -71,13 +71,10 @@ public class ParsingUtils {
 		ModuleCrawler crawler = new ModuleCrawler( Paths.get( isSource.source() ).getParent(), packagesPaths, parser );
 		ModuleCrawlerResult crawlResult = crawler.crawl( mainRecord );
 
-		SymbolReferenceResolver symbolResolver =
-			new SymbolReferenceResolver( crawlResult );
-
-		symbolResolver.resolve();
+		SymbolReferenceResolver.resolve( crawlResult );
 
 		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
-			symbolResolver.symbolTables(), configuration );
+			crawlResult.symbolTables(), configuration );
 		semanticVerifier.validate();
 		return mainRecord.program();
 	}

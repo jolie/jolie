@@ -128,7 +128,7 @@ public class SymbolReferenceResolver {
 	private final Map< URI, ModuleRecord > moduleMap;
 	private final Map< URI, SymbolTable > symbolTables;
 
-	public SymbolReferenceResolver( ModuleCrawlerResult moduleMap ) {
+	private SymbolReferenceResolver( ModuleCrawlerResult moduleMap ) {
 		this.moduleMap = moduleMap.toMap();
 		this.symbolTables = new HashMap<>();
 		for( ModuleRecord mr : this.moduleMap.values() ) {
@@ -731,7 +731,7 @@ public class SymbolReferenceResolver {
 	 * @throws SymbolNotFoundException
 	 * 
 	 */
-	public void resolveExternalSymbols()
+	private void resolveExternalSymbols()
 		throws SymbolNotFoundException, IllegalAccessSymbolException, DuplicateSymbolException {
 		for( ModuleRecord md : moduleMap.values() ) {
 			for( SymbolInfoExternal localSymbol : md.externalSymbols() ) {
@@ -757,7 +757,7 @@ public class SymbolReferenceResolver {
 	 * 
 	 * @throws ModuleException if the linked type cannot find it's referencing node
 	 */
-	public void resolveLinkedType() throws ModuleException {
+	private void resolveLinkedType() throws ModuleException {
 		SymbolReferenceResolverVisitor resolver = new SymbolReferenceResolverVisitor();
 		for( ModuleRecord md : moduleMap.values() ) {
 			resolver.resolve( md.program() );
@@ -769,17 +769,14 @@ public class SymbolReferenceResolver {
 	 * 
 	 * @throws ModuleException if the process is failed
 	 */
-	public void resolve() throws ModuleException {
+	public static void resolve( ModuleCrawlerResult moduleMap ) throws ModuleException {
+		SymbolReferenceResolver resolver = new SymbolReferenceResolver( moduleMap );
 		try {
-			this.resolveExternalSymbols();
+			resolver.resolveExternalSymbols();
 		} catch( SymbolNotFoundException | IllegalAccessSymbolException
 			| DuplicateSymbolException e ) {
 			throw new ModuleException( e );
 		}
-		this.resolveLinkedType();
-	}
-
-	public Map< URI, SymbolTable > symbolTables() {
-		return this.symbolTables;
+		resolver.resolveLinkedType();
 	}
 }

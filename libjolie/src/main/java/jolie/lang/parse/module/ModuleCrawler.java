@@ -33,7 +33,7 @@ import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 public class ModuleCrawler {
 
-	public class ModuleCrawlerResult {
+	public static class ModuleCrawlerResult {
 		private final Map< URI, ModuleRecord > moduleCrawled;
 
 		public ModuleCrawlerResult() {
@@ -50,6 +50,14 @@ public class ModuleCrawler {
 
 		public Map< URI, ModuleRecord > toMap() {
 			return this.moduleCrawled;
+		}
+
+		public Map< URI, SymbolTable > symbolTables() {
+			Map< URI, SymbolTable > result = new HashMap<>();
+			for( ModuleRecord mr : this.moduleCrawled.values() ) {
+				result.put( mr.source(), mr.symbolTable() );
+			}
+			return result;
 		}
 
 	}
