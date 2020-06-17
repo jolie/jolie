@@ -1,13 +1,21 @@
 from .private.imports.point import point
 from .private.imports.point import point as p
-// from .private.imports.iface import fooIface
-// from .private.imports.procedure import proc
+from .private.imports.iface import fooIface
 from .private.imports.namespace import *
 from .private.imports.namespace import n1 as asN1, n2 as asN2
 from twice.twice.main import TwiceAPI
 from .packages.t import test
 from .packages.bar.foo import type_foo, type_bar, type_bar_package
 include "../AbstractTestUnit.iol"
+
+outputPort Server {
+	interfaces: fooIface
+}
+
+embedded {
+Jolie:
+	"private/import_server.ol" in Server
+}
 
 define doTest {
     v << {x= 1, y= 2}
@@ -21,18 +29,20 @@ define doTest {
 		throw( TestFailed, "point is not imported" )
 	}
 
-	// // test interface
-	// f << { a = "test" }
-	// if ( !(f instanceof foo) ) {
-	// 	throw( TestFailed, "foo type is not imported with fooIface" )
-	// }
+	// test interface
+	bar@Server({b = "somestr"})
+	fooOp@Server({a = "somestr"})(res)
+	if ( res.b != "success" ) {
+		throw( TestFailed, "import interface is not correctly import" )
+	}
 
-	// test procedure
-	// proc
-
-	// if ( !(p_proc instanceof point) ) {
-	// 	throw( TestFailed, "proc was not called" )
-	// }
+	scope( testImportIface ) {
+		install( err => nullProcess)
+		fooOp@Server({a = "err"})(res)
+		if (is_defined(res)){
+			throw( TestFailed, "expected fault" )
+		}
+	}
 
 	// test namespace
 	n1_val << { n1_f = 1}
