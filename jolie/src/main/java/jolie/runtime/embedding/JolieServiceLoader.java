@@ -21,16 +21,25 @@
 
 package jolie.runtime.embedding;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
+import jolie.CommandLineParser;
 import jolie.Interpreter;
+import jolie.InterpreterParameters;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
 	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
+	private final static AtomicLong serviceLoaderCounter = new AtomicLong();
 	private final Interpreter interpreter;
 
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
@@ -45,9 +54,27 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
+		CommandLineParser commandLineParser = new CommandLineParser( newArgs, currInterpreter.getClassLoader(), false );
 		interpreter = new Interpreter(
-			newArgs,
 			currInterpreter.getClassLoader(),
+			commandLineParser.getInterpreterParameters(),
+			currInterpreter.programDirectory() );
+	}
+
+	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
+		throws IOException {
+		super( channelDest );
+		InterpreterParameters interpreterParameters = new InterpreterParameters(
+			currInterpreter.optionArgs(),
+			currInterpreter.getInterpreterParameters().includePaths(),
+			currInterpreter.getInterpreterParameters().libUrls(),
+			new File( "#native_code_" + serviceLoaderCounter.getAndIncrement() ),
+			currInterpreter.getClassLoader(),
+			new ByteArrayInputStream( code.getBytes() ) );
+
+		interpreter = new Interpreter(
+			currInterpreter.getClassLoader(),
+			interpreterParameters,
 			currInterpreter.programDirectory() );
 	}
 

@@ -468,12 +468,21 @@ public abstract class Value implements Expression, Cloneable {
 
 	public abstract ValueVector getChildren( String childId );
 
-	public final < V > V firstChildOrDefault( String childId, Function< ? super Value, ? extends V > mappingFunction,
+	public final < V > V firstChildOrCompute( String childId, Function< ? super Value, ? extends V > mappingFunction,
 		Function< ? super String, ? extends V > defaultMappingFunction ) {
 		if( hasChildren( childId ) ) {
 			return mappingFunction.apply( getFirstChild( childId ) );
 		} else {
 			return defaultMappingFunction.apply( childId );
+		}
+	}
+
+	public final < V > V firstChildOrDefault( String childId, Function< ? super Value, ? extends V > mappingFunction,
+		V defaultValue ) {
+		if( hasChildren( childId ) ) {
+			return mappingFunction.apply( getFirstChild( childId ) );
+		} else {
+			return defaultValue;
 		}
 	}
 

@@ -115,6 +115,10 @@ public class DatabaseService extends JavaService {
 		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
 		boolean isEmbedded = false;
+		String encoding = "utf8";
+		if( request.hasChildren( "encoding" ) ) {
+			request.getFirstChild( "encoding" ).strValue();
+		}
 
 		try {
 			if( "postgresql".equals( driver ) ) {
@@ -167,10 +171,12 @@ public class DatabaseService extends JavaService {
 			} else {
 				if( driver.startsWith( "hsqldb" ) ) {
 					connectionString = "jdbc:" + driver + ":" + driver.substring( driver.indexOf( '_' ) + 1 ) + "//"
-						+ host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
+						+ host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName + "?characterEncoding="
+						+ encoding;
 				} else {
 					connectionString =
-						"jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
+						"jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName
+							+ "?characterEncoding=" + encoding;
 				}
 				connection = DriverManager.getConnection(
 					connectionString,

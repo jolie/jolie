@@ -94,7 +94,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the arguments passed to the JOLIE program.
 	 */
-	public final String[] arguments() {
+	private final String[] arguments() {
 		return arguments;
 	}
 
@@ -103,7 +103,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the {@link Level} of the logger of this interpreter.
 	 */
-	public Level logLevel() {
+	private Level logLevel() {
 		return logLevel;
 	}
 
@@ -112,7 +112,7 @@ public class CommandLineParser implements Closeable {
 	 *
 	 * all: all the traces comp: only computation traces comm: only communication traces
 	 */
-	public String tracerLevel() {
+	private String tracerLevel() {
 		return tracerLevel;
 	}
 
@@ -130,7 +130,7 @@ public class CommandLineParser implements Closeable {
 	 *
 	 * @return <code>true</code> if the verbose option has been specified, false otherwise
 	 */
-	public boolean tracer() {
+	private boolean tracer() {
 		return tracer;
 	}
 
@@ -139,7 +139,7 @@ public class CommandLineParser implements Closeable {
 	 *
 	 * @return <code>true</code> if the verbose option has been specified, false otherwise
 	 */
-	public boolean check() {
+	private boolean check() {
 		return check;
 	}
 
@@ -148,7 +148,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return {@code true} if the program is compiled, {@code false} otherwise.
 	 */
-	public boolean isProgramCompiled() {
+	private boolean isProgramCompiled() {
 		return isProgramCompiled;
 	}
 
@@ -157,7 +157,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the file path of the JOLIE program to execute
 	 */
-	public File programFilepath() {
+	private File programFilepath() {
 		return programFilepath;
 	}
 
@@ -166,7 +166,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return an InputStream for the program code to execute
 	 */
-	public InputStream programStream() {
+	private InputStream programStream() {
 		return programStream;
 	}
 
@@ -175,7 +175,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the program's character encoding
 	 */
-	public String charset() {
+	private String charset() {
 		return charset;
 	}
 
@@ -193,7 +193,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the library URLs passed by command line
 	 */
-	public URL[] libURLs() {
+	private URL[] libURLs() {
 		return libURLs;
 	}
 
@@ -202,7 +202,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the include paths passed by command line
 	 */
-	public String[] includePaths() {
+	private String[] includePaths() {
 		return includePaths;
 	}
 
@@ -211,7 +211,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the connection limit parameter passed by command line
 	 */
-	public int connectionsLimit() {
+	private int connectionsLimit() {
 		return connectionsLimit;
 	}
 
@@ -220,7 +220,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the response timeout parameter passed by command line
 	 */
-	public long responseTimeout() {
+	private long responseTimeout() {
 		return responseTimeout;
 	}
 
@@ -229,7 +229,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the connection cache parameter passed by command line
 	 */
-	public int connectionsCache() {
+	private int connectionsCache() {
 		return connectionsCache;
 	}
 
@@ -246,7 +246,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return a map containing the constants defined by command line
 	 */
-	public Map< String, Scanner.Token > definedConstants() {
+	private Map< String, Scanner.Token > definedConstants() {
 		return constants;
 	}
 
@@ -344,7 +344,7 @@ public class CommandLineParser implements Closeable {
 	 * @return the type of correlation algorithm that has been specified.
 	 * @see CorrelationEngine
 	 */
-	public CorrelationEngine.Type correlationAlgorithmType() {
+	private CorrelationEngine.Type correlationAlgorithmType() {
 		return correlationAlgorithmType;
 	}
 
@@ -708,7 +708,7 @@ public class CommandLineParser implements Closeable {
 	 * ); libList.add( parentPath ); libList.add( parentPath + "/lib" ); } } }
 	 */
 
-	public boolean printStackTraces() {
+	private boolean printStackTraces() {
 		return printStackTraces;
 	}
 
@@ -717,7 +717,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the directory in which the main program is located.
 	 */
-	public File programDirectory() {
+	private File programDirectory() {
 		return programDirectory;
 	}
 
@@ -726,7 +726,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the value of the --typecheck option.
 	 */
-	public boolean typeCheck() {
+	private boolean typeCheck() {
 		return typeCheck;
 	}
 
@@ -735,7 +735,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the classloader to use for the program.
 	 */
-	public JolieClassLoader jolieClassLoader() {
+	private JolieClassLoader jolieClassLoader() {
 		return jolieClassLoader;
 	}
 
@@ -745,7 +745,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the command line options passed to this command line parser.
 	 */
-	public String[] optionArgs() {
+	private String[] optionArgs() {
 		return optionArgs;
 	}
 
@@ -924,6 +924,34 @@ public class CommandLineParser implements Closeable {
 		result.add( element );
 		result.addAll( collection );
 		return result;
+	}
+
+	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
+		InterpreterParameters interpreterParameters = new InterpreterParameters(
+			connectionsLimit(),
+			connectionsCache(),
+			correlationAlgorithmType(),
+			includePaths(),
+			optionArgs(),
+			libURLs(),
+			programStream(),
+			charset(),
+			programFilepath(),
+			arguments(),
+			definedConstants(),
+			jolieClassLoader(),
+			isProgramCompiled(),
+			typeCheck(),
+			tracer(),
+			tracerLevel(),
+			tracerMode(),
+			check(),
+			responseTimeout(),
+			logLevel(),
+			programDirectory() );
+
+		return interpreterParameters;
+
 	}
 
 	/**
