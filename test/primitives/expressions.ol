@@ -87,8 +87,39 @@ define testAIsInt{
 	}
 }
 
-define testNumberHierarchy{
-	// bool < int < long < double
+define testAIsString{
+	if (!is_string(a) ) {
+		throw( TestFailed, "hierarchy error, " + a + " is not string " )
+	}
+}
+
+define testTypeImplicitConversion{
+	// bool < int < long < double < string
+
+	// string + double
+	a = "A" + 1000.0
+	testAIsString
+	// double + string
+	a = 1000.0 + "A"
+	testAIsString
+	// string + long
+	a = "A" + 1000L
+	testAIsString
+	// long + string
+	a = 1000L + "A"
+	testAIsString
+	// string + int
+	a = "A" + 1000
+	testAIsString
+	// int + string
+	a = 1000 + "A"
+	testAIsString
+	// string + bool
+	a = "A" + true
+	testAIsString
+	// bool + string
+	a = true + "A"
+	testAIsString
 
 	// double _ double
 	a = 0.1 + 1000.0
@@ -230,6 +261,6 @@ define doTest
 
 	testBooleans;
 	testCasts;
-	testNumberHierarchy
+	testTypeImplicitConversion
 }
 

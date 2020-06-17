@@ -818,15 +818,15 @@ public abstract class Value implements Expression, Cloneable {
 
 	public final synchronized void add( Value val ) {
 		if( isDefined() ) {
-			if( val.isString() ) {
+			if( isString() || val.isString() ) {
 				setValue( strValue() + val.strValue() );
-			} else if ( isDouble() || val.isDouble() ) {
+			} else if( isDouble() || val.isDouble() ) {
 				setValue( doubleValue() + val.doubleValue() );
-			} else if ( isLong() || val.isLong() ) {
+			} else if( isLong() || val.isLong() ) {
 				setValue( longValue() + val.longValue() );
-			} else if ( isInt() || val.isInt() ) {
+			} else if( isInt() || val.isInt() ) {
 				setValue( intValue() + val.intValue() );
-			} else if ( isBool() || val.isBool() ) {
+			} else if( isBool() || val.isBool() ) {
 				setValue( boolValue() || val.boolValue() );
 			} else {
 				setValue( strValue() + val.strValue() );
@@ -840,34 +840,33 @@ public abstract class Value implements Expression, Cloneable {
 		if( !isDefined() ) {
 			if( val.isDouble() ) {
 				setValue( -val.doubleValue() );
-			} else if ( val.isLong() ) {
+			} else if( val.isLong() ) {
 				setValue( -val.longValue() );
-			} else if ( val.isInt() ) {
+			} else if( val.isInt() ) {
 				setValue( -val.intValue() );
-			} else if ( val.isBool() ) {
+			} else if( val.isBool() ) {
 				setValue( !val.boolValue() );
 			} else {
 				assignValue( val );
 			}
-		} else if ( isDouble() || val.isDouble() ) {
+		} else if( isDouble() || val.isDouble() ) {
 			setValue( doubleValue() - val.doubleValue() );
-		} else if ( isLong() || val.isLong() ) {
+		} else if( isLong() || val.isLong() ) {
 			setValue( longValue() - val.longValue() );
-		} else if ( isInt() || val.isInt() ) {
+		} else if( isInt() || val.isInt() ) {
 			setValue( intValue() - val.intValue() );
 		}
 	}
-	
-	public synchronized final void multiply( Value val )
-	{
-		if ( isDefined() ) {
-			if ( isDouble() || val.isDouble() ) {
+
+	public synchronized final void multiply( Value val ) {
+		if( isDefined() ) {
+			if( isDouble() || val.isDouble() ) {
 				setValue( doubleValue() * val.doubleValue() );
-			} else if ( isLong() || val.isLong() ) {
+			} else if( isLong() || val.isLong() ) {
 				setValue( longValue() * val.longValue() );
-			} else if ( isInt() || val.isInt() ) {
+			} else if( isInt() || val.isInt() ) {
 				setValue( intValue() * val.intValue() );
-			} else if ( isBool() || val.isBool() ) {
+			} else if( isBool() || val.isBool() ) {
 				setValue( boolValue() && val.boolValue() );
 			}
 		} else {
@@ -878,11 +877,11 @@ public abstract class Value implements Expression, Cloneable {
 	public synchronized final void divide( Value val ) {
 		if( !isDefined() ) {
 			setValue( 0 );
-		} else if ( isDouble() || val.isDouble() ) {
+		} else if( isDouble() || val.isDouble() ) {
 			setValue( doubleValue() / val.doubleValue() );
-		} else if ( isLong() || val.isLong() ) {
+		} else if( isLong() || val.isLong() ) {
 			setValue( longValue() / val.longValue() );
-		} else if ( isInt() || val.isInt() ) {
+		} else if( isInt() || val.isInt() ) {
 			setValue( intValue() / val.intValue() );
 		}
 	}
@@ -890,11 +889,11 @@ public abstract class Value implements Expression, Cloneable {
 	public synchronized final void modulo( Value val ) {
 		if( !isDefined() ) {
 			assignValue( val );
-		} else if ( isDouble() || val.isDouble() ) {
+		} else if( isDouble() || val.isDouble() ) {
 			setValue( doubleValue() % val.doubleValue() );
-		} else if ( isLong() || val.isLong() ) {
+		} else if( isLong() || val.isLong() ) {
 			setValue( longValue() % val.longValue() );
-		} else if ( isInt() || val.isInt() ) {
+		} else if( isInt() || val.isInt() ) {
 			setValue( intValue() % val.intValue() );
 		}
 	}
