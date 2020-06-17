@@ -82,12 +82,12 @@ public class ModuleParser {
 		} else {
 			additionalPath = new String[ 0 ];
 		}
-		String[] inculdePaths =
+		String[] includePaths =
 			Stream.concat( Arrays.stream( this.includePaths ), Arrays.stream( additionalPath ) )
 				.distinct().toArray( String[]::new );
 
 		OLParser olParser = new OLParser( new Scanner( module.stream().get(), module.source(),
-			this.charset, includeDocumentation ), inculdePaths, this.classLoader );
+			this.charset, includeDocumentation ), includePaths, this.classLoader );
 		olParser.putConstants( constantsMap );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
@@ -107,14 +107,14 @@ public class ModuleParser {
 
 	public ModuleRecord parse( Scanner scanner, String[] additionalIncludePaths, boolean joinPaths )
 		throws ParserException, IOException, ModuleException {
-		String[] inculdePaths = includePaths;
+		String[] includePaths = this.includePaths;
 		if( joinPaths ) {
-			inculdePaths = Stream
+			includePaths = Stream
 				.concat( Arrays.stream( this.includePaths ),
 					Arrays.stream( additionalIncludePaths ) )
 				.distinct().toArray( String[]::new );
 		}
-		OLParser olParser = new OLParser( scanner, inculdePaths, this.classLoader );
+		OLParser olParser = new OLParser( scanner, includePaths, this.classLoader );
 		olParser.putConstants( constantsMap );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
@@ -126,16 +126,16 @@ public class ModuleParser {
 		throws ParserException, IOException, ModuleException {
 		URL url = uri.toURL();
 		InputStream stream = url.openStream();
-		String[] inculdePaths = includePaths;
+		String[] includePaths = this.includePaths;
 		if( joinPaths ) {
-			inculdePaths = Stream
+			includePaths = Stream
 				.concat( Arrays.stream( this.includePaths ),
 					Arrays.stream( additionalIncludePaths ) )
 				.distinct().toArray( String[]::new );
 		}
 		OLParser olParser =
 			new OLParser( new Scanner( stream, uri, this.charset, includeDocumentation ),
-				inculdePaths, this.classLoader );
+				includePaths, this.classLoader );
 		olParser.putConstants( constantsMap );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );

@@ -55,12 +55,12 @@ public abstract class SymbolInfo {
 	/**
 	 * privacy of this symbol
 	 */
-	final private Privacy privacy;
+	private final Privacy privacy;
 
 	/**
 	 * Declaration context of the symbol
 	 */
-	final private ParsingContext context;
+	private final ParsingContext context;
 
 	/**
 	 * constructor for SymbolInfo, this constructor is used when it knows the ASTnode to point to
