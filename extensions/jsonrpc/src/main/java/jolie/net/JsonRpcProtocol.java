@@ -23,7 +23,7 @@ import java.util.Map.Entry;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.TypeNative;
+import jolie.lang.parse.ast.types.BasicType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -141,8 +141,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		Type operationType = Type.UNDEFINED;
 		String originalOpName = message.operationName();
 		Map< String, Type > subTypes = new HashMap<>();
-		subTypes.put( "jsonrpc", Type.create( new TypeNative( NativeType.STRING ), new Range( 1, 1 ), false, null ) );
-		subTypes.put( "id", Type.create( new TypeNative( NativeType.INT ), new Range( 0, 1 ), false, null ) );
+		subTypes.put( "jsonrpc", Type.create( new BasicType( NativeType.STRING ), new Range( 1, 1 ), false, null ) );
+		subTypes.put( "id", Type.create( new BasicType( NativeType.INT ), new Range( 0, 1 ), false, null ) );
 		Map< String, Type > paramsSubTypes = new HashMap<>();
 
 		if( message.isFault() ) {
@@ -206,7 +206,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 		}
 
-		Type fullMessageType = Type.create( new TypeNative( NativeType.VOID ), new Range( 1, 1 ), false, subTypes );
+		Type fullMessageType = Type.create( new BasicType( NativeType.VOID ), new Range( 1, 1 ), false, subTypes );
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, fullMessageType, json );
 		String jsonMessage = json.toString();

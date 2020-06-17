@@ -241,7 +241,7 @@ public class WSDLConverter {
 				writeLine( builder.toString() );
 				writeLine( "" );
 			} else {
-				builder.append( nativeTypeToString( def.typeNative().nativeType() ) );
+				builder.append( nativeTypeToString( def.basicType().nativeType() ) );
 				if( def.hasSubTypes() ) {
 					builder.append( " {" );
 				}
@@ -264,9 +264,9 @@ public class WSDLConverter {
 				&& !((TypeInlineDefinition) choice.left()).hasSubTypes()
 				&& choice.right() instanceof TypeInlineDefinition
 				&& !((TypeInlineDefinition) choice.right()).hasSubTypes() ) {
-				builder.append( ((TypeInlineDefinition) choice.left()).typeNative().nativeType().id() );
+				builder.append( ((TypeInlineDefinition) choice.left()).basicType().nativeType().id() );
 				builder.append( " | " );
-				builder.append( ((TypeInlineDefinition) choice.right()).typeNative().nativeType().id() );
+				builder.append( ((TypeInlineDefinition) choice.right()).basicType().nativeType().id() );
 				writeLine( builder.toString() );
 			} else {
 				writeLine( builder.toString() );
@@ -478,7 +478,7 @@ public class WSDLConverter {
 		if( parts.size() > 1 || style == Style.RPC ) {
 			typeName = message.getQName().getLocalPart();
 			TypeInlineDefinition requestType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
-				new TypeNative( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
+				new BasicType( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 			for( Entry< String, Part > entry : parts.entrySet() ) {
 				Part part = entry.getValue();
 				if( part.getElementName() == null ) {
@@ -549,7 +549,7 @@ public class WSDLConverter {
 			if( parts.size() > 1 ) {
 				String typeName = faultName = faultTypeName;
 				TypeInlineDefinition faultType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
-					new TypeNative( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
+					new BasicType( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 				for( Entry< String, Part > partEntry : parts.entrySet() ) {
 					Part part = partEntry.getValue();
 					if( part.getElementName() == null ) {

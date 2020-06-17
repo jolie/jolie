@@ -26,22 +26,22 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.TypeNative;
+import jolie.lang.parse.ast.types.BasicType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
 
 class TypeImpl extends Type {
 	private final Range cardinality;
-	private final TypeNative typeNative;
+	private final BasicType basicType;
 	private final Map< String, Type > subTypes;
 
 	public TypeImpl(
-		TypeNative typeNative,
+		BasicType basicType,
 		Range cardinality,
 		boolean undefinedSubTypes,
 		Map< String, Type > subTypes ) {
-		this.typeNative = typeNative;
+		this.basicType = basicType;
 		this.cardinality = cardinality;
 		this.subTypes = undefinedSubTypes ? null : subTypes;
 	}
@@ -61,11 +61,11 @@ class TypeImpl extends Type {
 	}
 
 	protected NativeType nativeType() {
-		return typeNative.nativeType();
+		return basicType.nativeType();
 	}
 
-	protected TypeNative typeNative() {
-		return typeNative;
+	protected BasicType basicType() {
+		return basicType;
 	}
 
 	@Override
@@ -127,11 +127,15 @@ class TypeImpl extends Type {
 	@Override
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException {
-		if( checkNativeType( value, typeNative ) == false ) {
+		if( checkNativeType( value, basicType ) == false ) {
+			StringBuilder refinementsDescription = new StringBuilder();
+			basicType.basicTypeRefinementList().forEach( basicTypeRefinement -> refinementsDescription
+				.append( basicTypeRefinement.getRefinementDocumentationDefinition() ).append( " " ) );
 			throw new TypeCheckingException(
-				"Invalid native type for node " + pathBuilder.toString() + ": expected " + typeNative.nativeType()
-					+ typeNative.nativeTypeConstraint().getConstraintDefinition() + ", found "
-					+ ((value.valueObject() == null) ? "void" : value.valueObject().getClass().getName()) );
+				"Invalid native type for node " + pathBuilder.toString() + ": expected " + basicType.nativeType() + " "
+					+ refinementsDescription + ", found "
+					+ ((value.valueObject() == null) ? "void"
+						: value.valueObject().getClass().getName() + "(" + value.strValue() + ")") );
 		}
 
 		if( subTypes != null ) {
@@ -177,15 +181,15 @@ class TypeImpl extends Type {
 
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException {
-		if( checkNativeType( value, typeNative ) == false ) {
+		if( checkNativeType( value, basicType ) == false ) {
 			// ANY is not handled, because checkNativeType returns true for it anyway
-			switch( typeNative.nativeType() ) {
+			switch( basicType.nativeType() ) {
 			case DOUBLE:
 				try {
 					value.setValue( value.doubleValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case INT:
@@ -193,7 +197,7 @@ class TypeImpl extends Type {
 					value.setValue( value.intValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case LONG:
@@ -201,7 +205,7 @@ class TypeImpl extends Type {
 					value.setValue( value.longValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case BOOL:
@@ -209,7 +213,7 @@ class TypeImpl extends Type {
 					value.setValue( value.boolValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case STRING:
@@ -217,7 +221,7 @@ class TypeImpl extends Type {
 					value.setValue( value.strValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			case VOID:
@@ -233,32 +237,36 @@ class TypeImpl extends Type {
 					value.setValue( value.byteArrayValueStrict() );
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException(
-						"Cannot cast node value to " + typeNative.nativeType().id() + ": " + pathBuilder.toString() );
+						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
 				}
 				break;
 			default:
 				throw new TypeCastingException(
-					"Expected " + typeNative.nativeType().id() + ", found " +
+					"Expected " + basicType.nativeType().id() + ", found " +
 						value.valueObject().getClass().getSimpleName() +
 						": " + pathBuilder.toString() );
 			}
 		}
 	}
 
-	private boolean checkNativeType( Value value, TypeNative typeNative ) {
-		switch( typeNative.nativeType() ) {
+	private boolean checkNativeType( Value value, BasicType basicType ) {
+		switch( basicType.nativeType() ) {
 		case ANY:
 			return true;
 		case DOUBLE:
-			return value.isDouble() || value.isInt();
+			return (value.isDouble() || value.isInt()) && basicType.basicTypeRefinementList().stream()
+				.allMatch( btr -> btr.checkTypeRefinment( value.doubleValue() ) );
 		case LONG:
-			return value.isLong() || value.isInt();
+			return (value.isLong() || value.isInt()) && basicType.basicTypeRefinementList().stream()
+				.allMatch( btr -> btr.checkTypeRefinment( value.longValue() ) );
 		case BOOL:
 			return value.isBool();
 		case INT:
-			return value.isInt();
+			return value.isInt() && basicType.basicTypeRefinementList().stream()
+				.allMatch( btr -> btr.checkTypeRefinment( value.intValue() ) );
 		case STRING:
-			return value.isString() && typeNative.nativeTypeConstraint().checkConstraints( value.strValue() );
+			return value.isString() && basicType.basicTypeRefinementList().stream()
+				.allMatch( btr -> btr.checkTypeRefinment( value.strValue() ) );
 		case VOID:
 			return value.valueObject() == null;
 		case RAW:
@@ -349,14 +357,14 @@ class TypeChoice extends Type {
  */
 public abstract class Type implements Cloneable {
 	public static final Type UNDEFINED =
-		Type.create( new TypeNative( NativeType.ANY ), new Range( 0, Integer.MAX_VALUE ), true, null );
+		Type.create( new BasicType( NativeType.ANY ), new Range( 0, Integer.MAX_VALUE ), true, null );
 
 	public static Type create(
-		TypeNative typeNative,
+		BasicType basicType,
 		Range cardinality,
 		boolean undefinedSubTypes,
 		Map< String, Type > subTypes ) {
-		return new TypeImpl( typeNative, cardinality, undefinedSubTypes, subTypes );
+		return new TypeImpl( basicType, cardinality, undefinedSubTypes, subTypes );
 	}
 
 	public static TypeLink createLink( String linkedTypeName, Range cardinality ) {
@@ -423,14 +431,14 @@ public abstract class Type implements Cloneable {
 	}
 
 	private static Type extend( TypeImpl t1, TypeImpl t2 ) {
-		TypeNative typeNative = t1.typeNative();
+		BasicType basicType = t1.basicType();
 		Range cardinality = t1.cardinality();
 		Map< String, Type > subTypes = new HashMap<>();
 		t1.subTypes().entrySet().forEach( entry -> subTypes.put( entry.getKey(), entry.getValue() ) );
 		if( t2 != null ) {
 			t2.subTypes().entrySet().forEach( entry -> subTypes.put( entry.getKey(), entry.getValue() ) );
 		}
-		return create( typeNative, cardinality, false, subTypes );
+		return create( basicType, cardinality, false, subTypes );
 	}
 
 	public void check( Value value )

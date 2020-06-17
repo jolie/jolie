@@ -22,6 +22,7 @@
 include "../AbstractTestUnit.iol"
 
 include "private/types_server.iol"
+include "console.iol"
 
 outputPort Server {
 Interfaces: ServerInterface
@@ -57,6 +58,14 @@ define doTest
 	req << "hi" {
 		f1 = "hello"
 		f2 = "hello"
+		f3 = "hello"
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
 		f3 = "hello"
 	}
 	constrainedString@Server( req )()
@@ -99,6 +108,91 @@ define doTest
 		constrainedString@Server( req )()
 		throw( TestFailed, "Expected Type Mismatch because of f3 value" )
 	}
+
+	// checking list refinement for string
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer2"
+			f3 = "hello"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of f2 value is not permitted" )
+	}
+
+
+	// check ranges for int
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f4 = 110
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f4 = 0
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f4 value is out of the range" )
+	}
+
+	// check ranges for long
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f5 = 110L
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f5 = 0L
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f5 value is out of the range" )
+	}
+
+	// check ranges for double
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f6 = 110.0
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f6 = 0.0
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f6 value is out of the range" )
+	}
+
+
 
 	shutdown@Server()
 }

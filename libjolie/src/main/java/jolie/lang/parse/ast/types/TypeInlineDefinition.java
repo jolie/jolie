@@ -36,17 +36,17 @@ import jolie.util.Range;
  * @author Fabrizio Montesi
  */
 public class TypeInlineDefinition extends TypeDefinition {
-	private final TypeNative typeNative;
+	private final BasicType basicType;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, TypeNative typeNative, Range cardinality ) {
+	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality ) {
 		super( context, id, cardinality );
-		this.typeNative = typeNative;
+		this.basicType = basicType;
 	}
 
-	public TypeNative typeNative() {
-		return typeNative;
+	public BasicType basicType() {
+		return basicType;
 	}
 
 	public void setUntypedSubTypes( boolean b ) {
@@ -72,7 +72,7 @@ public class TypeInlineDefinition extends TypeDefinition {
 	@Override
 	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it ) {
 		if( it.hasNext() == false ) {
-			return typeNative().nativeType() != NativeType.VOID;
+			return basicType().nativeType() != NativeType.VOID;
 		}
 
 		if( untypedSubTypes() ) {

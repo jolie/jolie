@@ -93,7 +93,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 	private static boolean checkTypeEqualnessInline( TypeInlineDefinition left, TypeInlineDefinition right,
 		Set< String > recursiveTypesChecked ) {
-		if( !left.typeNative().checkTypeNativeEqualness( right.typeNative() ) ) {
+		if( !left.basicType().checkBasicTypeEqualness( right.basicType() ) ) {
 			return false;
 		}
 
@@ -189,11 +189,11 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		final TypeInlineDefinition right = (TypeInlineDefinition) extender;
 
 		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(),
-			left.typeNative(), inputType.cardinality );
+			left.basicType(), inputType.cardinality );
 
 		if( left instanceof TypeDefinitionUndefined ) {
 			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(),
-				namePrefix + "_" + inputType.id(), new TypeNative( NativeType.ANY ), inputType.cardinality );
+				namePrefix + "_" + inputType.id(), new BasicType( NativeType.ANY ), inputType.cardinality );
 			if( right.hasSubTypes() ) {
 				for( Entry< String, TypeDefinition > subType : right.subTypes() ) {
 					newTid.putSubType( subType.getValue() );

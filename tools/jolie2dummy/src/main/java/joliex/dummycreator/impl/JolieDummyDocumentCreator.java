@@ -112,14 +112,14 @@ public class JolieDummyDocumentCreator {
 				for( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
 					String cardinalityString =
 						typeCardinality == 1 ? "" : "[ " + String.valueOf( cardinalityIndex ) + " ]";
-					if( !(typeInlineDefinition.typeNative().nativeType().id().equals( "void" )) ) {
-						if( typeInlineDefinition.typeNative().nativeType().id().equals( "int" ) ) {
+					if( !(typeInlineDefinition.basicType().nativeType().id().equals( "void" )) ) {
+						if( typeInlineDefinition.basicType().nativeType().id().equals( "int" ) ) {
 							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
 								.append( "42;\n" );
-						} else if( typeInlineDefinition.typeNative().nativeType().id().equals( "double" ) ) {
+						} else if( typeInlineDefinition.basicType().nativeType().id().equals( "double" ) ) {
 							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
 								.append( "1.54;\n" );
-						} else if( typeInlineDefinition.typeNative().nativeType().id().equals( "long" ) ) {
+						} else if( typeInlineDefinition.basicType().nativeType().id().equals( "long" ) ) {
 							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
 								.append( "424242L;\n" );
 						} else {
