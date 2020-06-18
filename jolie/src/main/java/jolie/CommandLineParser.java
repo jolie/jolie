@@ -88,7 +88,7 @@ public class CommandLineParser implements Closeable {
 	private final boolean printStackTraces;
 	private final Level logLevel;
 	private File programDirectory = null;
-	private int serviceIdentifier = 0;
+	private int cellId = 0;
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
@@ -251,8 +251,8 @@ public class CommandLineParser implements Closeable {
 		return constants;
 	}
 
-	private int serviceIdentifier() {
-		return serviceIdentifier;
+	private int cellId() {
+		return cellId;
 	}
 
 	/**
@@ -304,9 +304,9 @@ public class CommandLineParser implements Closeable {
 		helpBuilder.append(
 			getOptionString( "--version", "Display this program version information" ) );
 		helpBuilder.append(
-			getOptionString( "--serviceId",
-				"set an integer as service identifier, used for creating message ids. (max: "
-					+ Math.pow( 2, Interpreter.bitsForServiceIdentifier ) + ")" ) );
+			getOptionString( "--cellId",
+				"set an integer as cell identifier, used for creating message ids. (max: "
+					+ Math.pow( 2, Jolie.bitsForServiceIdentifier ) + ")" ) );
 		return helpBuilder.toString();
 	}
 
@@ -568,10 +568,15 @@ public class CommandLineParser implements Closeable {
 				i++;
 				charset = argsList.get( i );
 				optionsList.add( argsList.get( i ) );
-			} else if( "--serviceIdentifier".equals( argsList.get( i ) ) ) {
+			} else if( "--cellId".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
-				serviceIdentifier = new Integer( argsList.get( i ) );
+				try {
+					cellId = new Integer( argsList.get( i ) );
+				} catch( Exception e ) {
+					System.out
+						.println( "The number specified for cellId (" + argsList.get( i ) + ") is not allowed. Set to 0" );
+				}
 				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
@@ -963,7 +968,7 @@ public class CommandLineParser implements Closeable {
 			responseTimeout(),
 			logLevel(),
 			programDirectory(),
-			serviceIdentifier() );
+			cellId() );
 
 		return interpreterParameters;
 

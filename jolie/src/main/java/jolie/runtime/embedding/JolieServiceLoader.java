@@ -51,10 +51,6 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
 		newArgs[ 0 ] = "-i";
 		newArgs[ 1 ] = currInterpreter.programDirectory().getAbsolutePath();
-		// override the serviceIdentifier with that set from console
-		newArgs[ 2 ] = "--serviceIdentifier";
-		newArgs[ 3 ] = new Long( Interpreter.getServiceIdentifier() ).toString();
-
 
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
@@ -76,8 +72,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 			currInterpreter.getInterpreterParameters().libUrls(),
 			new File( "#native_code_" + serviceLoaderCounter.getAndIncrement() ),
 			currInterpreter.getClassLoader(),
-			new ByteArrayInputStream( code.getBytes() ),
-			Interpreter.getServiceIdentifier() );
+			new ByteArrayInputStream( code.getBytes() ) );
 
 		interpreter = new Interpreter(
 			currInterpreter.getClassLoader(),

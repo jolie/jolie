@@ -24,7 +24,6 @@ import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
-import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
@@ -61,7 +60,6 @@ import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
-import sun.rmi.runtime.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -269,18 +267,13 @@ public class Interpreter {
 
 	private final String logPrefix;
 	private final Tracer tracer;
-	public final static int bitsForServiceIdentifier = 31;
+
 	private boolean check = false;
 	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
-	public static int serviceIdentifier = 0;
 
-
-	public static int getServiceIdentifier() {
-		return serviceIdentifier;
-	}
 
 	private InterpreterParameters interpreterParameters;
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
@@ -867,15 +860,6 @@ public class Interpreter {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.parentClassLoader = parentClassLoader;
 		this.interpreterParameters = interpreterParameters;
-
-		if( interpreterParameters.serviceIdentifier() < Math.pow( 2, bitsForServiceIdentifier ) ) {
-			this.serviceIdentifier = interpreterParameters.serviceIdentifier();
-		} else {
-			this.serviceIdentifier = 0;
-			logger.log(
-				buildLogRecord( Level.WARNING, buildLogMessage( "ServiceIdentifiedr exceed the maximun available ("
-					+ Math.pow( 2, bitsForServiceIdentifier ) + "), set to 0" ) ) );
-		}
 
 		switch( interpreterParameters.tracerLevel() ) {
 		case "comm":

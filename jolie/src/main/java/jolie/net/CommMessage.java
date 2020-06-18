@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import jolie.Interpreter;
+import jolie.Jolie;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -99,7 +100,7 @@ public class CommMessage implements Serializable {
 	}
 
 	public static long getNewMessageId() {
-		long id = Interpreter.getInstance().getServiceIdentifier();
+		long id = Jolie.cellId;
 		id = id << 32;
 		id = id + idCounter.getAndIncrement();
 		return id;
