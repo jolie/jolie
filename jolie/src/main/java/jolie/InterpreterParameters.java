@@ -34,6 +34,7 @@ public class InterpreterParameters {
 	private boolean printStackTraces = false;
 	private Level logLevel = Level.OFF;
 	private File programDirectory = null;
+	private int serviceIdentifier = 0;
 
 
 	public InterpreterParameters() throws IOException {
@@ -62,7 +63,8 @@ public class InterpreterParameters {
 		boolean check,
 		long responseTimeout,
 		Level logLevel,
-		File programDirectory ) throws IOException {
+		File programDirectory,
+		int serviceIdentifier ) throws IOException {
 
 		super();
 		this.connectionsLimit = connectionsLimit;
@@ -88,6 +90,7 @@ public class InterpreterParameters {
 		this.responseTimeout = responseTimeout;
 		this.logLevel = logLevel;
 		this.programDirectory = programDirectory;
+		this.serviceIdentifier = serviceIdentifier;
 	}
 
 	public InterpreterParameters( String[] optionArgs,
@@ -95,7 +98,8 @@ public class InterpreterParameters {
 		URL[] libUrls,
 		File programFilepath,
 		JolieClassLoader jolieClassLoader,
-		InputStream inputStream ) throws IOException {
+		InputStream inputStream,
+		int serviceIdentifier ) throws IOException {
 
 		super();
 		Collections.addAll( this.optionArgs, optionArgs );
@@ -106,6 +110,7 @@ public class InterpreterParameters {
 		this.programFilepath = programFilepath;
 		this.jolieClassLoader = jolieClassLoader;
 		this.inputStream = inputStream;
+		this.serviceIdentifier = serviceIdentifier;
 	}
 
 
@@ -299,6 +304,16 @@ public class InterpreterParameters {
 
 	public void clear() {
 		jolieClassLoader = null;
+	}
+
+
+	/**
+	 * Returns the service identifier for the service
+	 *
+	 * @return the service identifier for the service
+	 */
+	public int serviceIdentifier() {
+		return serviceIdentifier;
 	}
 
 

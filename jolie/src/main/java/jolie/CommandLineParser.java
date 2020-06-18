@@ -88,6 +88,7 @@ public class CommandLineParser implements Closeable {
 	private final boolean printStackTraces;
 	private final Level logLevel;
 	private File programDirectory = null;
+	private int serviceIdentifier = 0;
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
@@ -250,6 +251,10 @@ public class CommandLineParser implements Closeable {
 		return constants;
 	}
 
+	private int serviceIdentifier() {
+		return serviceIdentifier;
+	}
+
 	/**
 	 * Returns the usage help message of Jolie.
 	 * 
@@ -298,6 +303,10 @@ public class CommandLineParser implements Closeable {
 				"Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
 		helpBuilder.append(
 			getOptionString( "--version", "Display this program version information" ) );
+		helpBuilder.append(
+			getOptionString( "--serviceId",
+				"set an integer as service identifier, used for creating message ids. (max: "
+					+ Math.pow( 2, Interpreter.bitsForServiceIdentifier ) + ")" ) );
 		return helpBuilder.toString();
 	}
 
@@ -558,6 +567,11 @@ public class CommandLineParser implements Closeable {
 				optionsList.add( argsList.get( i ) );
 				i++;
 				charset = argsList.get( i );
+				optionsList.add( argsList.get( i ) );
+			} else if( "--serviceIdentifier".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				serviceIdentifier = new Integer( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
@@ -948,7 +962,8 @@ public class CommandLineParser implements Closeable {
 			check(),
 			responseTimeout(),
 			logLevel(),
-			programDirectory() );
+			programDirectory(),
+			serviceIdentifier() );
 
 		return interpreterParameters;
 

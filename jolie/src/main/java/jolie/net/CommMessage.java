@@ -24,7 +24,10 @@ package jolie.net;
 
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -51,7 +54,7 @@ import jolie.runtime.Value;
 public class CommMessage implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private static final AtomicLong idCounter = new AtomicLong( 1L );
+	private static final AtomicInteger idCounter = new AtomicInteger( 1 );
 	public static final long GENERIC_ID = 0L;
 	public static final CommMessage UNDEFINED_MESSAGE =
 		new CommMessage( GENERIC_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
@@ -96,7 +99,10 @@ public class CommMessage implements Serializable {
 	}
 
 	public static long getNewMessageId() {
-		return idCounter.getAndIncrement();
+		long id = Interpreter.getInstance().getServiceIdentifier();
+		id = id << 32;
+		id = id + idCounter.getAndIncrement();
+		return id;
 	}
 
 	/**
