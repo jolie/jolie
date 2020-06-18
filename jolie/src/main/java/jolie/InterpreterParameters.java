@@ -34,6 +34,7 @@ public class InterpreterParameters {
 	private boolean printStackTraces = false;
 	private Level logLevel = Level.OFF;
 	private File programDirectory = null;
+	private final Deque< String > packagePaths = new LinkedList<>();
 
 
 	public InterpreterParameters() throws IOException {
@@ -62,7 +63,8 @@ public class InterpreterParameters {
 		boolean check,
 		long responseTimeout,
 		Level logLevel,
-		File programDirectory ) throws IOException {
+		File programDirectory,
+		String[] packagePaths ) throws IOException {
 
 		super();
 		this.connectionsLimit = connectionsLimit;
@@ -88,6 +90,7 @@ public class InterpreterParameters {
 		this.responseTimeout = responseTimeout;
 		this.logLevel = logLevel;
 		this.programDirectory = programDirectory;
+		Collections.addAll( this.packagePaths, packagePaths );
 	}
 
 	public InterpreterParameters( String[] optionArgs,
@@ -285,6 +288,15 @@ public class InterpreterParameters {
 	 */
 	public Level logLevel() {
 		return this.logLevel;
+	}
+
+	/**
+	 * Returns the {@link Level} of the logger of this interpreter.
+	 *
+	 * @return the {@link Level} of the logger of this interpreter.
+	 */
+	public String[] packagePaths() {
+		return packagePaths.toArray( new String[] {} );
 	}
 
 

@@ -47,26 +47,32 @@ public class ModuleRecord {
 	}
 
 	/**
-	 * @return the program
+	 * @return a parsed AST respected to source URI
 	 */
 	public Program program() {
 		return program;
+	}
+
+	/**
+	 * @return the symbolTable respected to source URI
+	 */
+	public SymbolTable symbolTable() {
+		return symbolTable;
 	}
 
 	public void setSymbolTable( SymbolTable symbolTable ) {
 		this.symbolTable = symbolTable;
 	}
 
-	public void addWildcardImportedRecord( SymbolWildCard symbol, SymbolInfo... symbolsFromWildcard )
+	/**
+	 * replace the temporary wild card symbol with the list of symbols.
+	 * 
+	 * @param symbol the Wildcard symbol in symbol table to be replaced
+	 * @param symbolsFromWildcard the list of symbols to replace
+	 */
+	public void putWildcardImportedRecord( SymbolWildCard symbol, SymbolInfo... symbolsFromWildcard )
 		throws DuplicateSymbolException {
 		this.symbolTable.replaceWildCardSymbol( symbol, symbolsFromWildcard );
-	}
-
-	/**
-	 * @return the symbolTable
-	 */
-	public SymbolTable symbolTable() {
-		return symbolTable;
 	}
 
 	public Optional< SymbolInfo > symbol( String name ) {

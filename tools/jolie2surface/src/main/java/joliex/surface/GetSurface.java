@@ -48,13 +48,14 @@ public class GetSurface {
 				cmdParser.getInterpreterParameters().programFilepath().toURI(),
 				cmdParser.getInterpreterParameters().charset(),
 				cmdParser.getInterpreterParameters().includePaths(),
+				cmdParser.getInterpreterParameters().packagePaths(),
 				cmdParser.getInterpreterParameters().jolieClassLoader(),
 				cmdParser.getInterpreterParameters().constants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
 			document.ConvertDocument( cmdParser.getInterpreterParameters().arguments()[ 0 ], cmdParser.noOutputPort(),
 				cmdParser.noLocation(), cmdParser.noProtocol() );
-		} catch( CommandLineException | ParserException e ) {
+		} catch( CommandLineException | ParserException | ModuleException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException | SemanticException e ) {
 			e.printStackTrace();

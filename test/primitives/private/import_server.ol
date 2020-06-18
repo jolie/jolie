@@ -20,7 +20,7 @@ main{
         }
     }]
 
-    [bar(req)]{
+    [barOp(req)]{
         nullProcess
     }
 }

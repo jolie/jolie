@@ -476,6 +476,11 @@ public class CommandLineParser implements Closeable {
 					// }
 				}
 				optionsList.add( argsList.get( i ) );
+			} else if( "-p".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				Collections.addAll( packagesList, argsList.get( i ).split( jolie.lang.Constants.pathSeparator ) );
+				optionsList.add( argsList.get( i ) );
 			} else if( "--connlimit".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
@@ -960,7 +965,8 @@ public class CommandLineParser implements Closeable {
 			check(),
 			responseTimeout(),
 			logLevel(),
-			programDirectory() );
+			programDirectory(),
+			packagesPaths() );
 
 		return interpreterParameters;
 

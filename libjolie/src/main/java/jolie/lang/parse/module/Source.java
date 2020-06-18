@@ -26,12 +26,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import jolie.lang.Constants;
 
 /**
@@ -117,10 +117,10 @@ class JapSource implements Source {
 		}
 	}
 
-	public JapSource( File f, String path ) throws IOException {
+	public JapSource( File f, List< String > path ) throws IOException {
 		this.japFile = new JarFile( f );
 		this.source = f.toURI();
-		this.filePath = path;
+		this.filePath = String.join( "/", path );
 		moduleEntry = japFile.getEntry( this.filePath + ".ol" );
 		if( moduleEntry == null ) {
 			throw new FileNotFoundException(

@@ -30,7 +30,7 @@ define doTest {
 	}
 
 	// test interface
-	bar@Server({b = "somestr"})
+	barOp@Server({b = "somestr"})
 	fooOp@Server({a = "somestr"})(res)
 	if ( res.b != "success" ) {
 		throw( TestFailed, "import interface is not correctly import" )

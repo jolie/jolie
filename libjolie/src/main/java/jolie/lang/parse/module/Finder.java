@@ -32,6 +32,18 @@ public interface Finder {
 	Path[] packagePaths();
 
 
+	/**
+	 * checks the format of a dot separated string list if it has a relative import format or not. by
+	 * test if the first index is empty
+	 * 
+	 * eg. .package.module or [ "", "package", "module" ] is a relative import while package.module or [
+	 * "package", "module"] is not
+	 * 
+	 * @param moduleTargetTokens dot separated string from import statement
+	 * 
+	 * @return true if it has relative import format, false otherwise
+	 * 
+	 */
 	static boolean isRelativeImport( List< String > moduleTargetTokens ) {
 		return moduleTargetTokens.get( 0 ).isEmpty() ? true : false;
 	}
@@ -66,22 +78,6 @@ public interface Finder {
 		}
 		throw new FileNotFoundException( olPath.toString() );
 	}
-
-	// /**
-	// * perform lookup to the target module's
-	// *
-	// * @param basePath base path for lookup
-	// * @return Source object corresponding to the module.
-	// * @throws FileNotFoundException when a module is not found
-	// */
-	// static Source locateModule( Path basePath, String[] pathParts ) throws FileNotFoundException {
-	// Path packagePath = Paths.get( basePath.toString(), pathParts );
-	// File olTargetFile = Finder.olLookup( packagePath, Finder.moduleName() );
-	// if( !olTargetFile.exists() ) {
-	// throw new FileNotFoundException( olTargetFile.toString() );
-	// }
-	// return new FileSource( olTargetFile );
-	// }
 
 }
 

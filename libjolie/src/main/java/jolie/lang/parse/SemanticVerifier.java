@@ -202,14 +202,6 @@ public class SemanticVerifier implements OLVisitor {
 		this( program, symbolTables, new Configuration() );
 	}
 
-	public SemanticVerifier( Program program, Configuration configuration ) {
-		this( program, new HashMap<>(), configuration );
-	}
-
-	public SemanticVerifier( Program program ) {
-		this( program, new Configuration() );
-	}
-
 	public CorrelationFunctionInfo correlationFunctionInfo() {
 		return correlationFunctionInfo;
 	}

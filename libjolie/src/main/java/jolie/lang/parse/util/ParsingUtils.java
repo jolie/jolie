@@ -33,7 +33,7 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.InputStreamSource;
 import jolie.lang.parse.module.ModuleCrawler;
-import jolie.lang.parse.module.ModuleCrawler.ModuleCrawlerResult;
+import jolie.lang.parse.module.ModuleCrawlerComponent;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParser;
 import jolie.lang.parse.module.ModuleRecord;
@@ -68,8 +68,10 @@ public class ParsingUtils {
 		Source isSource = new InputStreamSource( inputStream, source );
 		ModuleRecord mainRecord = parser.parse( isSource );
 
-		ModuleCrawler crawler = new ModuleCrawler( Paths.get( isSource.source() ).getParent(), packagesPaths, parser );
-		ModuleCrawlerResult crawlResult = crawler.crawl( mainRecord );
+		ModuleCrawlerComponent crawlerComponent =
+			new ModuleCrawlerComponent( Paths.get( isSource.source() ).getParent(), packagesPaths, parser );
+
+		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, crawlerComponent );
 
 		SymbolReferenceResolver.resolve( crawlResult );
 
@@ -106,6 +108,7 @@ public class ParsingUtils {
 		URI source,
 		String charset,
 		String[] includePaths,
+		String[] packagePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		boolean includeDocumentation )
@@ -115,6 +118,7 @@ public class ParsingUtils {
 			source,
 			charset,
 			includePaths,
+			packagePaths,
 			classLoader,
 			definedConstants,
 			new SemanticVerifier.Configuration(),

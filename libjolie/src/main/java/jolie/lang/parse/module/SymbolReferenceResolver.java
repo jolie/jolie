@@ -115,7 +115,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.module.ModuleCrawler.ModuleCrawlerResult;
+import jolie.lang.parse.module.ModuleCrawler.CrawlerResult;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 import jolie.lang.parse.module.exceptions.IllegalAccessSymbolException;
@@ -128,7 +128,7 @@ public class SymbolReferenceResolver {
 	private final Map< URI, ModuleRecord > moduleMap;
 	private final Map< URI, SymbolTable > symbolTables;
 
-	private SymbolReferenceResolver( ModuleCrawlerResult moduleMap ) {
+	private SymbolReferenceResolver( CrawlerResult moduleMap ) {
 		this.moduleMap = moduleMap.toMap();
 		this.symbolTables = new HashMap<>();
 		for( ModuleRecord mr : this.moduleMap.values() ) {
@@ -738,7 +738,7 @@ public class SymbolReferenceResolver {
 				if( localSymbol instanceof SymbolWildCard ) {
 					ModuleRecord wildcardImportedRecord =
 						this.moduleMap.get( localSymbol.moduleSource().get().source() );
-					md.addWildcardImportedRecord( (SymbolWildCard) localSymbol,
+					md.putWildcardImportedRecord( (SymbolWildCard) localSymbol,
 						wildcardImportedRecord.symbols() );
 				} else {
 					SymbolInfo targetSymbol = symbolSourceLookup( localSymbol );
@@ -769,7 +769,7 @@ public class SymbolReferenceResolver {
 	 * 
 	 * @throws ModuleException if the process is failed
 	 */
-	public static void resolve( ModuleCrawlerResult moduleMap ) throws ModuleException {
+	public static void resolve( CrawlerResult moduleMap ) throws ModuleException {
 		SymbolReferenceResolver resolver = new SymbolReferenceResolver( moduleMap );
 		try {
 			resolver.resolveExternalSymbols();

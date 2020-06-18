@@ -9,6 +9,6 @@ type err: void{
     msg:string
 }
 interface fooIface{
-    oneWay: bar(bar)
-    requestResponse: fooOp(foo)(bar) throws err(err)
+    OneWay: barOp(bar)
+    RequestResponse: fooOp(foo)(bar) throws err(err)
 }

@@ -98,6 +98,7 @@ public class JavaDocumentCreatorTest {
 			cmdParser.getInterpreterParameters().programFilepath().toURI(),
 			cmdParser.getInterpreterParameters().charset(),
 			cmdParser.getInterpreterParameters().includePaths(),
+			cmdParser.getInterpreterParameters().packagePaths(),
 			cmdParser.getInterpreterParameters().jolieClassLoader(),
 			cmdParser.getInterpreterParameters().constants(),
 			false );
