@@ -24,7 +24,6 @@ import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
-import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
@@ -56,6 +55,7 @@ import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
+import jolie.runtime.embedding.JolieServiceLoader;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
@@ -245,6 +245,8 @@ public class Interpreter {
 	private CommCore commCore;
 	private Program internalServiceProgram = null;
 	private Interpreter parentInterpreter = null;
+	private boolean isInternal = false;
+	private Collection< Interpreter > interpreterChildren = new ArrayList<>();
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
 	private boolean exiting = false;
@@ -265,6 +267,7 @@ public class Interpreter {
 
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
+
 
 	private final String logPrefix;
 	private final Tracer tracer;
@@ -293,7 +296,12 @@ public class Interpreter {
 
 	public void setMonitor( OutputPort monitor ) {
 		this.monitor = monitor;
+		interpreterChildren.stream().forEach( i -> i.setMonitor( monitor ) );
 		fireMonitorEvent( new MonitorAttachedEvent() );
+	}
+
+	public OutputPort getMonitor() {
+		return monitor;
 	}
 
 	public boolean isMonitoring() {
@@ -577,6 +585,7 @@ public class Interpreter {
 		embeddedServiceLoaders.add( n );
 	}
 
+
 	/**
 	 * Returns the <code>EmbeddedServiceLoader</code> instances registered on this interpreter.
 	 * 
@@ -584,6 +593,26 @@ public class Interpreter {
 	 */
 	public Collection< EmbeddedServiceLoader > embeddedServiceLoaders() {
 		return embeddedServiceLoaders;
+	}
+
+	/**
+	 * Add an interpreter as a child of the current one
+	 * 
+	 * @param interpreter
+	 */
+	public void addInterpreterChild( Interpreter interpreter ) {
+		interpreterChildren.add( interpreter );
+	}
+
+	/**
+	 * remove an interpreter as a child of the current one
+	 * 
+	 * @param interpreter
+	 */
+	public void removeInterpreterChild( Interpreter interpreter ) {
+		if( interpreterChildren.contains( interpreter ) ) {
+			interpreterChildren.remove( interpreter );
+		}
 	}
 
 	/**
@@ -647,6 +676,9 @@ public class Interpreter {
 		try {
 			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch( InterruptedException e ) {
+		}
+		if( parentInterpreter != null ) {
+			parentInterpreter.removeInterpreterChild( this );
 		}
 		free();
 	}
@@ -850,9 +882,13 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,
-		File programDirectory )
+		File programDirectory, Interpreter parentInterpreter )
 		throws IOException {
 		this( parentClassLoader, interpreterParameters, programDirectory, false );
+		this.parentInterpreter = parentInterpreter;
+		if( parentInterpreter != null ) {
+			setMonitor( this.parentInterpreter.getMonitor() );
+		}
 	}
 
 	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,
@@ -924,11 +960,15 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( InterpreterParameters interpreterParameters, ClassLoader parentClassLoader,
-		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
+		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram, boolean isInternal )
 		throws FileNotFoundException, IOException {
 		this( parentClassLoader, interpreterParameters, programDirectory, true );
 
 		this.parentInterpreter = parentInterpreter;
+		this.isInternal = isInternal;
+		if( this.parentInterpreter != null ) {
+			setMonitor( this.parentInterpreter.getMonitor() );
+		}
 		this.internalServiceProgram = internalServiceProgram;
 	}
 
@@ -943,6 +983,10 @@ public class Interpreter {
 
 	public Interpreter parentInterpreter() {
 		return parentInterpreter;
+	}
+
+	public boolean isInternal() {
+		return isInternal;
 	}
 
 	/**
@@ -1180,6 +1224,7 @@ public class Interpreter {
 		 * We help the Java(tm) Garbage Collector. Looks like it needs this or the Interpreter does not get
 		 * collected.
 		 */
+		monitor = null;
 		definitions.clear();
 		inputOperations.clear();
 		locksMap.clear();
@@ -1190,6 +1235,8 @@ public class Interpreter {
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
 		interpreterParameters.clear();
+		interpreterChildren.clear();
+		parentInterpreter = null;
 		commCore = null;
 		// System.gc();
 	}

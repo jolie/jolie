@@ -67,7 +67,8 @@ public class Jolie {
 		try {
 			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
 			final Interpreter interpreter =
-				new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null );
+				new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null,
+					null );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread() {
 				@Override

@@ -56,6 +56,7 @@ public class InitDefinitionProcess extends DefinitionProcess {
 				loader.load();
 			}
 
+
 			for( OutputPort outputPort : interpreter.outputPorts() ) {
 				outputPort.optimizeLocation();
 			}
@@ -72,7 +73,7 @@ public class InitDefinitionProcess extends DefinitionProcess {
 			}
 
 			// If an internal service, copy over the output port locations from the parent service
-			if( interpreter.parentInterpreter() != null ) {
+			if( interpreter.isInternal() ) {
 				Value parentInitRoot = interpreter.parentInterpreter().initThread().state().root();
 				for( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
 					try {
