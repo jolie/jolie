@@ -19,7 +19,7 @@ public interface Finder {
 	 * e.g. for finding module a.b, the receiving parameter should be ['a', 'b'], likewise, for a
 	 * relative module .c.d, the passing parameter should be ['', 'c', 'd']
 	 * 
-	 * @param moduleTargets list of dot separated string resemble a module target path
+	 * @param moduleTargetTokens list of dot separated string resemble a module target path
 	 * @return Source Object which provides stream object for parser to use
 	 */
 	Source find( List< String > moduleTargetTokens, URI source ) throws ModuleNotFoundException;

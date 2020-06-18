@@ -60,10 +60,6 @@ public class ModuleRecord {
 		return symbolTable;
 	}
 
-	public void setSymbolTable( SymbolTable symbolTable ) {
-		this.symbolTable = symbolTable;
-	}
-
 	/**
 	 * replace the temporary wild card symbol with the list of symbols.
 	 * 
