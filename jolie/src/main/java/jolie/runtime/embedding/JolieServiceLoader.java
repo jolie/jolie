@@ -71,6 +71,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		interpreter = new Interpreter(
 			commandLineParser.getInterpreterConfiguration(),
 			currInterpreter.programDirectory(),
+			currInterpreter,
 			params );
 	}
 
@@ -95,6 +96,8 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 			Exception e = f.get();
 			if( e == null ) {
 				setChannel( interpreter.commCore().getLocalCommChannel() );
+				// register this interpreter as a running child to the parent
+				interpreter.parentInterpreter().addInterpreterChild( interpreter );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}

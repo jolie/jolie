@@ -52,7 +52,8 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 			commandLineParser.getInterpreterConfiguration(),
 			currInterpreter.programDirectory(),
 			currInterpreter,
-			program );
+			program,
+			true );
 	}
 
 	@Override
@@ -63,6 +64,8 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 			Exception e = f.get();
 			if( e == null ) {
 				setChannel( interpreter.commCore().getLocalCommChannel() );
+				// register this interpreter as a running child to the parent
+				interpreter.parentInterpreter().addInterpreterChild( interpreter );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}

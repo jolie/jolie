@@ -31,7 +31,19 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -72,7 +84,15 @@ import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
-import jolie.runtime.*;
+import jolie.runtime.FaultException;
+import jolie.runtime.InputOperation;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
+import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.TimeoutHandler;
+import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
+import jolie.runtime.ValueVector;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
@@ -227,6 +247,8 @@ public class Interpreter {
 	private Program internalServiceProgram = null;
 	private final Value receivingEmbeddedValue;
 	private Interpreter parentInterpreter = null;
+	private boolean isInternal = false;
+	private final Collection< Interpreter > interpreterChildren = new ArrayList<>();
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
 	private volatile boolean exiting = false;
@@ -246,6 +268,7 @@ public class Interpreter {
 	private final HashMap< String, Object > locksMap = new HashMap<>();
 
 	private final String[] includePaths;
+
 
 	private final String logPrefix;
 	private final Tracer tracer;
@@ -276,7 +299,12 @@ public class Interpreter {
 
 	public void setMonitor( OutputPort monitor ) {
 		this.monitor = monitor;
+		interpreterChildren.stream().forEach( i -> i.setMonitor( monitor ) );
 		fireMonitorEvent( new MonitorAttachedEvent() );
+	}
+
+	public OutputPort getMonitor() {
+		return monitor;
 	}
 
 	public boolean isMonitoring() {
@@ -560,6 +588,7 @@ public class Interpreter {
 		embeddedServiceLoaders.add( n );
 	}
 
+
 	/**
 	 * Returns the <code>EmbeddedServiceLoader</code> instances registered on this interpreter.
 	 * 
@@ -567,6 +596,26 @@ public class Interpreter {
 	 */
 	public Collection< EmbeddedServiceLoader > embeddedServiceLoaders() {
 		return embeddedServiceLoaders;
+	}
+
+	/**
+	 * Add an interpreter as a child of the current one
+	 * 
+	 * @param interpreter
+	 */
+	public void addInterpreterChild( Interpreter interpreter ) {
+		interpreterChildren.add( interpreter );
+	}
+
+	/**
+	 * remove an interpreter as a child of the current one
+	 * 
+	 * @param interpreter
+	 */
+	public void removeInterpreterChild( Interpreter interpreter ) {
+		if( interpreterChildren.contains( interpreter ) ) {
+			interpreterChildren.remove( interpreter );
+		}
 	}
 
 	/**
@@ -630,6 +679,9 @@ public class Interpreter {
 		try {
 			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch( InterruptedException e ) {
+		}
+		if( parentInterpreter != null ) {
+			parentInterpreter.removeInterpreterChild( this );
 		}
 		free();
 	}
@@ -832,6 +884,16 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
+		File programDirectory, Interpreter parentInterpreter, Optional< Value > params )
+		throws IOException {
+		this( configuration, programDirectory, params );
+		this.parentInterpreter = parentInterpreter;
+		if( parentInterpreter != null ) {
+			setMonitor( this.parentInterpreter.getMonitor() );
+		}
+	}
+
+	public Interpreter( Configuration configuration,
 		File programDirectory, Optional< Value > params )
 		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
@@ -899,11 +961,15 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
-		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
+		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram, boolean isInternal )
 		throws FileNotFoundException, IOException {
 		this( configuration, programDirectory, Optional.empty() );
 
 		this.parentInterpreter = parentInterpreter;
+		this.isInternal = isInternal;
+		if( this.parentInterpreter != null ) {
+			setMonitor( this.parentInterpreter.getMonitor() );
+		}
 		this.internalServiceProgram = internalServiceProgram;
 	}
 
@@ -941,6 +1007,10 @@ public class Interpreter {
 
 	public Interpreter parentInterpreter() {
 		return parentInterpreter;
+	}
+
+	public boolean isInternal() {
+		return isInternal;
 	}
 
 	/**
@@ -1172,6 +1242,7 @@ public class Interpreter {
 		 * We help the Java(tm) Garbage Collector. Looks like it needs this or the Interpreter does not get
 		 * collected.
 		 */
+		monitor = null;
 		definitions.clear();
 		inputOperations.clear();
 		locksMap.clear();
@@ -1182,6 +1253,8 @@ public class Interpreter {
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
 		configuration.clear();
+		interpreterChildren.clear();
+		parentInterpreter = null;
 		commCore = null;
 		// System.gc();
 	}
