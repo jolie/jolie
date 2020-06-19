@@ -192,6 +192,17 @@ define doTest
 		throw( TestFailed, "Expected Type Mismatch because f6 value is out of the range" )
 	}
 
+	// check infinite
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f4 = 1100000
+		f5 = 1100000L
+		f6 = 1100000.0
+	}
+	constrainedString@Server( req )()
 
 
 	shutdown@Server()

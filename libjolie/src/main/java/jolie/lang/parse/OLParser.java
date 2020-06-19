@@ -463,10 +463,14 @@ public class OLParser extends AbstractParser {
 		ArrayList< Integer > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.INT ) {
+			if( token.type() != Scanner.TokenType.INT && token.type() != Scanner.TokenType.ASTERISK ) {
 				throwException( "Expected a parameter of type integer, found " + token.content() );
 			}
-			arrayList.add( new Integer( token.content() ) );
+			if( token.type() == Scanner.TokenType.INT ) {
+				arrayList.add( new Integer( token.content() ) );
+			} else {
+				arrayList.add( Integer.MAX_VALUE );
+			}
 			getToken();
 			if( token.type() == Scanner.TokenType.COMMA ) {
 				getToken();
@@ -526,10 +530,14 @@ public class OLParser extends AbstractParser {
 		ArrayList< Double > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.DOUBLE ) {
+			if( token.type() != Scanner.TokenType.DOUBLE && token.type() != Scanner.TokenType.ASTERISK ) {
 				throwException( "Expected a parameter of type string, found " + token.content() );
 			}
-			arrayList.add( new Double( token.content() ) );
+			if( token.type() == Scanner.TokenType.DOUBLE ) {
+				arrayList.add( new Double( token.content() ) );
+			} else {
+				arrayList.add( Double.MAX_VALUE );
+			}
 			getToken();
 			if( token.type() == Scanner.TokenType.COMMA ) {
 				getToken();
@@ -558,10 +566,14 @@ public class OLParser extends AbstractParser {
 		ArrayList< Long > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.LONG ) {
+			if( token.type() != Scanner.TokenType.LONG && token.type() != Scanner.TokenType.ASTERISK ) {
 				throwException( "Expected a parameter of type string, found " + token.content() );
 			}
-			arrayList.add( new Long( token.content() ) );
+			if( token.type() == Scanner.TokenType.LONG ) {
+				arrayList.add( new Long( token.content() ) );
+			} else {
+				arrayList.add( Long.MAX_VALUE );
+			}
 			getToken();
 			if( token.type() == Scanner.TokenType.COMMA ) {
 				getToken();
