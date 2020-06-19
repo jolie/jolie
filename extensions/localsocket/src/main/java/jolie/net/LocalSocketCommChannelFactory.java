@@ -43,7 +43,7 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory {
 			throw new FileNotFoundException( "Local socket path not specified!" );
 		}
 		UnixSocket socket = new UnixSocket(
-			new UnixSocketAddress( path, location.getHost() != null ? location.getHost().equals( "abs" ) : false ) );
+			new UnixSocketAddress( path, location.getHost() != null && location.getHost().equals( "abs" ) ) );
 		CommChannel ret = null;
 		try {
 			ret = new LocalSocketCommChannel( socket, location, port.getProtocol() );

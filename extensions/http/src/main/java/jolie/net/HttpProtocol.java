@@ -1020,7 +1020,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void parseMultiPartFormData( HttpMessage message, Value value, String charset )
+	private void parseMultiPartFormData( HttpMessage message, Value value )
+		// , String charset )
 		throws IOException {
 		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
 		multiPartFormDataParser.parse();
@@ -1226,7 +1227,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if( "text/xml".equals( type ) || type.contains( "xml" ) ) {
 			parseXML( message, decodedMessage.value, charset );
 		} else if( "multipart/form-data".equals( type ) ) {
-			parseMultiPartFormData( message, decodedMessage.value, charset );
+			parseMultiPartFormData( message, decodedMessage.value );
 		} else if( "application/octet-stream".equals( type ) || type.startsWith( "image/" )
 			|| "application/zip".equals( type ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );

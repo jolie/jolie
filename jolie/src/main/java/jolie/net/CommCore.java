@@ -756,7 +756,7 @@ public class CommCore {
 
 	private class SelectorThread extends NativeJolieThread {
 		// We use a custom class for debugging purposes (the profiler gives us the class name)
-		private class SelectorMutex extends Object {
+		private class SelectorMutex {
 		}
 
 		private final Selector selector;

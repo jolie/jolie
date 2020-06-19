@@ -229,9 +229,11 @@ public class XmlUtils {
 							_valueToDocument( v, childElement, doc, currElementDecl.getType() );
 							k++;
 						}
-					} else if( children[ i ].getMinOccurs() > 0 ) {
-						// TODO throw some error here
 					}
+					// TODO throw an error if the following condition occurs here
+					// else if( children[ i ].getMinOccurs() > 0 ) {
+					// // TODO throw some error here
+					// }
 				} else if( currTerm.isModelGroupDecl() ) {
 					_valueToDocument( value, element, doc, currTerm.asModelGroupDecl().getModelGroup() );
 				} else if( currTerm.isModelGroup() ) {
@@ -257,9 +259,11 @@ public class XmlUtils {
 						found = true;
 						v = vec.remove( 0 );
 						_valueToDocument( v, childElement, doc, currElementDecl.getType() );
-					} else if( children[ i ].getMinOccurs() > 0 ) {
-						// TODO throw some error here
 					}
+					// TODO throw error if following condition occurs
+					// else if( children[ i ].getMinOccurs() > 0 ) {
+					// // TODO throw some error here
+					// }
 				} else if( currTerm.isModelGroupDecl() ) {
 					_valueToDocument( value, element, doc, currTerm.asModelGroupDecl().getModelGroup() );
 				} else if( currTerm.isModelGroup() ) {
@@ -526,7 +530,7 @@ public class XmlUtils {
 		} else if( type.equals( "double" ) ) {
 			value.setValue( new Double( builder.toString() ) );
 		} else if( type.equals( "bool" ) ) {
-			value.setValue( new Boolean( builder.toString() ) );
+			value.setValue( Boolean.valueOf( builder.toString() ) );
 		}
 	}
 

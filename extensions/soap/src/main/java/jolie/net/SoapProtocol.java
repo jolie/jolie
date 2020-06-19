@@ -729,7 +729,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						Parameters.HTTP_BASIC_AUTHENTICATION );
 				} else {
 					basicAuthValue = getParameterFirstValue( Parameters.HTTP_BASIC_AUTHENTICATION );
-				} ;
+				}
 				userpass =
 					basicAuthValue.getFirstChild( "userid" ).strValue() + ":" +
 						basicAuthValue.getFirstChild( "password" ).strValue();
@@ -1084,8 +1084,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
 		if( content != null ) {
 			ostream.write( content.getBytes() );
-		} ;
-
+		}
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )

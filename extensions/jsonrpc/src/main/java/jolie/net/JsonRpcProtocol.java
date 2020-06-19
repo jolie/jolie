@@ -156,8 +156,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			// if we are in LSP, we want to be sure the message to be
 			// a response to a request in order to send it with
 			// the fields "results" and "id"
-			boolean check = isLsp ? isRR : true;
-			if( inInputPort && check ) {
+			// boolean check = isLsp ? isRR : true;
+			if( inInputPort && (isRR || !isLsp) ) {
 				value.getChildren( "result" ).set( 0, message.value() );
 				String jsonRpcId = jsonRpcIdMap.get( message.id() );
 				value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );

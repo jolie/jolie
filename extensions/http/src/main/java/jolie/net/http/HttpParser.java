@@ -28,7 +28,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
+
 import jolie.lang.parse.Scanner;
 import jolie.net.ChannelClosingException;
 
@@ -46,10 +46,10 @@ public class HttpParser {
 	private static final String PUT = "PUT";
 	private static final String HEAD = "HEAD";
 	private static final String DELETE = "DELETE";
-	private static final String TRACE = "TRACE";
-	private static final String CONNECT = "CONNECT";
+	// private static final String TRACE = "TRACE";
+	// private static final String CONNECT = "CONNECT";
 	private static final String OPTIONS = "OPTIONS";
-	private static final String PATCH = "PATCH";
+	// private static final String PATCH = "PATCH";
 
 	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
 	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
@@ -64,7 +64,8 @@ public class HttpParser {
 
 	public HttpParser( InputStream istream )
 		throws IOException {
-		scanner = new HttpScanner( istream, URI.create( "urn:network" ) );
+		scanner = new HttpScanner( istream );
+		// , URI.create( "urn:network" ) );
 	}
 
 	private void tokenAssert( Scanner.TokenType type )

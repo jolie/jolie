@@ -284,7 +284,7 @@ public class Scanner {
 		 */
 		public boolean isEOF()
 		{
-			return ( type == TokenType.EOF );
+			return type == TokenType.EOF;
 		}
 
 		/**
@@ -295,7 +295,7 @@ public class Scanner {
 		 */
 		public boolean is( TokenType compareType )
 		{
-			return ( type == compareType );
+			return type == compareType;
 		}
 
 		/**
@@ -306,7 +306,7 @@ public class Scanner {
 		 */
 		public boolean isNot( TokenType compareType )
 		{
-			return ( type != compareType );
+			return type != compareType;
 		}
 
 		/**
@@ -318,7 +318,7 @@ public class Scanner {
 		 */
 		public boolean isKeyword( String keyword )
 		{
-			return ( type == TokenType.ID && content.equals( keyword ) );
+			return type == TokenType.ID && content.equals( keyword );
 		}
 
 		/**
@@ -329,7 +329,7 @@ public class Scanner {
 		 */
 		public boolean isIdentifier()
 		{
-			return ( type == TokenType.ID || isUnreservedKeyword );
+			return type == TokenType.ID || isUnreservedKeyword;
 		}
 
 		/**
@@ -340,7 +340,7 @@ public class Scanner {
 		 */
 		public boolean isKeywordIgnoreCase( String keyword )
 		{
-			return ( type == TokenType.ID && content.equalsIgnoreCase( keyword ) );
+			return type == TokenType.ID && content.equalsIgnoreCase( keyword );
 		}
 	}
 
@@ -496,7 +496,7 @@ public class Scanner {
 	 */
 	private static boolean isOverflowChar( char c )
 	{
-		return ( (int) c >= Character.MAX_VALUE );
+		return (int) c >= Character.MAX_VALUE;
 	}
 
 	/**
@@ -507,7 +507,7 @@ public class Scanner {
 	 */
 	public static boolean isNewLineChar( char c )
 	{
-		return ( c == '\n' || c == '\r' );
+		return c == '\n' || c == '\r';
 	}
 
 	/**

@@ -898,10 +898,10 @@ public class OLParseTreeOptimizer {
 	}
 
 	public static Program optimize( Program originalProgram ) {
-		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
+		return new OptimizerVisitor( originalProgram.context() ).optimize( originalProgram );
 	}
 
 	public static OLSyntaxNode optimize( OLSyntaxNode node ) {
-		return (new OptimizerVisitor( node.context() )).optimize( node );
+		return new OptimizerVisitor( node.context() ).optimize( node );
 	}
 }

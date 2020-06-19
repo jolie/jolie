@@ -279,10 +279,10 @@ public class WSDLDocCreator {
 				TypeDefinition curType = ((Entry< String, TypeDefinition >) it.next()).getValue();
 				Element subEl = schemaDocument.createElement( "xs:element" );
 				subEl.setAttribute( "name", curType.id() );
-				subEl.setAttribute( "minOccurs", new Integer( curType.cardinality().min() ).toString() );
+				subEl.setAttribute( "minOccurs", Integer.toString( curType.cardinality().min() ) );
 				String maxOccurs = "unbounded";
 				if( curType.cardinality().max() < MAX_CARD ) {
-					maxOccurs = new Integer( curType.cardinality().max() ).toString();
+					maxOccurs = Integer.toString( curType.cardinality().max() );
 				}
 				subEl.setAttribute( "maxOccurs", maxOccurs );
 				if( curType instanceof TypeInlineDefinition ) {

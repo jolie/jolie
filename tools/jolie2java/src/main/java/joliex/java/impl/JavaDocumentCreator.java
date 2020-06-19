@@ -28,7 +28,6 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -983,7 +982,7 @@ public class JavaDocumentCreator {
 		/* appending package */
 		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
 		/* appending imports */
-		appendingImportsIfNecessary( outputFileText, typeDefinition );
+		appendingImportsIfNecessary( outputFileText );
 
 		/* writing main class */
 		indentation = 0;
@@ -1051,7 +1050,7 @@ public class JavaDocumentCreator {
 		}
 	}
 
-	private void appendingChoicesVaiableDeclaration( TypeDefinition type, StringBuilder stringBuilder, String className,
+	private void appendingChoicesVaiableDeclaration( TypeDefinition type, StringBuilder stringBuilder,
 		int choiceCount ) {
 		if( Utils.hasSubTypes( type ) ) {
 			String variableTypeName = getVariableTypeName( type );
@@ -1217,12 +1216,12 @@ public class JavaDocumentCreator {
 
 	private void appendingChoicesVariables( TypeChoiceDefinition typeChoiceDefinition, StringBuilder stringBuilder,
 		String className, int choiceCount ) {
-		appendingChoicesVaiableDeclaration( typeChoiceDefinition.left(), stringBuilder, className, choiceCount );
+		appendingChoicesVaiableDeclaration( typeChoiceDefinition.left(), stringBuilder, choiceCount );
 		if( typeChoiceDefinition.right() instanceof TypeChoiceDefinition ) {
 			appendingChoicesVariables( (TypeChoiceDefinition) typeChoiceDefinition.right(), stringBuilder, className,
 				choiceCount + 1 );
 		} else {
-			appendingChoicesVaiableDeclaration( typeChoiceDefinition.right(), stringBuilder, className,
+			appendingChoicesVaiableDeclaration( typeChoiceDefinition.right(), stringBuilder,
 				choiceCount + 1 );
 		}
 
@@ -1260,7 +1259,7 @@ public class JavaDocumentCreator {
 		stringBuilder.append( "}\n" );
 	}
 
-	private void appendingImportsIfNecessary( StringBuilder stringBuilder, TypeDefinition type ) {
+	private void appendingImportsIfNecessary( StringBuilder stringBuilder ) {
 
 		stringBuilder.append( "import jolie.runtime.embedding.Jolie2JavaInterface;\n" );
 		stringBuilder.append( "import jolie.runtime.Value;\n" );
@@ -1967,10 +1966,6 @@ public class JavaDocumentCreator {
 					appendingIndentation( stringBuilder );
 					stringBuilder.append( "}\n" );
 				}
-
-				if( subType instanceof TypeChoiceDefinition ) {
-
-				}
 			}
 		}
 
@@ -2149,21 +2144,21 @@ public class JavaDocumentCreator {
 		}
 	}
 
-	private Set< NativeType > getTypes( TypeDefinition typeDefinition ) {
-		Set< NativeType > choiceTypes = new HashSet<>();
-		if( typeDefinition instanceof TypeChoiceDefinition ) {
-			choiceTypes = getTypes( ((TypeChoiceDefinition) typeDefinition).left() );
-			Set< NativeType > right = getTypes( ((TypeChoiceDefinition) typeDefinition).right() );
-			if( right != null ) {
-				choiceTypes.addAll( right );
-			}
-		} else if( typeDefinition instanceof TypeDefinitionLink ) {
-			return getTypes( ((TypeDefinitionLink) typeDefinition).linkedType() );
-		} else if( typeDefinition instanceof TypeInlineDefinition ) {
-			choiceTypes.add( ((TypeInlineDefinition) typeDefinition).nativeType() );
-		}
-		return choiceTypes;
-	}
+	// private Set< NativeType > getTypes( TypeDefinition typeDefinition ) {
+	// Set< NativeType > choiceTypes = new HashSet<>();
+	// if( typeDefinition instanceof TypeChoiceDefinition ) {
+	// choiceTypes = getTypes( ((TypeChoiceDefinition) typeDefinition).left() );
+	// Set< NativeType > right = getTypes( ((TypeChoiceDefinition) typeDefinition).right() );
+	// if( right != null ) {
+	// choiceTypes.addAll( right );
+	// }
+	// } else if( typeDefinition instanceof TypeDefinitionLink ) {
+	// return getTypes( ((TypeDefinitionLink) typeDefinition).linkedType() );
+	// } else if( typeDefinition instanceof TypeInlineDefinition ) {
+	// choiceTypes.add( ((TypeInlineDefinition) typeDefinition).nativeType() );
+	// }
+	// return choiceTypes;
+	// }
 
 	private boolean isNativeTypeUndefined( String t ) {
 		return t.equals( "undefined" );
