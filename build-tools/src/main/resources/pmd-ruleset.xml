@@ -34,13 +34,6 @@
 		<exclude name="AccessorMethodGeneration" />
 	</rule>
 
-	<!-- <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP" />
-	<rule ref="category/java/bestpractices.xml/CheckResultSet" />
-	<rule ref="category/java/bestpractices.xml/UnusedImports" />
-	<rule ref="category/java/bestpractices.xml/UnusedLocalVariable" />
-	<rule ref="category/java/bestpractices.xml/UnusedPrivateField" />
-	<rule ref="category/java/bestpractices.xml/UnusedPrivateMethod" /> -->
-
 	<rule ref="category/java/codestyle.xml">
 		<!-- To be added -->
 		<exclude name="BooleanGetMethodName" />
@@ -84,7 +77,37 @@
 	<rule ref="category/java/design.xml/SimplifiedTernary" />
 	<rule ref="category/java/design.xml/UselessOverridingMethod" />
 
-	<rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
+	<rule ref="category/java/errorprone.xml">
+		<exclude name="CloseResource" />
+		<exclude name="AvoidCatchingNPE" />
+		<exclude name="AvoidInstanceofChecksInCatchClause" />
+		<exclude name="ConstructorCallsOverridableMethod" />
+		<exclude name="MissingBreakInSwitch" />
+		<exclude name="AssignmentInOperand" />
+		<exclude name="SimpleDateFormatNeedsLocale" />
+		<exclude name="EmptyCatchBlock" />
+		<exclude name="SuspiciousEqualsMethodName" />
+		<exclude name="MissingStaticMethodInNonInstantiatableClass" />
+		<exclude name="CloneThrowsCloneNotSupportedException" />
+		<exclude name="ProperCloneImplementation" />
+		<exclude name="CompareObjectsWithEquals" />
+		<exclude name="UseProperClassLoader" />
+		<exclude name="NullAssignment" />
+		<exclude name="AvoidDuplicateLiterals" />
+		<exclude name="MissingSerialVersionUID" />
+		<exclude name="BeanMembersShouldSerialize" />
+		<exclude name="AvoidLiteralsInIfCondition" />
+		<exclude name="DataflowAnomalyAnalysis" />
+		<exclude name="UseLocaleWithCaseConversions" />
+
+		<!-- Under evaluation -->
+		<exclude name="DoNotThrowExceptionInFinally" />
+		
+		<!-- Excluded -->
+		<exclude name="AvoidFieldNameMatchingMethodName" />
+		<exclude name="DoNotCallSystemExit" />
+	</rule>
+	<!-- <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
 	<rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor" />
 	<rule ref="category/java/errorprone.xml/AvoidMultipleUnaryOperators" />
 	<rule ref="category/java/errorprone.xml/AvoidUsingOctalValues" />
@@ -109,7 +132,7 @@
 	<rule ref="category/java/errorprone.xml/UnconditionalIfStatement" />
 	<rule ref="category/java/errorprone.xml/UnnecessaryConversionTemporary" />
 	<rule ref="category/java/errorprone.xml/UnusedNullCheckInEquals" />
-	<rule ref="category/java/errorprone.xml/UselessOperationOnImmutable" />
+	<rule ref="category/java/errorprone.xml/UselessOperationOnImmutable" /> -->
 
 	<rule ref="category/java/multithreading.xml/DontCallThreadRun" />
 	<rule ref="category/java/multithreading.xml/DoubleCheckedLocking" />
