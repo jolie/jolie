@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
+
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -47,7 +48,6 @@ import jolie.util.Range;
  */
 public class SurfaceCreator {
 	private ProgramInspector inspector;
-	private URI originalFile;
 	private ArrayList< RequestResponseOperationDeclaration > rr_vector;
 	private ArrayList< OneWayOperationDeclaration > ow_vector;
 	private ArrayList< String > types_vector;
@@ -56,10 +56,7 @@ public class SurfaceCreator {
 
 
 	public SurfaceCreator( ProgramInspector inspector, URI originalFile ) {
-
 		this.inspector = inspector;
-		this.originalFile = originalFile;
-
 	}
 
 	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation,
@@ -153,7 +150,7 @@ public class SurfaceCreator {
 		if( max == MAX_CARD ) {
 			return "*";
 		} else {
-			return new Integer( max ).toString();
+			return Integer.toString( max );
 		}
 	}
 
@@ -289,7 +286,7 @@ public class SurfaceCreator {
 			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList< TypeDefinition >();
 			aux_types_temp_vector.addAll( aux_types_vector );
 			aux_types_vector.clear();
-			Iterator it = aux_types_temp_vector.iterator();
+			Iterator< TypeDefinition > it = aux_types_temp_vector.iterator();
 			while( it.hasNext() ) {
 				printType( getType( (TypeDefinition) it.next() ) );
 			}

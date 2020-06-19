@@ -74,7 +74,7 @@ public class MathService extends JavaService {
 		double power = Math.pow( 10, decimals );
 		double ret = orig * power;
 		if( ret == Double.POSITIVE_INFINITY ) {
-			BigDecimal b = new BigDecimal( orig );
+			BigDecimal b = BigDecimal.valueOf( orig );
 			b = b.setScale( decimals, BigDecimal.ROUND_HALF_UP );
 			ret = b.doubleValue();
 		} else {

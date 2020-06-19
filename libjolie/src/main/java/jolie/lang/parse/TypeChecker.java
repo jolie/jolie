@@ -561,10 +561,8 @@ public class TypeChecker implements OLVisitor {
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if( !sessionStarter && !insideInit ) {
-			if( cset == null || cset.variables().isEmpty() ) {
-				error( n, "No correlation set defined for operation " + n.id() );
-			}
+		if( !sessionStarter && !insideInit && (cset == null || cset.variables().isEmpty()) ) {
+			error( n, "No correlation set defined for operation " + n.id() );
 		}
 		if( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
@@ -597,10 +595,8 @@ public class TypeChecker implements OLVisitor {
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if( !sessionStarter && !insideInit ) {
-			if( cset == null || cset.variables().isEmpty() ) {
-				error( n, "No correlation set defined for operation " + n.id() );
-			}
+		if( !sessionStarter && !insideInit && (cset == null || cset.variables().isEmpty()) ) {
+			error( n, "No correlation set defined for operation " + n.id() );
 		}
 
 		if( cset != null ) {

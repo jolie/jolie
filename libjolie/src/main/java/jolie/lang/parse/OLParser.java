@@ -672,6 +672,7 @@ public class OLParser extends AbstractParser {
 					try {
 						return new URL( tmpUrl.substring( 0, 4 ) + tmpUrl.substring( 4 ) );
 					} catch( Exception exn ) {
+						return null;
 					}
 				} else if( filename.startsWith( "./" ) ) {
 					String tmpPath = path;
@@ -696,8 +697,8 @@ public class OLParser extends AbstractParser {
 				return new URL( new URI( urlStr ).normalize().toString() );
 			}
 		} catch( MalformedURLException | URISyntaxException e ) {
+			return null;
 		}
-		return null;
 	}
 
 	private IncludeFile retrieveIncludeFile( final String context, final String target )
@@ -1797,11 +1798,12 @@ public class OLParser extends AbstractParser {
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 
 			startBackup();
-			VariablePathNode leftPath = null;
+			VariablePathNode leftPath;
 
 			try {
 				leftPath = parseVariablePath();
 			} catch( ParserException e ) {
+				leftPath = null;
 			}
 
 			if( leftPath != null && token.isKeyword( "in" ) ) {

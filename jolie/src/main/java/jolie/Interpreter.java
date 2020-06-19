@@ -849,17 +849,9 @@ public class Interpreter {
 	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,
 		File programDirectory )
 		throws IOException {
-		this( parentClassLoader, interpreterParameters, programDirectory, false );
-	}
-
-	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,
-		File programDirectory, boolean ignoreFile )
-		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.parentClassLoader = parentClassLoader;
 		this.interpreterParameters = interpreterParameters;
-
-
 
 		switch( interpreterParameters.tracerLevel() ) {
 		case "comm":
@@ -923,7 +915,7 @@ public class Interpreter {
 	public Interpreter( InterpreterParameters interpreterParameters, ClassLoader parentClassLoader,
 		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws FileNotFoundException, IOException {
-		this( parentClassLoader, interpreterParameters, programDirectory, true );
+		this( parentClassLoader, interpreterParameters, programDirectory );
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;

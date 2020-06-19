@@ -337,15 +337,15 @@ class RootValueImpl extends Value implements Cloneable {
 class CSetValue extends ValueImpl {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	@Override
-	public void setValueObject( Object object ) {
-		// CommCore commCore = Interpreter.getInstance().commCore();
-		// synchronized( commCore.correlationLock() )
-		// removeFromRadixTree();
-		super.setValueObject( object );
-		// addToRadixTree();
-		// }
-	}
+	// @Override
+	// public void setValueObject( Object object ) {
+	// // CommCore commCore = Interpreter.getInstance().commCore();
+	// // synchronized( commCore.correlationLock() )
+	// // removeFromRadixTree();
+	// super.setValueObject( object );
+	// // addToRadixTree();
+	// // }
+	// }
 
 	@Override
 	public CSetValue clone() {

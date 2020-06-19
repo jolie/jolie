@@ -67,7 +67,6 @@ public class CommandLineParser implements Closeable {
 	private final static String OPTION_SEPARATOR = " ";
 
 	private final int connectionsLimit;
-	private final int connectionsCache;
 	private final CorrelationEngine.Type correlationAlgorithmType;
 	private final String[] includePaths;
 	private final String[] optionArgs;
@@ -224,15 +223,6 @@ public class CommandLineParser implements Closeable {
 		return responseTimeout;
 	}
 
-	/**
-	 * Returns the connection cache parameter passed by command line with the --conncache option.
-	 * 
-	 * @return the connection cache parameter passed by command line
-	 */
-	private int connectionsCache() {
-		return connectionsCache;
-	}
-
 	private static String getOptionString( String option, String description ) {
 		return ('\t' + option + "\t\t" + description + '\n');
 	}
@@ -269,9 +259,6 @@ public class CommandLineParser implements Closeable {
 				+ "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) );
 		helpBuilder.append(
 			getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
-		helpBuilder.append(
-			getOptionString( "--conncache [number]",
-				"Set the maximum number of cached persistent output connections" ) );
 		helpBuilder.append(
 			getOptionString( "--responseTimeout [number]",
 				"Set the timeout for request-response invocations (in milliseconds)" ) );
@@ -418,7 +405,6 @@ public class CommandLineParser implements Closeable {
 		Deque< String > includeList = new LinkedList<>();
 		List< String > libList = new ArrayList<>();
 		int cLimit = -1;
-		int cCache = 100;
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
 		includeList.add( pwd );
@@ -469,11 +455,6 @@ public class CommandLineParser implements Closeable {
 				optionsList.add( argsList.get( i ) );
 				i++;
 				cLimit = Integer.parseInt( argsList.get( i ) );
-				optionsList.add( argsList.get( i ) );
-			} else if( "--conncache".equals( argsList.get( i ) ) ) {
-				optionsList.add( argsList.get( i ) );
-				i++;
-				cCache = Integer.parseInt( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
 			} else if( "--responseTimeout".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -624,7 +605,6 @@ public class CommandLineParser implements Closeable {
 		}
 
 		connectionsLimit = cLimit;
-		connectionsCache = cCache;
 		responseTimeout = rTimeout;
 
 		List< URL > urls = new ArrayList<>();
@@ -707,10 +687,6 @@ public class CommandLineParser implements Closeable {
 	 * parent.getAbsolutePath(); includeList.add( parentPath ); includeList.add( parentPath + "/include"
 	 * ); libList.add( parentPath ); libList.add( parentPath + "/lib" ); } } }
 	 */
-
-	private boolean printStackTraces() {
-		return printStackTraces;
-	}
 
 	/**
 	 * Returns the directory in which the main program is located.
@@ -929,7 +905,6 @@ public class CommandLineParser implements Closeable {
 	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
 		InterpreterParameters interpreterParameters = new InterpreterParameters(
 			connectionsLimit(),
-			connectionsCache(),
 			correlationAlgorithmType(),
 			includePaths(),
 			optionArgs(),
@@ -946,6 +921,7 @@ public class CommandLineParser implements Closeable {
 			tracerLevel(),
 			tracerMode(),
 			check(),
+			printStackTraces,
 			responseTimeout(),
 			logLevel(),
 			programDirectory() );

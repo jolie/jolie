@@ -497,11 +497,14 @@ public class FileService extends JavaService {
 					XSOMParser parser = new XSOMParser();
 					parser.parse( schemaFilename );
 					XSSchemaSet schemaSet = parser.getResult();
-					if( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
-						// type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
-					} else if( schemaSet == null || schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
-						System.out.println( "Root element " + rootName + " with namespace " + rootNameSpace
+					// if( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
+					// type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
+					// } else
+					if( schemaSet == null || schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
+						throw new IOException( "Root element " + rootName + " with namespace " + rootNameSpace
 							+ " not found in the schema " + schemaFilename );
+						// System.out.println( "Root element " + rootName + " with namespace " + rootNameSpace
+						// + " not found in the schema " + schemaFilename );
 					}
 				} catch( SAXException e ) {
 					throw new IOException( e );
@@ -701,10 +704,7 @@ public class FileService extends JavaService {
 		} catch( InvalidPathException e ) {
 			throw new FaultException( e );
 		}
-		final boolean fileInfo =
-			(request.getFirstChild( "info" ).isDefined())
-				? request.getFirstChild( "info" ).boolValue()
-				: false;
+		final boolean fileInfo = request.firstChildOrDefault( "info", Value::boolValue, false );
 
 		final String regex = request.firstChildOrDefault(
 			"regex",

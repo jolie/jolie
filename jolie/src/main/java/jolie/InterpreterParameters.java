@@ -17,7 +17,6 @@ import jolie.util.UriUtils;
 
 public class InterpreterParameters {
 	private Integer connectionsLimit = -1;
-	private Integer connectionCache = 100;
 	private CorrelationEngine.Type correlationAlgorithm = CorrelationEngine.Type.SIMPLE;
 	private final Deque< String > includePaths = new LinkedList<>();
 	private final Deque< String > optionArgs = new LinkedList<>();
@@ -47,7 +46,6 @@ public class InterpreterParameters {
 	}
 
 	public InterpreterParameters( int connectionsLimit,
-		int connectionCache,
 		CorrelationEngine.Type correlationAlgorithm,
 		String[] includeList,
 		String[] optionArgs,
@@ -64,13 +62,12 @@ public class InterpreterParameters {
 		String tracerLevel,
 		String tracerMode,
 		boolean check,
+		boolean printStackTraces,
 		long responseTimeout,
 		Level logLevel,
 		File programDirectory ) throws IOException {
 
-		super();
 		this.connectionsLimit = connectionsLimit;
-		this.connectionCache = connectionCache;
 		this.correlationAlgorithm = correlationAlgorithm;
 		includePaths.clear();
 		Collections.addAll( this.includePaths, includeList );
@@ -89,6 +86,7 @@ public class InterpreterParameters {
 		this.tracerLevel = tracerLevel;
 		this.tracerMode = tracerMode;
 		this.check = check;
+		this.printStackTraces = printStackTraces;
 		this.responseTimeout = responseTimeout;
 		this.logLevel = logLevel;
 		this.programDirectory = programDirectory;

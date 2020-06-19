@@ -326,7 +326,7 @@ public class MetaJolie extends JavaService {
 
 
 		for( String operationName : opkeylist ) {
-			Value current_operation = Value.create();;
+			Value current_operation = Value.create();
 			OperationDeclaration operationDeclaration = operationMap.get( operationName );
 			if( operationDeclaration instanceof OneWayOperationDeclaration ) {
 				OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationDeclaration;
@@ -705,8 +705,8 @@ public class MetaJolie extends JavaService {
 			if( typeToCast.getFirstChild( "root_type" ).getChildren( "int_type" ).size() > 0 ) {
 				response.setValue( message.intValue() );
 			}
-			if( typeToCast.getFirstChild( "root_type" ).getChildren( "void_type" ).size() > 0 ) {
-			}
+			// if( typeToCast.getFirstChild( "root_type" ).getChildren( "void_type" ).size() > 0 ) {
+			// }
 			if( typeToCast.getFirstChild( "root_type" ).getChildren( "long_type" ).size() > 0 ) {
 				response.setValue( message.longValue() );
 			}

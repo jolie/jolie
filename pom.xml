@@ -282,6 +282,7 @@
 					<rulesets>
 						<ruleset>pmd-ruleset.xml</ruleset>
 					</rulesets>
+					<analysisCache>true</analysisCache>
 				</configuration>
 				<executions>
 					<execution>
@@ -300,4 +301,13 @@
 			</plugin>
 		</plugins>
 	</build>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

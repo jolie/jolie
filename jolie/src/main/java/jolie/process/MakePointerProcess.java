@@ -24,7 +24,6 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.tracer.AssignmentTraceAction;
 import jolie.tracer.Tracer;
@@ -39,15 +38,15 @@ public class MakePointerProcess implements Process {
 		this.context = context;
 	}
 
-	private void log( String description, Value value, String name ) {
-		final Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace( () -> new AssignmentTraceAction(
-			AssignmentTraceAction.Type.POINTER,
-			name,
-			description,
-			value,
-			context ) );
-	}
+	// private void log( String description, Value value, String name ) {
+	// final Tracer tracer = Interpreter.getInstance().tracer();
+	// tracer.trace( () -> new AssignmentTraceAction(
+	// AssignmentTraceAction.Type.POINTER,
+	// name,
+	// description,
+	// value,
+	// context ) );
+	// }
 
 
 	public Process copy( TransformationReason reason ) {

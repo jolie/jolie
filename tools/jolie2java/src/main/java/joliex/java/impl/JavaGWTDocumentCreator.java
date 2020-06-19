@@ -258,7 +258,7 @@ public class JavaGWTDocumentCreator {
 
 		String namespaceDir = namespace.replaceAll( "\\.", "/" );
 		ZipEntry zipEntry =
-			new ZipEntry( namespaceDir + "/" + inputPortInfo.id() + "/" + inputPortInfo.id() + "Port.java" );;
+			new ZipEntry( namespaceDir + "/" + inputPortInfo.id() + "/" + inputPortInfo.id() + "Port.java" );
 		zipStream.putNextEntry( zipEntry );
 		byte[] bb = stringBuilder.toString().getBytes();
 		zipStream.write( bb, 0, bb.length );
@@ -279,7 +279,7 @@ public class JavaGWTDocumentCreator {
 		convertClass( typeDefinition, builderHeaderclass );
 
 		String namespaceDir = namespace.replaceAll( "\\.", "/" );
-		ZipEntry zipEntry = new ZipEntry( namespaceDir + "/types/" + typeDefinition.id() + ".java" );;
+		ZipEntry zipEntry = new ZipEntry( namespaceDir + "/types/" + typeDefinition.id() + ".java" );
 		zipStream.putNextEntry( zipEntry );
 		byte[] bb = builderHeaderclass.toString().getBytes();
 		zipStream.write( bb, 0, bb.length );

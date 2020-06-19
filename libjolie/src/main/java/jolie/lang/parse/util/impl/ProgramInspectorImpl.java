@@ -187,7 +187,7 @@ public class ProgramInspectorImpl implements ProgramInspector {
 
 	@Override
 	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies( URI source ) {
-		Map< OLSyntaxNode, List< OLSyntaxNode > > list = behaviouralDependencies.get( source );;
+		Map< OLSyntaxNode, List< OLSyntaxNode > > list = behaviouralDependencies.get( source );
 		if( list == null ) {
 			return new HashMap<>();
 		}
