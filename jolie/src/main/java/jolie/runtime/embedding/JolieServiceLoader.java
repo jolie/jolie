@@ -24,13 +24,11 @@ package jolie.runtime.embedding;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
+
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;
