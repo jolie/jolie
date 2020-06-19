@@ -6,6 +6,10 @@
         Jolie PMD ruleset.
     </description>
 
+	<!-- <rule ref="category/java/bestpractices.xml">
+		<exclude name="UnusedFormalParameter" />
+	</rule> -->
+
 	<rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP" />
 	<rule ref="category/java/bestpractices.xml/CheckResultSet" />
 	<rule ref="category/java/bestpractices.xml/UnusedImports" />
@@ -13,13 +17,45 @@
 	<rule ref="category/java/bestpractices.xml/UnusedPrivateField" />
 	<rule ref="category/java/bestpractices.xml/UnusedPrivateMethod" />
 
-	<rule ref="category/java/codestyle.xml/DontImportJavaLang" />
-	<rule ref="category/java/codestyle.xml/DuplicateImports" />
-	<rule ref="category/java/codestyle.xml/ExtendsObject" />
-	<rule ref="category/java/codestyle.xml/ForLoopShouldBeWhileLoop" />
-	<rule ref="category/java/codestyle.xml/TooManyStaticImports" />
-	<rule ref="category/java/codestyle.xml/UnnecessaryReturn" />
-	<rule ref="category/java/codestyle.xml/UselessQualifiedThis" />
+	<rule ref="category/java/codestyle.xml">
+		<!-- To be added -->
+		<exclude name="BooleanGetMethodName" />
+		<exclude name="LinguisticNaming" />
+		<exclude name="LocalVariableNamingConventions" />
+		<exclude name="ControlStatementBraces" />
+		<exclude name="CallSuperInConstructor" />
+		<exclude name="FormalParameterNamingConventions" />
+		<exclude name="ShortMethodName" />
+		<exclude name="MethodNamingConventions" />
+		<exclude name="AtLeastOneConstructor" />
+		<exclude name="LocalVariableCouldBeFinal" />
+		<exclude name="FieldNamingConventions" />
+		<exclude name="FieldDeclarationsShouldBeAtStartOfClass" />
+		<exclude name="UnnecessaryFullyQualifiedName" />
+		<exclude name="UnnecessaryLocalBeforeReturn" />
+		<exclude name="PrematureDeclaration" />
+		<exclude name="UseDiamondOperator" />
+		<exclude name="IdenticalCatchBranches" />
+		<exclude name="UseUnderscoresInNumericLiterals" />
+		<exclude name="UseShortArrayInitializer" />
+		<exclude name="CommentDefaultAccessModifier" />
+		<exclude name="DefaultPackage" />
+
+		<!-- Under evaluation -->
+		<exclude name="UnnecessaryConstructor" />
+		<exclude name="ClassNamingConventions" />
+		<exclude name="ConfusingTernary" />
+		<exclude name="EmptyMethodInAbstractClassShouldBeAbstract" />
+
+		<!-- Excluded -->
+		<exclude name="ShortVariable" />
+		<exclude name="LongVariable" />
+		<exclude name="ShortClassName" />
+		<exclude name="OnlyOneReturn" />
+		<exclude name="MethodArgumentCouldBeFinal" />
+		<exclude name="UnnecessaryModifier" />
+		<exclude name="UselessParentheses" />
+	</rule>
 
 	<rule ref="category/java/design.xml/SimplifiedTernary" />
 	<rule ref="category/java/design.xml/UselessOverridingMethod" />
@@ -56,7 +92,6 @@
 
 	<rule ref="category/java/performance.xml/BigIntegerInstantiation" />
 	<rule ref="category/java/performance.xml/BooleanInstantiation" />
-
 
 	<!-- Will be added in the future -->
 	<!-- <rule ref="category/java/bestpractices.xml/UnusedFormalParameter" /> -->

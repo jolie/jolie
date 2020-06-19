@@ -74,4 +74,34 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencies>
+		<!-- Basic libs -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>libjolie</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+
+		<!-- Extensions -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>auto</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sodep</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sodeps</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+	</dependencies>
 </project>
