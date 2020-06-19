@@ -23,6 +23,7 @@ package jolie.runtime.correlation;
 
 import java.util.List;
 import java.util.Set;
+
 import jolie.runtime.VariablePath;
 import jolie.util.MultiMap;
 

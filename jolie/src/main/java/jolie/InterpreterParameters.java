@@ -1,15 +1,19 @@
 package jolie;
 
-import jolie.lang.parse.Scanner;
-import jolie.runtime.correlation.CorrelationEngine;
-import jolie.util.UriUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.logging.Level;
+
+import jolie.lang.parse.Scanner;
+import jolie.runtime.correlation.CorrelationEngine;
+import jolie.util.UriUtils;
 
 public class InterpreterParameters {
 	private Integer connectionsLimit = -1;

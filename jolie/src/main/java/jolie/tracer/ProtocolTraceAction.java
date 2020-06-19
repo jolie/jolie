@@ -1,7 +1,6 @@
 package jolie.tracer;
 
 import jolie.lang.parse.context.ParsingContext;
-import jolie.net.CommMessage;
 
 public class ProtocolTraceAction implements TraceAction {
 

@@ -22,9 +22,9 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 public class PostDecrementProcess implements Process, Expression {
 	final private VariablePath path;

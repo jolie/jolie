@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.function.Supplier;
+
 import jolie.Interpreter;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
@@ -213,8 +214,6 @@ public class PrintingTracer implements Tracer {
 				.append( "\t" ).append( action.name() )
 				.append( "\t\t\t" ).append( action.description() );
 			if( action.message() != null ) {
-				Writer writer = new StringWriter();
-
 				stBuilder.append( action.message() );
 			}
 			System.out.println( stBuilder.toString() );

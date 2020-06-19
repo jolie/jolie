@@ -23,6 +23,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;

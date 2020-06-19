@@ -1,14 +1,18 @@
 package jolie.tracer;
 
-import jolie.Interpreter;
-import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.function.Supplier;
+
+import jolie.Interpreter;
+import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 
 public class FileTracer implements Tracer {
 

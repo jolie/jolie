@@ -22,19 +22,40 @@ package joliex.meta;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.*;
-import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OperationDeclaration;
+import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
@@ -43,7 +64,6 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.util.Range;
-import joliex.util.StringUtils;
 
 /**
  *
@@ -612,7 +632,7 @@ public class MetaJolie extends JavaService {
 	}
 
 	private Value findType( ValueVector types, String typeName ) {
-		Iterator iterator = types.iterator();
+		Iterator< Value > iterator = types.iterator();
 		boolean found = false;
 		int index = 0;
 		while( index < types.size() && !found ) {
@@ -1023,7 +1043,6 @@ public class MetaJolie extends JavaService {
 	@RequestResponse
 	public Value getNativeTypeFromString( Value request ) throws FaultException {
 		if( isNativeType( request.getFirstChild( "type_name" ).strValue() ) ) {
-			Value response = Value.create();
 			return getNativeType( request.getFirstChild( "type_name" ).strValue() );
 		} else {
 			throw new FaultException( "NativeTypeDoesNotExist" );

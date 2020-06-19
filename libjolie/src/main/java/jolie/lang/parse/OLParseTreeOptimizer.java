@@ -22,6 +22,7 @@ package jolie.lang.parse;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;

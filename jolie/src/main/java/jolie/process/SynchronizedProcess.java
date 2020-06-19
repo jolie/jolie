@@ -21,9 +21,9 @@
 
 package jolie.process;
 
-import jolie.runtime.FaultException;
 import jolie.Interpreter;
 import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
 
 public class SynchronizedProcess implements Process {
 	final private String id;

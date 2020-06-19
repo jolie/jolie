@@ -23,6 +23,7 @@ package jolie.net.ext;
 
 import java.io.IOException;
 import java.net.URI;
+
 import jolie.net.CommCore;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;

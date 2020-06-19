@@ -24,6 +24,7 @@ package jolie.lang.parse.ast;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;

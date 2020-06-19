@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.regex.Pattern;
+
 import jolie.lang.Constants;
 import jolie.net.CommCore;
 import jolie.net.ext.CommChannelFactory;

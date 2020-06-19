@@ -5,8 +5,7 @@ package joliex.wsdl;
  * and open the template in the editor.
  */
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;

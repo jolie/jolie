@@ -23,6 +23,7 @@
 package jolie.util;
 
 import java.io.Serializable;
+
 import jolie.lang.Constants;
 
 /**

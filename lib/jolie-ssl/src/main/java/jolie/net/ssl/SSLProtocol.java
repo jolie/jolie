@@ -420,7 +420,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 		final SSLResult result = new SSLResult( source.capacity() );
 		result.log = sslEngine.wrap( source, result.buffer );
 		while( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
-			final int appSize = sslEngine.getSession().getApplicationBufferSize();
+			// final int appSize = sslEngine.getSession().getApplicationBufferSize();
 			// Resize "result.buffer" if needed
 			// if ( appSize > result.buffer.capacity() ) {
 			// final ByteBuffer b = ByteBuffer.allocate( appSize );

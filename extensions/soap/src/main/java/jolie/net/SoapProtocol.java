@@ -18,24 +18,15 @@
  */
 package jolie.net;
 
-import com.ibm.wsdl.extensions.schema.SchemaImpl;
-import com.ibm.wsdl.extensions.soap.SOAPBodyImpl;
-import com.ibm.wsdl.extensions.soap.SOAPHeaderImpl;
-import com.sun.xml.xsom.XSAttributeDecl;
-import com.sun.xml.xsom.XSAttributeUse;
-import com.sun.xml.xsom.XSComplexType;
-import com.sun.xml.xsom.XSContentType;
-import com.sun.xml.xsom.XSElementDecl;
-import com.sun.xml.xsom.XSModelGroup;
-import com.sun.xml.xsom.XSModelGroupDecl;
-import com.sun.xml.xsom.XSParticle;
-import com.sun.xml.xsom.XSSchema;
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.XSTerm;
-import com.sun.xml.xsom.XSType;
-import com.sun.xml.xsom.parser.XSOMParser;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Base64;
 import java.util.Collection;
@@ -45,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import javax.wsdl.BindingOperation;
 import javax.wsdl.BindingOutput;
 import javax.wsdl.Definition;
@@ -88,6 +80,32 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+
+import com.ibm.wsdl.extensions.schema.SchemaImpl;
+import com.ibm.wsdl.extensions.soap.SOAPBodyImpl;
+import com.ibm.wsdl.extensions.soap.SOAPHeaderImpl;
+import com.sun.xml.xsom.XSAttributeDecl;
+import com.sun.xml.xsom.XSAttributeUse;
+import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSContentType;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSModelGroup;
+import com.sun.xml.xsom.XSModelGroupDecl;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSSchema;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSTerm;
+import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.parser.XSOMParser;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.http.HttpMessage;
@@ -108,13 +126,6 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.ProtocolTraceAction;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  * Implements the SOAP over HTTP protocol.
@@ -907,18 +918,18 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					}
 
 					// check if the body has been defined with more than one parts
-					Operation operation =
-						getWSDLPort().getBinding().getPortType().getOperation( message.operationName(), null, null );
-					Message wsdlMessage;
+					// Operation operation =
+					// getWSDLPort().getBinding().getPortType().getOperation( message.operationName(), null, null );
+					// Message wsdlMessage;
 					List< ExtensibilityElement > listExt;
 					if( received ) {
 						// We are sending a response
-						wsdlMessage = operation.getOutput().getMessage();
+						// wsdlMessage = operation.getOutput().getMessage();
 						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
 							.getBindingOutput().getExtensibilityElements();
 					} else {
 						// We are sending a request
-						wsdlMessage = operation.getInput().getMessage();
+						// wsdlMessage = operation.getInput().getMessage();
 						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
 							.getBindingInput().getExtensibilityElements();
 					}

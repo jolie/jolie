@@ -25,6 +25,7 @@ package jolie.runtime;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
