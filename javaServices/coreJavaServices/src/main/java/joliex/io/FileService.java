@@ -70,7 +70,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 
 import org.w3c.dom.Document;
@@ -492,14 +491,14 @@ public class FileService extends JavaService {
 		}
 
 		try {
-			XSType type = null;
+			// XSType type = null;
 			if( schemaFilename != null ) {
 				try {
 					XSOMParser parser = new XSOMParser();
 					parser.parse( schemaFilename );
 					XSSchemaSet schemaSet = parser.getResult();
 					if( schemaSet != null && schemaSet.getElementDecl( rootNameSpace, rootName ) != null ) {
-						type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
+						// type = schemaSet.getElementDecl( rootNameSpace, rootName ).getType();
 					} else if( schemaSet == null || schemaSet.getElementDecl( rootNameSpace, rootName ) == null ) {
 						System.out.println( "Root element " + rootName + " with namespace " + rootNameSpace
 							+ " not found in the schema " + schemaFilename );
@@ -517,7 +516,6 @@ public class FileService extends JavaService {
 			try( Writer writer = new FileWriter( file, append ) ) {
 				StreamResult result = new StreamResult( writer );
 				transformer.transform( new DOMSource( doc ), result );
-
 			}
 		} catch( ParserConfigurationException | TransformerException e ) {
 			throw new IOException( e );

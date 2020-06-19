@@ -25,10 +25,18 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,6 +46,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -52,8 +64,6 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class JavaDocumentCreator {
 
@@ -479,7 +489,6 @@ public class JavaDocumentCreator {
 
 	private void prepareInterface( OutputPortInfo outputPort, Writer writer ) throws IOException {
 		OperationDeclaration operation;
-		RequestResponseOperationDeclaration requestResponseOperation;
 
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
@@ -2162,7 +2171,6 @@ public class JavaDocumentCreator {
 
 	private boolean isNativeTypeUndefined( TypeDefinition t ) {
 		if( t instanceof TypeDefinitionLink ) {
-			TypeDefinitionLink tLink = (TypeDefinitionLink) t;
 			if( ((TypeDefinitionLink) t).linkedType() instanceof TypeDefinitionUndefined ) {
 				return true;
 			}

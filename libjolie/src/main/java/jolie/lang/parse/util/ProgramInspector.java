@@ -25,7 +25,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.types.TypeDefinition;
 
 /**

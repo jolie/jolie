@@ -22,8 +22,8 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class CompareConditionNode extends OLSyntaxNode {

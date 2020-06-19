@@ -22,9 +22,9 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class OneWayOperationDeclaration extends OperationDeclaration {

@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -599,7 +600,6 @@ public class JavaGWTDocumentCreator {
 
 		if( Utils.nativeType( type ) != NativeType.VOID ) {
 
-			String javaCode = javaNativeEquivalent.get( Utils.nativeType( type ) );
 			String javaMethod = javaNativeMethod.get( Utils.nativeType( type ) );
 
 			if( Utils.nativeType( type ) != NativeType.ANY ) {
@@ -892,7 +892,6 @@ public class JavaGWTDocumentCreator {
 						// native type
 
 						String javaCode = javaNativeEquivalent.get( Utils.nativeType( subType ) );
-						String javaMethod = javaNativeMethod.get( Utils.nativeType( subType ) );
 
 						if( Utils.nativeType( subType ) != NativeType.VOID ) {
 
@@ -943,7 +942,6 @@ public class JavaGWTDocumentCreator {
 			if( Utils.nativeType( type ) != NativeType.VOID ) {
 
 				String javaCode = javaNativeEquivalent.get( Utils.nativeType( type ) );
-				String javaMethod = javaNativeMethod.get( Utils.nativeType( type ) );
 
 				stringBuilder.append( "public " + javaCode + " getRootValue(){\n" );
 				stringBuilder.append( "return " + "rootValue;\n" );

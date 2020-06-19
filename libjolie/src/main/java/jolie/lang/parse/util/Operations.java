@@ -22,6 +22,7 @@ package jolie.lang.parse.util;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;

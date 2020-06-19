@@ -26,12 +26,8 @@ import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
-import jolie.runtime.expression.Expression;
 import jolie.tracer.AssignmentTraceAction;
-import jolie.tracer.DummyTracer;
 import jolie.tracer.Tracer;
-import jolie.tracer.TracerUtils;
-import jolie.util.Pair;
 
 public class MakePointerProcess implements Process {
 	final private VariablePath leftPath, rightPath;

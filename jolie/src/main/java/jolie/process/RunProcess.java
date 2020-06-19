@@ -22,8 +22,8 @@
 package jolie.process;
 
 
-import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
+import jolie.runtime.expression.Expression;
 
 public class RunProcess implements Process {
 	private final Expression expression;

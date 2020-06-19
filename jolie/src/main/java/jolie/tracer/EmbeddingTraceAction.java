@@ -24,8 +24,6 @@ package jolie.tracer;
 
 import jolie.lang.parse.context.ParsingContext;
 
-import java.text.ParseException;
-
 /**
  *
  * @author Fabrizio Montesi

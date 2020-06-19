@@ -22,6 +22,7 @@
 package jolie.net.ext;
 
 import java.io.IOException;
+
 import jolie.Interpreter;
 import jolie.net.CommCore;
 import jolie.net.CommListener;

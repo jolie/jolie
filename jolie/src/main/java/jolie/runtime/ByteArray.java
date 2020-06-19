@@ -21,9 +21,8 @@
 
 package jolie.runtime;
 
-import java.util.Arrays;
-
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 public class ByteArray {
 	final private byte[] buffer;
