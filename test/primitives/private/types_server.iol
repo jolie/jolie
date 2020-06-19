@@ -54,7 +54,7 @@ type ChoiceResponse: int | string
 
 type ConstrainedStringType: string( length( [0,4] ) ) {
 	f1: string( length( [0,10] ) )
-	f2: string( list(["hello","homer","simpsons"]))
+	f2: string( enum(["hello","homer","simpsons"]))
 	f3: string( length( [0,20] ) )
 	f4?: int( ranges( [1,4], [10,20], [100,200] ) )
 	f5?: long( ranges( [3L,4L], [10L,20L], [100L,200L] ) )

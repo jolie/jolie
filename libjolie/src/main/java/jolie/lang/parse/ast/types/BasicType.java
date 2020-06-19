@@ -10,7 +10,7 @@ import java.util.List;
 public class BasicType {
 
 	private final NativeType nativeType;
-	private List<BasicTypeRefinement> basicTypeRefinementList = Collections.emptyList();
+	private List< BasicTypeRefinement > basicTypeRefinementList = Collections.emptyList();
 
 
 	public BasicType( NativeType nativeType ) {

@@ -161,14 +161,14 @@ public class OLParser extends AbstractParser {
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
 
 	private static enum RefinementPredicates {
-		LENGTH, LIST, RANGES
+		LENGTH, ENUM, RANGES
 	}
 
 	private static final Map< String, OLParser.RefinementPredicates > basicTypeRefinedPredicates = new HashMap<>();
 	static {
 		basicTypeRefinedPredicates.put( "length", RefinementPredicates.LENGTH ); // defines the minimum and the maximum
 																					// length of a string
-		basicTypeRefinedPredicates.put( "list", RefinementPredicates.LIST ); // defines a list of string that a string
+		basicTypeRefinedPredicates.put( "enum", RefinementPredicates.ENUM ); // defines a list of string that a string
 																				// can be
 		basicTypeRefinedPredicates.put( "ranges", RefinementPredicates.RANGES ); // it defines a list of intervals where
 																					// an int | long | double can be
@@ -703,7 +703,7 @@ public class OLParser extends AbstractParser {
 									parametersLength.get( 1 ) );
 							stringBasicType.addBasicTypeRefinement( basicTypeRefinementStringLength );
 							break;
-						case LIST:
+						case ENUM:
 							ArrayList< String > parametersList = parseListOfString( 1, null, predicate );
 							BasicTypeRefinementStringList basicTypeRefinementStringList =
 								new BasicTypeRefinementStringList( parametersList );
