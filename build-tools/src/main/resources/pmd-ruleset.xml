@@ -6,16 +6,40 @@
         Jolie PMD ruleset.
     </description>
 
-	<!-- <rule ref="category/java/bestpractices.xml">
+	<rule ref="category/java/bestpractices.xml">
+		<!-- To be added -->
+		<exclude name="ForLoopCanBeForeach" />
+		<exclude name="UseCollectionIsEmpty" />
+		<exclude name="AvoidStringBufferField" />
+		<exclude name="AvoidReassigningLoopVariables" />
+		<exclude name="OneDeclarationPerLine" />
+		<exclude name="AvoidReassigningParameters" />
+		<exclude name="AvoidPrintStackTrace" />
 		<exclude name="UnusedFormalParameter" />
-	</rule> -->
+		<exclude name="PreserveStackTrace" />
+		<exclude name="UseVarargs" />
+		<exclude name="AccessorClassGeneration" />
+		<exclude name="AbstractClassWithoutAbstractMethod" />
+		<exclude name="LooseCoupling" />
+		<exclude name="GuardLogStatement" />
+		<exclude name="SwitchStmtsShouldHaveDefault" />
+		<exclude name="SystemPrintln" />
+		<exclude name="PositionLiteralsFirstInComparisons" />
 
-	<rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP" />
+		<!-- Under evaluation -->
+		<exclude name="ConstantsInInterface" />
+		<exclude name="MethodReturnsInternalArray" />
+		<exclude name="ArrayIsStoredDirectly" />
+		<exclude name="MissingOverride" />
+		<exclude name="AccessorMethodGeneration" />
+	</rule>
+
+	<!-- <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP" />
 	<rule ref="category/java/bestpractices.xml/CheckResultSet" />
 	<rule ref="category/java/bestpractices.xml/UnusedImports" />
 	<rule ref="category/java/bestpractices.xml/UnusedLocalVariable" />
 	<rule ref="category/java/bestpractices.xml/UnusedPrivateField" />
-	<rule ref="category/java/bestpractices.xml/UnusedPrivateMethod" />
+	<rule ref="category/java/bestpractices.xml/UnusedPrivateMethod" /> -->
 
 	<rule ref="category/java/codestyle.xml">
 		<!-- To be added -->
