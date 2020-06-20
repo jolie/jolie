@@ -74,8 +74,47 @@
 		<exclude name="UselessParentheses" />
 	</rule>
 
-	<rule ref="category/java/design.xml/SimplifiedTernary" />
-	<rule ref="category/java/design.xml/UselessOverridingMethod" />
+	<rule ref="category/java/design.xml">
+		<!-- To be added -->
+		<exclude name="SimplifyConditional" />
+		<exclude name="UseObjectForClearerAPI" />
+		<exclude name="SignatureDeclareThrowsException" />
+		<exclude name="AvoidDeeplyNestedIfStmts" />
+		<exclude name="FinalFieldCouldBeStatic" />
+		<exclude name="AvoidThrowingRawExceptionTypes" />
+		<exclude name="AvoidThrowingNewInstanceOfSameException" />
+		<exclude name="AvoidUncheckedExceptionsInSignatures" />
+		<exclude name="ExceptionAsFlowControl" />
+		<exclude name="ImmutableField" />
+		<exclude name="CyclomaticComplexity" />
+		<exclude name="UseUtilityClass" />
+		<exclude name="DataClass" />
+		<exclude name="NcssCount" />
+		<exclude name="NPathComplexity" />
+		<exclude name="SimplifyBooleanExpressions" />
+		<exclude name="SimplifyBooleanReturns" />
+		<exclude name="SwitchDensity" />
+		<exclude name="SingularField" />
+		<exclude name="ClassWithOnlyPrivateConstructorsShouldBeFinal" />
+		<exclude name="AvoidCatchingGenericException" />
+
+		<!-- Under evaluation -->
+		<exclude name="ExcessiveParameterList" />
+		<exclude name="AvoidRethrowingException" />
+		<exclude name="CouplingBetweenObjects" />
+		<exclude name="ExcessiveMethodLength" />
+		<exclude name="LawOfDemeter" />
+		<exclude name="GodClass" />
+		<exclude name="ExcessivePublicCount" />
+		<exclude name="ExcessiveImports" />
+		<exclude name="TooManyFields" />
+		<exclude name="ExcessiveClassLength" />
+		<exclude name="LoosePackageCoupling" />
+
+		<!-- Excluded -->
+		<exclude name="CollapsibleIfStatements" />
+		<exclude name="TooManyMethods" />
+	</rule>
 
 	<rule ref="category/java/errorprone.xml">
 		<exclude name="CloseResource" />
@@ -107,47 +146,41 @@
 		<exclude name="AvoidFieldNameMatchingMethodName" />
 		<exclude name="DoNotCallSystemExit" />
 	</rule>
-	<!-- <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
-	<rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor" />
-	<rule ref="category/java/errorprone.xml/AvoidMultipleUnaryOperators" />
-	<rule ref="category/java/errorprone.xml/AvoidUsingOctalValues" />
-	<rule ref="category/java/errorprone.xml/BrokenNullCheck" />
-	<rule ref="category/java/errorprone.xml/CheckSkipResult" />
-	<rule ref="category/java/errorprone.xml/ClassCastExceptionWithToArray" />
-	<rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices" />
-	<rule ref="category/java/errorprone.xml/EmptyFinallyBlock" />
-	<rule ref="category/java/errorprone.xml/EmptyIfStmt" />
-	<rule ref="category/java/errorprone.xml/EmptyInitializer" />
-	<rule ref="category/java/errorprone.xml/EmptyStatementBlock" />
-	<rule ref="category/java/errorprone.xml/EmptyStatementNotInLoop" />
-	<rule ref="category/java/errorprone.xml/EmptySwitchStatements" />
-	<rule ref="category/java/errorprone.xml/EmptySynchronizedBlock" />
-	<rule ref="category/java/errorprone.xml/EmptyTryBlock" />
-	<rule ref="category/java/errorprone.xml/EmptyWhileStmt" />
-	<rule ref="category/java/errorprone.xml/ImportFromSamePackage" />
-	<rule ref="category/java/errorprone.xml/JumbledIncrementer" />
-	<rule ref="category/java/errorprone.xml/MisplacedNullCheck" />
-	<rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode" />
-	<rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock" />
-	<rule ref="category/java/errorprone.xml/UnconditionalIfStatement" />
-	<rule ref="category/java/errorprone.xml/UnnecessaryConversionTemporary" />
-	<rule ref="category/java/errorprone.xml/UnusedNullCheckInEquals" />
-	<rule ref="category/java/errorprone.xml/UselessOperationOnImmutable" /> -->
-
-	<rule ref="category/java/multithreading.xml/DontCallThreadRun" />
-	<rule ref="category/java/multithreading.xml/DoubleCheckedLocking" />
-
-	<rule ref="category/java/performance.xml/BigIntegerInstantiation" />
-	<rule ref="category/java/performance.xml/BooleanInstantiation" />
-
-	<!-- Will be added in the future -->
-	<!-- <rule ref="category/java/bestpractices.xml/UnusedFormalParameter" /> -->
-	<!-- <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName" /> -->
-	<!-- <rule ref="category/java/multithreading.xml/AvoidThreadGroup" /> -->
-	<!-- <rule ref="category/java/errorprone.xml/EmptyCatchBlock" /> -->
 	
-	<!-- Excluded -->
-	<!-- <rule ref="category/java/design.xml/CollapsibleIfStatements" /> -->
-	<!-- <rule ref="category/java/codestyle.xml/UnnecessaryModifier" /> -->
-	<!-- <rule ref="category/java/codestyle.xml/UselessParentheses" /> -->
+	<rule ref="category/java/multithreading.xml">
+		<!-- To be added -->
+		<exclude name="AvoidThreadGroup" />
+
+		<!-- Under evaluation -->
+		<exclude name="DoNotUseThreads" />
+		<exclude name="UseNotifyAllInsteadOfNotify" />
+		<exclude name="AvoidUsingVolatile" />
+		<exclude name="UseConcurrentHashMap" />
+		<exclude name="AvoidSynchronizedAtMethodLevel" />
+	</rule>
+	
+	<rule ref="category/java/performance.xml">
+		<!-- To be added -->
+		<exclude name="AddEmptyString" />
+		<exclude name="UselessStringValueOf" />
+		<exclude name="InefficientEmptyStringCheck" />
+		<exclude name="InefficientStringBuffering" />
+		<exclude name="SimplifyStartsWith" />
+		<exclude name="IntegerInstantiation" />
+		<exclude name="LongInstantiation" />
+		<exclude name="InsufficientStringBufferDeclaration" />
+		<exclude name="AvoidFileStream" />
+		<exclude name="UnnecessaryWrapperObjectCreation" />
+		<exclude name="ConsecutiveAppendsShouldReuse" />
+		<exclude name="RedundantFieldInitializer" />
+		<exclude name="AppendCharacterWithChar" />
+
+		<!-- Under evaluation -->
+		<exclude name="UseIndexOfChar" />
+		<exclude name="OptimizableToArrayCall" />
+		<exclude name="ConsecutiveLiteralAppends" />
+		<exclude name="UseStringBufferForStringAppends" />
+		<exclude name="AvoidInstantiatingObjectsInLoops" />
+		<exclude name="TooFewBranchesForASwitchStatement" />
+	</rule>
 </ruleset>
