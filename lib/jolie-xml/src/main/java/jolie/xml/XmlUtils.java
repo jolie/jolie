@@ -207,22 +207,19 @@ public class XmlUtils {
 		String name;
 		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
 		if( compositor.equals( XSModelGroup.SEQUENCE ) ) {
-			XSParticle[] children = modelGroup.getChildren();
-			XSTerm currTerm;
-			XSElementDecl currElementDecl;
 			Value v;
 			ValueVector vec;
-			for( int i = 0; i < children.length; i++ ) {
-				currTerm = children[ i ].getTerm();
+			for( XSParticle particle : modelGroup.getChildren() ) {
+				XSTerm currTerm = particle.getTerm();
 				if( currTerm.isElementDecl() ) {
-					currElementDecl = currTerm.asElementDecl();
+					XSElementDecl currElementDecl = currTerm.asElementDecl();
 					name = currElementDecl.getName();
 					Element childElement = null;
 					if( (vec = value.children().get( name )) != null ) {
 						int k = 0;
 						while( vec.isEmpty() == false &&
-							(children[ i ].getMaxOccurs() == XSParticle.UNBOUNDED ||
-								children[ i ].getMaxOccurs() > k) ) {
+							(particle.getMaxOccurs() == XSParticle.UNBOUNDED ||
+								particle.getMaxOccurs() > k) ) {
 							childElement = doc.createElement( getElementNameWithPrefix( vec.get( 0 ), name ) );
 							element.appendChild( childElement );
 							v = vec.remove( 0 );

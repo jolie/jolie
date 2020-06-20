@@ -8,7 +8,6 @@
 
 	<rule ref="category/java/bestpractices.xml">
 		<!-- To be added -->
-		<exclude name="ForLoopCanBeForeach" />
 		<exclude name="UseCollectionIsEmpty" />
 		<exclude name="AvoidStringBufferField" />
 		<exclude name="AvoidReassigningLoopVariables" />

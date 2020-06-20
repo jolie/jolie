@@ -293,15 +293,13 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				log( Level.WARNING, WARNING_SEQUENCE );
 			}
 
-			XSParticle[] children = modelGroup.getChildren();
-			XSTerm currTerm;
-			for( int i = 0; i < children.length; i++ ) {
-				currTerm = children[ i ].getTerm();
+			for( XSParticle currParticle : modelGroup.getChildren() ) {
+				XSTerm currTerm = currParticle.getTerm();
 				if( currTerm.isModelGroup() ) {
 					groupProcessing( currTerm.asModelGroup(), particle, jolieType );
 				} else {
 					// Create the new complex type for root types
-					navigateSubTypes( children[ i ], jolieType );
+					navigateSubTypes( currParticle, jolieType );
 				}
 			}
 		} else if( compositor.equals( XSModelGroup.CHOICE ) ) {
