@@ -941,13 +941,11 @@ public class JavaDocumentCreator {
 	}
 
 	private void createPackageDirectory() {
-		String[] directoriesComponents = packageName.split( "\\." );
 		File f = new File( "." );
 
-
 		generatedPath = outputDirectory;
-		for( int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++ ) {
-			outputDirectory += Constants.fileSeparator + directoriesComponents[ counterDirectories ];
+		for( String directoryComponent : packageName.split( "\\." ) ) {
+			outputDirectory += Constants.fileSeparator + directoryComponent;
 		}
 		f = new File( outputDirectory );
 		f.mkdirs();

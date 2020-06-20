@@ -260,19 +260,19 @@ public class SurfaceCreator {
 	private void createOutput( InputPortInfo inputPort, boolean noOutputPort, boolean noLocation, boolean noProtocol ) {
 		// types creation
 		if( ow_vector.size() > 0 ) {
-			for( int x = 0; x < ow_vector.size(); x++ ) {
+			for( OneWayOperationDeclaration opDecl : ow_vector ) {
 				// System.out.println("// types for operation " + ow_vector.get(x).id() );
-				printType( getType( ow_vector.get( x ).requestType() ) );
+				printType( getType( opDecl.requestType() ) );
 			}
 			System.out.println();
 		}
 
 		if( rr_vector.size() > 0 ) {
-			for( int x = 0; x < rr_vector.size(); x++ ) {
+			for( RequestResponseOperationDeclaration rrDecl : rr_vector ) {
 				// System.out.println("// types for operation " + rr_vector.get(x).id() );
-				printType( getType( rr_vector.get( x ).requestType() ) );
-				printType( getType( rr_vector.get( x ).responseType() ) );
-				for( Entry< String, TypeDefinition > fault : rr_vector.get( x ).faults().entrySet() ) {
+				printType( getType( rrDecl.requestType() ) );
+				printType( getType( rrDecl.responseType() ) );
+				for( Entry< String, TypeDefinition > fault : rrDecl.faults().entrySet() ) {
 					if( !fault.getValue().id().equals( "undefined" ) ) {
 						System.out.println( getType( fault.getValue() ) );
 					}
