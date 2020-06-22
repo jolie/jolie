@@ -1216,12 +1216,14 @@ public class OLParser extends AbstractParser {
 		throws ParserException, IOException {
 		List< String > outputPortNames;
 		InterfaceExtenderDefinition extender;
-		for( boolean mainKeepRun = true; mainKeepRun; ) {
+		boolean mainKeepRun = true;
+		while( mainKeepRun ) {
 			extender = null;
 			outputPortNames = new LinkedList<>();
 			if( token.is( Scanner.TokenType.LCURLY ) ) {
 				getToken();
-				for( boolean keepRun = true; keepRun; ) {
+				boolean keepRun = true;
+				while( keepRun ) {
 					assertToken( Scanner.TokenType.ID, "expected output port name" );
 					outputPortNames.add( token.content() );
 					getToken();
@@ -2007,7 +2009,7 @@ public class OLParser extends AbstractParser {
 			retVal = stm;
 			break;
 		case DOT:
-			if( inVariablePaths.size() > 0 ) {
+			if( !inVariablePaths.isEmpty() ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
 			}
 			break;

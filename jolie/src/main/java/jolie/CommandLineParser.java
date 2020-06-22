@@ -608,7 +608,8 @@ public class CommandLineParser implements Closeable {
 		responseTimeout = rTimeout;
 
 		List< URL > urls = new ArrayList<>();
-		for( String path : libList ) {
+		for( String pathInList : libList ) {
+			String path = pathInList;
 			if( path.contains( "!/" ) && !path.startsWith( "jap:" ) && !path.startsWith( "jar:" ) ) {
 				path = "jap:file:" + path;
 			}

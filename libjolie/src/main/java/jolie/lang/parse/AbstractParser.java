@@ -79,10 +79,10 @@ public abstract class AbstractParser {
 
 	private final void readToken()
 		throws IOException {
-		if( tokens.size() > 0 ) {
-			token = tokens.remove( 0 );
-		} else {
+		if( tokens.isEmpty() ) {
 			token = scanner.getToken();
+		} else {
+			token = tokens.remove( 0 );
 		}
 	}
 

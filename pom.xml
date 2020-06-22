@@ -266,7 +266,7 @@
 				</configuration>
 				<dependencies>
 					<dependency>
-						<groupId>org.jolielang</groupId>
+						<groupId>org.jolie-lang</groupId>
 						<artifactId>build-tools</artifactId>
 						<version>1.0.0</version>
 					</dependency>
@@ -293,7 +293,7 @@
 				</executions>
 				<dependencies>
 					<dependency>
-						<groupId>org.jolielang</groupId>
+						<groupId>org.jolie-lang</groupId>
 						<artifactId>build-tools</artifactId>
 						<version>1.0.0</version>
 					</dependency>
