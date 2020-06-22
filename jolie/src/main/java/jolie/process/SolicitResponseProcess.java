@@ -122,7 +122,8 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
 								Long.toString( message.id() ), OperationCallEvent.FAULT,
-								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+								"TypeMismatch:" + e.getMessage(), outputPort.id(),
+								Interpreter.getInstance().programFilename(), message.value() ) );
 					}
 
 					throw (e);
@@ -137,7 +138,8 @@ public class SolicitResponseProcess implements Process {
 				Interpreter.getInstance()
 					.fireMonitorEvent( new OperationCallEvent( operationId,
 						ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ),
-						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
+						message.value() ) );
 			}
 
 			CommMessage response = null;
@@ -171,7 +173,8 @@ public class SolicitResponseProcess implements Process {
 								.fireMonitorEvent( new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
-									response.fault().faultName(), outputPort.id(), response.fault().value() ) );
+									response.fault().faultName(), outputPort.id(),
+									Interpreter.getInstance().programFilename(), response.fault().value() ) );
 						}
 					} catch( TypeCheckingException e ) {
 						if( Interpreter.getInstance().isMonitoring() ) {
@@ -180,7 +183,8 @@ public class SolicitResponseProcess implements Process {
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
-									outputPort.id(), response.fault().value() ) );
+									outputPort.id(), Interpreter.getInstance().programFilename(),
+									response.fault().value() ) );
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
@@ -191,7 +195,8 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
 								Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
-								response.fault().faultName(), outputPort.id(), response.fault().value() ) );
+								response.fault().faultName(), Interpreter.getInstance().programFilename(),
+								outputPort.id(), response.fault().value() ) );
 					}
 				}
 				throw response.fault();
@@ -204,7 +209,7 @@ public class SolicitResponseProcess implements Process {
 								.fireMonitorEvent( new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.SUCCESS, "",
-									outputPort.id(), response.value() ) );
+									outputPort.id(), Interpreter.getInstance().programFilename(), response.value() ) );
 						}
 					} catch( TypeCheckingException e ) {
 						if( Interpreter.getInstance().isMonitoring() ) {
@@ -212,7 +217,7 @@ public class SolicitResponseProcess implements Process {
 								.fireMonitorEvent( new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT, e.getMessage(),
-									outputPort.id(), response.value() ) );
+									outputPort.id(), Interpreter.getInstance().programFilename(), response.value() ) );
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
 							+ operationId + "@" + outputPort.id() + "): " + e.getMessage() );
@@ -221,7 +226,8 @@ public class SolicitResponseProcess implements Process {
 					if( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId,
 							ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id() ).toString(),
-							OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value() ) );
+							OperationReplyEvent.SUCCESS, "", outputPort.id(),
+							Interpreter.getInstance().programFilename(), response.value() ) );
 					}
 				}
 			}

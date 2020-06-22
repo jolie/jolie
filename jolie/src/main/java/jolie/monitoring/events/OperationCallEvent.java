@@ -34,8 +34,8 @@ public class OperationCallEvent extends MonitoringEvent {
 
 
 	public OperationCallEvent( String operationName, String processId, String messageId, int status, String details,
-		String outputPort, Value message ) {
-		super( "OperationCall", Value.create() );
+		String outputPort, String service, Value message ) {
+		super( "OperationCall", service, Value.create() );
 
 		data().getFirstChild( "operationName" ).setValue( operationName );
 		data().getFirstChild( "processId" ).setValue( processId );

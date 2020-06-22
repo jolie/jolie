@@ -90,6 +90,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.monitoring.events.ProtocolMessageEvent;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -1034,6 +1035,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent( httpMessage.toString() + plainTextContent.toString( "utf-8" ), "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP ) );
 
 			inputId = message.operationName();
 		} catch( Exception e ) {
@@ -1294,6 +1298,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					new StringBuilder().append( getHeadersFromHttpMessage( message ) ).append( "\n" )
+						.append( new String( message.content(), charset ) ).toString(),
+					"",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP ) );
+
 		} catch( SOAPException e ) {
 			throw new IOException( e );
 		} catch( ParserConfigurationException e ) {

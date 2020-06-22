@@ -18,9 +18,9 @@ public class OperationEndedEvent extends MonitoringEvent {
 	public static final int ERROR = 2;
 
 	public OperationEndedEvent( String operationName, String processId, String messageId, int status, String details,
-		Value message ) {
+		Value message, String service ) {
 
-		super( "OperationEnded", Value.create() );
+		super( "OperationEnded", service, Value.create() );
 
 		data().getFirstChild( "operationName" ).setValue( operationName );
 		data().getFirstChild( "processId" ).setValue( processId );

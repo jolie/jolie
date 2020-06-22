@@ -31,6 +31,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
+import jolie.monitoring.events.LogEvent;
 import jolie.net.CommListener;
 import jolie.net.LocalCommChannel;
 import jolie.net.ports.OutputPort;
@@ -181,11 +182,13 @@ public class RuntimeService extends JavaService {
 		String opName = request.getChildren( "outputPortName" ).first().strValue();
 		try {
 			OutputPort port = interpreter.getOutputPort( opName );
+
 			listener.inputPort().redirectionMap().put( resourceName, port );
 		} catch( InvalidIdException e ) {
 			throw new FaultException( "RuntimeException", e );
 		}
 	}
+
 
 	@RequestResponse
 	public void removeRedirection( Value request )
@@ -294,6 +297,19 @@ public class RuntimeService extends JavaService {
 		}
 	}
 
+	@RequestResponse
+	public void log( Value request ) {
+		LogEvent.LogLevel logLevel = LogEvent.LogLevel.INFO;
+		if( request.getFirstChild( "level" ).equals( "error" ) ) {
+			logLevel = LogEvent.LogLevel.ERROR;
+		}
+		if( request.getFirstChild( "level" ).equals( "warning" ) ) {
+			logLevel = LogEvent.LogLevel.WARNING;
+		}
+		LogEvent logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel );
+		interpreter.fireMonitorEvent( logEvent );
+	}
+
 	public String dumpState() {
 		Writer writer = new StringWriter();
 		ValuePrettyPrinter printer =
@@ -341,4 +357,6 @@ public class RuntimeService extends JavaService {
 			stats.setFirstChild( "maxCount", unixBean.getMaxFileDescriptorCount() );
 		}
 	}
+
+
 }

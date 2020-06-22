@@ -34,8 +34,8 @@ public class OperationReplyEvent extends MonitoringEvent {
 	public static final int ERROR = 2;
 
 	public OperationReplyEvent( String operationName, String processId, String messageId, int status, String details,
-		String outputPort, Value message ) {
-		super( "OperationReply", Value.create() );
+		String outputPort, String service, Value message ) {
+		super( "OperationReply", service, Value.create() );
 
 		data().getFirstChild( "operationName" ).setValue( operationName );
 		data().getFirstChild( "processId" ).setValue( processId );

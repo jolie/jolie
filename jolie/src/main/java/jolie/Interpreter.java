@@ -297,7 +297,7 @@ public class Interpreter {
 	public void setMonitor( OutputPort monitor ) {
 		this.monitor = monitor;
 		interpreterChildren.stream().forEach( i -> i.setMonitor( monitor ) );
-		fireMonitorEvent( new MonitorAttachedEvent() );
+		fireMonitorEvent( new MonitorAttachedEvent( programFilename() ) );
 	}
 
 	public OutputPort getMonitor() {
@@ -1424,15 +1424,16 @@ public class Interpreter {
 
 	private void logSessionStart( String operationName, String sessionId, long messageId, Value message ) {
 		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId, programFilename() ) );
 			fireMonitorEvent(
-				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
+				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), programFilename(),
+					message ) );
 		}
 	}
 
 	private void logSessionEnd( String operationName, String sessionId ) {
 		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId, programFilename() ) );
 		}
 	}
 
