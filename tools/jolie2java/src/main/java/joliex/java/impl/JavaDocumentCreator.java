@@ -71,8 +71,8 @@ public class JavaDocumentCreator {
 	private final boolean addSource;
 	private final boolean buildXml;
 	private final boolean javaservice;
-	private final int INDENTATION_STEP = 1;
-	private final String TYPEFOLDER = "types";
+	private static final int INDENTATION_STEP = 1;
+	private static final String TYPEFOLDER = "types";
 	private int indentation;
 	private String outputDirectory;
 	private String generatedPath;
@@ -81,8 +81,8 @@ public class JavaDocumentCreator {
 	private LinkedHashMap< String, TypeDefinition > faultMap;
 	private LinkedHashMap< String, TypeDefinition > subTypeMap;
 	ProgramInspector inspector;
-	private final String TYPESUFFIX = "Type";
-	private final String CHOICEVARIABLENAME = "choice";
+	private static final String TYPESUFFIX = "Type";
+	private static final String CHOICEVARIABLENAME = "choice";
 	private static final HashMap< NativeType, String > JAVA_NATIVE_EQUIVALENT = new HashMap<>();
 	private static final HashMap< NativeType, String > JAVA_NATIVE_METHOD = new HashMap<>();
 	private static final HashMap< NativeType, String > JAVA_NATIVE_CHECKER = new HashMap<>();

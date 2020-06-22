@@ -79,7 +79,6 @@
 		<exclude name="UseObjectForClearerAPI" />
 		<exclude name="SignatureDeclareThrowsException" />
 		<exclude name="AvoidDeeplyNestedIfStmts" />
-		<exclude name="FinalFieldCouldBeStatic" />
 		<exclude name="AvoidThrowingRawExceptionTypes" />
 		<exclude name="AvoidThrowingNewInstanceOfSameException" />
 		<exclude name="AvoidUncheckedExceptionsInSignatures" />

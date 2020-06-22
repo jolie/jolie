@@ -71,7 +71,7 @@ import jolie.util.Range;
  */
 public class MetaJolie extends JavaService {
 
-	private final int MAX_CARD = 2147483647;
+	private static final int MAX_CARD = Integer.MAX_VALUE;
 	private ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition;
 	private ArrayList< Value > listOfGeneratedTypesInValues;
 	private ArrayList< String > nativeTypeList =

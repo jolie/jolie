@@ -83,7 +83,7 @@ public class WSDLDocCreator {
 	private final int MAX_CARD = Integer.MAX_VALUE;
 	private String tns;
 	private String tns_schema;
-	private final String tns_schema_prefix = "sch";
+	private static final String tns_schema_prefix = "sch";
 	static ExtensionRegistry extensionRegistry;
 	private static WSDLFactory wsdlFactory;
 	private Definition localDef = null;
