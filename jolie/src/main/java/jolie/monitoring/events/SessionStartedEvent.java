@@ -31,8 +31,8 @@ import jolie.runtime.Value;
  */
 public class SessionStartedEvent extends MonitoringEvent {
 
-	public SessionStartedEvent( String operationName, String processId ) {
-		super( "SessionStarted", Value.create() );
+	public SessionStartedEvent( String operationName, String processId, String service ) {
+		super( "SessionStarted", service, Value.create() );
 
 		data().getFirstChild( "processId" ).setValue( processId );
 		data().getFirstChild( "operationName" ).setValue( operationName );

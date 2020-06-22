@@ -100,8 +100,9 @@ public class NotificationProcess implements Process {
 					if( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-								Long.toString( message.id() ), OperationCallEvent.FAULT,
-								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+								Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT,
+								"TypeMismatch:" + e.getMessage(), outputPort.id(),
+								Interpreter.getInstance().programFilename(), message.value() ) );
 					}
 					throw (e);
 				}
@@ -116,8 +117,9 @@ public class NotificationProcess implements Process {
 			if( Interpreter.getInstance().isMonitoring() ) {
 				Interpreter.getInstance()
 					.fireMonitorEvent( new OperationCallEvent( operationId,
-						ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ),
-						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+						ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id() ).toString(),
+						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
+						message.value() ) );
 			}
 
 			CommMessage response = null;

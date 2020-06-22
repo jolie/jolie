@@ -35,20 +35,24 @@ public class MonitoringEvent implements ValueConverter {
 	private final long timestamp;
 	private final long memory;
 	private final Value data;
+	private final String service;
 
-	public MonitoringEvent( String type, Value data ) {
+	public MonitoringEvent( String type, String serviceFileName, Value data ) {
 		this(
 			type,
 			System.currentTimeMillis(),
 			Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
+			serviceFileName,
 			data );
 	}
 
-	private MonitoringEvent( String type, long timestamp, long memory, Value data ) {
+	private MonitoringEvent( String type, long timestamp, long memory, String serviceFileName, Value data ) {
 		this.type = type;
 		this.timestamp = timestamp;
 		this.memory = memory;
+
 		this.data = data;
+		this.service = serviceFileName;
 	}
 
 	public String type() {
@@ -63,6 +67,10 @@ public class MonitoringEvent implements ValueConverter {
 		return memory;
 	}
 
+	public String serviceFilename() {
+		return service;
+	}
+
 	public Value data() {
 		return data;
 	}
@@ -72,6 +80,7 @@ public class MonitoringEvent implements ValueConverter {
 			value.getFirstChild( "type" ).strValue(),
 			value.getFirstChild( "timestamp" ).longValue(),
 			value.getFirstChild( "memory" ).longValue(),
+			value.getFirstChild( "service" ).strValue(),
 			value.getFirstChild( "data" ) );
 	}
 
@@ -81,6 +90,7 @@ public class MonitoringEvent implements ValueConverter {
 		ret.getFirstChild( "timestamp" ).setValue( e.timestamp );
 		ret.getFirstChild( "memory" ).setValue( e.memory );
 		ret.getChildren( "data" ).add( e.data );
+		ret.getFirstChild( "service" ).setValue( e.service );
 		return ret;
 	}
 }

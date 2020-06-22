@@ -56,6 +56,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import jolie.monitoring.events.ProtocolMessageEvent;
+import jolie.tracer.DummyTracer;
+import jolie.tracer.ProtocolTraceAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -893,6 +896,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					}
 
 				} );
+				Interpreter.getInstance().fireMonitorEvent(
+					new ProtocolMessageEvent( encodedContent.content.toString( charset ), headerBuilder.toString(),
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP ) );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 

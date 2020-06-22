@@ -31,7 +31,7 @@ import jolie.runtime.Value;
  * @author Fabrizio Montesi
  */
 public class MonitorAttachedEvent extends MonitoringEvent {
-	public MonitorAttachedEvent() {
-		super( "MonitorAttached", Value.create() );
+	public MonitorAttachedEvent( String service ) {
+		super( "MonitorAttached", service, Value.create() );
 	}
 }
