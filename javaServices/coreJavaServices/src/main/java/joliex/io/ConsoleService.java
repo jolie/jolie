@@ -42,7 +42,7 @@ public class ConsoleService extends JavaService {
 	private Map< String, String > sessionTokens;
 	private boolean sessionListeners = false;
 	private boolean enableTimestamp = false;
-	private final String timestampFormatDefault = "dd/MM/yyyy HH:mm:ss";
+	private static final String timestampFormatDefault = "dd/MM/yyyy HH:mm:ss";
 	private String timestampFormat = timestampFormatDefault;
 
 	private class ConsoleInputThread extends Thread {

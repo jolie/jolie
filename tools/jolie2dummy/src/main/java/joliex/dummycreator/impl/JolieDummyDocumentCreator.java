@@ -45,8 +45,8 @@ public class JolieDummyDocumentCreator {
 	private ProgramInspector inspector;
 	private StringBuilder stringBuilder;
 	private File sourceFile;
-	private final int MAX_ARRAY_ITEMS = 5;
-	private final String mockFilename = "mock_main.ol";
+	private static final int MAX_ARRAY_ITEMS = 5;
+	private static final String mockFilename = "mock_main.ol";
 
 	public JolieDummyDocumentCreator( ProgramInspector inspector, File sourceFile ) {
 

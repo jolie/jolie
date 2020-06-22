@@ -16,7 +16,7 @@ import jolie.runtime.ValuePrettyPrinter;
 
 public class FileTracer implements Tracer {
 
-	private final int MAX_LINE_COUNT = 2000;
+	private static final int MAX_LINE_COUNT = 2000;
 	private int actionCounter = 0;
 	Writer fileWriter;
 	private final Interpreter interpreter;
