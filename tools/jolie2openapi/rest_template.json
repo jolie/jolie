@@ -1,0 +1,31 @@
+{
+    "login": {
+        "method": "post",
+        "template": "/api/accounts/login",
+        "exceptions":{
+            "LoginError" :401
+        }
+    },
+    "getOrders": {
+        "method": "get",
+        "teplate": "/api/accounts/orders",
+        "incommingHeaderMapping":{
+            "Authorization": "authorization"
+        }
+        ,
+        "exceptions":{
+            "SessionExpired" :401
+        }
+
+    },
+    "addItem": {
+        "method": "put",
+        "template": "/api/accunts/orders/{orderId}",
+        "incommingHeaderMapping":{
+            "Authorization": "authorization"
+        },       
+        "exceptions":{
+            "SessionExpired" :401
+        }
+    }
+}
