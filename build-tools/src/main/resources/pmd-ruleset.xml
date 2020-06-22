@@ -9,8 +9,9 @@
 	<rule ref="category/java/bestpractices.xml">
 		<!-- To be added -->
 		<exclude name="UseCollectionIsEmpty" />
-		<exclude name="AvoidStringBufferField" />
 		<exclude name="AvoidReassigningLoopVariables" />
+
+		<exclude name="AvoidStringBufferField" />
 		<exclude name="OneDeclarationPerLine" />
 		<exclude name="AvoidReassigningParameters" />
 		<exclude name="AvoidPrintStackTrace" />
@@ -36,6 +37,7 @@
 	<rule ref="category/java/codestyle.xml">
 		<!-- To be added -->
 		<exclude name="BooleanGetMethodName" />
+
 		<exclude name="LinguisticNaming" />
 		<exclude name="LocalVariableNamingConventions" />
 		<exclude name="ControlStatementBraces" />
