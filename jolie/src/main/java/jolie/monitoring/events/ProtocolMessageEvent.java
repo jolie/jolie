@@ -1,5 +1,6 @@
 package jolie.monitoring.events;
 
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
@@ -20,9 +21,9 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	}
 
 	public ProtocolMessageEvent( String message, String header, String service,
-		ProtocolMessageEvent.Protocol protocol ) {
+		ProtocolMessageEvent.Protocol protocol, ParsingContext context ) {
 
-		super( "ProtocolMessageEvent", service, Value.create() );
+		super( "ProtocolMessageEvent", service, context, Value.create() );
 
 		data().getFirstChild( "protocol" ).setValue( protocol.getProtocol() );
 		data().getFirstChild( "header" ).setValue( header );

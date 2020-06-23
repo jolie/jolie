@@ -119,11 +119,12 @@ public class SolicitResponseProcess implements Process {
 					log( "TYPE MISMATCH", new CommMessage( message.id(), message.operationName(),
 						message.resourcePath(), tmpValue, null ) );
 					if( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent(
-							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
+						Interpreter.getInstance().fireMonitorEvent( () -> {
+							return new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
 								Long.toString( message.id() ), OperationCallEvent.FAULT,
 								"TypeMismatch:" + e.getMessage(), outputPort.id(),
-								Interpreter.getInstance().programFilename(), message.value() ) );
+								Interpreter.getInstance().programFilename(), context, message.value() );
+						} );
 					}
 
 					throw (e);
@@ -136,16 +137,19 @@ public class SolicitResponseProcess implements Process {
 			log( "SENT", message );
 			if( Interpreter.getInstance().isMonitoring() ) {
 				Interpreter.getInstance()
-					.fireMonitorEvent( new OperationCallEvent( operationId,
-						ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ),
-						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
-						message.value() ) );
+					.fireMonitorEvent( () -> {
+						return new OperationCallEvent( operationId,
+							ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ),
+							OperationCallEvent.SUCCESS, "", outputPort.id(),
+							Interpreter.getInstance().programFilename(), context,
+							message.value() );
+					} );
 			}
 
-			CommMessage response = null;
+			CommMessage tmpResponse = null;
 			do {
 				try {
-					response = channel.recvResponseFor( message ).get( Interpreter.getInstance().responseTimeout(),
+					tmpResponse = channel.recvResponseFor( message ).get( Interpreter.getInstance().responseTimeout(),
 						TimeUnit.MILLISECONDS );
 				} catch( InterruptedException e ) {
 					throw new IOException( e );
@@ -156,7 +160,9 @@ public class SolicitResponseProcess implements Process {
 						throw new IOException( e.getCause() );
 					}
 				}
-			} while( response == null );
+			} while( tmpResponse == null );
+			final CommMessage response = tmpResponse;
+			tmpResponse = null;
 			log( "RECEIVED", response );
 
 			if( inputVarPath != null ) {
@@ -168,67 +174,80 @@ public class SolicitResponseProcess implements Process {
 				if( faultType != null ) {
 					try {
 						faultType.check( response.fault().value() );
-						if( Interpreter.getInstance().isMonitoring() ) {
-							Interpreter.getInstance()
-								.fireMonitorEvent( new OperationReplyEvent( operationId,
+
+						Interpreter.getInstance()
+							.fireMonitorEvent( () -> {
+								return new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
 									response.fault().faultName(), outputPort.id(),
-									Interpreter.getInstance().programFilename(), response.fault().value() ) );
-						}
+									Interpreter.getInstance().programFilename(), context, response.fault().value() );
+							} );
+
 					} catch( TypeCheckingException e ) {
-						if( Interpreter.getInstance().isMonitoring() ) {
-							Interpreter.getInstance()
-								.fireMonitorEvent( new OperationReplyEvent( operationId,
+
+						Interpreter.getInstance()
+							.fireMonitorEvent( () -> {
+								return new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
-									outputPort.id(), Interpreter.getInstance().programFilename(),
-									response.fault().value() ) );
-						}
+									outputPort.id(), Interpreter.getInstance().programFilename(), context,
+									response.fault().value() );
+							} );
+
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
 								+ outputPort.id() + "): " + e.getMessage() );
 					}
 				} else {
-					if( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent(
-							new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-								Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
-								response.fault().faultName(), Interpreter.getInstance().programFilename(),
-								outputPort.id(), response.fault().value() ) );
-					}
+
+					Interpreter.getInstance().fireMonitorEvent( () -> {
+						return new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
+							Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
+							response.fault().faultName(), Interpreter.getInstance().programFilename(),
+							outputPort.id(), context, response.fault().value() );
+					} );
+
 				}
 				throw response.fault();
 			} else {
 				if( types.responseType() != null ) {
 					try {
 						types.responseType().check( response.value() );
-						if( Interpreter.getInstance().isMonitoring() ) {
-							Interpreter.getInstance()
-								.fireMonitorEvent( new OperationReplyEvent( operationId,
+
+						Interpreter.getInstance()
+							.fireMonitorEvent( () -> {
+								return new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.SUCCESS, "",
-									outputPort.id(), Interpreter.getInstance().programFilename(), response.value() ) );
-						}
+									outputPort.id(), Interpreter.getInstance().programFilename(), context,
+									response.value() );
+							} );
+
 					} catch( TypeCheckingException e ) {
-						if( Interpreter.getInstance().isMonitoring() ) {
-							Interpreter.getInstance()
-								.fireMonitorEvent( new OperationReplyEvent( operationId,
+
+						Interpreter.getInstance()
+							.fireMonitorEvent( () -> {
+								return new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT, e.getMessage(),
-									outputPort.id(), Interpreter.getInstance().programFilename(), response.value() ) );
-						}
+									outputPort.id(), Interpreter.getInstance().programFilename(), context,
+									response.value() );
+							} );
+
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
 							+ operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 					}
 				} else {
-					if( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId,
+
+					Interpreter.getInstance().fireMonitorEvent( () -> {
+						return new OperationReplyEvent( operationId,
 							ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id() ).toString(),
 							OperationReplyEvent.SUCCESS, "", outputPort.id(),
-							Interpreter.getInstance().programFilename(), response.value() ) );
-					}
+							Interpreter.getInstance().programFilename(), context, response.value() );
+					} );
+
 				}
 			}
 

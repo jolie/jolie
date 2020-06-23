@@ -1035,9 +1035,17 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
-			Interpreter.getInstance().fireMonitorEvent(
-				new ProtocolMessageEvent( httpMessage.toString() + plainTextContent.toString( "utf-8" ), "",
-					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP ) );
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				try {
+					final String traceMessage = httpMessage.toString() + plainTextContent.toString( "utf-8" );
+					return new ProtocolMessageEvent( traceMessage, "",
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
+				} catch( UnsupportedEncodingException e ) {
+					return new ProtocolMessageEvent( e.getMessage(), "",
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
+
+				}
+			} );
 
 			inputId = message.operationName();
 		} catch( Exception e ) {
@@ -1298,12 +1306,21 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
-			Interpreter.getInstance().fireMonitorEvent(
-				new ProtocolMessageEvent(
-					new StringBuilder().append( getHeadersFromHttpMessage( message ) ).append( "\n" )
-						.append( new String( message.content(), charset ) ).toString(),
-					"",
-					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP ) );
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				final StringBuilder traceMessage = new StringBuilder();
+				try {
+					return new ProtocolMessageEvent(
+						new StringBuilder().append( getHeadersFromHttpMessage( message ) ).append( "\n" )
+							.append( new String( message.content(), charset ) ).toString(),
+						"",
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
+				} catch( UnsupportedEncodingException e ) {
+					return new ProtocolMessageEvent(
+						e.getMessage(), "", Interpreter.getInstance().programFilename(),
+						ProtocolMessageEvent.Protocol.SOAP, null );
+				}
+
+			} );
 
 		} catch( SOAPException e ) {
 			throw new IOException( e );

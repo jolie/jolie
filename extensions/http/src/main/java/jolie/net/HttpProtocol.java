@@ -875,9 +875,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					}
 
 				} );
-				Interpreter.getInstance().fireMonitorEvent(
-					new ProtocolMessageEvent( encodedContent.content.toString( charset ), headerBuilder.toString(),
-						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP ) );
+				Interpreter.getInstance().fireMonitorEvent( () -> {
+					try {
+						final String traceMessage = encodedContent.content.toString( charset );
+						return new ProtocolMessageEvent( traceMessage, headerBuilder.toString(),
+							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+					} catch( UnsupportedEncodingException e ) {
+						return new ProtocolMessageEvent( e.getMessage(), headerBuilder.toString(),
+							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+					}
+				} );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
@@ -956,6 +963,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			} catch( UnsupportedEncodingException e ) {
 				return new ProtocolTraceAction( ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE SENT",
 					message.resourcePath(), e.getMessage(), null );
+			}
+		} );
+		Interpreter.getInstance().fireMonitorEvent( () -> {
+			try {
+				final String traceMessage = prepareSendDebugString( headerBuilder, encodedContent, charset, true );
+				return new ProtocolMessageEvent( traceMessage, "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+			} catch( IOException e ) {
+				return new ProtocolMessageEvent( e.getMessage(), "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
 			}
 		} );
 
@@ -1372,6 +1389,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 			}
 
+		} );
+		Interpreter.getInstance().fireMonitorEvent( () -> {
+			try {
+				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
+				return new ProtocolMessageEvent( traceMessage, "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+			} catch( IOException e ) {
+				return new ProtocolMessageEvent( e.getMessage(), "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+			}
 		} );
 
 		recv_checkForStatusCode( message );

@@ -306,8 +306,10 @@ public class RuntimeService extends JavaService {
 		if( request.getFirstChild( "level" ).equals( "warning" ) ) {
 			logLevel = LogEvent.LogLevel.WARNING;
 		}
-		LogEvent logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel );
-		interpreter.fireMonitorEvent( logEvent );
+		LogEvent logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel, null );
+		interpreter.fireMonitorEvent( () -> {
+			return logEvent;
+		} );
 	}
 
 	public String dumpState() {

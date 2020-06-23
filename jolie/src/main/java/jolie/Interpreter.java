@@ -28,6 +28,7 @@ import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
@@ -96,6 +97,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -297,7 +299,9 @@ public class Interpreter {
 	public void setMonitor( OutputPort monitor ) {
 		this.monitor = monitor;
 		interpreterChildren.stream().forEach( i -> i.setMonitor( monitor ) );
-		fireMonitorEvent( new MonitorAttachedEvent( programFilename() ) );
+		fireMonitorEvent( () -> {
+			return new MonitorAttachedEvent( programFilename(), null );
+		} );
 	}
 
 	public OutputPort getMonitor() {
@@ -320,8 +324,9 @@ public class Interpreter {
 		return tracer;
 	}
 
-	public void fireMonitorEvent( MonitoringEvent event ) {
+	public void fireMonitorEvent( Supplier< ? extends MonitoringEvent > supplier ) {
 		if( monitor != null ) {
+			MonitoringEvent event = supplier.get();
 			CommMessage m = CommMessage.createRequest( "pushEvent", "/", MonitoringEvent.toValue( event ) );
 			CommChannel channel = null;
 			try {
@@ -1361,14 +1366,14 @@ public class Interpreter {
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), message.value() );
+				message.id(), null, message.value() );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 			} );
 			spawnedSession.start();
@@ -1395,7 +1400,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
@@ -1407,7 +1412,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 			} );
 			synchronized( waitingSessionThreads ) {
@@ -1422,19 +1427,26 @@ public class Interpreter {
 		return true;
 	}
 
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message ) {
-		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId, programFilename() ) );
-			fireMonitorEvent(
-				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), programFilename(),
-					message ) );
-		}
+	private void logSessionStart( String operationName, String sessionId, long messageId, ParsingContext parsingContext,
+		Value message ) {
+
+		fireMonitorEvent( () -> {
+			return new SessionStartedEvent( operationName, sessionId, programFilename(), parsingContext );
+		} );
+		fireMonitorEvent( () -> {
+			return new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ),
+				programFilename(),
+				parsingContext, message );
+		} );
+
 	}
 
-	private void logSessionEnd( String operationName, String sessionId ) {
-		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId, programFilename() ) );
-		}
+	private void logSessionEnd( String operationName, String sessionId, ParsingContext parsingContext ) {
+
+		fireMonitorEvent( () -> {
+			return new SessionEndedEvent( operationName, sessionId, programFilename(), parsingContext );
+		} );
+
 	}
 
 	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<>();
