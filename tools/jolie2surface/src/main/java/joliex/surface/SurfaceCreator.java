@@ -47,12 +47,12 @@ import jolie.util.Range;
  *         Modified by Francesco Bullini, 05/07/2012
  */
 public class SurfaceCreator {
-	private ProgramInspector inspector;
+	private final ProgramInspector inspector;
 	private ArrayList< RequestResponseOperationDeclaration > rrVector;
 	private ArrayList< OneWayOperationDeclaration > owVector;
 	private ArrayList< String > types_vector;
 	private ArrayList< TypeDefinition > aux_types_vector;
-	private int MAX_CARD = 2147483647;
+	private final int MAX_CARD = Integer.MAX_VALUE;
 
 
 	public SurfaceCreator( ProgramInspector inspector, URI originalFile ) {

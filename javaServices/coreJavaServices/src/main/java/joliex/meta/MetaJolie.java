@@ -74,7 +74,7 @@ public class MetaJolie extends JavaService {
 	private static final int MAX_CARD = Integer.MAX_VALUE;
 	private ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition;
 	private ArrayList< Value > listOfGeneratedTypesInValues;
-	private ArrayList< String > nativeTypeList =
+	private final ArrayList< String > nativeTypeList =
 		new ArrayList<>( Arrays.asList( "any", "string", "double", "int", "void", "bool", "long", "raw" ) );
 
 	private class ValueTypeComparator implements Comparator< Value > {

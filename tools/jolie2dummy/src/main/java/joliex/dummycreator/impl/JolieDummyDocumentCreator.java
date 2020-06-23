@@ -42,9 +42,9 @@ import jolie.lang.parse.util.ProgramInspector;
  * @author Balint Maschio
  */
 public class JolieDummyDocumentCreator {
-	private ProgramInspector inspector;
-	private StringBuilder stringBuilder;
-	private File sourceFile;
+	private final ProgramInspector inspector;
+	private final StringBuilder stringBuilder;
+	private final File sourceFile;
 	private static final int MAX_ARRAY_ITEMS = 5;
 	private static final String mockFilename = "mock_main.ol";
 
