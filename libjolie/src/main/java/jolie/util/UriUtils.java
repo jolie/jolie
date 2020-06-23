@@ -78,14 +78,15 @@ public class UriUtils {
 	}
 
 	public static String normalizeWindowsPath( String path ) {
-		String result = path;
-		if( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
-			result = result.replace( "\\", "/" );
-			if( result.charAt( 1 ) == ':' ) {
-				// Remove the drive name if present
-				result = result.substring( 2 );
-			}
-		}
-		return result;
+		return Helpers.ifWindowsOrElse(
+			() -> {
+				String result = path.replace( "\\", "/" );
+				if( result.charAt( 1 ) == ':' ) {
+					// Remove the drive name if present
+					result = result.substring( 2 );
+				}
+				return result;
+			},
+			() -> path );
 	}
 }

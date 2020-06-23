@@ -101,6 +101,14 @@ public class Helpers {
 		return detectedOS;
 	}
 
+	public static < T > T ifWindowsOrElse( Supplier< T > supplierWindows, Supplier< T > supplierNotWindows ) {
+		if( detectedOS == OSType.Windows ) {
+			return supplierWindows.get();
+		} else {
+			return supplierNotWindows.get();
+		}
+	}
+
 	/**
 	 * Acquires lock if the current thread does not hold it already, executes code and returns. The
 	 * passed lambda may throw an exception, which is then thrown by this method.
