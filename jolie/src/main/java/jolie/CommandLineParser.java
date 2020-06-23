@@ -542,7 +542,8 @@ public class CommandLineParser implements Closeable {
 				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
-			} else if( olFilepath == null ) {
+			} else if(( olFilepath == null )  && (argsList.get( i ).endsWith( ".jap" )
+					|| argsList.get( i ).endsWith( ".ol" ) || argsList.get( i ).endsWith( ".olc" ))){
 				final String path = argsList.get( i );
 				if( path.endsWith( ".jap" ) ) {
 					for( String includePath : prepend( "", includeList ) ) {
