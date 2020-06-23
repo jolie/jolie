@@ -83,7 +83,6 @@
 		<exclude name="AvoidThrowingNewInstanceOfSameException" />
 		<exclude name="AvoidUncheckedExceptionsInSignatures" />
 		<exclude name="ExceptionAsFlowControl" />
-		<exclude name="ImmutableField" />
 		<exclude name="CyclomaticComplexity" />
 		<exclude name="UseUtilityClass" />
 		<exclude name="DataClass" />

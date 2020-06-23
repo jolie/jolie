@@ -7,13 +7,13 @@ import jolie.CommandLineParser;
 
 public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
-	private String packageName;
-	private String format;
-	private String targetPort;
+	private final String packageName;
+	private final String format;
+	private final String targetPort;
 	private boolean addSource = false;
-	private String outputDirectory = "";
-	private boolean buildXml = true;
-	private boolean javaservice = false;
+	private final String outputDirectory;
+	private final boolean buildXml;
+	private final boolean javaservice;
 
 	public String getPackageName() {
 		return packageName;

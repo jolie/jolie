@@ -167,7 +167,7 @@ public class SemanticVerifier implements OLVisitor {
 	private boolean insideInputPort = false;
 	private boolean insideInit = false;
 	private boolean mainDefined = false;
-	private CorrelationFunctionInfo correlationFunctionInfo = new CorrelationFunctionInfo();
+	private final CorrelationFunctionInfo correlationFunctionInfo = new CorrelationFunctionInfo();
 	private final MultiMap< String, String > inputTypeNameMap =
 		new ArrayListMultiMap<>(); // Maps type names to the input operations that use them
 
@@ -183,7 +183,7 @@ public class SemanticVerifier implements OLVisitor {
 	private OperationType insideCourierOperationType = null;
 	private InputPortInfo courierInputPort = null;
 
-	private Deque< String > inScopes = new ArrayDeque<>();
+	private final Deque< String > inScopes = new ArrayDeque<>();
 
 	public SemanticVerifier( Program program, Configuration configuration ) {
 		this.program = program;

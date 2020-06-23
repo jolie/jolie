@@ -18,9 +18,9 @@ public class FileTracer implements Tracer {
 
 	private static final int MAX_LINE_COUNT = 2000;
 	private int actionCounter = 0;
-	Writer fileWriter;
+	private Writer fileWriter;
 	private final Interpreter interpreter;
-	private TracerUtils.TracerLevels tracerLevels;
+	private final TracerUtils.TracerLevels tracerLevels;
 	private int lineCount = 0;
 
 	public FileTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel ) {

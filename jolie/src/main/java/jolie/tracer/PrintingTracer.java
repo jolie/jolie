@@ -39,7 +39,7 @@ import jolie.runtime.ValuePrettyPrinter;
 public class PrintingTracer implements Tracer {
 	private int actionCounter = 0;
 	private final Interpreter interpreter;
-	private TracerUtils.TracerLevels tracerLevels;
+	private final TracerUtils.TracerLevels tracerLevels;
 
 	public PrintingTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel ) {
 		this.interpreter = interpreter;
