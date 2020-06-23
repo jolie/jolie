@@ -30,7 +30,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.regex.Pattern;
+
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 
@@ -58,23 +60,19 @@ public class MultiPartFormDataParser {
 	public MultiPartFormDataParser( HttpMessage message, Value value )
 		throws IOException {
 		final String[] params = parametersSplitPattern.split( message.getProperty( "content-type" ) );
-		String b = null;
-		try {
-			for( String param : params ) {
-				param = param.trim();
-				if( param.startsWith( "boundary" ) ) {
-					b = "--" + keyValueSplitPattern.split( param, 2 )[ 1 ];
-				}
-			}
-			if( b == null ) {
-				throw new IOException( "Invalid boundary in multipart/form-data http message" );
-			}
-		} catch( ArrayIndexOutOfBoundsException e ) {
+		Optional< String > boundary = Arrays.stream( params ).map( String::trim )
+			.filter( s -> s.startsWith( "boundary" ) )
+			.findAny()
+			.map( s -> {
+				String[] parts = keyValueSplitPattern.split( s, 2 );
+				return parts.length >= 2 ? "--" + parts[ 1 ] : null;
+			} );
+		if( !boundary.isPresent() ) {
 			throw new IOException( "Invalid boundary in multipart/form-data http message" );
 		}
 
 		this.value = value;
-		this.boundary = b;
+		this.boundary = boundary.get();
 		this.message = message;
 	}
 

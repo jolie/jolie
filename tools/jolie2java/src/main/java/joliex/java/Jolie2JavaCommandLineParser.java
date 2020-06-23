@@ -43,7 +43,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 		return buildXml;
 	}
 
-	public boolean getJavaservice() {
+	public boolean javaService() {
 		return javaservice;
 	}
 

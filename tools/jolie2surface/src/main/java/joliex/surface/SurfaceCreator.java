@@ -48,8 +48,8 @@ import jolie.util.Range;
  */
 public class SurfaceCreator {
 	private ProgramInspector inspector;
-	private ArrayList< RequestResponseOperationDeclaration > rr_vector;
-	private ArrayList< OneWayOperationDeclaration > ow_vector;
+	private ArrayList< RequestResponseOperationDeclaration > rrVector;
+	private ArrayList< OneWayOperationDeclaration > owVector;
 	private ArrayList< String > types_vector;
 	private ArrayList< TypeDefinition > aux_types_vector;
 	private int MAX_CARD = 2147483647;
@@ -63,8 +63,8 @@ public class SurfaceCreator {
 		boolean noProtocol ) {
 
 		ArrayList< InterfaceDefinition > interface_vector = new ArrayList< InterfaceDefinition >();
-		rr_vector = new ArrayList< RequestResponseOperationDeclaration >();
-		ow_vector = new ArrayList< OneWayOperationDeclaration >();
+		rrVector = new ArrayList< RequestResponseOperationDeclaration >();
+		owVector = new ArrayList< OneWayOperationDeclaration >();
 		types_vector = new ArrayList< String >();
 		aux_types_vector = new ArrayList< TypeDefinition >();
 
@@ -114,9 +114,9 @@ public class SurfaceCreator {
 	private void addOperation( InterfaceDefinition interfaceDefinition ) {
 		for( OperationDeclaration op : interfaceDefinition.operationsMap().values() ) {
 			if( op instanceof RequestResponseOperationDeclaration ) {
-				rr_vector.add( (RequestResponseOperationDeclaration) op );
+				rrVector.add( (RequestResponseOperationDeclaration) op );
 			} else {
-				ow_vector.add( (OneWayOperationDeclaration) op );
+				owVector.add( (OneWayOperationDeclaration) op );
 			}
 		}
 	}
@@ -259,16 +259,16 @@ public class SurfaceCreator {
 
 	private void createOutput( InputPortInfo inputPort, boolean noOutputPort, boolean noLocation, boolean noProtocol ) {
 		// types creation
-		if( ow_vector.size() > 0 ) {
-			for( OneWayOperationDeclaration opDecl : ow_vector ) {
+		if( !owVector.isEmpty() ) {
+			for( OneWayOperationDeclaration opDecl : owVector ) {
 				// System.out.println("// types for operation " + ow_vector.get(x).id() );
 				printType( getType( opDecl.requestType() ) );
 			}
 			System.out.println();
 		}
 
-		if( rr_vector.size() > 0 ) {
-			for( RequestResponseOperationDeclaration rrDecl : rr_vector ) {
+		if( !rrVector.isEmpty() ) {
+			for( RequestResponseOperationDeclaration rrDecl : rrVector ) {
 				// System.out.println("// types for operation " + rr_vector.get(x).id() );
 				printType( getType( rrDecl.requestType() ) );
 				printType( getType( rrDecl.responseType() ) );
@@ -297,24 +297,24 @@ public class SurfaceCreator {
 		// interface creation
 		System.out.println( "interface " + inputPort.id() + "Surface {" );
 		// oneway declaration
-		if( ow_vector.size() > 0 ) {
+		if( !owVector.isEmpty() ) {
 			System.out.println( "OneWay:" );
-			for( int x = 0; x < ow_vector.size(); x++ ) {
+			for( int x = 0; x < owVector.size(); x++ ) {
 				if( x != 0 ) {
 					System.out.println( "," );
 				}
-				System.out.print( "\t" + getOWString( ow_vector.get( x ) ) );
+				System.out.print( "\t" + getOWString( owVector.get( x ) ) );
 			}
 			System.out.println();
 		}
 		// request response declaration
-		if( rr_vector.size() > 0 ) {
+		if( !rrVector.isEmpty() ) {
 			System.out.println( "RequestResponse:" );
-			for( int x = 0; x < rr_vector.size(); x++ ) {
+			for( int x = 0; x < rrVector.size(); x++ ) {
 				if( x != 0 ) {
 					System.out.println( "," );
 				}
-				System.out.print( "\t" + getRRString( rr_vector.get( x ) ) );
+				System.out.print( "\t" + getRRString( rrVector.get( x ) ) );
 			}
 			System.out.println();
 		}

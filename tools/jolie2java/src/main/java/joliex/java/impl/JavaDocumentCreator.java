@@ -1001,7 +1001,7 @@ public class JavaDocumentCreator {
 		if( !javaservice ) {
 			stringBuilder.append( ", IOException, InterruptedException, Exception" );
 		}
-		if( exceptionList.size() > 0 ) {
+		if( !exceptionList.isEmpty() ) {
 			exceptionList.entrySet().stream().forEach( f -> {
 				stringBuilder.append( ", " ).append( f.getValue() );
 			} );
