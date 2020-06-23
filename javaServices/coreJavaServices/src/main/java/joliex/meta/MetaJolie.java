@@ -972,7 +972,7 @@ public class MetaJolie extends JavaService {
 			// adding communication dependencies
 			Map< OLSyntaxNode, List< OLSyntaxNode > > communicationDependencies =
 				inspector.getBehaviouralDependencies();
-			if( communicationDependencies != null && communicationDependencies.size() > 0 ) {
+			if( communicationDependencies != null && !communicationDependencies.isEmpty() ) {
 				final ValueVector comDepVect = response.getChildren( "communication_dependencies" );
 				communicationDependencies.entrySet().stream()
 					.forEach( p -> {

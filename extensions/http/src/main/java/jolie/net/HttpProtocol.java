@@ -1126,9 +1126,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( headers != null ) {
 			for( String headerName : headers.children().keySet() ) {
 				String headerAlias = headers.getFirstChild( headerName ).strValue();
-				headerName = headerName.replace( "_", "-" );
 				decodedMessage.value.getFirstChild( headerAlias )
-					.setValue( message.getPropertyOrEmptyString( headerName ) );
+					.setValue( message.getPropertyOrEmptyString( headerName.replace( "_", "-" ) ) );
 			}
 		}
 	}
