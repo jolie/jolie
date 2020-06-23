@@ -21,8 +21,11 @@
 
 package jolie.monitoring;
 
+import jolie.lang.parse.context.ParsingContext;
 import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.Value;
+
+import java.net.URI;
 
 /**
  * A monitoring event, supporting the {@link ValueConverter} interface for automatic transformation
@@ -36,23 +39,26 @@ public class MonitoringEvent implements ValueConverter {
 	private final long memory;
 	private final Value data;
 	private final String service;
+	private final ParsingContext context;
 
-	public MonitoringEvent( String type, String serviceFileName, Value data ) {
+	public MonitoringEvent( String type, String serviceFileName, ParsingContext context, Value data ) {
 		this(
 			type,
 			System.currentTimeMillis(),
 			Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
 			serviceFileName,
+			context,
 			data );
 	}
 
-	private MonitoringEvent( String type, long timestamp, long memory, String serviceFileName, Value data ) {
+	private MonitoringEvent( String type, long timestamp, long memory, String serviceFileName, ParsingContext context,
+		Value data ) {
 		this.type = type;
 		this.timestamp = timestamp;
 		this.memory = memory;
-
 		this.data = data;
 		this.service = serviceFileName;
+		this.context = context;
 	}
 
 	public String type() {
@@ -67,7 +73,7 @@ public class MonitoringEvent implements ValueConverter {
 		return memory;
 	}
 
-	public String serviceFilename() {
+	public String service() {
 		return service;
 	}
 
@@ -75,22 +81,56 @@ public class MonitoringEvent implements ValueConverter {
 		return data;
 	}
 
+	public Value context() {
+		Value ret = Value.create();
+		if( context != null ) {
+			ret.getFirstChild( "filename" ).setValue( context.sourceName() );
+			ret.getFirstChild( "line" ).setValue( context.line() );
+		}
+		return ret;
+	}
+
+
 	public static MonitoringEvent fromValue( Value value ) {
+
+		ParsingContext parsingContext = null;
+		if( value.getFirstChild( "context" ).hasChildren() ) {
+
+			parsingContext = new ParsingContext() {
+				@Override
+				public URI source() {
+					return null;
+				}
+
+				@Override
+				public String sourceName() {
+					return value.getFirstChild( "context" ).getFirstChild( "filename" ).strValue();
+				}
+
+				@Override
+				public int line() {
+					return value.getFirstChild( "context" ).getFirstChild( "line" ).intValue();
+				}
+			};
+		}
 		return new MonitoringEvent(
-			value.getFirstChild( "type" ).strValue(),
-			value.getFirstChild( "timestamp" ).longValue(),
-			value.getFirstChild( "memory" ).longValue(),
-			value.getFirstChild( "service" ).strValue(),
+			value.getFirstChild( "type" ).strValue(), value.getFirstChild( "timestamp" ).longValue(),
+			value.getFirstChild( "memory" ).longValue(), value.getFirstChild( "service" ).strValue(),
+			parsingContext,
 			value.getFirstChild( "data" ) );
 	}
 
+
 	public static Value toValue( MonitoringEvent e ) {
 		Value ret = Value.create();
-		ret.getFirstChild( "type" ).setValue( e.type );
-		ret.getFirstChild( "timestamp" ).setValue( e.timestamp );
-		ret.getFirstChild( "memory" ).setValue( e.memory );
-		ret.getChildren( "data" ).add( e.data );
-		ret.getFirstChild( "service" ).setValue( e.service );
+		ret.getFirstChild( "type" ).setValue( e.type() );
+		ret.getFirstChild( "timestamp" ).setValue( e.timestamp() );
+		ret.getFirstChild( "memory" ).setValue( e.memory() );
+		ret.getChildren( "data" ).add( e.data() );
+		ret.getFirstChild( "service" ).setValue( e.service() );
+		if( e.context().hasChildren() ) {
+			ret.getChildren( "context" ).add( e.context() );
+		}
 		return ret;
 	}
 }

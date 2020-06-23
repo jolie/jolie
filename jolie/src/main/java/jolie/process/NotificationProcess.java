@@ -97,13 +97,14 @@ public class NotificationProcess implements Process {
 				try {
 					oneWayDescription.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
-					if( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent(
-							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-								Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT,
-								"TypeMismatch:" + e.getMessage(), outputPort.id(),
-								Interpreter.getInstance().programFilename(), message.value() ) );
-					}
+
+					Interpreter.getInstance().fireMonitorEvent( () -> {
+						return new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
+							Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT,
+							"TypeMismatch:" + e.getMessage(), outputPort.id(),
+							Interpreter.getInstance().programFilename(), context, message.value() );
+					} );
+
 					throw (e);
 				}
 			}
@@ -114,13 +115,16 @@ public class NotificationProcess implements Process {
 			channel.send( message );
 
 			log( "SENT", message );
-			if( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance()
-					.fireMonitorEvent( new OperationCallEvent( operationId,
+
+			Interpreter.getInstance()
+				.fireMonitorEvent( () -> {
+					return new OperationCallEvent( operationId,
 						ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id() ).toString(),
 						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
-						message.value() ) );
-			}
+						context,
+						message.value() );
+				} );
+
 
 			CommMessage response = null;
 			do {

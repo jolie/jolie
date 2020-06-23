@@ -28,7 +28,12 @@ type MonitorEvent: void {
 	.type: string 
 	.memory: long
 	.timestamp: long
+	.service: string
 	.data?: void { ? }
+	.context?: void {
+		.filename: string 
+		.line: int
+	}
 }
 
 type FlushResponse: void {

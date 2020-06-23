@@ -100,10 +100,11 @@ public class RequestResponseProcess implements InputOperationProcess {
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent(
-				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				return new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
 					Long.valueOf( sessionMessage.message().id() ).toString(),
-					Interpreter.getInstance().programFilename(), sessionMessage.message().value() ) );
+					Interpreter.getInstance().programFilename(), context, sessionMessage.message().value() );
+			} );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
@@ -175,7 +176,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 		throws FaultException {
 		// Variables for monitor
 		int responseStatus;
-		String details;
+		final StringBuilder details = new StringBuilder();
 
 		FaultException typeMismatch = null;
 		FaultException fault = null;
@@ -191,14 +192,14 @@ public class RequestResponseProcess implements InputOperationProcess {
 					try {
 						response = createFaultMessage( message, ethread.killerFault() );
 						responseStatus = OperationEndedEvent.FAULT;
-						details = ethread.killerFault().faultName();
+						details.append( ethread.killerFault().faultName() );
 					} catch( TypeCheckingException e ) {
 						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName()
 								+ " (operation " + operation.id() + "): " + e.getMessage() );
 						response = CommMessage.createFaultResponse( message, typeMismatch );
 						responseStatus = OperationEndedEvent.ERROR;
-						details = typeMismatch.faultName();
+						details.append( typeMismatch.faultName() );
 					}
 				} else {
 					response =
@@ -206,7 +207,6 @@ public class RequestResponseProcess implements InputOperationProcess {
 							message,
 							(outputExpression == null) ? Value.UNDEFINED_VALUE : outputExpression.evaluate() );
 					responseStatus = OperationEndedEvent.SUCCESS;
-					details = "";
 					if( operation.typeDescription().responseType() != null ) {
 						try {
 							operation.typeDescription().responseType().check( response.value() );
@@ -218,7 +218,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 							response = CommMessage.createFaultResponse( message, new FaultException(
 								Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 							responseStatus = OperationEndedEvent.ERROR;
-							details = Constants.TYPE_MISMATCH_FAULT_NAME;
+							details.append( Constants.TYPE_MISMATCH_FAULT_NAME );
 						}
 					}
 				}
@@ -229,21 +229,21 @@ public class RequestResponseProcess implements InputOperationProcess {
 			try {
 				response = createFaultMessage( message, f );
 				responseStatus = OperationEndedEvent.FAULT;
-				details = f.faultName();
+				details.append( f.faultName() );
 			} catch( TypeCheckingException e ) {
 				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 					"Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id()
 						+ "): " + e.getMessage() );
 				response = CommMessage.createFaultResponse( message, typeMismatch );
 				responseStatus = OperationEndedEvent.ERROR;
-				details = typeMismatch.faultName();
+				details.append( typeMismatch.faultName() );
 			}
 			fault = f;
 		}
 
 		try {
 			channel.send( response );
-			Value monitorValue;
+			final Value monitorValue;
 			if( response.isFault() ) {
 				log( "SENT FAULT", response );
 				monitorValue = response.fault().value();
@@ -251,12 +251,16 @@ public class RequestResponseProcess implements InputOperationProcess {
 				log( "SENT", response );
 				monitorValue = response.value();
 			}
-			if( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent(
-					new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-						Long.toString( response.id() ), responseStatus, details, monitorValue,
-						Interpreter.getInstance().programFilename() ) );
-			}
+			final long responseId = response.id();
+			final int responseStatusforMonitor = responseStatus;
+
+
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				return new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
+					Long.toString( responseId ), responseStatusforMonitor, details.toString(), monitorValue,
+					Interpreter.getInstance().programFilename(), context );
+			} );
+
 		} catch( IOException e ) {
 			// Interpreter.getInstance().logSevere( e );
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );

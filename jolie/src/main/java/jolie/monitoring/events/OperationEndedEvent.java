@@ -5,6 +5,7 @@
 
 package jolie.monitoring.events;
 
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
@@ -18,9 +19,9 @@ public class OperationEndedEvent extends MonitoringEvent {
 	public static final int ERROR = 2;
 
 	public OperationEndedEvent( String operationName, String processId, String messageId, int status, String details,
-		Value message, String service ) {
+		Value message, String service, ParsingContext context ) {
 
-		super( "OperationEnded", service, Value.create() );
+		super( "OperationEnded", service, context, Value.create() );
 
 		data().getFirstChild( "operationName" ).setValue( operationName );
 		data().getFirstChild( "processId" ).setValue( processId );

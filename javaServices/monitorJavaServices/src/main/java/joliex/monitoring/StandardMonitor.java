@@ -52,7 +52,6 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 
 	@Override
 	public void pushEvent( MonitoringEvent e ) {
-
 		synchronized( this ) {
 			if( q.size() >= queueMax ) {
 				q.removeFirst();
@@ -79,6 +78,10 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 				response.getChildren( "events" ).get( index ).getFirstChild( "memory" ).setValue( e.memory() );
 				response.getChildren( "events" ).get( index ).getFirstChild( "timestamp" ).setValue( e.timestamp() );
 				response.getChildren( "events" ).get( index ).getFirstChild( "type" ).setValue( e.type() );
+				response.getChildren( "events" ).get( index ).getFirstChild( "service" ).setValue( e.service() );
+				if( e.context().hasChildren() ) {
+					response.getChildren( "events" ).get( index ).getChildren( "context" ).add( e.context() );
+				}
 				index++;
 			}
 			q.clear();
