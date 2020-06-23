@@ -116,7 +116,6 @@
 	<rule ref="category/java/errorprone.xml">
 		<!-- To be added -->
 		<exclude name="CloseResource" />
-		<exclude name="AvoidCatchingNPE" />
 		<exclude name="AvoidInstanceofChecksInCatchClause" />
 		<exclude name="ConstructorCallsOverridableMethod" />
 		<exclude name="MissingBreakInSwitch" />

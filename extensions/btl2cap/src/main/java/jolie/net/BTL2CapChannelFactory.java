@@ -45,9 +45,9 @@ public class BTL2CapChannelFactory extends CommChannelFactory {
 
 	public ServiceRecord getFromServiceCache( String btAddr, String uuidStr ) {
 		ServiceRecord r = null;
-		try {
+		Map< String, ServiceRecord > m = serviceCache.get( btAddr );
+		if( m != null ) {
 			r = serviceCache.get( btAddr ).get( uuidStr );
-		} catch( NullPointerException e ) {
 		}
 		return r;
 	}
@@ -79,8 +79,6 @@ public class BTL2CapChannelFactory extends CommChannelFactory {
 		} catch( ClassCastException e ) {
 			throw new IOException( "CastException: malformed output btl2cap location: " + uri.toString() );
 		} catch( URISyntaxException e ) {
-			throw new IOException( e );
-		} catch( NullPointerException e ) {
 			throw new IOException( e );
 		}
 	}
