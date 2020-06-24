@@ -36,7 +36,6 @@
 
 	<rule ref="category/java/codestyle.xml">
 		<!-- To be added -->
-		<!-- <exclude name="LinguisticNaming" /> -->
 		<exclude name="LocalVariableNamingConventions" />
 		<exclude name="ControlStatementBraces" />
 		<exclude name="CallSuperInConstructor" />
@@ -45,12 +44,10 @@
 		<exclude name="MethodNamingConventions" />
 		<exclude name="AtLeastOneConstructor" />
 		<exclude name="LocalVariableCouldBeFinal" />
-		<!-- <exclude name="FieldNamingConventions" /> -->
 		<exclude name="FieldDeclarationsShouldBeAtStartOfClass" />
 		<exclude name="UnnecessaryFullyQualifiedName" />
 		<exclude name="UnnecessaryLocalBeforeReturn" />
 		<exclude name="PrematureDeclaration" />
-		<exclude name="UseDiamondOperator" />
 		<exclude name="IdenticalCatchBranches" />
 		<exclude name="UseUnderscoresInNumericLiterals" />
 		<exclude name="UseShortArrayInitializer" />

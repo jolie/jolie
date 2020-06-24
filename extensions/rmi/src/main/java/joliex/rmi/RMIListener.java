@@ -71,8 +71,7 @@ public class RMIListener extends CommListener {
 	public void shutdown() {
 		try {
 			registry.unbind( entryName );
-		} catch( RemoteException e ) {
-		} catch( NotBoundException e ) {
+		} catch( RemoteException | NotBoundException e ) {
 		}
 	}
 

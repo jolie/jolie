@@ -97,11 +97,7 @@ public class OneWayProcess implements InputOperationProcess {
 			} catch( FaultException.RuntimeFaultException rf ) {
 				throw rf.faultException();
 			}
-		} catch( FaultException e ) {
-			// Should never happen since receiveMessage always
-			// returns a NullProcess here.
-			throw e;
-		} catch( ExitingException e ) {
+		} catch( FaultException | ExitingException e ) {
 			// Should never happen since receiveMessage always
 			// returns a NullProcess here.
 			throw e;

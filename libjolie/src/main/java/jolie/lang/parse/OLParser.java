@@ -1202,7 +1202,7 @@ public class OLParser extends AbstractParser {
 		}
 		InputPortInfo iport =
 			new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration,
-				aggregationList.toArray( new InputPortInfo.AggregationItemInfo[ aggregationList.size() ] ),
+				aggregationList.toArray( new InputPortInfo.AggregationItemInfo[ 0 ] ),
 				redirectionMap );
 		for( InterfaceDefinition i : interfaceList ) {
 			iport.addInterface( i );
@@ -1251,7 +1251,7 @@ public class OLParser extends AbstractParser {
 				nextToken();
 			}
 			aggregationList.add( new InputPortInfo.AggregationItemInfo(
-				outputPortNames.toArray( new String[ outputPortNames.size() ] ),
+				outputPortNames.toArray( new String[ 0 ] ),
 				extender ) );
 
 			if( token.is( Scanner.TokenType.COMMA ) ) {
@@ -2094,7 +2094,7 @@ public class OLParser extends AbstractParser {
 
 		insideInstallFunction = backup;
 
-		return new InstallFunctionNode( vec.toArray( new Pair[ vec.size() ] ) );
+		return new InstallFunctionNode( vec.toArray( new Pair[ 0 ] ) );
 	}
 
 	private OLSyntaxNode parseAssignOrDeepCopyOrPointerStatement( VariablePathNode path )
@@ -2232,7 +2232,7 @@ public class OLParser extends AbstractParser {
 		}
 
 		addTokens( tokens );
-		addTokens( Arrays.asList( new Scanner.Token( Scanner.TokenType.DOT ) ) );
+		addTokens( Collections.singletonList( new Scanner.Token( Scanner.TokenType.DOT ) ) );
 		nextToken();
 
 		String varId = token.content();

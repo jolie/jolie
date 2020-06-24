@@ -72,7 +72,6 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -148,7 +147,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	private Definition wsdlDefinition = null;
 	private Port wsdlPort = null;
 	private final TransformerFactory transformerFactory;
-	private final Map< String, String > namespacePrefixMap = new HashMap< String, String >();
+	private final Map< String, String > namespacePrefixMap = new HashMap<>();
 	private boolean received = false;
 	private String encoding;
 
@@ -201,11 +200,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			InputSource schemaSource = new InputSource( new StringReader( sw.toString() ) );
 			schemaSource.setSystemId( definition.getDocumentBaseURI() );
 			schemaParser.parse( schemaSource );
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( SAXException | TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -332,7 +327,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 
 		if( ret == null ) {
-			ret = new HashMap< String, ValueVector >();
+			ret = new HashMap<>();
 		}
 
 		return ret;
@@ -1244,7 +1239,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 					ValueVector schemaPaths = getParameterVector( "schema" );
 					if( schemaPaths.size() > 0 ) {
-						List< Source > sources = new LinkedList< Source >();
+						List< Source > sources = new LinkedList<>();
 						Value schemaPath;
 						for( int i = 0; i < schemaPaths.size(); i++ ) {
 							schemaPath = schemaPaths.get( i );
@@ -1304,9 +1299,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
-		} catch( SOAPException e ) {
-			throw new IOException( e );
-		} catch( ParserConfigurationException e ) {
+		} catch( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			// TODO support resourcePath
@@ -1364,16 +1357,17 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 	private String getHeadersFromHttpMessage( HttpMessage message ) {
 		StringBuilder headers = new StringBuilder();
-		headers.append( "HTTP Code: " + message.statusCode() + "\n" )
-			.append( "Resource: " + message.requestPath() + "\n" );
+		headers.append( "HTTP Code: " ).append( message.statusCode() ).append( "\n" ).append( "Resource: " )
+			.append( message.requestPath() ).append( "\n" );
 		for( Entry< String, String > entry : message.properties() ) {
-			headers.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
+			headers.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
 		}
 		for( HttpMessage.Cookie cookie : message.setCookies() ) {
-			headers.append( "\tset-cookie: " + cookie.toString() + '\n' );
+			headers.append( "\tset-cookie: " ).append( cookie.toString() ).append( '\n' );
 		}
 		for( Entry< String, String > entry : message.cookies().entrySet() ) {
-			headers.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
+			headers.append( "\tcookie: " ).append( entry.getKey() ).append( '=' ).append( entry.getValue() )
+				.append( '\n' );
 		}
 
 		return headers.toString();

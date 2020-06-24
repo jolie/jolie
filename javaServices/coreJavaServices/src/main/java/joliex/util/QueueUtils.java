@@ -28,7 +28,7 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
 public class QueueUtils extends JavaService {
-	private final Map< String, LinkedList< Value > > queueMap = new ConcurrentHashMap< String, LinkedList< Value > >();
+	private final Map< String, LinkedList< Value > > queueMap = new ConcurrentHashMap<>();
 
 	private boolean has_queue( String queue_name ) {
 		return queueMap.containsKey( queue_name );
@@ -44,7 +44,7 @@ public class QueueUtils extends JavaService {
 		if( has_queue( queue_name ) ) {
 			return false;
 		} else {
-			LinkedList< Value > new_queue = new LinkedList< Value >();
+			LinkedList< Value > new_queue = new LinkedList<>();
 			queueMap.put( queue_name, new_queue );
 			return true;
 		}

@@ -69,12 +69,7 @@ public class Jolie {
 			final Interpreter interpreter =
 				new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
-			Runtime.getRuntime().addShutdownHook( new Thread() {
-				@Override
-				public void run() {
-					interpreter.exit( TERMINATION_TIMEOUT );
-				}
-			} );
+			Runtime.getRuntime().addShutdownHook( new Thread( () -> interpreter.exit( TERMINATION_TIMEOUT ) ) );
 			interpreter.run();
 		} catch( CommandLineException cle ) {
 			printErr( cle, printStackTraces );

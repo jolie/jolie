@@ -216,30 +216,19 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	private void addTypeEqualnessCheck( TypeDefinition key, TypeDefinition type ) {
-		List< TypeDefinition > toBeEqualList = typesToBeEqual.get( key );
-		if( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<>();
-			typesToBeEqual.put( key, toBeEqualList );
-		}
+		List< TypeDefinition > toBeEqualList = typesToBeEqual.computeIfAbsent( key, k -> new LinkedList<>() );
 		toBeEqualList.add( type );
 	}
 
 	private void addOneWayEqualnessCheck( OneWayOperationDeclaration key, OneWayOperationDeclaration oneWay ) {
-		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.get( key );
-		if( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<>();
-			owToBeEqual.put( key, toBeEqualList );
-		}
+		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.computeIfAbsent( key, k -> new LinkedList<>() );
 		toBeEqualList.add( oneWay );
 	}
 
 	private void addRequestResponseEqualnessCheck( RequestResponseOperationDeclaration key,
 		RequestResponseOperationDeclaration requestResponse ) {
-		List< RequestResponseOperationDeclaration > toBeEqualList = rrToBeEqual.get( key );
-		if( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<>();
-			rrToBeEqual.put( key, toBeEqualList );
-		}
+		List< RequestResponseOperationDeclaration > toBeEqualList =
+			rrToBeEqual.computeIfAbsent( key, k -> new LinkedList<>() );
 		toBeEqualList.add( requestResponse );
 	}
 

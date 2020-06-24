@@ -658,7 +658,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( statusDescription == null ) {
 			statusDescription = STATUS_CODE_DESCRIPTIONS.get( statusCode );
 		}
-		headerBuilder.append( "HTTP/1.1 " + statusCode + " " + statusDescription + HttpUtils.CRLF );
+		headerBuilder.append( "HTTP/1.1 " ).append( statusCode ).append( " " ).append( statusDescription )
+			.append( HttpUtils.CRLF );
 
 		// if redirect has been set, the redirect location parameter is set
 		if( hasParameter( Parameters.REDIRECT ) ) {
@@ -990,10 +991,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				Document doc = builder.parse( src );
 				XmlUtils.documentToValue( doc, value, false );
 			}
-		} catch( ParserConfigurationException pce ) {
+		} catch( ParserConfigurationException | SAXException pce ) {
 			throw new IOException( pce );
-		} catch( SAXException saxe ) {
-			throw new IOException( saxe );
 		}
 	}
 
@@ -1151,11 +1150,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				for( String param : params ) {
 					String[] ikv = param.split( "=", 2 );
 					if( ikv.length > 1 ) {
-						index = indexes.get( ikv[ 0 ] );
-						if( index == null ) {
-							index = 0;
-							indexes.put( ikv[ 0 ], index );
-						}
+						index = indexes.computeIfAbsent( ikv[ 0 ], k -> 0 );
 						// the query string was already URL decoded by the HttpParser
 						value.getChildren( ikv[ 0 ] ).get( index ).setValue( ikv[ 1 ] );
 						indexes.put( ikv[ 0 ], index + 1 );
@@ -1181,19 +1176,19 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
 		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" )
-			.append( "HTTP Code: " + message.statusCode() + "\n" )
-			.append( "HTTP Method: " + message.type().name() + "\n" )
-			.append( "Resource: " + message.requestPath() + "\n" )
+		debugSB.append( "[HTTP debug] Receiving:\n" ).append( "HTTP Code: " ).append( message.statusCode() )
+			.append( "\n" ).append( "HTTP Method: " ).append( message.type().name() ).append( "\n" )
+			.append( "Resource: " ).append( message.requestPath() ).append( "\n" )
 			.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
-			debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
+			debugSB.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
 		}
 		for( HttpMessage.Cookie cookie : message.setCookies() ) {
-			debugSB.append( "\tset-cookie: " + cookie.toString() + '\n' );
+			debugSB.append( "\tset-cookie: " ).append( cookie.toString() ).append( '\n' );
 		}
 		for( Entry< String, String > entry : message.cookies().entrySet() ) {
-			debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
+			debugSB.append( "\tcookie: " ).append( entry.getKey() ).append( '=' ).append( entry.getValue() )
+				.append( '\n' );
 		}
 		if( showContent ) {
 			debugSB.append( "--> Message content\n" )

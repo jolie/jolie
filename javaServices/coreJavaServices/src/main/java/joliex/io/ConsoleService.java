@@ -31,7 +31,6 @@ import java.nio.channels.ClosedByInterruptException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
@@ -66,11 +65,10 @@ public class ConsoleService extends JavaService {
 					line = stdin.readLine();
 
 					if( sessionListeners ) {
-						Iterator< String > it = sessionTokens.keySet().iterator();
 
-						while( it.hasNext() ) {
+						for( String s : sessionTokens.keySet() ) {
 							Value v = Value.create();
-							v.getFirstChild( "token" ).setValue( it.next() );
+							v.getFirstChild( "token" ).setValue( s );
 							v.setValue( line );
 							sendMessage( CommMessage.createRequest( "in", "/", v ) );
 						}

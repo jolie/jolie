@@ -124,8 +124,8 @@ public class JavaDocumentCreatorTest {
 		ArrayList< String > files = new ArrayList<>();
 		if( generatedTypesPath.exists() ) {
 			String filesTypes[] = generatedTypesPath.list();
-			for( int i = 0; i < filesTypes.length; i++ ) {
-				files.add( generatedTypesPath.getPath() + "/" + filesTypes[ i ] );
+			for( String filesType : filesTypes ) {
+				files.add( generatedTypesPath.getPath() + "/" + filesType );
 			}
 
 			File generatedTestPath = new File( outputDirectory + "com/test" );

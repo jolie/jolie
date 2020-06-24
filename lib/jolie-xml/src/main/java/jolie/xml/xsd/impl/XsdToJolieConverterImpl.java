@@ -59,13 +59,13 @@ import jolie.xml.xsd.XsdUtils;
  */
 public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 	private final Logger logger;
-	private final List< TypeDefinition > jolieTypes = new ArrayList< TypeDefinition >();
+	private final List< TypeDefinition > jolieTypes = new ArrayList<>();
 	private final static ParsingContext PARSING_CONTEXT = URIParsingContext.DEFAULT;
 	private final boolean strict;
 	private final XSSchemaSet schemaSet;
-	private final Map< String, TypeDefinition > complexTypes = new HashMap< String, TypeDefinition >();
-	private final Map< String, TypeDefinition > simpleTypes = new HashMap< String, TypeDefinition >();
-	private final ArrayList< String > complexTypeNames = new ArrayList< String >();
+	private final Map< String, TypeDefinition > complexTypes = new HashMap<>();
+	private final Map< String, TypeDefinition > simpleTypes = new HashMap<>();
+	private final ArrayList< String > complexTypeNames = new ArrayList<>();
 	// private final ArrayList<String> simpleTypeNames = new ArrayList<String>()
 	private static final String XMLSCHEMA_URI = "http://www.w3.org/2001/XMLSchema";
 	private static final String XMLSOAPSCHEMA_URI = "http://schemas.xmlsoap.org/soap/encoding/";

@@ -220,9 +220,7 @@ public class JsUtils {
 			} else {
 				objectToBasicValue( obj, value );
 			}
-		} catch( ParseException e ) {
-			throw new IOException( e );
-		} catch( ClassCastException e ) {
+		} catch( ParseException | ClassCastException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -246,9 +244,7 @@ public class JsUtils {
 					objectToBasicValue( obj, itemValue );
 				}
 				value.getChildren( "item" ).add( itemValue );
-			} catch( ParseException e ) {
-				throw new IOException( e );
-			} catch( ClassCastException e ) {
+			} catch( ParseException | ClassCastException e ) {
 				throw new IOException( e );
 			}
 

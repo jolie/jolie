@@ -436,7 +436,7 @@ public class DatabaseService extends JavaService {
 		throws SQLException {
 		Value rowValue;
 		ResultSetMetaData metadata = result.getMetaData();
-		Map< String, Integer > colIndexes = new HashMap< String, Integer >();
+		Map< String, Integer > colIndexes = new HashMap<>();
 		int cols = metadata.getColumnCount();
 		for( int i = 0; i < cols; i++ ) {
 			colIndexes.put( metadata.getColumnName( i ), i );

@@ -348,8 +348,7 @@ public class Scanner {
 	private final InputStreamReader reader;	// data input
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
-	private State state;					// current state
-	private int line;						// current line
+    private int line;						// current line
 	private final URI source;				// source name
 	private final boolean includeDocumentation;	// include documentation tokens
 
@@ -579,7 +578,8 @@ public class Scanner {
 		throws IOException
 	{
 		boolean keepRun = true;
-		state = State.FIRST_CHARACTER;
+        // current state
+        State state = State.FIRST_CHARACTER;
         
 		while ( currInt != -1 && isHorizontalWhitespace( ch ) ) {
 			readChar();
@@ -597,7 +597,7 @@ public class Scanner {
 			if ( currInt == -1 && retval == null ) {
 				keepRun = false; // We *need* a token at this point
 			}
-			switch( state ) {
+			switch(state) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
 				 * specific character (==) check.

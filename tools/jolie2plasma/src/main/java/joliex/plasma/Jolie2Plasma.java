@@ -66,13 +66,7 @@ public class Jolie2Plasma {
 			System.out.println( e.getMessage() );
 			System.out.println(
 				"Syntax is: jolie2plasma [jolie options] <jolie filename> <output filename> [interface name list]" );
-		} catch( IOException e ) {
-			e.printStackTrace();
-		} catch( ParserException e ) {
-			e.printStackTrace();
-		} catch( SemanticException e ) {
-			e.printStackTrace();
-		} catch( InterfaceVisitor.InterfaceNotFound e ) {
+		} catch( IOException | InterfaceVisitor.InterfaceNotFound | SemanticException | ParserException e ) {
 			e.printStackTrace();
 		}
 	}

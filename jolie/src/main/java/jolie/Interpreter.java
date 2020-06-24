@@ -970,11 +970,7 @@ public class Interpreter {
 	 * @return the global lock registered on this interpreter with the specified identifier
 	 */
 	public synchronized Object getLock( String id ) {
-		Object l = locksMap.get( id );
-		if( l == null ) {
-			l = new Object();
-			locksMap.put( id, l );
-		}
+		Object l = locksMap.computeIfAbsent( id, k -> new Object() );
 		return l;
 	}
 

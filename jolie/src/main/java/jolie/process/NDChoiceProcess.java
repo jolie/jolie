@@ -80,7 +80,7 @@ public class NDChoiceProcess implements Process {
 		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
 		int i = 0;
 		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {
-			b[ i++ ] = new Pair< InputOperationProcess, Process >( pair.key(), pair.value().copy( reason ) );
+			b[ i++ ] = new Pair<>( pair.key(), pair.value().copy( reason ) );
 		}
 		return new NDChoiceProcess( b );
 	}

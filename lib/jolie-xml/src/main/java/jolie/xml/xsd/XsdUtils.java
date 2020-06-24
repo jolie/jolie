@@ -35,7 +35,7 @@ public class XsdUtils {
 	private final static Map< String, NativeType > XSD_TO_NATIVE_TYPE_MAP;
 
 	static {
-		XSD_TO_NATIVE_TYPE_MAP = new HashMap< String, NativeType >();
+		XSD_TO_NATIVE_TYPE_MAP = new HashMap<>();
 		XSD_TO_NATIVE_TYPE_MAP.put( "string", NativeType.STRING );
 		XSD_TO_NATIVE_TYPE_MAP.put( "date", NativeType.STRING );
 		XSD_TO_NATIVE_TYPE_MAP.put( "time", NativeType.STRING );
