@@ -24,10 +24,7 @@ package jolie.net;
 
 
 import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import jolie.Interpreter;
 import jolie.Jolie;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
