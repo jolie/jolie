@@ -8,11 +8,9 @@
 
 	<rule ref="category/java/bestpractices.xml">
 		<!-- To be added -->
-		<exclude name="AvoidStringBufferField" />
 		<exclude name="OneDeclarationPerLine" />
 		<exclude name="AvoidReassigningParameters" />
 		<exclude name="AvoidPrintStackTrace" />
-		<exclude name="UnusedFormalParameter" />
 		<exclude name="PreserveStackTrace" />
 		<exclude name="UseVarargs" />
 		<exclude name="AccessorClassGeneration" />
@@ -31,6 +29,7 @@
 		<exclude name="AccessorMethodGeneration" />
 
 		<!-- Excluded -->
+		<exclude name="AvoidStringBufferField" />
 		<exclude name="AvoidReassigningLoopVariables" />
 	</rule>
 

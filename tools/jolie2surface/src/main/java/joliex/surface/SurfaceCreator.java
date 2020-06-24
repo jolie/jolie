@@ -20,7 +20,6 @@
  ***************************************************************************/
 package joliex.surface;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
@@ -54,7 +53,7 @@ public class SurfaceCreator {
 	private final static int MAX_CARD = Integer.MAX_VALUE;
 
 
-	public SurfaceCreator( ProgramInspector inspector, URI originalFile ) {
+	public SurfaceCreator( ProgramInspector inspector ) {
 		this.inspector = inspector;
 	}
 

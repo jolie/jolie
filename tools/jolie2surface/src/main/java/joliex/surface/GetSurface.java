@@ -50,7 +50,7 @@ public class GetSurface {
 				cmdParser.getInterpreterParameters().jolieClassLoader(),
 				cmdParser.getInterpreterParameters().constants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
-			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
+			SurfaceCreator document = new SurfaceCreator( inspector );
 			document.ConvertDocument( cmdParser.getInterpreterParameters().arguments()[ 0 ], cmdParser.noOutputPort(),
 				cmdParser.noLocation(), cmdParser.noProtocol() );
 		} catch( CommandLineException | ParserException e ) {

@@ -209,7 +209,7 @@ public class WSDLDocCreator {
 			Operation wsdlOp = addOWOperation2PT( localDef, pt, oneWayOperation );
 
 			// adding operation binding
-			addOperationSOAPBinding( localDef, pt, wsdlOp, bd );
+			addOperationSOAPBinding( localDef, wsdlOp, bd );
 
 		} else {
 			// RR
@@ -219,7 +219,7 @@ public class WSDLDocCreator {
 			Operation wsdlOp = addRROperation2PT( localDef, pt, requestResponseOperation );
 
 			// adding operation binding
-			addOperationSOAPBinding( localDef, pt, wsdlOp, bd );
+			addOperationSOAPBinding( localDef, wsdlOp, bd );
 
 		}
 	}
@@ -401,8 +401,7 @@ public class WSDLDocCreator {
 
 	}
 
-	private Message addFaultMessage( Definition localDef, OperationDeclaration op, TypeDefinition tp,
-		String faultName ) {
+	private Message addFaultMessage( Definition localDef, TypeDefinition tp ) {
 		Message faultMessage = localDef.createMessage();
 		faultMessage.setUndefined( false );
 
@@ -487,7 +486,7 @@ public class WSDLDocCreator {
 		for( Entry< String, TypeDefinition > curFault : op.faults().entrySet() ) {
 			Fault fault = localDef.createFault();
 			fault.setName( curFault.getKey() );
-			Message flt_msg = addFaultMessage( localDef, op, curFault.getValue(), curFault.getKey() );
+			Message flt_msg = addFaultMessage( localDef, curFault.getValue() );
 			fault.setMessage( flt_msg );
 			wsdlOp.addFault( fault );
 
@@ -520,7 +519,7 @@ public class WSDLDocCreator {
 
 	}
 
-	private void addOperationSOAPBinding( Definition localDef, PortType portType, Operation wsdlOp, Binding bind ) {
+	private void addOperationSOAPBinding( Definition localDef, Operation wsdlOp, Binding bind ) {
 		try {
 			// creating operation binding
 			BindingOperation bindOp = localDef.createBindingOperation();
