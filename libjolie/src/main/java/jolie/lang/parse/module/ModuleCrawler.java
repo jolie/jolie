@@ -31,9 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
-public class ModuleCrawler {
+class ModuleCrawler {
 
-	public static class CrawlerResult {
+	protected static class CrawlerResult {
 		private final Map< URI, ModuleRecord > moduleCrawled;
 
 		private CrawlerResult() {
@@ -48,7 +48,7 @@ public class ModuleCrawler {
 			return this.moduleCrawled.containsKey( source );
 		}
 
-		public Map< URI, ModuleRecord > toMap() {
+		protected Map< URI, ModuleRecord > toMap() {
 			return this.moduleCrawled;
 		}
 
@@ -75,34 +75,26 @@ public class ModuleCrawler {
 		return ModuleCrawler.cache.get( source );
 	}
 
-	public static void clearCache() {
-		ModuleCrawler.cache.clear();
-	}
-
-	private final Finder finder;
+	private final ModuleFinder finder;
 	private final ModuleParser parser;
 
-	private ModuleCrawler( ModuleCrawlerComponent component ) {
-		this( component.parser(), component.finder() );
-	}
-
-	private ModuleCrawler( ModuleParser parser, Finder finder ) {
+	private ModuleCrawler( ModuleParser parser, ModuleFinder finder ) {
 		this.finder = finder;
 		this.parser = parser;
 	}
 
-	private Source findModule( URI parentURI, List< String > importTargetStrings )
+	private ModuleSource findModule( ImportPath importPath, URI parentURI )
 		throws ModuleNotFoundException {
-		Source targetFile = finder.find( importTargetStrings, parentURI );
+		ModuleSource targetFile = finder.find( parentURI, importPath );
 		return targetFile;
 	}
 
-	private List< Source > crawlModule( ModuleRecord record ) throws ModuleException {
-		List< Source > modulesToCrawl = new ArrayList<>();
-		for( SymbolInfoExternal externalSymbol : record.symbolTable().externalSymbols() ) {
+	private List< ModuleSource > crawlModule( ModuleRecord record ) throws ModuleException {
+		List< ModuleSource > modulesToCrawl = new ArrayList<>();
+		for( ImportedSymbolInfo externalSymbol : record.symbolTable().externalSymbols() ) {
 			try {
-				Source moduleSource =
-					this.findModule( record.source(), externalSymbol.moduleTargets() );
+				ModuleSource moduleSource =
+					this.findModule( externalSymbol.importPath(), record.source() );
 				externalSymbol.setModuleSource( moduleSource );
 				modulesToCrawl.add( moduleSource );
 			} catch( ModuleNotFoundException e ) {
@@ -117,20 +109,20 @@ public class ModuleCrawler {
 		throws ParserException, IOException, ModuleException {
 		CrawlerResult result = new CrawlerResult();
 		// start with parentRecord
-		Queue< Source > dependencies = new LinkedList<>();
+		Queue< ModuleSource > dependencies = new LinkedList<>();
 		result.addModuleRecord( parentRecord );
 		dependencies.addAll( this.crawlModule( parentRecord ) );
 
 		// walk through dependencies
 		while( dependencies.peek() != null ) {
-			Source module = dependencies.poll();
+			ModuleSource module = dependencies.poll();
 
-			if( result.isRecordInResult( module.source() ) ) {
+			if( result.isRecordInResult( module.uri() ) ) {
 				continue;
 			}
 
-			if( ModuleCrawler.inCache( module.source() ) ) {
-				result.addModuleRecord( ModuleCrawler.getRecordFromCache( module.source() ) );
+			if( ModuleCrawler.inCache( module.uri() ) ) {
+				result.addModuleRecord( ModuleCrawler.getRecordFromCache( module.uri() ) );
 				continue;
 			}
 
@@ -148,14 +140,15 @@ public class ModuleCrawler {
 	 * crawl module's dependencies required for resolving symbols
 	 * 
 	 * @param initial a root module
-	 * @param component a composite object of Jolie's Finder and Parser for use during crawl process
+	 * @param component a composite object of Jolie's ModuleFinder and Parser for use during crawl
+	 *        process
 	 * @throws ParserException
 	 * @throws IOException
 	 * @throws ModuleException
 	 */
-	public static CrawlerResult crawl( ModuleRecord initial, ModuleCrawlerComponent component )
+	protected static CrawlerResult crawl( ModuleRecord initial, ModuleParser parser, ModuleFinder finder )
 		throws ParserException, IOException, ModuleException {
-		ModuleCrawler crawler = new ModuleCrawler( component );
+		ModuleCrawler crawler = new ModuleCrawler( parser, finder );
 		return crawler.crawl( initial );
 	}
 }

@@ -19,32 +19,32 @@
 
 package jolie.lang.parse.module.exceptions;
 
-import java.util.List;
 import jolie.lang.Constants;
+import jolie.lang.parse.module.ImportPath;
 
 public class SymbolNotFoundException extends Exception {
 
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final String symbolName;
-	private final List< String > moduleTargets;
+	private final ImportPath importPath;
 
 	public SymbolNotFoundException( String symbolName ) {
 		super( symbolName );
 		this.symbolName = symbolName;
-		this.moduleTargets = null;
+		this.importPath = null;
 	}
 
-	public SymbolNotFoundException( String symbolName, List< String > moduleTargets ) {
+	public SymbolNotFoundException( String symbolName, ImportPath importPath ) {
 		super( symbolName );
 		this.symbolName = symbolName;
-		this.moduleTargets = moduleTargets;
+		this.importPath = importPath;
 	}
 
 	@Override
 	public String getMessage() {
-		if( this.moduleTargets == null )
+		if( this.importPath == null ) {
 			return this.symbolName + " is not defined in symbolTable";
-		else
-			return this.symbolName + " is not defined in " + String.join( ".", this.moduleTargets );
+		}
+		return this.symbolName + " is not defined in " + importPath;
 	}
 }

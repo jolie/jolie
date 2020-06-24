@@ -29,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import jolie.lang.Constants.ExecutionMode;
@@ -124,7 +123,6 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.util.ArrayListMultiMap;
-import jolie.util.Helpers;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
 
@@ -363,24 +361,10 @@ public class SemanticVerifier implements OLVisitor {
 	 * @return
 	 */
 	private boolean hasSymbolDefined( String name, ParsingContext context ) {
-		Optional< Boolean > hasSymbol = Helpers.firstNonNull( () -> {
-			if( symbolTables.get( program.context().source() ) == null ) {
-				return null;
-			}
-			if( !symbolTables.get( program.context().source() ).symbol( name ).isPresent() ) {
-				return null;
-			}
-			return Boolean.TRUE;
-		}, () -> {
-			if( symbolTables.get( context.source() ) == null ) {
-				return null;
-			}
-			if( !symbolTables.get( context.source() ).symbol( name ).isPresent() ) {
-				return null;
-			}
-			return Boolean.TRUE;
-		} );
-		return hasSymbol.isPresent();
+		return (symbolTables.get( program.context().source() ) != null
+			&& symbolTables.get( program.context().source() ).getSymbol( name ).isPresent())
+			|| (symbolTables.get( context.source() ) != null
+				&& symbolTables.get( context.source() ).getSymbol( name ).isPresent());
 	}
 
 	public void validate()

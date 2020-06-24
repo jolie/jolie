@@ -19,12 +19,12 @@
 
 package jolie.lang.parse.module;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
@@ -37,12 +37,12 @@ import jolie.lang.Constants;
 /**
  * an Interface of Joile module Source
  */
-public interface Source {
+public interface ModuleSource {
 
 	/**
 	 * @return URI location of the module
 	 */
-	URI source();
+	URI uri();
 
 	/**
 	 * @return an optional include path for parsing this module
@@ -52,24 +52,24 @@ public interface Source {
 	/**
 	 * @return an InputStream of source
 	 */
-	Optional< InputStream > stream();
+	Optional< InputStream > openStream();
 }
 
 
 /**
  * Jolie Module in file (an .ol file)
  */
-class FileSource implements Source {
+class PathSource implements ModuleSource {
 
-	private final File file;
+	private final Path path;
 
-	public FileSource( File f ) {
-		this.file = f;
+	public PathSource( Path p ) {
+		this.path = p;
 	}
 
 	@Override
-	public URI source() {
-		return this.file.toURI();
+	public URI uri() {
+		return this.path.toUri();
 	}
 
 	/**
@@ -81,9 +81,9 @@ class FileSource implements Source {
 	}
 
 	@Override
-	public Optional< InputStream > stream() {
+	public Optional< InputStream > openStream() {
 		try {
-			return Optional.of( new FileInputStream( this.file ) );
+			return Optional.of( new FileInputStream( this.path.toFile() ) );
 		} catch( FileNotFoundException e ) {
 			return Optional.empty();
 		}
@@ -91,17 +91,17 @@ class FileSource implements Source {
 }
 
 
-class JapSource implements Source {
+class JapSource implements ModuleSource {
 
 	private final JarFile japFile;
-	private final URI source;
+	private final URI uri;
 	private final String filePath;
 	private final String parentPath;
 	private final ZipEntry moduleEntry;
 
-	public JapSource( File f ) throws IOException {
-		this.japFile = new JarFile( f );
-		this.source = f.toURI();
+	public JapSource( Path f ) throws IOException {
+		this.japFile = new JarFile( f.toFile() );
+		this.uri = f.toUri();
 		Manifest manifest = this.japFile.getManifest();
 
 		if( manifest != null ) { // See if a main program is defined through a Manifest attribute
@@ -117,9 +117,9 @@ class JapSource implements Source {
 		}
 	}
 
-	public JapSource( File f, List< String > path ) throws IOException {
-		this.japFile = new JarFile( f );
-		this.source = f.toURI();
+	public JapSource( Path f, List< String > path ) throws IOException {
+		this.japFile = new JarFile( f.toFile() );
+		this.uri = f.toUri();
 		this.filePath = String.join( "/", path );
 		moduleEntry = japFile.getEntry( this.filePath + ".ol" );
 		if( moduleEntry == null ) {
@@ -135,16 +135,16 @@ class JapSource implements Source {
 	 */
 	@Override
 	public Optional< String > includePath() {
-		return Optional.of( "jap:" + this.source.toString() + "!/" + this.parentPath );
+		return Optional.of( "jap:" + this.uri.toString() + "!/" + this.parentPath );
 	}
 
 	@Override
-	public URI source() {
-		return this.source;
+	public URI uri() {
+		return this.uri;
 	}
 
 	@Override
-	public Optional< InputStream > stream() {
+	public Optional< InputStream > openStream() {
 		try {
 			return Optional.of( this.japFile.getInputStream( this.moduleEntry ) );
 		} catch( IOException e ) {

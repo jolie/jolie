@@ -40,7 +40,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -63,6 +62,7 @@ import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.ImportStatement;
+import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
@@ -96,7 +96,6 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SymbolNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
@@ -162,8 +161,6 @@ public class OLParser extends AbstractParser {
 	private final ClassLoader classLoader;
 
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
-
-	private boolean isCurrSymbolPrivate = false;
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader ) {
 		super( scanner );
@@ -254,7 +251,6 @@ public class OLParser extends AbstractParser {
 			this::parseConstants,
 			this::parseExecution,
 			this::parseCorrelationSets,
-			this::parsePrivacy,
 			this::parseTypes,
 			this::parseInterface,
 			this::parsePort,
@@ -263,31 +259,29 @@ public class OLParser extends AbstractParser {
 			this::parseCode );
 	}
 
-	private void parsePrivacy()
-		throws IOException, ParserException {
-		// parse symbol privacy
-		if( token.isKeyword( "private" ) ) {
-			isCurrSymbolPrivate = true;
-			getToken();
-		}
-	}
-
-	private void setSymbolPrivacy( SymbolNode node ) {
-		node.setPrivate( isCurrSymbolPrivate );
-		isCurrSymbolPrivate = false;
-	}
 
 	private void parseTypes()
 		throws IOException, ParserException {
 		Scanner.Token commentToken = null;
+		Scanner.Token accessModToken = null;
 		boolean keepRun = true;
 		boolean haveComment = false;
+		boolean haveAccessModToken = false;
+
 		while( keepRun ) {
 			if( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
 				haveComment = true;
 				commentToken = token;
 				getToken();
+			} else if( token.is( Scanner.TokenType.PRIVATE ) || token.is( Scanner.TokenType.PUBLIC ) ) {
+				haveAccessModToken = true;
+				accessModToken = token;
+				getToken();
 			} else if( token.isKeyword( "type" ) ) {
+				AccessModifier accessModifier =
+					(accessModToken != null && accessModToken.is( Scanner.TokenType.PRIVATE )) ? AccessModifier.PRIVATE
+						: AccessModifier.PUBLIC;
+
 				String typeName;
 				TypeDefinition currentType;
 
@@ -301,8 +295,7 @@ public class OLParser extends AbstractParser {
 					getToken();
 				}
 
-				currentType = parseType( typeName );
-				setSymbolPrivacy( currentType );
+				currentType = parseType( typeName, accessModifier );
 
 				if( haveComment ) {
 					haveComment = false;
@@ -321,20 +314,27 @@ public class OLParser extends AbstractParser {
 					addToken( token );
 					getToken();
 				}
+				if( haveAccessModToken ) {
+					addToken( accessModToken );
+					addToken( token );
+					getToken();
+				}
 			}
 		}
 	}
 
-	private TypeDefinition parseType( String typeName )
+	private TypeDefinition parseType( String typeName, AccessModifier accessModifier )
 		throws IOException, ParserException {
 		TypeDefinition currentType;
 
 		NativeType nativeType = readNativeType();
 		if( nativeType == null ) { // It's a user-defined type
-			currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
+			currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, accessModifier,
+				token.content() );
 			getToken();
 		} else {
-			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
+			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE,
+				accessModifier );
 			getToken();
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
@@ -343,9 +343,10 @@ public class OLParser extends AbstractParser {
 
 		if( token.is( Scanner.TokenType.PARALLEL ) ) { // It's a sum (union, choice) type
 			getToken();
-			final TypeDefinition secondType = parseType( typeName );
+			final TypeDefinition secondType = parseType( typeName, accessModifier );
 			final TypeChoiceDefinition choiceDefinition =
-				new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType, secondType );
+				new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, accessModifier,
+					currentType, secondType );
 			return choiceDefinition;
 		}
 
@@ -907,6 +908,16 @@ public class OLParser extends AbstractParser {
 		return portInfo;
 	}
 
+	private Optional< Scanner.Token > parseAccessModifier()
+		throws IOException, ParserException {
+		Scanner.Token accessModToken = null;
+		if( token.is( Scanner.TokenType.PRIVATE ) || token.is( Scanner.TokenType.PUBLIC ) ) {
+			accessModToken = token;
+			getToken();
+		}
+		return Optional.ofNullable( accessModToken );
+	}
+
 	private Optional< Scanner.Token > parseForwardDocumentation()
 		throws IOException {
 		Scanner.Token docToken = null;
@@ -956,27 +967,31 @@ public class OLParser extends AbstractParser {
 	private void parseInterface()
 		throws IOException, ParserException {
 		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
-
+		Optional< Scanner.Token > accessModifierToken = parseAccessModifier();
 		if( token.isKeyword( "interface" ) ) {
 			getToken();
 			DocumentedNode docNode = null;
+			AccessModifier accessModifier =
+				(accessModifierToken.isPresent() && accessModifierToken.get().is( Scanner.TokenType.PRIVATE ))
+					? AccessModifier.PRIVATE
+					: AccessModifier.PUBLIC;
+
 			final InterfaceDefinition iface;
 			if( token.isKeyword( "extender" ) ) {
 				getToken();
-				iface = _parseInterfaceExtender();
+				iface = _parseInterfaceExtender( accessModifier );
 				docNode = iface;
 			} else {
-				iface = _parseInterface();
+				iface = _parseInterface( accessModifier );
 				docNode = iface;
 			}
 			if( docNode != null ) {
 				parseBackwardAndSetDocumentation( docNode, forwardDocToken );
 			}
-			iface.setPrivate( isCurrSymbolPrivate );
-			isCurrSymbolPrivate = false;
 			programBuilder.addChild( iface );
 		} else {
 			forwardDocToken.ifPresent( this::addToken );
+			accessModifierToken.ifPresent( this::addToken );
 			addToken( token );
 			getToken();
 		}
@@ -1312,7 +1327,7 @@ public class OLParser extends AbstractParser {
 		}
 	}
 
-	private InterfaceDefinition _parseInterfaceExtender()
+	private InterfaceDefinition _parseInterfaceExtender( AccessModifier accessModifier )
 		throws IOException, ParserException {
 		String name;
 		assertToken( Scanner.TokenType.ID, "expected interface extender name" );
@@ -1320,7 +1335,7 @@ public class OLParser extends AbstractParser {
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		InterfaceExtenderDefinition extender = currInterfaceExtender =
-			new InterfaceExtenderDefinition( getContext(), name );
+			new InterfaceExtenderDefinition( getContext(), name, accessModifier );
 		parseOperations( currInterfaceExtender );
 		interfaceExtenders.put( name, extender );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
@@ -1328,7 +1343,7 @@ public class OLParser extends AbstractParser {
 		return extender;
 	}
 
-	private InterfaceDefinition _parseInterface()
+	private InterfaceDefinition _parseInterface( AccessModifier accessModifier )
 		throws IOException, ParserException {
 		String name;
 		InterfaceDefinition iface;
@@ -1336,7 +1351,7 @@ public class OLParser extends AbstractParser {
 		name = token.content();
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "expected {" );
-		iface = new InterfaceDefinition( getContext(), name );
+		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 
@@ -2935,12 +2950,10 @@ public class OLParser extends AbstractParser {
 						importTarget.add( token.content() );
 					}
 					getToken();
-				} else if( token.is( Scanner.TokenType.ID ) ) {
+				} else {
 					importTarget.add( token.content() );
 					importTargetIDStarted = true;
 					getToken();
-				} else {
-					throwException( "expected Identifier, dot or import for an import statement" );
 				}
 			} while( keepRun );
 

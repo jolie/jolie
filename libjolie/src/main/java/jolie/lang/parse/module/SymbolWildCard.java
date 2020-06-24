@@ -19,17 +19,16 @@
 
 package jolie.lang.parse.module;
 
-import java.util.List;
 import jolie.lang.parse.context.ParsingContext;
 
 /**
  * A class represent a Symbol defined within external execution environment. Create when consuming a
  * wildcard import statement
  */
-public class SymbolWildCard extends SymbolInfoExternal {
+class SymbolWildCard extends ImportedSymbolInfo {
 
-	public SymbolWildCard( ParsingContext context, List< String > moduleTarget ) {
-		super( context, moduleTarget.toString(), moduleTarget, null );
+	protected SymbolWildCard( ParsingContext context, ImportPath importPath ) {
+		super( context, importPath.toString(), importPath, null );
 	}
 
 }

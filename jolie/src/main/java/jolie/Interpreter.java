@@ -22,17 +22,13 @@ package jolie;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.ModuleCrawler;
-import jolie.lang.parse.module.ModuleCrawlerComponent;
 import jolie.lang.parse.module.ModuleException;
-import jolie.lang.parse.module.ModuleParser;
-import jolie.lang.parse.module.ModuleRecord;
-import jolie.lang.parse.module.SymbolReferenceResolver;
+import jolie.lang.parse.module.Modules;
+import jolie.lang.parse.module.ParserConfiguration;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
@@ -1226,22 +1222,18 @@ public class Interpreter {
 					program = this.internalServiceProgram;
 					program = OLParseTreeOptimizer.optimize( program );
 				} else {
-					ModuleParser parser =
-						new ModuleParser( interpreterParameters.charset(), includePaths,
-							interpreterParameters.jolieClassLoader() );
-
-					parser.putConstants( getInterpreterParameters().constants() );
-					ModuleRecord mainRecord = parser.parse( new Scanner( getInterpreterParameters().inputStream(),
-						getInterpreterParameters().programFilepath().toURI(), getInterpreterParameters().charset() ) );
-
-
-					ModuleCrawlerComponent crawlerComponent =
-						new ModuleCrawlerComponent( getInterpreterParameters().packagePaths(), parser );
-					ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, crawlerComponent );
-
-					SymbolReferenceResolver.resolve( crawlResult );
-					symbolTables.putAll( crawlResult.symbolTables() );
-					program = mainRecord.program();
+					ParserConfiguration configuration = new ParserConfiguration(
+						getInterpreterParameters().charset(),
+						getInterpreterParameters().includePaths(),
+						getInterpreterParameters().packagePaths(),
+						getInterpreterParameters().jolieClassLoader(),
+						getInterpreterParameters().constants(),
+						false );
+					Modules.ModuleParsedResult parsesResult =
+						Modules.parseModule( configuration, getInterpreterParameters().inputStream(),
+							getInterpreterParameters().programFilepath().toURI() );
+					symbolTables.putAll( parsesResult.symbolTables() );
+					program = parsesResult.mainProgram();
 				}
 			}
 

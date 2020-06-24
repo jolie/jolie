@@ -171,6 +171,7 @@ public class Inspector extends JavaService {
 			cmdParser.getInterpreterParameters().programFilepath().toURI(),
 			cmdParser.getInterpreterParameters().charset(),
 			includePaths,
+			cmdParser.packagePaths(),
 			cmdParser.getInterpreterParameters().jolieClassLoader(),
 			cmdParser.getInterpreterParameters().constants(),
 			configuration,

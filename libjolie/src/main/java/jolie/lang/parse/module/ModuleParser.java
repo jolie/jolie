@@ -19,14 +19,8 @@
 
 package jolie.lang.parse.module;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Stream;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
@@ -39,107 +33,39 @@ import jolie.lang.parse.ast.Program;
  */
 public class ModuleParser {
 
-	/**
-	 * an array of string for lookup path of include statement in Module
-	 */
-	private final String[] includePaths;
+	private final ParserConfiguration parserConfiguration;
 
-	private final String charset;
-	private final ClassLoader classLoader;
-	private final boolean includeDocumentation;
-
-	private final Map< String, Scanner.Token > constantsMap = new HashMap<>();
-
-	public ModuleParser( String charset, String[] includePaths, ClassLoader classLoader ) {
-		this( charset, includePaths, classLoader, false );
+	public ModuleParser( ParserConfiguration parserConfiguration ) {
+		this.parserConfiguration = parserConfiguration;
 	}
 
-	public ModuleParser( String charset, String[] includePaths, ClassLoader classLoader,
-		boolean includeDocumentation ) {
-		this.charset = charset;
-		this.includePaths = includePaths;
-		this.classLoader = classLoader;
-		this.includeDocumentation = includeDocumentation;
+	public ModuleRecord parse( Scanner scanner )
+		throws ParserException, IOException, ModuleException {
+		return parse( scanner, new String[ 0 ] );
 	}
 
-	public void putConstants( Map< String, Scanner.Token > constantsToPut ) {
-		constantsMap.putAll( constantsToPut );
-	}
-
-	public ModuleRecord parse( URI uri ) throws ParserException, IOException, ModuleException {
-		return parse( uri, this.includePaths, false );
-	}
-
-
-	public ModuleRecord parse( File file ) throws ParserException, IOException, ModuleException {
-		return parse( file.toURI(), this.includePaths, false );
-	}
-
-	public ModuleRecord parse( Source module ) throws ParserException, IOException, ModuleException {
+	public ModuleRecord parse( ModuleSource module ) throws ParserException, IOException, ModuleException {
 		String[] additionalPath;
 		if( module.includePath().isPresent() ) {
 			additionalPath = new String[] { module.includePath().get() };
 		} else {
 			additionalPath = new String[ 0 ];
 		}
-		String[] includePaths =
-			Stream.concat( Arrays.stream( this.includePaths ), Arrays.stream( additionalPath ) )
-				.distinct().toArray( String[]::new );
+		return this.parse( new Scanner( module.openStream().get(), module.uri(),
+			parserConfiguration.charset(), parserConfiguration.includeDocumentation() ), additionalPath );
 
-		OLParser olParser = new OLParser( new Scanner( module.stream().get(), module.source(),
-			this.charset, includeDocumentation ), includePaths, this.classLoader );
-		olParser.putConstants( constantsMap );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
-		SymbolTable st = SymbolTableGenerator.generate( program );
-		return new ModuleRecord( module.source(), program, st );
 	}
 
-	public ModuleRecord parse( URI uri, String[] includePaths )
+	public ModuleRecord parse( Scanner scanner, String[] additionalIncludePaths )
 		throws ParserException, IOException, ModuleException {
-		return parse( uri, includePaths, false );
-	}
-
-	public ModuleRecord parse( Scanner scanner )
-		throws ParserException, IOException, ModuleException {
-		return parse( scanner, includePaths, false );
-	}
-
-	public ModuleRecord parse( Scanner scanner, String[] additionalIncludePaths, boolean joinPaths )
-		throws ParserException, IOException, ModuleException {
-		String[] includePaths = this.includePaths;
-		if( joinPaths ) {
-			includePaths = Stream
-				.concat( Arrays.stream( this.includePaths ),
-					Arrays.stream( additionalIncludePaths ) )
-				.distinct().toArray( String[]::new );
-		}
-		OLParser olParser = new OLParser( scanner, includePaths, this.classLoader );
-		olParser.putConstants( constantsMap );
+		String[] includePaths = Stream.concat( Arrays.stream( parserConfiguration.includePaths() ),
+			Arrays.stream( additionalIncludePaths ) )
+			.distinct().toArray( String[]::new );
+		OLParser olParser = new OLParser( scanner, includePaths, parserConfiguration.classLoader() );
+		olParser.putConstants( parserConfiguration.constantsMap() );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
 		SymbolTable st = SymbolTableGenerator.generate( program );
 		return new ModuleRecord( scanner.source(), program, st );
-	}
-
-	public ModuleRecord parse( URI uri, String[] additionalIncludePaths, boolean joinPaths )
-		throws ParserException, IOException, ModuleException {
-		URL url = uri.toURL();
-		InputStream stream = url.openStream();
-		String[] includePaths = this.includePaths;
-		if( joinPaths ) {
-			includePaths = Stream
-				.concat( Arrays.stream( this.includePaths ),
-					Arrays.stream( additionalIncludePaths ) )
-				.distinct().toArray( String[]::new );
-		}
-		OLParser olParser =
-			new OLParser( new Scanner( stream, uri, this.charset, includeDocumentation ),
-				includePaths, this.classLoader );
-		olParser.putConstants( constantsMap );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
-		SymbolTable st = SymbolTableGenerator.generate( program );
-		return new ModuleRecord( uri, program, st );
 	}
 }

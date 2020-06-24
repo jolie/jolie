@@ -26,18 +26,18 @@ import java.util.Optional;
 /**
  * An implementation of Source for internal Jolie, which can be initiate directly from InputStream
  */
-public class InputStreamSource implements Source {
+class InputStreamSource implements ModuleSource {
 
 	private final InputStream is;
 	private final URI uri;
 
-	public InputStreamSource( InputStream is, URI uri ) {
+	protected InputStreamSource( InputStream is, URI uri ) {
 		this.is = is;
 		this.uri = uri;
 	}
 
 	@Override
-	public URI source() {
+	public URI uri() {
 		return this.uri;
 	}
 
@@ -50,7 +50,7 @@ public class InputStreamSource implements Source {
 	}
 
 	@Override
-	public Optional< InputStream > stream() {
+	public Optional< InputStream > openStream() {
 		return Optional.of( this.is );
 	}
 }

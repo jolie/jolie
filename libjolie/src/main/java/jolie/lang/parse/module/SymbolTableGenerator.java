@@ -415,14 +415,14 @@ public class SymbolTableGenerator {
 
 		@Override
 		public void visit( ImportStatement n ) {
-
+			ImportPath importPath = new ImportPath( n.importTarget() );
 			if( n.isNamespaceImport() ) {
-				this.symbolTable.addWildCardSymbol( n.context(), n.importTarget() );
+				this.symbolTable.addWildCardSymbol( n.context(), importPath );
 			} else {
 				for( ImportSymbolTarget targetSymbol : n.importSymbolTargets() ) {
 					try {
-						this.symbolTable.addSymbol( n.context(), targetSymbol.localSymbol(),
-							n.importTarget(), targetSymbol.moduleSymbol() );
+						this.symbolTable.addSymbolWithAlias( n.context(), targetSymbol.localSymbolName(),
+							importPath, targetSymbol.originalSymbolName() );
 					} catch( DuplicateSymbolException e ) {
 						this.valid = false;
 						this.error = new ModuleException( n.context(), e );

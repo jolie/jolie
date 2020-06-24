@@ -19,25 +19,25 @@
 
 package jolie.lang.parse.module.exceptions;
 
-import java.util.List;
 import jolie.lang.Constants;
+import jolie.lang.parse.module.ImportPath;
 
 public class IllegalAccessSymbolException extends Exception {
 
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	private final String symbolName;
-	private final List< String > moduleTargets;
+	private final ImportPath importPath;
 
-	public IllegalAccessSymbolException( String symbolName, List< String > moduleTargets ) {
+	public IllegalAccessSymbolException( String symbolName, ImportPath importPath ) {
 		super( symbolName );
 		this.symbolName = symbolName;
-		this.moduleTargets = moduleTargets;
+		this.importPath = importPath;
 	}
 
 	@Override
 	public String getMessage() {
-		return "Illegal access to symbol " + this.symbolName + " of module " + String.join( ".", moduleTargets );
+		return "Illegal access to symbol " + this.symbolName + " of module " + importPath;
 	}
 
 }

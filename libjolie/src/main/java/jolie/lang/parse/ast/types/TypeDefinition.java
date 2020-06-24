@@ -27,8 +27,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
+import jolie.lang.parse.ast.ImportableSymbol;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.SymbolNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
@@ -39,13 +39,11 @@ import jolie.util.Range;
  * 
  * @author Fabrizio Montesi
  */
-public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, SymbolNode {
+public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, ImportableSymbol {
 	private final String id;
 	private final Range cardinality;
 	private String document = null;
-
-	// Symbol privacy
-	private Privacy privacy = Privacy.PUBLIC;
+	private final AccessModifier accessModifier;
 
 	/**
 	 * Constructor
@@ -53,11 +51,13 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 * @param context the parsing context for this AST node
 	 * @param id the name identifier for this type definition
 	 * @param cardinality the cardinality of this type
+	 * @param accessModifier the access modifier of symbolinfo
 	 */
-	public TypeDefinition( ParsingContext context, String id, Range cardinality ) {
+	public TypeDefinition( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier ) {
 		super( context );
 		this.id = id;
 		this.cardinality = cardinality;
+		this.accessModifier = accessModifier;
 	}
 
 	public String id() {
@@ -249,28 +249,15 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		if( getClass() != obj.getClass() )
 			return false;
 		TypeDefinition other = (TypeDefinition) obj;
-		if( cardinality == null ) {
-			if( other.cardinality != null )
-				return false;
-		} else if( !cardinality.equals( other.cardinality ) )
-			return false;
-		if( id == null ) {
-			if( other.id != null )
-				return false;
-		} else if( !id.equals( other.id ) )
-			return false;
-		if( privacy != other.privacy )
-			return false;
-		return true;
+		return this.isEquivalentTo(other);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((cardinality == null) ? 0 : cardinality.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((privacy == null) ? 0 : privacy.hashCode());
+		result = prime * result + context().hashCode();
+		result = prime * result + id.hashCode();
 		return result;
 	}
 
@@ -282,13 +269,8 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 
 	@Override
-	public Privacy privacy() {
-		return this.privacy;
-	}
-
-	@Override
-	public void setPrivate( boolean isPrivate ) {
-		this.privacy = isPrivate ? Privacy.PRIVATE : Privacy.PUBLIC;
+	public AccessModifier accessModifier() {
+		return this.accessModifier;
 	}
 
 	@Override

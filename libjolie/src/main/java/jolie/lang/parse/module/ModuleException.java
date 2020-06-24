@@ -42,14 +42,6 @@ public class ModuleException extends Exception {
 		this.context = context;
 	}
 
-	public ModuleException( String arg0, Throwable arg1 ) {
-		super( arg0, arg1 );
-	}
-
-	public ModuleException( Throwable arg0 ) {
-		super( arg0 );
-	}
-
 	public void setContext( ParsingContext context ) {
 		this.context = context;
 	}

@@ -34,15 +34,29 @@ public class TypeDefinitionLink extends TypeDefinition {
 	private TypeDefinition linkedType;
 	private final String linkedTypeName;
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, String linkedTypeName ) {
-		super( context, id, cardinality );
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality,
+		String linkedTypeName ) {
+		super( context, id, cardinality, AccessModifier.PUBLIC );
 		this.linkedTypeName = linkedTypeName;
 	}
 
 	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType ) {
-		super( context, id, cardinality );
+		super( context, id, cardinality, AccessModifier.PUBLIC );
 		this.linkedTypeName = linkedType.id();
 		this.linkedType = linkedType;
+	}
+
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
+		TypeDefinition linkedType ) {
+		super( context, id, cardinality, accessModifier );
+		this.linkedTypeName = linkedType.id();
+		this.linkedType = linkedType;
+	}
+
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
+		String linkedTypeName ) {
+		super( context, id, cardinality, accessModifier );
+		this.linkedTypeName = linkedTypeName;
 	}
 
 	public String linkedTypeName() {
@@ -80,30 +94,5 @@ public class TypeDefinitionLink extends TypeDefinition {
 	@Override
 	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((linkedTypeName == null) ? 0 : linkedTypeName.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals( Object obj ) {
-		if( this == obj )
-			return true;
-		if( !super.equals( obj ) )
-			return false;
-		if( getClass() != obj.getClass() )
-			return false;
-		TypeDefinitionLink other = (TypeDefinitionLink) obj;
-		if( linkedTypeName == null ) {
-			if( other.linkedTypeName != null )
-				return false;
-		} else if( !linkedTypeName.equals( other.linkedTypeName ) )
-			return false;
-		return true;
 	}
 }

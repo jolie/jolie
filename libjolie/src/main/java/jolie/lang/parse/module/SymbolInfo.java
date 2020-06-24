@@ -20,8 +20,8 @@
 package jolie.lang.parse.module;
 
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.SymbolNode;
-import jolie.lang.parse.ast.SymbolNode.Privacy;
+import jolie.lang.parse.ast.ImportableSymbol;
+import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
 import jolie.lang.parse.context.ParsingContext;
 
 /**
@@ -40,22 +40,17 @@ public abstract class SymbolInfo {
 	/**
 	 * name of the symbol
 	 */
-	private String name;
+	private final String name;
 
 	/**
 	 * scope of this symbol
 	 */
-	private Scope scope;
+	private final Scope scope;
 
 	/**
-	 * pointer to an AST node
+	 * Accessibility modifier of this symbol
 	 */
-	private OLSyntaxNode node;
-
-	/**
-	 * privacy of this symbol
-	 */
-	private final Privacy privacy;
+	private final AccessModifier accessModifier;
 
 	/**
 	 * Declaration context of the symbol
@@ -63,60 +58,49 @@ public abstract class SymbolInfo {
 	private final ParsingContext context;
 
 	/**
-	 * constructor for SymbolInfo, this constructor is used when it knows the ASTnode to point to
-	 * corresponding to this symbol
+	 * pointer to an AST node
+	 */
+	private OLSyntaxNode node;
+
+	/**
+	 * constructor for SymbolInfo
 	 * 
+	 * @param context context where symbol is declared
 	 * @param name Symbol name
 	 * @param scope scope of Symbol
 	 * @param node an ASTNode implementing SymbolNode
 	 */
-	public SymbolInfo( String name, Scope scope, SymbolNode node ) {
-		this.context = node.node().context();
-		this.name = name;
-		this.scope = scope;
-		this.privacy = node.privacy();
-		this.node = node.node();
-	}
-
-	/**
-	 * constructor for SymbolInfo, this constructor is used when AST Node is unknown at creating time or
-	 * in an external context
-	 * 
-	 * @param context context of creating Symbol
-	 * @param name Symbol name
-	 * @param scope scope of Symbol
-	 */
-	public SymbolInfo( ParsingContext context, String name, Scope scope ) {
+	protected SymbolInfo( ParsingContext context, String name, Scope scope, AccessModifier accessModifier ) {
 		this.context = context;
 		this.name = name;
 		this.scope = scope;
-		this.privacy = Privacy.PRIVATE;
+		this.accessModifier = accessModifier;
 	}
 
-	public String name() {
+	protected String name() {
 		return name;
 	}
 
 	/**
-	 * set a pointer to an AST node. the pointer should be only defined once
+	 * resolve an external symbol node by set a pointer to an AST node
 	 */
-	public void setPointer( OLSyntaxNode pointer ) {
+	protected void resolve( OLSyntaxNode pointer ) {
 		this.node = pointer;
 	}
 
-	public OLSyntaxNode node() {
+	protected OLSyntaxNode node() {
 		return node;
 	}
 
-	public Scope scope() {
+	protected Scope scope() {
 		return scope;
 	}
 
-	public Privacy privacy() {
-		return privacy;
+	protected AccessModifier accessModifier() {
+		return accessModifier;
 	}
 
-	public ParsingContext context() {
+	protected ParsingContext context() {
 		return context;
 	}
 

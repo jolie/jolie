@@ -17,42 +17,18 @@
  * MA 02110-1301  USA
  */
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.module;
+
+import jolie.lang.parse.ast.ImportableSymbol;
 
 /**
- * An interface of Symbol defines an importable symbols in Jolie
+ * A class represent Symbol define within local execution environment
  */
-public interface SymbolNode {
+class LocalSymbolInfo extends SymbolInfo {
 
-	/**
-	 * Symbol privacy, PUBLIC means the symbol's AST node is allowed to be imported by external modules
-	 * PRIVATE means the symbol's AST node is not allowed to be imported by external modules
-	 */
-	public enum Privacy {
-		PUBLIC, PRIVATE
+	protected LocalSymbolInfo( String name, ImportableSymbol node ) {
+		super( node.node().context(), name, Scope.LOCAL, node.accessModifier() );
+		super.resolve( node.node() );
 	}
-
-	/**
-	 * returns the privacy of the symbol, can be either PRIVATE or PUBLIC
-	 */
-	public Privacy privacy();
-
-	/**
-	 * set Privacy of the symbol
-	 * 
-	 * @param isPrivate a boolean defines the private status of the symbol
-	 */
-	public void setPrivate( boolean isPrivate );
-
-	/**
-	 * returns qualify name of the symbol in local execution
-	 */
-	public String name();
-
-	/**
-	 * returns linking AST node of the symbol.
-	 */
-	public OLSyntaxNode node();
-
 
 }

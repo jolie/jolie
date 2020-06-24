@@ -19,7 +19,6 @@
 
 package jolie.lang.parse.module;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
@@ -28,10 +27,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import jolie.lang.Constants;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
-public class FinderImpl implements Finder {
+public class ModuleFinderImpl implements ModuleFinder {
 
 	private class ModuleLookUpTarget {
 		private final Path basePath;
@@ -53,32 +51,32 @@ public class FinderImpl implements Finder {
 	 */
 	private final Path workingDirectory;
 
-	public FinderImpl( String[] packagePaths ) {
+	public ModuleFinderImpl( String[] packagePaths ) {
 		this( Paths.get( "" ), packagePaths );
 	}
 
-	public FinderImpl( Path workingDirectory, String[] packagePaths ) {
+	public ModuleFinderImpl( Path workingDirectory, String[] packagePaths ) {
 		this.workingDirectory = workingDirectory;
 		this.packagePaths = Arrays.stream( packagePaths )
 			.map( Paths::get )
 			.toArray( Path[]::new );
 	}
 
-	public Source find( List< String > pathParts, URI source ) throws ModuleNotFoundException {
+	public ModuleSource find( URI parentUri, ImportPath importPath ) throws ModuleNotFoundException {
 		try {
-			if( Finder.isRelativeImport( pathParts ) ) {
-				Path sourcePath = Paths.get( source );
-				ModuleLookUpTarget target = this.resolveDotPrefix( pathParts, sourcePath );
+			if( importPath.isRelativeImport() ) {
+				Path parentPath = Paths.get( parentUri );
+				ModuleLookUpTarget target = this.resolveDotPrefix( importPath.pathParts(), parentPath );
 				return this.moduleLookup( target );
 			} else {
-				return this.findAbsoluteImport( pathParts );
+				return this.findAbsoluteImport( importPath.pathParts() );
 			}
 		} catch( FileNotFoundException e ) {
-			throw new ModuleNotFoundException( pathParts.toString(), e.getMessage() );
+			throw new ModuleNotFoundException( importPath.pathParts().toString(), e.getMessage() );
 		}
 	}
 
-	private Source findAbsoluteImport( List< String > pathParts ) throws ModuleNotFoundException {
+	private ModuleSource findAbsoluteImport( List< String > pathParts ) throws ModuleNotFoundException {
 		/**
 		 * 1. Try to resolve P directly from WDIR. 2. Check if FIRST.jap is in WDIR/lib. If so, resolve REST
 		 * inside of this jap. 3. Try to resolve P from the list of packages directories.
@@ -87,7 +85,7 @@ public class FinderImpl implements Finder {
 		List< String > errMessageList = new ArrayList<>();
 		try {
 			// 1. resolve from Working directory
-			Source moduleFile = this.moduleLookup( this.workingDirectory, pathParts );
+			ModuleSource moduleFile = this.moduleLookup( this.workingDirectory, pathParts );
 			return moduleFile;
 		} catch( FileNotFoundException e ) {
 			errMessageList.add( e.getMessage() );
@@ -97,9 +95,9 @@ public class FinderImpl implements Finder {
 			// 2. WDIR/lib/FIRST.jap with entry of REST.ol
 			// where pathParts[0] = FIRST
 			// and pathParts[1...] = REST
-			File japFile = Finder.japLookup( this.workingDirectory.resolve( "lib" ), pathParts.get( 0 ) );
+			Path japPath = ModuleFinder.japLookup( this.workingDirectory.resolve( "lib" ), pathParts.get( 0 ) );
 			List< String > rest = pathParts.subList( 1, pathParts.size() );
-			return new JapSource( japFile, rest );
+			return new JapSource( japPath, rest );
 		} catch( IOException e ) {
 			errMessageList.add( e.getMessage() );
 		}
@@ -107,7 +105,7 @@ public class FinderImpl implements Finder {
 		try {
 			// 3. Try to resolve P from the list of packages directories.
 			for( Path packagePath : this.packagePaths ) {
-				Source moduleFile = moduleLookup( packagePath, pathParts );
+				ModuleSource moduleFile = moduleLookup( packagePath, pathParts );
 				return moduleFile;
 			}
 		} catch( FileNotFoundException e ) {
@@ -117,7 +115,7 @@ public class FinderImpl implements Finder {
 		throw new ModuleNotFoundException( pathParts.toString(), errMessageList );
 	}
 
-	private Source moduleLookup( ModuleLookUpTarget target ) throws FileNotFoundException {
+	private ModuleSource moduleLookup( ModuleLookUpTarget target ) throws FileNotFoundException {
 		return moduleLookup( target.basePath, target.pathParts );
 	}
 
@@ -130,23 +128,14 @@ public class FinderImpl implements Finder {
 	 * 
 	 * @return source object to be parsed by module parser.
 	 */
-	private Source moduleLookup( Path basePath, List< String > pathParts ) throws FileNotFoundException {
+	private ModuleSource moduleLookup( Path basePath, List< String > pathParts ) throws FileNotFoundException {
 		List< String > packageParts = pathParts.subList( 0, pathParts.size() - 1 );
 		String moduleName = pathParts.get( pathParts.size() - 1 );
 		for( String packageDir : packageParts ) {
 			basePath = basePath.resolve( packageDir );
 		}
-		File olTargetFile = Finder.olLookup( basePath, moduleName );
-		return new FileSource( olTargetFile );
-	}
-
-	/**
-	 * returns package paths this finder is considering
-	 * 
-	 * @return packagePaths
-	 */
-	public Path[] packagePaths() {
-		return packagePaths;
+		Path olTargetFile = ModuleFinder.olLookup( basePath, moduleName );
+		return new PathSource( olTargetFile );
 	}
 
 	/**
@@ -168,9 +157,9 @@ public class FinderImpl implements Finder {
 			}
 		}
 		int packagesTokenStartIndex = i;
-		List< String > moduleTargetPart = pathParts.subList( packagesTokenStartIndex, pathParts.size() );
+		List< String > moduleImportTargetPart = pathParts.subList( packagesTokenStartIndex, pathParts.size() );
 		ModuleLookUpTarget result =
-			new ModuleLookUpTarget( basePath, moduleTargetPart );
+			new ModuleLookUpTarget( basePath, moduleImportTargetPart );
 		return result;
 	}
 }

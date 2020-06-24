@@ -17,17 +17,35 @@
  * MA 02110-1301  USA
  */
 
-package jolie.lang.parse.module;
-
-import jolie.lang.parse.ast.SymbolNode;
+package jolie.lang.parse.ast;
 
 /**
- * A class represent Symbol define within local execution environment
+ * An interface of Symbol defines an importable symbols in Jolie
  */
-public class SymbolInfoLocal extends SymbolInfo {
+public interface ImportableSymbol {
 
-	public SymbolInfoLocal( String name, SymbolNode node ) {
-		super( name, Scope.LOCAL, node );
+	/**
+	 * Symbol access modifier, PUBLIC means the symbol's AST node is allowed to be imported by external
+	 * modules PRIVATE means the symbol's AST node is not allowed to be imported by external modules
+	 */
+	public enum AccessModifier {
+		PUBLIC, PRIVATE
 	}
+
+	/**
+	 * returns the privacy of the symbol, can be either PRIVATE or PUBLIC
+	 */
+	public AccessModifier accessModifier();
+
+	/**
+	 * returns qualify name of the symbol in local execution
+	 */
+	public String name();
+
+	/**
+	 * returns linking AST node of the symbol.
+	 */
+	public OLSyntaxNode node();
+
 
 }

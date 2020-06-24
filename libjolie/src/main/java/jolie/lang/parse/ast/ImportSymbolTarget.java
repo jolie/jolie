@@ -23,31 +23,31 @@ package jolie.lang.parse.ast;
  * A class for holding information of symbol tar
  */
 public class ImportSymbolTarget {
-	private final String moduleSymbol;
-	private final String localSymbol;
+	private final String originalSymbolName;
+	private final String localSymbolName;
 
 	/**
-	 * @param moduleSymbol a symbol of taring module
-	 * @param localSymbol a symbol of to place in local execution
+	 * @param originalSymbolName a symbol of taring module
+	 * @param localSymbolName a symbol of to place in local execution
 	 */
-	public ImportSymbolTarget( String moduleSymbol, String localSymbol ) {
-		this.moduleSymbol = moduleSymbol;
-		this.localSymbol = localSymbol;
+	public ImportSymbolTarget( String originalSymbolName, String localSymbolName ) {
+		this.originalSymbolName = originalSymbolName;
+		this.localSymbolName = localSymbolName;
 	}
 
 	@Override
 	public String toString() {
-		if( this.moduleSymbol.equals( this.localSymbol ) ) {
-			return this.moduleSymbol;
+		if( this.originalSymbolName.equals( this.localSymbolName ) ) {
+			return this.originalSymbolName;
 		}
-		return this.moduleSymbol + " as " + this.localSymbol;
+		return this.originalSymbolName + " as " + this.localSymbolName;
 	}
 
-	public String moduleSymbol() {
-		return moduleSymbol;
+	public String originalSymbolName() {
+		return originalSymbolName;
 	}
 
-	public String localSymbol() {
-		return localSymbol;
+	public String localSymbolName() {
+		return localSymbolName;
 	}
 }

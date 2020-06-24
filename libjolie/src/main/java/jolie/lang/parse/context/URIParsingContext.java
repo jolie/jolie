@@ -22,11 +22,10 @@
 package jolie.lang.parse.context;
 
 import java.net.URI;
-import java.nio.file.InvalidPathException;
 import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import jolie.lang.Constants;
 
 /**

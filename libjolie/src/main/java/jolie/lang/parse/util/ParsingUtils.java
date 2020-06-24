@@ -24,21 +24,15 @@ package jolie.lang.parse.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Paths;
 import java.util.Map;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.InputStreamSource;
-import jolie.lang.parse.module.ModuleCrawler;
-import jolie.lang.parse.module.ModuleCrawlerComponent;
 import jolie.lang.parse.module.ModuleException;
-import jolie.lang.parse.module.ModuleParser;
-import jolie.lang.parse.module.ModuleRecord;
-import jolie.lang.parse.module.Source;
-import jolie.lang.parse.module.SymbolReferenceResolver;
+import jolie.lang.parse.module.Modules;
+import jolie.lang.parse.module.ParserConfiguration;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
@@ -55,52 +49,27 @@ public class ParsingUtils {
 		URI source,
 		String charset,
 		String[] includePaths,
-		String[] packagesPaths,
+		String[] packagePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
-		SemanticVerifier.Configuration configuration,
+		SemanticVerifier.Configuration semanticConfiguration,
 		boolean includeDocumentation )
 		throws IOException, ParserException, SemanticException, ModuleException {
 
-		final ModuleParser parser = new ModuleParser( charset, includePaths, classLoader, includeDocumentation );
-		parser.putConstants( definedConstants );
-
-		Source isSource = new InputStreamSource( inputStream, source );
-		ModuleRecord mainRecord = parser.parse( isSource );
-
-		ModuleCrawlerComponent crawlerComponent =
-			new ModuleCrawlerComponent( Paths.get( isSource.source() ).getParent(), packagesPaths, parser );
-
-		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, crawlerComponent );
-
-		SymbolReferenceResolver.resolve( crawlResult );
-
-		SemanticVerifier semanticVerifier = new SemanticVerifier( mainRecord.program(),
-			crawlResult.symbolTables(), configuration );
-		semanticVerifier.validate();
-		return mainRecord.program();
-	}
-
-	public static Program parseProgram(
-		InputStream inputStream,
-		URI source,
-		String charset,
-		String[] includePaths,
-		ClassLoader classLoader,
-		Map< String, Scanner.Token > definedConstants,
-		SemanticVerifier.Configuration configuration,
-		boolean includeDocumentation )
-		throws IOException, ParserException, SemanticException, ModuleException {
-		return parseProgram(
-			inputStream,
-			source,
+		ParserConfiguration configuration = new ParserConfiguration(
 			charset,
 			includePaths,
-			new String[ 0 ],
+			packagePaths,
 			classLoader,
 			definedConstants,
-			configuration,
 			includeDocumentation );
+
+		Modules.ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+
+		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
+			parseResult.symbolTables(), semanticConfiguration );
+		semanticVerifier.validate();
+		return parseResult.mainProgram();
 	}
 
 	public static Program parseProgram(

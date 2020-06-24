@@ -20,9 +20,7 @@
 package jolie.lang.parse.module;
 
 import java.net.URI;
-import java.util.Optional;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 
 /**
  * A class represent a Jolie module record, which contain an URI of source, a AST tree and
@@ -58,33 +56,6 @@ public class ModuleRecord {
 	 */
 	public SymbolTable symbolTable() {
 		return symbolTable;
-	}
-
-	/**
-	 * replace the temporary wild card symbol with the list of symbols.
-	 * 
-	 * @param symbol the Wildcard symbol in symbol table to be replaced
-	 * @param symbolsFromWildcard the list of symbols to replace
-	 */
-	public void putWildcardImportedRecord( SymbolWildCard symbol, SymbolInfo... symbolsFromWildcard )
-		throws DuplicateSymbolException {
-		this.symbolTable.replaceWildCardSymbol( symbol, symbolsFromWildcard );
-	}
-
-	public Optional< SymbolInfo > symbol( String name ) {
-		return this.symbolTable.symbol( name );
-	}
-
-	public SymbolInfoExternal[] externalSymbols() {
-		return this.symbolTable.externalSymbols();
-	}
-
-	public SymbolInfoLocal[] localSymbols() {
-		return this.symbolTable.localSymbols();
-	}
-
-	public SymbolInfo[] symbols() {
-		return this.symbolTable.symbols();
 	}
 
 	@Override

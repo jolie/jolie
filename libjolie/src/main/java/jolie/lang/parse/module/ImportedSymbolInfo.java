@@ -19,45 +19,44 @@
 
 package jolie.lang.parse.module;
 
-import java.util.List;
 import java.util.Optional;
+import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
 import jolie.lang.parse.context.ParsingContext;
 
 /**
  * A class represent a Symbol defined within external execution environment. Create when consuming
  * an import statement
  */
-public class SymbolInfoExternal extends SymbolInfo {
+class ImportedSymbolInfo extends SymbolInfo {
 
-	private final List< String > moduleTargets;
-	private final String moduleSymbol;
-	private Source moduleSource;
+	private final ImportPath importPath;
+	private final String originalSymbolName;
+	private ModuleSource moduleSource;
 
-	public SymbolInfoExternal( ParsingContext context, String name, List< String > moduleTargets,
-		String moduleSymbol ) {
-		super( context, name, Scope.EXTERNAL );
-		this.moduleTargets = moduleTargets;
-		this.moduleSymbol = moduleSymbol;
+	protected ImportedSymbolInfo( ParsingContext context, String name, ImportPath importPath,
+		String originalSymbolName ) {
+		super( context, name, Scope.EXTERNAL, AccessModifier.PRIVATE );
+		this.importPath = importPath;
+		this.originalSymbolName = originalSymbolName;
 	}
 
 	/**
 	 * set a destination source of the symbol
 	 */
-	public void setModuleSource( Source moduleSource ) {
+	protected void setModuleSource( ModuleSource moduleSource ) {
 		this.moduleSource = moduleSource;
 	}
 
-	public List< String > moduleTargets() {
-		return this.moduleTargets;
+	protected ImportPath importPath() {
+		return this.importPath;
 	}
 
-	public Optional< Source > moduleSource() {
+	protected Optional< ModuleSource > moduleSource() {
 		return Optional.of( this.moduleSource );
 	}
 
-	public String moduleSymbol() {
-		return this.moduleSymbol;
+	protected String originalSymbolName() {
+		return this.originalSymbolName;
 	}
-
 
 }

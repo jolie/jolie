@@ -132,6 +132,8 @@ public class Scanner {
 		IMPORT,				///< import
 		AS,					///< as
 		FROM,				///< from
+		PRIVATE,			///< private
+		PUBLIC,				///< public
 		NEWLINE,			///< a newline token
 		ERROR				///< Scanner error
 	}
@@ -192,6 +194,8 @@ public class Scanner {
 		unreservedKeywords.put( "import", TokenType.IMPORT );
 		unreservedKeywords.put( "from", TokenType.FROM );
 		unreservedKeywords.put( "as", TokenType.AS );
+		unreservedKeywords.put( "private", TokenType.PRIVATE );
+		unreservedKeywords.put( "public", TokenType.PUBLIC );
 	}
 
 	/**
