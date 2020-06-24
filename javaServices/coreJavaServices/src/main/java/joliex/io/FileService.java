@@ -466,7 +466,7 @@ public class FileService extends JavaService {
 
 	@RequestResponse
 	public String getFileSeparator() {
-		return jolie.lang.Constants.fileSeparator;
+		return jolie.lang.Constants.FILE_SEPARATOR;
 	}
 
 	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
@@ -766,11 +766,11 @@ public class FileService extends JavaService {
 		return response;
 	}
 
+	@SuppressWarnings( "PMD" )
 	@RequestResponse
 	public Value isDirectory( Value request ) {
 		File dir = new File( request.strValue() );
 		return Value.create( dir.isDirectory() );
-
 	}
 
 	private static boolean __deleteDir( File file ) {

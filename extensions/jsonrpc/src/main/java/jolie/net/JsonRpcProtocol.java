@@ -101,8 +101,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				// JSON-RPC notification mechanism (method call with dropped result)
 				// we just send HTTP status code 204
 				StringBuilder httpMessage = new StringBuilder();
-				httpMessage.append( "HTTP/1.1 204 No Content" + HttpUtils.CRLF );
-				httpMessage.append( "Server: Jolie" + HttpUtils.CRLF + HttpUtils.CRLF );
+				httpMessage.append( "HTTP/1.1 204 No Content" ).append( HttpUtils.CRLF )
+					.append( "Server: Jolie" ).append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
 				ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 				return;
 			}
@@ -247,31 +247,31 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			StringBuilder httpMessage = new StringBuilder();
 			if( inInputPort ) {
 				// We're responding to a request
-				httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
-				httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
+				httpMessage.append( "HTTP/1.1 200 OK" ).append( HttpUtils.CRLF )
+					.append( "Server: Jolie" ).append( HttpUtils.CRLF );
 			} else {
 				// We're sending a request
 				String path = uri.getRawPath(); // TODO: fix this to consider resourcePaths
 				if( path == null || path.length() == 0 ) {
 					path = "*";
 				}
-				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
-				httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
-				httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+				httpMessage.append( "POST " ).append( path ).append( " HTTP/1.1" ).append( HttpUtils.CRLF )
+					.append( "User-Agent: Jolie" ).append( HttpUtils.CRLF )
+					.append( "Host: " ).append( uri.getHost() ).append( HttpUtils.CRLF );
 
 				if( checkBooleanParameter( "compression", true ) ) {
 					String requestCompression = getStringParameter( "requestCompression" );
 					if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 						encoding = requestCompression;
-						httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+						httpMessage.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
 					} else {
-						httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+						httpMessage.append( "Accept-Encoding: gzip, deflate" ).append( HttpUtils.CRLF );
 					}
 				}
 			}
 
 			if( channel().toBeClosed() ) {
-				httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
 			if( encoding != null && checkBooleanParameter( "compression", true ) ) {
@@ -279,8 +279,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 
 			// httpMessage.append( "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF );
-			httpMessage.append( "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF );
-			httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
+			httpMessage.append( "Content-Type: application/json; charset=utf-8" ).append( HttpUtils.CRLF )
+				.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF )
+				.append( HttpUtils.CRLF );
 
 			if( checkBooleanParameter( "debug", false ) ) {
 				interpreter

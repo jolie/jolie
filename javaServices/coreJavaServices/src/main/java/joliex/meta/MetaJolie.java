@@ -619,7 +619,7 @@ public class MetaJolie extends JavaService {
 		for( String s : interpreter().includePaths() ) {
 			builder.append( s );
 			if( ++i < interpreter().includePaths().length ) {
-				builder.append( jolie.lang.Constants.pathSeparator );
+				builder.append( jolie.lang.Constants.PATH_SEPARATOR );
 			}
 		}
 

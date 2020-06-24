@@ -430,7 +430,7 @@ public class XmlUtils {
 	 * author: Claudio Guidi 7/1/2011
 	 */
 	public static void storageDocumentToValue( Document document, Value value ) {
-		String type = setAttributesForStoring( value, document.getDocumentElement() );
+		String type = insertAttributesForStoring( value, document.getDocumentElement() );
 		elementsToSubValuesForStoring(
 			value,
 			document.getDocumentElement().getChildNodes(),
@@ -472,7 +472,7 @@ public class XmlUtils {
 	 * 
 	 * @return the type of the JOLIE_TYPE
 	 */
-	private static String setAttributesForStoring( Value value, Node node ) {
+	private static String insertAttributesForStoring( Value value, Node node ) {
 		NamedNodeMap map = node.getAttributes();
 		String type = "string";
 		if( map != null ) {
@@ -508,7 +508,7 @@ public class XmlUtils {
 			case Node.ELEMENT_NODE:
 				childValue =
 					value.getNewChild( (node.getLocalName() == null) ? node.getNodeName() : node.getLocalName() );
-				String subElType = setAttributesForStoring( childValue, node );
+				String subElType = insertAttributesForStoring( childValue, node );
 				elementsToSubValuesForStoring( childValue, node.getChildNodes(), subElType );
 				break;
 			case Node.CDATA_SECTION_NODE:

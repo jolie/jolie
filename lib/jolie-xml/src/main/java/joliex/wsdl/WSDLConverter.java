@@ -311,8 +311,7 @@ public class WSDLConverter {
 
 	private String owOperationToString( joliex.wsdl.impl.Operation operation ) {
 		StringBuilder builder = new StringBuilder();
-		builder.append( operation.name() );
-		builder.append( '(' );
+		builder.append( operation.name() ).append( '(' );
 		if( operation.requestTypeName() == null ) {
 			builder.append( "void" );
 		} else {
@@ -324,15 +323,13 @@ public class WSDLConverter {
 
 	private String rrOperationToString( joliex.wsdl.impl.Operation operation ) {
 		StringBuilder builder = new StringBuilder();
-		builder.append( operation.name() );
-		builder.append( '(' );
+		builder.append( operation.name() ).append( '(' );
 		if( operation.requestTypeName() == null ) {
 			builder.append( "void" );
 		} else {
 			builder.append( operation.requestTypeName() );
 		}
-		builder.append( ')' );
-		builder.append( '(' );
+		builder.append( ')' ).append( '(' );
 		if( operation.responseTypeName() == null ) {
 			builder.append( "void" );
 		} else {

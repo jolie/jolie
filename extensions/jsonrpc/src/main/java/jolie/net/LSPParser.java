@@ -45,13 +45,13 @@ public class LSPParser {
 		// , URI.create( "urn:network" ) );
 	}
 
-	private void getToken() throws IOException {
+	private void nextToken() throws IOException {
 		token = scanner.getToken();
 	}
 
 	private void parseHeaderProperties( LSPMessage message ) throws IOException {
 		String name, value;
-		getToken();
+		nextToken();
 		name = token.content().toLowerCase();
 		value = scanner.readLine();
 		message.setProperty( name, value );

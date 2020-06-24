@@ -28,11 +28,11 @@ public class ExitProcess implements Process {
 	private static class LazyHolder {
 		private LazyHolder() {}
 
-		private static final ExitProcess instance = new ExitProcess();
+		private static final ExitProcess INSTANCE = new ExitProcess();
 	}
 
-	static public ExitProcess getInstance() {
-		return ExitProcess.LazyHolder.instance;
+	public static ExitProcess getInstance() {
+		return ExitProcess.LazyHolder.INSTANCE;
 	}
 
 	@Override

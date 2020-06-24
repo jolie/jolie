@@ -60,7 +60,7 @@ import jolie.xml.xsd.XsdUtils;
 public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 	private final Logger logger;
 	private final List< TypeDefinition > jolieTypes = new ArrayList< TypeDefinition >();
-	private final static ParsingContext parsingContext = URIParsingContext.DEFAULT;
+	private final static ParsingContext PARSING_CONTEXT = URIParsingContext.DEFAULT;
 	private final boolean strict;
 	private final XSSchemaSet schemaSet;
 	private final Map< String, TypeDefinition > complexTypes = new HashMap< String, TypeDefinition >();
@@ -233,7 +233,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				// The element refers to a previously defined complex type
 				if( complexTypes.get( fullName ) != null
 					&& complexTypes.containsKey( element.getName() ) ) {
-					TypeDefinition jolieType = new TypeDefinitionLink( parsingContext, element.getName(),
+					TypeDefinition jolieType = new TypeDefinitionLink( PARSING_CONTEXT, element.getName(),
 						Constants.RANGE_ONE_TO_ONE, complexTypes.get( fullName ) );
 					jolieTypes.add( jolieType );
 					continue;
@@ -242,7 +242,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				// The element refers to a previously defined simple type
 				if( simpleTypes.get( fullName ) != null
 					&& simpleTypes.containsKey( element.getName() ) == false ) {
-					TypeDefinition jolieType = new TypeDefinitionLink( parsingContext, element.getName(),
+					TypeDefinition jolieType = new TypeDefinitionLink( PARSING_CONTEXT, element.getName(),
 						Constants.RANGE_ONE_TO_ONE, simpleTypes.get( fullName ) );
 					jolieTypes.add( jolieType );
 					continue;
@@ -327,11 +327,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				&& complexTypeNames.contains( type.getName() + TYPE_SUFFIX ) ) {
 				if( complexTypes.get( type.getName() + TYPE_SUFFIX ) == null ) {
 					// create lazy type
-					TypeDefinition jolieLazyType = new TypeInlineDefinition( parsingContext,
+					TypeDefinition jolieLazyType = new TypeInlineDefinition( PARSING_CONTEXT,
 						type.getName() + TYPE_SUFFIX, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
 					complexTypes.put( type.getName() + TYPE_SUFFIX, jolieLazyType );
 				}
-				TypeDefinition jolieSimpleType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(),
+				TypeDefinition jolieSimpleType = new TypeDefinitionLink( PARSING_CONTEXT, currElementDecl.getName(),
 					getRange( parentParticle ), complexTypes.get( type.getName() + TYPE_SUFFIX ) );
 				jolieType.putSubType( jolieSimpleType );
 
@@ -343,7 +343,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				 * TYPE_SUFFIX, NativeType.ANY, Constants.RANGE_ONE_TO_ONE ); simpleTypes.put( type.getName() +
 				 * TYPE_SUFFIX, jolieLazyType ); }
 				 */
-				TypeDefinition jolieSimpleType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(),
+				TypeDefinition jolieSimpleType = new TypeDefinitionLink( PARSING_CONTEXT, currElementDecl.getName(),
 					getRange( parentParticle ), simpleTypes.get( type.getName() + TYPE_SUFFIX ) );
 				jolieType.putSubType( jolieSimpleType );
 
@@ -398,12 +398,12 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				XSRestrictionSimpleType restriction = simpleType.asRestriction();
 				checkType( restriction.getBaseType() );
 				jolietype =
-					new TypeInlineDefinition( parsingContext, simpleType.getName().replace( "-", "_" ) + TYPE_SUFFIX,
+					new TypeInlineDefinition( PARSING_CONTEXT, simpleType.getName().replace( "-", "_" ) + TYPE_SUFFIX,
 						XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
 
 			} else {
 				log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() );
-				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName().replace( "-", "_" ),
+				jolietype = new TypeInlineDefinition( PARSING_CONTEXT, simpleType.getName().replace( "-", "_" ),
 					NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
 
 			}
@@ -452,7 +452,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 	private TypeInlineDefinition createAnyOrUndefined( String typeName, XSComplexType complexType ) {
 		TypeInlineDefinition jolieType =
-			new TypeInlineDefinition( parsingContext, typeName, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+			new TypeInlineDefinition( PARSING_CONTEXT, typeName, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
 		if( !complexType.isMixed() ) {
 			jolieType.setUntypedSubTypes( true );
 		}
@@ -482,12 +482,13 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 	private TypeDefinition createSimpleType( XSType type, XSElementDecl element, Range range ) {
 		checkType( type );
-		TypeInlineDefinition right = new TypeInlineDefinition( parsingContext, element.getName().replace( "-", "_" ),
+		TypeInlineDefinition right = new TypeInlineDefinition( PARSING_CONTEXT, element.getName().replace( "-", "_" ),
 			XsdUtils.xsdToNativeType( type.getName() ), range );
 		if( element.isNillable() ) {
-			TypeInlineDefinition left = new TypeInlineDefinition( parsingContext, element.getName().replace( "-", "_" ),
-				NativeType.VOID, range );
-			return new TypeChoiceDefinition( parsingContext, element.getName().replace( "-", "_" ), range, left,
+			TypeInlineDefinition left =
+				new TypeInlineDefinition( PARSING_CONTEXT, element.getName().replace( "-", "_" ),
+					NativeType.VOID, range );
+			return new TypeChoiceDefinition( PARSING_CONTEXT, element.getName().replace( "-", "_" ), range, left,
 				right );
 		} else {
 			return right;
@@ -499,9 +500,9 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 	private TypeInlineDefinition createComplexType( XSComplexType complexType, String typeName, XSParticle particle ) {
 		if( complexType.isMixed() ) {
-			return new TypeInlineDefinition( parsingContext, typeName, NativeType.ANY, getRange( particle ) );
+			return new TypeInlineDefinition( PARSING_CONTEXT, typeName, NativeType.ANY, getRange( particle ) );
 		} else {
-			return new TypeInlineDefinition( parsingContext, typeName, NativeType.VOID, getRange( particle ) );
+			return new TypeInlineDefinition( PARSING_CONTEXT, typeName, NativeType.VOID, getRange( particle ) );
 		}
 	}
 

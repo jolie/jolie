@@ -235,7 +235,7 @@ public class OOITBuilder implements OLVisitor {
 	private final Interpreter interpreter;
 	private String currentOutputPort = null;
 	private Interface currentPortInterface = null;
-	private final Map< String, Boolean > isConstantMap;
+	private final Map< String, Boolean > constantFlags;
 	private final Map< String, InputPort > inputPorts = new HashMap<>();
 	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new ArrayList<>();
 	private final CorrelationFunctionInfo correlationFunctionInfo;
@@ -280,7 +280,7 @@ public class OOITBuilder implements OLVisitor {
 		Map< String, Boolean > isConstantMap,
 		CorrelationFunctionInfo correlationFunctionInfo ) {
 		this.interpreter = interpreter;
-		this.isConstantMap = isConstantMap;
+		this.constantFlags = isConstantMap;
 		this.correlationFunctionInfo = correlationFunctionInfo;
 
 		List< OLSyntaxNode > programChildren = new ArrayList<>();
@@ -416,7 +416,7 @@ public class OOITBuilder implements OLVisitor {
 			(n.protocolConfiguration() != null) ? buildProcess( n.protocolConfiguration() )
 				: NullProcess.getInstance();
 
-		final boolean isConstant = isConstantMap.computeIfAbsent( n.id(), k -> false );
+		final boolean isConstant = constantFlags.computeIfAbsent( n.id(), k -> false );
 
 		currentOutputPort = n.id();
 		notificationTypes.put( currentOutputPort, new HashMap<>() );

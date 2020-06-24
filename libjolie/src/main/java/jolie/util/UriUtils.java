@@ -68,8 +68,8 @@ public class UriUtils {
 		}
 
 		if( result == null ) {
-			if( !context.endsWith( Constants.fileSeparator ) ) {
-				context += Constants.fileSeparator;
+			if( !context.endsWith( Constants.FILE_SEPARATOR ) ) {
+				context += Constants.FILE_SEPARATOR;
 			}
 			result = context + target;
 		}

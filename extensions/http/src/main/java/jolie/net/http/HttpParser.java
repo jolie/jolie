@@ -51,13 +51,13 @@ public class HttpParser {
 	private static final String OPTIONS = "OPTIONS";
 	// private static final String PATCH = "PATCH";
 
-	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
-	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
+	private static final Pattern COOKIES_SPLIT_PATTERN = Pattern.compile( ";" );
+	private static final Pattern COOKIE_NAME_VALUE_SPLIT_PATTERN = Pattern.compile( "=" );
 
 	private final HttpScanner scanner;
 	private Scanner.Token token;
 
-	private void getToken()
+	private void nextToken()
 		throws IOException {
 		token = scanner.getToken();
 	}
@@ -82,11 +82,11 @@ public class HttpParser {
 	private void parseHeaderProperties( HttpMessage message )
 		throws IOException {
 		String name, value;
-		getToken();
+		nextToken();
 		HttpMessage.Cookie cookie;
 		while( token.is( Scanner.TokenType.ID ) ) {
 			name = token.content().toLowerCase();
-			getToken();
+			nextToken();
 			tokenAssert( Scanner.TokenType.COLON );
 			value = scanner.readLine();
 			if( "set-cookie".equals( name ) ) {
@@ -108,25 +108,25 @@ public class HttpParser {
 			} else {
 				message.setProperty( name, value );
 			}
-			getToken();
+			nextToken();
 		}
 	}
 
 	private HttpMessage.Cookie parseSetCookie( String cookieString ) {
-		String ss[] = cookiesSplitPattern.split( cookieString );
+		String ss[] = COOKIES_SPLIT_PATTERN.split( cookieString );
 		if( cookieString.isEmpty() == false && ss.length > 0 ) {
 			boolean secure = false;
 			String domain = "";
 			String path = "";
 			String expires = "";
-			String nameValue[] = cookieNameValueSplitPattern.split( ss[ 0 ], 2 );
+			String nameValue[] = COOKIE_NAME_VALUE_SPLIT_PATTERN.split( ss[ 0 ], 2 );
 			if( ss.length > 1 ) {
 				String kv[];
 				for( int i = 1; i < ss.length; i++ ) {
 					if( "secure".equals( ss[ i ] ) ) {
 						secure = true;
 					} else {
-						kv = cookieNameValueSplitPattern.split( ss[ i ], 2 );
+						kv = COOKIE_NAME_VALUE_SPLIT_PATTERN.split( ss[ i ], 2 );
 						if( kv.length > 1 ) {
 							kv[ 0 ] = kv[ 0 ].trim();
 							if( "expires".equalsIgnoreCase( kv[ 0 ] ) ) {
@@ -177,7 +177,7 @@ public class HttpParser {
 
 		message.setRequestPath( URLDecoder.decode( scanner.readWord(), HttpUtils.URL_DECODER_ENC ) );
 
-		getToken();
+		nextToken();
 		if( !token.isKeywordIgnoreCase( HTTP ) )
 			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
 
@@ -214,7 +214,7 @@ public class HttpParser {
 		if( !("1.1".equals( version ) || "1.0".equals( version )) )
 			throw new IOException( "Unsupported HTTP version specified: " + version );
 
-		getToken();
+		nextToken();
 		tokenAssert( Scanner.TokenType.INT );
 		message.setStatusCode( Integer.parseInt( token.content() ) );
 		message.setReason( scanner.readLine() );
@@ -344,7 +344,7 @@ public class HttpParser {
 
 	public HttpMessage parse()
 		throws IOException {
-		getToken();
+		nextToken();
 		HttpMessage message = parseMessageType();
 		parseHeaderProperties( message );
 		readContent( message );

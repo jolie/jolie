@@ -246,46 +246,46 @@ public class CommandLineParser implements Closeable {
 	 * @return the usage help message of Jolie.
 	 */
 	protected String getHelpString() {
-		StringBuilder helpBuilder = new StringBuilder();
-		helpBuilder.append( getVersionString() );
-		helpBuilder.append( "\n\nUsage: jolie [options] program_file [program arguments]\n\n" );
-		helpBuilder.append( "Available options:\n" );
-		helpBuilder.append(
-			getOptionString( "-h, --help", "Display this help information" ) );
-		// TODO include doc for -l and -i
-		helpBuilder.append( getOptionString( "-C ConstantIdentifier=ConstantValue",
-			"Sets constant ConstantIdentifier to ConstantValue before starting execution \n"
-				+ "-C ConstantIdentifier=ConstantValue".replaceAll( "(.)", " " ) + "\t\t\t"
-				+ "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) );
-		helpBuilder.append(
-			getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
-		helpBuilder.append(
-			getOptionString( "--responseTimeout [number]",
-				"Set the timeout for request-response invocations (in milliseconds)" ) );
-		helpBuilder.append(
-			getOptionString( "--correlationAlgorithm [simple|hash]",
-				"Set the algorithm to use for message correlation" ) );
-		helpBuilder.append(
-			getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
-		helpBuilder.append(
-			getOptionString( "--stackTraces", "Activate the printing of Java stack traces (default: false)" ) );
-		helpBuilder.append(
-			getOptionString( "--typecheck [true|false]",
-				"Check for correlation and other data related typing errors (default: false)" ) );
-		helpBuilder.append(
-			getOptionString( "--check", "Check for syntactic and semantic errors." ) );
-		helpBuilder.append(
-			getOptionString( "--trace [console|file]",
-				"Activate tracer. console prints out in the console, file creates a json file" ) );
-		helpBuilder.append(
-			getOptionString( "--traceLevel [all|comm|comp]",
-				"Defines tracer level: all - all the traces; comm - only communication traces; comp - only computation traces. Default is all. " ) );
-		helpBuilder.append(
-			getOptionString( "--charset [character encoding, e.g., UTF-8]",
-				"Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
-		helpBuilder.append(
-			getOptionString( "--version", "Display this program version information" ) );
-		return helpBuilder.toString();
+		return new StringBuilder()
+			.append( getVersionString() )
+			.append( "\n\nUsage: jolie [options] program_file [program arguments]\n\n" )
+			.append( "Available options:\n" )
+			.append(
+				getOptionString( "-h, --help", "Display this help information" ) )
+			// TODO include doc for -l and -i
+			.append( getOptionString( "-C ConstantIdentifier=ConstantValue",
+				"Sets constant ConstantIdentifier to ConstantValue before starting execution \n"
+					+ "-C ConstantIdentifier=ConstantValue".replaceAll( "(.)", " " ) + "\t\t\t"
+					+ "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) )
+			.append(
+				getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) )
+			.append(
+				getOptionString( "--responseTimeout [number]",
+					"Set the timeout for request-response invocations (in milliseconds)" ) )
+			.append(
+				getOptionString( "--correlationAlgorithm [simple|hash]",
+					"Set the algorithm to use for message correlation" ) )
+			.append(
+				getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) )
+			.append(
+				getOptionString( "--stackTraces", "Activate the printing of Java stack traces (default: false)" ) )
+			.append(
+				getOptionString( "--typecheck [true|false]",
+					"Check for correlation and other data related typing errors (default: false)" ) )
+			.append(
+				getOptionString( "--check", "Check for syntactic and semantic errors." ) )
+			.append(
+				getOptionString( "--trace [console|file]",
+					"Activate tracer. console prints out in the console, file creates a json file" ) )
+			.append(
+				getOptionString( "--traceLevel [all|comm|comp]",
+					"Defines tracer level: all - all the traces; comm - only communication traces; comp - only computation traces. Default is all. " ) )
+			.append(
+				getOptionString( "--charset [character encoding, e.g., UTF-8]",
+					"Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) )
+			.append(
+				getOptionString( "--version", "Display this program version information" ) )
+			.toString();
 	}
 
 	private void parseCommandLineConstant( String input )
@@ -434,7 +434,7 @@ public class CommandLineParser implements Closeable {
 				if( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				Collections.addAll( includeList, argsList.get( i ).split( jolie.lang.Constants.pathSeparator ) );
+				Collections.addAll( includeList, argsList.get( i ).split( jolie.lang.Constants.PATH_SEPARATOR ) );
 				optionsList.add( argsList.get( i ) );
 			} else if( "-l".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -442,7 +442,7 @@ public class CommandLineParser implements Closeable {
 				if( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				String[] tmp = argsList.get( i ).split( jolie.lang.Constants.pathSeparator );
+				String[] tmp = argsList.get( i ).split( jolie.lang.Constants.PATH_SEPARATOR );
 				for( String libPath : tmp ) {
 					Optional< String > path = findLibPath( libPath, includeList, parentClassLoader );
 					path.ifPresent( libList::add );
@@ -807,7 +807,7 @@ public class CommandLineParser implements Closeable {
 				} else {
 					f = new File(
 						includePath +
-							jolie.lang.Constants.fileSeparator +
+							jolie.lang.Constants.FILE_SEPARATOR +
 							olFilepath );
 					if( f.exists() ) {
 						f = f.getAbsoluteFile();
@@ -837,7 +837,7 @@ public class CommandLineParser implements Closeable {
 				if( programDirectory == null && olURL != null && olURL.getPath() != null ) {
 					// Try to extract the parent directory of the JAP/JAR library file
 					try {
-						File urlFile = new File( JapURLConnection.nestingSeparatorPattern
+						File urlFile = new File( JapURLConnection.NESTING_SEPARATION_PATTERN
 							.split( new URI( olURL.getPath() ).getSchemeSpecificPart() )[ 0 ] ).getAbsoluteFile();
 						if( urlFile.exists() ) {
 							programDirectory = urlFile.getParentFile();

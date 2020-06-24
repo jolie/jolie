@@ -54,7 +54,7 @@ public abstract class CommProtocol {
 			}
 		}
 
-		private final static DummyChannel dummyChannel = new DummyChannel();
+		private final static DummyChannel DUMMY_CHANNEL = new DummyChannel();
 	}
 
 	private static class Parameters {
@@ -81,7 +81,7 @@ public abstract class CommProtocol {
 
 	protected CommChannel channel() {
 		if( this.channel == null ) {
-			return LazyDummyChannelHolder.dummyChannel;
+			return LazyDummyChannelHolder.DUMMY_CHANNEL;
 		}
 		return this.channel;
 	}

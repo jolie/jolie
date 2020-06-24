@@ -380,8 +380,8 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 
 		if( received ) {
 			// We're responding to a request
-			httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
-			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
+			httpMessage.append( "HTTP/1.1 200 OK" ).append( HttpUtils.CRLF )
+				.append( "Server: Jolie" ).append( HttpUtils.CRLF );
 
 			received = false;
 		} else {
@@ -390,32 +390,32 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			if( path == null || path.length() == 0 ) {
 				path = "*";
 			}
-			httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
-			httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
-			httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+			httpMessage.append( "POST " ).append( path ).append( " HTTP/1.1" ).append( HttpUtils.CRLF )
+				.append( "User-Agent: Jolie" ).append( HttpUtils.CRLF )
+				.append( "Host: " ).append( uri.getHost() ).append( HttpUtils.CRLF );
 
 			if( checkBooleanParameter( "compression", true ) ) {
 				String requestCompression = getStringParameter( "requestCompression" );
 				if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 					encoding = requestCompression;
-					httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+					httpMessage.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
 				} else {
-					httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+					httpMessage.append( "Accept-Encoding: gzip, deflate" ).append( HttpUtils.CRLF );
 				}
 			}
 		}
 
 		if( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 			channel().setToBeClosed( true );
-			httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+			httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
 
 		if( encoding != null && checkBooleanParameter( "compression", true ) ) {
 			content = HttpUtils.encode( encoding, content, httpMessage );
 		}
 
-		httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
-		httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
+		httpMessage.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF )
+			.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
 
 		if( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );

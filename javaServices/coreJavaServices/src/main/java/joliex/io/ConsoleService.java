@@ -42,8 +42,8 @@ public class ConsoleService extends JavaService {
 	private Map< String, String > sessionTokens;
 	private boolean sessionListeners = false;
 	private boolean enableTimestamp = false;
-	private static final String timestampFormatDefault = "dd/MM/yyyy HH:mm:ss";
-	private String timestampFormat = timestampFormatDefault;
+	private static final String TIMESTAMP_DEFAULT_FORMAT = "dd/MM/yyyy HH:mm:ss";
+	private String timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 
 	private class ConsoleInputThread extends Thread {
 		private boolean keepRun = true;
@@ -149,11 +149,11 @@ public class ConsoleService extends JavaService {
 			if( request.getFirstChild( "format" ).isDefined() ) {
 				timestampFormat = request.getFirstChild( "format" ).strValue();
 			} else {
-				timestampFormat = timestampFormatDefault;
+				timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 			}
 		} else {
 			enableTimestamp = false;
-			timestampFormat = timestampFormatDefault;
+			timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 		}
 
 	}
