@@ -39,7 +39,6 @@ import jolie.lang.parse.ParserException;
 public class Jolie {
 	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
 	public static int cellId = 0;
-	public final static int bitsForServiceIdentifier = 32;
 
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
@@ -72,12 +71,12 @@ public class Jolie {
 		try {
 			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
 			cellId = commandLineParser.getInterpreterParameters().cellId();
-			if( commandLineParser.getInterpreterParameters().cellId() < Math.pow( 2, bitsForServiceIdentifier ) ) {
+			if( commandLineParser.getInterpreterParameters().cellId() < Integer.MAX_VALUE ) {
 				cellId = commandLineParser.getInterpreterParameters().cellId();
 			} else {
 				cellId = 0;
 				System.out.println( "Cell Identifier exceeds the maximun available ("
-					+ Math.pow( 2, bitsForServiceIdentifier ) + "), set to 0" );
+					+ Integer.MAX_VALUE + "), set to 0" );
 			}
 			final Interpreter interpreter =
 				new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null );

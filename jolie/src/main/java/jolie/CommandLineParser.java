@@ -306,7 +306,7 @@ public class CommandLineParser implements Closeable {
 		helpBuilder.append(
 			getOptionString( "--cellId",
 				"set an integer as cell identifier, used for creating message ids. (max: "
-					+ Math.pow( 2, Jolie.bitsForServiceIdentifier ) + ")" ) );
+					+ Integer.MAX_VALUE + ")" ) );
 		return helpBuilder.toString();
 	}
 
@@ -575,7 +575,8 @@ public class CommandLineParser implements Closeable {
 					cellId = new Integer( argsList.get( i ) );
 				} catch( Exception e ) {
 					System.out
-						.println( "The number specified for cellId (" + argsList.get( i ) + ") is not allowed. Set to 0" );
+						.println(
+							"The number specified for cellId (" + argsList.get( i ) + ") is not allowed. Set to 0" );
 				}
 				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {

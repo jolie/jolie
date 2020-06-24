@@ -55,7 +55,6 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		CommandLineParser commandLineParser = new CommandLineParser( newArgs, currInterpreter.getClassLoader(), false );
-		InterpreterParameters interpreterParameters = commandLineParser.getInterpreterParameters();
 
 		interpreter = new Interpreter(
 			currInterpreter.getClassLoader(),
