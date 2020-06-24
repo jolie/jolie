@@ -191,7 +191,7 @@ public class Inspector extends JavaService {
 		}
 
 		for( OutputPortInfo portInfo : inspector.getOutputPorts() ) {
-			outputPorts.add( buildPortInfo( portInfo, inspector, referredTypes ) );
+			outputPorts.add( buildPortInfo( portInfo, referredTypes ) );
 		}
 
 		Map< String, TypeDefinition > types = new HashMap<>();
@@ -266,8 +266,7 @@ public class Inspector extends JavaService {
 		return returnList;
 	}
 
-	private static Value buildPortInfo( OutputPortInfo portInfo, ProgramInspector inspector,
-		Set< String > referredTypesSet ) {
+	private static Value buildPortInfo( OutputPortInfo portInfo, Set< String > referredTypesSet ) {
 		Value result = Value.create();
 		result.setFirstChild( PortInfoType.NAME, portInfo.id() );
 
