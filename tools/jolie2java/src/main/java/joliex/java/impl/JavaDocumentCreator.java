@@ -154,9 +154,8 @@ public class JavaDocumentCreator {
 			if( targetPort == null || outputPort.id().equals( targetPort ) ) {
 
 				Collection< OperationDeclaration > operations = outputPort.operations();
-				Iterator< OperationDeclaration > operatorIterator = operations.iterator();
-				while( operatorIterator.hasNext() ) {
-					operation = operatorIterator.next();
+				for( OperationDeclaration operationDeclaration : operations ) {
+					operation = operationDeclaration;
 					if( operation instanceof RequestResponseOperationDeclaration ) {
 						requestResponseOperation = (RequestResponseOperationDeclaration) operation;
 						if( !typeMap.containsKey( requestResponseOperation.requestType().id() ) ) {
@@ -196,9 +195,7 @@ public class JavaDocumentCreator {
 		}
 
 		/* put subtypes in the typeMap */
-		Iterator< Entry< String, TypeDefinition > > subTypeMapIterator = subTypeMap.entrySet().iterator();
-		while( subTypeMapIterator.hasNext() ) {
-			Entry< String, TypeDefinition > subTypeEntry = subTypeMapIterator.next();
+		for( Entry< String, TypeDefinition > subTypeEntry : subTypeMap.entrySet() ) {
 			typeMap.put( subTypeEntry.getKey(), subTypeEntry.getValue() );
 		}
 
@@ -229,10 +226,8 @@ public class JavaDocumentCreator {
 		}
 
 		// prepare exceptions
-		Iterator< Entry< String, TypeDefinition > > faultMapIterator = faultMap.entrySet().iterator();
 
-		while( faultMapIterator.hasNext() ) {
-			Entry< String, TypeDefinition > faultEntry = faultMapIterator.next();
+		for( Entry< String, TypeDefinition > faultEntry : faultMap.entrySet() ) {
 			String nameFile = directoryPathTypes + Constants.FILE_SEPARATOR + faultEntry.getKey() + ".java";
 			Writer writer;
 			try {
@@ -479,9 +474,8 @@ public class JavaDocumentCreator {
 		if( operation instanceof RequestResponseOperationDeclaration ) {
 			requestResponseOperation = (RequestResponseOperationDeclaration) operation;
 
-			requestResponseOperation.faults().entrySet().stream().forEach( ( fault ) -> {
-				exceptionList.put( fault.getKey(), getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
-			} );
+			requestResponseOperation.faults().entrySet().stream().forEach( ( fault ) -> exceptionList
+				.put( fault.getKey(), getExceptionName( requestResponseOperation.id(), fault.getKey() ) ) );
 		}
 		return exceptionList;
 	}
@@ -509,9 +503,8 @@ public class JavaDocumentCreator {
 		incrementIndentation();
 
 		Collection< OperationDeclaration > operations = outputPort.operations();
-		Iterator< OperationDeclaration > operatorIterator = operations.iterator();
-		while( operatorIterator.hasNext() ) {
-			operation = operatorIterator.next();
+		for( OperationDeclaration operationDeclaration : operations ) {
+			operation = operationDeclaration;
 			String requestType = getRequestType( operation );
 			String responseType = getResponseType( operation );
 			HashMap< String, String > exceptionList = getExceptionList( operation );
@@ -672,91 +665,60 @@ public class JavaDocumentCreator {
 	private void prepareJolieClient( Writer writer ) throws IOException {
 
 		StringBuilder outputFileText = new StringBuilder();
-		outputFileText.append( "/**\n"
-			+ " * *************************************************************************\n"
-			+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n"
-			+ " *\n"
-			+ " *\n"
-			+ " * This program is free software; you can redistribute it and/or modify it under\n"
-			+ " * the terms of the GNU Library General Public License as published by the Free\n"
-			+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
-			+ " * later version. This program is distributed in the hope that it will be\n"
-			+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-			+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
-			+ " * Public License for more details. You should have received a copy of the GNU\n"
-			+ " * Library General Public License along with this program; if not, write to the\n"
-			+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
-			+ " * 02111-1307, USA. For details about the authors of this software, see the\n"
-			+ " * AUTHORS file.\n"
-			+ " * *************************************************************************\n"
-			+ " */\n"
-			+ "package " + packageName + ";\n"
-			+ "\n"
-			+ "import java.io.IOException;\n"
-			+ "import java.net.URI;\n"
-			+ "import java.util.concurrent.CountDownLatch;\n"
-			+ "import jolie.runtime.FaultException;\n"
-			+ "import jolie.runtime.Value;\n"
-			+ "import joliex.java.Callback;\n"
-			+ "import joliex.java.Protocols;\n"
-			+ "import joliex.java.Service;\n"
-			+ "import joliex.java.ServiceFactory;\n"
-			+ "\n"
-			+ "public class JolieClient\n"
-			+ "{\n"
-			+ "	private static String ip = null;\n"
-			+ "	private static int servicePort = 0;\n"
-			+ "\n"
-			+ "	public static void init( String ipAddress, int port )\n"
-			+ "	{\n"
-			+ "		ip = ipAddress;\n"
-			+ "		servicePort = port;\n"
-			+ "	}\n"
-			+ "\n"
-			+ "	public static void call( Value request, String operation, final Controller controller ) throws IOException, InterruptedException, Exception\n"
-			+ "	{\n"
-			+ "		if (ip != null && servicePort > 0  ) {\n"
-			+ "			final CountDownLatch latch = new CountDownLatch( 1 ); // just one time\n"
-			+ "			ServiceFactory serviceFactory = new ServiceFactory();\n"
-			+ "			String location = \"socket://\" + ip + \":\" + servicePort;\n"
-			+ "			Service service = serviceFactory.create( URI.create( location ), Protocols.SODEP, Value.create() );\n"
-			+ "			if ( service != null ) {\n"
-			+ "				service.callRequestResponse( operation, request, new Callback()\n"
-			+ "				{\n"
-			+ "					@Override\n"
-			+ "					public void onSuccess( Value response )\n"
-			+ "					{\n"
-			+ "						controller.setResponse( response );\n"
-			+ "						latch.countDown();\n"
-			+ "\n"
-			+ "					}\n"
-			+ "\n"
-			+ "					@Override\n"
-			+ "					public void onFault( FaultException fault )\n"
-			+ "					{\n"
-			+ "						controller.setFault( fault );\n"
-			+ "						latch.countDown();\n"
-			+ "					}\n"
-			+ "\n"
-			+ "					@Override\n"
-			+ "					public void onError( IOException exception )\n"
-			+ "					{\n"
-			+ "						controller.setException( exception );\n"
-			+ "						latch.countDown();\n"
-			+ "					}\n"
-			+ "				} );\n"
-			+ "			}\n"
-			+ "\n"
-			+ "			latch.await();\n"
-			+ "			service.close();\n"
-			+ "			serviceFactory.shutdown();\n"
-			+ "		} else {\n"
-			+ "			throw new Exception( \"IP and servicePort not initialized, initialize them using static init() method\" );\n"
-			+ "		}\n"
-			+ "\n"
-			+ "	}\n"
-			+ "\n"
-			+ "}\n" );
+		outputFileText
+			.append( "/**\n" + " * *************************************************************************\n"
+				+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n" + " *\n" + " *\n"
+				+ " * This program is free software; you can redistribute it and/or modify it under\n"
+				+ " * the terms of the GNU Library General Public License as published by the Free\n"
+				+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
+				+ " * later version. This program is distributed in the hope that it will be\n"
+				+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+				+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
+				+ " * Public License for more details. You should have received a copy of the GNU\n"
+				+ " * Library General Public License along with this program; if not, write to the\n"
+				+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
+				+ " * 02111-1307, USA. For details about the authors of this software, see the\n" + " * AUTHORS file.\n"
+				+ " * *************************************************************************\n" + " */\n"
+				+ "package " )
+			.append( packageName ).append( ";\n" ).append( "\n" ).append( "import java.io.IOException;\n" )
+			.append( "import java.net.URI;\n" ).append( "import java.util.concurrent.CountDownLatch;\n" )
+			.append( "import jolie.runtime.FaultException;\n" ).append( "import jolie.runtime.Value;\n" )
+			.append( "import joliex.java.Callback;\n" ).append( "import joliex.java.Protocols;\n" )
+			.append( "import joliex.java.Service;\n" ).append( "import joliex.java.ServiceFactory;\n" ).append( "\n" )
+			.append( "public class JolieClient\n" ).append( "{\n" ).append( "	private static String ip = null;\n" )
+			.append( "	private static int servicePort = 0;\n" ).append( "\n" )
+			.append( "	public static void init( String ipAddress, int port )\n" ).append( "	{\n" )
+			.append( "		ip = ipAddress;\n" ).append( "		servicePort = port;\n" ).append( "	}\n" )
+			.append( "\n" )
+			.append(
+				"	public static void call( Value request, String operation, final Controller controller ) throws IOException, InterruptedException, Exception\n" )
+			.append( "	{\n" ).append( "		if (ip != null && servicePort > 0  ) {\n" )
+			.append( "			final CountDownLatch latch = new CountDownLatch( 1 ); // just one time\n" )
+			.append( "			ServiceFactory serviceFactory = new ServiceFactory();\n" )
+			.append( "			String location = \"socket://\" + ip + \":\" + servicePort;\n" )
+			.append(
+				"			Service service = serviceFactory.create( URI.create( location ), Protocols.SODEP, Value.create() );\n" )
+			.append( "			if ( service != null ) {\n" )
+			.append( "				service.callRequestResponse( operation, request, new Callback()\n" )
+			.append( "				{\n" ).append( "					@Override\n" )
+			.append( "					public void onSuccess( Value response )\n" ).append( "					{\n" )
+			.append( "						controller.setResponse( response );\n" )
+			.append( "						latch.countDown();\n" ).append( "\n" ).append( "					}\n" )
+			.append( "\n" ).append( "					@Override\n" )
+			.append( "					public void onFault( FaultException fault )\n" )
+			.append( "					{\n" ).append( "						controller.setFault( fault );\n" )
+			.append( "						latch.countDown();\n" ).append( "					}\n" ).append( "\n" )
+			.append( "					@Override\n" )
+			.append( "					public void onError( IOException exception )\n" )
+			.append( "					{\n" )
+			.append( "						controller.setException( exception );\n" )
+			.append( "						latch.countDown();\n" ).append( "					}\n" )
+			.append( "				} );\n" ).append( "			}\n" ).append( "\n" )
+			.append( "			latch.await();\n" ).append( "			service.close();\n" )
+			.append( "			serviceFactory.shutdown();\n" ).append( "		} else {\n" )
+			.append(
+				"			throw new Exception( \"IP and servicePort not initialized, initialize them using static init() method\" );\n" )
+			.append( "		}\n" ).append( "\n" ).append( "	}\n" ).append( "\n" ).append( "}\n" );
 
 		writer.append( outputFileText.toString() );
 	}
@@ -764,58 +726,35 @@ public class JavaDocumentCreator {
 	private void prepareController( Writer writer ) throws IOException {
 
 		StringBuilder outputFileText = new StringBuilder();
-		outputFileText.append( "/**\n"
-			+ " * *************************************************************************\n"
-			+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n"
-			+ " *\n"
-			+ " *\n"
-			+ " * This program is free software; you can redistribute it and/or modify it under\n"
-			+ " * the terms of the GNU Library General Public License as published by the Free\n"
-			+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
-			+ " * later version. This program is distributed in the hope that it will be\n"
-			+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-			+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
-			+ " * Public License for more details. You should have received a copy of the GNU\n"
-			+ " * Library General Public License along with this program; if not, write to the\n"
-			+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
-			+ " * 02111-1307, USA. For details about the authors of this software, see the\n"
-			+ " * AUTHORS file.\n"
-			+ " * *************************************************************************\n"
-			+ " */\n"
-			+ "package " + packageName + ";\n"
-			+ "import jolie.runtime.FaultException;\n"
-			+ "import jolie.runtime.Value;\n"
-			+ "\n"
-			+ "public class Controller\n"
-			+ "{	\n"
-			+ "	private FaultException fault = null;\n"
-			+ "	private Exception exception = null;\n"
-			+ "	private Value response = null;\n"
-			+ "		\n"
-			+ "	public void setFault( FaultException f ) {\n"
-			+ "		fault = f;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public FaultException getFault() {\n"
-			+ "		return fault;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public void setException( Exception e ) {\n"
-			+ "		exception = e;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public Exception getException() {\n"
-			+ "		return exception;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public void setResponse( Value v ) {\n"
-			+ "		response = v;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public Value getResponse() {\n"
-			+ "		return response;\n"
-			+ "	}\n"
-			+ "}" );
+		outputFileText
+			.append( "/**\n" + " * *************************************************************************\n"
+				+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n" + " *\n" + " *\n"
+				+ " * This program is free software; you can redistribute it and/or modify it under\n"
+				+ " * the terms of the GNU Library General Public License as published by the Free\n"
+				+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
+				+ " * later version. This program is distributed in the hope that it will be\n"
+				+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+				+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
+				+ " * Public License for more details. You should have received a copy of the GNU\n"
+				+ " * Library General Public License along with this program; if not, write to the\n"
+				+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
+				+ " * 02111-1307, USA. For details about the authors of this software, see the\n" + " * AUTHORS file.\n"
+				+ " * *************************************************************************\n" + " */\n"
+				+ "package " )
+			.append( packageName ).append( ";\n" ).append( "import jolie.runtime.FaultException;\n" )
+			.append( "import jolie.runtime.Value;\n" ).append( "\n" ).append( "public class Controller\n" )
+			.append( "{	\n" ).append( "	private FaultException fault = null;\n" )
+			.append( "	private Exception exception = null;\n" ).append( "	private Value response = null;\n" )
+			.append( "		\n" ).append( "	public void setFault( FaultException f ) {\n" )
+			.append( "		fault = f;\n" ).append( "	}\n" ).append( "	\n" )
+			.append( "	public FaultException getFault() {\n" ).append( "		return fault;\n" ).append( "	}\n" )
+			.append( "	\n" ).append( "	public void setException( Exception e ) {\n" )
+			.append( "		exception = e;\n" ).append( "	}\n" ).append( "	\n" )
+			.append( "	public Exception getException() {\n" ).append( "		return exception;\n" )
+			.append( "	}\n" ).append( "	\n" ).append( "	public void setResponse( Value v ) {\n" )
+			.append( "		response = v;\n" ).append( "	}\n" ).append( "	\n" )
+			.append( "	public Value getResponse() {\n" ).append( "		return response;\n" ).append( "	}\n" )
+			.append( "}" );
 
 		writer.append( outputFileText.toString() );
 	}
@@ -930,11 +869,9 @@ public class JavaDocumentCreator {
 			DOMSource source = new DOMSource( doc );
 			StreamResult streamResult = new StreamResult( new File( generatedPath + "/build.xml" ) );
 			transformer.transform( source, streamResult );
-		} catch( ParserConfigurationException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		} catch( TransformerConfigurationException ex ) {
 			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
-		} catch( TransformerException ex ) {
+		} catch( ParserConfigurationException | TransformerException ex ) {
 			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 
@@ -1002,9 +939,7 @@ public class JavaDocumentCreator {
 			stringBuilder.append( ", IOException, InterruptedException, Exception" );
 		}
 		if( !exceptionList.isEmpty() ) {
-			exceptionList.entrySet().stream().forEach( f -> {
-				stringBuilder.append( ", " ).append( f.getValue() );
-			} );
+			exceptionList.entrySet().stream().forEach( f -> stringBuilder.append( ", " ).append( f.getValue() ) );
 		}
 	}
 
@@ -1282,11 +1217,10 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
-			while( i.hasNext() ) {
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 				String variableType = null;
 				String variableName = null;
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				if( subType instanceof TypeDefinitionLink ) {
 					if( ((TypeDefinitionLink) subType).linkedType() instanceof TypeDefinitionUndefined ) {
 						variableName = checkReservedKeywords( ((TypeDefinitionLink) subType).id() );
@@ -1400,10 +1334,9 @@ public class JavaDocumentCreator {
 			stringBuilder.append( "}\n" );
 
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
 
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				String variableName = getVariableName( subType );
 				String variableNameType = getVariableTypeName( subType );
 
@@ -1623,9 +1556,8 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				String variableName = subType.id();
 				String variableType = "Value";
 				if( subType.cardinality().max() > 1 ) {
@@ -1816,10 +1748,9 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
 
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				String variableName = getVariableName( subType );
 				String variableNameType = getVariableTypeName( subType );
 
@@ -1990,10 +1921,9 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
 
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 
 				String variableName = getVariableName( subType );
 				String startingChar = variableName.substring( 0, 1 );
@@ -2127,9 +2057,8 @@ public class JavaDocumentCreator {
 	private void parseSubType( TypeDefinition typeDefinition ) {
 		if( Utils.hasSubTypes( typeDefinition ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
-			Iterator i = supportSet.iterator();
-			while( i.hasNext() ) {
-				Map.Entry me = (Map.Entry) i.next();
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				Entry me = (Entry) stringTypeDefinitionEntry;
 				// System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
 				if( ((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink ) {
 					if( !subTypeMap.containsKey( ((TypeDefinitionLink) me.getValue()).linkedTypeName() ) ) {

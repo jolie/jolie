@@ -176,11 +176,8 @@ public class CommCore {
 
 	public void putPersistentChannel( URI location, String protocol, final CommChannel channel ) {
 		synchronized( persistentChannels ) {
-			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
-			if( protocolChannels == null ) {
-				protocolChannels = new HashMap<>();
-				persistentChannels.put( location, protocolChannels );
-			}
+			Map< String, CommChannel > protocolChannels =
+				persistentChannels.computeIfAbsent( location, k -> new HashMap<>() );
 			// Set the timeout
 			setTimeoutHandler( channel, location, protocol );
 			// Put the protocol in the cache (may overwrite another one)
@@ -937,9 +934,7 @@ public class CommCore {
 	public synchronized void shutdown( long timeout ) {
 		if( active ) {
 			active = false;
-			listenersMap.entrySet().forEach( ( entry ) -> {
-				entry.getValue().shutdown();
-			} );
+			listenersMap.entrySet().forEach( ( entry ) -> entry.getValue().shutdown() );
 
 			try {
 				for( SelectorThread t : selectorThreads() ) {

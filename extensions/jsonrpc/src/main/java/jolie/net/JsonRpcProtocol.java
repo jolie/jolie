@@ -384,14 +384,15 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					"/", value.getFirstChild( "params" ), null );
 			} else if( value.hasChildren( "error" ) ) {
 				String operationName = jsonRpcOpMap.get( jsonRpcId );
-				return new CommMessage( Long.valueOf( jsonRpcId ), operationName, "/", null,
+				return new CommMessage( Long.parseLong( jsonRpcId ), operationName, "/", null,
 					new FaultException(
 						value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
 						value.getFirstChild( "error" ).getFirstChild( "data" ) ) );
 			} else {
 				// Certain implementations do not provide a result if it is "void"
 				String operationName = jsonRpcOpMap.get( jsonRpcId );
-				return new CommMessage( Long.valueOf( jsonRpcId ), operationName, "/", value.getFirstChild( "result" ),
+				return new CommMessage( Long.parseLong( jsonRpcId ), operationName, "/",
+					value.getFirstChild( "result" ),
 					null );
 			}
 		}

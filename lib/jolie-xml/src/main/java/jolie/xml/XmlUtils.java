@@ -396,7 +396,7 @@ public class XmlUtils {
 		}
 
 		if( ret == null ) {
-			ret = new HashMap< String, ValueVector >();
+			ret = new HashMap<>();
 		}
 
 		return ret;
@@ -518,16 +518,22 @@ public class XmlUtils {
 			}
 		}
 
-		if( type.equals( "string" ) ) {
+		switch( type ) {
+		case "string":
 			value.setValue( builder.toString() );
-		} else if( type.equals( "int" ) ) {
+			break;
+		case "int":
 			value.setValue( new Integer( builder.toString() ) );
-		} else if( type.equals( "long" ) ) {
+			break;
+		case "long":
 			value.setValue( new Long( builder.toString() ) );
-		} else if( type.equals( "double" ) ) {
+			break;
+		case "double":
 			value.setValue( new Double( builder.toString() ) );
-		} else if( type.equals( "bool" ) ) {
+			break;
+		case "bool":
 			value.setValue( Boolean.valueOf( builder.toString() ) );
+			break;
 		}
 	}
 

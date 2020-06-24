@@ -128,8 +128,6 @@ public final class JolieClassLoader extends URLClassLoader {
 				 */
 				try {
 					addJarResource( filename );
-				} catch( MalformedURLException e ) {
-					e.printStackTrace();
 				} catch( IOException e ) {
 					e.printStackTrace();
 				}
@@ -144,7 +142,6 @@ public final class JolieClassLoader extends URLClassLoader {
 				 */
 				try {
 					addJarResource( filename );
-				} catch( MalformedURLException e ) {
 				} catch( IOException e ) {
 				}
 			}

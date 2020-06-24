@@ -77,7 +77,7 @@ public abstract class AbstractParser {
 		addToken( token );
 	}
 
-	private final void readToken()
+	private void readToken()
 		throws IOException {
 		if( tokens.isEmpty() ) {
 			token = scanner.getToken();

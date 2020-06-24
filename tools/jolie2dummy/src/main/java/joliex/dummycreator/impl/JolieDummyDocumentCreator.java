@@ -113,22 +113,27 @@ public class JolieDummyDocumentCreator {
 					String cardinalityString =
 						typeCardinality == 1 ? "" : "[ " + cardinalityIndex + " ]";
 					if( !(typeInlineDefinition.nativeType().id().equals( "void" )) ) {
-						if( typeInlineDefinition.nativeType().id().equals( "int" ) ) {
+						switch( typeInlineDefinition.nativeType().id() ) {
+						case "int":
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "42;\n" );
-						} else if( typeInlineDefinition.nativeType().id().equals( "double" ) ) {
+							break;
+						case "double":
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "1.54;\n" );
-						} else if( typeInlineDefinition.nativeType().id().equals( "long" ) ) {
+							break;
+						case "long":
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "424242L;\n" );
-						} else {
+							break;
+						default:
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
+							break;
 						}
 					}
 				}

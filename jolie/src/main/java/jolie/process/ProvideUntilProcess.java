@@ -80,11 +80,7 @@ public class ProvideUntilProcess implements Process {
 				branch.key().receiveMessage( m, ethread.state() ).run();
 				branch.value().run();
 			}
-		} catch( CancellationException e ) {
-			Interpreter.getInstance().logSevere( e );
-		} catch( ExecutionException e ) {
-			Interpreter.getInstance().logSevere( e );
-		} catch( InterruptedException e ) {
+		} catch( CancellationException | InterruptedException | ExecutionException e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
 	}

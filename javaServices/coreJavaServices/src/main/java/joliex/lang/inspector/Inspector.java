@@ -118,7 +118,7 @@ public class Inspector extends JavaService {
 		try {
 			final ProgramInspector inspector;
 			String includePaths[] =
-				request.getChildren( "includePaths" ).stream().map( v -> v.strValue() ).toArray( String[]::new );
+				request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 			if( request.hasChildren( "source" ) ) {
 				inspector = getInspector( request.getFirstChild( "filename" ).strValue(),
 					Optional.of( request.getFirstChild( "source" ).strValue() ), includePaths );
@@ -132,14 +132,15 @@ public class Inspector extends JavaService {
 		} catch( SemanticException ex ) {
 			throw new FaultException(
 				"SemanticException",
-				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) ) );
+				ex.getErrorList().stream().map( SemanticException.SemanticError::getMessage )
+					.collect( Collectors.joining( "\n" ) ) );
 		}
 	}
 
 	@RequestResponse
 	public Value inspectTypes( Value request ) throws FaultException {
 		String includePaths[] =
-			request.getChildren( "includePaths" ).stream().map( v -> v.strValue() ).toArray( String[]::new );
+			request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 		try {
 			ProgramInspector inspector =
 				getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
@@ -149,7 +150,8 @@ public class Inspector extends JavaService {
 		} catch( SemanticException ex ) {
 			throw new FaultException(
 				"SemanticException",
-				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) ) );
+				ex.getErrorList().stream().map( SemanticException.SemanticError::getMessage )
+					.collect( Collectors.joining( "\n" ) ) );
 		}
 	}
 
@@ -256,11 +258,9 @@ public class Inspector extends JavaService {
 				OutputPortInfo outputPortInfo = Arrays.stream( inspector.getOutputPorts() )
 					.filter( ( outputPort ) -> outputPort.id().equals( outputPortName ) )
 					.findFirst().get();
-				outputPortInfo.getInterfaceList().forEach( ( aggregatedInterfaceInfo ) -> {
-					returnList.add(
-						Interfaces.extend( aggregatedInterfaceInfo, aggregationItemInfo.interfaceExtender(),
-							portInfo.id() ) );
-				} );
+				outputPortInfo.getInterfaceList().forEach( ( aggregatedInterfaceInfo ) -> returnList.add(
+					Interfaces.extend( aggregatedInterfaceInfo, aggregationItemInfo.interfaceExtender(),
+						portInfo.id() ) ) );
 			}
 		}
 		return returnList;

@@ -288,7 +288,7 @@ public class VariablePath implements Expression {
 		return v;
 	}
 
-	private final FaultException buildAliasAccessException() {
+	private FaultException buildAliasAccessException() {
 		String alias = "";
 		boolean isRoot = true;
 		for( Pair< Expression, Expression > p : path ) {

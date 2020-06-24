@@ -86,7 +86,8 @@ public class FileTracer implements Tracer {
 				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
@@ -118,7 +119,8 @@ public class FileTracer implements Tracer {
 				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
@@ -186,7 +188,8 @@ public class FileTracer implements Tracer {
 				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
@@ -241,7 +244,8 @@ public class FileTracer implements Tracer {
 				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )

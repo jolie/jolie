@@ -218,13 +218,7 @@ public class XmlUtils extends JavaService {
 				jolie.xml.XmlUtils.storageDocumentToValue( doc, result );
 			}
 			return result;
-		} catch( ParserConfigurationException e ) {
-			e.printStackTrace();
-			throw new FaultException( e );
-		} catch( SAXException e ) {
-			e.printStackTrace();
-			throw new FaultException( e );
-		} catch( IOException e ) {
+		} catch( ParserConfigurationException | IOException | SAXException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
 		} finally {

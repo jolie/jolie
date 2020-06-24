@@ -89,12 +89,14 @@ public class HttpParser {
 			nextToken();
 			tokenAssert( Scanner.TokenType.COLON );
 			value = scanner.readLine();
-			if( "set-cookie".equals( name ) ) {
+			switch( name ) {
+			case "set-cookie":
 				// cookie = parseSetCookie( value );
 				if( (cookie = parseSetCookie( value )) != null ) {
 					message.addSetCookie( cookie );
 				}
-			} else if( "cookie".equals( name ) ) {
+				break;
+			case "cookie":
 				String ss[] = value.split( ";" );
 				for( String s : ss ) {
 					String nv[] = s.trim().split( "=", 2 );
@@ -102,11 +104,14 @@ public class HttpParser {
 						message.addCookie( nv[ 0 ], nv[ 1 ] );
 					}
 				}
-			} else if( "user-agent".equals( name ) ) {
+				break;
+			case "user-agent":
 				message.setUserAgent( value );
 				message.setProperty( name, value );
-			} else {
+				break;
+			default:
 				message.setProperty( name, value );
+				break;
 			}
 			nextToken();
 		}

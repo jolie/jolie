@@ -143,9 +143,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 			} catch( FaultException.RuntimeFaultException rf ) {
 				throw rf.faultException();
 			}
-		} catch( FaultException e ) {
-			throw e;
-		} catch( ExitingException e ) {
+		} catch( FaultException | ExitingException e ) {
 			throw e;
 		} catch( Exception e ) {
 			Interpreter.getInstance().logSevere( e );

@@ -49,7 +49,7 @@ public class NamedStatementParser {
 		private final static String TIME = "Time";
 	}
 
-	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
+	private final Map< String, List< Integer > > parameterPositions = new HashMap<>();
 	private final PreparedStatement statement;
 	// private final GregorianCalendar cal = new GregorianCalendar();
 
@@ -176,11 +176,7 @@ public class NamedStatementParser {
 	}
 
 	private List< Integer > getParameterPositions( String parameterName ) {
-		List< Integer > ret = parameterPositions.get( parameterName );
-		if( ret == null ) {
-			ret = new ArrayList< Integer >();
-			parameterPositions.put( parameterName, ret );
-		}
+		List< Integer > ret = parameterPositions.computeIfAbsent( parameterName, k -> new ArrayList<>() );
 		return ret;
 	}
 

@@ -47,7 +47,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -551,11 +550,9 @@ public class FileService extends JavaService {
 				StreamResult result = new StreamResult( writer );
 				transformer.transform( new DOMSource( doc ), result );
 			}
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
 		} catch( TransformerConfigurationException e ) {
 			throw new IOException( e );
-		} catch( TransformerException e ) {
+		} catch( ParserConfigurationException | TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -756,7 +753,7 @@ public class FileService extends JavaService {
 			Value order = request.getFirstChild( "order" );
 
 			if( order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
-				Collections.sort( results, Comparator.comparing( Value::strValue ) );
+				results.sort( Comparator.comparing( Value::strValue ) );
 			}
 		}
 
@@ -827,12 +824,8 @@ public class FileService extends JavaService {
 		try {
 			uri = new URL( fileName ).toURI();
 			parent = Paths.get( uri ).getParent();
-		} catch( InvalidPathException invalidPathException ) {
+		} catch( InvalidPathException | URISyntaxException | MalformedURLException invalidPathException ) {
 			throw new FaultException( invalidPathException );
-		} catch( MalformedURLException malformedURLException ) {
-			throw new FaultException( malformedURLException );
-		} catch( URISyntaxException urise ) {
-			throw new FaultException( urise );
 		}
 
 		if( parent == null ) {

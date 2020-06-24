@@ -308,15 +308,8 @@ public class SSLProtocol extends SequentialCommProtocol {
 					sslEngine.setWantClientAuth( false );
 				}
 			}
-		} catch( NoSuchAlgorithmException e ) {
-			throw new IOException( e );
-		} catch( KeyManagementException e ) {
-			throw new IOException( e );
-		} catch( KeyStoreException e ) {
-			throw new IOException( e );
-		} catch( UnrecoverableKeyException e ) {
-			throw new IOException( e );
-		} catch( CertificateException e ) {
+		} catch( NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException | KeyStoreException
+			| KeyManagementException e ) {
 			throw new IOException( e );
 		}
 	}

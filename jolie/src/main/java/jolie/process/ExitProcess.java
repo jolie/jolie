@@ -43,7 +43,7 @@ public class ExitProcess implements Process {
 	@Override
 	public void run() {
 		final Interpreter interpreter = Interpreter.getInstance();
-		interpreter.execute( () -> interpreter.exit() );
+		interpreter.execute( interpreter::exit );
 	}
 
 	@Override

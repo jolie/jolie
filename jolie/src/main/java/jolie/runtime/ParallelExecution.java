@@ -52,7 +52,7 @@ public class ParallelExecution {
 		}
 	}
 
-	final private Collection< ParallelThread > threads = new HashSet< ParallelThread >();
+	final private Collection< ParallelThread > threads = new HashSet<>();
 	private FaultException fault = null;
 	private boolean isKilled = false;
 

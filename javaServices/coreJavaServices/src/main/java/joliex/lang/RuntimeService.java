@@ -258,9 +258,7 @@ public class RuntimeService extends JavaService {
 			}
 
 			return channel;
-		} catch( EmbeddedServiceLoaderCreationException e ) {
-			throw new FaultException( "RuntimeException", e );
-		} catch( EmbeddedServiceLoadingException e ) {
+		} catch( EmbeddedServiceLoaderCreationException | EmbeddedServiceLoadingException e ) {
 			throw new FaultException( "RuntimeException", e );
 		}
 	}
@@ -279,9 +277,7 @@ public class RuntimeService extends JavaService {
 		throws FaultException {
 		try {
 			interpreter.getClassLoader().addJarResource( libraryPath );
-		} catch( IOException e ) {
-			throw new FaultException( "IOException", e );
-		} catch( IllegalArgumentException e ) {
+		} catch( IOException | IllegalArgumentException e ) {
 			throw new FaultException( "IOException", e );
 		}
 	}

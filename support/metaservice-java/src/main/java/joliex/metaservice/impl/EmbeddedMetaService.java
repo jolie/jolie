@@ -108,9 +108,7 @@ public class EmbeddedMetaService extends MetaService {
 				new Interpreter( this.getClass().getClassLoader(), commandLineParser.getInterpreterParameters(), null );
 			startInterpreter();
 			channel = new MetaServiceChannel( this, "/" );
-		} catch( CommandLineException e ) {
-			throw new IOException( e );
-		} catch( FileNotFoundException e ) {
+		} catch( CommandLineException | FileNotFoundException e ) {
 			throw new IOException( e );
 		}
 	}

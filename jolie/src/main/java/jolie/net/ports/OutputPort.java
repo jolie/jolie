@@ -154,7 +154,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		if( protocolId != null ) {
 			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ), null ) );
 		}
-		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
+		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ 0 ] ) );
 	}
 
 	/**

@@ -157,7 +157,8 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 
 		Element content = (Element) contentNode;
 		String name = content.getNodeName();
-		if( name.equals( "array" ) ) {
+		switch( name ) {
+		case "array":
 			Value currentValue;
 			ValueVector vec = value.getChildren( ARRAY_KEY );
 			Element data = getFirstElement( content, "data" );
@@ -171,7 +172,8 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				navigateValue( currentValue, member );
 				vec.add( currentValue );
 			}
-		} else if( name.equals( "struct" ) ) {
+			break;
+		case "struct":
 			NodeList members = content.getElementsByTagName( "member" );
 			for( int i = 0; i < members.getLength(); i++ ) {
 				Element member = (Element) members.item( i );
@@ -181,31 +183,39 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				Element valueNode = getFirstElement( member, "value" );
 				navigateValue( value.getNewChild( getFirstElement( member, "name" ).getTextContent() ), valueNode );
 			}
-		} else if( name.equals( "string" ) ) {
+			break;
+		case "string":
 			value.setValue( content.getTextContent() );
-		} else if( name.equals( "int" ) || name.equals( "i4" ) ) {
+			break;
+		case "int":
+		case "i4":
 			try {
 				value.setValue( Integer.parseInt( content.getTextContent() ) );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
-		} else if( name.equals( "double" ) ) {
+			break;
+		case "double":
 			try {
 				value.setValue( Double.parseDouble( content.getTextContent() ) );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
-		} else if( name.equals( "boolean" ) ) {
+			break;
+		case "boolean":
 			try {
 				value.setValue( Integer.parseInt( content.getTextContent() ) != 0 );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
-		} else if( name.equals( "base64" ) ) {
+			break;
+		case "base64":
 			value.setValue( new ByteArray( Base64.getDecoder().decode( content.getTextContent() ) ) );
-		} else {
+			break;
+		default:
 			// parse everything else as string (including <dateTime.iso8601>)
 			value.setValue( content.getTextContent() );
+			break;
 		}
 	}
 
@@ -482,10 +492,8 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				} else {
 					documentToValue( value, doc );
 				}
-			} catch( ParserConfigurationException pce ) {
+			} catch( ParserConfigurationException | SAXException pce ) {
 				throw new IOException( pce );
-			} catch( SAXException saxe ) {
-				throw new IOException( saxe );
 			}
 
 			if( message.isResponse() ) {

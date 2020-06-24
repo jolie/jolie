@@ -22,7 +22,6 @@ package joliex.surface;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import jolie.lang.NativeType;
@@ -62,11 +61,11 @@ public class SurfaceCreator {
 	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation,
 		boolean noProtocol ) {
 
-		ArrayList< InterfaceDefinition > interface_vector = new ArrayList< InterfaceDefinition >();
-		rrVector = new ArrayList< RequestResponseOperationDeclaration >();
-		owVector = new ArrayList< OneWayOperationDeclaration >();
-		typesVector = new ArrayList< String >();
-		auxTypesVector = new ArrayList< TypeDefinition >();
+		ArrayList< InterfaceDefinition > interface_vector = new ArrayList<>();
+		rrVector = new ArrayList<>();
+		owVector = new ArrayList<>();
+		typesVector = new ArrayList<>();
+		auxTypesVector = new ArrayList<>();
 
 		// find inputPort
 
@@ -84,9 +83,7 @@ public class SurfaceCreator {
 
 		// extracts the list of all the interfaces to be parsed
 		// extracts interfaces declared into Interfaces
-		for( InterfaceDefinition interfaceDefinition : inputPort.getInterfaceList() ) {
-			interface_vector.add( interfaceDefinition );
-		}
+		interface_vector.addAll( inputPort.getInterfaceList() );
 		OutputPortInfo[] outputPortList = inspector.getOutputPorts();
 		// extracts interfaces from aggregated outputPorts
 		for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
@@ -283,12 +280,11 @@ public class SurfaceCreator {
 
 		// add auxiliary types
 		while( !auxTypesVector.isEmpty() ) {
-			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList< TypeDefinition >();
+			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList<>();
 			aux_types_temp_vector.addAll( auxTypesVector );
 			auxTypesVector.clear();
-			Iterator< TypeDefinition > it = aux_types_temp_vector.iterator();
-			while( it.hasNext() ) {
-				printType( getType( (TypeDefinition) it.next() ) );
+			for( TypeDefinition typeDefinition : aux_types_temp_vector ) {
+				printType( getType( typeDefinition ) );
 			}
 		}
 

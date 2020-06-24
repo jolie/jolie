@@ -93,7 +93,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the arguments passed to the JOLIE program.
 	 */
-	private final String[] arguments() {
+	private String[] arguments() {
 		return arguments;
 	}
 
@@ -598,7 +598,7 @@ public class CommandLineParser implements Closeable {
 		if( correlationAlgorithmType == null ) {
 			throw new CommandLineException( "Unrecognized correlation algorithm: " + csetAlgorithmName );
 		}
-		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
+		arguments = programArgumentsList.toArray( new String[ 0 ] );
 		// whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 
 		if( olFilepath == null ) {
@@ -642,7 +642,7 @@ public class CommandLineParser implements Closeable {
 			}
 		}
 		urls.add( new URL( "file:/" ) );
-		libURLs = urls.toArray( new URL[ urls.size() ] );
+		libURLs = urls.toArray( new URL[ 0 ] );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 
 		for( URL url : libURLs ) {
@@ -676,7 +676,7 @@ public class CommandLineParser implements Closeable {
 		programStream = olResult.stream;
 
 		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
-		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
+		optionArgs = optionsList.toArray( new String[ 0 ] );
 	}
 
 	/**

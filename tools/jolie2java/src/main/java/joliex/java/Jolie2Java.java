@@ -62,13 +62,7 @@ public class Jolie2Java {
 			System.out.println( "Generation done!" );
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
-		} catch( IOException e ) {
-			e.printStackTrace();
-		} catch( ParserException e ) {
-			e.printStackTrace();
-		} catch( SemanticException e ) {
-			e.printStackTrace();
-		} catch( FaultException e ) {
+		} catch( IOException | FaultException | SemanticException | ParserException e ) {
 			e.printStackTrace();
 		}
 	}

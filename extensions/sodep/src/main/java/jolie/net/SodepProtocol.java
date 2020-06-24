@@ -144,12 +144,10 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 
 		Map< String, ValueVector > children = value.children();
 		List< Entry< String, ValueVector > > entries =
-			new LinkedList< Entry< String, ValueVector > >();
-		for( Entry< String, ValueVector > entry : children.entrySet() ) {
-			// if ( !entry.getKey().startsWith( "@" ) ) {
-			entries.add( entry );
-			// }
-		}
+			new LinkedList<>();
+		// if ( !entry.getKey().startsWith( "@" ) ) {
+		// }
+		entries.addAll( children.entrySet() );
 
 		out.writeInt( entries.size() );
 		for( Entry< String, ValueVector > entry : entries ) {

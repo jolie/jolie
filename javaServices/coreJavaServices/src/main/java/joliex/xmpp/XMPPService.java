@@ -31,10 +31,8 @@ import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.packet.Message;
 
 /**
  *
@@ -44,17 +42,15 @@ import org.jivesoftware.smack.packet.Message;
 public class XMPPService extends JavaService {
 	private XMPPConnection connection = null;
 
-	private final Map< String, Chat > chats = new HashMap< String, Chat >();
+	private final Map< String, Chat > chats = new HashMap<>();
 
 	private Chat getChat( String userJID ) {
 		Chat chat = chats.get( userJID );
 		if( chat == null ) {
 			chat = connection.getChatManager().createChat(
 				userJID,
-				new MessageListener() {
-					public void processMessage( Chat chat, Message message ) {
-						// TODO redirect to embedder
-					}
+				( chat1, message ) -> {
+					// TODO redirect to embedder
 				} );
 			chats.put( userJID, chat );
 		}

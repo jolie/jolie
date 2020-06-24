@@ -183,7 +183,7 @@ public abstract class CommChannel {
 	 */
 	public CommMessage recv()
 		throws IOException {
-		return Helpers.lockAndThen( lock, () -> recvImpl() );
+		return Helpers.lockAndThen( lock, this::recvImpl );
 	}
 
 	/**

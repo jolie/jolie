@@ -319,9 +319,7 @@ public class MetaJolie extends JavaService {
 		// scans operations and types
 		Map< String, OperationDeclaration > operationMap = interfaceDefinition.operationsMap();
 		ArrayList< String > opkeylist = new ArrayList<>();
-		for( String opkey : operationMap.keySet() ) {
-			opkeylist.add( opkey );
-		}
+		opkeylist.addAll( operationMap.keySet() );
 		Collections.sort( opkeylist );
 
 
@@ -557,9 +555,7 @@ public class MetaJolie extends JavaService {
 
 
 		listOfGeneratedTypesInValues.sort( new ValueTypeComparator() );
-		listOfGeneratedTypesInValues.stream().forEach( v -> {
-			inputInterface.getChildren( "types" ).add( v );
-		} );
+		listOfGeneratedTypesInValues.stream().forEach( v -> inputInterface.getChildren( "types" ).add( v ) );
 
 		return inputInterface;
 
@@ -788,9 +784,7 @@ public class MetaJolie extends JavaService {
 			}
 			cmdParser.close();
 
-		} catch( CommandLineException e ) {
-			throw new FaultException( "InputPortMetaDataFault", e );
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "InputPortMetaDataFault", e );
 		} catch( ParserException e ) {
 			Value fault = Value.create();
@@ -842,9 +836,7 @@ public class MetaJolie extends JavaService {
 			}
 			cmdParser.close();
 
-		} catch( CommandLineException e ) {
-			throw new FaultException( "OutputPortMetaDataFault", e );
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "OutputPortMetaDataFault", e );
 		} catch( ParserException e ) {
 			Value fault = Value.create();
@@ -1017,8 +1009,7 @@ public class MetaJolie extends JavaService {
 					} );
 			}
 
-		} catch( CommandLineException e ) {
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );

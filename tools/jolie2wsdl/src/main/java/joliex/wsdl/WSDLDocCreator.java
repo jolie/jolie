@@ -20,7 +20,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,7 +86,7 @@ public class WSDLDocCreator {
 	static ExtensionRegistry extensionRegistry;
 	private static WSDLFactory wsdlFactory;
 	private Definition localDef = null;
-	private final List< String > rootTypes = new ArrayList< String >();
+	private final List< String > rootTypes = new ArrayList<>();
 	private final ProgramInspector inspector;
 	private final URI originalFile;
 
@@ -274,9 +273,8 @@ public class WSDLDocCreator {
 
 		// adding subtypes
 		if( type.hasSubTypes() ) {
-			Iterator it = type.subTypes().iterator();
-			while( it.hasNext() ) {
-				TypeDefinition curType = ((Entry< String, TypeDefinition >) it.next()).getValue();
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : type.subTypes() ) {
+				TypeDefinition curType = stringTypeDefinitionEntry.getValue();
 				Element subEl = schemaDocument.createElement( "xs:element" );
 				subEl.setAttribute( "name", curType.id() );
 				subEl.setAttribute( "minOccurs", Integer.toString( curType.cardinality().min() ) );
@@ -552,13 +550,12 @@ public class WSDLDocCreator {
 
 			// adding fault
 			if( !wsdlOp.getFaults().isEmpty() ) {
-				Iterator it = wsdlOp.getFaults().entrySet().iterator();
-				while( it.hasNext() ) {
+				for( Object o : wsdlOp.getFaults().entrySet() ) {
 					BindingFault bindingFault = localDef.createBindingFault();
 					SOAPFault soapFault = (SOAPFault) extensionRegistry.createExtension( BindingFault.class,
 						new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "fault" ) );
 					soapFault.setUse( "literal" );
-					String faultName = ((Entry) it.next()).getKey().toString();
+					String faultName = ((Entry) o).getKey().toString();
 					bindingFault.setName( faultName );
 					soapFault.setName( faultName );
 					bindingFault.addExtensibilityElement( soapFault );
