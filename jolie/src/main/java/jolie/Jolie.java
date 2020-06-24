@@ -66,9 +66,8 @@ public class Jolie {
 
 		try {
 			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
-			cellId = commandLineParser.getInterpreterParameters().cellId();
-			if( commandLineParser.getInterpreterParameters().cellId() < Integer.MAX_VALUE ) {
-				cellId = commandLineParser.getInterpreterParameters().cellId();
+			if( commandLineParser.cellId() < Integer.MAX_VALUE ) {
+				cellId = commandLineParser.cellId();
 			} else {
 				cellId = 0;
 				System.out.println( "Cell Identifier exceeds the maximun available ("

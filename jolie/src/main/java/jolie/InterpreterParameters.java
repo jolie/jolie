@@ -13,7 +13,6 @@ import java.util.logging.Level;
 
 import jolie.lang.parse.Scanner;
 import jolie.runtime.correlation.CorrelationEngine;
-import jolie.util.UriUtils;
 
 public class InterpreterParameters {
 	private Integer connectionsLimit = -1;
@@ -21,9 +20,9 @@ public class InterpreterParameters {
 	private final Deque< String > includePaths = new LinkedList<>();
 	private final Deque< String > optionArgs = new LinkedList<>();
 	private final Deque< URL > libURLs = new LinkedList<>();
-	private InputStream inputStream = null;
+	private final InputStream inputStream;
 	private String charset;
-	private File programFilepath = null;
+	private final File programFilepath;
 	private final Deque< String > arguments = new LinkedList<>();
 	private final Map< String, Scanner.Token > constants = new HashMap<>();
 	private JolieClassLoader jolieClassLoader;
@@ -37,14 +36,6 @@ public class InterpreterParameters {
 	private boolean printStackTraces = false;
 	private Level logLevel = Level.OFF;
 	private File programDirectory = null;
-	private int cellId = 0;
-
-
-	public InterpreterParameters() throws IOException {
-		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
-		includePaths.add( pwd );
-		includePaths.add( "include" );
-	}
 
 	public InterpreterParameters( int connectionsLimit,
 		CorrelationEngine.Type correlationAlgorithm,
@@ -66,15 +57,12 @@ public class InterpreterParameters {
 		boolean printStackTraces,
 		long responseTimeout,
 		Level logLevel,
-		File programDirectory,
-		int cellId ) throws IOException {
+		File programDirectory ) throws IOException {
 
 		this.connectionsLimit = connectionsLimit;
 		this.correlationAlgorithm = correlationAlgorithm;
-		includePaths.clear();
 		Collections.addAll( this.includePaths, includeList );
 		Collections.addAll( this.optionArgs, optionArgs );
-		libURLs.clear();
 		Collections.addAll( this.libURLs, libUrls );
 		this.inputStream = inputStream;
 		this.charset = charset;
@@ -92,7 +80,6 @@ public class InterpreterParameters {
 		this.responseTimeout = responseTimeout;
 		this.logLevel = logLevel;
 		this.programDirectory = programDirectory;
-		this.cellId = cellId;
 	}
 
 	public InterpreterParameters( String[] optionArgs,
@@ -101,12 +88,8 @@ public class InterpreterParameters {
 		File programFilepath,
 		JolieClassLoader jolieClassLoader,
 		InputStream inputStream ) throws IOException {
-
-		super();
 		Collections.addAll( this.optionArgs, optionArgs );
-		includePaths.clear();
 		Collections.addAll( this.includePaths, includeList );
-		libURLs.clear();
 		Collections.addAll( this.libURLs, libUrls );
 		this.programFilepath = programFilepath;
 		this.jolieClassLoader = jolieClassLoader;
@@ -305,18 +288,5 @@ public class InterpreterParameters {
 	public void clear() {
 		jolieClassLoader = null;
 	}
-
-
-	/**
-	 * Returns the service identifier for the service
-	 *
-	 * @return the service identifier for the service
-	 */
-	public int cellId() {
-		return cellId;
-	}
-
-
-
 }
 
