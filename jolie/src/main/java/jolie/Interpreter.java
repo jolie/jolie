@@ -237,7 +237,7 @@ public class Interpreter {
 		}
 	}
 
-	private static final Logger logger = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
+	private static final Logger LOGGER = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
 	private CommCore commCore;
 	private Program internalServiceProgram = null;
@@ -685,7 +685,7 @@ public class Interpreter {
 	 * @param message the message to logLevel
 	 */
 	public void logInfo( String message ) {
-		logger.log( buildLogRecord( Level.INFO, buildLogMessage( message ) ) );
+		LOGGER.log( buildLogRecord( Level.INFO, buildLogMessage( message ) ) );
 	}
 
 	/**
@@ -694,7 +694,7 @@ public class Interpreter {
 	 * @param message the message to logLevel
 	 */
 	public void logFine( String message ) {
-		logger.log( buildLogRecord( Level.FINE, buildLogMessage( message ) ) );
+		LOGGER.log( buildLogRecord( Level.FINE, buildLogMessage( message ) ) );
 	}
 
 	private String buildLogMessage( Throwable t ) {
@@ -721,7 +721,7 @@ public class Interpreter {
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
 	public void logFine( Throwable t ) {
-		logger.log( buildLogRecord( Level.FINE, buildLogMessage( t ) ) );
+		LOGGER.log( buildLogRecord( Level.FINE, buildLogMessage( t ) ) );
 	}
 
 	/**
@@ -730,7 +730,7 @@ public class Interpreter {
 	 * @param message the message to logLevel
 	 */
 	public void logSevere( String message ) {
-		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( message ) ) );
+		LOGGER.log( buildLogRecord( Level.SEVERE, buildLogMessage( message ) ) );
 	}
 
 	/**
@@ -739,7 +739,7 @@ public class Interpreter {
 	 * @param message the message to logLevel
 	 */
 	public void logWarning( String message ) {
-		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( message ) ) );
+		LOGGER.log( buildLogRecord( Level.WARNING, buildLogMessage( message ) ) );
 	}
 
 	/**
@@ -749,7 +749,7 @@ public class Interpreter {
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
 	public void logSevere( Throwable t ) {
-		logger.log( buildLogRecord( Level.SEVERE, buildLogMessage( t ) ) );
+		LOGGER.log( buildLogRecord( Level.SEVERE, buildLogMessage( t ) ) );
 	}
 
 	/**
@@ -759,7 +759,7 @@ public class Interpreter {
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
 	public void logWarning( Throwable t ) {
-		logger.log( buildLogRecord( Level.WARNING, buildLogMessage( t ) ) );
+		LOGGER.log( buildLogRecord( Level.WARNING, buildLogMessage( t ) ) );
 	}
 
 	/**
@@ -867,11 +867,11 @@ public class Interpreter {
 		commCore = new CommCore( this, interpreterParameters.connectionsLimit() /* , cmdParser.connectionsCache() */ );
 		includePaths = interpreterParameters.includePaths();
 
-		StringBuilder builder = new StringBuilder();
-		builder.append( '[' );
-		builder.append( interpreterParameters.programFilepath().getName() );
-		builder.append( "] " );
-		logPrefix = builder.toString();
+		logPrefix = new StringBuilder()
+			.append( '[' )
+			.append( interpreterParameters.programFilepath().getName() )
+			.append( "] " )
+			.toString();
 
 		if( interpreterParameters.tracer() ) {
 			if( interpreterParameters.tracerMode().equals( "file" ) ) {
@@ -883,7 +883,7 @@ public class Interpreter {
 			tracer = new DummyTracer();
 		}
 
-		logger.setLevel( interpreterParameters.logLevel() );
+		LOGGER.setLevel( interpreterParameters.logLevel() );
 
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
@@ -1135,10 +1135,10 @@ public class Interpreter {
 		return processExecutorService.submit( task );
 	}
 
-	private static final AtomicInteger starterThreadCounter = new AtomicInteger();
+	private static final AtomicInteger STARTER_THREAD_COUNTER = new AtomicInteger();
 
 	private static String createStarterThreadName( String programFilename ) {
-		return programFilename + "-StarterThread-" + starterThreadCounter.incrementAndGet();
+		return programFilename + "-StarterThread-" + STARTER_THREAD_COUNTER.incrementAndGet();
 	}
 
 	private class StarterThread extends Thread {
@@ -1237,7 +1237,7 @@ public class Interpreter {
 			try {
 				semanticVerifier.validate();
 			} catch( SemanticException e ) {
-				logger.severe( e.getErrorMessages() );
+				LOGGER.severe( e.getErrorMessages() );
 				throw new InterpreterException( "Exiting" );
 			}
 
@@ -1257,7 +1257,7 @@ public class Interpreter {
 				return (new OOITBuilder(
 					this,
 					program,
-					semanticVerifier.isConstantMap(),
+					semanticVerifier.constantFlags(),
 					semanticVerifier.correlationFunctionInfo() ))
 						.build();
 			}

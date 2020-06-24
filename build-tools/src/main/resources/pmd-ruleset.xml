@@ -36,7 +36,7 @@
 
 	<rule ref="category/java/codestyle.xml">
 		<!-- To be added -->
-		<exclude name="LinguisticNaming" />
+		<!-- <exclude name="LinguisticNaming" /> -->
 		<exclude name="LocalVariableNamingConventions" />
 		<exclude name="ControlStatementBraces" />
 		<exclude name="CallSuperInConstructor" />
@@ -45,7 +45,7 @@
 		<exclude name="MethodNamingConventions" />
 		<exclude name="AtLeastOneConstructor" />
 		<exclude name="LocalVariableCouldBeFinal" />
-		<exclude name="FieldNamingConventions" />
+		<!-- <exclude name="FieldNamingConventions" /> -->
 		<exclude name="FieldDeclarationsShouldBeAtStartOfClass" />
 		<exclude name="UnnecessaryFullyQualifiedName" />
 		<exclude name="UnnecessaryLocalBeforeReturn" />
@@ -158,26 +158,22 @@
 	
 	<rule ref="category/java/performance.xml">
 		<!-- To be added -->
-		<exclude name="AddEmptyString" />
-		<exclude name="UselessStringValueOf" />
-		<exclude name="InefficientEmptyStringCheck" />
-		<exclude name="InefficientStringBuffering" />
+		<!-- <exclude name="InefficientStringBuffering" /> -->
 		<exclude name="SimplifyStartsWith" />
 		<exclude name="IntegerInstantiation" />
 		<exclude name="LongInstantiation" />
 		<exclude name="InsufficientStringBufferDeclaration" />
 		<exclude name="AvoidFileStream" />
-		<exclude name="UnnecessaryWrapperObjectCreation" />
-		<exclude name="ConsecutiveAppendsShouldReuse" />
-		<exclude name="RedundantFieldInitializer" />
 		<exclude name="AppendCharacterWithChar" />
 
 		<!-- Under evaluation -->
+		<exclude name="RedundantFieldInitializer" />
 		<exclude name="UseIndexOfChar" />
 		<exclude name="OptimizableToArrayCall" />
 		<exclude name="ConsecutiveLiteralAppends" />
 		<exclude name="UseStringBufferForStringAppends" />
 		<exclude name="AvoidInstantiatingObjectsInLoops" />
 		<exclude name="TooFewBranchesForASwitchStatement" />
+		<exclude name="InefficientEmptyStringCheck" />
 	</rule>
 </ruleset>

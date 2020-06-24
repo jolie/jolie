@@ -28,12 +28,14 @@ import jolie.lang.parse.context.URIParsingContext;
  * @author Fabrizio Montesi
  */
 public class TypeDefinitionUndefined extends TypeInlineDefinition {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
 	public static final String UNDEFINED_KEYWORD = "undefined";
 
 	private static class LazyHolder {
 		private LazyHolder() {}
 
-		private final static TypeDefinitionUndefined instance = new TypeDefinitionUndefined();
+		private final static TypeDefinitionUndefined INSTANCE = new TypeDefinitionUndefined();
 	}
 
 	private TypeDefinitionUndefined() {
@@ -42,6 +44,6 @@ public class TypeDefinitionUndefined extends TypeInlineDefinition {
 	}
 
 	public static TypeDefinitionUndefined getInstance() {
-		return LazyHolder.instance;
+		return LazyHolder.INSTANCE;
 	}
 }

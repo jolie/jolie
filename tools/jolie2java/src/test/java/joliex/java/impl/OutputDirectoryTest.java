@@ -40,7 +40,7 @@ public class OutputDirectoryTest {
 
 	@AfterClass
 	public static void tearDownClass() {
-		File generatedPath = new File( JavaDocumentCreator.defaultOutputDirectory );
+		File generatedPath = new File( JavaDocumentCreator.DEFAULT_OUTPUT_DIRECTORY );
 		if( generatedPath.exists() ) {
 			TestUtils.deleteFolder( generatedPath );
 			generatedPath.delete();

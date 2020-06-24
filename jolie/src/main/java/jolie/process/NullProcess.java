@@ -30,11 +30,11 @@ public class NullProcess implements Process {
 	private NullProcess() {}
 
 	private static class LazyHolder {
-		private static final NullProcess instance = new NullProcess();
+		private static final NullProcess INSTANCE = new NullProcess();
 	}
 
 	static public NullProcess getInstance() {
-		return NullProcess.LazyHolder.instance;
+		return NullProcess.LazyHolder.INSTANCE;
 	}
 
 	public Process copy( TransformationReason reason ) {

@@ -50,9 +50,9 @@ public class SurfaceCreator {
 	private final ProgramInspector inspector;
 	private ArrayList< RequestResponseOperationDeclaration > rrVector;
 	private ArrayList< OneWayOperationDeclaration > owVector;
-	private ArrayList< String > types_vector;
-	private ArrayList< TypeDefinition > aux_types_vector;
-	private final int MAX_CARD = Integer.MAX_VALUE;
+	private ArrayList< String > typesVector;
+	private ArrayList< TypeDefinition > auxTypesVector;
+	private final static int MAX_CARD = Integer.MAX_VALUE;
 
 
 	public SurfaceCreator( ProgramInspector inspector, URI originalFile ) {
@@ -65,8 +65,8 @@ public class SurfaceCreator {
 		ArrayList< InterfaceDefinition > interface_vector = new ArrayList< InterfaceDefinition >();
 		rrVector = new ArrayList< RequestResponseOperationDeclaration >();
 		owVector = new ArrayList< OneWayOperationDeclaration >();
-		types_vector = new ArrayList< String >();
-		aux_types_vector = new ArrayList< TypeDefinition >();
+		typesVector = new ArrayList< String >();
+		auxTypesVector = new ArrayList< TypeDefinition >();
 
 		// find inputPort
 
@@ -175,8 +175,8 @@ public class SurfaceCreator {
 
 		if( type instanceof TypeDefinitionLink ) {
 			ret = ret + ((TypeDefinitionLink) type).linkedTypeName();
-			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+			if( !auxTypesVector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				auxTypesVector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 
 		} else if( type instanceof TypeInlineDefinition ) {
@@ -207,13 +207,13 @@ public class SurfaceCreator {
 
 	private String getType( TypeDefinition type ) {
 		String ret = "";
-		if( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
+		if( !typesVector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
 			&& !type.id().equals( "undefined" ) ) {
 
 			System.out.print( "type " + type.id() + ":" );
 			checkType( type );
 			System.out.println( "" );
-			types_vector.add( type.id() );
+			typesVector.add( type.id() );
 		}
 
 		return ret;
@@ -222,8 +222,8 @@ public class SurfaceCreator {
 	private void checkType( TypeDefinition type ) {
 		if( type instanceof TypeDefinitionLink ) {
 			System.out.print( ((TypeDefinitionLink) type).linkedTypeName() );
-			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+			if( !auxTypesVector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				auxTypesVector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 		} else if( type instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition def = (TypeInlineDefinition) type;
@@ -282,10 +282,10 @@ public class SurfaceCreator {
 		}
 
 		// add auxiliary types
-		while( !aux_types_vector.isEmpty() ) {
+		while( !auxTypesVector.isEmpty() ) {
 			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList< TypeDefinition >();
-			aux_types_temp_vector.addAll( aux_types_vector );
-			aux_types_vector.clear();
+			aux_types_temp_vector.addAll( auxTypesVector );
+			auxTypesVector.clear();
 			Iterator< TypeDefinition > it = aux_types_temp_vector.iterator();
 			while( it.hasNext() ) {
 				printType( getType( (TypeDefinition) it.next() ) );

@@ -4,6 +4,8 @@
  */
 package joliex.java;
 
+import java.io.IOException;
+
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
@@ -13,8 +15,6 @@ import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
 import joliex.java.impl.JavaDocumentCreator;
 import joliex.java.impl.JavaGWTDocumentCreator;
-
-import java.io.IOException;
 
 /**
  *
@@ -47,7 +47,7 @@ public class Jolie2Java {
 			if( format.equals( "java" ) && packageName != null ) {
 				JavaDocumentCreator documentJava = new JavaDocumentCreator( inspector, cmdParser.getPackageName(),
 					cmdParser.getTargetPort(), cmdParser.isAddSource(), cmdParser.getOutputDirectory(),
-					cmdParser.isBuildXmlenabled(), cmdParser.getJavaservice() );
+					cmdParser.isBuildXmlenabled(), cmdParser.javaService() );
 				documentJava.ConvertDocument();
 			} else if( format.equals( "gwt" ) && packageName != null ) {
 				System.out.println( "WARNING: gwt conversion is deprecated, use it at your own risk" );

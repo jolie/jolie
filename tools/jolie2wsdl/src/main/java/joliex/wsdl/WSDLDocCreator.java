@@ -80,10 +80,10 @@ public class WSDLDocCreator {
 
 	private Document schemaDocument;
 	private Element schemaRootElement;
-	private final int MAX_CARD = Integer.MAX_VALUE;
+	private static final int MAX_CARD = Integer.MAX_VALUE;
 	private String tns;
-	private String tns_schema;
-	private static final String tns_schema_prefix = "sch";
+	private String tnsSchema;
+	private static final String TNS_SCHEMA_PREFIX = "sch";
 	static ExtensionRegistry extensionRegistry;
 	private static WSDLFactory wsdlFactory;
 	private Definition localDef = null;
@@ -111,7 +111,7 @@ public class WSDLDocCreator {
 			localDef.addNamespace( NameSpacesEnum.XML_SCH.getNameSpacePrefix(),
 				NameSpacesEnum.XML_SCH.getNameSpaceURI() );
 			localDef.setTargetNamespace( tns );
-			localDef.addNamespace( "xsd1", tns_schema );
+			localDef.addNamespace( "xsd1", tnsSchema );
 		} catch( WSDLException ex ) {
 			Logger.getLogger( WSDLDocCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		}
@@ -123,7 +123,7 @@ public class WSDLDocCreator {
 		System.out.println( "Starting conversion..." );
 
 		this.tns = tns + ".wsdl";
-		this.tns_schema = tns + ".xsd";
+		this.tnsSchema = tns + ".xsd";
 
 		initWsdl( null, filename );
 
@@ -299,7 +299,7 @@ public class WSDLDocCreator {
 					}
 				} else if( curType instanceof TypeDefinitionLink ) {
 					subEl.setAttribute( "type",
-						tns_schema_prefix + ":" + ((TypeDefinitionLink) curType).linkedTypeName() );
+						TNS_SCHEMA_PREFIX + ":" + ((TypeDefinitionLink) curType).linkedTypeName() );
 					addRootType( ((TypeDefinitionLink) curType).linkedType() );
 				}
 				sequence.appendChild( subEl );
@@ -362,7 +362,7 @@ public class WSDLDocCreator {
 
 			}
 			// set the input part as the operation name
-			inputPart.setElementName( new QName( tns_schema, op.id() ) );
+			inputPart.setElementName( new QName( tnsSchema, op.id() ) );
 
 			inputMessage.addPart( inputPart );
 			inputMessage.setUndefined( false );
@@ -390,7 +390,7 @@ public class WSDLDocCreator {
 			outputMessage.setQName( new QName( tns, op_rr.responseType().id() ) );
 			addMessageType( op_rr.responseType(), outputPartName );
 
-			outputPart.setElementName( new QName( tns_schema, outputPartName ) );
+			outputPart.setElementName( new QName( tnsSchema, outputPartName ) );
 
 			outputMessage.addPart( outputPart );
 			outputMessage.setUndefined( false );
@@ -420,7 +420,7 @@ public class WSDLDocCreator {
 			// adding wsdl_types related to this message
 			addMessageType( tp, faultPartName );
 
-			faultPart.setElementName( new QName( tns_schema, faultPartName ) );
+			faultPart.setElementName( new QName( tnsSchema, faultPartName ) );
 			faultMessage.addPart( faultPart );
 			faultMessage.setUndefined( false );
 
@@ -510,7 +510,7 @@ public class WSDLDocCreator {
 		try {
 			SOAPBinding soapBinding = (SOAPBinding) extensionRegistry.createExtension( Binding.class,
 				new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "binding" ) );
-			soapBinding.setTransportURI( NameSpacesEnum.SOAPoverHTTP.getNameSpaceURI() );
+			soapBinding.setTransportURI( NameSpacesEnum.SOAP_OVER_HTTP.getNameSpaceURI() );
 			soapBinding.setStyle( "document" );
 			bind.addExtensibilityElement( soapBinding );
 		} catch( WSDLException ex ) {
@@ -612,8 +612,8 @@ public class WSDLDocCreator {
 	private Element createSchemaRootElement( Document document ) {
 		Element rootElement = document.createElement( "xs:schema" );
 		rootElement.setAttribute( "xmlns:xs", NameSpacesEnum.XML_SCH.getNameSpaceURI() );
-		rootElement.setAttribute( "targetNamespace", tns_schema );
-		rootElement.setAttribute( "xmlns:" + tns_schema_prefix, tns_schema );
+		rootElement.setAttribute( "targetNamespace", tnsSchema );
+		rootElement.setAttribute( "xmlns:" + TNS_SCHEMA_PREFIX, tnsSchema );
 		document.appendChild( rootElement );
 		return rootElement;
 

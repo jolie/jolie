@@ -263,7 +263,7 @@ public class TypeChecker implements OLVisitor {
 
 	private TypingResult typingResult;
 	private TypingResult entryTyping;
-	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger LOGGER = Logger.getLogger( "JOLIE" );
 	private boolean valid = true;
 	private final Map< String, TypingResult > definitionTyping = new HashMap<>();
 	private boolean sessionStarter = false;
@@ -279,9 +279,9 @@ public class TypeChecker implements OLVisitor {
 		valid = false;
 		if( node != null ) {
 			ParsingContext context = node.context();
-			logger.severe( context.sourceName() + ":" + context.line() + ": " + message );
+			LOGGER.severe( context.sourceName() + ":" + context.line() + ": " + message );
 		} else {
-			logger.severe( message );
+			LOGGER.severe( message );
 		}
 	}
 

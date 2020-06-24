@@ -79,30 +79,30 @@ public class Helpers {
 	}
 
 	public static enum OSType {
-		Windows, MacOS, Linux, Other
+		WINDOWS, MACOS, LINUX, OTHER
 	}
 
-	private static final OSType detectedOS;
+	private static final OSType DETECTED_OS;
 
 	static {
 		final String os = System.getProperty( "os.name", "other" ).toLowerCase();
 		if( os.contains( "mac" ) || os.contains( "darwin" ) ) {
-			detectedOS = OSType.MacOS;
+			DETECTED_OS = OSType.MACOS;
 		} else if( os.contains( "win" ) ) {
-			detectedOS = OSType.Windows;
+			DETECTED_OS = OSType.WINDOWS;
 		} else if( os.contains( "nux" ) ) {
-			detectedOS = OSType.Linux;
+			DETECTED_OS = OSType.LINUX;
 		} else {
-			detectedOS = OSType.Other;
+			DETECTED_OS = OSType.OTHER;
 		}
 	}
 
 	public static OSType getOperatingSystemType() {
-		return detectedOS;
+		return DETECTED_OS;
 	}
 
 	public static < T > T ifWindowsOrElse( Supplier< T > supplierWindows, Supplier< T > supplierNotWindows ) {
-		if( detectedOS == OSType.Windows ) {
+		if( DETECTED_OS == OSType.WINDOWS ) {
 			return supplierWindows.get();
 		} else {
 			return supplierNotWindows.get();

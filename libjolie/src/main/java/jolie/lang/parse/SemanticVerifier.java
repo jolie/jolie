@@ -173,12 +173,12 @@ public class SemanticVerifier implements OLVisitor {
 
 	private ExecutionMode executionMode = ExecutionMode.SINGLE;
 
-	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger LOGGER = Logger.getLogger( "JOLIE" );
 
 	private final Map< String, TypeDefinition > definedTypes;
 	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
 	// private TypeDefinition rootType; // the type representing the whole session state
-	private final Map< String, Boolean > isConstantMap = new HashMap<>();
+	private final Map< String, Boolean > constantFlags = new HashMap<>();
 
 	private OperationType insideCourierOperationType = null;
 	private InputPortInfo courierInputPort = null;
@@ -208,10 +208,10 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	private void encounteredAssignment( String varName ) {
-		if( isConstantMap.containsKey( varName ) ) {
-			isConstantMap.put( varName, false );
+		if( constantFlags.containsKey( varName ) ) {
+			constantFlags.put( varName, false );
 		} else {
-			isConstantMap.put( varName, true );
+			constantFlags.put( varName, true );
 		}
 	}
 
@@ -256,15 +256,15 @@ public class SemanticVerifier implements OLVisitor {
 		}
 	}
 
-	public Map< String, Boolean > isConstantMap() {
-		return isConstantMap;
+	public Map< String, Boolean > constantFlags() {
+		return constantFlags;
 	}
 
 	private void warning( OLSyntaxNode node, String message ) {
 		if( node == null ) {
-			logger.warning( message );
+			LOGGER.warning( message );
 		} else {
-			logger.warning( node.context().sourceName() + ":" + node.context().line() + ": " + message );
+			LOGGER.warning( node.context().sourceName() + ":" + node.context().line() + ": " + message );
 		}
 	}
 
@@ -371,7 +371,7 @@ public class SemanticVerifier implements OLVisitor {
 		}
 
 		if( !valid ) {
-			logger.severe( "Aborting: input file semantically invalid." );
+			LOGGER.severe( "Aborting: input file semantically invalid." );
 			/*
 			 * for( SemanticException.SemanticError e : semanticException.getErrorList() ){ logger.severe(
 			 * e.getMessage() ); }

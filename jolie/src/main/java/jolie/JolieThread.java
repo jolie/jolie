@@ -34,10 +34,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class JolieThread implements Runnable {
 	private final Interpreter interpreter;
 	private final String name;
-	private static final AtomicInteger counter = new AtomicInteger( 0 );
+	private static final AtomicInteger COUNTER = new AtomicInteger( 0 );
 
 	protected static String createThreadName() {
-		return "JolieThread-" + counter.getAndIncrement();
+		return "JolieThread-" + COUNTER.getAndIncrement();
 	}
 
 	public String name() {

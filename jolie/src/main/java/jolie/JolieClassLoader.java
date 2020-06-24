@@ -119,9 +119,9 @@ public final class JolieClassLoader extends URLClassLoader {
 	}
 
 	private void checkForJolieAnnotations( Class< ? > c ) {
-		final AndJarDeps needsJars = c.getAnnotation( AndJarDeps.class );
-		if( needsJars != null ) {
-			for( String filename : needsJars.value() ) {
+		final AndJarDeps neededJars = c.getAnnotation( AndJarDeps.class );
+		if( neededJars != null ) {
+			for( String filename : neededJars.value() ) {
 				/*
 				 * TODO jar unloading when service is unloaded? Consider other services needing the same jars in
 				 * that.
@@ -135,9 +135,9 @@ public final class JolieClassLoader extends URLClassLoader {
 				}
 			}
 		}
-		final CanUseJars canUseJars = c.getAnnotation( CanUseJars.class );
-		if( canUseJars != null ) {
-			for( String filename : canUseJars.value() ) {
+		final CanUseJars optionalJars = c.getAnnotation( CanUseJars.class );
+		if( optionalJars != null ) {
+			for( String filename : optionalJars.value() ) {
 				/*
 				 * TODO jar unloading when service is unloaded? Consider other services needing the same jars in
 				 * that.

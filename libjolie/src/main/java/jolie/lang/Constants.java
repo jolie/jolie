@@ -124,8 +124,8 @@ public final class Constants {
 	public static final String LOCAL_LOCATION_KEYWORD = "local";
 	public static final String LOCAL_INPUT_PORT_NAME = "LocalInputPort";
 	// public static String newLineString = System.getProperty( "line.separator" );
-	public static final String fileSeparator = System.getProperty( "file.separator" );
-	public static final String pathSeparator = System.getProperty( "path.separator" );
+	public static final String FILE_SEPARATOR = System.getProperty( "file.separator" );
+	public static final String PATH_SEPARATOR = System.getProperty( "path.separator" );
 	public static final String GLOBAL = "global";
 	public static final String CSETS = "csets";
 	public static final String ROOT_RESOURCE_PATH = "/";

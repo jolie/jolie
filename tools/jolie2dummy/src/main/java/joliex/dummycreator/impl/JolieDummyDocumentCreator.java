@@ -46,7 +46,7 @@ public class JolieDummyDocumentCreator {
 	private final StringBuilder stringBuilder;
 	private final File sourceFile;
 	private static final int MAX_ARRAY_ITEMS = 5;
-	private static final String mockFilename = "mock_main.ol";
+	private static final String MOCK_FILENAME = "mock_main.ol";
 
 	public JolieDummyDocumentCreator( ProgramInspector inspector, File sourceFile ) {
 
@@ -68,7 +68,7 @@ public class JolieDummyDocumentCreator {
 		stringBuilder.append( "}" );
 		int mainIndex = fileContent.indexOf( "main" );
 		stringBuilder.insert( 0, fileContent.substring( 0, mainIndex ) );
-		BufferedWriter writer = new BufferedWriter( new FileWriter( mockFilename ) );
+		BufferedWriter writer = new BufferedWriter( new FileWriter( MOCK_FILENAME ) );
 		writer.append( stringBuilder.toString() );
 		writer.flush();
 		writer.close();
@@ -111,19 +111,23 @@ public class JolieDummyDocumentCreator {
 					: typeInlineDefinition.cardinality().max());
 				for( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
 					String cardinalityString =
-						typeCardinality == 1 ? "" : "[ " + String.valueOf( cardinalityIndex ) + " ]";
+						typeCardinality == 1 ? "" : "[ " + cardinalityIndex + " ]";
 					if( !(typeInlineDefinition.nativeType().id().equals( "void" )) ) {
 						if( typeInlineDefinition.nativeType().id().equals( "int" ) ) {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
+								.append( "=" )
 								.append( "42;\n" );
 						} else if( typeInlineDefinition.nativeType().id().equals( "double" ) ) {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
+								.append( "=" )
 								.append( "1.54;\n" );
 						} else if( typeInlineDefinition.nativeType().id().equals( "long" ) ) {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
+								.append( "=" )
 								.append( "424242L;\n" );
 						} else {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
+								.append( "=" )
 								.append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
 						}
 					}

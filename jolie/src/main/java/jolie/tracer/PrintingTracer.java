@@ -66,8 +66,8 @@ public class PrintingTracer implements Tracer {
 
 			StringBuilder stBuilder = new StringBuilder();
 
-			stBuilder.append( interpreter.logPrefix() ).append( "\t" );
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( interpreter.logPrefix() ).append( "\t" )
+				.append( Integer.toString( actionCounter ) ).append( ".\t" );
 			switch( action.type() ) {
 			case SERVICE_LOAD:
 				stBuilder.append( "^ LOAD" );

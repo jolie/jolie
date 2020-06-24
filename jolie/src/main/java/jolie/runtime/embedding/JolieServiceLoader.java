@@ -36,14 +36,14 @@ import jolie.InterpreterParameters;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
-	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
-	private final static AtomicLong serviceLoaderCounter = new AtomicLong();
+	private final static Pattern SERVICE_PATH_SPLIT_PATTERN = Pattern.compile( " " );
+	private final static AtomicLong SERVICE_LOADER_COUNTER = new AtomicLong();
 	private final Interpreter interpreter;
 
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
 		throws IOException, CommandLineException {
 		super( channelDest );
-		final String[] ss = servicePathSplitPattern.split( servicePath );
+		final String[] ss = SERVICE_PATH_SPLIT_PATTERN.split( servicePath );
 		final String[] options = currInterpreter.optionArgs();
 
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
@@ -66,7 +66,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 			currInterpreter.optionArgs(),
 			currInterpreter.getInterpreterParameters().includePaths(),
 			currInterpreter.getInterpreterParameters().libUrls(),
-			new File( "#native_code_" + serviceLoaderCounter.getAndIncrement() ),
+			new File( "#native_code_" + SERVICE_LOADER_COUNTER.getAndIncrement() ),
 			currInterpreter.getClassLoader(),
 			new ByteArrayInputStream( code.getBytes() ) );
 

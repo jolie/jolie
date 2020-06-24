@@ -31,11 +31,11 @@ public class CurrentHandlerProcess implements Process {
 	private static class LazyHolder {
 		private LazyHolder() {}
 
-		static final CurrentHandlerProcess instance = new CurrentHandlerProcess();
+		private static final CurrentHandlerProcess INSTANCE = new CurrentHandlerProcess();
 	}
 
-	static public CurrentHandlerProcess getInstance() {
-		return CurrentHandlerProcess.LazyHolder.instance;
+	public static CurrentHandlerProcess getInstance() {
+		return CurrentHandlerProcess.LazyHolder.INSTANCE;
 	}
 
 	public Process copy( TransformationReason reason ) {

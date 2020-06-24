@@ -109,9 +109,9 @@ public class HttpUtils {
 		}
 		String message = e.getMessage() != null ? e.getMessage() : e.toString();
 		ByteArray content = new ByteArray( message.getBytes( "utf-8" ) );
-		httpMessage.append( "Server: Jolie" + CRLF );
-		httpMessage.append( "Content-Type: text/plain; charset=utf-8" + CRLF );
-		httpMessage.append( "Content-Length: " + content.size() + CRLF + CRLF );
+		httpMessage.append( "Server: Jolie" ).append( CRLF )
+			.append( "Content-Type: text/plain; charset=utf-8" ).append( CRLF )
+			.append( "Content-Length: " ).append( content.size() ).append( CRLF ).append( CRLF );
 		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 		ostream.write( content.getBytes() );
 		ostream.flush();
