@@ -4,9 +4,6 @@ package joliex.wsdl;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
@@ -47,12 +44,8 @@ public class Jolie2Wsdl {
 			} else {
 				document.ConvertDocument( outfile, tns, portName, address );
 			}
-		} catch( CommandLineException ex ) {
+		} catch( CommandLineException | ParserException ex ) {
 			System.out.println( ex.getMessage() );
-		} catch( IOException e ) {
-			e.printStackTrace();
-		} catch( ParserException e ) {
-			System.out.println( e.getMessage() );
 		} catch( Exception e ) {
 			e.printStackTrace();
 		}

@@ -53,7 +53,7 @@ import jolie.util.Pair;
  * @author Fabrizio Montesi
  */
 public class SessionThread extends ExecutionThread {
-	private class SessionMessageFuture implements Future< SessionMessage > {
+	private static class SessionMessageFuture implements Future< SessionMessage > {
 		private final Lock lock;
 		private final Condition condition;
 		private SessionMessage sessionMessage = null;
@@ -158,25 +158,25 @@ public class SessionThread extends ExecutionThread {
 		}
 	}
 
-	private static final AtomicLong idCounter = new AtomicLong( 1L );
+	private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
 
-	private final long id = idCounter.getAndIncrement();
+	private final long id = ID_COUNTER.getAndIncrement();
 	private final jolie.State state;
 	private final List< SessionListener > listeners = new ArrayList<>();
 	protected final Map< CorrelationSet, Deque< SessionMessage > > messageQueues = new HashMap<>();
 	protected final Deque< SessionMessage > uncorrelatedMessageQueue = new ArrayDeque<>();
 	private final Map< String, Deque< SessionMessageFuture > > messageWaiters = new HashMap<>();
 
-	private final static VariablePath typeMismatchPath;
-	private final static VariablePath ioExceptionPath;
+	private final static VariablePath TYPE_MISMATCH_PATH;
+	private final static VariablePath IO_EXCEPTION_PATH;
 
 	static {
-		typeMismatchPath =
+		TYPE_MISMATCH_PATH =
 			new VariablePathBuilder( false )
 				.add( "main", 0 )
 				.add( Constants.TYPE_MISMATCH_FAULT_NAME, 0 )
 				.toVariablePath();
-		ioExceptionPath =
+		IO_EXCEPTION_PATH =
 			new VariablePathBuilder( false )
 				.add( "main", 0 )
 				.add( Constants.IO_EXCEPTION_FAULT_NAME, 0 )
@@ -198,7 +198,7 @@ public class SessionThread extends ExecutionThread {
 			new Process() {
 				@Override
 				public void run() throws FaultException, ExitingException {
-					interpreter.logInfo( typeMismatchPath.getValue().strValue() );
+					interpreter.logInfo( TYPE_MISMATCH_PATH.getValue().strValue() );
 				}
 
 				@Override
@@ -216,7 +216,7 @@ public class SessionThread extends ExecutionThread {
 			new Process() {
 				@Override
 				public void run() throws FaultException, ExitingException {
-					interpreter.logInfo( ioExceptionPath.getValue().strValue() );
+					interpreter.logInfo( IO_EXCEPTION_PATH.getValue().strValue() );
 				}
 
 				@Override

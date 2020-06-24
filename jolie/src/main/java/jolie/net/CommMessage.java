@@ -55,7 +55,8 @@ import jolie.runtime.Value;
 public class CommMessage implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private static final AtomicInteger idCounter = new AtomicInteger( 1 );
+	private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
+
 	public static final long GENERIC_ID = 0L;
 	public static final CommMessage UNDEFINED_MESSAGE =
 		new CommMessage( GENERIC_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
@@ -102,8 +103,9 @@ public class CommMessage implements Serializable {
 	public static long getNewMessageId() {
 		long id = Jolie.cellId;
 		id = id << 32;
-		id = id + idCounter.getAndIncrement();
+		id = id + ID_COUNTER.getAndIncrement();
 		return id;
+
 	}
 
 	/**

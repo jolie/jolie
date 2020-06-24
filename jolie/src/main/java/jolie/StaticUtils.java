@@ -28,10 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Fabrizio Montesi
  */
 public final class StaticUtils {
-	private static final Map< String, Object > m = new ConcurrentHashMap<>();
+	private static final Map< String, Object > SHARED_STATE = new ConcurrentHashMap<>();
 
 	public static void create( Class< ? > holder, Callable< Object > task ) {
-		m.computeIfAbsent( holder.getName(),
+		SHARED_STATE.computeIfAbsent( holder.getName(),
 			k -> {
 				try {
 					return task.call();
@@ -42,6 +42,6 @@ public final class StaticUtils {
 	}
 
 	public static < T > T retrieve( Class< ? > holder, Class< T > type ) {
-		return type.cast( m.get( holder.getName() ) );
+		return type.cast( SHARED_STATE.get( holder.getName() ) );
 	}
 }

@@ -33,7 +33,7 @@ import jolie.net.CommMessage;
  */
 public interface RemoteBasicChannel extends Remote {
 	public Future< CommMessage > recvResponseFor( CommMessage request )
-		throws RemoteException, IOException;
+		throws IOException;
 
 	public CommMessage recv()
 		throws IOException;

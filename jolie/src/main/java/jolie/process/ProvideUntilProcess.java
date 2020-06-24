@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.SessionMessage;
@@ -40,15 +41,15 @@ import jolie.util.Pair;
  */
 public class ProvideUntilProcess implements Process {
 	private final NDChoiceProcess provide, until;
-	private Map< String, InputOperation > inputOperationsMap =
-		new HashMap< String, InputOperation >();
+	private final Map< String, InputOperation > inputOperationsMap;
 
 	public ProvideUntilProcess( NDChoiceProcess provide, NDChoiceProcess until ) {
 		this.provide = provide;
 		this.until = until;
-		this.inputOperationsMap.putAll( provide.inputOperations() );
-		this.inputOperationsMap.putAll( until.inputOperations() );
-		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
+		Map< String, InputOperation > mutOperationsMap = new HashMap<>();
+		mutOperationsMap.putAll( provide.inputOperations() );
+		mutOperationsMap.putAll( until.inputOperations() );
+		this.inputOperationsMap = Collections.unmodifiableMap( mutOperationsMap );
 	}
 
 	public Process copy( TransformationReason reason ) {
@@ -79,11 +80,7 @@ public class ProvideUntilProcess implements Process {
 				branch.key().receiveMessage( m, ethread.state() ).run();
 				branch.value().run();
 			}
-		} catch( CancellationException e ) {
-			Interpreter.getInstance().logSevere( e );
-		} catch( ExecutionException e ) {
-			Interpreter.getInstance().logSevere( e );
-		} catch( InterruptedException e ) {
+		} catch( CancellationException | InterruptedException | ExecutionException e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
 	}

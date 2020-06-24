@@ -31,8 +31,8 @@ import java.util.List;
 public class Interface {
 	private final String name;
 	private final String comment;
-	private final List< Operation > oneWayOperations = new ArrayList< Operation >();
-	private final List< Operation > requestResponseOperations = new ArrayList< Operation >();
+	private final List< Operation > oneWayOperations = new ArrayList<>();
+	private final List< Operation > requestResponseOperations = new ArrayList<>();
 
 	public Interface( String name, String comment ) {
 		this.name = name;

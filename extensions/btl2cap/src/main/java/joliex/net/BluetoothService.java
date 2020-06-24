@@ -99,6 +99,7 @@ public class BluetoothService extends JavaService {
 		return retValue;
 	}
 
+	@SuppressWarnings( "PMD" )
 	public Boolean setDiscoverable( Integer i )
 		throws FaultException {
 		boolean b = false;

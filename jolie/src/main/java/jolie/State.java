@@ -54,7 +54,7 @@ public final class State implements Cloneable {
 	 * @return the InternalLink identified by id
 	 */
 	public InternalLink getLink( String id ) {
-		return linksMap.computeIfAbsent( id, k -> new InternalLink( k ) );
+		return linksMap.computeIfAbsent( id, InternalLink::new );
 	}
 
 	/**

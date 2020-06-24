@@ -24,6 +24,7 @@ package jolie.process;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
+
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -99,7 +100,7 @@ public class NotificationProcess implements Process {
 					if( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-								Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT,
+								Long.toString( message.id() ), OperationCallEvent.FAULT,
 								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
 					throw (e);
@@ -115,7 +116,7 @@ public class NotificationProcess implements Process {
 			if( Interpreter.getInstance().isMonitoring() ) {
 				Interpreter.getInstance()
 					.fireMonitorEvent( new OperationCallEvent( operationId,
-						ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id() ).toString(),
+						ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ),
 						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
 			}
 

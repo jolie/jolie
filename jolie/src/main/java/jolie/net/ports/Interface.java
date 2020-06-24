@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
@@ -39,25 +40,25 @@ import jolie.runtime.typing.Type;
 public class Interface {
 	private static final class UndefinedOneWayOperationsMap
 		implements Map< String, OneWayTypeDescription > {
-		private static final Set< Entry< String, OneWayTypeDescription > > entrySet =
-			Collections.EMPTY_SET;
-		private static final Collection< OneWayTypeDescription > values = Collections.EMPTY_LIST;
-		private static final Set< String > keySet = Collections.EMPTY_SET;
-		private static final OneWayTypeDescription value = new OneWayTypeDescription( Type.UNDEFINED );
+		private static final Set< Entry< String, OneWayTypeDescription > > ENTRY_SET =
+			Collections.emptySet();
+		private static final Collection< OneWayTypeDescription > VALUES = Collections.emptyList();
+		private static final Set< String > KEY_SET = Collections.emptySet();
+		private static final OneWayTypeDescription VALUE = new OneWayTypeDescription( Type.UNDEFINED );
 
 		@Override
 		public Set< Entry< String, OneWayTypeDescription > > entrySet() {
-			return entrySet;
+			return ENTRY_SET;
 		}
 
 		@Override
 		public Collection< OneWayTypeDescription > values() {
-			return values;
+			return VALUES;
 		}
 
 		@Override
 		public Set< String > keySet() {
-			return keySet;
+			return KEY_SET;
 		}
 
 		@Override
@@ -80,7 +81,7 @@ public class Interface {
 
 		@Override
 		public OneWayTypeDescription get( Object key ) {
-			return value;
+			return VALUE;
 		}
 
 		@Override
@@ -106,25 +107,25 @@ public class Interface {
 
 	private static final class UndefinedRequestResponseOperationsMap
 		implements Map< String, RequestResponseTypeDescription > {
-		private static final Set< Entry< String, RequestResponseTypeDescription > > entrySet = Collections.EMPTY_SET;
-		private static final Collection< RequestResponseTypeDescription > values = Collections.EMPTY_LIST;
-		private static final Set< String > keySet = Collections.EMPTY_SET;
-		private static final RequestResponseTypeDescription value =
-			new RequestResponseTypeDescription( Type.UNDEFINED, Type.UNDEFINED, Collections.EMPTY_MAP );
+		private static final Set< Entry< String, RequestResponseTypeDescription > > ENTRY_SET = Collections.emptySet();
+		private static final Collection< RequestResponseTypeDescription > VALUES = Collections.emptyList();
+		private static final Set< String > KEY_SET = Collections.emptySet();
+		private static final RequestResponseTypeDescription VALUE =
+			new RequestResponseTypeDescription( Type.UNDEFINED, Type.UNDEFINED, Collections.emptyMap() );
 
 		@Override
 		public Set< Entry< String, RequestResponseTypeDescription > > entrySet() {
-			return entrySet;
+			return ENTRY_SET;
 		}
 
 		@Override
 		public Collection< RequestResponseTypeDescription > values() {
-			return values;
+			return VALUES;
 		}
 
 		@Override
 		public Set< String > keySet() {
-			return keySet;
+			return KEY_SET;
 		}
 
 		@Override
@@ -147,7 +148,7 @@ public class Interface {
 
 		@Override
 		public RequestResponseTypeDescription get( Object key ) {
-			return value;
+			return VALUE;
 		}
 
 		@Override

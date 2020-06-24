@@ -25,12 +25,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.regex.Pattern;
+
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 
@@ -40,10 +43,10 @@ public class MultiPartFormDataParser {
 	private final HttpMessage message;
 	private final Map< String, PartProperties > partPropertiesMap = new HashMap<>();
 
-	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
-	private static final Pattern keyValueSplitPattern = Pattern.compile( "=" );
+	private static final Pattern PARAMETERS_SPLIT_PATTERN = Pattern.compile( ";" );
+	private static final Pattern KEY_VALUE_SPLIT_PATTERN = Pattern.compile( "=" );
 
-	public class PartProperties {
+	public static class PartProperties {
 		private String filename = null;
 
 		private void setFilename( String filename ) {
@@ -57,24 +60,20 @@ public class MultiPartFormDataParser {
 
 	public MultiPartFormDataParser( HttpMessage message, Value value )
 		throws IOException {
-		final String[] params = parametersSplitPattern.split( message.getProperty( "content-type" ) );
-		String b = null;
-		try {
-			for( String param : params ) {
-				param = param.trim();
-				if( param.startsWith( "boundary" ) ) {
-					b = "--" + keyValueSplitPattern.split( param, 2 )[ 1 ];
-				}
-			}
-			if( b == null ) {
-				throw new IOException( "Invalid boundary in multipart/form-data http message" );
-			}
-		} catch( ArrayIndexOutOfBoundsException e ) {
+		final String[] params = PARAMETERS_SPLIT_PATTERN.split( message.getProperty( "content-type" ) );
+		Optional< String > boundary = Arrays.stream( params ).map( String::trim )
+			.filter( s -> s.startsWith( "boundary" ) )
+			.findAny()
+			.map( s -> {
+				String[] parts = KEY_VALUE_SPLIT_PATTERN.split( s, 2 );
+				return parts.length >= 2 ? "--" + parts[ 1 ] : null;
+			} );
+		if( !boundary.isPresent() ) {
 			throw new IOException( "Invalid boundary in multipart/form-data http message" );
 		}
 
 		this.value = value;
-		this.boundary = b;
+		this.boundary = boundary.get();
 		this.message = message;
 	}
 
@@ -105,12 +104,12 @@ public class MultiPartFormDataParser {
 		// Parse part header
 		hasContentType = false;
 		while( (line = reader.readLine()) != null && !line.isEmpty() ) {
-			params = parametersSplitPattern.split( line );
+			params = PARAMETERS_SPLIT_PATTERN.split( line );
 			for( String param : params ) {
 				param = param.trim();
 				if( param.startsWith( "name" ) ) {
 					try {
-						name = keyValueSplitPattern.split( param, 2 )[ 1 ];
+						name = KEY_VALUE_SPLIT_PATTERN.split( param, 2 )[ 1 ];
 						// Names are surronded by "": cut them.
 						name = URLDecoder.decode( name.substring( 1, name.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
@@ -118,7 +117,7 @@ public class MultiPartFormDataParser {
 					}
 				} else if( param.startsWith( "filename" ) ) {
 					try {
-						filename = keyValueSplitPattern.split( param, 2 )[ 1 ];
+						filename = KEY_VALUE_SPLIT_PATTERN.split( param, 2 )[ 1 ];
 						// Filenames are surronded by quotes "": cut them.
 						filename = URLDecoder.decode( filename.substring( 1, filename.length() - 1 ),
 							HttpUtils.URL_DECODER_ENC );
@@ -158,7 +157,8 @@ public class MultiPartFormDataParser {
 	public void parse()
 		throws IOException {
 		// this needs to be strictly parsed with US-ASCII, since we are dealing with raw data
-		String[] parts = (HttpUtils.CRLF + new String( message.content(), "US-ASCII" )).split( boundary + "--" );
+		String[] parts =
+			(HttpUtils.CRLF + new String( message.content(), StandardCharsets.US_ASCII )).split( boundary + "--" );
 		parts = (parts[ 0 ] + boundary + HttpUtils.CRLF).split( HttpUtils.CRLF + boundary + HttpUtils.CRLF );
 
 		// The first one is always empty, so we start from 1

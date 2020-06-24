@@ -24,7 +24,6 @@
 package jolie.net;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
@@ -57,7 +56,7 @@ public class PreBufferedInputStream extends BufferedInputStream {
 				}
 			}
 
-			final byte nbuf[] = new byte[ tentative ];
+			final byte[] nbuf = new byte[ tentative ];
 			final int remaining = count - pos;
 			System.arraycopy( buf, pos, nbuf, 0, remaining );
 			buf = nbuf;

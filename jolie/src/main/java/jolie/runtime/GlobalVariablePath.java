@@ -22,9 +22,9 @@
 package jolie.runtime;
 
 
-import jolie.runtime.expression.Expression;
 import jolie.Interpreter;
 import jolie.process.TransformationReason;
+import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
 /**

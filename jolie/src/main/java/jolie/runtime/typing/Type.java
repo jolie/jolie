@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+
 import jolie.lang.NativeType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -87,8 +88,8 @@ class TypeImpl extends Type {
 
 	private void castSubType( String typeName, Type type, Value value, StringBuilder pathBuilder )
 		throws TypeCastingException {
-		pathBuilder.append( '.' );
-		pathBuilder.append( typeName );
+		pathBuilder.append( '.' )
+			.append( typeName );
 
 		final boolean hasChildren = value.hasChildren( typeName );
 		if( hasChildren == false && type.cardinality().min() > 0 ) {
@@ -147,8 +148,8 @@ class TypeImpl extends Type {
 
 	private void checkSubType( String typeName, Type type, Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException {
-		pathBuilder.append( '.' );
-		pathBuilder.append( typeName );
+		pathBuilder.append( '.' )
+			.append( typeName );
 
 		final boolean hasChildren = value.hasChildren( typeName );
 		if( hasChildren == false && type.cardinality().min() > 0 ) {

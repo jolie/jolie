@@ -22,6 +22,7 @@
 package jolie.lang.parse.util;
 
 import java.util.Map.Entry;
+
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;

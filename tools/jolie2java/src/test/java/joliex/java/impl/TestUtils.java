@@ -26,7 +26,7 @@ public class TestUtils {
 
 	public static void deleteFolder( File folder ) {
 		for( int i = folder.list().length - 1; i >= 0; i-- ) {
-			File tmpFile = new File( folder.getPath() + Constants.fileSeparator + folder.list()[ i ] );
+			File tmpFile = new File( folder.getPath() + Constants.FILE_SEPARATOR + folder.list()[ i ] );
 			if( tmpFile.isDirectory() ) {
 				deleteFolder( tmpFile );
 				tmpFile.delete();

@@ -85,8 +85,7 @@ public class XmlStorage extends AbstractStorageService {
 		throws FaultException {
 		Value value = Value.create();
 		try {
-			InputStream istream = new FileInputStream( xmlFile );
-			try {
+			try( InputStream istream = new FileInputStream( xmlFile ) ) {
 				DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new InputStreamReader( istream ) );
 				if( charset != null ) {
@@ -94,8 +93,6 @@ public class XmlStorage extends AbstractStorageService {
 				}
 				Document doc = builder.parse( src );
 				jolie.xml.XmlUtils.documentToValue( doc, value, false );
-			} finally {
-				istream.close();
 			}
 		} catch( Exception e ) {
 			throw new FaultException( "StorageFault", e.getMessage() );
@@ -136,8 +133,7 @@ public class XmlStorage extends AbstractStorageService {
 		throws FaultException {
 		try {
 			checkConnection();
-			Value value = valueFromFile();
-			return value;
+			return valueFromFile();
 		} catch( IOException e ) {
 			throw new FaultException( "StorageFault", e.getMessage() );
 		}

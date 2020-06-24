@@ -32,7 +32,7 @@ public class LocalListenerFactory extends CommListenerFactory {
 	static {
 		StaticUtils.create(
 			LocalListenerFactory.class,
-			() -> new ConcurrentHashMap<>() );
+			ConcurrentHashMap::new );
 	}
 
 	private static Map< String, LocalListener > locationToListener() {

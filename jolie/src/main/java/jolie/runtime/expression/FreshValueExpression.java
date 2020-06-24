@@ -22,6 +22,7 @@
 package jolie.runtime.expression;
 
 import java.util.UUID;
+
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
@@ -31,7 +32,7 @@ public class FreshValueExpression implements Expression {
 	private static class LazyHolder {
 		private LazyHolder() {}
 
-		static final FreshValueExpression instance = new FreshValueExpression();
+		private static final FreshValueExpression INSTANCE = new FreshValueExpression();
 	}
 
 	public Expression cloneExpression( TransformationReason reason ) {
@@ -39,7 +40,7 @@ public class FreshValueExpression implements Expression {
 	}
 
 	public static FreshValueExpression getInstance() {
-		return FreshValueExpression.LazyHolder.instance;
+		return FreshValueExpression.LazyHolder.INSTANCE;
 	}
 
 	public Value evaluate() {

@@ -207,31 +207,30 @@ public class XmlUtils {
 		String name;
 		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
 		if( compositor.equals( XSModelGroup.SEQUENCE ) ) {
-			XSParticle[] children = modelGroup.getChildren();
-			XSTerm currTerm;
-			XSElementDecl currElementDecl;
 			Value v;
 			ValueVector vec;
-			for( int i = 0; i < children.length; i++ ) {
-				currTerm = children[ i ].getTerm();
+			for( XSParticle particle : modelGroup.getChildren() ) {
+				XSTerm currTerm = particle.getTerm();
 				if( currTerm.isElementDecl() ) {
-					currElementDecl = currTerm.asElementDecl();
+					XSElementDecl currElementDecl = currTerm.asElementDecl();
 					name = currElementDecl.getName();
 					Element childElement = null;
 					if( (vec = value.children().get( name )) != null ) {
 						int k = 0;
 						while( vec.isEmpty() == false &&
-							(children[ i ].getMaxOccurs() == XSParticle.UNBOUNDED ||
-								children[ i ].getMaxOccurs() > k) ) {
+							(particle.getMaxOccurs() == XSParticle.UNBOUNDED ||
+								particle.getMaxOccurs() > k) ) {
 							childElement = doc.createElement( getElementNameWithPrefix( vec.get( 0 ), name ) );
 							element.appendChild( childElement );
 							v = vec.remove( 0 );
 							_valueToDocument( v, childElement, doc, currElementDecl.getType() );
 							k++;
 						}
-					} else if( children[ i ].getMinOccurs() > 0 ) {
-						// TODO throw some error here
 					}
+					// TODO throw an error if the following condition occurs here
+					// else if( children[ i ].getMinOccurs() > 0 ) {
+					// // TODO throw some error here
+					// }
 				} else if( currTerm.isModelGroupDecl() ) {
 					_valueToDocument( value, element, doc, currTerm.asModelGroupDecl().getModelGroup() );
 				} else if( currTerm.isModelGroup() ) {
@@ -257,9 +256,11 @@ public class XmlUtils {
 						found = true;
 						v = vec.remove( 0 );
 						_valueToDocument( v, childElement, doc, currElementDecl.getType() );
-					} else if( children[ i ].getMinOccurs() > 0 ) {
-						// TODO throw some error here
 					}
+					// TODO throw error if following condition occurs
+					// else if( children[ i ].getMinOccurs() > 0 ) {
+					// // TODO throw some error here
+					// }
 				} else if( currTerm.isModelGroupDecl() ) {
 					_valueToDocument( value, element, doc, currTerm.asModelGroupDecl().getModelGroup() );
 				} else if( currTerm.isModelGroup() ) {
@@ -395,7 +396,7 @@ public class XmlUtils {
 		}
 
 		if( ret == null ) {
-			ret = new HashMap< String, ValueVector >();
+			ret = new HashMap<>();
 		}
 
 		return ret;
@@ -429,7 +430,7 @@ public class XmlUtils {
 	 * author: Claudio Guidi 7/1/2011
 	 */
 	public static void storageDocumentToValue( Document document, Value value ) {
-		String type = setAttributesForStoring( value, document.getDocumentElement() );
+		String type = insertAttributesForStoring( value, document.getDocumentElement() );
 		elementsToSubValuesForStoring(
 			value,
 			document.getDocumentElement().getChildNodes(),
@@ -471,7 +472,7 @@ public class XmlUtils {
 	 * 
 	 * @return the type of the JOLIE_TYPE
 	 */
-	private static String setAttributesForStoring( Value value, Node node ) {
+	private static String insertAttributesForStoring( Value value, Node node ) {
 		NamedNodeMap map = node.getAttributes();
 		String type = "string";
 		if( map != null ) {
@@ -507,7 +508,7 @@ public class XmlUtils {
 			case Node.ELEMENT_NODE:
 				childValue =
 					value.getNewChild( (node.getLocalName() == null) ? node.getNodeName() : node.getLocalName() );
-				String subElType = setAttributesForStoring( childValue, node );
+				String subElType = insertAttributesForStoring( childValue, node );
 				elementsToSubValuesForStoring( childValue, node.getChildNodes(), subElType );
 				break;
 			case Node.CDATA_SECTION_NODE:
@@ -517,16 +518,22 @@ public class XmlUtils {
 			}
 		}
 
-		if( type.equals( "string" ) ) {
+		switch( type ) {
+		case "string":
 			value.setValue( builder.toString() );
-		} else if( type.equals( "int" ) ) {
-			value.setValue( new Integer( builder.toString() ) );
-		} else if( type.equals( "long" ) ) {
-			value.setValue( new Long( builder.toString() ) );
-		} else if( type.equals( "double" ) ) {
+			break;
+		case "int":
+			value.setValue( Integer.valueOf( builder.toString() ) );
+			break;
+		case "long":
+			value.setValue( Long.valueOf( builder.toString() ) );
+			break;
+		case "double":
 			value.setValue( new Double( builder.toString() ) );
-		} else if( type.equals( "bool" ) ) {
-			value.setValue( new Boolean( builder.toString() ) );
+			break;
+		case "bool":
+			value.setValue( Boolean.valueOf( builder.toString() ) );
+			break;
 		}
 	}
 

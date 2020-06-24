@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
@@ -153,7 +154,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		if( protocolId != null ) {
 			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ), null ) );
 		}
-		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
+		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ 0 ] ) );
 	}
 
 	/**
@@ -242,10 +243,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	private static class LazyLocalUriHolder {
 		private LazyLocalUriHolder() {}
 
-		private static final URI uri = URI.create( "local" );
+		private static final URI LOCAL_URI = URI.create( "local" );
 	}
 
-	private static final Map< String, URI > uriCache = new WeakHashMap<>();
+	private static final Map< String, URI > URI_CACHE = new WeakHashMap<>();
 
 	/**
 	 * Returns the resource path of the location of this output port.
@@ -265,14 +266,14 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	private URI getLocation( Value location )
 		throws URISyntaxException {
 		if( location.isChannel() ) {
-			return LazyLocalUriHolder.uri;
+			return LazyLocalUriHolder.LOCAL_URI;
 		}
 		String s = location.strValue();
 		URI ret;
-		synchronized( uriCache ) {
-			if( (ret = uriCache.get( s )) == null ) {
+		synchronized( URI_CACHE ) {
+			if( (ret = URI_CACHE.get( s )) == null ) {
 				ret = new URI( s );
-				uriCache.put( s, ret );
+				URI_CACHE.put( s, ret );
 			}
 		}
 		return ret;

@@ -31,7 +31,6 @@ import java.nio.channels.ClosedByInterruptException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
@@ -42,8 +41,8 @@ public class ConsoleService extends JavaService {
 	private Map< String, String > sessionTokens;
 	private boolean sessionListeners = false;
 	private boolean enableTimestamp = false;
-	private final String timestampFormatDefault = "dd/MM/yyyy HH:mm:ss";
-	private String timestampFormat = timestampFormatDefault;
+	private static final String TIMESTAMP_DEFAULT_FORMAT = "dd/MM/yyyy HH:mm:ss";
+	private String timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 
 	private class ConsoleInputThread extends Thread {
 		private boolean keepRun = true;
@@ -66,11 +65,10 @@ public class ConsoleService extends JavaService {
 					line = stdin.readLine();
 
 					if( sessionListeners ) {
-						Iterator< String > it = sessionTokens.keySet().iterator();
 
-						while( it.hasNext() ) {
+						for( String s : sessionTokens.keySet() ) {
 							Value v = Value.create();
-							v.getFirstChild( "token" ).setValue( it.next() );
+							v.getFirstChild( "token" ).setValue( s );
 							v.setValue( line );
 							sendMessage( CommMessage.createRequest( "in", "/", v ) );
 						}
@@ -149,11 +147,11 @@ public class ConsoleService extends JavaService {
 			if( request.getFirstChild( "format" ).isDefined() ) {
 				timestampFormat = request.getFirstChild( "format" ).strValue();
 			} else {
-				timestampFormat = timestampFormatDefault;
+				timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 			}
 		} else {
 			enableTimestamp = false;
-			timestampFormat = timestampFormatDefault;
+			timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 		}
 
 	}

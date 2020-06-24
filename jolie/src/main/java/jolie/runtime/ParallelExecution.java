@@ -24,6 +24,7 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashSet;
+
 import jolie.ExecutionThread;
 import jolie.TransparentExecutionThread;
 import jolie.process.Process;
@@ -51,7 +52,7 @@ public class ParallelExecution {
 		}
 	}
 
-	final private Collection< ParallelThread > threads = new HashSet< ParallelThread >();
+	final private Collection< ParallelThread > threads = new HashSet<>();
 	private FaultException fault = null;
 	private boolean isKilled = false;
 

@@ -16,7 +16,7 @@ import jolie.net.BTServiceDiscoveryListener;
  */
 public class BTL2CapHelper {
 	public static String getConnectionURL( URI uri, BTL2CapChannelFactory factory )
-		throws BluetoothStateException, IOException {
+		throws IOException {
 		String[] ss = uri.getSchemeSpecificPart().split( ":" );
 		String uuidStr = ss[ 1 ].split( "/" )[ 0 ];
 		String btAddr = ss[ 0 ].substring( 2 );
@@ -35,7 +35,6 @@ public class BTL2CapHelper {
 			throw new IOException( "Service not found" );
 		}
 
-		String url = record.getConnectionURL( ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false );
-		return url;
+		return record.getConnectionURL( ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false );
 	}
 }

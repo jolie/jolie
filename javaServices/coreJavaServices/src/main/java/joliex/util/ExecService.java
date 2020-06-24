@@ -38,7 +38,7 @@ import jolie.runtime.ValueVector;
 public class ExecService extends JavaService {
 	public Value exec( Value request )
 		throws FaultException {
-		List< String > command = new LinkedList< String >();
+		List< String > command = new LinkedList<>();
 		String[] str = request.strValue().split( " " );
 		command.addAll( Arrays.asList( str ) );
 
@@ -101,7 +101,7 @@ public class ExecService extends JavaService {
 		}
 	}
 
-	private class StreamGobbler extends Thread {
+	private static class StreamGobbler extends Thread {
 
 		InputStream is;
 

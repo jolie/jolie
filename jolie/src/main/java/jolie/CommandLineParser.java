@@ -67,7 +67,6 @@ public class CommandLineParser implements Closeable {
 	private final static String OPTION_SEPARATOR = " ";
 
 	private final int connectionsLimit;
-	private final int connectionsCache;
 	private final CorrelationEngine.Type correlationAlgorithmType;
 	private final String[] includePaths;
 	private final String[] optionArgs;
@@ -95,7 +94,7 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @return the arguments passed to the JOLIE program.
 	 */
-	private final String[] arguments() {
+	private String[] arguments() {
 		return arguments;
 	}
 
@@ -223,15 +222,6 @@ public class CommandLineParser implements Closeable {
 	 */
 	private long responseTimeout() {
 		return responseTimeout;
-	}
-
-	/**
-	 * Returns the connection cache parameter passed by command line with the --conncache option.
-	 * 
-	 * @return the connection cache parameter passed by command line
-	 */
-	private int connectionsCache() {
-		return connectionsCache;
 	}
 
 	private static String getOptionString( String option, String description ) {
@@ -427,7 +417,6 @@ public class CommandLineParser implements Closeable {
 		Deque< String > includeList = new LinkedList<>();
 		List< String > libList = new ArrayList<>();
 		int cLimit = -1;
-		int cCache = 100;
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
 		includeList.add( pwd );
@@ -457,7 +446,7 @@ public class CommandLineParser implements Closeable {
 				if( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				Collections.addAll( includeList, argsList.get( i ).split( jolie.lang.Constants.pathSeparator ) );
+				Collections.addAll( includeList, argsList.get( i ).split( jolie.lang.Constants.PATH_SEPARATOR ) );
 				optionsList.add( argsList.get( i ) );
 			} else if( "-l".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -465,7 +454,7 @@ public class CommandLineParser implements Closeable {
 				if( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				String[] tmp = argsList.get( i ).split( jolie.lang.Constants.pathSeparator );
+				String[] tmp = argsList.get( i ).split( jolie.lang.Constants.PATH_SEPARATOR );
 				for( String libPath : tmp ) {
 					Optional< String > path = findLibPath( libPath, includeList, parentClassLoader );
 					path.ifPresent( libList::add );
@@ -478,11 +467,6 @@ public class CommandLineParser implements Closeable {
 				optionsList.add( argsList.get( i ) );
 				i++;
 				cLimit = Integer.parseInt( argsList.get( i ) );
-				optionsList.add( argsList.get( i ) );
-			} else if( "--conncache".equals( argsList.get( i ) ) ) {
-				optionsList.add( argsList.get( i ) );
-				i++;
-				cCache = Integer.parseInt( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
 			} else if( "--responseTimeout".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -581,7 +565,8 @@ public class CommandLineParser implements Closeable {
 				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
-			} else if( olFilepath == null ) {
+			} else if( (olFilepath == null) && (argsList.get( i ).endsWith( ".jap" )
+				|| argsList.get( i ).endsWith( ".ol" ) || argsList.get( i ).endsWith( ".olc" )) ) {
 				final String path = argsList.get( i );
 				if( path.endsWith( ".jap" ) ) {
 					for( String includePath : prepend( "", includeList ) ) {
@@ -636,7 +621,7 @@ public class CommandLineParser implements Closeable {
 		if( correlationAlgorithmType == null ) {
 			throw new CommandLineException( "Unrecognized correlation algorithm: " + csetAlgorithmName );
 		}
-		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
+		arguments = programArgumentsList.toArray( new String[ 0 ] );
 		// whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 
 		if( olFilepath == null ) {
@@ -644,11 +629,11 @@ public class CommandLineParser implements Closeable {
 		}
 
 		connectionsLimit = cLimit;
-		connectionsCache = cCache;
 		responseTimeout = rTimeout;
 
 		List< URL > urls = new ArrayList<>();
-		for( String path : libList ) {
+		for( String pathInList : libList ) {
+			String path = pathInList;
 			if( path.contains( "!/" ) && !path.startsWith( "jap:" ) && !path.startsWith( "jar:" ) ) {
 				path = "jap:file:" + path;
 			}
@@ -667,7 +652,7 @@ public class CommandLineParser implements Closeable {
 					List< String > archives = Files.list( dir ).map( Path::toString )
 						.filter( p -> p.endsWith( ".jar" ) || p.endsWith( ".jap" ) ).collect( Collectors.toList() );
 					for( String archive : archives ) {
-						String scheme = archive.substring( archive.length() - 3, archive.length() ); // "jap" or "jar"
+						String scheme = archive.substring( archive.length() - 3 ); // "jap" or "jar"
 						urls.add( new URL( scheme + ":" + Paths.get( archive ).toUri().toString() + "!/" ) );
 					}
 				}
@@ -680,7 +665,7 @@ public class CommandLineParser implements Closeable {
 			}
 		}
 		urls.add( new URL( "file:/" ) );
-		libURLs = urls.toArray( new URL[ urls.size() ] );
+		libURLs = urls.toArray( new URL[ 0 ] );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 
 		for( URL url : libURLs ) {
@@ -714,7 +699,7 @@ public class CommandLineParser implements Closeable {
 		programStream = olResult.stream;
 
 		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
-		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
+		optionArgs = optionsList.toArray( new String[ 0 ] );
 	}
 
 	/**
@@ -727,10 +712,6 @@ public class CommandLineParser implements Closeable {
 	 * parent.getAbsolutePath(); includeList.add( parentPath ); includeList.add( parentPath + "/include"
 	 * ); libList.add( parentPath ); libList.add( parentPath + "/lib" ); } } }
 	 */
-
-	private boolean printStackTraces() {
-		return printStackTraces;
-	}
 
 	/**
 	 * Returns the directory in which the main program is located.
@@ -823,7 +804,7 @@ public class CommandLineParser implements Closeable {
 
 	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths,
 		Deque< String > optionsList, ClassLoader classLoader )
-		throws FileNotFoundException, IOException {
+		throws IOException {
 		GetOLStreamResult result = new GetOLStreamResult();
 		if( ignoreFile ) {
 			return result;
@@ -849,7 +830,7 @@ public class CommandLineParser implements Closeable {
 				} else {
 					f = new File(
 						includePath +
-							jolie.lang.Constants.fileSeparator +
+							jolie.lang.Constants.FILE_SEPARATOR +
 							olFilepath );
 					if( f.exists() ) {
 						f = f.getAbsoluteFile();
@@ -879,7 +860,7 @@ public class CommandLineParser implements Closeable {
 				if( programDirectory == null && olURL != null && olURL.getPath() != null ) {
 					// Try to extract the parent directory of the JAP/JAR library file
 					try {
-						File urlFile = new File( JapURLConnection.nestingSeparatorPattern
+						File urlFile = new File( JapURLConnection.NESTING_SEPARATION_PATTERN
 							.split( new URI( olURL.getPath() ).getSchemeSpecificPart() )[ 0 ] ).getAbsoluteFile();
 						if( urlFile.exists() ) {
 							programDirectory = urlFile.getParentFile();
@@ -947,9 +928,9 @@ public class CommandLineParser implements Closeable {
 	}
 
 	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
-		InterpreterParameters interpreterParameters = new InterpreterParameters(
+
+		return new InterpreterParameters(
 			connectionsLimit(),
-			connectionsCache(),
 			correlationAlgorithmType(),
 			includePaths(),
 			optionArgs(),
@@ -966,12 +947,11 @@ public class CommandLineParser implements Closeable {
 			tracerLevel(),
 			tracerMode(),
 			check(),
+			printStackTraces,
 			responseTimeout(),
 			logLevel(),
 			programDirectory(),
 			cellId() );
-
-		return interpreterParameters;
 
 	}
 

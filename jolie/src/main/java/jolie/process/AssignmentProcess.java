@@ -24,12 +24,11 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
-import jolie.tracer.*;
-import jolie.util.Pair;
+import jolie.tracer.AssignmentTraceAction;
+import jolie.tracer.Tracer;
 
 /**
  * Assigns an expression value to a VariablePath.

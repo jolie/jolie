@@ -37,7 +37,7 @@ public final class LocationParser {
 		if( path != null ) {
 			Matcher m = RESOURCE_SEPARATOR_PATTERN.matcher( path );
 			if( m.find() ) {
-				ret += path.substring( m.end(), path.length() );
+				ret += path.substring( m.end() );
 			}
 		}
 		return ret;

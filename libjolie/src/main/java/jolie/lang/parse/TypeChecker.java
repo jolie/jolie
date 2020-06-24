@@ -134,7 +134,7 @@ public class TypeChecker implements OLVisitor {
 		}
 	}
 
-	private class TypingResult {
+	private static class TypingResult {
 		private final VariablePathSet< VariablePathNode > neededCorrPaths;
 		private final VariablePathSet< FlaggedVariablePathNode > providedCorrPaths;
 		private final VariablePathSet< VariablePathNode > neededVarPaths;
@@ -263,7 +263,7 @@ public class TypeChecker implements OLVisitor {
 
 	private TypingResult typingResult;
 	private TypingResult entryTyping;
-	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger LOGGER = Logger.getLogger( "JOLIE" );
 	private boolean valid = true;
 	private final Map< String, TypingResult > definitionTyping = new HashMap<>();
 	private boolean sessionStarter = false;
@@ -279,9 +279,9 @@ public class TypeChecker implements OLVisitor {
 		valid = false;
 		if( node != null ) {
 			ParsingContext context = node.context();
-			logger.severe( context.sourceName() + ":" + context.line() + ": " + message );
+			LOGGER.severe( context.sourceName() + ":" + context.line() + ": " + message );
 		} else {
-			logger.severe( message );
+			LOGGER.severe( message );
 		}
 	}
 
@@ -561,10 +561,8 @@ public class TypeChecker implements OLVisitor {
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if( !sessionStarter && !insideInit ) {
-			if( cset == null || cset.variables().isEmpty() ) {
-				error( n, "No correlation set defined for operation " + n.id() );
-			}
+		if( !sessionStarter && !insideInit && (cset == null || cset.variables().isEmpty()) ) {
+			error( n, "No correlation set defined for operation " + n.id() );
 		}
 		if( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
@@ -597,10 +595,8 @@ public class TypeChecker implements OLVisitor {
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if( !sessionStarter && !insideInit ) {
-			if( cset == null || cset.variables().isEmpty() ) {
-				error( n, "No correlation set defined for operation " + n.id() );
-			}
+		if( !sessionStarter && !insideInit && (cset == null || cset.variables().isEmpty()) ) {
+			error( n, "No correlation set defined for operation " + n.id() );
 		}
 
 		if( cset != null ) {
