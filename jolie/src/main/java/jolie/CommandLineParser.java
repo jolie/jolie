@@ -87,6 +87,7 @@ public class CommandLineParser implements Closeable {
 	private final boolean printStackTraces;
 	private final Level logLevel;
 	private File programDirectory = null;
+	private int cellId = 0;
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
@@ -240,6 +241,10 @@ public class CommandLineParser implements Closeable {
 		return constants;
 	}
 
+	private int cellId() {
+		return cellId;
+	}
+
 	/**
 	 * Returns the usage help message of Jolie.
 	 * 
@@ -259,6 +264,9 @@ public class CommandLineParser implements Closeable {
 					+ "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) )
 			.append(
 				getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) )
+			.append(
+				getOptionString( "--conncache [number]",
+					"Set the maximum number of cached persistent output connections" ) )
 			.append(
 				getOptionString( "--responseTimeout [number]",
 					"Set the timeout for request-response invocations (in milliseconds)" ) )
@@ -285,6 +293,10 @@ public class CommandLineParser implements Closeable {
 					"Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) )
 			.append(
 				getOptionString( "--version", "Display this program version information" ) )
+			.append(
+				getOptionString( "--cellId",
+					"set an integer as cell identifier, used for creating message ids. (max: "
+						+ Integer.MAX_VALUE + ")" ) )
 			.toString();
 	}
 
@@ -539,6 +551,17 @@ public class CommandLineParser implements Closeable {
 				optionsList.add( argsList.get( i ) );
 				i++;
 				charset = argsList.get( i );
+				optionsList.add( argsList.get( i ) );
+			} else if( "--cellId".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				try {
+					cellId = new Integer( argsList.get( i ) );
+				} catch( Exception e ) {
+					System.out
+						.println(
+							"The number specified for cellId (" + argsList.get( i ) + ") is not allowed. Set to 0" );
+				}
 				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
@@ -927,7 +950,8 @@ public class CommandLineParser implements Closeable {
 			printStackTraces,
 			responseTimeout(),
 			logLevel(),
-			programDirectory() );
+			programDirectory(),
+			cellId() );
 
 	}
 

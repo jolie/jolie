@@ -265,6 +265,7 @@ public class Interpreter {
 
 	private final String logPrefix;
 	private final Tracer tracer;
+
 	private boolean check = false;
 	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
@@ -272,8 +273,8 @@ public class Interpreter {
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
 
 
-
 	private final InterpreterParameters interpreterParameters;
+
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
