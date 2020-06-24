@@ -20,8 +20,8 @@ public enum NameSpacesEnum {
 			"http://schemas.xmlsoap.org/soap/http" ), WSDL( "wsdl", "http://schemas.xmlsoap.org/wsdl/" );
 
 
-	private String prefix;
-	private String nameSpaceURI;
+	private final String prefix;
+	private final String nameSpaceURI;
 
 	NameSpacesEnum( String prefix, String nameSpaceURI ) {
 		this.prefix = prefix;

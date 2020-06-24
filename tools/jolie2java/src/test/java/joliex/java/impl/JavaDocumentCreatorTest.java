@@ -123,13 +123,13 @@ public class JavaDocumentCreatorTest {
 		File generatedTypesPath = new File( outputDirectory + "com/test/types" );
 		ArrayList< String > files = new ArrayList<>();
 		if( generatedTypesPath.exists() ) {
-			String filesTypes[] = generatedTypesPath.list();
+			String[] filesTypes = generatedTypesPath.list();
 			for( String filesType : filesTypes ) {
 				files.add( generatedTypesPath.getPath() + "/" + filesType );
 			}
 
 			File generatedTestPath = new File( outputDirectory + "com/test" );
-			String filesTest[] = generatedTestPath.list();
+			String[] filesTest = generatedTestPath.list();
 			for( int i = 0; i < filesTest.length; i++ ) {
 				filesTest[ i ] = generatedTestPath.getPath() + "/" + filesTest[ i ];
 				File tmpFile = new File( filesTest[ i ] );
@@ -140,7 +140,7 @@ public class JavaDocumentCreatorTest {
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			OutputStream output = new OutputStream() {
-				private StringBuilder sb = new StringBuilder();
+				private final StringBuilder sb = new StringBuilder();
 
 				@Override
 				public void write( int b ) throws IOException {
@@ -153,7 +153,7 @@ public class JavaDocumentCreatorTest {
 				}
 			};
 
-			String filesToBeCompiled[] = new String[ files.size() ];
+			String[] filesToBeCompiled = new String[ files.size() ];
 			filesToBeCompiled = files.toArray( filesToBeCompiled );
 			compiler.run( null, null, output, filesToBeCompiled );
 			System.out.println( output );

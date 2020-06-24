@@ -273,7 +273,7 @@ public class Interpreter {
 
 
 
-	private InterpreterParameters interpreterParameters;
+	private final InterpreterParameters interpreterParameters;
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 

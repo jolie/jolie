@@ -117,7 +117,7 @@ public class Inspector extends JavaService {
 	public Value inspectPorts( Value request ) throws FaultException {
 		try {
 			final ProgramInspector inspector;
-			String includePaths[] =
+			String[] includePaths =
 				request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 			if( request.hasChildren( "source" ) ) {
 				inspector = getInspector( request.getFirstChild( "filename" ).strValue(),
@@ -139,7 +139,7 @@ public class Inspector extends JavaService {
 
 	@RequestResponse
 	public Value inspectTypes( Value request ) throws FaultException {
-		String includePaths[] =
+		String[] includePaths =
 			request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 		try {
 			ProgramInspector inspector =
@@ -159,7 +159,7 @@ public class Inspector extends JavaService {
 		throws CommandLineException, IOException, ParserException, SemanticException {
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );
-		String args[] = { filename };
+		String[] args = { filename };
 		CommandLineParser cmdParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
 		final InputStream sourceIs;
 		if( source.isPresent() ) {
