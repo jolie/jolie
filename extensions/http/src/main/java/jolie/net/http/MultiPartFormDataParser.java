@@ -46,7 +46,7 @@ public class MultiPartFormDataParser {
 	private static final Pattern PARAMETERS_SPLIT_PATTERN = Pattern.compile( ";" );
 	private static final Pattern KEY_VALUE_SPLIT_PATTERN = Pattern.compile( "=" );
 
-	public class PartProperties {
+	public static class PartProperties {
 		private String filename = null;
 
 		private void setFilename( String filename ) {

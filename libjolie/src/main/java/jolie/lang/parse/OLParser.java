@@ -324,9 +324,8 @@ public class OLParser extends AbstractParser {
 		if( token.is( Scanner.TokenType.PARALLEL ) ) { // It's a sum (union, choice) type
 			nextToken();
 			final TypeDefinition secondType = parseType( typeName );
-			final TypeChoiceDefinition choiceDefinition =
-				new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType, secondType );
-			return choiceDefinition;
+			return new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType,
+				secondType );
 		}
 
 		return currentType;
@@ -434,9 +433,7 @@ public class OLParser extends AbstractParser {
 		if( token.is( Scanner.TokenType.PARALLEL ) ) {
 			nextToken();
 			TypeDefinition secondSubType = parseSubType( id, cardinality );
-			TypeChoiceDefinition choiceSubType =
-				new TypeChoiceDefinition( getContext(), id, cardinality, subType, secondSubType );
-			return choiceSubType;
+			return new TypeChoiceDefinition( getContext(), id, cardinality, subType, secondSubType );
 		}
 		return subType;
 	}
@@ -954,7 +951,7 @@ public class OLParser extends AbstractParser {
 				null,
 				protocolConfiguration,
 				new InputPortInfo.AggregationItemInfo[] {},
-				Collections.< String, String >emptyMap() );
+				Collections.emptyMap() );
 
 			for( InterfaceDefinition i : interfaceList ) {
 				i.copyTo( iport );

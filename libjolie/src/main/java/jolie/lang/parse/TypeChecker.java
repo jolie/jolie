@@ -134,7 +134,7 @@ public class TypeChecker implements OLVisitor {
 		}
 	}
 
-	private class TypingResult {
+	private static class TypingResult {
 		private final VariablePathSet< VariablePathNode > neededCorrPaths;
 		private final VariablePathSet< FlaggedVariablePathNode > providedCorrPaths;
 		private final VariablePathSet< VariablePathNode > neededVarPaths;

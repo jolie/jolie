@@ -284,10 +284,9 @@ public class JavaGWTDocumentCreator {
 	private void ConvertSubTypes( TypeDefinition typeDefinition, StringBuilder builderHeaderclass ) {
 		Set< Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 		for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-			Entry me = (Entry) stringTypeDefinitionEntry;
-			if( (((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition)
-				&& (Utils.hasSubTypes( ((TypeDefinition) me.getValue()) )) ) {
-				convertClass( (TypeDefinition) me.getValue(), builderHeaderclass );
+			if( (((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) instanceof TypeInlineDefinition)
+				&& (Utils.hasSubTypes( ((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) )) ) {
+				convertClass( (TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue(), builderHeaderclass );
 			}
 		}
 
@@ -968,13 +967,15 @@ public class JavaGWTDocumentCreator {
 		if( Utils.hasSubTypes( typeDefinition ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-				Entry me = (Entry) stringTypeDefinitionEntry;
 
-				if( ((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink ) {
-					if( !subTypeMap.containsKey( ((TypeDefinitionLink) me.getValue()).linkedTypeName() ) ) {
-						subTypeMap.put( ((TypeDefinitionLink) me.getValue()).linkedTypeName(),
-							((TypeDefinitionLink) me.getValue()).linkedType() );
-						parseSubType( ((TypeDefinitionLink) me.getValue()).linkedType() );
+				if( ((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) instanceof TypeDefinitionLink ) {
+					if( !subTypeMap.containsKey(
+						((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName() ) ) {
+						subTypeMap.put(
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName(),
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
+						parseSubType(
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
 					}
 				}
 			}

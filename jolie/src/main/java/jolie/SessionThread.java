@@ -53,7 +53,7 @@ import jolie.util.Pair;
  * @author Fabrizio Montesi
  */
 public class SessionThread extends ExecutionThread {
-	private class SessionMessageFuture implements Future< SessionMessage > {
+	private static class SessionMessageFuture implements Future< SessionMessage > {
 		private final Lock lock;
 		private final Condition condition;
 		private SessionMessage sessionMessage = null;

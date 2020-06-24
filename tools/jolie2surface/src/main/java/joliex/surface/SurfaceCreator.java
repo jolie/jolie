@@ -119,8 +119,7 @@ public class SurfaceCreator {
 	}
 
 	private String getOWString( OneWayOperationDeclaration ow ) {
-		String ret = ow.id() + "( " + ow.requestType().id() + " )";
-		return ret;
+		return ow.id() + "( " + ow.requestType().id() + " )";
 	}
 
 	private String getRRString( RequestResponseOperationDeclaration rr ) {
@@ -209,7 +208,7 @@ public class SurfaceCreator {
 
 			System.out.print( "type " + type.id() + ":" );
 			checkType( type );
-			System.out.println( "" );
+			System.out.println();
 			typesVector.add( type.id() );
 		}
 

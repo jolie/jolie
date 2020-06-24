@@ -176,8 +176,7 @@ public class NamedStatementParser {
 	}
 
 	private List< Integer > getParameterPositions( String parameterName ) {
-		List< Integer > ret = parameterPositions.computeIfAbsent( parameterName, k -> new ArrayList<>() );
-		return ret;
+		return parameterPositions.computeIfAbsent( parameterName, k -> new ArrayList<>() );
 	}
 
 	public PreparedStatement getPreparedStatement() {

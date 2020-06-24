@@ -23,7 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.stream.Stream;
+import java.util.Arrays;
 
 import jolie.lang.parse.ParserException;
 
@@ -62,7 +62,7 @@ public class Jolie {
 	public static void main( String[] args ) {
 		int exitCode = 0;
 		// TODO: remove this hack by extracting CommandLineParser here
-		boolean printStackTraces = Stream.of( args ).anyMatch( s -> s.equals( "--stackTraces" ) );
+		boolean printStackTraces = Arrays.asList( args ).contains( "--stackTraces" );
 
 		try {
 			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );

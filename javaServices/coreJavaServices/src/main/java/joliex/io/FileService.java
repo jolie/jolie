@@ -63,7 +63,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -265,7 +264,7 @@ public class FileService extends JavaService {
 		}
 	}
 
-	private static void __copyDir( File src, File dest ) throws FileNotFoundException, IOException {
+	private static void __copyDir( File src, File dest ) throws IOException {
 		if( src.isDirectory() ) {
 			if( !dest.exists() ) {
 				dest.mkdir();
@@ -279,7 +278,7 @@ public class FileService extends JavaService {
 		} else {
 			try( // copy files
 				FileInputStream inStream = new FileInputStream( src );
-				FileOutputStream outStream = new FileOutputStream( dest ); ) {
+				FileOutputStream outStream = new FileOutputStream( dest ) ) {
 				byte[] buffer = new byte[ 4096 ];
 				int length;
 				while( (length = inStream.read( buffer )) > 0 ) {
@@ -551,8 +550,6 @@ public class FileService extends JavaService {
 				StreamResult result = new StreamResult( writer );
 				transformer.transform( new DOMSource( doc ), result );
 			}
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
 		} catch( ParserConfigurationException | TransformerException e ) {
 			throw new IOException( e );
 		}

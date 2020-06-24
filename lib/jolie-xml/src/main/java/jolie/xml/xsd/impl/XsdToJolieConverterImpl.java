@@ -108,7 +108,6 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				|| typeName.equals( "nonNegativeInteger" )
 				|| typeName.equals( "time" )
 				|| typeName.equals( "base64Binary" )
-				|| typeName.equals( "unsignedShort" )
 				|| typeName.equals( "gMonthDay" )
 				|| typeName.equals( "gYeardDay" )
 				|| typeName.equals( "gDay" )
@@ -122,7 +121,6 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				|| typeName.equals( "hexBinary" )
 				|| typeName.equals( "boolean" )
 				|| typeName.equals( "negativeInteger" )
-				|| typeName.equals( "long" )
 				|| typeName.equals( "unsignedByte" )
 				|| typeName.equals( "integer" )
 				|| typeName.equals( "int" )
@@ -147,7 +145,6 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				|| typeName.equals( "NCName" )
 				|| typeName.equals( "NMTOKEN" )
 				|| typeName.equals( "NMTOKENS" )
-				|| typeName.equals( "normalizedString" )
 				|| typeName.equals( "QName" )
 				|| typeName.equals( "token" ) ) {
 				flag = true;

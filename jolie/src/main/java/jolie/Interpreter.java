@@ -970,8 +970,7 @@ public class Interpreter {
 	 * @return the global lock registered on this interpreter with the specified identifier
 	 */
 	public synchronized Object getLock( String id ) {
-		Object l = locksMap.computeIfAbsent( id, k -> new Object() );
-		return l;
+		return locksMap.computeIfAbsent( id, k -> new Object() );
 	}
 
 	public SessionStarter getSessionStarter( String operationName ) {

@@ -133,8 +133,7 @@ public class XmlStorage extends AbstractStorageService {
 		throws FaultException {
 		try {
 			checkConnection();
-			Value value = valueFromFile();
-			return value;
+			return valueFromFile();
 		} catch( IOException e ) {
 			throw new FaultException( "StorageFault", e.getMessage() );
 		}

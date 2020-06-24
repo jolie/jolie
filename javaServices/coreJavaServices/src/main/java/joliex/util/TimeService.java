@@ -36,7 +36,7 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 
 public class TimeService extends JavaService {
-	protected class TimeThread extends Thread {
+	protected static class TimeThread extends Thread {
 		private final long waitTime;
 		private final String callbackOperation;
 		private final Value callbackValue;

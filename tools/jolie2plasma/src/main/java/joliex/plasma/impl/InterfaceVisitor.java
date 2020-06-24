@@ -114,7 +114,7 @@ public class InterfaceVisitor implements OLVisitor {
 		new ArrayList<>();
 	private final Set< String > interfaceNames = new HashSet<>();
 
-	public class InterfaceNotFound extends Exception {
+	public static class InterfaceNotFound extends Exception {
 		public InterfaceNotFound( String message ) {
 			super( message );
 		}
