@@ -97,9 +97,9 @@ public class HttpParser {
 				}
 				break;
 			case "cookie":
-				String ss[] = value.split( ";" );
+				String[] ss = value.split( ";" );
 				for( String s : ss ) {
-					String nv[] = s.trim().split( "=", 2 );
+					String[] nv = s.trim().split( "=", 2 );
 					if( nv.length > 1 ) {
 						message.addCookie( nv[ 0 ], nv[ 1 ] );
 					}
@@ -118,15 +118,15 @@ public class HttpParser {
 	}
 
 	private HttpMessage.Cookie parseSetCookie( String cookieString ) {
-		String ss[] = COOKIES_SPLIT_PATTERN.split( cookieString );
+		String[] ss = COOKIES_SPLIT_PATTERN.split( cookieString );
 		if( cookieString.isEmpty() == false && ss.length > 0 ) {
 			boolean secure = false;
 			String domain = "";
 			String path = "";
 			String expires = "";
-			String nameValue[] = COOKIE_NAME_VALUE_SPLIT_PATTERN.split( ss[ 0 ], 2 );
+			String[] nameValue = COOKIE_NAME_VALUE_SPLIT_PATTERN.split( ss[ 0 ], 2 );
 			if( ss.length > 1 ) {
-				String kv[];
+				String[] kv;
 				for( int i = 1; i < ss.length; i++ ) {
 					if( "secure".equals( ss[ i ] ) ) {
 						secure = true;
@@ -278,7 +278,7 @@ public class HttpParser {
 			}
 		}
 
-		byte buffer[] = null;
+		byte[] buffer = null;
 		InputStream stream = scanner.inputStream();
 		if( chunked ) {
 			// Link: http://tools.ietf.org/html/rfc2616#section-3.6.1

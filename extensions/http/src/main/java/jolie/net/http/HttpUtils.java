@@ -154,7 +154,7 @@ public class HttpUtils {
 			String[] contentType = message.getProperty( "content-type" ).split( ";" );
 			for( int i = 1; i < contentType.length; i++ ) {
 				if( contentType[ i ].toLowerCase().contains( "charset" ) ) {
-					String pair[] = contentType[ i ].split( "=", 2 );
+					String[] pair = contentType[ i ].split( "=", 2 );
 					if( pair.length == 2 ) {
 						return pair[ 1 ];
 					}

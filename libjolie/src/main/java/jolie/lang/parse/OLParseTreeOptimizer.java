@@ -857,7 +857,7 @@ public class OLParseTreeOptimizer {
 		@Override
 		public void visit( InlineTreeExpressionNode n ) {
 			OLSyntaxNode rootExpression = optimizeNode( n.rootExpression() );
-			InlineTreeExpressionNode.Operation operations[] =
+			InlineTreeExpressionNode.Operation[] operations =
 				new InlineTreeExpressionNode.Operation[ n.operations().length ];
 			int i = 0;
 			for( InlineTreeExpressionNode.Operation operation : n.operations() ) {

@@ -89,7 +89,7 @@ public class JavaDocumentCreator {
 
 	public static final String DEFAULT_OUTPUT_DIRECTORY = "./generated";
 
-	static final String KEYWORDS[] = { "abstract", "assert", "boolean",
+	static final String[] KEYWORDS = { "abstract", "assert", "boolean",
 		"break", "byte", "case", "catch", "char", "class", "const",
 		"continue", "default", "do", "double", "else", "extends", "false",
 		"final", "finally", "float", "for", "goto", "if", "implements",
