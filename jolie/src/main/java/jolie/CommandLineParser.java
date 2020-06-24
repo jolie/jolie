@@ -556,7 +556,7 @@ public class CommandLineParser implements Closeable {
 				optionsList.add( argsList.get( i ) );
 				i++;
 				try {
-					cellId = new Integer( argsList.get( i ) );
+					cellId = Integer.parseInt( argsList.get( i ) );
 				} catch( Exception e ) {
 					System.out
 						.println(
