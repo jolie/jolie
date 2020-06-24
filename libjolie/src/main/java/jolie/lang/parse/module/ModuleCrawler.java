@@ -76,11 +76,11 @@ class ModuleCrawler {
 	}
 
 	private final ModuleFinder finder;
-	private final ModuleParser parser;
+	private final ParserConfiguration parserConfiguration;
 
-	private ModuleCrawler( ModuleParser parser, ModuleFinder finder ) {
+	private ModuleCrawler( ParserConfiguration parserConfiguration, ModuleFinder finder ) {
 		this.finder = finder;
-		this.parser = parser;
+		this.parserConfiguration = parserConfiguration;
 	}
 
 	private ModuleSource findModule( ImportPath importPath, URI parentURI )
@@ -126,6 +126,7 @@ class ModuleCrawler {
 				continue;
 			}
 
+			ModuleParser parser = new ModuleParser( parserConfiguration );
 			ModuleRecord p = parser.parse( module );
 
 			result.addModuleRecord( p );
@@ -146,9 +147,10 @@ class ModuleCrawler {
 	 * @throws IOException
 	 * @throws ModuleException
 	 */
-	protected static CrawlerResult crawl( ModuleRecord initial, ModuleParser parser, ModuleFinder finder )
+	protected static CrawlerResult crawl( ModuleRecord initial, ParserConfiguration parserConfiguration,
+		ModuleFinder finder )
 		throws ParserException, IOException, ModuleException {
-		ModuleCrawler crawler = new ModuleCrawler( parser, finder );
+		ModuleCrawler crawler = new ModuleCrawler( parserConfiguration, finder );
 		return crawler.crawl( initial );
 	}
 }
