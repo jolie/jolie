@@ -67,7 +67,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 			if( importPath.isRelativeImport() ) {
 				Path parentPath = Paths.get( parentUri );
 				ModuleLookUpTarget target = this.resolveDotPrefix( importPath, parentPath );
-				return this.moduleLookup( target );
+				return this.moduleLookup( target.basePath, target.importPath );
 			} else {
 				return this.findAbsoluteImport( importPath );
 			}
@@ -114,10 +114,6 @@ public class ModuleFinderImpl implements ModuleFinder {
 		}
 
 		throw new ModuleNotFoundException( importPath.pathParts().toString(), errMessageList );
-	}
-
-	private ModuleSource moduleLookup( ModuleLookUpTarget target ) throws FileNotFoundException {
-		return moduleLookup( target.basePath, target.importPath );
 	}
 
 	/**
