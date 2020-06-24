@@ -1433,11 +1433,6 @@ public class Interpreter {
 		fireMonitorEvent( () -> {
 			return new SessionStartedEvent( operationName, sessionId, programFilename(), parsingContext );
 		} );
-		fireMonitorEvent( () -> {
-			return new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ),
-				programFilename(),
-				parsingContext, message );
-		} );
 
 	}
 

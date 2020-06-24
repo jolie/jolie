@@ -300,13 +300,22 @@ public class RuntimeService extends JavaService {
 	@RequestResponse
 	public void log( Value request ) {
 		LogEvent.LogLevel logLevel = LogEvent.LogLevel.INFO;
-		if( request.getFirstChild( "level" ).equals( "error" ) ) {
+		if( request.getFirstChild( "level" ).equals( "ERROR" ) ) {
 			logLevel = LogEvent.LogLevel.ERROR;
 		}
-		if( request.getFirstChild( "level" ).equals( "warning" ) ) {
+		if( request.getFirstChild( "level" ).equals( "WARNING" ) ) {
 			logLevel = LogEvent.LogLevel.WARNING;
 		}
-		LogEvent logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel, null );
+
+		LogEvent logEvent;
+		if( request.hasChildren( "extendedType" ) ) {
+			logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel,
+				ExecutionThread.currentThread().getSessionId(), request.getFirstChild( "extendedType" ).strValue(),
+				null );
+		} else {
+			logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel,
+				ExecutionThread.currentThread().getSessionId(), null );
+		}
 		interpreter.fireMonitorEvent( () -> {
 			return logEvent;
 		} );

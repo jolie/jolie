@@ -98,13 +98,6 @@ public class RequestResponseProcess implements InputOperationProcess {
 	}
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
-		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( () -> {
-				return new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-					Long.valueOf( sessionMessage.message().id() ).toString(),
-					Interpreter.getInstance().programFilename(), context, sessionMessage.message().value() );
-			} );
-		}
 
 		log( "RECEIVED", sessionMessage.message() );
 		if( inputVarPath != null ) {
@@ -114,7 +107,13 @@ public class RequestResponseProcess implements InputOperationProcess {
 		return new Process() {
 			public void run()
 				throws FaultException, ExitingException {
-				runBehaviour( sessionMessage.channel(), sessionMessage.message() );
+				final String processId = ExecutionThread.currentThread().getSessionId();
+				Interpreter.getInstance().fireMonitorEvent( () -> {
+					return new OperationStartedEvent( operation.id(), processId,
+						Long.valueOf( sessionMessage.message().id() ).toString(),
+						Interpreter.getInstance().programFilename(), context, sessionMessage.message().value() );
+				} );
+				runBehaviour( sessionMessage.channel(), sessionMessage.message(), processId );
 			}
 
 			public Process copy( TransformationReason reason ) {
@@ -173,7 +172,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 		return CommMessage.createFaultResponse( request, f );
 	}
 
-	private void runBehaviour( CommChannel channel, CommMessage message )
+	private void runBehaviour( CommChannel channel, CommMessage message, String processId )
 		throws FaultException {
 		// Variables for monitor
 		int responseStatus;
@@ -257,7 +256,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 
 
 			Interpreter.getInstance().fireMonitorEvent( () -> {
-				return new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
+				return new OperationEndedEvent( operation.id(), processId,
 					Long.toString( responseId ), responseStatusforMonitor, details.toString(), monitorValue,
 					Interpreter.getInstance().programFilename(), context );
 			} );

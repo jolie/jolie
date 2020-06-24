@@ -7,7 +7,7 @@ import jolie.runtime.Value;
 public class LogEvent extends MonitoringEvent {
 
 	public enum LogLevel {
-		INFO( "info" ), WARNING( "warning" ), ERROR( "error" );
+		INFO( "INFO" ), WARNING( "WARNING" ), ERROR( "ERROR" );
 
 		private String level;
 
@@ -20,11 +20,23 @@ public class LogEvent extends MonitoringEvent {
 		}
 	}
 
-	public LogEvent( String message, String service, LogLevel logLevel, ParsingContext context ) {
+	public LogEvent( String message, String service, LogLevel logLevel, String processId, String type,
+		ParsingContext context ) {
 
 		super( "Log", service, context, Value.create() );
 
 		data().getFirstChild( "level" ).setValue( logLevel.getLevel() );
 		data().getFirstChild( "message" ).setValue( message );
+		data().getFirstChild( "processId" ).setValue( processId );
+		data().getFirstChild( "extendedType" ).setValue( type );
+	}
+
+	public LogEvent( String message, String service, LogLevel logLevel, String processId, ParsingContext context ) {
+
+		super( "Log", service, context, Value.create() );
+
+		data().getFirstChild( "level" ).setValue( logLevel.getLevel() );
+		data().getFirstChild( "message" ).setValue( message );
+		data().getFirstChild( "processId" ).setValue( processId );
 	}
 }

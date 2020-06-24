@@ -48,6 +48,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import jolie.ExecutionThread;
 import jolie.monitoring.events.ProtocolMessageEvent;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.ProtocolTraceAction;
@@ -879,10 +880,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					try {
 						final String traceMessage = encodedContent.content.toString( charset );
 						return new ProtocolMessageEvent( traceMessage, headerBuilder.toString(),
-							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+							ExecutionThread.currentThread().getSessionId(), null );
 					} catch( UnsupportedEncodingException e ) {
 						return new ProtocolMessageEvent( e.getMessage(), headerBuilder.toString(),
-							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+							ExecutionThread.currentThread().getSessionId(), null );
 					}
 				} );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
@@ -969,10 +972,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			try {
 				final String traceMessage = prepareSendDebugString( headerBuilder, encodedContent, charset, true );
 				return new ProtocolMessageEvent( traceMessage, "",
-					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(), null );
 			} catch( IOException e ) {
 				return new ProtocolMessageEvent( e.getMessage(), "",
-					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(), null );
 			}
 		} );
 
@@ -1394,10 +1399,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			try {
 				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
 				return new ProtocolMessageEvent( traceMessage, "",
-					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(), null );
 			} catch( IOException e ) {
 				return new ProtocolMessageEvent( e.getMessage(), "",
-					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP, null );
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(), null );
 			}
 		} );
 

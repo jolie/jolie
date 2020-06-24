@@ -96,6 +96,7 @@ type HaltRequest: void {
 /// the message to be logged
 type LogMonitorRequest: string {
 	.level?: string //< INFO (default) | WARNING | ERROR
+	.extendedType?: string
 }
 
 /// Information on the interpreter execution so far

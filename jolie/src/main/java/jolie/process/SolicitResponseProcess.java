@@ -98,6 +98,7 @@ public class SolicitResponseProcess implements Process {
 		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
+		final String processId = ExecutionThread.currentThread().getSessionId();
 		CommChannel channel = null;
 		try {
 
@@ -120,7 +121,7 @@ public class SolicitResponseProcess implements Process {
 						message.resourcePath(), tmpValue, null ) );
 					if( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent( () -> {
-							return new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
+							return new OperationCallEvent( operationId, processId,
 								Long.toString( message.id() ), OperationCallEvent.FAULT,
 								"TypeMismatch:" + e.getMessage(), outputPort.id(),
 								Interpreter.getInstance().programFilename(), context, message.value() );
@@ -139,7 +140,7 @@ public class SolicitResponseProcess implements Process {
 				Interpreter.getInstance()
 					.fireMonitorEvent( () -> {
 						return new OperationCallEvent( operationId,
-							ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ),
+							processId, Long.toString( message.id() ),
 							OperationCallEvent.SUCCESS, "", outputPort.id(),
 							Interpreter.getInstance().programFilename(), context,
 							message.value() );
@@ -178,7 +179,7 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance()
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
-									ExecutionThread.currentThread().getSessionId(),
+									processId,
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
 									response.fault().faultName(), outputPort.id(),
 									Interpreter.getInstance().programFilename(), context, response.fault().value() );
@@ -189,7 +190,7 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance()
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
-									ExecutionThread.currentThread().getSessionId(),
+									processId,
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
 									outputPort.id(), Interpreter.getInstance().programFilename(), context,
@@ -203,7 +204,7 @@ public class SolicitResponseProcess implements Process {
 				} else {
 
 					Interpreter.getInstance().fireMonitorEvent( () -> {
-						return new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
+						return new OperationReplyEvent( operationId, processId,
 							Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
 							response.fault().faultName(), Interpreter.getInstance().programFilename(),
 							outputPort.id(), context, response.fault().value() );
@@ -219,7 +220,7 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance()
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
-									ExecutionThread.currentThread().getSessionId(),
+									processId,
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.SUCCESS, "",
 									outputPort.id(), Interpreter.getInstance().programFilename(), context,
 									response.value() );
@@ -230,7 +231,7 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance()
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
-									ExecutionThread.currentThread().getSessionId(),
+									processId,
 									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT, e.getMessage(),
 									outputPort.id(), Interpreter.getInstance().programFilename(), context,
 									response.value() );
@@ -243,7 +244,7 @@ public class SolicitResponseProcess implements Process {
 
 					Interpreter.getInstance().fireMonitorEvent( () -> {
 						return new OperationReplyEvent( operationId,
-							ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id() ).toString(),
+							processId, Long.valueOf( response.id() ).toString(),
 							OperationReplyEvent.SUCCESS, "", outputPort.id(),
 							Interpreter.getInstance().programFilename(), context, response.value() );
 					} );

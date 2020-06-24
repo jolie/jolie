@@ -88,6 +88,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.monitoring.events.ProtocolMessageEvent;
@@ -1037,13 +1039,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			} );
 			Interpreter.getInstance().fireMonitorEvent( () -> {
 				try {
+					final String processId = ExecutionThread.currentThread().getSessionId();
 					final String traceMessage = httpMessage.toString() + plainTextContent.toString( "utf-8" );
 					return new ProtocolMessageEvent( traceMessage, "",
-						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent( e.getMessage(), "",
-						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
-
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(), null );
 				}
 			} );
 
@@ -1313,11 +1317,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						new StringBuilder().append( getHeadersFromHttpMessage( message ) ).append( "\n" )
 							.append( new String( message.content(), charset ) ).toString(),
 						"",
-						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent(
 						e.getMessage(), "", Interpreter.getInstance().programFilename(),
-						ProtocolMessageEvent.Protocol.SOAP, null );
+						ProtocolMessageEvent.Protocol.SOAP, ExecutionThread.currentThread().getSessionId(), null );
 				}
 
 			} );
