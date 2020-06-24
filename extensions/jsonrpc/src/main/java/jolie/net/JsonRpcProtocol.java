@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -103,7 +104,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				StringBuilder httpMessage = new StringBuilder();
 				httpMessage.append( "HTTP/1.1 204 No Content" ).append( HttpUtils.CRLF )
 					.append( "Server: Jolie" ).append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
-				ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
+				ostream.write( httpMessage.toString().getBytes( StandardCharsets.UTF_8 ) );
 				return;
 			}
 		}
@@ -232,7 +233,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 		}
 
-		ByteArray content = new ByteArray( jsonMessage.getBytes( "utf-8" ) );
+		ByteArray content = new ByteArray( jsonMessage.getBytes( StandardCharsets.UTF_8 ) );
 
 		if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			String lspHeaders = "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF;

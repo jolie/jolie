@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -170,7 +171,7 @@ public class FileService extends JavaService {
 		InputStreamReader isr;
 		if( charset == null ) {
 			// UTF-8 is JSON's default charset: https://tools.ietf.org/html/rfc7159#section-8.1
-			isr = new InputStreamReader( istream, "UTF-8" );
+			isr = new InputStreamReader( istream, StandardCharsets.UTF_8 );
 		} else {
 			isr = new InputStreamReader( istream, charset );
 		}
