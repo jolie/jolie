@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 
+import java.nio.charset.StandardCharsets;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -108,11 +109,11 @@ public class HttpUtils {
 			httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( CRLF );
 		}
 		String message = e.getMessage() != null ? e.getMessage() : e.toString();
-		ByteArray content = new ByteArray( message.getBytes( "utf-8" ) );
+		ByteArray content = new ByteArray( message.getBytes( StandardCharsets.UTF_8 ) );
 		httpMessage.append( "Server: Jolie" ).append( CRLF )
 			.append( "Content-Type: text/plain; charset=utf-8" ).append( CRLF )
 			.append( "Content-Length: " ).append( content.size() ).append( CRLF ).append( CRLF );
-		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
+		ostream.write( httpMessage.toString().getBytes( StandardCharsets.UTF_8 ) );
 		ostream.write( content.getBytes() );
 		ostream.flush();
 	}

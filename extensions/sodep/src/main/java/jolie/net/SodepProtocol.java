@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		return "sodep";
 	}
 
-	private Charset stringCharset = Charset.forName( "UTF8" );
+	private Charset stringCharset = StandardCharsets.UTF_8;
 
 	private String readString( DataInput in )
 		throws IOException {

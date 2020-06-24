@@ -25,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -156,7 +157,8 @@ public class MultiPartFormDataParser {
 	public void parse()
 		throws IOException {
 		// this needs to be strictly parsed with US-ASCII, since we are dealing with raw data
-		String[] parts = (HttpUtils.CRLF + new String( message.content(), "US-ASCII" )).split( boundary + "--" );
+		String[] parts =
+			(HttpUtils.CRLF + new String( message.content(), StandardCharsets.US_ASCII )).split( boundary + "--" );
 		parts = (parts[ 0 ] + boundary + HttpUtils.CRLF).split( HttpUtils.CRLF + boundary + HttpUtils.CRLF );
 
 		// The first one is always empty, so we start from 1
