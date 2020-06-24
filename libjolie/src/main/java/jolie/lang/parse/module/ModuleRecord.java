@@ -29,7 +29,7 @@ import jolie.lang.parse.ast.Program;
 public class ModuleRecord {
 	private final URI source;
 	private final Program program;
-	private SymbolTable symbolTable;
+	private final SymbolTable symbolTable;
 
 	public ModuleRecord( URI source, Program program, SymbolTable symbolTable ) {
 		this.source = source;

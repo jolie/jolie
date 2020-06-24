@@ -249,16 +249,19 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		if( getClass() != obj.getClass() )
 			return false;
 		TypeDefinition other = (TypeDefinition) obj;
-		return this.isEquivalentTo(other);
+		if( !this.id.equals( other.id ) ) {
+			return false;
+		}
+		return this.isEquivalentTo( other );
 	}
+
+	protected abstract int hashCode( Set< String > recursiveTypeHashed );
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + context().hashCode();
-		result = prime * result + id.hashCode();
-		return result;
+		int hash = 7;
+		hash = 31 * hash + cardinality.hashCode();
+		return hash + hashCode( new HashSet<>() );
 	}
 
 	/*

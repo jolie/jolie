@@ -123,4 +123,24 @@ public class TypeInlineDefinition extends TypeDefinition {
 	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
 	}
+
+	@Override
+	protected int hashCode( Set< String > recursiveTypeHashed ) {
+		if( recursiveTypeHashed.contains( this.id() ) ) {
+			return 0;
+		}
+		recursiveTypeHashed.add( this.id() );
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + this.id().hashCode();
+		result = prime * result + recursiveTypeHashed.size();
+		result = prime * result + nativeType.hashCode();
+		if( this.hasSubTypes() ) {
+			for( TypeDefinition typeDef : subTypes.values() ) {
+				result = prime * result + typeDef.hashCode( recursiveTypeHashed );
+			}
+		}
+		result = prime * result + (untypedSubTypes ? 1231 : 1237);
+		return result;
+	}
 }

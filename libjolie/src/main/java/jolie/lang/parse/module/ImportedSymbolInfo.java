@@ -38,12 +38,17 @@ class ImportedSymbolInfo extends SymbolInfo {
 		super( context, name, Scope.EXTERNAL, AccessModifier.PRIVATE );
 		this.importPath = importPath;
 		this.originalSymbolName = originalSymbolName;
+		this.moduleSource = null;
 	}
 
 	/**
 	 * set a destination source of the symbol
 	 */
-	protected void setModuleSource( ModuleSource moduleSource ) {
+	protected void setModuleSource( ModuleSource moduleSource ) throws ModuleException {
+		if( this.moduleSource != null ) {
+			throw new ModuleException( this.context(),
+				"original source of symbol " + this.name() + " is already defined" );
+		}
 		this.moduleSource = moduleSource;
 	}
 

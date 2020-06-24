@@ -22,6 +22,7 @@ package jolie.lang.parse.ast.types;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
@@ -63,5 +64,22 @@ public class TypeChoiceDefinition extends TypeDefinition {
 		final List< Pair< OLSyntaxNode, OLSyntaxNode > > path = new LinkedList<>();
 		it.forEachRemaining( pair -> path.add( pair ) );
 		return left.containsPath( path.iterator() ) && right.containsPath( path.iterator() );
+	}
+
+	@Override
+	public int hashCode( Set< String > recursiveTypeHashed ) {
+		if( recursiveTypeHashed.contains( this.id() ) ) {
+			return 0;
+		}
+		recursiveTypeHashed.add( this.id() );
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + this.id().hashCode();
+		result = prime * result + recursiveTypeHashed.size();
+		result = prime * result + left.hashCode( recursiveTypeHashed );
+		if( right != null ) {
+			result = prime * result + right.hashCode( recursiveTypeHashed );
+		}
+		return result;
 	}
 }
