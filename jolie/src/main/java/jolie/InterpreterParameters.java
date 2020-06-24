@@ -37,6 +37,7 @@ public class InterpreterParameters {
 	private boolean printStackTraces = false;
 	private Level logLevel = Level.OFF;
 	private File programDirectory = null;
+	private int cellId = 0;
 
 
 	public InterpreterParameters() throws IOException {
@@ -65,7 +66,8 @@ public class InterpreterParameters {
 		boolean printStackTraces,
 		long responseTimeout,
 		Level logLevel,
-		File programDirectory ) throws IOException {
+		File programDirectory,
+		int cellId ) throws IOException {
 
 		this.connectionsLimit = connectionsLimit;
 		this.correlationAlgorithm = correlationAlgorithm;
@@ -90,6 +92,7 @@ public class InterpreterParameters {
 		this.responseTimeout = responseTimeout;
 		this.logLevel = logLevel;
 		this.programDirectory = programDirectory;
+		this.cellId = cellId;
 	}
 
 	public InterpreterParameters( String[] optionArgs,
@@ -301,6 +304,16 @@ public class InterpreterParameters {
 
 	public void clear() {
 		jolieClassLoader = null;
+	}
+
+
+	/**
+	 * Returns the service identifier for the service
+	 *
+	 * @return the service identifier for the service
+	 */
+	public int cellId() {
+		return cellId;
 	}
 
 
