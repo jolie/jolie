@@ -154,10 +154,7 @@
 	
 	<rule ref="category/java/performance.xml">
 		<!-- To be added -->
-		<!-- <exclude name="InefficientStringBuffering" /> -->
 		<exclude name="SimplifyStartsWith" />
-		<exclude name="IntegerInstantiation" />
-		<exclude name="LongInstantiation" />
 		<exclude name="InsufficientStringBufferDeclaration" />
 		<exclude name="AvoidFileStream" />
 		<exclude name="AppendCharacterWithChar" />
