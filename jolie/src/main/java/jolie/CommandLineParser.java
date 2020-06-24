@@ -241,7 +241,7 @@ public class CommandLineParser implements Closeable {
 		return constants;
 	}
 
-	private int cellId() {
+	public int cellId() {
 		return cellId;
 	}
 
@@ -950,8 +950,7 @@ public class CommandLineParser implements Closeable {
 			printStackTraces,
 			responseTimeout(),
 			logLevel(),
-			programDirectory(),
-			cellId() );
+			programDirectory() );
 
 	}
 
