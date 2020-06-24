@@ -629,7 +629,7 @@ public class CommandLineParser implements Closeable {
 					List< String > archives = Files.list( dir ).map( Path::toString )
 						.filter( p -> p.endsWith( ".jar" ) || p.endsWith( ".jap" ) ).collect( Collectors.toList() );
 					for( String archive : archives ) {
-						String scheme = archive.substring( archive.length() - 3, archive.length() ); // "jap" or "jar"
+						String scheme = archive.substring( archive.length() - 3 ); // "jap" or "jar"
 						urls.add( new URL( scheme + ":" + Paths.get( archive ).toUri().toString() + "!/" ) );
 					}
 				}
@@ -781,7 +781,7 @@ public class CommandLineParser implements Closeable {
 
 	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths,
 		Deque< String > optionsList, ClassLoader classLoader )
-		throws FileNotFoundException, IOException {
+		throws IOException {
 		GetOLStreamResult result = new GetOLStreamResult();
 		if( ignoreFile ) {
 			return result;
@@ -905,7 +905,8 @@ public class CommandLineParser implements Closeable {
 	}
 
 	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
-		InterpreterParameters interpreterParameters = new InterpreterParameters(
+
+		return new InterpreterParameters(
 			connectionsLimit(),
 			correlationAlgorithmType(),
 			includePaths(),
@@ -927,8 +928,6 @@ public class CommandLineParser implements Closeable {
 			responseTimeout(),
 			logLevel(),
 			programDirectory() );
-
-		return interpreterParameters;
 
 	}
 

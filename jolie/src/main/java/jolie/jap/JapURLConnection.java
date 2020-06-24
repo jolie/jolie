@@ -55,7 +55,7 @@ public class JapURLConnection extends URLConnection {
 	private long entrySize = 0L;
 
 	public JapURLConnection( URL url )
-		throws MalformedURLException, IOException {
+		throws IOException {
 		super( url );
 	}
 

@@ -23,18 +23,18 @@ package joliex.dummycreator.impl;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map.Entry;
+
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
 
 /**
@@ -56,7 +56,7 @@ public class JolieDummyDocumentCreator {
 	}
 
 	public void createDocument()
-		throws FileNotFoundException, IOException {
+		throws IOException {
 		String fileContent = new String( Files.readAllBytes( sourceFile.toPath() ) );
 		stringBuilder.append( "main {\n" );
 		for( InputPortInfo inputPortInfo : inspector.getInputPorts() ) {

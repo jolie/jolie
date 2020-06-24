@@ -101,7 +101,7 @@ public class ExecService extends JavaService {
 		}
 	}
 
-	private class StreamGobbler extends Thread {
+	private static class StreamGobbler extends Thread {
 
 		InputStream is;
 

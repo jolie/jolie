@@ -40,7 +40,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -869,8 +868,6 @@ public class JavaDocumentCreator {
 			DOMSource source = new DOMSource( doc );
 			StreamResult streamResult = new StreamResult( new File( generatedPath + "/build.xml" ) );
 			transformer.transform( source, streamResult );
-		} catch( TransformerConfigurationException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		} catch( ParserConfigurationException | TransformerException ex ) {
 			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		}
@@ -1928,7 +1925,7 @@ public class JavaDocumentCreator {
 				String variableName = getVariableName( subType );
 				String startingChar = variableName.substring( 0, 1 );
 				String variableNameCapitalized =
-					startingChar.toUpperCase().concat( variableName.substring( 1, variableName.length() ) );
+					startingChar.toUpperCase().concat( variableName.substring( 1 ) );
 				if( variableNameCapitalized.equals( "Value" ) ) {
 					variableNameCapitalized = "__Value";
 				}
@@ -2058,13 +2055,15 @@ public class JavaDocumentCreator {
 		if( Utils.hasSubTypes( typeDefinition ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-				Entry me = (Entry) stringTypeDefinitionEntry;
 				// System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
-				if( ((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink ) {
-					if( !subTypeMap.containsKey( ((TypeDefinitionLink) me.getValue()).linkedTypeName() ) ) {
-						subTypeMap.put( ((TypeDefinitionLink) me.getValue()).linkedTypeName(),
-							((TypeDefinitionLink) me.getValue()).linkedType() );
-						parseSubType( ((TypeDefinitionLink) me.getValue()).linkedType() );
+				if( ((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) instanceof TypeDefinitionLink ) {
+					if( !subTypeMap.containsKey(
+						((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName() ) ) {
+						subTypeMap.put(
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName(),
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
+						parseSubType(
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
 					}
 				}
 			}

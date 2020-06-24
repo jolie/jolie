@@ -83,7 +83,7 @@ public class FileTracer implements Tracer {
 		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) ) {
 			StringBuilder stBuilder = new StringBuilder();
 			stBuilder.append( "{" )
-				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
 				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
@@ -116,7 +116,7 @@ public class FileTracer implements Tracer {
 			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMM )) ) {
 			StringBuilder stBuilder = new StringBuilder()
 				.append( "{" )
-				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
 				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
@@ -185,7 +185,7 @@ public class FileTracer implements Tracer {
 
 			StringBuilder stBuilder = new StringBuilder();
 			stBuilder.append( "{" )
-				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
 				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
@@ -241,7 +241,7 @@ public class FileTracer implements Tracer {
 			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMM )) ) {
 			StringBuilder stBuilder = new StringBuilder();
 			stBuilder.append( "{" )
-				.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
 				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
 				stBuilder.append( "\"" ).append( interpreter.programDirectory() )

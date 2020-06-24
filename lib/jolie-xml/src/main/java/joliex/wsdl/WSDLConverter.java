@@ -86,7 +86,7 @@ import joliex.wsdl.impl.OutputPort;
  */
 public class WSDLConverter {
 	private enum Style {
-		DOCUMENT, HTTP, RPC;
+		DOCUMENT, HTTP, RPC
 	}
 
 

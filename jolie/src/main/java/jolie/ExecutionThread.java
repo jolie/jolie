@@ -53,7 +53,7 @@ public abstract class ExecutionThread extends JolieThread {
 	 * A Scope object represents a fault handling scope, containing mappings for fault handlers and
 	 * termination/compensation handlers.
 	 */
-	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
+	protected static class Scope extends AbstractIdentifiableObject implements Cloneable {
 		private final Map< String, Process > faultMap;
 		private final Map< String, Process > compMap;
 

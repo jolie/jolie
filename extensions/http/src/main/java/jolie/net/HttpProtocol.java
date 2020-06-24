@@ -780,12 +780,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private Method send_getRequestMethod( CommMessage message )
 		throws IOException {
-		Method method =
-			hasOperationSpecificParameter( message.operationName(), Parameters.METHOD )
-				? Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ) )
-				: hasParameterValue( Parameters.METHOD ) ? Method.fromString( getStringParameter( Parameters.METHOD ) )
-					: Method.POST;
-		return method;
+		return hasOperationSpecificParameter( message.operationName(), Parameters.METHOD )
+			? Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ) )
+			: hasParameterValue( Parameters.METHOD ) ? Method.fromString( getStringParameter( Parameters.METHOD ) )
+				: Method.POST;
 	}
 
 	private void send_appendRequestHeaders( CommMessage message, Method method, String qsFormat,
@@ -1064,13 +1062,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		NativeType type = NativeType.fromString( typeKeyword );
 		if( NativeType.INT == type ) {
 			try {
-				value.setValue( new Integer( cookieValue ) );
+				value.setValue( Integer.valueOf( cookieValue ) );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
 		} else if( NativeType.LONG == type ) {
 			try {
-				value.setValue( new Long( cookieValue ) );
+				value.setValue( Long.valueOf( cookieValue ) );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
@@ -1261,7 +1259,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				final Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( compositePath );
 				if( m.find() ) {
 					decodedMessage.resourcePath = compositePath.substring( 0, m.start() );
-					decodedMessage.operationName = compositePath.substring( m.end(), compositePath.length() );
+					decodedMessage.operationName = compositePath.substring( m.end() );
 				} else {
 					decodedMessage.resourcePath = compositePath;
 				}

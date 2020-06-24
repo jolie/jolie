@@ -170,7 +170,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 						.getOperationTypeDescription().asRequestResponseTypeDescription().responseType();
 				}
 
-				operationType = operationType.getMinimalType( message.value() ).orElseGet( () -> Type.UNDEFINED );
+				operationType = operationType.getMinimalType( message.value() ).orElse( Type.UNDEFINED );
 				subTypes.put( "result", operationType );
 			} else {
 				jsonRpcOpMap.put( Long.toString( message.id() ), operationNameAliased );
@@ -187,7 +187,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					}
 				}
 
-				operationType = operationType.getMinimalType( message.value() ).orElseGet( () -> Type.UNDEFINED );
+				operationType = operationType.getMinimalType( message.value() ).orElse( Type.UNDEFINED );
 
 				if( message.value().isDefined() || message.value().hasChildren() ) {
 					// some implementations need an array here

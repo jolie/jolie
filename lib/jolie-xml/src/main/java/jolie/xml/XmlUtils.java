@@ -523,10 +523,10 @@ public class XmlUtils {
 			value.setValue( builder.toString() );
 			break;
 		case "int":
-			value.setValue( new Integer( builder.toString() ) );
+			value.setValue( Integer.valueOf( builder.toString() ) );
 			break;
 		case "long":
-			value.setValue( new Long( builder.toString() ) );
+			value.setValue( Long.valueOf( builder.toString() ) );
 			break;
 		case "double":
 			value.setValue( new Double( builder.toString() ) );

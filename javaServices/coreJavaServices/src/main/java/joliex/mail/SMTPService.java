@@ -52,7 +52,7 @@ import jolie.runtime.embedding.RequestResponse;
 
 @AndJarDeps( { "mailapi.jar", "smtp.jar" } )
 public class SMTPService extends JavaService {
-	private class SimpleAuthenticator extends Authenticator {
+	private static class SimpleAuthenticator extends Authenticator {
 		private final String username, password;
 
 		public SimpleAuthenticator( String username, String password ) {
