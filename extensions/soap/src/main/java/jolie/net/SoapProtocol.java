@@ -36,7 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.wsdl.BindingOperation;
 import javax.wsdl.BindingOutput;
 import javax.wsdl.Definition;
@@ -79,24 +78,15 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
 import com.ibm.wsdl.extensions.schema.SchemaImpl;
 import com.ibm.wsdl.extensions.soap.SOAPBodyImpl;
 import com.ibm.wsdl.extensions.soap.SOAPHeaderImpl;
-import com.sun.xml.xsom.XSAttributeDecl;
-import com.sun.xml.xsom.XSAttributeUse;
-import com.sun.xml.xsom.XSComplexType;
-import com.sun.xml.xsom.XSContentType;
-import com.sun.xml.xsom.XSElementDecl;
-import com.sun.xml.xsom.XSModelGroup;
-import com.sun.xml.xsom.XSModelGroupDecl;
-import com.sun.xml.xsom.XSParticle;
-import com.sun.xml.xsom.XSSchema;
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.XSTerm;
-import com.sun.xml.xsom.XSType;
-import com.sun.xml.xsom.parser.XSOMParser;
-
+import org.apache.xerces.impl.xs.XSAttributeDecl;
+import org.apache.xerces.impl.xs.XSElementDecl;
+import org.apache.xerces.xs.XSAttributeUse;
+import org.apache.xerces.xs.XSModelGroup;
+import org.apache.xerces.xs.XSParticle;
+import org.apache.xerces.xs.XSTerm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -104,7 +94,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
+import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSContentType;
+import com.sun.xml.xsom.XSModelGroupDecl;
+import com.sun.xml.xsom.XSSchema;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.parser.XSOMParser;
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.monitoring.events.ProtocolMessageEvent;
@@ -1044,13 +1041,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			} );
 			Interpreter.getInstance().fireMonitorEvent( () -> {
 				try {
+					final String processId = ExecutionThread.currentThread().getSessionId();
 					final String traceMessage = httpMessage.toString() + plainTextContent.toString( "utf-8" );
 					return new ProtocolMessageEvent( traceMessage, "",
-						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent( e.getMessage(), "",
-						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
-
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(), null );
 				}
 			} );
 
@@ -1319,11 +1318,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						new StringBuilder().append( getHeadersFromHttpMessage( message ) ).append( "\n" )
 							.append( new String( message.content(), charset ) ).toString(),
 						"",
-						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP, null );
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent(
 						e.getMessage(), "", Interpreter.getInstance().programFilename(),
-						ProtocolMessageEvent.Protocol.SOAP, null );
+						ProtocolMessageEvent.Protocol.SOAP, ExecutionThread.currentThread().getSessionId(), null );
 				}
 
 			} );

@@ -85,7 +85,7 @@ public class NotificationProcess implements Process {
 		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
-
+		final String processId = ExecutionThread.currentThread().getSessionId();
 		CommChannel channel = null;
 		try {
 			CommMessage message =
@@ -99,7 +99,7 @@ public class NotificationProcess implements Process {
 				} catch( TypeCheckingException e ) {
 
 					Interpreter.getInstance().fireMonitorEvent( () -> {
-						return new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
+						return new OperationCallEvent( operationId, processId,
 							Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT,
 							"TypeMismatch:" + e.getMessage(), outputPort.id(),
 							Interpreter.getInstance().programFilename(), context, message.value() );
@@ -119,7 +119,7 @@ public class NotificationProcess implements Process {
 			Interpreter.getInstance()
 				.fireMonitorEvent( () -> {
 					return new OperationCallEvent( operationId,
-						ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id() ).toString(),
+						processId, Long.valueOf( message.id() ).toString(),
 						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
 						context,
 						message.value() );

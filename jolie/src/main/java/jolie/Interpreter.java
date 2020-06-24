@@ -75,7 +75,6 @@ import jolie.lang.parse.module.Modules;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
-import jolie.monitoring.events.OperationStartedEvent;
 import jolie.monitoring.events.SessionEndedEvent;
 import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
@@ -105,8 +104,6 @@ import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
-
-;
 
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
@@ -1459,11 +1456,6 @@ public class Interpreter {
 
 		fireMonitorEvent( () -> {
 			return new SessionStartedEvent( operationName, sessionId, programFilename(), parsingContext );
-		} );
-		fireMonitorEvent( () -> {
-			return new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ),
-				programFilename(),
-				parsingContext, message );
 		} );
 
 	}

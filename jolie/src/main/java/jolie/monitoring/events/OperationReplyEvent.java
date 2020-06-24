@@ -35,7 +35,7 @@ public class OperationReplyEvent extends MonitoringEvent {
 	public static final int ERROR = 2;
 
 	public OperationReplyEvent( String operationName, String processId, String messageId, int status, String details,
-		String outputPort, String service, ParsingContext context, Value message ) {
+		String outputPort, String service, ParsingContext context, Value value ) {
 		super( "OperationReply", service, context, Value.create() );
 
 		data().getFirstChild( "operationName" ).setValue( operationName );
@@ -44,6 +44,6 @@ public class OperationReplyEvent extends MonitoringEvent {
 		data().getFirstChild( "status" ).setValue( status );
 		data().getFirstChild( "details" ).setValue( details );
 		data().getFirstChild( "outputPort" ).setValue( outputPort );
-		data().getFirstChild( "message" ).deepCopy( message );
+		data().getFirstChild( "value" ).deepCopy( value );
 	}
 }

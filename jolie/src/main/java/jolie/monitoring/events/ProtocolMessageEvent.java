@@ -21,12 +21,13 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	}
 
 	public ProtocolMessageEvent( String message, String header, String service,
-		ProtocolMessageEvent.Protocol protocol, ParsingContext context ) {
+		ProtocolMessageEvent.Protocol protocol, String processId, ParsingContext context ) {
 
 		super( "ProtocolMessageEvent", service, context, Value.create() );
 
 		data().getFirstChild( "protocol" ).setValue( protocol.getProtocol() );
 		data().getFirstChild( "header" ).setValue( header );
 		data().getFirstChild( "message" ).setValue( message );
+		data().getFirstChild( "processId" ).setValue( processId );
 	}
 }
