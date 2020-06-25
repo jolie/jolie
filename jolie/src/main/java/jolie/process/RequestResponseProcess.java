@@ -49,7 +49,6 @@ public class RequestResponseProcess implements InputOperationProcess {
 	private final VariablePath inputVarPath; // may be null
 	private final Expression outputExpression; // may be null
 	private final Process process;
-	private boolean isSessionStarter = false;
 	private final ParsingContext context;
 
 	public RequestResponseProcess(
@@ -63,10 +62,6 @@ public class RequestResponseProcess implements InputOperationProcess {
 		this.process = process;
 		this.outputExpression = outputExpression;
 		this.context = context;
-	}
-
-	public void setSessionStarter( boolean isSessionStarter ) {
-		this.isSessionStarter = isSessionStarter;
 	}
 
 	public InputOperation inputOperation() {
@@ -110,7 +105,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 				final String processId = ExecutionThread.currentThread().getSessionId();
 				Interpreter.getInstance().fireMonitorEvent( () -> {
 					return new OperationStartedEvent( operation.id(), processId,
-						Long.valueOf( sessionMessage.message().id() ).toString(),
+						Long.toString( sessionMessage.message().id() ),
 						Interpreter.getInstance().programFilename(), context, sessionMessage.message().value() );
 				} );
 				runBehaviour( sessionMessage.channel(), sessionMessage.message(), processId );

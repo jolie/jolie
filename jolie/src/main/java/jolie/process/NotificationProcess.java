@@ -99,7 +99,7 @@ public class NotificationProcess implements Process {
 
 					Interpreter.getInstance().fireMonitorEvent( () -> {
 						return new OperationCallEvent( operationId, processId,
-							Long.valueOf( message.id() ).toString(), OperationCallEvent.FAULT,
+							Long.toString( message.id() ), OperationCallEvent.FAULT,
 							"TypeMismatch:" + e.getMessage(), outputPort.id(),
 							Interpreter.getInstance().programFilename(), context, message.value() );
 					} );
@@ -118,7 +118,7 @@ public class NotificationProcess implements Process {
 			Interpreter.getInstance()
 				.fireMonitorEvent( () -> {
 					return new OperationCallEvent( operationId,
-						processId, Long.valueOf( message.id() ).toString(),
+						processId, Long.toString( message.id() ),
 						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
 						context,
 						message.value() );

@@ -69,7 +69,6 @@ import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
-import jolie.monitoring.events.OperationStartedEvent;
 import jolie.monitoring.events.SessionEndedEvent;
 import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
@@ -94,51 +93,13 @@ import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
-import jolie.runtime.embedding.JolieServiceLoader;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.PrintStream;
-import java.io.StringWriter;
-import java.lang.ref.WeakReference;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+
 
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
@@ -284,7 +245,7 @@ public class Interpreter {
 	private Program internalServiceProgram = null;
 	private Interpreter parentInterpreter = null;
 	private boolean isInternal = false;
-	private Collection< Interpreter > interpreterChildren = new ArrayList<>();
+	private final Collection< Interpreter > interpreterChildren = new ArrayList<>();
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
 	private boolean exiting = false;
@@ -1397,8 +1358,7 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), null, message.value() );
+			logSessionStart( message.operationName(), spawnedSession.getSessionId(), null );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
 					logSessionEnd( message.operationName(), session.getSessionId(), null );
@@ -1459,8 +1419,7 @@ public class Interpreter {
 		return true;
 	}
 
-	private void logSessionStart( String operationName, String sessionId, long messageId, ParsingContext parsingContext,
-		Value message ) {
+	private void logSessionStart( String operationName, String sessionId, ParsingContext parsingContext ) {
 
 		fireMonitorEvent( () -> {
 			return new SessionStartedEvent( operationName, sessionId, programFilename(), parsingContext );

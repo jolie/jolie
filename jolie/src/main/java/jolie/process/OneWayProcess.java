@@ -39,17 +39,12 @@ import jolie.tracer.Tracer;
 public class OneWayProcess implements InputOperationProcess {
 	private final OneWayOperation operation;
 	private final VariablePath varPath;
-	private boolean isSessionStarter = false;
 	private final ParsingContext context;
 
 	public OneWayProcess( OneWayOperation operation, VariablePath varPath, ParsingContext context ) {
 		this.operation = operation;
 		this.varPath = varPath;
 		this.context = context;
-	}
-
-	public void setSessionStarter( boolean isSessionStarter ) {
-		this.isSessionStarter = isSessionStarter;
 	}
 
 	public InputOperation inputOperation() {
@@ -68,7 +63,7 @@ public class OneWayProcess implements InputOperationProcess {
 
 		Interpreter.getInstance().fireMonitorEvent( () -> {
 			return new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-				Long.valueOf( sessionMessage.message().id() ).toString(),
+				Long.toString( sessionMessage.message().id() ),
 				Interpreter.getInstance().programFilename(), context, sessionMessage.message().value() );
 		} );
 

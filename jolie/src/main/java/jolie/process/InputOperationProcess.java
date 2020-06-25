@@ -25,8 +25,6 @@ import jolie.net.SessionMessage;
 import jolie.runtime.InputOperation;
 
 public interface InputOperationProcess extends Process {
-	public void setSessionStarter( boolean isSessionStarter );
-
 	public InputOperation inputOperation();
 
 	public Process receiveMessage( SessionMessage sessionMessage, jolie.State state );

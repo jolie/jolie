@@ -50,7 +50,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import jolie.ExecutionThread;
 import jolie.monitoring.events.ProtocolMessageEvent;
-import jolie.tracer.DummyTracer;
 import jolie.tracer.ProtocolTraceAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -92,79 +91,79 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC
 																					// 2616#7.2.1
 	private static final String DEFAULT_FORMAT = "xml";
-	private static final Map< Integer, String > statusCodeDescriptions = new HashMap<>();
-	private static final Set< Integer > locationRequiredStatusCodes = new HashSet<>();
+	private static final Map< Integer, String > STATUS_CODE_DESCRIPTIONS = new HashMap<>();
+	private static final Set< Integer > LOCATION_REQUIRED_STATUS_CODES = new HashSet<>();
 
 	static {
-		locationRequiredStatusCodes.add( 301 );
-		locationRequiredStatusCodes.add( 302 );
-		locationRequiredStatusCodes.add( 303 );
-		locationRequiredStatusCodes.add( 307 );
-		locationRequiredStatusCodes.add( 308 );
+		LOCATION_REQUIRED_STATUS_CODES.add( 301 );
+		LOCATION_REQUIRED_STATUS_CODES.add( 302 );
+		LOCATION_REQUIRED_STATUS_CODES.add( 303 );
+		LOCATION_REQUIRED_STATUS_CODES.add( 307 );
+		LOCATION_REQUIRED_STATUS_CODES.add( 308 );
 	}
 
 	static {
 		// Initialise the HTTP Status code map.
-		statusCodeDescriptions.put( 100, "Continue" );
-		statusCodeDescriptions.put( 101, "Switching Protocols" );
-		statusCodeDescriptions.put( 102, "Processing" );
-		statusCodeDescriptions.put( 200, "OK" );
-		statusCodeDescriptions.put( 201, "Created" );
-		statusCodeDescriptions.put( 202, "Accepted" );
-		statusCodeDescriptions.put( 203, "Non-Authoritative Information" );
-		statusCodeDescriptions.put( 204, "No Content" );
-		statusCodeDescriptions.put( 205, "Reset Content" );
-		statusCodeDescriptions.put( 206, "Partial Content" );
-		statusCodeDescriptions.put( 207, "Multi-Status" );
-		statusCodeDescriptions.put( 208, "Already Reported" );
-		statusCodeDescriptions.put( 226, "IM Used" );
-		statusCodeDescriptions.put( 300, "Multiple Choices" );
-		statusCodeDescriptions.put( 301, "Moved Permanently" );
-		statusCodeDescriptions.put( 302, "Found" );
-		statusCodeDescriptions.put( 303, "See Other" );
-		statusCodeDescriptions.put( 304, "Not Modified" );
-		statusCodeDescriptions.put( 305, "Use Proxy" );
-		statusCodeDescriptions.put( 306, "Reserved" );
-		statusCodeDescriptions.put( 307, "Temporary Redirect" );
-		statusCodeDescriptions.put( 308, "Permanent Redirect" );
-		statusCodeDescriptions.put( 400, "Bad Request" );
-		statusCodeDescriptions.put( 401, "Unauthorized" );
-		statusCodeDescriptions.put( 402, "Payment Required" );
-		statusCodeDescriptions.put( 403, "Forbidden" );
-		statusCodeDescriptions.put( 404, "Not Found" );
-		statusCodeDescriptions.put( 405, "Method Not Allowed" );
-		statusCodeDescriptions.put( 406, "Not Acceptable" );
-		statusCodeDescriptions.put( 407, "Proxy Authentication Required" );
-		statusCodeDescriptions.put( 408, "Request Timeout" );
-		statusCodeDescriptions.put( 409, "Conflict" );
-		statusCodeDescriptions.put( 410, "Gone" );
-		statusCodeDescriptions.put( 411, "Length Required" );
-		statusCodeDescriptions.put( 412, "Precondition Failed" );
-		statusCodeDescriptions.put( 413, "Request Entity Too Large" );
-		statusCodeDescriptions.put( 414, "Request-URI Too Long" );
-		statusCodeDescriptions.put( 415, "Unsupported Media Type" );
-		statusCodeDescriptions.put( 416, "Requested Range Not Satisfiable" );
-		statusCodeDescriptions.put( 417, "Expectation Failed" );
-		statusCodeDescriptions.put( 422, "Unprocessable Entity" );
-		statusCodeDescriptions.put( 423, "Locked" );
-		statusCodeDescriptions.put( 424, "Failed Dependency" );
-		statusCodeDescriptions.put( 426, "Upgrade Required" );
-		statusCodeDescriptions.put( 427, "Unassigned" );
-		statusCodeDescriptions.put( 428, "Precondition Required" );
-		statusCodeDescriptions.put( 429, "Too Many Requests" );
-		statusCodeDescriptions.put( 430, "Unassigned" );
-		statusCodeDescriptions.put( 431, "Request Header Fields Too Large" );
-		statusCodeDescriptions.put( 500, "Internal Server Error" );
-		statusCodeDescriptions.put( 501, "Not Implemented" );
-		statusCodeDescriptions.put( 502, "Bad Gateway" );
-		statusCodeDescriptions.put( 503, "Service Unavailable" );
-		statusCodeDescriptions.put( 504, "Gateway Timeout" );
-		statusCodeDescriptions.put( 505, "HTTP Version Not Supported" );
-		statusCodeDescriptions.put( 507, "Insufficient Storage" );
-		statusCodeDescriptions.put( 508, "Loop Detected" );
-		statusCodeDescriptions.put( 509, "Unassigned" );
-		statusCodeDescriptions.put( 510, "Not Extended" );
-		statusCodeDescriptions.put( 511, "Network Authentication Required" );
+		STATUS_CODE_DESCRIPTIONS.put( 100, "Continue" );
+		STATUS_CODE_DESCRIPTIONS.put( 101, "Switching Protocols" );
+		STATUS_CODE_DESCRIPTIONS.put( 102, "Processing" );
+		STATUS_CODE_DESCRIPTIONS.put( 200, "OK" );
+		STATUS_CODE_DESCRIPTIONS.put( 201, "Created" );
+		STATUS_CODE_DESCRIPTIONS.put( 202, "Accepted" );
+		STATUS_CODE_DESCRIPTIONS.put( 203, "Non-Authoritative Information" );
+		STATUS_CODE_DESCRIPTIONS.put( 204, "No Content" );
+		STATUS_CODE_DESCRIPTIONS.put( 205, "Reset Content" );
+		STATUS_CODE_DESCRIPTIONS.put( 206, "Partial Content" );
+		STATUS_CODE_DESCRIPTIONS.put( 207, "Multi-Status" );
+		STATUS_CODE_DESCRIPTIONS.put( 208, "Already Reported" );
+		STATUS_CODE_DESCRIPTIONS.put( 226, "IM Used" );
+		STATUS_CODE_DESCRIPTIONS.put( 300, "Multiple Choices" );
+		STATUS_CODE_DESCRIPTIONS.put( 301, "Moved Permanently" );
+		STATUS_CODE_DESCRIPTIONS.put( 302, "Found" );
+		STATUS_CODE_DESCRIPTIONS.put( 303, "See Other" );
+		STATUS_CODE_DESCRIPTIONS.put( 304, "Not Modified" );
+		STATUS_CODE_DESCRIPTIONS.put( 305, "Use Proxy" );
+		STATUS_CODE_DESCRIPTIONS.put( 306, "Reserved" );
+		STATUS_CODE_DESCRIPTIONS.put( 307, "Temporary Redirect" );
+		STATUS_CODE_DESCRIPTIONS.put( 308, "Permanent Redirect" );
+		STATUS_CODE_DESCRIPTIONS.put( 400, "Bad Request" );
+		STATUS_CODE_DESCRIPTIONS.put( 401, "Unauthorized" );
+		STATUS_CODE_DESCRIPTIONS.put( 402, "Payment Required" );
+		STATUS_CODE_DESCRIPTIONS.put( 403, "Forbidden" );
+		STATUS_CODE_DESCRIPTIONS.put( 404, "Not Found" );
+		STATUS_CODE_DESCRIPTIONS.put( 405, "Method Not Allowed" );
+		STATUS_CODE_DESCRIPTIONS.put( 406, "Not Acceptable" );
+		STATUS_CODE_DESCRIPTIONS.put( 407, "Proxy Authentication Required" );
+		STATUS_CODE_DESCRIPTIONS.put( 408, "Request Timeout" );
+		STATUS_CODE_DESCRIPTIONS.put( 409, "Conflict" );
+		STATUS_CODE_DESCRIPTIONS.put( 410, "Gone" );
+		STATUS_CODE_DESCRIPTIONS.put( 411, "Length Required" );
+		STATUS_CODE_DESCRIPTIONS.put( 412, "Precondition Failed" );
+		STATUS_CODE_DESCRIPTIONS.put( 413, "Request Entity Too Large" );
+		STATUS_CODE_DESCRIPTIONS.put( 414, "Request-URI Too Long" );
+		STATUS_CODE_DESCRIPTIONS.put( 415, "Unsupported Media Type" );
+		STATUS_CODE_DESCRIPTIONS.put( 416, "Requested Range Not Satisfiable" );
+		STATUS_CODE_DESCRIPTIONS.put( 417, "Expectation Failed" );
+		STATUS_CODE_DESCRIPTIONS.put( 422, "Unprocessable Entity" );
+		STATUS_CODE_DESCRIPTIONS.put( 423, "Locked" );
+		STATUS_CODE_DESCRIPTIONS.put( 424, "Failed Dependency" );
+		STATUS_CODE_DESCRIPTIONS.put( 426, "Upgrade Required" );
+		STATUS_CODE_DESCRIPTIONS.put( 427, "Unassigned" );
+		STATUS_CODE_DESCRIPTIONS.put( 428, "Precondition Required" );
+		STATUS_CODE_DESCRIPTIONS.put( 429, "Too Many Requests" );
+		STATUS_CODE_DESCRIPTIONS.put( 430, "Unassigned" );
+		STATUS_CODE_DESCRIPTIONS.put( 431, "Request Header Fields Too Large" );
+		STATUS_CODE_DESCRIPTIONS.put( 500, "Internal Server Error" );
+		STATUS_CODE_DESCRIPTIONS.put( 501, "Not Implemented" );
+		STATUS_CODE_DESCRIPTIONS.put( 502, "Bad Gateway" );
+		STATUS_CODE_DESCRIPTIONS.put( 503, "Service Unavailable" );
+		STATUS_CODE_DESCRIPTIONS.put( 504, "Gateway Timeout" );
+		STATUS_CODE_DESCRIPTIONS.put( 505, "HTTP Version Not Supported" );
+		STATUS_CODE_DESCRIPTIONS.put( 507, "Insufficient Storage" );
+		STATUS_CODE_DESCRIPTIONS.put( 508, "Loop Detected" );
+		STATUS_CODE_DESCRIPTIONS.put( 509, "Unassigned" );
+		STATUS_CODE_DESCRIPTIONS.put( 510, "Not Extended" );
+		STATUS_CODE_DESCRIPTIONS.put( 511, "Network Authentication Required" );
 	}
 
 	private static class Parameters {
@@ -470,12 +469,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if( "html".equals( format ) ) {
 			ret.contentType = "text/html";
 			if( message.isFault() ) {
-				StringBuilder builder = new StringBuilder();
-				builder.append( "<html><head><title>" );
-				builder.append( message.fault().faultName() );
-				builder.append( "</title></head><body>" );
-				builder.append( message.fault().value().strValue() );
-				builder.append( "</body></html>" );
+				StringBuilder builder = new StringBuilder()
+					.append( "<html><head><title>" )
+					.append( message.fault().faultName() )
+					.append( "</title></head><body>" )
+					.append( message.fault().value().strValue() )
+					.append( "</body></html>" );
 				ret.content = new ByteArray( builder.toString().getBytes( charset ) );
 			} else {
 				ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
@@ -592,7 +591,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private static boolean isLocationNeeded( int statusCode ) {
-		return locationRequiredStatusCodes.contains( statusCode );
+		return LOCATION_REQUIRED_STATUS_CODES.contains( statusCode );
 	}
 
 	private void send_appendResponseUserHeader( CommMessage message, StringBuilder headerBuilder ) {
@@ -629,7 +628,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if( hasParameter( Parameters.STATUS_CODE ) ) {
 			statusCode = getIntParameter( Parameters.STATUS_CODE );
-			if( !statusCodeDescriptions.containsKey( statusCode ) ) {
+			if( !STATUS_CODE_DESCRIPTIONS.containsKey( statusCode ) ) {
 				Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
 					message.operationName() +
 					" is sending a message with status code " +
@@ -651,13 +650,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		if( statusDescription == null ) {
-			statusDescription = statusCodeDescriptions.get( statusCode );
+			statusDescription = STATUS_CODE_DESCRIPTIONS.get( statusCode );
 		}
 		headerBuilder.append( "HTTP/1.1 " + statusCode + " " + statusDescription + HttpUtils.CRLF );
 
 		// if redirect has been set, the redirect location parameter is set
 		if( hasParameter( Parameters.REDIRECT ) ) {
-			headerBuilder.append( "Location: " + getStringParameter( Parameters.REDIRECT ) + HttpUtils.CRLF );
+			headerBuilder.append( "Location: " ).append( getStringParameter( Parameters.REDIRECT ) )
+				.append( HttpUtils.CRLF );
 		}
 
 		send_appendSetCookieHeader( message, headerBuilder );
@@ -787,7 +787,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		send_appendRequestMethod( method, headerBuilder );
 		headerBuilder.append( ' ' );
 		send_appendRequestPath( message, method, qsFormat, headerBuilder );
-		headerBuilder.append( " HTTP/1.1" + HttpUtils.CRLF );
+		headerBuilder.append( " HTTP/1.1" ).append( HttpUtils.CRLF );
 		String host = uri.getHost();
 		if( uri.getScheme().equals( "localsocket" ) ) {
 			/*
@@ -796,16 +796,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			 */
 			host = "localhost";
 		}
-		headerBuilder.append( "Host: " + host + HttpUtils.CRLF );
+		headerBuilder.append( "Host: " ).append( host ).append( HttpUtils.CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
 		if( checkBooleanParameter( Parameters.COMPRESSION, true ) ) {
 			String requestCompression = getStringParameter( Parameters.REQUEST_COMPRESSION );
 			if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 				encoding = requestCompression;
-				headerBuilder.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+				headerBuilder.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
 			} else {
-				headerBuilder.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+				headerBuilder.append( "Accept-Encoding: gzip, deflate" ).append( HttpUtils.CRLF );
 			}
 		}
 		send_appendHeader( headerBuilder );
@@ -835,22 +835,24 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 		encodedContent.contentType = encodedContent.contentType.toLowerCase();
 
-		headerBuilder.append( "Content-Type: " + encodedContent.contentType );
+		headerBuilder.append( "Content-Type: " ).append( encodedContent.contentType );
 		if( charset != null ) {
-			headerBuilder.append( "; charset=" + charset.toLowerCase() );
+			headerBuilder.append( "; charset=" ).append( charset.toLowerCase() );
 		}
 		headerBuilder.append( HttpUtils.CRLF );
 
 		if( encodedContent.content != null ) {
 			String transferEncoding = getStringParameter( Parameters.CONTENT_TRANSFER_ENCODING );
 			if( transferEncoding.length() > 0 ) {
-				headerBuilder.append( "Content-Transfer-Encoding: " + transferEncoding + HttpUtils.CRLF );
+				headerBuilder.append( "Content-Transfer-Encoding: " ).append( transferEncoding )
+					.append( HttpUtils.CRLF );
 			}
 
 			String contentDisposition = getStringParameter( Parameters.CONTENT_DISPOSITION );
 			if( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
-				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + HttpUtils.CRLF );
+				headerBuilder.append( "Content-Disposition: " ).append( encodedContent.contentDisposition )
+					.append( HttpUtils.CRLF );
 			}
 
 			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
@@ -891,18 +893,18 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
-			headerBuilder.append( "Content-Length: " + encodedContent.content.size() + HttpUtils.CRLF );
+			headerBuilder.append( "Content-Length: " ).append( encodedContent.content.size() ).append( HttpUtils.CRLF );
 		} else {
-			headerBuilder.append( "Content-Length: 0" + HttpUtils.CRLF );
+			headerBuilder.append( "Content-Length: 0" ).append( HttpUtils.CRLF );
 		}
 	}
 
 	private String prepareSendDebugString( CharSequence header, EncodedContent encodedContent, String charset,
 		boolean showContent )
 		throws UnsupportedEncodingException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Sending:\n" );
-		debugSB.append( header );
+		StringBuilder debugSB = new StringBuilder()
+			.append( "[HTTP debug] Sending:\n" )
+			.append( header );
 		if( showContent && encodedContent != null && encodedContent.content != null ) {
 			debugSB.append( encodedContent.content.toString( charset ) );
 		}
@@ -1039,7 +1041,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void parseMultiPartFormData( HttpMessage message, Value value, String charset )
+	private void parseMultiPartFormData( HttpMessage message, Value value )
 		throws IOException {
 		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
 		multiPartFormDataParser.parse();
@@ -1080,13 +1082,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		NativeType type = NativeType.fromString( typeKeyword );
 		if( NativeType.INT == type ) {
 			try {
-				value.setValue( new Integer( cookieValue ) );
+				value.setValue( Integer.valueOf( cookieValue ) );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
 		} else if( NativeType.LONG == type ) {
 			try {
-				value.setValue( new Long( cookieValue ) );
+				value.setValue( Long.valueOf( cookieValue ) );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
@@ -1196,12 +1198,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	 */
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" );
-		debugSB.append( "HTTP Code: " + message.statusCode() + "\n" );
-		debugSB.append( "HTTP Method: " + message.type().name() + "\n" );
-		debugSB.append( "Resource: " + message.requestPath() + "\n" );
-		debugSB.append( "--> Header properties\n" );
+		StringBuilder debugSB = new StringBuilder()
+			.append( "[HTTP debug] Receiving:\n" )
+			.append( "HTTP Code: " + message.statusCode() + "\n" )
+			.append( "HTTP Method: " + message.type().name() + "\n" )
+			.append( "Resource: " + message.requestPath() + "\n" )
+			.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
 			debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
 		}
@@ -1245,7 +1247,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if( "text/xml".equals( type ) || type.contains( "xml" ) ) {
 			parseXML( message, decodedMessage.value, charset );
 		} else if( "multipart/form-data".equals( type ) ) {
-			parseMultiPartFormData( message, decodedMessage.value, charset );
+			parseMultiPartFormData( message, decodedMessage.value );
 		} else if( "application/octet-stream".equals( type ) || type.startsWith( "image/" )
 			|| "application/zip".equals( type ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );

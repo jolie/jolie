@@ -180,7 +180,7 @@ public class SolicitResponseProcess implements Process {
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
 									processId,
-									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
+									Long.toString( response.id() ), OperationReplyEvent.FAULT,
 									response.fault().faultName(), outputPort.id(),
 									Interpreter.getInstance().programFilename(), context, response.fault().value() );
 							} );
@@ -191,7 +191,7 @@ public class SolicitResponseProcess implements Process {
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
 									processId,
-									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
+									Long.toString( response.id() ), OperationReplyEvent.FAULT,
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
 									outputPort.id(), Interpreter.getInstance().programFilename(), context,
 									response.fault().value() );
@@ -205,7 +205,7 @@ public class SolicitResponseProcess implements Process {
 
 					Interpreter.getInstance().fireMonitorEvent( () -> {
 						return new OperationReplyEvent( operationId, processId,
-							Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT,
+							Long.toString( response.id() ), OperationReplyEvent.FAULT,
 							response.fault().faultName(), Interpreter.getInstance().programFilename(),
 							outputPort.id(), context, response.fault().value() );
 					} );
@@ -221,7 +221,7 @@ public class SolicitResponseProcess implements Process {
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
 									processId,
-									Long.valueOf( response.id() ).toString(), OperationReplyEvent.SUCCESS, "",
+									Long.toString( response.id() ), OperationReplyEvent.SUCCESS, "",
 									outputPort.id(), Interpreter.getInstance().programFilename(), context,
 									response.value() );
 							} );
@@ -232,7 +232,7 @@ public class SolicitResponseProcess implements Process {
 							.fireMonitorEvent( () -> {
 								return new OperationReplyEvent( operationId,
 									processId,
-									Long.valueOf( response.id() ).toString(), OperationReplyEvent.FAULT, e.getMessage(),
+									Long.toString( response.id() ), OperationReplyEvent.FAULT, e.getMessage(),
 									outputPort.id(), Interpreter.getInstance().programFilename(), context,
 									response.value() );
 							} );
@@ -244,7 +244,7 @@ public class SolicitResponseProcess implements Process {
 
 					Interpreter.getInstance().fireMonitorEvent( () -> {
 						return new OperationReplyEvent( operationId,
-							processId, Long.valueOf( response.id() ).toString(),
+							processId, Long.toString( response.id() ),
 							OperationReplyEvent.SUCCESS, "", outputPort.id(),
 							Interpreter.getInstance().programFilename(), context, response.value() );
 					} );
