@@ -911,21 +911,17 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					}
 
 					// check if the body has been defined with more than one parts
-					// Operation operation =
-					// getWSDLPort().getBinding().getPortType().getOperation( message.operationName(), null, null );
-					// Message wsdlMessage;
 					List< ExtensibilityElement > listExt;
 					if( received ) {
 						// We are sending a response
-						// wsdlMessage = operation.getOutput().getMessage();
 						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
 							.getBindingOutput().getExtensibilityElements();
 					} else {
 						// We are sending a request
-						// wsdlMessage = operation.getInput().getMessage();
 						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
 							.getBindingInput().getExtensibilityElements();
 					}
+
 					boolean partsInBody = false;
 					String partName = "";
 					for( ExtensibilityElement element : listExt ) {
@@ -1003,8 +999,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			if( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-				if( received )
-					channel().setToBeClosed( true ); // we may do this only in input (server) mode
+				channel().setToBeClosed( true );
 				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
@@ -1014,8 +1009,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			// httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
-			httpMessage.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF );
-			httpMessage.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF );
+			httpMessage.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF )
+				.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF );
 			if( soapAction != null ) {
 				httpMessage.append( soapAction );
 			}
@@ -1041,7 +1036,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			} );
 			Interpreter.getInstance().fireMonitorEvent( () -> {
 				try {
-					final String processId = ExecutionThread.currentThread().getSessionId();
 					final String traceMessage = httpMessage.toString() + plainTextContent.toString( "utf-8" );
 					return new ProtocolMessageEvent( traceMessage, "",
 						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
@@ -1092,6 +1086,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		if( content != null ) {
 			ostream.write( content.getBytes() );
 		}
+
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
@@ -1312,7 +1307,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 			} );
 			Interpreter.getInstance().fireMonitorEvent( () -> {
-				final StringBuilder traceMessage = new StringBuilder();
 				try {
 					return new ProtocolMessageEvent(
 						new StringBuilder().append( getHeadersFromHttpMessage( message ) ).append( "\n" )
@@ -1386,8 +1380,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 	private String getHeadersFromHttpMessage( HttpMessage message ) {
 		StringBuilder headers = new StringBuilder();
-		headers.append( "HTTP Code: " ).append( message.statusCode() ).append( "\n" ).append( "Resource: " )
-			.append( message.requestPath() ).append( "\n" );
+		headers.append( "HTTP Code: " ).append( message.statusCode() ).append( "\n" )
+			.append( "Resource: " ).append( message.requestPath() ).append( "\n" );
 		for( Entry< String, String > entry : message.properties() ) {
 			headers.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
 		}

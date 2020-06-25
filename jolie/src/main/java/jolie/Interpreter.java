@@ -104,6 +104,8 @@ import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
+import java.util.function.Supplier;
+
 
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
@@ -1389,8 +1391,7 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), null, message.value() );
+			logSessionStart( message.operationName(), spawnedSession.getSessionId(), null );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
 					logSessionEnd( message.operationName(), session.getSessionId(), null );
@@ -1451,8 +1452,7 @@ public class Interpreter {
 		return true;
 	}
 
-	private void logSessionStart( String operationName, String sessionId, long messageId, ParsingContext parsingContext,
-		Value message ) {
+	private void logSessionStart( String operationName, String sessionId, ParsingContext parsingContext ) {
 
 		fireMonitorEvent( () -> {
 			return new SessionStartedEvent( operationName, sessionId, programFilename(), parsingContext );

@@ -58,7 +58,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import jolie.ExecutionThread;
 import jolie.monitoring.events.ProtocolMessageEvent;
-import jolie.tracer.DummyTracer;
 import jolie.tracer.ProtocolTraceAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -481,8 +480,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if( "html".equals( format ) ) {
 			ret.contentType = "text/html";
 			if( message.isFault() ) {
-				StringBuilder builder = new StringBuilder();
-				builder.append( "<html><head><title>" )
+				StringBuilder builder = new StringBuilder()
+					.append( "<html><head><title>" )
 					.append( message.fault().faultName() )
 					.append( "</title></head><body>" )
 					.append( message.fault().value().strValue() )
@@ -921,8 +920,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private String prepareSendDebugString( CharSequence header, EncodedContent encodedContent, String charset,
 		boolean showContent )
 		throws UnsupportedEncodingException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Sending:\n" )
+		StringBuilder debugSB = new StringBuilder()
+			.append( "[HTTP debug] Sending:\n" )
 			.append( header );
 		if( showContent && encodedContent != null && encodedContent.content != null ) {
 			debugSB.append( encodedContent.content.toString( charset ) );
@@ -1059,7 +1058,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private void parseMultiPartFormData( HttpMessage message, Value value )
-		// , String charset )
 		throws IOException {
 		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
 		multiPartFormDataParser.parse();
@@ -1220,10 +1218,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	 */
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" ).append( "HTTP Code: " ).append( message.statusCode() )
-			.append( "\n" ).append( "HTTP Method: " ).append( message.type().name() ).append( "\n" )
-			.append( "Resource: " ).append( message.requestPath() ).append( "\n" )
+		StringBuilder debugSB = new StringBuilder()
+			.append( "[HTTP debug] Receiving:\n" )
+			.append( "HTTP Code: " + message.statusCode() + "\n" )
+			.append( "HTTP Method: " + message.type().name() + "\n" )
+			.append( "Resource: " + message.requestPath() + "\n" )
 			.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
 			debugSB.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
