@@ -93,7 +93,7 @@ public class SymbolTable {
 	}
 
 	/**
-	 * create and add an external Symbol with it's module target to the table
+	 * create and add an external Symbol with its module target to the table
 	 * 
 	 * @param context Context where symbol is declare
 	 * @param name importing Symbol name
