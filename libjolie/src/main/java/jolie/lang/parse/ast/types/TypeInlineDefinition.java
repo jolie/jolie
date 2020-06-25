@@ -133,8 +133,9 @@ public class TypeInlineDefinition extends TypeDefinition {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + this.id().hashCode();
+		result = prime * result + this.cardinality().hashCode();
+		result = prime * result + this.nativeType.hashCode();
 		result = prime * result + recursiveTypeHashed.size();
-		result = prime * result + nativeType.hashCode();
 		if( this.hasSubTypes() ) {
 			for( TypeDefinition typeDef : subTypes.values() ) {
 				result = prime * result + typeDef.hashCode( recursiveTypeHashed );

@@ -19,7 +19,8 @@ public class ModuleParsingConfiguration {
 	private final Map< String, Scanner.Token > constantsMap;
 
 
-	public ModuleParsingConfiguration( String charset, String[] includePaths, String[] packagePaths, ClassLoader classLoader,
+	public ModuleParsingConfiguration( String charset, String[] includePaths, String[] packagePaths,
+		ClassLoader classLoader,
 		Map< String, Scanner.Token > constantsMap, boolean includeDocumentation ) {
 		this.charset = charset;
 		this.includePaths = includePaths;

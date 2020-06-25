@@ -85,7 +85,7 @@ class PathSource implements ModuleSource {
 	public Optional< InputStream > openStream() {
 		try {
 			InputStream is = new FileInputStream( this.path.toFile() );
-			// wrap with BufferInputStream for improve performance 
+			// wrap with BufferInputStream for improve performance
 			return Optional.of( new BufferedInputStream( is ) );
 		} catch( FileNotFoundException e ) {
 			return Optional.empty();

@@ -75,8 +75,9 @@ public class TypeChoiceDefinition extends TypeDefinition {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + this.id().hashCode();
+		result = prime * result + this.cardinality().hashCode();
+		result = prime * result + this.left.hashCode( recursiveTypeHashed );
 		result = prime * result + recursiveTypeHashed.size();
-		result = prime * result + left.hashCode( recursiveTypeHashed );
 		if( right != null ) {
 			result = prime * result + right.hashCode( recursiveTypeHashed );
 		}

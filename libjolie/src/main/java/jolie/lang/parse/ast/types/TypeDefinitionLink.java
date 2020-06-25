@@ -105,9 +105,10 @@ public class TypeDefinitionLink extends TypeDefinition {
 		recursiveTypeHashed.add( this.id() );
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id().hashCode();
+		result = prime * result + this.id().hashCode();
+		result = prime * result + this.cardinality().hashCode();
+		result = prime * result + this.linkedTypeName.hashCode();
 		result = prime * result + recursiveTypeHashed.size();
-		result = prime * result + linkedTypeName.hashCode();
 		if( linkedType != null ) {
 			result = prime * result + linkedType.hashCode( recursiveTypeHashed );
 		}

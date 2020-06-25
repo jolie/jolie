@@ -259,9 +259,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 31 * hash + cardinality.hashCode();
-		return hash + hashCode( new HashSet<>() );
+		return hashCode( new HashSet<>() );
 	}
 
 	/*
