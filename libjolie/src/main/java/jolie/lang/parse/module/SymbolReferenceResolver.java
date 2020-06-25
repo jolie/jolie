@@ -737,19 +737,19 @@ class SymbolReferenceResolver {
 	private void resolveExternalSymbols()
 		throws SymbolNotFoundException, IllegalAccessSymbolException, DuplicateSymbolException {
 		for( ModuleRecord md : moduleMap.values() ) {
-			for( ImportedSymbolInfo externalSymbols : md.symbolTable().externalSymbols() ) {
-				if( externalSymbols instanceof SymbolWildCard ) {
+			for( ImportedSymbolInfo importedSymbol : md.symbolTable().importedSymbolInfos() ) {
+				if( importedSymbol instanceof WildcardImportedSymbolInfo ) {
 					ModuleRecord wildcardImportedRecord =
-						this.moduleMap.get( externalSymbols.moduleSource().get().uri() );
-					md.symbolTable().resolveWildCardSymbol( (SymbolWildCard) externalSymbols,
+						this.moduleMap.get( importedSymbol.moduleSource().get().uri() );
+					md.symbolTable().resolveWildcardImport( (WildcardImportedSymbolInfo) importedSymbol,
 						wildcardImportedRecord.symbolTable().symbols() );
 				} else {
-					SymbolInfo targetSymbol = symbolSourceLookup( externalSymbols );
+					SymbolInfo targetSymbol = symbolSourceLookup( importedSymbol );
 					if( targetSymbol.accessModifier() == AccessModifier.PRIVATE ) {
-						throw new IllegalAccessSymbolException( externalSymbols.name(),
-							externalSymbols.importPath() );
+						throw new IllegalAccessSymbolException( importedSymbol.name(),
+							importedSymbol.importPath() );
 					}
-					externalSymbols.resolve( targetSymbol.node() );
+					importedSymbol.resolve( targetSymbol.node() );
 				}
 			}
 		}
