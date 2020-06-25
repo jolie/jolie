@@ -7,10 +7,10 @@ import jolie.CommandLineParser;
 
 public class Jolie2WsdlCommandLineParser extends CommandLineParser {
 
-	private String portName;
-	private String namespace;
-	private String address;
-	private String outputFile;
+	private final String portName;
+	private final String namespace;
+	private final String address;
+	private final String outputFile;
 
 	public String getPortName() {
 		return portName;

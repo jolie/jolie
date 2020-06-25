@@ -22,6 +22,7 @@ package jolie.lang.parse.ast.types;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
@@ -55,7 +56,7 @@ public class TypeChoiceDefinition extends TypeDefinition {
 	@Override
 	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it ) {
 		final List< Pair< OLSyntaxNode, OLSyntaxNode > > path = new LinkedList<>();
-		it.forEachRemaining( pair -> path.add( pair ) );
+		it.forEachRemaining( path::add );
 		return left.containsPath( path.iterator() ) && right.containsPath( path.iterator() );
 	}
 }

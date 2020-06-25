@@ -23,6 +23,7 @@ package jolie.net.ext;
 
 import java.io.IOException;
 import java.net.URI;
+
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.ports.OutputPort;

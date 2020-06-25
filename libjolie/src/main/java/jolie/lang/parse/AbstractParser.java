@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 
@@ -76,12 +77,12 @@ public abstract class AbstractParser {
 		addToken( token );
 	}
 
-	private final void readToken()
+	private void readToken()
 		throws IOException {
-		if( tokens.size() > 0 ) {
-			token = tokens.remove( 0 );
-		} else {
+		if( tokens.isEmpty() ) {
 			token = scanner.getToken();
+		} else {
+			token = tokens.remove( 0 );
 		}
 	}
 
@@ -90,7 +91,7 @@ public abstract class AbstractParser {
 	 * 
 	 * @throws IOException If the internal scanner raises one.
 	 */
-	protected final void getToken()
+	protected final void nextToken()
 		throws IOException {
 		metNewline = false;
 		boolean run;
@@ -116,7 +117,7 @@ public abstract class AbstractParser {
 		if( !backupTokens.isEmpty() ) {
 			addTokens( backupTokens );
 			backupTokens.clear();
-			getToken();
+			nextToken();
 		}
 	}
 
@@ -141,9 +142,9 @@ public abstract class AbstractParser {
 	 * @throws IOException If the internal scanner raises one.
 	 * @throws EOFException If the next token is of type {@code jolie.lang.parse.Scanner.Token.EOF}
 	 */
-	protected final void getTokenNotEOF()
+	protected final void nextTokenNotEOF()
 		throws IOException, EOFException {
-		getToken();
+		nextToken();
 		if( token.isEOF() ) {
 			throw new EOFException();
 		}
@@ -183,14 +184,14 @@ public abstract class AbstractParser {
 	protected final void eat( Scanner.TokenType type, String errorMessage )
 		throws ParserException, IOException {
 		assertToken( type, errorMessage );
-		getToken();
+		nextToken();
 	}
 
 	protected final void maybeEat( Scanner.TokenType... types )
 		throws ParserException, IOException {
 		for( Scanner.TokenType type : types ) {
 			if( token.is( type ) ) {
-				getToken();
+				nextToken();
 				break;
 			}
 		}
@@ -202,7 +203,7 @@ public abstract class AbstractParser {
 		if( !token.content().equals( keyword ) ) {
 			throwException( errorMessage );
 		}
-		getToken();
+		nextToken();
 	}
 
 	/**
@@ -218,7 +219,7 @@ public abstract class AbstractParser {
 	protected final void eatIdentifier( String errorMessage )
 		throws ParserException, IOException {
 		assertIdentifier( errorMessage );
-		getToken();
+		nextToken();
 	}
 
 	/**

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jolie-lang</groupId>
@@ -35,7 +35,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
 		<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
-		<jolie.version>1.10-git</jolie.version>
+		<jolie.version>1.10.0-git</jolie.version>
 	</properties>
 	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
 	<name>distribution</name>
@@ -83,6 +83,11 @@
 					<groupId>net.revelc.code.formatter</groupId>
 					<artifactId>formatter-maven-plugin</artifactId>
 					<version>2.11.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-pmd-plugin</artifactId>
+					<version>3.13.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -261,7 +266,34 @@
 				</configuration>
 				<dependencies>
 					<dependency>
-						<groupId>org.jolielang</groupId>
+						<groupId>org.jolie-lang</groupId>
+						<artifactId>build-tools</artifactId>
+						<version>1.0.0</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<failOnViolation>true</failOnViolation>
+					<printFailingErrors>true</printFailingErrors>
+					<rulesets>
+						<ruleset>pmd-ruleset.xml</ruleset>
+					</rulesets>
+					<analysisCache>true</analysisCache>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.jolie-lang</groupId>
 						<artifactId>build-tools</artifactId>
 						<version>1.0.0</version>
 					</dependency>
@@ -269,4 +301,13 @@
 			</plugin>
 		</plugins>
 	</build>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

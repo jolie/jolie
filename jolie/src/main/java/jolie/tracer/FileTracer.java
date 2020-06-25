@@ -1,22 +1,26 @@
 package jolie.tracer;
 
-import jolie.Interpreter;
-import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.function.Supplier;
 
+import jolie.Interpreter;
+import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
+
 public class FileTracer implements Tracer {
 
-	private final int MAX_LINE_COUNT = 2000;
+	private static final int MAX_LINE_COUNT = 2000;
 	private int actionCounter = 0;
-	Writer fileWriter;
+	private Writer fileWriter;
 	private final Interpreter interpreter;
-	private TracerUtils.TracerLevels tracerLevels;
+	private final TracerUtils.TracerLevels tracerLevels;
 	private int lineCount = 0;
 
 	public FileTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel ) {
@@ -78,11 +82,12 @@ public class FileTracer implements Tracer {
 	private void trace( EmbeddingTraceAction action ) {
 		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) ) {
 			StringBuilder stBuilder = new StringBuilder();
-			stBuilder.append( "{" );
-			stBuilder.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" );
-			stBuilder.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
+			stBuilder.append( "{" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
+				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
@@ -98,8 +103,8 @@ public class FileTracer implements Tracer {
 			default:
 				break;
 			}
-			stBuilder.append( "\"" ).append( action.name() ).append( "\"," );
-			stBuilder.append( "\"" ).append( action.description() ).append( "\"]}\n" );
+			stBuilder.append( "\"" ).append( action.name() ).append( "\"," )
+				.append( "\"" ).append( action.description() ).append( "\"]}\n" );
 			fileWriterFlush( stBuilder );
 		}
 
@@ -109,12 +114,13 @@ public class FileTracer implements Tracer {
 	private void trace( MessageTraceAction action ) {
 		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL )
 			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMM )) ) {
-			StringBuilder stBuilder = new StringBuilder();
-			stBuilder.append( "{" );
-			stBuilder.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" );
-			stBuilder.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
+			StringBuilder stBuilder = new StringBuilder()
+				.append( "{" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
+				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
@@ -143,9 +149,8 @@ public class FileTracer implements Tracer {
 			default:
 				break;
 			}
-			stBuilder.append( "\"" ).append( action.description() ).append( "\"," );
-
-			stBuilder.append( "\"" ).append( action.name() ).append( "\"" );
+			stBuilder.append( "\"" ).append( action.description() ).append( "\"," )
+				.append( "\"" ).append( action.name() ).append( "\"" );
 			if( action.message() != null ) {
 				stBuilder.append( ",\"" ).append( action.message().id() ).append( "\"," );
 
@@ -179,11 +184,12 @@ public class FileTracer implements Tracer {
 			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMP )) ) {
 
 			StringBuilder stBuilder = new StringBuilder();
-			stBuilder.append( "{" );
-			stBuilder.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" );
-			stBuilder.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
+			stBuilder.append( "{" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
+				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
@@ -203,9 +209,8 @@ public class FileTracer implements Tracer {
 			default:
 				break;
 			}
-			stBuilder.append( "\"" ).append( action.description() ).append( "\"," );
-
-			stBuilder.append( "\"" ).append( action.name() ).append( "\"" );
+			stBuilder.append( "\"" ).append( action.description() ).append( "\"," )
+				.append( "\"" ).append( action.name() ).append( "\"" );
 			if( action.value() != null ) {
 				stBuilder.append( ",\"\"," );
 
@@ -235,11 +240,12 @@ public class FileTracer implements Tracer {
 		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL )
 			|| (tracerLevels.equals( TracerUtils.TracerLevels.COMM )) ) {
 			StringBuilder stBuilder = new StringBuilder();
-			stBuilder.append( "{" );
-			stBuilder.append( "\"" ).append( Integer.toString( actionCounter ) ).append( "\":[" );
-			stBuilder.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
+			stBuilder.append( "{" )
+				.append( "\"" ).append( actionCounter ).append( "\":[" )
+				.append( "\"" ).append( getCurrentTimeStamp() ).append( "\"," );
 			if( action.context() == null ) {
-				stBuilder.append( "\"" ).append( interpreter.programDirectory() + interpreter.programFilename() )
+				stBuilder.append( "\"" ).append( interpreter.programDirectory() )
+					.append( interpreter.programFilename() )
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
@@ -256,9 +262,8 @@ public class FileTracer implements Tracer {
 			default:
 				break;
 			}
-			stBuilder.append( "\"" ).append( action.description() ).append( "\"," );
-
-			stBuilder.append( "\"" ).append( action.name() ).append( "\"" );
+			stBuilder.append( "\"" ).append( action.description() ).append( "\"," )
+				.append( "\"" ).append( action.name() ).append( "\"" );
 			if( action.message() != null ) {
 				stBuilder.append( ",\"\"," );
 

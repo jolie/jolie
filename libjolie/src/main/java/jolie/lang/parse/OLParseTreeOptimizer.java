@@ -22,6 +22,7 @@ package jolie.lang.parse;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -856,7 +857,7 @@ public class OLParseTreeOptimizer {
 		@Override
 		public void visit( InlineTreeExpressionNode n ) {
 			OLSyntaxNode rootExpression = optimizeNode( n.rootExpression() );
-			InlineTreeExpressionNode.Operation operations[] =
+			InlineTreeExpressionNode.Operation[] operations =
 				new InlineTreeExpressionNode.Operation[ n.operations().length ];
 			int i = 0;
 			for( InlineTreeExpressionNode.Operation operation : n.operations() ) {
@@ -897,10 +898,10 @@ public class OLParseTreeOptimizer {
 	}
 
 	public static Program optimize( Program originalProgram ) {
-		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
+		return new OptimizerVisitor( originalProgram.context() ).optimize( originalProgram );
 	}
 
 	public static OLSyntaxNode optimize( OLSyntaxNode node ) {
-		return (new OptimizerVisitor( node.context() )).optimize( node );
+		return new OptimizerVisitor( node.context() ).optimize( node );
 	}
 }

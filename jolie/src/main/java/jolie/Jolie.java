@@ -23,8 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.stream.Stream;
-
+import java.util.Arrays;
 import jolie.lang.parse.ParserException;
 
 
@@ -35,6 +34,7 @@ import jolie.lang.parse.ParserException;
  */
 public class Jolie {
 	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
+	public static int cellId = 0;
 
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
@@ -62,20 +62,22 @@ public class Jolie {
 	public static void main( String[] args ) {
 		int exitCode = 0;
 		// TODO: remove this hack by extracting CommandLineParser here
-		boolean printStackTraces = Stream.of( args ).anyMatch( s -> s.equals( "--stackTraces" ) );
+		boolean printStackTraces = Arrays.asList( args ).contains( "--stackTraces" );
 
 		try {
 			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
+			if( commandLineParser.cellId() < Integer.MAX_VALUE ) {
+				cellId = commandLineParser.cellId();
+			} else {
+				cellId = 0;
+				System.out.println( "Cell Identifier exceeds the maximun available ("
+					+ Integer.MAX_VALUE + "), set to 0" );
+			}
 			final Interpreter interpreter =
 				new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null,
 					null );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
-			Runtime.getRuntime().addShutdownHook( new Thread() {
-				@Override
-				public void run() {
-					interpreter.exit( TERMINATION_TIMEOUT );
-				}
-			} );
+			Runtime.getRuntime().addShutdownHook( new Thread( () -> interpreter.exit( TERMINATION_TIMEOUT ) ) );
 			interpreter.run();
 		} catch( CommandLineException cle ) {
 			printErr( cle, printStackTraces );

@@ -23,6 +23,7 @@
 package jolie.runtime.embedding;
 
 import java.lang.reflect.InvocationTargetException;
+
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.runtime.JavaService;

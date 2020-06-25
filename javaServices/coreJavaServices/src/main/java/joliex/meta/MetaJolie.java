@@ -22,19 +22,40 @@ package joliex.meta;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.*;
-import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OperationDeclaration;
+import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
@@ -43,7 +64,6 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.util.Range;
-import joliex.util.StringUtils;
 
 /**
  *
@@ -51,13 +71,13 @@ import joliex.util.StringUtils;
  */
 public class MetaJolie extends JavaService {
 
-	private final int MAX_CARD = 2147483647;
+	private static final int MAX_CARD = Integer.MAX_VALUE;
 	private ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition;
 	private ArrayList< Value > listOfGeneratedTypesInValues;
-	private ArrayList< String > nativeTypeList =
+	private final ArrayList< String > nativeTypeList =
 		new ArrayList<>( Arrays.asList( "any", "string", "double", "int", "void", "bool", "long", "raw" ) );
 
-	private class ValueTypeComparator implements Comparator< Value > {
+	private static class ValueTypeComparator implements Comparator< Value > {
 
 		@Override
 		public int compare( Value o1, Value o2 ) {
@@ -299,14 +319,12 @@ public class MetaJolie extends JavaService {
 		// scans operations and types
 		Map< String, OperationDeclaration > operationMap = interfaceDefinition.operationsMap();
 		ArrayList< String > opkeylist = new ArrayList<>();
-		for( String opkey : operationMap.keySet() ) {
-			opkeylist.add( opkey );
-		}
+		opkeylist.addAll( operationMap.keySet() );
 		Collections.sort( opkeylist );
 
 
 		for( String operationName : opkeylist ) {
-			Value current_operation = Value.create();;
+			Value current_operation = Value.create();
 			OperationDeclaration operationDeclaration = operationMap.get( operationName );
 			if( operationDeclaration instanceof OneWayOperationDeclaration ) {
 				OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationDeclaration;
@@ -380,14 +398,13 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		OutputPortInfo port = (OutputPortInfo) portInfo;
-		if( port.location() != null ) {
-			response.getFirstChild( "location" ).setValue( port.location().toString() );
+		if( ((OutputPortInfo) portInfo).location() != null ) {
+			response.getFirstChild( "location" ).setValue( ((OutputPortInfo) portInfo).location().toString() );
 		} else {
 			response.getFirstChild( "location" ).setValue( "undefined" );
 		}
-		if( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+		if( ((OutputPortInfo) portInfo).protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( ((OutputPortInfo) portInfo).protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -410,10 +427,9 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		InputPortInfo port = (InputPortInfo) portInfo;
-		response.getFirstChild( "location" ).setValue( port.location().toString() );
-		if( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+		response.getFirstChild( "location" ).setValue( ((InputPortInfo) portInfo).location().toString() );
+		if( ((InputPortInfo) portInfo).protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( ((InputPortInfo) portInfo).protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -473,10 +489,9 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		InputPortInfo port = (InputPortInfo) portInfo;
-		response.getFirstChild( "location" ).setValue( port.location().toString() );
-		if( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+		response.getFirstChild( "location" ).setValue( ((InputPortInfo) portInfo).location().toString() );
+		if( ((InputPortInfo) portInfo).protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( ((InputPortInfo) portInfo).protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -537,9 +552,7 @@ public class MetaJolie extends JavaService {
 
 
 		listOfGeneratedTypesInValues.sort( new ValueTypeComparator() );
-		listOfGeneratedTypesInValues.stream().forEach( v -> {
-			inputInterface.getChildren( "types" ).add( v );
-		} );
+		listOfGeneratedTypesInValues.stream().forEach( v -> inputInterface.getChildren( "types" ).add( v ) );
 
 		return inputInterface;
 
@@ -599,7 +612,7 @@ public class MetaJolie extends JavaService {
 		for( String s : interpreter().includePaths() ) {
 			builder.append( s );
 			if( ++i < interpreter().includePaths().length ) {
-				builder.append( jolie.lang.Constants.pathSeparator );
+				builder.append( jolie.lang.Constants.PATH_SEPARATOR );
 			}
 		}
 
@@ -612,7 +625,7 @@ public class MetaJolie extends JavaService {
 	}
 
 	private Value findType( ValueVector types, String typeName ) {
-		Iterator iterator = types.iterator();
+		Iterator< Value > iterator = types.iterator();
 		boolean found = false;
 		int index = 0;
 		while( index < types.size() && !found ) {
@@ -685,8 +698,8 @@ public class MetaJolie extends JavaService {
 			if( typeToCast.getFirstChild( "root_type" ).getChildren( "int_type" ).size() > 0 ) {
 				response.setValue( message.intValue() );
 			}
-			if( typeToCast.getFirstChild( "root_type" ).getChildren( "void_type" ).size() > 0 ) {
-			}
+			// if( typeToCast.getFirstChild( "root_type" ).getChildren( "void_type" ).size() > 0 ) {
+			// }
 			if( typeToCast.getFirstChild( "root_type" ).getChildren( "long_type" ).size() > 0 ) {
 				response.setValue( message.longValue() );
 			}
@@ -768,9 +781,7 @@ public class MetaJolie extends JavaService {
 			}
 			cmdParser.close();
 
-		} catch( CommandLineException e ) {
-			throw new FaultException( "InputPortMetaDataFault", e );
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "InputPortMetaDataFault", e );
 		} catch( ParserException e ) {
 			Value fault = Value.create();
@@ -822,9 +833,7 @@ public class MetaJolie extends JavaService {
 			}
 			cmdParser.close();
 
-		} catch( CommandLineException e ) {
-			throw new FaultException( "OutputPortMetaDataFault", e );
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "OutputPortMetaDataFault", e );
 		} catch( ParserException e ) {
 			Value fault = Value.create();
@@ -952,7 +961,7 @@ public class MetaJolie extends JavaService {
 			// adding communication dependencies
 			Map< OLSyntaxNode, List< OLSyntaxNode > > communicationDependencies =
 				inspector.getBehaviouralDependencies();
-			if( communicationDependencies != null && communicationDependencies.size() > 0 ) {
+			if( communicationDependencies != null && !communicationDependencies.isEmpty() ) {
 				final ValueVector comDepVect = response.getChildren( "communication_dependencies" );
 				communicationDependencies.entrySet().stream()
 					.forEach( p -> {
@@ -997,8 +1006,7 @@ public class MetaJolie extends JavaService {
 					} );
 			}
 
-		} catch( CommandLineException e ) {
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
@@ -1023,7 +1031,6 @@ public class MetaJolie extends JavaService {
 	@RequestResponse
 	public Value getNativeTypeFromString( Value request ) throws FaultException {
 		if( isNativeType( request.getFirstChild( "type_name" ).strValue() ) ) {
-			Value response = Value.create();
 			return getNativeType( request.getFirstChild( "type_name" ).strValue() );
 		} else {
 			throw new FaultException( "NativeTypeDoesNotExist" );

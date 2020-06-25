@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.util.ArrayListMultiMap;

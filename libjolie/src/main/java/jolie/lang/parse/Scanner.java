@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+
 import jolie.lang.NativeType;
 
 /**
@@ -138,52 +139,52 @@ public class Scanner {
 	 * Map of unreserved keywords,
 	 * which can be considered as IDs in certain places (e.g. variables).
 	 */
-	private static final Map< String, TokenType > unreservedKeywords = new HashMap<>();
+	private static final Map< String, TokenType > UNRESERVED_KEYWORDS = new HashMap<>();
 	
 	static {
 		// Initialise the unreserved keywords map.
-		unreservedKeywords.put( "OneWay", TokenType.OP_OW );
-		unreservedKeywords.put( "RequestResponse", TokenType.OP_RR );
-		unreservedKeywords.put( "linkIn", TokenType.LINKIN );
-		unreservedKeywords.put( "linkOut", TokenType.LINKOUT );
-		unreservedKeywords.put( "if", TokenType.IF );
-		unreservedKeywords.put( "else", TokenType.ELSE );
-		unreservedKeywords.put( "include", TokenType.INCLUDE );
-		unreservedKeywords.put( "define", TokenType.DEFINE );
-		unreservedKeywords.put( "nullProcess", TokenType.NULL_PROCESS );
-		unreservedKeywords.put( "while", TokenType.WHILE );
-		unreservedKeywords.put( "execution", TokenType.EXECUTION );
-		unreservedKeywords.put( "install", TokenType.INSTALL );
-		unreservedKeywords.put( "this", TokenType.THIS );
-		unreservedKeywords.put( "synchronized", TokenType.SYNCHRONIZED );
-		unreservedKeywords.put( "throw", TokenType.THROW );
-		unreservedKeywords.put( "scope", TokenType.SCOPE );
-		unreservedKeywords.put( "spawn", TokenType.SPAWN );
-		unreservedKeywords.put( "comp", TokenType.COMPENSATE );
-		unreservedKeywords.put( "exit", TokenType.EXIT );
-		unreservedKeywords.put( "constants", TokenType.CONSTANTS );
-		unreservedKeywords.put( "undef", TokenType.UNDEF );
-		unreservedKeywords.put( "for", TokenType.FOR );
-		unreservedKeywords.put( "foreach", TokenType.FOREACH );
-		unreservedKeywords.put( "is_defined", TokenType.IS_DEFINED );
-		unreservedKeywords.put( "is_string", TokenType.IS_STRING );
-		unreservedKeywords.put( "is_int", TokenType.IS_INT );
-		unreservedKeywords.put( "is_bool", TokenType.IS_BOOL );
-		unreservedKeywords.put( "is_long", TokenType.IS_LONG );
-		unreservedKeywords.put( "is_double", TokenType.IS_DOUBLE );
-		unreservedKeywords.put( "instanceof", TokenType.INSTANCE_OF );
-		unreservedKeywords.put( NativeType.INT.id(), TokenType.CAST_INT );
-		unreservedKeywords.put( NativeType.STRING.id(), TokenType.CAST_STRING );
-		unreservedKeywords.put( NativeType.BOOL.id(), TokenType.CAST_BOOL );
-		unreservedKeywords.put( NativeType.DOUBLE.id(), TokenType.CAST_DOUBLE );
-		unreservedKeywords.put( NativeType.LONG.id(), TokenType.CAST_LONG );
-		unreservedKeywords.put( "throws", TokenType.THROWS );
-		unreservedKeywords.put( "cH", TokenType.CURRENT_HANDLER );
-		unreservedKeywords.put( "init", TokenType.INIT );
-		unreservedKeywords.put( "with", TokenType.WITH );
-		unreservedKeywords.put( "true", TokenType.TRUE );
-		unreservedKeywords.put( "false", TokenType.FALSE );
-		unreservedKeywords.put( "provide", TokenType.PROVIDE );
+		UNRESERVED_KEYWORDS.put( "OneWay", TokenType.OP_OW );
+		UNRESERVED_KEYWORDS.put( "RequestResponse", TokenType.OP_RR );
+		UNRESERVED_KEYWORDS.put( "linkIn", TokenType.LINKIN );
+		UNRESERVED_KEYWORDS.put( "linkOut", TokenType.LINKOUT );
+		UNRESERVED_KEYWORDS.put( "if", TokenType.IF );
+		UNRESERVED_KEYWORDS.put( "else", TokenType.ELSE );
+		UNRESERVED_KEYWORDS.put( "include", TokenType.INCLUDE );
+		UNRESERVED_KEYWORDS.put( "define", TokenType.DEFINE );
+		UNRESERVED_KEYWORDS.put( "nullProcess", TokenType.NULL_PROCESS );
+		UNRESERVED_KEYWORDS.put( "while", TokenType.WHILE );
+		UNRESERVED_KEYWORDS.put( "execution", TokenType.EXECUTION );
+		UNRESERVED_KEYWORDS.put( "install", TokenType.INSTALL );
+		UNRESERVED_KEYWORDS.put( "this", TokenType.THIS );
+		UNRESERVED_KEYWORDS.put( "synchronized", TokenType.SYNCHRONIZED );
+		UNRESERVED_KEYWORDS.put( "throw", TokenType.THROW );
+		UNRESERVED_KEYWORDS.put( "scope", TokenType.SCOPE );
+		UNRESERVED_KEYWORDS.put( "spawn", TokenType.SPAWN );
+		UNRESERVED_KEYWORDS.put( "comp", TokenType.COMPENSATE );
+		UNRESERVED_KEYWORDS.put( "exit", TokenType.EXIT );
+		UNRESERVED_KEYWORDS.put( "constants", TokenType.CONSTANTS );
+		UNRESERVED_KEYWORDS.put( "undef", TokenType.UNDEF );
+		UNRESERVED_KEYWORDS.put( "for", TokenType.FOR );
+		UNRESERVED_KEYWORDS.put( "foreach", TokenType.FOREACH );
+		UNRESERVED_KEYWORDS.put( "is_defined", TokenType.IS_DEFINED );
+		UNRESERVED_KEYWORDS.put( "is_string", TokenType.IS_STRING );
+		UNRESERVED_KEYWORDS.put( "is_int", TokenType.IS_INT );
+		UNRESERVED_KEYWORDS.put( "is_bool", TokenType.IS_BOOL );
+		UNRESERVED_KEYWORDS.put( "is_long", TokenType.IS_LONG );
+		UNRESERVED_KEYWORDS.put( "is_double", TokenType.IS_DOUBLE );
+		UNRESERVED_KEYWORDS.put( "instanceof", TokenType.INSTANCE_OF );
+		UNRESERVED_KEYWORDS.put( NativeType.INT.id(), TokenType.CAST_INT );
+		UNRESERVED_KEYWORDS.put( NativeType.STRING.id(), TokenType.CAST_STRING );
+		UNRESERVED_KEYWORDS.put( NativeType.BOOL.id(), TokenType.CAST_BOOL );
+		UNRESERVED_KEYWORDS.put( NativeType.DOUBLE.id(), TokenType.CAST_DOUBLE );
+		UNRESERVED_KEYWORDS.put( NativeType.LONG.id(), TokenType.CAST_LONG );
+		UNRESERVED_KEYWORDS.put( "throws", TokenType.THROWS );
+		UNRESERVED_KEYWORDS.put( "cH", TokenType.CURRENT_HANDLER );
+		UNRESERVED_KEYWORDS.put( "init", TokenType.INIT );
+		UNRESERVED_KEYWORDS.put( "with", TokenType.WITH );
+		UNRESERVED_KEYWORDS.put( "true", TokenType.TRUE );
+		UNRESERVED_KEYWORDS.put( "false", TokenType.FALSE );
+		UNRESERVED_KEYWORDS.put( "provide", TokenType.PROVIDE );
 	}
 
 	/**
@@ -283,7 +284,7 @@ public class Scanner {
 		 */
 		public boolean isEOF()
 		{
-			return ( type == TokenType.EOF );
+			return type == TokenType.EOF;
 		}
 
 		/**
@@ -294,7 +295,7 @@ public class Scanner {
 		 */
 		public boolean is( TokenType compareType )
 		{
-			return ( type == compareType );
+			return type == compareType;
 		}
 
 		/**
@@ -305,7 +306,7 @@ public class Scanner {
 		 */
 		public boolean isNot( TokenType compareType )
 		{
-			return ( type != compareType );
+			return type != compareType;
 		}
 
 		/**
@@ -317,7 +318,7 @@ public class Scanner {
 		 */
 		public boolean isKeyword( String keyword )
 		{
-			return ( type == TokenType.ID && content.equals( keyword ) );
+			return type == TokenType.ID && content.equals( keyword );
 		}
 
 		/**
@@ -328,7 +329,7 @@ public class Scanner {
 		 */
 		public boolean isIdentifier()
 		{
-			return ( type == TokenType.ID || isUnreservedKeyword );
+			return type == TokenType.ID || isUnreservedKeyword;
 		}
 
 		/**
@@ -339,7 +340,7 @@ public class Scanner {
 		 */
 		public boolean isKeywordIgnoreCase( String keyword )
 		{
-			return ( type == TokenType.ID && content.equalsIgnoreCase( keyword ) );
+			return type == TokenType.ID && content.equalsIgnoreCase( keyword );
 		}
 	}
 
@@ -347,8 +348,7 @@ public class Scanner {
 	private final InputStreamReader reader;	// data input
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
-	private State state;					// current state
-	private int line;						// current line
+    private int line;						// current line
 	private final URI source;				// source name
 	private final boolean includeDocumentation;	// include documentation tokens
 
@@ -495,7 +495,7 @@ public class Scanner {
 	 */
 	private static boolean isOverflowChar( char c )
 	{
-		return ( (int) c >= Character.MAX_VALUE );
+		return (int) c >= Character.MAX_VALUE;
 	}
 
 	/**
@@ -506,7 +506,7 @@ public class Scanner {
 	 */
 	public static boolean isNewLineChar( char c )
 	{
-		return ( c == '\n' || c == '\r' );
+		return c == '\n' || c == '\r';
 	}
 
 	/**
@@ -536,6 +536,8 @@ public class Scanner {
 		return ch;
 	}
 	
+	// The lowercase _or_ names are intentional and help reading.
+	@SuppressWarnings("PMD")
 	private static enum State
 	{
 		FIRST_CHARACTER,
@@ -576,7 +578,8 @@ public class Scanner {
 		throws IOException
 	{
 		boolean keepRun = true;
-		state = State.FIRST_CHARACTER;
+        // current state
+        State state = State.FIRST_CHARACTER;
         
 		while ( currInt != -1 && isHorizontalWhitespace( ch ) ) {
 			readChar();
@@ -594,7 +597,7 @@ public class Scanner {
 			if ( currInt == -1 && retval == null ) {
 				keepRun = false; // We *need* a token at this point
 			}
-			switch( state ) {
+			switch(state) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
 				 * specific character (==) check.
@@ -669,7 +672,7 @@ public class Scanner {
 				case ID:  // ID (or unreserved keyword)
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
 						String str = tokenBuilder.toString();
-						TokenType tt = unreservedKeywords.get( str );
+						TokenType tt = UNRESERVED_KEYWORDS.get( str );
 						if ( tt != null ) {
 							// It is an unreserved keyword
 							retval = new Token( tt, str, true );

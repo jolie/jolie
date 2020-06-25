@@ -25,6 +25,7 @@ package jolie.runtime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
+
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionThread;
@@ -55,7 +56,7 @@ public class SpawnExecution {
 		}
 	}
 
-	private final Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
+	private final Collection< SpawnedThread > threads = new HashSet<>();
 	private final SpawnProcess parentSpawnProcess;
 	private final ExecutionThread ethread;
 	private CountDownLatch latch;

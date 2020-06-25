@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.SessionMessage;
@@ -47,8 +48,8 @@ import jolie.util.Pair;
  * @author Fabrizio Montesi
  */
 public class NDChoiceProcess implements Process {
-	private Map< String, Pair< InputOperationProcess, Process > > branches = new HashMap<>();
-	private Map< String, InputOperation > inputOperationsMap = new HashMap<>();
+	private final Map< String, Pair< InputOperationProcess, Process > > branches;
+	private final Map< String, InputOperation > inputOperationsMap;
 
 	/**
 	 * Constructor
@@ -56,12 +57,14 @@ public class NDChoiceProcess implements Process {
 	 * @param branches
 	 */
 	public NDChoiceProcess( Pair< InputOperationProcess, Process >[] branches ) {
+		Map< String, Pair< InputOperationProcess, Process > > mutBranches = new HashMap<>();
+		Map< String, InputOperation > mutOperationsMap = new HashMap<>();
 		for( Pair< InputOperationProcess, Process > pair : branches ) {
-			this.branches.put( pair.key().inputOperation().id(), pair );
-			this.inputOperationsMap.put( pair.key().inputOperation().id(), pair.key().inputOperation() );
+			mutBranches.put( pair.key().inputOperation().id(), pair );
+			mutOperationsMap.put( pair.key().inputOperation().id(), pair.key().inputOperation() );
 		}
-		this.branches = Collections.unmodifiableMap( this.branches );
-		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
+		this.branches = Collections.unmodifiableMap( mutBranches );
+		this.inputOperationsMap = Collections.unmodifiableMap( mutOperationsMap );
 	}
 
 	protected Map< String, Pair< InputOperationProcess, Process > > branches() {
@@ -77,7 +80,7 @@ public class NDChoiceProcess implements Process {
 		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
 		int i = 0;
 		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {
-			b[ i++ ] = new Pair< InputOperationProcess, Process >( pair.key(), pair.value().copy( reason ) );
+			b[ i++ ] = new Pair<>( pair.key(), pair.value().copy( reason ) );
 		}
 		return new NDChoiceProcess( b );
 	}

@@ -35,7 +35,7 @@ import jolie.runtime.Value;
  *
  */
 public class StandardMonitor extends AbstractMonitorJavaService {
-	private Deque q = new LinkedList(); // event list
+	private final Deque< MonitoringEvent > q = new LinkedList<>(); // event list
 	private boolean triggerEnabled;
 	private int queueMax;
 	private int triggerThreshold;

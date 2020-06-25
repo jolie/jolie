@@ -94,11 +94,11 @@ public class FaultException extends Exception {
 
 	@Override
 	public String getMessage() {
-		StringBuilder builder = new StringBuilder();
-		builder.append( faultName );
-		builder.append( ": " );
-		builder.append( value.strValue() );
-		return builder.toString();
+		return new StringBuilder()
+			.append( faultName )
+			.append( ": " )
+			.append( value.strValue() )
+			.toString();
 	}
 
 	/**

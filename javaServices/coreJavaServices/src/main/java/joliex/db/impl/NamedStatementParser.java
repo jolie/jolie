@@ -28,11 +28,11 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import jolie.runtime.Value;
 
 
@@ -49,9 +49,9 @@ public class NamedStatementParser {
 		private final static String TIME = "Time";
 	}
 
-	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
+	private final Map< String, List< Integer > > parameterPositions = new HashMap<>();
 	private final PreparedStatement statement;
-	private final GregorianCalendar cal = new GregorianCalendar();
+	// private final GregorianCalendar cal = new GregorianCalendar();
 
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
 		throws SQLException {
@@ -176,12 +176,7 @@ public class NamedStatementParser {
 	}
 
 	private List< Integer > getParameterPositions( String parameterName ) {
-		List< Integer > ret = parameterPositions.get( parameterName );
-		if( ret == null ) {
-			ret = new ArrayList< Integer >();
-			parameterPositions.put( parameterName, ret );
-		}
-		return ret;
+		return parameterPositions.computeIfAbsent( parameterName, k -> new ArrayList<>() );
 	}
 
 	public PreparedStatement getPreparedStatement() {

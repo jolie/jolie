@@ -36,7 +36,7 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 
 public class TimeService extends JavaService {
-	protected class TimeThread extends Thread {
+	protected static class TimeThread extends Thread {
 		private final long waitTime;
 		private final String callbackOperation;
 		private final Value callbackValue;
@@ -364,7 +364,7 @@ public class TimeService extends JavaService {
 			final Date dt1 = sdf.parse( request.getFirstChild( "time1" ).strValue() );
 			final Date dt2 = sdf.parse( request.getFirstChild( "time2" ).strValue() );
 
-			Long result = new Long( (dt1.getTime() - dt2.getTime()) );
+			Long result = (dt1.getTime() - dt2.getTime());
 			v.setValue( result.intValue() );
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidDate", pe );

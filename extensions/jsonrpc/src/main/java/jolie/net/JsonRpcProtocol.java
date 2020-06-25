@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -101,9 +102,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				// JSON-RPC notification mechanism (method call with dropped result)
 				// we just send HTTP status code 204
 				StringBuilder httpMessage = new StringBuilder();
-				httpMessage.append( "HTTP/1.1 204 No Content" + HttpUtils.CRLF );
-				httpMessage.append( "Server: Jolie" + HttpUtils.CRLF + HttpUtils.CRLF );
-				ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
+				httpMessage.append( "HTTP/1.1 204 No Content" ).append( HttpUtils.CRLF )
+					.append( "Server: Jolie" ).append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
+				ostream.write( httpMessage.toString().getBytes( StandardCharsets.UTF_8 ) );
 				return;
 			}
 		}
@@ -142,7 +143,6 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		Map< String, Type > subTypes = new HashMap<>();
 		subTypes.put( "jsonrpc", Type.create( NativeType.STRING, new Range( 1, 1 ), false, null ) );
 		subTypes.put( "id", Type.create( NativeType.INT, new Range( 0, 1 ), false, null ) );
-		Map< String, Type > paramsSubTypes = new HashMap<>();
 
 		if( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
@@ -157,8 +157,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			// if we are in LSP, we want to be sure the message to be
 			// a response to a request in order to send it with
 			// the fields "results" and "id"
-			boolean check = isLsp ? isRR : true;
-			if( inInputPort && check ) {
+			// boolean check = isLsp ? isRR : true;
+			if( inInputPort && (isRR || !isLsp) ) {
 				value.getChildren( "result" ).set( 0, message.value() );
 				String jsonRpcId = jsonRpcIdMap.get( message.id() );
 				value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
@@ -170,7 +170,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 						.getOperationTypeDescription().asRequestResponseTypeDescription().responseType();
 				}
 
-				operationType = operationType.getMinimalType( message.value() ).orElseGet( () -> Type.UNDEFINED );
+				operationType = operationType.getMinimalType( message.value() ).orElse( Type.UNDEFINED );
 				subTypes.put( "result", operationType );
 			} else {
 				jsonRpcOpMap.put( Long.toString( message.id() ), operationNameAliased );
@@ -187,7 +187,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					}
 				}
 
-				operationType = operationType.getMinimalType( message.value() ).orElseGet( () -> Type.UNDEFINED );
+				operationType = operationType.getMinimalType( message.value() ).orElse( Type.UNDEFINED );
 
 				if( message.value().isDefined() || message.value().hasChildren() ) {
 					// some implementations need an array here
@@ -233,7 +233,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 		}
 
-		ByteArray content = new ByteArray( jsonMessage.getBytes( "utf-8" ) );
+		ByteArray content = new ByteArray( jsonMessage.getBytes( StandardCharsets.UTF_8 ) );
 
 		if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			String lspHeaders = "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF;
@@ -248,31 +248,31 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			StringBuilder httpMessage = new StringBuilder();
 			if( inInputPort ) {
 				// We're responding to a request
-				httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
-				httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
+				httpMessage.append( "HTTP/1.1 200 OK" ).append( HttpUtils.CRLF )
+					.append( "Server: Jolie" ).append( HttpUtils.CRLF );
 			} else {
 				// We're sending a request
 				String path = uri.getRawPath(); // TODO: fix this to consider resourcePaths
 				if( path == null || path.length() == 0 ) {
 					path = "*";
 				}
-				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
-				httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
-				httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+				httpMessage.append( "POST " ).append( path ).append( " HTTP/1.1" ).append( HttpUtils.CRLF )
+					.append( "User-Agent: Jolie" ).append( HttpUtils.CRLF )
+					.append( "Host: " ).append( uri.getHost() ).append( HttpUtils.CRLF );
 
 				if( checkBooleanParameter( "compression", true ) ) {
 					String requestCompression = getStringParameter( "requestCompression" );
 					if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 						encoding = requestCompression;
-						httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+						httpMessage.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
 					} else {
-						httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+						httpMessage.append( "Accept-Encoding: gzip, deflate" ).append( HttpUtils.CRLF );
 					}
 				}
 			}
 
 			if( channel().toBeClosed() ) {
-				httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
 			if( encoding != null && checkBooleanParameter( "compression", true ) ) {
@@ -280,8 +280,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 
 			// httpMessage.append( "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF );
-			httpMessage.append( "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF );
-			httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
+			httpMessage.append( "Content-Type: application/json; charset=utf-8" ).append( HttpUtils.CRLF )
+				.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF )
+				.append( HttpUtils.CRLF );
 
 			if( checkBooleanParameter( "debug", false ) ) {
 				interpreter
@@ -384,14 +385,15 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					"/", value.getFirstChild( "params" ), null );
 			} else if( value.hasChildren( "error" ) ) {
 				String operationName = jsonRpcOpMap.get( jsonRpcId );
-				return new CommMessage( Long.valueOf( jsonRpcId ), operationName, "/", null,
+				return new CommMessage( Long.parseLong( jsonRpcId ), operationName, "/", null,
 					new FaultException(
 						value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
 						value.getFirstChild( "error" ).getFirstChild( "data" ) ) );
 			} else {
 				// Certain implementations do not provide a result if it is "void"
 				String operationName = jsonRpcOpMap.get( jsonRpcId );
-				return new CommMessage( Long.valueOf( jsonRpcId ), operationName, "/", value.getFirstChild( "result" ),
+				return new CommMessage( Long.parseLong( jsonRpcId ), operationName, "/",
+					value.getFirstChild( "result" ),
 					null );
 			}
 		}

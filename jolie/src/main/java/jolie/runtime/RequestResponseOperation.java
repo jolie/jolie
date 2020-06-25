@@ -26,7 +26,7 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 
 public class RequestResponseOperation extends InputOperation {
-	private RequestResponseTypeDescription typeDescription;
+	private final RequestResponseTypeDescription typeDescription;
 
 	public RequestResponseOperation(
 		String id,

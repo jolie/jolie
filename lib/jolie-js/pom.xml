@@ -75,7 +75,7 @@
 					<artifactId>formatter-maven-plugin</artifactId>
 					<dependencies>
 						<dependency>
-							<groupId>org.jolielang</groupId>
+							<groupId>org.jolie-lang</groupId>
 							<artifactId>build-tools</artifactId>
 							<version>${project.parent.version}</version>
 						</dependency>

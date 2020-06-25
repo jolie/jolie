@@ -22,6 +22,7 @@
 package jolie.lang.parse.ast;
 
 import java.io.Serializable;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;

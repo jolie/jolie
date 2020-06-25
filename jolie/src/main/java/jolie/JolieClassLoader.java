@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.regex.Pattern;
+
 import jolie.lang.Constants;
 import jolie.net.CommCore;
 import jolie.net.ext.CommChannelFactory;
@@ -118,32 +119,29 @@ public final class JolieClassLoader extends URLClassLoader {
 	}
 
 	private void checkForJolieAnnotations( Class< ? > c ) {
-		final AndJarDeps needsJars = c.getAnnotation( AndJarDeps.class );
-		if( needsJars != null ) {
-			for( String filename : needsJars.value() ) {
+		final AndJarDeps neededJars = c.getAnnotation( AndJarDeps.class );
+		if( neededJars != null ) {
+			for( String filename : neededJars.value() ) {
 				/*
 				 * TODO jar unloading when service is unloaded? Consider other services needing the same jars in
 				 * that.
 				 */
 				try {
 					addJarResource( filename );
-				} catch( MalformedURLException e ) {
-					e.printStackTrace();
 				} catch( IOException e ) {
 					e.printStackTrace();
 				}
 			}
 		}
-		final CanUseJars canUseJars = c.getAnnotation( CanUseJars.class );
-		if( canUseJars != null ) {
-			for( String filename : canUseJars.value() ) {
+		final CanUseJars optionalJars = c.getAnnotation( CanUseJars.class );
+		if( optionalJars != null ) {
+			for( String filename : optionalJars.value() ) {
 				/*
 				 * TODO jar unloading when service is unloaded? Consider other services needing the same jars in
 				 * that.
 				 */
 				try {
 					addJarResource( filename );
-				} catch( MalformedURLException e ) {
 				} catch( IOException e ) {
 				}
 			}

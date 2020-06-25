@@ -27,6 +27,7 @@ import java.net.URLStreamHandlerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import jolie.jap.JapURLStreamHandler;
 
 /**
@@ -34,7 +35,7 @@ import jolie.jap.JapURLStreamHandler;
  * @author Fabrizio Montesi
  */
 public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory {
-	private final static AtomicBoolean registered = new AtomicBoolean( false );
+	private final static AtomicBoolean REGISTERED = new AtomicBoolean( false );
 
 	private final Map< String, URLStreamHandler > handlers = new HashMap<>();
 
@@ -52,7 +53,7 @@ public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory {
 	}
 
 	public static void registerInVM() {
-		if( registered.compareAndSet( false, true ) ) {
+		if( REGISTERED.compareAndSet( false, true ) ) {
 			URL.setURLStreamHandlerFactory( new JolieURLStreamHandlerFactory() );
 		}
 	}

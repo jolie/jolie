@@ -25,6 +25,7 @@ package jolie.runtime;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -38,7 +39,7 @@ import jolie.process.LinkInProcess;
  */
 public class InternalLink extends AbstractIdentifiableObject {
 	private final List< LinkInProcess.Execution > procsList =
-		new LinkedList< LinkInProcess.Execution >();
+		new LinkedList<>();
 	private int signals = 0;
 	private final CommMessage linkMessage;
 

@@ -74,4 +74,167 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencies>
+		<!-- Basic libs -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>libjolie</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+
+		<!-- Libraries -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie-js</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie-ssl</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie-xml</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>xsom</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+
+		<!-- Extensions -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>auto</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>btl2cap</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>http</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>https</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>javascript</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jsonrpc</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>local</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>localsocket</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>rmi</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>soap</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>soaps</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sodep</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sodeps</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>xmlrpc</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+
+		<!-- Support -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie-java</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>metaservice-java</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		
+		<!-- Tools -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie2dummy</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie2java</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie2plasma</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie2surface</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie2wsdl</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>joliec</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+
+		<!-- Java services -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>coreJavaServices</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>monitorJavaServices</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+	</dependencies>
 </project>

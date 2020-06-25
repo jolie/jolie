@@ -25,6 +25,7 @@ package jolie.net;
 import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
+
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
@@ -182,7 +183,7 @@ public abstract class CommChannel {
 	 */
 	public CommMessage recv()
 		throws IOException {
-		return Helpers.lockAndThen( lock, () -> recvImpl() );
+		return Helpers.lockAndThen( lock, this::recvImpl );
 	}
 
 	/**

@@ -23,6 +23,7 @@ package jolie.lang.parse.ast.courier;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.InterfaceDefinition;

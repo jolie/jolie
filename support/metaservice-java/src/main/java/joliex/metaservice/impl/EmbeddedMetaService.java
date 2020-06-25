@@ -40,13 +40,13 @@ import joliex.metaservice.MetaServiceChannel;
 public class EmbeddedMetaService extends MetaService {
 	private final Interpreter interpreter;
 	private final MetaServiceChannel channel;
-	private static final String fs = jolie.lang.Constants.fileSeparator;
-	private static final String ps = jolie.lang.Constants.pathSeparator;
+	private static final String FS = jolie.lang.Constants.FILE_SEPARATOR;
+	private static final String PS = jolie.lang.Constants.PATH_SEPARATOR;
 
 	private static final String JOLIE_HOME_ENV = "JOLIE_HOME";
 
-	private static final String defaultFilepath =
-		fs + "include" + fs + "services" + fs + "metaservice" + fs + "metaservice.ol";
+	private static final String DEFAULT_FILEPATH =
+		FS + "include" + FS + "services" + FS + "metaservice" + FS + "metaservice.ol";
 
 	private static String[] buildInterpreterArguments( String jh, String metaServiceFilepath ) {
 		// jh stays for jolie_home, i.e. the JOLIE installation directory
@@ -54,9 +54,9 @@ public class EmbeddedMetaService extends MetaService {
 			// Location
 			"-C", "MetaServiceLocation=\"local\"",
 			// Libraries
-			"-l", jh + fs + "lib" + ps + jh + fs + "javaServices" + fs + "*" + ps + jh + fs + "extensions" + fs + "*",
+			"-l", jh + FS + "lib" + PS + jh + FS + "javaServices" + FS + "*" + PS + jh + FS + "extensions" + FS + "*",
 			// Includes
-			"-i", jh + fs + "include",
+			"-i", jh + FS + "include",
 			// MetaService source file
 			metaServiceFilepath
 		};
@@ -77,7 +77,7 @@ public class EmbeddedMetaService extends MetaService {
 	 */
 	public EmbeddedMetaService( String jolieHome )
 		throws IOException, ExecutionException {
-		this( jolieHome, jolieHome + defaultFilepath );
+		this( jolieHome, jolieHome + DEFAULT_FILEPATH );
 	}
 
 	private void startInterpreter()
@@ -109,9 +109,7 @@ public class EmbeddedMetaService extends MetaService {
 					null );
 			startInterpreter();
 			channel = new MetaServiceChannel( this, "/" );
-		} catch( CommandLineException e ) {
-			throw new IOException( e );
-		} catch( FileNotFoundException e ) {
+		} catch( CommandLineException | FileNotFoundException e ) {
 			throw new IOException( e );
 		}
 	}

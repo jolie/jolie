@@ -18,22 +18,9 @@
  */
 package joliex.java.impl;
 
-import jolie.CommandLineException;
-import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.util.ParsingUtils;
-import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.embedding.Jolie2JavaInterface;
-import joliex.java.Jolie2Java;
-import joliex.java.Jolie2JavaCommandLineParser;
-import org.junit.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,9 +34,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import jolie.CommandLineException;
+import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticException;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
+import jolie.lang.parse.util.ProgramInspector;
+import jolie.runtime.ByteArray;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.Jolie2JavaInterface;
+import joliex.java.Jolie2Java;
+import joliex.java.Jolie2JavaCommandLineParser;
 
 /**
  *
@@ -123,13 +128,13 @@ public class JavaDocumentCreatorTest {
 		File generatedTypesPath = new File( outputDirectory + "com/test/types" );
 		ArrayList< String > files = new ArrayList<>();
 		if( generatedTypesPath.exists() ) {
-			String filesTypes[] = generatedTypesPath.list();
-			for( int i = 0; i < filesTypes.length; i++ ) {
-				files.add( generatedTypesPath.getPath() + "/" + filesTypes[ i ] );
+			String[] filesTypes = generatedTypesPath.list();
+			for( String filesType : filesTypes ) {
+				files.add( generatedTypesPath.getPath() + "/" + filesType );
 			}
 
 			File generatedTestPath = new File( outputDirectory + "com/test" );
-			String filesTest[] = generatedTestPath.list();
+			String[] filesTest = generatedTestPath.list();
 			for( int i = 0; i < filesTest.length; i++ ) {
 				filesTest[ i ] = generatedTestPath.getPath() + "/" + filesTest[ i ];
 				File tmpFile = new File( filesTest[ i ] );
@@ -140,7 +145,7 @@ public class JavaDocumentCreatorTest {
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			OutputStream output = new OutputStream() {
-				private StringBuilder sb = new StringBuilder();
+				private final StringBuilder sb = new StringBuilder();
 
 				@Override
 				public void write( int b ) throws IOException {
@@ -153,7 +158,7 @@ public class JavaDocumentCreatorTest {
 				}
 			};
 
-			String filesToBeCompiled[] = new String[ files.size() ];
+			String[] filesToBeCompiled = new String[ files.size() ];
 			filesToBeCompiled = files.toArray( filesToBeCompiled );
 			compiler.run( null, null, output, filesToBeCompiled );
 			System.out.println( output );
@@ -190,7 +195,7 @@ public class JavaDocumentCreatorTest {
 		for( int i = 0; i < MyOutputPortImpl.getMethods().length; i++ ) {
 			if( MyOutputPortImpl.getMethods()[ i ].getName().startsWith( "test" ) ) {
 				methodCount++;
-			} ;
+			}
 		}
 		assertEquals( "Number of generated methods does not correspond", 32, methodCount );
 
@@ -845,13 +850,13 @@ public class JavaDocumentCreatorTest {
 			if( vv.getValue().size() > 1 ) {
 				Integer size = (Integer) sizeMethodList.get( mNameTmp ).invoke( obj );
 				assertEquals( "size of vector of element " + vv.getKey() + " does not correspond", size,
-					new Integer( vv.getValue().size() ) );
+					Integer.valueOf( vv.getValue().size() ) );
 				for( int i = vv.getValue().size(); i > 0; i-- ) {
 					removeMethodList.get( mNameTmp ).invoke( obj, (i - 1) );
 				}
 				size = (Integer) sizeMethodList.get( mNameTmp ).invoke( obj );
 				assertEquals( "size of vector of element " + vv.getKey() + " does not correspond", size,
-					new Integer( 0 ) );
+					Integer.valueOf( 0 ) );
 
 			}
 		}
@@ -909,14 +914,15 @@ public class JavaDocumentCreatorTest {
 			addMethodList.get( "A" ).invoke( obj, inLineStructureType );
 			Object a = getMethodValueList.get( "A" ).invoke( obj, i );
 			assertEquals( "Linked type a does not correspond ", InLineStructureType.cast( a ), inLineStructureType );
-		} ;
+		}
 		Integer sizeA = (Integer) sizeMethodList.get( "A" ).invoke( obj );
 		assertEquals( "LinkedVectorsType field a, wrong number of elements", sizeA, aElements );
 		for( int i = aElements; i > 0; i-- ) {
 			removeMethodList.get( "A" ).invoke( obj, i - 1 );
-		} ;
+		}
 		sizeA = (Integer) sizeMethodList.get( "A" ).invoke( obj );
-		assertEquals( "LinkedVectorsType field a remove test, elemenst number should be 0", sizeA, new Integer( 0 ) );
+		assertEquals( "LinkedVectorsType field a remove test, elemenst number should be 0", sizeA,
+			Integer.valueOf( 0 ) );
 
 		// TODO test field b
 		Class< ? > FlatStructureType = Class.forName( packageName + ".FlatStructureType", true, classLoader );
@@ -928,14 +934,15 @@ public class JavaDocumentCreatorTest {
 			addMethodList.get( "C" ).invoke( obj, flatStructureType );
 			Object c = getMethodValueList.get( "C" ).invoke( obj, i );
 			assertEquals( "Linked type c does not correspond ", FlatStructureType.cast( c ), flatStructureType );
-		} ;
+		}
 		Integer sizeC = (Integer) sizeMethodList.get( "C" ).invoke( obj );
 		assertEquals( "LinkedVectorsType field c, wrong number of elements", sizeC, cElements );
 		for( int i = cElements; i > 0; i-- ) {
 			removeMethodList.get( "C" ).invoke( obj, i - 1 );
-		} ;
+		}
 		sizeC = (Integer) sizeMethodList.get( "C" ).invoke( obj );
-		assertEquals( "LinkedVectorsType field c remove test, elemenst number should be 0", sizeC, new Integer( 0 ) );
+		assertEquals( "LinkedVectorsType field c remove test, elemenst number should be 0", sizeC,
+			Integer.valueOf( 0 ) );
 
 		Class< ? > NewType = Class.forName( packageName + ".NewType", true, classLoader );
 		Constructor newTypeConstructor = NewType.getConstructor( new Class[] { Value.class } );
@@ -945,14 +952,15 @@ public class JavaDocumentCreatorTest {
 			addMethodList.get( "D" ).invoke( obj, newType );
 			Object d = getMethodValueList.get( "D" ).invoke( obj, i );
 			assertEquals( "Linked type c does not correspond ", NewType.cast( d ), newType );
-		} ;
+		}
 		Integer sizeD = (Integer) sizeMethodList.get( "D" ).invoke( obj );
 		assertEquals( "LinkedVectorsType field d, wrong number of elements", sizeD, dElements );
 		for( int i = dElements; i > 0; i-- ) {
 			removeMethodList.get( "D" ).invoke( obj, i - 1 );
-		} ;
+		}
 		sizeD = (Integer) sizeMethodList.get( "D" ).invoke( obj );
-		assertEquals( "LinkedVectorsType field d remove test, elemenst number should be 0", sizeD, new Integer( 0 ) );
+		assertEquals( "LinkedVectorsType field d remove test, elemenst number should be 0", sizeD,
+			Integer.valueOf( 0 ) );
 	}
 
 	private void checkRootMethods( Class cls, Object obj, Value v ) throws IllegalAccessException,
@@ -986,13 +994,13 @@ public class JavaDocumentCreatorTest {
 			if( v.isInt() ) {
 				Method setRootValue = cls.getDeclaredMethod( "setRootValue", Integer.class );
 				setRootValue.invoke( obj, v.intValue() );
-				assertEquals( "Root values in methods do not correspond", new Integer( v.intValue() ),
+				assertEquals( "Root values in methods do not correspond", Integer.valueOf( v.intValue() ),
 					(Integer) getRootValue.invoke( obj ) );
 			}
 			if( v.isLong() ) {
 				Method setRootValue = cls.getDeclaredMethod( "setRootValue", Long.class );
 				setRootValue.invoke( obj, v.longValue() );
-				assertEquals( "Root values in methods do not correspond", new Long( v.longValue() ),
+				assertEquals( "Root values in methods do not correspond", Long.valueOf( v.longValue() ),
 					(Long) getRootValue.invoke( obj ) );
 			}
 		}
@@ -1025,12 +1033,12 @@ public class JavaDocumentCreatorTest {
 			}
 			if( v.isInt() ) {
 				setRootValue.invoke( obj, v.intValue() );
-				assertEquals( "Root values in methods do not correspond", new Integer( v.intValue() ),
+				assertEquals( "Root values in methods do not correspond", Integer.valueOf( v.intValue() ),
 					(Integer) getRootValue.invoke( obj ) );
 			}
 			if( v.isLong() ) {
 				setRootValue.invoke( obj, v.longValue() );
-				assertEquals( "Root values in methods do not correspond", new Long( v.longValue() ),
+				assertEquals( "Root values in methods do not correspond", Long.valueOf( v.longValue() ),
 					(Long) getRootValue.invoke( obj ) );
 			}
 		}

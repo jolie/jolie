@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.function.Supplier;
+
 import jolie.Interpreter;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
@@ -38,7 +39,7 @@ import jolie.runtime.ValuePrettyPrinter;
 public class PrintingTracer implements Tracer {
 	private int actionCounter = 0;
 	private final Interpreter interpreter;
-	private TracerUtils.TracerLevels tracerLevels;
+	private final TracerUtils.TracerLevels tracerLevels;
 
 	public PrintingTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel ) {
 		this.interpreter = interpreter;
@@ -65,8 +66,8 @@ public class PrintingTracer implements Tracer {
 
 			StringBuilder stBuilder = new StringBuilder();
 
-			stBuilder.append( interpreter.logPrefix() ).append( "\t" );
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( interpreter.logPrefix() ).append( "\t" )
+				.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case SERVICE_LOAD:
 				stBuilder.append( "^ LOAD" );
@@ -91,7 +92,7 @@ public class PrintingTracer implements Tracer {
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
 			}
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case SOLICIT_RESPONSE:
 				stBuilder.append( "<< SR" );
@@ -151,7 +152,7 @@ public class PrintingTracer implements Tracer {
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
 			}
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case ASSIGNMENT:
 				stBuilder.append( ":: ASSIGNMENT" );
@@ -198,7 +199,7 @@ public class PrintingTracer implements Tracer {
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
 			}
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case HTTP:
 				stBuilder.append( "HTTP" );
@@ -213,8 +214,6 @@ public class PrintingTracer implements Tracer {
 				.append( "\t" ).append( action.name() )
 				.append( "\t\t\t" ).append( action.description() );
 			if( action.message() != null ) {
-				Writer writer = new StringWriter();
-
 				stBuilder.append( action.message() );
 			}
 			System.out.println( stBuilder.toString() );

@@ -21,10 +21,8 @@
 
 package joliex.plasma.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -113,10 +111,10 @@ import jolie.lang.parse.ast.types.TypeInlineDefinition;
 public class InterfaceVisitor implements OLVisitor {
 	private final Program program;
 	private final List< InterfaceDefinition > interfaceDefinitions =
-		new ArrayList< InterfaceDefinition >();
-	private final Set< String > interfaceNames = new HashSet< String >();
+		new ArrayList<>();
+	private final Set< String > interfaceNames = new HashSet<>();
 
-	public class InterfaceNotFound extends Exception {
+	public static class InterfaceNotFound extends Exception {
 		public InterfaceNotFound( String message ) {
 			super( message );
 		}
@@ -124,9 +122,7 @@ public class InterfaceVisitor implements OLVisitor {
 
 	public InterfaceVisitor( Program program, String[] interfaceNames ) {
 		this.program = program;
-		for( String name : interfaceNames ) {
-			this.interfaceNames.add( name );
-		}
+		this.interfaceNames.addAll( Arrays.asList( interfaceNames ) );
 	}
 
 	public InterfaceDefinition[] getInterfaceDefinitions()

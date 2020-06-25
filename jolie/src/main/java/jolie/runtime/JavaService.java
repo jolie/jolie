@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
@@ -138,31 +139,31 @@ public abstract class JavaService {
 	 * When you add something here, be sure that you define the appropriate "create..." static method in
 	 * JavaServiceHelpers.
 	 */
-	private static final Class< ? >[] supportedTypes = new Class[] {
+	private static final Class< ? >[] SUPPORTED_TYPES = new Class[] {
 		Value.class, String.class, Integer.class, Double.class, Boolean.class,
 		Long.class, ByteArray.class
 	};
-	private static final Method[] toValueConverters;
-	private static final Method[] fromValueConverters;
+	private static final Method[] TO_VALUE_CONVERTERS;
+	private static final Method[] FROM_VALUE_CONVERTERS;
 
 	static {
-		toValueConverters = new Method[ supportedTypes.length ];
+		TO_VALUE_CONVERTERS = new Method[ SUPPORTED_TYPES.length ];
 		try {
-			toValueConverters[ 0 ] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
-			for( int i = 1; i < supportedTypes.length; i++ ) {
-				toValueConverters[ i ] = Value.class.getMethod( "create", supportedTypes[ i ] );
+			TO_VALUE_CONVERTERS[ 0 ] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
+			for( int i = 1; i < SUPPORTED_TYPES.length; i++ ) {
+				TO_VALUE_CONVERTERS[ i ] = Value.class.getMethod( "create", SUPPORTED_TYPES[ i ] );
 			}
 		} catch( NoSuchMethodException e ) {
 			e.printStackTrace();
 			assert false;
 		}
 
-		fromValueConverters = new Method[ supportedTypes.length ];
+		FROM_VALUE_CONVERTERS = new Method[ SUPPORTED_TYPES.length ];
 		try {
-			fromValueConverters[ 0 ] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
-			for( int i = 1; i < supportedTypes.length; i++ ) {
-				fromValueConverters[ i ] =
-					JavaServiceHelpers.class.getMethod( "valueTo" + supportedTypes[ i ].getSimpleName(), Value.class );
+			FROM_VALUE_CONVERTERS[ 0 ] = JavaServiceHelpers.class.getMethod( "createValue", Value.class );
+			for( int i = 1; i < SUPPORTED_TYPES.length; i++ ) {
+				FROM_VALUE_CONVERTERS[ i ] =
+					JavaServiceHelpers.class.getMethod( "valueTo" + SUPPORTED_TYPES[ i ].getSimpleName(), Value.class );
 			}
 		} catch( NoSuchMethodException e ) {
 			e.printStackTrace();
@@ -184,9 +185,9 @@ public abstract class JavaService {
 		}
 
 		int i = 0;
-		for( Class< ? > type : supportedTypes ) {
+		for( Class< ? > type : SUPPORTED_TYPES ) {
 			if( param.isAssignableFrom( type ) ) {
-				return toValueConverters[ i ];
+				return TO_VALUE_CONVERTERS[ i ];
 			}
 			i++;
 		}
@@ -207,9 +208,9 @@ public abstract class JavaService {
 		}
 
 		int i = 0;
-		for( Class< ? > type : supportedTypes ) {
+		for( Class< ? > type : SUPPORTED_TYPES ) {
 			if( param.isAssignableFrom( type ) ) {
-				return fromValueConverters[ i ];
+				return FROM_VALUE_CONVERTERS[ i ];
 			}
 			i++;
 		}
