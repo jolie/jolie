@@ -103,13 +103,13 @@ class ModuleCrawler {
 		return modulesToCrawl;
 	}
 
-	private CrawlerResult crawl( ModuleRecord parentRecord )
+	private CrawlerResult crawl( ModuleRecord mainRecord )
 		throws ParserException, IOException, ModuleException {
 		CrawlerResult result = new CrawlerResult();
-		// start with parentRecord
+		// start with main module record
 		Queue< ModuleSource > dependencies = new LinkedList<>();
-		result.addModuleRecord( parentRecord );
-		dependencies.addAll( this.crawlModule( parentRecord ) );
+		result.addModuleRecord( mainRecord );
+		dependencies.addAll( this.crawlModule( mainRecord ) );
 
 		// walk through dependencies
 		while( dependencies.peek() != null ) {
@@ -138,17 +138,18 @@ class ModuleCrawler {
 	/**
 	 * crawl module's dependencies required for resolving symbols
 	 * 
-	 * @param initial a root module
-	 * @param component a composite object of Jolie's ModuleFinder and Parser for use during crawl
-	 *        process
+	 * @param mainRecord root ModuleRecord object to begin the dependency crawling
+	 * @param parserConfiguration configuration for parsing Jolie module
+	 * @param finder Jolie module finder
+	 * 
 	 * @throws ParserException
 	 * @throws IOException
 	 * @throws ModuleException
 	 */
-	protected static CrawlerResult crawl( ModuleRecord initial, ModuleParsingConfiguration parserConfiguration,
+	protected static CrawlerResult crawl( ModuleRecord mainRecord, ModuleParsingConfiguration parsingConfiguration,
 		ModuleFinder finder )
 		throws ParserException, IOException, ModuleException {
-		ModuleCrawler crawler = new ModuleCrawler( parserConfiguration, finder );
-		return crawler.crawl( initial );
+		ModuleCrawler crawler = new ModuleCrawler( parsingConfiguration, finder );
+		return crawler.crawl( mainRecord );
 	}
 }

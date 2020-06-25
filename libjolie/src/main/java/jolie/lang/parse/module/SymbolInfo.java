@@ -65,9 +65,9 @@ public abstract class SymbolInfo {
 	 * constructor for SymbolInfo
 	 * 
 	 * @param context context where symbol is declared
-	 * @param name Symbol name
-	 * @param scope scope of Symbol
-	 * @param node an ASTNode implementing SymbolNode
+	 * @param name symbol name
+	 * @param scope scope of the symbol origin
+	 * @param accessModifier modifier identify accessibility of this symbol
 	 */
 	protected SymbolInfo( ParsingContext context, String name, Scope scope, AccessModifier accessModifier ) {
 		this.context = context;
