@@ -54,9 +54,7 @@ class ModuleCrawler {
 
 		public Map< URI, SymbolTable > symbolTables() {
 			Map< URI, SymbolTable > result = new HashMap<>();
-			for( ModuleRecord mr : this.moduleCrawled.values() ) {
-				result.put( mr.source(), mr.symbolTable() );
-			}
+			this.moduleCrawled.values().stream().forEach( mr -> result.put( mr.source(), mr.symbolTable() ) );
 			return result;
 		}
 	}
@@ -76,9 +74,9 @@ class ModuleCrawler {
 	}
 
 	private final ModuleFinder finder;
-	private final ParserConfiguration parserConfiguration;
+	private final ModuleParsingConfiguration parserConfiguration;
 
-	private ModuleCrawler( ParserConfiguration parserConfiguration, ModuleFinder finder ) {
+	private ModuleCrawler( ModuleParsingConfiguration parserConfiguration, ModuleFinder finder ) {
 		this.finder = finder;
 		this.parserConfiguration = parserConfiguration;
 	}
@@ -147,7 +145,7 @@ class ModuleCrawler {
 	 * @throws IOException
 	 * @throws ModuleException
 	 */
-	protected static CrawlerResult crawl( ModuleRecord initial, ParserConfiguration parserConfiguration,
+	protected static CrawlerResult crawl( ModuleRecord initial, ModuleParsingConfiguration parserConfiguration,
 		ModuleFinder finder )
 		throws ParserException, IOException, ModuleException {
 		ModuleCrawler crawler = new ModuleCrawler( parserConfiguration, finder );

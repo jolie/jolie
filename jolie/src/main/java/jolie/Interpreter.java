@@ -28,7 +28,7 @@ import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.Modules;
-import jolie.lang.parse.module.ParserConfiguration;
+import jolie.lang.parse.module.ModuleParsingConfiguration;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
@@ -1222,7 +1222,7 @@ public class Interpreter {
 					program = this.internalServiceProgram;
 					program = OLParseTreeOptimizer.optimize( program );
 				} else {
-					ParserConfiguration configuration = new ParserConfiguration(
+					ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 						getInterpreterParameters().charset(),
 						getInterpreterParameters().includePaths(),
 						getInterpreterParameters().packagePaths(),

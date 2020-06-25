@@ -3,7 +3,7 @@ package jolie.lang.parse.module;
 import java.util.Map;
 import jolie.lang.parse.Scanner;
 
-public class ParserConfiguration {
+public class ModuleParsingConfiguration {
 
 	/**
 	 * an array of string for lookup path of include statement in Module
@@ -19,7 +19,7 @@ public class ParserConfiguration {
 	private final Map< String, Scanner.Token > constantsMap;
 
 
-	public ParserConfiguration( String charset, String[] includePaths, String[] packagePaths, ClassLoader classLoader,
+	public ModuleParsingConfiguration( String charset, String[] includePaths, String[] packagePaths, ClassLoader classLoader,
 		Map< String, Scanner.Token > constantsMap, boolean includeDocumentation ) {
 		this.charset = charset;
 		this.includePaths = includePaths;

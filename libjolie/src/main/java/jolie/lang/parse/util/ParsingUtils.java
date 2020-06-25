@@ -32,7 +32,7 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.Modules;
-import jolie.lang.parse.module.ParserConfiguration;
+import jolie.lang.parse.module.ModuleParsingConfiguration;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
@@ -56,7 +56,7 @@ public class ParsingUtils {
 		boolean includeDocumentation )
 		throws IOException, ParserException, SemanticException, ModuleException {
 
-		ParserConfiguration configuration = new ParserConfiguration(
+		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 			charset,
 			includePaths,
 			packagePaths,

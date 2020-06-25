@@ -19,6 +19,7 @@
 
 package jolie.lang.parse.module;
 
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -83,7 +84,9 @@ class PathSource implements ModuleSource {
 	@Override
 	public Optional< InputStream > openStream() {
 		try {
-			return Optional.of( new FileInputStream( this.path.toFile() ) );
+			InputStream is = new FileInputStream( this.path.toFile() );
+			// wrap with BufferInputStream for improve performance 
+			return Optional.of( new BufferedInputStream( is ) );
 		} catch( FileNotFoundException e ) {
 			return Optional.empty();
 		}

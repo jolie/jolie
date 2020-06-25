@@ -36,7 +36,7 @@ public class Modules {
 		}
 	}
 
-	public static ModuleParsedResult parseModule( ParserConfiguration configuration, InputStream stream,
+	public static ModuleParsedResult parseModule( ModuleParsingConfiguration configuration, InputStream stream,
 		URI programDirectory )
 		throws ParserException, IOException, ModuleException {
 		ModuleParser parser = new ModuleParser( configuration );
@@ -45,7 +45,7 @@ public class Modules {
 		ModuleRecord mainRecord = parser.parse(
 			new Scanner( stream, programDirectory, configuration.charset(), configuration.includeDocumentation() ) );
 
-		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, parser, finder );
+		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, configuration, finder );
 
 		SymbolReferenceResolver.resolve( crawlResult );
 

@@ -33,9 +33,9 @@ import jolie.lang.parse.ast.Program;
  */
 public class ModuleParser {
 
-	private final ParserConfiguration parserConfiguration;
+	private final ModuleParsingConfiguration parserConfiguration;
 
-	public ModuleParser( ParserConfiguration parserConfiguration ) {
+	public ModuleParser( ModuleParsingConfiguration parserConfiguration ) {
 		this.parserConfiguration = parserConfiguration;
 	}
 
