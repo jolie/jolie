@@ -69,6 +69,7 @@ public class CommandLineParser implements Closeable {
 	private final int connectionsLimit;
 	private final CorrelationEngine.Type correlationAlgorithmType;
 	private final String[] includePaths;
+	private final String[] packagePaths;
 	private final String[] optionArgs;
 	private final URL[] libURLs;
 	private final InputStream programStream;
@@ -204,6 +205,15 @@ public class CommandLineParser implements Closeable {
 	 */
 	private String[] includePaths() {
 		return includePaths;
+	}
+
+	/**
+	 * Returns the paths passed by command line with the -p option.
+	 * 
+	 * @return the packagePaths
+	 */
+	public String[] packagePaths() {
+		return packagePaths;
 	}
 
 	/**
@@ -416,6 +426,7 @@ public class CommandLineParser implements Closeable {
 		List< String > programArgumentsList = new ArrayList<>();
 		Deque< String > includeList = new LinkedList<>();
 		List< String > libList = new ArrayList<>();
+		List< String > packagesList = new ArrayList<>();
 		int cLimit = -1;
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
@@ -462,6 +473,11 @@ public class CommandLineParser implements Closeable {
 					// throw new IOException( "Could not locate library: " + libPath );
 					// }
 				}
+				optionsList.add( argsList.get( i ) );
+			} else if( "-p".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				Collections.addAll( packagesList, argsList.get( i ).split( jolie.lang.Constants.pathSeparator ) );
 				optionsList.add( argsList.get( i ) );
 			} else if( "--connlimit".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -699,6 +715,7 @@ public class CommandLineParser implements Closeable {
 		programStream = olResult.stream;
 
 		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
+		packagesPaths = new LinkedHashSet<>( packagesList ).toArray( new String[ 0 ]  );
 		optionArgs = optionsList.toArray( new String[ 0 ] );
 	}
 
@@ -950,7 +967,8 @@ public class CommandLineParser implements Closeable {
 			printStackTraces,
 			responseTimeout(),
 			logLevel(),
-			programDirectory() );
+			programDirectory(),
+			packagePaths() );
 
 	}
 

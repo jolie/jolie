@@ -27,6 +27,7 @@ import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,16 +57,17 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.module.Modules;
+import jolie.lang.parse.module.ModuleParsingConfiguration;
+import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
@@ -272,6 +274,7 @@ public class Interpreter {
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
 
+	private Map< URI, SymbolTable > symbolTables;
 
 	private final InterpreterParameters interpreterParameters;
 
@@ -854,6 +857,8 @@ public class Interpreter {
 		this.parentClassLoader = parentClassLoader;
 		this.interpreterParameters = interpreterParameters;
 
+		this.symbolTables = new HashMap<>();
+        
 		switch( interpreterParameters.tracerLevel() ) {
 		case "comm":
 			tracerLevel = TracerUtils.TracerLevels.COMM;
@@ -1205,15 +1210,21 @@ public class Interpreter {
 			} else {
 				if( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
+					program = OLParseTreeOptimizer.optimize( program );
 				} else {
-					final OLParser olParser = new OLParser( new Scanner( interpreterParameters.inputStream(),
-						interpreterParameters.programFilepath().toURI(), interpreterParameters.charset() ),
-						includePaths, interpreterParameters.jolieClassLoader() );
-
-					olParser.putConstants( interpreterParameters.constants() );
-					program = olParser.parse();
+					ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
+						getInterpreterParameters().charset(),
+						getInterpreterParameters().includePaths(),
+						getInterpreterParameters().packagePaths(),
+						getInterpreterParameters().jolieClassLoader(),
+						getInterpreterParameters().constants(),
+						false );
+					Modules.ModuleParsedResult parsesResult =
+						Modules.parseModule( configuration, getInterpreterParameters().inputStream(),
+							getInterpreterParameters().programFilepath().toURI() );
+					symbolTables.putAll( parsesResult.symbolTables() );
+					program = parsesResult.mainProgram();
 				}
-				program = OLParseTreeOptimizer.optimize( program );
 			}
 
 			interpreterParameters.inputStream().close();
@@ -1225,9 +1236,9 @@ public class Interpreter {
 			if( check ) {
 				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
 				conf.setCheckForMain( false );
-				semanticVerifier = new SemanticVerifier( program, conf );
+				semanticVerifier = new SemanticVerifier( program, symbolTables, conf );
 			} else {
-				semanticVerifier = new SemanticVerifier( program );
+				semanticVerifier = new SemanticVerifier( program, symbolTables );
 			}
 
 			try {
@@ -1258,7 +1269,7 @@ public class Interpreter {
 						.build();
 			}
 
-		} catch( IOException | ParserException | ClassNotFoundException e ) {
+		} catch( IOException | ParserException | ClassNotFoundException | ModuleException e ) {
 			throw new InterpreterException( e );
 		}
 	}

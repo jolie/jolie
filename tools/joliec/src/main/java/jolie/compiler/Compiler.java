@@ -30,6 +30,7 @@ import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 
 /**
@@ -45,12 +46,13 @@ public class Compiler {
 	}
 
 	public void compile( OutputStream ostream )
-		throws IOException, ParserException, SemanticException, CommandLineException {
+		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
 		Program program = ParsingUtils.parseProgram(
 			cmdParser.getInterpreterParameters().inputStream(),
 			cmdParser.getInterpreterParameters().programFilepath().toURI(),
 			cmdParser.getInterpreterParameters().charset(),
 			cmdParser.getInterpreterParameters().includePaths(),
+			cmdParser.getInterpreterParameters().packagePaths(),
 			cmdParser.getInterpreterParameters().jolieClassLoader(),
 			cmdParser.getInterpreterParameters().constants(), false );
 		// GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
@@ -61,7 +63,7 @@ public class Compiler {
 	}
 
 	public void compile()
-		throws IOException, ParserException, SemanticException, CommandLineException {
+		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
 		try( OutputStream os = new FileOutputStream( cmdParser.getInterpreterParameters().programFilepath() + "c" ) ) {
 			compile( os );
 		}
