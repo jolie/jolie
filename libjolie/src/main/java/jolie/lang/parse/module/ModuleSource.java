@@ -56,10 +56,6 @@ public interface ModuleSource {
 	Optional< InputStream > openStream();
 }
 
-
-/**
- * Jolie Module in file (an .ol file)
- */
 class PathSource implements ModuleSource {
 
 	private final Path path;

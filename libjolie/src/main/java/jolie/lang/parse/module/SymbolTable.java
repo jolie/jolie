@@ -64,7 +64,7 @@ public class SymbolTable {
 	 * @param sourceSymbols array of symbols in parsed wildcardSymbol's module
 	 * @throws ModuleException when adding name duplicate name to the symbol
 	 */
-	protected void resolveWildCardSymbol( SymbolWildCard wildCardSymbol,
+	protected void resolveWildcardImport( WildcardImportedSymbolInfo wildCardSymbol,
 		SymbolInfo... sourceSymbols ) throws DuplicateSymbolException {
 		for( SymbolInfo symbolFromWildcard : sourceSymbols ) {
 			if( isDuplicateSymbol( symbolFromWildcard.name() ) ) {
@@ -93,7 +93,7 @@ public class SymbolTable {
 	}
 
 	/**
-	 * create and add an external Symbol with it's module target to the table
+	 * create and add an external Symbol with its module target to the table
 	 * 
 	 * @param context Context where symbol is declare
 	 * @param name importing Symbol name
@@ -136,9 +136,9 @@ public class SymbolTable {
 	 * @param importPath a object represent importing path to module where the symbol reside
 	 * 
 	 */
-	protected void addWildCardSymbol( ParsingContext context, ImportPath importPath ) {
+	protected void addWildcardSymbol( ParsingContext context, ImportPath importPath ) {
 		this.symbols.put( importPath.toString(),
-			new SymbolWildCard( context, importPath ) );
+			new WildcardImportedSymbolInfo( context, importPath ) );
 	}
 
 	protected SymbolInfo[] symbols() {
@@ -150,7 +150,7 @@ public class SymbolTable {
 			.toArray( LocalSymbolInfo[]::new );
 	}
 
-	protected ImportedSymbolInfo[] externalSymbols() {
+	protected ImportedSymbolInfo[] importedSymbolInfos() {
 		return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.EXTERNAL )
 			.toArray( ImportedSymbolInfo[]::new );
 	}

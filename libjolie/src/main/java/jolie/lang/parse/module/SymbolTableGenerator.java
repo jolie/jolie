@@ -417,7 +417,7 @@ public class SymbolTableGenerator {
 		public void visit( ImportStatement n ) {
 			ImportPath importPath = new ImportPath( n.importTarget() );
 			if( n.isNamespaceImport() ) {
-				this.symbolTable.addWildCardSymbol( n.context(), importPath );
+				this.symbolTable.addWildcardSymbol( n.context(), importPath );
 			} else {
 				for( ImportSymbolTarget targetSymbol : n.importSymbolTargets() ) {
 					try {

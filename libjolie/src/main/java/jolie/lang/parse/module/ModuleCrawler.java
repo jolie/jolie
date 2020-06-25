@@ -89,14 +89,14 @@ class ModuleCrawler {
 
 	private List< ModuleSource > crawlModule( ModuleRecord record ) throws ModuleException {
 		List< ModuleSource > modulesToCrawl = new ArrayList<>();
-		for( ImportedSymbolInfo externalSymbol : record.symbolTable().externalSymbols() ) {
+		for( ImportedSymbolInfo importedSymbol : record.symbolTable().importedSymbolInfos() ) {
 			try {
 				ModuleSource moduleSource =
-					this.findModule( externalSymbol.importPath(), record.source() );
-				externalSymbol.setModuleSource( moduleSource );
+					this.findModule( importedSymbol.importPath(), record.source() );
+				importedSymbol.setModuleSource( moduleSource );
 				modulesToCrawl.add( moduleSource );
 			} catch( ModuleNotFoundException e ) {
-				throw new ModuleException( externalSymbol.context(), e );
+				throw new ModuleException( importedSymbol.context(), e );
 			}
 		}
 		ModuleCrawler.putToCache( record );
@@ -139,7 +139,7 @@ class ModuleCrawler {
 	 * crawl module's dependencies required for resolving symbols
 	 * 
 	 * @param mainRecord root ModuleRecord object to begin the dependency crawling
-	 * @param parserConfiguration configuration for parsing Jolie module
+	 * @param parsingConfiguration configuration for parsing Jolie module
 	 * @param finder Jolie module finder
 	 * 
 	 * @throws ParserException

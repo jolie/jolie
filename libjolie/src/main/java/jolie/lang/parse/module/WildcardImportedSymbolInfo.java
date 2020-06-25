@@ -25,9 +25,9 @@ import jolie.lang.parse.context.ParsingContext;
  * A class represent a Symbol defined within external execution environment. Create when consuming a
  * wildcard import statement
  */
-class SymbolWildCard extends ImportedSymbolInfo {
+class WildcardImportedSymbolInfo extends ImportedSymbolInfo {
 
-	protected SymbolWildCard( ParsingContext context, ImportPath importPath ) {
+	protected WildcardImportedSymbolInfo( ParsingContext context, ImportPath importPath ) {
 		super( context, importPath.toString(), importPath, null );
 	}
 
