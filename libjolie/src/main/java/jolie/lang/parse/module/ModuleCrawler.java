@@ -59,18 +59,18 @@ class ModuleCrawler {
 		}
 	}
 
-	private static final Map< URI, ModuleRecord > cache = new ConcurrentHashMap<>();
+	private static final Map< URI, ModuleRecord > CACHE = new ConcurrentHashMap<>();
 
 	private static void putToCache( ModuleRecord mc ) {
-		ModuleCrawler.cache.put( mc.source(), mc );
+		ModuleCrawler.CACHE.put( mc.source(), mc );
 	}
 
 	private static boolean inCache( URI source ) {
-		return ModuleCrawler.cache.containsKey( source );
+		return ModuleCrawler.CACHE.containsKey( source );
 	}
 
 	private static ModuleRecord getRecordFromCache( URI source ) {
-		return ModuleCrawler.cache.get( source );
+		return ModuleCrawler.CACHE.get( source );
 	}
 
 	private final ModuleFinder finder;

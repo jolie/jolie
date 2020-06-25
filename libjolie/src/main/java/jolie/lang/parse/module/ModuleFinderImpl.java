@@ -105,10 +105,14 @@ public class ModuleFinderImpl implements ModuleFinder {
 
 		try {
 			// 3. Try to resolve P from the list of packages directories.
+			ModuleSource moduleFile = null;
 			for( Path packagePath : this.packagePaths ) {
-				ModuleSource moduleFile = moduleLookup( packagePath, importPath );
-				return moduleFile;
+				moduleFile = moduleLookup( packagePath, importPath );
+				if( moduleFile != null ) {
+					break;
+				}
 			}
+			return moduleFile;
 		} catch( FileNotFoundException e ) {
 			errMessageList.add( e.getMessage() );
 		}

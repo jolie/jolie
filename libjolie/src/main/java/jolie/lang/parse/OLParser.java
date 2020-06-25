@@ -343,7 +343,7 @@ public class OLParser extends AbstractParser {
 			nextToken();
 			final TypeDefinition secondType = parseType( typeName, accessModifier );
 			return new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType,
-                secondType );
+				secondType );
 		}
 
 		return currentType;
@@ -584,7 +584,7 @@ public class OLParser extends AbstractParser {
 	}
 
 	private CorrelationSetInfo[] _parseCorrelationSets() throws IOException, ParserException {
-		List< CorrelationSetInfo > result = new ArrayList< CorrelationSetInfo >();
+		List< CorrelationSetInfo > result = new ArrayList<>();
 
 		while( token.isKeyword( "cset" ) ) {
 			nextToken();
@@ -976,7 +976,6 @@ public class OLParser extends AbstractParser {
 				nextToken();
 				iface = _parseInterfaceExtender( accessModifier );
 				docNode = iface;
-				nextToken();
 			} else {
 				iface = _parseInterface( accessModifier );
 				docNode = iface;
@@ -2936,7 +2935,7 @@ public class OLParser extends AbstractParser {
 		if( token.is( Scanner.TokenType.FROM ) ) {
 			boolean isNamespaceImport = false;
 			nextToken();
-			List< String > importTarget = new ArrayList< String >();
+			List< String > importTarget = new ArrayList<>();
 			boolean importTargetIDStarted = false;
 			List< Pair< String, String > > pathNodes = null;
 			boolean keepRun = true;
@@ -2961,7 +2960,7 @@ public class OLParser extends AbstractParser {
 				nextToken();
 			} else {
 				assertIdentifier( "expected Identifier or * after import" );
-				pathNodes = new ArrayList< Pair< String, String > >();
+				pathNodes = new ArrayList<>();
 				keepRun = false;
 				do {
 					String targetName = token.content();

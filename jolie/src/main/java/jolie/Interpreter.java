@@ -858,7 +858,7 @@ public class Interpreter {
 		this.interpreterParameters = interpreterParameters;
 
 		this.symbolTables = new HashMap<>();
-        
+
 		switch( interpreterParameters.tracerLevel() ) {
 		case "comm":
 			tracerLevel = TracerUtils.TracerLevels.COMM;

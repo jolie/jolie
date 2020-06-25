@@ -29,14 +29,14 @@ public class ModuleNotFoundException extends FileNotFoundException {
 
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private List< String > lookedPaths;
+	private final List< String > lookedPaths;
 
 	private final String moduleName;
 
 	public ModuleNotFoundException( String moduleName ) {
 		super( moduleName );
 		this.moduleName = moduleName;
-		this.lookedPaths = new ArrayList< String >();
+		this.lookedPaths = new ArrayList<>();
 	}
 
 	public ModuleNotFoundException( String moduleName, List< String > lookedPaths ) {
@@ -48,7 +48,7 @@ public class ModuleNotFoundException extends FileNotFoundException {
 	public ModuleNotFoundException( String moduleName, String lookedPath ) {
 		super( moduleName );
 		this.moduleName = moduleName;
-		this.lookedPaths = new ArrayList< String >();
+		this.lookedPaths = new ArrayList<>();
 		this.lookedPaths.add( lookedPath );
 	}
 

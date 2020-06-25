@@ -19,9 +19,8 @@
 
 package jolie.lang.parse.module;
 
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.ImportableSymbol;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
 
 /**

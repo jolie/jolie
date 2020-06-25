@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
@@ -57,7 +56,6 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.module.ModuleException;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;

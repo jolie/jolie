@@ -51,7 +51,6 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-
 import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
@@ -477,7 +476,7 @@ public class CommandLineParser implements Closeable {
 			} else if( "-p".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
-				Collections.addAll( packagesList, argsList.get( i ).split( jolie.lang.Constants.pathSeparator ) );
+				Collections.addAll( packagesList, argsList.get( i ).split( jolie.lang.Constants.PATH_SEPARATOR ) );
 				optionsList.add( argsList.get( i ) );
 			} else if( "--connlimit".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -714,8 +713,8 @@ public class CommandLineParser implements Closeable {
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
-		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[] {} );
-		packagesPaths = new LinkedHashSet<>( packagesList ).toArray( new String[ 0 ]  );
+		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[ 0 ] );
+		packagePaths = new LinkedHashSet<>( packagesList ).toArray( new String[ 0 ] );
 		optionArgs = optionsList.toArray( new String[ 0 ] );
 	}
 

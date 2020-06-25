@@ -144,7 +144,6 @@ class SymbolReferenceResolver {
 			if( !this.valid ) {
 				throw new ModuleException( p.context(), this.error );
 			}
-			return;
 		}
 
 		@Override
@@ -645,10 +644,10 @@ class SymbolReferenceResolver {
 			for( Operation operation : n.operations() ) {
 				if( operation instanceof InlineTreeExpressionNode.AssignmentOperation ) {
 					((InlineTreeExpressionNode.AssignmentOperation) operation).expression()
-						.accept( this );;
+						.accept( this );
 				} else if( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
 					((InlineTreeExpressionNode.DeepCopyOperation) operation).expression()
-						.accept( this );;
+						.accept( this );
 				}
 			}
 		}
