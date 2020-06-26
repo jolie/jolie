@@ -279,9 +279,9 @@ public class InterpreterParameters {
 	}
 
 	/**
-	 * Returns the {@link Level} of the logger of this interpreter.
+	 * Returns the package paths passed by command line with the -p option.
 	 *
-	 * @return the {@link Level} of the logger of this interpreter.
+	 * @return the package paths passed by command line
 	 */
 	public String[] packagePaths() {
 		return packagePaths.toArray( new String[] {} );
