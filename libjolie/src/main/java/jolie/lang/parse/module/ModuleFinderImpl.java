@@ -85,8 +85,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 		List< String > errMessageList = new ArrayList<>();
 		try {
 			// 1. resolve from Working directory
-			ModuleSource moduleFile = this.moduleLookup( this.workingDirectory, importPath );
-			return moduleFile;
+			return this.moduleLookup( this.workingDirectory, importPath );
 		} catch( FileNotFoundException e ) {
 			errMessageList.add( e.getMessage() );
 		}
@@ -160,8 +159,6 @@ public class ModuleFinderImpl implements ModuleFinder {
 		int packagesTokenStartIndex = i;
 		ImportPath resolvedImportPath =
 			new ImportPath( pathParts.subList( packagesTokenStartIndex, pathParts.size() ) );
-		ModuleLookUpTarget result =
-			new ModuleLookUpTarget( basePath, resolvedImportPath );
-		return result;
+		return new ModuleLookUpTarget( basePath, resolvedImportPath );
 	}
 }

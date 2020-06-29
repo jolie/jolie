@@ -83,8 +83,7 @@ class ModuleCrawler {
 
 	private ModuleSource findModule( ImportPath importPath, URI parentURI )
 		throws ModuleNotFoundException {
-		ModuleSource targetFile = finder.find( parentURI, importPath );
-		return targetFile;
+		return finder.find( parentURI, importPath );
 	}
 
 	private List< ModuleSource > crawlModule( ModuleRecord record ) throws ModuleException {
