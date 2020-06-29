@@ -743,8 +743,8 @@ public class CommandLineParser implements Closeable {
 		return result;
 	}
 
-	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
-		return new InterpreterParameters(
+	public Interpreter.Configuration getInterpreterConfiguration() throws CommandLineException, IOException {
+		return Interpreter.Configuration.create(
 			connectionsLimit,
 			correlationAlgorithmType,
 			includePaths,

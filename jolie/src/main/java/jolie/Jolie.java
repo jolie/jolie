@@ -74,7 +74,7 @@ public class Jolie {
 					+ Integer.MAX_VALUE + "), set to 0" );
 			}
 			final Interpreter interpreter =
-				new Interpreter( Jolie.class.getClassLoader(), commandLineParser.getInterpreterParameters(), null );
+				new Interpreter( commandLineParser.getInterpreterConfiguration(), null );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread( () -> interpreter.exit( TERMINATION_TIMEOUT ) ) );
 			interpreter.run();

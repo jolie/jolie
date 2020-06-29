@@ -105,7 +105,7 @@ public class EmbeddedMetaService extends MetaService {
 			CommandLineParser commandLineParser = new CommandLineParser(
 				buildInterpreterArguments( jolieHome, metaserviceFilepath ), this.getClass().getClassLoader(), false );
 			interpreter =
-				new Interpreter( this.getClass().getClassLoader(), commandLineParser.getInterpreterParameters(), null );
+				new Interpreter( commandLineParser.getInterpreterConfiguration(), null );
 			startInterpreter();
 			channel = new MetaServiceChannel( this, "/" );
 		} catch( CommandLineException | FileNotFoundException e ) {

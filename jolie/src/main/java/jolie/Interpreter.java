@@ -23,12 +23,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,7 +46,6 @@ import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -58,11 +59,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
-import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.TypeChecker;
+import jolie.lang.parse.*;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.Modules;
@@ -246,7 +243,7 @@ public class Interpreter {
 	private Interpreter parentInterpreter = null;
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
-	private boolean exiting = false;
+	private volatile boolean exiting = false;
 	private final Lock exitingLock;
 	private final Condition exitingCondition;
 	private final CorrelationEngine correlationEngine;
@@ -262,7 +259,6 @@ public class Interpreter {
 
 	private final HashMap< String, Object > locksMap = new HashMap<>();
 
-	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
 
 	private final String logPrefix;
@@ -274,9 +270,9 @@ public class Interpreter {
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
 
-	private Map< URI, SymbolTable > symbolTables;
+	private final Map< URI, SymbolTable > symbolTables;
 
-	private final InterpreterParameters parameters;
+	private final Configuration configuration;
 
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
@@ -343,7 +339,7 @@ public class Interpreter {
 	}
 
 	public long responseTimeout() {
-		return parameters.responseTimeout();
+		return configuration.responseTimeout();
 	}
 
 	public CorrelationEngine correlationEngine() {
@@ -352,13 +348,13 @@ public class Interpreter {
 
 	private Timer timer() {
 		if( timer == null ) {
-			timer = new Timer( parameters.programFilepath().getName() + "-Timer" );
+			timer = new Timer( configuration.programFilepath().getName() + "-Timer" );
 		}
 		return timer;
 	}
 
 	public void schedule( TimerTask task, long delay ) {
-		if( exiting == false ) {
+		if( !exiting ) {
 			timer().schedule( task, delay );
 		}
 	}
@@ -413,7 +409,7 @@ public class Interpreter {
 	 * @return the option arguments passed to this Interpreter
 	 */
 	public String[] optionArgs() {
-		return parameters.optionArgs();
+		return configuration.optionArgs();
 	}
 
 	/**
@@ -511,7 +507,7 @@ public class Interpreter {
 		OutputPort ret;
 		if( (ret = outputPorts.get( key )) == null )
 			throw new InvalidIdException( key );
-		return (OutputPort) ret;
+		return ret;
 	}
 
 	/**
@@ -703,7 +699,7 @@ public class Interpreter {
 
 	private String buildLogMessage( Throwable t ) {
 		String ret;
-		if( parameters.printStackTraces() ) {
+		if( configuration.printStackTraces() ) {
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
 			t.printStackTrace( new PrintStream( bs ) );
 			ret = bs.toString();
@@ -715,7 +711,7 @@ public class Interpreter {
 
 	private LogRecord buildLogRecord( Level level, String message ) {
 		LogRecord record = new LogRecord( level, message );
-		record.setSourceClassName( parameters.programFilepath().getName() );
+		record.setSourceClassName( configuration.programFilepath().getName() );
 		return record;
 	}
 
@@ -830,36 +826,34 @@ public class Interpreter {
 	 * @return the JolieClassLoader this Interpreter is using
 	 */
 	public JolieClassLoader getClassLoader() {
-		return parameters.jolieClassLoader();
+		return configuration.jolieClassLoader();
 	}
 
 	/**
-	 * returns the interpreter parameters
+	 * returns this interpreter's configuration
 	 * 
 	 * @return
 	 */
-	public InterpreterParameters parameters() {
-		return parameters;
+	public Configuration configuration() {
+		return configuration;
 	}
 
 	/**
 	 * Constructor.
 	 *
-	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
 	 *        a JAP file.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
-	public Interpreter( ClassLoader parentClassLoader, InterpreterParameters interpreterParameters,
+	public Interpreter( Configuration configuration,
 		File programDirectory )
 		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
-		this.parentClassLoader = parentClassLoader;
-		this.parameters = interpreterParameters;
+		this.configuration = configuration;
 
 		this.symbolTables = new HashMap<>();
 
-		switch( interpreterParameters.tracerLevel() ) {
+		switch( configuration.tracerLevel() ) {
 		case "comm":
 			tracerLevel = TracerUtils.TracerLevels.COMM;
 			break;
@@ -868,19 +862,17 @@ public class Interpreter {
 			break;
 		}
 
-		this.correlationEngine = interpreterParameters.correlationAlgorithm().createInstance( this );
+		this.correlationEngine = configuration.correlationAlgorithm().createInstance( this );
 
-		commCore = new CommCore( this, interpreterParameters.connectionsLimit() /* , cmdParser.connectionsCache() */ );
-		includePaths = interpreterParameters.includePaths();
+		commCore = new CommCore( this, configuration.connectionsLimit() /* , cmdParser.connectionsCache() */ );
+		includePaths = configuration.includePaths();
 
-		logPrefix = new StringBuilder()
-			.append( '[' )
-			.append( interpreterParameters.programFilepath().getName() )
-			.append( "] " )
-			.toString();
+		logPrefix = '[' +
+			configuration.programFilepath().getName() +
+			"] ";
 
-		if( interpreterParameters.tracer() ) {
-			if( interpreterParameters.tracerMode().equals( "file" ) ) {
+		if( configuration.tracer() ) {
+			if( configuration.tracerMode().equals( "file" ) ) {
 				tracer = new FileTracer( this, tracerLevel );
 			} else {
 				tracer = new PrintingTracer( this, tracerLevel );
@@ -889,15 +881,15 @@ public class Interpreter {
 			tracer = new DummyTracer();
 		}
 
-		LOGGER.setLevel( interpreterParameters.logLevel() );
+		LOGGER.setLevel( configuration.logLevel() );
 
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
 
-		if( interpreterParameters.programDirectory() == null ) {
+		if( configuration.programDirectory() == null ) {
 			this.programDirectory = programDirectory;
 		} else {
-			this.programDirectory = interpreterParameters.programDirectory();
+			this.programDirectory = configuration.programDirectory();
 		}
 		if( this.programDirectory == null ) {
 			throw new IOException(
@@ -908,7 +900,6 @@ public class Interpreter {
 	/**
 	 * Constructor.
 	 *
-	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
 	 *        a JAP file.
 	 * @param parentInterpreter
@@ -918,10 +909,10 @@ public class Interpreter {
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
-	public Interpreter( InterpreterParameters interpreterParameters, ClassLoader parentClassLoader,
+	public Interpreter( Configuration configuration,
 		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws FileNotFoundException, IOException {
-		this( parentClassLoader, interpreterParameters, programDirectory );
+		this( configuration, programDirectory );
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
@@ -946,7 +937,7 @@ public class Interpreter {
 	 * @return the program filename this interpreter was launched with
 	 */
 	public String programFilename() {
-		return parameters.programFilepath().getName();
+		return configuration.programFilepath().getName();
 	}
 
 	/**
@@ -955,16 +946,7 @@ public class Interpreter {
 	 * @return the path at which the file to be interpreted has been found
 	 */
 	public String programFilepath() {
-		return parameters.programFilepath().getName();
-	}
-
-	/**
-	 * Returns the parent class loader passed to the constructor of this interpreter.
-	 * 
-	 * @return the parent class loader passed to the constructor of this interpreter
-	 */
-	public ClassLoader parentClassLoader() {
-		return parentClassLoader;
+		return configuration.programFilepath().getName();
 	}
 
 	/**
@@ -1025,7 +1007,7 @@ public class Interpreter {
 		 * Order is important. 1 - CommCore needs the OOIT to be initialized. 2 - initExec must be
 		 * instantiated before we can receive communications.
 		 */
-		if( buildOOIT() == false && !check ) {
+		if( !buildOOIT() && !check ) {
 			throw new InterpreterException( "Error: service initialisation failed" );
 		}
 		if( check ) {
@@ -1039,7 +1021,7 @@ public class Interpreter {
 
 				// Initialize program arguments in the args variabile.
 				ValueVector jArgs = ValueVector.create();
-				for( String s : parameters.arguments() ) {
+				for( String s : configuration.arguments() ) {
 					jArgs.add( Value.create( s ) );
 				}
 				initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
@@ -1128,10 +1110,6 @@ public class Interpreter {
 		nativeExecutorService.execute( r );
 	}
 
-	public Executor taskExecutor() {
-		return nativeExecutorService;
-	}
-
 	public Future< ? > runJolieThread( Runnable task ) {
 		return processExecutorService.submit( task );
 	}
@@ -1146,9 +1124,9 @@ public class Interpreter {
 		private final CompletableFuture< Exception > future;
 
 		public StarterThread( CompletableFuture< Exception > future ) {
-			super( createStarterThreadName( parameters.programFilepath().getName() ) );
+			super( createStarterThreadName( configuration.programFilepath().getName() ) );
 			this.future = future;
-			setContextClassLoader( parameters.jolieClassLoader() );
+			setContextClassLoader( configuration.jolieClassLoader() );
 		}
 
 		@Override
@@ -1179,7 +1157,7 @@ public class Interpreter {
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
-		parameters.clear();
+		configuration.clear();
 		commCore = null;
 		// System.gc();
 	}
@@ -1198,8 +1176,8 @@ public class Interpreter {
 
 		try {
 			Program program;
-			if( parameters.isProgramCompiled() ) {
-				try( final ObjectInputStream istream = new ObjectInputStream( parameters.inputStream() ) ) {
+			if( configuration.isProgramCompiled() ) {
+				try( final ObjectInputStream istream = new ObjectInputStream( configuration.inputStream() ) ) {
 					final Object o = istream.readObject();
 					if( o instanceof Program ) {
 						program = (Program) o;
@@ -1213,23 +1191,23 @@ public class Interpreter {
 					program = OLParseTreeOptimizer.optimize( program );
 				} else {
 					ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
-						parameters().charset(),
-						parameters().includePaths(),
-						parameters().packagePaths(),
-						parameters().jolieClassLoader(),
-						parameters().constants(),
+						configuration().charset(),
+						configuration().includePaths(),
+						configuration().packagePaths(),
+						configuration().jolieClassLoader(),
+						configuration().constants(),
 						false );
 					Modules.ModuleParsedResult parsesResult =
-						Modules.parseModule( configuration, parameters().inputStream(),
-							parameters().programFilepath().toURI() );
+						Modules.parseModule( configuration, configuration().inputStream(),
+							configuration().programFilepath().toURI() );
 					symbolTables.putAll( parsesResult.symbolTables() );
 					program = parsesResult.mainProgram();
 				}
 			}
 
-			parameters.inputStream().close();
+			configuration.inputStream().close();
 
-			check = parameters.check();
+			check = configuration.check();
 
 			final SemanticVerifier semanticVerifier;
 
@@ -1248,7 +1226,7 @@ public class Interpreter {
 				throw new InterpreterException( "Exiting" );
 			}
 
-			if( parameters.typeCheck() ) {
+			if( configuration.typeCheck() ) {
 				TypeChecker typeChecker = new TypeChecker(
 					program,
 					semanticVerifier.executionMode(),
@@ -1362,7 +1340,7 @@ public class Interpreter {
 			synchronized( waitingSessionThreads ) {
 				if( waitingSessionThreads.isEmpty() ) {
 					waitingSessionThreads.add( spawnedSession );
-					waitingSessionThreads.peek().start();
+					spawnedSession.start();
 				} else {
 					waitingSessionThreads.add( spawnedSession );
 				}
@@ -1397,5 +1375,314 @@ public class Interpreter {
 			}
 		}
 		return factory;
+	}
+
+	public static class Configuration {
+		private final Integer connectionsLimit;
+		private final CorrelationEngine.Type correlationAlgorithm;
+		private final String[] includePaths;
+		private final String[] optionArgs;
+		private final String[] arguments;
+		private final URL[] libURLs;
+		private final InputStream inputStream;
+		private final String charset;
+		private final File programFilepath;
+		private final Map< String, Scanner.Token > constants = new HashMap<>();
+		private JolieClassLoader jolieClassLoader;
+		private final boolean isProgramCompiled;
+		private final boolean typeCheck;
+		private final boolean tracer;
+		private final String tracerMode;
+		private final String tracerLevel;
+		private final boolean check;
+		private final long responseTimeout;
+		private final boolean printStackTraces;
+		private final Level logLevel;
+		private final File programDirectory;
+		private final String[] packagePaths;
+
+		private Configuration( int connectionsLimit,
+			CorrelationEngine.Type correlationAlgorithm,
+			String[] includeList,
+			String[] optionArgs,
+			URL[] libUrls,
+			InputStream inputStream,
+			String charset,
+			File programFilepath,
+			String[] arguments,
+			Map< String, Scanner.Token > constants,
+			JolieClassLoader jolieClassLoader,
+			boolean programCompiled,
+			boolean typeCheck,
+			boolean tracer,
+			String tracerLevel,
+			String tracerMode,
+			boolean check,
+			boolean printStackTraces,
+			long responseTimeout,
+			Level logLevel,
+			File programDirectory,
+			String[] packagePaths ) {
+			this.connectionsLimit = connectionsLimit;
+			this.correlationAlgorithm = correlationAlgorithm;
+			this.includePaths = includeList;
+			this.optionArgs = optionArgs;
+			this.libURLs = libUrls;
+			this.inputStream = inputStream;
+			this.charset = charset;
+			this.programFilepath = programFilepath;
+			this.arguments = arguments;
+			this.constants.putAll( constants );
+			this.jolieClassLoader = jolieClassLoader;
+			this.isProgramCompiled = programCompiled;
+			this.typeCheck = typeCheck;
+			this.tracer = tracer;
+			this.tracerLevel = tracerLevel;
+			this.tracerMode = tracerMode;
+			this.check = check;
+			this.printStackTraces = printStackTraces;
+			this.responseTimeout = responseTimeout;
+			this.logLevel = logLevel;
+			this.programDirectory = programDirectory;
+			this.packagePaths = packagePaths;
+		}
+
+		public static Configuration create( int connectionsLimit,
+			CorrelationEngine.Type correlationAlgorithm,
+			String[] includeList,
+			String[] optionArgs,
+			URL[] libUrls,
+			InputStream inputStream,
+			String charset,
+			File programFilepath,
+			String[] arguments,
+			Map< String, Scanner.Token > constants,
+			JolieClassLoader jolieClassLoader,
+			boolean programCompiled,
+			boolean typeCheck,
+			boolean tracer,
+			String tracerLevel,
+			String tracerMode,
+			boolean check,
+			boolean printStackTraces,
+			long responseTimeout,
+			Level logLevel,
+			File programDirectory,
+			String[] packagePaths ) {
+			return new Configuration( connectionsLimit, correlationAlgorithm, includeList, optionArgs, libUrls,
+				inputStream, charset, programFilepath, arguments, constants, jolieClassLoader, programCompiled,
+				typeCheck, tracer, tracerLevel, tracerMode, check, printStackTraces, responseTimeout, logLevel,
+				programDirectory, packagePaths );
+		}
+
+		public static Configuration create( Configuration config,
+			File programFilepath,
+			InputStream inputStream ) {
+			return create( config.connectionsLimit, config.correlationAlgorithm, config.includePaths, config.optionArgs,
+				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
+				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
+				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
+				config.programDirectory, config.packagePaths );
+		}
+
+		/**
+		 * Returns the connection limit parameter passed by command line with the -c option.
+		 *
+		 * @return the connection limit parameter passed by command line
+		 */
+		public Integer connectionsLimit() {
+			return this.connectionsLimit;
+		}
+
+		/**
+		 * Returns the type of correlation algorithm that has been specified.
+		 *
+		 * @return the type of correlation algorithm that has been specified.
+		 * @see CorrelationEngine
+		 */
+		public CorrelationEngine.Type correlationAlgorithm() {
+			return this.correlationAlgorithm;
+		}
+
+		/**
+		 * Returns the include paths passed by command line with the -i option.
+		 *
+		 * @return the include paths passed by command line
+		 */
+		public String[] includePaths() {
+			return includePaths;
+		}
+
+		/**
+		 * Returns the command line options passed to this command line parser. This does not include the
+		 * name of the program.
+		 *
+		 * @return the command line options passed to this command line parser.
+		 */
+		public String[] optionArgs() {
+			return optionArgs;
+		}
+
+		/**
+		 * Returns the library URLs passed by command line with the -l option.
+		 *
+		 * @return the library URLs passed by command line
+		 */
+		public URL[] libUrls() {
+			return libURLs;
+		}
+
+		/**
+		 * Returns an InputStream for the program code to execute.
+		 *
+		 * @return an InputStream for the program code to execute
+		 */
+		public InputStream inputStream() {
+			return this.inputStream;
+		}
+
+		/**
+		 * Returns the program's character encoding
+		 *
+		 * @return the program's character encoding
+		 */
+		public String charset() {
+			return this.charset;
+		}
+
+		/**
+		 * Returns the file path of the JOLIE program to execute.
+		 *
+		 * @return the file path of the JOLIE program to execute
+		 */
+		public File programFilepath() {
+			return this.programFilepath;
+		}
+
+		/**
+		 * Returns the arguments passed to the JOLIE program.
+		 *
+		 * @return the arguments passed to the JOLIE program.
+		 */
+		public String[] arguments() {
+			return arguments;
+		}
+
+
+		/**
+		 * Returns a map containing the constants defined by command line.
+		 *
+		 * @return a map containing the constants defined by command line
+		 */
+		public Map< String, Scanner.Token > constants() {
+			return this.constants;
+		}
+
+		/**
+		 * Returns the classloader to use for the program.
+		 *
+		 * @return the classloader to use for the program.
+		 */
+		public JolieClassLoader jolieClassLoader() {
+			return jolieClassLoader;
+		}
+
+		/**
+		 * Returns {@code true} if the program is compiled, {@code false} otherwise.
+		 *
+		 * @return {@code true} if the program is compiled, {@code false} otherwise.
+		 */
+		public boolean isProgramCompiled() {
+			return isProgramCompiled;
+		}
+
+		/**
+		 * Returns the value of the --typecheck option.
+		 *
+		 * @return the value of the --typecheck option.
+		 */
+		public boolean typeCheck() {
+			return this.typeCheck;
+		}
+
+		/**
+		 * Returns <code>true</code> if the tracer option has been specified, false otherwise.
+		 *
+		 * @return <code>true</code> if the verbose option has been specified, false otherwise
+		 */
+		public boolean tracer() {
+			return this.tracer;
+		}
+
+		/**
+		 * Returns <code>true</code> if the tracer option has been specified, false otherwise.
+		 *
+		 * @return <code>true</code> if the verbose option has been specified, false otherwise
+		 */
+		public String tracerMode() {
+			return tracerMode;
+		}
+
+		/**
+		 * Returns the selected tracer level [all | comm | comp]
+		 *
+		 * all: all the traces comp: only computation traces comm: only communication traces
+		 */
+		public String tracerLevel() {
+			return tracerLevel;
+		}
+
+		/**
+		 * Returns <code>true</code> if the check option has been specified, false otherwise.
+		 *
+		 * @return <code>true</code> if the verbose option has been specified, false otherwise
+		 */
+		public boolean check() {
+			return this.check;
+		}
+
+		/**
+		 * Returns the response timeout parameter passed by command line with the --responseTimeout option.
+		 *
+		 * @return the response timeout parameter passed by command line
+		 */
+		public long responseTimeout() {
+			return responseTimeout;
+		}
+
+		public boolean printStackTraces() {
+			return printStackTraces;
+		}
+
+		/**
+		 * Returns the {@link Level} of the logger of this interpreter.
+		 *
+		 * @return the {@link Level} of the logger of this interpreter.
+		 */
+		public Level logLevel() {
+			return this.logLevel;
+		}
+
+		/**
+		 * Returns the package paths passed by command line with the -p option.
+		 *
+		 * @return the package paths passed by command line
+		 */
+		public String[] packagePaths() {
+			return packagePaths;
+		}
+
+		/**
+		 * Returns the directory in which the main program is located.
+		 *
+		 * @return the directory in which the main program is located.
+		 */
+		public File programDirectory() {
+			return programDirectory;
+		}
+
+		public void clear() {
+			jolieClassLoader = null;
+		}
 	}
 }

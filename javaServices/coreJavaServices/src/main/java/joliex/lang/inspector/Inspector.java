@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.Interpreter;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
@@ -161,21 +162,22 @@ public class Inspector extends JavaService {
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );
 		String[] args = { filename };
-		CommandLineParser cmdParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
+		Interpreter.Configuration interpreterConfiguration =
+			new CommandLineParser( args, Inspector.class.getClassLoader() ).getInterpreterConfiguration();
 		final InputStream sourceIs;
 		if( source.isPresent() ) {
 			sourceIs = new ByteArrayInputStream( source.get().getBytes() );
 		} else {
-			sourceIs = cmdParser.getInterpreterParameters().inputStream();
+			sourceIs = interpreterConfiguration.inputStream();
 		}
 		Program program = ParsingUtils.parseProgram(
 			sourceIs,
-			cmdParser.getInterpreterParameters().programFilepath().toURI(),
-			cmdParser.getInterpreterParameters().charset(),
+			interpreterConfiguration.programFilepath().toURI(),
+			interpreterConfiguration.charset(),
 			includePaths,
-			cmdParser.packagePaths(),
-			cmdParser.getInterpreterParameters().jolieClassLoader(),
-			cmdParser.getInterpreterParameters().constants(),
+			interpreterConfiguration.packagePaths(),
+			interpreterConfiguration.jolieClassLoader(),
+			interpreterConfiguration.constants(),
 			configuration,
 			true );
 		return ParsingUtils.createInspector( program );

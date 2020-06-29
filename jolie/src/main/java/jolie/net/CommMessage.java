@@ -98,11 +98,7 @@ public class CommMessage implements Serializable {
 	}
 
 	public static long getNewMessageId() {
-		long id = Jolie.cellId;
-		id = id << 32;
-		id = id + ID_COUNTER.getAndIncrement();
-		return id;
-
+		return (((long) Jolie.cellId) << 32) | (ID_COUNTER.getAndIncrement() & 0xffffffffL);
 	}
 
 	/**
