@@ -32,6 +32,8 @@ import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
@@ -357,7 +359,13 @@ class SymbolReferenceResolver {
 		public void visit( ExecutionInfo n ) {}
 
 		@Override
-		public void visit( CorrelationSetInfo n ) {}
+		public void visit( CorrelationSetInfo n ) {
+			for( CorrelationVariableInfo cSetVar : n.variables() ) {
+				for( CorrelationAliasInfo aliases : cSetVar.aliases() ) {
+					aliases.guardName().accept( this );
+				}
+			}
+		}
 
 		@Override
 		public void visit( InputPortInfo n ) {
