@@ -27,11 +27,11 @@ import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
 public interface Expression {
-	public Value evaluate();
+	Value evaluate();
 
-	public Expression cloneExpression( TransformationReason reason );
+	Expression cloneExpression( TransformationReason reason );
 
-	public class Operand {
+	class Operand {
 		private final Constants.OperandType type;
 		private final Expression expression;
 

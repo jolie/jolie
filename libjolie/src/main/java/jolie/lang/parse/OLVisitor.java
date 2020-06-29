@@ -103,165 +103,165 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 
 public interface OLVisitor {
-	public default void go( OLSyntaxNode n ) {
+	default void go( OLSyntaxNode n ) {
 		n.accept( this );
 	}
 
-	public void visit( Program n );
+	void visit( Program n );
 
-	public void visit( OneWayOperationDeclaration decl );
+	void visit( OneWayOperationDeclaration decl );
 
-	public void visit( RequestResponseOperationDeclaration decl );
+	void visit( RequestResponseOperationDeclaration decl );
 
-	public void visit( DefinitionNode n );
+	void visit( DefinitionNode n );
 
-	public void visit( ParallelStatement n );
+	void visit( ParallelStatement n );
 
-	public void visit( SequenceStatement n );
+	void visit( SequenceStatement n );
 
-	public void visit( NDChoiceStatement n );
+	void visit( NDChoiceStatement n );
 
-	public void visit( OneWayOperationStatement n );
+	void visit( OneWayOperationStatement n );
 
-	public void visit( RequestResponseOperationStatement n );
+	void visit( RequestResponseOperationStatement n );
 
-	public void visit( NotificationOperationStatement n );
+	void visit( NotificationOperationStatement n );
 
-	public void visit( SolicitResponseOperationStatement n );
+	void visit( SolicitResponseOperationStatement n );
 
-	public void visit( LinkInStatement n );
+	void visit( LinkInStatement n );
 
-	public void visit( LinkOutStatement n );
+	void visit( LinkOutStatement n );
 
-	public void visit( AssignStatement n );
+	void visit( AssignStatement n );
 
-	public void visit( AddAssignStatement n );
+	void visit( AddAssignStatement n );
 
-	public void visit( SubtractAssignStatement n );
+	void visit( SubtractAssignStatement n );
 
-	public void visit( MultiplyAssignStatement n );
+	void visit( MultiplyAssignStatement n );
 
-	public void visit( DivideAssignStatement n );
+	void visit( DivideAssignStatement n );
 
-	public void visit( IfStatement n );
+	void visit( IfStatement n );
 
-	public void visit( DefinitionCallStatement n );
+	void visit( DefinitionCallStatement n );
 
-	public void visit( WhileStatement n );
+	void visit( WhileStatement n );
 
-	public void visit( OrConditionNode n );
+	void visit( OrConditionNode n );
 
-	public void visit( AndConditionNode n );
+	void visit( AndConditionNode n );
 
-	public void visit( NotExpressionNode n );
+	void visit( NotExpressionNode n );
 
-	public void visit( CompareConditionNode n );
+	void visit( CompareConditionNode n );
 
-	public void visit( ConstantIntegerExpression n );
+	void visit( ConstantIntegerExpression n );
 
-	public void visit( ConstantDoubleExpression n );
+	void visit( ConstantDoubleExpression n );
 
-	public void visit( ConstantBoolExpression n );
+	void visit( ConstantBoolExpression n );
 
-	public void visit( ConstantLongExpression n );
+	void visit( ConstantLongExpression n );
 
-	public void visit( ConstantStringExpression n );
+	void visit( ConstantStringExpression n );
 
-	public void visit( ProductExpressionNode n );
+	void visit( ProductExpressionNode n );
 
-	public void visit( SumExpressionNode n );
+	void visit( SumExpressionNode n );
 
-	public void visit( VariableExpressionNode n );
+	void visit( VariableExpressionNode n );
 
-	public void visit( NullProcessStatement n );
+	void visit( NullProcessStatement n );
 
-	public void visit( Scope n );
+	void visit( Scope n );
 
-	public void visit( InstallStatement n );
+	void visit( InstallStatement n );
 
-	public void visit( CompensateStatement n );
+	void visit( CompensateStatement n );
 
-	public void visit( ThrowStatement n );
+	void visit( ThrowStatement n );
 
-	public void visit( ExitStatement n );
+	void visit( ExitStatement n );
 
-	public void visit( ExecutionInfo n );
+	void visit( ExecutionInfo n );
 
-	public void visit( CorrelationSetInfo n );
+	void visit( CorrelationSetInfo n );
 
-	public void visit( InputPortInfo n );
+	void visit( InputPortInfo n );
 
-	public void visit( OutputPortInfo n );
+	void visit( OutputPortInfo n );
 
-	public void visit( PointerStatement n );
+	void visit( PointerStatement n );
 
-	public void visit( DeepCopyStatement n );
+	void visit( DeepCopyStatement n );
 
-	public void visit( RunStatement n );
+	void visit( RunStatement n );
 
-	public void visit( UndefStatement n );
+	void visit( UndefStatement n );
 
-	public void visit( ValueVectorSizeExpressionNode n );
+	void visit( ValueVectorSizeExpressionNode n );
 
-	public void visit( PreIncrementStatement n );
+	void visit( PreIncrementStatement n );
 
-	public void visit( PostIncrementStatement n );
+	void visit( PostIncrementStatement n );
 
-	public void visit( PreDecrementStatement n );
+	void visit( PreDecrementStatement n );
 
-	public void visit( PostDecrementStatement n );
+	void visit( PostDecrementStatement n );
 
-	public void visit( ForStatement n );
+	void visit( ForStatement n );
 
-	public void visit( ForEachSubNodeStatement n );
+	void visit( ForEachSubNodeStatement n );
 
-	public void visit( ForEachArrayItemStatement n );
+	void visit( ForEachArrayItemStatement n );
 
-	public void visit( SpawnStatement n );
+	void visit( SpawnStatement n );
 
-	public void visit( IsTypeExpressionNode n );
+	void visit( IsTypeExpressionNode n );
 
-	public void visit( InstanceOfExpressionNode n );
+	void visit( InstanceOfExpressionNode n );
 
-	public void visit( TypeCastExpressionNode n );
+	void visit( TypeCastExpressionNode n );
 
-	public void visit( SynchronizedStatement n );
+	void visit( SynchronizedStatement n );
 
-	public void visit( CurrentHandlerStatement n );
+	void visit( CurrentHandlerStatement n );
 
-	public void visit( EmbeddedServiceNode n );
+	void visit( EmbeddedServiceNode n );
 
-	public void visit( InstallFixedVariableExpressionNode n );
+	void visit( InstallFixedVariableExpressionNode n );
 
-	public void visit( VariablePathNode n );
+	void visit( VariablePathNode n );
 
-	public void visit( TypeInlineDefinition n );
+	void visit( TypeInlineDefinition n );
 
-	public void visit( TypeDefinitionLink n );
+	void visit( TypeDefinitionLink n );
 
-	public void visit( InterfaceDefinition n );
+	void visit( InterfaceDefinition n );
 
-	public void visit( DocumentationComment n );
+	void visit( DocumentationComment n );
 
-	public void visit( FreshValueExpressionNode n );
+	void visit( FreshValueExpressionNode n );
 
-	public void visit( CourierDefinitionNode n );
+	void visit( CourierDefinitionNode n );
 
-	public void visit( CourierChoiceStatement n );
+	void visit( CourierChoiceStatement n );
 
-	public void visit( NotificationForwardStatement n );
+	void visit( NotificationForwardStatement n );
 
-	public void visit( SolicitResponseForwardStatement n );
+	void visit( SolicitResponseForwardStatement n );
 
-	public void visit( InterfaceExtenderDefinition n );
+	void visit( InterfaceExtenderDefinition n );
 
-	public void visit( InlineTreeExpressionNode n );
+	void visit( InlineTreeExpressionNode n );
 
-	public void visit( VoidExpressionNode n );
+	void visit( VoidExpressionNode n );
 
-	public void visit( ProvideUntilStatement n );
+	void visit( ProvideUntilStatement n );
 
-	public void visit( TypeChoiceDefinition n );
+	void visit( TypeChoiceDefinition n );
 
-	public void visit( ImportStatement n );
+	void visit( ImportStatement n );
 }

@@ -56,14 +56,14 @@ public final class Constants {
 
 	public interface Manifest {
 		// Jolie Extensions
-		public final static Attributes.Name CHANNEL_EXTENSION = new Attributes.Name( "X-JOLIE-ChannelExtension" );
-		public final static Attributes.Name LISTENER_EXTENSION = new Attributes.Name( "X-JOLIE-ListenerExtension" );
-		public final static Attributes.Name PROTOCOL_EXTENSION = new Attributes.Name( "X-JOLIE-ProtocolExtension" );
-		public final static Attributes.Name EMBEDDING_EXTENSION = new Attributes.Name( "X-JOLIE-EmbeddingExtension" );
+		Attributes.Name CHANNEL_EXTENSION = new Attributes.Name( "X-JOLIE-ChannelExtension" );
+		Attributes.Name LISTENER_EXTENSION = new Attributes.Name( "X-JOLIE-ListenerExtension" );
+		Attributes.Name PROTOCOL_EXTENSION = new Attributes.Name( "X-JOLIE-ProtocolExtension" );
+		Attributes.Name EMBEDDING_EXTENSION = new Attributes.Name( "X-JOLIE-EmbeddingExtension" );
 
 		// JAP Manifest
-		public final static Attributes.Name MAIN_PROGRAM = new Attributes.Name( "X-JOLIE-Main-Program" );
-		public final static Attributes.Name OPTIONS = new Attributes.Name( "X-JOLIE-Options" );
+		Attributes.Name MAIN_PROGRAM = new Attributes.Name( "X-JOLIE-Main-Program" );
+		Attributes.Name OPTIONS = new Attributes.Name( "X-JOLIE-Options" );
 		// public final static String Libraries = "X-JOLIE-Libraries";
 	}
 
@@ -109,8 +109,8 @@ public final class Constants {
 
 	public final static Range RANGE_ONE_TO_ONE = new Range( 1, 1 );
 
-	public static interface Keywords {
-		public static final String DEFAULT_HANDLER_NAME = "default";
+	public interface Keywords {
+		String DEFAULT_HANDLER_NAME = "default";
 	}
 
 	public static final String TYPE_MISMATCH_FAULT_NAME = "TypeMismatch";

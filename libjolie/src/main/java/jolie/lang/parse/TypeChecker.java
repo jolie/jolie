@@ -287,10 +287,7 @@ public class TypeChecker implements OLVisitor {
 	}
 
 	private boolean isDefinedBefore( VariablePathNode path ) {
-		if( entryTyping.providedVarPaths.contains( path ) || entryTyping.providedCorrPaths.contains( path ) ) {
-			return true;
-		}
-		return false;
+		return entryTyping.providedVarPaths.contains( path ) || entryTyping.providedCorrPaths.contains( path );
 	}
 
 	public boolean check() {

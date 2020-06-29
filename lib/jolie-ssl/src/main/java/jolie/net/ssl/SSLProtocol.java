@@ -303,11 +303,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 			sslEngine.setEnabledProtocols( new String[] { protocol } );
 			sslEngine.setUseClientMode( isClient );
 			if( isClient == false ) {
-				if( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 ) {
-					sslEngine.setWantClientAuth( true );
-				} else {
-					sslEngine.setWantClientAuth( false );
-				}
+				sslEngine.setWantClientAuth( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 );
 			}
 		} catch( NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException | KeyStoreException
 			| KeyManagementException e ) {

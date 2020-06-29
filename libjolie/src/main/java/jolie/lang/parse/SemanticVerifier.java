@@ -210,11 +210,7 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	private void encounteredAssignment( String varName ) {
-		if( constantFlags.containsKey( varName ) ) {
-			constantFlags.put( varName, false );
-		} else {
-			constantFlags.put( varName, true );
-		}
+		constantFlags.put( varName, !constantFlags.containsKey( varName ) );
 	}
 
 	private void addTypeEqualnessCheck( TypeDefinition key, TypeDefinition type ) {

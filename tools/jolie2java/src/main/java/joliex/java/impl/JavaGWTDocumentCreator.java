@@ -284,7 +284,7 @@ public class JavaGWTDocumentCreator {
 	private void ConvertSubTypes( TypeDefinition typeDefinition, StringBuilder builderHeaderclass ) {
 		Set< Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 		for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-			if( (((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) instanceof TypeInlineDefinition)
+			if( (((Entry) stringTypeDefinitionEntry).getValue() instanceof TypeInlineDefinition)
 				&& (Utils.hasSubTypes( ((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) )) ) {
 				convertClass( (TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue(), builderHeaderclass );
 			}
@@ -389,13 +389,13 @@ public class JavaGWTDocumentCreator {
 				if( subType instanceof TypeDefinitionLink ) {
 
 					// link
-					if( ((TypeDefinitionLink) subType).cardinality().max() > 1 ) {
+					if( subType.cardinality().max() > 1 ) {
 						stringBuilder.append( "private List<" )
 							.append( ((TypeDefinitionLink) subType).linkedType().id() ).append( "> " ).append( "_" )
-							.append( ((TypeDefinitionLink) subType).id() ).append( ";\n" );
+							.append( subType.id() ).append( ";\n" );
 					} else {
 						stringBuilder.append( "private " ).append( ((TypeDefinitionLink) subType).linkedType().id() )
-							.append( " _" ).append( ((TypeDefinitionLink) subType).id() ).append( ";\n" );
+							.append( " _" ).append( subType.id() ).append( ";\n" );
 					}
 
 				} else if( subType instanceof TypeInlineDefinition ) {
@@ -463,7 +463,7 @@ public class JavaGWTDocumentCreator {
 
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
-					if( ((TypeDefinitionLink) subType).cardinality().max() > 1 ) {
+					if( subType.cardinality().max() > 1 ) {
 						stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
 							.append( ((TypeDefinitionLink) subType).linkedType().id() ).append( ">();" ).append( "\n" );
 						// stringBuilder.append("}\n");
@@ -502,7 +502,7 @@ public class JavaGWTDocumentCreator {
 						 * //manage type with subtypes without rootValue }
 						 */
 
-						if( ((TypeInlineDefinition) subType).cardinality().max() > 1 ) {
+						if( subType.cardinality().max() > 1 ) {
 							stringBuilder
 								.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
 								.append( subType.id() ).append( ">();" ).append( "\n" )
@@ -536,7 +536,7 @@ public class JavaGWTDocumentCreator {
 						String javaCode = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( subType ) );
 						String javaMethod = JAVA_NATIVE_METHOD.get( Utils.nativeType( subType ) );
 
-						if( ((TypeDefinition) subType).cardinality().max() > 1 ) {
+						if( subType.cardinality().max() > 1 ) {
 							stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
 								.append( javaCode ).append( ">();" ).append( "\n" );
 
@@ -546,7 +546,7 @@ public class JavaGWTDocumentCreator {
 								.append( subType.id() ).append( "\").size(); counter" ).append( subType.id() )
 								.append( "++){\n" );
 							if( Utils.nativeType( subType ) != NativeType.ANY ) {
-								stringBuilder.append( "" ).append( javaCode ).append( " support" )
+								stringBuilder.append( javaCode ).append( " support" )
 									.append( subType.id() )
 									.append( " = v.getChildren(\"" ).append( subType.id() ).append( "\").get(counter" )
 									.append( subType.id() ).append( ")." ).append( javaMethod ).append( ";\n" );
@@ -633,7 +633,7 @@ public class JavaGWTDocumentCreator {
 
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
-					if( ((TypeDefinitionLink) subType).cardinality().max() > 1 ) {
+					if( subType.cardinality().max() > 1 ) {
 						stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
 							.append( ((TypeDefinitionLink) subType).linkedType().id() ).append( ">();" ).append( "\n" );
 						// stringBuilder.append("}\n");
@@ -642,7 +642,7 @@ public class JavaGWTDocumentCreator {
 
 					if( Utils.hasSubTypes( subType ) ) {
 
-						if( ((TypeInlineDefinition) subType).cardinality().max() > 1 ) {
+						if( subType.cardinality().max() > 1 ) {
 							stringBuilder
 								.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
 								.append( subType.id() ).append( ">();" ).append( "\n" );
@@ -657,7 +657,7 @@ public class JavaGWTDocumentCreator {
 						String javaCode = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( subType ) );
 						// String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
-						if( ((TypeDefinition) subType).cardinality().max() > 1 ) {
+						if( subType.cardinality().max() > 1 ) {
 							stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
 								.append( javaCode ).append( ">();" ).append( "\n" );
 						}
@@ -812,7 +812,7 @@ public class JavaGWTDocumentCreator {
 
 				String nameVariable = subType.id();
 				String startingChar = nameVariable.substring( 0, 1 );
-				String remaningStr = nameVariable.substring( 1, nameVariable.length() );
+				String remaningStr = nameVariable.substring( 1 );
 				String nameVariableOp = startingChar.toUpperCase() + remaningStr;
 
 				if( subType instanceof TypeDefinitionLink ) {
@@ -968,7 +968,7 @@ public class JavaGWTDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 
-				if( ((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) instanceof TypeDefinitionLink ) {
+				if( ((Entry) stringTypeDefinitionEntry).getValue() instanceof TypeDefinitionLink ) {
 					if( !subTypeMap.containsKey(
 						((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName() ) ) {
 						subTypeMap.put(

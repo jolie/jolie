@@ -68,14 +68,14 @@ public class BTServiceDiscoveryListener implements DiscoveryListener {
 					while( en.hasMoreElements() ) {
 						o = en.nextElement().getValue();
 						if( o instanceof UUID ) {
-							if( ((UUID) o).equals( uuid ) ) {
+							if( o.equals( uuid ) ) {
 								serviceRecord = r;
 								keepRun = false;
 							}
 						}
 					}
 				} else if( e.getDataType() == DataElement.UUID ) {
-					if( ((UUID) e.getValue()).equals( uuid ) ) {
+					if( e.getValue().equals( uuid ) ) {
 						serviceRecord = r;
 						keepRun = false;
 					}

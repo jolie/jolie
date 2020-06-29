@@ -31,7 +31,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
  * @author Fabrizio Montesi
  */
 public interface XsdToJolieConverter {
-	public static class ConversionException extends Exception {
+	class ConversionException extends Exception {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 
 		public ConversionException( String message ) {
@@ -46,6 +46,6 @@ public interface XsdToJolieConverter {
 	 * @throws ConversionException if an unsupported XSD element is encountered
 	 * @see TypeDefinition
 	 */
-	public List< TypeDefinition > convert()
+	List< TypeDefinition > convert()
 		throws ConversionException;
 }

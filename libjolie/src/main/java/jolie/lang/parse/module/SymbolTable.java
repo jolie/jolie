@@ -163,10 +163,7 @@ public class SymbolTable {
 	}
 
 	private boolean isDuplicateSymbol( String name ) {
-		if( symbols.containsKey( name ) && symbols.get( name ).scope() != Scope.LOCAL ) {
-			return true;
-		}
-		return false;
+		return symbols.containsKey( name ) && symbols.get( name ).scope() != Scope.LOCAL;
 	}
 
 	@Override

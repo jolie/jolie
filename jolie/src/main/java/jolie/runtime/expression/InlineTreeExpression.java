@@ -34,10 +34,10 @@ import jolie.runtime.VariablePath;
  * @author Fabrizio Montesi
  */
 public class InlineTreeExpression implements Expression {
-	public static interface Operation {
-		public Operation cloneOperation( TransformationReason reason );
+	public interface Operation {
+		Operation cloneOperation( TransformationReason reason );
 
-		public void run( Value inlineValue );
+		void run( Value inlineValue );
 	}
 
 	public static class DeepCopyOperation implements Operation {

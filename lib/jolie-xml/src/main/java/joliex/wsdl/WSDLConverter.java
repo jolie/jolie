@@ -402,7 +402,7 @@ public class WSDLConverter {
 		List< ExtensibilityElement > extElements = port.getExtensibilityElements();
 		for( ExtensibilityElement element : extElements ) {
 			if( element instanceof SOAPAddress ) {
-				location = ((SOAPAddress) element).getLocationURI().toString();
+				location = ((SOAPAddress) element).getLocationURI();
 				StringBuilder builder = new StringBuilder();
 				builder.append( "soap {\n" )
 					.append( "\t.wsdl = \"" )
@@ -414,7 +414,7 @@ public class WSDLConverter {
 				protocol = builder.toString();
 
 			} else if( element instanceof HTTPAddress ) {
-				location = ((HTTPAddress) element).getLocationURI().toString();
+				location = ((HTTPAddress) element).getLocationURI();
 				protocol = "http";
 			}
 		}
