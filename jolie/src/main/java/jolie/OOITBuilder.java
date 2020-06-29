@@ -127,6 +127,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.util.ModuleSystemUtil;
 import jolie.net.AggregatedOperation;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
@@ -550,6 +551,9 @@ public class OOITBuilder implements OLVisitor {
 				error( n.context(), e );
 			}
 		}
+		VariablePath protocolConfigurationPath =
+			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( n.id(), 0 ).add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
 
 		VariablePath locationPath =
 			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )

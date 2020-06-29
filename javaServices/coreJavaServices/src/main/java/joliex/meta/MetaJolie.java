@@ -381,8 +381,8 @@ public class MetaJolie extends JavaService {
 		} else {
 			response.getFirstChild( "location" ).setValue( "undefined" );
 		}
-		if( portInfo.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
+		if( portInfo.protocol() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocol().toString() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -406,8 +406,8 @@ public class MetaJolie extends JavaService {
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
 		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
-		if( portInfo.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
+		if( portInfo.protocol() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocol().toString() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -468,8 +468,8 @@ public class MetaJolie extends JavaService {
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
 		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
-		if( portInfo.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
+		if( portInfo.protocol() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocol().toString() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -549,8 +549,8 @@ public class MetaJolie extends JavaService {
 			} else {
 				response.getFirstChild( "location" ).setValue( "local" );
 			}
-			if( port.protocolId() != null ) {
-				response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+			if( port.protocol() != null ) {
+				response.getFirstChild( "protocol" ).setValue( port.protocol() );
 			} else {
 				response.getFirstChild( "protocol" ).setValue( "" );
 			}
@@ -562,8 +562,8 @@ public class MetaJolie extends JavaService {
 			} else {
 				response.getFirstChild( "location" ).setValue( "local" );
 			}
-			if( port.protocolId() != null ) {
-				response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+			if( port.protocol() != null ) {
+				response.getFirstChild( "protocol" ).setValue( port.protocol() );
 			} else {
 				response.getFirstChild( "protocol" ).setValue( "" );
 			}
