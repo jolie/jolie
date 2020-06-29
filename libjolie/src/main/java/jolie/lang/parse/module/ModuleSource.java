@@ -56,6 +56,7 @@ public interface ModuleSource {
 	Optional< InputStream > openStream();
 }
 
+
 class PathSource implements ModuleSource {
 
 	private final Path path;

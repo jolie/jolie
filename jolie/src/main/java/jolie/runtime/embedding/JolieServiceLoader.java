@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;
-import jolie.InterpreterParameters;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
@@ -55,25 +54,20 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		CommandLineParser commandLineParser = new CommandLineParser( newArgs, currInterpreter.getClassLoader(), false );
 
 		interpreter = new Interpreter(
-			currInterpreter.getClassLoader(),
-			commandLineParser.getInterpreterParameters(),
+			commandLineParser.getInterpreterConfiguration(),
 			currInterpreter.programDirectory() );
 	}
 
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
 		throws IOException {
 		super( channelDest );
-		InterpreterParameters interpreterParameters = new InterpreterParameters(
-			currInterpreter.optionArgs(),
-			currInterpreter.parameters().includePaths(),
-			currInterpreter.parameters().libUrls(),
+		Interpreter.Configuration configuration = Interpreter.Configuration.create(
+			currInterpreter.configuration(),
 			new File( "#native_code_" + SERVICE_LOADER_COUNTER.getAndIncrement() ),
-			currInterpreter.getClassLoader(),
 			new ByteArrayInputStream( code.getBytes() ) );
 
 		interpreter = new Interpreter(
-			currInterpreter.getClassLoader(),
-			interpreterParameters,
+			configuration,
 			currInterpreter.programDirectory() );
 	}
 
