@@ -276,7 +276,7 @@ public class Interpreter {
 
 	private Map< URI, SymbolTable > symbolTables;
 
-	private final InterpreterParameters interpreterParameters;
+	private final InterpreterParameters parameters;
 
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
@@ -343,7 +343,7 @@ public class Interpreter {
 	}
 
 	public long responseTimeout() {
-		return interpreterParameters.responseTimeout();
+		return parameters.responseTimeout();
 	}
 
 	public CorrelationEngine correlationEngine() {
@@ -352,7 +352,7 @@ public class Interpreter {
 
 	private Timer timer() {
 		if( timer == null ) {
-			timer = new Timer( interpreterParameters.programFilepath().getName() + "-Timer" );
+			timer = new Timer( parameters.programFilepath().getName() + "-Timer" );
 		}
 		return timer;
 	}
@@ -413,7 +413,7 @@ public class Interpreter {
 	 * @return the option arguments passed to this Interpreter
 	 */
 	public String[] optionArgs() {
-		return interpreterParameters.optionArgs();
+		return parameters.optionArgs();
 	}
 
 	/**
@@ -703,7 +703,7 @@ public class Interpreter {
 
 	private String buildLogMessage( Throwable t ) {
 		String ret;
-		if( interpreterParameters.printStackTraces() ) {
+		if( parameters.printStackTraces() ) {
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
 			t.printStackTrace( new PrintStream( bs ) );
 			ret = bs.toString();
@@ -715,7 +715,7 @@ public class Interpreter {
 
 	private LogRecord buildLogRecord( Level level, String message ) {
 		LogRecord record = new LogRecord( level, message );
-		record.setSourceClassName( interpreterParameters.programFilepath().getName() );
+		record.setSourceClassName( parameters.programFilepath().getName() );
 		return record;
 	}
 
@@ -830,7 +830,7 @@ public class Interpreter {
 	 * @return the JolieClassLoader this Interpreter is using
 	 */
 	public JolieClassLoader getClassLoader() {
-		return interpreterParameters.jolieClassLoader();
+		return parameters.jolieClassLoader();
 	}
 
 	/**
@@ -838,8 +838,8 @@ public class Interpreter {
 	 * 
 	 * @return
 	 */
-	public InterpreterParameters getInterpreterParameters() {
-		return interpreterParameters;
+	public InterpreterParameters parameters() {
+		return parameters;
 	}
 
 	/**
@@ -855,7 +855,7 @@ public class Interpreter {
 		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.parentClassLoader = parentClassLoader;
-		this.interpreterParameters = interpreterParameters;
+		this.parameters = interpreterParameters;
 
 		this.symbolTables = new HashMap<>();
 
@@ -946,7 +946,7 @@ public class Interpreter {
 	 * @return the program filename this interpreter was launched with
 	 */
 	public String programFilename() {
-		return interpreterParameters.programFilepath().getName();
+		return parameters.programFilepath().getName();
 	}
 
 	/**
@@ -955,7 +955,7 @@ public class Interpreter {
 	 * @return the path at which the file to be interpreted has been found
 	 */
 	public String programFilepath() {
-		return interpreterParameters.programFilepath().getName();
+		return parameters.programFilepath().getName();
 	}
 
 	/**
@@ -1039,7 +1039,7 @@ public class Interpreter {
 
 				// Initialize program arguments in the args variabile.
 				ValueVector jArgs = ValueVector.create();
-				for( String s : interpreterParameters.arguments() ) {
+				for( String s : parameters.arguments() ) {
 					jArgs.add( Value.create( s ) );
 				}
 				initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
@@ -1146,9 +1146,9 @@ public class Interpreter {
 		private final CompletableFuture< Exception > future;
 
 		public StarterThread( CompletableFuture< Exception > future ) {
-			super( createStarterThreadName( interpreterParameters.programFilepath().getName() ) );
+			super( createStarterThreadName( parameters.programFilepath().getName() ) );
 			this.future = future;
-			setContextClassLoader( interpreterParameters.jolieClassLoader() );
+			setContextClassLoader( parameters.jolieClassLoader() );
 		}
 
 		@Override
@@ -1179,7 +1179,7 @@ public class Interpreter {
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
-		interpreterParameters.clear();
+		parameters.clear();
 		commCore = null;
 		// System.gc();
 	}
@@ -1198,8 +1198,8 @@ public class Interpreter {
 
 		try {
 			Program program;
-			if( interpreterParameters.isProgramCompiled() ) {
-				try( final ObjectInputStream istream = new ObjectInputStream( interpreterParameters.inputStream() ) ) {
+			if( parameters.isProgramCompiled() ) {
+				try( final ObjectInputStream istream = new ObjectInputStream( parameters.inputStream() ) ) {
 					final Object o = istream.readObject();
 					if( o instanceof Program ) {
 						program = (Program) o;
@@ -1213,23 +1213,23 @@ public class Interpreter {
 					program = OLParseTreeOptimizer.optimize( program );
 				} else {
 					ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
-						getInterpreterParameters().charset(),
-						getInterpreterParameters().includePaths(),
-						getInterpreterParameters().packagePaths(),
-						getInterpreterParameters().jolieClassLoader(),
-						getInterpreterParameters().constants(),
+						parameters().charset(),
+						parameters().includePaths(),
+						parameters().packagePaths(),
+						parameters().jolieClassLoader(),
+						parameters().constants(),
 						false );
 					Modules.ModuleParsedResult parsesResult =
-						Modules.parseModule( configuration, getInterpreterParameters().inputStream(),
-							getInterpreterParameters().programFilepath().toURI() );
+						Modules.parseModule( configuration, parameters().inputStream(),
+							parameters().programFilepath().toURI() );
 					symbolTables.putAll( parsesResult.symbolTables() );
 					program = parsesResult.mainProgram();
 				}
 			}
 
-			interpreterParameters.inputStream().close();
+			parameters.inputStream().close();
 
-			check = interpreterParameters.check();
+			check = parameters.check();
 
 			final SemanticVerifier semanticVerifier;
 
@@ -1248,7 +1248,7 @@ public class Interpreter {
 				throw new InterpreterException( "Exiting" );
 			}
 
-			if( interpreterParameters.typeCheck() ) {
+			if( parameters.typeCheck() ) {
 				TypeChecker typeChecker = new TypeChecker(
 					program,
 					semanticVerifier.executionMode(),

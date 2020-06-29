@@ -60,7 +60,6 @@ public class InterpreterParameters {
 		Level logLevel,
 		File programDirectory,
 		String[] packagePaths ) throws IOException {
-
 		this.connectionsLimit = connectionsLimit;
 		this.correlationAlgorithm = correlationAlgorithm;
 		Collections.addAll( this.includePaths, includeList );
@@ -286,7 +285,6 @@ public class InterpreterParameters {
 	public String[] packagePaths() {
 		return packagePaths.toArray( new String[] {} );
 	}
-
 
 	/**
 	 * Returns the directory in which the main program is located.

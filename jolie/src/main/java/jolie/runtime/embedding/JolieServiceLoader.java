@@ -65,8 +65,8 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		super( channelDest );
 		InterpreterParameters interpreterParameters = new InterpreterParameters(
 			currInterpreter.optionArgs(),
-			currInterpreter.getInterpreterParameters().includePaths(),
-			currInterpreter.getInterpreterParameters().libUrls(),
+			currInterpreter.parameters().includePaths(),
+			currInterpreter.parameters().libUrls(),
 			new File( "#native_code_" + SERVICE_LOADER_COUNTER.getAndIncrement() ),
 			currInterpreter.getClassLoader(),
 			new ByteArrayInputStream( code.getBytes() ) );
