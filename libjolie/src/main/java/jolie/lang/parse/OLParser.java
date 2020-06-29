@@ -1007,23 +1007,15 @@ public class OLParser extends AbstractParser {
 
 	private InputPortInfo createInternalServiceInputPort( String serviceName, InterfaceDefinition[] interfaceList )
 		throws ParserException {
-		OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
-		InputPortInfo iport = null;
-		try {
-			iport = new InputPortInfo(
-				getContext(),
-				serviceName + "InputPort", // input port name
-				new URI( Constants.LOCAL_LOCATION_KEYWORD ),
-				null,
-				protocolConfiguration,
-				new InputPortInfo.AggregationItemInfo[] {},
-				Collections.emptyMap() );
-
-			for( InterfaceDefinition i : interfaceList ) {
-				iport.addInterface( i );
-			}
-		} catch( URISyntaxException e ) {
-			throwException( e );
+		InputPortInfo iport = new InputPortInfo(
+			getContext(),
+			serviceName + "InputPort", // input port name
+			new ConstantStringExpression( getContext(), Constants.LOCAL_LOCATION_KEYWORD ),
+			null,
+			new InputPortInfo.AggregationItemInfo[] {},
+			Collections.< String, String >emptyMap() );
+		for( InterfaceDefinition i : interfaceList ) {
+			iport.addInterface( i );
 		}
 		return iport;
 	}
@@ -1152,10 +1144,9 @@ public class OLParser extends AbstractParser {
 	private InputPortInfo parseInputPortInfo()
 		throws IOException, ParserException {
 		String inputPortName;
-		String protocolId;
-		URI inputPortLocation;
+		OLSyntaxNode protocol = null;
+		OLSyntaxNode location = null;
 		List< InterfaceDefinition > interfaceList = new ArrayList<>();
-		OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
 
 		nextToken();
 		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
@@ -1164,29 +1155,28 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LCURLY, "{ expected" );
 		InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + inputPortName );
 
-		inputPortLocation = null;
-		protocolId = null;
 		Map< String, String > redirectionMap = new HashMap<>();
 		List< InputPortInfo.AggregationItemInfo > aggregationList = new ArrayList<>();
+		boolean isLocationLocal = false;
+
 		while( token.isNot( Scanner.TokenType.RCURLY ) ) {
 			if( token.is( Scanner.TokenType.OP_OW ) ) {
 				parseOneWayOperations( iface );
 			} else if( token.is( Scanner.TokenType.OP_RR ) ) {
 				parseRequestResponseOperations( iface );
 			} else if( token.isKeyword( "location" ) || token.isKeyword( "Location" ) ) {
-				if( inputPortLocation != null ) {
+				if( location != null ) {
 					throwException( "Location already defined for service " + inputPortName );
 				}
 				nextToken();
 				eat( Scanner.TokenType.COLON, "expected : after location" );
 				checkConstant();
 				assertToken( Scanner.TokenType.STRING, "expected inputPort location string" );
-				try {
-					inputPortLocation = new URI( token.content() );
-				} catch( URISyntaxException e ) {
-					throwException( e );
+				if( token.content().startsWith( "local" ) ) {
+					// check if the inputPort is listening to local protocol
+					isLocationLocal = true;
 				}
-				nextToken();
+				location = parseBasicExpression();
 			} else if( token.isKeyword( "interfaces" ) || token.isKeyword( "Interfaces" ) ) {
 				nextToken();
 				eat( Scanner.TokenType.COLON, "expected : after interfaces" );
@@ -1205,31 +1195,13 @@ public class OLParser extends AbstractParser {
 					}
 				}
 			} else if( token.isKeyword( "protocol" ) || token.isKeyword( "Protocol" ) ) {
-				if( protocolId != null ) {
+				if( protocol != null ) {
 					throwException( "Protocol already defined for inputPort " + inputPortName );
 				}
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected :" );
+				eat( Scanner.TokenType.COLON, "expected : after protocol" );
 				checkConstant();
-				assertToken( Scanner.TokenType.ID, "expected protocol identifier" );
-				protocolId = token.content();
-				nextToken();
-				if( token.is( Scanner.TokenType.LCURLY ) ) {
-					addTokens( Arrays.asList(
-						new Scanner.Token( Scanner.TokenType.ID, Constants.GLOBAL ),
-						new Scanner.Token( Scanner.TokenType.DOT ),
-						new Scanner.Token( Scanner.TokenType.ID, Constants.INPUT_PORTS_NODE_NAME ),
-						new Scanner.Token( Scanner.TokenType.DOT ),
-						new Scanner.Token( Scanner.TokenType.ID, inputPortName ),
-						new Scanner.Token( Scanner.TokenType.DOT ),
-						new Scanner.Token( Scanner.TokenType.ID, Constants.PROTOCOL_NODE_NAME ),
-						new Scanner.Token( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ),
-						token ) );
-					// Protocol configuration
-					nextToken();
-					// protocolConfiguration = parseInVariablePathProcess( false );
-					protocolConfiguration = parseBasicStatement();
-				}
+				protocol = parseBasicExpression();
 			} else if( token.isKeyword( "redirects" ) || token.isKeyword( "Redirects" ) ) {
 				nextToken();
 				eat( Scanner.TokenType.COLON, "expected :" );
@@ -1256,19 +1228,18 @@ public class OLParser extends AbstractParser {
 			}
 		}
 		eat( Scanner.TokenType.RCURLY, "} expected" );
-		if( inputPortLocation == null ) {
+		if( location == null ) {
 			throwException( "expected location URI for " + inputPortName );
 		} else if( (interfaceList.isEmpty() && iface.operationsMap().isEmpty()) && redirectionMap.isEmpty()
 			&& aggregationList.isEmpty() ) {
 			throwException( "expected at least one operation, interface, aggregation or redirection for inputPort "
 				+ inputPortName );
-		} else if( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD )
-			&& !inputPortLocation.getScheme().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+		} else if( protocol == null && !isLocationLocal ) {
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
 		InputPortInfo iport =
-			new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration,
-				aggregationList.toArray( new InputPortInfo.AggregationItemInfo[ 0 ] ),
+			new InputPortInfo( getContext(), inputPortName, location, protocol,
+				aggregationList.toArray( new InputPortInfo.AggregationItemInfo[ aggregationList.size() ] ),
 				redirectionMap );
 		for( InterfaceDefinition i : interfaceList ) {
 			iport.addInterface( i );
@@ -1413,40 +1384,18 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.COLON, "expected :" );
 				checkConstant();
 
-				assertToken( Scanner.TokenType.STRING, "expected location string" );
-				URI location = null;
-				try {
-					location = new URI( token.content() );
-				} catch( URISyntaxException e ) {
-					throwException( e );
-				}
-
-				p.setLocation( location );
-				nextToken();
+				OLSyntaxNode expr = parseBasicExpression();
+				p.setLocation( expr );
 			} else if( token.isKeyword( "protocol" ) || token.isKeyword( "Protocol" ) ) {
-				if( p.protocolId() != null ) {
+				if( p.protocol() != null ) {
 					throwException( "Protocol already defined for output port " + p.id() );
 				}
 
 				nextToken();
 				eat( Scanner.TokenType.COLON, "expected :" );
 				checkConstant();
-
-				assertToken( Scanner.TokenType.ID, "expected protocol identifier" );
-				p.setProtocolId( token.content() );
-				nextToken();
-
-				if( token.is( Scanner.TokenType.LCURLY ) ) {
-					addTokens( Arrays.asList(
-						new Scanner.Token( Scanner.TokenType.ID, p.id() ),
-						new Scanner.Token( Scanner.TokenType.DOT ),
-						new Scanner.Token( Scanner.TokenType.ID, "protocol" ),
-						new Scanner.Token( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ),
-						token ) );
-					// Protocol configuration
-					nextToken();
-					p.setProtocolConfiguration( parseBasicStatement() );
-				}
+				OLSyntaxNode protocol = parseBasicExpression();
+				p.setProtocol( protocol );
 			} else {
 				keepRun = false;
 			}

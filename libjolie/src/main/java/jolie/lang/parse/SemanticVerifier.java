@@ -492,6 +492,25 @@ public class SemanticVerifier implements OLVisitor {
 		if( inputPorts.get( n.id() ) != null ) {
 			error( n, "input port " + n.id() + " has been already defined" );
 		}
+
+		if( n.protocol() != null && !(n.protocol() instanceof ConstantStringExpression
+			|| n.protocol() instanceof InlineTreeExpressionNode
+			|| n.protocol() instanceof VariableExpressionNode) ) {
+			error( n, "input port " + n.id() + "'s protocol is not a valid expression" );
+		}
+
+		if( n.location() != null && !(n.location() instanceof ConstantStringExpression) ) {
+			error( n, "input port " + n.id() + "'s location is not a valid expression" );
+		}
+
+		if( n.location() instanceof ConstantStringExpression ) {
+			try {
+				URI.create( n.location().toString() );
+			} catch( IllegalArgumentException e ) {
+				error( n, "input port " + n.id() + "'s location is not a valid URI" );
+			}
+		}
+
 		inputPorts.put( n.id(), n );
 
 		insideInputPort = true;
@@ -552,6 +571,24 @@ public class SemanticVerifier implements OLVisitor {
 	public void visit( OutputPortInfo n ) {
 		if( outputPorts.get( n.id() ) != null )
 			error( n, "output port " + n.id() + " has been already defined" );
+
+		if( n.protocol() != null && !(n.protocol() instanceof ConstantStringExpression
+			|| n.protocol() instanceof InlineTreeExpressionNode || n.protocol() instanceof VariableExpressionNode) ) {
+			error( n, "output port " + n.id() + "'s protocol is not a valid expression" );
+		}
+
+		if( n.location() != null && !(n.location() instanceof ConstantStringExpression) ) {
+			error( n, "output port " + n.id() + "'s location is not a valid expression" );
+		}
+
+		if( n.location() instanceof ConstantStringExpression ) {
+			try {
+				URI.create( n.location().toString() );
+			} catch( IllegalArgumentException e ) {
+				error( n, "input port " + n.id() + "'s location is not a valid URI" );
+			}
+		}
+
 		outputPorts.put( n.id(), n );
 
 		encounteredAssignment( n.id() );

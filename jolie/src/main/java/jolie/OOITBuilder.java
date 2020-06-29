@@ -128,6 +128,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.util.ModuleSystemUtil;
 import jolie.net.AggregatedOperation;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
@@ -420,10 +421,6 @@ public class OOITBuilder implements OLVisitor {
 	}
 
 	public void visit( OutputPortInfo n ) {
-		final Process protocolConfigurationProcess =
-			(n.protocolConfiguration() != null) ? buildProcess( n.protocolConfiguration() )
-				: NullProcess.getInstance();
-
 		final boolean isConstant = constantFlags.computeIfAbsent( n.id(), k -> false );
 
 		currentOutputPort = n.id();
@@ -434,14 +431,19 @@ public class OOITBuilder implements OLVisitor {
 		}
 		currentOutputPort = null;
 
-		interpreter.register( n.id(), new OutputPort(
-			interpreter,
-			n.id(),
-			n.protocolId(),
-			protocolConfigurationProcess,
-			n.location(),
-			getOutputPortInterface( n.id() ),
-			isConstant ) );
+		Expression locationExpr = buildExpression( n.location() );
+
+		OLSyntaxNode protocolNode = ModuleSystemUtil.transformProtocolExpression( n.protocol() );
+		Expression protocolExpr = buildExpression( protocolNode );
+
+		interpreter.register( n.id(),
+			new OutputPort(
+				interpreter,
+				n.id(),
+				locationExpr,
+				protocolExpr,
+				getOutputPortInterface( n.id() ),
+				isConstant ) );
 	}
 
 	private Interface getOutputPortInterface( String outputPortName ) {
@@ -548,42 +550,57 @@ public class OOITBuilder implements OLVisitor {
 				error( n.context(), e );
 			}
 		}
+		VariablePath protocolConfigurationPath =
+			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( n.id(), 0 ).add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
 
-		String pId = n.protocolId();
+		VariablePath locationPath =
+			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( n.id(), 0 ).add( Constants.LOCATION_NODE_NAME, 0 ).toVariablePath();
+
+		VariablePath protocolPath =
+			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( n.id(), 0 ).add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
+
+		locationPath = new ClosedVariablePath( locationPath, interpreter.globalValue() );
+
+		Expression locationExpr = buildExpression( n.location() );
+		Value locationVal = null;
+		String location = null;
+		if( locationExpr instanceof Value ) {
+			locationVal = locationExpr.evaluate();
+		} else {
+			error( n.context(), "location expression is not valid" );
+		}
+		location = locationVal.strValue();
+
+		locationPath.getValue().setValue( location );
+		String protocol = null;
+		Expression protocolExpr = null;
+		if( n.protocol() != null ) {
+			OLSyntaxNode protocolNode = ModuleSystemUtil.transformProtocolExpression( n.protocol() );
+			Value protocolVal = null;
+			protocolExpr = buildExpression( protocolNode );
+			if( protocolExpr instanceof Value || protocolExpr instanceof InlineTreeExpression ) {
+				protocolVal = protocolExpr.evaluate();
+			} else {
+				error( n.context(), "location expression is not valid" );
+			}
+			protocol = protocolVal.strValue();
+		}
+
+		Process protocolProc = protocol == null ? NullProcess.getInstance()
+			: new DeepCopyProcess( protocolPath, protocolExpr, true, n.context() );
+		Process[] confChildren = new Process[] { protocolProc };
+		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
+
 		CommProtocolFactory protocolFactory = null;
 
-		VariablePath protocolConfigurationPath =
-			new VariablePathBuilder( true )
-				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( n.id(), 0 )
-				.add( Constants.PROTOCOL_NODE_NAME, 0 )
-				.toVariablePath();
 		try {
-			protocolFactory = interpreter.commCore().getCommProtocolFactory( pId );
+			protocolFactory = interpreter.commCore().getCommProtocolFactory( protocol );
 		} catch( IOException e ) {
 			error( n.context(), e );
 		}
-
-		VariablePath locationPath =
-			new VariablePathBuilder( true )
-				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( n.id(), 0 )
-				.add( Constants.LOCATION_NODE_NAME, 0 )
-				.toVariablePath();
-		locationPath = new ClosedVariablePath( locationPath, interpreter.globalValue() );
-		// Process assignLocation = new AssignmentProcess( locationPath, Value.create(
-		// n.location().toString() ) );
-		locationPath.getValue().setValue( n.location().toString() );
-
-		VariablePath protocolPath =
-			new VariablePathBuilder( true )
-				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( n.id(), 0 )
-				.add( Constants.PROTOCOL_NODE_NAME, 0 )
-				.toVariablePath();
-		Process assignProtocol = new AssignmentProcess( protocolPath, Value.create( n.protocolId() ), n.context() );
-		Process[] confChildren = new Process[] { buildProcess( n.protocolConfiguration() ), assignProtocol };
-		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
 
 		InputPort inputPort = new InputPort(
 			n.id(),
@@ -600,7 +617,7 @@ public class OOITBuilder implements OLVisitor {
 			} catch( IOException e ) {
 				error( n.context(), e );
 			}
-		} else if( protocolFactory != null || n.location().getScheme().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+		} else if( protocolFactory != null || location.startsWith( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			try {
 				interpreter.commCore().addInputPort(
 					inputPort,
@@ -611,7 +628,8 @@ public class OOITBuilder implements OLVisitor {
 				error( n.context(), ioe );
 			}
 		} else {
-			error( n.context(), "Communication protocol extension for protocol " + pId + " not found." );
+			error( n.context(),
+				"Communication protocol extension for protocol " + protocol + " of port " + n.id() + " not found." );
 		}
 		currentPortInterface = null;
 	}
