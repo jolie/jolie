@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/extensions/auto/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/btl2cap/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/http/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/https/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/javascript/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/jsonrpc/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/local/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/localsocket/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/rmi/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/soap/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/soaps/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/sodep/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/sodeps/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/xmlrpc/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/javaServices/coreJavaServices/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/javaServices/monitorJavaServices/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jolie/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lib/jolie-js/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lib/jolie-ssl/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lib/jolie-xml/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lib/xsom/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/lib/xsom/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/libjolie/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/libjolie/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/support/jolie-java/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/support/metaservice-java/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/test/extensions/private/WS-test/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tools/jolie2dummy/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tools/jolie2java/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tools/jolie2plasma/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tools/jolie2surface/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tools/jolie2wsdl/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tools/joliec/src/main/java" charset="UTF-8" />
+  </component>
+</project>
