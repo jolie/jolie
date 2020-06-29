@@ -90,96 +90,6 @@ public class CommandLineParser implements Closeable {
 	private int cellId = 0;
 
 	/**
-	 * Returns the arguments passed to the JOLIE program.
-	 * 
-	 * @return the arguments passed to the JOLIE program.
-	 */
-	private String[] arguments() {
-		return arguments;
-	}
-
-	/**
-	 * Returns the {@link Level} of the logger of this interpreter.
-	 * 
-	 * @return the {@link Level} of the logger of this interpreter.
-	 */
-	private Level logLevel() {
-		return logLevel;
-	}
-
-	/**
-	 * Returns the selected tracer level [all | comm | comp]
-	 *
-	 * all: all the traces comp: only computation traces comm: only communication traces
-	 */
-	private String tracerLevel() {
-		return tracerLevel;
-	}
-
-	/**
-	 * Returns <code>true</code> if the tracer option has been specified, false otherwise.
-	 *
-	 * @return <code>true</code> if the verbose option has been specified, false otherwise
-	 */
-	public String tracerMode() {
-		return tracerMode;
-	}
-
-	/**
-	 * Returns <code>true</code> if the tracer option has been specified, false otherwise.
-	 *
-	 * @return <code>true</code> if the verbose option has been specified, false otherwise
-	 */
-	private boolean tracer() {
-		return tracer;
-	}
-
-	/**
-	 * Returns <code>true</code> if the check option has been specified, false otherwise.
-	 *
-	 * @return <code>true</code> if the verbose option has been specified, false otherwise
-	 */
-	private boolean check() {
-		return check;
-	}
-
-	/**
-	 * Returns {@code true} if the program is compiled, {@code false} otherwise.
-	 * 
-	 * @return {@code true} if the program is compiled, {@code false} otherwise.
-	 */
-	private boolean isProgramCompiled() {
-		return isProgramCompiled;
-	}
-
-	/**
-	 * Returns the file path of the JOLIE program to execute.
-	 * 
-	 * @return the file path of the JOLIE program to execute
-	 */
-	private File programFilepath() {
-		return programFilepath;
-	}
-
-	/**
-	 * Returns an InputStream for the program code to execute.
-	 * 
-	 * @return an InputStream for the program code to execute
-	 */
-	private InputStream programStream() {
-		return programStream;
-	}
-
-	/**
-	 * Returns the program's character encoding
-	 * 
-	 * @return the program's character encoding
-	 */
-	private String charset() {
-		return charset;
-	}
-
-	/**
 	 * Closes the underlying {@link InputStream} to the target Jolie program.
 	 */
 	@Override
@@ -188,66 +98,12 @@ public class CommandLineParser implements Closeable {
 		programStream.close();
 	}
 
-	/**
-	 * Returns the library URLs passed by command line with the -l option.
-	 * 
-	 * @return the library URLs passed by command line
-	 */
-	private URL[] libURLs() {
-		return libURLs;
-	}
-
-	/**
-	 * Returns the include paths passed by command line with the -i option.
-	 * 
-	 * @return the include paths passed by command line
-	 */
-	private String[] includePaths() {
-		return includePaths;
-	}
-
-	/**
-	 * Returns the paths passed by command line with the -p option.
-	 * 
-	 * @return the packagePaths
-	 */
-	public String[] packagePaths() {
-		return packagePaths;
-	}
-
-	/**
-	 * Returns the connection limit parameter passed by command line with the -c option.
-	 * 
-	 * @return the connection limit parameter passed by command line
-	 */
-	private int connectionsLimit() {
-		return connectionsLimit;
-	}
-
-	/**
-	 * Returns the response timeout parameter passed by command line with the --responseTimeout option.
-	 * 
-	 * @return the response timeout parameter passed by command line
-	 */
-	private long responseTimeout() {
-		return responseTimeout;
-	}
-
 	private static String getOptionString( String option, String description ) {
 		return ('\t' + option + "\t\t" + description + '\n');
 	}
 
 	private String getVersionString() {
 		return ("Jolie " + Constants.VERSION + "  " + Constants.COPYRIGHT);
-	}
-
-	/**
-	 * Returns a map containing the constants defined by command line.
-	 * 
-	 * @return a map containing the constants defined by command line
-	 */
-	private Map< String, Scanner.Token > definedConstants() {
-		return constants;
 	}
 
 	public int cellId() {
@@ -335,25 +191,6 @@ public class CommandLineParser implements Closeable {
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}
-	}
-
-	/**
-	 * Returns <code>true</code> if the verbose option has been specified, false otherwise.
-	 * 
-	 * @return <code>true</code> if the verbose option has been specified, false otherwise
-	 */
-	/*
-	 * public boolean verbose() { return verbose; }
-	 */
-
-	/**
-	 * Returns the type of correlation algorithm that has been specified.
-	 * 
-	 * @return the type of correlation algorithm that has been specified.
-	 * @see CorrelationEngine
-	 */
-	private CorrelationEngine.Type correlationAlgorithmType() {
-		return correlationAlgorithmType;
 	}
 
 	/**
@@ -729,43 +566,6 @@ public class CommandLineParser implements Closeable {
 	 * ); libList.add( parentPath ); libList.add( parentPath + "/lib" ); } } }
 	 */
 
-	/**
-	 * Returns the directory in which the main program is located.
-	 * 
-	 * @return the directory in which the main program is located.
-	 */
-	private File programDirectory() {
-		return programDirectory;
-	}
-
-	/**
-	 * Returns the value of the --typecheck option.
-	 * 
-	 * @return the value of the --typecheck option.
-	 */
-	private boolean typeCheck() {
-		return typeCheck;
-	}
-
-	/**
-	 * Returns the classloader to use for the program.
-	 * 
-	 * @return the classloader to use for the program.
-	 */
-	private JolieClassLoader jolieClassLoader() {
-		return jolieClassLoader;
-	}
-
-	/**
-	 * Returns the command line options passed to this command line parser. This does not include the
-	 * name of the program.
-	 * 
-	 * @return the command line options passed to this command line parser.
-	 */
-	private String[] optionArgs() {
-		return optionArgs;
-	}
-
 	private static String parseJapManifestForMainProgram( Manifest manifest, JarFile japFile ) {
 		String filepath = null;
 		if( manifest != null ) { // See if a main program is defined through a Manifest attribute
@@ -944,30 +744,29 @@ public class CommandLineParser implements Closeable {
 	}
 
 	public InterpreterParameters getInterpreterParameters() throws CommandLineException, IOException {
-
 		return new InterpreterParameters(
-			connectionsLimit(),
-			correlationAlgorithmType(),
-			includePaths(),
-			optionArgs(),
-			libURLs(),
-			programStream(),
-			charset(),
-			programFilepath(),
-			arguments(),
-			definedConstants(),
-			jolieClassLoader(),
-			isProgramCompiled(),
-			typeCheck(),
-			tracer(),
-			tracerLevel(),
-			tracerMode(),
-			check(),
+			connectionsLimit,
+			correlationAlgorithmType,
+			includePaths,
+			optionArgs,
+			libURLs,
+			programStream,
+			charset,
+			programFilepath,
+			arguments,
+			constants,
+			jolieClassLoader,
+			isProgramCompiled,
+			typeCheck,
+			tracer,
+			tracerLevel,
+			tracerMode,
+			check,
 			printStackTraces,
-			responseTimeout(),
-			logLevel(),
-			programDirectory(),
-			packagePaths() );
+			responseTimeout,
+			logLevel,
+			programDirectory,
+			packagePaths );
 
 	}
 
