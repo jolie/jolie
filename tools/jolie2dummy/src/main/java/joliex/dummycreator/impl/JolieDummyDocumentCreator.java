@@ -107,8 +107,7 @@ public class JolieDummyDocumentCreator {
 			} else {
 				// get cardinality indexes. if maximum cardinality is considerably big (more than 5), print only
 				// first 5 entries; or print less otherwise; don't print cardinality, if it equals 1
-				int typeCardinality = (typeInlineDefinition.cardinality().max() > MAX_ARRAY_ITEMS ? MAX_ARRAY_ITEMS
-					: typeInlineDefinition.cardinality().max());
+				int typeCardinality = (Math.min( typeInlineDefinition.cardinality().max(), MAX_ARRAY_ITEMS ));
 				for( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
 					String cardinalityString =
 						typeCardinality == 1 ? "" : "[ " + cardinalityIndex + " ]";

@@ -264,9 +264,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 					checkStrictModeForSimpleType( contentType );
 				} else if( (particle = contentType.asParticle()) != null ) {
 					XSTerm term = particle.getTerm();
-					XSModelGroupDecl modelGroupDecl = null;
-					XSModelGroup modelGroup = null;
-					modelGroup = getModelGroup( modelGroupDecl, term );
+					XSModelGroup modelGroup = getModelGroup( term );
 					if( modelGroup != null ) {
 						TypeInlineDefinition jolieComplexType =
 							createComplexType( complexType, element.getName(), particle );
@@ -369,9 +367,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 						checkStrictModeForSimpleType( contentType );
 					} else if( (particle = contentType.asParticle()) != null ) {
 						XSTerm term = particle.getTerm();
-						XSModelGroupDecl modelGroupDecl = null;
-						XSModelGroup modelGroup = null;
-						modelGroup = getModelGroup( modelGroupDecl, term );
+						XSModelGroup modelGroup = getModelGroup( term );
 						if( modelGroup != null ) {
 							TypeInlineDefinition jolieComplexType =
 								createComplexType( complexType, currElementDecl.getName(), particle );
@@ -433,11 +429,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 		} else if( (particle = contentType.asParticle()) != null ) {
 			XSTerm term = particle.getTerm();
-			XSModelGroupDecl modelGroupDecl = null;
-			XSModelGroup modelGroup = null;
-			modelGroup = getModelGroup( modelGroupDecl, term );
-
-
+			XSModelGroup modelGroup = getModelGroup( term );
 			if( modelGroup != null ) {
 				groupProcessing( modelGroup, particle, jolieType );
 			}
@@ -503,7 +495,8 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 		}
 	}
 
-	private XSModelGroup getModelGroup( XSModelGroupDecl modelGroupDecl, XSTerm term ) {
+	private XSModelGroup getModelGroup( XSTerm term ) {
+		XSModelGroupDecl modelGroupDecl;
 		if( (modelGroupDecl = term.asModelGroupDecl()) != null ) {
 			return modelGroupDecl.getModelGroup();
 		} else if( term.isModelGroup() ) {

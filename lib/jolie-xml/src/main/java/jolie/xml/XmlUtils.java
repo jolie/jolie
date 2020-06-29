@@ -529,7 +529,7 @@ public class XmlUtils {
 			value.setValue( Long.valueOf( builder.toString() ) );
 			break;
 		case "double":
-			value.setValue( new Double( builder.toString() ) );
+			value.setValue( Double.valueOf( builder.toString() ) );
 			break;
 		case "bool":
 			value.setValue( Boolean.valueOf( builder.toString() ) );

@@ -57,7 +57,7 @@ public class JavaGWTDocumentCreator {
 	private final String targetPort;
 	private LinkedHashMap< String, TypeDefinition > typeMap;
 	private LinkedHashMap< String, TypeDefinition > subTypeMap;
-	ProgramInspector inspector;
+	final ProgramInspector inspector;
 	private static final HashMap< NativeType, String > JAVA_NATIVE_EQUIVALENT = new HashMap<>();
 	private static final HashMap< NativeType, String > JAVA_NATIVE_METHOD = new HashMap<>();
 	private static final HashMap< NativeType, String > JAVA_NATIVE_CHECKER = new HashMap<>();

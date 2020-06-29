@@ -231,7 +231,7 @@ public class MetaJolie extends JavaService {
 				subtype_counter++;
 			}
 		}
-		if( extension != null && extension instanceof TypeInlineDefinition ) {
+		if( extension instanceof TypeInlineDefinition ) {
 			final TypeInlineDefinition extensionTypeInline = (TypeInlineDefinition) extension;
 			int subtype_counter = type.getChildren( "sub_type" ).size();
 			if( extensionTypeInline.subTypes() != null ) {

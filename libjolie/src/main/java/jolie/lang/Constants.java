@@ -67,7 +67,7 @@ public final class Constants {
 		// public final static String Libraries = "X-JOLIE-Libraries";
 	}
 
-	static public enum Predefined {
+	public enum Predefined {
 		ATTRIBUTES( "@Attributes", "@Attributes" ), HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication",
 			"@HttpBasicAuthentication" ), PI( "PI", java.lang.Math.PI );
 

@@ -550,7 +550,7 @@ public class Scanner {
 	
 	// The lowercase _or_ names are intentional and help reading.
 	@SuppressWarnings("PMD")
-	private static enum State
+	private enum State
 	{
 		FIRST_CHARACTER,
 		ID,

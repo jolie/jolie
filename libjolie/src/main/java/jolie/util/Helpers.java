@@ -78,7 +78,7 @@ public class Helpers {
 		}
 	}
 
-	public static enum OSType {
+	public enum OSType {
 		WINDOWS, MACOS, LINUX, OTHER
 	}
 

@@ -4,7 +4,7 @@ import jolie.lang.parse.context.ParsingContext;
 
 public class ProtocolTraceAction implements TraceAction {
 
-	public static enum Type {
+	public enum Type {
 		SOAP, HTTP
 	}
 

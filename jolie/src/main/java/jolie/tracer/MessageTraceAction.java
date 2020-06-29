@@ -30,7 +30,7 @@ import jolie.net.CommMessage;
  * @author Fabrizio Montesi
  */
 public class MessageTraceAction implements TraceAction {
-	public static enum Type {
+	public enum Type {
 		SOLICIT_RESPONSE, NOTIFICATION, ONE_WAY, REQUEST_RESPONSE, COURIER_NOTIFICATION, COURIER_SOLICIT_RESPONSE
 	}
 

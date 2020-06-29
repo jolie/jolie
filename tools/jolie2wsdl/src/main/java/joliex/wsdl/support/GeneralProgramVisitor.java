@@ -17,7 +17,7 @@ import jolie.lang.parse.ast.Program;
  */
 public abstract class GeneralProgramVisitor implements GeneralProgramVisitorInterface {
 
-	protected Program program;
+	protected final Program program;
 
 	public GeneralProgramVisitor( Program program ) {
 		this.program = program;
