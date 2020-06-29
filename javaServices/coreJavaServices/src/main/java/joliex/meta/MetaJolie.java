@@ -212,9 +212,9 @@ public class MetaJolie extends JavaService {
 
 	private Value getTypeLink( TypeDefinitionLink typedef, boolean insertInInterfaceList, TypeDefinition extension ) {
 		Value type = Value.create();
-		type.getFirstChild( "link_name" ).setValue( ((TypeDefinitionLink) typedef).linkedTypeName() );
+		type.getFirstChild( "link_name" ).setValue( typedef.linkedTypeName() );
 		if( insertInInterfaceList ) {
-			insertTypeDefinition( ((TypeDefinitionLink) typedef).linkedType(), extension );
+			insertTypeDefinition( typedef.linkedType(), extension );
 		}
 		return type;
 	}
@@ -398,13 +398,13 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		if( ((OutputPortInfo) portInfo).location() != null ) {
-			response.getFirstChild( "location" ).setValue( ((OutputPortInfo) portInfo).location().toString() );
+		if( portInfo.location() != null ) {
+			response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
 		} else {
 			response.getFirstChild( "location" ).setValue( "undefined" );
 		}
-		if( ((OutputPortInfo) portInfo).protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( ((OutputPortInfo) portInfo).protocolId() );
+		if( portInfo.protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -427,9 +427,9 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		response.getFirstChild( "location" ).setValue( ((InputPortInfo) portInfo).location().toString() );
-		if( ((InputPortInfo) portInfo).protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( ((InputPortInfo) portInfo).protocolId() );
+		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
+		if( portInfo.protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -489,9 +489,9 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		response.getFirstChild( "location" ).setValue( ((InputPortInfo) portInfo).location().toString() );
-		if( ((InputPortInfo) portInfo).protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( ((InputPortInfo) portInfo).protocolId() );
+		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
+		if( portInfo.protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -629,7 +629,7 @@ public class MetaJolie extends JavaService {
 		boolean found = false;
 		int index = 0;
 		while( index < types.size() && !found ) {
-			Value type = (Value) iterator.next();
+			Value type = iterator.next();
 			String name = type.getFirstChild( "name" ).strValue();
 			if( name.equals( typeName ) ) {
 				found = true;

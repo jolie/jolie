@@ -28,24 +28,24 @@ public interface ImportableSymbol {
 	 * Symbol access modifier, PUBLIC means the symbol's AST node is allowed to be imported by external
 	 * modules PRIVATE means the symbol's AST node is not allowed to be imported by external modules
 	 */
-	public enum AccessModifier {
+	enum AccessModifier {
 		PUBLIC, PRIVATE
 	}
 
 	/**
 	 * returns the privacy of the symbol, can be either PRIVATE or PUBLIC
 	 */
-	public AccessModifier accessModifier();
+	AccessModifier accessModifier();
 
 	/**
 	 * returns qualify name of the symbol in local execution
 	 */
-	public String name();
+	String name();
 
 	/**
 	 * returns linking AST node of the symbol.
 	 */
-	public OLSyntaxNode node();
+	OLSyntaxNode node();
 
 
 }

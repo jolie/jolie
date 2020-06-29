@@ -28,7 +28,7 @@ import jolie.lang.parse.context.ParsingContext;
 
 
 public class InlineTreeExpressionNode extends OLSyntaxNode {
-	public static interface Operation {
+	public interface Operation {
 	}
 
 	public static class AssignmentOperation implements Operation, Serializable {

@@ -26,7 +26,7 @@ package jolie.runtime.typing;
  * @author Fabrizio Montesi
  */
 public interface OperationTypeDescription {
-	public OneWayTypeDescription asOneWayTypeDescription();
+	OneWayTypeDescription asOneWayTypeDescription();
 
-	public RequestResponseTypeDescription asRequestResponseTypeDescription();
+	RequestResponseTypeDescription asRequestResponseTypeDescription();
 }

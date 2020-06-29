@@ -963,7 +963,7 @@ public class JavaDocumentCreator {
 			if( supportSet != null ) {
 				/* inserting inner classes if present */
 				supportSet.stream().forEach( ( me ) -> {
-					TypeDefinition tdef = (TypeDefinition) me.getValue();
+					TypeDefinition tdef = me.getValue();
 					appendingSubClassBody( tdef, stringBuilder, tdef.id() + TYPESUFFIX );
 				} );
 			}
@@ -1220,10 +1220,10 @@ public class JavaDocumentCreator {
 				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				if( subType instanceof TypeDefinitionLink ) {
 					if( ((TypeDefinitionLink) subType).linkedType() instanceof TypeDefinitionUndefined ) {
-						variableName = checkReservedKeywords( ((TypeDefinitionLink) subType).id() );
+						variableName = checkReservedKeywords( subType.id() );
 						variableType = "Value";
 					} else {
-						variableName = checkReservedKeywords( ((TypeDefinitionLink) subType).id() );
+						variableName = checkReservedKeywords( subType.id() );
 						variableType = ((TypeDefinitionLink) subType).linkedTypeName();
 					}
 				} else if( subType instanceof TypeInlineDefinition ) {
@@ -2056,7 +2056,7 @@ public class JavaDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 				// System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
-				if( ((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) instanceof TypeDefinitionLink ) {
+				if( ((Entry) stringTypeDefinitionEntry).getValue() instanceof TypeDefinitionLink ) {
 					if( !subTypeMap.containsKey(
 						((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName() ) ) {
 						subTypeMap.put(
@@ -2092,9 +2092,7 @@ public class JavaDocumentCreator {
 
 	private boolean isNativeTypeUndefined( TypeDefinition t ) {
 		if( t instanceof TypeDefinitionLink ) {
-			if( ((TypeDefinitionLink) t).linkedType() instanceof TypeDefinitionUndefined ) {
-				return true;
-			}
+			return ((TypeDefinitionLink) t).linkedType() instanceof TypeDefinitionUndefined;
 		}
 		return false;
 	}
@@ -2236,9 +2234,9 @@ public class JavaDocumentCreator {
 	private String getVariableName( TypeDefinition type ) {
 		if( type instanceof TypeDefinitionLink ) {
 			if( ((TypeDefinitionLink) type).linkedType() instanceof TypeDefinitionUndefined ) {
-				return ((TypeDefinitionLink) type).id();
+				return type.id();
 			} else {
-				return ((TypeDefinitionLink) type).id();
+				return type.id();
 			}
 		} else if( type instanceof TypeInlineDefinition ) {
 			if( Utils.hasSubTypes( type ) ) {

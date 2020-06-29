@@ -41,7 +41,7 @@ public enum Method {
 
 	private final String id;
 
-	private Method( String id ) {
+	Method( String id ) {
 		this.id = id;
 	}
 

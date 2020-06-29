@@ -26,5 +26,5 @@ package jolie.util;
  */
 @FunctionalInterface
 public interface ExceptionalRunnable< T extends Throwable > {
-	public void run() throws T;
+	void run() throws T;
 }

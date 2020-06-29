@@ -45,35 +45,35 @@ public interface ProgramInspector {
 	 * 
 	 * @return an array with all the sources parsed for generating the program
 	 */
-	public URI[] getSources();
+	URI[] getSources();
 
 	/**
 	 * Returns an array of all the interfaces defined in the program.
 	 * 
 	 * @return an array of all the interfaces defined in the program
 	 */
-	public InterfaceDefinition[] getInterfaces();
+	InterfaceDefinition[] getInterfaces();
 
 	/**
 	 * Returns an array of all the input ports defined in the program.
 	 * 
 	 * @return an array of all the input ports defined in the program
 	 */
-	public InputPortInfo[] getInputPorts();
+	InputPortInfo[] getInputPorts();
 
 	/**
 	 * Returns an array of all the output ports defined in the program.
 	 * 
 	 * @return an array of all the output ports defined in the program
 	 */
-	public OutputPortInfo[] getOutputPorts();
+	OutputPortInfo[] getOutputPorts();
 
 	/**
 	 * Returns an array of all the types defined in the program.
 	 * 
 	 * @return an array of all the types defined in the program
 	 */
-	public TypeDefinition[] getTypes();
+	TypeDefinition[] getTypes();
 
 	/**
 	 * Returns an array of all the input ports defined in the specified source.
@@ -81,7 +81,7 @@ public interface ProgramInspector {
 	 * @param source the target source
 	 * @return an array of all the input ports defined in the specified source
 	 */
-	public InputPortInfo[] getInputPorts( URI source );
+	InputPortInfo[] getInputPorts( URI source );
 
 	/**
 	 * Returns an array of all the output ports defined in the specified source.
@@ -89,7 +89,7 @@ public interface ProgramInspector {
 	 * @param source the target source
 	 * @return an array of all the output ports defined in the specified source
 	 */
-	public OutputPortInfo[] getOutputPorts( URI source );
+	OutputPortInfo[] getOutputPorts( URI source );
 
 	/**
 	 * Returns an array of all the interfaces defined in the specified source.
@@ -97,7 +97,7 @@ public interface ProgramInspector {
 	 * @param source the target source
 	 * @return an array of all the interfaces defined in the specified source
 	 */
-	public InterfaceDefinition[] getInterfaces( URI source );
+	InterfaceDefinition[] getInterfaces( URI source );
 
 	/**
 	 * Returns an array of all the types defined in the specified source.
@@ -105,7 +105,7 @@ public interface ProgramInspector {
 	 * @param source the target source
 	 * @return an array of all the types defined in the specified source
 	 */
-	public TypeDefinition[] getTypes( URI source );
+	TypeDefinition[] getTypes( URI source );
 
 	/**
 	 * Returns an array of all the embedded service nodes in the specified source.
@@ -113,24 +113,24 @@ public interface ProgramInspector {
 	 * @param source the target source
 	 * @return an array of all the embedded service nodes defined in the specified source
 	 */
-	public EmbeddedServiceNode[] getEmbeddedServices( URI source );
+	EmbeddedServiceNode[] getEmbeddedServices( URI source );
 
 	/**
 	 * Returns an array of all the embedded service nodes defined in the program.
 	 * 
 	 * @return an array of all the embedded service nodes defined in the program
 	 */
-	public EmbeddedServiceNode[] getEmbeddedServices();
+	EmbeddedServiceNode[] getEmbeddedServices();
 
 	/**
 	 * Returns a map between initial input operations an their related dependent communication primitive
 	 * in the behaviour
 	 */
-	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies();
+	Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies();
 
 	/**
 	 * Returns a map between initial input operations an their related dependent communication primitive
 	 * in the behaviour defined in the specific source
 	 */
-	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies( URI source );
+	Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies( URI source );
 }

@@ -103,10 +103,7 @@ public class TypeInlineDefinition extends TypeDefinition {
 	}
 
 	public boolean hasSubTypes() {
-		if( subTypes != null && subTypes.isEmpty() == false ) {
-			return true;
-		}
-		return false;
+		return subTypes != null && subTypes.isEmpty() == false;
 	}
 
 	public void putSubType( TypeDefinition type ) {

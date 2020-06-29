@@ -465,7 +465,7 @@ public class OOITBuilder implements OLVisitor {
 			final EmbeddedServiceConfiguration embeddedServiceConfiguration =
 				n.type().equals( Constants.EmbeddedServiceType.INTERNAL )
 					? new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration( n.servicePath(),
-						(Program) n.program() )
+						n.program() )
 					: new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath() );
 
 			interpreter.addEmbeddedServiceLoader(

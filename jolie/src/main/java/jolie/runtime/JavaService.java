@@ -46,7 +46,7 @@ import jolie.runtime.embedding.RequestResponse;
 public abstract class JavaService {
 	@FunctionalInterface
 	private interface JavaOperationCallable {
-		public CommMessage call( JavaService service, JavaOperation javaOperation, CommMessage message )
+		CommMessage call( JavaService service, JavaOperation javaOperation, CommMessage message )
 			throws IllegalAccessException;
 	}
 

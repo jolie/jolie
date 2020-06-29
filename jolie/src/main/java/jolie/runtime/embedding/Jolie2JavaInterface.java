@@ -25,5 +25,5 @@ import jolie.runtime.Value;
  * @author claudio
  */
 public interface Jolie2JavaInterface {
-	public Value getValue();
+	Value getValue();
 }

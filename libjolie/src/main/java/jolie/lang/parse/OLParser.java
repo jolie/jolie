@@ -145,7 +145,7 @@ import jolie.util.UriUtils;
  */
 public class OLParser extends AbstractParser {
 	private interface ParsingRunnable {
-		public void parse() throws IOException, ParserException;
+		void parse() throws IOException, ParserException;
 	}
 
 	private Optional< String > serviceName = Optional.empty();

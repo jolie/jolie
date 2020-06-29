@@ -40,7 +40,7 @@ public interface EmbeddedServiceLoaderFactory {
 	 * @return
 	 * @throws EmbeddedServiceLoaderCreationException
 	 */
-	public EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath,
+	EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath,
 		Expression channelDest )
 		throws EmbeddedServiceLoaderCreationException;
 }
