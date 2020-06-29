@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
@@ -56,6 +55,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
@@ -764,6 +764,7 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterParameters().programFilepath().toURI(),
 				cmdParser.getInterpreterParameters().charset(),
 				cmdParser.getInterpreterParameters().includePaths(),
+				cmdParser.getInterpreterParameters().packagePaths(),
 				cmdParser.getInterpreterParameters().jolieClassLoader(),
 				cmdParser.getInterpreterParameters().constants(), true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
@@ -789,6 +790,10 @@ public class MetaJolie extends JavaService {
 			fault.getFirstChild( "line" ).setValue( e.context().line() );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
+		} catch( ModuleException e ) {
+			Value fault = Value.create();
+			fault.getFirstChild( "message" ).setValue( e.getMessage() );
+			throw new FaultException( "ModuleException", fault );
 		} catch( SemanticException e ) {
 			Value fault = Value.create();
 			List< SemanticException.SemanticError > errorList = e.getErrorList();
@@ -818,6 +823,7 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterParameters().programFilepath().toURI(),
 				cmdParser.getInterpreterParameters().charset(),
 				cmdParser.getInterpreterParameters().includePaths(),
+				cmdParser.getInterpreterParameters().packagePaths(),
 				cmdParser.getInterpreterParameters().jolieClassLoader(),
 				cmdParser.getInterpreterParameters().constants(), true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
@@ -841,6 +847,10 @@ public class MetaJolie extends JavaService {
 			fault.getFirstChild( "line" ).setValue( e.context().line() );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
+		} catch( ModuleException e ) {
+			Value fault = Value.create();
+			fault.getFirstChild( "message" ).setValue( e.getMessage() );
+			throw new FaultException( "ModuleException", fault );
 		} catch( SemanticException e ) {
 			Value fault = Value.create();
 			List< SemanticException.SemanticError > errorList = e.getErrorList();
@@ -898,6 +908,7 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterParameters().programFilepath().toURI(),
 				cmdParser.getInterpreterParameters().charset(),
 				cmdParser.getInterpreterParameters().includePaths(),
+				cmdParser.getInterpreterParameters().packagePaths(),
 				cmdParser.getInterpreterParameters().jolieClassLoader(),
 				cmdParser.getInterpreterParameters().constants(), true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
@@ -1013,6 +1024,10 @@ public class MetaJolie extends JavaService {
 			fault.getFirstChild( "line" ).setValue( e.context().line() );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
+		} catch( ModuleException e ) {
+			Value fault = Value.create();
+			fault.getFirstChild( "message" ).setValue( e.getMessage() );
+			throw new FaultException( "ModuleException", fault );
 		} catch( SemanticException e ) {
 			Value fault = Value.create();
 			int i = 0;

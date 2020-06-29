@@ -26,6 +26,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import joliex.dummycreator.impl.JolieDummyDocumentCreator;
@@ -47,6 +48,7 @@ public class JolieDummyCreator {
 				cmdParser.getInterpreterParameters().programFilepath().toURI(),
 				cmdParser.getInterpreterParameters().charset(),
 				cmdParser.getInterpreterParameters().includePaths(),
+				cmdParser.getInterpreterParameters().packagePaths(),
 				cmdParser.getInterpreterParameters().jolieClassLoader(),
 				cmdParser.getInterpreterParameters().constants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
@@ -56,6 +58,8 @@ public class JolieDummyCreator {
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException | SemanticException | ParserException e ) {
+			e.printStackTrace();
+		} catch( ModuleException e ) {
 			e.printStackTrace();
 		}
 	}
