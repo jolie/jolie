@@ -36,6 +36,7 @@ public class InterpreterParameters {
 	private boolean printStackTraces = false;
 	private Level logLevel = Level.OFF;
 	private File programDirectory = null;
+	private final Deque< String > packagePaths = new LinkedList<>();
 
 	public InterpreterParameters( int connectionsLimit,
 		CorrelationEngine.Type correlationAlgorithm,
@@ -57,7 +58,8 @@ public class InterpreterParameters {
 		boolean printStackTraces,
 		long responseTimeout,
 		Level logLevel,
-		File programDirectory ) throws IOException {
+		File programDirectory,
+		String[] packagePaths ) throws IOException {
 
 		this.connectionsLimit = connectionsLimit;
 		this.correlationAlgorithm = correlationAlgorithm;
@@ -80,6 +82,7 @@ public class InterpreterParameters {
 		this.responseTimeout = responseTimeout;
 		this.logLevel = logLevel;
 		this.programDirectory = programDirectory;
+		Collections.addAll( this.packagePaths, packagePaths );
 	}
 
 	public InterpreterParameters( String[] optionArgs,
@@ -273,6 +276,15 @@ public class InterpreterParameters {
 	 */
 	public Level logLevel() {
 		return this.logLevel;
+	}
+
+	/**
+	 * Returns the package paths passed by command line with the -p option.
+	 *
+	 * @return the package paths passed by command line
+	 */
+	public String[] packagePaths() {
+		return packagePaths.toArray( new String[] {} );
 	}
 
 

@@ -32,15 +32,21 @@ import jolie.lang.parse.context.ParsingContext;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector, DocumentedNode {
-	private final Map< String, OperationDeclaration > operationsMap =
-		new HashMap<>();
+public class InterfaceDefinition extends OLSyntaxNode
+	implements OperationCollector, DocumentedNode, ImportableSymbol {
+	private final Map< String, OperationDeclaration > operationsMap = new HashMap<>();
 	private final String name;
 	private String documentation;
+	private final AccessModifier accessModifier;
 
 	public InterfaceDefinition( ParsingContext context, String name ) {
+		this( context, name, AccessModifier.PUBLIC );
+	}
+
+	public InterfaceDefinition( ParsingContext context, String name, AccessModifier accessModifier ) {
 		super( context );
 		this.name = name;
+		this.accessModifier = accessModifier;
 	}
 
 	@Override
@@ -75,4 +81,15 @@ public class InterfaceDefinition extends OLSyntaxNode implements OperationCollec
 	public String getDocumentation() {
 		return this.documentation;
 	}
+
+	@Override
+	public AccessModifier accessModifier() {
+		return this.accessModifier;
+	}
+
+	@Override
+	public OLSyntaxNode node() {
+		return this;
+	}
+
 }

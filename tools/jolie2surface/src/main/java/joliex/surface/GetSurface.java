@@ -26,6 +26,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 
@@ -47,13 +48,14 @@ public class GetSurface {
 				cmdParser.getInterpreterParameters().programFilepath().toURI(),
 				cmdParser.getInterpreterParameters().charset(),
 				cmdParser.getInterpreterParameters().includePaths(),
+				cmdParser.getInterpreterParameters().packagePaths(),
 				cmdParser.getInterpreterParameters().jolieClassLoader(),
 				cmdParser.getInterpreterParameters().constants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector );
 			document.ConvertDocument( cmdParser.getInterpreterParameters().arguments()[ 0 ], cmdParser.noOutputPort(),
 				cmdParser.noLocation(), cmdParser.noProtocol() );
-		} catch( CommandLineException | ParserException e ) {
+		} catch( CommandLineException | ParserException | ModuleException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException | SemanticException e ) {
 			e.printStackTrace();

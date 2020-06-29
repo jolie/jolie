@@ -32,8 +32,8 @@ public class InterfaceExtenderDefinition extends InterfaceDefinition {
 	private OneWayOperationDeclaration defaultOneWayOperation = null;
 	private RequestResponseOperationDeclaration defaultRequestResponseOperation = null;
 
-	public InterfaceExtenderDefinition( ParsingContext context, String name ) {
-		super( context, name );
+	public InterfaceExtenderDefinition( ParsingContext context, String name, AccessModifier accessModifier ) {
+		super( context, name, accessModifier );
 	}
 
 	@Override

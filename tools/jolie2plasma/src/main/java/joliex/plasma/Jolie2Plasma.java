@@ -32,6 +32,7 @@ import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import joliex.plasma.impl.InterfaceVisitor;
 
@@ -54,6 +55,7 @@ public class Jolie2Plasma {
 					cmdParser.getInterpreterParameters().programFilepath().toURI(),
 					cmdParser.getInterpreterParameters().charset(),
 					cmdParser.getInterpreterParameters().includePaths(),
+					cmdParser.getInterpreterParameters().packagePaths(),
 					cmdParser.getInterpreterParameters().jolieClassLoader(),
 					cmdParser.getInterpreterParameters().constants(),
 					false );
@@ -67,6 +69,8 @@ public class Jolie2Plasma {
 			System.out.println(
 				"Syntax is: jolie2plasma [jolie options] <jolie filename> <output filename> [interface name list]" );
 		} catch( IOException | InterfaceVisitor.InterfaceNotFound | SemanticException | ParserException e ) {
+			e.printStackTrace();
+		} catch( ModuleException e ) {
 			e.printStackTrace();
 		}
 	}
