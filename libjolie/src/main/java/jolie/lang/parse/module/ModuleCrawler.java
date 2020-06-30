@@ -41,7 +41,7 @@ class ModuleCrawler {
 		}
 
 		private void addModuleRecord( ModuleRecord mr ) {
-			this.moduleCrawled.put( mr.source(), mr );
+			this.moduleCrawled.put( mr.uri(), mr );
 		}
 
 		private boolean isRecordInResult( URI source ) {
@@ -54,7 +54,7 @@ class ModuleCrawler {
 
 		public Map< URI, SymbolTable > symbolTables() {
 			Map< URI, SymbolTable > result = new HashMap<>();
-			this.moduleCrawled.values().stream().forEach( mr -> result.put( mr.source(), mr.symbolTable() ) );
+			this.moduleCrawled.values().stream().forEach( mr -> result.put( mr.uri(), mr.symbolTable() ) );
 			return result;
 		}
 	}
@@ -62,7 +62,7 @@ class ModuleCrawler {
 	private static final Map< URI, ModuleRecord > CACHE = new ConcurrentHashMap<>();
 
 	private static void putToCache( ModuleRecord mc ) {
-		ModuleCrawler.CACHE.put( mc.source(), mc );
+		ModuleCrawler.CACHE.put( mc.uri(), mc );
 	}
 
 	private static boolean inCache( URI source ) {
@@ -91,7 +91,7 @@ class ModuleCrawler {
 		for( ImportedSymbolInfo importedSymbol : record.symbolTable().importedSymbolInfos() ) {
 			try {
 				ModuleSource moduleSource =
-					this.findModule( importedSymbol.importPath(), record.source() );
+					this.findModule( importedSymbol.importPath(), record.uri() );
 				importedSymbol.setModuleSource( moduleSource );
 				modulesToCrawl.add( moduleSource );
 			} catch( ModuleNotFoundException e ) {
