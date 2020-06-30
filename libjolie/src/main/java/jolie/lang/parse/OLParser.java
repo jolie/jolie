@@ -2933,6 +2933,7 @@ public class OLParser extends AbstractParser {
 	private void parseImport() throws IOException, ParserException {
 
 		if( token.is( Scanner.TokenType.FROM ) ) {
+			ParsingContext context = getContext();
 			boolean isNamespaceImport = false;
 			nextToken();
 			List< String > importTarget = new ArrayList<>();
@@ -2984,9 +2985,9 @@ public class OLParser extends AbstractParser {
 			}
 			ImportStatement stmt = null;
 			if( isNamespaceImport ) {
-				stmt = new ImportStatement( getContext(), Collections.unmodifiableList( importTarget ) );
+				stmt = new ImportStatement( context, Collections.unmodifiableList( importTarget ) );
 			} else {
-				stmt = new ImportStatement( getContext(), Collections.unmodifiableList( importTarget ),
+				stmt = new ImportStatement( context, Collections.unmodifiableList( importTarget ),
 					Collections.unmodifiableList( pathNodes ) );
 			}
 			programBuilder.addChild( stmt );

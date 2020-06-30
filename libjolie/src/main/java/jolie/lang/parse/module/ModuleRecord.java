@@ -23,16 +23,15 @@ import java.net.URI;
 import jolie.lang.parse.ast.Program;
 
 /**
- * A class represent a Jolie module record, which contain an URI of source, a AST tree and
- * Symboltable
+ * A class represent a Jolie module record, which contain an uri, a AST tree and Symboltable
  */
 public class ModuleRecord {
-	private final URI source;
+	private final URI uri;
 	private final Program program;
 	private final SymbolTable symbolTable;
 
-	public ModuleRecord( URI source, Program program, SymbolTable symbolTable ) {
-		this.source = source;
+	public ModuleRecord( URI uri, Program program, SymbolTable symbolTable ) {
+		this.uri = uri;
 		this.program = program;
 		this.symbolTable = symbolTable;
 	}
@@ -40,19 +39,19 @@ public class ModuleRecord {
 	/**
 	 * @return the absolute URI to the Module
 	 */
-	public URI source() {
-		return source;
+	public URI uri() {
+		return uri;
 	}
 
 	/**
-	 * @return a parsed AST respected to source URI
+	 * @return a parsed AST respected to uri URI
 	 */
 	public Program program() {
 		return program;
 	}
 
 	/**
-	 * @return the symbolTable respected to source URI
+	 * @return the symbolTable respected to uri URI
 	 */
 	public SymbolTable symbolTable() {
 		return symbolTable;
@@ -60,7 +59,7 @@ public class ModuleRecord {
 
 	@Override
 	public String toString() {
-		return "ModuleRecord [source=" + source + ", symbolTable=" + symbolTable + "]";
+		return "ModuleRecord [uri=" + uri + ", symbolTable=" + symbolTable + "]";
 	}
 
 
