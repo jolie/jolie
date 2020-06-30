@@ -24,6 +24,9 @@ package jolie.lang.parse.ast;
 import java.io.Serializable;
 import java.util.Map;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.context.ParsingContext;
 
 public class InputPortInfo extends PortInfo {

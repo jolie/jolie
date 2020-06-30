@@ -127,7 +127,6 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.util.ModuleSystemUtil;
 import jolie.net.AggregatedOperation;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
@@ -443,6 +442,7 @@ public class OOITBuilder implements OLVisitor {
 				n.id(),
 				locationExpr,
 				protocolExpr,
+				protocolIdExpr,
 				getOutputPortInterface( n.id() ),
 				isConstant ) );
 	}
