@@ -102,20 +102,15 @@ public class ModuleFinderImpl implements ModuleFinder {
 			errMessageList.add( e.getMessage() );
 		}
 
-		try {
-			// 3. Try to resolve P from the list of packages directories.
-			ModuleSource moduleFile = null;
-			for( Path packagePath : this.packagePaths ) {
-				moduleFile = moduleLookup( packagePath, importPath );
-				if( moduleFile != null ) {
-					break;
-				}
+		// 3. Try to resolve P from the list of packages directories.
+		for( Path packagePath : this.packagePaths ) {
+			try {
+				ModuleSource moduleFile = moduleLookup( packagePath, importPath );
+				return moduleFile;
+			} catch( FileNotFoundException e ) {
+				errMessageList.add( e.getMessage() );
 			}
-			return moduleFile;
-		} catch( FileNotFoundException e ) {
-			errMessageList.add( e.getMessage() );
 		}
-
 		throw new ModuleNotFoundException( importPath.pathParts().toString(), errMessageList );
 	}
 

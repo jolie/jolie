@@ -691,7 +691,7 @@ class SymbolReferenceResolver {
 		this.moduleMap = moduleMap.toMap();
 		this.symbolTables = new HashMap<>();
 		for( ModuleRecord mr : this.moduleMap.values() ) {
-			this.symbolTables.put( mr.source(), mr.symbolTable() );
+			this.symbolTables.put( mr.uri(), mr.symbolTable() );
 		}
 	}
 
@@ -709,10 +709,10 @@ class SymbolReferenceResolver {
 			this.moduleMap.get( symbolInfo.moduleSource().get().uri() );
 		Optional< SymbolInfo > externalSourceSymbol =
 			externalSourceRecord.symbolTable().getSymbol( symbolInfo.originalSymbolName() );
-		if( !externalSourceSymbol.isPresent() || lookedSources.contains( externalSourceRecord.source() ) ) {
+		if( !externalSourceSymbol.isPresent() || lookedSources.contains( externalSourceRecord.uri() ) ) {
 			throw new SymbolNotFoundException( symbolInfo.name(), symbolInfo.importPath() );
 		}
-		lookedSources.add( externalSourceRecord.source() );
+		lookedSources.add( externalSourceRecord.uri() );
 		if( externalSourceSymbol.get().scope() == Scope.LOCAL ) {
 			return externalSourceSymbol.get();
 		} else {
