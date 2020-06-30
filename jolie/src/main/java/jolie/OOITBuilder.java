@@ -569,24 +569,33 @@ public class OOITBuilder implements OLVisitor {
 		String location = null;
 		if( locationExpr instanceof Value ) {
 			locationVal = locationExpr.evaluate();
-		} else {
-			error( n.context(), "location expression is not valid" );
 		}
-		location = locationVal.strValue();
 
-		locationPath.getValue().setValue( location );
-		String protocol = null;
+		if( locationVal == null ) {
+			error( n.context(), "location expression is not valid" );
+			return;
+		} else {
+			location = locationVal.strValue();
+			locationPath.getValue().setValue( location );
+		}
+
+
 		Expression protocolExpr = null;
+		String protocol = null;
 		if( n.protocol() != null ) {
 			OLSyntaxNode protocolNode = ModuleSystemUtil.transformProtocolExpression( n.protocol() );
 			Value protocolVal = null;
 			protocolExpr = buildExpression( protocolNode );
 			if( protocolExpr instanceof Value || protocolExpr instanceof InlineTreeExpression ) {
 				protocolVal = protocolExpr.evaluate();
-			} else {
-				error( n.context(), "location expression is not valid" );
 			}
-			protocol = protocolVal.strValue();
+
+			if( protocolVal == null ) {
+				error( n.context(), "protocol expression is not valid" );
+				return;
+			} else {
+				protocol = protocolVal.strValue();
+			}
 		}
 
 		Process protocolProc = protocol == null ? NullProcess.getInstance()
