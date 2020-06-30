@@ -158,12 +158,10 @@ public class OLParseTreeOptimizer {
 		@Override
 		public void visit( OutputPortInfo p ) {
 			if( p.protocol() != null ) {
-				p.protocol().accept( this );
-				p.setProtocol( currNode );
+				p.setProtocol( optimizeNode( p.protocol() ) );
 			}
 			if( p.location() != null ) {
-				p.location().accept( this );
-				p.setLocation( currNode );
+				p.setLocation( optimizeNode( p.location() ) );
 			}
 			programChildren.add( p );
 		}
@@ -172,13 +170,11 @@ public class OLParseTreeOptimizer {
 		public void visit( InputPortInfo p ) {
 			OLSyntaxNode protocol = null, location = null;
 			if( p.protocol() != null ) {
-				p.protocol().accept( this );
-				protocol = currNode;
+				protocol = optimizeNode( p.protocol() );
 			}
 
 			if( p.location() != null ) {
-				p.location().accept( this );
-				location = currNode;
+				location = optimizeNode( p.location() );
 			}
 
 			InputPortInfo iport =
