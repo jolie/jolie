@@ -606,7 +606,10 @@ public class OLParser extends AbstractParser {
 					typeName = token.content();
 					nextToken();
 					eat( Scanner.TokenType.DOT, "expected . after message type name in correlation alias" );
-					aliases.add( new CorrelationAliasInfo( typeName, parseVariablePath() ) );
+					TypeDefinition aliasType =
+						definedTypes.getOrDefault( typeName, new TypeDefinitionLink( getContext(),
+							typeName, Constants.RANGE_ONE_TO_ONE, typeName ) );
+					aliases.add( new CorrelationAliasInfo( aliasType, parseVariablePath() ) );
 				}
 				variables.add( new CorrelationVariableInfo( correlationVariablePath, aliases ) );
 				if( token.is( Scanner.TokenType.COMMA ) ) {
