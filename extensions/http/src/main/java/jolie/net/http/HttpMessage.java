@@ -178,6 +178,10 @@ public class HttpMessage {
 		return (ret == null) ? "" : ret;
 	}
 
+	public Map< String, String > getProperties() {
+		return propMap;
+	}
+
 	public String reason() {
 		return reason;
 	}
