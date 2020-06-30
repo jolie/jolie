@@ -15,14 +15,14 @@ import jolie.lang.parse.ast.OutputPortInfo;
  * @author balint
  */
 public interface GeneralProgramVisitorInterface {
-	abstract public void run();
+	void run();
 
-	abstract public void clearLists();
+	void clearLists();
 
-	abstract public InterfaceDefinition[] getInterfaceDefinitions();
+	InterfaceDefinition[] getInterfaceDefinitions();
 
-	abstract public OutputPortInfo[] getOutputPortInfo();
+	OutputPortInfo[] getOutputPortInfo();
 
-	abstract public InputPortInfo[] getInputPortInfo();
+	InputPortInfo[] getInputPortInfo();
 
 }

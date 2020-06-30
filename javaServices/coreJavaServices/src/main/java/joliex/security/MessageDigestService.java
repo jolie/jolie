@@ -21,8 +21,8 @@
 
 package joliex.security;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import jolie.runtime.FaultException;
@@ -38,9 +38,9 @@ public class MessageDigestService extends JavaService {
 			if( request.isByteArray() ) {
 				md.update( request.byteArrayValue().getBytes() );
 			} else {
-				md.update( request.strValue().getBytes( "UTF8" ) );
+				md.update( request.strValue().getBytes( StandardCharsets.UTF_8 ) );
 			}
-		} catch( UnsupportedEncodingException | NoSuchAlgorithmException e ) {
+		} catch( NoSuchAlgorithmException e ) {
 			throw new FaultException( "UnsupportedOperation", e );
 		}
 

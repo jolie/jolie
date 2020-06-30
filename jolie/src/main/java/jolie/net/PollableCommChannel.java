@@ -40,6 +40,6 @@ public interface PollableCommChannel {
 	 *         <code>false</code> otherwise
 	 * @throws java.io.IOException
 	 */
-	public boolean isReady()
+	boolean isReady()
 		throws IOException;
 }

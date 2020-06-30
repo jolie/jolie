@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.Interpreter;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
@@ -47,6 +48,7 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -117,8 +119,8 @@ public class Inspector extends JavaService {
 	public Value inspectPorts( Value request ) throws FaultException {
 		try {
 			final ProgramInspector inspector;
-			String includePaths[] =
-				request.getChildren( "includePaths" ).stream().map( v -> v.strValue() ).toArray( String[]::new );
+			String[] includePaths =
+				request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 			if( request.hasChildren( "source" ) ) {
 				inspector = getInspector( request.getFirstChild( "filename" ).strValue(),
 					Optional.of( request.getFirstChild( "source" ).strValue() ), includePaths );
@@ -127,51 +129,55 @@ public class Inspector extends JavaService {
 					getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
 			}
 			return buildPortInspectionResponse( inspector );
-		} catch( CommandLineException | IOException | ParserException ex ) {
+		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
 		} catch( SemanticException ex ) {
 			throw new FaultException(
 				"SemanticException",
-				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) ) );
+				ex.getErrorList().stream().map( SemanticException.SemanticError::getMessage )
+					.collect( Collectors.joining( "\n" ) ) );
 		}
 	}
 
 	@RequestResponse
 	public Value inspectTypes( Value request ) throws FaultException {
-		String includePaths[] =
-			request.getChildren( "includePaths" ).stream().map( v -> v.strValue() ).toArray( String[]::new );
+		String[] includePaths =
+			request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 		try {
 			ProgramInspector inspector =
 				getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
 			return buildProgramTypeInfo( inspector );
-		} catch( CommandLineException | IOException | ParserException ex ) {
+		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
 		} catch( SemanticException ex ) {
 			throw new FaultException(
 				"SemanticException",
-				ex.getErrorList().stream().map( e -> e.getMessage() ).collect( Collectors.joining( "\n" ) ) );
+				ex.getErrorList().stream().map( SemanticException.SemanticError::getMessage )
+					.collect( Collectors.joining( "\n" ) ) );
 		}
 	}
 
 	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths )
-		throws CommandLineException, IOException, ParserException, SemanticException {
+		throws CommandLineException, IOException, ParserException, SemanticException, ModuleException {
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );
-		String args[] = { filename };
-		CommandLineParser cmdParser = new CommandLineParser( args, Inspector.class.getClassLoader() );
+		String[] args = { filename };
+		Interpreter.Configuration interpreterConfiguration =
+			new CommandLineParser( args, Inspector.class.getClassLoader() ).getInterpreterConfiguration();
 		final InputStream sourceIs;
 		if( source.isPresent() ) {
 			sourceIs = new ByteArrayInputStream( source.get().getBytes() );
 		} else {
-			sourceIs = cmdParser.getInterpreterParameters().inputStream();
+			sourceIs = interpreterConfiguration.inputStream();
 		}
 		Program program = ParsingUtils.parseProgram(
 			sourceIs,
-			cmdParser.getInterpreterParameters().programFilepath().toURI(),
-			cmdParser.getInterpreterParameters().charset(),
+			interpreterConfiguration.programFilepath().toURI(),
+			interpreterConfiguration.charset(),
 			includePaths,
-			cmdParser.getInterpreterParameters().jolieClassLoader(),
-			cmdParser.getInterpreterParameters().constants(),
+			interpreterConfiguration.packagePaths(),
+			interpreterConfiguration.jolieClassLoader(),
+			interpreterConfiguration.constants(),
 			configuration,
 			true );
 		return ParsingUtils.createInspector( program );
@@ -189,7 +195,7 @@ public class Inspector extends JavaService {
 		}
 
 		for( OutputPortInfo portInfo : inspector.getOutputPorts() ) {
-			outputPorts.add( buildPortInfo( portInfo, inspector, referredTypes ) );
+			outputPorts.add( buildPortInfo( portInfo, referredTypes ) );
 		}
 
 		Map< String, TypeDefinition > types = new HashMap<>();
@@ -256,18 +262,15 @@ public class Inspector extends JavaService {
 				OutputPortInfo outputPortInfo = Arrays.stream( inspector.getOutputPorts() )
 					.filter( ( outputPort ) -> outputPort.id().equals( outputPortName ) )
 					.findFirst().get();
-				outputPortInfo.getInterfaceList().forEach( ( aggregatedInterfaceInfo ) -> {
-					returnList.add(
-						Interfaces.extend( aggregatedInterfaceInfo, aggregationItemInfo.interfaceExtender(),
-							portInfo.id() ) );
-				} );
+				outputPortInfo.getInterfaceList().forEach( ( aggregatedInterfaceInfo ) -> returnList.add(
+					Interfaces.extend( aggregatedInterfaceInfo, aggregationItemInfo.interfaceExtender(),
+						portInfo.id() ) ) );
 			}
 		}
 		return returnList;
 	}
 
-	private static Value buildPortInfo( OutputPortInfo portInfo, ProgramInspector inspector,
-		Set< String > referredTypesSet ) {
+	private static Value buildPortInfo( OutputPortInfo portInfo, Set< String > referredTypesSet ) {
 		Value result = Value.create();
 		result.setFirstChild( PortInfoType.NAME, portInfo.id() );
 

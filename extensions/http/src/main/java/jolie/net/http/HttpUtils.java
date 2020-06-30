@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 
+import java.nio.charset.StandardCharsets;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -51,18 +52,11 @@ public class HttpUtils {
 			HttpMessage.Version version = message.version();
 			if( version == null || version.equals( HttpMessage.Version.HTTP_1_1 ) ) {
 				// The default is to keep the connection open, unless Connection: close is specified
-				if( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) ) {
-					channel.setToBeClosed( true );
-				} else {
-					channel.setToBeClosed( false );
-				}
+				channel.setToBeClosed( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) );
 			} else if( version.equals( HttpMessage.Version.HTTP_1_0 ) ) {
 				// The default is to close the connection, unless Connection: Keep-Alive is specified
-				if( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) ) {
-					channel.setToBeClosed( false );
-				} else {
-					channel.setToBeClosed( true );
-				}
+				channel.setToBeClosed(
+					!message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) );
 			}
 		}
 	}
@@ -88,36 +82,36 @@ public class HttpUtils {
 	private static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
 		StringBuilder httpMessage = new StringBuilder();
 		if( e instanceof UnsupportedEncodingException ) {
-			httpMessage.append( "HTTP/1.1 415 Unsupported Media Type" + CRLF );
+			httpMessage.append( "HTTP/1.1 415 Unsupported Media Type" ).append( CRLF );
 		} else if( e instanceof UnsupportedMethodException ) {
 			UnsupportedMethodException ex = (UnsupportedMethodException) e;
 			if( ex.allowedMethods() == null ) {
-				httpMessage.append( "HTTP/1.1 501 Not Implemented" + CRLF );
+				httpMessage.append( "HTTP/1.1 501 Not Implemented" ).append( CRLF );
 			} else {
-				httpMessage.append( "HTTP/1.1 405 Method Not Allowed" + CRLF );
+				httpMessage.append( "HTTP/1.1 405 Method Not Allowed" ).append( CRLF );
 				httpMessage.append( "Allowed: " );
 				Method[] methods = ex.allowedMethods();
 				for( int i = 0; i < methods.length; i++ ) {
-					httpMessage.append( methods[ i ].id() + (i + 1 < methods.length ? ", " : "") );
+					httpMessage.append( methods[ i ].id() ).append( i + 1 < methods.length ? ", " : "" );
 				}
 				httpMessage.append( CRLF );
 			}
 		} else if( e instanceof UnsupportedHttpVersionException ) {
-			httpMessage.append( "HTTP/1.1 505 HTTP Version Not Supported" + CRLF );
+			httpMessage.append( "HTTP/1.1 505 HTTP Version Not Supported" ).append( CRLF );
 		} else {
-			httpMessage.append( "HTTP/1.1 500 Internal Server Error" + CRLF );
+			httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( CRLF );
 		}
 		String message = e.getMessage() != null ? e.getMessage() : e.toString();
-		ByteArray content = new ByteArray( message.getBytes( "utf-8" ) );
-		httpMessage.append( "Server: Jolie" + CRLF );
-		httpMessage.append( "Content-Type: text/plain; charset=utf-8" + CRLF );
-		httpMessage.append( "Content-Length: " + content.size() + CRLF + CRLF );
-		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
+		ByteArray content = new ByteArray( message.getBytes( StandardCharsets.UTF_8 ) );
+		httpMessage.append( "Server: Jolie" ).append( CRLF )
+			.append( "Content-Type: text/plain; charset=utf-8" ).append( CRLF )
+			.append( "Content-Length: " ).append( content.size() ).append( CRLF ).append( CRLF );
+		ostream.write( httpMessage.toString().getBytes( StandardCharsets.UTF_8 ) );
 		ostream.write( content.getBytes() );
 		ostream.flush();
 	}
 
-	public static interface HttpProtocol {
+	public interface HttpProtocol {
 		CommMessage recv_internal( InputStream istream, OutputStream ostream ) throws IOException;
 
 		void send_internal( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException;
@@ -154,7 +148,7 @@ public class HttpUtils {
 			String[] contentType = message.getProperty( "content-type" ).split( ";" );
 			for( int i = 1; i < contentType.length; i++ ) {
 				if( contentType[ i ].toLowerCase().contains( "charset" ) ) {
-					String pair[] = contentType[ i ].split( "=", 2 );
+					String[] pair = contentType[ i ].split( "=", 2 );
 					if( pair.length == 2 ) {
 						return pair[ 1 ];
 					}
@@ -176,14 +170,14 @@ public class HttpUtils {
 			outStream.write( content.getBytes() );
 			outStream.close();
 			content = new ByteArray( baOutStream.toByteArray() );
-			headerBuilder.append( "Content-Encoding: gzip" + HttpUtils.CRLF );
+			headerBuilder.append( "Content-Encoding: gzip" ).append( HttpUtils.CRLF );
 		} else if( encoding.contains( "deflate" ) ) {
 			ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
 			DeflaterOutputStream outStream = new DeflaterOutputStream( baOutStream );
 			outStream.write( content.getBytes() );
 			outStream.close();
 			content = new ByteArray( baOutStream.toByteArray() );
-			headerBuilder.append( "Content-Encoding: deflate" + HttpUtils.CRLF );
+			headerBuilder.append( "Content-Encoding: deflate" ).append( HttpUtils.CRLF );
 		}
 		return content;
 	}

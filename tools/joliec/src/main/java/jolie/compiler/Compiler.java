@@ -30,6 +30,7 @@ import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 
 /**
@@ -45,14 +46,15 @@ public class Compiler {
 	}
 
 	public void compile( OutputStream ostream )
-		throws IOException, ParserException, SemanticException, CommandLineException {
+		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
 		Program program = ParsingUtils.parseProgram(
-			cmdParser.getInterpreterParameters().inputStream(),
-			cmdParser.getInterpreterParameters().programFilepath().toURI(),
-			cmdParser.getInterpreterParameters().charset(),
-			cmdParser.getInterpreterParameters().includePaths(),
-			cmdParser.getInterpreterParameters().jolieClassLoader(),
-			cmdParser.getInterpreterParameters().constants(), false );
+			cmdParser.getInterpreterConfiguration().inputStream(),
+			cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+			cmdParser.getInterpreterConfiguration().charset(),
+			cmdParser.getInterpreterConfiguration().includePaths(),
+			cmdParser.getInterpreterConfiguration().packagePaths(),
+			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+			cmdParser.getInterpreterConfiguration().constants(), false );
 		// GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( program );
@@ -61,8 +63,9 @@ public class Compiler {
 	}
 
 	public void compile()
-		throws IOException, ParserException, SemanticException, CommandLineException {
-		try( OutputStream os = new FileOutputStream( cmdParser.getInterpreterParameters().programFilepath() + "c" ) ) {
+		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
+		try( OutputStream os =
+			new FileOutputStream( cmdParser.getInterpreterConfiguration().programFilepath() + "c" ) ) {
 			compile( os );
 		}
 	}

@@ -66,8 +66,8 @@ public class PrintingTracer implements Tracer {
 
 			StringBuilder stBuilder = new StringBuilder();
 
-			stBuilder.append( interpreter.logPrefix() ).append( "\t" );
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( interpreter.logPrefix() ).append( "\t" )
+				.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case SERVICE_LOAD:
 				stBuilder.append( "^ LOAD" );
@@ -92,7 +92,7 @@ public class PrintingTracer implements Tracer {
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
 			}
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case SOLICIT_RESPONSE:
 				stBuilder.append( "<< SR" );
@@ -152,7 +152,7 @@ public class PrintingTracer implements Tracer {
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
 			}
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case ASSIGNMENT:
 				stBuilder.append( ":: ASSIGNMENT" );
@@ -199,7 +199,7 @@ public class PrintingTracer implements Tracer {
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
 			}
-			stBuilder.append( Integer.toString( actionCounter ) ).append( ".\t" );
+			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
 			case HTTP:
 				stBuilder.append( "HTTP" );

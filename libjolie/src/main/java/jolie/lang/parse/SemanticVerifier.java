@@ -19,6 +19,7 @@
 
 package jolie.lang.parse;
 
+import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -54,6 +55,7 @@ import jolie.lang.parse.ast.ForEachArrayItemStatement;
 import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InputPortInfo.AggregationItemInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -118,7 +120,9 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.module.SymbolTable;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
@@ -173,30 +177,28 @@ public class SemanticVerifier implements OLVisitor {
 
 	private ExecutionMode executionMode = ExecutionMode.SINGLE;
 
-	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger LOGGER = Logger.getLogger( "JOLIE" );
 
 	private final Map< String, TypeDefinition > definedTypes;
-	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
 	// private TypeDefinition rootType; // the type representing the whole session state
-	private final Map< String, Boolean > isConstantMap = new HashMap<>();
+	private final Map< String, Boolean > constantFlags = new HashMap<>();
 
 	private OperationType insideCourierOperationType = null;
 	private InputPortInfo courierInputPort = null;
+	private final Map< URI, SymbolTable > symbolTables;
 
 	private final Deque< String > inScopes = new ArrayDeque<>();
 
-	public SemanticVerifier( Program program, Configuration configuration ) {
+	public SemanticVerifier( Program program, Map< URI, SymbolTable > symbolTables,
+		Configuration configuration ) {
 		this.program = program;
 		this.definedTypes = OLParser.createTypeDeclarationMap( program.context() );
 		this.configuration = configuration;
-		/*
-		 * rootType = new TypeInlineDefinition( new ParsingContext(), "#RootType", NativeType.VOID,
-		 * jolie.lang.Constants.RANGE_ONE_TO_ONE );
-		 */
+		this.symbolTables = symbolTables;
 	}
 
-	public SemanticVerifier( Program program ) {
-		this( program, new Configuration() );
+	public SemanticVerifier( Program program, Map< URI, SymbolTable > symbolTables ) {
+		this( program, symbolTables, new Configuration() );
 	}
 
 	public CorrelationFunctionInfo correlationFunctionInfo() {
@@ -208,38 +210,23 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	private void encounteredAssignment( String varName ) {
-		if( isConstantMap.containsKey( varName ) ) {
-			isConstantMap.put( varName, false );
-		} else {
-			isConstantMap.put( varName, true );
-		}
+		constantFlags.put( varName, !constantFlags.containsKey( varName ) );
 	}
 
 	private void addTypeEqualnessCheck( TypeDefinition key, TypeDefinition type ) {
-		List< TypeDefinition > toBeEqualList = typesToBeEqual.get( key );
-		if( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<>();
-			typesToBeEqual.put( key, toBeEqualList );
-		}
+		List< TypeDefinition > toBeEqualList = typesToBeEqual.computeIfAbsent( key, k -> new LinkedList<>() );
 		toBeEqualList.add( type );
 	}
 
 	private void addOneWayEqualnessCheck( OneWayOperationDeclaration key, OneWayOperationDeclaration oneWay ) {
-		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.get( key );
-		if( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<>();
-			owToBeEqual.put( key, toBeEqualList );
-		}
+		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.computeIfAbsent( key, k -> new LinkedList<>() );
 		toBeEqualList.add( oneWay );
 	}
 
 	private void addRequestResponseEqualnessCheck( RequestResponseOperationDeclaration key,
 		RequestResponseOperationDeclaration requestResponse ) {
-		List< RequestResponseOperationDeclaration > toBeEqualList = rrToBeEqual.get( key );
-		if( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<>();
-			rrToBeEqual.put( key, toBeEqualList );
-		}
+		List< RequestResponseOperationDeclaration > toBeEqualList =
+			rrToBeEqual.computeIfAbsent( key, k -> new LinkedList<>() );
 		toBeEqualList.add( requestResponse );
 	}
 
@@ -256,30 +243,21 @@ public class SemanticVerifier implements OLVisitor {
 		}
 	}
 
-	public Map< String, Boolean > isConstantMap() {
-		return isConstantMap;
+	public Map< String, Boolean > constantFlags() {
+		return constantFlags;
 	}
 
 	private void warning( OLSyntaxNode node, String message ) {
 		if( node == null ) {
-			logger.warning( message );
+			LOGGER.warning( message );
 		} else {
-			logger.warning( node.context().sourceName() + ":" + node.context().line() + ": " + message );
+			LOGGER.warning( node.context().sourceName() + ":" + node.context().line() + ": " + message );
 		}
 	}
 
 	private void error( OLSyntaxNode node, String message ) {
 		valid = false;
 		semanticException.addSemanticError( node, message );
-	}
-
-	private void resolveLazyLinks() {
-		for( TypeDefinitionLink l : definedTypeLinks ) {
-			l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
-			if( l.linkedType() == null ) {
-				error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
-			}
-		}
 	}
 
 	private void checkToBeEqualTypes() {
@@ -316,7 +294,7 @@ public class SemanticVerifier implements OLVisitor {
 				for( CorrelationAliasInfo alias : csetVar.aliases() ) {
 					checkCorrelationAlias( alias );
 
-					operations = inputTypeNameMap.get( alias.guardName() );
+					operations = inputTypeNameMap.get( alias.guardName().id() );
 					for( String operationName : operations ) {
 						currCorrelatingOperations.add( operationName );
 						correlationFunctionInfo.putCorrelationPair(
@@ -351,7 +329,7 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	private void checkCorrelationAlias( CorrelationAliasInfo alias ) {
-		TypeDefinition type = definedTypes.get( alias.guardName() );
+		TypeDefinition type = alias.guardName();
 		if( type == null ) {
 			error( alias.variablePath(), "type " + alias.guardName() + " is undefined" );
 		} else if( type.containsPath( alias.variablePath() ) == false ) {
@@ -359,10 +337,25 @@ public class SemanticVerifier implements OLVisitor {
 		}
 	}
 
+	/**
+	 * Finds declared symbol by name, perform lookup at both from a program's source or from the given
+	 * context. Since the context can be differ from program source if the symbol declared in the
+	 * include directive case.
+	 * 
+	 * @param context
+	 * @param name
+	 * @return
+	 */
+	private boolean hasSymbolDefined( String name, ParsingContext context ) {
+		return (symbolTables.get( program.context().source() ) != null
+			&& symbolTables.get( program.context().source() ).getSymbol( name ).isPresent())
+			|| (symbolTables.get( context.source() ) != null
+				&& symbolTables.get( context.source() ).getSymbol( name ).isPresent());
+	}
+
 	public void validate()
 		throws SemanticException {
 		program.accept( this );
-		resolveLazyLinks();
 		checkToBeEqualTypes();
 		checkCorrelationSets();
 
@@ -371,7 +364,7 @@ public class SemanticVerifier implements OLVisitor {
 		}
 
 		if( !valid ) {
-			logger.severe( "Aborting: input file semantically invalid." );
+			LOGGER.severe( "Aborting: input file semantically invalid." );
 			/*
 			 * for( SemanticException.SemanticError e : semanticException.getErrorList() ){ logger.severe(
 			 * e.getMessage() ); }
@@ -420,7 +413,6 @@ public class SemanticVerifier implements OLVisitor {
 			}
 			definedTypes.put( n.id(), n );
 		}
-		definedTypeLinks.add( n );
 	}
 
 	public void visit( TypeChoiceDefinition n ) {
@@ -571,9 +563,13 @@ public class SemanticVerifier implements OLVisitor {
 
 	@Override
 	public void visit( OneWayOperationDeclaration n ) {
+
 		if( definedTypes.get( n.requestType().id() ) == null ) {
-			error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			if( !hasSymbolDefined( n.requestType().id(), n.context() ) ) {
+				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			}
 		}
+
 		if( insideInputPort ) { // Input operation
 			if( oneWayOperations.containsKey( n.id() ) ) {
 				OneWayOperationDeclaration other = oneWayOperations.get( n.id() );
@@ -588,14 +584,20 @@ public class SemanticVerifier implements OLVisitor {
 	@Override
 	public void visit( RequestResponseOperationDeclaration n ) {
 		if( definedTypes.get( n.requestType().id() ) == null ) {
-			error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			if( !hasSymbolDefined( n.requestType().id(), n.context() ) ) {
+				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+			}
 		}
 		if( definedTypes.get( n.responseType().id() ) == null ) {
-			error( n, "unknown type: " + n.responseType().id() + " for operation " + n.id() );
+			if( !hasSymbolDefined( n.responseType().id(), n.context() ) ) {
+				error( n, "unknown type: " + n.responseType().id() + " for operation " + n.id() );
+			}
 		}
 		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
-			if( definedTypes.containsKey( fault.getValue().id() ) == false ) {
-				error( n, "unknown type for fault " + fault.getKey() );
+			if( definedTypes.get( fault.getValue().id() ) == null ) {
+				if( !hasSymbolDefined( fault.getValue().id(), n.context() ) ) {
+					error( n, "unknown type for fault " + fault.getKey() );
+				}
 			}
 		}
 
@@ -1272,5 +1274,10 @@ public class SemanticVerifier implements OLVisitor {
 		total.children().addAll( provide.children() );
 		total.children().addAll( until.children() );
 		total.accept( this );
+	}
+
+	@Override
+	public void visit( ImportStatement n ) {
+
 	}
 }

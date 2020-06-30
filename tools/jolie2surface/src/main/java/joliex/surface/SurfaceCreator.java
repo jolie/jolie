@@ -20,9 +20,7 @@
  ***************************************************************************/
 package joliex.surface;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import jolie.lang.NativeType;
@@ -50,23 +48,23 @@ public class SurfaceCreator {
 	private final ProgramInspector inspector;
 	private ArrayList< RequestResponseOperationDeclaration > rrVector;
 	private ArrayList< OneWayOperationDeclaration > owVector;
-	private ArrayList< String > types_vector;
-	private ArrayList< TypeDefinition > aux_types_vector;
-	private final int MAX_CARD = Integer.MAX_VALUE;
+	private ArrayList< String > typesVector;
+	private ArrayList< TypeDefinition > auxTypesVector;
+	private final static int MAX_CARD = Integer.MAX_VALUE;
 
 
-	public SurfaceCreator( ProgramInspector inspector, URI originalFile ) {
+	public SurfaceCreator( ProgramInspector inspector ) {
 		this.inspector = inspector;
 	}
 
 	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation,
 		boolean noProtocol ) {
 
-		ArrayList< InterfaceDefinition > interface_vector = new ArrayList< InterfaceDefinition >();
-		rrVector = new ArrayList< RequestResponseOperationDeclaration >();
-		owVector = new ArrayList< OneWayOperationDeclaration >();
-		types_vector = new ArrayList< String >();
-		aux_types_vector = new ArrayList< TypeDefinition >();
+		ArrayList< InterfaceDefinition > interface_vector = new ArrayList<>();
+		rrVector = new ArrayList<>();
+		owVector = new ArrayList<>();
+		typesVector = new ArrayList<>();
+		auxTypesVector = new ArrayList<>();
 
 		// find inputPort
 
@@ -84,9 +82,7 @@ public class SurfaceCreator {
 
 		// extracts the list of all the interfaces to be parsed
 		// extracts interfaces declared into Interfaces
-		for( InterfaceDefinition interfaceDefinition : inputPort.getInterfaceList() ) {
-			interface_vector.add( interfaceDefinition );
-		}
+		interface_vector.addAll( inputPort.getInterfaceList() );
 		OutputPortInfo[] outputPortList = inspector.getOutputPorts();
 		// extracts interfaces from aggregated outputPorts
 		for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
@@ -122,8 +118,7 @@ public class SurfaceCreator {
 	}
 
 	private String getOWString( OneWayOperationDeclaration ow ) {
-		String ret = ow.id() + "( " + ow.requestType().id() + " )";
-		return ret;
+		return ow.id() + "( " + ow.requestType().id() + " )";
 	}
 
 	private String getRRString( RequestResponseOperationDeclaration rr ) {
@@ -175,8 +170,8 @@ public class SurfaceCreator {
 
 		if( type instanceof TypeDefinitionLink ) {
 			ret = ret + ((TypeDefinitionLink) type).linkedTypeName();
-			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+			if( !auxTypesVector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				auxTypesVector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 
 		} else if( type instanceof TypeInlineDefinition ) {
@@ -207,13 +202,13 @@ public class SurfaceCreator {
 
 	private String getType( TypeDefinition type ) {
 		String ret = "";
-		if( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
+		if( !typesVector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
 			&& !type.id().equals( "undefined" ) ) {
 
 			System.out.print( "type " + type.id() + ":" );
 			checkType( type );
-			System.out.println( "" );
-			types_vector.add( type.id() );
+			System.out.println();
+			typesVector.add( type.id() );
 		}
 
 		return ret;
@@ -222,8 +217,8 @@ public class SurfaceCreator {
 	private void checkType( TypeDefinition type ) {
 		if( type instanceof TypeDefinitionLink ) {
 			System.out.print( ((TypeDefinitionLink) type).linkedTypeName() );
-			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+			if( !auxTypesVector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				auxTypesVector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 		} else if( type instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition def = (TypeInlineDefinition) type;
@@ -282,13 +277,12 @@ public class SurfaceCreator {
 		}
 
 		// add auxiliary types
-		while( !aux_types_vector.isEmpty() ) {
-			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList< TypeDefinition >();
-			aux_types_temp_vector.addAll( aux_types_vector );
-			aux_types_vector.clear();
-			Iterator< TypeDefinition > it = aux_types_temp_vector.iterator();
-			while( it.hasNext() ) {
-				printType( getType( (TypeDefinition) it.next() ) );
+		while( !auxTypesVector.isEmpty() ) {
+			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList<>();
+			aux_types_temp_vector.addAll( auxTypesVector );
+			auxTypesVector.clear();
+			for( TypeDefinition typeDefinition : aux_types_temp_vector ) {
+				printType( getType( typeDefinition ) );
 			}
 		}
 

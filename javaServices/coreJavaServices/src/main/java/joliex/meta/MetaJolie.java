@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
@@ -56,6 +55,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
@@ -77,7 +77,7 @@ public class MetaJolie extends JavaService {
 	private final ArrayList< String > nativeTypeList =
 		new ArrayList<>( Arrays.asList( "any", "string", "double", "int", "void", "bool", "long", "raw" ) );
 
-	private class ValueTypeComparator implements Comparator< Value > {
+	private static class ValueTypeComparator implements Comparator< Value > {
 
 		@Override
 		public int compare( Value o1, Value o2 ) {
@@ -212,9 +212,9 @@ public class MetaJolie extends JavaService {
 
 	private Value getTypeLink( TypeDefinitionLink typedef, boolean insertInInterfaceList, TypeDefinition extension ) {
 		Value type = Value.create();
-		type.getFirstChild( "link_name" ).setValue( ((TypeDefinitionLink) typedef).linkedTypeName() );
+		type.getFirstChild( "link_name" ).setValue( typedef.linkedTypeName() );
 		if( insertInInterfaceList ) {
-			insertTypeDefinition( ((TypeDefinitionLink) typedef).linkedType(), extension );
+			insertTypeDefinition( typedef.linkedType(), extension );
 		}
 		return type;
 	}
@@ -231,7 +231,7 @@ public class MetaJolie extends JavaService {
 				subtype_counter++;
 			}
 		}
-		if( extension != null && extension instanceof TypeInlineDefinition ) {
+		if( extension instanceof TypeInlineDefinition ) {
 			final TypeInlineDefinition extensionTypeInline = (TypeInlineDefinition) extension;
 			int subtype_counter = type.getChildren( "sub_type" ).size();
 			if( extensionTypeInline.subTypes() != null ) {
@@ -319,9 +319,7 @@ public class MetaJolie extends JavaService {
 		// scans operations and types
 		Map< String, OperationDeclaration > operationMap = interfaceDefinition.operationsMap();
 		ArrayList< String > opkeylist = new ArrayList<>();
-		for( String opkey : operationMap.keySet() ) {
-			opkeylist.add( opkey );
-		}
+		opkeylist.addAll( operationMap.keySet() );
 		Collections.sort( opkeylist );
 
 
@@ -400,14 +398,13 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		OutputPortInfo port = (OutputPortInfo) portInfo;
-		if( port.location() != null ) {
-			response.getFirstChild( "location" ).setValue( port.location().toString() );
+		if( portInfo.location() != null ) {
+			response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
 		} else {
 			response.getFirstChild( "location" ).setValue( "undefined" );
 		}
-		if( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+		if( portInfo.protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -430,10 +427,9 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		InputPortInfo port = (InputPortInfo) portInfo;
-		response.getFirstChild( "location" ).setValue( port.location().toString() );
-		if( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
+		if( portInfo.protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -493,10 +489,9 @@ public class MetaJolie extends JavaService {
 		// setting the name of the port
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
-		InputPortInfo port = (InputPortInfo) portInfo;
-		response.getFirstChild( "location" ).setValue( port.location().toString() );
-		if( port.protocolId() != null ) {
-			response.getFirstChild( "protocol" ).setValue( port.protocolId() );
+		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
+		if( portInfo.protocolId() != null ) {
+			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
 		} else {
 			response.getFirstChild( "protocol" ).setValue( "" );
 		}
@@ -557,9 +552,7 @@ public class MetaJolie extends JavaService {
 
 
 		listOfGeneratedTypesInValues.sort( new ValueTypeComparator() );
-		listOfGeneratedTypesInValues.stream().forEach( v -> {
-			inputInterface.getChildren( "types" ).add( v );
-		} );
+		listOfGeneratedTypesInValues.stream().forEach( v -> inputInterface.getChildren( "types" ).add( v ) );
 
 		return inputInterface;
 
@@ -619,7 +612,7 @@ public class MetaJolie extends JavaService {
 		for( String s : interpreter().includePaths() ) {
 			builder.append( s );
 			if( ++i < interpreter().includePaths().length ) {
-				builder.append( jolie.lang.Constants.pathSeparator );
+				builder.append( jolie.lang.Constants.PATH_SEPARATOR );
 			}
 		}
 
@@ -636,7 +629,7 @@ public class MetaJolie extends JavaService {
 		boolean found = false;
 		int index = 0;
 		while( index < types.size() && !found ) {
-			Value type = (Value) iterator.next();
+			Value type = iterator.next();
 			String name = type.getFirstChild( "name" ).strValue();
 			if( name.equals( typeName ) ) {
 				found = true;
@@ -767,12 +760,13 @@ public class MetaJolie extends JavaService {
 
 			CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterParameters().inputStream(),
-				cmdParser.getInterpreterParameters().programFilepath().toURI(),
-				cmdParser.getInterpreterParameters().charset(),
-				cmdParser.getInterpreterParameters().includePaths(),
-				cmdParser.getInterpreterParameters().jolieClassLoader(),
-				cmdParser.getInterpreterParameters().constants(), true );
+				cmdParser.getInterpreterConfiguration().inputStream(),
+				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().charset(),
+				cmdParser.getInterpreterConfiguration().includePaths(),
+				cmdParser.getInterpreterConfiguration().packagePaths(),
+				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+				cmdParser.getInterpreterConfiguration().constants(), true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			URI originalFile = program.context().source();
@@ -788,9 +782,7 @@ public class MetaJolie extends JavaService {
 			}
 			cmdParser.close();
 
-		} catch( CommandLineException e ) {
-			throw new FaultException( "InputPortMetaDataFault", e );
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "InputPortMetaDataFault", e );
 		} catch( ParserException e ) {
 			Value fault = Value.create();
@@ -798,6 +790,10 @@ public class MetaJolie extends JavaService {
 			fault.getFirstChild( "line" ).setValue( e.context().line() );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
+		} catch( ModuleException e ) {
+			Value fault = Value.create();
+			fault.getFirstChild( "message" ).setValue( e.getMessage() );
+			throw new FaultException( "ModuleException", fault );
 		} catch( SemanticException e ) {
 			Value fault = Value.create();
 			List< SemanticException.SemanticError > errorList = e.getErrorList();
@@ -823,12 +819,13 @@ public class MetaJolie extends JavaService {
 
 			CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterParameters().inputStream(),
-				cmdParser.getInterpreterParameters().programFilepath().toURI(),
-				cmdParser.getInterpreterParameters().charset(),
-				cmdParser.getInterpreterParameters().includePaths(),
-				cmdParser.getInterpreterParameters().jolieClassLoader(),
-				cmdParser.getInterpreterParameters().constants(), true );
+				cmdParser.getInterpreterConfiguration().inputStream(),
+				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().charset(),
+				cmdParser.getInterpreterConfiguration().includePaths(),
+				cmdParser.getInterpreterConfiguration().packagePaths(),
+				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+				cmdParser.getInterpreterConfiguration().constants(), true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			OutputPortInfo[] outputPortList = inspector.getOutputPorts();
@@ -842,9 +839,7 @@ public class MetaJolie extends JavaService {
 			}
 			cmdParser.close();
 
-		} catch( CommandLineException e ) {
-			throw new FaultException( "OutputPortMetaDataFault", e );
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "OutputPortMetaDataFault", e );
 		} catch( ParserException e ) {
 			Value fault = Value.create();
@@ -852,6 +847,10 @@ public class MetaJolie extends JavaService {
 			fault.getFirstChild( "line" ).setValue( e.context().line() );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
+		} catch( ModuleException e ) {
+			Value fault = Value.create();
+			fault.getFirstChild( "message" ).setValue( e.getMessage() );
+			throw new FaultException( "ModuleException", fault );
 		} catch( SemanticException e ) {
 			Value fault = Value.create();
 			List< SemanticException.SemanticError > errorList = e.getErrorList();
@@ -905,12 +904,13 @@ public class MetaJolie extends JavaService {
 
 			CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterParameters().inputStream(),
-				cmdParser.getInterpreterParameters().programFilepath().toURI(),
-				cmdParser.getInterpreterParameters().charset(),
-				cmdParser.getInterpreterParameters().includePaths(),
-				cmdParser.getInterpreterParameters().jolieClassLoader(),
-				cmdParser.getInterpreterParameters().constants(), true );
+				cmdParser.getInterpreterConfiguration().inputStream(),
+				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().charset(),
+				cmdParser.getInterpreterConfiguration().includePaths(),
+				cmdParser.getInterpreterConfiguration().packagePaths(),
+				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+				cmdParser.getInterpreterConfiguration().constants(), true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			URI originalFile = program.context().source();
@@ -1017,14 +1017,17 @@ public class MetaJolie extends JavaService {
 					} );
 			}
 
-		} catch( CommandLineException e ) {
-		} catch( IOException e ) {
+		} catch( CommandLineException | IOException e ) {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			fault.getFirstChild( "line" ).setValue( e.context().line() );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
+		} catch( ModuleException e ) {
+			Value fault = Value.create();
+			fault.getFirstChild( "message" ).setValue( e.getMessage() );
+			throw new FaultException( "ModuleException", fault );
 		} catch( SemanticException e ) {
 			Value fault = Value.create();
 			int i = 0;

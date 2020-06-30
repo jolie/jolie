@@ -25,7 +25,7 @@ import java.util.Map;
 
 
 public interface OperationCollector {
-	public Map< String, OperationDeclaration > operationsMap();
+	Map< String, OperationDeclaration > operationsMap();
 
-	public void addOperation( OperationDeclaration decl );
+	void addOperation( OperationDeclaration decl );
 }

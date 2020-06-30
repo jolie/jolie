@@ -38,7 +38,7 @@ public interface ParsingContext extends Serializable {
 	 * 
 	 * @return an URI for the source from which the node has been read.
 	 */
-	public URI source();
+	URI source();
 
 	/**
 	 * Returns the simple name of the source from which the node has been read. This could be, e.g., the
@@ -46,12 +46,12 @@ public interface ParsingContext extends Serializable {
 	 * 
 	 * @return the simple name of the source from which the node has been read
 	 */
-	public String sourceName();
+	String sourceName();
 
 	/**
 	 * Returns the line at which the node has been read.
 	 * 
 	 * @return the line at which the node has been read
 	 */
-	public int line();
+	int line();
 }

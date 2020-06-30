@@ -34,7 +34,7 @@ public interface SessionListener {
 	 * 
 	 * @param session the executed session
 	 */
-	public void onSessionExecuted( SessionThread session );
+	void onSessionExecuted( SessionThread session );
 
 	/**
 	 * Received when a session raises a fault.
@@ -42,5 +42,5 @@ public interface SessionListener {
 	 * @param session the session raising a fault
 	 * @param fault the fault raised by the session
 	 */
-	public void onSessionError( SessionThread session, FaultException fault );
+	void onSessionError( SessionThread session, FaultException fault );
 }

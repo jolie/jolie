@@ -28,10 +28,10 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
 public class QueueUtils extends JavaService {
-	private final Map< String, LinkedList< Value > > queue_map = new ConcurrentHashMap< String, LinkedList< Value > >();
+	private final Map< String, LinkedList< Value > > queueMap = new ConcurrentHashMap<>();
 
 	private boolean has_queue( String queue_name ) {
-		return queue_map.containsKey( queue_name );
+		return queueMap.containsKey( queue_name );
 	}
 
 	/**
@@ -44,8 +44,8 @@ public class QueueUtils extends JavaService {
 		if( has_queue( queue_name ) ) {
 			return false;
 		} else {
-			LinkedList< Value > new_queue = new LinkedList< Value >();
-			queue_map.put( queue_name, new_queue );
+			LinkedList< Value > new_queue = new LinkedList<>();
+			queueMap.put( queue_name, new_queue );
 			return true;
 		}
 	}
@@ -58,7 +58,7 @@ public class QueueUtils extends JavaService {
 	 */
 	public Boolean delete_queue( String queue_name ) {
 		if( has_queue( queue_name ) ) {
-			queue_map.remove( queue_name );
+			queueMap.remove( queue_name );
 			return true;
 		} else {
 			return false;
@@ -75,7 +75,7 @@ public class QueueUtils extends JavaService {
 		String queue_key = request.getFirstChild( "queue_name" ).strValue();
 		if( has_queue( queue_key ) ) {
 			Value element = request.getFirstChild( "element" );
-			LinkedList queue = queue_map.get( queue_key );
+			LinkedList queue = queueMap.get( queue_key );
 			queue.offerLast( element );
 			return true;
 		} else {
@@ -92,7 +92,7 @@ public class QueueUtils extends JavaService {
 	public Value peek( String queue_name ) {
 		Value element = null;
 		if( has_queue( queue_name ) ) {
-			element = queue_map.get( queue_name ).peekFirst();
+			element = queueMap.get( queue_name ).peekFirst();
 		}
 		return element;
 	}
@@ -106,7 +106,7 @@ public class QueueUtils extends JavaService {
 	public Value poll( String queue_name ) {
 		Value element = null;
 		if( has_queue( queue_name ) ) {
-			element = queue_map.get( queue_name ).pollFirst();
+			element = queueMap.get( queue_name ).pollFirst();
 		}
 		return element;
 	}
@@ -120,7 +120,7 @@ public class QueueUtils extends JavaService {
 	public Integer size( String queue_name ) {
 		Integer queue_size = null;
 		if( has_queue( queue_name ) ) {
-			LinkedList queue = queue_map.get( queue_name );
+			LinkedList queue = queueMap.get( queue_name );
 			queue_size = queue.size();
 		}
 		return queue_size;

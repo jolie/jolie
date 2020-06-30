@@ -4,8 +4,6 @@ package joliex.wsdl;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import java.io.IOException;
-
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
@@ -22,15 +20,16 @@ public class Jolie2Wsdl {
 		try {
 			Jolie2WsdlCommandLineParser cmdParser =
 				Jolie2WsdlCommandLineParser.create( args, Jolie2Wsdl.class.getClassLoader() );
-			args = cmdParser.getInterpreterParameters().arguments();
+			args = cmdParser.getInterpreterConfiguration().arguments();
 
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterParameters().inputStream(),
-				cmdParser.getInterpreterParameters().programFilepath().toURI(),
-				cmdParser.getInterpreterParameters().charset(),
-				cmdParser.getInterpreterParameters().includePaths(),
-				cmdParser.getInterpreterParameters().jolieClassLoader(),
-				cmdParser.getInterpreterParameters().constants(), false );
+				cmdParser.getInterpreterConfiguration().inputStream(),
+				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().charset(),
+				cmdParser.getInterpreterConfiguration().includePaths(),
+				cmdParser.getInterpreterConfiguration().packagePaths(),
+				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+				cmdParser.getInterpreterConfiguration().constants(), false );
 
 			// Program program = parser.parse();
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
@@ -46,12 +45,8 @@ public class Jolie2Wsdl {
 			} else {
 				document.ConvertDocument( outfile, tns, portName, address );
 			}
-		} catch( CommandLineException ex ) {
+		} catch( CommandLineException | ParserException ex ) {
 			System.out.println( ex.getMessage() );
-		} catch( IOException e ) {
-			e.printStackTrace();
-		} catch( ParserException e ) {
-			System.out.println( e.getMessage() );
 		} catch( Exception e ) {
 			e.printStackTrace();
 		}

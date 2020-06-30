@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -47,7 +48,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -63,7 +63,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -171,7 +170,7 @@ public class FileService extends JavaService {
 		InputStreamReader isr;
 		if( charset == null ) {
 			// UTF-8 is JSON's default charset: https://tools.ietf.org/html/rfc7159#section-8.1
-			isr = new InputStreamReader( istream, "UTF-8" );
+			isr = new InputStreamReader( istream, StandardCharsets.UTF_8 );
 		} else {
 			isr = new InputStreamReader( istream, charset );
 		}
@@ -265,7 +264,7 @@ public class FileService extends JavaService {
 		}
 	}
 
-	private static void __copyDir( File src, File dest ) throws FileNotFoundException, IOException {
+	private static void __copyDir( File src, File dest ) throws IOException {
 		if( src.isDirectory() ) {
 			if( !dest.exists() ) {
 				dest.mkdir();
@@ -279,7 +278,7 @@ public class FileService extends JavaService {
 		} else {
 			try( // copy files
 				FileInputStream inStream = new FileInputStream( src );
-				FileOutputStream outStream = new FileOutputStream( dest ); ) {
+				FileOutputStream outStream = new FileOutputStream( dest ) ) {
 				byte[] buffer = new byte[ 4096 ];
 				int length;
 				while( (length = inStream.read( buffer )) > 0 ) {
@@ -466,7 +465,7 @@ public class FileService extends JavaService {
 
 	@RequestResponse
 	public String getFileSeparator() {
-		return jolie.lang.Constants.fileSeparator;
+		return jolie.lang.Constants.FILE_SEPARATOR;
 	}
 
 	private final static String NAMESPACE_ATTRIBUTE_NAME = "@NameSpace";
@@ -551,11 +550,7 @@ public class FileService extends JavaService {
 				StreamResult result = new StreamResult( writer );
 				transformer.transform( new DOMSource( doc ), result );
 			}
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerException e ) {
+		} catch( ParserConfigurationException | TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -756,7 +751,7 @@ public class FileService extends JavaService {
 			Value order = request.getFirstChild( "order" );
 
 			if( order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
-				Collections.sort( results, Comparator.comparing( Value::strValue ) );
+				results.sort( Comparator.comparing( Value::strValue ) );
 			}
 		}
 
@@ -766,11 +761,11 @@ public class FileService extends JavaService {
 		return response;
 	}
 
+	@SuppressWarnings( "PMD" )
 	@RequestResponse
 	public Value isDirectory( Value request ) {
 		File dir = new File( request.strValue() );
 		return Value.create( dir.isDirectory() );
-
 	}
 
 	private static boolean __deleteDir( File file ) {
@@ -827,12 +822,8 @@ public class FileService extends JavaService {
 		try {
 			uri = new URL( fileName ).toURI();
 			parent = Paths.get( uri ).getParent();
-		} catch( InvalidPathException invalidPathException ) {
+		} catch( InvalidPathException | URISyntaxException | MalformedURLException invalidPathException ) {
 			throw new FaultException( invalidPathException );
-		} catch( MalformedURLException malformedURLException ) {
-			throw new FaultException( malformedURLException );
-		} catch( URISyntaxException urise ) {
-			throw new FaultException( urise );
 		}
 
 		if( parent == null ) {

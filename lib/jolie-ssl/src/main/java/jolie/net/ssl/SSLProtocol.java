@@ -37,14 +37,15 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
-import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
+
 import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
 import jolie.net.protocols.SequentialCommProtocol;
@@ -196,7 +197,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 		// close() not necessary, does nothing
 	}
 
-	private class SSLResult {
+	private static class SSLResult {
 		private ByteBuffer buffer;
 		private SSLEngineResult log;
 
@@ -302,27 +303,16 @@ public class SSLProtocol extends SequentialCommProtocol {
 			sslEngine.setEnabledProtocols( new String[] { protocol } );
 			sslEngine.setUseClientMode( isClient );
 			if( isClient == false ) {
-				if( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 ) {
-					sslEngine.setWantClientAuth( true );
-				} else {
-					sslEngine.setWantClientAuth( false );
-				}
+				sslEngine.setWantClientAuth( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 );
 			}
-		} catch( NoSuchAlgorithmException e ) {
-			throw new IOException( e );
-		} catch( KeyManagementException e ) {
-			throw new IOException( e );
-		} catch( KeyStoreException e ) {
-			throw new IOException( e );
-		} catch( UnrecoverableKeyException e ) {
-			throw new IOException( e );
-		} catch( CertificateException e ) {
+		} catch( NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException | KeyStoreException
+			| KeyManagementException e ) {
 			throw new IOException( e );
 		}
 	}
 
 	private void handshake()
-		throws IOException, SSLException {
+		throws IOException {
 		if( firstTime ) {
 			init();
 			sslEngine.beginHandshake();

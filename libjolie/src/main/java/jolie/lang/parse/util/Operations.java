@@ -45,11 +45,9 @@ public class Operations {
 			newResponseType = TypeDefinition.extend( operation.responseType(), extender.responseType(), namePrefix );
 			extendedFaultMap.putAll( extender.faults() );
 		}
-		RequestResponseOperationDeclaration newOp =
-			new RequestResponseOperationDeclaration( operation.context(), operation.id(), newRequestType,
-				newResponseType, extendedFaultMap );
 
-		return newOp;
+		return new RequestResponseOperationDeclaration( operation.context(), operation.id(), newRequestType,
+			newResponseType, extendedFaultMap );
 	}
 
 	public static OneWayOperationDeclaration extend(

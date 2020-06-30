@@ -102,7 +102,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent(
 				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-					Long.valueOf( sessionMessage.message().id() ).toString(), sessionMessage.message().value() ) );
+					Long.toString( sessionMessage.message().id() ), sessionMessage.message().value() ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
@@ -143,9 +143,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 			} catch( FaultException.RuntimeFaultException rf ) {
 				throw rf.faultException();
 			}
-		} catch( FaultException e ) {
-			throw e;
-		} catch( ExitingException e ) {
+		} catch( FaultException | ExitingException e ) {
 			throw e;
 		} catch( Exception e ) {
 			Interpreter.getInstance().logSevere( e );

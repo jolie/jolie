@@ -49,6 +49,7 @@ import jolie.lang.parse.ast.ForEachArrayItemStatement;
 import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
@@ -158,11 +159,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 
 	@Override
 	public void visit( InterfaceDefinition n ) {
-		List< InterfaceDefinition > list = interfaces.get( n.context().source() );
-		if( list == null ) {
-			list = new LinkedList<>();
-			interfaces.put( n.context().source(), list );
-		}
+		List< InterfaceDefinition > list = interfaces.computeIfAbsent( n.context().source(), k -> new LinkedList<>() );
 		list.add( n );
 
 		encounteredNode( n );
@@ -170,11 +167,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 
 	@Override
 	public void visit( TypeInlineDefinition n ) {
-		List< TypeDefinition > list = types.get( n.context().source() );
-		if( list == null ) {
-			list = new LinkedList<>();
-			types.put( n.context().source(), list );
-		}
+		List< TypeDefinition > list = types.computeIfAbsent( n.context().source(), k -> new LinkedList<>() );
 		list.add( n );
 
 		encounteredNode( n );
@@ -182,11 +175,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 
 	@Override
 	public void visit( TypeDefinitionLink n ) {
-		List< TypeDefinition > list = types.get( n.context().source() );
-		if( list == null ) {
-			list = new LinkedList<>();
-			types.put( n.context().source(), list );
-		}
+		List< TypeDefinition > list = types.computeIfAbsent( n.context().source(), k -> new LinkedList<>() );
 		list.add( n );
 
 		encounteredNode( n );
@@ -194,22 +183,14 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 
 	@Override
 	public void visit( InputPortInfo n ) {
-		List< InputPortInfo > list = inputPorts.get( n.context().source() );
-		if( list == null ) {
-			list = new LinkedList<>();
-			inputPorts.put( n.context().source(), list );
-		}
+		List< InputPortInfo > list = inputPorts.computeIfAbsent( n.context().source(), k -> new LinkedList<>() );
 		list.add( n );
 		encounteredNode( n );
 	}
 
 	@Override
 	public void visit( OutputPortInfo n ) {
-		List< OutputPortInfo > list = outputPorts.get( n.context().source() );
-		if( list == null ) {
-			list = new LinkedList<>();
-			outputPorts.put( n.context().source(), list );
-		}
+		List< OutputPortInfo > list = outputPorts.computeIfAbsent( n.context().source(), k -> new LinkedList<>() );
 		list.add( n );
 
 		encounteredNode( n );
@@ -217,11 +198,8 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 
 	@Override
 	public void visit( EmbeddedServiceNode n ) {
-		List< EmbeddedServiceNode > list = embeddedServices.get( n.context().source() );
-		if( list == null ) {
-			list = new LinkedList<>();
-			embeddedServices.put( n.context().source(), list );
-		}
+		List< EmbeddedServiceNode > list =
+			embeddedServices.computeIfAbsent( n.context().source(), k -> new LinkedList<>() );
 		list.add( n );
 
 		encounteredNode( n );
@@ -516,11 +494,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 
 	@Override
 	public void visit( TypeChoiceDefinition n ) {
-		List< TypeDefinition > list = types.get( n.context().source() );
-		if( list == null ) {
-			list = new LinkedList<>();
-			types.put( n.context().source(), list );
-		}
+		List< TypeDefinition > list = types.computeIfAbsent( n.context().source(), k -> new LinkedList<>() );
 		list.add( n );
 
 		encounteredNode( n );
@@ -528,15 +502,16 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 
 	private void addOlSyntaxNodeToBehaviouralDependencies( OLSyntaxNode n ) {
 		if( currentFirstInput != null ) {
-			if( behaviouralDependencies.get( n.context().source() ) == null ) {
-				behaviouralDependencies.put( n.context().source(), new HashMap<>() );
-			}
+			behaviouralDependencies.computeIfAbsent( n.context().source(), k -> new HashMap<>() );
 			Map< OLSyntaxNode, List< OLSyntaxNode > > sourceBehaviouralDependencies =
 				behaviouralDependencies.get( n.context().source() );
-			if( sourceBehaviouralDependencies.get( currentFirstInput ) == null ) {
-				sourceBehaviouralDependencies.put( currentFirstInput, new ArrayList< OLSyntaxNode >() );
-			}
+			sourceBehaviouralDependencies.computeIfAbsent( currentFirstInput, k -> new ArrayList<>() );
 			sourceBehaviouralDependencies.get( currentFirstInput ).add( n );
 		}
+	}
+
+	@Override
+	public void visit( ImportStatement n ) {
+
 	}
 }

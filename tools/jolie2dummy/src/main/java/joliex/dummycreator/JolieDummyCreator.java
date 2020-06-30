@@ -26,6 +26,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import joliex.dummycreator.impl.JolieDummyDocumentCreator;
@@ -43,23 +44,22 @@ public class JolieDummyCreator {
 		try {
 			JolieDummyCommandLineParser cmdParser =
 				JolieDummyCommandLineParser.create( args, JolieDummyCommandLineParser.class.getClassLoader() );
-			Program program = ParsingUtils.parseProgram( cmdParser.getInterpreterParameters().inputStream(),
-				cmdParser.getInterpreterParameters().programFilepath().toURI(),
-				cmdParser.getInterpreterParameters().charset(),
-				cmdParser.getInterpreterParameters().includePaths(),
-				cmdParser.getInterpreterParameters().jolieClassLoader(),
-				cmdParser.getInterpreterParameters().constants(), false );
+			Program program = ParsingUtils.parseProgram( cmdParser.getInterpreterConfiguration().inputStream(),
+				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().charset(),
+				cmdParser.getInterpreterConfiguration().includePaths(),
+				cmdParser.getInterpreterConfiguration().packagePaths(),
+				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+				cmdParser.getInterpreterConfiguration().constants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			JolieDummyDocumentCreator document =
-				new JolieDummyDocumentCreator( inspector, cmdParser.getInterpreterParameters().programFilepath() );
+				new JolieDummyDocumentCreator( inspector, cmdParser.getInterpreterConfiguration().programFilepath() );
 			document.createDocument();
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
-		} catch( IOException e ) {
+		} catch( IOException | SemanticException | ParserException e ) {
 			e.printStackTrace();
-		} catch( ParserException e ) {
-			e.printStackTrace();
-		} catch( SemanticException e ) {
+		} catch( ModuleException e ) {
 			e.printStackTrace();
 		}
 	}

@@ -72,7 +72,6 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -148,7 +147,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	private Definition wsdlDefinition = null;
 	private Port wsdlPort = null;
 	private final TransformerFactory transformerFactory;
-	private final Map< String, String > namespacePrefixMap = new HashMap< String, String >();
+	private final Map< String, String > namespacePrefixMap = new HashMap<>();
 	private boolean received = false;
 	private String encoding;
 
@@ -201,11 +200,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			InputSource schemaSource = new InputSource( new StringReader( sw.toString() ) );
 			schemaSource.setSystemId( definition.getDocumentBaseURI() );
 			schemaParser.parse( schemaSource );
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( SAXException | TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -332,7 +327,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 
 		if( ret == null ) {
-			ret = new HashMap< String, ValueVector >();
+			ret = new HashMap<>();
 		}
 
 		return ret;
@@ -971,11 +966,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			if( received ) {
 				// We're responding to a request
 				if( message.isFault() ) {
-					httpMessage.append( "HTTP/1.1 500 Internal Server Error" + HttpUtils.CRLF );
+					httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( HttpUtils.CRLF );
 				} else {
-					httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
+					httpMessage.append( "HTTP/1.1 200 OK" ).append( HttpUtils.CRLF );
 				}
-				httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
+				httpMessage.append( "Server: Jolie" ).append( HttpUtils.CRLF );
 				received = false;
 			} else {
 				// We're sending a notification or a solicit
@@ -983,8 +978,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				if( path == null || path.length() == 0 ) {
 					path = "*";
 				}
-				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
-				httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+				httpMessage.append( "POST " ).append( path ).append( " HTTP/1.1" ).append( HttpUtils.CRLF )
+					.append( "Host: " ).append( uri.getHost() ).append( HttpUtils.CRLF );
 				/* basic authentication: code replication from HttpProtocol. Refactoring is needed */
 				if( basicAuthentication ) {
 					httpMessage.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
@@ -1002,16 +997,16 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					String requestCompression = getStringParameter( "requestCompression" );
 					if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 						encoding = requestCompression;
-						httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+						httpMessage.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
 					} else {
-						httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+						httpMessage.append( "Accept-Encoding: gzip, deflate" ).append( HttpUtils.CRLF );
 					}
 				}
 			}
 
 			if( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 				channel().setToBeClosed( true );
-				httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
 			ByteArray plainTextContent = content;
@@ -1020,8 +1015,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			// httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
-			httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
-			httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF );
+			httpMessage.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF );
+			httpMessage.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF );
 			if( soapAction != null ) {
 				httpMessage.append( soapAction );
 			}
@@ -1064,12 +1059,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 					soapMessage.writeTo( tmpStream );
 					content = new ByteArray( tmpStream.toByteArray() );
-					httpMessage.append( "HTTP/1.1 500 Internal Server Error" + HttpUtils.CRLF );
-					httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
-					httpMessage.append( "Connection: close" + HttpUtils.CRLF );
-					httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
-					httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF );
-					httpMessage.append( HttpUtils.CRLF );
+					httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( HttpUtils.CRLF )
+						.append( "Server: Jolie" ).append( HttpUtils.CRLF )
+						.append( "Connection: close" ).append( HttpUtils.CRLF )
+						.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF )
+						.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF )
+						.append( HttpUtils.CRLF );
 
 				} catch( SOAPException se ) {
 					System.out.println( se.getMessage() );
@@ -1244,7 +1239,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 					ValueVector schemaPaths = getParameterVector( "schema" );
 					if( schemaPaths.size() > 0 ) {
-						List< Source > sources = new LinkedList< Source >();
+						List< Source > sources = new LinkedList<>();
 						Value schemaPath;
 						for( int i = 0; i < schemaPaths.size(); i++ ) {
 							schemaPath = schemaPaths.get( i );
@@ -1304,9 +1299,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
-		} catch( SOAPException e ) {
-			throw new IOException( e );
-		} catch( ParserConfigurationException e ) {
+		} catch( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			// TODO support resourcePath
@@ -1364,16 +1357,17 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 	private String getHeadersFromHttpMessage( HttpMessage message ) {
 		StringBuilder headers = new StringBuilder();
-		headers.append( "HTTP Code: " + message.statusCode() + "\n" );
-		headers.append( "Resource: " + message.requestPath() + "\n" );
+		headers.append( "HTTP Code: " ).append( message.statusCode() ).append( "\n" ).append( "Resource: " )
+			.append( message.requestPath() ).append( "\n" );
 		for( Entry< String, String > entry : message.properties() ) {
-			headers.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
+			headers.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
 		}
 		for( HttpMessage.Cookie cookie : message.setCookies() ) {
-			headers.append( "\tset-cookie: " + cookie.toString() + '\n' );
+			headers.append( "\tset-cookie: " ).append( cookie.toString() ).append( '\n' );
 		}
 		for( Entry< String, String > entry : message.cookies().entrySet() ) {
-			headers.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
+			headers.append( "\tcookie: " ).append( entry.getKey() ).append( '=' ).append( entry.getValue() )
+				.append( '\n' );
 		}
 
 		return headers.toString();

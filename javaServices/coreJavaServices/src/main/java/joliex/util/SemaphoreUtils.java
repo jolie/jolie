@@ -30,7 +30,7 @@ import jolie.runtime.Value;
 
 public class SemaphoreUtils extends JavaService {
 
-	private final HashMap< String, Semaphore > semaphores = new HashMap< String, Semaphore >();
+	private final HashMap< String, Semaphore > semaphores = new HashMap<>();
 
 	private String getSemaphoreName( Value v ) {
 		return v.getFirstChild( "name" ).strValue();

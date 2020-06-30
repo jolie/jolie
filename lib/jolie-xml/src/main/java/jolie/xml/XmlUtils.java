@@ -396,7 +396,7 @@ public class XmlUtils {
 		}
 
 		if( ret == null ) {
-			ret = new HashMap< String, ValueVector >();
+			ret = new HashMap<>();
 		}
 
 		return ret;
@@ -430,7 +430,7 @@ public class XmlUtils {
 	 * author: Claudio Guidi 7/1/2011
 	 */
 	public static void storageDocumentToValue( Document document, Value value ) {
-		String type = setAttributesForStoring( value, document.getDocumentElement() );
+		String type = insertAttributesForStoring( value, document.getDocumentElement() );
 		elementsToSubValuesForStoring(
 			value,
 			document.getDocumentElement().getChildNodes(),
@@ -472,7 +472,7 @@ public class XmlUtils {
 	 * 
 	 * @return the type of the JOLIE_TYPE
 	 */
-	private static String setAttributesForStoring( Value value, Node node ) {
+	private static String insertAttributesForStoring( Value value, Node node ) {
 		NamedNodeMap map = node.getAttributes();
 		String type = "string";
 		if( map != null ) {
@@ -508,7 +508,7 @@ public class XmlUtils {
 			case Node.ELEMENT_NODE:
 				childValue =
 					value.getNewChild( (node.getLocalName() == null) ? node.getNodeName() : node.getLocalName() );
-				String subElType = setAttributesForStoring( childValue, node );
+				String subElType = insertAttributesForStoring( childValue, node );
 				elementsToSubValuesForStoring( childValue, node.getChildNodes(), subElType );
 				break;
 			case Node.CDATA_SECTION_NODE:
@@ -518,16 +518,22 @@ public class XmlUtils {
 			}
 		}
 
-		if( type.equals( "string" ) ) {
+		switch( type ) {
+		case "string":
 			value.setValue( builder.toString() );
-		} else if( type.equals( "int" ) ) {
-			value.setValue( new Integer( builder.toString() ) );
-		} else if( type.equals( "long" ) ) {
-			value.setValue( new Long( builder.toString() ) );
-		} else if( type.equals( "double" ) ) {
-			value.setValue( new Double( builder.toString() ) );
-		} else if( type.equals( "bool" ) ) {
+			break;
+		case "int":
+			value.setValue( Integer.valueOf( builder.toString() ) );
+			break;
+		case "long":
+			value.setValue( Long.valueOf( builder.toString() ) );
+			break;
+		case "double":
+			value.setValue( Double.valueOf( builder.toString() ) );
+			break;
+		case "bool":
 			value.setValue( Boolean.valueOf( builder.toString() ) );
+			break;
 		}
 	}
 

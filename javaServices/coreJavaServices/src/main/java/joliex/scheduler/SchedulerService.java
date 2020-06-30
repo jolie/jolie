@@ -72,6 +72,7 @@ public class SchedulerService extends JavaService {
 		operationName = request.getFirstChild( "operationName" ).strValue();
 	}
 
+	@SuppressWarnings( "PMD" )
 	@RequestResponse
 	public Value setCronJob( Value request ) throws FaultException {
 

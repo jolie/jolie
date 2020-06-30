@@ -36,9 +36,7 @@ public class Utils {
 			HashMap< String, TypeDefinition > choiceEntries = new HashMap<>();
 			if( leftEntries != null ) {
 				leftEntries.stream()
-					.forEach( e -> {
-						choiceEntries.put( e.getKey(), e.getValue() );
-					} );
+					.forEach( e -> choiceEntries.put( e.getKey(), e.getValue() ) );
 			}
 			if( rightEntries != null ) {
 				rightEntries.stream()

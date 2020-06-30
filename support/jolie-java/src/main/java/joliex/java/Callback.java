@@ -31,9 +31,9 @@ import jolie.runtime.Value;
  * @author Fabrizio Montesi
  */
 public interface Callback {
-	public abstract void onSuccess( Value response );
+	void onSuccess( Value response );
 
-	public abstract void onFault( FaultException fault );
+	void onFault( FaultException fault );
 
-	public abstract void onError( IOException exception );
+	void onError( IOException exception );
 }

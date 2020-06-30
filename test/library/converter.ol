@@ -7,11 +7,12 @@ define doTest
 {
 	// plain strings
 
-	str = "Matthias Dieter Wallnöfer";
-	// length@StringUtils(str)(len);
-	// if (len != 25) {
-	// 	throw( TestFailed, "strings invalid length/size (1)" )
-	// };
+	// str = "Matthias Dieter Wallnöfer"; // TODO: Fix this in Windows
+	str = "Matthias Dieter Wallnofer";
+	length@StringUtils(str)(len);
+	if (len != 25) {
+	 	throw( TestFailed, "strings invalid length/size (1)" )
+	};
 	stringToRaw@Converter(str { .charset="latin1" })(buf);
 	getSize@File(buf)(size);
 	if (size != 25) {

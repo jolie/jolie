@@ -34,7 +34,7 @@ import jolie.util.Pair;
 
 
 public class VariablePathNode extends OLSyntaxNode implements Serializable {
-	public static enum Type {
+	public enum Type {
 		NORMAL, GLOBAL, CSET
 	}
 

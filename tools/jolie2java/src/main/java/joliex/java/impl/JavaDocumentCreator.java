@@ -40,7 +40,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -80,16 +79,16 @@ public class JavaDocumentCreator {
 	private LinkedHashMap< String, TypeDefinition > typeMap;
 	private LinkedHashMap< String, TypeDefinition > faultMap;
 	private LinkedHashMap< String, TypeDefinition > subTypeMap;
-	ProgramInspector inspector;
+	final ProgramInspector inspector;
 	private static final String TYPESUFFIX = "Type";
 	private static final String CHOICEVARIABLENAME = "choice";
 	private static final HashMap< NativeType, String > JAVA_NATIVE_EQUIVALENT = new HashMap<>();
 	private static final HashMap< NativeType, String > JAVA_NATIVE_METHOD = new HashMap<>();
 	private static final HashMap< NativeType, String > JAVA_NATIVE_CHECKER = new HashMap<>();
 
-	public static final String defaultOutputDirectory = "./generated";
+	public static final String DEFAULT_OUTPUT_DIRECTORY = "./generated";
 
-	static final String keywords[] = { "abstract", "assert", "boolean",
+	static final String[] KEYWORDS = { "abstract", "assert", "boolean",
 		"break", "byte", "case", "catch", "char", "class", "const",
 		"continue", "default", "do", "double", "else", "extends", "false",
 		"final", "finally", "float", "for", "goto", "if", "implements",
@@ -110,9 +109,9 @@ public class JavaDocumentCreator {
 		this.javaservice = javaservice;
 
 		if( outputDirectory == null ) {
-			this.outputDirectory = defaultOutputDirectory;
+			this.outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
 		} else {
-			this.outputDirectory = (outputDirectory.endsWith( Constants.fileSeparator ))
+			this.outputDirectory = (outputDirectory.endsWith( Constants.FILE_SEPARATOR ))
 				? outputDirectory.substring( 0, outputDirectory.length() - 1 )
 				: outputDirectory;
 		}
@@ -154,9 +153,8 @@ public class JavaDocumentCreator {
 			if( targetPort == null || outputPort.id().equals( targetPort ) ) {
 
 				Collection< OperationDeclaration > operations = outputPort.operations();
-				Iterator< OperationDeclaration > operatorIterator = operations.iterator();
-				while( operatorIterator.hasNext() ) {
-					operation = operatorIterator.next();
+				for( OperationDeclaration operationDeclaration : operations ) {
+					operation = operationDeclaration;
 					if( operation instanceof RequestResponseOperationDeclaration ) {
 						requestResponseOperation = (RequestResponseOperationDeclaration) operation;
 						if( !typeMap.containsKey( requestResponseOperation.requestType().id() ) ) {
@@ -196,9 +194,7 @@ public class JavaDocumentCreator {
 		}
 
 		/* put subtypes in the typeMap */
-		Iterator< Entry< String, TypeDefinition > > subTypeMapIterator = subTypeMap.entrySet().iterator();
-		while( subTypeMapIterator.hasNext() ) {
-			Entry< String, TypeDefinition > subTypeEntry = subTypeMapIterator.next();
+		for( Entry< String, TypeDefinition > subTypeEntry : subTypeMap.entrySet() ) {
 			typeMap.put( subTypeEntry.getKey(), subTypeEntry.getValue() );
 		}
 
@@ -215,7 +211,7 @@ public class JavaDocumentCreator {
 			Entry< String, TypeDefinition > typeEntry = typeMapIterator.next();
 			if( !NativeType.isNativeTypeKeyword( typeEntry.getKey() )
 				&& !isNativeTypeUndefined( typeEntry.getKey() ) ) {
-				String nameFile = directoryPathTypes + Constants.fileSeparator + typeEntry.getKey() + ".java";
+				String nameFile = directoryPathTypes + Constants.FILE_SEPARATOR + typeEntry.getKey() + ".java";
 				Writer writer;
 				try {
 					writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -229,11 +225,9 @@ public class JavaDocumentCreator {
 		}
 
 		// prepare exceptions
-		Iterator< Entry< String, TypeDefinition > > faultMapIterator = faultMap.entrySet().iterator();
 
-		while( faultMapIterator.hasNext() ) {
-			Entry< String, TypeDefinition > faultEntry = faultMapIterator.next();
-			String nameFile = directoryPathTypes + Constants.fileSeparator + faultEntry.getKey() + ".java";
+		for( Entry< String, TypeDefinition > faultEntry : faultMap.entrySet() ) {
+			String nameFile = directoryPathTypes + Constants.FILE_SEPARATOR + faultEntry.getKey() + ".java";
 			Writer writer;
 			try {
 				writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -251,7 +245,7 @@ public class JavaDocumentCreator {
 			/* range over the input ports */
 			if( targetPort == null || outputPort.id().equals( targetPort ) ) {
 
-				String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Interface.java";
+				String nameFile = outputDirectory + Constants.FILE_SEPARATOR + outputPort.id() + "Interface.java";
 				Writer writer;
 				try {
 					writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -270,7 +264,7 @@ public class JavaDocumentCreator {
 				/* range over the input ports */
 				if( targetPort == null || outputPort.id().equals( targetPort ) ) {
 
-					String nameFile = outputDirectory + Constants.fileSeparator + outputPort.id() + "Impl.java";
+					String nameFile = outputDirectory + Constants.FILE_SEPARATOR + outputPort.id() + "Impl.java";
 					Writer writer;
 					try {
 						writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -286,7 +280,7 @@ public class JavaDocumentCreator {
 
 		// prepare JolieClient
 		if( !javaservice ) {
-			String nameFile = outputDirectory + Constants.fileSeparator + "JolieClient.java";
+			String nameFile = outputDirectory + Constants.FILE_SEPARATOR + "JolieClient.java";
 			Writer writer;
 			try {
 				writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -300,7 +294,7 @@ public class JavaDocumentCreator {
 
 		// prepare Controller
 		if( !javaservice ) {
-			String nameFile = outputDirectory + Constants.fileSeparator + "Controller.java";
+			String nameFile = outputDirectory + Constants.FILE_SEPARATOR + "Controller.java";
 			Writer writer;
 			try {
 				writer = new BufferedWriter( new FileWriter( nameFile ) );
@@ -384,12 +378,12 @@ public class JavaDocumentCreator {
 
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
-		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" );
-		outputFileText.append( "import jolie.runtime.Value;\n" );
-		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
-		outputFileText.append( "import jolie.runtime.FaultException;\n" );
-		outputFileText.append( "import jolie.runtime.typing.TypeCheckingException;\n" );
-		outputFileText.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
+		outputFileText.append( "package " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ";\n" )
+			.append( "import jolie.runtime.Value;\n" )
+			.append( "import jolie.runtime.ByteArray;\n" )
+			.append( "import jolie.runtime.FaultException;\n" )
+			.append( "import jolie.runtime.typing.TypeCheckingException;\n" )
+			.append( "public class " ).append( fault.getKey() ).append( " extends Exception {\n" );
 
 		indentation = 0;
 		incrementIndentation();
@@ -479,9 +473,8 @@ public class JavaDocumentCreator {
 		if( operation instanceof RequestResponseOperationDeclaration ) {
 			requestResponseOperation = (RequestResponseOperationDeclaration) operation;
 
-			requestResponseOperation.faults().entrySet().stream().forEach( ( fault ) -> {
-				exceptionList.put( fault.getKey(), getExceptionName( requestResponseOperation.id(), fault.getKey() ) );
-			} );
+			requestResponseOperation.faults().entrySet().stream().forEach( ( fault ) -> exceptionList
+				.put( fault.getKey(), getExceptionName( requestResponseOperation.id(), fault.getKey() ) ) );
 		}
 		return exceptionList;
 	}
@@ -491,11 +484,11 @@ public class JavaDocumentCreator {
 
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
-		outputFileText.append( "package " ).append( packageName ).append( ";\n" );
-		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
-		outputFileText.append( "import jolie.runtime.FaultException;\n" );
-		outputFileText.append( "import jolie.runtime.Value;\n" );
-		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append( "package " ).append( packageName ).append( ";\n" )
+			.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" )
+			.append( "import jolie.runtime.FaultException;\n" )
+			.append( "import jolie.runtime.Value;\n" )
+			.append( "import jolie.runtime.ByteArray;\n" );
 		if( !javaservice ) {
 			outputFileText.append( "import java.io.IOException;\n" );
 		}
@@ -509,9 +502,8 @@ public class JavaDocumentCreator {
 		incrementIndentation();
 
 		Collection< OperationDeclaration > operations = outputPort.operations();
-		Iterator< OperationDeclaration > operatorIterator = operations.iterator();
-		while( operatorIterator.hasNext() ) {
-			operation = operatorIterator.next();
+		for( OperationDeclaration operationDeclaration : operations ) {
+			operation = operationDeclaration;
 			String requestType = getRequestType( operation );
 			String responseType = getResponseType( operation );
 			HashMap< String, String > exceptionList = getExceptionList( operation );
@@ -531,12 +523,12 @@ public class JavaDocumentCreator {
 
 		StringBuilder outputFileText = new StringBuilder();
 		/* appending package */
-		outputFileText.append( "package " ).append( packageName ).append( ";\n" );
-		outputFileText.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" );
-		outputFileText.append( "import java.io.IOException;\n" );
-		outputFileText.append( "import jolie.runtime.FaultException;\n" );
-		outputFileText.append( "import jolie.runtime.Value;\n" );
-		outputFileText.append( "import jolie.runtime.ByteArray;\n" );
+		outputFileText.append( "package " ).append( packageName ).append( ";\n" )
+			.append( "import " ).append( packageName ).append( "." ).append( TYPEFOLDER ).append( ".*;\n" )
+			.append( "import java.io.IOException;\n" )
+			.append( "import jolie.runtime.FaultException;\n" )
+			.append( "import jolie.runtime.Value;\n" )
+			.append( "import jolie.runtime.ByteArray;\n" );
 
 
 		/* writing main class */
@@ -668,95 +660,64 @@ public class JavaDocumentCreator {
 		writer.append( outputFileText.toString() );
 	}
 
+	@SuppressWarnings( "PMD" ) // TODO: use appends instead of string + string here.
 	private void prepareJolieClient( Writer writer ) throws IOException {
 
 		StringBuilder outputFileText = new StringBuilder();
-		outputFileText.append( "/**\n"
-			+ " * *************************************************************************\n"
-			+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n"
-			+ " *\n"
-			+ " *\n"
-			+ " * This program is free software; you can redistribute it and/or modify it under\n"
-			+ " * the terms of the GNU Library General Public License as published by the Free\n"
-			+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
-			+ " * later version. This program is distributed in the hope that it will be\n"
-			+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-			+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
-			+ " * Public License for more details. You should have received a copy of the GNU\n"
-			+ " * Library General Public License along with this program; if not, write to the\n"
-			+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
-			+ " * 02111-1307, USA. For details about the authors of this software, see the\n"
-			+ " * AUTHORS file.\n"
-			+ " * *************************************************************************\n"
-			+ " */\n"
-			+ "package " + packageName + ";\n"
-			+ "\n"
-			+ "import java.io.IOException;\n"
-			+ "import java.net.URI;\n"
-			+ "import java.util.concurrent.CountDownLatch;\n"
-			+ "import jolie.runtime.FaultException;\n"
-			+ "import jolie.runtime.Value;\n"
-			+ "import joliex.java.Callback;\n"
-			+ "import joliex.java.Protocols;\n"
-			+ "import joliex.java.Service;\n"
-			+ "import joliex.java.ServiceFactory;\n"
-			+ "\n"
-			+ "public class JolieClient\n"
-			+ "{\n"
-			+ "	private static String ip = null;\n"
-			+ "	private static int servicePort = 0;\n"
-			+ "\n"
-			+ "	public static void init( String ipAddress, int port )\n"
-			+ "	{\n"
-			+ "		ip = ipAddress;\n"
-			+ "		servicePort = port;\n"
-			+ "	}\n"
-			+ "\n"
-			+ "	public static void call( Value request, String operation, final Controller controller ) throws IOException, InterruptedException, Exception\n"
-			+ "	{\n"
-			+ "		if (ip != null && servicePort > 0  ) {\n"
-			+ "			final CountDownLatch latch = new CountDownLatch( 1 ); // just one time\n"
-			+ "			ServiceFactory serviceFactory = new ServiceFactory();\n"
-			+ "			String location = \"socket://\" + ip + \":\" + servicePort;\n"
-			+ "			Service service = serviceFactory.create( URI.create( location ), Protocols.SODEP, Value.create() );\n"
-			+ "			if ( service != null ) {\n"
-			+ "				service.callRequestResponse( operation, request, new Callback()\n"
-			+ "				{\n"
-			+ "					@Override\n"
-			+ "					public void onSuccess( Value response )\n"
-			+ "					{\n"
-			+ "						controller.setResponse( response );\n"
-			+ "						latch.countDown();\n"
-			+ "\n"
-			+ "					}\n"
-			+ "\n"
-			+ "					@Override\n"
-			+ "					public void onFault( FaultException fault )\n"
-			+ "					{\n"
-			+ "						controller.setFault( fault );\n"
-			+ "						latch.countDown();\n"
-			+ "					}\n"
-			+ "\n"
-			+ "					@Override\n"
-			+ "					public void onError( IOException exception )\n"
-			+ "					{\n"
-			+ "						controller.setException( exception );\n"
-			+ "						latch.countDown();\n"
-			+ "					}\n"
-			+ "				} );\n"
-			+ "			}\n"
-			+ "\n"
-			+ "			latch.await();\n"
-			+ "			service.close();\n"
-			+ "			serviceFactory.shutdown();\n"
-			+ "		} else {\n"
-			+ "			throw new Exception( \"IP and servicePort not initialized, initialize them using static init() method\" );\n"
-			+ "		}\n"
-			+ "\n"
-			+ "	}\n"
-			+ "\n"
-			+ "}\n"
-			+ "" );
+		outputFileText
+			.append( "/**\n" + " * *************************************************************************\n"
+				+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n" + " *\n" + " *\n"
+				+ " * This program is free software; you can redistribute it and/or modify it under\n"
+				+ " * the terms of the GNU Library General Public License as published by the Free\n"
+				+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
+				+ " * later version. This program is distributed in the hope that it will be\n"
+				+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+				+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
+				+ " * Public License for more details. You should have received a copy of the GNU\n"
+				+ " * Library General Public License along with this program; if not, write to the\n"
+				+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
+				+ " * 02111-1307, USA. For details about the authors of this software, see the\n" + " * AUTHORS file.\n"
+				+ " * *************************************************************************\n" + " */\n"
+				+ "package " )
+			.append( packageName ).append( ";\n" ).append( "\n" ).append( "import java.io.IOException;\n" )
+			.append( "import java.net.URI;\n" ).append( "import java.util.concurrent.CountDownLatch;\n" )
+			.append( "import jolie.runtime.FaultException;\n" ).append( "import jolie.runtime.Value;\n" )
+			.append( "import joliex.java.Callback;\n" ).append( "import joliex.java.Protocols;\n" )
+			.append( "import joliex.java.Service;\n" ).append( "import joliex.java.ServiceFactory;\n" ).append( "\n" )
+			.append( "public class JolieClient\n" ).append( "{\n" ).append( "	private static String ip = null;\n" )
+			.append( "	private static int servicePort = 0;\n" ).append( "\n" )
+			.append( "	public static void init( String ipAddress, int port )\n" ).append( "	{\n" )
+			.append( "		ip = ipAddress;\n" ).append( "		servicePort = port;\n" ).append( "	}\n" )
+			.append( "\n" )
+			.append(
+				"	public static void call( Value request, String operation, final Controller controller ) throws IOException, InterruptedException, Exception\n" )
+			.append( "	{\n" ).append( "		if (ip != null && servicePort > 0  ) {\n" )
+			.append( "			final CountDownLatch latch = new CountDownLatch( 1 ); // just one time\n" )
+			.append( "			ServiceFactory serviceFactory = new ServiceFactory();\n" )
+			.append( "			String location = \"socket://\" + ip + \":\" + servicePort;\n" )
+			.append(
+				"			Service service = serviceFactory.create( URI.create( location ), Protocols.SODEP, Value.create() );\n" )
+			.append( "			if ( service != null ) {\n" )
+			.append( "				service.callRequestResponse( operation, request, new Callback()\n" )
+			.append( "				{\n" ).append( "					@Override\n" )
+			.append( "					public void onSuccess( Value response )\n" ).append( "					{\n" )
+			.append( "						controller.setResponse( response );\n" )
+			.append( "						latch.countDown();\n" ).append( "\n" ).append( "					}\n" )
+			.append( "\n" ).append( "					@Override\n" )
+			.append( "					public void onFault( FaultException fault )\n" )
+			.append( "					{\n" ).append( "						controller.setFault( fault );\n" )
+			.append( "						latch.countDown();\n" ).append( "					}\n" ).append( "\n" )
+			.append( "					@Override\n" )
+			.append( "					public void onError( IOException exception )\n" )
+			.append( "					{\n" )
+			.append( "						controller.setException( exception );\n" )
+			.append( "						latch.countDown();\n" ).append( "					}\n" )
+			.append( "				} );\n" ).append( "			}\n" ).append( "\n" )
+			.append( "			latch.await();\n" ).append( "			service.close();\n" )
+			.append( "			serviceFactory.shutdown();\n" ).append( "		} else {\n" )
+			.append(
+				"			throw new Exception( \"IP and servicePort not initialized, initialize them using static init() method\" );\n" )
+			.append( "		}\n" ).append( "\n" ).append( "	}\n" ).append( "\n" ).append( "}\n" );
 
 		writer.append( outputFileText.toString() );
 	}
@@ -764,58 +725,35 @@ public class JavaDocumentCreator {
 	private void prepareController( Writer writer ) throws IOException {
 
 		StringBuilder outputFileText = new StringBuilder();
-		outputFileText.append( "/**\n"
-			+ " * *************************************************************************\n"
-			+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n"
-			+ " *\n"
-			+ " *\n"
-			+ " * This program is free software; you can redistribute it and/or modify it under\n"
-			+ " * the terms of the GNU Library General Public License as published by the Free\n"
-			+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
-			+ " * later version. This program is distributed in the hope that it will be\n"
-			+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-			+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
-			+ " * Public License for more details. You should have received a copy of the GNU\n"
-			+ " * Library General Public License along with this program; if not, write to the\n"
-			+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
-			+ " * 02111-1307, USA. For details about the authors of this software, see the\n"
-			+ " * AUTHORS file.\n"
-			+ " * *************************************************************************\n"
-			+ " */\n"
-			+ "package " + packageName + ";\n"
-			+ "import jolie.runtime.FaultException;\n"
-			+ "import jolie.runtime.Value;\n"
-			+ "\n"
-			+ "public class Controller\n"
-			+ "{	\n"
-			+ "	private FaultException fault = null;\n"
-			+ "	private Exception exception = null;\n"
-			+ "	private Value response = null;\n"
-			+ "		\n"
-			+ "	public void setFault( FaultException f ) {\n"
-			+ "		fault = f;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public FaultException getFault() {\n"
-			+ "		return fault;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public void setException( Exception e ) {\n"
-			+ "		exception = e;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public Exception getException() {\n"
-			+ "		return exception;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public void setResponse( Value v ) {\n"
-			+ "		response = v;\n"
-			+ "	}\n"
-			+ "	\n"
-			+ "	public Value getResponse() {\n"
-			+ "		return response;\n"
-			+ "	}\n"
-			+ "}" );
+		outputFileText
+			.append( "/**\n" + " * *************************************************************************\n"
+				+ " * Copyright (C) 2019 Claudio Guidi	<cguidi@italianasoftware.com>\n" + " *\n" + " *\n"
+				+ " * This program is free software; you can redistribute it and/or modify it under\n"
+				+ " * the terms of the GNU Library General Public License as published by the Free\n"
+				+ " * Software Foundation; either version 2 of the License, or (at your option) any\n"
+				+ " * later version. This program is distributed in the hope that it will be\n"
+				+ " * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+				+ " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General\n"
+				+ " * Public License for more details. You should have received a copy of the GNU\n"
+				+ " * Library General Public License along with this program; if not, write to the\n"
+				+ " * Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA\n"
+				+ " * 02111-1307, USA. For details about the authors of this software, see the\n" + " * AUTHORS file.\n"
+				+ " * *************************************************************************\n" + " */\n"
+				+ "package " )
+			.append( packageName ).append( ";\n" ).append( "import jolie.runtime.FaultException;\n" )
+			.append( "import jolie.runtime.Value;\n" ).append( "\n" ).append( "public class Controller\n" )
+			.append( "{	\n" ).append( "	private FaultException fault = null;\n" )
+			.append( "	private Exception exception = null;\n" ).append( "	private Value response = null;\n" )
+			.append( "		\n" ).append( "	public void setFault( FaultException f ) {\n" )
+			.append( "		fault = f;\n" ).append( "	}\n" ).append( "	\n" )
+			.append( "	public FaultException getFault() {\n" ).append( "		return fault;\n" ).append( "	}\n" )
+			.append( "	\n" ).append( "	public void setException( Exception e ) {\n" )
+			.append( "		exception = e;\n" ).append( "	}\n" ).append( "	\n" )
+			.append( "	public Exception getException() {\n" ).append( "		return exception;\n" )
+			.append( "	}\n" ).append( "	\n" ).append( "	public void setResponse( Value v ) {\n" )
+			.append( "		response = v;\n" ).append( "	}\n" ).append( "	\n" )
+			.append( "	public Value getResponse() {\n" ).append( "		return response;\n" ).append( "	}\n" )
+			.append( "}" );
 
 		writer.append( outputFileText.toString() );
 	}
@@ -930,11 +868,7 @@ public class JavaDocumentCreator {
 			DOMSource source = new DOMSource( doc );
 			StreamResult streamResult = new StreamResult( new File( generatedPath + "/build.xml" ) );
 			transformer.transform( source, streamResult );
-		} catch( ParserConfigurationException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
-		} catch( TransformerConfigurationException ex ) {
-			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
-		} catch( TransformerException ex ) {
+		} catch( ParserConfigurationException | TransformerException ex ) {
 			Logger.getLogger( JavaDocumentCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		}
 
@@ -945,7 +879,7 @@ public class JavaDocumentCreator {
 
 		generatedPath = outputDirectory;
 		for( String directoryComponent : packageName.split( "\\." ) ) {
-			outputDirectory += Constants.fileSeparator + directoryComponent;
+			outputDirectory += Constants.FILE_SEPARATOR + directoryComponent;
 		}
 		f = new File( outputDirectory );
 		f.mkdirs();
@@ -1002,9 +936,7 @@ public class JavaDocumentCreator {
 			stringBuilder.append( ", IOException, InterruptedException, Exception" );
 		}
 		if( !exceptionList.isEmpty() ) {
-			exceptionList.entrySet().stream().forEach( f -> {
-				stringBuilder.append( ", " ).append( f.getValue() );
-			} );
+			exceptionList.entrySet().stream().forEach( f -> stringBuilder.append( ", " ).append( f.getValue() ) );
 		}
 	}
 
@@ -1031,7 +963,7 @@ public class JavaDocumentCreator {
 			if( supportSet != null ) {
 				/* inserting inner classes if present */
 				supportSet.stream().forEach( ( me ) -> {
-					TypeDefinition tdef = (TypeDefinition) me.getValue();
+					TypeDefinition tdef = me.getValue();
 					appendingSubClassBody( tdef, stringBuilder, tdef.id() + TYPESUFFIX );
 				} );
 			}
@@ -1241,8 +1173,8 @@ public class JavaDocumentCreator {
 		String interfaceToBeImplemented ) {
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " implements " )
-			.append( interfaceToBeImplemented ).append( ", ValueConverter" );
-		stringBuilder.append( " {" + "\n" );
+			.append( interfaceToBeImplemented ).append( ", ValueConverter" )
+			.append( " {" + "\n" );
 
 		incrementIndentation();
 
@@ -1259,16 +1191,16 @@ public class JavaDocumentCreator {
 
 	private void appendingImportsIfNecessary( StringBuilder stringBuilder ) {
 
-		stringBuilder.append( "import jolie.runtime.embedding.Jolie2JavaInterface;\n" );
-		stringBuilder.append( "import jolie.runtime.Value;\n" );
-		stringBuilder.append( "import jolie.runtime.ValueVector;\n" );
-		stringBuilder.append( "import jolie.runtime.ByteArray;\n" );
-		stringBuilder.append( "import jolie.runtime.typing.TypeCheckingException;\n" );
-		stringBuilder.append( "import java.util.List;\n" );
-		stringBuilder.append( "import java.util.ArrayList;\n" );
-		stringBuilder.append( "import java.util.Map.Entry;\n" );
-		stringBuilder.append( "import jolie.runtime.JavaService.ValueConverter;\n" );
-		stringBuilder.append( "\n" );
+		stringBuilder.append( "import jolie.runtime.embedding.Jolie2JavaInterface;\n" )
+			.append( "import jolie.runtime.Value;\n" )
+			.append( "import jolie.runtime.ValueVector;\n" )
+			.append( "import jolie.runtime.ByteArray;\n" )
+			.append( "import jolie.runtime.typing.TypeCheckingException;\n" )
+			.append( "import java.util.List;\n" )
+			.append( "import java.util.ArrayList;\n" )
+			.append( "import java.util.Map.Entry;\n" )
+			.append( "import jolie.runtime.JavaService.ValueConverter;\n" )
+			.append( "\n" );
 
 	}
 
@@ -1282,17 +1214,16 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
-			while( i.hasNext() ) {
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 				String variableType = null;
 				String variableName = null;
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				if( subType instanceof TypeDefinitionLink ) {
 					if( ((TypeDefinitionLink) subType).linkedType() instanceof TypeDefinitionUndefined ) {
-						variableName = checkReservedKeywords( ((TypeDefinitionLink) subType).id() );
+						variableName = checkReservedKeywords( subType.id() );
 						variableType = "Value";
 					} else {
-						variableName = checkReservedKeywords( ((TypeDefinitionLink) subType).id() );
+						variableName = checkReservedKeywords( subType.id() );
 						variableType = ((TypeDefinitionLink) subType).linkedTypeName();
 					}
 				} else if( subType instanceof TypeInlineDefinition ) {
@@ -1326,9 +1257,9 @@ public class JavaDocumentCreator {
 		stringBuilder.append( "if ( v.hasChildren(\"" ).append( variableName ).append( "\")){\n" );
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "if ( v.getChildren(\"" ).append( variableName ).append( "\").size() <= " );
-		stringBuilder.append( type.cardinality().max() ).append( " && v.getChildren(\"" ).append( variableName );
-		stringBuilder.append( "\").size() >= " ).append( type.cardinality().min() ).append( " ){\n" );
+		stringBuilder.append( "if ( v.getChildren(\"" ).append( variableName ).append( "\").size() <= " )
+			.append( type.cardinality().max() ).append( " && v.getChildren(\"" ).append( variableName )
+			.append( "\").size() >= " ).append( type.cardinality().min() ).append( " ){\n" );
 		incrementIndentation();
 		stringBuilder.append( ifBody );
 		decrementIndentation();
@@ -1400,10 +1331,9 @@ public class JavaDocumentCreator {
 			stringBuilder.append( "}\n" );
 
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
 
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				String variableName = getVariableName( subType );
 				String variableNameType = getVariableTypeName( subType );
 
@@ -1421,18 +1351,18 @@ public class JavaDocumentCreator {
 						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
 						ifbody.append( "for( int counter" ).append( variableName ).append( " = 0;" )
-							.append( "counter" );
-						ifbody.append( variableName );
-						ifbody.append( " < v.getChildren( \"" ).append( variableName ).append( "\" ).size(); counter" );
-						ifbody.append( variableName ).append( "++) { \n" );
+							.append( "counter" )
+							.append( variableName )
+							.append( " < v.getChildren( \"" ).append( variableName ).append( "\" ).size(); counter" )
+							.append( variableName ).append( "++) { \n" );
 
 						incrementIndentation();
 						appendingIndentation( ifbody );
-						ifbody.append( variableNameType ).append( " support" );
-						ifbody.append( variableName ).append( " = new " );
-						ifbody.append( variableNameType );
-						ifbody.append( "( v.getChildren(\"" ).append( variableName ).append( "\").get(counter" );
-						ifbody.append( subType.id() ).append( "));\n" );
+						ifbody.append( variableNameType ).append( " support" )
+							.append( variableName ).append( " = new " )
+							.append( variableNameType )
+							.append( "( v.getChildren(\"" ).append( variableName ).append( "\").get(counter" )
+							.append( subType.id() ).append( "));\n" );
 						appendingIndentation( ifbody );
 						ifbody.append( subType.id() ).append( ".add(support" ).append( variableName ).append( ");\n" );
 						decrementIndentation();
@@ -1445,8 +1375,8 @@ public class JavaDocumentCreator {
 						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
 						ifbody.append( checkReservedKeywords( subType.id() ) ).append( " = new " )
-							.append( variableNameType );
-						ifbody.append( "( v.getFirstChild(\"" ).append( variableName ).append( "\"));" ).append( "\n" );
+							.append( variableNameType )
+							.append( "( v.getFirstChild(\"" ).append( variableName ).append( "\"));" ).append( "\n" );
 						decrementIndentation( 2 );
 						appendingIfHasChildren( stringBuilder, variableName, subType, ifbody );
 					}
@@ -1471,10 +1401,10 @@ public class JavaDocumentCreator {
 						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
 						ifbody.append( "for(int counter" ).append( variableName ).append( "=0;counter" )
-							.append( variableName );
-						ifbody.append( "<v.getChildren(\"" ).append( variableName ).append( "\").size(); counter" )
-							.append( variableName );
-						ifbody.append( "++){\n" );
+							.append( variableName )
+							.append( "<v.getChildren(\"" ).append( variableName ).append( "\").size(); counter" )
+							.append( variableName )
+							.append( "++){\n" );
 						incrementIndentation();
 						if( Utils.nativeType( subType ) != NativeType.ANY ) {
 							appendingIndentation( ifbody );
@@ -1623,9 +1553,8 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				String variableName = subType.id();
 				String variableType = "Value";
 				if( subType.cardinality().max() > 1 ) {
@@ -1664,8 +1593,8 @@ public class JavaDocumentCreator {
 
 	private void appendingInitChoiceVariable( StringBuilder stringBuilder, String variableTypeName, int choiceCount ) {
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = new " );
-		stringBuilder.append( variableTypeName ).append( "( v );\n" );
+		stringBuilder.append( CHOICEVARIABLENAME ).append( choiceCount ).append( " = new " )
+			.append( variableTypeName ).append( "( v );\n" );
 	}
 
 	private void appendingInitChoiceVariableNativeType( StringBuilder stringBuilder, NativeType nativeType,
@@ -1816,10 +1745,9 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
 
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				String variableName = getVariableName( subType );
 				String variableNameType = getVariableTypeName( subType );
 
@@ -1990,15 +1918,14 @@ public class JavaDocumentCreator {
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
-			Iterator i = supportSet.iterator();
 
-			while( i.hasNext() ) {
-				TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
+				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 
 				String variableName = getVariableName( subType );
 				String startingChar = variableName.substring( 0, 1 );
 				String variableNameCapitalized =
-					startingChar.toUpperCase().concat( variableName.substring( 1, variableName.length() ) );
+					startingChar.toUpperCase().concat( variableName.substring( 1 ) );
 				if( variableNameCapitalized.equals( "Value" ) ) {
 					variableNameCapitalized = "__Value";
 				}
@@ -2127,15 +2054,16 @@ public class JavaDocumentCreator {
 	private void parseSubType( TypeDefinition typeDefinition ) {
 		if( Utils.hasSubTypes( typeDefinition ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
-			Iterator i = supportSet.iterator();
-			while( i.hasNext() ) {
-				Map.Entry me = (Map.Entry) i.next();
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 				// System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
-				if( ((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink ) {
-					if( !subTypeMap.containsKey( ((TypeDefinitionLink) me.getValue()).linkedTypeName() ) ) {
-						subTypeMap.put( ((TypeDefinitionLink) me.getValue()).linkedTypeName(),
-							((TypeDefinitionLink) me.getValue()).linkedType() );
-						parseSubType( ((TypeDefinitionLink) me.getValue()).linkedType() );
+				if( ((Entry) stringTypeDefinitionEntry).getValue() instanceof TypeDefinitionLink ) {
+					if( !subTypeMap.containsKey(
+						((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName() ) ) {
+						subTypeMap.put(
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName(),
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
+						parseSubType(
+							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
 					}
 				}
 			}
@@ -2164,9 +2092,7 @@ public class JavaDocumentCreator {
 
 	private boolean isNativeTypeUndefined( TypeDefinition t ) {
 		if( t instanceof TypeDefinitionLink ) {
-			if( ((TypeDefinitionLink) t).linkedType() instanceof TypeDefinitionUndefined ) {
-				return true;
-			}
+			return ((TypeDefinitionLink) t).linkedType() instanceof TypeDefinitionUndefined;
 		}
 		return false;
 	}
@@ -2189,8 +2115,8 @@ public class JavaDocumentCreator {
 	private void appendGetMethodWithIndex( StringBuilder stringBuilder, String typeName, String variableNameCapitalized,
 		String variableName ) {
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( typeName );
-		stringBuilder.append( " get" ).append( variableNameCapitalized ).append( "Value( int index ){\n" );
+		stringBuilder.append( "public " ).append( typeName )
+			.append( " get" ).append( variableNameCapitalized ).append( "Value( int index ){\n" );
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2204,8 +2130,8 @@ public class JavaDocumentCreator {
 	private void appendGetMethod( StringBuilder stringBuilder, String typeName, String variableNameCapitalized,
 		String variableName ) {
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public " ).append( typeName );
-		stringBuilder.append( " get" ).append( variableNameCapitalized ).append( "(){\n" );
+		stringBuilder.append( "public " ).append( typeName )
+			.append( " get" ).append( variableNameCapitalized ).append( "(){\n" );
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2233,8 +2159,8 @@ public class JavaDocumentCreator {
 	private void appendAddMethod( StringBuilder stringBuilder, String typeName, String variableNameCapitalized,
 		String variableName ) {
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public void add" ).append( variableNameCapitalized ).append( "Value( " );
-		stringBuilder.append( typeName ).append( " value ){\n" );
+		stringBuilder.append( "public void add" ).append( variableNameCapitalized ).append( "Value( " )
+			.append( typeName ).append( " value ){\n" );
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
 		stringBuilder.append( checkReservedKeywords( variableName ) ).append( ".add(value);\n" );
@@ -2247,8 +2173,8 @@ public class JavaDocumentCreator {
 	private void appendSetMethod( StringBuilder stringBuilder, String typeName, String variableNameCapitalized,
 		String variableName ) {
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public void set" ).append( variableNameCapitalized ).append( "( " );
-		stringBuilder.append( typeName ).append( " value ){\n" );
+		stringBuilder.append( "public void set" ).append( variableNameCapitalized ).append( "( " )
+			.append( typeName ).append( " value ){\n" );
 
 		incrementIndentation();
 		appendingIndentation( stringBuilder );
@@ -2275,14 +2201,14 @@ public class JavaDocumentCreator {
 	}
 
 	private void appendingAddToListNative( StringBuilder stringBuilder, String variableName, String javaMethod ) {
-		stringBuilder.append( variableName ).append( ".add(v.getChildren(\"" );
-		stringBuilder.append( variableName ).append( "\").get(counter" ).append( variableName ).append( ")." );
-		stringBuilder.append( javaMethod ).append( ");\n" );
+		stringBuilder.append( variableName ).append( ".add(v.getChildren(\"" )
+			.append( variableName ).append( "\").get(counter" ).append( variableName ).append( ")." )
+			.append( javaMethod ).append( ");\n" );
 	}
 
 	private void appendingAddToListValue( StringBuilder stringBuilder, String variableName ) {
-		stringBuilder.append( variableName ).append( ".add(v.getChildren(\"" );
-		stringBuilder.append( variableName ).append( "\").get(counter" ).append( variableName ).append( "));\n" );
+		stringBuilder.append( variableName ).append( ".add(v.getChildren(\"" )
+			.append( variableName ).append( "\").get(counter" ).append( variableName ).append( "));\n" );
 	}
 
 	private void incrementIndentation() {
@@ -2308,9 +2234,9 @@ public class JavaDocumentCreator {
 	private String getVariableName( TypeDefinition type ) {
 		if( type instanceof TypeDefinitionLink ) {
 			if( ((TypeDefinitionLink) type).linkedType() instanceof TypeDefinitionUndefined ) {
-				return ((TypeDefinitionLink) type).id();
+				return type.id();
 			} else {
-				return ((TypeDefinitionLink) type).id();
+				return type.id();
 			}
 		} else if( type instanceof TypeInlineDefinition ) {
 			if( Utils.hasSubTypes( type ) ) {
@@ -2349,7 +2275,7 @@ public class JavaDocumentCreator {
 	}
 
 	private String checkReservedKeywords( String id ) {
-		if( Arrays.binarySearch( keywords, id ) >= 0 ) {
+		if( Arrays.binarySearch( KEYWORDS, id ) >= 0 ) {
 			return "_" + id;
 		} else {
 			return id;

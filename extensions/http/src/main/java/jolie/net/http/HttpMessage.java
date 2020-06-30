@@ -132,6 +132,7 @@ public class HttpMessage {
 		setCookies.add( cookie );
 	}
 
+	@SuppressWarnings( "PMD" )
 	public List< Cookie > setCookies() {
 		return setCookies;
 	}

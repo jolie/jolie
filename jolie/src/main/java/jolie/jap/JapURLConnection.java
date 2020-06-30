@@ -46,25 +46,25 @@ import java.util.zip.ZipEntry;
  */
 public class JapURLConnection extends URLConnection {
 	private static final int BUF_SIZE = 8192;
-	private static final Pattern urlPattern = Pattern.compile( "([^!]*!/[^!]*)(?:!/)?(.*)?" );
-	public static final Pattern nestingSeparatorPattern = Pattern.compile( "!/" );
+	private static final Pattern URL_PATTERN = Pattern.compile( "([^!]*!/[^!]*)(?:!/)?(.*)?" );
+	public static final Pattern NESTING_SEPARATION_PATTERN = Pattern.compile( "!/" );
 
-	private static final Map< URL, JarFile > japCache = new ConcurrentHashMap<>();
+	private static final Map< URL, JarFile > JAP_CACHE = new ConcurrentHashMap<>();
 
 	private InputStream inputStream;
 	private long entrySize = 0L;
 
 	public JapURLConnection( URL url )
-		throws MalformedURLException, IOException {
+		throws IOException {
 		super( url );
 	}
 
 	private static void putInCache( URL url, JarFile jar ) {
-		japCache.put( url, jar );
+		JAP_CACHE.put( url, jar );
 	}
 
 	private static JarFile getFromCache( URL url ) {
-		return japCache.get( url );
+		return JAP_CACHE.get( url );
 	}
 
 	private static JarFile retrieve( URL url, final InputStream in )
@@ -120,7 +120,7 @@ public class JapURLConnection extends URLConnection {
 		throws IOException {
 		if( !connected ) {
 			final String urlPath = url.getPath();
-			final Matcher matcher = urlPattern.matcher( urlPath );
+			final Matcher matcher = URL_PATTERN.matcher( urlPath );
 			if( matcher.matches() ) {
 				final String path = matcher.group( 1 );
 				final String subPath = matcher.group( 2 );
@@ -128,7 +128,7 @@ public class JapURLConnection extends URLConnection {
 				inputStream = jarURLConnection.getInputStream();
 				if( subPath.isEmpty() == false ) {
 					JarFile jar = retrieve( new URL( path ), inputStream );
-					final String[] nodes = nestingSeparatorPattern.split( subPath );
+					final String[] nodes = NESTING_SEPARATION_PATTERN.split( subPath );
 					int i;
 					final StringBuilder builder = new StringBuilder( path.length() + subPath.length() );
 					builder.append( path );

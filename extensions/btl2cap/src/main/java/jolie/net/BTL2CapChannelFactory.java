@@ -35,9 +35,9 @@ import jolie.runtime.AndJarDeps;
 
 @AndJarDeps( { "bluetooth.jar" } )
 public class BTL2CapChannelFactory extends CommChannelFactory {
-	private final static int cacheLimit = 1000; // Must be > 0
+	private final static int CACHE_LIMIT = 1000; // Must be > 0
 	private final Map< String, Map< String, ServiceRecord > > serviceCache =
-		new HashMap< String, Map< String, ServiceRecord > >();
+		new HashMap<>();
 
 	public BTL2CapChannelFactory( CommCore commCore ) {
 		super( commCore );
@@ -53,15 +53,11 @@ public class BTL2CapChannelFactory extends CommChannelFactory {
 	}
 
 	public void putInServiceCache( String btAddr, String uuidStr, ServiceRecord record ) {
-		if( serviceCache.size() > cacheLimit ) {
+		if( serviceCache.size() > CACHE_LIMIT ) {
 			serviceCache.remove( serviceCache.keySet().iterator().next() );
 		}
-		Map< String, ServiceRecord > map = serviceCache.get( btAddr );
-		if( map == null ) {
-			map = new HashMap< String, ServiceRecord >();
-			serviceCache.put( btAddr, map );
-		}
-		if( map.size() > cacheLimit ) {
+		Map< String, ServiceRecord > map = serviceCache.computeIfAbsent( btAddr, k -> new HashMap<>() );
+		if( map.size() > CACHE_LIMIT ) {
 			map.remove( map.keySet().iterator().next() );
 		}
 		map.put( uuidStr, record );

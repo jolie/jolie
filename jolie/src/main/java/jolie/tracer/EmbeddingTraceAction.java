@@ -29,7 +29,7 @@ import jolie.lang.parse.context.ParsingContext;
  * @author Fabrizio Montesi
  */
 public class EmbeddingTraceAction implements TraceAction {
-	public static enum Type {
+	public enum Type {
 		SERVICE_LOAD
 	}
 

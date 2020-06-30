@@ -50,6 +50,7 @@ import jolie.lang.parse.ast.ForEachArrayItemStatement;
 import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
@@ -134,7 +135,7 @@ public class TypeChecker implements OLVisitor {
 		}
 	}
 
-	private class TypingResult {
+	private static class TypingResult {
 		private final VariablePathSet< VariablePathNode > neededCorrPaths;
 		private final VariablePathSet< FlaggedVariablePathNode > providedCorrPaths;
 		private final VariablePathSet< VariablePathNode > neededVarPaths;
@@ -263,7 +264,7 @@ public class TypeChecker implements OLVisitor {
 
 	private TypingResult typingResult;
 	private TypingResult entryTyping;
-	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger LOGGER = Logger.getLogger( "JOLIE" );
 	private boolean valid = true;
 	private final Map< String, TypingResult > definitionTyping = new HashMap<>();
 	private boolean sessionStarter = false;
@@ -279,17 +280,14 @@ public class TypeChecker implements OLVisitor {
 		valid = false;
 		if( node != null ) {
 			ParsingContext context = node.context();
-			logger.severe( context.sourceName() + ":" + context.line() + ": " + message );
+			LOGGER.severe( context.sourceName() + ":" + context.line() + ": " + message );
 		} else {
-			logger.severe( message );
+			LOGGER.severe( message );
 		}
 	}
 
 	private boolean isDefinedBefore( VariablePathNode path ) {
-		if( entryTyping.providedVarPaths.contains( path ) || entryTyping.providedCorrPaths.contains( path ) ) {
-			return true;
-		}
-		return false;
+		return entryTyping.providedVarPaths.contains( path ) || entryTyping.providedCorrPaths.contains( path );
 	}
 
 	public boolean check() {
@@ -957,5 +955,10 @@ public class TypeChecker implements OLVisitor {
 	@Override
 	public void visit( TypeChoiceDefinition n ) {
 		// todo
+	}
+
+	@Override
+	public void visit( ImportStatement n ) {
+
 	}
 }

@@ -33,8 +33,6 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ClosedVariablePath;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
-import jolie.runtime.typing.OneWayTypeDescription;
-import jolie.runtime.typing.RequestResponseTypeDescription;
 
 /**
  * <code>LocalListener</code> is used internally by the interpreter for receiving local messages.
@@ -64,10 +62,10 @@ public class LocalListener extends CommListener {
 			locationPath,
 			new VariablePathBuilder( true ).toVariablePath(),
 			new Interface(
-				new HashMap< String, OneWayTypeDescription >(),
-				new HashMap< String, RequestResponseTypeDescription >() ),
-			new HashMap< String, AggregatedOperation >(),
-			new HashMap< String, OutputPort >() ) : inputPort );
+				new HashMap<>(),
+				new HashMap<>() ),
+			new HashMap<>(),
+			new HashMap<>() ) : inputPort );
 		locationPath.getValue().setValue( Constants.LOCAL_LOCATION_KEYWORD );
 	}
 

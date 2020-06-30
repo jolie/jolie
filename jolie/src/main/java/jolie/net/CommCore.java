@@ -83,7 +83,7 @@ public class CommCore {
 	private final static int CHANNEL_HANDLER_TIMEOUT = 5;
 	private final ThreadGroup threadGroup;
 
-	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger LOGGER = Logger.getLogger( "JOLIE" );
 
 	private final int connectionsLimit;
 	private final Interpreter interpreter;
@@ -176,11 +176,8 @@ public class CommCore {
 
 	public void putPersistentChannel( URI location, String protocol, final CommChannel channel ) {
 		synchronized( persistentChannels ) {
-			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
-			if( protocolChannels == null ) {
-				protocolChannels = new HashMap<>();
-				persistentChannels.put( location, protocolChannels );
-			}
+			Map< String, CommChannel > protocolChannels =
+				persistentChannels.computeIfAbsent( location, k -> new HashMap<>() );
 			// Set the timeout
 			setTimeoutHandler( channel, location, protocol );
 			// Put the protocol in the cache (may overwrite another one)
@@ -256,7 +253,7 @@ public class CommCore {
 	 * @return the Logger used by this CommCore
 	 */
 	public Logger logger() {
-		return logger;
+		return LOGGER;
 	}
 
 	/**
@@ -421,7 +418,7 @@ public class CommCore {
 		}
 	}
 
-	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
+	private final static Pattern PATH_SPLIT_PATTERN = Pattern.compile( "/" );
 
 	private class CommChannelHandlerRunnable implements Runnable {
 		private final CommChannel channel;
@@ -548,7 +545,7 @@ public class CommCore {
 		private void handleMessage( CommMessage message )
 			throws IOException {
 			try {
-				String[] ss = pathSplitPattern.split( message.resourcePath() );
+				String[] ss = PATH_SPLIT_PATTERN.split( message.resourcePath() );
 				if( ss.length > 1 ) {
 					handleRedirectionInput( message, ss );
 				} else {
@@ -937,9 +934,7 @@ public class CommCore {
 	public synchronized void shutdown( long timeout ) {
 		if( active ) {
 			active = false;
-			listenersMap.entrySet().forEach( ( entry ) -> {
-				entry.getValue().shutdown();
-			} );
+			listenersMap.entrySet().forEach( ( entry ) -> entry.getValue().shutdown() );
 
 			try {
 				for( SelectorThread t : selectorThreads() ) {

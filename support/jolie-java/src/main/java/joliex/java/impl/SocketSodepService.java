@@ -136,7 +136,6 @@ public class SocketSodepService extends Service {
 				callback.onSuccess( Value.create() );
 			} catch( IOException e ) {
 				callback.onError( e );
-				return;
 			} finally {
 				service.lock.unlock();
 			}

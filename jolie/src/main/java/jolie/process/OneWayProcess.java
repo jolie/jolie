@@ -69,7 +69,7 @@ public class OneWayProcess implements InputOperationProcess {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent(
 				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-					Long.valueOf( sessionMessage.message().id() ).toString(), sessionMessage.message().value() ) );
+					Long.toString( sessionMessage.message().id() ), sessionMessage.message().value() ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
@@ -97,11 +97,7 @@ public class OneWayProcess implements InputOperationProcess {
 			} catch( FaultException.RuntimeFaultException rf ) {
 				throw rf.faultException();
 			}
-		} catch( FaultException e ) {
-			// Should never happen since receiveMessage always
-			// returns a NullProcess here.
-			throw e;
-		} catch( ExitingException e ) {
+		} catch( FaultException | ExitingException e ) {
 			// Should never happen since receiveMessage always
 			// returns a NullProcess here.
 			throw e;

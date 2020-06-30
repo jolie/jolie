@@ -28,11 +28,11 @@ public class ExitProcess implements Process {
 	private static class LazyHolder {
 		private LazyHolder() {}
 
-		private static final ExitProcess instance = new ExitProcess();
+		private static final ExitProcess INSTANCE = new ExitProcess();
 	}
 
-	static public ExitProcess getInstance() {
-		return ExitProcess.LazyHolder.instance;
+	public static ExitProcess getInstance() {
+		return ExitProcess.LazyHolder.INSTANCE;
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class ExitProcess implements Process {
 	@Override
 	public void run() {
 		final Interpreter interpreter = Interpreter.getInstance();
-		interpreter.execute( () -> interpreter.exit() );
+		interpreter.execute( interpreter::exit );
 	}
 
 	@Override

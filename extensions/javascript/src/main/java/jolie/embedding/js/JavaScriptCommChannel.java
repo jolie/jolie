@@ -44,7 +44,7 @@ import jolie.runtime.typing.Type;
  */
 public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel {
 	private final Invocable invocable;
-	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
+	private final Map< Long, CommMessage > messages = new ConcurrentHashMap<>();
 	private final Object json;
 
 	private final static class JsonMethods {
@@ -84,9 +84,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 				try {
 					Object s = invocable.invokeMethod( json, JsonMethods.STRINGIFY, returnValue );
 					JsUtils.parseJsonIntoValue( new StringReader( (String) s ), value, true );
-				} catch( ScriptException e ) {
-					// TODO: do something here, maybe encode an internal server error
-				} catch( NoSuchMethodException e ) {
+				} catch( ScriptException | NoSuchMethodException e ) {
 					// TODO: do something here, maybe encode an internal server error
 				}
 

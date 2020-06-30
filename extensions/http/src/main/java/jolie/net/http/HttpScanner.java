@@ -30,7 +30,6 @@ import jolie.lang.parse.Scanner.TokenType;
 
 public class HttpScanner {
 	private final InputStream stream;
-	private int state; // current state
 	private int currInt;
 	private char ch;
 	private static final int OVERFLOW_NET = 8192;
@@ -129,7 +128,8 @@ public class HttpScanner {
 
 	public Token getToken()
 		throws IOException {
-		state = 1;
+		// current state
+		int state = 1;
 
 		tokenBuilder.append( ch );
 		while( currInt != -1 && Scanner.isSeparator( ch ) ) {

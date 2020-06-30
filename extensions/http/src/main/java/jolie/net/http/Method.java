@@ -31,17 +31,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum Method {
 	POST( "POST" ), GET( "GET" ), PUT( "PUT" ), DELETE( "DELETE" ), OPTIONS( "OPTIONS" );
 
-	private final static Map< String, Method > idMap = new ConcurrentHashMap<>();
+	private final static Map< String, Method > ID_MAP = new ConcurrentHashMap<>();
 
 	static {
 		for( Method type : Method.values() ) {
-			idMap.put( type.id(), type );
+			ID_MAP.put( type.id(), type );
 		}
 	}
 
 	private final String id;
 
-	private Method( String id ) {
+	Method( String id ) {
 		this.id = id;
 	}
 
@@ -51,7 +51,7 @@ public enum Method {
 
 	public static Method fromString( String id )
 		throws UnsupportedMethodException {
-		Method m = idMap.get( id.toUpperCase() );
+		Method m = ID_MAP.get( id.toUpperCase() );
 		if( m == null ) {
 			throw new UnsupportedMethodException( id );
 		}

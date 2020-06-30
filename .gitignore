@@ -4,6 +4,11 @@
 **/.classpath
 **/.settings/
 **/.project
-**/.idea/
+**/.idea/modules.xml
+**/.idea/libraries
+**/.idea/workspace.xml
+**/.idea/usage.statistics.xml
+**/.idea/tasks.xml
+**/.idea/shelf
 **/*.iml
 test/extensions/private/WS-test.jar

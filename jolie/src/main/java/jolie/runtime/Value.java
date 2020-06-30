@@ -376,55 +376,55 @@ public abstract class Value implements Expression, Cloneable {
 		return false;
 	}
 
-	public final static Value createRootValue() {
+	public static Value createRootValue() {
 		return new RootValueImpl();
 	}
 
-	public final static Value createLink( VariablePath path ) {
+	public static Value createLink( VariablePath path ) {
 		return new ValueLink( path );
 	}
 
-	public final static Value create() {
+	public static Value create() {
 		return new ValueImpl();
 	}
 
-	public final static Value createCSetValue() {
+	public static Value createCSetValue() {
 		return new CSetValue();
 	}
 
-	public final static Value create( Boolean bool ) {
+	public static Value create( Boolean bool ) {
 		return new ValueImpl( bool );
 	}
 
-	public final static Value create( String str ) {
+	public static Value create( String str ) {
 		return new ValueImpl( str );
 	}
 
-	public final static Value create( Integer i ) {
+	public static Value create( Integer i ) {
 		return new ValueImpl( i );
 	}
 
-	public final static Value create( Long l ) {
+	public static Value create( Long l ) {
 		return new ValueImpl( l );
 	}
 
-	public final static Value create( Double d ) {
+	public static Value create( Double d ) {
 		return new ValueImpl( d );
 	}
 
-	public final static Value create( ByteArray b ) {
+	public static Value create( ByteArray b ) {
 		return new ValueImpl( b );
 	}
 
-	public final static Value create( Value value ) {
+	public static Value create( Value value ) {
 		return new ValueImpl( value );
 	}
 
-	public final static Value createClone( Value value ) {
+	public static Value createClone( Value value ) {
 		return value.clone();
 	}
 
-	public final static Value createDeepCopy( Value value ) {
+	public static Value createDeepCopy( Value value ) {
 		Value ret = Value.create();
 		ret.deepCopy( value );
 		return ret;
