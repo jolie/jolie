@@ -22,6 +22,7 @@ package jolie.lang.parse;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -41,6 +42,7 @@ import jolie.lang.parse.ast.ForEachArrayItemStatement;
 import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
@@ -155,36 +157,42 @@ public class OLParseTreeOptimizer {
 
 		@Override
 		public void visit( OutputPortInfo p ) {
-			if( p.protocolConfiguration() != null ) {
-				p.protocolConfiguration().accept( this );
-				p.setProtocolConfiguration( currNode );
+			if( p.protocol() != null ) {
+				p.setProtocol( optimizeNode( p.protocol() ) );
+			}
+			if( p.location() != null ) {
+				p.setLocation( optimizeNode( p.location() ) );
 			}
 			programChildren.add( p );
 		}
 
 		@Override
 		public void visit( InputPortInfo p ) {
-			if( p.protocolConfiguration() != null ) {
-				p.protocolConfiguration().accept( this );
-				InputPortInfo iport =
-					new InputPortInfo(
-						p.context(),
-						p.id(),
-						p.location(),
-						p.protocolId(),
-						currNode,
-						p.aggregationList(),
-						p.redirectionMap() );
-				if( p.getDocumentation() != null && p.getDocumentation().length() > 0 ) {
-					iport.setDocumentation( p.getDocumentation() );
-				}
-				iport.operationsMap().putAll( p.operationsMap() );
-				iport.getInterfaceList().addAll( p.getInterfaceList() );
-				programChildren.add( iport );
-			} else {
-				programChildren.add( p );
+			OLSyntaxNode protocol = null, location = null;
+			if( p.protocol() != null ) {
+				protocol = optimizeNode( p.protocol() );
 			}
+
+			if( p.location() != null ) {
+				location = optimizeNode( p.location() );
+			}
+
+			InputPortInfo iport =
+				new InputPortInfo(
+					p.context(),
+					p.id(),
+					location,
+					protocol,
+					p.aggregationList(),
+					p.redirectionMap() );
+			if( p.getDocumentation() != null && p.getDocumentation().length() > 0 ) {
+				iport.setDocumentation( p.getDocumentation() );
+			}
+			iport.operationsMap().putAll( p.operationsMap() );
+			iport.getInterfaceList().addAll( p.getInterfaceList() );
+			programChildren.add( iport );
 		}
+
 
 		@Override
 		public void visit( OneWayOperationDeclaration decl ) {}
@@ -856,7 +864,7 @@ public class OLParseTreeOptimizer {
 		@Override
 		public void visit( InlineTreeExpressionNode n ) {
 			OLSyntaxNode rootExpression = optimizeNode( n.rootExpression() );
-			InlineTreeExpressionNode.Operation operations[] =
+			InlineTreeExpressionNode.Operation[] operations =
 				new InlineTreeExpressionNode.Operation[ n.operations().length ];
 			int i = 0;
 			for( InlineTreeExpressionNode.Operation operation : n.operations() ) {
@@ -894,13 +902,18 @@ public class OLParseTreeOptimizer {
 
 		@Override
 		public void visit( DocumentationComment n ) {}
+
+		@Override
+		public void visit( ImportStatement n ) {
+			programChildren.add( n );
+		}
 	}
 
 	public static Program optimize( Program originalProgram ) {
-		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
+		return new OptimizerVisitor( originalProgram.context() ).optimize( originalProgram );
 	}
 
 	public static OLSyntaxNode optimize( OLSyntaxNode node ) {
-		return (new OptimizerVisitor( node.context() )).optimize( node );
+		return new OptimizerVisitor( node.context() ).optimize( node );
 	}
 }

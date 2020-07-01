@@ -32,6 +32,7 @@ import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import joliex.plasma.impl.InterfaceVisitor;
 
@@ -43,16 +44,21 @@ public class Jolie2Plasma {
 	public static void main( String[] args ) {
 		try {
 			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Plasma.class.getClassLoader() );
-			final String[] arguments = cmdParser.arguments();
+			final String[] arguments = cmdParser.getInterpreterConfiguration().arguments();
 			if( arguments.length < 2 ) {
 				throw new CommandLineException( "Insufficient number of arguments" );
 			}
 
 			try( Writer writer = new BufferedWriter( new FileWriter( arguments[ 0 ] ) ) ) {
 				Program program = ParsingUtils.parseProgram(
-					cmdParser.programStream(),
-					cmdParser.programFilepath().toURI(), cmdParser.charset(),
-					cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
+					cmdParser.getInterpreterConfiguration().inputStream(),
+					cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+					cmdParser.getInterpreterConfiguration().charset(),
+					cmdParser.getInterpreterConfiguration().includePaths(),
+					cmdParser.getInterpreterConfiguration().packagePaths(),
+					cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+					cmdParser.getInterpreterConfiguration().constants(),
+					false );
 				new InterfaceConverter(
 					program,
 					Arrays.copyOfRange( arguments, 1, arguments.length ),
@@ -62,13 +68,9 @@ public class Jolie2Plasma {
 			System.out.println( e.getMessage() );
 			System.out.println(
 				"Syntax is: jolie2plasma [jolie options] <jolie filename> <output filename> [interface name list]" );
-		} catch( IOException e ) {
+		} catch( IOException | InterfaceVisitor.InterfaceNotFound | SemanticException | ParserException e ) {
 			e.printStackTrace();
-		} catch( ParserException e ) {
-			e.printStackTrace();
-		} catch( SemanticException e ) {
-			e.printStackTrace();
-		} catch( InterfaceVisitor.InterfaceNotFound e ) {
+		} catch( ModuleException e ) {
 			e.printStackTrace();
 		}
 	}

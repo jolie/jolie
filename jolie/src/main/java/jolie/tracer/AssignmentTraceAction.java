@@ -4,7 +4,7 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.runtime.Value;
 
 public class AssignmentTraceAction implements TraceAction {
-	public static enum Type {
+	public enum Type {
 		ASSIGNMENT, POINTER, DEEPCOPY
 	}
 

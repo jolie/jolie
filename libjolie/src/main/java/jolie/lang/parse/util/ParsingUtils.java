@@ -25,13 +25,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
-import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.module.Modules;
+import jolie.lang.parse.module.ModuleParsingConfiguration;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
@@ -48,20 +49,27 @@ public class ParsingUtils {
 		URI source,
 		String charset,
 		String[] includePaths,
+		String[] packagePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
-		SemanticVerifier.Configuration configuration,
+		SemanticVerifier.Configuration semanticConfiguration,
 		boolean includeDocumentation )
-		throws IOException, ParserException, SemanticException {
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ),
-			includePaths, classLoader );
-		olParser.putConstants( definedConstants );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
-		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
-		semanticVerifier.validate();
+		throws IOException, ParserException, SemanticException, ModuleException {
 
-		return program;
+		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
+			charset,
+			includePaths,
+			packagePaths,
+			classLoader,
+			definedConstants,
+			includeDocumentation );
+
+		Modules.ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+
+		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
+			parseResult.symbolTables(), semanticConfiguration );
+		semanticVerifier.validate();
+		return parseResult.mainProgram();
 	}
 
 	public static Program parseProgram(
@@ -69,19 +77,21 @@ public class ParsingUtils {
 		URI source,
 		String charset,
 		String[] includePaths,
+		String[] packagePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		boolean includeDocumentation )
-		throws IOException, ParserException, SemanticException {
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, includeDocumentation ),
-			includePaths, classLoader );
-		olParser.putConstants( definedConstants );
-		Program program = olParser.parse();
-		program = OLParseTreeOptimizer.optimize( program );
-		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
-		semanticVerifier.validate();
-
-		return program;
+		throws IOException, ParserException, SemanticException, ModuleException {
+		return parseProgram(
+			inputStream,
+			source,
+			charset,
+			includePaths,
+			packagePaths,
+			classLoader,
+			definedConstants,
+			new SemanticVerifier.Configuration(),
+			includeDocumentation );
 	}
 
 	/**

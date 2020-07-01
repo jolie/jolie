@@ -21,9 +21,6 @@
 
 package joliex.wsdl;
 
-import com.ibm.wsdl.extensions.schema.SchemaImpl;
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -36,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import javax.wsdl.Binding;
 import javax.wsdl.Definition;
 import javax.wsdl.Fault;
@@ -53,11 +51,21 @@ import javax.wsdl.extensions.soap.SOAPAddress;
 import javax.wsdl.extensions.soap.SOAPBinding;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import com.ibm.wsdl.extensions.schema.SchemaImpl;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.parser.XSOMParser;
+
+import org.w3c.dom.Element;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.*;
@@ -68,11 +76,6 @@ import jolie.xml.xsd.XsdUtils;
 import jolie.xml.xsd.impl.XsdToJolieConverterImpl;
 import joliex.wsdl.impl.Interface;
 import joliex.wsdl.impl.OutputPort;
-import org.w3c.dom.Element;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  *
@@ -80,16 +83,16 @@ import org.xml.sax.SAXParseException;
  */
 public class WSDLConverter {
 	private enum Style {
-		DOCUMENT, HTTP, RPC;
+		DOCUMENT, HTTP, RPC
 	}
 
 
 	private final Writer writer;
 	private final Definition definition;
 	private int indentationLevel = 0;
-	private final Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
-	private final Map< String, Interface > interfaces = new HashMap< String, Interface >();
-	private final List< TypeDefinition > typeDefinitions = new ArrayList< TypeDefinition >();
+	private final Map< String, OutputPort > outputPorts = new HashMap<>();
+	private final Map< String, Interface > interfaces = new HashMap<>();
+	private final List< TypeDefinition > typeDefinitions = new ArrayList<>();
 	private final XSOMParser schemaParser;
 	private final TransformerFactory transformerFactory;
 
@@ -145,11 +148,7 @@ public class WSDLConverter {
 			InputSource schemaSource = new InputSource( new StringReader( sw.toString() ) );
 			schemaSource.setSystemId( definition.getDocumentBaseURI() );
 			schemaParser.parse( schemaSource );
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( SAXException | TransformerException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -190,9 +189,7 @@ public class WSDLConverter {
 				}
 				XsdToJolieConverter schemaConverter = new XsdToJolieConverterImpl( schemaSet, false, null );
 				typeDefinitions.addAll( schemaConverter.convert() );
-			} catch( SAXException e ) {
-				throw new IOException( e );
-			} catch( XsdToJolieConverter.ConversionException e ) {
+			} catch( SAXException | XsdToJolieConverter.ConversionException e ) {
 				throw new IOException( e );
 			}
 		}
@@ -308,8 +305,7 @@ public class WSDLConverter {
 
 	private String owOperationToString( joliex.wsdl.impl.Operation operation ) {
 		StringBuilder builder = new StringBuilder();
-		builder.append( operation.name() );
-		builder.append( '(' );
+		builder.append( operation.name() ).append( '(' );
 		if( operation.requestTypeName() == null ) {
 			builder.append( "void" );
 		} else {
@@ -321,15 +317,13 @@ public class WSDLConverter {
 
 	private String rrOperationToString( joliex.wsdl.impl.Operation operation ) {
 		StringBuilder builder = new StringBuilder();
-		builder.append( operation.name() );
-		builder.append( '(' );
+		builder.append( operation.name() ).append( '(' );
 		if( operation.requestTypeName() == null ) {
 			builder.append( "void" );
 		} else {
 			builder.append( operation.requestTypeName() );
 		}
-		builder.append( ')' );
-		builder.append( '(' );
+		builder.append( ')' ).append( '(' );
 		if( operation.responseTypeName() == null ) {
 			builder.append( "void" );
 		} else {
@@ -405,7 +399,7 @@ public class WSDLConverter {
 		List< ExtensibilityElement > extElements = port.getExtensibilityElements();
 		for( ExtensibilityElement element : extElements ) {
 			if( element instanceof SOAPAddress ) {
-				location = ((SOAPAddress) element).getLocationURI().toString();
+				location = ((SOAPAddress) element).getLocationURI();
 				StringBuilder builder = new StringBuilder();
 				builder.append( "soap {\n" )
 					.append( "\t.wsdl = \"" )
@@ -417,7 +411,7 @@ public class WSDLConverter {
 				protocol = builder.toString();
 
 			} else if( element instanceof HTTPAddress ) {
-				location = ((HTTPAddress) element).getLocationURI().toString();
+				location = ((HTTPAddress) element).getLocationURI();
 				protocol = "http";
 			}
 		}
@@ -540,7 +534,7 @@ public class WSDLConverter {
 		}
 
 		Map< String, Part > parts;
-		List< Pair< String, String > > faultList = new ArrayList< Pair< String, String > >();
+		List< Pair< String, String > > faultList = new ArrayList<>();
 		Map< String, Fault > faults = operation.getFaults();
 		for( Entry< String, Fault > entry : faults.entrySet() ) {
 			String faultName = entry.getKey();
@@ -591,7 +585,7 @@ public class WSDLConverter {
 					}
 				}
 			}
-			faultList.add( new Pair< String, String >( faultName, faultTypeName ) );
+			faultList.add( new Pair<>( faultName, faultTypeName ) );
 		}
 
 		return new joliex.wsdl.impl.Operation(

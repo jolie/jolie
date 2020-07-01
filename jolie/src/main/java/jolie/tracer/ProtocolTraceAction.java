@@ -1,11 +1,10 @@
 package jolie.tracer;
 
 import jolie.lang.parse.context.ParsingContext;
-import jolie.net.CommMessage;
 
 public class ProtocolTraceAction implements TraceAction {
 
-	public static enum Type {
+	public enum Type {
 		SOAP, HTTP
 	}
 

@@ -27,7 +27,7 @@ import jolie.CommandLineException;
 import jolie.CommandLineParser;
 
 public class JolieDummyCommandLineParser extends CommandLineParser {
-	private String nameOperation;
+	private final String nameOperation;
 
 	public String getNameOperation() {
 		return nameOperation;

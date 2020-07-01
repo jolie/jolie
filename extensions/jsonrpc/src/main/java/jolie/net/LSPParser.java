@@ -22,15 +22,15 @@
 
 package jolie.net;
 
-import jolie.net.http.HttpScanner;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import jolie.lang.parse.Scanner;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import jolie.lang.parse.Scanner;
+import jolie.net.http.HttpScanner;
 
 /**
  *
@@ -41,16 +41,17 @@ public class LSPParser {
 	private Scanner.Token token;
 
 	public LSPParser( InputStream iStream ) throws IOException {
-		scanner = new HttpScanner( iStream, URI.create( "urn:network" ) );
+		scanner = new HttpScanner( iStream );
+		// , URI.create( "urn:network" ) );
 	}
 
-	private void getToken() throws IOException {
+	private void nextToken() throws IOException {
 		token = scanner.getToken();
 	}
 
 	private void parseHeaderProperties( LSPMessage message ) throws IOException {
 		String name, value;
-		getToken();
+		nextToken();
 		name = token.content().toLowerCase();
 		value = scanner.readLine();
 		message.setProperty( name, value );
@@ -96,7 +97,6 @@ public class LSPParser {
 		InputStream stream = scanner.inputStream();
 		if( chunked ) {
 			// Link: http://tools.ietf.org/html/rfc2616#section-3.6.1
-			System.out.println( "Message is CHUNKED" );
 			List< byte[] > chunks = new ArrayList<>();
 			int l = -1, totalLen = 0;
 			scanner.readChar();
@@ -128,7 +128,9 @@ public class LSPParser {
 		} else if( contentLength > 0 ) {
 			buffer = new byte[ contentLength ];
 			// skipping the \r\n
-			stream.skip( 2 );
+			if( stream.skip( 2 ) != 2 ) {
+				throw new IOException( "Could not skip end of line in Language Server Protocol message" );
+			}
 			blockingRead( stream, buffer, 0, contentLength );
 		}
 

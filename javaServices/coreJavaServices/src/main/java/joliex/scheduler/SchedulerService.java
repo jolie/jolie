@@ -23,21 +23,23 @@ package joliex.scheduler;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.quartz.CronScheduleBuilder;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.TriggerKey;
+import org.quartz.impl.StdSchedulerFactory;
+
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
-import static org.quartz.CronScheduleBuilder.cronSchedule;
-import static org.quartz.JobBuilder.newJob;
-import org.quartz.JobDetail;
-import static org.quartz.JobKey.jobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import static org.quartz.TriggerBuilder.newTrigger;
-import static org.quartz.TriggerKey.triggerKey;
-import org.quartz.impl.StdSchedulerFactory;
 
 /**
  *
@@ -70,6 +72,7 @@ public class SchedulerService extends JavaService {
 		operationName = request.getFirstChild( "operationName" ).strValue();
 	}
 
+	@SuppressWarnings( "PMD" )
 	@RequestResponse
 	public Value setCronJob( Value request ) throws FaultException {
 
@@ -87,12 +90,12 @@ public class SchedulerService extends JavaService {
 		}
 
 
-		JobDetail job = newJob( SchedulerServiceJob.class )
+		JobDetail job = JobBuilder.newJob( SchedulerServiceJob.class )
 			.withIdentity( jobName, groupName ).build();
 
-		Trigger trigger = newTrigger()
+		Trigger trigger = TriggerBuilder.newTrigger()
 			.withIdentity( jobName, groupName )
-			.startNow().withSchedule( cronSchedule(
+			.startNow().withSchedule( CronScheduleBuilder.cronSchedule(
 				seconds + " " + minutes + " " + hours + " " + dayOfMonth + " " + month + " " + dayOfWeek + year ) )
 			.forJob( jobName, groupName ).build();
 
@@ -113,9 +116,9 @@ public class SchedulerService extends JavaService {
 		String jobName = request.getFirstChild( "jobName" ).strValue();
 		String groupName = request.getFirstChild( "groupName" ).strValue();
 		try {
-			if( scheduler.checkExists( triggerKey( jobName, groupName ) ) ) {
-				scheduler.unscheduleJob( triggerKey( jobName, groupName ) );
-				scheduler.deleteJob( jobKey( jobName, groupName ) );
+			if( scheduler.checkExists( TriggerKey.triggerKey( jobName, groupName ) ) ) {
+				scheduler.unscheduleJob( TriggerKey.triggerKey( jobName, groupName ) );
+				scheduler.deleteJob( JobKey.jobKey( jobName, groupName ) );
 			}
 		} catch( SchedulerException ex ) {
 			Logger.getLogger( SchedulerService.class.getName() ).log( Level.SEVERE, null, ex );

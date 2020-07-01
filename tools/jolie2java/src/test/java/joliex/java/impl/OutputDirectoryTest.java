@@ -22,6 +22,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import joliex.java.Jolie2Java;
@@ -40,7 +41,7 @@ public class OutputDirectoryTest {
 
 	@AfterClass
 	public static void tearDownClass() {
-		File generatedPath = new File( JavaDocumentCreator.defaultOutputDirectory );
+		File generatedPath = new File( JavaDocumentCreator.DEFAULT_OUTPUT_DIRECTORY );
 		if( generatedPath.exists() ) {
 			TestUtils.deleteFolder( generatedPath );
 			generatedPath.delete();
@@ -50,18 +51,19 @@ public class OutputDirectoryTest {
 
 	@Test
 	public void checkEmptyOutputDirecotry()
-		throws IOException, ParserException, SemanticException, CommandLineException {
+		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
 		String[] args = { "src/test/resources/main.ol" };
 		Jolie2JavaCommandLineParser cmdParser =
 			Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
 		Program program = ParsingUtils.parseProgram(
-			cmdParser.programStream(),
-			cmdParser.programFilepath().toURI(),
-			cmdParser.charset(),
-			cmdParser.includePaths(),
-			cmdParser.jolieClassLoader(),
-			cmdParser.definedConstants(),
+			cmdParser.getInterpreterConfiguration().inputStream(),
+			cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+			cmdParser.getInterpreterConfiguration().charset(),
+			cmdParser.getInterpreterConfiguration().includePaths(),
+			cmdParser.getInterpreterConfiguration().packagePaths(),
+			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+			cmdParser.getInterpreterConfiguration().constants(),
 			false );
 
 		// Program program = parser.parse();
@@ -71,18 +73,20 @@ public class OutputDirectoryTest {
 	}
 
 	@Test
-	public void checkJavaserviceTrue() throws IOException, ParserException, SemanticException, CommandLineException {
+	public void checkJavaserviceTrue()
+		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
 		String[] args = { "src/test/resources/main.ol" };
 		Jolie2JavaCommandLineParser cmdParser =
 			Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
 		Program program = ParsingUtils.parseProgram(
-			cmdParser.programStream(),
-			cmdParser.programFilepath().toURI(),
-			cmdParser.charset(),
-			cmdParser.includePaths(),
-			cmdParser.jolieClassLoader(),
-			cmdParser.definedConstants(),
+			cmdParser.getInterpreterConfiguration().inputStream(),
+			cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+			cmdParser.getInterpreterConfiguration().charset(),
+			cmdParser.getInterpreterConfiguration().includePaths(),
+			cmdParser.getInterpreterConfiguration().packagePaths(),
+			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+			cmdParser.getInterpreterConfiguration().constants(),
 			false );
 
 		// Program program = parser.parse();

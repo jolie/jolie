@@ -19,6 +19,7 @@
 
 package jolie.lang;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,19 +32,19 @@ public enum NativeType {
 	STRING( "string" ), INT( "int" ), LONG( "long" ), BOOL( "bool" ), DOUBLE( "double" ), VOID( "void" ), RAW(
 		"raw" ), ANY( "any" );
 
-	private final static Map< String, NativeType > idMap = new HashMap<>();
+	private final static Map< String, NativeType > ID_MAP;
 
 	static {
+		Map< String, NativeType > idMapTmp = new HashMap<>();
 		for( NativeType type : NativeType.values() ) {
-			idMap.put( type.id(), type );
+			idMapTmp.put( type.id(), type );
 		}
+		ID_MAP = Collections.unmodifiableMap( idMapTmp );
 	}
 
 	private final String id;
-
-
 	private NativeType( String id ) {
-		this.id = id;
+	this.id = id;
 	}
 
 	public String id() {
@@ -51,11 +52,11 @@ public enum NativeType {
 	}
 
 	public static NativeType fromString( String id ) {
-		return idMap.get( id );
+		return ID_MAP.get( id );
 	}
 
 	public static boolean isNativeTypeKeyword( String id ) {
-		return idMap.containsKey( id );
+		return ID_MAP.containsKey( id );
 	}
 
 }

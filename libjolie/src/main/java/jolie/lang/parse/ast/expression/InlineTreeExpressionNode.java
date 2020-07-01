@@ -19,16 +19,16 @@
 
 package jolie.lang.parse.ast.expression;
 
+import java.io.Serializable;
+
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
 
-import java.io.Serializable;
-
 
 public class InlineTreeExpressionNode extends OLSyntaxNode {
-	public static interface Operation {
+	public interface Operation {
 	}
 
 	public static class AssignmentOperation implements Operation, Serializable {

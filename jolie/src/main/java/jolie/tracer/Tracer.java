@@ -29,5 +29,5 @@ import java.util.function.Supplier;
  */
 public interface Tracer {
 
-	public void trace( Supplier< ? extends TraceAction > supplier );
+	void trace( Supplier< ? extends TraceAction > supplier );
 }

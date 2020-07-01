@@ -22,6 +22,7 @@ package jolie.lang.parse.util;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
@@ -44,11 +45,9 @@ public class Operations {
 			newResponseType = TypeDefinition.extend( operation.responseType(), extender.responseType(), namePrefix );
 			extendedFaultMap.putAll( extender.faults() );
 		}
-		RequestResponseOperationDeclaration newOp =
-			new RequestResponseOperationDeclaration( operation.context(), operation.id(), newRequestType,
-				newResponseType, extendedFaultMap );
 
-		return newOp;
+		return new RequestResponseOperationDeclaration( operation.context(), operation.id(), newRequestType,
+			newResponseType, extendedFaultMap );
 	}
 
 	public static OneWayOperationDeclaration extend(

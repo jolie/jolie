@@ -41,7 +41,7 @@ public class WSDLCache {
 
 	private WSDLCache()
 		throws WSDLException {
-		cache = new HashMap< String, Definition >();
+		cache = new HashMap<>();
 		factory = WSDLFactory.newInstance();
 	}
 

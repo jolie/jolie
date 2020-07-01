@@ -4,17 +4,18 @@
  */
 package joliex.java;
 
+import java.io.IOException;
+
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
 import joliex.java.impl.JavaDocumentCreator;
 import joliex.java.impl.JavaGWTDocumentCreator;
-
-import java.io.IOException;
 
 /**
  *
@@ -29,9 +30,13 @@ public class Jolie2Java {
 				Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.programStream(),
-				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
+				cmdParser.getInterpreterConfiguration().inputStream(),
+				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().charset(),
+				cmdParser.getInterpreterConfiguration().includePaths(),
+				cmdParser.getInterpreterConfiguration().packagePaths(),
+				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+				cmdParser.getInterpreterConfiguration().constants(), false );
 
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
@@ -44,7 +49,7 @@ public class Jolie2Java {
 			if( format.equals( "java" ) && packageName != null ) {
 				JavaDocumentCreator documentJava = new JavaDocumentCreator( inspector, cmdParser.getPackageName(),
 					cmdParser.getTargetPort(), cmdParser.isAddSource(), cmdParser.getOutputDirectory(),
-					cmdParser.isBuildXmlenabled(), cmdParser.getJavaservice() );
+					cmdParser.isBuildXmlenabled(), cmdParser.javaService() );
 				documentJava.ConvertDocument();
 			} else if( format.equals( "gwt" ) && packageName != null ) {
 				System.out.println( "WARNING: gwt conversion is deprecated, use it at your own risk" );
@@ -59,13 +64,9 @@ public class Jolie2Java {
 			System.out.println( "Generation done!" );
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
-		} catch( IOException e ) {
+		} catch( IOException | FaultException | SemanticException | ParserException e ) {
 			e.printStackTrace();
-		} catch( ParserException e ) {
-			e.printStackTrace();
-		} catch( SemanticException e ) {
-			e.printStackTrace();
-		} catch( FaultException e ) {
+		} catch( ModuleException e ) {
 			e.printStackTrace();
 		}
 	}

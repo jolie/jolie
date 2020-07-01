@@ -25,10 +25,10 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public interface Process {
-	public void run()
+	void run()
 		throws FaultException, ExitingException;
 
-	public Process copy( TransformationReason reason );
+	Process copy( TransformationReason reason );
 
-	public boolean isKillable();
+	boolean isKillable();
 }

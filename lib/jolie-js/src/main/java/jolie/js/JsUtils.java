@@ -131,17 +131,17 @@ public class JsUtils {
 
 
 	public static void faultValueToJsonString( Value value, Type type, StringBuilder builder ) throws IOException {
-		builder.append( "{\"error\":{\"message\":\"" );
-		builder.append( value.getFirstChild( "error" ).getFirstChild( "message" ).strValue() );
-		builder.append( "\",\"code\":" );
-		builder.append( value.getFirstChild( "error" ).getFirstChild( "code" ).intValue() );
-		builder.append( ",\"data\":" );
+		builder.append( "{\"error\":{\"message\":\"" )
+			.append( value.getFirstChild( "error" ).getFirstChild( "message" ).strValue() )
+			.append( "\",\"code\":" )
+			.append( value.getFirstChild( "error" ).getFirstChild( "code" ).intValue() )
+			.append( ",\"data\":" );
 		valueToJsonString( value.getFirstChild( "error" ).getFirstChild( "data" ), false, type, builder );
 		builder.append( "}}" );
 	}
 
 	// JSON string -> Jolie value
-	private static void getBasicValue( Object obj, Value val ) {
+	private static void objectToBasicValue( Object obj, Value val ) {
 		if( obj instanceof String ) {
 			val.setValue( (String) obj );
 		} else if( obj instanceof Double ) {
@@ -165,7 +165,7 @@ public class JsUtils {
 		ValueVector vec;
 		for( Map.Entry< String, Object > entry : map.entrySet() ) {
 			if( entry.getKey().equals( ROOT_SIGN ) ) {
-				getBasicValue( entry.getValue(), value );
+				objectToBasicValue( entry.getValue(), value );
 			} else {
 				vec = jsonObjectToValueVector( entry.getValue(), strictEncoding );
 				value.children().put( entry.getKey(), vec );
@@ -187,7 +187,7 @@ public class JsUtils {
 			vec = jsonArrayToValueVector( (JSONArray) obj, strictEncoding );
 		} else {
 			Value val = Value.create();
-			getBasicValue( obj, val );
+			objectToBasicValue( obj, val );
 			vec.add( val );
 		}
 		return vec;
@@ -202,7 +202,7 @@ public class JsUtils {
 			} else if( element instanceof JSONObject ) {
 				jsonObjectToValue( (JSONObject) element, value, strictEncoding );
 			} else {
-				getBasicValue( element, value );
+				objectToBasicValue( element, value );
 			}
 			vec.add( value );
 		}
@@ -218,11 +218,9 @@ public class JsUtils {
 			} else if( obj instanceof JSONObject ) {
 				jsonObjectToValue( (JSONObject) obj, value, strictEncoding );
 			} else {
-				getBasicValue( obj, value );
+				objectToBasicValue( obj, value );
 			}
-		} catch( ParseException e ) {
-			throw new IOException( e );
-		} catch( ClassCastException e ) {
+		} catch( ParseException | ClassCastException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -243,12 +241,10 @@ public class JsUtils {
 				} else if( obj instanceof JSONObject ) {
 					jsonObjectToValue( (JSONObject) obj, itemValue, strictEncoding );
 				} else {
-					getBasicValue( obj, itemValue );
+					objectToBasicValue( obj, itemValue );
 				}
 				value.getChildren( "item" ).add( itemValue );
-			} catch( ParseException e ) {
-				throw new IOException( e );
-			} catch( ClassCastException e ) {
+			} catch( ParseException | ClassCastException e ) {
 				throw new IOException( e );
 			}
 

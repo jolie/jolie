@@ -24,14 +24,12 @@ package jolie.tracer;
 
 import jolie.lang.parse.context.ParsingContext;
 
-import java.text.ParseException;
-
 /**
  *
  * @author Fabrizio Montesi
  */
 public class EmbeddingTraceAction implements TraceAction {
-	public static enum Type {
+	public enum Type {
 		SERVICE_LOAD
 	}
 

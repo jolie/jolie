@@ -26,6 +26,7 @@ import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 
@@ -43,14 +44,19 @@ public class GetSurface {
 			JolieToSurfaceCommandLineParser cmdParser =
 				JolieToSurfaceCommandLineParser.create( args, GetSurface.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.programStream(),
-				cmdParser.programFilepath().toURI(), cmdParser.charset(),
-				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants(), false );
+				cmdParser.getInterpreterConfiguration().inputStream(),
+				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().charset(),
+				cmdParser.getInterpreterConfiguration().includePaths(),
+				cmdParser.getInterpreterConfiguration().packagePaths(),
+				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+				cmdParser.getInterpreterConfiguration().constants(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
-			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
-			document.ConvertDocument( cmdParser.arguments()[ 0 ], cmdParser.noOutputPort(), cmdParser.noLocation(),
-				cmdParser.noProtocol() );
-		} catch( CommandLineException | ParserException e ) {
+			SurfaceCreator document = new SurfaceCreator( inspector );
+			document.ConvertDocument( cmdParser.getInterpreterConfiguration().arguments()[ 0 ],
+				cmdParser.noOutputPort(),
+				cmdParser.noLocation(), cmdParser.noProtocol() );
+		} catch( CommandLineException | ParserException | ModuleException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException | SemanticException e ) {
 			e.printStackTrace();

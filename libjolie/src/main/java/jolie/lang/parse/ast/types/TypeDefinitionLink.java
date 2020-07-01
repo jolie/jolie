@@ -20,6 +20,7 @@
 package jolie.lang.parse.ast.types;
 
 import java.util.Iterator;
+import java.util.Set;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
@@ -34,15 +35,29 @@ public class TypeDefinitionLink extends TypeDefinition {
 	private TypeDefinition linkedType;
 	private final String linkedTypeName;
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, String linkedTypeName ) {
-		super( context, id, cardinality );
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality,
+		String linkedTypeName ) {
+		super( context, id, cardinality, AccessModifier.PUBLIC );
 		this.linkedTypeName = linkedTypeName;
 	}
 
 	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType ) {
-		super( context, id, cardinality );
+		super( context, id, cardinality, AccessModifier.PUBLIC );
 		this.linkedTypeName = linkedType.id();
 		this.linkedType = linkedType;
+	}
+
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
+		TypeDefinition linkedType ) {
+		super( context, id, cardinality, accessModifier );
+		this.linkedTypeName = linkedType.id();
+		this.linkedType = linkedType;
+	}
+
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
+		String linkedTypeName ) {
+		super( context, id, cardinality, accessModifier );
+		this.linkedTypeName = linkedTypeName;
 	}
 
 	public String linkedTypeName() {
@@ -80,5 +95,23 @@ public class TypeDefinitionLink extends TypeDefinition {
 	@Override
 	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
+	}
+
+	@Override
+	public int hashCode( Set< String > recursiveTypeHashed ) {
+		if( recursiveTypeHashed.contains( this.id() ) ) {
+			return 0;
+		}
+		recursiveTypeHashed.add( this.id() );
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + this.id().hashCode();
+		result = prime * result + this.cardinality().hashCode();
+		result = prime * result + this.linkedTypeName.hashCode();
+		result = prime * result + recursiveTypeHashed.size();
+		if( linkedType != null ) {
+			result = prime * result + linkedType.hashCode( recursiveTypeHashed );
+		}
+		return result;
 	}
 }

@@ -69,6 +69,7 @@ main
 	}
 	listRequest.directory -> dirs[i]
 	calcMaxLength
+	exitCode = 0 // Successful exit code
 	for( i = 0, i < #dirs, i++ ) {
 		list@File( listRequest )( list );
 		for( k = 0, k < #list.result, k++ ) {
@@ -79,13 +80,17 @@ main
 				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )() )
 				loadEmbeddedService@Runtime( loadRequest )( TestUnit.location )
 				install(
-					TestFailed => println@Console( "failed. " + s.TestFailed )(),
-					Timeout => println@Console( "timed out." )()
+					TestFailed => println@Console( "failed. " + s.TestFailed )(); exitCode = 3,
+					Timeout => println@Console( "timed out." )(); exitCode = 3
 				)
 				test@TestUnit()()
 				println@Console( "passed." )()
 				callExit@Runtime( TestUnit.location )()
 			}
 		}
+	}
+
+	if( exitCode != 0 ) {
+		halt@Runtime( { status = exitCode } )()
 	}
 }

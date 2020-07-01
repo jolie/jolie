@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -40,14 +41,19 @@ public class TypeInlineDefinition extends TypeDefinition {
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality ) {
-		super( context, id, cardinality );
+	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality, AccessModifier accessModifier ) {
+		super( context, id, cardinality, accessModifier );
 		this.basicType = basicType;
+	}
+
+	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality ) {
+		this( context, id, basicType, cardinality, AccessModifier.PUBLIC );
 	}
 
 	public BasicType basicType() {
 		return basicType;
 	}
+
 
 	public void setUntypedSubTypes( boolean b ) {
 		untypedSubTypes = b;
@@ -97,10 +103,7 @@ public class TypeInlineDefinition extends TypeDefinition {
 	}
 
 	public boolean hasSubTypes() {
-		if( subTypes != null && subTypes.isEmpty() == false ) {
-			return true;
-		}
-		return false;
+		return subTypes != null && subTypes.isEmpty() == false;
 	}
 
 	public void putSubType( TypeDefinition type ) {
@@ -117,5 +120,26 @@ public class TypeInlineDefinition extends TypeDefinition {
 	@Override
 	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
+	}
+
+	@Override
+	protected int hashCode( Set< String > recursiveTypeHashed ) {
+		if( recursiveTypeHashed.contains( this.id() ) ) {
+			return 0;
+		}
+		recursiveTypeHashed.add( this.id() );
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + this.id().hashCode();
+		result = prime * result + this.cardinality().hashCode();
+		result = prime * result + this.basicType().hashCode();
+		result = prime * result + recursiveTypeHashed.size();
+		if( this.hasSubTypes() ) {
+			for( TypeDefinition typeDef : subTypes.values() ) {
+				result = prime * result + typeDef.hashCode( recursiveTypeHashed );
+			}
+		}
+		result = prime * result + (untypedSubTypes ? 1231 : 1237);
+		return result;
 	}
 }

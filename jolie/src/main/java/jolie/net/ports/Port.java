@@ -34,14 +34,14 @@ public interface Port {
 	 * 
 	 * @return the {@link VariablePath} pointing to the protocol configuration of this port.
 	 */
-	public VariablePath protocolConfigurationPath();
+	VariablePath protocolConfigurationPath();
 
 	/**
 	 * Returns the {@link Interface} exposed directly by this port.
 	 * 
 	 * @return the {@link Interface} exposed directly by this port.
 	 */
-	public Interface getInterface();
+	Interface getInterface();
 
 	/**
 	 * Returns the {@link OperationTypeDescription} of the named operation, also considering the type
@@ -51,5 +51,5 @@ public interface Port {
 	 * @param resourcePath the resource path of the operation (in case of redirection).
 	 * @return the {@link OperationTypeDescription} of the named operation.
 	 */
-	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath );
+	OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath );
 }

@@ -85,7 +85,7 @@ public class StoragePath implements Iterable< Node > {
 	}
 
 	public Iterator< Node > iterator() {
-		return new ArrayIterator< Node >( nodes );
+		return new ArrayIterator<>( nodes );
 	}
 
 	public static StoragePath fromValue( Value value ) {

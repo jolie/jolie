@@ -16,12 +16,12 @@ public enum NameSpacesEnum {
 	// TNS("tns","http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl"),
 	// TNS_SCH("tnsxs","http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.xsd"),
 	XML_SCH( "xs", "http://www.w3.org/2001/XMLSchema" ), SOAP( "soap",
-		"http://schemas.xmlsoap.org/wsdl/soap/" ), SOAPoverHTTP( "soapOhttp",
+		"http://schemas.xmlsoap.org/wsdl/soap/" ), SOAP_OVER_HTTP( "soapOhttp",
 			"http://schemas.xmlsoap.org/soap/http" ), WSDL( "wsdl", "http://schemas.xmlsoap.org/wsdl/" );
 
 
-	private String prefix;
-	private String nameSpaceURI;
+	private final String prefix;
+	private final String nameSpaceURI;
 
 	NameSpacesEnum( String prefix, String nameSpaceURI ) {
 		this.prefix = prefix;

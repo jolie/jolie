@@ -24,10 +24,18 @@ package joliex.db;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import jolie.runtime.ByteArray;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
@@ -63,7 +71,7 @@ public class DatabaseService extends JavaService {
 	private static boolean toUpperCase = false;
 	private boolean mustCheckConnection = false;
 	private final Object transactionMutex = new Object();
-	private final static String templateField = "_template";
+	private final static String TEMPLATE_FIELD = "_template";
 
 	@Override
 	protected void finalize()
@@ -115,6 +123,10 @@ public class DatabaseService extends JavaService {
 		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
 		boolean isEmbedded = false;
+		String encoding = "utf8";
+		if( request.hasChildren( "encoding" ) ) {
+			request.getFirstChild( "encoding" ).strValue();
+		}
 
 		try {
 			if( "postgresql".equals( driver ) ) {
@@ -167,10 +179,12 @@ public class DatabaseService extends JavaService {
 			} else {
 				if( driver.startsWith( "hsqldb" ) ) {
 					connectionString = "jdbc:" + driver + ":" + driver.substring( driver.indexOf( '_' ) + 1 ) + "//"
-						+ host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
+						+ host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName + "?characterEncoding="
+						+ encoding;
 				} else {
 					connectionString =
-						"jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
+						"jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName
+							+ "?characterEncoding=" + encoding;
 				}
 				connection = DriverManager.getConnection(
 					connectionString,
@@ -422,7 +436,7 @@ public class DatabaseService extends JavaService {
 		throws SQLException {
 		Value rowValue;
 		ResultSetMetaData metadata = result.getMetaData();
-		Map< String, Integer > colIndexes = new HashMap< String, Integer >();
+		Map< String, Integer > colIndexes = new HashMap<>();
 		int cols = metadata.getColumnCount();
 		for( int i = 0; i < cols; i++ ) {
 			colIndexes.put( metadata.getColumnName( i ), i );
@@ -464,10 +478,10 @@ public class DatabaseService extends JavaService {
 					if( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
 						if( updateCount == -1 ) {
-							if( statementValue.hasChildren( templateField ) ) {
+							if( statementValue.hasChildren( TEMPLATE_FIELD ) ) {
 								resultSetToValueVectorWithTemplate( stm.getResultSet(),
 									currResultValue.getChildren( "row" ),
-									statementValue.getFirstChild( templateField ) );
+									statementValue.getFirstChild( TEMPLATE_FIELD ) );
 							} else {
 								resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
 							}
@@ -531,9 +545,9 @@ public class DatabaseService extends JavaService {
 			synchronized( transactionMutex ) {
 				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
 				ResultSet result = stm.executeQuery();
-				if( request.hasChildren( templateField ) ) {
+				if( request.hasChildren( TEMPLATE_FIELD ) ) {
 					resultSetToValueVectorWithTemplate( result, resultValue.getChildren( "row" ),
-						request.getFirstChild( templateField ) );
+						request.getFirstChild( TEMPLATE_FIELD ) );
 				} else {
 					resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 				}

@@ -7,13 +7,13 @@ import jolie.CommandLineParser;
 
 public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
-	private String packageName;
-	private String format;
-	private String targetPort;
+	private final String packageName;
+	private final String format;
+	private final String targetPort;
 	private boolean addSource = false;
-	private String outputDirectory = "";
-	private boolean buildXml = true;
-	private boolean javaservice = false;
+	private final String outputDirectory;
+	private final boolean buildXml;
+	private final boolean javaservice;
 
 	public String getPackageName() {
 		return packageName;
@@ -43,7 +43,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 		return buildXml;
 	}
 
-	public boolean getJavaservice() {
+	public boolean javaService() {
 		return javaservice;
 	}
 
@@ -61,7 +61,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 			throws CommandLineException {
 			if( "--addSource".equals( argumentsList.get( index ) ) ) {
 				index++;
-				this.addSource = new Boolean( argumentsList.get( index ) );
+				this.addSource = Boolean.valueOf( argumentsList.get( index ) );
 			} else if( "--packageName".equals( argumentsList.get( index ) ) ) {
 				index++;
 				packageName = argumentsList.get( index );
@@ -76,10 +76,10 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 				outputDirectory = argumentsList.get( index );
 			} else if( "--javaservice".equals( argumentsList.get( index ) ) ) {
 				index++;
-				javaservice = new Boolean( argumentsList.get( index ) );
+				javaservice = Boolean.valueOf( argumentsList.get( index ) );
 			} else if( "--buildXml".equals( argumentsList.get( index ) ) ) {
 				index++;
-				buildXml = new Boolean( argumentsList.get( index ) );
+				buildXml = Boolean.valueOf( argumentsList.get( index ) );
 			} else {
 				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
 			}

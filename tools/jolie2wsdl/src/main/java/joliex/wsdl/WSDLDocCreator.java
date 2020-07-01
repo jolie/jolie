@@ -20,7 +20,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -80,14 +79,14 @@ public class WSDLDocCreator {
 
 	private Document schemaDocument;
 	private Element schemaRootElement;
-	private final int MAX_CARD = Integer.MAX_VALUE;
+	private static final int MAX_CARD = Integer.MAX_VALUE;
 	private String tns;
-	private String tns_schema;
-	private final String tns_schema_prefix = "sch";
+	private String tnsSchema;
+	private static final String TNS_SCHEMA_PREFIX = "sch";
 	static ExtensionRegistry extensionRegistry;
 	private static WSDLFactory wsdlFactory;
 	private Definition localDef = null;
-	private final List< String > rootTypes = new ArrayList< String >();
+	private final List< String > rootTypes = new ArrayList<>();
 	private final ProgramInspector inspector;
 	private final URI originalFile;
 
@@ -111,7 +110,7 @@ public class WSDLDocCreator {
 			localDef.addNamespace( NameSpacesEnum.XML_SCH.getNameSpacePrefix(),
 				NameSpacesEnum.XML_SCH.getNameSpaceURI() );
 			localDef.setTargetNamespace( tns );
-			localDef.addNamespace( "xsd1", tns_schema );
+			localDef.addNamespace( "xsd1", tnsSchema );
 		} catch( WSDLException ex ) {
 			Logger.getLogger( WSDLDocCreator.class.getName() ).log( Level.SEVERE, null, ex );
 		}
@@ -123,7 +122,7 @@ public class WSDLDocCreator {
 		System.out.println( "Starting conversion..." );
 
 		this.tns = tns + ".wsdl";
-		this.tns_schema = tns + ".xsd";
+		this.tnsSchema = tns + ".xsd";
 
 		initWsdl( null, filename );
 
@@ -210,7 +209,7 @@ public class WSDLDocCreator {
 			Operation wsdlOp = addOWOperation2PT( localDef, pt, oneWayOperation );
 
 			// adding operation binding
-			addOperationSOAPBinding( localDef, pt, wsdlOp, bd );
+			addOperationSOAPBinding( localDef, wsdlOp, bd );
 
 		} else {
 			// RR
@@ -220,7 +219,7 @@ public class WSDLDocCreator {
 			Operation wsdlOp = addRROperation2PT( localDef, pt, requestResponseOperation );
 
 			// adding operation binding
-			addOperationSOAPBinding( localDef, pt, wsdlOp, bd );
+			addOperationSOAPBinding( localDef, wsdlOp, bd );
 
 		}
 	}
@@ -274,15 +273,14 @@ public class WSDLDocCreator {
 
 		// adding subtypes
 		if( type.hasSubTypes() ) {
-			Iterator it = type.subTypes().iterator();
-			while( it.hasNext() ) {
-				TypeDefinition curType = ((Entry< String, TypeDefinition >) it.next()).getValue();
+			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : type.subTypes() ) {
+				TypeDefinition curType = stringTypeDefinitionEntry.getValue();
 				Element subEl = schemaDocument.createElement( "xs:element" );
 				subEl.setAttribute( "name", curType.id() );
-				subEl.setAttribute( "minOccurs", new Integer( curType.cardinality().min() ).toString() );
+				subEl.setAttribute( "minOccurs", Integer.toString( curType.cardinality().min() ) );
 				String maxOccurs = "unbounded";
 				if( curType.cardinality().max() < MAX_CARD ) {
-					maxOccurs = new Integer( curType.cardinality().max() ).toString();
+					maxOccurs = Integer.toString( curType.cardinality().max() );
 				}
 				subEl.setAttribute( "maxOccurs", maxOccurs );
 				if( curType instanceof TypeInlineDefinition ) {
@@ -299,7 +297,7 @@ public class WSDLDocCreator {
 					}
 				} else if( curType instanceof TypeDefinitionLink ) {
 					subEl.setAttribute( "type",
-						tns_schema_prefix + ":" + ((TypeDefinitionLink) curType).linkedTypeName() );
+						TNS_SCHEMA_PREFIX + ":" + ((TypeDefinitionLink) curType).linkedTypeName() );
 					addRootType( ((TypeDefinitionLink) curType).linkedType() );
 				}
 				sequence.appendChild( subEl );
@@ -362,7 +360,7 @@ public class WSDLDocCreator {
 
 			}
 			// set the input part as the operation name
-			inputPart.setElementName( new QName( tns_schema, op.id() ) );
+			inputPart.setElementName( new QName( tnsSchema, op.id() ) );
 
 			inputMessage.addPart( inputPart );
 			inputMessage.setUndefined( false );
@@ -390,7 +388,7 @@ public class WSDLDocCreator {
 			outputMessage.setQName( new QName( tns, op_rr.responseType().id() ) );
 			addMessageType( op_rr.responseType(), outputPartName );
 
-			outputPart.setElementName( new QName( tns_schema, outputPartName ) );
+			outputPart.setElementName( new QName( tnsSchema, outputPartName ) );
 
 			outputMessage.addPart( outputPart );
 			outputMessage.setUndefined( false );
@@ -403,8 +401,7 @@ public class WSDLDocCreator {
 
 	}
 
-	private Message addFaultMessage( Definition localDef, OperationDeclaration op, TypeDefinition tp,
-		String faultName ) {
+	private Message addFaultMessage( Definition localDef, TypeDefinition tp ) {
 		Message faultMessage = localDef.createMessage();
 		faultMessage.setUndefined( false );
 
@@ -420,7 +417,7 @@ public class WSDLDocCreator {
 			// adding wsdl_types related to this message
 			addMessageType( tp, faultPartName );
 
-			faultPart.setElementName( new QName( tns_schema, faultPartName ) );
+			faultPart.setElementName( new QName( tnsSchema, faultPartName ) );
 			faultMessage.addPart( faultPart );
 			faultMessage.setUndefined( false );
 
@@ -489,7 +486,7 @@ public class WSDLDocCreator {
 		for( Entry< String, TypeDefinition > curFault : op.faults().entrySet() ) {
 			Fault fault = localDef.createFault();
 			fault.setName( curFault.getKey() );
-			Message flt_msg = addFaultMessage( localDef, op, curFault.getValue(), curFault.getKey() );
+			Message flt_msg = addFaultMessage( localDef, curFault.getValue() );
 			fault.setMessage( flt_msg );
 			wsdlOp.addFault( fault );
 
@@ -510,7 +507,7 @@ public class WSDLDocCreator {
 		try {
 			SOAPBinding soapBinding = (SOAPBinding) extensionRegistry.createExtension( Binding.class,
 				new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "binding" ) );
-			soapBinding.setTransportURI( NameSpacesEnum.SOAPoverHTTP.getNameSpaceURI() );
+			soapBinding.setTransportURI( NameSpacesEnum.SOAP_OVER_HTTP.getNameSpaceURI() );
 			soapBinding.setStyle( "document" );
 			bind.addExtensibilityElement( soapBinding );
 		} catch( WSDLException ex ) {
@@ -522,7 +519,7 @@ public class WSDLDocCreator {
 
 	}
 
-	private void addOperationSOAPBinding( Definition localDef, PortType portType, Operation wsdlOp, Binding bind ) {
+	private void addOperationSOAPBinding( Definition localDef, Operation wsdlOp, Binding bind ) {
 		try {
 			// creating operation binding
 			BindingOperation bindOp = localDef.createBindingOperation();
@@ -552,13 +549,12 @@ public class WSDLDocCreator {
 
 			// adding fault
 			if( !wsdlOp.getFaults().isEmpty() ) {
-				Iterator it = wsdlOp.getFaults().entrySet().iterator();
-				while( it.hasNext() ) {
+				for( Object o : wsdlOp.getFaults().entrySet() ) {
 					BindingFault bindingFault = localDef.createBindingFault();
 					SOAPFault soapFault = (SOAPFault) extensionRegistry.createExtension( BindingFault.class,
 						new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "fault" ) );
 					soapFault.setUse( "literal" );
-					String faultName = ((Entry) it.next()).getKey().toString();
+					String faultName = ((Entry) o).getKey().toString();
 					bindingFault.setName( faultName );
 					soapFault.setName( faultName );
 					bindingFault.addExtensibilityElement( soapFault );
@@ -612,8 +608,8 @@ public class WSDLDocCreator {
 	private Element createSchemaRootElement( Document document ) {
 		Element rootElement = document.createElement( "xs:schema" );
 		rootElement.setAttribute( "xmlns:xs", NameSpacesEnum.XML_SCH.getNameSpaceURI() );
-		rootElement.setAttribute( "targetNamespace", tns_schema );
-		rootElement.setAttribute( "xmlns:" + tns_schema_prefix, tns_schema );
+		rootElement.setAttribute( "targetNamespace", tnsSchema );
+		rootElement.setAttribute( "xmlns:" + TNS_SCHEMA_PREFIX, tnsSchema );
 		document.appendChild( rootElement );
 		return rootElement;
 

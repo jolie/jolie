@@ -20,10 +20,9 @@
  ***************************************************************************/
 package joliex.surface;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map.Entry;
+
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -46,30 +45,26 @@ import jolie.util.Range;
  *         Modified by Francesco Bullini, 05/07/2012
  */
 public class SurfaceCreator {
-	private ProgramInspector inspector;
-	private URI originalFile;
-	private ArrayList< RequestResponseOperationDeclaration > rr_vector;
-	private ArrayList< OneWayOperationDeclaration > ow_vector;
-	private ArrayList< String > types_vector;
-	private ArrayList< TypeDefinition > aux_types_vector;
-	private int MAX_CARD = 2147483647;
+	private final ProgramInspector inspector;
+	private ArrayList< RequestResponseOperationDeclaration > rrVector;
+	private ArrayList< OneWayOperationDeclaration > owVector;
+	private ArrayList< String > typesVector;
+	private ArrayList< TypeDefinition > auxTypesVector;
+	private final static int MAX_CARD = Integer.MAX_VALUE;
 
 
-	public SurfaceCreator( ProgramInspector inspector, URI originalFile ) {
-
+	public SurfaceCreator( ProgramInspector inspector ) {
 		this.inspector = inspector;
-		this.originalFile = originalFile;
-
 	}
 
 	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation,
 		boolean noProtocol ) {
 
-		ArrayList< InterfaceDefinition > interface_vector = new ArrayList< InterfaceDefinition >();
-		rr_vector = new ArrayList< RequestResponseOperationDeclaration >();
-		ow_vector = new ArrayList< OneWayOperationDeclaration >();
-		types_vector = new ArrayList< String >();
-		aux_types_vector = new ArrayList< TypeDefinition >();
+		ArrayList< InterfaceDefinition > interface_vector = new ArrayList<>();
+		rrVector = new ArrayList<>();
+		owVector = new ArrayList<>();
+		typesVector = new ArrayList<>();
+		auxTypesVector = new ArrayList<>();
 
 		// find inputPort
 
@@ -87,9 +82,7 @@ public class SurfaceCreator {
 
 		// extracts the list of all the interfaces to be parsed
 		// extracts interfaces declared into Interfaces
-		for( InterfaceDefinition interfaceDefinition : inputPort.getInterfaceList() ) {
-			interface_vector.add( interfaceDefinition );
-		}
+		interface_vector.addAll( inputPort.getInterfaceList() );
 		OutputPortInfo[] outputPortList = inspector.getOutputPorts();
 		// extracts interfaces from aggregated outputPorts
 		for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
@@ -117,16 +110,15 @@ public class SurfaceCreator {
 	private void addOperation( InterfaceDefinition interfaceDefinition ) {
 		for( OperationDeclaration op : interfaceDefinition.operationsMap().values() ) {
 			if( op instanceof RequestResponseOperationDeclaration ) {
-				rr_vector.add( (RequestResponseOperationDeclaration) op );
+				rrVector.add( (RequestResponseOperationDeclaration) op );
 			} else {
-				ow_vector.add( (OneWayOperationDeclaration) op );
+				owVector.add( (OneWayOperationDeclaration) op );
 			}
 		}
 	}
 
 	private String getOWString( OneWayOperationDeclaration ow ) {
-		String ret = ow.id() + "( " + ow.requestType().id() + " )";
-		return ret;
+		return ow.id() + "( " + ow.requestType().id() + " )";
 	}
 
 	private String getRRString( RequestResponseOperationDeclaration rr ) {
@@ -153,7 +145,7 @@ public class SurfaceCreator {
 		if( max == MAX_CARD ) {
 			return "*";
 		} else {
-			return new Integer( max ).toString();
+			return Integer.toString( max );
 		}
 	}
 
@@ -178,8 +170,8 @@ public class SurfaceCreator {
 
 		if( type instanceof TypeDefinitionLink ) {
 			ret = ret + ((TypeDefinitionLink) type).linkedTypeName();
-			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+			if( !auxTypesVector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				auxTypesVector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 
 		} else if( type instanceof TypeInlineDefinition ) {
@@ -210,13 +202,13 @@ public class SurfaceCreator {
 
 	private String getType( TypeDefinition type ) {
 		String ret = "";
-		if( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
+		if( !typesVector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
 			&& !type.id().equals( "undefined" ) ) {
 
 			System.out.print( "type " + type.id() + ":" );
 			checkType( type );
-			System.out.println( "" );
-			types_vector.add( type.id() );
+			System.out.println();
+			typesVector.add( type.id() );
 		}
 
 		return ret;
@@ -225,8 +217,8 @@ public class SurfaceCreator {
 	private void checkType( TypeDefinition type ) {
 		if( type instanceof TypeDefinitionLink ) {
 			System.out.print( ((TypeDefinitionLink) type).linkedTypeName() );
-			if( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+			if( !auxTypesVector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				auxTypesVector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 		} else if( type instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition def = (TypeInlineDefinition) type;
@@ -262,20 +254,20 @@ public class SurfaceCreator {
 
 	private void createOutput( InputPortInfo inputPort, boolean noOutputPort, boolean noLocation, boolean noProtocol ) {
 		// types creation
-		if( ow_vector.size() > 0 ) {
-			for( int x = 0; x < ow_vector.size(); x++ ) {
+		if( !owVector.isEmpty() ) {
+			for( OneWayOperationDeclaration opDecl : owVector ) {
 				// System.out.println("// types for operation " + ow_vector.get(x).id() );
-				printType( getType( ow_vector.get( x ).requestType() ) );
+				printType( getType( opDecl.requestType() ) );
 			}
 			System.out.println();
 		}
 
-		if( rr_vector.size() > 0 ) {
-			for( int x = 0; x < rr_vector.size(); x++ ) {
+		if( !rrVector.isEmpty() ) {
+			for( RequestResponseOperationDeclaration rrDecl : rrVector ) {
 				// System.out.println("// types for operation " + rr_vector.get(x).id() );
-				printType( getType( rr_vector.get( x ).requestType() ) );
-				printType( getType( rr_vector.get( x ).responseType() ) );
-				for( Entry< String, TypeDefinition > fault : rr_vector.get( x ).faults().entrySet() ) {
+				printType( getType( rrDecl.requestType() ) );
+				printType( getType( rrDecl.responseType() ) );
+				for( Entry< String, TypeDefinition > fault : rrDecl.faults().entrySet() ) {
 					if( !fault.getValue().id().equals( "undefined" ) ) {
 						System.out.println( getType( fault.getValue() ) );
 					}
@@ -285,13 +277,12 @@ public class SurfaceCreator {
 		}
 
 		// add auxiliary types
-		while( !aux_types_vector.isEmpty() ) {
-			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList< TypeDefinition >();
-			aux_types_temp_vector.addAll( aux_types_vector );
-			aux_types_vector.clear();
-			Iterator it = aux_types_temp_vector.iterator();
-			while( it.hasNext() ) {
-				printType( getType( (TypeDefinition) it.next() ) );
+		while( !auxTypesVector.isEmpty() ) {
+			ArrayList< TypeDefinition > aux_types_temp_vector = new ArrayList<>();
+			aux_types_temp_vector.addAll( auxTypesVector );
+			auxTypesVector.clear();
+			for( TypeDefinition typeDefinition : aux_types_temp_vector ) {
+				printType( getType( typeDefinition ) );
 			}
 		}
 
@@ -300,24 +291,24 @@ public class SurfaceCreator {
 		// interface creation
 		System.out.println( "interface " + inputPort.id() + "Surface {" );
 		// oneway declaration
-		if( ow_vector.size() > 0 ) {
+		if( !owVector.isEmpty() ) {
 			System.out.println( "OneWay:" );
-			for( int x = 0; x < ow_vector.size(); x++ ) {
+			for( int x = 0; x < owVector.size(); x++ ) {
 				if( x != 0 ) {
 					System.out.println( "," );
 				}
-				System.out.print( "\t" + getOWString( ow_vector.get( x ) ) );
+				System.out.print( "\t" + getOWString( owVector.get( x ) ) );
 			}
 			System.out.println();
 		}
 		// request response declaration
-		if( rr_vector.size() > 0 ) {
+		if( !rrVector.isEmpty() ) {
 			System.out.println( "RequestResponse:" );
-			for( int x = 0; x < rr_vector.size(); x++ ) {
+			for( int x = 0; x < rrVector.size(); x++ ) {
 				if( x != 0 ) {
 					System.out.println( "," );
 				}
-				System.out.print( "\t" + getRRString( rr_vector.get( x ) ) );
+				System.out.print( "\t" + getRRString( rrVector.get( x ) ) );
 			}
 			System.out.println();
 		}

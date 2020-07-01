@@ -28,7 +28,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
+
 import jolie.lang.parse.Scanner;
 import jolie.net.ChannelClosingException;
 
@@ -46,25 +46,26 @@ public class HttpParser {
 	private static final String PUT = "PUT";
 	private static final String HEAD = "HEAD";
 	private static final String DELETE = "DELETE";
-	private static final String TRACE = "TRACE";
-	private static final String CONNECT = "CONNECT";
+	// private static final String TRACE = "TRACE";
+	// private static final String CONNECT = "CONNECT";
 	private static final String OPTIONS = "OPTIONS";
-	private static final String PATCH = "PATCH";
+	// private static final String PATCH = "PATCH";
 
-	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
-	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
+	private static final Pattern COOKIES_SPLIT_PATTERN = Pattern.compile( ";" );
+	private static final Pattern COOKIE_NAME_VALUE_SPLIT_PATTERN = Pattern.compile( "=" );
 
 	private final HttpScanner scanner;
 	private Scanner.Token token;
 
-	private void getToken()
+	private void nextToken()
 		throws IOException {
 		token = scanner.getToken();
 	}
 
 	public HttpParser( InputStream istream )
 		throws IOException {
-		scanner = new HttpScanner( istream, URI.create( "urn:network" ) );
+		scanner = new HttpScanner( istream );
+		// , URI.create( "urn:network" ) );
 	}
 
 	private void tokenAssert( Scanner.TokenType type )
@@ -81,51 +82,56 @@ public class HttpParser {
 	private void parseHeaderProperties( HttpMessage message )
 		throws IOException {
 		String name, value;
-		getToken();
+		nextToken();
 		HttpMessage.Cookie cookie;
 		while( token.is( Scanner.TokenType.ID ) ) {
 			name = token.content().toLowerCase();
-			getToken();
+			nextToken();
 			tokenAssert( Scanner.TokenType.COLON );
 			value = scanner.readLine();
-			if( "set-cookie".equals( name ) ) {
+			switch( name ) {
+			case "set-cookie":
 				// cookie = parseSetCookie( value );
 				if( (cookie = parseSetCookie( value )) != null ) {
 					message.addSetCookie( cookie );
 				}
-			} else if( "cookie".equals( name ) ) {
-				String ss[] = value.split( ";" );
+				break;
+			case "cookie":
+				String[] ss = value.split( ";" );
 				for( String s : ss ) {
-					String nv[] = s.trim().split( "=", 2 );
+					String[] nv = s.trim().split( "=", 2 );
 					if( nv.length > 1 ) {
 						message.addCookie( nv[ 0 ], nv[ 1 ] );
 					}
 				}
-			} else if( "user-agent".equals( name ) ) {
+				break;
+			case "user-agent":
 				message.setUserAgent( value );
 				message.setProperty( name, value );
-			} else {
+				break;
+			default:
 				message.setProperty( name, value );
+				break;
 			}
-			getToken();
+			nextToken();
 		}
 	}
 
 	private HttpMessage.Cookie parseSetCookie( String cookieString ) {
-		String ss[] = cookiesSplitPattern.split( cookieString );
+		String[] ss = COOKIES_SPLIT_PATTERN.split( cookieString );
 		if( cookieString.isEmpty() == false && ss.length > 0 ) {
 			boolean secure = false;
 			String domain = "";
 			String path = "";
 			String expires = "";
-			String nameValue[] = cookieNameValueSplitPattern.split( ss[ 0 ], 2 );
+			String[] nameValue = COOKIE_NAME_VALUE_SPLIT_PATTERN.split( ss[ 0 ], 2 );
 			if( ss.length > 1 ) {
-				String kv[];
+				String[] kv;
 				for( int i = 1; i < ss.length; i++ ) {
 					if( "secure".equals( ss[ i ] ) ) {
 						secure = true;
 					} else {
-						kv = cookieNameValueSplitPattern.split( ss[ i ], 2 );
+						kv = COOKIE_NAME_VALUE_SPLIT_PATTERN.split( ss[ i ], 2 );
 						if( kv.length > 1 ) {
 							kv[ 0 ] = kv[ 0 ].trim();
 							if( "expires".equalsIgnoreCase( kv[ 0 ] ) ) {
@@ -176,7 +182,7 @@ public class HttpParser {
 
 		message.setRequestPath( URLDecoder.decode( scanner.readWord(), HttpUtils.URL_DECODER_ENC ) );
 
-		getToken();
+		nextToken();
 		if( !token.isKeywordIgnoreCase( HTTP ) )
 			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
 
@@ -213,7 +219,7 @@ public class HttpParser {
 		if( !("1.1".equals( version ) || "1.0".equals( version )) )
 			throw new IOException( "Unsupported HTTP version specified: " + version );
 
-		getToken();
+		nextToken();
 		tokenAssert( Scanner.TokenType.INT );
 		message.setStatusCode( Integer.parseInt( token.content() ) );
 		message.setReason( scanner.readLine() );
@@ -272,7 +278,7 @@ public class HttpParser {
 			}
 		}
 
-		byte buffer[] = null;
+		byte[] buffer = null;
 		InputStream stream = scanner.inputStream();
 		if( chunked ) {
 			// Link: http://tools.ietf.org/html/rfc2616#section-3.6.1
@@ -343,7 +349,7 @@ public class HttpParser {
 
 	public HttpMessage parse()
 		throws IOException {
-		getToken();
+		nextToken();
 		HttpMessage message = parseMessageType();
 		parseHeaderProperties( message );
 		readContent( message );

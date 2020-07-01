@@ -23,9 +23,9 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /**
  * Subtract an expression value from a VariablePath's value, assigning the resulting value to the

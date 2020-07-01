@@ -23,20 +23,20 @@ package jolie.net.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.Scanner.Token;
 import jolie.lang.parse.Scanner.TokenType;
 
 public class HttpScanner {
 	private final InputStream stream;
-	private int state; // current state
 	private int currInt;
 	private char ch;
 	private static final int OVERFLOW_NET = 8192;
 
 
-	public HttpScanner( InputStream stream, URI source )
+	public HttpScanner( InputStream stream )
+		// , URI source )
 		throws IOException {
 		this.stream = stream;
 		readChar();
@@ -128,7 +128,8 @@ public class HttpScanner {
 
 	public Token getToken()
 		throws IOException {
-		state = 1;
+		// current state
+		int state = 1;
 
 		tokenBuilder.append( ch );
 		while( currInt != -1 && Scanner.isSeparator( ch ) ) {

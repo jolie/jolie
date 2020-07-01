@@ -25,8 +25,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
+import jolie.lang.parse.ast.ImportableSymbol;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
@@ -38,10 +40,11 @@ import jolie.util.Range;
  * 
  * @author Fabrizio Montesi
  */
-public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode {
+public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, ImportableSymbol {
 	private final String id;
 	private final Range cardinality;
 	private String document = null;
+	private final AccessModifier accessModifier;
 
 	/**
 	 * Constructor
@@ -49,11 +52,13 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 * @param context the parsing context for this AST node
 	 * @param id the name identifier for this type definition
 	 * @param cardinality the cardinality of this type
+	 * @param accessModifier the access modifier of symbolinfo
 	 */
-	public TypeDefinition( ParsingContext context, String id, Range cardinality ) {
+	public TypeDefinition( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier ) {
 		super( context );
 		this.id = id;
 		this.cardinality = cardinality;
+		this.accessModifier = accessModifier;
 	}
 
 	public String id() {
@@ -237,16 +242,25 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	}
 
 	@Override
-	public boolean equals( Object other ) {
-		return this == other;
+	public boolean equals( Object obj ) {
+		if( this == obj )
+			return true;
+		if( obj == null )
+			return false;
+		if( getClass() != obj.getClass() )
+			return false;
+		TypeDefinition other = (TypeDefinition) obj;
+		if( !this.id.equals( other.id ) ) {
+			return false;
+		}
+		return this.isEquivalentTo( other );
 	}
+
+	protected abstract int hashCode( Set< String > recursiveTypeHashed );
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 31 * hash + this.id.hashCode();
-		hash = 31 * hash + this.cardinality.hashCode();
-		return hash;
+		return hashCode( new HashSet<>() );
 	}
 
 	/*
@@ -255,4 +269,20 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 * untypedSubTypes(); public abstract NativeType nativeType(); public abstract boolean hasSubType(
 	 * String id );
 	 */
+
+	@Override
+	public AccessModifier accessModifier() {
+		return this.accessModifier;
+	}
+
+	@Override
+	public String name() {
+		return this.id;
+	}
+
+	@Override
+	public OLSyntaxNode node() {
+		return this;
+	}
+
 }

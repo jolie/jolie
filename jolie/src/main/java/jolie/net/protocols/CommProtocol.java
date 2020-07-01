@@ -25,6 +25,7 @@ package jolie.net.protocols;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -53,7 +54,7 @@ public abstract class CommProtocol {
 			}
 		}
 
-		private final static DummyChannel dummyChannel = new DummyChannel();
+		private final static DummyChannel DUMMY_CHANNEL = new DummyChannel();
 	}
 
 	private static class Parameters {
@@ -80,7 +81,7 @@ public abstract class CommProtocol {
 
 	protected CommChannel channel() {
 		if( this.channel == null ) {
-			return LazyDummyChannelHolder.dummyChannel;
+			return LazyDummyChannelHolder.DUMMY_CHANNEL;
 		}
 		return this.channel;
 	}

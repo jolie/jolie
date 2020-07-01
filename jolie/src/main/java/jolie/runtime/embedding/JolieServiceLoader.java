@@ -21,22 +21,28 @@
 
 package jolie.runtime.embedding;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
+
 import jolie.CommandLineException;
+import jolie.CommandLineParser;
 import jolie.Interpreter;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
-	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
+	private final static Pattern SERVICE_PATH_SPLIT_PATTERN = Pattern.compile( " " );
+	private final static AtomicLong SERVICE_LOADER_COUNTER = new AtomicLong();
 	private final Interpreter interpreter;
 
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
 		throws IOException, CommandLineException {
 		super( channelDest );
-		final String[] ss = servicePathSplitPattern.split( servicePath );
+		final String[] ss = SERVICE_PATH_SPLIT_PATTERN.split( servicePath );
 		final String[] options = currInterpreter.optionArgs();
 
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
@@ -45,9 +51,23 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
+		CommandLineParser commandLineParser = new CommandLineParser( newArgs, currInterpreter.getClassLoader(), false );
+
 		interpreter = new Interpreter(
-			newArgs,
-			currInterpreter.getClassLoader(),
+			commandLineParser.getInterpreterConfiguration(),
+			currInterpreter.programDirectory() );
+	}
+
+	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
+		throws IOException {
+		super( channelDest );
+		Interpreter.Configuration configuration = Interpreter.Configuration.create(
+			currInterpreter.configuration(),
+			new File( "#native_code_" + SERVICE_LOADER_COUNTER.getAndIncrement() ),
+			new ByteArrayInputStream( code.getBytes() ) );
+
+		interpreter = new Interpreter(
+			configuration,
 			currInterpreter.programDirectory() );
 	}
 

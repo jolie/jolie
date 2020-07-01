@@ -27,7 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.util.ProgramInspector;
 
@@ -183,7 +187,7 @@ public class ProgramInspectorImpl implements ProgramInspector {
 
 	@Override
 	public Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies( URI source ) {
-		Map< OLSyntaxNode, List< OLSyntaxNode > > list = behaviouralDependencies.get( source );;
+		Map< OLSyntaxNode, List< OLSyntaxNode > > list = behaviouralDependencies.get( source );
 		if( list == null ) {
 			return new HashMap<>();
 		}

@@ -337,15 +337,15 @@ class RootValueImpl extends Value implements Cloneable {
 class CSetValue extends ValueImpl {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	@Override
-	public void setValueObject( Object object ) {
-		// CommCore commCore = Interpreter.getInstance().commCore();
-		// synchronized( commCore.correlationLock() )
-		// removeFromRadixTree();
-		super.setValueObject( object );
-		// addToRadixTree();
-		// }
-	}
+	// @Override
+	// public void setValueObject( Object object ) {
+	// // CommCore commCore = Interpreter.getInstance().commCore();
+	// // synchronized( commCore.correlationLock() )
+	// // removeFromRadixTree();
+	// super.setValueObject( object );
+	// // addToRadixTree();
+	// // }
+	// }
 
 	@Override
 	public CSetValue clone() {
@@ -376,55 +376,55 @@ public abstract class Value implements Expression, Cloneable {
 		return false;
 	}
 
-	public final static Value createRootValue() {
+	public static Value createRootValue() {
 		return new RootValueImpl();
 	}
 
-	public final static Value createLink( VariablePath path ) {
+	public static Value createLink( VariablePath path ) {
 		return new ValueLink( path );
 	}
 
-	public final static Value create() {
+	public static Value create() {
 		return new ValueImpl();
 	}
 
-	public final static Value createCSetValue() {
+	public static Value createCSetValue() {
 		return new CSetValue();
 	}
 
-	public final static Value create( Boolean bool ) {
+	public static Value create( Boolean bool ) {
 		return new ValueImpl( bool );
 	}
 
-	public final static Value create( String str ) {
+	public static Value create( String str ) {
 		return new ValueImpl( str );
 	}
 
-	public final static Value create( Integer i ) {
+	public static Value create( Integer i ) {
 		return new ValueImpl( i );
 	}
 
-	public final static Value create( Long l ) {
+	public static Value create( Long l ) {
 		return new ValueImpl( l );
 	}
 
-	public final static Value create( Double d ) {
+	public static Value create( Double d ) {
 		return new ValueImpl( d );
 	}
 
-	public final static Value create( ByteArray b ) {
+	public static Value create( ByteArray b ) {
 		return new ValueImpl( b );
 	}
 
-	public final static Value create( Value value ) {
+	public static Value create( Value value ) {
 		return new ValueImpl( value );
 	}
 
-	public final static Value createClone( Value value ) {
+	public static Value createClone( Value value ) {
 		return value.clone();
 	}
 
-	public final static Value createDeepCopy( Value value ) {
+	public static Value createDeepCopy( Value value ) {
 		Value ret = Value.create();
 		ret.deepCopy( value );
 		return ret;
@@ -468,12 +468,21 @@ public abstract class Value implements Expression, Cloneable {
 
 	public abstract ValueVector getChildren( String childId );
 
-	public final < V > V firstChildOrDefault( String childId, Function< ? super Value, ? extends V > mappingFunction,
+	public final < V > V firstChildOrCompute( String childId, Function< ? super Value, ? extends V > mappingFunction,
 		Function< ? super String, ? extends V > defaultMappingFunction ) {
 		if( hasChildren( childId ) ) {
 			return mappingFunction.apply( getFirstChild( childId ) );
 		} else {
 			return defaultMappingFunction.apply( childId );
+		}
+	}
+
+	public final < V > V firstChildOrDefault( String childId, Function< ? super Value, ? extends V > mappingFunction,
+		V defaultValue ) {
+		if( hasChildren( childId ) ) {
+			return mappingFunction.apply( getFirstChild( childId ) );
+		} else {
+			return defaultValue;
 		}
 	}
 
@@ -818,15 +827,15 @@ public abstract class Value implements Expression, Cloneable {
 
 	public final synchronized void add( Value val ) {
 		if( isDefined() ) {
-			if( val.isString() ) {
+			if( isString() || val.isString() ) {
 				setValue( strValue() + val.strValue() );
-			} else if( isInt() ) {
-				setValue( intValue() + val.intValue() );
-			} else if( isLong() ) {
-				setValue( longValue() + val.longValue() );
-			} else if( isDouble() ) {
+			} else if( isDouble() || val.isDouble() ) {
 				setValue( doubleValue() + val.doubleValue() );
-			} else if( isBool() ) {
+			} else if( isLong() || val.isLong() ) {
+				setValue( longValue() + val.longValue() );
+			} else if( isInt() || val.isInt() ) {
+				setValue( intValue() + val.intValue() );
+			} else if( isBool() || val.isBool() ) {
 				setValue( boolValue() || val.boolValue() );
 			} else {
 				setValue( strValue() + val.strValue() );
@@ -840,34 +849,34 @@ public abstract class Value implements Expression, Cloneable {
 		if( !isDefined() ) {
 			if( val.isDouble() ) {
 				setValue( -val.doubleValue() );
-			} else if( val.isInt() ) {
-				setValue( -val.intValue() );
 			} else if( val.isLong() ) {
 				setValue( -val.longValue() );
+			} else if( val.isInt() ) {
+				setValue( -val.intValue() );
 			} else if( val.isBool() ) {
 				setValue( !val.boolValue() );
 			} else {
 				assignValue( val );
 			}
-		} else if( isInt() ) {
-			setValue( intValue() - val.intValue() );
-		} else if( isLong() ) {
-			setValue( longValue() - val.longValue() );
-		} else if( isDouble() ) {
+		} else if( isDouble() || val.isDouble() ) {
 			setValue( doubleValue() - val.doubleValue() );
+		} else if( isLong() || val.isLong() ) {
+			setValue( longValue() - val.longValue() );
+		} else if( isInt() || val.isInt() ) {
+			setValue( intValue() - val.intValue() );
 		}
 	}
 
 	public synchronized final void multiply( Value val ) {
 		if( isDefined() ) {
-			if( isInt() ) {
-				setValue( intValue() * val.intValue() );
-			} else if( isBool() ) {
-				setValue( boolValue() && val.boolValue() );
-			} else if( isLong() ) {
-				setValue( longValue() * val.longValue() );
-			} else if( isDouble() ) {
+			if( isDouble() || val.isDouble() ) {
 				setValue( doubleValue() * val.doubleValue() );
+			} else if( isLong() || val.isLong() ) {
+				setValue( longValue() * val.longValue() );
+			} else if( isInt() || val.isInt() ) {
+				setValue( intValue() * val.intValue() );
+			} else if( isBool() || val.isBool() ) {
+				setValue( boolValue() && val.boolValue() );
 			}
 		} else {
 			assignValue( val );
@@ -877,24 +886,24 @@ public abstract class Value implements Expression, Cloneable {
 	public synchronized final void divide( Value val ) {
 		if( !isDefined() ) {
 			setValue( 0 );
-		} else if( isInt() ) {
-			setValue( intValue() / val.intValue() );
-		} else if( isLong() ) {
-			setValue( longValue() / val.longValue() );
-		} else if( isDouble() ) {
+		} else if( isDouble() || val.isDouble() ) {
 			setValue( doubleValue() / val.doubleValue() );
+		} else if( isLong() || val.isLong() ) {
+			setValue( longValue() / val.longValue() );
+		} else if( isInt() || val.isInt() ) {
+			setValue( intValue() / val.intValue() );
 		}
 	}
 
 	public synchronized final void modulo( Value val ) {
 		if( !isDefined() ) {
 			assignValue( val );
-		} else if( isInt() ) {
-			setValue( intValue() % val.intValue() );
-		} else if( isLong() ) {
-			setValue( longValue() % val.longValue() );
-		} else if( isDouble() ) {
+		} else if( isDouble() || val.isDouble() ) {
 			setValue( doubleValue() % val.doubleValue() );
+		} else if( isLong() || val.isLong() ) {
+			setValue( longValue() % val.longValue() );
+		} else if( isInt() || val.isInt() ) {
+			setValue( intValue() % val.intValue() );
 		}
 	}
 

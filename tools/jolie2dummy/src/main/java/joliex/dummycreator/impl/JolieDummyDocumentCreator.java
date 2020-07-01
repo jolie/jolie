@@ -23,18 +23,18 @@ package joliex.dummycreator.impl;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map.Entry;
+
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
 
 /**
@@ -42,11 +42,11 @@ import jolie.lang.parse.util.ProgramInspector;
  * @author Balint Maschio
  */
 public class JolieDummyDocumentCreator {
-	private ProgramInspector inspector;
-	private StringBuilder stringBuilder;
-	private File sourceFile;
-	private final int MAX_ARRAY_ITEMS = 5;
-	private final String mockFilename = "mock_main.ol";
+	private final ProgramInspector inspector;
+	private final StringBuilder stringBuilder;
+	private final File sourceFile;
+	private static final int MAX_ARRAY_ITEMS = 5;
+	private static final String MOCK_FILENAME = "mock_main.ol";
 
 	public JolieDummyDocumentCreator( ProgramInspector inspector, File sourceFile ) {
 
@@ -56,7 +56,7 @@ public class JolieDummyDocumentCreator {
 	}
 
 	public void createDocument()
-		throws FileNotFoundException, IOException {
+		throws IOException {
 		String fileContent = new String( Files.readAllBytes( sourceFile.toPath() ) );
 		stringBuilder.append( "main {\n" );
 		for( InputPortInfo inputPortInfo : inspector.getInputPorts() ) {
@@ -68,7 +68,7 @@ public class JolieDummyDocumentCreator {
 		stringBuilder.append( "}" );
 		int mainIndex = fileContent.indexOf( "main" );
 		stringBuilder.insert( 0, fileContent.substring( 0, mainIndex ) );
-		BufferedWriter writer = new BufferedWriter( new FileWriter( mockFilename ) );
+		BufferedWriter writer = new BufferedWriter( new FileWriter( MOCK_FILENAME ) );
 		writer.append( stringBuilder.toString() );
 		writer.flush();
 		writer.close();
@@ -107,8 +107,7 @@ public class JolieDummyDocumentCreator {
 			} else {
 				// get cardinality indexes. if maximum cardinality is considerably big (more than 5), print only
 				// first 5 entries; or print less otherwise; don't print cardinality, if it equals 1
-				int typeCardinality = (typeInlineDefinition.cardinality().max() > MAX_ARRAY_ITEMS ? MAX_ARRAY_ITEMS
-					: typeInlineDefinition.cardinality().max());
+				int typeCardinality = (Math.min( typeInlineDefinition.cardinality().max(), MAX_ARRAY_ITEMS ));
 				for( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
 					String cardinalityString =
 						typeCardinality == 1 ? "" : "[ " + String.valueOf( cardinalityIndex ) + " ]";
@@ -122,9 +121,12 @@ public class JolieDummyDocumentCreator {
 						} else if( typeInlineDefinition.basicType().nativeType().id().equals( "long" ) ) {
 							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
 								.append( "424242L;\n" );
-						} else {
-							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" )
+							break;
+						default:
+							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
+								.append( "=" )
 								.append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
+							break;
 						}
 					}
 				}

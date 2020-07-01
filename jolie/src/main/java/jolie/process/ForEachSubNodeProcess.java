@@ -55,7 +55,7 @@ public class ForEachSubNodeProcess implements Process {
 
 		Value v = targetPath.getValueOrNull();
 		if( v != null && v.hasChildren() ) {
-			String keys[];
+			String[] keys;
 			synchronized( v ) {
 				keys = new String[ v.children().keySet().size() ];
 				keys = v.children().keySet().toArray( keys );

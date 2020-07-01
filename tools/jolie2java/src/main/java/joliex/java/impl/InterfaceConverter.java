@@ -24,7 +24,7 @@ package joliex.java.impl;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
+
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
@@ -42,7 +42,7 @@ public class InterfaceConverter {
 	private Writer writer;
 	private int indentationLevel = 0;
 
-	public InterfaceConverter( Program program, String[] interfaceNames, Logger logger ) {
+	public InterfaceConverter( Program program, String[] interfaceNames ) {
 		this.program = program;
 		this.interfaceNames = interfaceNames;
 	}
