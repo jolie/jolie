@@ -79,6 +79,7 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 				response.getChildren( "events" ).get( index ).getFirstChild( "timestamp" ).setValue( e.timestamp() );
 				response.getChildren( "events" ).get( index ).getFirstChild( "type" ).setValue( e.type() );
 				response.getChildren( "events" ).get( index ).getFirstChild( "service" ).setValue( e.service() );
+				response.getChildren( "events" ).get( index ).getFirstChild( "cellId" ).setValue( e.cellId() );
 				if( e.context().hasChildren() ) {
 					response.getChildren( "events" ).get( index ).getChildren( "context" ).add( e.context() );
 				}

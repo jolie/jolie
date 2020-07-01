@@ -119,14 +119,14 @@ public class SolicitResponseProcess implements Process {
 					tmpValue.setValue( e.getMessage() );
 					log( "TYPE MISMATCH", new CommMessage( message.id(), message.operationName(),
 						message.resourcePath(), tmpValue, null ) );
-					if( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent( () -> {
-							return new OperationCallEvent( operationId, processId,
-								Long.toString( message.id() ), OperationCallEvent.FAULT,
-								"TypeMismatch:" + e.getMessage(), outputPort.id(),
-								Interpreter.getInstance().programFilename(), context, message.value() );
-						} );
-					}
+
+					Interpreter.getInstance().fireMonitorEvent( () -> {
+						return new OperationCallEvent( operationId, processId,
+							Long.toString( message.id() ), OperationCallEvent.FAULT,
+							"TypeMismatch:" + e.getMessage(), outputPort.id(),
+							Interpreter.getInstance().programFilename(), context, message.value() );
+					} );
+
 
 					throw (e);
 				}
@@ -136,16 +136,16 @@ public class SolicitResponseProcess implements Process {
 			channel.send( message );
 			// channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
-			if( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance()
-					.fireMonitorEvent( () -> {
-						return new OperationCallEvent( operationId,
-							processId, Long.toString( message.id() ),
-							OperationCallEvent.SUCCESS, "", outputPort.id(),
-							Interpreter.getInstance().programFilename(), context,
-							message.value() );
-					} );
-			}
+			System.out.println( "------->" + ExecutionThread.currentThread().currentScopeId() );
+			Interpreter.getInstance()
+				.fireMonitorEvent( () -> {
+					return new OperationCallEvent( operationId,
+						processId, Long.toString( message.id() ),
+						OperationCallEvent.SUCCESS, "", outputPort.id(),
+						Interpreter.getInstance().programFilename(), context,
+						message.value() );
+				} );
+
 
 			CommMessage tmpResponse = null;
 			do {

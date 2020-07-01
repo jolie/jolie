@@ -77,6 +77,7 @@ type MonitorEvent: void {
 	memory: long
 	timestamp: long
 	service: string
+	cellId: int
 	data?: LogEventData 
 		| OperationCallReplyEventData 
 		| OperationEndedEventData 
