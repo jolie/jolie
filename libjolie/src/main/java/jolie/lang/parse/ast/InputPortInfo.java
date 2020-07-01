@@ -22,9 +22,7 @@
 package jolie.lang.parse.ast;
 
 import java.io.Serializable;
-import java.net.URI;
 import java.util.Map;
-
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
@@ -47,24 +45,21 @@ public class InputPortInfo extends PortInfo {
 		}
 	}
 
-	private final URI location;
-	private final String protocolId;
-	private final OLSyntaxNode protocolConfiguration;
+	private final OLSyntaxNode location;
+	private final OLSyntaxNode protocol;
 	private final AggregationItemInfo[] aggregationList;
 	private final Map< String, String > redirectionMap;
 
 	public InputPortInfo(
 		ParsingContext context,
 		String id,
-		URI location,
-		String protocolId,
-		OLSyntaxNode protocolConfiguration,
+		OLSyntaxNode location,
+		OLSyntaxNode protocol,
 		AggregationItemInfo[] aggregationList,
 		Map< String, String > redirectionMap ) {
 		super( context, id );
 		this.location = location;
-		this.protocolId = protocolId;
-		this.protocolConfiguration = protocolConfiguration;
+		this.protocol = protocol;
 		this.aggregationList = aggregationList;
 		this.redirectionMap = redirectionMap;
 	}
@@ -77,20 +72,20 @@ public class InputPortInfo extends PortInfo {
 		return redirectionMap;
 	}
 
-	public OLSyntaxNode protocolConfiguration() {
-		return protocolConfiguration;
+	public OLSyntaxNode protocol() {
+		return protocol;
 	}
 
-	public String protocolId() {
-		return protocolId;
-	}
-
-	public URI location() {
+	public OLSyntaxNode location() {
 		return location;
 	}
 
 	@Override
 	public void accept( OLVisitor visitor ) {
 		visitor.visit( this );
+	}
+
+	public String protocolId() {
+		return PortInfo.extractProtocolId( this.protocol );
 	}
 }

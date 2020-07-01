@@ -28,13 +28,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.AssignmentProcess;
+import jolie.process.DeepCopyProcess;
 import jolie.process.NullProcess;
 import jolie.process.Process;
 import jolie.process.SequentialProcess;
@@ -109,52 +109,49 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 * 
 	 * @param interpreter
 	 * @param id
-	 * @param protocolId
-	 * @param protocolConfigurationProcess
-	 * @param locationURI
+	 * @param locationExpr
+	 * @param protocolExpr
 	 * @param iface
 	 * @param isConstant
 	 */
 	public OutputPort(
 		Interpreter interpreter,
 		String id,
-		String protocolId,
-		Process protocolConfigurationProcess,
-		URI locationURI,
+		Expression locationExpr,
+		Expression protocolExpr,
 		Interface iface,
 		boolean isConstant ) {
 		super( id );
-		this.isConstant = isConstant;
 		this.interpreter = interpreter;
-		this.iface = iface;
 
-		this.protocolVariablePath =
-			new VariablePathBuilder( false )
-				.add( id(), 0 )
-				.add( Constants.PROTOCOL_NODE_NAME, 0 )
-				.toVariablePath();
+		this.protocolVariablePath = new VariablePathBuilder( false ).add( id(), 0 )
+			.add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
 
-		this.locationVariablePath =
-			new VariablePathBuilder( false )
-				.add( id(), 0 )
-				.add( Constants.LOCATION_NODE_NAME, 0 )
-				.toVariablePath();
+		this.locationVariablePath = new VariablePathBuilder( false ).add( id(), 0 )
+			.add( Constants.LOCATION_NODE_NAME, 0 ).toVariablePath();
 
 		this.locationExpression = locationVariablePath;
 
 		// Create the configuration Process
-		Process a = (locationURI == null) ? NullProcess.getInstance()
-			: new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ), null );
-
 		List< Process > children = new LinkedList<>();
-		children.add( a );
-		if( protocolConfigurationProcess != null ) {
-			children.add( protocolConfigurationProcess );
+		if( locationExpr != null ) {
+			children.add( new AssignmentProcess( this.locationVariablePath, locationExpr, null ) );
 		}
-		if( protocolId != null ) {
-			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ), null ) );
+
+		if( protocolExpr != null ) {
+			children.add( new DeepCopyProcess( this.protocolVariablePath, protocolExpr, true, null ) );
 		}
-		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ 0 ] ) );
+
+		if( children.isEmpty() ) {
+			children.add( NullProcess.getInstance() );
+		}
+
+		this.configurationProcess =
+			new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
+
+		this.isConstant = isConstant;
+
+		this.iface = iface;
 	}
 
 	/**

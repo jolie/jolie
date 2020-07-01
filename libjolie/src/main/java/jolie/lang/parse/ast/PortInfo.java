@@ -27,8 +27,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import jolie.lang.parse.DocumentedNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.context.ParsingContext;
 
 /**
@@ -103,4 +105,27 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 	public void addInterface( InterfaceDefinition iface ) {
 		interfaceList.add( iface );
 	}
+
+	protected static String extractProtocolId( OLSyntaxNode protocolNode ) {
+		if( protocolNode == null ) {
+			return "";
+		}
+
+		OLSyntaxNode p = protocolNode;
+		if( p instanceof SumExpressionNode ) {
+			// a non optimized protocol node
+			OLSyntaxNode prodVal = ((SumExpressionNode) p).operands().iterator().next().value();
+			p = ((ProductExpressionNode) prodVal).operands().iterator().next().value();
+		}
+
+		if( p instanceof InlineTreeExpressionNode ) {
+			if( ((InlineTreeExpressionNode) p).rootExpression() == null ) {
+				return "";
+			}
+			return ((InlineTreeExpressionNode) p).rootExpression().toString();
+		}
+
+		return p.toString();
+	}
+
 }
