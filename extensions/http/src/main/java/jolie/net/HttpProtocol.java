@@ -1127,10 +1127,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( headers != null ) {
 			if( headers.hasChildren( Parameters.HEADERS_WILDCARD ) ) {
 				String headerAlias = headers.getFirstChild( Parameters.HEADERS_WILDCARD ).strValue();
-				message.getProperties().forEach( ( propertyName, propertyValue ) -> {
+				message.properties().forEach( propertyEntry -> {
 					decodedMessage.value.getFirstChild( headerAlias )
-						.getFirstChild( propertyName )
-						.setValue( propertyValue );
+						.getFirstChild( propertyEntry.getKey() )
+						.setValue( propertyEntry.getValue() );
 				} );
 			} else {
 				for( String headerName : headers.children().keySet() ) {
