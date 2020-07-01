@@ -178,7 +178,6 @@ public class HttpMessage {
 		return (ret == null) ? "" : ret;
 	}
 
-
 	public String reason() {
 		return reason;
 	}
