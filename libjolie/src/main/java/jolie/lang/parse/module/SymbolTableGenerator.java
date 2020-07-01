@@ -71,6 +71,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -428,6 +429,16 @@ public class SymbolTableGenerator {
 						this.error = new ModuleException( n.context(), e );
 					}
 				}
+			}
+		}
+
+		@Override
+		public void visit( ServiceNode n ) {
+			try {
+				this.symbolTable.addSymbol( n.name(), n );
+			} catch( DuplicateSymbolException e ) {
+				this.valid = false;
+				this.error = new ModuleException( n.context(), e );
 			}
 		}
 

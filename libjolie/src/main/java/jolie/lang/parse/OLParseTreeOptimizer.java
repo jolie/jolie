@@ -22,7 +22,6 @@ package jolie.lang.parse;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -72,6 +71,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -103,6 +103,7 @@ import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
@@ -906,6 +907,19 @@ public class OLParseTreeOptimizer {
 		@Override
 		public void visit( ImportStatement n ) {
 			programChildren.add( n );
+		}
+
+		@Override
+		public void visit( ServiceNode n ) {
+			Pair< String, TypeDefinition > parameter = null;
+			if( n.hasParameter() ) {
+				parameter = new Pair<>( n.parameterPath().get(), n.parameterType().get() );
+			}
+			programChildren.add(
+				new ServiceNode( n.context(), n.name(), n.accessModifier(),
+					OLParseTreeOptimizer.optimize( n.program() ),
+					parameter,
+					n.type() ) );
 		}
 	}
 
