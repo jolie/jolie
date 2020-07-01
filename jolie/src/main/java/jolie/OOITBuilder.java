@@ -442,7 +442,6 @@ public class OOITBuilder implements OLVisitor {
 				n.id(),
 				locationExpr,
 				protocolExpr,
-				protocolIdExpr,
 				getOutputPortInterface( n.id() ),
 				isConstant ) );
 	}
@@ -551,9 +550,6 @@ public class OOITBuilder implements OLVisitor {
 				error( n.context(), e );
 			}
 		}
-		VariablePath protocolConfigurationPath =
-			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( n.id(), 0 ).add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
 
 		VariablePath locationPath =
 			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
