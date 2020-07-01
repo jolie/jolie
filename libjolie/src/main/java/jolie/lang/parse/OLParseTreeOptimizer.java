@@ -157,36 +157,42 @@ public class OLParseTreeOptimizer {
 
 		@Override
 		public void visit( OutputPortInfo p ) {
-			if( p.protocolConfiguration() != null ) {
-				p.protocolConfiguration().accept( this );
-				p.setProtocolConfiguration( currNode );
+			if( p.protocol() != null ) {
+				p.setProtocol( optimizeNode( p.protocol() ) );
+			}
+			if( p.location() != null ) {
+				p.setLocation( optimizeNode( p.location() ) );
 			}
 			programChildren.add( p );
 		}
 
 		@Override
 		public void visit( InputPortInfo p ) {
-			if( p.protocolConfiguration() != null ) {
-				p.protocolConfiguration().accept( this );
-				InputPortInfo iport =
-					new InputPortInfo(
-						p.context(),
-						p.id(),
-						p.location(),
-						p.protocolId(),
-						currNode,
-						p.aggregationList(),
-						p.redirectionMap() );
-				if( p.getDocumentation() != null && p.getDocumentation().length() > 0 ) {
-					iport.setDocumentation( p.getDocumentation() );
-				}
-				iport.operationsMap().putAll( p.operationsMap() );
-				iport.getInterfaceList().addAll( p.getInterfaceList() );
-				programChildren.add( iport );
-			} else {
-				programChildren.add( p );
+			OLSyntaxNode protocol = null, location = null;
+			if( p.protocol() != null ) {
+				protocol = optimizeNode( p.protocol() );
 			}
+
+			if( p.location() != null ) {
+				location = optimizeNode( p.location() );
+			}
+
+			InputPortInfo iport =
+				new InputPortInfo(
+					p.context(),
+					p.id(),
+					location,
+					protocol,
+					p.aggregationList(),
+					p.redirectionMap() );
+			if( p.getDocumentation() != null && p.getDocumentation().length() > 0 ) {
+				iport.setDocumentation( p.getDocumentation() );
+			}
+			iport.operationsMap().putAll( p.operationsMap() );
+			iport.getInterfaceList().addAll( p.getInterfaceList() );
+			programChildren.add( iport );
 		}
+
 
 		@Override
 		public void visit( OneWayOperationDeclaration decl ) {}

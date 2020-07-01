@@ -237,7 +237,7 @@ public class Inspector extends JavaService {
 		if( portInfo.location() != null ) {
 			result.setFirstChild( PortInfoType.LOCATION, portInfo.location().toString() );
 		}
-		if( portInfo.protocolId() != null ) {
+		if( portInfo.protocol() != null ) {
 			result.setFirstChild( PortInfoType.PROTOCOL, portInfo.protocolId() );
 		}
 		if( portInfo.getDocumentation() != null ) {
@@ -277,7 +277,7 @@ public class Inspector extends JavaService {
 		if( portInfo.location() != null ) {
 			result.setFirstChild( PortInfoType.LOCATION, portInfo.location().toString() );
 		}
-		if( portInfo.protocolId() != null ) {
+		if( portInfo.protocol() != null ) {
 			result.setFirstChild( PortInfoType.PROTOCOL, portInfo.protocolId() );
 		}
 		if( portInfo.getDocumentation() != null ) {
