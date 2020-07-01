@@ -21,6 +21,7 @@
 
 package jolie.monitoring;
 
+import jolie.Jolie;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.Value;
@@ -81,6 +82,10 @@ public class MonitoringEvent implements ValueConverter {
 		return data;
 	}
 
+	public int cellId() {
+		return Jolie.cellId;
+	}
+
 	public Value context() {
 		Value ret = Value.create();
 		if( context != null ) {
@@ -128,6 +133,7 @@ public class MonitoringEvent implements ValueConverter {
 		ret.getFirstChild( "memory" ).setValue( e.memory() );
 		ret.getChildren( "data" ).add( e.data() );
 		ret.getFirstChild( "service" ).setValue( e.service() );
+		ret.getFirstChild( "cellId" ).setValue( Jolie.cellId );
 		if( e.context().hasChildren() ) {
 			ret.getChildren( "context" ).add( e.context() );
 		}
