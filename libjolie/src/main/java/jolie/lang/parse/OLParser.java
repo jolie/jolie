@@ -163,16 +163,19 @@ public class OLParser extends AbstractParser {
 		LENGTH, ENUM, RANGES, REGEX
 	}
 
-	private static final Map< String, OLParser.RefinementPredicates > basicTypeRefinedPredicates = new HashMap<>();
+	private static final Map< String, OLParser.RefinementPredicates > BASIC_TYPE_REFINED_PREDICATES = new HashMap<>();
 	static {
-		basicTypeRefinedPredicates.put( "length", RefinementPredicates.LENGTH ); // defines the minimum and the maximum
+		BASIC_TYPE_REFINED_PREDICATES.put( "length", RefinementPredicates.LENGTH ); // defines the minimum and the
+																					// maximum
 																					// length of a string
 
-		basicTypeRefinedPredicates.put( "regex", RefinementPredicates.REGEX ); // defines the regex for a string
+		BASIC_TYPE_REFINED_PREDICATES.put( "regex", RefinementPredicates.REGEX ); // defines the regex for a string
 
-		basicTypeRefinedPredicates.put( "enum", RefinementPredicates.ENUM ); // defines a list of string that a string
+		BASIC_TYPE_REFINED_PREDICATES.put( "enum", RefinementPredicates.ENUM ); // defines a list of string that a
+																				// string
 																				// can be
-		basicTypeRefinedPredicates.put( "ranges", RefinementPredicates.RANGES ); // it defines a list of intervals where
+		BASIC_TYPE_REFINED_PREDICATES.put( "ranges", RefinementPredicates.RANGES ); // it defines a list of intervals
+																					// where
 																					// an int | long | double can be
 	}
 
@@ -486,7 +489,7 @@ public class OLParser extends AbstractParser {
 				throwException( "Expected a parameter of type integer, found " + token.content() );
 			}
 			if( token.type() == Scanner.TokenType.INT ) {
-				arrayList.add( new Integer( token.content() ) );
+				arrayList.add( Integer.valueOf( token.content() ) );
 			} else {
 				arrayList.add( Integer.MAX_VALUE );
 			}
@@ -589,7 +592,7 @@ public class OLParser extends AbstractParser {
 				throwException( "Expected a parameter of type string, found " + token.content() );
 			}
 			if( token.type() == Scanner.TokenType.LONG ) {
-				arrayList.add( new Long( token.content() ) );
+				arrayList.add( Long.valueOf( token.content() ) );
 			} else {
 				arrayList.add( Long.MAX_VALUE );
 			}
@@ -628,10 +631,10 @@ public class OLParser extends AbstractParser {
 					}
 					String predicate = token.content();
 					nextToken();
-					if( basicTypeRefinedPredicates.get( predicate ) != null ) {
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
 						eat( Scanner.TokenType.LPAREN, "( expected" );
 
-						switch( basicTypeRefinedPredicates.get( predicate ) ) {
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
 						case RANGES:
 							BasicTypeRefinementIntegerRanges basicTypeRefinementIntegerRanges =
 								new BasicTypeRefinementIntegerRanges();
@@ -657,7 +660,7 @@ public class OLParser extends AbstractParser {
 						eat( Scanner.TokenType.RPAREN, ") expected" );
 					} else {
 						StringBuilder supportedList = new StringBuilder().append( " " );
-						basicTypeRefinedPredicates.keySet().stream()
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
 							.forEach( s -> supportedList.append( s ).append( " " ) );
 						throwException( "Basic type Refinement predicate not supported. Supported list ["
 							+ supportedList + "], found " + predicate );
@@ -682,10 +685,10 @@ public class OLParser extends AbstractParser {
 					}
 					String predicate = token.content();
 					nextToken();
-					if( basicTypeRefinedPredicates.get( predicate ) != null ) {
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
 						eat( Scanner.TokenType.LPAREN, "( expected" );
 
-						switch( basicTypeRefinedPredicates.get( predicate ) ) {
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
 						case RANGES:
 							BasicTypeRefinementDoubleRanges basicTypeRefinementDoubleRanges =
 								new BasicTypeRefinementDoubleRanges();
@@ -711,7 +714,7 @@ public class OLParser extends AbstractParser {
 						eat( Scanner.TokenType.RPAREN, ") expected" );
 					} else {
 						StringBuilder supportedList = new StringBuilder().append( " " );
-						basicTypeRefinedPredicates.keySet().stream()
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
 							.forEach( s -> supportedList.append( s ).append( " " ) );
 						throwException( "Basic type Refinement predicate not supported. Supported list ["
 							+ supportedList + "], found " + predicate );
@@ -737,8 +740,8 @@ public class OLParser extends AbstractParser {
 					String predicate = token.content();
 					nextToken();
 					eat( Scanner.TokenType.LPAREN, "( expected" );
-					if( basicTypeRefinedPredicates.get( predicate ) != null ) {
-						switch( basicTypeRefinedPredicates.get( predicate ) ) {
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
 						case LENGTH:
 
 							ArrayList< Integer > parametersLength = parseListOfInteger( 2, 2, predicate );
@@ -771,7 +774,7 @@ public class OLParser extends AbstractParser {
 						}
 					} else {
 						StringBuilder supportedList = new StringBuilder().append( " " );
-						basicTypeRefinedPredicates.keySet().stream()
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
 							.forEach( s -> supportedList.append( s ).append( " " ) );
 						throwException( "Basic type Refinement predicate not supported. Supported list ["
 							+ supportedList + "], found " + predicate );
@@ -798,10 +801,10 @@ public class OLParser extends AbstractParser {
 					}
 					String predicate = token.content();
 					nextToken();
-					if( basicTypeRefinedPredicates.get( predicate ) != null ) {
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
 						eat( Scanner.TokenType.LPAREN, "( expected" );
 
-						switch( basicTypeRefinedPredicates.get( predicate ) ) {
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
 						case RANGES:
 							BasicTypeRefinementLongRanges basicTypeRefinementLongRanges =
 								new BasicTypeRefinementLongRanges();
@@ -827,7 +830,7 @@ public class OLParser extends AbstractParser {
 						eat( Scanner.TokenType.RPAREN, ") expected" );
 					} else {
 						StringBuilder supportedList = new StringBuilder().append( " " );
-						basicTypeRefinedPredicates.keySet().stream()
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
 							.forEach( s -> supportedList.append( s ).append( " " ) );
 						throwException( "Basic type Refinement predicate not supported. Supported list ["
 							+ supportedList + "], found " + predicate );
@@ -2906,7 +2909,6 @@ public class OLParser extends AbstractParser {
 		} else if( opType == Scanner.TokenType.INSTANCE_OF ) {
 			nextToken();
 			TypeDefinition type;
-			String currentTokenContent = token.content();
 			Scanner.TokenType currentTokenType = token.type();
 			BasicType basicType = readBasicType();
 			if( basicType.nativeType() == null ) { // It's a user-defined type

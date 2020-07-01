@@ -41,7 +41,8 @@ public class TypeInlineDefinition extends TypeDefinition {
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality, AccessModifier accessModifier ) {
+	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality,
+		AccessModifier accessModifier ) {
 		super( context, id, cardinality, accessModifier );
 		this.basicType = basicType;
 	}

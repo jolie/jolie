@@ -399,7 +399,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 			} else {
 				log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() );
-				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName().replace( "-", "_" ),
+				jolietype = new TypeInlineDefinition( PARSING_CONTEXT, simpleType.getName().replace( "-", "_" ),
 					BasicType.of( NativeType.VOID ), Constants.RANGE_ONE_TO_ONE );
 
 			}
@@ -479,9 +479,10 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 		TypeInlineDefinition right = new TypeInlineDefinition( PARSING_CONTEXT, element.getName().replace( "-", "_" ),
 			BasicType.of( XsdUtils.xsdToNativeType( type.getName() ) ), range );
 		if( element.isNillable() ) {
-			TypeInlineDefinition left = new TypeInlineDefinition( PARSING_CONTEXT, element.getName().replace( "-", "_" ),
-				BasicType.of( NativeType.VOID ), range );
-			return new TypeChoiceDefinition( parsingContext, element.getName().replace( "-", "_" ), range, left,
+			TypeInlineDefinition left =
+				new TypeInlineDefinition( PARSING_CONTEXT, element.getName().replace( "-", "_" ),
+					BasicType.of( NativeType.VOID ), range );
+			return new TypeChoiceDefinition( PARSING_CONTEXT, element.getName().replace( "-", "_" ), range, left,
 				right );
 		} else {
 			return right;

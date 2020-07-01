@@ -144,7 +144,6 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		Map< String, Type > subTypes = new HashMap<>();
 		subTypes.put( "jsonrpc", Type.create( BasicType.of( NativeType.STRING ), new Range( 1, 1 ), false, null ) );
 		subTypes.put( "id", Type.create( BasicType.of( NativeType.INT ), new Range( 0, 1 ), false, null ) );
-		Map< String, Type > paramsSubTypes = new HashMap<>();
 
 		if( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );

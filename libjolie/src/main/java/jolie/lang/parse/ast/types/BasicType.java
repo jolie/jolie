@@ -3,7 +3,6 @@ package jolie.lang.parse.ast.types;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

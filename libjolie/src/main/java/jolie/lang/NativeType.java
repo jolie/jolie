@@ -43,8 +43,9 @@ public enum NativeType {
 	}
 
 	private final String id;
+
 	private NativeType( String id ) {
-	this.id = id;
+		this.id = id;
 	}
 
 	public String id() {
