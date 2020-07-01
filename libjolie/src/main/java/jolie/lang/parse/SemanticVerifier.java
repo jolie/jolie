@@ -80,6 +80,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -352,7 +353,7 @@ public class SemanticVerifier implements OLVisitor {
 		checkCorrelationSets();
 
 		if( configuration.checkForMain && mainDefined == false ) {
-			error( null, "Main procedure not defined" );
+			error( null, "Main service or main procedure not defined" );
 		}
 
 		if( !errors.isEmpty() ) {
@@ -1306,7 +1307,12 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	@Override
-	public void visit( ImportStatement n ) {
+	public void visit( ImportStatement n ) {}
 
+	@Override
+	public void visit( ServiceNode n ) {
+		if( n.name().equals( "main" ) ) {
+			n.program().accept( this );
+		}
 	}
 }

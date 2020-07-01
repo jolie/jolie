@@ -1191,6 +1191,7 @@ public class Interpreter {
 				if( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 					program = OLParseTreeOptimizer.optimize( program );
+					symbolTables.putAll( this.parentInterpreter.symbolTables );
 				} else {
 					ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 						configuration().charset(),
