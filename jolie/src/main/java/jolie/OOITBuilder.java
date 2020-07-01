@@ -92,6 +92,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -1669,6 +1670,13 @@ public class OOITBuilder implements OLVisitor {
 	@Override
 	public void visit( ImportStatement n ) {
 
+	}
+
+	@Override
+	public void visit( ServiceNode n ) {
+		if( n.name().equals( "main" ) ) {
+			n.program().accept( this );
+		}
 	}
 }
 

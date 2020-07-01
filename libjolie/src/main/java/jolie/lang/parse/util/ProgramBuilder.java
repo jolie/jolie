@@ -20,10 +20,21 @@
 package jolie.lang.parse.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
+import jolie.lang.Constants;
+import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.ImportStatement;
+import jolie.lang.parse.ast.ImportableSymbol;
+import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
+import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.context.ParsingContext;
 
 public class ProgramBuilder {
@@ -44,5 +55,59 @@ public class ProgramBuilder {
 
 	public Program toProgram() {
 		return new Program( context, children );
+	}
+
+	public boolean isJolieModuleSystem() {
+		for( OLSyntaxNode node : children ) {
+			if( node instanceof DefinitionNode ) {
+				if( ((DefinitionNode) node).id().equals( "main" ) ) {
+					return false;
+				}
+			} else if( node instanceof ServiceNode ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	/**
+	 * Transform a Jolie execution program into a Jolie Module system program
+	 */
+	public void transformProgramToModuleSystem() {
+		// main service program
+		ProgramBuilder mainServiceProgramBuilder = new ProgramBuilder( context );
+
+		Set< OLSyntaxNode > movedNodes = new HashSet<>();
+
+		// foreach node apart from ImportableSymbol and ImportStatement, move to a newly create ServiceNode named main
+		for( OLSyntaxNode node : children ) {
+			if( !(node instanceof ImportableSymbol) && !(node instanceof ImportStatement) ) {
+				mainServiceProgramBuilder.addChild( node );
+				movedNodes.add( node );
+			}
+		}
+		ServiceNode mainService =
+			new ServiceNode( context, "main", AccessModifier.PUBLIC, mainServiceProgramBuilder.toProgram(), null,
+				Constants.EmbeddedServiceType.JOLIE );
+
+		children.add( mainService );
+		children.removeAll( movedNodes );
+	}
+
+
+	/**
+	 * Utility function for remove DeploymentInstructions declared in module scope from program
+	 * it is called when parsing a module which contains include statement
+	 */
+	public void removeModuleScopeDeploymentInstructions() {
+		Set< OLSyntaxNode > toRemove = new HashSet<>();
+		for( OLSyntaxNode node : children() ) {
+			if( node instanceof OutputPortInfo || node instanceof InputPortInfo
+				|| node instanceof EmbeddedServiceNode || node instanceof CourierDefinitionNode ) {
+				toRemove.add( node );
+			}
+		}
+		children.removeAll( toRemove );
 	}
 }

@@ -78,6 +78,7 @@ import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -689,6 +690,12 @@ class SymbolReferenceResolver {
 				return symbolTables.get( context.source() ).getSymbol( name );
 			}
 			return Optional.empty();
+		}
+
+		@Override
+		public void visit( ServiceNode n ) {
+			n.parameterType().ifPresent( ( type ) -> type.accept( this ) );
+			n.program().accept( this );
 		}
 	}
 
