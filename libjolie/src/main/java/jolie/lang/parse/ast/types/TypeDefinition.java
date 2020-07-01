@@ -193,7 +193,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 		if( left instanceof TypeDefinitionUndefined ) {
 			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(),
-				namePrefix + "_" + inputType.id(), new BasicType( NativeType.ANY ), inputType.cardinality );
+				namePrefix + "_" + inputType.id(), BasicType.of( NativeType.ANY ), inputType.cardinality );
 			if( right.hasSubTypes() ) {
 				for( Entry< String, TypeDefinition > subType : right.subTypes() ) {
 					newTid.putSubType( subType.getValue() );

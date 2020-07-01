@@ -141,8 +141,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		Type operationType = Type.UNDEFINED;
 		String originalOpName = message.operationName();
 		Map< String, Type > subTypes = new HashMap<>();
-		subTypes.put( "jsonrpc", Type.create( new BasicType( NativeType.STRING ), new Range( 1, 1 ), false, null ) );
-		subTypes.put( "id", Type.create( new BasicType( NativeType.INT ), new Range( 0, 1 ), false, null ) );
+		subTypes.put( "jsonrpc", Type.create( BasicType.of( NativeType.STRING ), new Range( 1, 1 ), false, null ) );
+		subTypes.put( "id", Type.create( BasicType.of( NativeType.INT ), new Range( 0, 1 ), false, null ) );
 		Map< String, Type > paramsSubTypes = new HashMap<>();
 
 		if( message.isFault() ) {
@@ -206,7 +206,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 		}
 
-		Type fullMessageType = Type.create( new BasicType( NativeType.VOID ), new Range( 1, 1 ), false, subTypes );
+		Type fullMessageType = Type.create( BasicType.of( NativeType.VOID ), new Range( 1, 1 ), false, subTypes );
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, fullMessageType, json );
 		String jsonMessage = json.toString();

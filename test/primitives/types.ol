@@ -204,6 +204,30 @@ define doTest
 	}
 	constrainedString@Server( req )()
 
+	// checkregex
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f7 = "good@email.sample"
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_regex_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f7 = "bad@emailsample"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f7 value does not respect the regex" )
+	}
+
+
 
 	shutdown@Server()
 }

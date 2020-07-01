@@ -478,7 +478,7 @@ public class WSDLConverter {
 		if( parts.size() > 1 || style == Style.RPC ) {
 			typeName = message.getQName().getLocalPart();
 			TypeInlineDefinition requestType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
-				new BasicType( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
+				BasicType.of( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 			for( Entry< String, Part > entry : parts.entrySet() ) {
 				Part part = entry.getValue();
 				if( part.getElementName() == null ) {
@@ -549,7 +549,7 @@ public class WSDLConverter {
 			if( parts.size() > 1 ) {
 				String typeName = faultName = faultTypeName;
 				TypeInlineDefinition faultType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
-					new BasicType( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
+					BasicType.of( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 				for( Entry< String, Part > partEntry : parts.entrySet() ) {
 					Part part = partEntry.getValue();
 					if( part.getElementName() == null ) {

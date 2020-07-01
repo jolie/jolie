@@ -18,6 +18,16 @@
 	</properties>
 	<name>libjolie</name>
 	<description>The basic library used for Jolie code parsing and analysis.</description>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>dk.brics</groupId>
+			<artifactId>automaton</artifactId>
+			<version>1.12-1</version>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<resources>
 			<resource>
@@ -46,6 +56,13 @@
 									<type>jar</type>
 									<destFileName>${project.artifactId}.jar</destFileName>
 								</artifactItem>
+								<artifactItem>
+									<groupId>dk.brics</groupId>
+									<artifactId>automaton</artifactId>
+									<version>1.12-1</version>
+									<type>jar</type>
+									<destFileName>automaton.jar</destFileName>
+								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
 						</configuration>
@@ -54,6 +71,9 @@
 			</plugin>
 		</plugins>
 	</build>
+
+
+
 	<distributionManagement>
 		<repository>
 			<id>github</id>

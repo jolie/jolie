@@ -357,7 +357,7 @@ class TypeChoice extends Type {
  */
 public abstract class Type implements Cloneable {
 	public static final Type UNDEFINED =
-		Type.create( new BasicType( NativeType.ANY ), new Range( 0, Integer.MAX_VALUE ), true, null );
+		Type.create( BasicType.of( NativeType.ANY ), new Range( 0, Integer.MAX_VALUE ), true, null );
 
 	public static Type create(
 		BasicType basicType,

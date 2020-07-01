@@ -161,13 +161,16 @@ public class OLParser extends AbstractParser {
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
 
 	private static enum RefinementPredicates {
-		LENGTH, ENUM, RANGES
+		LENGTH, ENUM, RANGES, REGEX
 	}
 
 	private static final Map< String, OLParser.RefinementPredicates > basicTypeRefinedPredicates = new HashMap<>();
 	static {
 		basicTypeRefinedPredicates.put( "length", RefinementPredicates.LENGTH ); // defines the minimum and the maximum
 																					// length of a string
+
+		basicTypeRefinedPredicates.put( "regex", RefinementPredicates.REGEX ); // defines the regex for a string
+
 		basicTypeRefinedPredicates.put( "enum", RefinementPredicates.ENUM ); // defines a list of string that a string
 																				// can be
 		basicTypeRefinedPredicates.put( "ranges", RefinementPredicates.RANGES ); // it defines a list of intervals where
@@ -195,7 +198,7 @@ public class OLParser extends AbstractParser {
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
 			definedTypes.put( type.id(),
-				new TypeInlineDefinition( context, type.id(), new BasicType( type ), Constants.RANGE_ONE_TO_ONE ) );
+				new TypeInlineDefinition( context, type.id(), BasicType.of( type ), Constants.RANGE_ONE_TO_ONE ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
 
@@ -595,8 +598,11 @@ public class OLParser extends AbstractParser {
 	}
 
 	private BasicType readBasicType() throws IOException, ParserException {
+		ArrayList< BasicTypeRefinement > basicTypeRefinementList = new ArrayList<>();
 		if( token.is( Scanner.TokenType.CAST_INT ) ) {
-			BasicType intBasicType = new BasicType( NativeType.INT );
+			BasicType intBasicType;
+
+
 			getToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				getToken();
@@ -625,7 +631,7 @@ public class OLParser extends AbstractParser {
 									throwException( ", expected" );
 								}
 							}
-							intBasicType.addBasicTypeRefinement( basicTypeRefinementIntegerRanges );
+							basicTypeRefinementList.add( basicTypeRefinementIntegerRanges );
 							break;
 						default:
 							throwException(
@@ -643,9 +649,14 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
+			if( basicTypeRefinementList.isEmpty() ) {
+				intBasicType = BasicType.of( NativeType.INT );
+			} else {
+				intBasicType = new BasicType( NativeType.INT, basicTypeRefinementList );
+			}
 			return intBasicType;
 		} else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
-			BasicType doubleBasicType = new BasicType( NativeType.DOUBLE );
+			BasicType doubleBasicType;
 			getToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				getToken();
@@ -674,7 +685,7 @@ public class OLParser extends AbstractParser {
 									throwException( ", expected" );
 								}
 							}
-							doubleBasicType.addBasicTypeRefinement( basicTypeRefinementDoubleRanges );
+							basicTypeRefinementList.add( basicTypeRefinementDoubleRanges );
 							break;
 						default:
 							throwException(
@@ -692,9 +703,14 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
+			if( basicTypeRefinementList.isEmpty() ) {
+				doubleBasicType = BasicType.of( NativeType.DOUBLE );
+			} else {
+				doubleBasicType = new BasicType( NativeType.DOUBLE, basicTypeRefinementList );
+			}
 			return doubleBasicType;
 		} else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
-			BasicType stringBasicType = new BasicType( NativeType.STRING );
+			BasicType stringBasicType;
 			getToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				getToken();
@@ -713,15 +729,26 @@ public class OLParser extends AbstractParser {
 							BasicTypeRefinementStringLength basicTypeRefinementStringLength =
 								new BasicTypeRefinementStringLength( parametersLength.get( 0 ),
 									parametersLength.get( 1 ) );
-							stringBasicType.addBasicTypeRefinement( basicTypeRefinementStringLength );
+							basicTypeRefinementList.add( basicTypeRefinementStringLength );
 							break;
 						case ENUM:
 							ArrayList< String > parametersList = parseListOfString( 1, null, predicate );
 							BasicTypeRefinementStringList basicTypeRefinementStringList =
 								new BasicTypeRefinementStringList( parametersList );
-							stringBasicType.addBasicTypeRefinement( basicTypeRefinementStringList );
+							basicTypeRefinementList.add( basicTypeRefinementStringList );
 
 							break;
+						case REGEX:
+							if( token.type() != Scanner.TokenType.STRING ) {
+								throwException( "Expected regex string for predicate " + predicate );
+							} else {
+								BasicTypeRefinementStringRegex basicTypeRefinementStringRegex =
+									new BasicTypeRefinementStringRegex( token.content() );
+								basicTypeRefinementList.add( basicTypeRefinementStringRegex );
+							}
+							getToken();
+							break;
+
 						default:
 							throwException(
 								"Basic type Refinement predicate " + predicate + " not supported for string" );
@@ -738,9 +765,14 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 
 			}
+			if( basicTypeRefinementList.isEmpty() ) {
+				stringBasicType = BasicType.of( NativeType.STRING );
+			} else {
+				stringBasicType = new BasicType( NativeType.STRING, basicTypeRefinementList );
+			}
 			return stringBasicType;
 		} else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
-			BasicType longBasicType = new BasicType( NativeType.LONG );
+			BasicType longBasicType;
 			getToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				getToken();
@@ -769,7 +801,7 @@ public class OLParser extends AbstractParser {
 									throwException( ", expected" );
 								}
 							}
-							longBasicType.addBasicTypeRefinement( basicTypeRefinementLongRanges );
+							basicTypeRefinementList.add( basicTypeRefinementLongRanges );
 							break;
 						default:
 							throwException(
@@ -787,14 +819,19 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
+			if( basicTypeRefinementList.isEmpty() ) {
+				longBasicType = BasicType.of( NativeType.LONG );
+			} else {
+				longBasicType = new BasicType( NativeType.LONG, basicTypeRefinementList );
+			}
 			return longBasicType;
 		} else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
 			getToken();
-			return new BasicType( NativeType.BOOL );
+			return BasicType.of( NativeType.BOOL );
 		} else {
 			String currentTokenContent = token.content();
 			getToken();
-			return new BasicType( NativeType.fromString( currentTokenContent ) );
+			return BasicType.of( NativeType.fromString( currentTokenContent ) );
 		}
 	}
 
