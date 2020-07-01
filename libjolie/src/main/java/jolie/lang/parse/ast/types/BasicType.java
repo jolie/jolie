@@ -59,12 +59,16 @@ public class BasicType {
 	}
 
 	public static BasicType of( NativeType nativeType ) {
-		if( staticBasicTypes.containsKey( nativeType ) ) {
-			return staticBasicTypes.get( nativeType );
+		if( nativeType == null ) {
+			return new BasicType( null, null );
 		} else {
-			BasicType newStaticBasicType = new BasicType( nativeType, null );
-			staticBasicTypes.put( nativeType, newStaticBasicType );
-			return newStaticBasicType;
+			if( staticBasicTypes.containsKey( nativeType ) ) {
+				return staticBasicTypes.get( nativeType );
+			} else {
+				BasicType newStaticBasicType = new BasicType( nativeType, null );
+				staticBasicTypes.put( nativeType, newStaticBasicType );
+				return newStaticBasicType;
+			}
 		}
 	}
 }

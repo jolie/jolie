@@ -2909,6 +2909,7 @@ public class OLParser extends AbstractParser {
 		} else if( opType == Scanner.TokenType.INSTANCE_OF ) {
 			nextToken();
 			TypeDefinition type;
+
 			Scanner.TokenType currentTokenType = token.type();
 			BasicType basicType = readBasicType();
 			if( basicType.nativeType() == null ) { // It's a user-defined type
@@ -2922,7 +2923,6 @@ public class OLParser extends AbstractParser {
 				typeName, Constants.RANGE_ONE_TO_ONE, typeName ) );
 
 			ret = new InstanceOfExpressionNode( getContext(), expr1, type );
-			nextToken();
 
 		} else {
 			ret = expr1;
