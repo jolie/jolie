@@ -431,9 +431,9 @@ public class OOITBuilder implements OLVisitor {
 
 		Expression locationExpr = buildExpression( n.location() );
 
-		OLSyntaxNode protocolIdNode = ModuleSystemUtil.transformProtocolId( n.protocolId(), interpreter.commCore() );
-		Expression protocolIdExpr = buildExpression( protocolIdNode );
-		Expression protocolExpr = buildExpression( n.protocol() );
+		OLSyntaxNode protocolNode =
+			ModuleSystemUtil.transformProtocolExpression( n.protocol(), interpreter.commCore() );
+		Expression protocolExpr = buildExpression( protocolNode );
 
 		interpreter.register( n.id(),
 			new OutputPort(
@@ -441,7 +441,6 @@ public class OOITBuilder implements OLVisitor {
 				n.id(),
 				locationExpr,
 				protocolExpr,
-				protocolIdExpr,
 				getOutputPortInterface( n.id() ),
 				isConstant ) );
 	}
@@ -550,9 +549,6 @@ public class OOITBuilder implements OLVisitor {
 				error( n.context(), e );
 			}
 		}
-		VariablePath protocolConfigurationPath =
-			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( n.id(), 0 ).add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
 
 		VariablePath locationPath =
 			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
@@ -580,18 +576,16 @@ public class OOITBuilder implements OLVisitor {
 		String protocolStr = null;
 		List< Process > protocolProcs = new ArrayList<>();
 		if( n.protocol() != null ) {
-			OLSyntaxNode protocolIdNode =
-				ModuleSystemUtil.transformProtocolId( n.protocolId(), interpreter.commCore() );
-			Expression protocolExpr = buildExpression( n.protocol() );
-			Expression protocolIdExpr = buildExpression( protocolIdNode );
+			OLSyntaxNode protocolNode =
+				ModuleSystemUtil.transformProtocolExpression( n.protocol(), interpreter.commCore() );
+			Expression protocolExpr = buildExpression( protocolNode );
 			protocolProcs.add( new DeepCopyProcess( protocolPath, protocolExpr, true, n.context() ) );
-			protocolProcs.add( new AssignmentProcess( protocolPath, protocolIdExpr, n.context() ) );
-			if( protocolIdExpr == null ) {
+			if( protocolExpr == null ) {
 				error( n.context(), "protocol expression is not valid" );
 				return;
 			}
-			if( protocolIdExpr instanceof Value ) {
-				protocolStr = protocolIdExpr.evaluate().strValue();
+			if( protocolExpr instanceof Value || protocolExpr instanceof InlineTreeExpression ) {
+				protocolStr = protocolExpr.evaluate().strValue();
 			}
 		} else {
 			protocolProcs.add( NullProcess.getInstance() );
@@ -610,7 +604,7 @@ public class OOITBuilder implements OLVisitor {
 		InputPort inputPort = new InputPort(
 			n.id(),
 			locationPath,
-			protocolConfigurationPath,
+			protocolPath,
 			currentPortInterface,
 			aggregationMap,
 			redirectionMap );

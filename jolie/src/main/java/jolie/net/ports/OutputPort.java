@@ -119,7 +119,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		String id,
 		Expression locationExpr,
 		Expression protocolExpr,
-		Expression protocolIdExpr,
 		Interface iface,
 		boolean isConstant ) {
 		super( id );
@@ -141,7 +140,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 		if( protocolExpr != null ) {
 			children.add( new DeepCopyProcess( this.protocolVariablePath, protocolExpr, true, null ) );
-			children.add( new AssignmentProcess( this.protocolVariablePath, protocolIdExpr, null ) );
 		}
 
 		if( children.isEmpty() ) {

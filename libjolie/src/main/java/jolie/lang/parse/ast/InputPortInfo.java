@@ -91,7 +91,7 @@ public class InputPortInfo extends PortInfo {
 	/**
 	 * @return an abstract node with defines protocol id this port is considering
 	 */
-	public OLSyntaxNode protocolId() {
+	public String protocolId() {
 		OLSyntaxNode p = this.protocol;
 		if( p instanceof SumExpressionNode ) {
 			// a non optimized protocol node
@@ -101,9 +101,9 @@ public class InputPortInfo extends PortInfo {
 
 		if( p instanceof InlineTreeExpressionNode ) {
 			return ((InlineTreeExpressionNode) p)
-				.rootExpression();
+				.rootExpression().toString();
 		} else {
-			return p;
+			return p.toString();
 		}
 	}
 }
