@@ -20,18 +20,12 @@
 package jolie.lang.parse;
 
 import java.net.URI;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Logger;
 
+import jolie.lang.CodeCheckingError;
+import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.Constants.OperationType;
@@ -147,8 +141,7 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	private final Program program;
-	private boolean valid = true;
-	private final SemanticException semanticException = new SemanticException();
+	private final List< CodeCheckingError > errors = new ArrayList<>();
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
@@ -256,14 +249,13 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	private void error( OLSyntaxNode node, String message ) {
-		valid = false;
-		semanticException.addSemanticError( node, message );
+		errors.add( CodeCheckingError.build( node, message ) );
 	}
 
 	private void checkToBeEqualTypes() {
 		for( Entry< TypeDefinition, List< TypeDefinition > > entry : typesToBeEqual.entrySet() ) {
 			for( TypeDefinition type : entry.getValue() ) {
-				if( entry.getKey().isEquivalentTo( type ) == false ) {
+				if( !entry.getKey().isEquivalentTo( type ) ) {
 					error( type, "type " + type.id() + " has already been defined with a different structure" );
 				}
 			}
@@ -354,7 +346,7 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	public void validate()
-		throws SemanticException {
+		throws CodeCheckingException {
 		program.accept( this );
 		checkToBeEqualTypes();
 		checkCorrelationSets();
@@ -363,13 +355,13 @@ public class SemanticVerifier implements OLVisitor {
 			error( null, "Main procedure not defined" );
 		}
 
-		if( !valid ) {
+		if( !errors.isEmpty() ) {
 			LOGGER.severe( "Aborting: input file semantically invalid." );
 			/*
 			 * for( SemanticException.SemanticError e : semanticException.getErrorList() ){ logger.severe(
 			 * e.getMessage() ); }
 			 */
-			throw semanticException;
+			throw new CodeCheckingException( errors );
 		}
 	}
 

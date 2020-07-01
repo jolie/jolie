@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2020 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,19 +17,29 @@
  * MA 02110-1301  USA
  */
 
-package jolie.lang.parse.module.exceptions;
+package jolie.lang;
 
-import jolie.lang.Constants;
-import jolie.lang.parse.module.ImportPath;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
-public class SymbolNotFoundException extends Exception {
-	private static final long serialVersionUID = Constants.serialVersionUID();
+public class CodeCheckingError {
+	private final ParsingContext context;
+	private final String message;
 
-	public SymbolNotFoundException( String symbolName ) {
-		super( symbolName + " is not defined in symbolTable" );
+	private CodeCheckingError( ParsingContext context, String message ) {
+		this.context = context;
+		this.message = message;
 	}
 
-	public SymbolNotFoundException( String symbolName, ImportPath importPath ) {
-		super( symbolName + " is not defined in " + importPath );
+	@Override
+	public String toString() {
+		return context.sourceName() + ":" + context.line() + ": error: " + message;
+	}
+
+	public static CodeCheckingError build( OLSyntaxNode node, String message ) {
+		return new CodeCheckingError(
+			(node != null) ? node.context() : URIParsingContext.DEFAULT,
+			message );
 	}
 }

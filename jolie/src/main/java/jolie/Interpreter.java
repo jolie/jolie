@@ -58,6 +58,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
+import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants;
 import jolie.lang.parse.*;
 import jolie.lang.parse.ast.Program;
@@ -1221,8 +1223,8 @@ public class Interpreter {
 
 			try {
 				semanticVerifier.validate();
-			} catch( SemanticException e ) {
-				LOGGER.severe( e.getErrorMessages() );
+			} catch( CodeCheckingException e ) {
+				LOGGER.severe( e.getMessage() );
 				throw new InterpreterException( "Exiting" );
 			}
 
