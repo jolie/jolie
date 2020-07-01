@@ -183,6 +183,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String USER_AGENT = "userAgent";
 		private static final String HOST = "host";
 		private static final String HEADERS = "headers";
+		private static final String HEADERS_WILDCARD = "*";
 		private static final String ADD_HEADERS = "addHeader";
 		private static final String STATUS_CODE = "statusCode";
 		private static final String REDIRECT = "redirect";
@@ -1124,10 +1125,19 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headers = getParameterFirstValue( Parameters.HEADERS );
 		}
 		if( headers != null ) {
-			for( String headerName : headers.children().keySet() ) {
-				String headerAlias = headers.getFirstChild( headerName ).strValue();
-				decodedMessage.value.getFirstChild( headerAlias )
-					.setValue( message.getPropertyOrEmptyString( headerName.replace( "_", "-" ) ) );
+			if( headers.hasChildren( Parameters.HEADERS_WILDCARD ) ) {
+				String headerAlias = headers.getFirstChild( Parameters.HEADERS_WILDCARD ).strValue();
+				message.properties().forEach( propertyEntry -> {
+					decodedMessage.value.getFirstChild( headerAlias )
+						.getFirstChild( propertyEntry.getKey() )
+						.setValue( propertyEntry.getValue() );
+				} );
+			} else {
+				for( String headerName : headers.children().keySet() ) {
+					String headerAlias = headers.getFirstChild( headerName ).strValue();
+					decodedMessage.value.getFirstChild( headerAlias )
+						.setValue( message.getPropertyOrEmptyString( headerName.replace( "_", "-" ) ) );
+				}
 			}
 		}
 	}
