@@ -22,9 +22,6 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.context.ParsingContext;
 
 public class OutputPortInfo extends PortInfo {
@@ -53,22 +50,8 @@ public class OutputPortInfo extends PortInfo {
 		return protocol;
 	}
 
-	/**
-	 * @return an abstract node with defines protocol id this port is considering
-	 */
-	public OLSyntaxNode protocolId() {
-		OLSyntaxNode p = this.protocol;
-		if( p instanceof SumExpressionNode ) {
-			// a non optimized protocol node
-			OLSyntaxNode prodNode = ((SumExpressionNode) protocol).operands().iterator().next().value();
-			p = ((ProductExpressionNode) prodNode).operands().iterator().next().value();
-		}
-
-		if( p instanceof InlineTreeExpressionNode ) {
-			return ((InlineTreeExpressionNode) p).rootExpression();
-		} else {
-			return p;
-		}
+	public String protocolId() {
+		return PortInfo.extractProtocolId( this.protocol );
 	}
 
 	public OLSyntaxNode location() {

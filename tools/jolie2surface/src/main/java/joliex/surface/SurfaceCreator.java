@@ -321,7 +321,7 @@ public class SurfaceCreator {
 			if( !noLocation )
 				System.out.println( "\tLocation:\"" + inputPort.location() + "\"" );
 			if( !noProtocol )
-				System.out.println( "\tProtocol:" + inputPort.protocol() );
+				System.out.println( "\tProtocol:" + inputPort.protocolId() );
 			System.out.println( "\tInterfaces:" + inputPort.id() + "Surface" );
 			System.out.println( "}" );
 		}
