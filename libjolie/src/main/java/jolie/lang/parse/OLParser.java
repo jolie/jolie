@@ -68,6 +68,7 @@ public class OLParser extends AbstractParser {
 		new HashMap<>();
 	private boolean insideInstallFunction = false;
 	private String[] includePaths;
+	private boolean hasIncludeDirective = false;
 	private final Map< String, InterfaceExtenderDefinition > interfaceExtenders =
 		new HashMap<>();
 
