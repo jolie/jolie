@@ -52,10 +52,21 @@ type SomeTrickyType {
 
 type ChoiceResponse: int | string
 
+type ConstrainedStringType: string( length( [0,4] ) ) {
+	f1: string( length( [0,10] ) )
+	f2: string( enum(["hello","homer","simpsons"]))
+	f3: string( length( [0,20] ) )
+	f4?: int( ranges( [1,4], [10,20], [100,200], [300, *]) )
+	f5?: long( ranges( [3L,4L], [10L,20L], [100L,200L], [300L, *]) )
+	f6?: double( ranges( [4.0,5.0], [10.0,20.0], [100.0,200.0], [300.0, *]) )
+	f7?: string( regex(".*@.*\\..*") )
+}
+
 interface ServerInterface {
 RequestResponse:
 	call(ListNode)(int),
-	choice(ChoiceRequest)(ChoiceResponse)
+	choice(ChoiceRequest)(ChoiceResponse),
+	constrainedString(ConstrainedStringType)( void )
 OneWay:
 	shutdown(void)
 }

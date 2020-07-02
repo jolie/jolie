@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2020 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,26 +17,24 @@
  * MA 02110-1301  USA
  */
 
-package jolie.lang.parse.module.exceptions;
+package jolie.lang;
 
-import jolie.lang.Constants;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
-public class SymbolTypeMismatchException extends Exception {
-
+public class CodeCheckingException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	private final String symbolName;
-	private final String expectType;
-	private final String actualType;
 
-	public SymbolTypeMismatchException( String symbolName, String expectType, String actualType ) {
-		super( symbolName );
-		this.symbolName = symbolName;
-		this.expectType = expectType;
-		this.actualType = actualType;
+	private final Collection< CodeCheckingError > errors;
+
+	public CodeCheckingException( Collection< CodeCheckingError > errors ) {
+		super(
+			errors.stream().map( CodeCheckingError::toString ).collect( Collectors.joining( "\n" ) ) );
+		this.errors = Collections.unmodifiableCollection( errors );
 	}
 
-	@Override
-	public String getMessage() {
-		return symbolName + " is not defined as a " + expectType + " found symbol of type " + actualType;
+	public Collection< CodeCheckingError > errors() {
+		return errors;
 	}
 }

@@ -111,24 +111,21 @@ public class JolieDummyDocumentCreator {
 				for( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
 					String cardinalityString =
 						typeCardinality == 1 ? "" : "[ " + cardinalityIndex + " ]";
-					if( !(typeInlineDefinition.nativeType().id().equals( "void" )) ) {
-						switch( typeInlineDefinition.nativeType().id() ) {
-						case "int":
+					if( !(typeInlineDefinition.basicType().nativeType().id().equals( "void" )) ) {
+						if( typeInlineDefinition.basicType().nativeType().id().equals( "int" ) ) {
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "42;\n" );
-							break;
-						case "double":
+						} else if( typeInlineDefinition.basicType().nativeType().id().equals( "double" ) ) {
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "1.54;\n" );
-							break;
-						case "long":
+						} else if( typeInlineDefinition.basicType().nativeType().id().equals( "long" ) ) {
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "424242L;\n" );
 							break;
-						default:
+						} else {
 							stringBuilder.append( "\t" ).append( nameVariable ).append( cardinalityString )
 								.append( "=" )
 								.append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );

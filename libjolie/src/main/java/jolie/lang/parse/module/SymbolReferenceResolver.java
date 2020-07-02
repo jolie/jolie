@@ -19,75 +19,14 @@
 
 package jolie.lang.parse.module;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import jolie.lang.CodeCheckingError;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.DocumentationComment;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachArrayItemStatement;
-import jolie.lang.parse.ast.ForEachSubNodeStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
-import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InputPortInfo.AggregationItemInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.RunStatement;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement.InterfaceOneWayBranch;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement.InterfaceRequestResponseBranch;
@@ -96,62 +35,68 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement.OperationRequestRespo
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode.Operation;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.ModuleCrawler.CrawlerResult;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 import jolie.lang.parse.module.exceptions.IllegalAccessSymbolException;
 import jolie.lang.parse.module.exceptions.SymbolNotFoundException;
-import jolie.lang.parse.module.exceptions.SymbolTypeMismatchException;
 import jolie.util.Pair;
 
-class SymbolReferenceResolver {
+import java.net.URI;
+import java.util.*;
+
+public class SymbolReferenceResolver {
+	private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name ) {
+		return CodeCheckingError.build( node, "Symbol not found: " + name
+			+ " is not defined in this module (the symbol could not be retrieved from the symbol table)" );
+	}
+
+	// private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name,
+	// ImportPath path ) {
+	// return CodeCheckingError.build( node, "Symbol not found: " + name + " is not defined in module "
+	// + path
+	// + " (the symbol could not be retrieved from the symbol table)" );
+	// }
+
+	private static CodeCheckingError buildSymbolTypeMismatchError( OLSyntaxNode node, String symbolName,
+		String expectedType, String actualType ) {
+		return CodeCheckingError.build( node, "Symbol is used incorrectly: " + symbolName + " is used as "
+			+ expectedType + ", but it actually has type " + actualType );
+	}
 
 	private class SymbolReferenceResolverVisitor implements OLVisitor {
-
 		private URI currentURI;
-		private boolean valid = true;
-		private Exception error;
+		private final List< CodeCheckingError > errors = new ArrayList<>();
 
 		protected SymbolReferenceResolverVisitor() {}
 
+		private void error( CodeCheckingError e ) {
+			errors.add( e );
+		}
+
+		private boolean isValid() {
+			return errors.isEmpty();
+		}
+
 		/**
-		 * Walk through the Jolie AST tree and resolve the call of external Symbols.
+		 * Walk through the Jolie AST tree and resolve all symbol references
 		 */
 		public void resolve( Program p ) throws ModuleException {
 			currentURI = p.context().source();
 			visit( p );
-			if( !this.valid ) {
-				throw new ModuleException( p.context(), this.error );
+			if( !isValid() ) {
+				throw new ModuleException( errors );
 			}
 		}
 
 		@Override
 		public void visit( Program n ) {
 			for( OLSyntaxNode node : n.children() ) {
-				if( !this.valid ) {
+				if( !isValid() ) {
 					return;
 				}
 				node.accept( this );
@@ -373,14 +318,12 @@ class SymbolReferenceResolver {
 			for( InterfaceDefinition iface : n.getInterfaceList() ) {
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( iface.name() );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( n.id(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
@@ -406,14 +349,12 @@ class SymbolReferenceResolver {
 			for( InterfaceDefinition iface : n.getInterfaceList() ) {
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( iface.name() );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
@@ -528,20 +469,17 @@ class SymbolReferenceResolver {
 				Optional< SymbolInfo > targetSymbolInfo =
 					getSymbol( n.context(), n.linkedTypeName() );
 				if( !targetSymbolInfo.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( n.id() );
+					error( buildSymbolNotFoundError( n, n.id() ) );
 					return;
 				}
 				if( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( n.id(), "TypeDefinition",
-						targetSymbolInfo.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( n, n.id(), "TypeDefinition",
+						targetSymbolInfo.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				linkedType = (TypeDefinition) targetSymbolInfo.get().node();
 				if( linkedType.equals( n ) ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( n.id() );
+					error( buildSymbolNotFoundError( n, n.id() ) );
 					return;
 				}
 			}
@@ -573,14 +511,12 @@ class SymbolReferenceResolver {
 
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( iface.name() );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
@@ -599,14 +535,12 @@ class SymbolReferenceResolver {
 
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( iface.name() );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();

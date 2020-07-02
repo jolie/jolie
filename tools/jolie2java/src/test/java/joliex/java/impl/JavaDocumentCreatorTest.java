@@ -18,9 +18,23 @@
  */
 package joliex.java.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import jolie.CommandLineException;
+import jolie.lang.CodeCheckingException;
+import jolie.lang.parse.ParserException;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.util.ParsingUtils;
+import jolie.lang.parse.util.ProgramInspector;
+import jolie.runtime.ByteArray;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.Jolie2JavaInterface;
+import joliex.java.Jolie2Java;
+import joliex.java.Jolie2JavaCommandLineParser;
+import org.junit.*;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,28 +48,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import jolie.CommandLineException;
-import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.ModuleException;
-import jolie.lang.parse.util.ParsingUtils;
-import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.embedding.Jolie2JavaInterface;
-import joliex.java.Jolie2Java;
-import joliex.java.Jolie2JavaCommandLineParser;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -87,7 +81,7 @@ public class JavaDocumentCreatorTest {
 
 	@BeforeClass
 	public static void setUpClass()
-		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
+		throws IOException, ParserException, CodeCheckingException, CommandLineException, ModuleException {
 		// clean past generated files if they exist
 		File generatedPath = new File( outputDirectory );
 		if( generatedPath.exists() ) {

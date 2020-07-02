@@ -21,14 +21,15 @@
 
 package joliex.surface;
 
-import java.io.IOException;
 import jolie.CommandLineException;
+import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
+
+import java.io.IOException;
 
 /**
  *
@@ -58,7 +59,7 @@ public class GetSurface {
 				cmdParser.noLocation(), cmdParser.noProtocol() );
 		} catch( CommandLineException | ParserException | ModuleException e ) {
 			System.out.println( e.getMessage() );
-		} catch( IOException | SemanticException e ) {
+		} catch( IOException | CodeCheckingException e ) {
 			e.printStackTrace();
 		}
 	}

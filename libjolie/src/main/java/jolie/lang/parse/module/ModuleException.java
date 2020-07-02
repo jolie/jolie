@@ -19,12 +19,15 @@
 
 package jolie.lang.parse.module;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import jolie.lang.CodeCheckingError;
 import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
 
 public class ModuleException extends Exception {
-
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private ParsingContext context = null;
 
@@ -40,6 +43,11 @@ public class ModuleException extends Exception {
 	public ModuleException( ParsingContext context, Throwable arg1 ) {
 		super( arg1 );
 		this.context = context;
+	}
+
+	public ModuleException( Collection< CodeCheckingError > errors ) {
+		super(
+			errors.stream().map( CodeCheckingError::toString ).collect( Collectors.joining( "\n" ) ) );
 	}
 
 	public void setContext( ParsingContext context ) {

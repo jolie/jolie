@@ -22,6 +22,7 @@
 include "../AbstractTestUnit.iol"
 
 include "private/types_server.iol"
+include "console.iol"
 
 outputPort Server {
 Interfaces: ServerInterface
@@ -53,5 +54,180 @@ define doTest
 	if ( response != "3" ) {
 		throw( TestFailed, "Return value does not match input value" )
 	};
+
+	req << "hi" {
+		f1 = "hello"
+		f2 = "hello"
+		f3 = "hello"
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		// the root value should have less than 4 characters
+		req << "hi1234" {
+			f1 = "hello"
+			f2 = "hello"
+			f3 = "hello"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of root value" )
+	}
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		// f1 value should have less than 10 characters
+		req << "hi" {
+			f1 = "hello1234567890"
+			f2 = "hello"
+			f3 = "hello"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of f1 value" )
+	}
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		// f3 value should have less than 10 characters
+		req << "hi" {
+			f1 = "hello"
+			f2 = "hello"
+			f3 = "hello12345678901234567890"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of f3 value" )
+	}
+
+	// checking list refinement for string
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer2"
+			f3 = "hello"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because of f2 value is not permitted" )
+	}
+
+
+	// check ranges for int
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f4 = 110
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f4 = 0
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f4 value is out of the range" )
+	}
+
+	// check ranges for long
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f5 = 110L
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f5 = 0L
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f5 value is out of the range" )
+	}
+
+	// check ranges for double
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f6 = 110.0
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_constrained_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f6 = 0.0
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f6 value is out of the range" )
+	}
+
+	// check infinite
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f4 = 1100000
+		f5 = 1100000L
+		f6 = 1100000.0
+	}
+	constrainedString@Server( req )()
+
+	// checkregex
+	undef( req )
+	req << "hi" {
+		f1 = "hello"
+		f2 = "homer"
+		f3 = "hello"
+		f7 = "good@email.sample"
+	}
+	constrainedString@Server( req )()
+
+	undef( req )
+	scope( check_regex_string ) {
+		install( TypeMismatch => nullProcess )
+		req << "hi" {
+			f1 = "hello"
+			f2 = "homer"
+			f3 = "hello"
+			f7 = "bad@emailsample"
+		}
+		constrainedString@Server( req )()
+		throw( TestFailed, "Expected Type Mismatch because f7 value does not respect the regex" )
+	}
+
+
+
 	shutdown@Server()
 }
