@@ -310,7 +310,8 @@ public class RuntimeService extends JavaService {
 				null );
 		} else {
 			logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel,
-				ExecutionThread.currentThread().getSessionId(), null );
+				ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+				null );
 		}
 		interpreter.fireMonitorEvent( () -> {
 			return logEvent;

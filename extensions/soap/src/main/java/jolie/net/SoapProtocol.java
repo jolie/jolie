@@ -1038,11 +1038,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					final String traceMessage = httpMessage.toString() + plainTextContent.toString( "utf-8" );
 					return new ProtocolMessageEvent( traceMessage, "",
 						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
-						ExecutionThread.currentThread().getSessionId(), null );
+						ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentScopeId(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent( e.getMessage(), "",
 						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
-						ExecutionThread.currentThread().getSessionId(), null );
+						ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentScopeId(), null );
 				}
 			} );
 
@@ -1312,11 +1314,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							.append( new String( message.content(), charset ) ).toString(),
 						"",
 						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
-						ExecutionThread.currentThread().getSessionId(), null );
+						ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentScopeId(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent(
 						e.getMessage(), "", Interpreter.getInstance().programFilename(),
-						ProtocolMessageEvent.Protocol.SOAP, ExecutionThread.currentThread().getSessionId(), null );
+						ProtocolMessageEvent.Protocol.SOAP, ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentScopeId(), null );
 				}
 
 			} );

@@ -33,6 +33,7 @@ import jolie.runtime.Value;
  */
 public class MonitorAttachedEvent extends MonitoringEvent {
 	public MonitorAttachedEvent( String service, ParsingContext context ) {
-		super( "MonitorAttached", service, context, Value.create() );
+		// TODO: confimring if cell could be the right scope for this event
+		super( "MonitorAttached", service, "cell", context, Value.create() );
 	}
 }

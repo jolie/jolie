@@ -103,12 +103,14 @@ public class RequestResponseProcess implements InputOperationProcess {
 			public void run()
 				throws FaultException, ExitingException {
 				final String processId = ExecutionThread.currentThread().getSessionId();
+				final String scopeId = ExecutionThread.currentThread().currentScopeId();
 				Interpreter.getInstance().fireMonitorEvent( () -> {
 					return new OperationStartedEvent( operation.id(), processId,
 						Long.toString( sessionMessage.message().id() ),
-						Interpreter.getInstance().programFilename(), context, sessionMessage.message().value() );
+						Interpreter.getInstance().programFilename(), scopeId, context,
+						sessionMessage.message().value() );
 				} );
-				runBehaviour( sessionMessage.channel(), sessionMessage.message(), processId );
+				runBehaviour( sessionMessage.channel(), sessionMessage.message(), scopeId, processId );
 			}
 
 			public Process copy( TransformationReason reason ) {
@@ -167,7 +169,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 		return CommMessage.createFaultResponse( request, f );
 	}
 
-	private void runBehaviour( CommChannel channel, CommMessage message, String processId )
+	private void runBehaviour( CommChannel channel, CommMessage message, String scopeId, String processId )
 		throws FaultException {
 		// Variables for monitor
 		int responseStatus;
@@ -253,7 +255,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 			Interpreter.getInstance().fireMonitorEvent( () -> {
 				return new OperationEndedEvent( operation.id(), processId,
 					Long.toString( responseId ), responseStatusforMonitor, details.toString(), monitorValue,
-					Interpreter.getInstance().programFilename(), context );
+					Interpreter.getInstance().programFilename(), scopeId, context );
 			} );
 
 		} catch( IOException e ) {

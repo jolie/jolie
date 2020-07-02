@@ -20,10 +20,10 @@ public class LogEvent extends MonitoringEvent {
 		}
 	}
 
-	public LogEvent( String message, String service, LogLevel logLevel, String processId, String type,
+	public LogEvent( String message, String service, LogLevel logLevel, String processId, String type, String scope,
 		ParsingContext context ) {
 
-		super( "Log", service, context, Value.create() );
+		super( "Log", service, scope, context, Value.create() );
 
 		data().getFirstChild( "level" ).setValue( logLevel.getLevel() );
 		data().getFirstChild( "message" ).setValue( message );
@@ -31,9 +31,10 @@ public class LogEvent extends MonitoringEvent {
 		data().getFirstChild( "extendedType" ).setValue( type );
 	}
 
-	public LogEvent( String message, String service, LogLevel logLevel, String processId, ParsingContext context ) {
+	public LogEvent( String message, String service, LogLevel logLevel, String processId, String scope,
+		ParsingContext context ) {
 
-		super( "Log", service, context, Value.create() );
+		super( "Log", service, scope, context, Value.create() );
 
 		data().getFirstChild( "level" ).setValue( logLevel.getLevel() );
 		data().getFirstChild( "message" ).setValue( message );

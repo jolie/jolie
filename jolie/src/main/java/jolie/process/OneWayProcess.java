@@ -64,7 +64,8 @@ public class OneWayProcess implements InputOperationProcess {
 		Interpreter.getInstance().fireMonitorEvent( () -> {
 			return new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
 				Long.toString( sessionMessage.message().id() ),
-				Interpreter.getInstance().programFilename(), context, sessionMessage.message().value() );
+				Interpreter.getInstance().programFilename(), ExecutionThread.currentThread().currentScopeId(), context,
+				sessionMessage.message().value() );
 		} );
 
 

@@ -1422,7 +1422,8 @@ public class Interpreter {
 	private void logSessionStart( String operationName, String sessionId, ParsingContext parsingContext ) {
 
 		fireMonitorEvent( () -> {
-			return new SessionStartedEvent( operationName, sessionId, programFilename(), parsingContext );
+			return new SessionStartedEvent( operationName, sessionId, programFilename(),
+				ExecutionThread.currentThread().currentScopeId(), parsingContext );
 		} );
 
 	}
@@ -1430,7 +1431,8 @@ public class Interpreter {
 	private void logSessionEnd( String operationName, String sessionId, ParsingContext parsingContext ) {
 
 		fireMonitorEvent( () -> {
-			return new SessionEndedEvent( operationName, sessionId, programFilename(), parsingContext );
+			return new SessionEndedEvent( operationName, sessionId, programFilename(),
+				ExecutionThread.currentThread().currentScopeId(), parsingContext );
 		} );
 
 	}
