@@ -1,52 +1,63 @@
+/*
+ * Copyright (C) 2020 Claudio Guidi <cguidi@italianasoftware.com>
+ * Copyright (C) 2020 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
+
 package jolie.lang.parse.ast.types;
 
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class BasicType {
-
 	private final NativeType nativeType;
-	private final List< BasicTypeRefinement > basicTypeRefinementList;
-	private static HashMap< NativeType, BasicType > staticBasicTypes = new HashMap<>();
+	private final List< BasicTypeRefinement > refinements;
+	private static final Map< NativeType, BasicType > PURE_BASIC_TYPES = new HashMap<>();
 
-
-	public BasicType( NativeType nativeType, List< BasicTypeRefinement > basicTypeRefinementList ) {
-		this.nativeType = nativeType;
-		if( basicTypeRefinementList == null ) {
-			this.basicTypeRefinementList = Collections.emptyList();
-		} else {
-			this.basicTypeRefinementList = basicTypeRefinementList;
+	static {
+		for( NativeType nativeType : NativeType.values() ) {
+			PURE_BASIC_TYPES.put( nativeType, new BasicType( nativeType, Collections.emptyList() ) );
 		}
+	}
+
+	private BasicType( NativeType nativeType, List< BasicTypeRefinement > refinements ) {
+		this.nativeType = nativeType;
+		this.refinements = Collections.unmodifiableList( refinements );
 	}
 
 	public NativeType nativeType() {
 		return nativeType;
 	}
 
-	public List< BasicTypeRefinement > basicTypeRefinementList() {
-		return basicTypeRefinementList;
+	public List< BasicTypeRefinement > refinements() {
+		return refinements;
 	}
 
 	public boolean checkBasicTypeEqualness( BasicType basicType ) {
-		boolean returnValue = false;
-		if( this.nativeType == basicType.nativeType() ) {
-			if( basicTypeRefinementList == null ) {
-				return basicType.basicTypeRefinementList() == null;
-			} else {
-				if( basicTypeRefinementList.size() == basicType.basicTypeRefinementList().size() ) {
-					returnValue = basicTypeRefinementList.stream()
-						.allMatch( btr -> checkSingleTypeRefinement( btr, basicType.basicTypeRefinementList() ) );
-				}
-			}
-		}
-		return returnValue;
-
+		return nativeType.equals( basicType.nativeType ) &&
+			refinements.size() == basicType.refinements.size() &&
+			refinements.stream()
+				.allMatch( refinement -> checkSingleTypeRefinement( refinement, basicType.refinements() ) );
 	}
 
+	// TODO: update this when we allow for multiple refinements. (It's broken when one uses the same
+	// refinement twice.)
 	private static boolean checkSingleTypeRefinement( BasicTypeRefinement basicTypeRefinement,
 		List< BasicTypeRefinement > targetList ) {
 		boolean returnValue = false;
@@ -59,16 +70,18 @@ public class BasicType {
 	}
 
 	public static BasicType of( NativeType nativeType ) {
-		if( nativeType == null ) {
-			return new BasicType( null, null );
+		Objects.requireNonNull( nativeType, "native type in BasicType must not be null" );
+
+		return PURE_BASIC_TYPES.get( nativeType );
+	}
+
+	public static BasicType of( NativeType nativeType, List< BasicTypeRefinement > refinements ) {
+		Objects.requireNonNull( nativeType, "native type in BasicType must not be null" );
+
+		if( refinements.isEmpty() ) {
+			return of( nativeType );
 		} else {
-			if( staticBasicTypes.containsKey( nativeType ) ) {
-				return staticBasicTypes.get( nativeType );
-			} else {
-				BasicType newStaticBasicType = new BasicType( nativeType, null );
-				staticBasicTypes.put( nativeType, newStaticBasicType );
-				return newStaticBasicType;
-			}
+			return new BasicType( nativeType, refinements );
 		}
 	}
 }

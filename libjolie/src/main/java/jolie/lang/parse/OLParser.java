@@ -537,7 +537,6 @@ public class OLParser extends AbstractParser {
 	private BasicType readBasicType() throws IOException, ParserException {
 		ArrayList< BasicTypeRefinement > basicTypeRefinementList = new ArrayList<>();
 		if( token.is( Scanner.TokenType.CAST_INT ) ) {
-			BasicType intBasicType;
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				nextToken();
@@ -584,14 +583,8 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
-			if( basicTypeRefinementList.isEmpty() ) {
-				intBasicType = BasicType.of( NativeType.INT );
-			} else {
-				intBasicType = new BasicType( NativeType.INT, basicTypeRefinementList );
-			}
-			return intBasicType;
+			return BasicType.of( NativeType.INT, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
-			BasicType doubleBasicType;
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				nextToken();
@@ -638,14 +631,8 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
-			if( basicTypeRefinementList.isEmpty() ) {
-				doubleBasicType = BasicType.of( NativeType.DOUBLE );
-			} else {
-				doubleBasicType = new BasicType( NativeType.DOUBLE, basicTypeRefinementList );
-			}
-			return doubleBasicType;
+			return BasicType.of( NativeType.DOUBLE, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
-			BasicType stringBasicType;
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				nextToken();
@@ -700,14 +687,8 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 
 			}
-			if( basicTypeRefinementList.isEmpty() ) {
-				stringBasicType = BasicType.of( NativeType.STRING );
-			} else {
-				stringBasicType = new BasicType( NativeType.STRING, basicTypeRefinementList );
-			}
-			return stringBasicType;
+			return BasicType.of( NativeType.STRING, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
-			BasicType longBasicType;
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
 				nextToken();
@@ -754,12 +735,7 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
-			if( basicTypeRefinementList.isEmpty() ) {
-				longBasicType = BasicType.of( NativeType.LONG );
-			} else {
-				longBasicType = new BasicType( NativeType.LONG, basicTypeRefinementList );
-			}
-			return longBasicType;
+			return BasicType.of( NativeType.LONG, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
 			nextToken();
 			return BasicType.of( NativeType.BOOL );

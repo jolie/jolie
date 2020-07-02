@@ -130,7 +130,7 @@ class TypeImpl extends Type {
 		throws TypeCheckingException {
 		if( checkNativeType( value, basicType ) == false ) {
 			StringBuilder refinementsDescription = new StringBuilder();
-			basicType.basicTypeRefinementList().forEach( basicTypeRefinement -> refinementsDescription
+			basicType.refinements().forEach( basicTypeRefinement -> refinementsDescription
 				.append( basicTypeRefinement.getRefinementDocumentationDefinition() ).append( " " ) );
 			throw new TypeCheckingException(
 				"Invalid native type for node " + pathBuilder.toString() + ": expected " + basicType.nativeType() + " "
@@ -255,18 +255,18 @@ class TypeImpl extends Type {
 		case ANY:
 			return true;
 		case DOUBLE:
-			return (value.isDouble() || value.isInt()) && basicType.basicTypeRefinementList().stream()
+			return (value.isDouble() || value.isInt()) && basicType.refinements().stream()
 				.allMatch( btr -> btr.checkTypeRefinment( value.doubleValue() ) );
 		case LONG:
-			return (value.isLong() || value.isInt()) && basicType.basicTypeRefinementList().stream()
+			return (value.isLong() || value.isInt()) && basicType.refinements().stream()
 				.allMatch( btr -> btr.checkTypeRefinment( value.longValue() ) );
 		case BOOL:
 			return value.isBool();
 		case INT:
-			return value.isInt() && basicType.basicTypeRefinementList().stream()
+			return value.isInt() && basicType.refinements().stream()
 				.allMatch( btr -> btr.checkTypeRefinment( value.intValue() ) );
 		case STRING:
-			return value.isString() && basicType.basicTypeRefinementList().stream()
+			return value.isString() && basicType.refinements().stream()
 				.allMatch( btr -> btr.checkTypeRefinment( value.strValue() ) );
 		case VOID:
 			return value.valueObject() == null;
