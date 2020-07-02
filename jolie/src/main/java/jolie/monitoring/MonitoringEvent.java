@@ -41,18 +41,21 @@ public class MonitoringEvent implements ValueConverter {
 	private final Value data;
 	private final String service;
 	private final ParsingContext context;
+	private final String scope;
 
-	public MonitoringEvent( String type, String serviceFileName, ParsingContext context, Value data ) {
+	public MonitoringEvent( String type, String serviceFileName, String scope, ParsingContext context, Value data ) {
 		this(
 			type,
 			System.currentTimeMillis(),
 			Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
 			serviceFileName,
+			scope,
 			context,
 			data );
 	}
 
-	private MonitoringEvent( String type, long timestamp, long memory, String serviceFileName, ParsingContext context,
+	private MonitoringEvent( String type, long timestamp, long memory, String serviceFileName, String scope,
+		ParsingContext context,
 		Value data ) {
 		this.type = type;
 		this.timestamp = timestamp;
@@ -60,6 +63,7 @@ public class MonitoringEvent implements ValueConverter {
 		this.data = data;
 		this.service = serviceFileName;
 		this.context = context;
+		this.scope = scope;
 	}
 
 	public String type() {
@@ -80,6 +84,10 @@ public class MonitoringEvent implements ValueConverter {
 
 	public Value data() {
 		return data;
+	}
+
+	public String scope() {
+		return scope;
 	}
 
 	public int cellId() {
@@ -121,6 +129,7 @@ public class MonitoringEvent implements ValueConverter {
 		return new MonitoringEvent(
 			value.getFirstChild( "type" ).strValue(), value.getFirstChild( "timestamp" ).longValue(),
 			value.getFirstChild( "memory" ).longValue(), value.getFirstChild( "service" ).strValue(),
+			value.getFirstChild( "scope" ).strValue(),
 			parsingContext,
 			value.getFirstChild( "data" ) );
 	}
@@ -134,6 +143,7 @@ public class MonitoringEvent implements ValueConverter {
 		ret.getChildren( "data" ).add( e.data() );
 		ret.getFirstChild( "service" ).setValue( e.service() );
 		ret.getFirstChild( "cellId" ).setValue( Jolie.cellId );
+		ret.getFirstChild( "scope" ).setValue( e.scope() );
 		if( e.context().hasChildren() ) {
 			ret.getChildren( "context" ).add( e.context() );
 		}

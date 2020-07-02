@@ -100,6 +100,7 @@ public class SolicitResponseProcess implements Process {
 			return;
 		}
 		final String processId = ExecutionThread.currentThread().getSessionId();
+		final String scopeId = ExecutionThread.currentThread().currentScopeId();
 		CommChannel channel = null;
 		try {
 
@@ -125,7 +126,7 @@ public class SolicitResponseProcess implements Process {
 						return new OperationCallEvent( operationId, processId,
 							Long.toString( message.id() ), OperationCallEvent.FAULT,
 							"TypeMismatch:" + e.getMessage(), outputPort.id(),
-							Interpreter.getInstance().programFilename(), context, message.value() );
+							Interpreter.getInstance().programFilename(), scopeId, context, message.value() );
 					} );
 
 
@@ -137,13 +138,12 @@ public class SolicitResponseProcess implements Process {
 			channel.send( message );
 			// channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
-			System.out.println( "------->" + ExecutionThread.currentThread().currentScopeId() );
 			Interpreter.getInstance()
 				.fireMonitorEvent( () -> {
 					return new OperationCallEvent( operationId,
 						processId, Long.toString( message.id() ),
 						OperationCallEvent.SUCCESS, "", outputPort.id(),
-						Interpreter.getInstance().programFilename(), context,
+						Interpreter.getInstance().programFilename(), scopeId, context,
 						message.value() );
 				} );
 
@@ -183,7 +183,8 @@ public class SolicitResponseProcess implements Process {
 									processId,
 									Long.toString( response.id() ), OperationReplyEvent.FAULT,
 									response.fault().faultName(), outputPort.id(),
-									Interpreter.getInstance().programFilename(), context, response.fault().value() );
+									Interpreter.getInstance().programFilename(), scopeId, context,
+									response.fault().value() );
 							} );
 
 					} catch( TypeCheckingException e ) {
@@ -194,7 +195,7 @@ public class SolicitResponseProcess implements Process {
 									processId,
 									Long.toString( response.id() ), OperationReplyEvent.FAULT,
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
-									outputPort.id(), Interpreter.getInstance().programFilename(), context,
+									outputPort.id(), Interpreter.getInstance().programFilename(), scopeId, context,
 									response.fault().value() );
 							} );
 
@@ -208,7 +209,7 @@ public class SolicitResponseProcess implements Process {
 						return new OperationReplyEvent( operationId, processId,
 							Long.toString( response.id() ), OperationReplyEvent.FAULT,
 							response.fault().faultName(), Interpreter.getInstance().programFilename(),
-							outputPort.id(), context, response.fault().value() );
+							outputPort.id(), scopeId, context, response.fault().value() );
 					} );
 
 				}
@@ -223,7 +224,7 @@ public class SolicitResponseProcess implements Process {
 								return new OperationReplyEvent( operationId,
 									processId,
 									Long.toString( response.id() ), OperationReplyEvent.SUCCESS, "",
-									outputPort.id(), Interpreter.getInstance().programFilename(), context,
+									outputPort.id(), Interpreter.getInstance().programFilename(), scopeId, context,
 									response.value() );
 							} );
 
@@ -234,7 +235,7 @@ public class SolicitResponseProcess implements Process {
 								return new OperationReplyEvent( operationId,
 									processId,
 									Long.toString( response.id() ), OperationReplyEvent.FAULT, e.getMessage(),
-									outputPort.id(), Interpreter.getInstance().programFilename(), context,
+									outputPort.id(), Interpreter.getInstance().programFilename(), scopeId, context,
 									response.value() );
 							} );
 
@@ -247,7 +248,7 @@ public class SolicitResponseProcess implements Process {
 						return new OperationReplyEvent( operationId,
 							processId, Long.toString( response.id() ),
 							OperationReplyEvent.SUCCESS, "", outputPort.id(),
-							Interpreter.getInstance().programFilename(), context, response.value() );
+							Interpreter.getInstance().programFilename(), scopeId, context, response.value() );
 					} );
 
 				}

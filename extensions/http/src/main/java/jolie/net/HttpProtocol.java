@@ -901,11 +901,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						final String traceMessage = encodedContent.content.toString( charset );
 						return new ProtocolMessageEvent( traceMessage, headerBuilder.toString(),
 							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-							ExecutionThread.currentThread().getSessionId(), null );
+							ExecutionThread.currentThread().getSessionId(),
+							ExecutionThread.currentThread().currentScopeId(), null );
 					} catch( UnsupportedEncodingException e ) {
 						return new ProtocolMessageEvent( e.getMessage(), headerBuilder.toString(),
 							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-							ExecutionThread.currentThread().getSessionId(), null );
+							ExecutionThread.currentThread().getSessionId(),
+							ExecutionThread.currentThread().currentScopeId(), null );
 					}
 				} );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
@@ -993,11 +995,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				final String traceMessage = prepareSendDebugString( headerBuilder, encodedContent, charset, true );
 				return new ProtocolMessageEvent( traceMessage, "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), null );
+					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					null );
 			} catch( IOException e ) {
 				return new ProtocolMessageEvent( e.getMessage(), "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), null );
+					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					null );
 			}
 		} );
 
@@ -1423,11 +1427,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
 				return new ProtocolMessageEvent( traceMessage, "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), null );
+					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					null );
 			} catch( IOException e ) {
 				return new ProtocolMessageEvent( e.getMessage(), "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), null );
+					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					null );
 			}
 		} );
 

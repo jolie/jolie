@@ -86,6 +86,7 @@ public class NotificationProcess implements Process {
 			return;
 		}
 		final String processId = ExecutionThread.currentThread().getSessionId();
+		final String scopeId = ExecutionThread.currentThread().currentScopeId();
 		CommChannel channel = null;
 		try {
 			CommMessage message =
@@ -102,7 +103,7 @@ public class NotificationProcess implements Process {
 						return new OperationCallEvent( operationId, processId,
 							Long.toString( message.id() ), OperationCallEvent.FAULT,
 							"TypeMismatch:" + e.getMessage(), outputPort.id(),
-							Interpreter.getInstance().programFilename(), context, message.value() );
+							Interpreter.getInstance().programFilename(), scopeId, context, message.value() );
 					} );
 
 					throw (e);
@@ -121,7 +122,7 @@ public class NotificationProcess implements Process {
 					return new OperationCallEvent( operationId,
 						processId, Long.toString( message.id() ),
 						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
-						context,
+						scopeId, context,
 						message.value() );
 				} );
 

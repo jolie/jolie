@@ -78,6 +78,7 @@ type MonitorEvent: void {
 	timestamp: long
 	service: string
 	cellId: int
+	scope: string
 	data?: LogEventData 
 		| OperationCallReplyEventData 
 		| OperationEndedEventData 
