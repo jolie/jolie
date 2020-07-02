@@ -20,41 +20,14 @@
  ************************************************************************** */
 package joliex.meta;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.lang.CodeCheckingError;
+import jolie.lang.CodeCheckingException;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.PortInfo;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -64,6 +37,11 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.util.Range;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  *
@@ -794,16 +772,17 @@ public class MetaJolie extends JavaService {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( SemanticException e ) {
+		} catch( CodeCheckingException e ) {
 			Value fault = Value.create();
-			List< SemanticException.SemanticError > errorList = e.getErrorList();
-			for( int i = 0; i < errorList.size(); i++ ) {
+			int i = 0;
+			for( CodeCheckingError error : e.errors() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
-					.setValue( errorList.get( i ).getMessage() );
+					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( errorList.get( i ).context().line() );
+					.setValue( error.context().line() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( errorList.get( i ).context().sourceName() );
+					.setValue( error.context().sourceName() );
+				i++;
 			}
 			throw new FaultException( "SemanticException", fault );
 		}
@@ -851,16 +830,17 @@ public class MetaJolie extends JavaService {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( SemanticException e ) {
+		} catch( CodeCheckingException e ) {
 			Value fault = Value.create();
-			List< SemanticException.SemanticError > errorList = e.getErrorList();
-			for( int i = 0; i < errorList.size(); i++ ) {
+			int i = 0;
+			for( CodeCheckingError error : e.errors() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
-					.setValue( errorList.get( i ).getMessage() );
+					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( errorList.get( i ).context().line() );
+					.setValue( error.context().line() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( errorList.get( i ).context().sourceName() );
+					.setValue( error.context().sourceName() );
+				i++;
 			}
 			throw new FaultException( "SemanticException", fault );
 		}
@@ -1028,12 +1008,14 @@ public class MetaJolie extends JavaService {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( SemanticException e ) {
+		} catch( CodeCheckingException e ) {
 			Value fault = Value.create();
 			int i = 0;
-			for( SemanticException.SemanticError error : e.getErrorList() ) {
-				fault.getChildren( "error" ).get( i ).getFirstChild( "message" ).setValue( error.getMessage() );
-				fault.getChildren( "error" ).get( i ).getFirstChild( "line" ).setValue( error.context().line() );
+			for( CodeCheckingError error : e.errors() ) {
+				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
+					.setValue( error.toString() );
+				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
+					.setValue( error.context().line() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
 					.setValue( error.context().sourceName() );
 				i++;

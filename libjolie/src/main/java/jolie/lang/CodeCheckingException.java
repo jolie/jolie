@@ -20,13 +20,21 @@
 package jolie.lang;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 public class CodeCheckingException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
+	private final Collection< CodeCheckingError > errors;
+
 	public CodeCheckingException( Collection< CodeCheckingError > errors ) {
 		super(
 			errors.stream().map( CodeCheckingError::toString ).collect( Collectors.joining( "\n" ) ) );
+		this.errors = Collections.unmodifiableCollection( errors );
+	}
+
+	public Collection< CodeCheckingError > errors() {
+		return errors;
 	}
 }

@@ -32,6 +32,10 @@ public class CodeCheckingError {
 		this.message = message;
 	}
 
+	public ParsingContext context() {
+		return context;
+	}
+
 	@Override
 	public String toString() {
 		return context.sourceName() + ":" + context.line() + ": error: " + message;

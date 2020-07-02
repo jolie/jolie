@@ -20,7 +20,6 @@
 package jolie.lang.parse.module;
 
 import jolie.lang.CodeCheckingError;
-import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.*;
@@ -45,43 +44,59 @@ import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 import jolie.lang.parse.module.exceptions.IllegalAccessSymbolException;
 import jolie.lang.parse.module.exceptions.SymbolNotFoundException;
-import jolie.lang.parse.module.exceptions.SymbolTypeMismatchException;
 import jolie.util.Pair;
 
 import java.net.URI;
 import java.util.*;
 
-class SymbolReferenceResolver {
+public class SymbolReferenceResolver {
+	private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name ) {
+		return CodeCheckingError.build( node, "Symbol not found: " + name
+			+ " is not defined in this module (the symbol could not be retrieved from the symbol table)" );
+	}
+
+	// private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name,
+	// ImportPath path ) {
+	// return CodeCheckingError.build( node, "Symbol not found: " + name + " is not defined in module "
+	// + path
+	// + " (the symbol could not be retrieved from the symbol table)" );
+	// }
+
+	private static CodeCheckingError buildSymbolTypeMismatchError( OLSyntaxNode node, String symbolName,
+		String expectedType, String actualType ) {
+		return CodeCheckingError.build( node, "Symbol is used incorrectly: " + symbolName + " is used as "
+			+ expectedType + ", but it actually has type " + actualType );
+	}
 
 	private class SymbolReferenceResolverVisitor implements OLVisitor {
 		private URI currentURI;
-		private ModuleException error = null;
+		private final List< CodeCheckingError > errors = new ArrayList<>();
 
 		protected SymbolReferenceResolverVisitor() {}
 
-		private void error( ModuleException e ) {
-			this.error = e;
+		private void error( CodeCheckingError e ) {
+			errors.add( e );
 		}
 
-		private boolean valid() {
-			return error == null;
+		private boolean isValid() {
+			return errors.isEmpty();
 		}
 
 		/**
-		 * Walk through the Jolie AST tree and resolve the call of external Symbols.
+		 * Walk through the Jolie AST tree and resolve all symbol references
 		 */
 		public void resolve( Program p ) throws ModuleException {
 			currentURI = p.context().source();
 			visit( p );
-			if( error != null ) {
-				throw new ModuleException(  );
+			if( !isValid() ) {
+				throw new ModuleException( errors );
 			}
 		}
 
 		@Override
 		public void visit( Program n ) {
 			for( OLSyntaxNode node : n.children() ) {
-				if( !valid() ) {
+				if( !isValid() ) {
 					return;
 				}
 				node.accept( this );
@@ -303,13 +318,12 @@ class SymbolReferenceResolver {
 			for( InterfaceDefinition iface : n.getInterfaceList() ) {
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					error( new SymbolNotFoundException( iface.name() ) );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( n.id(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
@@ -335,14 +349,12 @@ class SymbolReferenceResolver {
 			for( InterfaceDefinition iface : n.getInterfaceList() ) {
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( iface.name() );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
@@ -457,20 +469,17 @@ class SymbolReferenceResolver {
 				Optional< SymbolInfo > targetSymbolInfo =
 					getSymbol( n.context(), n.linkedTypeName() );
 				if( !targetSymbolInfo.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( n.id() );
+					error( buildSymbolNotFoundError( n, n.id() ) );
 					return;
 				}
 				if( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( n.id(), "TypeDefinition",
-						targetSymbolInfo.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( n, n.id(), "TypeDefinition",
+						targetSymbolInfo.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				linkedType = (TypeDefinition) targetSymbolInfo.get().node();
 				if( linkedType.equals( n ) ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( n.id() );
+					error( buildSymbolNotFoundError( n, n.id() ) );
 					return;
 				}
 			}
@@ -502,14 +511,12 @@ class SymbolReferenceResolver {
 
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( iface.name() );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
@@ -528,14 +535,12 @@ class SymbolReferenceResolver {
 
 				Optional< SymbolInfo > symbol = getSymbol( iface.context(), iface.name() );
 				if( !symbol.isPresent() ) {
-					this.valid = false;
-					this.error = new SymbolNotFoundException( iface.name() );
+					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
 				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
-					this.valid = false;
-					this.error = new SymbolTypeMismatchException( iface.name(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() );
+					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
+						symbol.get().node().getClass().getSimpleName() ) );
 					return;
 				}
 				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();

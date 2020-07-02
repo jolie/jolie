@@ -21,20 +21,21 @@
 
 package joliex.plasma;
 
+import jolie.CommandLineException;
+import jolie.CommandLineParser;
+import jolie.lang.CodeCheckingException;
+import jolie.lang.parse.ParserException;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.util.ParsingUtils;
+import joliex.plasma.impl.InterfaceVisitor;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
-import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.ModuleException;
-import jolie.lang.parse.util.ParsingUtils;
-import joliex.plasma.impl.InterfaceVisitor;
 
 /**
  *
@@ -68,7 +69,7 @@ public class Jolie2Plasma {
 			System.out.println( e.getMessage() );
 			System.out.println(
 				"Syntax is: jolie2plasma [jolie options] <jolie filename> <output filename> [interface name list]" );
-		} catch( IOException | InterfaceVisitor.InterfaceNotFound | SemanticException | ParserException e ) {
+		} catch( IOException | InterfaceVisitor.InterfaceNotFound | CodeCheckingException | ParserException e ) {
 			e.printStackTrace();
 		} catch( ModuleException e ) {
 			e.printStackTrace();
