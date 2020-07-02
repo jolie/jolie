@@ -10,38 +10,26 @@
  */
 package jolie.net;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import jolie.Interpreter;
+import jolie.js.JsUtils;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.BasicTypeDefinition;
+import jolie.net.http.*;
+import jolie.net.ports.Interface;
+import jolie.net.ports.OutputPort;
+import jolie.net.protocols.SequentialCommProtocol;
+import jolie.runtime.*;
+import jolie.runtime.typing.BasicType;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
+import jolie.util.Range;
+
+import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import jolie.Interpreter;
-import jolie.js.JsUtils;
-import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.BasicType;
-import jolie.net.http.HttpMessage;
-import jolie.net.http.HttpParser;
-import jolie.net.http.HttpUtils;
-import jolie.net.http.Method;
-import jolie.net.http.UnsupportedMethodException;
-import jolie.net.ports.Interface;
-import jolie.net.ports.OutputPort;
-import jolie.net.protocols.SequentialCommProtocol;
-import jolie.runtime.ByteArray;
-import jolie.runtime.FaultException;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
-import jolie.runtime.typing.RequestResponseTypeDescription;
-import jolie.runtime.typing.Type;
-import jolie.util.Range;
 
 /**
  *
@@ -142,8 +130,11 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		Type operationType = Type.UNDEFINED;
 		String originalOpName = message.operationName();
 		Map< String, Type > subTypes = new HashMap<>();
-		subTypes.put( "jsonrpc", Type.create( BasicType.of( NativeType.STRING ), new Range( 1, 1 ), false, null ) );
-		subTypes.put( "id", Type.create( BasicType.of( NativeType.INT ), new Range( 0, 1 ), false, null ) );
+		subTypes.put( "jsonrpc",
+			Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.STRING ) ),
+				new Range( 1, 1 ), false, null ) );
+		subTypes.put( "id", Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.INT ) ),
+			new Range( 0, 1 ), false, null ) );
 
 		if( message.isFault() ) {
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
@@ -206,7 +197,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			}
 		}
 
-		Type fullMessageType = Type.create( BasicType.of( NativeType.VOID ), new Range( 1, 1 ), false, subTypes );
+		Type fullMessageType =
+			Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.VOID ) ),
+				new Range( 1, 1 ), false, subTypes );
 		StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, fullMessageType, json );
 		String jsonMessage = json.toString();

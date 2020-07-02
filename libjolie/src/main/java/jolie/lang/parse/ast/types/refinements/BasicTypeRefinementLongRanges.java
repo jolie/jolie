@@ -2,7 +2,7 @@ package jolie.lang.parse.ast.types.refinements;
 
 import java.util.ArrayList;
 
-public class BasicTypeRefinementLongRanges extends BasicTypeRefinement< Long > {
+public class BasicTypeRefinementLongRanges implements BasicTypeRefinement< Long > {
 
 	public class Interval {
 		private final long min;
@@ -41,7 +41,7 @@ public class BasicTypeRefinementLongRanges extends BasicTypeRefinement< Long > {
 	}
 
 	@Override
-	public boolean checkTypeRefinment( Long value ) {
+	public boolean checkValue( Long value ) {
 		return ranges.stream().anyMatch( i -> i.checkInterval( value ) );
 	}
 
@@ -59,7 +59,7 @@ public class BasicTypeRefinementLongRanges extends BasicTypeRefinement< Long > {
 	}
 
 	@Override
-	public String getRefinementDocumentationDefinition() {
+	public String getDocumentation() {
 		return "ranges([[min1,max1],[min2,max2],...])";
 	}
 

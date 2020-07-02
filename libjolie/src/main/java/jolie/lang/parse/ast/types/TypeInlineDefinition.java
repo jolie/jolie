@@ -37,22 +37,24 @@ import jolie.util.Range;
  * @author Fabrizio Montesi
  */
 public class TypeInlineDefinition extends TypeDefinition {
-	private final BasicType basicType;
+	private final BasicTypeDefinition basicTypeDefinition;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality,
+	public TypeInlineDefinition( ParsingContext context, String id, BasicTypeDefinition basicTypeDefinition,
+		Range cardinality,
 		AccessModifier accessModifier ) {
 		super( context, id, cardinality, accessModifier );
-		this.basicType = basicType;
+		this.basicTypeDefinition = basicTypeDefinition;
 	}
 
-	public TypeInlineDefinition( ParsingContext context, String id, BasicType basicType, Range cardinality ) {
-		this( context, id, basicType, cardinality, AccessModifier.PUBLIC );
+	public TypeInlineDefinition( ParsingContext context, String id, BasicTypeDefinition basicTypeDefinition,
+		Range cardinality ) {
+		this( context, id, basicTypeDefinition, cardinality, AccessModifier.PUBLIC );
 	}
 
-	public BasicType basicType() {
-		return basicType;
+	public BasicTypeDefinition basicType() {
+		return basicTypeDefinition;
 	}
 
 

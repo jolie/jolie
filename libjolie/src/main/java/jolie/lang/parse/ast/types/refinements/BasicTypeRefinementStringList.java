@@ -2,7 +2,7 @@ package jolie.lang.parse.ast.types.refinements;
 
 import java.util.ArrayList;
 
-public class BasicTypeRefinementStringList extends BasicTypeRefinement< String > {
+public class BasicTypeRefinementStringList implements BasicTypeRefinement< String > {
 
 	private final ArrayList< String > list = new ArrayList<>();
 
@@ -11,7 +11,7 @@ public class BasicTypeRefinementStringList extends BasicTypeRefinement< String >
 	}
 
 	@Override
-	public boolean checkTypeRefinment( String value ) {
+	public boolean checkValue( String value ) {
 		return list.contains( value );
 	}
 
@@ -28,7 +28,7 @@ public class BasicTypeRefinementStringList extends BasicTypeRefinement< String >
 	}
 
 	@Override
-	public String getRefinementDocumentationDefinition() {
+	public String getDocumentation() {
 		return "list([\"item1\",\"item2\",...])";
 	}
 

@@ -1,6 +1,6 @@
 package jolie.lang.parse.ast.types.refinements;
 
-public class BasicTypeRefinementStringLength extends BasicTypeRefinement< String > {
+public class BasicTypeRefinementStringLength implements BasicTypeRefinement< String > {
 
 	private final int max;
 	private final int min;
@@ -11,7 +11,7 @@ public class BasicTypeRefinementStringLength extends BasicTypeRefinement< String
 	}
 
 	@Override
-	public boolean checkTypeRefinment( String value ) {
+	public boolean checkValue( String value ) {
 		return (value.length() <= max) && (value.length() >= min);
 	}
 
@@ -31,7 +31,7 @@ public class BasicTypeRefinementStringLength extends BasicTypeRefinement< String
 	}
 
 	@Override
-	public String getRefinementDocumentationDefinition() {
+	public String getDocumentation() {
 		return "length([" + min + "," + max + "])";
 	}
 

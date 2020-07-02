@@ -25,18 +25,19 @@ import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
 
 import java.util.*;
 
-public class BasicType {
+public class BasicTypeDefinition {
 	private final NativeType nativeType;
-	private final List< BasicTypeRefinement > refinements;
-	private static final Map< NativeType, BasicType > PURE_BASIC_TYPES = new HashMap<>();
+	private final List< BasicTypeRefinement< ? extends Object > > refinements;
+	private static final Map< NativeType, BasicTypeDefinition > PURE_BASIC_TYPE_DEFINITIONS = new HashMap<>();
 
 	static {
 		for( NativeType nativeType : NativeType.values() ) {
-			PURE_BASIC_TYPES.put( nativeType, new BasicType( nativeType, Collections.emptyList() ) );
+			PURE_BASIC_TYPE_DEFINITIONS.put( nativeType,
+				new BasicTypeDefinition( nativeType, Collections.emptyList() ) );
 		}
 	}
 
-	private BasicType( NativeType nativeType, List< BasicTypeRefinement > refinements ) {
+	private BasicTypeDefinition( NativeType nativeType, List< BasicTypeRefinement< ? > > refinements ) {
 		this.nativeType = nativeType;
 		this.refinements = Collections.unmodifiableList( refinements );
 	}
@@ -45,23 +46,28 @@ public class BasicType {
 		return nativeType;
 	}
 
-	public List< BasicTypeRefinement > refinements() {
+	public List< BasicTypeRefinement< ? extends Object > > refinements() {
 		return refinements;
 	}
 
-	public boolean checkBasicTypeEqualness( BasicType basicType ) {
-		return nativeType.equals( basicType.nativeType ) &&
-			refinements.size() == basicType.refinements.size() &&
+	public boolean checkBasicTypeEqualness( BasicTypeDefinition basicTypeDefinition ) {
+		if( refinements.size() > 1 || basicTypeDefinition.refinements.size() > 1 ) {
+			throw new IllegalArgumentException(
+				"Checking for equality of basic types with more than one refinement is unsupported" );
+		}
+
+		return nativeType.equals( basicTypeDefinition.nativeType ) &&
+			refinements.size() == basicTypeDefinition.refinements.size() &&
 			refinements.stream()
-				.allMatch( refinement -> checkSingleTypeRefinement( refinement, basicType.refinements() ) );
+				.allMatch( refinement -> checkSingleTypeRefinement( refinement, basicTypeDefinition.refinements() ) );
 	}
 
 	// TODO: update this when we allow for multiple refinements. (It's broken when one uses the same
 	// refinement twice.)
-	private static boolean checkSingleTypeRefinement( BasicTypeRefinement basicTypeRefinement,
-		List< BasicTypeRefinement > targetList ) {
+	private static boolean checkSingleTypeRefinement( BasicTypeRefinement< ? > basicTypeRefinement,
+		List< BasicTypeRefinement< ? > > targetList ) {
 		boolean returnValue = false;
-		BasicTypeRefinement foundBasicTypeRefinement = targetList.stream()
+		BasicTypeRefinement< ? > foundBasicTypeRefinement = targetList.stream()
 			.filter( btr -> btr.getClass().equals( basicTypeRefinement.getClass() ) ).findFirst().get();
 		if( foundBasicTypeRefinement != null ) {
 			returnValue = basicTypeRefinement.checkEqualness( foundBasicTypeRefinement );
@@ -69,19 +75,18 @@ public class BasicType {
 		return returnValue;
 	}
 
-	public static BasicType of( NativeType nativeType ) {
+	public static BasicTypeDefinition of( NativeType nativeType ) {
 		Objects.requireNonNull( nativeType, "native type in BasicType must not be null" );
 
-		return PURE_BASIC_TYPES.get( nativeType );
+		return PURE_BASIC_TYPE_DEFINITIONS.get( nativeType );
 	}
 
-	public static BasicType of( NativeType nativeType, List< BasicTypeRefinement > refinements ) {
+	public static BasicTypeDefinition of( NativeType nativeType, List< BasicTypeRefinement< ? > > refinements ) {
 		Objects.requireNonNull( nativeType, "native type in BasicType must not be null" );
-
 		if( refinements.isEmpty() ) {
 			return of( nativeType );
 		} else {
-			return new BasicType( nativeType, refinements );
+			return new BasicTypeDefinition( nativeType, refinements );
 		}
 	}
 }

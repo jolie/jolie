@@ -51,7 +51,7 @@ public class OutputDirectoryTest {
 
 
 	@Test
-	public void checkEmptyOutputDirecotry()
+	public void checkEmptyOutputDirectory()
 		throws IOException, ParserException, CodeCheckingException, CommandLineException, ModuleException {
 		String[] args = { "src/test/resources/main.ol" };
 		Jolie2JavaCommandLineParser cmdParser =

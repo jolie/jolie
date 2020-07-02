@@ -118,7 +118,8 @@ public class OLParser extends AbstractParser {
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
 			definedTypes.put( type.id(),
-				new TypeInlineDefinition( context, type.id(), BasicType.of( type ), Constants.RANGE_ONE_TO_ONE ) );
+				new TypeInlineDefinition( context, type.id(), BasicTypeDefinition.of( type ),
+					Constants.RANGE_ONE_TO_ONE ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
 
@@ -264,13 +265,14 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		TypeDefinition currentType;
 
-		String currentTokenContent = token.content();
-		BasicType basicType = readBasicType();
-		if( basicType.nativeType() == null ) { // It's a user-defined type
+		BasicTypeDefinition basicTypeDefinition = readBasicType();
+		if( basicTypeDefinition == null ) { // It's a user-defined type
 			currentType =
-				new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentTokenContent );
+				new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
+			nextToken();
 		} else {
-			currentType = new TypeInlineDefinition( getContext(), typeName, basicType, Constants.RANGE_ONE_TO_ONE );
+			currentType =
+				new TypeInlineDefinition( getContext(), typeName, basicTypeDefinition, Constants.RANGE_ONE_TO_ONE );
 
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
@@ -359,14 +361,15 @@ public class OLParser extends AbstractParser {
 	private TypeDefinition parseSubType( String id, Range cardinality )
 		throws IOException, ParserException {
 		String currentTokenContent = token.content();
-		BasicType basicType = readBasicType();
 		TypeDefinition subType;
 		// SubType id
 
-		if( basicType.nativeType() == null ) { // It's a user-defined type
+		BasicTypeDefinition basicTypeDefinition = readBasicType();
+		if( basicTypeDefinition == null ) { // It's a user-defined type
 			subType = new TypeDefinitionLink( getContext(), id, cardinality, currentTokenContent );
+			nextToken();
 		} else {
-			subType = new TypeInlineDefinition( getContext(), id, basicType, cardinality );
+			subType = new TypeInlineDefinition( getContext(), id, basicTypeDefinition, cardinality );
 
 			Optional< Scanner.Token > commentToken = Optional.empty();
 			if( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD ) ) {
@@ -534,8 +537,8 @@ public class OLParser extends AbstractParser {
 		return arrayList;
 	}
 
-	private BasicType readBasicType() throws IOException, ParserException {
-		ArrayList< BasicTypeRefinement > basicTypeRefinementList = new ArrayList<>();
+	private BasicTypeDefinition readBasicType() throws IOException, ParserException {
+		List< BasicTypeRefinement< ? > > basicTypeRefinementList = new ArrayList<>();
 		if( token.is( Scanner.TokenType.CAST_INT ) ) {
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
@@ -583,7 +586,7 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
-			return BasicType.of( NativeType.INT, basicTypeRefinementList );
+			return BasicTypeDefinition.of( NativeType.INT, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
@@ -631,7 +634,7 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
-			return BasicType.of( NativeType.DOUBLE, basicTypeRefinementList );
+			return BasicTypeDefinition.of( NativeType.DOUBLE, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
@@ -661,19 +664,13 @@ public class OLParser extends AbstractParser {
 
 							break;
 						case REGEX:
-							if( token.type() != Scanner.TokenType.STRING ) {
-								throwException( "Expected regex string for predicate " + predicate );
-							} else {
-								BasicTypeRefinementStringRegex basicTypeRefinementStringRegex =
-									new BasicTypeRefinementStringRegex( token.content() );
-								basicTypeRefinementList.add( basicTypeRefinementStringRegex );
-							}
+							assertToken( Scanner.TokenType.STRING, "Expected regex string for predicate " + predicate );
+							basicTypeRefinementList.add( new BasicTypeRefinementStringRegex( token.content() ) );
 							nextToken();
 							break;
-
 						default:
 							throwException(
-								"Basic type Refinement predicate " + predicate + " not supported for string" );
+								"Basic type refinement predicate " + predicate + " not supported for string" );
 						}
 					} else {
 						StringBuilder supportedList = new StringBuilder().append( " " );
@@ -687,7 +684,7 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 
 			}
-			return BasicType.of( NativeType.STRING, basicTypeRefinementList );
+			return BasicTypeDefinition.of( NativeType.STRING, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
 			nextToken();
 			if( token.is( Scanner.TokenType.LPAREN ) ) {
@@ -735,14 +732,14 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RPAREN, ") expected" );
 			}
-			return BasicType.of( NativeType.LONG, basicTypeRefinementList );
-		} else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
-			nextToken();
-			return BasicType.of( NativeType.BOOL );
+			return BasicTypeDefinition.of( NativeType.LONG, basicTypeRefinementList );
 		} else {
-			String currentTokenContent = token.content();
+			NativeType nativeType = NativeType.fromString( token.content() );
+			if( nativeType == null ) {
+				return null;
+			}
 			nextToken();
-			return BasicType.of( NativeType.fromString( currentTokenContent ) );
+			return BasicTypeDefinition.of( nativeType );
 		}
 	}
 

@@ -216,6 +216,7 @@ import jolie.runtime.expression.ProductExpression;
 import jolie.runtime.expression.SumExpression;
 import jolie.runtime.expression.ValueVectorSizeExpression;
 import jolie.runtime.expression.VoidExpression;
+import jolie.runtime.typing.BasicType;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
@@ -650,7 +651,7 @@ public class OOITBuilder implements OLVisitor {
 		insideType = true;
 
 		if( n.untypedSubTypes() ) {
-			currType = Type.create( n.basicType(), n.cardinality(), true, null );
+			currType = Type.create( BasicType.fromBasicTypeDefinition( n.basicType() ), n.cardinality(), true, null );
 		} else {
 			Map< String, Type > subTypes = new HashMap<>();
 			if( n.subTypes() != null ) {
@@ -659,7 +660,7 @@ public class OOITBuilder implements OLVisitor {
 				}
 			}
 			currType = Type.create(
-				n.basicType(),
+				BasicType.fromBasicTypeDefinition( n.basicType() ),
 				n.cardinality(),
 				false,
 				subTypes );

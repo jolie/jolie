@@ -2,8 +2,7 @@ package jolie.lang.parse.ast.types.refinements;
 
 import java.util.ArrayList;
 
-public class BasicTypeRefinementDoubleRanges extends BasicTypeRefinement< Double > {
-
+public class BasicTypeRefinementDoubleRanges implements BasicTypeRefinement< Double > {
 	public class Interval {
 		private final double min;
 		private final double max;
@@ -28,8 +27,6 @@ public class BasicTypeRefinementDoubleRanges extends BasicTypeRefinement< Double
 		public boolean checkIntervalEqualness( Interval interval ) {
 			return (this.min == interval.getMin()) && (this.max == interval.getMax());
 		}
-
-
 	}
 
 	private final ArrayList< Interval > ranges = new ArrayList<>();
@@ -41,7 +38,7 @@ public class BasicTypeRefinementDoubleRanges extends BasicTypeRefinement< Double
 	}
 
 	@Override
-	public boolean checkTypeRefinment( Double value ) {
+	public boolean checkValue( Double value ) {
 		return ranges.stream().anyMatch( i -> i.checkInterval( value ) );
 	}
 
@@ -59,7 +56,7 @@ public class BasicTypeRefinementDoubleRanges extends BasicTypeRefinement< Double
 	}
 
 	@Override
-	public String getRefinementDocumentationDefinition() {
+	public String getDocumentation() {
 		return "ranges([[min1,max1],[min2,max2],...])";
 	}
 

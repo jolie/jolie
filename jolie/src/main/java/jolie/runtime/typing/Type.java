@@ -21,24 +21,24 @@
 
 package jolie.runtime.typing;
 
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.BasicTypeDefinition;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.util.Range;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.BasicType;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.util.Range;
-
 class TypeImpl extends Type {
 	private final Range cardinality;
-	private final BasicType basicType;
+	private final BasicType< ? > basicType;
 	private final Map< String, Type > subTypes;
 
 	public TypeImpl(
-		BasicType basicType,
+		BasicType< ? > basicType,
 		Range cardinality,
 		boolean undefinedSubTypes,
 		Map< String, Type > subTypes ) {
@@ -61,11 +61,7 @@ class TypeImpl extends Type {
 		return subTypes;
 	}
 
-	protected NativeType nativeType() {
-		return basicType.nativeType();
-	}
-
-	protected BasicType basicType() {
+	protected BasicType< ? > basicType() {
 		return basicType;
 	}
 
@@ -97,7 +93,7 @@ class TypeImpl extends Type {
 			.append( typeName );
 
 		final boolean hasChildren = value.hasChildren( typeName );
-		if( hasChildren == false && type.cardinality().min() > 0 ) {
+		if( !hasChildren && type.cardinality().min() > 0 ) {
 			throw new TypeCastingException( "Undefined required child node: " + pathBuilder.toString() );
 		} else if( hasChildren ) {
 			final ValueVector vector = value.getChildren( typeName );
@@ -128,16 +124,7 @@ class TypeImpl extends Type {
 	@Override
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException {
-		if( checkNativeType( value, basicType ) == false ) {
-			StringBuilder refinementsDescription = new StringBuilder();
-			basicType.refinements().forEach( basicTypeRefinement -> refinementsDescription
-				.append( basicTypeRefinement.getRefinementDocumentationDefinition() ).append( " " ) );
-			throw new TypeCheckingException(
-				"Invalid native type for node " + pathBuilder.toString() + ": expected " + basicType.nativeType() + " "
-					+ refinementsDescription + ", found "
-					+ ((value.valueObject() == null) ? "void"
-						: value.valueObject().getClass().getName() + "(" + value.strValue() + ")") );
-		}
+		basicType.check( value, pathBuilder::toString );
 
 		if( subTypes != null ) {
 			final int l = pathBuilder.length();
@@ -148,7 +135,7 @@ class TypeImpl extends Type {
 
 			// TODO make this more performant
 			for( String childName : value.children().keySet() ) {
-				if( subTypes.containsKey( childName ) == false ) {
+				if( !subTypes.containsKey( childName ) ) {
 					throw new TypeCheckingException(
 						"Unexpected child node: " + pathBuilder.toString() + "." + childName );
 				}
@@ -162,7 +149,7 @@ class TypeImpl extends Type {
 			.append( typeName );
 
 		final boolean hasChildren = value.hasChildren( typeName );
-		if( hasChildren == false && type.cardinality().min() > 0 ) {
+		if( !hasChildren && type.cardinality().min() > 0 ) {
 			throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
 		} else if( hasChildren ) {
 			final ValueVector vector = value.getChildren( typeName );
@@ -182,7 +169,9 @@ class TypeImpl extends Type {
 
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException {
-		if( checkNativeType( value, basicType ) == false ) {
+		try {
+			basicType.check( value, pathBuilder::toString );
+		} catch( TypeCheckingException ex ) {
 			// ANY is not handled, because checkNativeType returns true for it anyway
 			switch( basicType.nativeType() ) {
 			case DOUBLE:
@@ -248,33 +237,6 @@ class TypeImpl extends Type {
 						": " + pathBuilder.toString() );
 			}
 		}
-	}
-
-	private boolean checkNativeType( Value value, BasicType basicType ) {
-		switch( basicType.nativeType() ) {
-		case ANY:
-			return true;
-		case DOUBLE:
-			return (value.isDouble() || value.isInt()) && basicType.refinements().stream()
-				.allMatch( btr -> btr.checkTypeRefinment( value.doubleValue() ) );
-		case LONG:
-			return (value.isLong() || value.isInt()) && basicType.refinements().stream()
-				.allMatch( btr -> btr.checkTypeRefinment( value.longValue() ) );
-		case BOOL:
-			return value.isBool();
-		case INT:
-			return value.isInt() && basicType.refinements().stream()
-				.allMatch( btr -> btr.checkTypeRefinment( value.intValue() ) );
-		case STRING:
-			return value.isString() && basicType.refinements().stream()
-				.allMatch( btr -> btr.checkTypeRefinment( value.strValue() ) );
-		case VOID:
-			return value.valueObject() == null;
-		case RAW:
-			return value.isByteArray();
-		}
-
-		return false;
 	}
 }
 
@@ -358,10 +320,11 @@ class TypeChoice extends Type {
  */
 public abstract class Type implements Cloneable {
 	public static final Type UNDEFINED =
-		Type.create( BasicType.of( NativeType.ANY ), new Range( 0, Integer.MAX_VALUE ), true, null );
+		Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.ANY ) ),
+			new Range( 0, Integer.MAX_VALUE ), true, null );
 
 	public static Type create(
-		BasicType basicType,
+		BasicType< ? > basicType,
 		Range cardinality,
 		boolean undefinedSubTypes,
 		Map< String, Type > subTypes ) {

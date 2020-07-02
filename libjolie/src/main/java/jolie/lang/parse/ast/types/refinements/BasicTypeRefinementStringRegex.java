@@ -3,21 +3,18 @@ package jolie.lang.parse.ast.types.refinements;
 import dk.brics.automaton.Automaton;
 import dk.brics.automaton.RegExp;
 
-public class BasicTypeRefinementStringRegex extends BasicTypeRefinement< String > {
-
+public class BasicTypeRefinementStringRegex implements BasicTypeRefinement< String > {
 	private final String regex;
-	private final RegExp regexObject;
 	private final Automaton automaton;
 
 	public BasicTypeRefinementStringRegex( String regex ) {
 		this.regex = regex;
-		this.regexObject = new RegExp( this.regex );
-		this.automaton = regexObject.toAutomaton();
+		this.automaton = new RegExp( regex ).toAutomaton();
 	}
 
 	@Override
-	public boolean checkTypeRefinment( String value ) {
-		return this.automaton.run( value );
+	public boolean checkValue( String value ) {
+		return automaton.run( value );
 	}
 
 	@Override
@@ -35,7 +32,7 @@ public class BasicTypeRefinementStringRegex extends BasicTypeRefinement< String 
 	}
 
 	@Override
-	public String getRefinementDocumentationDefinition() {
+	public String getDocumentation() {
 		return "regex(\"" + regex + "\")";
 	}
 
