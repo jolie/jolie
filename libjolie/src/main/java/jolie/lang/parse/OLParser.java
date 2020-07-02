@@ -19,6 +19,28 @@
 
 package jolie.lang.parse;
 
+import jolie.lang.Constants;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
+import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
+import jolie.lang.parse.ast.VariablePathNode.Type;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
+import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.types.*;
+import jolie.lang.parse.ast.types.refinements.*;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.util.ProgramBuilder;
+import jolie.util.Helpers;
+import jolie.util.Pair;
+import jolie.util.Range;
+import jolie.util.UriUtils;
+
 import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -27,115 +49,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import jolie.lang.Constants;
-import jolie.lang.NativeType;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
-import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
-import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachArrayItemStatement;
-import jolie.lang.parse.ast.ForEachSubNodeStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.ImportStatement;
-import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallFunctionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationCollector;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PortInfo;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.Scope;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.ast.VariablePathNode.Type;
-import jolie.lang.parse.ast.WhileStatement;
-import jolie.lang.parse.ast.courier.CourierChoiceStatement;
-import jolie.lang.parse.ast.courier.CourierDefinitionNode;
-import jolie.lang.parse.ast.courier.NotificationForwardStatement;
-import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
-import jolie.lang.parse.util.ProgramBuilder;
-import jolie.util.Helpers;
-import jolie.util.Pair;
-import jolie.util.Range;
-import jolie.util.UriUtils;
+import java.nio.file.*;
+import java.util.*;
 
 /**
  * Parser for a .ol file.
@@ -162,6 +77,27 @@ public class OLParser extends AbstractParser {
 
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
 
+	private static enum RefinementPredicates {
+		LENGTH, ENUM, RANGES, REGEX
+	}
+
+	private static final Map< String, OLParser.RefinementPredicates > BASIC_TYPE_REFINED_PREDICATES = new HashMap<>();
+	static {
+		BASIC_TYPE_REFINED_PREDICATES.put( "length", RefinementPredicates.LENGTH ); // defines the minimum and the
+																					// maximum
+																					// length of a string
+
+		BASIC_TYPE_REFINED_PREDICATES.put( "regex", RefinementPredicates.REGEX ); // defines the regex for a string
+
+		BASIC_TYPE_REFINED_PREDICATES.put( "enum", RefinementPredicates.ENUM ); // defines a list of string that a
+																				// string
+																				// can be
+		BASIC_TYPE_REFINED_PREDICATES.put( "ranges", RefinementPredicates.RANGES ); // it defines a list of intervals
+																					// where
+																					// an int | long | double can be
+	}
+
+
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader ) {
 		super( scanner );
 		final ParsingContext context = new URIParsingContext( scanner.source(), 0 );
@@ -169,6 +105,7 @@ public class OLParser extends AbstractParser {
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
 		this.definedTypes = createTypeDeclarationMap( context );
+
 	}
 
 	public void putConstants( Map< String, Scanner.Token > constantsToPut ) {
@@ -181,7 +118,8 @@ public class OLParser extends AbstractParser {
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
 			definedTypes.put( type.id(),
-				new TypeInlineDefinition( context, type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
+				new TypeInlineDefinition( context, type.id(), BasicTypeDefinition.of( type ),
+					Constants.RANGE_ONE_TO_ONE ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
 
@@ -327,13 +265,15 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		TypeDefinition currentType;
 
-		NativeType nativeType = readNativeType();
-		if( nativeType == null ) { // It's a user-defined type
-			currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
+		BasicTypeDefinition basicTypeDefinition = readBasicType();
+		if( basicTypeDefinition == null ) { // It's a user-defined type
+			currentType =
+				new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
 			nextToken();
 		} else {
-			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
-			nextToken();
+			currentType =
+				new TypeInlineDefinition( getContext(), typeName, basicTypeDefinition, Constants.RANGE_ONE_TO_ONE );
+
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
@@ -420,16 +360,16 @@ public class OLParser extends AbstractParser {
 
 	private TypeDefinition parseSubType( String id, Range cardinality )
 		throws IOException, ParserException {
-		NativeType nativeType = readNativeType();
+		String currentTokenContent = token.content();
 		TypeDefinition subType;
 		// SubType id
 
-		if( nativeType == null ) { // It's a user-defined type
-			subType = new TypeDefinitionLink( getContext(), id, cardinality, token.content() );
+		BasicTypeDefinition basicTypeDefinition = readBasicType();
+		if( basicTypeDefinition == null ) { // It's a user-defined type
+			subType = new TypeDefinitionLink( getContext(), id, cardinality, currentTokenContent );
 			nextToken();
 		} else {
-			nextToken();
-			subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
+			subType = new TypeInlineDefinition( getContext(), id, basicTypeDefinition, cardinality );
 
 			Optional< Scanner.Token > commentToken = Optional.empty();
 			if( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD ) ) {
@@ -456,19 +396,350 @@ public class OLParser extends AbstractParser {
 		return subType;
 	}
 
-	private NativeType readNativeType() {
+
+
+	/*
+	 * set maxNumberOfParameters = null to unbound the list
+	 */
+	private ArrayList< Integer > parseListOfInteger( Integer minNumberOfParameters, Integer maxNumberOfParameters,
+		String predicate ) throws IOException, ParserException {
+		ArrayList< Integer > arrayList = new ArrayList<>();
+		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
+		while( token.type() != Scanner.TokenType.RSQUARE ) {
+			if( token.type() != Scanner.TokenType.INT && token.type() != Scanner.TokenType.ASTERISK ) {
+				throwException( "Expected a parameter of type integer, found " + token.content() );
+			}
+			if( token.type() == Scanner.TokenType.INT ) {
+				arrayList.add( Integer.valueOf( token.content() ) );
+			} else {
+				arrayList.add( Integer.MAX_VALUE );
+			}
+			nextToken();
+			if( token.type() == Scanner.TokenType.COMMA ) {
+				nextToken();
+			}
+		}
+		eat( Scanner.TokenType.RSQUARE, "] expected" );
+		if( arrayList.size() < minNumberOfParameters ) {
+			throwException(
+				"Expected minimum number of parameters for predicate " + predicate + ", " + minNumberOfParameters );
+		}
+
+		if( maxNumberOfParameters != null && arrayList.size() > maxNumberOfParameters ) {
+			throwException(
+				"Expected maximum number of parameters for predicate " + predicate + ", " + maxNumberOfParameters );
+		}
+
+		return arrayList;
+	}
+
+	/*
+	 * set maxNumberOfParameters = null to unbound the list
+	 */
+	private ArrayList< String > parseListOfString( Integer minNumberOfParameters, Integer maxNumberOfParameters,
+		String predicate ) throws IOException, ParserException {
+		ArrayList< String > arrayList = new ArrayList<>();
+		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
+		while( token.type() != Scanner.TokenType.RSQUARE ) {
+			if( token.type() != Scanner.TokenType.STRING ) {
+				throwException( "Expected a parameter of type string, found " + token.content() );
+			}
+			arrayList.add( token.content().replaceAll( "\"", "" ) );
+			nextToken();
+			if( token.type() == Scanner.TokenType.COMMA ) {
+				nextToken();
+			}
+		}
+		eat( Scanner.TokenType.RSQUARE, "] expected" );
+
+		if( arrayList.size() < minNumberOfParameters ) {
+			throwException(
+				"Expected minimum number of parameters for predicate " + predicate + ", " + minNumberOfParameters );
+		}
+
+		if( maxNumberOfParameters != null && arrayList.size() > maxNumberOfParameters ) {
+			throwException(
+				"Expected maximum number of parameters for predicate " + predicate + ", " + maxNumberOfParameters );
+		}
+
+		return arrayList;
+	}
+
+	/*
+	 * set maxNumberOfParameters = null to unbound the list
+	 */
+	private ArrayList< Double > parseListOfDouble( Integer minNumberOfParameters, Integer maxNumberOfParameters,
+		String predicate ) throws IOException, ParserException {
+		ArrayList< Double > arrayList = new ArrayList<>();
+		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
+		while( token.type() != Scanner.TokenType.RSQUARE ) {
+			if( token.type() != Scanner.TokenType.DOUBLE && token.type() != Scanner.TokenType.ASTERISK ) {
+				throwException( "Expected a parameter of type string, found " + token.content() );
+			}
+			if( token.type() == Scanner.TokenType.DOUBLE ) {
+				arrayList.add( new Double( token.content() ) );
+			} else {
+				arrayList.add( Double.MAX_VALUE );
+			}
+			nextToken();
+			if( token.type() == Scanner.TokenType.COMMA ) {
+				nextToken();
+			}
+		}
+		eat( Scanner.TokenType.RSQUARE, "] expected" );
+
+		if( arrayList.size() < minNumberOfParameters ) {
+			throwException(
+				"Expected minimum number of parameters for predicate " + predicate + ", " + minNumberOfParameters );
+		}
+
+		if( maxNumberOfParameters != null && arrayList.size() > maxNumberOfParameters ) {
+			throwException(
+				"Expected maximum number of parameters for predicate " + predicate + ", " + maxNumberOfParameters );
+		}
+
+		return arrayList;
+	}
+
+	/*
+	 * set maxNumberOfParameters = null to unbound the list
+	 */
+	private ArrayList< Long > parseListOfLong( Integer minNumberOfParameters, Integer maxNumberOfParameters,
+		String predicate ) throws IOException, ParserException {
+		ArrayList< Long > arrayList = new ArrayList<>();
+		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
+		while( token.type() != Scanner.TokenType.RSQUARE ) {
+			if( token.type() != Scanner.TokenType.LONG && token.type() != Scanner.TokenType.ASTERISK ) {
+				throwException( "Expected a parameter of type string, found " + token.content() );
+			}
+			if( token.type() == Scanner.TokenType.LONG ) {
+				arrayList.add( Long.valueOf( token.content() ) );
+			} else {
+				arrayList.add( Long.MAX_VALUE );
+			}
+			nextToken();
+			if( token.type() == Scanner.TokenType.COMMA ) {
+				nextToken();
+			}
+		}
+		eat( Scanner.TokenType.RSQUARE, "] expected" );
+
+		if( arrayList.size() < minNumberOfParameters ) {
+			throwException(
+				"Expected minimum number of parameters for predicate " + predicate + ", " + minNumberOfParameters );
+		}
+
+		if( maxNumberOfParameters != null && arrayList.size() > maxNumberOfParameters ) {
+			throwException(
+				"Expected maximum number of parameters for predicate " + predicate + ", " + maxNumberOfParameters );
+		}
+
+		return arrayList;
+	}
+
+	private BasicTypeDefinition readBasicType() throws IOException, ParserException {
+		List< BasicTypeRefinement< ? > > basicTypeRefinementList = new ArrayList<>();
 		if( token.is( Scanner.TokenType.CAST_INT ) ) {
-			return NativeType.INT;
+			nextToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				nextToken();
+				while( token.type() != Scanner.TokenType.RPAREN ) {
+					if( !token.type().equals( Scanner.TokenType.ID ) ) {
+						throwException( "Basic type Refinement predicate expected" );
+					}
+					String predicate = token.content();
+					nextToken();
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
+						eat( Scanner.TokenType.LPAREN, "( expected" );
+
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
+						case RANGES:
+							BasicTypeRefinementIntegerRanges basicTypeRefinementIntegerRanges =
+								new BasicTypeRefinementIntegerRanges();
+							while( token.type() != Scanner.TokenType.RPAREN ) {
+
+								ArrayList< Integer > parametersInterval = parseListOfInteger( 2, 2, predicate );
+								basicTypeRefinementIntegerRanges
+									.addInterval( basicTypeRefinementIntegerRanges.new Interval(
+										parametersInterval.get( 0 ), parametersInterval.get( 1 ) ) );
+								if( token.type() == Scanner.TokenType.COMMA ) {
+									eat( Scanner.TokenType.COMMA, "" );
+								} else if( token.type() != Scanner.TokenType.RPAREN ) {
+									throwException( ", expected" );
+								}
+							}
+							basicTypeRefinementList.add( basicTypeRefinementIntegerRanges );
+							break;
+						default:
+							throwException(
+								"Basic type Refinement predicate " + predicate + " not supported for int" );
+						}
+
+						eat( Scanner.TokenType.RPAREN, ") expected" );
+					} else {
+						StringBuilder supportedList = new StringBuilder().append( " " );
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
+							.forEach( s -> supportedList.append( s ).append( " " ) );
+						throwException( "Basic type Refinement predicate not supported. Supported list ["
+							+ supportedList + "], found " + predicate );
+					}
+				}
+				eat( Scanner.TokenType.RPAREN, ") expected" );
+			}
+			return BasicTypeDefinition.of( NativeType.INT, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
-			return NativeType.DOUBLE;
+			nextToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				nextToken();
+				while( token.type() != Scanner.TokenType.RPAREN ) {
+					if( !token.type().equals( Scanner.TokenType.ID ) ) {
+						throwException( "Basic type Refinement predicate expected" );
+					}
+					String predicate = token.content();
+					nextToken();
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
+						eat( Scanner.TokenType.LPAREN, "( expected" );
+
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
+						case RANGES:
+							BasicTypeRefinementDoubleRanges basicTypeRefinementDoubleRanges =
+								new BasicTypeRefinementDoubleRanges();
+							while( token.type() != Scanner.TokenType.RPAREN ) {
+
+								ArrayList< Double > parametersInterval = parseListOfDouble( 2, 2, predicate );
+								basicTypeRefinementDoubleRanges
+									.addInterval( basicTypeRefinementDoubleRanges.new Interval(
+										parametersInterval.get( 0 ), parametersInterval.get( 1 ) ) );
+								if( token.type() == Scanner.TokenType.COMMA ) {
+									eat( Scanner.TokenType.COMMA, "" );
+								} else if( token.type() != Scanner.TokenType.RPAREN ) {
+									throwException( ", expected" );
+								}
+							}
+							basicTypeRefinementList.add( basicTypeRefinementDoubleRanges );
+							break;
+						default:
+							throwException(
+								"Basic type Refinement predicate " + predicate + " not supported for int" );
+						}
+
+						eat( Scanner.TokenType.RPAREN, ") expected" );
+					} else {
+						StringBuilder supportedList = new StringBuilder().append( " " );
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
+							.forEach( s -> supportedList.append( s ).append( " " ) );
+						throwException( "Basic type Refinement predicate not supported. Supported list ["
+							+ supportedList + "], found " + predicate );
+					}
+				}
+				eat( Scanner.TokenType.RPAREN, ") expected" );
+			}
+			return BasicTypeDefinition.of( NativeType.DOUBLE, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
-			return NativeType.STRING;
+			nextToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				nextToken();
+				while( token.type() != Scanner.TokenType.RPAREN ) {
+					if( !token.type().equals( Scanner.TokenType.ID ) ) {
+						throwException( "Basic type Refinement predicate expected" );
+					}
+					String predicate = token.content();
+					nextToken();
+					eat( Scanner.TokenType.LPAREN, "( expected" );
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
+						case LENGTH:
+
+							ArrayList< Integer > parametersLength = parseListOfInteger( 2, 2, predicate );
+							BasicTypeRefinementStringLength basicTypeRefinementStringLength =
+								new BasicTypeRefinementStringLength( parametersLength.get( 0 ),
+									parametersLength.get( 1 ) );
+							basicTypeRefinementList.add( basicTypeRefinementStringLength );
+							break;
+						case ENUM:
+							ArrayList< String > parametersList = parseListOfString( 1, null, predicate );
+							BasicTypeRefinementStringList basicTypeRefinementStringList =
+								new BasicTypeRefinementStringList( parametersList );
+							basicTypeRefinementList.add( basicTypeRefinementStringList );
+
+							break;
+						case REGEX:
+							assertToken( Scanner.TokenType.STRING, "Expected regex string for predicate " + predicate );
+							basicTypeRefinementList.add( new BasicTypeRefinementStringRegex( token.content() ) );
+							nextToken();
+							break;
+						default:
+							throwException(
+								"Basic type refinement predicate " + predicate + " not supported for string" );
+						}
+					} else {
+						StringBuilder supportedList = new StringBuilder().append( " " );
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
+							.forEach( s -> supportedList.append( s ).append( " " ) );
+						throwException( "Basic type Refinement predicate not supported. Supported list ["
+							+ supportedList + "], found " + predicate );
+					}
+					eat( Scanner.TokenType.RPAREN, ") expected" );
+				}
+				eat( Scanner.TokenType.RPAREN, ") expected" );
+
+			}
+			return BasicTypeDefinition.of( NativeType.STRING, basicTypeRefinementList );
 		} else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
-			return NativeType.LONG;
-		} else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
-			return NativeType.BOOL;
+			nextToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				nextToken();
+				while( token.type() != Scanner.TokenType.RPAREN ) {
+					if( !token.type().equals( Scanner.TokenType.ID ) ) {
+						throwException( "Basic type Refinement predicate expected" );
+					}
+					String predicate = token.content();
+					nextToken();
+					if( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) != null ) {
+						eat( Scanner.TokenType.LPAREN, "( expected" );
+
+						switch( BASIC_TYPE_REFINED_PREDICATES.get( predicate ) ) {
+						case RANGES:
+							BasicTypeRefinementLongRanges basicTypeRefinementLongRanges =
+								new BasicTypeRefinementLongRanges();
+							while( token.type() != Scanner.TokenType.RPAREN ) {
+
+								ArrayList< Long > parametersInterval = parseListOfLong( 2, 2, predicate );
+								basicTypeRefinementLongRanges
+									.addInterval( basicTypeRefinementLongRanges.new Interval(
+										parametersInterval.get( 0 ), parametersInterval.get( 1 ) ) );
+								if( token.type() == Scanner.TokenType.COMMA ) {
+									eat( Scanner.TokenType.COMMA, "" );
+								} else if( token.type() != Scanner.TokenType.RPAREN ) {
+									throwException( ", expected" );
+								}
+							}
+							basicTypeRefinementList.add( basicTypeRefinementLongRanges );
+							break;
+						default:
+							throwException(
+								"Basic type Refinement predicate " + predicate + " not supported for int" );
+						}
+
+						eat( Scanner.TokenType.RPAREN, ") expected" );
+					} else {
+						StringBuilder supportedList = new StringBuilder().append( " " );
+						BASIC_TYPE_REFINED_PREDICATES.keySet().stream()
+							.forEach( s -> supportedList.append( s ).append( " " ) );
+						throwException( "Basic type Refinement predicate not supported. Supported list ["
+							+ supportedList + "], found " + predicate );
+					}
+				}
+				eat( Scanner.TokenType.RPAREN, ") expected" );
+			}
+			return BasicTypeDefinition.of( NativeType.LONG, basicTypeRefinementList );
 		} else {
-			return NativeType.fromString( token.content() );
+			NativeType nativeType = NativeType.fromString( token.content() );
+			if( nativeType == null ) {
+				return null;
+			}
+			nextToken();
+			return BasicTypeDefinition.of( nativeType );
 		}
 	}
 
@@ -2507,6 +2778,22 @@ public class OLParser extends AbstractParser {
 		return andCond;
 	}
 
+	private NativeType readNativeType() {
+		if( token.is( Scanner.TokenType.CAST_INT ) ) {
+			return NativeType.INT;
+		} else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
+			return NativeType.DOUBLE;
+		} else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
+			return NativeType.STRING;
+		} else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
+			return NativeType.LONG;
+		} else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
+			return NativeType.BOOL;
+		} else {
+			return NativeType.fromString( token.content() );
+		}
+	}
+
 	private OLSyntaxNode parseBasicCondition()
 		throws IOException, ParserException {
 		OLSyntaxNode ret;
@@ -2526,14 +2813,14 @@ public class OLParser extends AbstractParser {
 			ret = new CompareConditionNode( getContext(), expr1, expr2, opType );
 		} else if( opType == Scanner.TokenType.INSTANCE_OF ) {
 			nextToken();
-			TypeDefinition type;
+
 			NativeType nativeType = readNativeType();
 			if( nativeType == null ) { // It's a user-defined type
 				assertToken( Scanner.TokenType.ID, "expected type name after instanceof" );
 			}
 
 			String typeName = token.content();
-			type = definedTypes.getOrDefault( typeName, new TypeDefinitionLink( getContext(),
+			TypeDefinition type = definedTypes.getOrDefault( typeName, new TypeDefinitionLink( getContext(),
 				typeName, Constants.RANGE_ONE_TO_ONE, typeName ) );
 
 			ret = new InstanceOfExpressionNode( getContext(), expr1, type );

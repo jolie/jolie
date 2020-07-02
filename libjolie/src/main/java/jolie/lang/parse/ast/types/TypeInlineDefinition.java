@@ -37,23 +37,26 @@ import jolie.util.Range;
  * @author Fabrizio Montesi
  */
 public class TypeInlineDefinition extends TypeDefinition {
-	private final NativeType nativeType;
+	private final BasicTypeDefinition basicTypeDefinition;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality,
+	public TypeInlineDefinition( ParsingContext context, String id, BasicTypeDefinition basicTypeDefinition,
+		Range cardinality,
 		AccessModifier accessModifier ) {
 		super( context, id, cardinality, accessModifier );
-		this.nativeType = nativeType;
+		this.basicTypeDefinition = basicTypeDefinition;
 	}
 
-	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality ) {
-		this( context, id, nativeType, cardinality, AccessModifier.PUBLIC );
+	public TypeInlineDefinition( ParsingContext context, String id, BasicTypeDefinition basicTypeDefinition,
+		Range cardinality ) {
+		this( context, id, basicTypeDefinition, cardinality, AccessModifier.PUBLIC );
 	}
 
-	public NativeType nativeType() {
-		return nativeType;
+	public BasicTypeDefinition basicType() {
+		return basicTypeDefinition;
 	}
+
 
 	public void setUntypedSubTypes( boolean b ) {
 		untypedSubTypes = b;
@@ -78,7 +81,7 @@ public class TypeInlineDefinition extends TypeDefinition {
 	@Override
 	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it ) {
 		if( it.hasNext() == false ) {
-			return nativeType() != NativeType.VOID;
+			return basicType().nativeType() != NativeType.VOID;
 		}
 
 		if( untypedSubTypes() ) {
@@ -132,7 +135,7 @@ public class TypeInlineDefinition extends TypeDefinition {
 		int result = 1;
 		result = prime * result + this.id().hashCode();
 		result = prime * result + this.cardinality().hashCode();
-		result = prime * result + this.nativeType.hashCode();
+		result = prime * result + this.basicType().hashCode();
 		result = prime * result + recursiveTypeHashed.size();
 		if( this.hasSubTypes() ) {
 			for( TypeDefinition typeDef : subTypes.values() ) {

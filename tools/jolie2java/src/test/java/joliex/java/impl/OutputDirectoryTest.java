@@ -19,8 +19,8 @@
 package joliex.java.impl;
 
 import jolie.CommandLineException;
+import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
@@ -32,7 +32,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class OutputDirectoryTest {
 
@@ -50,8 +51,8 @@ public class OutputDirectoryTest {
 
 
 	@Test
-	public void checkEmptyOutputDirecotry()
-		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
+	public void checkEmptyOutputDirectory()
+		throws IOException, ParserException, CodeCheckingException, CommandLineException, ModuleException {
 		String[] args = { "src/test/resources/main.ol" };
 		Jolie2JavaCommandLineParser cmdParser =
 			Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
@@ -74,7 +75,7 @@ public class OutputDirectoryTest {
 
 	@Test
 	public void checkJavaserviceTrue()
-		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
+		throws IOException, ParserException, CodeCheckingException, CommandLineException, ModuleException {
 		String[] args = { "src/test/resources/main.ol" };
 		Jolie2JavaCommandLineParser cmdParser =
 			Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );

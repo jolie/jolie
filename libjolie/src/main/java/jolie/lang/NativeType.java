@@ -59,4 +59,5 @@ public enum NativeType {
 	public static boolean isNativeTypeKeyword( String id ) {
 		return ID_MAP.containsKey( id );
 	}
+
 }

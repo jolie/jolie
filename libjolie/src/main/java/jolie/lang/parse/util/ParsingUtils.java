@@ -21,19 +21,20 @@
 
 package jolie.lang.parse.util;
 
+import jolie.lang.CodeCheckingException;
+import jolie.lang.parse.ParserException;
+import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticVerifier;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.module.ModuleParsingConfiguration;
+import jolie.lang.parse.module.Modules;
+import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
-import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticException;
-import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.ModuleException;
-import jolie.lang.parse.module.Modules;
-import jolie.lang.parse.module.ModuleParsingConfiguration;
-import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
  * Utility class for accessing the functionalities of the JOLIE parsing library without having to
@@ -54,7 +55,7 @@ public class ParsingUtils {
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration semanticConfiguration,
 		boolean includeDocumentation )
-		throws IOException, ParserException, SemanticException, ModuleException {
+		throws IOException, ParserException, CodeCheckingException, ModuleException {
 
 		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 			charset,
@@ -81,7 +82,7 @@ public class ParsingUtils {
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
 		boolean includeDocumentation )
-		throws IOException, ParserException, SemanticException, ModuleException {
+		throws IOException, ParserException, CodeCheckingException, ModuleException {
 		return parseProgram(
 			inputStream,
 			source,

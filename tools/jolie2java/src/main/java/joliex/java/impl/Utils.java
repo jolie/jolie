@@ -58,7 +58,7 @@ public class Utils {
 		if( t instanceof TypeDefinitionLink ) {
 			return nativeType( ((TypeDefinitionLink) t).linkedType() );
 		} else if( t instanceof TypeInlineDefinition ) {
-			return ((TypeInlineDefinition) t).nativeType();
+			return ((TypeInlineDefinition) t).basicType().nativeType();
 		} else if( t instanceof TypeChoiceDefinition ) {
 			return NativeType.ANY;
 		} else {
@@ -78,7 +78,7 @@ public class Utils {
 		} else if( typeDefinition instanceof TypeDefinitionLink ) {
 			return getTypes( ((TypeDefinitionLink) typeDefinition).linkedType() );
 		} else if( typeDefinition instanceof TypeInlineDefinition ) {
-			choiceTypes.add( ((TypeInlineDefinition) typeDefinition).nativeType() );
+			choiceTypes.add( ((TypeInlineDefinition) typeDefinition).basicType().nativeType() );
 		}
 		return choiceTypes;
 	}

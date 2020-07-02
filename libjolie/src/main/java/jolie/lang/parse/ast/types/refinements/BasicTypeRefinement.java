@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2020 Claudio Guidi <cguidi@italianasoftware.com>
+ * Copyright (C) 2020 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,19 +18,14 @@
  * MA 02110-1301  USA
  */
 
-package jolie.lang.parse.module.exceptions;
 
-import jolie.lang.Constants;
-import jolie.lang.parse.module.ImportPath;
+package jolie.lang.parse.ast.types.refinements;
 
-public class SymbolNotFoundException extends Exception {
-	private static final long serialVersionUID = Constants.serialVersionUID();
+// TODO: all BasicTypeRefinement subclasses should implement a readable toString() method for Type.check
+public interface BasicTypeRefinement< T > {
+	boolean checkValue( T value );
 
-	public SymbolNotFoundException( String symbolName ) {
-		super( symbolName + " is not defined in symbolTable" );
-	}
+	boolean checkEqualness( BasicTypeRefinement basicTypeRefinement );
 
-	public SymbolNotFoundException( String symbolName, ImportPath importPath ) {
-		super( symbolName + " is not defined in " + importPath );
-	}
+	String getDocumentation();
 }

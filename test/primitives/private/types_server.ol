@@ -42,5 +42,9 @@ main
 			reesponse = request.third
 		}
 	} ]
+
+	[ constrainedString( request )( response ) ] {
+		nullProcess
+	}
 	[ shutdown() ] { exit }
 }

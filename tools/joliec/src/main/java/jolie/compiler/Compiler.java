@@ -27,8 +27,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
@@ -46,7 +46,7 @@ public class Compiler {
 	}
 
 	public void compile( OutputStream ostream )
-		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
+		throws IOException, ParserException, CodeCheckingException, CommandLineException, ModuleException {
 		Program program = ParsingUtils.parseProgram(
 			cmdParser.getInterpreterConfiguration().inputStream(),
 			cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
@@ -63,7 +63,7 @@ public class Compiler {
 	}
 
 	public void compile()
-		throws IOException, ParserException, SemanticException, CommandLineException, ModuleException {
+		throws IOException, ParserException, CodeCheckingException, CommandLineException, ModuleException {
 		try( OutputStream os =
 			new FileOutputStream( cmdParser.getInterpreterConfiguration().programFilepath() + "c" ) ) {
 			compile( os );

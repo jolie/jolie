@@ -20,30 +20,13 @@
 
 package joliex.lang.inspector;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;
+import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -57,6 +40,11 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 public class Inspector extends JavaService {
 	private static final class PortInspectionResponse {
@@ -131,11 +119,10 @@ public class Inspector extends JavaService {
 			return buildPortInspectionResponse( inspector );
 		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
-		} catch( SemanticException ex ) {
+		} catch( CodeCheckingException ex ) {
 			throw new FaultException(
 				"SemanticException",
-				ex.getErrorList().stream().map( SemanticException.SemanticError::getMessage )
-					.collect( Collectors.joining( "\n" ) ) );
+				ex.getMessage() );
 		}
 	}
 
@@ -149,16 +136,15 @@ public class Inspector extends JavaService {
 			return buildProgramTypeInfo( inspector );
 		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
-		} catch( SemanticException ex ) {
+		} catch( CodeCheckingException ex ) {
 			throw new FaultException(
 				"SemanticException",
-				ex.getErrorList().stream().map( SemanticException.SemanticError::getMessage )
-					.collect( Collectors.joining( "\n" ) ) );
+				ex.getMessage() );
 		}
 	}
 
 	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths )
-		throws CommandLineException, IOException, ParserException, SemanticException, ModuleException {
+		throws CommandLineException, IOException, ParserException, CodeCheckingException, ModuleException {
 		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 		configuration.setCheckForMain( false );
 		String[] args = { filename };
@@ -348,7 +334,7 @@ public class Inspector extends JavaService {
 			result.getChildren( TypeInfoType.RIGHT ).add( buildTypeInfo( tc.right() ) );
 		} else if( t instanceof TypeInlineDefinition ) {
 			TypeInlineDefinition ti = (TypeInlineDefinition) t;
-			result.setFirstChild( TypeInfoType.NATIVE_TYPE, ti.nativeType().id() );
+			result.setFirstChild( TypeInfoType.NATIVE_TYPE, ti.basicType().nativeType().id() );
 			result.setFirstChild( TypeInfoType.UNTYPED_FIELDS, ti.untypedSubTypes() );
 			if( ti.hasSubTypes() ) {
 				ValueVector fields = result.getChildren( TypeInfoType.FIELDS );
