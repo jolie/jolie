@@ -19,6 +19,8 @@
 	</properties>
 	<name>monitorJavaServices</name>
 	<description>Monitor Java services.</description>
+
+
 	<build>
 		<plugins>
 			<plugin>
@@ -70,7 +72,7 @@
 				<version>3.1.1</version>
 				<executions>
 					<execution>
-						<id>copy-installed</id>
+						<id>copy-installed-1</id>
 						<phase>install</phase>
 						<goals>
 							<goal>copy</goal>
@@ -90,6 +92,75 @@
 					</execution>	
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<!--<artifactItems>
+								<artifactItem>
+									<groupId>io.jaegertracing</groupId>
+									<artifactId>jaeger-client</artifactId>
+									<version>1.3.1</version>
+									<type>jar</type>
+									<destFileName>jaeger-client.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>io.opentracing</groupId>
+									<artifactId>opentracing-api</artifactId>
+									<version>0.33.0</version>
+									<type>jar</type>
+									<destFileName>opentracing-api.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>io.jaegertracing</groupId>
+									<artifactId>jaeger-core</artifactId>
+									<version>1.3.1</version>
+									<type>jar</type>
+									<destFileName>jaeger-core.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>io.opentracing</groupId>
+									<artifactId>opentracing-util</artifactId>
+									<version>0.33.0</version>
+									<type>jar</type>
+									<destFileName>opentracing-util.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>io.jaegertracing</groupId>
+									<artifactId>jaeger-thrift</artifactId>
+									<version>0.33.0</version>
+									<type>jar</type>
+									<destFileName>opentracing-thrift.jar</destFileName>
+								</artifactItem>
+
+								<artifactItem>
+									<groupId>org.slf4j</groupId>
+									<artifactId>slf4j-simple</artifactId>
+									<version>1.6.6</version>
+									<type>jar</type>
+									<destFileName>slf4j-simple.jar</destFileName>
+								</artifactItem>
+
+							</artifactItems>
+							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>-->
+							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
+							<overWriteReleases>true</overWriteReleases>
+							<overWriteSnapshots>true</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<excludeGroupIds>org.jolie-lang</excludeGroupIds>
+						</configuration>
+					</execution>	
+				</executions>
+			</plugin>
 		</plugins>
 	</build>	
 	<dependencies>
@@ -102,6 +173,38 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>jolie</artifactId>
 			<version>${jolie.version}</version>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>jolie-js</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jaegertracing</groupId>
+			<artifactId>jaeger-client</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jaegertracing</groupId>
+			<artifactId>jaeger-core</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>io.opentracing</groupId>
+			<artifactId>opentracing-api</artifactId>
+			<version>0.33.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.opentracing</groupId>
+			<artifactId>opentracing-util</artifactId>
+			<version>0.33.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jaegertracing</groupId>
+			<artifactId>jaeger-thrift</artifactId>
+			<version>0.33.0</version>
+		</dependency>
+
 	</dependencies>
+
 </project>

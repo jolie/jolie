@@ -85,7 +85,7 @@ public class NotificationProcess implements Process {
 			return;
 		}
 		final String processId = ExecutionThread.currentThread().getSessionId();
-		final String scopeId = ExecutionThread.currentThread().currentScopeId();
+		final String scopeId = ExecutionThread.currentThread().currentStackScopes();
 		CommChannel channel = null;
 		try {
 			CommMessage message =

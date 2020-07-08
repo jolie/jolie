@@ -103,7 +103,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 			public void run()
 				throws FaultException, ExitingException {
 				final String processId = ExecutionThread.currentThread().getSessionId();
-				final String scopeId = ExecutionThread.currentThread().currentScopeId();
+				final String scopeId = ExecutionThread.currentThread().currentStackScopes();
 				Interpreter.getInstance().fireMonitorEvent( () -> {
 					return new OperationStartedEvent( operation.id(), processId,
 						Long.toString( sessionMessage.message().id() ),
@@ -181,7 +181,8 @@ public class RequestResponseProcess implements InputOperationProcess {
 		try {
 			try {
 				try {
-					process.run();
+					ScopeProcess automaticBodyScope = new ScopeProcess( operation.id(), process );
+					automaticBodyScope.run();
 				} catch( ExitingException e ) {
 				}
 				ExecutionThread ethread = ExecutionThread.currentThread();

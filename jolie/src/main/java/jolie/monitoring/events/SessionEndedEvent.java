@@ -18,12 +18,28 @@ import jolie.runtime.Value;
  */
 public class SessionEndedEvent extends MonitoringEvent {
 
+	public static enum FieldNames {
+		OPERATION_NAME( "operationName" );
+
+		private String fieldName;
+
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
+
+		public String getName() {
+			return this.fieldName;
+		}
+	}
+
+	public static String operationName( Value value ) {
+		return value.getFirstChild( FieldNames.OPERATION_NAME.getName() ).strValue();
+	}
+
 	public SessionEndedEvent( String operationName, String processId, String service, String scope,
 		ParsingContext context ) {
-		super( "SessionEnded", service, scope, context, Value.create() );
-
-		data().getFirstChild( "processId" ).setValue( processId );
-		data().getFirstChild( "operationName" ).setValue( operationName );
+		super( EventTypes.SESSION_ENDED, service, scope, processId, context, Value.create() );
+		data().getFirstChild( FieldNames.OPERATION_NAME.getName() ).setValue( operationName );
 
 	}
 }

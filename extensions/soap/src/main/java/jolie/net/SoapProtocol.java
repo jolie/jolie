@@ -1039,12 +1039,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					return new ProtocolMessageEvent( traceMessage, "",
 						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
 						ExecutionThread.currentThread().getSessionId(),
-						ExecutionThread.currentThread().currentScopeId(), null );
+						ExecutionThread.currentThread().currentStackScopes(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent( e.getMessage(), "",
 						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
 						ExecutionThread.currentThread().getSessionId(),
-						ExecutionThread.currentThread().currentScopeId(), null );
+						ExecutionThread.currentThread().currentStackScopes(), null );
 				}
 			} );
 
@@ -1315,12 +1315,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						"",
 						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
 						ExecutionThread.currentThread().getSessionId(),
-						ExecutionThread.currentThread().currentScopeId(), null );
+						ExecutionThread.currentThread().currentStackScopes(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolMessageEvent(
 						e.getMessage(), "", Interpreter.getInstance().programFilename(),
 						ProtocolMessageEvent.Protocol.SOAP, ExecutionThread.currentThread().getSessionId(),
-						ExecutionThread.currentThread().currentScopeId(), null );
+						ExecutionThread.currentThread().currentStackScopes(), null );
 				}
 
 			} );

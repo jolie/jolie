@@ -32,12 +32,30 @@ import jolie.runtime.Value;
  */
 public class SessionStartedEvent extends MonitoringEvent {
 
+	public static enum FieldNames {
+		OPERATION_NAME( "operationName" );
+
+		private String fieldName;
+
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
+
+		public String getName() {
+			return this.fieldName;
+		}
+	}
+
+	public static String operationName( Value value ) {
+		return value.getFirstChild( FieldNames.OPERATION_NAME.getName() ).strValue();
+	}
+
+
 	public SessionStartedEvent( String operationName, String processId, String service, String scope,
 		ParsingContext context ) {
-		super( "SessionStarted", service, scope, context, Value.create() );
+		super( EventTypes.SESSION_STARTED, service, scope, processId, context, Value.create() );
 
-		data().getFirstChild( "processId" ).setValue( processId );
-		data().getFirstChild( "operationName" ).setValue( operationName );
+		data().getFirstChild( FieldNames.OPERATION_NAME.getName() ).setValue( operationName );
 
 	}
 }

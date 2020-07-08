@@ -24,10 +24,7 @@ package jolie;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.ref.WeakReference;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -297,6 +294,28 @@ public abstract class ExecutionThread extends JolieThread {
 		}
 
 		return scopeStack.peek().id();
+	}
+
+	/**
+	 * Returns the id of the current executing scope.
+	 *
+	 * @return the id of the current executing scope.
+	 */
+	public synchronized String currentStackScopes() {
+		if( scopeStack.isEmpty() && parent != null ) {
+			return parent.currentStackScopes();
+		}
+
+		StringBuilder stringBuilder = new StringBuilder();
+		Iterator< Scope > i = scopeStack.descendingIterator();
+		while( i.hasNext() ) {
+			stringBuilder.append( i.next().id() );
+			if( i.hasNext() ) {
+				stringBuilder.append( "." );
+			}
+		}
+
+		return stringBuilder.toString();
 	}
 
 	/**

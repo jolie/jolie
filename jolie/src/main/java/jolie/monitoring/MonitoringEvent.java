@@ -35,79 +35,144 @@ import java.net.URI;
  * @author Fabrizio Montesi
  */
 public class MonitoringEvent implements ValueConverter {
+
+	public static enum EventTypes {
+		MONITOR_ATTACHED( "MonitorAttached" ), OPERATION_CALL( "OperationCall" ), OPERATION_ENDED(
+			"OperationEnded" ), OPERATION_REPLY( "OperationReply" ), OPERATION_STARTED(
+				"OperationStarted" ), PROTOCOL_MESSAGE( "ProtocolMessage" ), SESSION_ENDED(
+					"SessionEnded" ), SESSION_STARTED( "SessionStarted" ), LOG( "Log" );
+
+		private String eventType;
+
+		EventTypes( String type ) {
+			this.eventType = type;
+		}
+
+		public String getType() {
+			return eventType;
+		}
+	}
+
+	public static enum FieldNames {
+		TYPE( "type" ), TIMESTAMP( "timestamp" ), MEMORY( "memory" ), SERVICE( "service" ), DATA( "data" ), SCOPE(
+			"scope" ), PROCESSID( "processId" ), CELLID(
+				"cellId" ), CONTEXT( "context" ), CONTEXT_FILENAME( "filename" ), CONTEXT_LINE( "line" );
+
+		private String fieldName;
+
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
+
+		public String getName() {
+			return this.fieldName;
+		}
+	}
+
 	private final String type;
 	private final long timestamp;
 	private final long memory;
 	private final Value data;
 	private final String service;
-	private final ParsingContext context;
+	private final ParsingContext parsingContext;
 	private final String scope;
+	private final String processId;
 
-	public MonitoringEvent( String type, String serviceFileName, String scope, ParsingContext context, Value data ) {
+	public MonitoringEvent( MonitoringEvent.EventTypes type, String serviceFileName, String scope,
+		String processId, ParsingContext parsingContext, Value data ) {
 		this(
-			type,
+			type.getType(),
 			System.currentTimeMillis(),
 			Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
 			serviceFileName,
 			scope,
-			context,
+			processId,
+			parsingContext,
 			data );
 	}
 
 	private MonitoringEvent( String type, long timestamp, long memory, String serviceFileName, String scope,
-		ParsingContext context,
+		String processId, ParsingContext parsingContext,
 		Value data ) {
+		System.out.println( "---->" + type + "," + processId );
 		this.type = type;
 		this.timestamp = timestamp;
 		this.memory = memory;
 		this.data = data;
 		this.service = serviceFileName;
-		this.context = context;
+		this.parsingContext = parsingContext;
 		this.scope = scope;
+		this.processId = processId;
 	}
 
 	public String type() {
 		return type;
 	}
 
+	public static String type( Value value ) {
+		return value.getFirstChild( FieldNames.TYPE.getName() ).strValue();
+	}
+
 	public long timestamp() {
 		return timestamp;
+	}
+
+	public static long timestamp( Value value ) {
+		return value.getFirstChild( FieldNames.TIMESTAMP.getName() ).longValue();
 	}
 
 	public long memory() {
 		return memory;
 	}
 
+	public static long memory( Value value ) {
+		return value.getFirstChild( FieldNames.MEMORY.getName() ).longValue();
+	}
+
 	public String service() {
 		return service;
+	}
+
+	public static String service( Value value ) {
+		return value.getFirstChild( FieldNames.SERVICE.getName() ).strValue();
 	}
 
 	public Value data() {
 		return data;
 	}
 
+	public static Value data( Value value ) {
+		return value.getFirstChild( FieldNames.DATA.getName() );
+	}
+
 	public String scope() {
 		return scope;
+	}
+
+	public static String scope( Value value ) {
+		return value.getFirstChild( FieldNames.SCOPE.getName() ).strValue();
+	}
+
+	public String processId() {
+		return processId;
+	}
+
+	public static String processId( Value value ) {
+		return value.getFirstChild( FieldNames.PROCESSID.getName() ).strValue();
 	}
 
 	public int cellId() {
 		return Jolie.cellId;
 	}
 
-	public Value context() {
-		Value ret = Value.create();
-		if( context != null ) {
-			ret.getFirstChild( "filename" ).setValue( context.sourceName() );
-			ret.getFirstChild( "line" ).setValue( context.line() );
-		}
-		return ret;
+	public ParsingContext parsingContext() {
+		return parsingContext;
 	}
 
 
-	public static MonitoringEvent fromValue( Value value ) {
-
+	public static ParsingContext parsingContext( Value value ) {
 		ParsingContext parsingContext = null;
-		if( value.getFirstChild( "context" ).hasChildren() ) {
+		if( value.hasChildren( FieldNames.CONTEXT.getName() ) ) {
 
 			parsingContext = new ParsingContext() {
 				@Override
@@ -117,35 +182,49 @@ public class MonitoringEvent implements ValueConverter {
 
 				@Override
 				public String sourceName() {
-					return value.getFirstChild( "context" ).getFirstChild( "filename" ).strValue();
+					return value.getFirstChild( FieldNames.CONTEXT.getName() )
+						.getFirstChild( FieldNames.CONTEXT_FILENAME.getName() ).strValue();
 				}
 
 				@Override
 				public int line() {
-					return value.getFirstChild( "context" ).getFirstChild( "line" ).intValue();
+					return value.getFirstChild( FieldNames.CONTEXT.getName() )
+						.getFirstChild( FieldNames.CONTEXT_LINE.getName() ).intValue();
 				}
 			};
 		}
+		return parsingContext;
+	}
+
+
+	public static MonitoringEvent fromValue( Value value ) {
+
+
 		return new MonitoringEvent(
-			value.getFirstChild( "type" ).strValue(), value.getFirstChild( "timestamp" ).longValue(),
-			value.getFirstChild( "memory" ).longValue(), value.getFirstChild( "service" ).strValue(),
-			value.getFirstChild( "scope" ).strValue(),
-			parsingContext,
-			value.getFirstChild( "data" ) );
+			type( value ),
+			timestamp( value ),
+			memory( value ), service( value ),
+			scope( value ),
+			processId( value ),
+			parsingContext( value ),
+			data( value ) );
 	}
 
 
 	public static Value toValue( MonitoringEvent e ) {
 		Value ret = Value.create();
-		ret.getFirstChild( "type" ).setValue( e.type() );
-		ret.getFirstChild( "timestamp" ).setValue( e.timestamp() );
-		ret.getFirstChild( "memory" ).setValue( e.memory() );
-		ret.getChildren( "data" ).add( e.data() );
-		ret.getFirstChild( "service" ).setValue( e.service() );
-		ret.getFirstChild( "cellId" ).setValue( Jolie.cellId );
-		ret.getFirstChild( "scope" ).setValue( e.scope() );
-		if( e.context().hasChildren() ) {
-			ret.getChildren( "context" ).add( e.context() );
+		ret.getFirstChild( FieldNames.TYPE.getName() ).setValue( e.type() );
+		ret.getFirstChild( FieldNames.TIMESTAMP.getName() ).setValue( e.timestamp() );
+		ret.getFirstChild( FieldNames.MEMORY.getName() ).setValue( e.memory() );
+		ret.getChildren( FieldNames.DATA.getName() ).add( e.data() );
+		ret.getFirstChild( FieldNames.SERVICE.getName() ).setValue( e.service() );
+		ret.getFirstChild( FieldNames.CELLID.getName() ).setValue( Jolie.cellId );
+		ret.getFirstChild( FieldNames.SCOPE.getName() ).setValue( e.scope() );
+		if( e.parsingContext() != null ) {
+			ret.getFirstChild( FieldNames.CONTEXT.getName() ).getFirstChild( FieldNames.CONTEXT_FILENAME.getName() )
+				.setValue( e.parsingContext().sourceName() );
+			ret.getFirstChild( FieldNames.CONTEXT.getName() ).getFirstChild( FieldNames.CONTEXT_LINE.getName() )
+				.setValue( e.parsingContext().line() );
 		}
 		return ret;
 	}

@@ -884,12 +884,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						return new ProtocolMessageEvent( traceMessage, headerBuilder.toString(),
 							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
 							ExecutionThread.currentThread().getSessionId(),
-							ExecutionThread.currentThread().currentScopeId(), null );
+							ExecutionThread.currentThread().currentStackScopes(), null );
 					} catch( UnsupportedEncodingException e ) {
 						return new ProtocolMessageEvent( e.getMessage(), headerBuilder.toString(),
 							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
 							ExecutionThread.currentThread().getSessionId(),
-							ExecutionThread.currentThread().currentScopeId(), null );
+							ExecutionThread.currentThread().currentStackScopes(), null );
 					}
 				} );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
@@ -977,12 +977,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				final String traceMessage = prepareSendDebugString( headerBuilder, encodedContent, charset, true );
 				return new ProtocolMessageEvent( traceMessage, "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
 					null );
 			} catch( IOException e ) {
 				return new ProtocolMessageEvent( e.getMessage(), "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
 					null );
 			}
 		} );
@@ -1406,12 +1408,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
 				return new ProtocolMessageEvent( traceMessage, "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
 					null );
 			} catch( IOException e ) {
 				return new ProtocolMessageEvent( e.getMessage(), "",
 					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
-					ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentScopeId(),
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
 					null );
 			}
 		} );

@@ -61,10 +61,12 @@ public class OneWayProcess implements InputOperationProcess {
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
 
+		final String processId = ExecutionThread.currentThread().getSessionId();
+		final String scopeId = ExecutionThread.currentThread().currentStackScopes();
 		Interpreter.getInstance().fireMonitorEvent( () -> {
-			return new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
+			return new OperationStartedEvent( operation.id(), processId,
 				Long.toString( sessionMessage.message().id() ),
-				Interpreter.getInstance().programFilename(), ExecutionThread.currentThread().currentScopeId(), context,
+				Interpreter.getInstance().programFilename(), scopeId, context,
 				sessionMessage.message().value() );
 		} );
 

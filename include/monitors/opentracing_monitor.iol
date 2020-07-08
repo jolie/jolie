@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012 by Claudio Guidi <cguidi@italianasoftware.com>    
+ *   Copyright (C) 2020 by Claudio Guidi <cguidi@italianasoftware.com>    
  *                                                                        
  *   This program is free software; you can redistribute it and/or modify 
  *   it under the terms of the GNU Library General Public License as      
@@ -19,46 +19,30 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-include "monitors/types/monitor_types.iol"
 
 interface MonitorInterface {
 OneWay:
 	pushEvent(undefined)
 }
 
+type SetStandardMonitorRequest: void 
 
-type FlushResponse: void {
-	.events*: MonitorEvent
-}
-
-type SetStandardMonitorRequest: void {
-	.triggeredEnabled?: bool
-	.triggerThreshold?: int
-	.queueMax?: int
-}
-
-interface StandardMonitorInterface {
+interface MonitorInputInterface {
 RequestResponse:
-	flush( void )( FlushResponse ),
 	setMonitor( SetStandardMonitorRequest )( void ) 
 }
 
-interface StandardMonitorInputInterface {
-OneWay:
-	monitorAlert( void )
-}
 
 outputPort Monitor {
-	Interfaces: MonitorInterface, StandardMonitorInterface
+	Interfaces: MonitorInterface
 }
 
 inputPort MonitorInput {
 	Location: "local"
-	Interfaces: StandardMonitorInputInterface
+	Interfaces: MonitorInputInterface
 }
 
 embedded {
 Java:
-	"joliex.monitoring.StandardMonitor" in Monitor
+	"joliex.monitoring.OpenTracingMonitor" in Monitor
 }
-
