@@ -20,14 +20,40 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 		}
 	}
 
+	public static enum FieldNames {
+		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" );
+
+		private String fieldName;
+
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
+
+		public String getName() {
+			return this.fieldName;
+		}
+	}
+
+	public static String protocol( Value value ) {
+		return value.getFirstChild( FieldNames.PROTOCOL.getName() ).strValue();
+	}
+
+	public static String message( Value value ) {
+		return value.getFirstChild( FieldNames.MESSAGE.getName() ).strValue();
+	}
+
+	public static String header( Value value ) {
+		return value.getFirstChild( FieldNames.HEADER.getName() ).strValue();
+	}
+
+
 	public ProtocolMessageEvent( String message, String header, String service,
 		ProtocolMessageEvent.Protocol protocol, String processId, String scope, ParsingContext context ) {
 
-		super( "ProtocolMessageEvent", service, scope, context, Value.create() );
+		super( EventTypes.PROTOCOL_MESSAGE, service, scope, processId, context, Value.create() );
 
-		data().getFirstChild( "protocol" ).setValue( protocol.getProtocol() );
-		data().getFirstChild( "header" ).setValue( header );
-		data().getFirstChild( "message" ).setValue( message );
-		data().getFirstChild( "processId" ).setValue( processId );
+		data().getFirstChild( FieldNames.PROTOCOL.getName() ).setValue( protocol.getProtocol() );
+		data().getFirstChild( FieldNames.HEADER.getName() ).setValue( header );
+		data().getFirstChild( FieldNames.MESSAGE.getName() ).setValue( message );
 	}
 }

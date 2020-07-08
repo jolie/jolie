@@ -34,16 +34,54 @@ public class OperationReplyEvent extends MonitoringEvent {
 	public static final int FAULT = 1;
 	public static final int ERROR = 2;
 
+	public static enum FieldNames {
+		OPERATION_NAME( "operationName" ), MESSAGE_ID( "messageId" ), STATUS( "status" ), DETAILS(
+			"details" ), OUTPUT_PORT( "outputPort" ), VALUE( "value" );
+
+		private String fieldName;
+
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
+
+		public String getName() {
+			return this.fieldName;
+		}
+	}
+
+	public static String operationName( Value value ) {
+		return value.getFirstChild( FieldNames.OPERATION_NAME.getName() ).strValue();
+	}
+
+	public static String messageId( Value value ) {
+		return value.getFirstChild( FieldNames.MESSAGE_ID.getName() ).strValue();
+	}
+
+	public static Integer status( Value value ) {
+		return value.getFirstChild( FieldNames.STATUS.getName() ).intValue();
+	}
+
+	public static String setails( Value value ) {
+		return value.getFirstChild( FieldNames.DETAILS.getName() ).strValue();
+	}
+
+	public static String outputPort( Value value ) {
+		return value.getFirstChild( FieldNames.OUTPUT_PORT.getName() ).strValue();
+	}
+
+	public static Value value( Value value ) {
+		return value.getFirstChild( FieldNames.VALUE.getName() );
+	}
+
 	public OperationReplyEvent( String operationName, String processId, String messageId, int status, String details,
 		String outputPort, String service, String scope, ParsingContext context, Value value ) {
-		super( "OperationReply", service, scope, context, Value.create() );
+		super( EventTypes.OPERATION_REPLY, service, scope, processId, context, Value.create() );
 
-		data().getFirstChild( "operationName" ).setValue( operationName );
-		data().getFirstChild( "processId" ).setValue( processId );
-		data().getFirstChild( "messageId" ).setValue( messageId );
-		data().getFirstChild( "status" ).setValue( status );
-		data().getFirstChild( "details" ).setValue( details );
-		data().getFirstChild( "outputPort" ).setValue( outputPort );
-		data().getFirstChild( "value" ).deepCopy( value );
+		data().getFirstChild( FieldNames.OPERATION_NAME.getName() ).setValue( operationName );
+		data().getFirstChild( FieldNames.MESSAGE_ID.getName() ).setValue( messageId );
+		data().getFirstChild( FieldNames.STATUS.getName() ).setValue( status );
+		data().getFirstChild( FieldNames.DETAILS.getName() ).setValue( details );
+		data().getFirstChild( FieldNames.OUTPUT_PORT.getName() ).setValue( outputPort );
+		data().getFirstChild( FieldNames.VALUE.getName() ).deepCopy( value );
 	}
 }

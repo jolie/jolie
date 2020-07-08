@@ -1456,7 +1456,7 @@ public class Interpreter {
 
 		fireMonitorEvent( () -> {
 			return new SessionStartedEvent( operationName, sessionId, programFilename(),
-				ExecutionThread.currentThread().currentScopeId(), parsingContext );
+				"main", parsingContext );
 		} );
 
 	}
@@ -1465,7 +1465,7 @@ public class Interpreter {
 
 		fireMonitorEvent( () -> {
 			return new SessionEndedEvent( operationName, sessionId, programFilename(),
-				ExecutionThread.currentThread().currentScopeId(), parsingContext );
+				"main", parsingContext );
 		} );
 
 	}

@@ -20,24 +20,48 @@ public class LogEvent extends MonitoringEvent {
 		}
 	}
 
+	public static enum FieldNames {
+		LEVEL( "level" ), MESSAGE( "message" ), EXTENDED_TYPE( "extendedType" );
+
+		private String fieldName;
+
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
+
+		public String getName() {
+			return this.fieldName;
+		}
+	}
+
+	public static String level( Value value ) {
+		return value.getFirstChild( FieldNames.LEVEL.getName() ).strValue();
+	}
+
+	public static String message( Value value ) {
+		return value.getFirstChild( FieldNames.MESSAGE.getName() ).strValue();
+	}
+
+	public static String extendedType( Value value ) {
+		return value.getFirstChild( FieldNames.EXTENDED_TYPE.getName() ).strValue();
+	}
+
+
 	public LogEvent( String message, String service, LogLevel logLevel, String processId, String type, String scope,
 		ParsingContext context ) {
 
-		super( "Log", service, scope, context, Value.create() );
+		super( EventTypes.LOG, service, scope, processId, context, Value.create() );
 
-		data().getFirstChild( "level" ).setValue( logLevel.getLevel() );
-		data().getFirstChild( "message" ).setValue( message );
-		data().getFirstChild( "processId" ).setValue( processId );
-		data().getFirstChild( "extendedType" ).setValue( type );
+		data().getFirstChild( FieldNames.LEVEL.getName() ).setValue( logLevel.getLevel() );
+		data().getFirstChild( FieldNames.MESSAGE.getName() ).setValue( message );
+		data().getFirstChild( FieldNames.EXTENDED_TYPE.getName() ).setValue( type );
 	}
 
 	public LogEvent( String message, String service, LogLevel logLevel, String processId, String scope,
 		ParsingContext context ) {
 
-		super( "Log", service, scope, context, Value.create() );
-
-		data().getFirstChild( "level" ).setValue( logLevel.getLevel() );
-		data().getFirstChild( "message" ).setValue( message );
-		data().getFirstChild( "processId" ).setValue( processId );
+		super( EventTypes.LOG, service, scope, processId, context, Value.create() );
+		data().getFirstChild( FieldNames.LEVEL.getName() ).setValue( logLevel.getLevel() );
+		data().getFirstChild( FieldNames.MESSAGE.getName() ).setValue( message );
 	}
 }
