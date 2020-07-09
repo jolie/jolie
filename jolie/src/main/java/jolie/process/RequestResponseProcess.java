@@ -180,7 +180,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 		try {
 			try {
 				try {
-					ScopeProcess automaticBodyScope = new ScopeProcess( operation.id(), process );
+					ScopeProcess automaticBodyScope = new ScopeProcess( operation.id(), process, context );
 					automaticBodyScope.run();
 				} catch( ExitingException e ) {
 				}

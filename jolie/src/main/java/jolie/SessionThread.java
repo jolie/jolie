@@ -467,10 +467,11 @@ public class SessionThread extends ExecutionThread {
 				} catch( FaultException.RuntimeFaultException rf ) {
 					throw rf.faultException();
 				}
+				listeners.forEach( listener -> listener.onSessionExecuted( this ) );
 			} catch( FaultException fault ) {
 				listeners.forEach( listener -> listener.onSessionError( this, fault ) );
 			}
-			listeners.forEach( listener -> listener.onSessionExecuted( this ) );
+
 		}
 	}
 

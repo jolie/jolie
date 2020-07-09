@@ -19,28 +19,24 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
+type SetOpenTracingMonitorRequest: void {
+    service_name?: string                            //> name of the service which appears in the search (default:service)
+    session_ended_timeout_before_elaboration?: long  //> number of milliseconds to wait after a session_ended event is received before elaborating spans. Since events are asynchonously received by the monitor, it is necessary for collecting all the events of a given session. (default: 10000)
+    tracer_with_log_spans?: bool                     //> enable or not the logs of the spans in the console (default: false)
+}
+
 
 interface MonitorInterface {
+RequestResponse:
+	setMonitor( SetOpenTracingMonitorRequest )( void ) 
 OneWay:
 	pushEvent(undefined)
 }
-
-type SetStandardMonitorRequest: void 
-
-interface MonitorInputInterface {
-RequestResponse:
-	setMonitor( SetStandardMonitorRequest )( void ) 
-}
-
 
 outputPort Monitor {
 	Interfaces: MonitorInterface
 }
 
-inputPort MonitorInput {
-	Location: "local"
-	Interfaces: MonitorInputInterface
-}
 
 embedded {
 Java:
