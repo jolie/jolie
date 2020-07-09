@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.monitoring.events.OperationStartedEvent;
+import jolie.monitoring.events.OperationReceivedAsyncEvent;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
@@ -64,7 +64,7 @@ public class OneWayProcess implements InputOperationProcess {
 		final String processId = ExecutionThread.currentThread().getSessionId();
 		final String scopeId = ExecutionThread.currentThread().currentStackScopes();
 		Interpreter.getInstance().fireMonitorEvent( () -> {
-			return new OperationStartedEvent( operation.id(), processId,
+			return new OperationReceivedAsyncEvent( operation.id(), processId,
 				Long.toString( sessionMessage.message().id() ),
 				Interpreter.getInstance().programFilename(), scopeId, context,
 				sessionMessage.message().value() );

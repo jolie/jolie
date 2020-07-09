@@ -28,7 +28,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.monitoring.events.OperationCallEvent;
+import jolie.monitoring.events.OperationCallAsyncEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
@@ -99,8 +99,8 @@ public class NotificationProcess implements Process {
 				} catch( TypeCheckingException e ) {
 
 					Interpreter.getInstance().fireMonitorEvent( () -> {
-						return new OperationCallEvent( operationId, processId,
-							Long.toString( message.id() ), OperationCallEvent.FAULT,
+						return new OperationCallAsyncEvent( operationId, processId,
+							Long.toString( message.id() ), OperationCallAsyncEvent.FAULT,
 							"TypeMismatch:" + e.getMessage(), outputPort.id(),
 							Interpreter.getInstance().programFilename(), scopeId, context, message.value() );
 					} );
@@ -118,9 +118,10 @@ public class NotificationProcess implements Process {
 
 			Interpreter.getInstance()
 				.fireMonitorEvent( () -> {
-					return new OperationCallEvent( operationId,
+					return new OperationCallAsyncEvent( operationId,
 						processId, Long.toString( message.id() ),
-						OperationCallEvent.SUCCESS, "", outputPort.id(), Interpreter.getInstance().programFilename(),
+						OperationCallAsyncEvent.SUCCESS, "", outputPort.id(),
+						Interpreter.getInstance().programFilename(),
 						scopeId, context,
 						message.value() );
 				} );

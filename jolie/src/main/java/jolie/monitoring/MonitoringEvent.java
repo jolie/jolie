@@ -37,10 +37,12 @@ import java.net.URI;
 public class MonitoringEvent implements ValueConverter {
 
 	public static enum EventTypes {
-		MONITOR_ATTACHED( "MonitorAttached" ), OPERATION_CALL( "OperationCall" ), OPERATION_ENDED(
-			"OperationEnded" ), OPERATION_REPLY( "OperationReply" ), OPERATION_STARTED(
-				"OperationStarted" ), PROTOCOL_MESSAGE( "ProtocolMessage" ), SESSION_ENDED(
-					"SessionEnded" ), SESSION_STARTED( "SessionStarted" ), LOG( "Log" );
+		MONITOR_ATTACHED( "MonitorAttached" ), OPERATION_CALL( "OperationCall" ), OPERATION_CALL_ASYNC(
+			"OperationCallAsync" ), OPERATION_ENDED(
+				"OperationEnded" ), OPERATION_REPLY( "OperationReply" ), OPERATION_STARTED(
+					"OperationStarted" ), OPERATION_RECEIVED_ASYNC( "OperationReceivedAsync" ), PROTOCOL_MESSAGE(
+						"ProtocolMessage" ), SESSION_ENDED(
+							"SessionEnded" ), SESSION_STARTED( "SessionStarted" ), LOG( "Log" );
 
 		private String eventType;
 
@@ -94,7 +96,6 @@ public class MonitoringEvent implements ValueConverter {
 	private MonitoringEvent( String type, long timestamp, long memory, String serviceFileName, String scope,
 		String processId, ParsingContext parsingContext,
 		Value data ) {
-		System.out.println( "---->" + type + "," + processId );
 		this.type = type;
 		this.timestamp = timestamp;
 		this.memory = memory;
@@ -198,8 +199,6 @@ public class MonitoringEvent implements ValueConverter {
 
 
 	public static MonitoringEvent fromValue( Value value ) {
-
-
 		return new MonitoringEvent(
 			type( value ),
 			timestamp( value ),
@@ -216,6 +215,7 @@ public class MonitoringEvent implements ValueConverter {
 		ret.getFirstChild( FieldNames.TYPE.getName() ).setValue( e.type() );
 		ret.getFirstChild( FieldNames.TIMESTAMP.getName() ).setValue( e.timestamp() );
 		ret.getFirstChild( FieldNames.MEMORY.getName() ).setValue( e.memory() );
+		ret.getFirstChild( FieldNames.PROCESSID.getName() ).setValue( e.processId() );
 		ret.getChildren( FieldNames.DATA.getName() ).add( e.data() );
 		ret.getFirstChild( FieldNames.SERVICE.getName() ).setValue( e.service() );
 		ret.getFirstChild( FieldNames.CELLID.getName() ).setValue( Jolie.cellId );

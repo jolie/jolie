@@ -84,12 +84,16 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 		s.setTag( OperationCallEvent.FieldNames.STATUS.getName(), OperationCallEvent.status( e.data() ) );
 	}
 
-	private static String getSessionId( String service, String processId, String scope ) {
-		return service + "-" + processId + "-" + scope;
+	private static String getSessionId( String service, String processId ) {
+		return service + "-" + processId;
 	}
 
 	private static String getOperationSpanKey( String sessionId, String operationName ) {
 		return sessionId + "-" + operationName;
+	}
+
+	private static String getOperationOutputPortSpanKey( String sessionId, String operationName, String outputPort ) {
+		return sessionId + "-" + operationName + "@" + outputPort;
 	}
 
 	private static long getMicroSecondsTimestamp( long ts ) {
@@ -106,7 +110,6 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 
 
 	private synchronized void insertOrAddNewEventIntoActiveSessionList( MonitoringEvent e, String sessionId ) {
-		System.out.print( "inserting event " + e.type() );
 		if( e.type().equals( MonitoringEvent.EventTypes.MONITOR_ATTACHED.getType() ) ) {
 			TRACER.buildSpan( MonitoringEvent.EventTypes.MONITOR_ATTACHED.getType() )
 				.withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) )
@@ -114,23 +117,17 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 
 		} else {
 			// discard log@Runtime because log already appears as LogEvent
-			// if( !((e.type().equals( MonitoringEvent.EventTypes.OPERATION_CALL )
-			// || e.type().equals( MonitoringEvent.EventTypes.OPERATION_REPLY ))
-			// && OperationCallEvent.outputPort( e.data() ).equals( "Runtime" )
-			// && OperationCallEvent.operationName( e.data() ).equals( "log" )) ) {
 
-			if( activeSessions.containsKey( sessionId ) ) {
-				activeSessions.get( sessionId ).add( e );
-				System.out.println(
-					"...added to sessionID " + sessionId + ", size " + activeSessions.get( sessionId ).size() );
-			} else {
-				ArrayList< MonitoringEvent > arrayList = new ArrayList<>();
-				arrayList.add( e );
-				activeSessions.put( sessionId, arrayList );
-				System.out.println( "...Activated session " + sessionId );
+
+				if( activeSessions.containsKey( sessionId ) ) {
+					activeSessions.get( sessionId ).add( e );
+				} else {
+					ArrayList< MonitoringEvent > arrayList = new ArrayList<>();
+					arrayList.add( e );
+					activeSessions.put( sessionId, arrayList );
+				}
 			}
-			// }
-		}
+
 	}
 
 
@@ -138,7 +135,6 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 		Deque< Span > spanStack = new ArrayDeque<>();
 
 		ArrayList< MonitoringEvent > arrayList = activeSessions.get( sessionId );
-		System.out.println( "Creation span process for session " + sessionId + ", size" + arrayList.size() );
 		arrayList.sort( new Comparator< MonitoringEvent >() {
 			@Override
 			public int compare( MonitoringEvent o1, MonitoringEvent o2 ) {
@@ -186,10 +182,11 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 
 
 		arrayList.stream().forEach( ( MonitoringEvent e ) -> {
-			System.out.println( e.timestamp() + "-" + e.type() + "," + OperationCallEvent.operationName( e.data() ) );
+			System.out.println( e.timestamp() + "-" + e.type() + "," + OperationCallEvent.operationName( e.data() )
+				+ ",>>>>>" + spanStack.size() );
 			if( e.type().equals( MonitoringEvent.EventTypes.SESSION_STARTED.getType() ) ) {
 				Span span = TRACER.buildSpan( sessionId )
-					.withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) ).start();
+					.withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) ).ignoreActiveSpan().start();
 				setMonitoringEventTags( e, span );
 				setMonitorSessionStaredEventTag( e, span );
 				spanStack.push( span );
@@ -199,11 +196,37 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 				spanStack.pop().finish( getMicroSecondsTimestamp( e.timestamp() ) );
 			}
 
-			if( e.type().equals( MonitoringEvent.EventTypes.OPERATION_STARTED.getType() ) ) {
-				Span parentSpan = spanStack.getLast();
+			if( e.type().equals( MonitoringEvent.EventTypes.OPERATION_CALL_ASYNC.getType() ) ) {
+				Span parentSpan = spanStack.getFirst();
+				Span span = TRACER
+					.buildSpan( getOperationOutputPortSpanKey( sessionId, OperationCallEvent.operationName( e.data() ),
+						OperationCallEvent.outputPort( e.data() ) ) )
+					.asChildOf( parentSpan ).withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) )
+					.ignoreActiveSpan().start();
+				setMonitoringEventTags( e, span );
+				setMonitorOperationCallReplyEventTag( e, span );
+				setMessageValueInTag( e, span, true );
+				span.finish( getMicroSecondsTimestamp( e.timestamp() ) );
+			}
+
+			if( e.type().equals( MonitoringEvent.EventTypes.OPERATION_RECEIVED_ASYNC.getType() ) ) {
+				Span parentSpan = spanStack.getFirst();
 				Span span = TRACER
 					.buildSpan( getOperationSpanKey( sessionId, OperationStartedEvent.operationName( e.data() ) ) )
-					.asChildOf( parentSpan ).withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) ).start();
+					.asChildOf( parentSpan ).withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) )
+					.ignoreActiveSpan().start();
+				setMonitoringEventTags( e, span );
+				setMonitorOperationStartedEndedEventTag( e, span );
+				setMessageValueInTag( e, span, true );
+				span.finish( getMicroSecondsTimestamp( e.timestamp() ) );
+			}
+
+			if( e.type().equals( MonitoringEvent.EventTypes.OPERATION_STARTED.getType() ) ) {
+				Span parentSpan = spanStack.getFirst();
+				Span span = TRACER
+					.buildSpan( getOperationSpanKey( sessionId, OperationStartedEvent.operationName( e.data() ) ) )
+					.asChildOf( parentSpan ).withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) )
+					.ignoreActiveSpan().start();
 				setMonitoringEventTags( e, span );
 				setMonitorOperationStartedEndedEventTag( e, span );
 				setMessageValueInTag( e, span, true );
@@ -217,10 +240,12 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 			}
 
 			if( e.type().equals( MonitoringEvent.EventTypes.OPERATION_CALL.getType() ) ) {
-				Span parentSpan = spanStack.getLast();
+				Span parentSpan = spanStack.getFirst();
 				Span span = TRACER
-					.buildSpan( getOperationSpanKey( sessionId, OperationCallEvent.operationName( e.data() ) ) )
-					.asChildOf( parentSpan ).withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) ).start();
+					.buildSpan( getOperationOutputPortSpanKey( sessionId, OperationCallEvent.operationName( e.data() ),
+						OperationCallEvent.outputPort( e.data() ) ) )
+					.asChildOf( parentSpan ).withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) )
+					.ignoreActiveSpan().start();
 				setMonitoringEventTags( e, span );
 				setMonitorOperationCallReplyEventTag( e, span );
 				setMessageValueInTag( e, span, true );
@@ -233,16 +258,15 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 				span.finish( getMicroSecondsTimestamp( e.timestamp() ) );
 			}
 
-			if( e.type().equals( MonitoringEvent.EventTypes.LOG ) ) {
-				Span span = spanStack.getLast();
+			if( e.type().equals( MonitoringEvent.EventTypes.LOG.getType() ) ) {
+				Span span = spanStack.getFirst();
 				span.log( LogEvent.message( e.data() ) );
 			}
 
 			if( e.type().equals( MonitoringEvent.EventTypes.PROTOCOL_MESSAGE.getType() ) ) {
-				Span span = spanStack.getLast();
+				Span span = spanStack.getFirst();
 				setMonitorProtocolEvent( e, span );
 			}
-
 		} );
 
 	}
@@ -251,17 +275,15 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 	@Override
 	public void pushEvent( MonitoringEvent e ) {
 
-		String sessionId = getSessionId( e.service(), e.processId(), e.scope() );
+		String sessionId = getSessionId( e.service(), e.processId() );
 		insertOrAddNewEventIntoActiveSessionList( e, sessionId );
 
 		if( e.type().equals( MonitoringEvent.EventTypes.SESSION_ENDED.getType() ) ) {
 			try {
 				// waiting for all events of the same session. Due to asynchronous reception, we need to wait
-				System.out.println( "started span creation process...." );
 				Thread.sleep( 10000 );
 				createSpans( sessionId );
 				activeSessions.remove( sessionId );
-				System.out.println( "span creation process finished" );
 
 			} catch( InterruptedException e1 ) {
 				e1.printStackTrace();
