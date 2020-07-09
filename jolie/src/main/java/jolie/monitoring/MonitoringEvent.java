@@ -38,11 +38,12 @@ public class MonitoringEvent implements ValueConverter {
 
 	public static enum EventTypes {
 		MONITOR_ATTACHED( "MonitorAttached" ), OPERATION_CALL( "OperationCall" ), OPERATION_CALL_ASYNC(
-			"OperationCallAsync" ), OPERATION_ENDED(
-				"OperationEnded" ), OPERATION_REPLY( "OperationReply" ), OPERATION_STARTED(
-					"OperationStarted" ), OPERATION_RECEIVED_ASYNC( "OperationReceivedAsync" ), PROTOCOL_MESSAGE(
-						"ProtocolMessage" ), SESSION_ENDED(
-							"SessionEnded" ), SESSION_STARTED( "SessionStarted" ), LOG( "Log" );
+			"OperationCallAsync" ), OPERATION_ENDED( "OperationEnded" ), OPERATION_REPLY(
+				"OperationReply" ), OPERATION_STARTED( "OperationStarted" ), OPERATION_RECEIVED_ASYNC(
+					"OperationReceivedAsync" ), PROTOCOL_MESSAGE( "ProtocolMessage" ), SESSION_ENDED(
+						"SessionEnded" ), SESSION_STARTED( "SessionStarted" ), LOG( "Log" ), THROW(
+							"throw" ), FAULT_HANDLER_START(
+								"FaultHandlerStart" ), FAULT_HANDLER_END( "FaultHandlerEnd" );
 
 		private String eventType;
 

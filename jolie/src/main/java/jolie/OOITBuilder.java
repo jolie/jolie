@@ -342,7 +342,8 @@ public class OOITBuilder implements OLVisitor {
 			interpreter.register( "init",
 				new InitDefinitionProcess(
 					new ScopeProcess( "main",
-						new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false ) ) );
+						new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false,
+						null ) ) );
 		}
 	}
 
@@ -775,7 +776,8 @@ public class OOITBuilder implements OLVisitor {
 				new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
 				buildProcess( n.body() )
 			};
-			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
+			def = new InitDefinitionProcess(
+				new ScopeProcess( "main", new SequentialProcess( initChildren ), false, n.context() ) );
 			break;
 		default:
 			def = new DefinitionProcess( buildProcess( n.body() ) );
@@ -954,7 +956,7 @@ public class OOITBuilder implements OLVisitor {
 			n.expression().accept( this );
 			expression = currExpression;
 		}
-		currProcess = new ThrowProcess( n.id(), expression );
+		currProcess = new ThrowProcess( n.id(), expression, n.context() );
 	}
 
 	public void visit( CompensateStatement n ) {
@@ -963,7 +965,7 @@ public class OOITBuilder implements OLVisitor {
 
 	public void visit( Scope n ) {
 		n.body().accept( this );
-		currProcess = new ScopeProcess( n.id(), currProcess );
+		currProcess = new ScopeProcess( n.id(), currProcess, n.context() );
 	}
 
 	public void visit( InstallStatement n ) {

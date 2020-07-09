@@ -40,29 +40,40 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 	private int queueMax;
 	private int triggerThreshold;
 	private boolean alert;
+	private boolean directPushing;
+	private String directPushingOperationName;
 
 	public StandardMonitor() {
 		triggerEnabled = false;
-		triggerThreshold = 75;
+		triggerThreshold = 10;
 		queueMax = 100;
 		alert = false;
+		directPushing = true;
+		directPushingOperationName = "getMonitorEvent";
 	}
 
 
 
 	@Override
 	public void pushEvent( MonitoringEvent e ) {
-		synchronized( this ) {
-			if( q.size() >= queueMax ) {
-				q.removeFirst();
-			}
-			q.addLast( e );
-			if( triggerEnabled && !alert ) {
-				if( q.size() >= triggerThreshold ) {
-					sendMessage( CommMessage.createRequest( "monitorAlert", "/", Value.create() ) );
-					alert = true;
+		// discard monitorAlert events
+		if( directPushing ) {
+			sendMessage( CommMessage.createRequest( directPushingOperationName, "/", MonitoringEvent.toValue( e ) ) );
+		} else {
+
+			synchronized( this ) {
+				if( q.size() >= queueMax ) {
+					q.removeFirst();
+				}
+				q.addLast( e );
+				if( triggerEnabled && !alert ) {
+					if( q.size() >= triggerThreshold ) {
+						sendMessage( CommMessage.createRequest( "monitorAlert", "/", Value.create() ) );
+						alert = true;
+					}
 				}
 			}
+
 		}
 	}
 
@@ -88,6 +99,8 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 					.getFirstChild( MonitoringEvent.FieldNames.CELLID.getName() ).setValue( e.cellId() );
 				response.getChildren( "events" ).get( index )
 					.getFirstChild( MonitoringEvent.FieldNames.SCOPE.getName() ).setValue( e.scope() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.PROCESSID.getName() ).setValue( e.processId() );
 				if( e.parsingContext() != null ) {
 					response.getChildren( "events" ).get( index ).getFirstChild( "context" )
 						.getFirstChild( MonitoringEvent.FieldNames.CONTEXT_FILENAME.getName() )
@@ -111,14 +124,22 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 	 *
 	 */
 	public void setMonitor( Value request ) {
-		if( request.getFirstChild( "triggeredEnabled" ).isDefined() ) {
+		if( request.hasChildren( "triggeredEnabled" ) ) {
 			triggerEnabled = request.getFirstChild( "triggeredEnabled" ).boolValue();
 		}
-		if( request.getFirstChild( "triggerThreshold" ).isDefined() ) {
+		if( request.hasChildren( "triggerThreshold" ) ) {
 			triggerThreshold = request.getFirstChild( "triggerThreshold" ).intValue();
 		}
-		if( request.getFirstChild( "queueMax" ).isDefined() ) {
+		if( request.hasChildren( "queueMax" ) ) {
 			queueMax = request.getFirstChild( "queueMax" ).intValue();
+		}
+
+		if( request.hasChildren( "directPushing" ) ) {
+			directPushing = request.getFirstChild( "directPushing" ).boolValue();
+			if( request.getFirstChild( "directPushing" ).hasChildren( "operationName" ) ) {
+				directPushingOperationName =
+					request.getFirstChild( "directPushing" ).getFirstChild( "operationName" ).strValue();
+			}
 		}
 	}
 

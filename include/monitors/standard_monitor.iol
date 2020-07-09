@@ -28,13 +28,16 @@ OneWay:
 
 
 type FlushResponse: void {
-	.events*: MonitorEvent
+	events*: MonitorEvent
 }
 
 type SetStandardMonitorRequest: void {
-	.triggeredEnabled?: bool
-	.triggerThreshold?: int
-	.queueMax?: int
+	triggeredEnabled?: bool
+	triggerThreshold?: int
+	queueMax?: int
+	directPushing?: bool {
+		operationName?: string
+	}
 }
 
 interface StandardMonitorInterface {
