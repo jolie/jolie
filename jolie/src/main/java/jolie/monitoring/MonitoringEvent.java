@@ -27,6 +27,7 @@ import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.Value;
 
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A monitoring event, supporting the {@link ValueConverter} interface for automatic transformation
@@ -35,6 +36,8 @@ import java.net.URI;
  * @author Fabrizio Montesi
  */
 public class MonitoringEvent implements ValueConverter {
+
+	private static final AtomicLong SERIAL_EVENT_ID_COUNTER = new AtomicLong( 1L );
 
 	public static enum EventTypes {
 		MONITOR_ATTACHED( "MonitorAttached" ), OPERATION_CALL( "OperationCall" ), OPERATION_CALL_ASYNC(
@@ -59,7 +62,8 @@ public class MonitoringEvent implements ValueConverter {
 	public static enum FieldNames {
 		TYPE( "type" ), TIMESTAMP( "timestamp" ), MEMORY( "memory" ), SERVICE( "service" ), DATA( "data" ), SCOPE(
 			"scope" ), PROCESSID( "processId" ), CELLID(
-				"cellId" ), CONTEXT( "context" ), CONTEXT_FILENAME( "filename" ), CONTEXT_LINE( "line" );
+				"cellId" ), CONTEXT( "context" ), CONTEXT_FILENAME(
+					"filename" ), CONTEXT_LINE( "line" ), SERIAL_EVENT_ID( "serialEventId" );
 
 		private String fieldName;
 
@@ -80,6 +84,7 @@ public class MonitoringEvent implements ValueConverter {
 	private final ParsingContext parsingContext;
 	private final String scope;
 	private final String processId;
+	private final long serialEventId;
 
 	public MonitoringEvent( MonitoringEvent.EventTypes type, String serviceFileName, String scope,
 		String processId, ParsingContext parsingContext, Value data ) {
@@ -105,6 +110,7 @@ public class MonitoringEvent implements ValueConverter {
 		this.parsingContext = parsingContext;
 		this.scope = scope;
 		this.processId = processId;
+		this.serialEventId = SERIAL_EVENT_ID_COUNTER.getAndIncrement();
 	}
 
 	public String type() {
@@ -157,6 +163,10 @@ public class MonitoringEvent implements ValueConverter {
 
 	public String processId() {
 		return processId;
+	}
+
+	public long serialEventId() {
+		return this.serialEventId;
 	}
 
 	public static String processId( Value value ) {
@@ -221,6 +231,7 @@ public class MonitoringEvent implements ValueConverter {
 		ret.getFirstChild( FieldNames.SERVICE.getName() ).setValue( e.service() );
 		ret.getFirstChild( FieldNames.CELLID.getName() ).setValue( Jolie.cellId );
 		ret.getFirstChild( FieldNames.SCOPE.getName() ).setValue( e.scope() );
+		ret.getFirstChild( FieldNames.SERIAL_EVENT_ID.getName() ).setValue( e.serialEventId() );
 		if( e.parsingContext() != null ) {
 			ret.getFirstChild( FieldNames.CONTEXT.getName() ).getFirstChild( FieldNames.CONTEXT_FILENAME.getName() )
 				.setValue( e.parsingContext().sourceName() );
