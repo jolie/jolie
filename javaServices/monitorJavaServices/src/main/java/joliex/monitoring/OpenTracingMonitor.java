@@ -44,6 +44,7 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 		s.setTag( MonitoringEvent.FieldNames.SCOPE.getName(), e.scope() );
 		s.setTag( MonitoringEvent.FieldNames.SERVICE.getName(), e.service() );
 		s.setTag( MonitoringEvent.FieldNames.MEMORY.getName(), e.memory() );
+		s.setTag( MonitoringEvent.FieldNames.SERIAL_EVENT_ID.getName(), e.serialEventId() );
 		if( e.parsingContext() != null ) {
 			s.setTag( MonitoringEvent.FieldNames.CONTEXT_FILENAME.getName(), e.parsingContext().sourceName() );
 			s.setTag( MonitoringEvent.FieldNames.CONTEXT_LINE.getName(), e.parsingContext().line() );
@@ -187,42 +188,10 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 					return -1;
 				}
 				if( o1.timestamp() == o2.timestamp() ) {
-					// third rule: checking scopes
-					if( o1.scope().equals( o2.scope() ) ) {
-						if( o1.type().equals( MonitoringEvent.EventTypes.OPERATION_CALL )
-							&& o1.type().equals( o2.type() ) ) {
-							if( Long.valueOf( OperationCallEvent.messageId( o1.data() ) ) > Long
-								.valueOf( OperationCallEvent.messageId( o2.data() ) ) )
-								return 1;
-							else
-								return -1;
-						}
-						if( o1.type().equals( MonitoringEvent.EventTypes.OPERATION_REPLY )
-							&& o1.type().equals( o2.type() ) ) {
-							if( Long.valueOf( OperationReplyEvent.messageId( o1.data() ) ) > Long
-								.valueOf( OperationReplyEvent.messageId( o2.data() ) ) )
-								return 1;
-							else
-								return -1;
-						}
-
-						// if they have the same scope
-						if( o1.type().equals( MonitoringEvent.EventTypes.OPERATION_STARTED.getType() )
-							|| o2.type().equals( MonitoringEvent.EventTypes.OPERATION_ENDED.getType() ) ) {
-							return -1;
-						}
-						if( o1.type().equals( MonitoringEvent.EventTypes.OPERATION_ENDED.getType() )
-							|| o2.type().equals( MonitoringEvent.EventTypes.OPERATION_STARTED.getType() ) ) {
-							return 1;
-						}
-						if( o1.type().equals( MonitoringEvent.EventTypes.OPERATION_CALL.getType() )
-							|| o2.type().equals( MonitoringEvent.EventTypes.OPERATION_REPLY.getType() ) ) {
-							return -1;
-						}
-						if( o1.type().equals( MonitoringEvent.EventTypes.OPERATION_REPLY.getType() )
-							|| o2.type().equals( MonitoringEvent.EventTypes.OPERATION_CALL.getType() ) ) {
-							return 1;
-						}
+					if( o1.serialEventId() > o2.serialEventId() ) {
+						return 1;
+					} else {
+						return -1;
 					}
 				}
 				return 0;
@@ -332,16 +301,10 @@ public class OpenTracingMonitor extends AbstractMonitorJavaService {
 					.ignoreActiveSpan().start();
 				setMonitoringEventTags( e, span );
 				setMonitorFaultHandlerEventTag( e, span );
-				span.finish( getMicroSecondsTimestamp( e.timestamp() ) );
+				spanStack.push( span );
 			}
 			if( e.type().equals( MonitoringEvent.EventTypes.FAULT_HANDLER_END.getType() ) ) {
-				Span parentSpan = spanStack.getFirst();
-				Span span = tracer
-					.buildSpan( "faultHandlerEnd-" + ThrowEvent.faultname( e.data() ) )
-					.asChildOf( parentSpan ).withStartTimestamp( getMicroSecondsTimestamp( e.timestamp() ) )
-					.ignoreActiveSpan().start();
-				setMonitoringEventTags( e, span );
-				setMonitorFaultHandlerEventTag( e, span );
+				Span span = spanStack.pop();
 				span.finish( getMicroSecondsTimestamp( e.timestamp() ) );
 			}
 

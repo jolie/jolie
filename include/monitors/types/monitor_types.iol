@@ -1,13 +1,11 @@
 type LogEventData: void {
 	level: string
 	message: string 
-	processId: string
 	extendedType?: string
 }
 
 type OperationCallReplyEventData: void {
 	operationName: string
-	processId: string 
 	messageId: string 
 	status: int 
 	details: string 
@@ -26,7 +24,6 @@ type OperationEndedEventData: void {
 
 type OperationStartedEventData: void {
 	operationName: string
-	processId: string 
 	messageId: string 
 	value: undefined
 }
@@ -34,17 +31,26 @@ type OperationStartedEventData: void {
 type ProtocolMessageEventData: void {
 	protocol: string 
 	header: string 
-	message: string
-	processId: string  
+	message: string 
 }
 
 type SessionEventData: void {
 	operationName: string
-	processId: string 
 }
 
 type MonitorAttachedEventData: void
 
+type ThrowEventData: void {
+	faultname: string
+}
+
+type FaultHandlerStartedEventData: void {
+	faultname: string
+}
+
+type FaultHandlerStartedEventData: void {
+	faultname: string 
+}
 
 type MonitorEvent: void {
 	type: string 
@@ -52,14 +58,17 @@ type MonitorEvent: void {
 	timestamp: long
 	service: string
 	cellId: int
+    processId: string 
 	scope: string
+	serialEventId: long
 	data?: LogEventData 
-		| OperationCallReplyEventData 
+		| OperationCallReplyEventData   //< covers also OperationCallEvent, OperationCallAsyncEvent and OperationReplyAsyncEvent
 		| OperationEndedEventData 
 		| OperationStartedEventData
 		| ProtocolMessageEventData
 		| SessionEventData
 		| MonitorAttachedEventData
+		| ThrowEventData 				//< covers also FaultHandlerStartedEvent and FaultHandlerEndedEvent
 	context?: void {
 		filename: string 
 		line: int
