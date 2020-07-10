@@ -62,14 +62,6 @@ public class OneWayProcess implements InputOperationProcess {
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
 
-		final String processId = ExecutionThread.currentThread().getSessionId();
-		final String scopeId = ExecutionThread.currentThread().currentStackScopes();
-		Interpreter.getInstance().fireMonitorEvent( () -> {
-			return new OperationReceivedAsyncEvent( operation.id(), processId,
-				Long.toString( sessionMessage.message().id() ),
-				Interpreter.getInstance().programFilename(), scopeId, context,
-				sessionMessage.message().value() );
-		} );
 
 
 		log( "RECEIVED", sessionMessage.message() );
@@ -77,7 +69,16 @@ public class OneWayProcess implements InputOperationProcess {
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
 		}
 
-		return NullProcess.getInstance();
+		return new InternalEngineProcess( () -> {
+			final String processId = ExecutionThread.currentThread().getSessionId();
+			final String scopeId = ExecutionThread.currentThread().currentStackScopes();
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				return new OperationReceivedAsyncEvent( operation.id(), processId,
+					Long.toString( sessionMessage.message().id() ),
+					Interpreter.getInstance().programFilename(), scopeId, context,
+					sessionMessage.message().value() );
+			} );
+		} );
 	}
 
 	public void run()
