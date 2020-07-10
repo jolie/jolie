@@ -15,7 +15,6 @@ type OperationCallReplyEventData: void {
 
 type OperationEndedEventData: void {
 	operationName: string
-	processId: string 
 	messageId: string 
 	status: int 
 	details: string 

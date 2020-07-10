@@ -104,8 +104,8 @@ class TypeImpl extends Type {
 						type.cardinality().min() + "," + type.cardinality().max() + "], found " + size );
 			}
 
-			for( Value v : vector ) {
-				type.cast( v, pathBuilder );
+			for( int i = 0; i < vector.size(); i++ ) {
+				type.cast( vector.get( i ), new StringBuilder( pathBuilder ).append( "[" ).append( i ).append( "]" ) );
 			}
 		}
 	}
@@ -164,8 +164,9 @@ class TypeImpl extends Type {
 						type.cardinality().min() + "," + type.cardinality().max() + "], found " + size );
 			}
 
-			for( Value v : vector ) {
-				type.check( v, pathBuilder );
+
+			for( int i = 0; i < vector.size(); i++ ) {
+				type.check( vector.get( i ), new StringBuilder( pathBuilder ).append( "[" ).append( i ).append( "]" ) );
 			}
 		}
 	}

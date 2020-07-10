@@ -32,18 +32,15 @@ type FlushResponse: void {
 }
 
 type SetStandardMonitorRequest: void {
-	triggeredEnabled?: bool
-	triggerThreshold?: int
-	queueMax?: int
-	directPushing?: bool {
-		operationName?: string
-	}
+	queueMax?: int							//< internal queue size which collects the events from the engine (default:100)
+	triggeredEnabled?: bool					//< enable trigger from the monitor to the embedder which will send collected events to the operation getMonitorEvent (default: false)
+	triggerThreshold?: int					//< the size of the the queue which triggers the getMonitorEvent of the events. Keep it less than queueMax in order to not loose events
 }
 
 interface StandardMonitorInterface {
 RequestResponse:
 	flush( void )( FlushResponse ),
-	setMonitor( SetStandardMonitorRequest )( void ) 
+	setMonitor( SetStandardMonitorRequest )( void )
 }
 
 interface StandardMonitorInputInterface {
