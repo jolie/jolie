@@ -61,7 +61,7 @@ public class OperationReplyEvent extends MonitoringEvent {
 		return value.getFirstChild( FieldNames.STATUS.getName() ).intValue();
 	}
 
-	public static String setails( Value value ) {
+	public static String details( Value value ) {
 		return value.getFirstChild( FieldNames.DETAILS.getName() ).strValue();
 	}
 
