@@ -45,7 +45,7 @@ public class MonitoringEvent implements ValueConverter {
 				"OperationReply" ), OPERATION_STARTED( "OperationStarted" ), OPERATION_RECEIVED_ASYNC(
 					"OperationReceivedAsync" ), PROTOCOL_MESSAGE( "ProtocolMessage" ), SESSION_ENDED(
 						"SessionEnded" ), SESSION_STARTED( "SessionStarted" ), LOG( "Log" ), THROW(
-							"throw" ), FAULT_HANDLER_START(
+							"Throw" ), FAULT_HANDLER_START(
 								"FaultHandlerStart" ), FAULT_HANDLER_END( "FaultHandlerEnd" );
 
 		private String eventType;
