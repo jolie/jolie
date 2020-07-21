@@ -266,7 +266,8 @@ public class SolicitResponseProcess implements Process {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
-				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+				"Line " + context.line() + " , Output message TypeMismatch (" + operationId + "@" + outputPort.id()
+					+ "): " + e.getMessage() );
 		} finally {
 			if( channel != null ) {
 				try {

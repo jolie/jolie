@@ -154,7 +154,8 @@ public class NotificationProcess implements Process {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
-				"TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+				"Line " + context.line() + ", TypeMismatch (" + operationId + "@" + outputPort.id() + "): "
+					+ e.getMessage() );
 		} finally {
 			if( channel != null ) {
 				try {
