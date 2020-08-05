@@ -2,6 +2,7 @@ include "public/interfaces/JolieMockInterface.iol"
 include "metarender.iol"
 include "console.iol"
 include "string_utils.iol"
+include "converter.iol"
 
 execution{ concurrent }
 
@@ -34,13 +35,18 @@ type GetSubTypeRenderRequest: void {
     vector_depth: int
 }
 
+type GetNativeTypeRenderRequest: void {
+    native_type: NativeType 
+    text?: string
+}
+
 
 interface RenderResponseTypeInterface {
     RequestResponse:
         getTypeDefinitionRender( GetTypeDefinitionRenderRequest )( string ),
         getTypeRender( GetTypeRenderRequest)( string ),
         getTypeLinkRender( GetTypeLinkRenderRequest )( string ),
-        getNativeTypeRender( NativeType )( string ),
+        getNativeTypeRender( GetNativeTypeRenderRequest )( string ),
         getSubTypeRender( GetSubTypeRenderRequest )( string )
 }
 
@@ -69,22 +75,35 @@ service RenderResponseType {
         } ]
 
         [ getNativeTypeRender( request )( response ) {
-             if ( is_defined( request.string_type ) ) {
-                 response = "STRING_CONST"
-             } else if ( is_defined( request.int_type ) ) {
-                 response = "INT_CONST"
-             } else if ( is_defined( request.double_type ) ) {
-                 response = "DOUBLE_CONST"
-             } else if ( is_defined( request.any_type ) ) {
-                 response = "ANY_CONST"
-             } else if ( is_defined( request.void_type ) ) {
+             if ( is_defined( request.native_type.string_type ) ) {
+                 if ( is_defined( request.text ) ) { response = "\"" + request.text + "\"" } 
+                 else { response = "STRING_CONST" }
+             } else if ( is_defined( request.native_type.int_type ) ) {
+                 if ( is_defined( request.text ) ) { 
+                    length@StringUtils( request.text )( response ) 
+                    response = string( response ) 
+                 } else {
+                     response = "INT_CONST"
+                 }
+             } else if ( is_defined( request.native_type.double_type ) ) {
+                 if ( is_defined( request.text ) ) { 
+                    length@StringUtils( request.text )( length )
+                    response = string( double( length ) )  
+                 } else { response = "DOUBLE_CONST" }
+             } else if ( is_defined( request.native_type.any_type ) ) {
+                 if ( is_defined( request.text ) ) { response = "\"" + request.text + "\"" } 
+                 else { response = "ANY_CONST" }
+             } else if ( is_defined( request.native_type.void_type ) ) {
                  response = "VOID_CONST"
-             } else if ( is_defined( request.raw_type ) ) {
+             } else if ( is_defined( request.native_type.raw_type ) ) {
                  response = "RAW_CONST"
-             } else if ( is_defined( request.bool_type ) ) {
+             } else if ( is_defined( request.native_type.bool_type ) ) {
                  response = "BOOL_CONST"
-             } else if ( is_defined( request.long_type ) ) {
-                 response = "LONG_CONST"
+             } else if ( is_defined( request.native_type.long_type ) ) {
+                 if ( is_defined( request.text ) ) { 
+                    length@StringUtils( request.text )( length )
+                    response = string( long( length ) ) 
+                 } else { response = "LONG_CONST" }
              }
         }]
 
@@ -125,7 +144,8 @@ service RenderResponseType {
                 rq.path = request.path
                 getTypeRender@RenderResponseType( rq )( response )
             } else if ( request.type instanceof TypeInLine ) {
-                getNativeTypeRender@RenderResponseType( request.type.root_type )( native_string )
+                rqn.native_type -> request.type.root_type; rqn.text = request.path
+                getNativeTypeRender@RenderResponseType( rqn )( native_string )
                 response = request.path + " = " + native_string + "\n"
                 if ( #request.type.sub_type > 0 ) {
                     for( st in request.type.sub_type ) {
@@ -153,9 +173,13 @@ main {
     [ getMock( request )( response ) {
         if ( is_defined( request.vector_depth ) ) { rq.vector_depth = request.vector_depth }
         else { rq.vector_depth = 5 }
-        getSurfaceWithoutOutputPort@MetaRender( request.input )( surface )
+        for( itf in request.input.interfaces ) {
+            getInterface@MetaRender( itf )( current_interface )
+            itf_string = itf_string + current_interface + "\n"
+        }
         getInputPort@MetaRender( request.input )( iport )
         init_string = "
+        include \"console.iol\"
         include \"converter.iol\"
         init {
             STRING_CONST = \"mock_string\"
@@ -166,6 +190,7 @@ main {
             BOOL_CONST = true
             LONG_CONST = 42L
             VOID_CONST = Void
+            println@Console(\"Mock service si running...\")()
         }\n\n
         "
         main_string = "\n\nmain {\n"
@@ -173,13 +198,17 @@ main {
         // generation of main
         for( itf in request.input.interfaces ) {
             for( o in itf.operations ) {
-                main_string = main_string + "[ " + o.operation_name + "( " + o.input + ")"
+                main_string = main_string + "[ " + o.operation_name + "( request )"
                 if ( is_defined( o.output ) ) {
-                    main_string = main_string + "( " + o.output + " ) {\n"
+                    main_string = main_string + "( response ) {\n"
                     main_string = main_string + "\tvalueToPrettyString@StringUtils( request )( s ); println@Console( s )()\n"
-                    rq.types -> itf.types; rq.type_name = o.output; rq.path = "\tresponse"
-                    getTypeDefinitionRender@RenderResponseType( rq )( odef )
-                    main_string = main_string + odef + "}"
+                    if ( o.output != "undefined" ) {
+                        rq.types -> itf.types; rq.type_name = o.output; rq.path = "\tresponse"
+                        getTypeDefinitionRender@RenderResponseType( rq )( odef )
+                        main_string = main_string + odef + "}"
+                    } else {
+                        main_string = main_string + "}"
+                    }
                 }
                 main_string = main_string + "]\n\n"
             }
@@ -187,7 +216,7 @@ main {
 
 
         main_string = main_string + "\n}"
-        response = surface + "\ninclude \"console.iol\"\ninclude \"string_utils.iol\"\nexecution{ concurrent }\n" 
+        response = itf_string + "\ninclude \"console.iol\"\ninclude \"string_utils.iol\"\nexecution{ concurrent }\n" 
         + iport + init_string +main_string 
     } ]
 
