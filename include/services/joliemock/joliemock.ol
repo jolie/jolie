@@ -180,8 +180,7 @@ main {
         }
         getInputPort@MetaRender( request.input )( iport )
         init_string = "
-        include \"console.iol\"
-        include \"converter.iol\"
+
         init {
             STRING_CONST = \"mock_string\"
             INT_CONST = 42
@@ -217,7 +216,7 @@ main {
 
 
         main_string = main_string + "\n}"
-        response = itf_string + "\ninclude \"console.iol\"\ninclude \"string_utils.iol\"\nexecution{ concurrent }\n" 
+        response = itf_string + "\ninclude \"console.iol\"\ninclude \"string_utils.iol\"\ninclude \"converter.iol\"\n\nexecution{ concurrent }\n\n" 
         + iport + init_string +main_string 
     } ]
 
