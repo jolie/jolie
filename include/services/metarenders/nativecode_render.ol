@@ -77,18 +77,30 @@ main
 {
 
   [ getInputPort( request )( response ) {
-	response = response + "inputPort " + request.name.name + " {\n"
+	response = response + "inputPort " + request.name + " {\n"
 	  + _indentation_token + "Protocol:" + request.protocol + "\n"
 	  + _indentation_token + "Location:\"" + request.location + "\"\n"
-	  + _indentation_token + "Interfaces:" + request.interfaces.name.name + "\n"
+	  + _indentation_token + "Interfaces:" 
+	  for ( i = 0, i < #request.interfaces, i++ ) {
+		  response = response + request.interfaces[ i ].name
+	  }
+	  response = response + "\n"
 	  + "}\n\n"
   }] 
 
   [ getOutputPort( request )( response ) {
-	response = response + "outputPort " + request.name.name + " {\n"
-	  + _indentation_token + "Protocol:" + request.protocol + "\n"
-	  + _indentation_token + "Location:\"" + request.location + "\"\n"
-	  + _indentation_token + "Interfaces:" + request.interfaces.name.name + "\n"
+	response = response + "outputPort " + request.name + " {\n"
+	if ( request.protocol != "" ) {
+	  response = response + _indentation_token + "Protocol:" + request.protocol + "\n"
+	}
+	if ( request.location != "undefined" ) {
+	  response = response + _indentation_token + "Location:\"" + request.location + "\"\n"
+	}
+	response = response + _indentation_token + "Interfaces:" 
+	  for ( i = 0, i < #request.interfaces, i++ ) {
+		  response = response + request.interfaces[ i ].name
+	  }
+	  response = response + "\n"
 	  + "}\n\n"
   }] 
 
