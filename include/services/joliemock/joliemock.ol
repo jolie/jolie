@@ -76,6 +76,7 @@ service RenderResponseType {
 
         [ getNativeTypeRender( request )( response ) {
              if ( is_defined( request.native_type.string_type ) ) {
+                 replaceAll@StringUtils( request.text { replacement = "", regex = "\t" } )( request.text )
                  if ( is_defined( request.text ) ) { response = "\"" + request.text + "\"" } 
                  else { response = "STRING_CONST" }
              } else if ( is_defined( request.native_type.int_type ) ) {
