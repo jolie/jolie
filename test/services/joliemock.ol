@@ -19,8 +19,8 @@ define doTest {
     getInputPortMetaData@MetaJolie( { .filename = "./services/private/testservice.ol" } )( ipts )
     getMock@JolieMock( ipts )( mock )
     md5@MessageDigest( mock )( mockmd5 )
-    if ( mockmd5 != "f8900f4e31cac1b8cb5493cd4cd0ca07" ) {
-        throw( TestFailed, "md5 of mock does not correspond, expected f8900f4e31cac1b8cb5493cd4cd0ca07, found " + mockmd5 )
+    if ( mockmd5 != "4116dc9aee6cfe508367c1df05c8e95d" ) {
+        throw( TestFailed, "md5 of mock does not correspond, expected 4116dc9aee6cfe508367c1df05c8e95d, found " + mockmd5 )
     }
 
 }
