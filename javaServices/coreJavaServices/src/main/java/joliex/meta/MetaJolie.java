@@ -24,10 +24,10 @@ import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.CodeCheckingError;
 import jolie.lang.CodeCheckingException;
-import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.*;
+import jolie.lang.parse.ast.types.refinements.*;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -63,21 +63,92 @@ public class MetaJolie extends JavaService {
 		}
 	}
 
-	private Value getNativeType( NativeType type ) {
+	private Value getBasicType( BasicTypeDefinition type ) {
 		Value response = Value.create();
 		if( null != type )
-			switch( type ) {
+			switch( type.nativeType() ) {
 			case ANY:
 				response.getFirstChild( "any_type" ).setValue( true );
 				break;
 			case STRING:
 				response.getFirstChild( "string_type" ).setValue( true );
+				if( !type.refinements().isEmpty() ) {
+					ValueVector refinementVector =
+						response.getFirstChild( "string_type" ).getChildren( "refined_type" );
+					type.refinements().stream().forEach( refinement -> {
+						Value refinedValue = Value.create();
+						if( refinement instanceof BasicTypeRefinementStringRegex ) {
+							refinedValue.getFirstChild( "regex" )
+								.setValue( ((BasicTypeRefinementStringRegex) refinement).getRegex() );
+						} else if( refinement instanceof BasicTypeRefinementStringLength ) {
+							refinedValue.getFirstChild( "length" ).getFirstChild( "min" )
+								.setValue( ((BasicTypeRefinementStringLength) refinement).getMin() );
+							if( ((BasicTypeRefinementStringLength) refinement).getMax() == Integer.MAX_VALUE ) {
+								refinedValue.getFirstChild( "length" ).getFirstChild( "infinite" ).setValue( true );
+							} else {
+								refinedValue.getFirstChild( "length" ).getFirstChild( "max" )
+									.setValue( ((BasicTypeRefinementStringLength) refinement).getMax() );
+							}
+						} else if( refinement instanceof BasicTypeRefinementStringList ) {
+							ValueVector enumVector = refinedValue.getChildren( "enum" );
+							BasicTypeRefinementStringList basicTypeRefinementStringList =
+								(BasicTypeRefinementStringList) refinement;
+							basicTypeRefinementStringList.getList().stream().forEach( item -> {
+								Value itemValue = Value.create();
+								itemValue.setValue( item );
+								enumVector.add( itemValue );
+							} );
+						}
+
+						refinementVector.add( refinedValue );
+					} );
+				}
 				break;
 			case DOUBLE:
 				response.getFirstChild( "double_type" ).setValue( true );
+				if( !type.refinements().isEmpty() ) {
+					Value refinementVector = response.getFirstChild( "double_type" ).getFirstChild( "refined_type" );
+					type.refinements().stream().forEach( refinement -> {
+						if( refinement instanceof BasicTypeRefinementDoubleRanges ) {
+							ValueVector rangeVector = refinementVector.getChildren( "ranges" );
+							BasicTypeRefinementDoubleRanges basicTypeRefinementDoubleRanges =
+								(BasicTypeRefinementDoubleRanges) refinement;
+							basicTypeRefinementDoubleRanges.getRanges().stream().forEach( interval -> {
+								Value range = Value.create();
+								range.getFirstChild( "min" ).setValue( interval.getMin() );
+								if( interval.getMax() == Double.MAX_VALUE ) {
+									range.getFirstChild( "infinite" ).setValue( true );
+								} else {
+									range.getFirstChild( "max" ).setValue( interval.getMax() );
+								}
+								rangeVector.add( range );
+							} );
+						}
+					} );
+				}
 				break;
 			case INT:
 				response.getFirstChild( "int_type" ).setValue( true );
+				if( !type.refinements().isEmpty() ) {
+					Value refinementVector = response.getFirstChild( "int_type" ).getFirstChild( "refined_type" );
+					type.refinements().stream().forEach( refinement -> {
+						if( refinement instanceof BasicTypeRefinementIntegerRanges ) {
+							ValueVector rangeVector = refinementVector.getChildren( "ranges" );
+							BasicTypeRefinementIntegerRanges basicTypeRefinementIntRanges =
+								(BasicTypeRefinementIntegerRanges) refinement;
+							basicTypeRefinementIntRanges.getRanges().stream().forEach( interval -> {
+								Value range = Value.create();
+								range.getFirstChild( "min" ).setValue( interval.getMin() );
+								if( interval.getMax() == Integer.MAX_VALUE ) {
+									range.getFirstChild( "infinite" ).setValue( true );
+								} else {
+									range.getFirstChild( "max" ).setValue( interval.getMax() );
+								}
+								rangeVector.add( range );
+							} );
+						}
+					} );
+				}
 				break;
 			case VOID:
 				response.getFirstChild( "void_type" ).setValue( true );
@@ -87,6 +158,26 @@ public class MetaJolie extends JavaService {
 				break;
 			case LONG:
 				response.getFirstChild( "long_type" ).setValue( true );
+				if( !type.refinements().isEmpty() ) {
+					Value refinementVector = response.getFirstChild( "long_type" ).getFirstChild( "refined_type" );
+					type.refinements().stream().forEach( refinement -> {
+						if( refinement instanceof BasicTypeRefinementLongRanges ) {
+							ValueVector rangeVector = refinementVector.getChildren( "ranges" );
+							BasicTypeRefinementLongRanges basicTypeRefinementLongRanges =
+								(BasicTypeRefinementLongRanges) refinement;
+							basicTypeRefinementLongRanges.getRanges().stream().forEach( interval -> {
+								Value range = Value.create();
+								range.getFirstChild( "min" ).setValue( interval.getMin() );
+								if( interval.getMax() == Long.MAX_VALUE ) {
+									range.getFirstChild( "infinite" ).setValue( true );
+								} else {
+									range.getFirstChild( "max" ).setValue( interval.getMax() );
+								}
+								rangeVector.add( range );
+							} );
+						}
+					} );
+				}
 				break;
 			case RAW:
 				response.getFirstChild( "raw_type" ).setValue( true );
@@ -200,7 +291,7 @@ public class MetaJolie extends JavaService {
 	private Value getTypeInlineDefinition( TypeInlineDefinition typedef, boolean insertInInterfaceList,
 		TypeDefinition extension ) {
 		Value type = Value.create();
-		type.getFirstChild( "root_type" ).deepCopy( getNativeType( typedef.basicType().nativeType() ) );
+		type.getFirstChild( "root_type" ).deepCopy( getBasicType( typedef.basicType() ) );
 		if( typedef.hasSubTypes() ) {
 			int subtype_counter = 0;
 			for( Entry< String, TypeDefinition > entry : typedef.subTypes() ) {

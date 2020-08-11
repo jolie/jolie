@@ -514,11 +514,165 @@ define doTest
        messageTypeCast@MetaJolie( rq_mtc )( rq_mtc_res )
        throw( TestFailed, "Expected fault TypeMismatch for type T3 in the case fieldChoice2 is missing" )
    }
+
+   // refinedTypes
+   undef( rq )
+   rq.filename = "private/sample_service_refined_types.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description )
+   scope( comp_values ) {
+        install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
+        v2 << {
+            root_type.void_type = true
+            sub_type[ 0 ] << {
+                name = "f6"
+                type << {
+                    root_type.double_type << true {
+                        refined_type << {
+                            ranges[ 0 ] << {
+                                .min = 4.0 
+                                .max = 5.0
+                            }
+                            ranges[ 1 ] << {
+                                .min = 10.0
+                                .max = 20.0
+                            }
+                            ranges[ 2 ] << {
+                                min = 100.0
+                                max = 200.0
+                            }
+                            ranges[ 3 ] << {
+                                min = 300.0
+                                infinite = true 
+                            }
+                        }							    
+                    }
+                }
+                cardinality << {
+                    min = 1 
+                    max = 1 
+                }										
+            }
+            sub_type[ 1 ] << {
+                name = "f7"
+                type << {
+                    root_type.string_type <<  true {
+                        refined_type << {
+                            regex = ".*@.*\\..*"
+                        }
+                    }
+                }
+                cardinality << {
+                    .min = 1
+                    .max = 1
+                }
+            }
+            sub_type[ 2 ] << {
+                name = "f1"
+                type.root_type << {
+                    string_type << true {
+                        refined_type << {
+                            length << {
+                                min = 0
+                                max = 10
+                            }
+                        }
+                    }
+                }
+                cardinality << {
+                    min = 1
+                    max = 1
+                }
+            }
+            sub_type[ 3 ] << {
+                name = "f2" 
+                type.root_type << {
+                    string_type << true {
+                        refined_type << {
+                            enum[ 0 ] = "hello"
+                            enum[ 1 ] = "homer"
+                            enum[ 2 ] = "simpsons"
+                        }
+                    }
+                }
+                cardinality << {
+                    min = 1
+                    max = 1
+                }
+            }
+            sub_type[ 4 ] << {
+                name = "f3"
+                type.root_type << {
+                    string_type << true {
+                        refined_type << {
+                            length << {
+                                min = 0
+                                max = 20 
+                            }
+                        }
+                    }
+                }
+                cardinality << {
+                    min = 1
+                    max = 1
+                }
+            }
+            sub_type[ 5 ] << {
+                name = "f4"
+                type.root_type.int_type << true {
+                    refined_type << {
+                        ranges[ 0 ] << {
+                            min = 1
+                            max = 4
+                        }
+                        ranges[ 1 ] << {
+                            min = 10
+                            max = 20
+                        }
+                        ranges[ 2 ] << {
+                            min = 100
+                            max = 200
+                        }
+                        ranges[ 3 ] << {
+                            min = 300
+                            infinite = true
+                        }
+                    }
+                }
+                cardinality << {
+                    min = 1 
+                    max = 1 
+                }
+            }
+            sub_type[ 6 ] << {
+                name = "f5"
+                type.root_type.long_type <<  true {
+                    refined_type << {
+                        ranges[ 0 ] << {
+                            min = 3L
+                            max = 4L
+                        }
+                        ranges[ 1 ] << {
+                            min = 10L
+                            max = 20L
+                        }
+                        ranges[ 2 ] << {
+                            min = 100L
+                            max = 200L
+                        }
+                        ranges[ 3 ] << {
+                            min = 300L
+                            infinite = true
+                        }
+                    }
+                }
+                cardinality << {
+                    min = 1 
+                    max = 1 
+                }
+            }
+        }
+        compareValuesVectorLight@MetaJolie( { .v1 << meta_description.input.interfaces.types.type, .v2 << v2 })()
+
+   }
    
-
- 
-
-
-
-
 }
