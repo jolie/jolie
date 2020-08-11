@@ -337,23 +337,81 @@ main
 
   [ getNativeType( request )( response ) {
 		if ( is_defined( request.string_type ) ) {
-		response = "string"
+			response = "string"
+			if ( is_defined( request.string_type.refined_type ) ) {
+				reft -> request.string_type.refined_type
+				if ( is_defined( reft.length ) ) {
+					if ( is_defined( reft.length.infinite ) ) { max = "*" }
+					else { max = reft.length.max  }
+					response = response + "( length( [ " + reft.length.min + "," + max + " ] ) )"
+				} else if ( is_defined( reft.regex ) ) {
+					response = response + "( regex( \"" + reft.regex + "\" ) )"
+				} else if ( is_defined( reft.enum ) ) {
+					response = response + "( enum([" 
+					for ( e = 0, e < #reft.enum, e++ ) {
+						response = response + "\"" + reft.enum[ e ] +"\""
+						if ( e < (#reft.enum - 1 ) ) {
+							response = response + ","
+						}
+					}
+					response = response + " ] ) )"
+				}
+			}
 		} else if ( is_defined( request.int_type ) ) {
-		response = "int"
+			response = "int"
+			if ( is_defined( request.int_type.refined_type ) ) {
+				reft -> request.int_type.refined_type
+				response = response + "( ranges( "
+				for( r = 0, r < #reft.ranges, r++ ) {
+					if ( is_defined( reft.ranges[ r ].infinite ) ) { max = "*" }
+					else { max = reft.ranges[ r ].max   }
+					response = response + "[" + reft.ranges[ r ].min + "," + max + "]"
+					if ( r < ( #reft.ranges - 1) ) {
+						response = response + ","
+					}
+				}
+				response = response + ") )"
+			}
 		} else if ( is_defined( request.double_type ) ) {
-		response = "double"
+			response = "double"
+			if ( is_defined( request.double_type.refined_type ) ) {
+				reft -> request.double_type.refined_type
+				response = response + "( ranges( "
+				for( r = 0, r < #reft.ranges, r++ ) {
+					if ( is_defined( reft.ranges[ r ].infinite ) ) { max = "*" }
+					else { max = reft.ranges[ r ].max   }
+					response = response + "[" + reft.ranges[ r ].min + "," + max + "]"
+					if ( r < ( #reft.ranges - 1) ) {
+						response = response + ","
+					}
+				}
+				response = response + ") )"
+			}
 		} else if ( is_defined( request.any_type ) ) {
-		response = "any"
+			response = "any"
 		} else if ( is_defined( request.raw_type ) ) {
-		response = "raw"
+			response = "raw"
 		} else if ( is_defined( request.void_type ) ) {
-		response = "void"
+			response = "void"
 		} else if ( is_defined( request.bool_type ) ) {
-		response = "bool"
+			response = "bool"
 		} else if ( is_defined( request.long_type ) ) {
-		response = "long"
+			response = "long"
+			if ( is_defined( request.long_type.refined_type ) ) {
+				reft -> request.long_type.refined_type
+				response = response + "( ranges( "
+				for( r = 0, r < #reft.ranges, r++ ) {
+					if ( is_defined( reft.ranges[ r ].infinite ) ) { max = "*" }
+					else { max = reft.ranges[ r ].max   }
+					response = response + "[" + reft.ranges[ r ].min + "," + max + "]"
+					if ( r < ( #reft.ranges - 1) ) {
+						response = response + ","
+					}
+				}
+				response = response + ") )"
+			}
 		} else if ( is_defined( request.link ) ) {
-		response = request.link.name
+			response = request.link.name
 		}
   } ] 
 
