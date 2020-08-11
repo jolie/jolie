@@ -53,11 +53,48 @@ define doTest
   }
   rq.filename = "private/sample_service2.ol"
   getOutputPortMetaData@MetaJolie( rq )( meta_description )
-  getOutputPort@MetaRender( meta_description.output )( op )
+  found_index = 0
+  for ( o = 0, o < #meta_description.output, o++ ) {
+    if ( meta_description.output[ o ].name == "TPort2" ) {
+       found_index = o
+    }
+  }
+  getOutputPort@MetaRender( meta_description.output[ found_index ] )( op )
   md5@MessageDigest( op )( md5op )
   check_op = "ee20273319da26e2107490da0c51e57c"
   if ( md5op != check_op ) {
-    throw( TestFailed, "wrong generation of InputPort, expected\n\n" + check_op + "\n\nfound\n\n" + md5op )
+    throw( TestFailed, "wrong generation of OutputPort, expected\n\n" + check_op + "\n\nfound\n\n" + md5op + ", found plain text:" + op )
   }
+
+  // refinedTypes
+  undef( rq )
+  rq.filename = "private/sample_service_refined_types.ol"
+  getInputPortMetaData@MetaJolie( rq )( meta_description )
+  getInterface@MetaRender( meta_description.input.interfaces )( interface_string )
+  md5@MessageDigest( interface_string )( md5intf )
+  check_op = "c0e2576c0a6589ba99e2c8b7075e125d"
+  if ( md5intf != check_op ) {
+    throw( TestFailed, "wrong generation of interface with refined types, expected\n\n" + check_op + "\n\nfound\n\n" + md5intf + ", found plain text:" + interface_string )
+  }
+
+
+
+  /* expected 
+type T1:void {
+  .f6[1,1]:double( ranges( [4.0,5.0],[10.0,20.0],[100.0,200.0],[300.0,*]) )
+  .f7[1,1]:string( regex( ".*@.*\..*" ) )
+  .f1[1,1]:string( length( [ 0,10 ] ) )
+  .f2[1,1]:string( enum(["hello","homer","simpsons" ] ) )
+  .f3[1,1]:string( length( [ 0,20 ] ) )
+  .f4[1,1]:int( ranges( [1,4],[10,20],[100,200],[300,*]) )
+  .f5[1,1]:long( ranges( [3,4],[10,20],[100,200],[300,*]) )
+}
+
+interface TmpInterface {
+RequestResponse:
+  tmp( T1 )( T1 )
+}
+
+  */
 
 }
