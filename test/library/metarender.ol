@@ -72,7 +72,7 @@ define doTest
   getInputPortMetaData@MetaJolie( rq )( meta_description )
   getInterface@MetaRender( meta_description.input.interfaces )( interface_string )
   md5@MessageDigest( interface_string )( md5intf )
-  check_op = "c0e2576c0a6589ba99e2c8b7075e125d"
+  check_op = "67af1f0213d6daf96383d335b412a57b"
   if ( md5intf != check_op ) {
     throw( TestFailed, "wrong generation of interface with refined types, expected\n\n" + check_op + "\n\nfound\n\n" + md5intf + ", found plain text:" + interface_string )
   }
@@ -82,7 +82,7 @@ define doTest
   /* expected 
 type T1:void {
   .f6[1,1]:double( ranges( [4.0,5.0],[10.0,20.0],[100.0,200.0],[300.0,*]) )
-  .f7[1,1]:string( regex( ".*@.*\..*" ) )
+  .f7[1,1]:string( regex( ".*@.*\\..*" ) )
   .f1[1,1]:string( length( [ 0,10 ] ) )
   .f2[1,1]:string( enum(["hello","homer","simpsons" ] ) )
   .f3[1,1]:string( length( [ 0,20 ] ) )
