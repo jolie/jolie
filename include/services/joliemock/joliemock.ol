@@ -190,7 +190,7 @@ main {
             BOOL_CONST = true
             LONG_CONST = 42L
             VOID_CONST = Void
-            println@Console(\"Mock service si running...\")()
+            println@Console(\"Mock service is running...\")()
         }\n\n
         "
         main_string = "\n\nmain {\n"
