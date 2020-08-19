@@ -1500,6 +1500,7 @@ public class OLParser extends AbstractParser {
 				serviceBlockProgramBuilder.addChild( parseDefinition() );
 				break;
 			default:
+				assertToken( Scanner.TokenType.RCURLY, "invalid token found inside service " + serviceName );
 				keepRun = false;
 			}
 		}
