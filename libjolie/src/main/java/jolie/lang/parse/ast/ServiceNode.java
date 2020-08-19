@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  */
 
- package jolie.lang.parse.ast;
+package jolie.lang.parse.ast;
 
 import java.util.Optional;
 import jolie.lang.Constants;

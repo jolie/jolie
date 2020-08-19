@@ -72,19 +72,19 @@ public class ProgramBuilder {
 
 
 	/**
-	 * Transform a Jolie execution program into a Jolie Module system program
+	 * Transform a Jolie execution program into a Jolie Module system program by collects every node
+	 * that defining a service and injects those to a newly create "main" service
 	 */
 	public void transformProgramToModuleSystem() {
 		// main service program
 		ProgramBuilder mainServiceProgramBuilder = new ProgramBuilder( context );
 
-		Set< OLSyntaxNode > movedNodes = new HashSet<>();
+		Set< OLSyntaxNode > movingNodes = new HashSet<>();
 
-		// foreach node apart from ImportableSymbol and ImportStatement, move to a newly create ServiceNode named main
 		for( OLSyntaxNode node : children ) {
 			if( !(node instanceof ImportableSymbol) && !(node instanceof ImportStatement) ) {
 				mainServiceProgramBuilder.addChild( node );
-				movedNodes.add( node );
+				movingNodes.add( node );
 			}
 		}
 		ServiceNode mainService =
@@ -92,13 +92,13 @@ public class ProgramBuilder {
 				Constants.EmbeddedServiceType.JOLIE );
 
 		children.add( mainService );
-		children.removeAll( movedNodes );
+		children.removeAll( movingNodes );
 	}
 
 
 	/**
-	 * Utility function for remove DeploymentInstructions declared in module scope from program
-	 * it is called when parsing a module which contains include statement
+	 * Utility function for remove deployment instruction nodes declared in module scope from program
+	 * This function is called when parsing a module which contains an include directive
 	 */
 	public void removeModuleScopeDeploymentInstructions() {
 		Set< OLSyntaxNode > toRemove = new HashSet<>();

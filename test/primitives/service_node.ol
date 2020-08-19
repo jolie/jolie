@@ -22,12 +22,13 @@
 */
 service main2(var : string) {
     main{
+        // TODO, add test cases after Embedding service node mechanism is implemented
         nullProcess
     }
 }
 
 /**
-    Test parsing behavioural statement inside inside node
+    Test parsing behavioural statements inside service node
 */
 service main3 {
 
@@ -51,9 +52,11 @@ service main3 {
     }
     
     init {
+        // TODO, add test cases after Embedding service node mechanism is implemented
         nullProcess
     }
     main{
+        // TODO, add test cases after Embedding service node mechanism is implemented
         nullProcess
     }
 }
@@ -74,6 +77,7 @@ service main{
     }
 
     define doTest {
+        // TODO, add test cases after Embedding service node mechanism is implemented
         nullProcess
     }
 
