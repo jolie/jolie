@@ -26,12 +26,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.util.ProgramInspector;
 
@@ -48,6 +48,7 @@ public class ProgramInspectorImpl implements ProgramInspector {
 	private final Map< URI, List< OutputPortInfo > > outputPorts;
 	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices;
 	private final Map< URI, Map< OLSyntaxNode, List< OLSyntaxNode > > > behaviouralDependencies;
+	private final Map< URI, List< ServiceNode > > serviceNodes;
 
 	public ProgramInspectorImpl(
 		URI[] sources,
@@ -56,7 +57,8 @@ public class ProgramInspectorImpl implements ProgramInspector {
 		Map< URI, List< InputPortInfo > > inputPorts,
 		Map< URI, List< OutputPortInfo > > outputPorts,
 		Map< URI, List< EmbeddedServiceNode > > embeddedServices,
-		Map< URI, Map< OLSyntaxNode, List< OLSyntaxNode > > > behaviouralDependencies ) {
+		Map< URI, Map< OLSyntaxNode, List< OLSyntaxNode > > > behaviouralDependencies,
+		Map< URI, List< ServiceNode > > serviceNodes ) {
 		this.sources = sources;
 		this.interfaces = interfaces;
 		this.inputPorts = inputPorts;
@@ -64,6 +66,7 @@ public class ProgramInspectorImpl implements ProgramInspector {
 		this.outputPorts = outputPorts;
 		this.embeddedServices = embeddedServices;
 		this.behaviouralDependencies = behaviouralDependencies;
+		this.serviceNodes = serviceNodes;
 	}
 
 	@Override
@@ -201,5 +204,27 @@ public class ProgramInspectorImpl implements ProgramInspector {
 			return new EmbeddedServiceNode[ 0 ];
 		}
 		return list.toArray( new EmbeddedServiceNode[ 0 ] );
+	}
+
+	@Override
+	public ServiceNode[] getServiceNodes() {
+		List< ServiceNode > result = new ArrayList<>();
+		List< ServiceNode > list;
+		for( URI source : sources ) {
+			list = serviceNodes.get( source );
+			if( list != null ) {
+				result.addAll( list );
+			}
+		}
+		return result.toArray( new ServiceNode[ 0 ] );
+	}
+
+	@Override
+	public ServiceNode[] getServiceNodes( URI source ) {
+		List< ServiceNode > list = serviceNodes.get( source );
+		if( list == null ) {
+			return new ServiceNode[ 0 ];
+		}
+		return list.toArray( new ServiceNode[ 0 ] );
 	}
 }

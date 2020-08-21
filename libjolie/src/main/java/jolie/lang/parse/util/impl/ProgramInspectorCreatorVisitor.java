@@ -29,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -78,6 +77,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -127,6 +127,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 	private final Map< URI, List< TypeDefinition > > types = new HashMap<>();
 	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap<>();
 	private final Map< URI, Map< OLSyntaxNode, List< OLSyntaxNode > > > behaviouralDependencies = new HashMap<>();
+	private final Map< URI, List< ServiceNode > > serviceNodes = new HashMap<>();
 	private final Set< URI > sources = new HashSet<>();
 
 	private OLSyntaxNode currentFirstInput = null;
@@ -143,7 +144,8 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 			inputPorts,
 			outputPorts,
 			embeddedServices,
-			behaviouralDependencies );
+			behaviouralDependencies,
+			serviceNodes );
 	}
 
 	private void encounteredNode( OLSyntaxNode n ) {
@@ -511,7 +513,19 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 	}
 
 	@Override
-	public void visit( ImportStatement n ) {
+	public void visit( ImportStatement n ) {}
 
+	@Override
+	public void visit( ServiceNode n ) {
+		List< ServiceNode > list = serviceNodes.get( n.context().source() );
+		if( list == null ) {
+			list = new LinkedList<>();
+			serviceNodes.put( n.context().source(), list );
+		}
+		list.add( n );
+		encounteredNode( n );
+		if( n.name().equals( "main" ) ) {
+			n.program().accept( this );
+		}
 	}
 }

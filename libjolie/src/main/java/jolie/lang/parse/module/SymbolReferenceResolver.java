@@ -624,6 +624,12 @@ public class SymbolReferenceResolver {
 			}
 			return Optional.empty();
 		}
+
+		@Override
+		public void visit( ServiceNode n ) {
+			n.parameterType().ifPresent( ( type ) -> type.accept( this ) );
+			n.program().accept( this );
+		}
 	}
 
 	private final Map< URI, ModuleRecord > moduleMap;
