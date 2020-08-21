@@ -1,0 +1,5 @@
+service serviceA{
+    main {
+        nullProcess
+    }
+}

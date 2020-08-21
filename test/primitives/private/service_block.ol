@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  */
 
-service Pippo {
+service main {
 	include "service_block.iol"
 	
 	execution { concurrent }

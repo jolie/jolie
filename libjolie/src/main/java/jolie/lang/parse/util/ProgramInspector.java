@@ -24,12 +24,12 @@ package jolie.lang.parse.util;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.types.TypeDefinition;
 
 /**
@@ -133,4 +133,15 @@ public interface ProgramInspector {
 	 * in the behaviour defined in the specific source
 	 */
 	Map< OLSyntaxNode, List< OLSyntaxNode > > getBehaviouralDependencies( URI source );
+
+	/**
+	 * Returns an array of all the Service nodes defined in the program
+	 */
+	public ServiceNode[] getServiceNodes();
+
+	/**
+	 * Returns a map Service nodes defined in the program defined in the specific source
+	 */
+	public ServiceNode[] getServiceNodes( URI source );
+
 }
