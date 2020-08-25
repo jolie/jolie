@@ -782,6 +782,34 @@ public class OLParser extends AbstractParser {
 		return new Range( min, max );
 	}
 
+	private EmbedServiceNode parseEmbeddedServiceNode()
+		throws IOException, ParserException {
+		nextToken();
+		String serviceName = token.content();
+		String portId = null;
+		boolean hasNewKeyword = false;
+		OLSyntaxNode passingParam = null;
+		nextToken();
+		if( token.is( Scanner.TokenType.LPAREN ) ) {
+			nextToken();
+			if( !token.is( Scanner.TokenType.RPAREN ) ) {
+				passingParam = parseBasicExpression();
+			}
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		}
+		if( token.isKeyword( "in" ) ) {
+			eatKeyword( "in", "expected in" );
+			if( token.isKeyword( "new" ) ) {
+				nextToken();
+				hasNewKeyword = true;
+			}
+			assertToken( Scanner.TokenType.ID, "expected output port name" );
+			portId = token.content();
+			nextToken();
+		}
+		return new EmbedServiceNode( getContext(), serviceName, portId, hasNewKeyword, passingParam );
+	}
+
 
 	private void parseEmbedded()
 		throws IOException, ParserException {
@@ -1498,6 +1526,14 @@ public class OLParser extends AbstractParser {
 				break;
 			case "define":
 				serviceBlockProgramBuilder.addChild( parseDefinition() );
+				break;
+			case "embed":
+				EmbedServiceNode embedServiceNode = parseEmbeddedServiceNode();
+				if( embedServiceNode.isNewPort() ) {
+					serviceBlockProgramBuilder
+						.addChild( new OutputPortInfo( embedServiceNode.context(), embedServiceNode.bindingPortName() ) );
+				}
+				serviceBlockProgramBuilder.addChild( embedServiceNode );
 				break;
 			default:
 				assertToken( Scanner.TokenType.RCURLY, "invalid token found inside service " + serviceName );

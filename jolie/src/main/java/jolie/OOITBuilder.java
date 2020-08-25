@@ -54,6 +54,7 @@ import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
+import jolie.lang.parse.ast.EmbedServiceNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -1678,6 +1679,12 @@ public class OOITBuilder implements OLVisitor {
 		if( n.name().equals( "main" ) ) {
 			n.program().accept( this );
 		}
+	}
+
+	@Override
+	public void visit( EmbedServiceNode n ) {
+		// TODO Auto-generated method stub
+
 	}
 }
 

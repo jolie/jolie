@@ -35,6 +35,7 @@ import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
+import jolie.lang.parse.ast.EmbedServiceNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -307,4 +308,7 @@ public class InterfaceVisitor implements OLVisitor {
 
 	@Override
 	public void visit( ServiceNode n ) {}
+
+	@Override
+	public void visit( EmbedServiceNode n ) {}
 }
