@@ -22,33 +22,6 @@
 
 package jolie.net;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
 import jolie.Interpreter;
 import jolie.JolieThreadPoolExecutor;
 import jolie.NativeJolieThread;
@@ -60,15 +33,28 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.Process;
-import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.OneWayOperation;
-import jolie.runtime.TimeoutHandler;
-import jolie.runtime.Value;
-import jolie.runtime.VariablePath;
+import jolie.runtime.*;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.typing.TypeCheckingException;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Handles the communications mechanisms for an Interpreter instance.
@@ -89,108 +75,6 @@ public class CommCore {
 	private final Interpreter interpreter;
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
 	private SelectorThread[] selectorThreads;
-
-	// Location URI -> Protocol name -> Persistent CommChannel object
-	private final Map< URI, Map< String, CommChannel > > persistentChannels = new HashMap<>();
-
-	private void removePersistentChannel( URI location, String protocol, Map< String, CommChannel > protocolChannels ) {
-		protocolChannels.remove( protocol );
-		if( protocolChannels.isEmpty() ) {
-			persistentChannels.remove( location );
-		}
-	}
-
-	private void removePersistentChannel( URI location, String protocol, CommChannel channel ) {
-		if( persistentChannels.containsKey( location ) ) {
-			if( persistentChannels.get( location ).get( protocol ) == channel ) {
-				removePersistentChannel( location, protocol, persistentChannels.get( location ) );
-			}
-		}
-	}
-
-	public CommChannel getPersistentChannel( URI location, String protocol ) {
-		CommChannel ret = null;
-		synchronized( persistentChannels ) {
-			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
-			if( protocolChannels != null ) {
-				ret = protocolChannels.get( protocol );
-				if( ret != null ) {
-					if( ret.lock.tryLock() ) {
-						if( ret.isOpen() ) {
-							/*
-							 * We are going to return this channel, but first check if it supports concurrent use. If
-							 * not, then others should not access this until the caller is finished using it.
-							 */
-							// if ( ret.isThreadSafe() == false ) {
-							removePersistentChannel( location, protocol, protocolChannels );
-							// } else {
-							// If we return a channel, make sure it will not timeout!
-							ret.setTimeoutHandler( null );
-							// if ( ret.timeoutHandler() != null ) {
-							// interpreter.removeTimeoutHandler( ret.timeoutHandler() );
-							// ret.setTimeoutHandler( null );
-							// }
-							// }
-							ret.lock.unlock();
-						} else { // Channel is closed
-							removePersistentChannel( location, protocol, protocolChannels );
-							ret.lock.unlock();
-							ret = null;
-						}
-					} else { // Channel is busy
-						removePersistentChannel( location, protocol, protocolChannels );
-						ret = null;
-					}
-				}
-			}
-		}
-
-		return ret;
-	}
-
-	private void setTimeoutHandler( final CommChannel channel, final URI location, final String protocol ) {
-		/*
-		 * if ( channel.timeoutHandler() != null ) { interpreter.removeTimeoutHandler(
-		 * channel.timeoutHandler() ); }
-		 */
-
-		final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
-			@Override
-			public void onTimeout() {
-				try {
-					synchronized( persistentChannels ) {
-						if( channel.timeoutHandler() == this ) {
-							removePersistentChannel( location, protocol, channel );
-							channel.close();
-							channel.setTimeoutHandler( null );
-						}
-					}
-				} catch( IOException e ) {
-					interpreter.logSevere( e );
-				}
-			}
-		};
-		channel.setTimeoutHandler( handler );
-		interpreter.addTimeoutHandler( handler );
-	}
-
-	public void putPersistentChannel( URI location, String protocol, final CommChannel channel ) {
-		synchronized( persistentChannels ) {
-			Map< String, CommChannel > protocolChannels =
-				persistentChannels.computeIfAbsent( location, k -> new HashMap<>() );
-			// Set the timeout
-			setTimeoutHandler( channel, location, protocol );
-			// Put the protocol in the cache (may overwrite another one)
-			protocolChannels.put( protocol, channel );
-			/*
-			 * if ( protocolChannels.size() <= connectionCacheSize && protocolChannels.containsKey( protocol )
-			 * == false ) { // Set the timeout setTimeoutHandler( channel ); // Put the protocol in the cache
-			 * protocolChannels.put( protocol, channel ); } else { try { if ( protocolChannels.get( protocol )
-			 * != channel ) { channel.close(); } else { setTimeoutHandler( channel ); } } catch( IOException e )
-			 * { interpreter.logWarning( e ); } }
-			 */
-		}
-	}
 
 	/**
 	 * Returns the Interpreter instance this CommCore refers to.

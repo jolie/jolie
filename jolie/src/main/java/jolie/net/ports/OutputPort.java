@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.net.ChannelCache;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
@@ -59,6 +60,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	private final VariablePath locationVariablePath, protocolVariablePath;
 	private final boolean isConstant;
 	private final Interface iface;
+	private final ChannelCache channelCache = new ChannelCache();
 
 	/*
 	 * To be called at runtime, after main is run. Requires the caller to set the variables by itself.
@@ -147,7 +149,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		}
 
 		this.configurationProcess =
-			new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
+			new SequentialProcess( children.toArray( new Process[ 0 ] ) );
 
 		this.isConstant = isConstant;
 
@@ -207,7 +209,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 			new URI( locationExpression.evaluate().strValue() ) );
 	}
 
-
 	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException {
 		CommChannel ret;
@@ -226,15 +227,19 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 			} else {
 				// Try reusing an existing channel first
 				String protocol = protocolVariablePath.getValue().strValue();
-				ret = interpreter.commCore().getPersistentChannel( uri, protocol );
+				ret = channelCache.getPersistentChannel( uri, protocol );
 				if( ret == null ) {
 					ret = interpreter.commCore().createCommChannel( uri, this );
 				}
 			}
 		}
 
-		ret.setParentOutputPort( this );
+		ret.setParentOutputPort( this ); // TODO revisit the association between ports and channels
 		return ret;
+	}
+
+	public void putPersistentChannel( URI location, String protocol, CommChannel channel ) {
+		channelCache.putPersistentChannel( location, protocol, channel, interpreter );
 	}
 
 	private static class LazyLocalUriHolder {
