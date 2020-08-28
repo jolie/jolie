@@ -12,7 +12,11 @@ See [https://docs.jolie-lang.org/](https://docs.jolie-lang.org).
 
 # Contributing
 
-Jolie is an open source project based on community effort. Interested in contributing? Please check our [contribution guide](CONTRIBUTING.md).
+Jolie is an open source project based on community effort. Contributions and constructive discussions are always welcome, and we encourage you to join us!
+
+Interested in contributing? Please check our [contribution guide](CONTRIBUTING.md).
+
+All interactions regarding the Jolie open source project are expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Our contributors :+1:
 
