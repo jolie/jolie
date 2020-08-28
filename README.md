@@ -2,7 +2,7 @@
 
 Welcome to the Jolie open source project!
 
-<img src="https://www.jolie-lang.org/imgs/jolielogo.png" />
+<img src="https://www.jolie-lang.org/imgs/jolie_logo.png" />
 
 ## What's Jolie?
 
