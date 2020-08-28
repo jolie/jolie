@@ -8,7 +8,7 @@
 
 # What's Jolie?
 
-Jolie is a _service-oriented_ programming language, designed to offer native abstractions for the development of [microservices](https://en.wikipedia.org/wiki/Microservices). See [our website](https://www.jolie-lang.org/) for more information and [installation instructions](https://jolie-lang.org/downloads.html).
+Jolie is a service-oriented programming language, designed to offer native abstractions for the development of [microservices](https://en.wikipedia.org/wiki/Microservices). See [our website](https://www.jolie-lang.org/) for more information and [installation instructions](https://jolie-lang.org/downloads.html).
 
 # Documentation :notebook_with_decorative_cover:
 
