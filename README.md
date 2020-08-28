@@ -1,18 +1,18 @@
-# Jolie
+<p align="center">
+	<img src="https://www.jolie-lang.org/imgs/jolie_logo.png" height="130" />
+</p>
 
 Welcome to the Jolie open source project!
 
-<img src="https://www.jolie-lang.org/imgs/jolie_logo.png" />
-
-## What's Jolie?
+# What's Jolie?
 
 Jolie is a _service-oriented_ programming language, designed to offer native abstractions for the development of [microservices](https://en.wikipedia.org/wiki/Microservices). See [our website](https://www.jolie-lang.org/) for more information and [installation instructions](https://jolie-lang.org/downloads.html).
 
-## Documentation :notebook_with_decorative_cover:
+# Documentation :notebook_with_decorative_cover:
 
 See [https://docs.jolie-lang.org/](https://docs.jolie-lang.org).
 
-## Roadmap :chart_with_upwards_trend:
+# Roadmap :chart_with_upwards_trend:
 
 You can check [our roadmap](https://github.com/orgs/jolie/projects/1) to see what's staged for the next release.
 
@@ -24,7 +24,7 @@ Interested in contributing? Please check our [contribution guide](CONTRIBUTING.m
 
 All interactions regarding the Jolie open source project are expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
-## Our contributors :+1:
+# Our contributors :+1:
 
 Thank you to all our contributors!
 
