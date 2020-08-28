@@ -10,6 +10,10 @@ Jolie is a _service-oriented_ programming language, designed to offer native abs
 
 See [https://docs.jolie-lang.org/](https://docs.jolie-lang.org).
 
+## Is there a roadmap?
+
+You can check [our roadmap](https://github.com/orgs/jolie/projects/1) to see what's staged for the next release.
+
 # Contributing
 
 Jolie is an open source project based on community effort. Contributions and constructive discussions are always welcome, and we encourage you to join us!
