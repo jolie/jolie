@@ -20,7 +20,7 @@ You can check [our roadmap](https://github.com/orgs/jolie/projects/1) to see wha
 
 # Contributing :computer:
 
-Jolie is an open source project based on community effort. Contributions and constructive discussions are always welcome, and we encourage you to join us!
+Jolie is an open source project based on community effort. Contributions and constructive discussions are always welcome, and we encourage you to join us! There are many ways in which you can contribute, including coding, improving our documentation, helping out with newcomers, or even event organisation.
 
 Interested in contributing? Please check our [contribution and organisation guide](CONTRIBUTING.md).
 
