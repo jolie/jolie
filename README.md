@@ -22,7 +22,7 @@ You can check [our roadmap](https://github.com/orgs/jolie/projects/1) to see wha
 
 Jolie is an open source project based on community effort. Contributions and constructive discussions are always welcome, and we encourage you to join us!
 
-Interested in contributing? Please check our [contribution guide](CONTRIBUTING.md).
+Interested in contributing? Please check our [contribution and organisation guide](CONTRIBUTING.md).
 
 All interactions regarding the Jolie open source project are expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
