@@ -4,7 +4,33 @@ Thank you for your interest in contributing to Jolie! :+1: :tada:
 
 Jolie is a [community effort](https://github.com/jolie/jolie/graphs/contributors). Contributions and constructive discussions are welcome.
 
-WIP (Fabrizio is moving info from the developer's guide to this file).
+# How can I contribute?
+
+There are many ways in which you can contribute, of which we point out a few below. If you have an idea that does not fall into any of the categories below, do not be discouraged: quite simply, we have probably not thought of it, and we would like to hear from you!
+
+## Code
+
+You can contribute to one of [our code repositories](https://github.com/jolie), or develop a tool or modification in a repository of your own and tell us.
+
+If you want to contribute to the main [Jolie project repository](https://github.com/jolie/jolie), you can find some useful information in [our wiki](https://github.com/jolie/jolie/wiki). See, for example, [how to make a pull request](https://github.com/jolie/jolie/wiki/Pull-requests).
+
+## Documentation
+
+You can contribute to the [documentation of Jolie](https://docs.jolie-lang.org) through the related [GitHub repository of our docs](https://github.com/jolie/docs). Possibilities include adding new tutorials (even small ones are rather useful!), improving existing text, or adding new  explanations.
+
+## Communication and events
+
+Interested in spreading the word or organising an event that includes Jolie? We would be thrilled to help you!
+
+We support the [code of conduct for events of the Microservices Community](https://www.microservices.community/events/coc/). Please have a look, and get in touch with us!
+
+## Teaching
+
+Jolie is taught in a few courses, both in academia and industry. We are happy to share material, and you can contribute by offering yours.
+
+## Website
+
+You can help improve our [website](https://www.jolie-lang.org). You can find its source code at https://github.com/jolie/website.
 
 # Get in touch
 
