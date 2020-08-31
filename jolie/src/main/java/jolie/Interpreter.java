@@ -948,7 +948,7 @@ public class Interpreter {
 	 * @return the path at which the file to be interpreted has been found
 	 */
 	public String programFilepath() {
-		return configuration.programFilepath().getName();
+		return configuration.programFilepath().toString();
 	}
 
 	/**
