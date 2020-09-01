@@ -338,6 +338,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						&& cookieConfig.getFirstChild( "secure" ).intValue() > 0 ) {
 						headerBuilder.append( "; secure" );
 					}
+
 					headerBuilder.append( HttpUtils.CRLF );
 				}
 			}
@@ -610,8 +611,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				&& (responseHeaderParameters.hasChildren( Parameters.HEADER_USER )) ) {
 				for( Entry< String, ValueVector > entry : responseHeaderParameters
 					.getFirstChild( Parameters.HEADER_USER ).children().entrySet() )
-					headerBuilder.append( entry.getKey() ).append( ": " ).append( entry.getValue().first().strValue() )
-						.append( HttpUtils.CRLF );
+					for( int counter = 0; counter < entry.getValue().size(); counter++ ) {
+						headerBuilder.append( entry.getKey() ).append( ": " )
+							.append( entry.getValue().get( counter ).strValue() )
+							.append( HttpUtils.CRLF );
+					}
+
 			}
 		}
 
@@ -623,8 +628,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				&& (responseHeaderParameters.hasChildren( Parameters.HEADER_USER )) ) {
 				for( Entry< String, ValueVector > entry : responseHeaderParameters
 					.getFirstChild( Parameters.HEADER_USER ).children().entrySet() )
-					headerBuilder.append( entry.getKey() ).append( ": " ).append( entry.getValue().first().strValue() )
-						.append( HttpUtils.CRLF );
+					for( int counter = 0; counter < entry.getValue().size(); counter++ ) {
+						headerBuilder.append( entry.getKey() ).append( ": " )
+							.append( entry.getValue().get( counter ).strValue() )
+							.append( HttpUtils.CRLF );
+					}
 			}
 		}
 	}
