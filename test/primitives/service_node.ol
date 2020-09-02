@@ -149,6 +149,9 @@ RequestResponse:
 	test(void)(void) throws TestFailed(any)
 }
 
+interface MulServiceInterface{
+    requestResponse:multiply(int)(int)
+}
 
 service main{
 
@@ -179,7 +182,13 @@ service main{
             b = 2
         }
     } ) in new ParentServ
-    embed MulService(5) in new MulService
+
+    // test embed imported service with predeclared outputport
+    outputPort MulService{
+        interfaces: MulServiceInterface
+    }
+
+    embed MulService(5) in MulService
 
     define doTest {
         testParam@testStringParamService()()
