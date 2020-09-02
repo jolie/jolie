@@ -630,6 +630,12 @@ public class SymbolReferenceResolver {
 			n.parameterType().ifPresent( ( type ) -> type.accept( this ) );
 			n.program().accept( this );
 		}
+
+		@Override
+		public void visit( EmbedServiceNode n ) {
+			// TODO Auto-generated method stub
+
+		}
 	}
 
 	private final Map< URI, ModuleRecord > moduleMap;
