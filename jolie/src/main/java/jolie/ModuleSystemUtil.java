@@ -20,21 +20,11 @@
 package jolie;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.module.ModuleException;
 import jolie.net.CommCore;
 
 /**
