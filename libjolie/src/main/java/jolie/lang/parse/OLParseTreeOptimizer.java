@@ -930,7 +930,7 @@ public class OLParseTreeOptimizer {
 				n.passingParameter().accept( this );
 				passingParameter = currNode;
 			}
-			EmbedServiceNode node = new EmbedServiceNode( n.context(), n.serviceName(), n.bindingPortName(), n.isNewPort(),
+			EmbedServiceNode node = new EmbedServiceNode( n.context(), n.serviceName(), n.bindingPort(), n.isNewPort(),
 				passingParameter );
 			
 			programChildren.add( node );

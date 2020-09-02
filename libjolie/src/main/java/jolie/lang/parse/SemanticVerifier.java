@@ -1322,7 +1322,7 @@ public class SemanticVerifier implements OLVisitor {
 		if( !(n.service() instanceof ServiceNode) ) {
 			error( n, "service is not defined" );
 		}
-		if( n.bindingPortName() != null && !outputPorts.containsKey( n.bindingPortName() ) ) {
+		if( n.bindingPort() != null && !outputPorts.containsKey( n.bindingPort().id() ) ) {
 			error( n, "binding port is not defined" );
 		}
 	}

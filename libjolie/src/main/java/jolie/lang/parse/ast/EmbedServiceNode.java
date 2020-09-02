@@ -8,18 +8,18 @@ public class EmbedServiceNode extends OLSyntaxNode {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	private final OLSyntaxNode passingParameter;
-	private final String bindingPortName;
+	private final OutputPortInfo bindingPort;
 	private final Constants.EmbeddedServiceType type;
 	private final boolean isNewPort;
 
 	private ServiceNode service;
 
 	public EmbedServiceNode( ParsingContext context, String serviceName,
-		String bindingPortName, boolean isNewPort, OLSyntaxNode passingParam ) {
+		OutputPortInfo bindingPort, boolean isNewPort, OLSyntaxNode passingParam ) {
 		super( context );
 		this.type = Constants.EmbeddedServiceType.JOLIE;
 		this.passingParameter = passingParam;
-		this.bindingPortName = bindingPortName;
+		this.bindingPort = bindingPort;
 		this.isNewPort = isNewPort;
 	}
 
@@ -32,11 +32,11 @@ public class EmbedServiceNode extends OLSyntaxNode {
 	}
 
 	public boolean hasBindingPort() {
-		return this.bindingPortName != null;
+		return this.bindingPort != null;
 	}
 
-	public String bindingPortName() {
-		return this.bindingPortName;
+	public OutputPortInfo bindingPort() {
+		return this.bindingPort;
 	}
 
 	public ServiceNode service() {

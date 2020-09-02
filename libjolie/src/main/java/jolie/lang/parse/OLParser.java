@@ -786,7 +786,7 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		nextToken();
 		String serviceName = token.content();
-		String portId = null;
+		OutputPortInfo bindingPort = null;
 		boolean hasNewKeyword = false;
 		OLSyntaxNode passingParam = null;
 		nextToken();
@@ -804,10 +804,10 @@ public class OLParser extends AbstractParser {
 				hasNewKeyword = true;
 			}
 			assertToken( Scanner.TokenType.ID, "expected output port name" );
-			portId = token.content();
+			bindingPort = new OutputPortInfo( getContext(), token.content() );
 			nextToken();
 		}
-		return new EmbedServiceNode( getContext(), serviceName, portId, hasNewKeyword, passingParam );
+		return new EmbedServiceNode( getContext(), serviceName, bindingPort, hasNewKeyword, passingParam );
 	}
 
 
@@ -1532,7 +1532,7 @@ public class OLParser extends AbstractParser {
 				EmbedServiceNode embedServiceNode = parseEmbeddedServiceNode();
 				if( embedServiceNode.isNewPort() ) {
 					serviceBlockProgramBuilder
-						.addChild( new OutputPortInfo( getContext(), embedServiceNode.bindingPortName() ) );
+						.addChild( embedServiceNode.bindingPort() );
 				}
 				serviceBlockProgramBuilder.addChild( embedServiceNode );
 				break;
