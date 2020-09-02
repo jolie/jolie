@@ -798,7 +798,7 @@ public class OLParser extends AbstractParser {
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		}
 		if( token.isKeyword( "in" ) ) {
-			eatKeyword( "in", "expected in" );
+			nextToken();
 			if( token.isKeyword( "new" ) ) {
 				nextToken();
 				hasNewKeyword = true;
@@ -1532,7 +1532,7 @@ public class OLParser extends AbstractParser {
 				EmbedServiceNode embedServiceNode = parseEmbeddedServiceNode();
 				if( embedServiceNode.isNewPort() ) {
 					serviceBlockProgramBuilder
-						.addChild( new OutputPortInfo( embedServiceNode.context(), embedServiceNode.bindingPortName() ) );
+						.addChild( new OutputPortInfo( getContext(), embedServiceNode.bindingPortName() ) );
 				}
 				serviceBlockProgramBuilder.addChild( embedServiceNode );
 				break;
