@@ -1599,7 +1599,6 @@ public class OLParser extends AbstractParser {
 				nextToken();
 				eat( Scanner.TokenType.COLON, "expected : after location" );
 				checkConstant();
-				assertToken( Scanner.TokenType.STRING, "expected inputPort location string" );
 				if( token.content().startsWith( "local" ) ) {
 					// check if the inputPort is listening to local protocol
 					isLocationLocal = true;

@@ -933,6 +933,11 @@ public class OLParseTreeOptimizer {
 			EmbedServiceNode node = new EmbedServiceNode( n.context(), n.serviceName(), n.bindingPort(), n.isNewPort(),
 				passingParameter );
 			
+			// In case that we are in the internal services (embeddeds), n.service() is set from symbol resolving
+			if( n.service() != null ){
+				node.setService(n.service());
+			}
+			
 			programChildren.add( node );
 		}
 	}

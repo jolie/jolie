@@ -28,7 +28,6 @@ import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;
 import jolie.lang.parse.ast.Program;
-import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 
 
@@ -57,7 +56,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 	}
 
 	@Override
-	public void load( Value v )
+	public void load()
 		throws EmbeddedServiceLoadingException {
 		Future< Exception > f = interpreter.start();
 		try {

@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;
-import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
@@ -72,7 +71,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	}
 
 	@Override
-	public void load( Value v )
+	public void load()
 		throws EmbeddedServiceLoadingException {
 		Future< Exception > f = interpreter.start();
 		try {

@@ -53,7 +53,7 @@ public class InitDefinitionProcess extends DefinitionProcess {
 			}
 
 			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
-				loader.load( null );
+				loader.load();
 			}
 
 			for( OutputPort outputPort : interpreter.outputPorts() ) {

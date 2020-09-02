@@ -493,7 +493,8 @@ public class SemanticVerifier implements OLVisitor {
 			error( n, "input port " + n.id() + "'s protocol is not a valid expression" );
 		}
 
-		if( n.location() != null && !(n.location() instanceof ConstantStringExpression) ) {
+		if( n.location() != null
+			&& !(n.location() instanceof ConstantStringExpression || n.location() instanceof VariableExpressionNode) ) {
 			error( n, "input port " + n.id() + "'s location is not a valid expression" );
 		}
 
@@ -567,11 +568,13 @@ public class SemanticVerifier implements OLVisitor {
 			error( n, "output port " + n.id() + " has been already defined" );
 
 		if( n.protocol() != null && !(n.protocol() instanceof ConstantStringExpression
-			|| n.protocol() instanceof InlineTreeExpressionNode || n.protocol() instanceof VariableExpressionNode) ) {
+			|| n.protocol() instanceof InlineTreeExpressionNode || n.protocol() instanceof VariableExpressionNode
+			|| n.location() instanceof VariablePathNode) ) {
 			error( n, "output port " + n.id() + "'s protocol is not a valid expression" );
 		}
 
-		if( n.location() != null && !(n.location() instanceof ConstantStringExpression) ) {
+		if( n.location() != null
+			&& !(n.location() instanceof ConstantStringExpression || n.location() instanceof VariablePathNode) ) {
 			error( n, "output port " + n.id() + "'s location is not a valid expression" );
 		}
 
@@ -1320,7 +1323,7 @@ public class SemanticVerifier implements OLVisitor {
 	@Override
 	public void visit( EmbedServiceNode n ) {
 		if( !(n.service() instanceof ServiceNode) ) {
-			error( n, "service is not defined" );
+			error( n, "service " + n.serviceName() + " is not defined" );
 		}
 		if( n.bindingPort() != null && !outputPorts.containsKey( n.bindingPort().id() ) ) {
 			error( n, "binding port is not defined" );

@@ -721,28 +721,25 @@ public class SymbolReferenceResolver {
 				error( buildSymbolNotFoundError( n, n.serviceName() ) );
 				return;
 			}
-			if( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
+			if( !(targetSymbolInfo.get().node() instanceof ServiceNode) ) {
 				error( buildSymbolTypeMismatchError( n, n.serviceName(), "ServiceNode",
 					targetSymbolInfo.get().node().getClass().getSimpleName() ) );
 				return;
 			}
+			ServiceNode embeddingService = (ServiceNode) targetSymbolInfo.get().node();
 
 			if( n.isNewPort() ) {
 				// binding operation from ServiceNode to port
 				OutputPortInfo bindingPort = n.bindingPort();
 				InterfacesAndOperations publicIfacesAndOps =
-					getInterfacesFromInputPortLocal( n.service() );
+					getInterfacesFromInputPortLocal( embeddingService );
 				for( InterfaceDefinition iface : publicIfacesAndOps.interfaces() ) {
 					bindingPort.addInterface( iface );
 				}
 				for( OperationDeclaration op : publicIfacesAndOps.operations() ) {
 					bindingPort.addOperation( op );
 				}
-				bindingPort.accept( this );
 			}
-
-
-			ServiceNode embeddingService = (ServiceNode) targetSymbolInfo.get().node();
 			n.setService( embeddingService );
 		}
 	}
