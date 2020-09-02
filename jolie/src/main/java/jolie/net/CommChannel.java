@@ -141,15 +141,6 @@ public abstract class CommChannel {
 	}
 
 	/**
-	 * Returns the parent {@link OutputPort} of this channel.
-	 * 
-	 * @return the parent {@link OutputPort} of this channel.
-	 */
-	public OutputPort parentOutputPort() {
-		return outputPort;
-	}
-
-	/**
 	 * Returns the parent {@link Port} of this channel.
 	 * 
 	 * @return the parent {@link Port} of this channel.

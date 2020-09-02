@@ -1,6 +1,5 @@
 name: Java CI
 
-
 on:
   push:
     branches: [ master ]
@@ -9,16 +8,15 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       - name: Build with Maven
         run: mvn install --file pom.xml
