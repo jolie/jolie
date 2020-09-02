@@ -72,6 +72,12 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 		this.type = type;
 	}
 
+	public ServiceNode( ParsingContext context, String alias, ServiceNode service ) {
+		this( context, alias, AccessModifier.PRIVATE, service.program(),
+			new Pair< String, TypeDefinition >( service.parameterPath().get(), service.parameterType().get() ),
+			service.type );
+	}
+
 	public boolean hasParameter() {
 		return this.parameter.isPresent();
 	}

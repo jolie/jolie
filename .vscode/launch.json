@@ -1,115 +1,221 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-
-		{
-			"type": "java",
-			"name": "Debug (Launch) - Current File",
-			"request": "launch",
-			"mainClass": "${file}"
-		},
-		{
-			"type": "java",
-			"name": "Debug (Launch)-JolieDummyCreator<jolie2dummy>",
-			"request": "launch",
-			"mainClass": "joliex.dummycreator.JolieDummyCreator",
-			"projectName": "jolie2dummy"
-		},
-		{
-			"type": "java",
-			"name": "Debug (Launch)-Jolie2Java<jolie2java>",
-			"request": "launch",
-			"mainClass": "joliex.java.Jolie2Java",
-			"projectName": "jolie2java"
-		},
-		{
-			"type": "java",
-			"name": "Debug (Launch)-Jolie2Plasma<jolie2plasma>",
-			"request": "launch",
-			"mainClass": "joliex.plasma.Jolie2Plasma",
-			"projectName": "jolie2plasma"
-		},
-		{
-			"type": "java",
-			"name": "Debug (Launch)-GetSurface<jolie2surface>",
-			"request": "launch",
-			"mainClass": "joliex.surface.GetSurface",
-			"projectName": "jolie2surface"
-		},
-		{
-			"type": "java",
-			"name": "Debug (Launch)-Jolie2Wsdl<jolie2wsdl>",
-			"request": "launch",
-			"mainClass": "joliex.wsdl.Jolie2Wsdl",
-			"projectName": "jolie2wsdl"
-		},
-		{
-			"type": "java",
-			"name": "Debug (Launch)-Main<joliec>",
-			"request": "launch",
-			"mainClass": "jolie.compiler.Main",
-			"projectName": "joliec"
-		},
-		{
-			"type": "java",
-			"name": "Debug (Launch)-Jolie<jolie>",
-			"request": "launch",
-			"mainClass": "jolie.Jolie",
-			"projectName": "jolie"
-		},
-		{
-			"type": "java",
-			"name": "Tests - All",
-			"request": "launch",
-			"mainClass": "jolie.Jolie",
-			"projectName": "jolie",
-			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "test.ol"]
-		},
-		{
-			"type": "java",
-			"name": "Tests - Jap",
-			"request": "launch",
-			"mainClass": "jolie.Jolie",
-			"projectName": "jolie",
-			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "test.ol", ".*jap.*"]
-		},
-		{
-			"type": "java",
-			"name": "Tests - HTTP GET",
-			"request": "launch",
-			"mainClass": "jolie.Jolie",
-			"projectName": "jolie",
-			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "test.ol", ".*http_get.*"]
-		},
-		{
-			"type": "java",
-			"name": "Tests - HTTP GET (Windows)",
-			"request": "launch",
-			"mainClass": "jolie.Jolie",
-			"projectName": "jolie",
-			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices/*;${workspaceFolder}\\dist\\jolie\\extensions\\*", "-i", "${workspaceFolder}\\include", "test.ol", ".*http_get.*"]
-		},
-		{
-			"type": "java",
-			"name": "Tests - Jap (Windows)",
-			"request": "launch",
-			"mainClass": "jolie.Jolie",
-			"projectName": "jolie",
-			"cwd": "${workspaceFolder}/test",
-			"args": ["-l", ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices/*;${workspaceFolder}\\dist\\jolie\\extensions\\*", "-i", "${workspaceFolder}\\include", "test.ol", ".*jap.*"]
-		},
-		{
-			"type": "java",
-			"name": "Joliedoc - metajolie.iol (Windows)",
-			"request": "launch",
-			"mainClass": "jolie.Jolie",
-			"projectName": "jolie",
-			"cwd": "${workspaceFolder}/include",
-			"args": ["--stackTraces", "-l", "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*", "-i", "${workspaceFolder}/include", "../tools/joliedoc/joliedoc.ol", "metajolie.iol"]
-		}
-	]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Debug (Launch) - Current File",
+      "request": "launch",
+      "mainClass": "${file}"
+    },
+    {
+      "type": "java",
+      "name": "Debug (Launch)-JolieDummyCreator<jolie2dummy>",
+      "request": "launch",
+      "mainClass": "joliex.dummycreator.JolieDummyCreator",
+      "projectName": "jolie2dummy"
+    },
+    {
+      "type": "java",
+      "name": "Debug (Launch)-Jolie2Java<jolie2java>",
+      "request": "launch",
+      "mainClass": "joliex.java.Jolie2Java",
+      "projectName": "jolie2java"
+    },
+    {
+      "type": "java",
+      "name": "Debug (Launch)-Jolie2Plasma<jolie2plasma>",
+      "request": "launch",
+      "mainClass": "joliex.plasma.Jolie2Plasma",
+      "projectName": "jolie2plasma"
+    },
+    {
+      "type": "java",
+      "name": "Debug (Launch)-GetSurface<jolie2surface>",
+      "request": "launch",
+      "mainClass": "joliex.surface.GetSurface",
+      "projectName": "jolie2surface"
+    },
+    {
+      "type": "java",
+      "name": "Debug (Launch)-Jolie2Wsdl<jolie2wsdl>",
+      "request": "launch",
+      "mainClass": "joliex.wsdl.Jolie2Wsdl",
+      "projectName": "jolie2wsdl"
+    },
+    {
+      "type": "java",
+      "name": "Debug (Launch)-Main<joliec>",
+      "request": "launch",
+      "mainClass": "jolie.compiler.Main",
+      "projectName": "joliec"
+    },
+    {
+      "type": "java",
+      "name": "Debug (Launch)-Jolie<jolie>",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie"
+    },
+    {
+      "type": "java",
+      "name": "Tests - All",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "-i",
+        "${workspaceFolder}/include",
+        "test.ol"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Tests - Jap",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "-i",
+        "${workspaceFolder}/include",
+        "test.ol",
+        ".*jap.*"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Tests - HTTP GET",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "-i",
+        "${workspaceFolder}/include",
+        "test.ol",
+        ".*http_get.*"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Tests - HTTP GET (Windows)",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices/*;${workspaceFolder}\\dist\\jolie\\extensions\\*",
+        "-i",
+        "${workspaceFolder}\\include",
+        "test.ol",
+        ".*http_get.*"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Tests - Jap (Windows)",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices/*;${workspaceFolder}\\dist\\jolie\\extensions\\*",
+        "-i",
+        "${workspaceFolder}\\include",
+        "test.ol",
+        ".*jap.*"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Joliedoc - metajolie.iol (Windows)",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/include",
+      "args": [
+        "--stackTraces",
+        "-l",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "-i",
+        "${workspaceFolder}/include",
+        "../tools/joliedoc/joliedoc.ol",
+        "metajolie.iol"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Tests - All",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "-i",
+        "${workspaceFolder}/include_module",
+        "test.ol"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Tests - CustomFile",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "-i",
+        "${workspaceFolder}/include",
+        "-p",
+        "${workspaceFolder}/packages",
+        "test.ol",
+        "${input:programName}"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Debug - CustomFile",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie",
+      "cwd": "${workspaceFolder}/test",
+      "args": [
+        "-l",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "-i",
+        "${workspaceFolder}/include",
+        "-p",
+        "${workspaceFolder}/packages",
+        "${input:programName}"
+      ]
+    },
+    {
+      "type": "java",
+      "name": "Tests - Attach",
+      "request": "attach",
+      "projectName": "jolie",
+      "hostName": "localhost",
+      "port": 8000
+    }
+  ],
+  "inputs": [
+    {
+      "id": "programName",
+      "type": "promptString",
+      "description": "The program name"
+    }
+  ]
 }

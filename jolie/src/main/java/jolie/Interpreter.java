@@ -58,14 +58,17 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-
 import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants;
-import jolie.lang.parse.*;
+import jolie.lang.parse.OLParseTreeOptimizer;
+import jolie.lang.parse.ParserException;
+import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticVerifier;
+import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
-import jolie.lang.parse.module.Modules;
 import jolie.lang.parse.module.ModuleParsingConfiguration;
+import jolie.lang.parse.module.Modules;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
@@ -242,6 +245,7 @@ public class Interpreter {
 
 	private CommCore commCore;
 	private Program internalServiceProgram = null;
+	private Value receivingEmbeddedValue = null;
 	private Interpreter parentInterpreter = null;
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
@@ -921,6 +925,30 @@ public class Interpreter {
 	}
 
 	/**
+	 * Constructor.
+	 *
+	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
+	 *        a JAP file.
+	 * @param parentInterpreter
+	 * @param internalServiceProgram
+	 * @param embeddedValue
+	 * @throws CommandLineException if the command line is not valid or asks for simple information.
+	 *         (like --help and --version)
+	 * @throws FileNotFoundException if one of the passed input files is not found.
+	 * @throws IOException if a Scanner constructor signals an error.
+	 */
+	public Interpreter( Configuration configuration,
+		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram,
+		Value receivingEmbeddedValue )
+		throws FileNotFoundException, IOException {
+		this( configuration, programDirectory );
+
+		this.parentInterpreter = parentInterpreter;
+		this.internalServiceProgram = internalServiceProgram;
+		this.receivingEmbeddedValue = receivingEmbeddedValue;
+	}
+
+	/**
 	 * Returns the parent directory of the program executed by this Interpreter.
 	 * 
 	 * @return the parent directory of the program executed by this Interpreter.
@@ -931,6 +959,15 @@ public class Interpreter {
 
 	public Interpreter parentInterpreter() {
 		return parentInterpreter;
+	}
+
+	/**
+	 * Returns the receiving value from Service node's embed statement.
+	 * 
+	 * @return the receiving value from Service node's embed statement.
+	 */
+	public Value receivingEmbeddedValue() {
+		return receivingEmbeddedValue;
 	}
 
 	/**
@@ -1018,6 +1055,10 @@ public class Interpreter {
 			sessionStarters = Collections.unmodifiableMap( sessionStarters );
 			try {
 				initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
+
+				if( this.receivingEmbeddedValue() != null ) {
+					initExecutionThread.state().root().deepCopy( this.receivingEmbeddedValue() );
+				}
 
 				commCore.init();
 
@@ -1497,6 +1538,7 @@ public class Interpreter {
 			return this.connectionsLimit;
 		}
 
+
 		/**
 		 * Returns the type of correlation algorithm that has been specified.
 		 *
@@ -1570,7 +1612,6 @@ public class Interpreter {
 		public String[] arguments() {
 			return arguments;
 		}
-
 
 		/**
 		 * Returns a map containing the constants defined by command line.

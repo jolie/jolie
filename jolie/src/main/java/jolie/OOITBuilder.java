@@ -54,6 +54,7 @@ import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
+import jolie.lang.parse.ast.EmbedServiceNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -433,9 +434,19 @@ public class OOITBuilder implements OLVisitor {
 
 		Expression locationExpr = buildExpression( n.location() );
 
+		if( locationExpr instanceof VariablePath ) {
+			VariablePath path = (VariablePath) locationExpr;
+			locationExpr = path.getValue( this.interpreter.receivingEmbeddedValue() );
+		}
+
 		OLSyntaxNode protocolNode =
 			ModuleSystemUtil.transformProtocolExpression( n.protocol(), interpreter.commCore() );
 		Expression protocolExpr = buildExpression( protocolNode );
+
+		if( protocolExpr instanceof VariablePath ) {
+			VariablePath path = (VariablePath) protocolExpr;
+			protocolExpr = path.getValue( this.interpreter.receivingEmbeddedValue() );
+		}
 
 		interpreter.register( n.id(),
 			new OutputPort(
@@ -566,6 +577,9 @@ public class OOITBuilder implements OLVisitor {
 		String locationStr = null;
 		if( locationExpr instanceof Value ) {
 			locationStr = locationExpr.evaluate().strValue();
+		} else if( locationExpr instanceof VariablePath ) {
+			VariablePath path = (VariablePath) locationExpr;
+			locationStr = path.getValue( this.interpreter.receivingEmbeddedValue() ).strValue();
 		}
 
 		if( locationStr == null ) {
@@ -588,6 +602,9 @@ public class OOITBuilder implements OLVisitor {
 			}
 			if( protocolExpr instanceof Value || protocolExpr instanceof InlineTreeExpression ) {
 				protocolStr = protocolExpr.evaluate().strValue();
+			} else if( protocolExpr instanceof VariablePath ) {
+				VariablePath path = (VariablePath) protocolExpr;
+				protocolStr = path.getValue( this.interpreter.receivingEmbeddedValue() ).strValue();
 			}
 		} else {
 			protocolProcs.add( NullProcess.getInstance() );
@@ -1677,6 +1694,30 @@ public class OOITBuilder implements OLVisitor {
 	public void visit( ServiceNode n ) {
 		if( n.name().equals( "main" ) ) {
 			n.program().accept( this );
+		}
+	}
+
+	@Override
+	public void visit( EmbedServiceNode n ) {
+		try {
+			final VariablePath path =
+				n.bindingPort() == null ? null
+					: interpreter.getOutputPort( n.bindingPort().id() ).locationVariablePath();
+
+			Expression passingArgument = buildExpression( n.passingParameter() );
+
+			final EmbeddedServiceConfiguration embeddedServiceConfiguration =
+				new EmbeddedServiceLoader.ServiceNodeEmbeddedConfiguration( n.service(), passingArgument );
+
+			interpreter.addEmbeddedServiceLoader(
+				EmbeddedServiceLoader.create(
+					interpreter,
+					embeddedServiceConfiguration,
+					path ) );
+		} catch( EmbeddedServiceLoaderCreationException e ) {
+			error( n.context(), e );
+		} catch( InvalidIdException e ) {
+			error( n.context(), "could not find port " + n.bindingPort().id() );
 		}
 	}
 }
