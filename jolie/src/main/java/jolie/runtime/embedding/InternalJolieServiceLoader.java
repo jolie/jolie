@@ -24,11 +24,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;
 import jolie.lang.parse.ast.Program;
+import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 
 
@@ -57,7 +57,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 	}
 
 	@Override
-	public void load()
+	public void load( Value v )
 		throws EmbeddedServiceLoadingException {
 		Future< Exception > f = interpreter.start();
 		try {

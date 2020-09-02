@@ -113,7 +113,7 @@ public abstract class EmbeddedServiceLoader {
 		}
 	}
 
-	public abstract void load()
+	public abstract void load( Value v )
 		throws EmbeddedServiceLoadingException;
 
 	public static abstract class EmbeddedServiceConfiguration {

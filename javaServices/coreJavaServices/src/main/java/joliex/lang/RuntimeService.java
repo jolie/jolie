@@ -247,14 +247,14 @@ public class RuntimeService extends JavaService {
 					new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( type, filePath );
 				EmbeddedServiceLoader loader =
 					EmbeddedServiceLoader.create( interpreter(), configuration, channel );
-				loader.load();
+				loader.load( null );
 			} else {
 				String code = request.getFirstChild( "code" ).strValue();
 				EmbeddedServiceType type = EmbeddedServiceType.JOLIE;
 				EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration configuration =
 					new EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration( type, code );
 				EmbeddedServiceLoader loader = EmbeddedServiceLoader.create( interpreter(), configuration, channel );
-				loader.load();
+				loader.load( null );
 			}
 
 			return channel;

@@ -23,10 +23,10 @@
 package jolie.runtime.embedding;
 
 import java.lang.reflect.InvocationTargetException;
-
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.runtime.JavaService;
+import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 import jolie.tracer.EmbeddingTraceAction;
 
@@ -42,7 +42,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader {
 	}
 
 	@Override
-	public void load()
+	public void load( Value v )
 		throws EmbeddedServiceLoadingException {
 		try {
 			final JolieClassLoader cl = interpreter.getClassLoader();
