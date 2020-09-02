@@ -1318,5 +1318,12 @@ public class SemanticVerifier implements OLVisitor {
 	}
 
 	@Override
-	public void visit( EmbedServiceNode n ) {}
+	public void visit( EmbedServiceNode n ) {
+		if( !(n.service() instanceof ServiceNode) ) {
+			error( n, "service is not defined" );
+		}
+		if( n.bindingPortName() != null && !outputPorts.containsKey( n.bindingPortName() ) ) {
+			error( n, "binding port is not defined" );
+		}
+	}
 }

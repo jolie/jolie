@@ -924,7 +924,17 @@ public class OLParseTreeOptimizer {
 		}
 
 		@Override
-		public void visit( EmbedServiceNode n ) {}
+		public void visit( EmbedServiceNode n ) {
+			OLSyntaxNode passingParameter = null;
+			if( n.passingParameter() != null ) {
+				n.passingParameter().accept( this );
+				passingParameter = currNode;
+			}
+			EmbedServiceNode node = new EmbedServiceNode( n.context(), n.serviceName(), n.bindingPortName(), n.isNewPort(),
+				passingParameter );
+			
+			programChildren.add( node );
+		}
 	}
 
 	public static Program optimize( Program originalProgram ) {

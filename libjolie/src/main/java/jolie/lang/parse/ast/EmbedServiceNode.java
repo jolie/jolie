@@ -60,7 +60,7 @@ public class EmbedServiceNode extends OLSyntaxNode {
 
 	@Override
 	public void accept( OLVisitor visitor ) {
-		// TODO Auto-generated method stub
+		visitor.visit(this);
 	}
 
 }

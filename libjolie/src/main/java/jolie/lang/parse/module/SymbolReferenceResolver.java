@@ -633,8 +633,19 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( EmbedServiceNode n ) {
-			// TODO Auto-generated method stub
-
+			Optional< SymbolInfo > targetSymbolInfo =
+				getSymbol( n.context(), n.serviceName() );
+			if( !targetSymbolInfo.isPresent() ) {
+				error( buildSymbolNotFoundError( n, n.serviceName() ) );
+				return;
+			}
+			if( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
+				error( buildSymbolTypeMismatchError( n, n.serviceName(), "ServiceNode",
+					targetSymbolInfo.get().node().getClass().getSimpleName() ) );
+				return;
+			}
+			ServiceNode embeddingService = (ServiceNode) targetSymbolInfo.get().node();
+			n.setService( embeddingService );
 		}
 	}
 
