@@ -46,10 +46,3 @@ Discussions can take place over different media.
 </p>
 
 [Join our Discord server](https://discord.gg/yQRTMNX).
-
-### Slack
-<p align="center">
-	<a href=""><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Slack_Technologies_Logo.svg/200px-Slack_Technologies_Logo.svg.png" height="50" alt="Join our Slack space"/></a>
-</p>
-
-[Join our Slack space](https://join.slack.com/t/jolie-lang/shared_invite/zt-gxasyqyt-VpE6yBNfXItgQMLtPZrzOw).
