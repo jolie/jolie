@@ -782,6 +782,36 @@ public class OLParser extends AbstractParser {
 		return new Range( min, max );
 	}
 
+	private EmbedServiceNode parseEmbeddedServiceNode()
+		throws IOException, ParserException {
+		nextToken();
+		String serviceName = token.content();
+		OutputPortInfo bindingPort = null;
+		boolean hasNewKeyword = false;
+		OLSyntaxNode passingParam = null;
+		nextToken();
+		if( token.is( Scanner.TokenType.LPAREN ) ) {
+			nextToken();
+			if( !token.is( Scanner.TokenType.RPAREN ) ) {
+				passingParam = parseBasicExpression();
+			}
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		}
+		if( token.is( Scanner.TokenType.AS ) ) {
+			nextToken();
+			hasNewKeyword = true;
+			assertToken( Scanner.TokenType.ID, "expected output port name" );
+			bindingPort = new OutputPortInfo( getContext(), token.content() );
+			nextToken();
+		} else if( token.isKeyword( "in" ) ) {
+			nextToken();
+			assertToken( Scanner.TokenType.ID, "expected output port name" );
+			bindingPort = new OutputPortInfo( getContext(), token.content() );
+			nextToken();
+		}
+		return new EmbedServiceNode( getContext(), serviceName, bindingPort, hasNewKeyword, passingParam );
+	}
+
 
 	private void parseEmbedded()
 		throws IOException, ParserException {
@@ -1500,6 +1530,14 @@ public class OLParser extends AbstractParser {
 			case "define":
 				serviceBlockProgramBuilder.addChild( parseDefinition() );
 				break;
+			case "embed":
+				EmbedServiceNode embedServiceNode = parseEmbeddedServiceNode();
+				if( embedServiceNode.isNewPort() ) {
+					serviceBlockProgramBuilder
+						.addChild( embedServiceNode.bindingPort() );
+				}
+				serviceBlockProgramBuilder.addChild( embedServiceNode );
+				break;
 			default:
 				assertToken( Scanner.TokenType.RCURLY, "invalid token found inside service " + serviceName );
 				keepRun = false;
@@ -1563,7 +1601,6 @@ public class OLParser extends AbstractParser {
 				nextToken();
 				eat( Scanner.TokenType.COLON, "expected : after location" );
 				checkConstant();
-				assertToken( Scanner.TokenType.STRING, "expected inputPort location string" );
 				if( token.content().startsWith( "local" ) ) {
 					// check if the inputPort is listening to local protocol
 					isLocationLocal = true;

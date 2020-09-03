@@ -28,7 +28,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
-
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;

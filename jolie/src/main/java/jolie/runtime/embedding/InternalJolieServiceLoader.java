@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;

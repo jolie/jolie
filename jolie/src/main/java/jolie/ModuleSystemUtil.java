@@ -94,7 +94,7 @@ public class ModuleSystemUtil {
 			return new ConstantStringExpression( protocolIdNode.context(),
 				varPathNode.path().get( 0 ).key().toString() );
 		}
-		return varPathNode;
+		return protocolIdNode;
 	}
 
 	/**
@@ -112,5 +112,4 @@ public class ModuleSystemUtil {
 			return false;
 		}
 	}
-
 }
