@@ -30,6 +30,7 @@ import jolie.net.CommChannel;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
+import jolie.runtime.typing.Type;
 
 public abstract class EmbeddedServiceLoader {
 	private final Expression channelDest;
@@ -49,7 +50,7 @@ public abstract class EmbeddedServiceLoader {
 				ServiceNodeEmbeddedConfiguration serviceNodeConfiguration =
 					(ServiceNodeEmbeddedConfiguration) configuration;
 				ret = new ServiceNodeLoader( channelDest, interpreter, serviceNodeConfiguration.serviceNode,
-					serviceNodeConfiguration.parameter );
+					serviceNodeConfiguration.parameter, serviceNodeConfiguration.acceptingParameterType );
 			} else if( configuration.isInternal() ) {
 				InternalEmbeddedServiceConfiguration internalConfiguration =
 					(InternalEmbeddedServiceConfiguration) configuration;
@@ -210,11 +211,13 @@ public abstract class EmbeddedServiceLoader {
 	public static class ServiceNodeEmbeddedConfiguration extends EmbeddedServiceConfiguration {
 		private final ServiceNode serviceNode;
 		private final Expression parameter;
+		private final Type acceptingParameterType;
 
-		public ServiceNodeEmbeddedConfiguration( ServiceNode node, Expression parameter ) {
+		public ServiceNodeEmbeddedConfiguration( ServiceNode node, Expression parameter, Type acceptingParameterType ) {
 			super( Constants.EmbeddedServiceType.SERVICENODE );
 			this.serviceNode = node;
 			this.parameter = parameter;
+			this.acceptingParameterType = acceptingParameterType;
 		}
 
 		public ServiceNode serviceNode() {

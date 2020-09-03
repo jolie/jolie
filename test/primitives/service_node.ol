@@ -109,7 +109,7 @@ service ParentService(p : parenParam) {
         requestResponse: testParam(void)(void) throws TestFailed(any)
     }
 
-    embed ChildService(p.child) in new Child
+    embed ChildService(p.child) as Child
 
     main{
         testParam()(){
@@ -162,7 +162,7 @@ service main{
         Interfaces: TestUnitInterface
     }
 
-    embed testStringParamService("test") in new testStringParamService
+    embed testStringParamService("test") as testStringParamService
 
     embed testDefinedTypeParamService( 1 {
         a="test"
@@ -171,9 +171,9 @@ service main{
         }
         c=2
         d=2.0
-    } ) in new testDefinedTypeParamService
+    } ) as testDefinedTypeParamService
 
-    embed testTypeOptionalParamService in new testTypeOptionalParamService
+    embed testTypeOptionalParamService as testTypeOptionalParamService
 
     embed ParentService( { 
         a = "str" 
@@ -181,7 +181,7 @@ service main{
             a = "str2"
             b = 2
         }
-    } ) in new ParentServ
+    } ) as ParentServ
 
     // test embed imported service with predeclared outputport
     outputPort MulService{

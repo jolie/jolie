@@ -797,12 +797,14 @@ public class OLParser extends AbstractParser {
 			}
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		}
-		if( token.isKeyword( "in" ) ) {
+		if( token.is( Scanner.TokenType.AS ) ) {
 			nextToken();
-			if( token.isKeyword( "new" ) ) {
-				nextToken();
-				hasNewKeyword = true;
-			}
+			hasNewKeyword = true;
+			assertToken( Scanner.TokenType.ID, "expected output port name" );
+			bindingPort = new OutputPortInfo( getContext(), token.content() );
+			nextToken();
+		} else if( token.isKeyword( "in" ) ) {
+			nextToken();
 			assertToken( Scanner.TokenType.ID, "expected output port name" );
 			bindingPort = new OutputPortInfo( getContext(), token.content() );
 			nextToken();
