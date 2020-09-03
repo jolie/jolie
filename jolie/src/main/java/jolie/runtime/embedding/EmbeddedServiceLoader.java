@@ -25,10 +25,12 @@ package jolie.runtime.embedding;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.net.CommChannel;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
+import jolie.runtime.typing.Type;
 
 public abstract class EmbeddedServiceLoader {
 	private final Expression channelDest;
@@ -44,7 +46,12 @@ public abstract class EmbeddedServiceLoader {
 		throws EmbeddedServiceLoaderCreationException {
 		EmbeddedServiceLoader ret = null;
 		try {
-			if( configuration.isInternal() ) {
+			if( configuration.isServiceNode() ) {
+				ServiceNodeEmbeddedConfiguration serviceNodeConfiguration =
+					(ServiceNodeEmbeddedConfiguration) configuration;
+				ret = new ServiceNodeLoader( channelDest, interpreter, serviceNodeConfiguration.serviceNode,
+					serviceNodeConfiguration.parameter, serviceNodeConfiguration.acceptingParameterType );
+			} else if( configuration.isInternal() ) {
 				InternalEmbeddedServiceConfiguration internalConfiguration =
 					(InternalEmbeddedServiceConfiguration) configuration;
 				ret = new InternalJolieServiceLoader( channelDest, interpreter, internalConfiguration.serviceName(),
@@ -130,6 +137,10 @@ public abstract class EmbeddedServiceLoader {
 		public boolean isInternal() {
 			return this.type.equals( Constants.EmbeddedServiceType.INTERNAL );
 		}
+
+		public boolean isServiceNode() {
+			return this.type.equals( Constants.EmbeddedServiceType.SERVICENODE );
+		}
 	}
 
 	public static class InternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration {
@@ -143,7 +154,6 @@ public abstract class EmbeddedServiceLoader {
 		 */
 		public InternalEmbeddedServiceConfiguration( String serviceName, Program program ) {
 			super( Constants.EmbeddedServiceType.INTERNAL );
-
 			this.serviceName = serviceName;
 			this.program = program;
 		}
@@ -195,6 +205,27 @@ public abstract class EmbeddedServiceLoader {
 
 		public String code() {
 			return code;
+		}
+	}
+
+	public static class ServiceNodeEmbeddedConfiguration extends EmbeddedServiceConfiguration {
+		private final ServiceNode serviceNode;
+		private final Expression parameter;
+		private final Type acceptingParameterType;
+
+		public ServiceNodeEmbeddedConfiguration( ServiceNode node, Expression parameter, Type acceptingParameterType ) {
+			super( Constants.EmbeddedServiceType.SERVICENODE );
+			this.serviceNode = node;
+			this.parameter = parameter;
+			this.acceptingParameterType = acceptingParameterType;
+		}
+
+		public ServiceNode serviceNode() {
+			return this.serviceNode;
+		}
+
+		public Expression parameter() {
+			return this.parameter;
 		}
 
 	}
