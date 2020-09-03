@@ -931,7 +931,7 @@ public class Interpreter {
 	 *        a JAP file.
 	 * @param parentInterpreter
 	 * @param internalServiceProgram
-	 * @param embeddedValue
+	 * @param receivingEmbeddedValue
 	 * @throws CommandLineException if the command line is not valid or asks for simple information.
 	 *         (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
