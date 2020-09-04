@@ -270,7 +270,7 @@ public class CommandLineParser implements Closeable {
 		int cLimit = -1;
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
-		String tMain = "main";
+		String tService = null;
 		includeList.add( pwd );
 		includeList.add( "include" );
 		libList.add( pwd );
@@ -420,10 +420,13 @@ public class CommandLineParser implements Closeable {
 							"The number specified for cellId (" + argsList.get( i ) + ") is not allowed. Set to 0" );
 				}
 				optionsList.add( argsList.get( i ) );
-			} else if( "--main".equals( argsList.get( i ) ) ) {
+			} else if( "--service".equals( argsList.get( i ) ) || "-s".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
-				tMain = argsList.get( i );
+				if( tService != null ) {
+					throw new CommandLineException( "Execution service is already defined" );
+				}
+				tService = argsList.get( i );
 				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
@@ -479,7 +482,7 @@ public class CommandLineParser implements Closeable {
 		tracerMode = tMode;
 		tracerLevel = tLevel;
 		printStackTraces = bStackTraces;
-		executionTarget = tMain;
+		executionTarget = tService;
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
 		if( correlationAlgorithmType == null ) {

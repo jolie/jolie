@@ -240,6 +240,7 @@ public class OOITBuilder implements OLVisitor {
 	private Interface currentPortInterface = null;
 	private final Map< String, Boolean > constantFlags;
 	private final Map< String, InputPort > inputPorts = new HashMap<>();
+	private final Map< String, ServiceNode > services = new HashMap<>();
 	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new ArrayList<>();
 	private final CorrelationFunctionInfo correlationFunctionInfo;
 	private ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
@@ -318,6 +319,19 @@ public class OOITBuilder implements OLVisitor {
 	 */
 	public boolean build() {
 		visit( program );
+		if( services.values().size() >= 1 ) {
+			ServiceNode executionService = null;
+			if( services.values().size() == 1 ) {
+				executionService = services.values().iterator().next();
+			} else if( services.values().size() > 1 ) {
+				executionService = services.get( this.interpreter.configuration().executionTarget() );
+			}
+			if( executionService == null ) {
+				error( program.context(), "Execution service or main procedure is not defined" );
+				return false;
+			}
+			visit( executionService.program() );
+		}
 		checkForInit();
 		resolveTypeLinks();
 		lazyVisits();
@@ -1692,9 +1706,7 @@ public class OOITBuilder implements OLVisitor {
 
 	@Override
 	public void visit( ServiceNode n ) {
-		if( n.name().equals( this.interpreter.configuration().executionTarget() ) ) {
-			n.program().accept( this );
-		}
+		this.services.put( n.name(), n );
 	}
 
 	@Override
