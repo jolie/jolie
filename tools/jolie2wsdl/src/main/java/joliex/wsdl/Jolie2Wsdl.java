@@ -29,7 +29,9 @@ public class Jolie2Wsdl {
 				cmdParser.getInterpreterConfiguration().includePaths(),
 				cmdParser.getInterpreterConfiguration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-				cmdParser.getInterpreterConfiguration().constants(), false );
+				cmdParser.getInterpreterConfiguration().constants(),
+				cmdParser.getInterpreterConfiguration().executionTarget(),
+				false );
 
 			// Program program = parser.parse();
 			ProgramInspector inspector = ParsingUtils.createInspector( program );

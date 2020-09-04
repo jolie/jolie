@@ -20,10 +20,18 @@
 package jolie.lang.parse;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
-
 import jolie.lang.CodeCheckingError;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants.ExecutionMode;
@@ -132,6 +140,11 @@ import jolie.util.Pair;
 public class SemanticVerifier implements OLVisitor {
 	public static class Configuration {
 		private boolean checkForMain = true;
+		private final String executionTarget;
+
+		public Configuration( String executionTarget ) {
+			this.executionTarget = executionTarget;
+		}
 
 		public void setCheckForMain( boolean checkForMain ) {
 			this.checkForMain = checkForMain;
@@ -139,6 +152,10 @@ public class SemanticVerifier implements OLVisitor {
 
 		public boolean checkForMain() {
 			return checkForMain;
+		}
+
+		public String executionTarget() {
+			return executionTarget;
 		}
 	}
 
@@ -184,16 +201,15 @@ public class SemanticVerifier implements OLVisitor {
 
 	private final Deque< String > inScopes = new ArrayDeque<>();
 
+	private final Map< String, ServiceNode > services;
+
 	public SemanticVerifier( Program program, Map< URI, SymbolTable > symbolTables,
 		Configuration configuration ) {
 		this.program = program;
 		this.definedTypes = OLParser.createTypeDeclarationMap( program.context() );
 		this.configuration = configuration;
 		this.symbolTables = symbolTables;
-	}
-
-	public SemanticVerifier( Program program, Map< URI, SymbolTable > symbolTables ) {
-		this( program, symbolTables, new Configuration() );
+		this.services = new HashMap<>();
 	}
 
 	public CorrelationFunctionInfo correlationFunctionInfo() {
@@ -350,12 +366,28 @@ public class SemanticVerifier implements OLVisitor {
 	public void validate()
 		throws CodeCheckingException {
 		program.accept( this );
+		if( services.values().size() == 0 ) {
+			// this is an jolie's internal service (service with Interfaces)
+			if( configuration.checkForMain && !mainDefined ) {
+				error( program, "Main procedure is not defined" );
+			}
+		} else {
+			ServiceNode executionService = null;
+			if( services.values().size() == 1 ) {
+				executionService = services.values().iterator().next();
+			} else if( services.values().size() > 1 ) {
+				executionService = services.get( configuration.executionTarget );
+			}
+			if( executionService == null ) {
+				error( program, "Execution service is not defined" );
+			}
+			executionService.program().accept( this );
+			if( configuration.checkForMain && !mainDefined ) {
+				error( program, "Main procedure for service " + configuration.executionTarget + " is not defined" );
+			}
+		}
 		checkToBeEqualTypes();
 		checkCorrelationSets();
-
-		if( configuration.checkForMain && mainDefined == false ) {
-			error( null, "Main service or main procedure not defined" );
-		}
 
 		if( !errors.isEmpty() ) {
 			LOGGER.severe( "Aborting: input file semantically invalid." );
@@ -1315,9 +1347,7 @@ public class SemanticVerifier implements OLVisitor {
 
 	@Override
 	public void visit( ServiceNode n ) {
-		if( n.name().equals( "main" ) ) {
-			n.program().accept( this );
-		}
+		this.services.put( n.name(), n );
 	}
 
 	@Override

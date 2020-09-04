@@ -51,7 +51,8 @@ public class JolieDummyCreator {
 				cmdParser.getInterpreterConfiguration().includePaths(),
 				cmdParser.getInterpreterConfiguration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-				cmdParser.getInterpreterConfiguration().constants(), false );
+				cmdParser.getInterpreterConfiguration().constants(),
+				cmdParser.getInterpreterConfiguration().executionTarget(), false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			JolieDummyDocumentCreator document =
 				new JolieDummyDocumentCreator( inspector, cmdParser.getInterpreterConfiguration().programFilepath() );

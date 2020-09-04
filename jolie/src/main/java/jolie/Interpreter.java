@@ -887,7 +887,7 @@ public class Interpreter {
 			tracer = new DummyTracer();
 		}
 
-		LOGGER.setLevel( configuration.logLevel() );
+		LOGGER.setLevel( Level.ALL );
 
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
@@ -1255,13 +1255,13 @@ public class Interpreter {
 
 			final SemanticVerifier semanticVerifier;
 
+			SemanticVerifier.Configuration conf =
+				new SemanticVerifier.Configuration( configuration.executionTarget() );
+
 			if( check ) {
-				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
 				conf.setCheckForMain( false );
-				semanticVerifier = new SemanticVerifier( program, symbolTables, conf );
-			} else {
-				semanticVerifier = new SemanticVerifier( program, symbolTables );
 			}
+			semanticVerifier = new SemanticVerifier( program, symbolTables, conf );
 
 			try {
 				semanticVerifier.validate();
@@ -1444,6 +1444,7 @@ public class Interpreter {
 		private final Level logLevel;
 		private final File programDirectory;
 		private final String[] packagePaths;
+		private final String executionTarget;
 
 		private Configuration( int connectionsLimit,
 			CorrelationEngine.Type correlationAlgorithm,
@@ -1466,7 +1467,8 @@ public class Interpreter {
 			long responseTimeout,
 			Level logLevel,
 			File programDirectory,
-			String[] packagePaths ) {
+			String[] packagePaths,
+			String executionTarget ) {
 			this.connectionsLimit = connectionsLimit;
 			this.correlationAlgorithm = correlationAlgorithm;
 			this.includePaths = includeList;
@@ -1489,6 +1491,7 @@ public class Interpreter {
 			this.logLevel = logLevel;
 			this.programDirectory = programDirectory;
 			this.packagePaths = packagePaths;
+			this.executionTarget = executionTarget;
 		}
 
 		public static Configuration create( int connectionsLimit,
@@ -1512,11 +1515,12 @@ public class Interpreter {
 			long responseTimeout,
 			Level logLevel,
 			File programDirectory,
-			String[] packagePaths ) {
+			String[] packagePaths,
+			String executionTarget ) {
 			return new Configuration( connectionsLimit, correlationAlgorithm, includeList, optionArgs, libUrls,
 				inputStream, charset, programFilepath, arguments, constants, jolieClassLoader, programCompiled,
 				typeCheck, tracer, tracerLevel, tracerMode, check, printStackTraces, responseTimeout, logLevel,
-				programDirectory, packagePaths );
+				programDirectory, packagePaths, executionTarget );
 		}
 
 		public static Configuration create( Configuration config,
@@ -1526,7 +1530,7 @@ public class Interpreter {
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
-				config.programDirectory, config.packagePaths );
+				config.programDirectory, config.packagePaths, config.executionTarget );
 		}
 
 		/**
@@ -1696,6 +1700,15 @@ public class Interpreter {
 
 		public boolean printStackTraces() {
 			return printStackTraces;
+		}
+
+		/**
+		 * Returns the execution service target of this interpreter.
+		 *
+		 * @return the execution service target of this interpreter.
+		 */
+		public String executionTarget() {
+			return this.executionTarget;
 		}
 
 		/**

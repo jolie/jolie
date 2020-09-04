@@ -145,11 +145,12 @@ public class Inspector extends JavaService {
 
 	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths )
 		throws CommandLineException, IOException, ParserException, CodeCheckingException, ModuleException {
-		SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
-		configuration.setCheckForMain( false );
 		String[] args = { filename };
 		Interpreter.Configuration interpreterConfiguration =
 			new CommandLineParser( args, Inspector.class.getClassLoader() ).getInterpreterConfiguration();
+		SemanticVerifier.Configuration configuration =
+			new SemanticVerifier.Configuration( interpreterConfiguration.executionTarget() );
+		configuration.setCheckForMain( false );
 		final InputStream sourceIs;
 		if( source.isPresent() ) {
 			sourceIs = new ByteArrayInputStream( source.get().getBytes() );

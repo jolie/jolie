@@ -835,7 +835,9 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterConfiguration().includePaths(),
 				cmdParser.getInterpreterConfiguration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-				cmdParser.getInterpreterConfiguration().constants(), true );
+				cmdParser.getInterpreterConfiguration().constants(),
+				cmdParser.getInterpreterConfiguration().executionTarget(),
+				true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			URI originalFile = program.context().source();
@@ -895,7 +897,9 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterConfiguration().includePaths(),
 				cmdParser.getInterpreterConfiguration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-				cmdParser.getInterpreterConfiguration().constants(), true );
+				cmdParser.getInterpreterConfiguration().constants(),
+				cmdParser.getInterpreterConfiguration().executionTarget(),
+				true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			OutputPortInfo[] outputPortList = inspector.getOutputPorts();
@@ -981,7 +985,9 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterConfiguration().includePaths(),
 				cmdParser.getInterpreterConfiguration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-				cmdParser.getInterpreterConfiguration().constants(), true );
+				cmdParser.getInterpreterConfiguration().constants(),
+				cmdParser.getInterpreterConfiguration().executionTarget(),
+				true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			URI originalFile = program.context().source();
