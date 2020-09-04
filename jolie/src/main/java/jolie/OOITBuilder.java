@@ -1692,7 +1692,7 @@ public class OOITBuilder implements OLVisitor {
 
 	@Override
 	public void visit( ServiceNode n ) {
-		if( n.name().equals( "main" ) ) {
+		if( n.name().equals( this.interpreter.configuration().executionTarget() ) ) {
 			n.program().accept( this );
 		}
 	}

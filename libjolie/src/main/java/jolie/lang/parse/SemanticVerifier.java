@@ -132,6 +132,11 @@ import jolie.util.Pair;
 public class SemanticVerifier implements OLVisitor {
 	public static class Configuration {
 		private boolean checkForMain = true;
+		private final String executionTarget;
+
+		public Configuration( String executionTarget ) {
+			this.executionTarget = executionTarget;
+		}
 
 		public void setCheckForMain( boolean checkForMain ) {
 			this.checkForMain = checkForMain;
@@ -139,6 +144,10 @@ public class SemanticVerifier implements OLVisitor {
 
 		public boolean checkForMain() {
 			return checkForMain;
+		}
+
+		public String executionTarget() {
+			return executionTarget;
 		}
 	}
 
@@ -190,10 +199,6 @@ public class SemanticVerifier implements OLVisitor {
 		this.definedTypes = OLParser.createTypeDeclarationMap( program.context() );
 		this.configuration = configuration;
 		this.symbolTables = symbolTables;
-	}
-
-	public SemanticVerifier( Program program, Map< URI, SymbolTable > symbolTables ) {
-		this( program, symbolTables, new Configuration() );
 	}
 
 	public CorrelationFunctionInfo correlationFunctionInfo() {
@@ -1315,7 +1320,7 @@ public class SemanticVerifier implements OLVisitor {
 
 	@Override
 	public void visit( ServiceNode n ) {
-		if( n.name().equals( "main" ) ) {
+		if( n.name().equals( this.configuration.executionTarget() ) ) {
 			n.program().accept( this );
 		}
 	}

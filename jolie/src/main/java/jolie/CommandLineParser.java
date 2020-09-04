@@ -86,6 +86,7 @@ public class CommandLineParser implements Closeable {
 	private final long responseTimeout;
 	private final boolean printStackTraces;
 	private final Level logLevel;
+	private final String executionTarget;
 	private File programDirectory = null;
 	private int cellId = 0;
 
@@ -156,6 +157,9 @@ public class CommandLineParser implements Closeable {
 			.append(
 				getOptionString( "--charset [character encoding, e.g., UTF-8]",
 					"Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) )
+			.append(
+				getOptionString( "--main [service name]",
+					"Specify a service in the module to execute (default 'main')" ) )
 			.append(
 				getOptionString( "--version", "Display this program version information" ) )
 			.append(
@@ -266,6 +270,7 @@ public class CommandLineParser implements Closeable {
 		int cLimit = -1;
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
+		String tMain = "main";
 		includeList.add( pwd );
 		includeList.add( "include" );
 		libList.add( pwd );
@@ -415,6 +420,11 @@ public class CommandLineParser implements Closeable {
 							"The number specified for cellId (" + argsList.get( i ) + ") is not allowed. Set to 0" );
 				}
 				optionsList.add( argsList.get( i ) );
+			} else if( "--main".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				tMain = argsList.get( i );
+				optionsList.add( argsList.get( i ) );
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
 			} else if( (olFilepath == null) && (argsList.get( i ).endsWith( ".jap" )
@@ -469,6 +479,7 @@ public class CommandLineParser implements Closeable {
 		tracerMode = tMode;
 		tracerLevel = tLevel;
 		printStackTraces = bStackTraces;
+		executionTarget = tMain;
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
 		if( correlationAlgorithmType == null ) {
@@ -767,7 +778,8 @@ public class CommandLineParser implements Closeable {
 			responseTimeout,
 			logLevel,
 			programDirectory,
-			packagePaths );
+			packagePaths,
+			executionTarget );
 
 	}
 

@@ -54,7 +54,9 @@ public class Compiler {
 			cmdParser.getInterpreterConfiguration().includePaths(),
 			cmdParser.getInterpreterConfiguration().packagePaths(),
 			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-			cmdParser.getInterpreterConfiguration().constants(), false );
+			cmdParser.getInterpreterConfiguration().constants(),
+			cmdParser.getInterpreterConfiguration().executionTarget(),
+			false );
 		// GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( program );
