@@ -376,14 +376,21 @@ public class SemanticVerifier implements OLVisitor {
 			if( services.values().size() == 1 ) {
 				executionService = services.values().iterator().next();
 			} else if( services.values().size() > 1 ) {
-				executionService = services.get( configuration.executionTarget );
+				if( configuration.executionTarget == null ) {
+					error( program, "Execution service is not defined from command line argument (--service or -s)" );
+				} else if( !services.containsKey( configuration.executionTarget ) ) {
+					error( program,
+						"Execution service \"" + configuration.executionTarget + "\" is not defined in the module" );
+				} else {
+					executionService = services.get( configuration.executionTarget );
+				}
 			}
-			if( executionService == null ) {
-				error( program, "Execution service is not defined" );
-			}
-			executionService.program().accept( this );
-			if( configuration.checkForMain && !mainDefined ) {
-				error( program, "Main procedure for service " + configuration.executionTarget + " is not defined" );
+			if( executionService != null ) {
+				executionService.program().accept( this );
+				if( configuration.checkForMain && !mainDefined ) {
+					error( program,
+						"Main procedure for service \"" + configuration.executionTarget + "\" is not defined" );
+				}
 			}
 		}
 		checkToBeEqualTypes();
