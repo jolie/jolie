@@ -65,6 +65,7 @@ public class OutputDirectoryTest {
 			cmdParser.getInterpreterConfiguration().packagePaths(),
 			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 			cmdParser.getInterpreterConfiguration().constants(),
+			cmdParser.getInterpreterConfiguration().executionTarget(),
 			false );
 
 		// Program program = parser.parse();
@@ -88,6 +89,7 @@ public class OutputDirectoryTest {
 			cmdParser.getInterpreterConfiguration().packagePaths(),
 			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 			cmdParser.getInterpreterConfiguration().constants(),
+			cmdParser.getInterpreterConfiguration().executionTarget(),
 			false );
 
 		// Program program = parser.parse();

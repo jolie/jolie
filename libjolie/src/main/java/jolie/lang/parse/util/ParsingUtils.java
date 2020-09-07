@@ -81,6 +81,7 @@ public class ParsingUtils {
 		String[] packagePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
+		String executionTarget,
 		boolean includeDocumentation )
 		throws IOException, ParserException, CodeCheckingException, ModuleException {
 		return parseProgram(
@@ -91,7 +92,7 @@ public class ParsingUtils {
 			packagePaths,
 			classLoader,
 			definedConstants,
-			new SemanticVerifier.Configuration(),
+			new SemanticVerifier.Configuration( executionTarget ),
 			includeDocumentation );
 	}
 
