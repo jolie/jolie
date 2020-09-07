@@ -16,132 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
- 
-/**
-    Test syntax
-*/
-
-service testStringParamService(var : string) {
-
-    inputPort ip {
-        location:"local"
-        requestResponse: testParam(void)(void) throws TestFailed(any)
-    }
-
-    main{
-        testParam()(){
-            if (!is_string(var)){
-                throw(TestFailed, "passing argument is invalid type, expected \"string\"")
-            }
-        }
-    }
-}
-
-
-/**
-    A service with custom type
-*/
-
-type testParam :int {
-    a:string
-    b:void{
-        a:int
-    }
-    c:int
-    d:double
-}
-
-service testDefinedTypeParamService(p : testParam) {
-
-    inputPort ip {
-        location:"local"
-        requestResponse: testParam(void)(void) throws TestFailed(any)
-    }
-
-    main{
-        testParam()(){
-            if (!(p instanceof testParam)){
-                throw(TestFailed, "passing argument is invalid type, expected \"testParam\"")
-            }
-        }
-    }
-}
-
-/**
-    A service with optional custom type
-*/
-type testParamOptional : testParam | undefined
-
-service testTypeOptionalParamService(p : testParamOptional) {
-
-    inputPort ip{
-        location:"local"
-        requestResponse: testParam(void)(void) throws TestFailed(any)
-    }
-
-    main{
-        testParam()(){
-            if (!(p instanceof testParamOptional)){
-                throw(TestFailed, "passing argument is invalid type, expected \"testParamOptional\"")
-            }
-        }
-    }
-}
-
-/**
-    Variable path node as an argument
-*/
-
-type parenParam: void{
-    a : string
-    child :childParam 
-}
-
-type childParam : void{
-    a : string
-    b : int
-}
-
-service ParentService(p : parenParam) {
-
-    inputPort ip {
-        location:"local"
-        requestResponse: testParam(void)(void) throws TestFailed(any)
-    }
-
-    embed ChildService(p.child) as Child
-
-    main{
-        testParam()(){
-            if (!(p instanceof parenParam)){
-                throw(TestFailed, "passing argument is invalid type, expected \"parenParam\"")
-            }
-            testParam@Child()()
-        }
-    }
-}
-
-service ChildService(p : childParam) {
-
-    inputPort ip {
-        location:"local"
-        requestResponse: testParam(void)(void) throws TestFailed(any)
-    }
-
-    main{
-        testParam()(){
-            if (!(p instanceof childParam)){
-                throw(TestFailed, "passing argument is invalid type, expected \"childParam\"")
-            }
-        }
-    }
-}
-
 
 /**
     test import an embedded service node
 */
 from .private.service_node_mul import MulService
+from .private.service_node_param_string import testStringParamService
+from .private.service_node_param_custom import testDefinedTypeParamService
+from .private.service_node_param_optional import testTypeOptionalParamService
+from .private.service_node_multi_services import ParentService
 
 
 interface TestUnitInterface {

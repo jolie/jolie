@@ -59,6 +59,7 @@ public class Jolie2Plasma {
 					cmdParser.getInterpreterConfiguration().packagePaths(),
 					cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 					cmdParser.getInterpreterConfiguration().constants(),
+					cmdParser.getInterpreterConfiguration().executionTarget(),
 					false );
 				new InterfaceConverter(
 					program,
