@@ -887,7 +887,7 @@ public class Interpreter {
 			tracer = new DummyTracer();
 		}
 
-		LOGGER.setLevel( Level.ALL );
+		LOGGER.setLevel( configuration.logLevel() );
 
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
