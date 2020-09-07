@@ -158,8 +158,8 @@ public class CommandLineParser implements Closeable {
 				getOptionString( "--charset [character encoding, e.g., UTF-8]",
 					"Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) )
 			.append(
-				getOptionString( "--main [service name]",
-					"Specify a service in the module to execute (default 'main')" ) )
+				getOptionString( "-s [service name], --service [service name]",
+					"Specify a service in the module to execute (not necessary if the module contains only one service definition)" ) )
 			.append(
 				getOptionString( "--version", "Display this program version information" ) )
 			.append(
