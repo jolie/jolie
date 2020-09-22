@@ -23,9 +23,13 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.runtime.embedding.java.Inject;
 import jolie.runtime.embedding.java.OutputPort;
+import jolie.util.Pair;
 
 public abstract class JavaServiceParameterized extends JavaService {
 
@@ -49,10 +53,26 @@ public abstract class JavaServiceParameterized extends JavaService {
 				field.setAccessible( true );
 				try {
 					if( !ops.containsKey( outputPortName ) ) {
-						throw new FaultException( this.getClass().getSimpleName() + ": unable to locate outputPort \""
-							+ outputPortName + " in the service." );
+						throw new FaultException( "Missing outputPort",
+							"unable to locate outputPort \""
+								+ outputPortName + "\" in service " + this.getClass().getSimpleName() + "." );
 					}
-					URI location = new URI( ops.get( outputPortName ).location().toString() );
+					OutputPortInfo op = ops.get( outputPortName );
+					URI location = null;
+					if( op.location() instanceof ConstantStringExpression ) {
+						location = new URI( op.location().toString() );
+					} else if( op.location() instanceof VariableExpressionNode ) {
+						VariableExpressionNode expr = (VariableExpressionNode) op.location();
+						VariablePathBuilder builder = new VariablePathBuilder( false );
+						for( Pair< OLSyntaxNode, OLSyntaxNode > path : expr.variablePath().path() ) {
+							builder.add( path.key().toString(), 0 );
+						}
+						location = new URI( builder.toClosedVariablePath( receivedValue ).evaluate().strValue() );
+						if( !location.toString().startsWith( "local" ) ) {
+							throw new FaultException( "Invalid scheme " + location.toString(),
+								"expected output port with location \"local\" for a Java service." );
+						}
+					}
 					field.set( this, OutputPort.create( super.interpreter(), location ) );
 				} catch( IllegalArgumentException | IllegalAccessException | URISyntaxException e ) {
 					throw e;

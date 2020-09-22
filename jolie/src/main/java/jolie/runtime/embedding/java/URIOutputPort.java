@@ -19,7 +19,7 @@ public class URIOutputPort extends OutputPort {
 			CommChannel commChannel = super.targetInterpreter().commCore().createCommChannel( location, null );
 			return commChannel;
 		} catch( IOException e ) {
-			// this should never happen, location is validated at semanticverifier
+			// this should never happen, location is validated at service creation
 			e.printStackTrace();
 			return null;
 		}

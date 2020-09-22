@@ -28,19 +28,17 @@ import jolie.util.Pair;
 
 public class ServiceNodeJava extends ServiceNode {
 
-	private final String classPath;
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final InputPortInfo inputPortInfo;
 	private final Map< String, OutputPortInfo > outputPortInfos;
 
-	protected static boolean isConfigurationValid( ImplementationConfiguration config ) {
+	protected static boolean isConfigurationValid( Map< String, String > config ) {
 		return config.containsKey( "class" );
 	}
 
 	protected ServiceNodeJava( ParsingContext context, String name, AccessModifier accessModifier, Program p,
-		Pair< String, TypeDefinition > parameter, ImplementationConfiguration config ) {
-		super( context, name, accessModifier, p, parameter, Constants.EmbeddedServiceType.SERVICENODE_JAVA );
-		this.classPath = config.get( "class" );
+		Pair< String, TypeDefinition > parameter, Map< String, String > config ) {
+		super( context, name, accessModifier, p, parameter, Constants.EmbeddedServiceType.SERVICENODE_JAVA, config );
 		this.outputPortInfos = new HashMap<>();
 		InputPortInfo in = null;
 		for( OLSyntaxNode node : p.children() ) {
@@ -55,7 +53,7 @@ public class ServiceNodeJava extends ServiceNode {
 	}
 
 	public String classPath() {
-		return this.classPath;
+		return super.implementationConfiguration().get( "class" );
 	}
 
 	public InputPortInfo inputPortInfo() {

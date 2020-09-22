@@ -154,7 +154,7 @@ public class SymbolReferenceResolver {
 
 	private static CodeCheckingError buildMissingServiceInputportError( ServiceNode node, String portId ) {
 		return CodeCheckingError.build( node, "Unable to bind operations to port " + portId + ": " + node.name()
-			+ " doesn't have an inputPort with location 'local' define." );
+			+ " service doesn't have an inputPort with location 'local' define." );
 	}
 
 	private class SymbolReferenceResolverVisitor implements OLVisitor {

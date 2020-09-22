@@ -19,7 +19,6 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import jolie.lang.Constants;
@@ -53,33 +52,25 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 		}
 	}
 
-	static class ImplementationConfiguration extends HashMap< String, String > {
-		private static final long serialVersionUID = Constants.serialVersionUID();
-
-		ImplementationConfiguration( Map< String, String > configMap ) {
-			this.putAll( configMap );
-		}
-	}
-
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final String name;
 	private final Program program;
 	private final Optional< ParameterConfiguration > parameter;
 	private final AccessModifier accessModifier;
 	private final Constants.EmbeddedServiceType type;
-	private final ImplementationConfiguration config;
+	private final Map< String, String > config;
 
 	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter, Constants.EmbeddedServiceType technology,
 		Map< String, String > implementationConfiguration ) {
-
-		ImplementationConfiguration config =
-			new ServiceNode.ImplementationConfiguration( implementationConfiguration );
-		if( technology == EmbeddedServiceType.SERVICENODE_JAVA ) {
-			if( ServiceNodeJava.isConfigurationValid( config ) ) {
-				return new ServiceNodeJava( context, name, accessModifier, p, parameter,
-					config );
-			}
+		if( implementationConfiguration == null ) {
+			new ServiceNode( context, name, accessModifier, p, parameter,
+				Constants.EmbeddedServiceType.SERVICENODE );
+		}
+		Map< String, String > config = implementationConfiguration;
+		if( technology == EmbeddedServiceType.SERVICENODE_JAVA && ServiceNodeJava.isConfigurationValid( config ) ) {
+			return new ServiceNodeJava( context, name, accessModifier, p, parameter,
+				config );
 		}
 		return null;
 	}
@@ -93,6 +84,12 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 	protected ServiceNode( ParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter,
 		Constants.EmbeddedServiceType type ) {
+		this( context, name, accessModifier, p, parameter, type, null );
+	}
+
+	protected ServiceNode( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+		Pair< String, TypeDefinition > parameter,
+		Constants.EmbeddedServiceType type, Map< String, String > config ) {
 		super( context );
 		this.name = name;
 		this.accessModifier = accessModifier;
@@ -103,7 +100,7 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 			this.parameter = Optional.empty();
 		}
 		this.type = type;
-		this.config = null;
+		this.config = config;
 	}
 
 	public boolean hasParameter() {
@@ -132,7 +129,7 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 		return type;
 	}
 
-	public ImplementationConfiguration implementationConfiguration() {
+	public Map< String, String > implementationConfiguration() {
 		return config;
 	}
 
