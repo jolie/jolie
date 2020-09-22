@@ -9,7 +9,6 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.expression.Expression;
 
 public class OutputPort {
 	private final Interpreter targetInterpreter;
