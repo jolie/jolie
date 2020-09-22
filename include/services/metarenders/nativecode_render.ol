@@ -345,6 +345,7 @@ main
 					else { max = reft.length.max  }
 					response = response + "( length( [ " + reft.length.min + "," + max + " ] ) )"
 				} else if ( is_defined( reft.regex ) ) {
+					replaceAll@StringUtils( reft.regex { .regex = "\\\\", .replacement = "\\\\\\\\" } )( reft.regex )
 					response = response + "( regex( \"" + reft.regex + "\" ) )"
 				} else if ( is_defined( reft.enum ) ) {
 					response = response + "( enum([" 
