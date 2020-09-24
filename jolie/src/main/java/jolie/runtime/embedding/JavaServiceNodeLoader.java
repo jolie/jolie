@@ -19,30 +19,31 @@
 
 package jolie.runtime.embedding;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.util.Map;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ServiceNodeJava;
 import jolie.runtime.FaultException;
-import jolie.runtime.JavaServiceParameterized;
+import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.Type;
 import jolie.tracer.EmbeddingTraceAction;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.util.Map;
+
 public class JavaServiceNodeLoader extends ServiceNodeLoader {
 
-	private final JavaServiceParameterized service;
+	private final JavaService service;
 	private final Map< String, OutputPortInfo > outputPortInfos;
 
 	protected JavaServiceNodeLoader( Expression channelDest, Interpreter interpreter, ServiceNodeJava serviceNode,
 		Expression passingParameter, Type acceptingType ) throws EmbeddedServiceCreationException {
 		super( channelDest, interpreter, serviceNode, passingParameter, acceptingType );
-		JavaServiceParameterized service = null;
+		JavaService service = null;
 		Map< String, OutputPortInfo > ops = null;
 		try {
 			service = loadJavaClass( serviceNode.classPath() );
@@ -54,7 +55,7 @@ public class JavaServiceNodeLoader extends ServiceNodeLoader {
 		this.outputPortInfos = ops;
 	}
 
-	private JavaServiceParameterized loadJavaClass( String classname )
+	private JavaService loadJavaClass( String classname )
 		throws EmbeddedServiceCreationException {
 		try {
 			final JolieClassLoader cl = super.interpreter().getClassLoader();
@@ -63,10 +64,10 @@ public class JavaServiceNodeLoader extends ServiceNodeLoader {
 			final Constructor< ? > obj = c.getDeclaredConstructor();
 			Object o =
 				obj.newInstance();
-			if( !(o instanceof JavaServiceParameterized) ) {
+			if( !(o instanceof JavaService) ) {
 				throw new EmbeddedServiceCreationException( classname + " is not a valid JavaService" );
 			}
-			return (JavaServiceParameterized) o;
+			return (JavaService) o;
 		} catch( ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException
 			| IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
 			throw new EmbeddedServiceCreationException( e );
@@ -85,7 +86,6 @@ public class JavaServiceNodeLoader extends ServiceNodeLoader {
 				"Java Service Loader",
 				service.getClass().getSimpleName(),
 				null ) );
-			System.out.println( service );
 		} catch( IllegalAccessException | IllegalArgumentException | SecurityException | FaultException
 			| URISyntaxException e ) {
 			throw new EmbeddedServiceLoadingException( e );
