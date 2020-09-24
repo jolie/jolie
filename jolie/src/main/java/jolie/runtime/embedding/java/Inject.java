@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  */
 
- package jolie.runtime.embedding.java;
+package jolie.runtime.embedding.java;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
