@@ -132,8 +132,8 @@ public final class Constants {
 	public static final String JOLIE_LOGGER_NAME = "Jolie";
 
 	public enum EmbeddedServiceType {
-		JOLIE( "Jolie" ), JAVA( "Java" ), JAVASCRIPT( "JavaScript" ), SERVICENODE( " ServiceNode" ), SERVICENODE_JAVA(
-			" ServiceNode_Java" ), INTERNAL(
+		JOLIE( "Jolie" ), JAVA( "Java" ), JAVASCRIPT( "JavaScript" ), SERVICENODE( "ServiceNode" ), SERVICENODE_JAVA(
+			"ServiceNodeJava" ), INTERNAL(
 				"JolieInternal" ), UNSUPPORTED(
 					"Unsupported" );
 
