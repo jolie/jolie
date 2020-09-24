@@ -20,11 +20,11 @@
 /**
     test import an embedded service node
 */
-from .private.service_node_mul import MulService
-from .private.service_node_param_string import testStringParamService
-from .private.service_node_param_custom import testDefinedTypeParamService
-from .private.service_node_param_optional import testTypeOptionalParamService
-from .private.service_node_multi_services import ParentService
+from .private.services.service_node_mul import MulService
+from .private.services.service_node_param_string import testStringParamService
+from .private.services.service_node_param_custom import testDefinedTypeParamService
+from .private.services.service_node_param_optional import testTypeOptionalParamService
+from .private.services.service_node_multi_services import ParentService
 
 
 interface TestUnitInterface {

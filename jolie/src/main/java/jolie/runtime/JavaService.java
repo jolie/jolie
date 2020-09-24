@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;

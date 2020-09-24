@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import jolie.lang.CodeCheckingError;
+import jolie.lang.Constants;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -83,6 +84,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.ServiceNodeJava;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -148,6 +150,11 @@ public class SymbolReferenceResolver {
 		String expectedType, String actualType ) {
 		return CodeCheckingError.build( node, "Symbol is used incorrectly: " + symbolName + " is used as "
 			+ expectedType + ", but it actually has type " + actualType );
+	}
+
+	private static CodeCheckingError buildMissingServiceInputportError( ServiceNode node, String portId ) {
+		return CodeCheckingError.build( node, "Unable to bind operations to port " + portId + ": " + node.name()
+			+ " service doesn't have an inputPort with location 'local' define." );
 	}
 
 	private class SymbolReferenceResolverVisitor implements OLVisitor {
@@ -727,20 +734,38 @@ public class SymbolReferenceResolver {
 				return;
 			}
 			ServiceNode embeddingService = (ServiceNode) targetSymbolInfo.get().node();
-
+			n.setService( embeddingService );
 			if( n.isNewPort() ) {
-				// binding operation from ServiceNode to port
-				OutputPortInfo bindingPort = n.bindingPort();
-				InterfacesAndOperations publicIfacesAndOps =
-					getInterfacesFromInputPortLocal( embeddingService );
-				for( InterfaceDefinition iface : publicIfacesAndOps.interfaces() ) {
-					bindingPort.addInterface( iface );
-				}
-				for( OperationDeclaration op : publicIfacesAndOps.operations() ) {
-					bindingPort.addOperation( op );
+				if( n.service().type() == Constants.EmbeddedServiceType.SERVICENODE ) {
+					bindServiceOperationsToOutputPort( n.service(), n.bindingPort() );
+				} else if( n.service().type() == Constants.EmbeddedServiceType.SERVICENODE_JAVA ) {
+					ServiceNodeJava service = (ServiceNodeJava) n.service();
+					if( service.inputPortInfo() != null ) {
+						bindServiceOperationsToOutputPort( service, n.bindingPort() );
+					} else {
+						error( buildMissingServiceInputportError( service, n.bindingPort().id() ) );
+					}
 				}
 			}
-			n.setService( embeddingService );
+		}
+	}
+
+	/**
+	 * Scans through inputPorts with 'local' location in the service node n, and assign the interfaces
+	 * and operation to an outputPort op
+	 * 
+	 * @param n service to perform operations binding
+	 * @param op target outputport
+	 */
+	private void bindServiceOperationsToOutputPort( ServiceNode n, OutputPortInfo op ) {
+		// binds operation from ServiceNode to port
+		InterfacesAndOperations publicIfacesAndOps =
+			getInterfacesFromInputPortLocal( n );
+		for( InterfaceDefinition iface : publicIfacesAndOps.interfaces() ) {
+			op.addInterface( iface );
+		}
+		for( OperationDeclaration oper : publicIfacesAndOps.operations() ) {
+			op.addOperation( oper );
 		}
 	}
 

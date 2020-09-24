@@ -1724,7 +1724,8 @@ public class OOITBuilder implements OLVisitor {
 			}
 
 			final EmbeddedServiceConfiguration embeddedServiceConfiguration =
-				new EmbeddedServiceLoader.ServiceNodeEmbeddedConfiguration( n.service(), passingArgument,
+				new EmbeddedServiceLoader.ServiceNodeEmbeddedConfiguration( n.service().type(), n.service(),
+					passingArgument,
 					acceptingParameterType );
 
 			interpreter.addEmbeddedServiceLoader(

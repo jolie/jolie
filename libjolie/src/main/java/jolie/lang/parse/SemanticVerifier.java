@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import jolie.lang.CodeCheckingError;
 import jolie.lang.CodeCheckingException;
+import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.Constants.OperationType;
@@ -1354,7 +1355,49 @@ public class SemanticVerifier implements OLVisitor {
 
 	@Override
 	public void visit( ServiceNode n ) {
-		this.services.put( n.name(), n );
+		if( n.type() == Constants.EmbeddedServiceType.SERVICENODE ) {
+			this.services.put( n.name(), n );
+		} else if( n.type() == Constants.EmbeddedServiceType.SERVICENODE_JAVA ) {
+			boolean inputPortDefined = false;
+			for( OLSyntaxNode node : n.program().children() ) {
+				if( !(node instanceof InputPortInfo || node instanceof OutputPortInfo) ) {
+					error( node, "foreign service " + n.name() + " only accepts communication ports declaration" );
+				} else if( node instanceof InputPortInfo ) {
+					if( inputPortDefined ) {
+						error( node, "foreign service " + n.name()
+							+ " should only have one inputPort defined" );
+					}
+					inputPortDefined = true;
+
+					InputPortInfo ip = (InputPortInfo) node;
+					if( ip.protocol() != null ) {
+						error( ip, "port" + ip.id() + " in foreign service " + n.name()
+							+ " should only have location and interfaces defined" );
+					}
+					if( ip.location() instanceof ConstantStringExpression ) {
+						ConstantStringExpression location = (ConstantStringExpression) ip.location();
+						if( !location.value().equals( "local" ) ) {
+							error( ip, "port" + ip.id() + " in foreign service " + n.name()
+								+ " should only have location with 'local' scheme" );
+						}
+					}
+				} else if( node instanceof OutputPortInfo ) {
+					OutputPortInfo op = (OutputPortInfo) node;
+					if( op.protocol() != null ) {
+						error( op, "port" + op.id() + " in foreign service " + n.name()
+							+ " should only have location and interfaces defined" );
+					}
+					if( op.location() instanceof ConstantStringExpression ) {
+						ConstantStringExpression location = (ConstantStringExpression) op.location();
+						if( !location.value().startsWith( "local" ) ) {
+							error( op, "port" + op.id() + " in foreign service " + n.name()
+								+ " should only have location with 'local' scheme" );
+						}
+					}
+
+				}
+			}
+		}
 	}
 
 	@Override

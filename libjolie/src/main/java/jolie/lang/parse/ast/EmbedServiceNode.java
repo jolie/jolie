@@ -9,7 +9,6 @@ public class EmbedServiceNode extends OLSyntaxNode {
 
 	private final OLSyntaxNode passingParameter;
 	private final OutputPortInfo bindingPort;
-	private final Constants.EmbeddedServiceType type;
 	private final boolean isNewPort;
 	private final String serviceName;
 
@@ -18,7 +17,6 @@ public class EmbedServiceNode extends OLSyntaxNode {
 	public EmbedServiceNode( ParsingContext context, String serviceName,
 		OutputPortInfo bindingPort, boolean isNewPort, OLSyntaxNode passingParam ) {
 		super( context );
-		this.type = Constants.EmbeddedServiceType.JOLIE;
 		this.serviceName = serviceName;
 		this.passingParameter = passingParam;
 		this.bindingPort = bindingPort;
@@ -47,10 +45,6 @@ public class EmbedServiceNode extends OLSyntaxNode {
 
 	public OLSyntaxNode passingParameter() {
 		return this.passingParameter;
-	}
-
-	public Constants.EmbeddedServiceType type() {
-		return type;
 	}
 
 	/**
