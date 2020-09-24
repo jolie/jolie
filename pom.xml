@@ -128,6 +128,22 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>copy-packages</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/packages</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/packages</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
 						<id>copy-wsdl2jolie</id>
 						<phase>install</phase>
 						<goals>
