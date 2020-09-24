@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import jolie.lang.Constants;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ImportStatement;
@@ -88,8 +87,7 @@ public class ProgramBuilder {
 			}
 		}
 		ServiceNode mainService =
-			new ServiceNode( context, "main", AccessModifier.PUBLIC, mainServiceProgramBuilder.toProgram(), null,
-				Constants.EmbeddedServiceType.JOLIE );
+			ServiceNode.create( context, "main", AccessModifier.PUBLIC, mainServiceProgramBuilder.toProgram(), null );
 
 		children.add( mainService );
 		children.removeAll( movingNodes );

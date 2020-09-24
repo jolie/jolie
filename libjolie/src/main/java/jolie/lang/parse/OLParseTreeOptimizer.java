@@ -23,6 +23,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import jolie.lang.Constants;
+import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -916,11 +917,17 @@ public class OLParseTreeOptimizer {
 			if( n.hasParameter() ) {
 				parameter = new Pair<>( n.parameterPath().get(), n.parameterType().get() );
 			}
-			programChildren.add(
-				new ServiceNode( n.context(), n.name(), n.accessModifier(),
-					OLParseTreeOptimizer.optimize( n.program() ),
-					parameter,
-					n.type() ) );
+			if( n.type() == EmbeddedServiceType.SERVICENODE ) {
+				programChildren.add(
+					ServiceNode.create( n.context(), n.name(), n.accessModifier(),
+						OLParseTreeOptimizer.optimize( n.program() ),
+						parameter ) );
+			} else {
+				programChildren.add(
+					ServiceNode.create( n.context(), n.name(), n.accessModifier(),
+						OLParseTreeOptimizer.optimize( n.program() ),
+						parameter, n.type(), n.implementationConfiguration() ) );
+			}
 		}
 
 		@Override

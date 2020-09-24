@@ -19,8 +19,10 @@
 
 package jolie.lang.parse.ast;
 
+import java.util.Map;
 import java.util.Optional;
 import jolie.lang.Constants;
+import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.context.ParsingContext;
@@ -56,10 +58,38 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 	private final Optional< ParameterConfiguration > parameter;
 	private final AccessModifier accessModifier;
 	private final Constants.EmbeddedServiceType type;
+	private final Map< String, String > config;
 
-	public ServiceNode( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+		Pair< String, TypeDefinition > parameter, Constants.EmbeddedServiceType technology,
+		Map< String, String > implementationConfiguration ) {
+		if( implementationConfiguration == null ) {
+			new ServiceNode( context, name, accessModifier, p, parameter,
+				Constants.EmbeddedServiceType.SERVICENODE );
+		}
+		Map< String, String > config = implementationConfiguration;
+		if( technology == EmbeddedServiceType.SERVICENODE_JAVA && ServiceNodeJava.isConfigurationValid( config ) ) {
+			return new ServiceNodeJava( context, name, accessModifier, p, parameter,
+				config );
+		}
+		return null;
+	}
+
+	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+		Pair< String, TypeDefinition > parameter ) {
+		return new ServiceNode( context, name, accessModifier, p, parameter,
+			Constants.EmbeddedServiceType.SERVICENODE );
+	}
+
+	protected ServiceNode( ParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter,
 		Constants.EmbeddedServiceType type ) {
+		this( context, name, accessModifier, p, parameter, type, null );
+	}
+
+	protected ServiceNode( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+		Pair< String, TypeDefinition > parameter,
+		Constants.EmbeddedServiceType type, Map< String, String > config ) {
 		super( context );
 		this.name = name;
 		this.accessModifier = accessModifier;
@@ -70,12 +100,7 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 			this.parameter = Optional.empty();
 		}
 		this.type = type;
-	}
-
-	public ServiceNode( ParsingContext context, String alias, ServiceNode service ) {
-		this( context, alias, AccessModifier.PRIVATE, service.program(),
-			new Pair< String, TypeDefinition >( service.parameterPath().get(), service.parameterType().get() ),
-			service.type );
+		this.config = config;
 	}
 
 	public boolean hasParameter() {
@@ -102,6 +127,10 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 
 	public Constants.EmbeddedServiceType type() {
 		return type;
+	}
+
+	public Map< String, String > implementationConfiguration() {
+		return config;
 	}
 
 	@Override
