@@ -1,24 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2007-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+/*
+ * Copyright (C) 2007-2015 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.runtime.embedding;
 
@@ -49,8 +46,8 @@ public abstract class EmbeddedServiceLoader {
 			if( configuration.isServiceNode() ) {
 				ServiceNodeEmbeddedConfiguration serviceNodeConfiguration =
 					(ServiceNodeEmbeddedConfiguration) configuration;
-				ret = new ServiceNodeLoader( channelDest, interpreter, serviceNodeConfiguration.serviceNode,
-					serviceNodeConfiguration.parameter, serviceNodeConfiguration.acceptingParameterType );
+				ret = ServiceNodeLoader.create( channelDest, interpreter, serviceNodeConfiguration.serviceNode,
+					serviceNodeConfiguration.parameter(), serviceNodeConfiguration.acceptingParameterType() );
 			} else if( configuration.isInternal() ) {
 				InternalEmbeddedServiceConfiguration internalConfiguration =
 					(InternalEmbeddedServiceConfiguration) configuration;
@@ -139,7 +136,8 @@ public abstract class EmbeddedServiceLoader {
 		}
 
 		public boolean isServiceNode() {
-			return this.type.equals( Constants.EmbeddedServiceType.SERVICENODE );
+			return this.type.equals( Constants.EmbeddedServiceType.SERVICENODE )
+				|| this.type.equals( Constants.EmbeddedServiceType.SERVICENODE_JAVA );
 		}
 	}
 
@@ -213,8 +211,9 @@ public abstract class EmbeddedServiceLoader {
 		private final Expression parameter;
 		private final Type acceptingParameterType;
 
-		public ServiceNodeEmbeddedConfiguration( ServiceNode node, Expression parameter, Type acceptingParameterType ) {
-			super( Constants.EmbeddedServiceType.SERVICENODE );
+		public ServiceNodeEmbeddedConfiguration( Constants.EmbeddedServiceType type, ServiceNode node,
+			Expression parameter, Type acceptingParameterType ) {
+			super( type );
 			this.serviceNode = node;
 			this.parameter = parameter;
 			this.acceptingParameterType = acceptingParameterType;
@@ -226,6 +225,10 @@ public abstract class EmbeddedServiceLoader {
 
 		public Expression parameter() {
 			return this.parameter;
+		}
+
+		public Type acceptingParameterType() {
+			return this.acceptingParameterType;
 		}
 
 	}

@@ -21,6 +21,7 @@ package jolie.lang.parse;
 
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
+import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
@@ -1408,10 +1409,23 @@ public class OLParser extends AbstractParser {
 		}
 	}
 
-	private ServiceNode createServiceNode(
+	private ServiceNode createForeignServiceNode(
 		ParsingContext ctx,
 		String serviceName,
-		Constants.EmbeddedServiceType tech,
+		Pair< String, TypeDefinition > parameter,
+		AccessModifier accessModifier,
+		ProgramBuilder serviceBlockProgramBuilder,
+		EmbeddedServiceType technology,
+		Map< String, String > implementationConfiguration ) {
+
+		return ServiceNode.create( ctx, serviceName, accessModifier, serviceBlockProgramBuilder.toProgram(),
+			parameter, technology, implementationConfiguration );
+
+	}
+
+	private ServiceNode createJolieServiceNode(
+		ParsingContext ctx,
+		String serviceName,
 		Pair< String, TypeDefinition > parameter,
 		AccessModifier accessModifier,
 		SequenceStatement init,
@@ -1445,8 +1459,8 @@ public class OLParser extends AbstractParser {
 			serviceNodeProgramBuilder.addChild( main );
 		}
 
-		ServiceNode node = new ServiceNode( ctx, serviceName, accessModifier, serviceNodeProgramBuilder.toProgram(),
-			parameter, tech );
+		ServiceNode node = ServiceNode.create( ctx, serviceName, accessModifier, serviceNodeProgramBuilder.toProgram(),
+			parameter );
 		return node;
 	}
 
@@ -1470,8 +1484,8 @@ public class OLParser extends AbstractParser {
 		}
 		nextToken();
 
-		// currently support only JOLIE servicenode
-		Constants.EmbeddedServiceType tech = Constants.EmbeddedServiceType.JOLIE;
+		Constants.EmbeddedServiceType tech = Constants.EmbeddedServiceType.SERVICENODE;
+		Map< String, String > configMap = new HashMap<>();
 
 		assertToken( Scanner.TokenType.ID, "expected service name" );
 		ParsingContext ctx = getContext();
@@ -1538,6 +1552,30 @@ public class OLParser extends AbstractParser {
 				}
 				serviceBlockProgramBuilder.addChild( embedServiceNode );
 				break;
+			case "foreign":
+				nextToken();
+				String technology = token.content();
+				if( technology.equals( "java" ) ) {
+					tech = Constants.EmbeddedServiceType.SERVICENODE_JAVA;
+				}
+				nextToken();
+				eat( Scanner.TokenType.LCURLY, "expected {" );
+				while( token.isNot( Scanner.TokenType.RCURLY ) ) {
+					String key = token.content();
+					nextToken();
+					eat( Scanner.TokenType.COLON, "expected :" );
+					String value = "";
+					while( !hasMetNewline() ) {
+						if( token.is( Scanner.TokenType.DOT ) ) {
+							value += ".";
+						} else {
+							value += token.content();
+						}
+						nextToken();
+					}
+					configMap.put( key, value );
+				}
+				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
 				assertToken( Scanner.TokenType.RCURLY, "invalid token found inside service " + serviceName );
 				keepRun = false;
@@ -1558,16 +1596,29 @@ public class OLParser extends AbstractParser {
 				(accessModifierToken.isPresent() && accessModifierToken.get().is( Scanner.TokenType.PRIVATE ))
 					? AccessModifier.PRIVATE
 					: AccessModifier.PUBLIC;
-			programBuilder.addChild( createServiceNode(
-				ctx,
-				serviceName,
-				tech,
-				parameter,
-				accessModifier,
-				internalInit,
-				internalMain,
-				programBuilder,
-				serviceBlockProgramBuilder ) );
+
+			ServiceNode serviceNode = null;
+			switch( tech ) {
+			case SERVICENODE:
+				serviceNode = createJolieServiceNode(
+					ctx,
+					serviceName,
+					parameter,
+					accessModifier,
+					internalInit,
+					internalMain,
+					programBuilder,
+					serviceBlockProgramBuilder );
+				break;
+			default:
+				serviceNode = createForeignServiceNode(
+					ctx,
+					serviceName,
+					parameter,
+					accessModifier,
+					serviceBlockProgramBuilder, tech, configMap );
+			}
+			programBuilder.addChild( serviceNode );
 		}
 	}
 
