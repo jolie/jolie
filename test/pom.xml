@@ -194,11 +194,7 @@
 		</dependency>
 		
 		<!-- Tools -->
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>jolie2dummy</artifactId>
-			<version>${jolie.version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>jolie2java</artifactId>
