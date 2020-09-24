@@ -64,7 +64,6 @@
 		<module>extensions/soaps</module>
 		<module>extensions/sodeps</module>
 		<module>extensions/xmlrpc</module>
-		<module>tools/jolie2dummy</module>
 		<module>tools/jolie2java</module>
 		<module>tools/jolie2plasma</module>
 		<module>tools/jolie2surface</module>
@@ -236,6 +235,25 @@
 									<directory>${basedir}/tools/jolietraceviewer</directory>
 									<includes>
 										<include>jolietraceviewer.ol</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-joliemock</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/tools/joliemock</directory>
+									<includes>
+										<include>joliemock.ol</include>
 									</includes>
 									<filtering>true</filtering>
 								</resource>
