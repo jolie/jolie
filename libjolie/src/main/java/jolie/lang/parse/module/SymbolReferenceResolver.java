@@ -734,6 +734,7 @@ public class SymbolReferenceResolver {
 				return;
 			}
 			ServiceNode embeddingService = (ServiceNode) targetSymbolInfo.get().node();
+			embeddingService.accept( this );
 			n.setService( embeddingService );
 			if( n.isNewPort() ) {
 				if( n.service().type() == Constants.EmbeddedServiceType.SERVICENODE ) {
