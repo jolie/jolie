@@ -151,7 +151,9 @@ public class SymbolTableGenerator {
 			decl.requestType().accept( this );
 			decl.responseType().accept( this );
 			for( Map.Entry< String, TypeDefinition > fault : decl.faults().entrySet() ) {
-				fault.getValue().accept( this );
+				if( this.symbolTable.getSymbol( fault.getValue().id() ) == null ) {
+					fault.getValue().accept( this );
+				}
 			}
 		}
 
