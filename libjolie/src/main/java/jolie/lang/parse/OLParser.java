@@ -928,7 +928,16 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
 		nextToken();
-		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		boolean inCurlyBrackets = false;
+		if( token.is( Scanner.TokenType.COLON ) ) {
+			nextToken();
+		} else if( token.is( Scanner.TokenType.LCURLY ) ) {
+			inCurlyBrackets = true;
+			nextToken();
+		} else {
+			throwException( "expected : or { after execution" );
+		}
+
 		assertToken( Scanner.TokenType.ID, "expected execution modality" );
 		switch( token.content() ) {
 		case "sequential":
@@ -946,7 +955,9 @@ public class OLParser extends AbstractParser {
 		}
 		programBuilder.addChild( new ExecutionInfo( getContext(), mode ) );
 		nextToken();
-		eat( Scanner.TokenType.RCURLY, "} expected" );
+		if( inCurlyBrackets ) {
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
 		return new ExecutionInfo( getContext(), mode );
 	}
 

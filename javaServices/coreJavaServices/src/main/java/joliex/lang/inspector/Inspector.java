@@ -111,10 +111,11 @@ public class Inspector extends JavaService {
 				request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 			if( request.hasChildren( "source" ) ) {
 				inspector = getInspector( request.getFirstChild( "filename" ).strValue(),
-					Optional.of( request.getFirstChild( "source" ).strValue() ), includePaths );
+					Optional.of( request.getFirstChild( "source" ).strValue() ), includePaths, interpreter() );
 			} else {
 				inspector =
-					getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
+					getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths,
+						interpreter() );
 			}
 			return buildPortInspectionResponse( inspector );
 		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
@@ -132,7 +133,8 @@ public class Inspector extends JavaService {
 			request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
 		try {
 			ProgramInspector inspector =
-				getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths );
+				getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths,
+					interpreter() );
 			return buildProgramTypeInfo( inspector );
 		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
@@ -143,7 +145,8 @@ public class Inspector extends JavaService {
 		}
 	}
 
-	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths )
+	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths,
+		Interpreter interpreter )
 		throws CommandLineException, IOException, ParserException, CodeCheckingException, ModuleException {
 		String[] args = { filename };
 		Interpreter.Configuration interpreterConfiguration =
@@ -162,7 +165,8 @@ public class Inspector extends JavaService {
 			interpreterConfiguration.programFilepath().toURI(),
 			interpreterConfiguration.charset(),
 			includePaths,
-			interpreterConfiguration.packagePaths(),
+			// interpreterConfiguration.packagePaths(),
+			interpreter.configuration().packagePaths(), // TODO make this a parameter from the Jolie request
 			interpreterConfiguration.jolieClassLoader(),
 			interpreterConfiguration.constants(),
 			configuration,
