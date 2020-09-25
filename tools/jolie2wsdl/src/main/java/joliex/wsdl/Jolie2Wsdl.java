@@ -5,6 +5,7 @@ package joliex.wsdl;
  * and open the template in the editor.
  */
 import jolie.CommandLineException;
+import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
@@ -15,6 +16,10 @@ import jolie.lang.parse.util.ProgramInspector;
  * @author Francesco Bullini and Claudio Guidi
  */
 public class Jolie2Wsdl {
+
+	static {
+		JolieURLStreamHandlerFactory.registerInVM();
+	}
 
 	public static void main( String[] args ) {
 		try {

@@ -22,6 +22,7 @@
 package joliex.surface;
 
 import jolie.CommandLineException;
+import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
@@ -39,6 +40,10 @@ public class GetSurface {
 	/**
 	 * @param args the command line arguments
 	 */
+	static {
+		JolieURLStreamHandlerFactory.registerInVM();
+	}
+
 	public static void main( String[] args ) {
 		// TODO code application logic here
 		try {

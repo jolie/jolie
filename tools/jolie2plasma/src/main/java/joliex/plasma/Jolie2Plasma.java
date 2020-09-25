@@ -23,6 +23,7 @@ package joliex.plasma;
 
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
@@ -42,6 +43,10 @@ import java.util.logging.Logger;
  * @author Fabrizio Montesi
  */
 public class Jolie2Plasma {
+	static {
+		JolieURLStreamHandlerFactory.registerInVM();
+	}
+
 	public static void main( String[] args ) {
 		try {
 			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Plasma.class.getClassLoader() );

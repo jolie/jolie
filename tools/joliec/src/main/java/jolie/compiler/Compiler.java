@@ -27,6 +27,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
@@ -39,6 +40,10 @@ import jolie.lang.parse.util.ParsingUtils;
  */
 public class Compiler {
 	private final CommandLineParser cmdParser;
+
+	static {
+		JolieURLStreamHandlerFactory.registerInVM();
+	}
 
 	public Compiler( String[] args )
 		throws CommandLineException, IOException {

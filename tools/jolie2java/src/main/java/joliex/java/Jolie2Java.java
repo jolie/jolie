@@ -6,6 +6,7 @@ package joliex.java;
 
 import jolie.CommandLineException;
 import jolie.lang.CodeCheckingException;
+import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
@@ -22,6 +23,11 @@ import java.io.IOException;
  * @author balint
  */
 public class Jolie2Java {
+
+	static {
+		JolieURLStreamHandlerFactory.registerInVM();
+	}
+
 
 	public static void main( String[] args ) {
 		try {
