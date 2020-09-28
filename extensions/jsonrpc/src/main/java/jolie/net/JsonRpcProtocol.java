@@ -83,7 +83,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	@Override
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
-		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
+		if( inInputPort ) // we may do this only in input (server) mode
+			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
+
 		boolean isLsp = checkStringParameter( Parameters.TRANSPORT, LSP );
 
 		if( !isLsp ) {
@@ -265,7 +267,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				}
 			}
 
-			if( channel().toBeClosed() ) {
+			if( !checkBooleanParameter( "keepAlive", true ) ) {
 				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
