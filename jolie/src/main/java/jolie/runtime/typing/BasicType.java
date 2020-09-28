@@ -94,7 +94,7 @@ public class BasicType< T extends Object > {
 			for( BasicTypeRefinement< T > refinement : refinements ) {
 				if( !refinement.checkValue( nativeValue ) ) {
 					throw new TypeCheckingException( "Invalid basic value for node " + pathSupplier.get()
-						+ ": does not respect the refinement " + refinement.toString() );
+						+ ": does not respect the refinement " + refinement.getDocumentation() );
 				}
 			}
 		}
