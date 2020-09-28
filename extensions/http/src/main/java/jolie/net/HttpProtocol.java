@@ -830,7 +830,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		String charset,
 		StringBuilder headerBuilder )
 		throws IOException {
-		if( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false || channel().toBeClosed() ) {
+		if( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false ) {
 			channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}

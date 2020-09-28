@@ -48,7 +48,7 @@ public class HttpUtils {
 
 	// Checks if the message requests the channel to be closed or kept open
 	public static void recv_checkForChannelClosing( HttpMessage message, CommChannel channel ) {
-		if( channel != null ) {
+		if( channel != null && message.isResponse() ) { // https://tools.ietf.org/html/rfc7230#section-6.6
 			HttpMessage.Version version = message.version();
 			if( version == null || version.equals( HttpMessage.Version.HTTP_1_1 ) ) {
 				// The default is to keep the connection open, unless Connection: close is specified
