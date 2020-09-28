@@ -94,7 +94,8 @@ import jolie.xml.XmlUtils;
 public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol {
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
-	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC 2616#7.2.1
+	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC
+																					// 2616#7.2.1
 	private static final String DEFAULT_FORMAT = "xml";
 	private static final Map< Integer, String > STATUS_CODE_DESCRIPTIONS = new HashMap<>();
 	private static final Set< Integer > LOCATION_REQUIRED_STATUS_CODES = new HashSet<>();
@@ -830,8 +831,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		String charset,
 		StringBuilder headerBuilder )
 		throws IOException {
-		if( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false ) {
-			channel().setToBeClosed( true );
+		if( !checkBooleanParameter( Parameters.KEEP_ALIVE, true ) ) {
+			if( inInputPort ) // we may do this only in input (server) mode
+				channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
 		if( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {

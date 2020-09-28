@@ -1005,7 +1005,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			if( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-				channel().setToBeClosed( true );
+				if( received )
+					channel().setToBeClosed( true ); // we may do this only in input (server) mode
 				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
