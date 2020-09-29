@@ -567,6 +567,9 @@ public class SymbolReferenceResolver {
 					return;
 				}
 				linkedType = (TypeDefinition) targetSymbolInfo.get().node();
+				while( linkedType instanceof TypeDefinitionLink ) {
+					linkedType = ((TypeDefinitionLink) linkedType).linkedType();
+				}
 				if( linkedType.equals( n ) ) {
 					error( buildSymbolNotFoundError( n, n.id() ) );
 					return;
