@@ -151,9 +151,7 @@ public class SymbolTableGenerator {
 			decl.requestType().accept( this );
 			decl.responseType().accept( this );
 			for( Map.Entry< String, TypeDefinition > fault : decl.faults().entrySet() ) {
-				if( this.symbolTable.getSymbol( fault.getValue().id() ) == null ) {
-					fault.getValue().accept( this );
-				}
+				fault.getValue().accept( this );
 			}
 		}
 
@@ -356,7 +354,9 @@ public class SymbolTableGenerator {
 		@Override
 		public void visit( TypeDefinitionLink n ) {
 			try {
-				this.symbolTable.addSymbol( n.id(), n );
+				if( !this.symbolTable.getSymbol( n.id() ).isPresent() ) {
+					this.symbolTable.addSymbol( n.id(), n );
+				}
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
 				this.error = new ModuleException( n.context(), e );
