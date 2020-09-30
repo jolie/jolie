@@ -157,6 +157,11 @@ public class SymbolReferenceResolver {
 			+ " service doesn't have an inputPort with location 'local' defined." );
 	}
 
+	private static CodeCheckingError buildTypeLinkOutOfBoundError( TypeDefinitionLink node ) {
+		return CodeCheckingError.build( node, "Unable to find linked type: " + node.name()
+			+ " has infinite loop to it's linked type" );
+	}
+
 	private class SymbolReferenceResolverVisitor implements OLVisitor {
 		private URI currentURI;
 		private final List< CodeCheckingError > errors = new ArrayList<>();
@@ -567,6 +572,15 @@ public class SymbolReferenceResolver {
 					return;
 				}
 				linkedType = (TypeDefinition) targetSymbolInfo.get().node();
+				int linkCounter = 0;
+				while( linkedType instanceof TypeDefinitionLink ) {
+					if( linkCounter == 100 ) {
+						error( buildTypeLinkOutOfBoundError( n ) );
+						return;
+					}
+					linkedType = ((TypeDefinitionLink) linkedType).linkedType();
+					linkCounter++;
+				}
 				if( linkedType.equals( n ) ) {
 					error( buildSymbolNotFoundError( n, n.id() ) );
 					return;
