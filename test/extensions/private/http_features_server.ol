@@ -53,7 +53,8 @@ inputPort ServerInput {
 Location: Location_HTTPServer
 Protocol: http {
 	.headers.Authorization = "Authorization";
-	.statusCode -> statusCode
+	.statusCode -> statusCode;
+	.keepAlive -> KeepAlive_HTTPServer
 }
 Interfaces: HeadersServerInterface
 }
