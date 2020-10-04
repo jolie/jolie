@@ -30,7 +30,8 @@ Protocol: http {
 	.method = "get";
 	.method.queryFormat -> queryFormat;
 	.compression -> compression;
-	.requestCompression -> requestCompression
+	.requestCompression -> requestCompression;
+	.keepAlive -> keepAlive
 }
 Interfaces: ServerInterface
 }
@@ -73,16 +74,25 @@ define doTest
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
 
-		// compression on (default), but no request compression
-		test;
-		// request compression
-		requestCompression = "deflate";
-		test;
-		requestCompression = "gzip";
-		test;
-		// no compression at all
-		compression = false;
-		test;
+		keepAlive = true; // first test with a persistent HTTP connection
+		while ( keepAlive != null ) {
+			// compression on (default), but no request compression
+			test;
+			// request compression
+			requestCompression = "deflate";
+			test;
+			requestCompression = "gzip";
+			test;
+			// no compression at all
+			compression = false;
+			test;
+
+			if ( keepAlive ) {
+				keepAlive = false // now re-test with on-demand connections
+			} else {
+				keepAlive = null
+			}
+		};
 
 		shutdown@Server()
 	}

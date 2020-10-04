@@ -30,9 +30,10 @@ include "console.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	method = "post"
-	addHeader.header[0] -> header
-	statusCode -> statusCode
+	.method = "post";
+	.addHeader.header[0] -> header;
+	.statusCode -> statusCode;
+	.keepAlive -> keepAlive
 }
 Interfaces: ServerInterface
 }
@@ -71,41 +72,50 @@ define doTest
 	reqVal = "Döner";
 	statusCode = 0; // important: initialise statusCode, otherwise it does not get set
 
-	header << "Authorization" { value = "TOP_SECRET" };
-	scope( s ) {
-		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
-		echoPerson@Server( person )( response );
-		checkResponse;
-		if ( statusCode != 200 ) { // OK
+	keepAlive = true; // first test with a persistent HTTP connection
+	while ( keepAlive != null ) {
+		header << "Authorization" { value = "TOP_SECRET" };
+		scope( s ) {
+			install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+			echoPerson@Server( person )( response );
+			checkResponse;
+			if ( statusCode != 200 ) { // OK
+				throw( TestFailed, "Wrong HTTP status code" )
+			};
+			identity@Server( reqVal )( response2 );
+			checkResponse2;
+			if ( statusCode != 200 ) { // OK
+				throw( TestFailed, "Wrong HTTP status code" )
+			}
+		};
+
+		header << "Authorization" { .value = "WRONG_KEY" };
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			echoPerson@Server( person )( response );
+			if ( is_defined( response ) ) {
+				throw( TestFailed, "Should not return data" )
+			}
+		};
+		if ( statusCode != 403 ) { // Forbidden
 			throw( TestFailed, "Wrong HTTP status code" )
 		};
-		identity@Server( reqVal )( response2 );
-		checkResponse2;
-		if ( statusCode != 200 ) { // OK
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			identity@Server( reqVal )( response2 );
+			if ( is_defined( response2 ) ) {
+				throw( TestFailed, "Should not return data" )
+			}
+		};
+		if ( statusCode != 403 ) { // Forbidden
 			throw( TestFailed, "Wrong HTTP status code" )
-		}
-	};
+		};
 
-	header << "Authorization" { .value = "WRONG_KEY" };
-	scope( s ) {
-		install( TypeMismatch => nullProcess );
-		echoPerson@Server( person )( response );
-		if ( is_defined( response ) ) {
-			throw( TestFailed, "Should not return data" )
+		if ( keepAlive ) {
+			keepAlive = false // now re-test with on-demand connections
+		} else {
+			keepAlive = null
 		}
-	};
-	if ( statusCode != 403 ) { // Forbidden
-		throw( TestFailed, "Wrong HTTP status code" )
-	};
-	scope( s ) {
-		install( TypeMismatch => nullProcess );
-		identity@Server( reqVal )( response2 );
-		if ( is_defined( response2 ) ) {
-			throw( TestFailed, "Should not return data" )
-		}
-	};
-	if ( statusCode != 403 ) { // Forbidden
-		throw( TestFailed, "Wrong HTTP status code" )
 	};
 
 	shutdown@Server()

@@ -20,7 +20,8 @@
  ***************************************************************************/
 
 constants {
-	Location_HTTPServer = "socket://localhost:10101"
+	Location_HTTPServer = "socket://localhost:10101",
+	KeepAlive_HTTPServer = false
 }
 
 type Person:void {
