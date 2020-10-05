@@ -172,9 +172,8 @@ public class HttpParser {
 		} else if( token.isKeyword( OPTIONS ) ) {
 			message = new HttpMessage( HttpMessage.Type.OPTIONS );
 		} else if( token.is( Scanner.TokenType.EOF ) ) {
-			throw new ChannelClosingException( "[http] Remote host closed connection." ); // It's not a real message,
-																							// the client is just
-																							// closing a connection.
+			// It's not a real message, the client is just closing a connection.
+			throw new ChannelClosingException( "[http] Remote host closed connection." );
 		} else {
 			throw new UnsupportedMethodException( "Unknown/Unsupported HTTP request type: "
 				+ token.content() + "(" + token.type() + ")" );
@@ -313,7 +312,10 @@ public class HttpParser {
 		} else if( contentLength > 0 ) {
 			buffer = new byte[ contentLength ];
 			blockingRead( stream, buffer, 0, contentLength );
-		} else {
+		} else if( message.isResponse() ) {
+			// Per https://tools.ietf.org/html/rfc7230#section-3.3.3 payload may only be sent on *responses*
+			// (including the HTTP version header) when there is NO transfer encoding and NO content length
+			// indication.
 			HttpMessage.Version version =
 				(message.version() == null ? HttpMessage.Version.HTTP_1_1 : message.version());
 
