@@ -26,7 +26,9 @@ execution { single }
 
 inputPort ServerInput {
 Location: Location_HTTPServer
-Protocol: http
+Protocol: http {
+	.keepAlive -> KeepAlive_HTTPServer
+}
 Interfaces: ServerInterface
 }
 
