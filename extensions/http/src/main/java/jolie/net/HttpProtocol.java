@@ -831,8 +831,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		String charset,
 		StringBuilder headerBuilder )
 		throws IOException {
-		if( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false || channel().toBeClosed() ) {
-			channel().setToBeClosed( true );
+		if( !checkBooleanParameter( Parameters.KEEP_ALIVE, true ) ) {
+			if( inInputPort ) // we may do this only in input (server) mode
+				channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
 		if( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {

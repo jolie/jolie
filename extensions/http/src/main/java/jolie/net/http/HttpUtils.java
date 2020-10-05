@@ -49,14 +49,20 @@ public class HttpUtils {
 	// Checks if the message requests the channel to be closed or kept open
 	public static void recv_checkForChannelClosing( HttpMessage message, CommChannel channel ) {
 		if( channel != null ) {
-			HttpMessage.Version version = message.version();
-			if( version == null || version.equals( HttpMessage.Version.HTTP_1_1 ) ) {
-				// The default is to keep the connection open, unless Connection: close is specified
-				channel.setToBeClosed( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) );
-			} else if( version.equals( HttpMessage.Version.HTTP_1_0 ) ) {
-				// The default is to close the connection, unless Connection: Keep-Alive is specified
-				channel.setToBeClosed(
-					!message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) );
+			if( message.isResponse() ) { // https://tools.ietf.org/html/rfc7230#section-6.6
+				HttpMessage.Version version = message.version();
+				if( version == null || version.equals( HttpMessage.Version.HTTP_1_1 ) ) {
+					// The default is to keep the connection open, unless Connection: close is specified
+					channel
+						.setToBeClosed( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) );
+				} else if( version.equals( HttpMessage.Version.HTTP_1_0 ) ) {
+					// The default is to close the connection, unless Connection: Keep-Alive is specified
+					channel.setToBeClosed(
+						!message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) );
+				}
+			} else {
+				// IMPORTANT: in input mode we need to deliver the response, so no immediate close!
+				channel.setToBeClosed( false );
 			}
 		}
 	}
