@@ -581,7 +581,7 @@ public class SymbolReferenceResolver {
 					linkedType = ((TypeDefinitionLink) linkedType).linkedType();
 					linkCounter++;
 				}
-				if( linkedType.equals( n ) ) {
+				if( linkedType == null || linkedType.equals( n ) ) {
 					error( buildSymbolNotFoundError( n, n.id() ) );
 					return;
 				}
