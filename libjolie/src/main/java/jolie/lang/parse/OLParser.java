@@ -1990,9 +1990,13 @@ public class OLParser extends AbstractParser {
 							nextToken();
 							eat( Scanner.TokenType.RPAREN, "expected )" );
 						}
-						TypeDefinition faultType = definedTypes.getOrDefault( faultTypeName,
-							new TypeDefinitionLink( getContext(), faultTypeName,
-								Constants.RANGE_ONE_TO_ONE, faultTypeName ) );
+						TypeDefinition faultType = new TypeDefinitionLink( getContext(), faultTypeName,
+							Constants.RANGE_ONE_TO_ONE, faultTypeName );
+						if( definedTypes.containsKey( faultTypeName ) ) {
+							faultType = definedTypes.get( faultTypeName );
+						} else {
+							definedTypes.put( faultTypeName, faultType );
+						}
 						faultTypesMap.put( faultName, faultType );
 					}
 				}
