@@ -20,7 +20,7 @@
  */
 
 from types.JavaException import JavaExceptionType, WeakJavaExceptionType
-from types.IOException import *
+from types.IOException import IOExceptionType
 
 type FileNotFoundType:WeakJavaExceptionType
 

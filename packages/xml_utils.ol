@@ -19,8 +19,8 @@
  *   For details about the authors of this software, see the AUTHORS file. 
  */
 
-from types.JavaException import *
-from types.IOException import *
+from types.JavaException import JavaExceptionType
+from types.IOException import IOExceptionType
 
 // TODO: fault typing in the Java code
 
