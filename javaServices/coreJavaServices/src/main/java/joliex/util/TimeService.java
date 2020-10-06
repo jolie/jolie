@@ -277,7 +277,7 @@ public class TimeService extends JavaService {
 		try {
 			String format;
 			if( request.getFirstChild( "format" ).strValue().isEmpty() ) {
-				format = "dd/MM/yyyy hh:ss:mm";
+				format = "dd/MM/yyyy HH:ss:mm";
 			} else {
 				format = request.getFirstChild( "format" ).strValue();
 			}
@@ -300,7 +300,7 @@ public class TimeService extends JavaService {
 			v.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
 			v.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
 			v.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
-			v.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR ) );
+			v.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR_OF_DAY ) );
 			v.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
 			v.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );
 
