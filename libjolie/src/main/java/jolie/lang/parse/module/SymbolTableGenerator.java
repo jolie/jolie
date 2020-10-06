@@ -354,7 +354,9 @@ public class SymbolTableGenerator {
 		@Override
 		public void visit( TypeDefinitionLink n ) {
 			try {
-				this.symbolTable.addSymbol( n.id(), n );
+				if( !this.symbolTable.getSymbol( n.id() ).isPresent() ) {
+					this.symbolTable.addSymbol( n.id(), n );
+				}
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
 				this.error = new ModuleException( n.context(), e );
