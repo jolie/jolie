@@ -20,8 +20,9 @@
  *   For details about the authors of this software, see the AUTHORS file. 
  */
 
+from .types.JavaException import JavaExceptionType
 from .types.IOException import IOExceptionType
-from .types.Binding import *
+from .types.Binding import Binding
 
 type LoadEmbeddedServiceRequest:void {
 	.filepath:string //< The path to the service to load
