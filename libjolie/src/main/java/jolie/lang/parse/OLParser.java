@@ -64,6 +64,7 @@ public class OLParser extends AbstractParser {
 		void parse() throws IOException, ParserException;
 	}
 
+	private long faultIdCounter = 0;
 	private final ProgramBuilder programBuilder;
 	private final Map< String, Scanner.Token > constantsMap =
 		new HashMap<>();
@@ -1824,7 +1825,6 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		boolean keepRun = true;
 		while( keepRun ) {
-
 			if( token.is( Scanner.TokenType.OP_OW ) ) {
 				parseOneWayOperations( oc );
 			} else if( token.is( Scanner.TokenType.OP_RR ) ) {
@@ -1832,7 +1832,6 @@ public class OLParser extends AbstractParser {
 			} else {
 				keepRun = false;
 			}
-
 		}
 	}
 
@@ -1990,8 +1989,9 @@ public class OLParser extends AbstractParser {
 							nextToken();
 							eat( Scanner.TokenType.RPAREN, "expected )" );
 						}
-						TypeDefinition faultType = new TypeDefinitionLink( getContext(), faultTypeName,
-							Constants.RANGE_ONE_TO_ONE, faultTypeName );
+						TypeDefinition faultType =
+							new TypeDefinitionLink( getContext(), faultIdCounter++ + "#" + faultTypeName,
+								Constants.RANGE_ONE_TO_ONE, faultTypeName );
 						if( definedTypes.containsKey( faultTypeName ) ) {
 							faultType = definedTypes.get( faultTypeName );
 						} else {

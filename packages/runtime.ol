@@ -24,12 +24,12 @@ from .types.JavaException import JavaExceptionType
 from .types.IOException import IOExceptionType
 from .types.Binding import Binding
 
-type LoadEmbeddedServiceRequest {
+type LoadEmbeddedServiceRequest:void {
 	filepath:string //< The path to the service to load
 	type?:string //< The type of the service, e.g., Jolie, Java, or JavaScript. Default: Jolie
 	service?:string //< The name of the service to load, if relevant
 	params?:undefined //< The actual parameters (arguments) that should be passed to the service
-} | {
+} | void {
 	code:string
 }
 
@@ -123,8 +123,8 @@ RequestResponse:
 	/// Load an embedded service.
 	loadEmbeddedService(LoadEmbeddedServiceRequest)(any) throws RuntimeException(RuntimeExceptionType),
 
-	/// Load an embedded service node.
-	loadEmbeddedServiceNode(LoadEmbeddedServiceNodeRequest)(any) throws RuntimeException(RuntimeExceptionType),
+	// /// Load an embedded service node.
+	// loadEmbeddedServiceNode(LoadEmbeddedServiceNodeRequest)(any) throws RuntimeException(RuntimeExceptionType),
 
 	/// Get the output port name that a redirection points to.
 	getRedirection(GetRedirectionRequest)(MaybeString),

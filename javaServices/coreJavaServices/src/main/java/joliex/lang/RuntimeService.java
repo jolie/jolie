@@ -245,7 +245,8 @@ public class RuntimeService extends JavaService {
 			if( request.hasChildren( "filepath" ) ) {
 				configuration = new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration(
 					jolie.lang.Constants.stringToEmbeddedServiceType( request.getFirstChild( "type" ).strValue() ),
-					request.firstChildOrDefault( "filepath", Value::strValue, Constants.EmbeddedServiceType.JOLIE.toString() ),
+					request.firstChildOrDefault( "filepath", Value::strValue,
+						Constants.EmbeddedServiceType.JOLIE.toString() ),
 					Optional.ofNullable( request.firstChildOrDefault( "service", Value::strValue, null ) ),
 					Optional.ofNullable( request.firstChildOrDefault( "params", Function.identity(), null ) ) );
 			} else {
