@@ -26,7 +26,7 @@ from .types.Binding import Binding
 
 type LoadEmbeddedServiceRequest {
 	filepath:string //< The path to the service to load
-	type:string //< The type of the service, e.g., Jolie, Java, or JavaScript
+	type?:string //< The type of the service, e.g., Jolie, Java, or JavaScript. Default: Jolie
 	service?:string //< The name of the service to load, if relevant
 	params?:undefined //< The actual parameters (arguments) that should be passed to the service
 } | {
