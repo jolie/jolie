@@ -21,24 +21,28 @@
 
 package jolie.runtime.embedding;
 
+import jolie.CommandLineException;
+import jolie.CommandLineParser;
+import jolie.Interpreter;
+import jolie.runtime.Value;
+import jolie.runtime.expression.Expression;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
-import jolie.Interpreter;
-import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
 	private final static Pattern SERVICE_PATH_SPLIT_PATTERN = Pattern.compile( " " );
 	private final static AtomicLong SERVICE_LOADER_COUNTER = new AtomicLong();
 	private final Interpreter interpreter;
 
-	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
+	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath,
+		Optional< String > serviceName, Optional< Value > params )
 		throws IOException, CommandLineException {
 		super( channelDest );
 		final String[] ss = SERVICE_PATH_SPLIT_PATTERN.split( servicePath );
@@ -52,9 +56,22 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		CommandLineParser commandLineParser = new CommandLineParser( newArgs, currInterpreter.getClassLoader(), false );
 
+		Interpreter.Configuration config = commandLineParser.getInterpreterConfiguration();
+		Interpreter.Configuration.create(
+			config.connectionsLimit(), config.correlationAlgorithm(), config.includePaths(), config.optionArgs(),
+			config.libUrls(), config.inputStream(), config.charset(), config.programFilepath(), config.arguments(),
+			config.constants(),
+			config.jolieClassLoader(), config.isProgramCompiled(), config.typeCheck(), config.tracer(),
+			config.tracerLevel(),
+			config.tracerMode(), config.check(), config.printStackTraces(), config.responseTimeout(), config.logLevel(),
+			config.programDirectory(), config.packagePaths(),
+			// difference:
+			serviceName.orElse( config.executionTarget() ) );
+
 		interpreter = new Interpreter(
 			commandLineParser.getInterpreterConfiguration(),
-			currInterpreter.programDirectory() );
+			currInterpreter.programDirectory(),
+			params );
 	}
 
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
@@ -67,7 +84,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 
 		interpreter = new Interpreter(
 			configuration,
-			currInterpreter.programDirectory() );
+			currInterpreter.programDirectory(), Optional.empty() );
 	}
 
 	@Override

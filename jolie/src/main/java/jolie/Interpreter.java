@@ -31,18 +31,7 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -852,7 +841,7 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
-		File programDirectory )
+		File programDirectory, Optional< Value > params )
 		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.configuration = configuration;
@@ -897,10 +886,13 @@ public class Interpreter {
 		} else {
 			this.programDirectory = configuration.programDirectory();
 		}
+
 		if( this.programDirectory == null ) {
 			throw new IOException(
-				"Could not localize the service execution directory. This is probably a bug in the JOLIE interpreter, please report it to jolie-devel@lists.sf.net" );
+				"Could not localise the service execution directory. This might be a bug in the Jolie interpreter, please report it to https://github.com/jolie/jolie" );
 		}
+
+		this.receivingEmbeddedValue = params.orElse( null );
 	}
 
 	/**
@@ -918,7 +910,7 @@ public class Interpreter {
 	public Interpreter( Configuration configuration,
 		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws FileNotFoundException, IOException {
-		this( configuration, programDirectory );
+		this( configuration, programDirectory, Optional.empty() );
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
@@ -941,11 +933,10 @@ public class Interpreter {
 		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram,
 		Value receivingEmbeddedValue )
 		throws FileNotFoundException, IOException {
-		this( configuration, programDirectory );
+		this( configuration, programDirectory, Optional.of( receivingEmbeddedValue ) );
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
-		this.receivingEmbeddedValue = receivingEmbeddedValue;
 	}
 
 	/**
@@ -1139,10 +1130,8 @@ public class Interpreter {
 
 	private final ExecutorService nativeExecutorService =
 		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
-	// Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
 	private final ExecutorService processExecutorService =
 		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
-	// Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.

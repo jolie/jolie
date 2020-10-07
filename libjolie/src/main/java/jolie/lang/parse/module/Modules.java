@@ -9,7 +9,6 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.Program;
 
 public class Modules {
-
 	public static class ModuleParsedResult {
 
 		/**
@@ -50,6 +49,5 @@ public class Modules {
 		SymbolReferenceResolver.resolve( crawlResult );
 
 		return new ModuleParsedResult( mainRecord.program(), crawlResult.symbolTables() );
-
 	}
 }

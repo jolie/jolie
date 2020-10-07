@@ -24,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Optional;
+
 import jolie.lang.parse.ParserException;
 
 
@@ -74,7 +76,7 @@ public class Jolie {
 					+ Integer.MAX_VALUE + "), set to 0" );
 			}
 			final Interpreter interpreter =
-				new Interpreter( commandLineParser.getInterpreterConfiguration(), null );
+				new Interpreter( commandLineParser.getInterpreterConfiguration(), null, Optional.empty() );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread( () -> interpreter.exit( TERMINATION_TIMEOUT ) ) );
 			interpreter.run();
