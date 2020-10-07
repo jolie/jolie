@@ -29,6 +29,8 @@ import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.Type;
 
+import java.util.Optional;
+
 public abstract class EmbeddedServiceLoader {
 	private final Expression channelDest;
 
@@ -63,7 +65,8 @@ public abstract class EmbeddedServiceLoader {
 				case JOLIE:
 					if( configuration instanceof ExternalEmbeddedServiceConfiguration ) {
 						externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
-						ret = new JolieServiceLoader( channelDest, interpreter, externalConfiguration.servicePath() );
+						ret = new JolieServiceLoader( channelDest, interpreter, externalConfiguration.servicePath(),
+							externalConfiguration.serviceName(), externalConfiguration.params() );
 					} else {
 						ExternalEmbeddedNativeCodeConfiguration externalEmbeddedNativeCodeConfiguration =
 							(ExternalEmbeddedNativeCodeConfiguration) configuration;
@@ -167,38 +170,47 @@ public abstract class EmbeddedServiceLoader {
 
 	public static class ExternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration {
 		private final String servicePath;
+		private final Optional< String > serviceName;
+		private final Optional< Value > params;
 
 		/**
 		 *
 		 * @param type Type of embedded service, cannot be INTERNAL
 		 * @param servicePath path of service
+		 * @param params the actual parameters to be passed to the service, if any
 		 */
-		public ExternalEmbeddedServiceConfiguration( Constants.EmbeddedServiceType type, String servicePath ) {
+		public ExternalEmbeddedServiceConfiguration( Constants.EmbeddedServiceType type, String servicePath,
+			Optional< String > serviceName, Optional< Value > params ) {
 			super( type );
 			this.servicePath = servicePath;
+			this.serviceName = serviceName;
+			this.params = params;
 
 			assert type != Constants.EmbeddedServiceType.INTERNAL;
+		}
+
+		public Optional< String > serviceName() {
+			return serviceName;
 		}
 
 		public String servicePath() {
 			return servicePath;
 		}
 
+		public Optional< Value > params() {
+			return params;
+		}
 	}
 
 	public static class ExternalEmbeddedNativeCodeConfiguration extends EmbeddedServiceConfiguration {
 		private final String code;
 
 		/**
-		 *
-		 * @param type Type of embedded service, cannot be INTERNAL
 		 * @param code code of service
 		 */
-		public ExternalEmbeddedNativeCodeConfiguration( Constants.EmbeddedServiceType type, String code ) {
-			super( type );
+		public ExternalEmbeddedNativeCodeConfiguration( String code ) {
+			super( Constants.EmbeddedServiceType.JOLIE );
 			this.code = code;
-
-			assert type != Constants.EmbeddedServiceType.INTERNAL;
 		}
 
 		public String code() {

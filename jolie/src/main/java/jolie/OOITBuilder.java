@@ -22,17 +22,8 @@ package jolie;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.BiPredicate;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
@@ -494,7 +485,8 @@ public class OOITBuilder implements OLVisitor {
 				n.type().equals( Constants.EmbeddedServiceType.INTERNAL )
 					? new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration( n.servicePath(),
 						n.program() )
-					: new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath() );
+					: new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath(),
+						Optional.empty(), Optional.empty() );
 
 			interpreter.addEmbeddedServiceLoader(
 				EmbeddedServiceLoader.create(

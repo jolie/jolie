@@ -24,15 +24,13 @@ from .types.JavaException import JavaExceptionType
 from .types.IOException import IOExceptionType
 from .types.Binding import Binding
 
-type LoadEmbeddedServiceRequest:void {
-	.filepath:string //< The path to the service to load
-	.type:string //< The type of the service, e.g., Jolie, Java, or JavaScript
-}
-
-type LoadEmbeddedServiceNodeRequest:void {
-	.module:string //< The module target of the service node
-	.serviceNode:string //< Service name to load
-	.argumentValue?: any { ? } //< passing argument
+type LoadEmbeddedServiceRequest {
+	filepath:string //< The path to the service to load
+	type:string //< The type of the service, e.g., Jolie, Java, or JavaScript
+	service?:string //< The name of the service to load, if relevant
+	params?:undefined //< The actual parameters (arguments) that should be passed to the service
+} | {
+	code:string
 }
 
 type GetRedirectionRequest:void {

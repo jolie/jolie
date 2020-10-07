@@ -27,10 +27,12 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.util.Optional;
+import java.util.function.Function;
+
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
-import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.net.CommListener;
 import jolie.net.LocalCommChannel;
 import jolie.net.ports.OutputPort;
@@ -234,29 +236,23 @@ public class RuntimeService extends JavaService {
 		return ret;
 	}
 
+	@RequestResponse
 	public Value loadEmbeddedService( Value request )
 		throws FaultException {
 		try {
 			Value channel = Value.create();
+			final EmbeddedServiceLoader.EmbeddedServiceConfiguration configuration;
 			if( request.hasChildren( "filepath" ) ) {
-				String filePath = request.getFirstChild( "filepath" ).strValue();
-				String typeStr = request.getFirstChild( "type" ).strValue();
-				EmbeddedServiceType type =
-					jolie.lang.Constants.stringToEmbeddedServiceType( typeStr );
-				EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration configuration =
-					new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( type, filePath );
-				EmbeddedServiceLoader loader =
-					EmbeddedServiceLoader.create( interpreter(), configuration, channel );
-				loader.load();
+				configuration = new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration(
+					jolie.lang.Constants.stringToEmbeddedServiceType( request.getFirstChild( "type" ).strValue() ),
+					request.getFirstChild( "filepath" ).strValue(),
+					Optional.ofNullable( request.firstChildOrDefault( "service", Value::strValue, null ) ),
+					Optional.ofNullable( request.firstChildOrDefault( "params", Function.identity(), null ) ) );
 			} else {
-				String code = request.getFirstChild( "code" ).strValue();
-				EmbeddedServiceType type = EmbeddedServiceType.JOLIE;
-				EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration configuration =
-					new EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration( type, code );
-				EmbeddedServiceLoader loader = EmbeddedServiceLoader.create( interpreter(), configuration, channel );
-				loader.load();
+				configuration = new EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration(
+					request.getFirstChild( "code" ).strValue() );
 			}
-
+			EmbeddedServiceLoader.create( interpreter(), configuration, channel ).load();
 			return channel;
 		} catch( EmbeddedServiceLoaderCreationException | EmbeddedServiceLoadingException e ) {
 			throw new FaultException( "RuntimeException", e );

@@ -23,6 +23,7 @@ package joliex.metaservice.impl;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.CommandLineException;
@@ -105,7 +106,7 @@ public class EmbeddedMetaService extends MetaService {
 			CommandLineParser commandLineParser = new CommandLineParser(
 				buildInterpreterArguments( jolieHome, metaserviceFilepath ), this.getClass().getClassLoader(), false );
 			interpreter =
-				new Interpreter( commandLineParser.getInterpreterConfiguration(), null );
+				new Interpreter( commandLineParser.getInterpreterConfiguration(), null, Optional.empty() );
 			startInterpreter();
 			channel = new MetaServiceChannel( this, "/" );
 		} catch( CommandLineException | FileNotFoundException e ) {
