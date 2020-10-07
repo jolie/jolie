@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-type Binding:void {
-	.location:string
-	.protocol?:string { ? }
+type Binding {
+	location:string
+	protocol?:string { ? }
 }
