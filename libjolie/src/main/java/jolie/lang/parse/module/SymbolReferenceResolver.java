@@ -157,10 +157,10 @@ public class SymbolReferenceResolver {
 			+ " service doesn't have an inputPort with location 'local' defined." );
 	}
 
-	private static CodeCheckingError buildTypeLinkOutOfBoundError( TypeDefinitionLink node ) {
-		return CodeCheckingError.build( node, "Unable to find linked type: " + node.name()
-			+ " has infinite loop to it's linked type" );
-	}
+	// private static CodeCheckingError buildTypeLinkOutOfBoundError( TypeDefinitionLink node ) {
+	// return CodeCheckingError.build( node, "Unable to find linked type: " + node.name()
+	// + " has infinite loop to it's linked type" );
+	// }
 
 	private class SymbolReferenceResolverVisitor implements OLVisitor {
 		private URI currentURI;
@@ -556,14 +556,14 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( TypeDefinitionLink n ) {
-			TypeDefinition linkedType = null;
+			TypeDefinition linkedType;
 			if( n.linkedTypeName().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
 				linkedType = TypeDefinitionUndefined.getInstance();
 			} else {
 				Optional< SymbolInfo > targetSymbolInfo =
 					getSymbol( n.context(), n.linkedTypeName() );
 				if( !targetSymbolInfo.isPresent() ) {
-					error( buildSymbolNotFoundError( n, n.id() ) );
+					error( buildSymbolNotFoundError( n, n.linkedTypeName() ) );
 					return;
 				}
 				if( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
@@ -572,17 +572,8 @@ public class SymbolReferenceResolver {
 					return;
 				}
 				linkedType = (TypeDefinition) targetSymbolInfo.get().node();
-				int linkCounter = 0;
-				while( linkedType instanceof TypeDefinitionLink ) {
-					if( linkCounter == 100 ) {
-						error( buildTypeLinkOutOfBoundError( n ) );
-						return;
-					}
-					linkedType = ((TypeDefinitionLink) linkedType).linkedType();
-					linkCounter++;
-				}
 				if( linkedType == null || linkedType.equals( n ) ) {
-					error( buildSymbolNotFoundError( n, n.id() ) );
+					error( buildSymbolNotFoundError( n, n.linkedTypeName() ) );
 					return;
 				}
 			}
