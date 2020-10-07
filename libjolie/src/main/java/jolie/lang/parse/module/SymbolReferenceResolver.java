@@ -139,6 +139,10 @@ public class SymbolReferenceResolver {
 			+ " is not defined in this module (the symbol could not be retrieved from the symbol table)" );
 	}
 
+	private static CodeCheckingError buildInfiniteTypeDefinitionLinkLoop( OLSyntaxNode node, String name ) {
+		return CodeCheckingError.build( node, "Type definition link loop detected: " + name );
+	}
+
 	// private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name,
 	// ImportPath path ) {
 	// return CodeCheckingError.build( node, "Symbol not found: " + name + " is not defined in module "
@@ -572,8 +576,11 @@ public class SymbolReferenceResolver {
 					return;
 				}
 				linkedType = (TypeDefinition) targetSymbolInfo.get().node();
-				if( linkedType == null || linkedType.equals( n ) ) {
+				if( linkedType == null ) {
 					error( buildSymbolNotFoundError( n, n.linkedTypeName() ) );
+					return;
+				} else if( linkedType.equals( n ) ) {
+					error( buildInfiniteTypeDefinitionLinkLoop( n, n.linkedTypeName() ) );
 					return;
 				}
 			}
