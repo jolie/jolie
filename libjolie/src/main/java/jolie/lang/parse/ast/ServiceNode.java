@@ -29,18 +29,13 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
-
-	static class ParameterConfiguration {
+	public static class ParameterConfiguration {
 		private final TypeDefinition type;
 		private final String variablePath;
 
-		public ParameterConfiguration( Pair< String, TypeDefinition > parameter ) {
-			this( parameter.value(), parameter.key() );
-		}
-
-		public ParameterConfiguration( TypeDefinition type, String variablePath ) {
-			this.type = type;
+		public ParameterConfiguration( String variablePath, TypeDefinition type ) {
 			this.variablePath = variablePath;
+			this.type = type;
 		}
 
 		public TypeDefinition type() {
@@ -62,17 +57,17 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 
 	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter, Constants.EmbeddedServiceType technology,
-		Map< String, String > implementationConfiguration ) {
-		if( implementationConfiguration == null ) {
+		Map< String, String > config ) {
+		if( config == null ) {
 			new ServiceNode( context, name, accessModifier, p, parameter,
 				Constants.EmbeddedServiceType.SERVICENODE );
 		}
-		Map< String, String > config = implementationConfiguration;
 		if( technology == EmbeddedServiceType.SERVICENODE_JAVA && ServiceNodeJava.isConfigurationValid( config ) ) {
 			return new ServiceNodeJava( context, name, accessModifier, p, parameter,
 				config );
 		}
-		return null;
+		throw new IllegalArgumentException(
+			"Unsupported foreign service node implementation: " + technology.toString() );
 	}
 
 	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
@@ -95,7 +90,7 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 		this.accessModifier = accessModifier;
 		this.program = p;
 		if( parameter != null ) {
-			this.parameter = Optional.of( new ParameterConfiguration( parameter ) );
+			this.parameter = Optional.of( new ParameterConfiguration( parameter.key(), parameter.value() ) );
 		} else {
 			this.parameter = Optional.empty();
 		}
@@ -103,22 +98,8 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 		this.config = config;
 	}
 
-	public boolean hasParameter() {
-		return this.parameter.isPresent();
-	}
-
-	public Optional< TypeDefinition > parameterType() {
-		if( !this.hasParameter() ) {
-			return Optional.empty();
-		}
-		return Optional.of( this.parameter.get().type() );
-	}
-
-	public Optional< String > parameterPath() {
-		if( !this.hasParameter() ) {
-			return Optional.empty();
-		}
-		return Optional.of( this.parameter.get().variablePath() );
+	public Optional< ParameterConfiguration > parameterConfiguration() {
+		return parameter;
 	}
 
 	public Program program() {

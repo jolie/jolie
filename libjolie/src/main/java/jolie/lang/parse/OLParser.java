@@ -1406,6 +1406,7 @@ public class OLParser extends AbstractParser {
 				nextToken();
 				return null;
 			} else { // case ( path: type )
+				assertToken( Scanner.TokenType.ID, "expected parameter variable name" );
 				String paramPath = token.content();
 				nextToken();
 
@@ -1414,7 +1415,7 @@ public class OLParser extends AbstractParser {
 				TypeDefinition parameterType = parseType( typeName, AccessModifier.PRIVATE );
 
 				eat( Scanner.TokenType.RPAREN, "expected )" );
-				return new Pair< String, TypeDefinition >( paramPath, parameterType );
+				return new Pair<>( paramPath, parameterType );
 			}
 		} else {
 			return null;
@@ -1429,10 +1430,8 @@ public class OLParser extends AbstractParser {
 		ProgramBuilder serviceBlockProgramBuilder,
 		EmbeddedServiceType technology,
 		Map< String, String > implementationConfiguration ) {
-
 		return ServiceNode.create( ctx, serviceName, accessModifier, serviceBlockProgramBuilder.toProgram(),
 			parameter, technology, implementationConfiguration );
-
 	}
 
 	private ServiceNode createJolieServiceNode(

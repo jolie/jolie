@@ -728,7 +728,7 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( ServiceNode n ) {
-			n.parameterType().ifPresent( ( type ) -> type.accept( this ) );
+			n.parameterConfiguration().ifPresent( config -> config.type().accept( this ) );
 			n.program().accept( this );
 		}
 
