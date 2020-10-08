@@ -72,20 +72,14 @@ import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
-import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.OneWayOperation;
-import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.TimeoutHandler;
-import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
-import jolie.runtime.ValueVector;
+import jolie.runtime.*;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCheckingException;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
@@ -103,7 +97,6 @@ public class Interpreter {
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process ) {
 			super( interpreter, process );
 			addSessionListener( new SessionListener() {
-
 				@Override
 				public void onSessionExecuted( SessionThread session ) {
 					onSuccessfulInitExecution();
@@ -230,11 +223,21 @@ public class Interpreter {
 		}
 	}
 
+	private static class ParameterConfiguration {
+		private final VariablePath variablePath;
+		private final Type type;
+
+		public ParameterConfiguration( VariablePath variablePath, Type type ) {
+			this.variablePath = variablePath;
+			this.type = type;
+		}
+	}
+
 	private static final Logger LOGGER = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
 	private CommCore commCore;
 	private Program internalServiceProgram = null;
-	private Value receivingEmbeddedValue = null;
+	private final Value receivingEmbeddedValue;
 	private Interpreter parentInterpreter = null;
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
@@ -264,6 +267,7 @@ public class Interpreter {
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
+	private Optional< ParameterConfiguration > parameterConfiguration = Optional.empty();
 
 	private final Map< URI, SymbolTable > symbolTables;
 
@@ -302,6 +306,10 @@ public class Interpreter {
 
 	public Tracer tracer() {
 		return tracer;
+	}
+
+	public void setParameterConfiguration( VariablePath variablePath, Type type ) {
+		parameterConfiguration = Optional.of( new ParameterConfiguration( variablePath, type ) );
 	}
 
 	public void fireMonitorEvent( MonitoringEvent event ) {
@@ -892,7 +900,7 @@ public class Interpreter {
 				"Could not localise the service execution directory. This might be a bug in the Jolie interpreter, please report it to https://github.com/jolie/jolie" );
 		}
 
-		this.receivingEmbeddedValue = params.orElse( null );
+		this.receivingEmbeddedValue = params.orElse( Value.create() );
 	}
 
 	/**
@@ -1047,8 +1055,15 @@ public class Interpreter {
 			try {
 				initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
 
-				if( this.receivingEmbeddedValue() != null ) {
-					initExecutionThread.state().root().deepCopy( this.receivingEmbeddedValue() );
+				if( parameterConfiguration.isPresent() ) {
+					ParameterConfiguration config = parameterConfiguration.get();
+					try {
+						config.type.check( receivingEmbeddedValue );
+					} catch( TypeCheckingException e ) {
+						throw new InterpreterException( e );
+					}
+					config.variablePath.getValue( initExecutionThread.state().root() )
+						.deepCopy( receivingEmbeddedValue );
 				}
 
 				commCore.init();
@@ -1205,7 +1220,6 @@ public class Interpreter {
 
 	private boolean buildOOIT()
 		throws InterpreterException {
-
 		try {
 			Program program;
 			if( configuration.isProgramCompiled() ) {
@@ -1230,11 +1244,11 @@ public class Interpreter {
 						configuration().jolieClassLoader(),
 						configuration().constants(),
 						false );
-					Modules.ModuleParsedResult parsesResult =
+					Modules.ModuleParsedResult parsedResult =
 						Modules.parseModule( configuration, configuration().inputStream(),
 							configuration().programFilepath().toURI() );
-					symbolTables.putAll( parsesResult.symbolTables() );
-					program = parsesResult.mainProgram();
+					symbolTables.putAll( parsedResult.symbolTables() );
+					program = parsedResult.mainProgram();
 				}
 			}
 

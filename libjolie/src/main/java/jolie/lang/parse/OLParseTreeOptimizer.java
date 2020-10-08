@@ -22,6 +22,8 @@ package jolie.lang.parse;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -913,20 +915,19 @@ public class OLParseTreeOptimizer {
 
 		@Override
 		public void visit( ServiceNode n ) {
-			Pair< String, TypeDefinition > parameter = null;
-			if( n.hasParameter() ) {
-				parameter = new Pair<>( n.parameterPath().get(), n.parameterType().get() );
-			}
+			Optional< Pair< String, TypeDefinition > > parameter =
+				n.parameterConfiguration().map( config -> new Pair<>( config.variablePath(), config.type() ) );
+
 			if( n.type() == EmbeddedServiceType.SERVICENODE ) {
 				programChildren.add(
 					ServiceNode.create( n.context(), n.name(), n.accessModifier(),
 						OLParseTreeOptimizer.optimize( n.program() ),
-						parameter ) );
+						parameter.orElse( null ) ) );
 			} else {
 				programChildren.add(
 					ServiceNode.create( n.context(), n.name(), n.accessModifier(),
 						OLParseTreeOptimizer.optimize( n.program() ),
-						parameter, n.type(), n.implementationConfiguration() ) );
+						parameter.orElse( null ), n.type(), n.implementationConfiguration() ) );
 			}
 		}
 

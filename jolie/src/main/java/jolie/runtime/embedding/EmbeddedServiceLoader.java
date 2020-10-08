@@ -242,6 +242,5 @@ public abstract class EmbeddedServiceLoader {
 		public Type acceptingParameterType() {
 			return this.acceptingParameterType;
 		}
-
 	}
 }

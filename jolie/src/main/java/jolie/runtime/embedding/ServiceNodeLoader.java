@@ -20,6 +20,7 @@
 package jolie.runtime.embedding;
 
 import java.util.concurrent.atomic.AtomicLong;
+
 import jolie.Interpreter;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.ast.ServiceNode;
@@ -62,17 +63,17 @@ public abstract class ServiceNodeLoader extends EmbeddedServiceLoader {
 
 	@Override
 	public void load() throws EmbeddedServiceLoadingException {
-
 		try {
 			Value passingValue = passingParameter == null ? Value.create() : passingParameter.evaluate();
-			Value pathValue = Value.create();
-			if( this.serviceNode.parameterType().isPresent() ) {
+			// Value pathValue = Value.create();
+
+			if( this.serviceNode.parameterConfiguration().isPresent() ) {
 				this.acceptingType.check( passingValue );
-				pathValue.getChildren( this.serviceNode.parameterPath().get() ).first()
-					.deepCopy( passingValue );
+				// pathValue.getFirstChild( this.serviceNode.parameterConfiguration().get().variablePath() )
+				// .deepCopy( passingValue );
 			}
 
-			load( pathValue );
+			load( passingValue );
 		} catch( TypeCheckingException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}

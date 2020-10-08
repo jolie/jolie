@@ -131,7 +131,6 @@ class ModuleCrawler {
 		}
 
 		return result;
-
 	}
 
 	/**

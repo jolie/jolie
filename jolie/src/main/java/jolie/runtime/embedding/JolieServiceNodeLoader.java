@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.Interpreter;
 import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.util.ProgramBuilder;
 import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.Type;
@@ -39,20 +40,24 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 
 	@Override
 	public void load( Value v ) throws EmbeddedServiceLoadingException {
-
 		Interpreter.Configuration configuration = Interpreter.Configuration.create(
 			super.interpreter().configuration(),
-			new File( "#service_node_" + SERVICE_LOADER_COUNTER.getAndIncrement() ),
+			new File( "#" + interpreter().programFilename() + "#" + serviceNode().name() + "#"
+				+ SERVICE_LOADER_COUNTER.getAndIncrement() ),
 			new ByteArrayInputStream( "".getBytes() ) );
 
 		Interpreter interpreter;
 		try {
+			ProgramBuilder builder = new ProgramBuilder( serviceNode().context() );
+			builder.addChild( serviceNode() );
+
 			interpreter = new Interpreter(
 				configuration,
 				super.interpreter().programDirectory(),
 				super.interpreter(),
-				super.serviceNode().program(),
+				builder.toProgram(),
 				v );
+
 			Future< Exception > f = interpreter.start();
 			Exception e = f.get();
 			if( e == null ) {
@@ -60,8 +65,6 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 			}
 		} catch( IOException | InterruptedException | ExecutionException e ) {
 			throw new EmbeddedServiceLoadingException( e );
-
 		}
-
 	}
 }
