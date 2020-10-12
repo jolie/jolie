@@ -32,4 +32,8 @@ public class SymbolNotFoundException extends Exception {
 	public SymbolNotFoundException( String symbolName, ImportPath importPath ) {
 		super( symbolName + " is not defined in " + importPath );
 	}
+
+	public SymbolNotFoundException( String symbolName, String lookupPath ) {
+		super( "Could not find module at path " + lookupPath + " to retrieve the symbol " + symbolName );
+	}
 }

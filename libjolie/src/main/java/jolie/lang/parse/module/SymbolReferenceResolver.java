@@ -20,13 +20,8 @@
 package jolie.lang.parse.module;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
 import jolie.lang.CodeCheckingError;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperandType;
@@ -805,6 +800,9 @@ public class SymbolReferenceResolver {
 		throws SymbolNotFoundException {
 		ModuleRecord externalSourceRecord =
 			this.moduleMap.get( symbolInfo.moduleSource().get().uri() );
+		if( externalSourceRecord == null ) {
+			throw new SymbolNotFoundException( symbolInfo.name(), symbolInfo.moduleSource().get().uri().toString() );
+		}
 		Optional< SymbolInfo > externalSourceSymbol =
 			externalSourceRecord.symbolTable().getSymbol( symbolInfo.originalSymbolName() );
 		if( !externalSourceSymbol.isPresent() || lookedSources.contains( externalSourceRecord.uri() ) ) {
@@ -841,7 +839,7 @@ public class SymbolReferenceResolver {
 						this.moduleMap.get( importedSymbol.moduleSource().get().uri() );
 					md.symbolTable().resolveWildcardImport( (WildcardImportedSymbolInfo) importedSymbol,
 						wildcardImportedRecord.symbolTable().symbols() );
-				} else {
+				} else if( importedSymbol.node() == null ) {
 					SymbolInfo targetSymbol = symbolSourceLookup( importedSymbol );
 					if( targetSymbol.accessModifier() == AccessModifier.PRIVATE ) {
 						throw new IllegalAccessSymbolException( importedSymbol.name(),

@@ -68,7 +68,7 @@ define doTest
 					||
 					event.person.lastName != r[k].person.lastName
 				) {
-					throw( TestFailed )
+					throw( TestFailed, "Correlation mix. Expected firstName = " + r[k].person.firstName + " and lastName = " + r[k].person.lastName + ". Received firstName = " + event.person.firstName + " and lastName = " + event.person.lastName + "." )
 				}
 			}
 		}

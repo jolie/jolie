@@ -29,6 +29,8 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
+	public static final String DEFAULT_MAIN_SERVICE_NAME = "Main";
+
 	public static class ParameterConfiguration {
 		private final TypeDefinition type;
 		private final String variablePath;

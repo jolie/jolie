@@ -122,7 +122,7 @@ public class VariablePath implements Expression {
 	}
 
 	protected Value getRootValue() {
-		return ExecutionThread.currentThread().state().root();
+		return ExecutionThread.getState().root();
 	}
 
 	public final void undef() {
