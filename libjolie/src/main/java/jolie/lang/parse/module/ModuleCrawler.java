@@ -120,14 +120,11 @@ class ModuleCrawler {
 
 			if( ModuleCrawler.inCache( module.uri() ) ) {
 				result.addModuleRecord( ModuleCrawler.getRecordFromCache( module.uri() ) );
-				continue;
+			} else {
+				ModuleRecord record = new ModuleParser( parserConfiguration ).parse( module );
+				result.addModuleRecord( record );
+				dependencies.addAll( crawlModule( record ) );
 			}
-
-			ModuleParser parser = new ModuleParser( parserConfiguration );
-			ModuleRecord p = parser.parse( module );
-
-			result.addModuleRecord( p );
-			dependencies.addAll( this.crawlModule( p ) );
 		}
 
 		return result;

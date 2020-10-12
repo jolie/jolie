@@ -525,7 +525,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor {
 		}
 		list.add( n );
 		encounteredNode( n );
-		if( n.name().equals( "main" ) ) {
+		if( n.name().equals( ServiceNode.DEFAULT_MAIN_SERVICE_NAME ) ) {
 			n.program().accept( this );
 		}
 	}

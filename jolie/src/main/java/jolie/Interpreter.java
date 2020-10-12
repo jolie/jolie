@@ -78,8 +78,6 @@ import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
-import jolie.runtime.typing.Type;
-import jolie.runtime.typing.TypeCheckingException;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
@@ -94,8 +92,8 @@ import jolie.tracer.TracerUtils;
  */
 public class Interpreter {
 	private final class InitSessionThread extends SessionThread {
-		public InitSessionThread( Interpreter interpreter, jolie.process.Process process ) {
-			super( interpreter, process );
+		public InitSessionThread( Interpreter interpreter, jolie.process.Process process, jolie.State state ) {
+			super( interpreter, process, state );
 			addSessionListener( new SessionListener() {
 				@Override
 				public void onSessionExecuted( SessionThread session ) {
@@ -223,15 +221,15 @@ public class Interpreter {
 		}
 	}
 
-	private static class ParameterConfiguration {
-		private final VariablePath variablePath;
-		private final Type type;
+	// private static class ParameterConfiguration {
+	// private final VariablePath variablePath;
+	// private final Type type;
 
-		public ParameterConfiguration( VariablePath variablePath, Type type ) {
-			this.variablePath = variablePath;
-			this.type = type;
-		}
-	}
+	// public ParameterConfiguration( VariablePath variablePath, Type type ) {
+	// this.variablePath = variablePath;
+	// this.type = type;
+	// }
+	// }
 
 	private static final Logger LOGGER = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
@@ -267,7 +265,7 @@ public class Interpreter {
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
-	private Optional< ParameterConfiguration > parameterConfiguration = Optional.empty();
+	// private Optional< ParameterConfiguration > parameterConfiguration = Optional.empty();
 
 	private final Map< URI, SymbolTable > symbolTables;
 
@@ -308,9 +306,9 @@ public class Interpreter {
 		return tracer;
 	}
 
-	public void setParameterConfiguration( VariablePath variablePath, Type type ) {
-		parameterConfiguration = Optional.of( new ParameterConfiguration( variablePath, type ) );
-	}
+	// public void setParameterConfiguration( VariablePath variablePath, Type type ) {
+	// parameterConfiguration = Optional.of( new ParameterConfiguration( variablePath, type ) );
+	// }
 
 	public void fireMonitorEvent( MonitoringEvent event ) {
 		if( monitor != null ) {
@@ -1039,13 +1037,13 @@ public class Interpreter {
 		return f;
 	}
 
-	private void init()
+	private void init( State initState )
 		throws InterpreterException, IOException {
 		/**
 		 * Order is important. 1 - CommCore needs the OOIT to be initialized. 2 - initExec must be
 		 * instantiated before we can receive communications.
 		 */
-		if( !buildOOIT() && !check ) {
+		if( !buildOOIT( initState.root() ) && !check ) {
 			throw new InterpreterException( "Error: service initialisation failed" );
 		}
 		if( check ) {
@@ -1053,18 +1051,7 @@ public class Interpreter {
 		} else {
 			sessionStarters = Collections.unmodifiableMap( sessionStarters );
 			try {
-				initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
-
-				if( parameterConfiguration.isPresent() ) {
-					ParameterConfiguration config = parameterConfiguration.get();
-					try {
-						config.type.check( receivingEmbeddedValue );
-					} catch( TypeCheckingException e ) {
-						throw new InterpreterException( e );
-					}
-					config.variablePath.getValue( initExecutionThread.state().root() )
-						.deepCopy( receivingEmbeddedValue );
-				}
+				initExecutionThread = new InitSessionThread( this, getDefinition( "init" ), initState );
 
 				commCore.init();
 
@@ -1139,7 +1126,7 @@ public class Interpreter {
 	 */
 	public void run()
 		throws InterpreterException, IOException {
-		init();
+		init( new jolie.State() );
 		runCode();
 	}
 
@@ -1164,11 +1151,12 @@ public class Interpreter {
 	private static final AtomicInteger STARTER_THREAD_COUNTER = new AtomicInteger();
 
 	private static String createStarterThreadName( String programFilename ) {
-		return programFilename + "-StarterThread-" + STARTER_THREAD_COUNTER.incrementAndGet();
+		return programFilename + "-Starter-" + STARTER_THREAD_COUNTER.incrementAndGet();
 	}
 
-	private class StarterThread extends Thread {
+	public class StarterThread extends Thread {
 		private final CompletableFuture< Exception > future;
+		private final jolie.State initState = new jolie.State();
 
 		public StarterThread( CompletableFuture< Exception > future ) {
 			super( createStarterThreadName( configuration.programFilepath().getName() ) );
@@ -1179,7 +1167,7 @@ public class Interpreter {
 		@Override
 		public void run() {
 			try {
-				init();
+				init( initState );
 				future.complete( null );
 			} catch( IOException | InterpreterException e ) {
 				future.complete( e );
@@ -1187,6 +1175,10 @@ public class Interpreter {
 			runCode();
 			// commCore.shutdown();
 			exit();
+		}
+
+		public jolie.State initState() {
+			return initState;
 		}
 	}
 
@@ -1218,7 +1210,7 @@ public class Interpreter {
 		return commCore;
 	}
 
-	private boolean buildOOIT()
+	private boolean buildOOIT( Value initValue )
 		throws InterpreterException {
 		try {
 			Program program;
@@ -1290,7 +1282,8 @@ public class Interpreter {
 					this,
 					program,
 					semanticVerifier.constantFlags(),
-					semanticVerifier.correlationFunctionInfo() ))
+					semanticVerifier.correlationFunctionInfo(),
+					initValue ))
 						.build();
 			}
 

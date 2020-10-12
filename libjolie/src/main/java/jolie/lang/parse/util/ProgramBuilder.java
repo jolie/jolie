@@ -19,10 +19,8 @@
 
 package jolie.lang.parse.util;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ImportStatement;
@@ -78,19 +76,20 @@ public class ProgramBuilder {
 		// main service program
 		ProgramBuilder mainServiceProgramBuilder = new ProgramBuilder( context );
 
-		Set< OLSyntaxNode > movingNodes = new HashSet<>();
-
-		for( OLSyntaxNode node : children ) {
+		ListIterator< OLSyntaxNode > it = children.listIterator();
+		while( it.hasNext() ) {
+			OLSyntaxNode node = it.next();
 			if( !(node instanceof ImportableSymbol) && !(node instanceof ImportStatement) ) {
 				mainServiceProgramBuilder.addChild( node );
-				movingNodes.add( node );
+				it.remove();
 			}
 		}
+
 		ServiceNode mainService =
-			ServiceNode.create( context, "main", AccessModifier.PUBLIC, mainServiceProgramBuilder.toProgram(), null );
+			ServiceNode.create( context, ServiceNode.DEFAULT_MAIN_SERVICE_NAME, AccessModifier.PUBLIC,
+				mainServiceProgramBuilder.toProgram(), null );
 
 		children.add( mainService );
-		children.removeAll( movingNodes );
 	}
 
 

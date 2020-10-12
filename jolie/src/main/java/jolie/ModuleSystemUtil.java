@@ -67,7 +67,6 @@ public class ModuleSystemUtil {
 
 			return new InlineTreeExpressionNode( inlineTreeNodeProtocol.context(), protocolIdNode,
 				inlineTreeNodeProtocol.operations() );
-
 		}
 
 		return node;

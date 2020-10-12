@@ -294,7 +294,7 @@ public class RuntimeService extends JavaService {
 		try {
 			printer.run();
 			printer = new ValuePrettyPrinter( Value.createDeepCopy( ExecutionThread.currentThread().state().root() ),
-				writer, "Session state" );
+				writer, "Process state" );
 			printer.run();
 		} catch( IOException e ) {
 		} // Should never happen

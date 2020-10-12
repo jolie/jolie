@@ -17,9 +17,7 @@
  * MA 02110-1301  USA
  */
 
-
 package jolie;
-
 
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
@@ -31,6 +29,7 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
+import jolie.lang.parse.ast.ServiceNode.ParameterConfiguration;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
@@ -63,6 +62,7 @@ import jolie.runtime.typing.BasicType;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCheckingException;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
@@ -80,6 +80,7 @@ import java.util.function.BiPredicate;
  */
 public class OOITBuilder implements OLVisitor {
 	private final Program program;
+	private final Value initValue;
 	private boolean valid = true;
 	private final Interpreter interpreter;
 	private String currentOutputPort = null;
@@ -128,10 +129,12 @@ public class OOITBuilder implements OLVisitor {
 		Interpreter interpreter,
 		Program program,
 		Map< String, Boolean > isConstantMap,
-		CorrelationFunctionInfo correlationFunctionInfo ) {
+		CorrelationFunctionInfo correlationFunctionInfo,
+		Value initValue ) {
 		this.interpreter = interpreter;
 		this.constantFlags = isConstantMap;
 		this.correlationFunctionInfo = correlationFunctionInfo;
+		this.initValue = initValue;
 
 		List< OLSyntaxNode > programChildren = new ArrayList<>();
 		programChildren.addAll( OLParser.createTypeDeclarationMap( program.context() ).values() );
@@ -165,28 +168,45 @@ public class OOITBuilder implements OLVisitor {
 	 */
 	public boolean build() {
 		visit( program );
-		if( services.values().size() >= 1 ) {
-			ServiceNode executionService = null;
-			if( services.values().size() == 1 ) {
-				executionService = services.values().iterator().next();
-			} else if( services.values().size() > 1 ) {
-				executionService = services.get( this.interpreter.configuration().executionTarget() );
-			}
-			if( executionService == null ) {
-				error( program.context(), "Execution service or main procedure is not defined" );
+		if( services.values().isEmpty() ) {
+			error( program.context(), "No services defined" );
+			return false;
+		}
+
+		final ServiceNode mainService;
+		final String executionTarget = interpreter.configuration().executionTarget();
+		if( executionTarget != null ) {
+			mainService = services.get( executionTarget );
+			if( mainService == null ) {
+				error( program.context(), "Service " + executionTarget + " is not defined" );
 				return false;
 			}
-
-			executionService.parameterConfiguration().ifPresent( config -> {
-				interpreter.setParameterConfiguration(
-					new VariablePathBuilder( false ).add( config.variablePath(), 0 ).toVariablePath(),
-					buildType( config.type() ) );
-			} );
-
-			visit( executionService.program() );
+		} else if( services.values().size() > 1 ) {
+			error( program.context(),
+				"No service to be run has been specified, but multiple service definitions found. Run jolie --help to see how to use the -s parameter" );
+			return false;
+		} else {
+			mainService = services.values().iterator().next();
 		}
-		checkForInit();
+
+		if( mainService.parameterConfiguration().isPresent() ) {
+			ParameterConfiguration config = mainService.parameterConfiguration().get();
+			VariablePath paramPath = new VariablePathBuilder( false ).add( config.variablePath(), 0 ).toVariablePath();
+			Type paramType = buildType( config.type() );
+			resolveTypeLinks();
+			try {
+				paramType.check( interpreter.receivingEmbeddedValue() );
+			} catch( TypeCheckingException e ) {
+				error( mainService.context(), e );
+			}
+			new ClosedVariablePath( paramPath, initValue )
+				.getValue().deepCopy( interpreter.receivingEmbeddedValue() );
+		}
+
+		visit( mainService.program() );
+
 		resolveTypeLinks();
+		checkForInit();
 		lazyVisits();
 		buildCorrelationSets();
 
@@ -302,8 +322,8 @@ public class OOITBuilder implements OLVisitor {
 		Expression locationExpr = buildExpression( n.location() );
 
 		if( locationExpr instanceof VariablePath ) {
-			VariablePath path = (VariablePath) locationExpr;
-			locationExpr = path.getValue( this.interpreter.receivingEmbeddedValue() );
+			VariablePath path = new ClosedVariablePath( (VariablePath) locationExpr, initValue );
+			locationExpr = path.getValue();
 		}
 
 		OLSyntaxNode protocolNode =
@@ -312,7 +332,7 @@ public class OOITBuilder implements OLVisitor {
 
 		if( protocolExpr instanceof VariablePath ) {
 			VariablePath path = (VariablePath) protocolExpr;
-			protocolExpr = path.getValue( this.interpreter.receivingEmbeddedValue() );
+			protocolExpr = path.getValue();
 		}
 
 		interpreter.register( n.id(),
@@ -433,21 +453,23 @@ public class OOITBuilder implements OLVisitor {
 
 		VariablePath locationPath =
 			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( n.id(), 0 ).add( Constants.LOCATION_NODE_NAME, 0 ).toVariablePath();
+				.add( n.id(), 0 ).add( Constants.LOCATION_NODE_NAME, 0 )
+				.toClosedVariablePath( interpreter.globalValue() );
 
 		VariablePath protocolPath =
 			new VariablePathBuilder( true ).add( Constants.INPUT_PORTS_NODE_NAME, 0 )
-				.add( n.id(), 0 ).add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
+				.add( n.id(), 0 ).add( Constants.PROTOCOL_NODE_NAME, 0 )
+				.toClosedVariablePath( interpreter.globalValue() );
 
-		locationPath = new ClosedVariablePath( locationPath, interpreter.globalValue() );
+		// locationPath = new ClosedVariablePath( locationPath, interpreter.globalValue() );
 
 		Expression locationExpr = buildExpression( n.location() );
 		String locationStr = null;
 		if( locationExpr instanceof Value ) {
-			locationStr = locationExpr.evaluate().strValue();
+			locationStr = ((Value) locationExpr).strValue();
 		} else if( locationExpr instanceof VariablePath ) {
-			VariablePath path = (VariablePath) locationExpr;
-			locationStr = path.getValue( this.interpreter.receivingEmbeddedValue() ).strValue();
+			VariablePath path = new ClosedVariablePath( (VariablePath) locationExpr, initValue );
+			locationStr = path.getValue().strValue();
 		}
 
 		if( locationStr == null ) {
@@ -471,7 +493,7 @@ public class OOITBuilder implements OLVisitor {
 				protocolStr = protocolExpr.evaluate().strValue();
 			} else if( protocolExpr instanceof VariablePath ) {
 				VariablePath path = (VariablePath) protocolExpr;
-				protocolStr = path.getValue( this.interpreter.receivingEmbeddedValue() ).strValue();
+				protocolStr = path.getValue().strValue();
 			}
 		} else {
 			protocolProcs.add( NullProcess.getInstance() );
@@ -1559,7 +1581,7 @@ public class OOITBuilder implements OLVisitor {
 
 	@Override
 	public void visit( ServiceNode n ) {
-		this.services.put( n.name(), n );
+		services.put( n.name(), n );
 	}
 
 	@Override

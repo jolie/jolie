@@ -1371,6 +1371,8 @@ public class OLParser extends AbstractParser {
 		EmbeddedServiceNode internalServiceNode =
 			new EmbeddedServiceNode( getContext(), Constants.EmbeddedServiceType.INTERNAL, serviceName, serviceName );
 
+		internalServiceProgramBuilder.transformProgramToModuleSystem();
+
 		// add internal service program to embedded service node
 		internalServiceNode.setProgram( internalServiceProgramBuilder.toProgram() );
 		return internalServiceNode;
