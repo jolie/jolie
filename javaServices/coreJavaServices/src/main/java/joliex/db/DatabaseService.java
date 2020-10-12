@@ -67,6 +67,7 @@ public class DatabaseService extends JavaService {
 	private String username = null;
 	private String password = null;
 	private String driver = null;
+	private String classDriver = null;
 	private static boolean toLowerCase = false;
 	private static boolean toUpperCase = false;
 	private boolean mustCheckConnection = false;
@@ -115,6 +116,9 @@ public class DatabaseService extends JavaService {
 			request.getFirstChild( "toUpperCase" ).isDefined() && request.getFirstChild( "toUpperCase" ).boolValue();
 
 		driver = request.getChildren( "driver" ).first().strValue();
+		if( request.hasChildren( "classDriver" ) ) {
+			classDriver = request.getFirstChild( "classDriver" ).strValue();
+		}
 		String host = request.getChildren( "host" ).first().strValue();
 		String port = request.getChildren( "port" ).first().strValue();
 		String databaseName = request.getChildren( "database" ).first().strValue();
@@ -129,38 +133,42 @@ public class DatabaseService extends JavaService {
 		}
 
 		try {
-			if( "postgresql".equals( driver ) ) {
-				Class.forName( "org.postgresql.Driver" );
-			} else if( "mysql".equals( driver ) ) {
-				Class.forName( "com.mysql.jdbc.Driver" );
-			} else if( "derby".equals( driver ) ) {
-				Class.forName( "org.apache.derby.jdbc.ClientDriver" );
-			} else if( "sqlite".equals( driver ) ) {
-				Class.forName( "org.sqlite.JDBC" );
-				isEmbedded = true;
-			} else if( "sqlserver".equals( driver ) ) {
-				Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
-				separator = ";";
-				databaseName = "databaseName=" + databaseName;
-			} else if( "as400".equals( driver ) ) {
-				Class.forName( "com.ibm.as400.access.AS400JDBCDriver" );
-			} else if( "derby_embedded".equals( driver ) ) {
-				Class.forName( "org.apache.derby.jdbc.EmbeddedDriver" );
-				isEmbedded = true;
-				driver = "derby";
-			} else if( "hsqldb_hsql".equals( driver )
-				|| "hsqldb_hsqls".equals( driver )
-				|| "hsqldb_http".equals( driver )
-				|| "hsqldb_https".equals( driver ) ) {
-				Class.forName( "org.hsqldb.jdbcDriver" );
-			} else if( "hsqldb_embedded".equals( driver ) ) {
-				Class.forName( "org.hsqldb.jdbcDriver" );
-				isEmbedded = true;
-				driver = "hsqldb";
-			} else if( "db2".equals( driver ) ) {
-				Class.forName( "com.ibm.db2.jcc.DB2Driver" );
+			if( classDriver == null ) {
+				if( "postgresql".equals( driver ) ) {
+					Class.forName( "org.postgresql.Driver" );
+				} else if( "mysql".equals( driver ) ) {
+					Class.forName( "com.mysql.jdbc.Driver" );
+				} else if( "derby".equals( driver ) ) {
+					Class.forName( "org.apache.derby.jdbc.ClientDriver" );
+				} else if( "sqlite".equals( driver ) ) {
+					Class.forName( "org.sqlite.JDBC" );
+					isEmbedded = true;
+				} else if( "sqlserver".equals( driver ) ) {
+					Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
+					separator = ";";
+					databaseName = "databaseName=" + databaseName;
+				} else if( "as400".equals( driver ) ) {
+					Class.forName( "com.ibm.as400.access.AS400JDBCDriver" );
+				} else if( "derby_embedded".equals( driver ) ) {
+					Class.forName( "org.apache.derby.jdbc.EmbeddedDriver" );
+					isEmbedded = true;
+					driver = "derby";
+				} else if( "hsqldb_hsql".equals( driver )
+					|| "hsqldb_hsqls".equals( driver )
+					|| "hsqldb_http".equals( driver )
+					|| "hsqldb_https".equals( driver ) ) {
+					Class.forName( "org.hsqldb.jdbcDriver" );
+				} else if( "hsqldb_embedded".equals( driver ) ) {
+					Class.forName( "org.hsqldb.jdbcDriver" );
+					isEmbedded = true;
+					driver = "hsqldb";
+				} else if( "db2".equals( driver ) ) {
+					Class.forName( "com.ibm.db2.jcc.DB2Driver" );
+				} else {
+					throw new FaultException( "InvalidDriver", "Unknown type of driver: " + driver );
+				}
 			} else {
-				throw new FaultException( "InvalidDriver", "Unknown type of driver: " + driver );
+				Class.forName( classDriver );
 			}
 
 			if( isEmbedded ) {
