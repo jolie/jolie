@@ -21,7 +21,9 @@
  */
 
 type ConnectionInfo:void {
-	.driver:string // http://docs.jolie-lang.org/#!documentation/databases/databases.html
+	.driver:string  { // http://docs.jolie-lang.org/#!documentation/databases/databases.html
+		.class?: string	//> it allows for specifying a specific driver Java class
+	}
 	.host:string
 	.port?:int
 	.database:string
