@@ -67,7 +67,7 @@ public class DatabaseService extends JavaService {
 	private String username = null;
 	private String password = null;
 	private String driver = null;
-	private String classDriver = null;
+	private String driverClass = null;
 	private static boolean toLowerCase = false;
 	private static boolean toUpperCase = false;
 	private boolean mustCheckConnection = false;
@@ -116,8 +116,8 @@ public class DatabaseService extends JavaService {
 			request.getFirstChild( "toUpperCase" ).isDefined() && request.getFirstChild( "toUpperCase" ).boolValue();
 
 		driver = request.getChildren( "driver" ).first().strValue();
-		if( request.hasChildren( "classDriver" ) ) {
-			classDriver = request.getFirstChild( "classDriver" ).strValue();
+		if( request.getFirstChild( "driver" ).hasChildren( "class" ) ) {
+			driverClass = request.getFirstChild( "driver" ).getFirstChild( "class" ).strValue();
 		}
 		String host = request.getChildren( "host" ).first().strValue();
 		String port = request.getChildren( "port" ).first().strValue();
@@ -133,7 +133,7 @@ public class DatabaseService extends JavaService {
 		}
 
 		try {
-			if( classDriver == null ) {
+			if( driverClass == null ) {
 				if( "postgresql".equals( driver ) ) {
 					Class.forName( "org.postgresql.Driver" );
 				} else if( "mysql".equals( driver ) ) {
@@ -168,7 +168,7 @@ public class DatabaseService extends JavaService {
 					throw new FaultException( "InvalidDriver", "Unknown type of driver: " + driver );
 				}
 			} else {
-				Class.forName( classDriver );
+				Class.forName( driverClass );
 			}
 
 			if( isEmbedded ) {
