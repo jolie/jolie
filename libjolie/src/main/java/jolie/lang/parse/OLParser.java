@@ -2006,7 +2006,6 @@ public class OLParser extends AbstractParser {
 					new TypeDefinitionLink( getContext(), requestTypeName,
 						Constants.RANGE_ONE_TO_ONE, requestTypeName ) );
 
-
 				TypeDefinition responseType = definedTypes.getOrDefault( responseTypeName,
 					new TypeDefinitionLink( getContext(), responseTypeName,
 						Constants.RANGE_ONE_TO_ONE, responseTypeName ) );
