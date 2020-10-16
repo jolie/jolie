@@ -44,7 +44,8 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 			super.interpreter().configuration(),
 			new File( "#" + interpreter().programFilename() + "#" + serviceNode().name() + "#"
 				+ SERVICE_LOADER_COUNTER.getAndIncrement() ),
-			new ByteArrayInputStream( "".getBytes() ) );
+			new ByteArrayInputStream( "".getBytes() ),
+			serviceNode().name() );
 
 		Interpreter interpreter;
 		try {

@@ -158,6 +158,13 @@ public class OOITBuilder implements OLVisitor {
 			e.getCause() ) );
 	}
 
+	private void error( ParsingContext context, String prefix, Exception e ) {
+		valid = false;
+		interpreter.logSevere( new InterpreterException(
+			buildErrorMessage( context, prefix + " " + e.getMessage() ),
+			e.getCause() ) );
+	}
+
 	/**
 	 * Launches the build process.
 	 * 
@@ -197,7 +204,9 @@ public class OOITBuilder implements OLVisitor {
 			try {
 				paramType.check( interpreter.receivingEmbeddedValue() );
 			} catch( TypeCheckingException e ) {
-				error( mainService.context(), e );
+				error( mainService.context(), "The actual parameters passed to service " + mainService.name()
+					+ " do not match the expected type.", e );
+				return false;
 			}
 			new ClosedVariablePath( paramPath, initValue )
 				.getValue().deepCopy( interpreter.receivingEmbeddedValue() );

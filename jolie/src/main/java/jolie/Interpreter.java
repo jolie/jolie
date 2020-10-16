@@ -1529,6 +1529,17 @@ public class Interpreter {
 				config.programDirectory, config.packagePaths, config.executionTarget );
 		}
 
+		public static Configuration create( Configuration config,
+			File programFilepath,
+			InputStream inputStream,
+			String executionTarget ) {
+			return create( config.connectionsLimit, config.correlationAlgorithm, config.includePaths, config.optionArgs,
+				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
+				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
+				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
+				config.programDirectory, config.packagePaths, executionTarget );
+		}
+
 		/**
 		 * Returns the connection limit parameter passed by command line with the -c option.
 		 *
