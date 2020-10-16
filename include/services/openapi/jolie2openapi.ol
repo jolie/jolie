@@ -73,6 +73,7 @@ service Utils {
         }]
 
         [ getFaultDefinitionForOpenAPI( request )( response ) {
+
             response.name = request.fault.name
             with( response.fault )  {
                 .name = request.name;
@@ -87,11 +88,17 @@ service Utils {
                     with( .sub_type[1] ) {
                         .name = "content";
                         .cardinality.min = 1;
-                        .cardinality.max = 1;
-                        .type -> request.fault.type                   
+                        .cardinality.max = 1              
                     }
                 }
             }
+            
+            if ( request.fault.type instanceof NativeType ) {
+                response.fault.type.sub_type[1].type.root_type << request.fault.type
+            } else {
+                response.fault.type.sub_type[1].type << request.fault.type
+            }
+
         }]
     }
 }
@@ -211,7 +218,7 @@ define __body {
                         } else {
                             __given_template = Void
                         }
-                       
+                        undef( __template )
                         if ( !easyInterface && !(__given_template instanceof void) ) {
                             analyzeTemplate@JesterUtils(__given_template )( analyzed_template )
                             __template = analyzed_template.template
