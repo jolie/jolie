@@ -21,7 +21,7 @@ init {
 }
 
 main {
-    if ( #args < 4 || #args > 5 ) {
+    if ( #args < 4 || #args > 6 ) {
         println@Console("Usage: jolie2openapi <service_filename> <input_port> <router_host> <output_folder> [easy_interface true|false]")()
         println@Console("<service_filename>:\tfilename of the jolie service")()
         println@Console("<input_port>:\tinput port to be converted")()
@@ -38,8 +38,8 @@ main {
     router_host = args [ 2 ]
     wkdir = args[ 3 ]
 
-    if ( #args == 5 ) {
-        easy_interface = bool( args[ 4 ] )
+    if ( #args == 6 ) {
+        easy_interface = bool( args[ 5 ] )
     } else {
         easy_interface = false
     }
