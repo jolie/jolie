@@ -21,7 +21,6 @@
 
 package joliex.lang;
 
-import com.sun.management.UnixOperatingSystemMXBean;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -30,8 +29,9 @@ import java.lang.management.OperatingSystemMXBean;
 import java.util.Optional;
 import java.util.function.Function;
 
+import com.sun.management.UnixOperatingSystemMXBean;
+
 import jolie.ExecutionThread;
-import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommListener;
 import jolie.net.LocalCommChannel;
@@ -49,15 +49,9 @@ import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService {
-	private final Interpreter interpreter;
-
-	public RuntimeService() {
-		this.interpreter = Interpreter.getInstance();
-	}
-
 	public Value getLocalLocation() {
 		Value v = Value.create();
-		v.setValue( interpreter.commCore().getLocalCommChannel() );
+		v.setValue( interpreter().commCore().getLocalCommChannel() );
 		return v;
 	}
 
@@ -82,7 +76,7 @@ public class RuntimeService extends JavaService {
 			true );
 		port.optimizeLocation();
 
-		interpreter.setMonitor( port );
+		interpreter().setMonitor( port );
 	}
 
 	@RequestResponse
@@ -95,7 +89,7 @@ public class RuntimeService extends JavaService {
 				interpreter(),
 				name );
 		Value l;
-		Value r = interpreter.initThread().state().root();
+		Value r = interpreter().initThread().state().root();
 		l = r.getFirstChild( name ).getFirstChild( Constants.LOCATION_NODE_NAME );
 		if( locationValue.isChannel() ) {
 			l.setValue( locationValue.channelValue() );
@@ -113,14 +107,14 @@ public class RuntimeService extends JavaService {
 		}
 		r.getFirstChild( name ).getFirstChild( Constants.PROTOCOL_NODE_NAME ).deepCopy( protocolValue );
 
-		interpreter.register( name, port );
+		interpreter().register( name, port );
 	}
 
 	@RequestResponse
 	public Value getOutputPort( Value v ) throws FaultException {
 		OutputPort foundOp = null;
 		Value ret = Value.create();
-		for( OutputPort o : interpreter.outputPorts() ) {
+		for( OutputPort o : interpreter().outputPorts() ) {
 			if( o.id().equals( v.getFirstChild( "name" ).strValue() ) ) {
 				foundOp = o;
 			}
@@ -143,7 +137,7 @@ public class RuntimeService extends JavaService {
 	public Value getOutputPorts() {
 		Value ret = Value.create();
 		int counter = 0;
-		for( OutputPort o : interpreter.outputPorts() ) {
+		for( OutputPort o : interpreter().outputPorts() ) {
 			ret.getChildren( "port" ).get( counter ).getFirstChild( "name" ).setValue( o.id() );
 			try {
 				ret.getChildren( "port" ).get( counter ).getFirstChild( "protocol" ).setValue( o.getProtocol().name() );
@@ -166,7 +160,7 @@ public class RuntimeService extends JavaService {
 
 	@RequestResponse
 	public void removeOutputPort( String outputPortName ) {
-		interpreter.removeOutputPort( outputPortName );
+		interpreter().removeOutputPort( outputPortName );
 	}
 
 	@RequestResponse
@@ -174,7 +168,7 @@ public class RuntimeService extends JavaService {
 		throws FaultException {
 		String serviceName = request.getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
-			interpreter.commCore().getListenerByInputPortName( serviceName );
+			interpreter().commCore().getListenerByInputPortName( serviceName );
 		if( listener == null ) {
 			throw new FaultException( "RuntimeException", "Unknown inputPort: " + serviceName );
 		}
@@ -182,7 +176,7 @@ public class RuntimeService extends JavaService {
 		String resourceName = request.getChildren( "resourceName" ).first().strValue();
 		String opName = request.getChildren( "outputPortName" ).first().strValue();
 		try {
-			OutputPort port = interpreter.getOutputPort( opName );
+			OutputPort port = interpreter().getOutputPort( opName );
 			listener.inputPort().redirectionMap().put( resourceName, port );
 		} catch( InvalidIdException e ) {
 			throw new FaultException( "RuntimeException", e );
@@ -194,7 +188,7 @@ public class RuntimeService extends JavaService {
 		throws FaultException {
 		String serviceName = request.getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
-			interpreter.commCore().getListenerByInputPortName( serviceName );
+			interpreter().commCore().getListenerByInputPortName( serviceName );
 		if( listener == null ) {
 			throw new FaultException( "RuntimeException", "Unknown inputPort: " + serviceName );
 		}
@@ -208,7 +202,7 @@ public class RuntimeService extends JavaService {
 		Value ret;
 		String inputPortName = request.getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
-			interpreter.commCore().getListenerByInputPortName( inputPortName );
+			interpreter().commCore().getListenerByInputPortName( inputPortName );
 		if( listener == null ) {
 			throw new FaultException( "RuntimeException", Value.create( "Invalid input port: " + inputPortName ) );
 		}
@@ -229,7 +223,7 @@ public class RuntimeService extends JavaService {
 
 	public Value getIncludePaths() {
 		Value ret = Value.create();
-		String[] includePaths = interpreter.includePaths();
+		String[] includePaths = interpreter().includePaths();
 		for( String path : includePaths ) {
 			ret.getNewChild( "path" ).setValue( path );
 		}
@@ -273,7 +267,7 @@ public class RuntimeService extends JavaService {
 	public void loadLibrary( String libraryPath )
 		throws FaultException {
 		try {
-			interpreter.getClassLoader().addJarResource( libraryPath );
+			interpreter().getClassLoader().addJarResource( libraryPath );
 		} catch( IOException | IllegalArgumentException e ) {
 			throw new FaultException( "IOException", e );
 		}
@@ -290,7 +284,7 @@ public class RuntimeService extends JavaService {
 	public String dumpState() {
 		Writer writer = new StringWriter();
 		ValuePrettyPrinter printer =
-			new ValuePrettyPrinter( Value.createDeepCopy( interpreter.globalValue() ), writer, "Global state" );
+			new ValuePrettyPrinter( Value.createDeepCopy( interpreter().globalValue() ), writer, "Global state" );
 		try {
 			printer.run();
 			printer = new ValuePrettyPrinter( Value.createDeepCopy( ExecutionThread.currentThread().state().root() ),

@@ -135,7 +135,8 @@ public class SymbolReferenceResolver {
 	}
 
 	private static CodeCheckingError buildInfiniteTypeDefinitionLinkLoop( OLSyntaxNode node, String name ) {
-		return CodeCheckingError.build( node, "Type definition link loop detected: " + name );
+		return CodeCheckingError.build( node, "Type definition link loop detected: " + name
+			+ " (this might mean that the referred type has not been defined or could not be retrieved)" );
 	}
 
 	// private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name,
@@ -771,6 +772,7 @@ public class SymbolReferenceResolver {
 			getInterfacesFromInputPortLocal( n );
 		for( InterfaceDefinition iface : publicIfacesAndOps.interfaces() ) {
 			op.addInterface( iface );
+			iface.operationsMap().values().forEach( op::addOperation );
 		}
 		for( OperationDeclaration oper : publicIfacesAndOps.operations() ) {
 			op.addOperation( oper );
@@ -920,7 +922,7 @@ public class SymbolReferenceResolver {
 				InputPortInfo ip = (InputPortInfo) n;
 				if( ip.location() instanceof ConstantStringExpression ) {
 					String location = ((ConstantStringExpression) ip.location()).value();
-					if( location.equals( "local" ) ) {
+					if( location.equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 						result.ifaces.addAll( ip.getInterfaceList() );
 						for( InputPortInfo.AggregationItemInfo item : ip.aggregationList() ) {
 							for( String opName : item.outputPortList() ) {
