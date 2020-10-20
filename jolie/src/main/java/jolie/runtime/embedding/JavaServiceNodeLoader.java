@@ -19,6 +19,10 @@
 
 package jolie.runtime.embedding;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.util.Map;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.lang.parse.ast.OutputPortInfo;
@@ -27,13 +31,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
-import jolie.runtime.typing.Type;
 import jolie.tracer.EmbeddingTraceAction;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.util.Map;
 
 public class JavaServiceNodeLoader extends ServiceNodeLoader {
 
@@ -41,8 +39,8 @@ public class JavaServiceNodeLoader extends ServiceNodeLoader {
 	private final Map< String, OutputPortInfo > outputPortInfos;
 
 	protected JavaServiceNodeLoader( Expression channelDest, Interpreter interpreter, ServiceNodeJava serviceNode,
-		Expression passingParameter, Type acceptingType ) throws EmbeddedServiceCreationException {
-		super( channelDest, interpreter, serviceNode, passingParameter, acceptingType );
+		Expression passingParameter ) throws EmbeddedServiceCreationException {
+		super( channelDest, interpreter, serviceNode, passingParameter );
 		JavaService service = null;
 		Map< String, OutputPortInfo > ops = null;
 		try {

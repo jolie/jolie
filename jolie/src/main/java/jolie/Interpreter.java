@@ -221,16 +221,6 @@ public class Interpreter {
 		}
 	}
 
-	// private static class ParameterConfiguration {
-	// private final VariablePath variablePath;
-	// private final Type type;
-
-	// public ParameterConfiguration( VariablePath variablePath, Type type ) {
-	// this.variablePath = variablePath;
-	// this.type = type;
-	// }
-	// }
-
 	private static final Logger LOGGER = Logger.getLogger( Constants.JOLIE_LOGGER_NAME );
 
 	private CommCore commCore;
@@ -265,7 +255,6 @@ public class Interpreter {
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
-	// private Optional< ParameterConfiguration > parameterConfiguration = Optional.empty();
 
 	private final Map< URI, SymbolTable > symbolTables;
 
@@ -305,10 +294,6 @@ public class Interpreter {
 	public Tracer tracer() {
 		return tracer;
 	}
-
-	// public void setParameterConfiguration( VariablePath variablePath, Type type ) {
-	// parameterConfiguration = Optional.of( new ParameterConfiguration( variablePath, type ) );
-	// }
 
 	public void fireMonitorEvent( MonitoringEvent event ) {
 		if( monitor != null ) {
