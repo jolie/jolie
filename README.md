@@ -12,7 +12,7 @@ Jolie is a service-oriented programming language, designed to offer native abstr
 
 # Documentation :notebook_with_decorative_cover:
 
-See <https://jolielang.gitbook.io/docs/>.
+See <https://docs.jolie-lang.org/>.
 
 # Roadmap :chart_with_upwards_trend:
 
