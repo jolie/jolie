@@ -19,6 +19,7 @@
 
 package jolie.runtime.embedding;
 
+import java.util.Optional;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.Program;
@@ -27,9 +28,6 @@ import jolie.net.CommChannel;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
-import jolie.runtime.typing.Type;
-
-import java.util.Optional;
 
 public abstract class EmbeddedServiceLoader {
 	private final Expression channelDest;
@@ -49,7 +47,7 @@ public abstract class EmbeddedServiceLoader {
 				ServiceNodeEmbeddedConfiguration serviceNodeConfiguration =
 					(ServiceNodeEmbeddedConfiguration) configuration;
 				ret = ServiceNodeLoader.create( channelDest, interpreter, serviceNodeConfiguration.serviceNode,
-					serviceNodeConfiguration.parameter(), serviceNodeConfiguration.acceptingParameterType() );
+					serviceNodeConfiguration.parameter() );
 			} else if( configuration.isInternal() ) {
 				InternalEmbeddedServiceConfiguration internalConfiguration =
 					(InternalEmbeddedServiceConfiguration) configuration;
@@ -221,14 +219,12 @@ public abstract class EmbeddedServiceLoader {
 	public static class ServiceNodeEmbeddedConfiguration extends EmbeddedServiceConfiguration {
 		private final ServiceNode serviceNode;
 		private final Expression parameter;
-		private final Type acceptingParameterType;
 
 		public ServiceNodeEmbeddedConfiguration( Constants.EmbeddedServiceType type, ServiceNode node,
-			Expression parameter, Type acceptingParameterType ) {
+			Expression parameter ) {
 			super( type );
 			this.serviceNode = node;
 			this.parameter = parameter;
-			this.acceptingParameterType = acceptingParameterType;
 		}
 
 		public ServiceNode serviceNode() {
@@ -239,8 +235,5 @@ public abstract class EmbeddedServiceLoader {
 			return this.parameter;
 		}
 
-		public Type acceptingParameterType() {
-			return this.acceptingParameterType;
-		}
 	}
 }
