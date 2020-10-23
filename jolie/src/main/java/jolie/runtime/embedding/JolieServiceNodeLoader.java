@@ -29,13 +29,12 @@ import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.util.ProgramBuilder;
 import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
-import jolie.runtime.typing.Type;
 
 public class JolieServiceNodeLoader extends ServiceNodeLoader {
 
 	protected JolieServiceNodeLoader( Expression channelDest, Interpreter currInterpreter, ServiceNode serviceNode,
-		Expression passingParameter, Type acceptingType ) {
-		super( channelDest, currInterpreter, serviceNode, passingParameter, acceptingType );
+		Expression passingParameter ) {
+		super( channelDest, currInterpreter, serviceNode, passingParameter );
 	}
 
 	@Override

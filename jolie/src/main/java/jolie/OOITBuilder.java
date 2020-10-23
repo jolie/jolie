@@ -1601,16 +1601,10 @@ public class OOITBuilder implements OLVisitor {
 					: interpreter.getOutputPort( n.bindingPort().id() ).locationVariablePath();
 
 			Expression passingArgument = buildExpression( n.passingParameter() );
-			Type acceptingParameterType = Type.UNDEFINED;
-
-			if( n.service().parameterConfiguration().isPresent() ) {
-				acceptingParameterType = getOrBuildType( n.service().parameterConfiguration().get().type() );
-			}
 
 			final EmbeddedServiceConfiguration embeddedServiceConfiguration =
 				new EmbeddedServiceLoader.ServiceNodeEmbeddedConfiguration( n.service().type(), n.service(),
-					passingArgument,
-					acceptingParameterType );
+					passingArgument );
 
 			interpreter.addEmbeddedServiceLoader(
 				EmbeddedServiceLoader.create(
