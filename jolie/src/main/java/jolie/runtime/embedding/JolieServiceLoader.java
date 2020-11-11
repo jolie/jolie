@@ -85,7 +85,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 
 		interpreter = new Interpreter(
 			configuration,
-			currInterpreter.programDirectory(), Optional.empty() );
+			currInterpreter.programDirectory(), currInterpreter, Optional.empty() );
 	}
 
 	@Override
