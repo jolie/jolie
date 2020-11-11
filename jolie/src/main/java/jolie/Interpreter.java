@@ -249,7 +249,6 @@ public class Interpreter {
 	private Program internalServiceProgram = null;
 	private final Value receivingEmbeddedValue;
 	private Interpreter parentInterpreter = null;
-	private boolean isInternal = false;
 	private final Collection< Interpreter > interpreterChildren = new ArrayList<>();
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
@@ -966,12 +965,11 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
-		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram, boolean isInternal )
+		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws FileNotFoundException, IOException {
 		this( configuration, programDirectory, Optional.empty() );
 
 		this.parentInterpreter = parentInterpreter;
-		this.isInternal = isInternal;
 		if( this.parentInterpreter != null ) {
 			setMonitor( this.parentInterpreter.getMonitor() );
 		}
@@ -1012,10 +1010,6 @@ public class Interpreter {
 
 	public Interpreter parentInterpreter() {
 		return parentInterpreter;
-	}
-
-	public boolean isInternal() {
-		return isInternal;
 	}
 
 	/**
@@ -1507,6 +1501,7 @@ public class Interpreter {
 		private final File programDirectory;
 		private final String[] packagePaths;
 		private final String executionTarget;
+		private final boolean isInternal;
 
 		private Configuration( int connectionsLimit,
 			CorrelationEngine.Type correlationAlgorithm,
@@ -1530,7 +1525,8 @@ public class Interpreter {
 			Level logLevel,
 			File programDirectory,
 			String[] packagePaths,
-			String executionTarget ) {
+			String executionTarget,
+			boolean isInternal ) {
 			this.connectionsLimit = connectionsLimit;
 			this.correlationAlgorithm = correlationAlgorithm;
 			this.includePaths = includeList;
@@ -1554,6 +1550,7 @@ public class Interpreter {
 			this.programDirectory = programDirectory;
 			this.packagePaths = packagePaths;
 			this.executionTarget = executionTarget;
+			this.isInternal = isInternal;
 		}
 
 		public static Configuration create( int connectionsLimit,
@@ -1578,11 +1575,12 @@ public class Interpreter {
 			Level logLevel,
 			File programDirectory,
 			String[] packagePaths,
-			String executionTarget ) {
+			String executionTarget,
+			boolean isInternal ) {
 			return new Configuration( connectionsLimit, correlationAlgorithm, includeList, optionArgs, libUrls,
 				inputStream, charset, programFilepath, arguments, constants, jolieClassLoader, programCompiled,
 				typeCheck, tracer, tracerLevel, tracerMode, check, printStackTraces, responseTimeout, logLevel,
-				programDirectory, packagePaths, executionTarget );
+				programDirectory, packagePaths, executionTarget, isInternal );
 		}
 
 		public static Configuration create( Configuration config,
@@ -1592,7 +1590,7 @@ public class Interpreter {
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
-				config.programDirectory, config.packagePaths, config.executionTarget );
+				config.programDirectory, config.packagePaths, config.executionTarget, config.isInternal );
 		}
 
 		public static Configuration create( Configuration config,
@@ -1603,7 +1601,7 @@ public class Interpreter {
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
-				config.programDirectory, config.packagePaths, executionTarget );
+				config.programDirectory, config.packagePaths, executionTarget, config.isInternal );
 		}
 
 		/**
@@ -1809,6 +1807,15 @@ public class Interpreter {
 		 */
 		public File programDirectory() {
 			return programDirectory;
+		}
+
+		/**
+		 * Returns the flag that indicate if this interpreter is an internal one.
+		 *
+		 * @return the flag that indicate if this interpreter is an internal one.
+		 */
+		public boolean isInternal() {
+			return isInternal;
 		}
 
 		public void clear() {

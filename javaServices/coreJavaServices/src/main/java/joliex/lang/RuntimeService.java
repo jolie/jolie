@@ -293,15 +293,15 @@ public class RuntimeService extends JavaService {
 
 		LogEvent logEvent;
 		if( request.hasChildren( "extendedType" ) ) {
-			logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel,
+			logEvent = new LogEvent( request.strValue(), interpreter().programFilename(), logLevel,
 				ExecutionThread.currentThread().getSessionId(), request.getFirstChild( "extendedType" ).strValue(),
 				null );
 		} else {
-			logEvent = new LogEvent( request.strValue(), interpreter.programFilename(), logLevel,
+			logEvent = new LogEvent( request.strValue(), interpreter().programFilename(), logLevel,
 				ExecutionThread.currentThread().getSessionId(), ExecutionThread.currentThread().currentStackScopes(),
 				null );
 		}
-		interpreter.fireMonitorEvent( () -> {
+		interpreter().fireMonitorEvent( () -> {
 			return logEvent;
 		} );
 	}

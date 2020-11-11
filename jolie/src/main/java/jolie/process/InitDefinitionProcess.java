@@ -73,7 +73,7 @@ public class InitDefinitionProcess extends DefinitionProcess {
 			}
 
 			// If an internal service, copy over the output port locations from the parent service
-			if( interpreter.isInternal() ) {
+			if( interpreter.configuration().isInternal() ) {
 				Value parentInitRoot = interpreter.parentInterpreter().initThread().state().root();
 				for( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
 					try {
