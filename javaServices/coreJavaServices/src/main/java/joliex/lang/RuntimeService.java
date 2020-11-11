@@ -28,12 +28,9 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.util.Optional;
 import java.util.function.Function;
-
 import com.sun.management.UnixOperatingSystemMXBean;
-
 import jolie.ExecutionThread;
 import jolie.lang.Constants;
-import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.monitoring.events.LogEvent;
 import jolie.net.CommListener;
 import jolie.net.LocalCommChannel;

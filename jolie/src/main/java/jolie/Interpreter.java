@@ -104,7 +104,6 @@ import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
-import java.util.function.Supplier;
 
 
 /**
