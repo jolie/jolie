@@ -284,10 +284,10 @@ public class RuntimeService extends JavaService {
 	@RequestResponse
 	public void log( Value request ) {
 		LogEvent.LogLevel logLevel = LogEvent.LogLevel.INFO;
-		if( request.getFirstChild( "level" ).equals( "ERROR" ) ) {
+		if( request.getFirstChild( "level" ).strValue().equals( "ERROR" ) ) {
 			logLevel = LogEvent.LogLevel.ERROR;
 		}
-		if( request.getFirstChild( "level" ).equals( "WARNING" ) ) {
+		if( request.getFirstChild( "level" ).strValue().equals( "WARNING" ) ) {
 			logLevel = LogEvent.LogLevel.WARNING;
 		}
 
