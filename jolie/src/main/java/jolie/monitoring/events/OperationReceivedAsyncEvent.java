@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2012 by Claudio Guidi <cguidi@italianasoftware.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,49 +19,54 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
+package jolie.monitoring.events;
 
-import jolie.ExecutionThread;
-import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.monitoring.events.ThrowEvent;
-import jolie.runtime.FaultException;
-import jolie.runtime.expression.Expression;
+import jolie.monitoring.MonitoringEvent;
+import jolie.runtime.Value;
 
+/**
+ *
+ * @author claudio guidi 27/01/2012
+ */
+public class OperationReceivedAsyncEvent extends MonitoringEvent {
 
-public class ThrowProcess implements Process {
-	final private String faultName;
-	final private Expression expression;
-	private final ParsingContext context;
+	public static enum FieldNames {
+		OPERATION_NAME( "operationName" ), MESSAGE_ID( "messageId" ), VALUE( "value" );
 
-	public ThrowProcess( String faultName, Expression expression, ParsingContext context ) {
-		this.faultName = faultName;
-		this.expression = expression;
-		this.context = context;
-	}
+		private String fieldName;
 
-	public Process copy( TransformationReason reason ) {
-		return new ThrowProcess( faultName, expression, context );
-	}
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
 
-	public void run()
-		throws FaultException {
-		if( ExecutionThread.currentThread().isKilled() )
-			return;
-
-		Interpreter.getInstance().fireMonitorEvent( () -> {
-			return new ThrowEvent( Interpreter.getInstance().programFilename(),
-				ExecutionThread.currentThread().getSessionId(),
-				ExecutionThread.currentThread().currentStackScopes(), faultName, context );
-		} );
-		if( expression == null ) {
-			throw new FaultException( faultName );
-		} else {
-			throw new FaultException( faultName, expression.evaluate() );
+		public String getName() {
+			return this.fieldName;
 		}
 	}
 
-	public boolean isKillable() {
-		return true;
+	public static String operationName( Value value ) {
+		return value.getFirstChild( FieldNames.OPERATION_NAME.getName() ).strValue();
 	}
+
+	public static String messageId( Value value ) {
+		return value.getFirstChild( FieldNames.MESSAGE_ID.getName() ).strValue();
+	}
+
+	public static Value value( Value value ) {
+		return value.getFirstChild( FieldNames.VALUE.getName() );
+	}
+
+	public OperationReceivedAsyncEvent( String operationName, String processId, String messageId, String service,
+		String scope, ParsingContext context,
+		Value value ) {
+
+		super( EventTypes.OPERATION_RECEIVED_ASYNC, service, scope, processId, context, Value.create() );
+
+		data().getFirstChild( FieldNames.OPERATION_NAME.getName() ).setValue( operationName );
+		data().getFirstChild( FieldNames.MESSAGE_ID.getName() ).setValue( messageId );
+		data().getFirstChild( FieldNames.VALUE.getName() ).deepCopy( value );
+
+	}
+
 }

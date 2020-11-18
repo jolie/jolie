@@ -43,7 +43,7 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 
 	public StandardMonitor() {
 		triggerEnabled = false;
-		triggerThreshold = 75;
+		triggerThreshold = 50;
 		queueMax = 100;
 		alert = false;
 	}
@@ -75,10 +75,33 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 			Value response = Value.create();
 			while( it.hasNext() ) {
 				MonitoringEvent e = it.next();
-				response.getChildren( "events" ).get( index ).getFirstChild( "data" ).deepCopy( e.data() );
-				response.getChildren( "events" ).get( index ).getFirstChild( "memory" ).setValue( e.memory() );
-				response.getChildren( "events" ).get( index ).getFirstChild( "timestamp" ).setValue( e.timestamp() );
-				response.getChildren( "events" ).get( index ).getFirstChild( "type" ).setValue( e.type() );
+				response.getChildren( "events" ).get( index ).getFirstChild( MonitoringEvent.FieldNames.DATA.getName() )
+					.deepCopy( e.data() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.MEMORY.getName() ).setValue( e.memory() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.TIMESTAMP.getName() ).setValue( e.timestamp() );
+				response.getChildren( "events" ).get( index ).getFirstChild( MonitoringEvent.FieldNames.TYPE.getName() )
+					.setValue( e.type() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.SERVICE.getName() ).setValue( e.service() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.CELLID.getName() ).setValue( e.cellId() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.SCOPE.getName() ).setValue( e.scope() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.PROCESSID.getName() ).setValue( e.processId() );
+				response.getChildren( "events" ).get( index )
+					.getFirstChild( MonitoringEvent.FieldNames.SERIAL_EVENT_ID.getName() )
+					.setValue( e.serialEventId() );
+				if( e.parsingContext() != null ) {
+					response.getChildren( "events" ).get( index ).getFirstChild( "context" )
+						.getFirstChild( MonitoringEvent.FieldNames.CONTEXT_FILENAME.getName() )
+						.setValue( e.parsingContext().sourceName() );
+					response.getChildren( "events" ).get( index ).getFirstChild( "context" )
+						.getFirstChild( MonitoringEvent.FieldNames.CONTEXT_LINE.getName() )
+						.setValue( e.parsingContext().line() );
+				}
 				index++;
 			}
 			q.clear();
@@ -94,13 +117,13 @@ public class StandardMonitor extends AbstractMonitorJavaService {
 	 *
 	 */
 	public void setMonitor( Value request ) {
-		if( request.getFirstChild( "triggeredEnabled" ).isDefined() ) {
+		if( request.hasChildren( "triggeredEnabled" ) ) {
 			triggerEnabled = request.getFirstChild( "triggeredEnabled" ).boolValue();
 		}
-		if( request.getFirstChild( "triggerThreshold" ).isDefined() ) {
+		if( request.hasChildren( "triggerThreshold" ) ) {
 			triggerThreshold = request.getFirstChild( "triggerThreshold" ).intValue();
 		}
-		if( request.getFirstChild( "queueMax" ).isDefined() ) {
+		if( request.hasChildren( "queueMax" ) ) {
 			queueMax = request.getFirstChild( "queueMax" ).intValue();
 		}
 	}

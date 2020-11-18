@@ -22,6 +22,7 @@
 package jolie.monitoring.events;
 
 import jolie.Interpreter;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
@@ -31,7 +32,8 @@ import jolie.runtime.Value;
  * @author Fabrizio Montesi
  */
 public class MonitorAttachedEvent extends MonitoringEvent {
-	public MonitorAttachedEvent() {
-		super( "MonitorAttached", Value.create() );
+	public MonitorAttachedEvent( String service, ParsingContext context ) {
+		// TODO: confimring if cell could be the right scope for this event
+		super( EventTypes.MONITOR_ATTACHED, service, "cell", "", context, Value.create() );
 	}
 }

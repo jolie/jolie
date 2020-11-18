@@ -21,44 +21,24 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.lang.parse.context.ParsingContext;
-import jolie.monitoring.events.ThrowEvent;
-import jolie.runtime.FaultException;
-import jolie.runtime.expression.Expression;
+/**
+ * No-op process.
+ * 
+ * @author Fabrizio Montesi
+ */
+public class InternalEngineProcess implements Process {
+	private final Runnable runnable;
 
-
-public class ThrowProcess implements Process {
-	final private String faultName;
-	final private Expression expression;
-	private final ParsingContext context;
-
-	public ThrowProcess( String faultName, Expression expression, ParsingContext context ) {
-		this.faultName = faultName;
-		this.expression = expression;
-		this.context = context;
+	public InternalEngineProcess( Runnable runnable ) {
+		this.runnable = runnable;
 	}
 
 	public Process copy( TransformationReason reason ) {
-		return new ThrowProcess( faultName, expression, context );
+		return this;
 	}
 
-	public void run()
-		throws FaultException {
-		if( ExecutionThread.currentThread().isKilled() )
-			return;
-
-		Interpreter.getInstance().fireMonitorEvent( () -> {
-			return new ThrowEvent( Interpreter.getInstance().programFilename(),
-				ExecutionThread.currentThread().getSessionId(),
-				ExecutionThread.currentThread().currentStackScopes(), faultName, context );
-		} );
-		if( expression == null ) {
-			throw new FaultException( faultName );
-		} else {
-			throw new FaultException( faultName, expression.evaluate() );
-		}
+	public void run() {
+		this.runnable.run();
 	}
 
 	public boolean isKillable() {

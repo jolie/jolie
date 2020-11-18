@@ -22,11 +22,17 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.monitoring.events.FaultHandlerEndEvent;
+import jolie.monitoring.events.FaultHandlerStartEvent;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePathBuilder;
+
+import java.net.URI;
 
 public class ScopeProcess implements Process {
 	private class Execution {
@@ -81,7 +87,17 @@ public class ScopeProcess implements Process {
 							.getValue();
 					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
 					scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
+					Interpreter.getInstance().fireMonitorEvent( () -> {
+						return new FaultHandlerStartEvent( Interpreter.getInstance().programFilename(),
+							ExecutionThread.currentThread().getSessionId(),
+							ExecutionThread.currentThread().currentStackScopes(), f.faultName(), context );
+					} );
 					this.runScope( p );
+					Interpreter.getInstance().fireMonitorEvent( () -> {
+						return new FaultHandlerEndEvent( Interpreter.getInstance().programFilename(),
+							ExecutionThread.currentThread().getSessionId(),
+							ExecutionThread.currentThread().currentStackScopes(), f.faultName(), context );
+					} );
 				} else {
 					fault = f;
 				}
@@ -92,19 +108,41 @@ public class ScopeProcess implements Process {
 	private final String id;
 	private final Process process;
 	private final boolean autoPop;
+	private final ParsingContext context;
 
-	public ScopeProcess( String id, Process process, boolean autoPop ) {
+	public ScopeProcess( String id, Process process, boolean autoPop, ParsingContext context ) {
 		this.id = id;
 		this.process = process;
 		this.autoPop = autoPop;
+		if( context != null ) {
+			this.context = context;
+		} else {
+			// fake context
+			this.context = new ParsingContext() {
+				@Override
+				public URI source() {
+					return null;
+				}
+
+				@Override
+				public String sourceName() {
+					return "";
+				}
+
+				@Override
+				public int line() {
+					return 0;
+				}
+			};
+		}
 	}
 
-	public ScopeProcess( String id, Process process ) {
-		this( id, process, true );
+	public ScopeProcess( String id, Process process, ParsingContext context ) {
+		this( id, process, true, context );
 	}
 
 	public Process copy( TransformationReason reason ) {
-		return new ScopeProcess( id, process.copy( reason ), autoPop );
+		return new ScopeProcess( id, process.copy( reason ), autoPop, context );
 	}
 
 	public void run()

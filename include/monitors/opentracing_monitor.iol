@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2012 by Claudio Guidi <cguidi@italianasoftware.com>    
+ *   Copyright (C) 2020 by Claudio Guidi <cguidi@italianasoftware.com>    
  *                                                                        
  *   This program is free software; you can redistribute it and/or modify 
  *   it under the terms of the GNU Library General Public License as      
@@ -19,46 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-include "monitors/types/monitor_types.iol"
+type SetOpenTracingMonitorRequest: void {
+    service_name?: string                            //> name of the service which appears in the search (default:service)
+    session_ended_timeout_before_elaboration?: long  //> number of milliseconds to wait after a session_ended event is received before elaborating spans. Since events are asynchonously received by the monitor, it is necessary for collecting all the events of a given session. (default: 10000)
+    tracer_with_log_spans?: bool                     //> enable or not the logs of the spans in the console (default: false)
+}
+
 
 interface MonitorInterface {
+RequestResponse:
+	setMonitor( SetOpenTracingMonitorRequest )( void ) 
 OneWay:
 	pushEvent(undefined)
 }
 
-
-type FlushResponse: void {
-	events*: MonitorEvent
-}
-
-type SetStandardMonitorRequest: void {
-	queueMax?: int							//< internal queue size which collects the events from the engine (default:100)
-	triggeredEnabled?: bool					//< enable trigger from the monitor to the embedder which will send collected events to the operation getMonitorEvent (default: false)
-	triggerThreshold?: int					//< the size of the the queue which triggers the getMonitorEvent of the events. Keep it less than queueMax in order to not loose events
-}
-
-interface StandardMonitorInterface {
-RequestResponse:
-	flush( void )( FlushResponse ),
-	setMonitor( SetStandardMonitorRequest )( void )
-}
-
-interface StandardMonitorInputInterface {
-OneWay:
-	monitorAlert( void )
-}
-
 outputPort Monitor {
-	Interfaces: MonitorInterface, StandardMonitorInterface
+	Interfaces: MonitorInterface
 }
 
-inputPort MonitorInput {
-	Location: "local"
-	Interfaces: StandardMonitorInputInterface
-}
 
 embedded {
 Java:
-	"joliex.monitoring.StandardMonitor" in Monitor
+	"joliex.monitoring.OpenTracingMonitor" in Monitor
 }
-

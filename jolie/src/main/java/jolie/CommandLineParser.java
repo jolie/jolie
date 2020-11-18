@@ -783,7 +783,38 @@ public class CommandLineParser implements Closeable {
 			logLevel,
 			programDirectory,
 			packagePaths,
-			executionTarget );
+			executionTarget,
+			false );
+
+	}
+
+	public Interpreter.Configuration getInterpreterConfiguration( boolean isInternal )
+		throws CommandLineException, IOException {
+		return Interpreter.Configuration.create(
+			connectionsLimit,
+			correlationAlgorithmType,
+			includePaths,
+			optionArgs,
+			libURLs,
+			programStream,
+			charset,
+			programFilepath,
+			arguments,
+			constants,
+			jolieClassLoader,
+			isProgramCompiled,
+			typeCheck,
+			tracer,
+			tracerLevel,
+			tracerMode,
+			check,
+			printStackTraces,
+			responseTimeout,
+			logLevel,
+			programDirectory,
+			packagePaths,
+			executionTarget,
+			isInternal );
 
 	}
 

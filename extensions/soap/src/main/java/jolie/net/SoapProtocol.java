@@ -36,7 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.wsdl.BindingOperation;
 import javax.wsdl.BindingOutput;
 import javax.wsdl.Definition;
@@ -79,24 +78,22 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
 import com.ibm.wsdl.extensions.schema.SchemaImpl;
 import com.ibm.wsdl.extensions.soap.SOAPBodyImpl;
 import com.ibm.wsdl.extensions.soap.SOAPHeaderImpl;
-import com.sun.xml.xsom.XSAttributeDecl;
-import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;
-import com.sun.xml.xsom.XSElementDecl;
-import com.sun.xml.xsom.XSModelGroup;
 import com.sun.xml.xsom.XSModelGroupDecl;
-import com.sun.xml.xsom.XSParticle;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
-
+import com.sun.xml.xsom.XSAttributeDecl;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSAttributeUse;
+import com.sun.xml.xsom.XSModelGroup;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSTerm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -104,9 +101,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.monitoring.events.ProtocolMessageEvent;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -913,21 +911,17 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					}
 
 					// check if the body has been defined with more than one parts
-					// Operation operation =
-					// getWSDLPort().getBinding().getPortType().getOperation( message.operationName(), null, null );
-					// Message wsdlMessage;
 					List< ExtensibilityElement > listExt;
 					if( received ) {
 						// We are sending a response
-						// wsdlMessage = operation.getOutput().getMessage();
 						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
 							.getBindingOutput().getExtensibilityElements();
 					} else {
 						// We are sending a request
-						// wsdlMessage = operation.getInput().getMessage();
 						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
 							.getBindingInput().getExtensibilityElements();
 					}
+
 					boolean partsInBody = false;
 					String partName = "";
 					for( ExtensibilityElement element : listExt ) {
@@ -1005,8 +999,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			if( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-				if( received )
-					channel().setToBeClosed( true ); // we may do this only in input (server) mode
+				channel().setToBeClosed( true );
 				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
@@ -1016,8 +1009,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			// httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
-			httpMessage.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF );
-			httpMessage.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF );
+			httpMessage.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF )
+				.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF );
 			if( soapAction != null ) {
 				httpMessage.append( soapAction );
 			}
@@ -1040,6 +1033,20 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 				}
 
+			} );
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				try {
+					final String traceMessage = httpMessage.toString() + plainTextContent.toString( "utf-8" );
+					return new ProtocolMessageEvent( traceMessage, "",
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentStackScopes(), null );
+				} catch( UnsupportedEncodingException e ) {
+					return new ProtocolMessageEvent( e.getMessage(), "",
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentStackScopes(), null );
+				}
 			} );
 
 			inputId = message.operationName();
@@ -1081,6 +1088,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		if( content != null ) {
 			ostream.write( content.getBytes() );
 		}
+
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
@@ -1300,6 +1308,24 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				try {
+					return new ProtocolMessageEvent(
+						new StringBuilder().append( getHeadersFromHttpMessage( message ) ).append( "\n" )
+							.append( new String( message.content(), charset ) ).toString(),
+						"",
+						Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.SOAP,
+						ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentStackScopes(), null );
+				} catch( UnsupportedEncodingException e ) {
+					return new ProtocolMessageEvent(
+						e.getMessage(), "", Interpreter.getInstance().programFilename(),
+						ProtocolMessageEvent.Protocol.SOAP, ExecutionThread.currentThread().getSessionId(),
+						ExecutionThread.currentThread().currentStackScopes(), null );
+				}
+
+			} );
+
 		} catch( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {
@@ -1358,8 +1384,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 	private String getHeadersFromHttpMessage( HttpMessage message ) {
 		StringBuilder headers = new StringBuilder();
-		headers.append( "HTTP Code: " ).append( message.statusCode() ).append( "\n" ).append( "Resource: " )
-			.append( message.requestPath() ).append( "\n" );
+		headers.append( "HTTP Code: " ).append( message.statusCode() ).append( "\n" )
+			.append( "Resource: " ).append( message.requestPath() ).append( "\n" );
 		for( Entry< String, String > entry : message.properties() ) {
 			headers.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
 		}

@@ -29,7 +29,7 @@ import jolie.runtime.Value;
  *
  * @author claudio
  */
-public class OperationCallEvent extends MonitoringEvent {
+public class OperationCallAsyncEvent extends MonitoringEvent {
 	public static final int SUCCESS = 0;
 	public static final int FAULT = 1;
 
@@ -72,9 +72,10 @@ public class OperationCallEvent extends MonitoringEvent {
 		return value.getFirstChild( FieldNames.VALUE.getName() );
 	}
 
-	public OperationCallEvent( String operationName, String processId, String messageId, int status, String details,
+	public OperationCallAsyncEvent( String operationName, String processId, String messageId, int status,
+		String details,
 		String outputPort, String service, String scope, ParsingContext context, Value value ) {
-		super( EventTypes.OPERATION_CALL, service, scope, processId, context, Value.create() );
+		super( EventTypes.OPERATION_CALL_ASYNC, service, scope, processId, context, Value.create() );
 
 		data().getFirstChild( FieldNames.OPERATION_NAME.getName() ).setValue( operationName );
 		data().getFirstChild( FieldNames.MESSAGE_ID.getName() ).setValue( messageId );

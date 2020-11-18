@@ -42,7 +42,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -55,16 +54,16 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
+import jolie.monitoring.events.ProtocolMessageEvent;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -477,8 +476,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if( "html".equals( format ) ) {
 			ret.contentType = "text/html";
 			if( message.isFault() ) {
-				StringBuilder builder = new StringBuilder();
-				builder.append( "<html><head><title>" )
+				StringBuilder builder = new StringBuilder()
+					.append( "<html><head><title>" )
 					.append( message.fault().faultName() )
 					.append( "</title></head><body>" )
 					.append( message.fault().value().strValue() )
@@ -893,6 +892,20 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					}
 
 				} );
+				Interpreter.getInstance().fireMonitorEvent( () -> {
+					try {
+						final String traceMessage = encodedContent.content.toString( charset );
+						return new ProtocolMessageEvent( traceMessage, headerBuilder.toString(),
+							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+							ExecutionThread.currentThread().getSessionId(),
+							ExecutionThread.currentThread().currentStackScopes(), null );
+					} catch( UnsupportedEncodingException e ) {
+						return new ProtocolMessageEvent( e.getMessage(), headerBuilder.toString(),
+							Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+							ExecutionThread.currentThread().getSessionId(),
+							ExecutionThread.currentThread().currentStackScopes(), null );
+					}
+				} );
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
@@ -905,8 +918,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private String prepareSendDebugString( CharSequence header, EncodedContent encodedContent, String charset,
 		boolean showContent )
 		throws UnsupportedEncodingException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Sending:\n" )
+		StringBuilder debugSB = new StringBuilder()
+			.append( "[HTTP debug] Sending:\n" )
 			.append( header );
 		if( showContent && encodedContent != null && encodedContent.content != null ) {
 			debugSB.append( encodedContent.content.toString( charset ) );
@@ -973,6 +986,22 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					message.resourcePath(), e.getMessage(), null );
 			}
 		} );
+		Interpreter.getInstance().fireMonitorEvent( () -> {
+			try {
+				final String traceMessage = prepareSendDebugString( headerBuilder, encodedContent, charset, true );
+				return new ProtocolMessageEvent( traceMessage, "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
+					null );
+			} catch( IOException e ) {
+				return new ProtocolMessageEvent( e.getMessage(), "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
+					null );
+			}
+		} );
 
 		inputId = message.operationName();
 
@@ -1031,7 +1060,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private void parseMultiPartFormData( HttpMessage message, Value value )
-		// , String charset )
 		throws IOException {
 		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
 		multiPartFormDataParser.parse();
@@ -1192,10 +1220,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	 */
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" ).append( "HTTP Code: " ).append( message.statusCode() )
-			.append( "\n" ).append( "HTTP Method: " ).append( message.type().name() ).append( "\n" )
-			.append( "Resource: " ).append( message.requestPath() ).append( "\n" )
+		StringBuilder debugSB = new StringBuilder()
+			.append( "[HTTP debug] Receiving:\n" )
+			.append( "HTTP Code: " + message.statusCode() + "\n" )
+			.append( "HTTP Method: " + message.type().name() + "\n" )
+			.append( "Resource: " + message.requestPath() + "\n" )
 			.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
 			debugSB.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
@@ -1390,6 +1419,22 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 			}
 
+		} );
+		Interpreter.getInstance().fireMonitorEvent( () -> {
+			try {
+				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
+				return new ProtocolMessageEvent( traceMessage, "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
+					null );
+			} catch( IOException e ) {
+				return new ProtocolMessageEvent( e.getMessage(), "",
+					Interpreter.getInstance().programFilename(), ProtocolMessageEvent.Protocol.HTTP,
+					ExecutionThread.currentThread().getSessionId(),
+					ExecutionThread.currentThread().currentStackScopes(),
+					null );
+			}
 		} );
 
 		recv_checkForStatusCode( message );

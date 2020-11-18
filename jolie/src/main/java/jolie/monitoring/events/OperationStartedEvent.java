@@ -21,6 +21,7 @@
 
 package jolie.monitoring.events;
 
+import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
@@ -30,14 +31,41 @@ import jolie.runtime.Value;
  */
 public class OperationStartedEvent extends MonitoringEvent {
 
-	public OperationStartedEvent( String operationName, String processId, String messageId, Value message ) {
+	public static enum FieldNames {
+		OPERATION_NAME( "operationName" ), MESSAGE_ID( "messageId" ), VALUE( "value" );
 
-		super( "OperationStarted", Value.create() );
+		private String fieldName;
 
-		data().getFirstChild( "operationName" ).setValue( operationName );
-		data().getFirstChild( "processId" ).setValue( processId );
-		data().getFirstChild( "messageId" ).setValue( messageId );
-		data().getFirstChild( "message" ).deepCopy( message );
+		FieldNames( String name ) {
+			this.fieldName = name;
+		}
+
+		public String getName() {
+			return this.fieldName;
+		}
+	}
+
+	public static String operationName( Value value ) {
+		return value.getFirstChild( FieldNames.OPERATION_NAME.getName() ).strValue();
+	}
+
+	public static String messageId( Value value ) {
+		return value.getFirstChild( FieldNames.MESSAGE_ID.getName() ).strValue();
+	}
+
+	public static Value value( Value value ) {
+		return value.getFirstChild( FieldNames.VALUE.getName() );
+	}
+
+	public OperationStartedEvent( String operationName, String processId, String messageId, String service,
+		String scope, ParsingContext context,
+		Value value ) {
+
+		super( EventTypes.OPERATION_STARTED, service, scope, processId, context, Value.create() );
+
+		data().getFirstChild( FieldNames.OPERATION_NAME.getName() ).setValue( operationName );
+		data().getFirstChild( FieldNames.MESSAGE_ID.getName() ).setValue( messageId );
+		data().getFirstChild( FieldNames.VALUE.getName() ).deepCopy( value );
 
 	}
 

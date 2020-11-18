@@ -29,7 +29,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.monitoring.events.OperationCallEvent;
+import jolie.monitoring.events.OperationCallAsyncEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
@@ -85,7 +85,8 @@ public class NotificationProcess implements Process {
 		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
-
+		final String processId = ExecutionThread.currentThread().getSessionId();
+		final String scopeId = ExecutionThread.currentThread().currentStackScopes();
 		CommChannel channel = null;
 		try {
 			CommMessage message =
@@ -97,12 +98,14 @@ public class NotificationProcess implements Process {
 				try {
 					oneWayDescription.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
-					if( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent(
-							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-								Long.toString( message.id() ), OperationCallEvent.FAULT,
-								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
-					}
+
+					Interpreter.getInstance().fireMonitorEvent( () -> {
+						return new OperationCallAsyncEvent( operationId, processId,
+							Long.toString( message.id() ), OperationCallAsyncEvent.FAULT,
+							"TypeMismatch:" + e.getMessage(), outputPort.id(),
+							Interpreter.getInstance().programFilename(), scopeId, context, message.value() );
+					} );
+
 					throw (e);
 				}
 			}
@@ -113,12 +116,17 @@ public class NotificationProcess implements Process {
 			channel.send( message );
 
 			log( "SENT", message );
-			if( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance()
-					.fireMonitorEvent( new OperationCallEvent( operationId,
-						ExecutionThread.currentThread().getSessionId(), Long.toString( message.id() ),
-						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
-			}
+
+			Interpreter.getInstance()
+				.fireMonitorEvent( () -> {
+					return new OperationCallAsyncEvent( operationId,
+						processId, Long.toString( message.id() ),
+						OperationCallAsyncEvent.SUCCESS, "", outputPort.id(),
+						Interpreter.getInstance().programFilename(),
+						scopeId, context,
+						message.value() );
+				} );
+
 
 			CommMessage response = null;
 			do {
@@ -147,7 +155,8 @@ public class NotificationProcess implements Process {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
-				"TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+				"Line " + context.line() + ", TypeMismatch (" + operationId + "@" + outputPort.id() + "): "
+					+ e.getMessage() );
 		} finally {
 			if( channel != null ) {
 				try {

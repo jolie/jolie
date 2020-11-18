@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.monitoring.events.OperationStartedEvent;
+import jolie.monitoring.events.OperationReceivedAsyncEvent;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
@@ -40,17 +40,12 @@ import jolie.tracer.Tracer;
 public class OneWayProcess implements InputOperationProcess {
 	private final OneWayOperation operation;
 	private final VariablePath varPath;
-	private boolean isSessionStarter = false;
 	private final ParsingContext context;
 
 	public OneWayProcess( OneWayOperation operation, VariablePath varPath, ParsingContext context ) {
 		this.operation = operation;
 		this.varPath = varPath;
 		this.context = context;
-	}
-
-	public void setSessionStarter( boolean isSessionStarter ) {
-		this.isSessionStarter = isSessionStarter;
 	}
 
 	public InputOperation inputOperation() {
@@ -66,18 +61,24 @@ public class OneWayProcess implements InputOperationProcess {
 	}
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
-		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent(
-				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-					Long.toString( sessionMessage.message().id() ), sessionMessage.message().value() ) );
-		}
+
+
 
 		log( "RECEIVED", sessionMessage.message() );
 		if( varPath != null ) {
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
 		}
 
-		return NullProcess.getInstance();
+		return new InternalEngineProcess( () -> {
+			final String processId = ExecutionThread.currentThread().getSessionId();
+			final String scopeId = ExecutionThread.currentThread().currentStackScopes();
+			Interpreter.getInstance().fireMonitorEvent( () -> {
+				return new OperationReceivedAsyncEvent( operation.id(), processId,
+					Long.toString( sessionMessage.message().id() ),
+					Interpreter.getInstance().programFilename(), scopeId, context,
+					sessionMessage.message().value() );
+			} );
+		} );
 	}
 
 	public void run()

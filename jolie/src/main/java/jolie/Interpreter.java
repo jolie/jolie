@@ -31,7 +31,19 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -55,13 +68,13 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParsingConfiguration;
 import jolie.lang.parse.module.Modules;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
-import jolie.monitoring.events.OperationStartedEvent;
 import jolie.monitoring.events.SessionEndedEvent;
 import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
@@ -72,7 +85,15 @@ import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
-import jolie.runtime.*;
+import jolie.runtime.FaultException;
+import jolie.runtime.InputOperation;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
+import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.TimeoutHandler;
+import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
+import jolie.runtime.ValueVector;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
@@ -83,6 +104,7 @@ import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
+
 
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
@@ -227,6 +249,7 @@ public class Interpreter {
 	private Program internalServiceProgram = null;
 	private final Value receivingEmbeddedValue;
 	private Interpreter parentInterpreter = null;
+	private final Collection< Interpreter > interpreterChildren = new ArrayList<>();
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
 	private volatile boolean exiting = false;
@@ -246,6 +269,7 @@ public class Interpreter {
 	private final HashMap< String, Object > locksMap = new HashMap<>();
 
 	private final String[] includePaths;
+
 
 	private final String logPrefix;
 	private final Tracer tracer;
@@ -276,7 +300,14 @@ public class Interpreter {
 
 	public void setMonitor( OutputPort monitor ) {
 		this.monitor = monitor;
-		fireMonitorEvent( new MonitorAttachedEvent() );
+		interpreterChildren.stream().forEach( i -> i.setMonitor( monitor ) );
+		fireMonitorEvent( () -> {
+			return new MonitorAttachedEvent( programFilename(), null );
+		} );
+	}
+
+	public OutputPort getMonitor() {
+		return monitor;
 	}
 
 	public boolean isMonitoring() {
@@ -295,8 +326,9 @@ public class Interpreter {
 		return tracer;
 	}
 
-	public void fireMonitorEvent( MonitoringEvent event ) {
+	public void fireMonitorEvent( Supplier< ? extends MonitoringEvent > supplier ) {
 		if( monitor != null ) {
+			MonitoringEvent event = supplier.get();
 			CommMessage m = CommMessage.createRequest( "pushEvent", "/", MonitoringEvent.toValue( event ) );
 			CommChannel channel = null;
 			try {
@@ -560,6 +592,7 @@ public class Interpreter {
 		embeddedServiceLoaders.add( n );
 	}
 
+
 	/**
 	 * Returns the <code>EmbeddedServiceLoader</code> instances registered on this interpreter.
 	 * 
@@ -567,6 +600,26 @@ public class Interpreter {
 	 */
 	public Collection< EmbeddedServiceLoader > embeddedServiceLoaders() {
 		return embeddedServiceLoaders;
+	}
+
+	/**
+	 * Add an interpreter as a child of the current one
+	 * 
+	 * @param interpreter
+	 */
+	public void addInterpreterChild( Interpreter interpreter ) {
+		interpreterChildren.add( interpreter );
+	}
+
+	/**
+	 * remove an interpreter as a child of the current one
+	 * 
+	 * @param interpreter
+	 */
+	public void removeInterpreterChild( Interpreter interpreter ) {
+		if( interpreterChildren.contains( interpreter ) ) {
+			interpreterChildren.remove( interpreter );
+		}
 	}
 
 	/**
@@ -630,6 +683,9 @@ public class Interpreter {
 		try {
 			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch( InterruptedException e ) {
+		}
+		if( parentInterpreter != null ) {
+			parentInterpreter.removeInterpreterChild( this );
 		}
 		free();
 	}
@@ -832,6 +888,16 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
+		File programDirectory, Interpreter parentInterpreter, Optional< Value > params )
+		throws IOException {
+		this( configuration, programDirectory, params );
+		this.parentInterpreter = parentInterpreter;
+		if( parentInterpreter != null ) {
+			setMonitor( this.parentInterpreter.getMonitor() );
+		}
+	}
+
+	public Interpreter( Configuration configuration,
 		File programDirectory, Optional< Value > params )
 		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
@@ -904,6 +970,9 @@ public class Interpreter {
 		this( configuration, programDirectory, Optional.empty() );
 
 		this.parentInterpreter = parentInterpreter;
+		if( this.parentInterpreter != null ) {
+			setMonitor( this.parentInterpreter.getMonitor() );
+		}
 		this.internalServiceProgram = internalServiceProgram;
 	}
 
@@ -1172,6 +1241,7 @@ public class Interpreter {
 		 * We help the Java(tm) Garbage Collector. Looks like it needs this or the Interpreter does not get
 		 * collected.
 		 */
+		monitor = null;
 		definitions.clear();
 		inputOperations.clear();
 		locksMap.clear();
@@ -1182,6 +1252,8 @@ public class Interpreter {
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
 		configuration.clear();
+		interpreterChildren.clear();
+		parentInterpreter = null;
 		commCore = null;
 		// System.gc();
 	}
@@ -1312,15 +1384,14 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), message.value() );
+			logSessionStart( message.operationName(), spawnedSession.getSessionId(), null );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 			} );
 			spawnedSession.start();
@@ -1347,7 +1418,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
@@ -1359,7 +1430,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.operationName(), session.getSessionId(), null );
 				}
 			} );
 			synchronized( waitingSessionThreads ) {
@@ -1374,18 +1445,22 @@ public class Interpreter {
 		return true;
 	}
 
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message ) {
-		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
-			fireMonitorEvent(
-				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
-		}
+	private void logSessionStart( String operationName, String sessionId, ParsingContext parsingContext ) {
+
+		fireMonitorEvent( () -> {
+			return new SessionStartedEvent( operationName, sessionId, programFilename(),
+				"main", parsingContext );
+		} );
+
 	}
 
-	private void logSessionEnd( String operationName, String sessionId ) {
-		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
-		}
+	private void logSessionEnd( String operationName, String sessionId, ParsingContext parsingContext ) {
+
+		fireMonitorEvent( () -> {
+			return new SessionEndedEvent( operationName, sessionId, programFilename(),
+				"main", parsingContext );
+		} );
+
 	}
 
 	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<>();
@@ -1426,6 +1501,7 @@ public class Interpreter {
 		private final File programDirectory;
 		private final String[] packagePaths;
 		private final String executionTarget;
+		private final boolean isInternal;
 
 		private Configuration( int connectionsLimit,
 			CorrelationEngine.Type correlationAlgorithm,
@@ -1449,7 +1525,8 @@ public class Interpreter {
 			Level logLevel,
 			File programDirectory,
 			String[] packagePaths,
-			String executionTarget ) {
+			String executionTarget,
+			boolean isInternal ) {
 			this.connectionsLimit = connectionsLimit;
 			this.correlationAlgorithm = correlationAlgorithm;
 			this.includePaths = includeList;
@@ -1473,6 +1550,7 @@ public class Interpreter {
 			this.programDirectory = programDirectory;
 			this.packagePaths = packagePaths;
 			this.executionTarget = executionTarget;
+			this.isInternal = isInternal;
 		}
 
 		public static Configuration create( int connectionsLimit,
@@ -1497,11 +1575,12 @@ public class Interpreter {
 			Level logLevel,
 			File programDirectory,
 			String[] packagePaths,
-			String executionTarget ) {
+			String executionTarget,
+			boolean isInternal ) {
 			return new Configuration( connectionsLimit, correlationAlgorithm, includeList, optionArgs, libUrls,
 				inputStream, charset, programFilepath, arguments, constants, jolieClassLoader, programCompiled,
 				typeCheck, tracer, tracerLevel, tracerMode, check, printStackTraces, responseTimeout, logLevel,
-				programDirectory, packagePaths, executionTarget );
+				programDirectory, packagePaths, executionTarget, isInternal );
 		}
 
 		public static Configuration create( Configuration config,
@@ -1511,7 +1590,7 @@ public class Interpreter {
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
-				config.programDirectory, config.packagePaths, config.executionTarget );
+				config.programDirectory, config.packagePaths, config.executionTarget, config.isInternal );
 		}
 
 		public static Configuration create( Configuration config,
@@ -1522,7 +1601,7 @@ public class Interpreter {
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
-				config.programDirectory, config.packagePaths, executionTarget );
+				config.programDirectory, config.packagePaths, executionTarget, config.isInternal );
 		}
 
 		/**
@@ -1728,6 +1807,15 @@ public class Interpreter {
 		 */
 		public File programDirectory() {
 			return programDirectory;
+		}
+
+		/**
+		 * Returns the flag that indicate if this interpreter is an internal one.
+		 *
+		 * @return the flag that indicate if this interpreter is an internal one.
+		 */
+		public boolean isInternal() {
+			return isInternal;
 		}
 
 		public void clear() {

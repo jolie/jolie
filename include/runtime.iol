@@ -93,6 +93,12 @@ type HaltRequest: void {
 	.status?: int //< The status code to return to the execution environment
 }
 
+/// the message to be logged
+type LogMonitorRequest: string {
+	.level?: string //< INFO (default) | WARNING | ERROR
+	.extendedType?: string
+}
+
 /// Information on the interpreter execution so far
 type Stats:void {
 	/// Information on file descriptors
@@ -122,6 +128,9 @@ RequestResponse:
 
 	/// Load an embedded service.
 	loadEmbeddedService(LoadEmbeddedServiceRequest)(any) throws RuntimeException(RuntimeExceptionType),
+	
+	/// send a log to the registered monitor
+	log( LogMonitorRequest )( void ),
 
 	/// Get the output port name that a redirection points to.
 	getRedirection(GetRedirectionRequest)(MaybeString),
