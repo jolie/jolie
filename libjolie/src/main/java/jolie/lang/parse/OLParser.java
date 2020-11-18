@@ -954,7 +954,6 @@ public class OLParser extends AbstractParser {
 			throwException( "Expected execution mode, found " + token.content() );
 			break;
 		}
-		programBuilder.addChild( new ExecutionInfo( getContext(), mode ) );
 		nextToken();
 		if( inCurlyBrackets ) {
 			eat( Scanner.TokenType.RCURLY, "} expected" );
