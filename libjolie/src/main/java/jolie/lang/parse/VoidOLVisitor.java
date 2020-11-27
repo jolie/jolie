@@ -1,0 +1,679 @@
+/***************************************************************************
+ *   Copyright (C) by Fabrizio Montesi                                     *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
+package jolie.lang.parse;
+
+import jolie.util.Unit;
+import jolie.lang.parse.ast.AddAssignStatement;
+import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.CompareConditionNode;
+import jolie.lang.parse.ast.CompensateStatement;
+import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
+import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
+import jolie.lang.parse.ast.DocumentationComment;
+import jolie.lang.parse.ast.EmbedServiceNode;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.ExecutionInfo;
+import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
+import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
+import jolie.lang.parse.ast.InstallStatement;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
+import jolie.lang.parse.ast.LinkInStatement;
+import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
+import jolie.lang.parse.ast.NDChoiceStatement;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.NullProcessStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PostDecrementStatement;
+import jolie.lang.parse.ast.PostIncrementStatement;
+import jolie.lang.parse.ast.PreDecrementStatement;
+import jolie.lang.parse.ast.PreIncrementStatement;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.RunStatement;
+import jolie.lang.parse.ast.Scope;
+import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SpawnStatement;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.SynchronizedStatement;
+import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.TypeCastExpressionNode;
+import jolie.lang.parse.ast.UndefStatement;
+import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
+import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
+import jolie.lang.parse.ast.expression.AndConditionNode;
+import jolie.lang.parse.ast.expression.ConstantBoolExpression;
+import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
+import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
+import jolie.lang.parse.ast.expression.NotExpressionNode;
+import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
+
+public interface VoidOLVisitor extends OLVisitor< Unit, Unit > {
+	default void go( OLSyntaxNode n ) {
+		n.accept( this );
+	}
+
+	void visit( Program n );
+
+	default Unit visit( Program n, Unit c ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( OneWayOperationDeclaration decl );
+
+	default Unit visit( OneWayOperationDeclaration decl, Unit ctx ) {
+		visit( decl );
+		return null;
+	}
+
+	void visit( RequestResponseOperationDeclaration decl );
+
+	default Unit visit( RequestResponseOperationDeclaration decl, Unit ctx ) {
+		visit( decl );
+		return null;
+	}
+
+	void visit( DefinitionNode n );
+
+	default Unit visit( DefinitionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ParallelStatement n );
+
+	default Unit visit( ParallelStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( SequenceStatement n );
+
+	default Unit visit( SequenceStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( NDChoiceStatement n );
+
+	default Unit visit( NDChoiceStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( OneWayOperationStatement n );
+
+	default Unit visit( OneWayOperationStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( RequestResponseOperationStatement n );
+
+	default Unit visit( RequestResponseOperationStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( NotificationOperationStatement n );
+
+	default Unit visit( NotificationOperationStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( SolicitResponseOperationStatement n );
+
+	default Unit visit( SolicitResponseOperationStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( LinkInStatement n );
+
+	default Unit visit( LinkInStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( LinkOutStatement n );
+
+	default Unit visit( LinkOutStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( AssignStatement n );
+
+	default Unit visit( AssignStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( AddAssignStatement n );
+
+	default Unit visit( AddAssignStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( SubtractAssignStatement n );
+
+	default Unit visit( SubtractAssignStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( MultiplyAssignStatement n );
+
+	default Unit visit( MultiplyAssignStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( DivideAssignStatement n );
+
+	default Unit visit( DivideAssignStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( IfStatement n );
+
+	default Unit visit( IfStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( DefinitionCallStatement n );
+
+	default Unit visit( DefinitionCallStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( WhileStatement n );
+
+	default Unit visit( WhileStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( OrConditionNode n );
+
+	default Unit visit( OrConditionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( AndConditionNode n );
+
+	default Unit visit( AndConditionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( NotExpressionNode n );
+
+	default Unit visit( NotExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( CompareConditionNode n );
+
+	default Unit visit( CompareConditionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ConstantIntegerExpression n );
+
+	default Unit visit( ConstantIntegerExpression n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ConstantDoubleExpression n );
+
+	default Unit visit( ConstantDoubleExpression n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ConstantBoolExpression n );
+
+	default Unit visit( ConstantBoolExpression n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ConstantLongExpression n );
+
+	default Unit visit( ConstantLongExpression n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ConstantStringExpression n );
+
+	default Unit visit( ConstantStringExpression n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ProductExpressionNode n );
+
+	default Unit visit( ProductExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( SumExpressionNode n );
+
+	default Unit visit( SumExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( VariableExpressionNode n );
+
+	default Unit visit( VariableExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( NullProcessStatement n );
+
+	default Unit visit( NullProcessStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( Scope n );
+
+	default Unit visit( Scope n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( InstallStatement n );
+
+	default Unit visit( InstallStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( CompensateStatement n );
+
+	default Unit visit( CompensateStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ThrowStatement n );
+
+	default Unit visit( ThrowStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ExitStatement n );
+
+	default Unit visit( ExitStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ExecutionInfo n );
+
+	default Unit visit( ExecutionInfo n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( CorrelationSetInfo n );
+
+	default Unit visit( CorrelationSetInfo n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( InputPortInfo n );
+
+	default Unit visit( InputPortInfo n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( OutputPortInfo n );
+
+	default Unit visit( OutputPortInfo n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( PointerStatement n );
+
+	default Unit visit( PointerStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( DeepCopyStatement n );
+
+	default Unit visit( DeepCopyStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( RunStatement n );
+
+	default Unit visit( RunStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( UndefStatement n );
+
+	default Unit visit( UndefStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ValueVectorSizeExpressionNode n );
+
+	default Unit visit( ValueVectorSizeExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( PreIncrementStatement n );
+
+	default Unit visit( PreIncrementStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( PostIncrementStatement n );
+
+	default Unit visit( PostIncrementStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( PreDecrementStatement n );
+
+	default Unit visit( PreDecrementStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( PostDecrementStatement n );
+
+	default Unit visit( PostDecrementStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ForStatement n );
+
+	default Unit visit( ForStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ForEachSubNodeStatement n );
+
+	default Unit visit( ForEachSubNodeStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ForEachArrayItemStatement n );
+
+	default Unit visit( ForEachArrayItemStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( SpawnStatement n );
+
+	default Unit visit( SpawnStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( IsTypeExpressionNode n );
+
+	default Unit visit( IsTypeExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( InstanceOfExpressionNode n );
+
+	default Unit visit( InstanceOfExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( TypeCastExpressionNode n );
+
+	default Unit visit( TypeCastExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( SynchronizedStatement n );
+
+	default Unit visit( SynchronizedStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( CurrentHandlerStatement n );
+
+	default Unit visit( CurrentHandlerStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( EmbeddedServiceNode n );
+
+	default Unit visit( EmbeddedServiceNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( InstallFixedVariableExpressionNode n );
+
+	default Unit visit( InstallFixedVariableExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( VariablePathNode n );
+
+	default Unit visit( VariablePathNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( TypeInlineDefinition n );
+
+	default Unit visit( TypeInlineDefinition n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( TypeDefinitionLink n );
+
+	default Unit visit( TypeDefinitionLink n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( InterfaceDefinition n );
+
+	default Unit visit( InterfaceDefinition n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( DocumentationComment n );
+
+	default Unit visit( DocumentationComment n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( FreshValueExpressionNode n );
+
+	default Unit visit( FreshValueExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( CourierDefinitionNode n );
+
+	default Unit visit( CourierDefinitionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( CourierChoiceStatement n );
+
+	default Unit visit( CourierChoiceStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( NotificationForwardStatement n );
+
+	default Unit visit( NotificationForwardStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( SolicitResponseForwardStatement n );
+
+	default Unit visit( SolicitResponseForwardStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( InterfaceExtenderDefinition n );
+
+	default Unit visit( InterfaceExtenderDefinition n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( InlineTreeExpressionNode n );
+
+	default Unit visit( InlineTreeExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( VoidExpressionNode n );
+
+	default Unit visit( VoidExpressionNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ProvideUntilStatement n );
+
+	default Unit visit( ProvideUntilStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( TypeChoiceDefinition n );
+
+	default Unit visit( TypeChoiceDefinition n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ImportStatement n );
+
+	default Unit visit( ImportStatement n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( ServiceNode n );
+
+	default Unit visit( ServiceNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+
+	void visit( EmbedServiceNode n );
+
+	default Unit visit( EmbedServiceNode n, Unit ctx ) {
+		visit( n );
+		return null;
+	}
+}

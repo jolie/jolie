@@ -46,7 +46,7 @@ public class DivideAssignStatement extends OLSyntaxNode {
 	}
 
 	@Override
-	public void accept( OLVisitor visitor ) {
-		visitor.visit( this );
+	public < C, R > R accept( OLVisitor< C, R > visitor, C ctx ) {
+		return visitor.visit( this, ctx );
 	}
 }

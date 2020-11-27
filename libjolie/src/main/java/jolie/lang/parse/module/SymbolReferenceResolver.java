@@ -25,7 +25,7 @@ import java.util.*;
 import jolie.lang.CodeCheckingError;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperandType;
-import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.VoidOLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -162,7 +162,7 @@ public class SymbolReferenceResolver {
 	// + " has infinite loop to it's linked type" );
 	// }
 
-	private class SymbolReferenceResolverVisitor implements OLVisitor {
+	private class SymbolReferenceResolverVisitor implements VoidOLVisitor {
 		private URI currentURI;
 		private final List< CodeCheckingError > errors = new ArrayList<>();
 

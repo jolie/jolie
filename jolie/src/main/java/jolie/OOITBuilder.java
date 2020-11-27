@@ -25,7 +25,7 @@ import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.CorrelationFunctionInfo;
 import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.OLParser;
-import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.VoidOLVisitor;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
@@ -76,9 +76,9 @@ import java.util.function.BiPredicate;
  * Builds an interpretation tree by visiting a Jolie abstract syntax tree.
  * 
  * @author Fabrizio Montesi
- * @see OLVisitor
+ * @see VoidOLVisitor
  */
-public class OOITBuilder implements OLVisitor {
+public class OOITBuilder implements VoidOLVisitor {
 	private final Program program;
 	private final Value initValue;
 	private boolean valid = true;

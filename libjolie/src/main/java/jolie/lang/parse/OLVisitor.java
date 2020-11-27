@@ -104,170 +104,177 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 
-public interface OLVisitor {
-	default void go( OLSyntaxNode n ) {
-		n.accept( this );
+/**
+ * A generic visitor for the jolie AST.
+ *
+ * @param <C> The type of the context carried along the visit
+ * @param <R> The return type of the visit
+ */
+
+public interface OLVisitor< C, R > {
+	default R go( OLSyntaxNode n, C ctx ) {
+		return n.accept( this, ctx );
 	}
 
-	void visit( Program n );
+	R visit( Program n, C ctx );
 
-	void visit( OneWayOperationDeclaration decl );
+	R visit( OneWayOperationDeclaration decl, C ctx );
 
-	void visit( RequestResponseOperationDeclaration decl );
+	R visit( RequestResponseOperationDeclaration decl, C ctx );
 
-	void visit( DefinitionNode n );
+	R visit( DefinitionNode n, C ctx );
 
-	void visit( ParallelStatement n );
+	R visit( ParallelStatement n, C ctx );
 
-	void visit( SequenceStatement n );
+	R visit( SequenceStatement n, C ctx );
 
-	void visit( NDChoiceStatement n );
+	R visit( NDChoiceStatement n, C ctx );
 
-	void visit( OneWayOperationStatement n );
+	R visit( OneWayOperationStatement n, C ctx );
 
-	void visit( RequestResponseOperationStatement n );
+	R visit( RequestResponseOperationStatement n, C ctx );
 
-	void visit( NotificationOperationStatement n );
+	R visit( NotificationOperationStatement n, C ctx );
 
-	void visit( SolicitResponseOperationStatement n );
+	R visit( SolicitResponseOperationStatement n, C ctx );
 
-	void visit( LinkInStatement n );
+	R visit( LinkInStatement n, C ctx );
 
-	void visit( LinkOutStatement n );
+	R visit( LinkOutStatement n, C ctx );
 
-	void visit( AssignStatement n );
+	R visit( AssignStatement n, C ctx );
 
-	void visit( AddAssignStatement n );
+	R visit( AddAssignStatement n, C ctx );
 
-	void visit( SubtractAssignStatement n );
+	R visit( SubtractAssignStatement n, C ctx );
 
-	void visit( MultiplyAssignStatement n );
+	R visit( MultiplyAssignStatement n, C ctx );
 
-	void visit( DivideAssignStatement n );
+	R visit( DivideAssignStatement n, C ctx );
 
-	void visit( IfStatement n );
+	R visit( IfStatement n, C ctx );
 
-	void visit( DefinitionCallStatement n );
+	R visit( DefinitionCallStatement n, C ctx );
 
-	void visit( WhileStatement n );
+	R visit( WhileStatement n, C ctx );
 
-	void visit( OrConditionNode n );
+	R visit( OrConditionNode n, C ctx );
 
-	void visit( AndConditionNode n );
+	R visit( AndConditionNode n, C ctx );
 
-	void visit( NotExpressionNode n );
+	R visit( NotExpressionNode n, C ctx );
 
-	void visit( CompareConditionNode n );
+	R visit( CompareConditionNode n, C ctx );
 
-	void visit( ConstantIntegerExpression n );
+	R visit( ConstantIntegerExpression n, C ctx );
 
-	void visit( ConstantDoubleExpression n );
+	R visit( ConstantDoubleExpression n, C ctx );
 
-	void visit( ConstantBoolExpression n );
+	R visit( ConstantBoolExpression n, C ctx );
 
-	void visit( ConstantLongExpression n );
+	R visit( ConstantLongExpression n, C ctx );
 
-	void visit( ConstantStringExpression n );
+	R visit( ConstantStringExpression n, C ctx );
 
-	void visit( ProductExpressionNode n );
+	R visit( ProductExpressionNode n, C ctx );
 
-	void visit( SumExpressionNode n );
+	R visit( SumExpressionNode n, C ctx );
 
-	void visit( VariableExpressionNode n );
+	R visit( VariableExpressionNode n, C ctx );
 
-	void visit( NullProcessStatement n );
+	R visit( NullProcessStatement n, C ctx );
 
-	void visit( Scope n );
+	R visit( Scope n, C ctx );
 
-	void visit( InstallStatement n );
+	R visit( InstallStatement n, C ctx );
 
-	void visit( CompensateStatement n );
+	R visit( CompensateStatement n, C ctx );
 
-	void visit( ThrowStatement n );
+	R visit( ThrowStatement n, C ctx );
 
-	void visit( ExitStatement n );
+	R visit( ExitStatement n, C ctx );
 
-	void visit( ExecutionInfo n );
+	R visit( ExecutionInfo n, C ctx );
 
-	void visit( CorrelationSetInfo n );
+	R visit( CorrelationSetInfo n, C ctx );
 
-	void visit( InputPortInfo n );
+	R visit( InputPortInfo n, C ctx );
 
-	void visit( OutputPortInfo n );
+	R visit( OutputPortInfo n, C ctx );
 
-	void visit( PointerStatement n );
+	R visit( PointerStatement n, C ctx );
 
-	void visit( DeepCopyStatement n );
+	R visit( DeepCopyStatement n, C ctx );
 
-	void visit( RunStatement n );
+	R visit( RunStatement n, C ctx );
 
-	void visit( UndefStatement n );
+	R visit( UndefStatement n, C ctx );
 
-	void visit( ValueVectorSizeExpressionNode n );
+	R visit( ValueVectorSizeExpressionNode n, C ctx );
 
-	void visit( PreIncrementStatement n );
+	R visit( PreIncrementStatement n, C ctx );
 
-	void visit( PostIncrementStatement n );
+	R visit( PostIncrementStatement n, C ctx );
 
-	void visit( PreDecrementStatement n );
+	R visit( PreDecrementStatement n, C ctx );
 
-	void visit( PostDecrementStatement n );
+	R visit( PostDecrementStatement n, C ctx );
 
-	void visit( ForStatement n );
+	R visit( ForStatement n, C ctx );
 
-	void visit( ForEachSubNodeStatement n );
+	R visit( ForEachSubNodeStatement n, C ctx );
 
-	void visit( ForEachArrayItemStatement n );
+	R visit( ForEachArrayItemStatement n, C ctx );
 
-	void visit( SpawnStatement n );
+	R visit( SpawnStatement n, C ctx );
 
-	void visit( IsTypeExpressionNode n );
+	R visit( IsTypeExpressionNode n, C ctx );
 
-	void visit( InstanceOfExpressionNode n );
+	R visit( InstanceOfExpressionNode n, C ctx );
 
-	void visit( TypeCastExpressionNode n );
+	R visit( TypeCastExpressionNode n, C ctx );
 
-	void visit( SynchronizedStatement n );
+	R visit( SynchronizedStatement n, C ctx );
 
-	void visit( CurrentHandlerStatement n );
+	R visit( CurrentHandlerStatement n, C ctx );
 
-	void visit( EmbeddedServiceNode n );
+	R visit( EmbeddedServiceNode n, C ctx );
 
-	void visit( InstallFixedVariableExpressionNode n );
+	R visit( InstallFixedVariableExpressionNode n, C ctx );
 
-	void visit( VariablePathNode n );
+	R visit( VariablePathNode n, C ctx );
 
-	void visit( TypeInlineDefinition n );
+	R visit( TypeInlineDefinition n, C ctx );
 
-	void visit( TypeDefinitionLink n );
+	R visit( TypeDefinitionLink n, C ctx );
 
-	void visit( InterfaceDefinition n );
+	R visit( InterfaceDefinition n, C ctx );
 
-	void visit( DocumentationComment n );
+	R visit( DocumentationComment n, C ctx );
 
-	void visit( FreshValueExpressionNode n );
+	R visit( FreshValueExpressionNode n, C ctx );
 
-	void visit( CourierDefinitionNode n );
+	R visit( CourierDefinitionNode n, C ctx );
 
-	void visit( CourierChoiceStatement n );
+	R visit( CourierChoiceStatement n, C ctx );
 
-	void visit( NotificationForwardStatement n );
+	R visit( NotificationForwardStatement n, C ctx );
 
-	void visit( SolicitResponseForwardStatement n );
+	R visit( SolicitResponseForwardStatement n, C ctx );
 
-	void visit( InterfaceExtenderDefinition n );
+	R visit( InterfaceExtenderDefinition n, C ctx );
 
-	void visit( InlineTreeExpressionNode n );
+	R visit( InlineTreeExpressionNode n, C ctx );
 
-	void visit( VoidExpressionNode n );
+	R visit( VoidExpressionNode n, C ctx );
 
-	void visit( ProvideUntilStatement n );
+	R visit( ProvideUntilStatement n, C ctx );
 
-	void visit( TypeChoiceDefinition n );
+	R visit( TypeChoiceDefinition n, C ctx );
 
-	void visit( ImportStatement n );
+	R visit( ImportStatement n, C ctx );
 
-	void visit( ServiceNode n );
+	R visit( ServiceNode n, C ctx );
 
-	void visit( EmbedServiceNode n );
+	R visit( EmbedServiceNode n, C ctx );
 }
