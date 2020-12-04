@@ -23,7 +23,7 @@ package joliex.plasma.impl;
 
 import java.util.*;
 
-import jolie.lang.parse.VoidOLVisitor;
+import jolie.lang.parse.UnitOLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -111,7 +111,7 @@ import jolie.lang.parse.ast.types.TypeInlineDefinition;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceVisitor implements VoidOLVisitor {
+public class InterfaceVisitor implements UnitOLVisitor {
 	private final Program program;
 	private final List< InterfaceDefinition > interfaceDefinitions =
 		new ArrayList<>();

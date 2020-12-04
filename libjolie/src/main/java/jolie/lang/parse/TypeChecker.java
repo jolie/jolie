@@ -121,7 +121,7 @@ import jolie.util.Pair;
  *
  * @author Fabrizio Montesi
  */
-public class TypeChecker implements VoidOLVisitor {
+public class TypeChecker implements UnitOLVisitor {
 	private static class FlaggedVariablePathNode extends VariablePathNode {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 		private final boolean isFresh;

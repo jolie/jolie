@@ -25,8 +25,8 @@ import java.io.Serializable;
 
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
-import jolie.util.Unit;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.util.Unit;
 
 public abstract class OLSyntaxNode implements Serializable {
 	private static final long serialVersionUID = Constants.serialVersionUID();
@@ -41,11 +41,9 @@ public abstract class OLSyntaxNode implements Serializable {
 		return context;
 	}
 
-	// abstract public < C, R > void accept( OLVisitor visitor );
-
 	abstract public < C, R > R accept( OLVisitor< C, R > v, C ctx );
 
 	public < R > R accept( OLVisitor< Unit, R > v ) {
-		return accept( v, null );
+		return accept( v, Unit.INSTANCE );
 	}
 }
