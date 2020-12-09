@@ -124,7 +124,7 @@ public class OLParseTreeOptimizer {
 	 * TODO Optimize expressions and conditions
 	 *
 	 */
-	private static class OptimizerVisitor implements OLVisitor {
+	private static class OptimizerVisitor implements UnitOLVisitor {
 		private final List< OLSyntaxNode > programChildren = new ArrayList<>();
 		private final ParsingContext context;
 		private OLSyntaxNode currNode;

@@ -29,7 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.UnitOLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -121,7 +121,7 @@ import jolie.util.Pair;
  * 
  * @author Fabrizio Montesi
  */
-public class ProgramInspectorCreatorVisitor implements OLVisitor {
+public class ProgramInspectorCreatorVisitor implements UnitOLVisitor {
 	private final Map< URI, List< InterfaceDefinition > > interfaces = new HashMap<>();
 	private final Map< URI, List< InputPortInfo > > inputPorts = new HashMap<>();
 	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap<>();
