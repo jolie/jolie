@@ -117,8 +117,8 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 	}
 
 	@Override
-	public void accept( OLVisitor visitor ) {
-		visitor.visit( this );
+	public < C, R > R accept( OLVisitor< C, R > v, C ctx ) {
+		return v.visit( this, ctx );
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2006-2020 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2020 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2020 Valentino Picotti <valentino.picotti@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,28 +18,13 @@
  * MA 02110-1301  USA
  */
 
+package jolie.util;
 
-package jolie.lang.parse.ast.expression;
+/**
+ * Unit is a type with only one inhabitant, the <code>Unit.INSTANCE</code> value.
+ */
+public final class Unit {
+	public static final Unit INSTANCE = new Unit();
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
-
-
-public class ConstantIntegerExpression extends OLSyntaxNode {
-	private final int value;
-
-	public ConstantIntegerExpression( ParsingContext context, int value ) {
-		super( context );
-		this.value = value;
-	}
-
-	public int value() {
-		return value;
-	}
-
-	@Override
-	public < C, R > R accept( OLVisitor< C, R > visitor, C ctx ) {
-		return visitor.visit( this, ctx );
-	}
+	private Unit() {}
 }

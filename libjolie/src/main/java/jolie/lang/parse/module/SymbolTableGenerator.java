@@ -21,7 +21,7 @@ package jolie.lang.parse.module;
 
 import java.util.Map;
 import jolie.lang.NativeType;
-import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.UnitOLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -112,7 +112,7 @@ import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 
 public class SymbolTableGenerator {
 
-	private static class SymbolTableGeneratorVisitor implements OLVisitor {
+	private static class SymbolTableGeneratorVisitor implements UnitOLVisitor {
 		private final SymbolTable symbolTable;
 		private boolean valid = true;
 		private ModuleException error;

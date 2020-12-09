@@ -138,7 +138,7 @@ import jolie.util.Pair;
  * @see Program
  * @author Fabrizio Montesi
  */
-public class SemanticVerifier implements OLVisitor {
+public class SemanticVerifier implements UnitOLVisitor {
 	public static class Configuration {
 		private boolean checkForMain = true;
 		private final String executionTarget;
