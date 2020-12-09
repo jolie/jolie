@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2020 Fabrizio Montesi <famontesi@gmail.com>
  * Copyright (C) 2020 Valentino Picotti <valentino.picotti@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
