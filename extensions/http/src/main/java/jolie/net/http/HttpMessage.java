@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 
 public class HttpMessage {
 	public enum Type {
-		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, UNSUPPORTED, ERROR
+		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, PATCH, UNSUPPORTED, ERROR
 	}
 
 	public enum Version {
