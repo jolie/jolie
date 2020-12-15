@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Fabrizio Montesi
  */
 public enum Method {
-	POST( "POST" ), GET( "GET" ), PUT( "PUT" ), DELETE( "DELETE" ), OPTIONS( "OPTIONS" );
+	POST( "POST" ), GET( "GET" ), PUT( "PUT" ), DELETE( "DELETE" ), OPTIONS( "OPTIONS" ), PATCH( "PATCH" );
 
 	private final static Map< String, Method > ID_MAP = new ConcurrentHashMap<>();
 
