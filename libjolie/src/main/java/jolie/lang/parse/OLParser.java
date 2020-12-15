@@ -141,7 +141,7 @@ public class OLParser extends AbstractParser {
 			programBuilder.addChild( main );
 		}
 
-		if( !programBuilder.isJolieModuleSystem() ) {
+		if( !programBuilder.isJolieModuleSystem() && main != null ) {
 			programBuilder.transformProgramToModuleSystem();
 		} else if( hasIncludeDirective ) {
 			// [backward-compatibility] for include directive, remove Deployment Instructions which was added
