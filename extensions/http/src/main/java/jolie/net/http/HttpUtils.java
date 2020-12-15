@@ -81,6 +81,8 @@ public class HttpUtils {
 			return "put";
 		case OPTIONS:
 			return "options";
+		case PATCH:
+			return "patch";
 		}
 		return null;
 	}
