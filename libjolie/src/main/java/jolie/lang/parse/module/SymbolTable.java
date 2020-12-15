@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import jolie.lang.parse.ast.ImportableSymbol;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.SymbolInfo.Scope;
@@ -87,7 +88,10 @@ public class SymbolTable {
 	 */
 	protected void addSymbol( String name, ImportableSymbol node ) throws DuplicateSymbolException {
 		if( isDuplicateSymbol( name ) ) {
-			throw new DuplicateSymbolException( name );
+			if( node instanceof ServiceNode ) {
+				// allows re-declaration of any symbols except ServiceNode.
+				throw new DuplicateSymbolException( name );
+			}
 		}
 		this.symbols.put( name, new LocalSymbolInfo( name, node ) );
 	}
@@ -163,7 +167,7 @@ public class SymbolTable {
 	}
 
 	private boolean isDuplicateSymbol( String name ) {
-		return symbols.containsKey( name ) && symbols.get( name ).scope() != Scope.LOCAL;
+		return symbols.containsKey( name );
 	}
 
 	@Override
