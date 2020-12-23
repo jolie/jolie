@@ -52,7 +52,7 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final String name;
 	private final Program program;
-	private final Optional< ParameterConfiguration > parameter;
+	private final ParameterConfiguration parameter;
 	private final AccessModifier accessModifier;
 	private final Constants.EmbeddedServiceType type;
 	private final Map< String, String > config;
@@ -92,16 +92,16 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 		this.accessModifier = accessModifier;
 		this.program = p;
 		if( parameter != null ) {
-			this.parameter = Optional.of( new ParameterConfiguration( parameter.key(), parameter.value() ) );
+			this.parameter = new ParameterConfiguration( parameter.key(), parameter.value() );
 		} else {
-			this.parameter = Optional.empty();
+			this.parameter = null;
 		}
 		this.type = type;
 		this.config = config;
 	}
 
 	public Optional< ParameterConfiguration > parameterConfiguration() {
-		return parameter;
+		return Optional.ofNullable( parameter );
 	}
 
 	public Program program() {
