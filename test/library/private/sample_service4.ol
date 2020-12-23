@@ -1,15 +1,20 @@
-include "SampleInterface3.iol"
-include "console.iol"
+from console import Console
+from library/private/SampleInterface3 import TmpInterface3
 
-inputPort TPort {
-  Location: "socket://localhost:9000"
-  Protocol: sodep
-  Interfaces: TmpInterface3
-}
+service Test4 {
 
-main {
-  tmp()( response ) {
-    response.field = "test";
-    print@Console("")()
+  embed Console as Console
+
+  inputPort TPort {
+    Location: "socket://localhost:9000"
+    Protocol: sodep
+    Interfaces: TmpInterface3
+  }
+
+  main {
+    tmp()( response ) {
+      response.field = "test";
+      print@Console("")()
+    }
   }
 }

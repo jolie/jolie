@@ -833,7 +833,7 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
 				cmdParser.getInterpreterConfiguration().charset(),
 				cmdParser.getInterpreterConfiguration().includePaths(),
-				cmdParser.getInterpreterConfiguration().packagePaths(),
+				interpreter().configuration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 				cmdParser.getInterpreterConfiguration().constants(),
 				cmdParser.getInterpreterConfiguration().executionTarget(),
@@ -895,7 +895,7 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
 				cmdParser.getInterpreterConfiguration().charset(),
 				cmdParser.getInterpreterConfiguration().includePaths(),
-				cmdParser.getInterpreterConfiguration().packagePaths(),
+				interpreter().configuration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 				cmdParser.getInterpreterConfiguration().constants(),
 				cmdParser.getInterpreterConfiguration().executionTarget(),
@@ -983,7 +983,7 @@ public class MetaJolie extends JavaService {
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
 				cmdParser.getInterpreterConfiguration().charset(),
 				cmdParser.getInterpreterConfiguration().includePaths(),
-				cmdParser.getInterpreterConfiguration().packagePaths(),
+				interpreter().configuration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 				cmdParser.getInterpreterConfiguration().constants(),
 				cmdParser.getInterpreterConfiguration().executionTarget(),
@@ -1004,7 +1004,8 @@ public class MetaJolie extends JavaService {
 				for( int op = 0; op < outputPortList.length; op++ ) {
 					OutputPortInfo outputPort = outputPortList[ op ];
 					output.get( op ).deepCopy( getPort( outputPort, interfaces ) );
-					response.getFirstChild( "service" ).getChildren( "output" ).get( op ).setValue( outputPort.id() );
+					// response.getFirstChild( "service" ).getChildren( "output" ).get( op ).setValue( outputPort.id()
+					// );
 				}
 			}
 
@@ -1015,7 +1016,7 @@ public class MetaJolie extends JavaService {
 					InputPortInfo inputPort = inputPortList[ ip ];
 					input.get( ip )
 						.deepCopy( getInputPortInfoAndAddInterfacesToList( inputPort, outputPortList, interfaces ) );
-					response.getFirstChild( "service" ).getChildren( "input" ).get( ip ).setValue( inputPort.id() );
+					// response.getFirstChild( "service" ).getChildren( "input" ).get( ip ).setValue( inputPort.id() );
 				}
 			}
 
@@ -1044,6 +1045,13 @@ public class MetaJolie extends JavaService {
 					response.getChildren( "embeddedServices" ).get( es ).getFirstChild( "portId" )
 						.setValue( embeddedServices[ es ].portId() );
 				}
+			}
+
+			// adding services
+			ServiceNode[] serviceNodes = inspector.getServiceNodes();
+			for( int ser = 0; ser < serviceNodes.length; ser++ ) {
+				response.getChildren( "service" ).get( ser ).getFirstChild( "name" )
+					.setValue( serviceNodes[ ser ].name() );
 			}
 
 			// adding communication dependencies
@@ -1092,6 +1100,8 @@ public class MetaJolie extends JavaService {
 						}
 						comDepVect.add( v );
 					} );
+
+
 			}
 
 		} catch( CommandLineException | IOException e ) {
