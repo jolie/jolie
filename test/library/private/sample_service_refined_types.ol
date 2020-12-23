@@ -1,15 +1,20 @@
-include "SampleRefinedTypesInterface.iol"
-include "console.iol"
+from console import Console
+from library/private/SampleRefinedTypesInterface import TmpInterface
 
-inputPort TPort {
-  Location: "socket://localhost:9000"
-  Protocol: sodep
-  Interfaces: TmpInterface
-}
+service TestRefinedTypes {
 
-main {
-  tmp()( response ) {
-    response.field = "test";
-    print@Console("")()
+  embed Console as Console
+
+  inputPort TPort {
+    Location: "socket://localhost:9000"
+    Protocol: sodep
+    Interfaces: TmpInterface
+  }
+
+  main {
+    tmp()( response ) {
+      response.field = "test";
+      print@Console("")()
+    }
   }
 }

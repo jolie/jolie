@@ -1,5 +1,5 @@
-include "SampleInterface.iol"
-include "console.iol"
+from console import Console
+from library/private/SampleInterface import TmpInterface
 
 type Extension: void {
 	.ext: void {
@@ -17,20 +17,25 @@ interface TmpInterface2 {
         test2( string )( string )
 }
 
-outputPort TPort2 {
-    Interfaces: TmpInterface
-}
+service Test2 {
 
-inputPort TPort {
-  Location: "socket://localhost:9000"
-  Protocol: sodep
-  Interfaces: TmpInterface2
-  Aggregates: TPort2 with Extender
-}
+  embed Console as Console
 
-main {
-  tmp()( response ) {
-    response.field = "test";
-    print@Console("")()
+  outputPort TPort2 {
+      Interfaces: TmpInterface
+  }
+
+  inputPort TPort {
+    Location: "socket://localhost:9000"
+    Protocol: sodep
+    Interfaces: TmpInterface2
+    Aggregates: TPort2 with Extender
+  }
+
+  main {
+    tmp()( response ) {
+      response.field = "test";
+      print@Console("")()
+    }
   }
 }

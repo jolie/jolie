@@ -6,12 +6,10 @@ include "time.iol"
 
 define doTest
 {
-
   sleep@Time( 1000 )()
   with( rq ) {
-      .filename = "private/sample_service.ol"
+      .filename = "private/sample_service_old_syntax.ol"
   };
-
   getInputPortMetaData@MetaJolie( rq )( meta_description );
   if ( #meta_description.input != 1 ) {
       throw( TestFailed, "Expected 1 input port, found " + #meta_description.input )
@@ -139,7 +137,6 @@ define doTest
       }
   }
 
-
   // comparing nodes
   a.b.c.d.m.n.l.o = 1
   a.b.c.d.m.n.l = 2
@@ -185,7 +182,7 @@ define doTest
 
   // test aggregation with extender 
    with( rq ) {
-      .filename = "private/sample_service2.ol"
+      .filename = "private/sample_service2_old_syntax.ol"
    };
    getInputPortMetaData@MetaJolie( rq )( meta_description )
    for( intf in meta_description.input.interfaces ) {
@@ -210,7 +207,7 @@ define doTest
 
    // testing lessThan operations
    with( rq ) {
-      .filename = "private/sample_service3.ol"
+      .filename = "private/sample_service3_old_syntax.ol"
    }
    getInputPortMetaData@MetaJolie( rq )( meta_description );
    undef( rq )
@@ -313,7 +310,7 @@ define doTest
 
    /// testing lessThan operations
    undef( rq )
-   rq.filename = "private/sample_service.ol"
+   rq.filename = "private/sample_service_old_syntax.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description2 )
    undef( rq )
    rq.i1 -> meta_description2.input.interfaces
@@ -338,7 +335,7 @@ define doTest
    }
 
    undef( rq )
-   rq.filename = "private/sample_service4.ol"
+   rq.filename = "private/sample_service4_old_syntax.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description3 )
 
    undef( rq )
@@ -361,7 +358,7 @@ define doTest
    }
 
    undef( rq )
-   rq.filename = "private/sample_service5.ol"
+   rq.filename = "private/sample_service5_old_syntax.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description4 )
 
 
@@ -435,7 +432,7 @@ define doTest
 
    // messageTypeCast
    undef( rq )
-   rq.filename = "private/sample_service.ol"
+   rq.filename = "private/sample_service_old_syntax.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description )
    rq_mtc << {
        message << {
@@ -520,7 +517,7 @@ define doTest
 
    // refinedTypes
    undef( rq )
-   rq.filename = "private/sample_service_refined_types.ol"
+   rq.filename = "private/sample_service_refined_types_old_syntax.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description )
    scope( comp_values ) {
         install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
@@ -676,7 +673,13 @@ define doTest
         }
         compareValuesVectorLight@MetaJolie( { .v1 << meta_description.input.interfaces.types.type, .v2 << v2 })()
 
+
+        undef( rq )
+        // just test if there are errors from the engine
+        with( rq ) {
+            .filename = "private/sample_service_with_internal_service_old_syntax.ol"
+        };
+        getMetaData@MetaJolie( rq )( meta_description )
    }
    
 }
-

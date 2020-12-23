@@ -20,18 +20,18 @@ constants {
 define doTest
 {
   with( rq ) {
-      .filename = "private/sample_service.ol"
+      .filename = "private/sample_service_old_syntax.ol"
   };
   getInputPortMetaData@MetaJolie( rq )( meta_description )
-  getSurfaceWithoutOutputPort@MetaRender( meta_description.input )( surface  )
-  f.filename = "library/private/sample_service.ol"
+  getSurface@MetaRender( meta_description.input )( surface  )
+  f.filename = "library/private/sample_service_old_syntax.ol"
   readFile@File( f )( testservice )
   replace_str = testservice
-  replace_str.regex = "library/private/SampleInterface"
-  replace_str.replacement = "../private/SampleInterface"
-  replaceAll@StringUtils( replace_str )( testservice_final )
+  replace_str.regex = "SampleInterface.ol"
+  replace_str.replacement = "../SampleInterface.ol"
+  replaceAll@StringUtils( replace_str )( testserice_final )
   mkdir@File( TMPDIR )(  )
-  testservice = surface + "\n" + testservice_final
+  testservice = surface + "\n" + testserice_final
   f.filename = "library/private/tmp/metarendertest.ol"
   f.content = testservice
   writeFile@File( f )( )
