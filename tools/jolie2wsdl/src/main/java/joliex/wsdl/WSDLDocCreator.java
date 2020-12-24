@@ -239,6 +239,8 @@ public class WSDLDocCreator {
 			suffix = "int";
 		} else if( nType.equals( NativeType.BOOL ) ) {
 			suffix = "boolean";
+		} else if( nType.equals( NativeType.LONG ) ) {
+			suffix = "long";
 		}
 		if( suffix.isEmpty() ) {
 			return "";
