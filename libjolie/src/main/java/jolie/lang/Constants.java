@@ -35,7 +35,7 @@ import jolie.util.Range;
 public final class Constants {
 	// Release information
 	public static final String VERSION = readVersionFromProperties();
-	public static final String COPYRIGHT = "(C) 2006-2020 the Jolie developers";
+	public static final String COPYRIGHT = "(C) 2006-2021 the Jolie developers";
 
 	private static String readVersionFromProperties() {
 		try( InputStream is = Constants.class.getClassLoader().getResourceAsStream( "libjolie.properties" ) ) {
