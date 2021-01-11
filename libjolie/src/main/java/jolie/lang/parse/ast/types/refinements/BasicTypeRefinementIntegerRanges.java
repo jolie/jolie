@@ -1,8 +1,9 @@
 package jolie.lang.parse.ast.types.refinements;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BasicTypeRefinementIntegerRanges implements BasicTypeRefinement< Integer > {
+public class BasicTypeRefinementIntegerRanges implements Serializable, BasicTypeRefinement< Integer > {
 
 	public class Interval {
 		private final int min;

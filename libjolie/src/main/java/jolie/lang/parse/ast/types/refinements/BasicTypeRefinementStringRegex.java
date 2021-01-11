@@ -3,7 +3,9 @@ package jolie.lang.parse.ast.types.refinements;
 import dk.brics.automaton.Automaton;
 import dk.brics.automaton.RegExp;
 
-public class BasicTypeRefinementStringRegex implements BasicTypeRefinement< String > {
+import java.io.Serializable;
+
+public class BasicTypeRefinementStringRegex implements Serializable, BasicTypeRefinement< String > {
 	private final String regex;
 	private final Automaton automaton;
 

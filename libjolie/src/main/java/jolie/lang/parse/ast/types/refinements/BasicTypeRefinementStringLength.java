@@ -1,6 +1,8 @@
 package jolie.lang.parse.ast.types.refinements;
 
-public class BasicTypeRefinementStringLength implements BasicTypeRefinement< String > {
+import java.io.Serializable;
+
+public class BasicTypeRefinementStringLength implements Serializable, BasicTypeRefinement< String > {
 
 	private final int max;
 	private final int min;

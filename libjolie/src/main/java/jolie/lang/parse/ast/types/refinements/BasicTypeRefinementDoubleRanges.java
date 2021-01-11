@@ -1,8 +1,9 @@
 package jolie.lang.parse.ast.types.refinements;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BasicTypeRefinementDoubleRanges implements BasicTypeRefinement< Double > {
+public class BasicTypeRefinementDoubleRanges implements Serializable, BasicTypeRefinement< Double > {
 	public class Interval {
 		private final double min;
 		private final double max;
