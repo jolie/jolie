@@ -23,9 +23,10 @@ package jolie.lang.parse.ast.types;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class BasicTypeDefinition {
+public class BasicTypeDefinition implements Serializable {
 	private final NativeType nativeType;
 	private final List< BasicTypeRefinement< ? extends Object > > refinements;
 	private static final Map< NativeType, BasicTypeDefinition > PURE_BASIC_TYPE_DEFINITIONS = new HashMap<>();

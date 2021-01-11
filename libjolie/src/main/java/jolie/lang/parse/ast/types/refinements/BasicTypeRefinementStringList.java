@@ -1,8 +1,9 @@
 package jolie.lang.parse.ast.types.refinements;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BasicTypeRefinementStringList implements BasicTypeRefinement< String > {
+public class BasicTypeRefinementStringList implements Serializable, BasicTypeRefinement< String > {
 
 	private final ArrayList< String > list = new ArrayList<>();
 
