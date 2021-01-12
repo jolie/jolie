@@ -29,7 +29,6 @@
         <module name="jolie2plasma" />
         <module name="btl2cap" />
         <module name="sodeps" />
-        <module name="jolie" />
         <module name="javascript" />
         <module name="jolie2surface" />
         <module name="http" />
