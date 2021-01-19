@@ -19,12 +19,14 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime.embedding;
+package jolie.embedding.jolie;
 
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.Interpreter;
 import jolie.runtime.Value;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.expression.Expression;
 
 import java.io.ByteArrayInputStream;
@@ -77,14 +79,11 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
 		throws IOException {
 		super( channelDest );
-		Interpreter.Configuration configuration = Interpreter.Configuration.create(
-			currInterpreter.configuration(),
-			new File( "#native_code_" + SERVICE_LOADER_COUNTER.getAndIncrement() ),
-			new ByteArrayInputStream( code.getBytes() ) );
-
-		interpreter = new Interpreter(
-			configuration,
-			currInterpreter.programDirectory(), Optional.empty() );
+		Interpreter.Configuration configuration =
+			Interpreter.Configuration.create( currInterpreter.configuration(), new File( "#native_code_" +
+				SERVICE_LOADER_COUNTER.getAndIncrement() ), new ByteArrayInputStream( code.getBytes() ) );
+		interpreter = new Interpreter( configuration, currInterpreter.programDirectory(),
+			Optional.empty() );
 	}
 
 	@Override
