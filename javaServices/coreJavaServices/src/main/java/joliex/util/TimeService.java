@@ -28,6 +28,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+
+import jolie.Interpreter;
+import jolie.InterpreterThread;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -36,7 +39,7 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 
 public class TimeService extends JavaService {
-	protected static class TimeThread extends Thread {
+	protected static class TimeThread extends Thread implements InterpreterThread {
 		private final long waitTime;
 		private final String callbackOperation;
 		private final Value callbackValue;
@@ -58,6 +61,11 @@ public class TimeService extends JavaService {
 				parent.sendMessage( CommMessage.createRequest( callbackOperation, "/", callbackValue ) );
 			} catch( InterruptedException e ) {
 			}
+		}
+
+		@Override
+		public Interpreter interpreter() {
+			return parent.interpreter();
 		}
 	}
 

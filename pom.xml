@@ -44,6 +44,7 @@
 		<module>build-tools</module>
 		<module>libjolie</module>
 		<module>jolie</module>
+		<module>jolie-cli</module>
 		<module>lib/jolie-js</module>
 		<module>lib/jolie-ssl</module>
 		<module>lib/jolie-xml</module>

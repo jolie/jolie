@@ -60,7 +60,8 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 
 		Interpreter.Configuration config = commandLineParser.getInterpreterConfiguration();
 		Interpreter.Configuration.create(
-			config.connectionsLimit(), config.correlationAlgorithm(), config.includePaths(), config.optionArgs(),
+			config.connectionsLimit(), config.cellId(), config.correlationAlgorithm(), config.includePaths(),
+			config.optionArgs(),
 			config.libUrls(), config.inputStream(), config.charset(), config.programFilepath(), config.arguments(),
 			config.constants(),
 			config.jolieClassLoader(), config.isProgramCompiled(), config.typeCheck(), config.tracer(),

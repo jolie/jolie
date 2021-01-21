@@ -762,6 +762,7 @@ public class CommandLineParser implements Closeable {
 	public Interpreter.Configuration getInterpreterConfiguration() throws CommandLineException, IOException {
 		return Interpreter.Configuration.create(
 			connectionsLimit,
+			cellId,
 			correlationAlgorithmType,
 			includePaths,
 			optionArgs,

@@ -1404,6 +1404,7 @@ public class Interpreter {
 
 	public static class Configuration {
 		private final Integer connectionsLimit;
+		private final int cellId;
 		private final CorrelationEngine.Type correlationAlgorithm;
 		private final String[] includePaths;
 		private final String[] optionArgs;
@@ -1428,6 +1429,7 @@ public class Interpreter {
 		private final String executionTarget;
 
 		private Configuration( int connectionsLimit,
+			int cellId,
 			CorrelationEngine.Type correlationAlgorithm,
 			String[] includeList,
 			String[] optionArgs,
@@ -1451,6 +1453,7 @@ public class Interpreter {
 			String[] packagePaths,
 			String executionTarget ) {
 			this.connectionsLimit = connectionsLimit;
+			this.cellId = cellId;
 			this.correlationAlgorithm = correlationAlgorithm;
 			this.includePaths = includeList;
 			this.optionArgs = optionArgs;
@@ -1476,6 +1479,7 @@ public class Interpreter {
 		}
 
 		public static Configuration create( int connectionsLimit,
+			int cellId,
 			CorrelationEngine.Type correlationAlgorithm,
 			String[] includeList,
 			String[] optionArgs,
@@ -1498,7 +1502,7 @@ public class Interpreter {
 			File programDirectory,
 			String[] packagePaths,
 			String executionTarget ) {
-			return new Configuration( connectionsLimit, correlationAlgorithm, includeList, optionArgs, libUrls,
+			return new Configuration( connectionsLimit, cellId, correlationAlgorithm, includeList, optionArgs, libUrls,
 				inputStream, charset, programFilepath, arguments, constants, jolieClassLoader, programCompiled,
 				typeCheck, tracer, tracerLevel, tracerMode, check, printStackTraces, responseTimeout, logLevel,
 				programDirectory, packagePaths, executionTarget );
@@ -1507,7 +1511,8 @@ public class Interpreter {
 		public static Configuration create( Configuration config,
 			File programFilepath,
 			InputStream inputStream ) {
-			return create( config.connectionsLimit, config.correlationAlgorithm, config.includePaths, config.optionArgs,
+			return create( config.connectionsLimit, config.cellId, config.correlationAlgorithm, config.includePaths,
+				config.optionArgs,
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
@@ -1518,7 +1523,8 @@ public class Interpreter {
 			File programFilepath,
 			InputStream inputStream,
 			String executionTarget ) {
-			return create( config.connectionsLimit, config.correlationAlgorithm, config.includePaths, config.optionArgs,
+			return create( config.connectionsLimit, config.cellId, config.correlationAlgorithm, config.includePaths,
+				config.optionArgs,
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
@@ -1534,6 +1540,14 @@ public class Interpreter {
 			return this.connectionsLimit;
 		}
 
+		/**
+		 * Returns the cellId parameter passed by command line with the --cellId option.
+		 *
+		 * @return the cellId parameter passed by command line
+		 */
+		public int cellId() {
+			return this.cellId;
+		}
 
 		/**
 		 * Returns the type of correlation algorithm that has been specified.
