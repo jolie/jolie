@@ -26,6 +26,8 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Optional;
 
+import jolie.cli.CommandLineException;
+import jolie.cli.CommandLineParser;
 import jolie.lang.parse.ParserException;
 
 

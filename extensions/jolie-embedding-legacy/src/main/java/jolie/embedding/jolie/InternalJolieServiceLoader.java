@@ -18,8 +18,8 @@
  */
 package jolie.embedding.jolie;
 
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
+import jolie.cli.CommandLineException;
+import jolie.cli.CommandLineParser;
 import jolie.Interpreter;
 import jolie.lang.parse.ast.Program;
 import jolie.runtime.embedding.EmbeddedServiceLoader;

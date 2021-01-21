@@ -20,8 +20,8 @@
 
 package joliex.lang.inspector;
 
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
+import jolie.cli.CommandLineException;
+import jolie.cli.CommandLineParser;
 import jolie.Interpreter;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;

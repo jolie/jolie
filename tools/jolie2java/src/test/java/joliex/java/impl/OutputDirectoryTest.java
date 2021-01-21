@@ -18,7 +18,7 @@
  */
 package joliex.java.impl;
 
-import jolie.CommandLineException;
+import jolie.cli.CommandLineException;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;

@@ -47,6 +47,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
 import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -893,8 +894,6 @@ public class Interpreter {
 	 *        a JAP file.
 	 * @param parentInterpreter
 	 * @param internalServiceProgram
-	 * @throws CommandLineException if the command line is not valid or asks for simple information.
-	 *         (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
@@ -915,8 +914,6 @@ public class Interpreter {
 	 * @param parentInterpreter
 	 * @param internalServiceProgram
 	 * @param receivingEmbeddedValue
-	 * @throws CommandLineException if the command line is not valid or asks for simple information.
-	 *         (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */

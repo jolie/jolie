@@ -21,7 +21,7 @@
 
 package jolie.embedding.jolie;
 
-import jolie.CommandLineException;
+import jolie.cli.CommandLineException;
 import jolie.Interpreter;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration;
