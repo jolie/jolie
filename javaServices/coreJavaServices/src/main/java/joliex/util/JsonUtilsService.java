@@ -47,7 +47,7 @@ public class JsonUtilsService extends JavaService {
 			JsUtils.valueToJsonString( request, true, Type.UNDEFINED, stringBuilder );
 			ret.setValue( stringBuilder.toString() );
 		} catch( IOException e ) {
-			throw new FaultException( "JSON string generation from Jolie value failed" );
+			throw new FaultException( "JSONCreationError" );
 		}
 
 		return ret;
@@ -71,7 +71,7 @@ public class JsonUtilsService extends JavaService {
 			JsUtils.parseJsonIntoValue( new StringReader( str ), ret,
 				request.getFirstChild( "strictEncoding" ).boolValue() );
 		} catch( IOException e ) {
-			throw new FaultException( "Jolie value generation from JSON string failed" );
+			throw new FaultException( "JSONCreationError" );
 		}
 
 		return ret;
