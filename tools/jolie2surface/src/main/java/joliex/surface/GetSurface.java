@@ -21,7 +21,7 @@
 
 package joliex.surface;
 
-import jolie.CommandLineException;
+import jolie.cli.CommandLineException;
 import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;

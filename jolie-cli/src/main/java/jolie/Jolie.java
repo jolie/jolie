@@ -26,6 +26,8 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Optional;
 
+import jolie.cli.CommandLineException;
+import jolie.cli.CommandLineParser;
 import jolie.lang.parse.ParserException;
 
 
@@ -36,7 +38,6 @@ import jolie.lang.parse.ParserException;
  */
 public class Jolie {
 	private static final long TERMINATION_TIMEOUT = 100; // 0.1 seconds
-	public static int cellId = 0;
 
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
@@ -68,13 +69,6 @@ public class Jolie {
 
 		try {
 			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
-			if( commandLineParser.cellId() < Integer.MAX_VALUE ) {
-				cellId = commandLineParser.cellId();
-			} else {
-				cellId = 0;
-				System.out.println( "Cell Identifier exceeds the maximun available ("
-					+ Integer.MAX_VALUE + "), set to 0" );
-			}
 			final Interpreter interpreter =
 				new Interpreter( commandLineParser.getInterpreterConfiguration(), null, Optional.empty() );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );

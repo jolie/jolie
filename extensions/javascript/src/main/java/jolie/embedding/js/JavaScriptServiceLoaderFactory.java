@@ -22,6 +22,7 @@
 package jolie.embedding.js;
 
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
@@ -36,9 +37,19 @@ import jolie.runtime.expression.Expression;
 @AndJarDeps( { "jolie-js.jar", "json_simple.jar" } )
 public class JavaScriptServiceLoaderFactory implements EmbeddedServiceLoaderFactory {
 	@Override
-	public EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath,
+	public EmbeddedServiceLoader createLoader( Interpreter interpreter,
+		EmbeddedServiceLoader.EmbeddedServiceConfiguration configuration,
 		Expression channelDest )
 		throws EmbeddedServiceLoaderCreationException {
-		return new JavaScriptServiceLoader( channelDest, servicePath );
+
+		boolean isGoodConfiguration =
+			(configuration instanceof EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration) &&
+				configuration.type().equals( Constants.EmbeddedServiceType.JAVASCRIPT );
+		if( !isGoodConfiguration ) {
+			throw new EmbeddedServiceLoaderCreationException(
+				"Could not create JavaScript service loader from configuration of type " + configuration.type() );
+		}
+		return new JavaScriptServiceLoader( channelDest,
+			((EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration) configuration).servicePath() );
 	}
 }

@@ -48,40 +48,21 @@ public abstract class EmbeddedServiceLoader {
 					(ServiceNodeEmbeddedConfiguration) configuration;
 				ret = ServiceNodeLoader.create( channelDest, interpreter, serviceNodeConfiguration.serviceNode,
 					serviceNodeConfiguration.parameter() );
-			} else if( configuration.isInternal() ) {
-				InternalEmbeddedServiceConfiguration internalConfiguration =
-					(InternalEmbeddedServiceConfiguration) configuration;
-				ret = new InternalJolieServiceLoader( channelDest, interpreter, internalConfiguration.serviceName(),
-					internalConfiguration.program() );
 			} else {
-				ExternalEmbeddedServiceConfiguration externalConfiguration;
+				String serviceFactoryType = configuration.type().toString();
 				switch( configuration.type() ) {
 				case JAVA:
-					externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
-					ret = new JavaServiceLoader( channelDest, externalConfiguration.servicePath(), interpreter );
-					break;
-				case JOLIE:
-					if( configuration instanceof ExternalEmbeddedServiceConfiguration ) {
-						externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
-						ret = new JolieServiceLoader( channelDest, interpreter, externalConfiguration.servicePath(),
-							externalConfiguration.serviceName(), externalConfiguration.params() );
-					} else {
-						ExternalEmbeddedNativeCodeConfiguration externalEmbeddedNativeCodeConfiguration =
-							(ExternalEmbeddedNativeCodeConfiguration) configuration;
-						ret = new JolieServiceLoader( externalEmbeddedNativeCodeConfiguration.code(), channelDest,
-							interpreter );
-					}
-					break;
+				case INTERNAL:
+					// Handle JAVA and INTERNAL services with the JolieServiceLoaderFactory
+					serviceFactoryType = Constants.EmbeddedServiceType.JOLIE.toString();
 				default:
-					String serviceType = configuration.type().toString();
-					EmbeddedServiceLoaderFactory factory = interpreter.getEmbeddedServiceLoaderFactory( serviceType );
+					EmbeddedServiceLoaderFactory factory =
+						interpreter.getEmbeddedServiceLoaderFactory( serviceFactoryType );
 					if( factory == null ) {
 						throw new EmbeddedServiceLoaderCreationException(
-							"Could not find extension to load services of type " + serviceType );
+							"Could not find extension to load services of type " + serviceFactoryType );
 					}
-					externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
-					ret = factory.createLoader( interpreter, serviceType, externalConfiguration.servicePath(),
-						channelDest );
+					ret = factory.createLoader( interpreter, configuration, channelDest );
 					break;
 				}
 			}

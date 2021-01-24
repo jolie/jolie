@@ -23,7 +23,7 @@ package jolie.compiler;
 
 import java.io.IOException;
 
-import jolie.CommandLineException;
+import jolie.cli.CommandLineException;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.module.ModuleException;

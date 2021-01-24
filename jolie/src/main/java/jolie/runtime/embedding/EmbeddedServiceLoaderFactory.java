@@ -34,13 +34,14 @@ public interface EmbeddedServiceLoaderFactory {
 	 * Create an {@link EmbeddedServiceLoader}.
 	 * 
 	 * @param interpreter the embedding {@link Interpreter}
-	 * @param type the type of the service (e.g., Jolie, Java, ...)
-	 * @param servicePath the path identifying the service to embed
+	 * @param configuration the {@link EmbeddedServiceLoader.EmbeddedServiceConfiguration}
 	 * @param channelDest the intended destination for the channel towards the embedded service
 	 * @return
 	 * @throws EmbeddedServiceLoaderCreationException
 	 */
-	EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath,
+
+	EmbeddedServiceLoader createLoader( Interpreter interpreter,
+		EmbeddedServiceLoader.EmbeddedServiceConfiguration configuration,
 		Expression channelDest )
 		throws EmbeddedServiceLoaderCreationException;
 }
