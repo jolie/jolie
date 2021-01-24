@@ -20,14 +20,18 @@
  ***************************************************************************/
 
 
-package jolie.runtime.embedding;
+package jolie.embedding.jolie;
 
-import java.lang.reflect.InvocationTargetException;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.runtime.JavaService;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoadingException;
+import jolie.runtime.embedding.JavaCommChannel;
 import jolie.runtime.expression.Expression;
 import jolie.tracer.EmbeddingTraceAction;
+
+import java.lang.reflect.InvocationTargetException;
 
 
 public class JavaServiceLoader extends EmbeddedServiceLoader {

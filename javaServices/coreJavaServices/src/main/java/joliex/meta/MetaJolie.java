@@ -20,8 +20,8 @@
  ************************************************************************** */
 package joliex.meta;
 
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
+import jolie.cli.CommandLineException;
+import jolie.cli.CommandLineParser;
 import jolie.lang.CodeCheckingError;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.parse.ParserException;

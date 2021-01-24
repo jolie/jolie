@@ -4,7 +4,7 @@
  */
 package joliex.java;
 
-import jolie.CommandLineException;
+import jolie.cli.CommandLineException;
 import jolie.lang.CodeCheckingException;
 import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.parse.ParserException;

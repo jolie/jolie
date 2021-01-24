@@ -2,8 +2,8 @@ package joliex.java;
 
 import java.io.IOException;
 import java.util.List;
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
+import jolie.cli.CommandLineException;
+import jolie.cli.CommandLineParser;
 
 public class Jolie2JavaCommandLineParser extends CommandLineParser {
 

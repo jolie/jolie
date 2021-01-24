@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  */
 
-package jolie;
+package jolie.cli;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -51,6 +51,9 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+
+import jolie.Interpreter;
+import jolie.JolieClassLoader;
 import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
@@ -205,8 +208,8 @@ public class CommandLineParser implements Closeable {
 	 * 
 	 * @param args the command line arguments
 	 * @param parentClassLoader the ClassLoader to use for finding resources
-	 * @throws jolie.CommandLineException if the command line is not valid or asks for simple
-	 *         information. (like --help and --version)
+	 * @throws CommandLineException if the command line is not valid or asks for simple information.
+	 *         (like --help and --version)
 	 * @throws java.io.IOException
 	 */
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader )
@@ -762,6 +765,7 @@ public class CommandLineParser implements Closeable {
 	public Interpreter.Configuration getInterpreterConfiguration() throws CommandLineException, IOException {
 		return Interpreter.Configuration.create(
 			connectionsLimit,
+			cellId,
 			correlationAlgorithmType,
 			includePaths,
 			optionArgs,
@@ -789,7 +793,7 @@ public class CommandLineParser implements Closeable {
 
 	/**
 	 * A handler for unrecognized arguments, meant to be implemented by classes that wants to extend the
-	 * behaviour of {@link jolie.CommandLineParser}.
+	 * behaviour of {@link CommandLineParser}.
 	 * 
 	 * @author Fabrizio Montesi
 	 */

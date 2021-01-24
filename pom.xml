@@ -44,6 +44,7 @@
 		<module>build-tools</module>
 		<module>libjolie</module>
 		<module>jolie</module>
+		<module>jolie-cli</module>
 		<module>lib/jolie-js</module>
 		<module>lib/jolie-ssl</module>
 		<module>lib/jolie-xml</module>
@@ -56,6 +57,7 @@
 		<module>extensions/http</module>
 		<module>extensions/https</module>
 		<module>extensions/javascript</module>
+		<module>extensions/jolie-embedding-legacy</module>
 		<module>extensions/jsonrpc</module>
 		<module>extensions/local</module>
 		<module>extensions/localsocket</module>

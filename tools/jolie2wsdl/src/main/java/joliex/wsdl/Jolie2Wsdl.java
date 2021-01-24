@@ -4,7 +4,7 @@ package joliex.wsdl;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import jolie.CommandLineException;
+import jolie.cli.CommandLineException;
 import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;

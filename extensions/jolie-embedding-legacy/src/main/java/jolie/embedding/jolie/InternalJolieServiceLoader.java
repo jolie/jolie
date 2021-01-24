@@ -16,7 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package jolie.runtime.embedding;
+package jolie.embedding.jolie;
+
+import jolie.cli.CommandLineException;
+import jolie.cli.CommandLineParser;
+import jolie.Interpreter;
+import jolie.lang.parse.ast.Program;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoadingException;
+import jolie.runtime.expression.Expression;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,11 +32,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
-import jolie.Interpreter;
-import jolie.lang.parse.ast.Program;
-import jolie.runtime.expression.Expression;
 
 
 public class InternalJolieServiceLoader extends EmbeddedServiceLoader {

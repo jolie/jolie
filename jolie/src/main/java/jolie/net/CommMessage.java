@@ -25,7 +25,7 @@ package jolie.net;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
-import jolie.Jolie;
+import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -98,7 +98,8 @@ public class CommMessage implements Serializable {
 	}
 
 	public static long getNewMessageId() {
-		return (((long) Jolie.cellId) << 32) | (ID_COUNTER.getAndIncrement() & 0xffffffffL);
+		int cellId = Interpreter.getInstance().configuration().cellId();
+		return (((long) cellId) << 32) | (ID_COUNTER.getAndIncrement() & 0xffffffffL);
 	}
 
 	/**
