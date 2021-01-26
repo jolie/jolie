@@ -74,6 +74,11 @@
             <artifactId>jolie</artifactId>
             <version>${jolie.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>jolie-js</artifactId>
+            <version>${jolie.version}</version>
+        </dependency>
     </dependencies>
     <distributionManagement>
         <repository>
