@@ -168,6 +168,9 @@ public class CommandLineParser implements Closeable {
 				getOptionString( "-s [service name], --service [service name]",
 					"Specify a service in the module to execute (not necessary if the module contains only one service definition)" ) )
 			.append(
+				getOptionString( "--params json_file",
+					"Use the contents of json_file as the argument of the service being executed." ) )
+			.append(
 				getOptionString( "--version", "Display this program version information" ) )
 			.append(
 				getOptionString( "--cellId",
