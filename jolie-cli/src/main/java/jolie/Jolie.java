@@ -75,7 +75,9 @@ public class Jolie {
 			Optional< Value > params = Optional.of( Value.create() );
 			if( config.getParametersFilePath().isPresent() ) {
 				File paramsFilepath = config.getParametersFilePath().get();
-				JsUtils.parseJsonIntoValue( new FileReader( paramsFilepath ), params.get(), true );
+				FileReader fileReader = new FileReader( paramsFilepath );
+				JsUtils.parseJsonIntoValue( fileReader, params.get(), true );
+				fileReader.close();
 			}
 			final Interpreter interpreter = new Interpreter( config, null, params );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
