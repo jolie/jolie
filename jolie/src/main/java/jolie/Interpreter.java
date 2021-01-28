@@ -31,6 +31,7 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1424,6 +1425,7 @@ public class Interpreter {
 		private final File programDirectory;
 		private final String[] packagePaths;
 		private final String executionTarget;
+		private final Optional< Path > parametersFilePath;
 
 		private Configuration( int connectionsLimit,
 			int cellId,
@@ -1448,7 +1450,8 @@ public class Interpreter {
 			Level logLevel,
 			File programDirectory,
 			String[] packagePaths,
-			String executionTarget ) {
+			String executionTarget,
+			Optional< Path > parametersFilePath ) {
 			this.connectionsLimit = connectionsLimit;
 			this.cellId = cellId;
 			this.correlationAlgorithm = correlationAlgorithm;
@@ -1473,6 +1476,7 @@ public class Interpreter {
 			this.programDirectory = programDirectory;
 			this.packagePaths = packagePaths;
 			this.executionTarget = executionTarget;
+			this.parametersFilePath = parametersFilePath;
 		}
 
 		public static Configuration create( int connectionsLimit,
@@ -1498,11 +1502,12 @@ public class Interpreter {
 			Level logLevel,
 			File programDirectory,
 			String[] packagePaths,
-			String executionTarget ) {
+			String executionTarget,
+			Optional< Path > parametersFilePath ) {
 			return new Configuration( connectionsLimit, cellId, correlationAlgorithm, includeList, optionArgs, libUrls,
 				inputStream, charset, programFilepath, arguments, constants, jolieClassLoader, programCompiled,
 				typeCheck, tracer, tracerLevel, tracerMode, check, printStackTraces, responseTimeout, logLevel,
-				programDirectory, packagePaths, executionTarget );
+				programDirectory, packagePaths, executionTarget, parametersFilePath );
 		}
 
 		public static Configuration create( Configuration config,
@@ -1513,7 +1518,7 @@ public class Interpreter {
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
-				config.programDirectory, config.packagePaths, config.executionTarget );
+				config.programDirectory, config.packagePaths, config.executionTarget, config.parametersFilePath );
 		}
 
 		public static Configuration create( Configuration config,
@@ -1525,7 +1530,7 @@ public class Interpreter {
 				config.libURLs, inputStream, config.charset, programFilepath, config.arguments, config.constants,
 				config.jolieClassLoader, config.isProgramCompiled, config.typeCheck, config.tracer, config.tracerLevel,
 				config.tracerMode, config.check, config.printStackTraces, config.responseTimeout, config.logLevel,
-				config.programDirectory, config.packagePaths, executionTarget );
+				config.programDirectory, config.packagePaths, executionTarget, config.parametersFilePath );
 		}
 
 		/**
@@ -1743,6 +1748,10 @@ public class Interpreter {
 
 		public void clear() {
 			jolieClassLoader = null;
+		}
+
+		public Optional< Path > parametersPath() {
+			return parametersFilePath;
 		}
 	}
 }

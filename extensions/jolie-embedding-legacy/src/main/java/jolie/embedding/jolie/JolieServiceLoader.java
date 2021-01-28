@@ -69,7 +69,8 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 			config.tracerMode(), config.check(), config.printStackTraces(), config.responseTimeout(), config.logLevel(),
 			config.programDirectory(), config.packagePaths(),
 			// difference:
-			serviceName.orElse( config.executionTarget() ) );
+			serviceName.orElse( config.executionTarget() ),
+			Optional.empty() );
 
 		interpreter = new Interpreter(
 			commandLineParser.getInterpreterConfiguration(),
