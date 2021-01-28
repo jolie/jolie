@@ -90,7 +90,7 @@ public class CommandLineParser implements Closeable {
 	private final boolean printStackTraces;
 	private final Level logLevel;
 	private final String executionTarget;
-	private final Optional< File > parametersFilepath;
+	private final Optional< Path > parametersFilepath;
 	private File programDirectory = null;
 	private int cellId = 0;
 
@@ -281,7 +281,7 @@ public class CommandLineParser implements Closeable {
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
 		String tService = null;
-		File tParams = null;
+		Path tParams = null;
 		includeList.add( pwd );
 		includeList.add( "include" );
 		libList.add( pwd );
@@ -445,9 +445,9 @@ public class CommandLineParser implements Closeable {
 				if( tParams != null ) {
 					throw new CommandLineException( "Service parameters file already specified" );
 				}
-				tParams = new File( argsList.get( i ) );
+				tParams = Paths.get( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
-				if( !tParams.exists() ) {
+				if( !Files.exists( tParams ) ) {
 					throw new FileNotFoundException( argsList.get( i ) );
 				}
 			} else if( "--version".equals( argsList.get( i ) ) ) {

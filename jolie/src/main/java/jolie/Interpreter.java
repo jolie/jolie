@@ -31,6 +31,7 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1424,7 +1425,7 @@ public class Interpreter {
 		private final File programDirectory;
 		private final String[] packagePaths;
 		private final String executionTarget;
-		private final Optional< File > parametersFilePath;
+		private final Optional< Path > parametersFilePath;
 
 		private Configuration( int connectionsLimit,
 			int cellId,
@@ -1450,7 +1451,7 @@ public class Interpreter {
 			File programDirectory,
 			String[] packagePaths,
 			String executionTarget,
-			Optional< File > parametersFilePath ) {
+			Optional< Path > parametersFilePath ) {
 			this.connectionsLimit = connectionsLimit;
 			this.cellId = cellId;
 			this.correlationAlgorithm = correlationAlgorithm;
@@ -1502,7 +1503,7 @@ public class Interpreter {
 			File programDirectory,
 			String[] packagePaths,
 			String executionTarget,
-			Optional< File > parametersFilePath ) {
+			Optional< Path > parametersFilePath ) {
 			return new Configuration( connectionsLimit, cellId, correlationAlgorithm, includeList, optionArgs, libUrls,
 				inputStream, charset, programFilepath, arguments, constants, jolieClassLoader, programCompiled,
 				typeCheck, tracer, tracerLevel, tracerMode, check, printStackTraces, responseTimeout, logLevel,
@@ -1749,7 +1750,7 @@ public class Interpreter {
 			jolieClassLoader = null;
 		}
 
-		public Optional< File > getParametersFilePath() {
+		public Optional< Path > parametersPath() {
 			return parametersFilePath;
 		}
 	}

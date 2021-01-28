@@ -20,18 +20,19 @@
 package jolie;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
+import jolie.js.JsUtils;
 import jolie.lang.parse.ParserException;
 import jolie.runtime.Value;
-import jolie.js.JsUtils;
 
 /**
  * Starter class of the Interpreter.
@@ -73,11 +74,11 @@ public class Jolie {
 			CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false );
 			Interpreter.Configuration config = commandLineParser.getInterpreterConfiguration();
 			Optional< Value > params = Optional.of( Value.create() );
-			if( config.getParametersFilePath().isPresent() ) {
-				File paramsFilepath = config.getParametersFilePath().get();
-				FileReader fileReader = new FileReader( paramsFilepath );
-				JsUtils.parseJsonIntoValue( fileReader, params.get(), true );
-				fileReader.close();
+			if( config.parametersPath().isPresent() ) {
+				Path paramsPath = config.parametersPath().get();
+				try( Reader fileReader = Files.newBufferedReader( paramsPath ) ) {
+					JsUtils.parseJsonIntoValue( fileReader, params.get(), true );
+				}
 			}
 			final Interpreter interpreter = new Interpreter( config, null, params );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
