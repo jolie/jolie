@@ -90,6 +90,7 @@ public class CommandLineParser implements Closeable {
 	private final boolean printStackTraces;
 	private final Level logLevel;
 	private final String executionTarget;
+	private final Optional< Path > parametersFilepath;
 	private File programDirectory = null;
 	private int cellId = 0;
 
@@ -166,6 +167,9 @@ public class CommandLineParser implements Closeable {
 			.append(
 				getOptionString( "-s [service name], --service [service name]",
 					"Specify a service in the module to execute (not necessary if the module contains only one service definition)" ) )
+			.append(
+				getOptionString( "--params json_file",
+					"Use the contents of json_file as the argument of the service being executed." ) )
 			.append(
 				getOptionString( "--version", "Display this program version information" ) )
 			.append(
@@ -277,6 +281,7 @@ public class CommandLineParser implements Closeable {
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
 		String tService = null;
+		Path tParams = null;
 		includeList.add( pwd );
 		includeList.add( "include" );
 		libList.add( pwd );
@@ -434,6 +439,17 @@ public class CommandLineParser implements Closeable {
 				}
 				tService = argsList.get( i );
 				optionsList.add( argsList.get( i ) );
+			} else if( "--params".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				if( tParams != null ) {
+					throw new CommandLineException( "Service parameters file already specified" );
+				}
+				tParams = Paths.get( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
+				if( !Files.exists( tParams ) ) {
+					throw new FileNotFoundException( argsList.get( i ) );
+				}
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
 			} else if( olFilepath == null && !argsList.get( i ).startsWith( "-" ) ) {
@@ -487,6 +503,7 @@ public class CommandLineParser implements Closeable {
 		tracerLevel = tLevel;
 		printStackTraces = bStackTraces;
 		executionTarget = tService;
+		parametersFilepath = Optional.ofNullable( tParams );
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
 		if( correlationAlgorithmType == null ) {
@@ -787,7 +804,8 @@ public class CommandLineParser implements Closeable {
 			logLevel,
 			programDirectory,
 			packagePaths,
-			executionTarget );
+			executionTarget,
+			parametersFilepath );
 
 	}
 
