@@ -6,6 +6,7 @@
     <file url="file://$PROJECT_DIR$/extensions/http/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/https/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/javascript/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/jolie-embedding-legacy/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/jsonrpc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/local/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/localsocket/src/main/java" charset="UTF-8" />
@@ -17,6 +18,7 @@
     <file url="file://$PROJECT_DIR$/extensions/xmlrpc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/javaServices/coreJavaServices/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/javaServices/monitorJavaServices/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/jolie-cli/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/jolie/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib/jolie-js/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib/jolie-ssl/src/main/java" charset="UTF-8" />

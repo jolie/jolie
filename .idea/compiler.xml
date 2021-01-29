@@ -19,10 +19,12 @@
         <module name="rmi" />
         <module name="joliec" />
         <module name="xmlrpc" />
+        <module name="jolie-embedding-legacy" />
         <module name="localsocket" />
         <module name="https" />
         <module name="jsonrpc" />
         <module name="jolie2java" />
+        <module name="jolie-cli" />
         <module name="WSTest" />
         <module name="xsom" />
         <module name="jolie-js" />
@@ -49,6 +51,8 @@
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
       <module name="jolie" target="1.8" />
+      <module name="jolie-cli" target="1.8" />
+      <module name="jolie-embedding-legacy" target="1.8" />
       <module name="jolie-java" target="1.8" />
       <module name="jolie-js" target="1.8" />
       <module name="jolie-ssl" target="1.8" />
