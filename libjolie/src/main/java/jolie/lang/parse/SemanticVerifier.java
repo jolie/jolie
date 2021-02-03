@@ -376,7 +376,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 			ServiceNode executionService = null;
 			if( services.values().size() == 1 ) {
 				executionService = services.values().iterator().next();
-			} else if( services.values().size() > 1 ) {
+			} else if( services.values().size() > 1 && configuration.checkForMain() ) {
 				if( configuration.executionTarget == null ) {
 					error( program, "Execution service is not defined from command line argument (--service or -s)" );
 				} else if( !services.containsKey( configuration.executionTarget ) ) {
