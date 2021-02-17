@@ -50,7 +50,7 @@ public class WebSocketUtils extends JavaService {
 
 		private Value buildNotificationValue() {
 			Value v = Value.create();
-			v.deepCopy( correlationData );
+			v.getFirstChild( "corrData" ).deepCopy( correlationData );
 			v.setFirstChild( "id", id );
 			return v;
 		}
@@ -114,7 +114,7 @@ public class WebSocketUtils extends JavaService {
 			String id = request.getFirstChild( "id" ).strValue();
 			final JolieWebSocketClient client =
 				new JolieWebSocketClient( id, new URI( request.getFirstChild( "uri" ).strValue() ),
-					getEmbedder(), request.getFirstChild( "data" ) );
+					getEmbedder(), request.getFirstChild( "corrData" ) );
 			clients.put( id, client );
 			client.connect();
 		} catch( URISyntaxException e ) {

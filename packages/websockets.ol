@@ -17,18 +17,21 @@
  * MA 02110-1301  USA
  */
 
+/// A websocket identifier
+type WID:string
+
 type ConnectRequest {
-	id:string //< the id that should be assigned to the websocket
+	id:WID //< the id that should be assigned to the websocket
 	uri:string //< the websocket URI to connect to
-	data?:undefined //< correlation data for the notifications received from the utilities, if any
+	corrData?:undefined //< correlation data for the notifications received from the utilities, if any
 }
 
 type CloseRequest {
-	id:string //< The websocket id
+	id:WID //< The websocket id
 }
 
 type SendRequest {
-	id:string //< The websocket id
+	id:WID //< The websocket id
 	message:string //< The message
 }
 
@@ -43,9 +46,37 @@ OneWay:
 	close( CloseRequest )
 }
 
+type OnOpenMesg {
+	id:WID
+	corrData?:undefined
+}
+
+type OnCloseMesg {
+	id:WID
+	corrData?:undefined
+	code:int
+	reason:string
+	remote:bool
+}
+
+type OnMessageMesg {
+	id:WID
+	corrData?:undefined
+	message:string
+}
+
+type OnErrorMesg {
+	id:WID
+	corrData?:undefined
+	error:string
+}
+
 interface WebSocketHandlerInterface {
 OneWay:
-	onOpen, onMessage, onClose, onError
+	onOpen( OnOpenMesg ),
+	onMessage( OnMessageMesg ),
+	onClose( OnCloseMesg ),
+	onError( OnErrorMesg )
 }
 
 service WebSocketUtils {
