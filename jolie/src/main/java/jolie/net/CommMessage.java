@@ -98,7 +98,11 @@ public class CommMessage implements Serializable {
 	}
 
 	public static long getNewMessageId() {
-		int cellId = Interpreter.getInstance().configuration().cellId();
+		int cellId = 0;
+		final Interpreter interpreter = Interpreter.getInstance();
+		if( interpreter != null ) {
+			cellId = interpreter.configuration().cellId();
+		}
 		return (((long) cellId) << 32) | (ID_COUNTER.getAndIncrement() & 0xffffffffL);
 	}
 

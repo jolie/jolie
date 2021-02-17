@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import jolie.Interpreter;
-import jolie.lang.Constants;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
@@ -87,18 +86,24 @@ public abstract class JavaService {
 			this.interpreter = interpreter;
 		}
 
-		public void callOneWay( CommMessage message ) {
+		public void callOneWay( CommMessage request )
+			throws IOException {
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
-				c.send( message );
-			} catch( IOException e ) {
-				// This should never happen
-				e.printStackTrace();
+				c.send( request );
+				c.recvResponseFor( request ).get();
+			} catch( ExecutionException | InterruptedException | IOException e ) {
+				throw new IOException( e );
 			}
 		}
 
+		public void callOneWay( String operationName, Value requestValue )
+			throws IOException {
+			callOneWay( CommMessage.createRequest( operationName, "/", requestValue ) );
+		}
+
 		public Value callRequestResponse( CommMessage request )
-			throws FaultException {
+			throws IOException, FaultException {
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
 				c.send( request );
@@ -108,8 +113,13 @@ public abstract class JavaService {
 				}
 				return response.value();
 			} catch( ExecutionException | InterruptedException | IOException e ) {
-				throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+				throw new IOException( e );
 			}
+		}
+
+		public Value callRequestResponse( String operationName, Value requestValue )
+			throws IOException, FaultException {
+			return callRequestResponse( CommMessage.createRequest( operationName, "/", requestValue ) );
 		}
 	}
 
@@ -395,5 +405,9 @@ public abstract class JavaService {
 			e.printStackTrace();
 		}
 		return c;
+	}
+
+	protected Embedder getEmbedder() {
+		return new Embedder( interpreter );
 	}
 }
