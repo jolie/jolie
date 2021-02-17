@@ -805,6 +805,7 @@ public class Interpreter {
 		if( t instanceof InterpreterThread ) {
 			return ((InterpreterThread) t).interpreter();
 		}
+
 		return null;
 	}
 
