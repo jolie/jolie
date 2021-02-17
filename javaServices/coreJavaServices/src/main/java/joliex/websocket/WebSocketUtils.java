@@ -19,10 +19,7 @@
 
 package joliex.websocket;
 
-import jolie.runtime.AndJarDeps;
-import jolie.runtime.FaultException;
-import jolie.runtime.JavaService;
-import jolie.runtime.Value;
+import jolie.runtime.*;
 import jolie.runtime.embedding.RequestResponse;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -31,6 +28,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,8 +39,9 @@ public class WebSocketUtils extends JavaService {
 		private final Embedder embedder;
 		private final Value correlationData;
 
-		public JolieWebSocketClient( String id, URI serverUri, Embedder embedder, Value correlationData ) {
-			super( serverUri );
+		public JolieWebSocketClient( String id, URI serverUri, Embedder embedder, Map< String, String > headers,
+			Value correlationData ) {
+			super( serverUri, headers );
 			this.id = id;
 			this.embedder = embedder;
 			this.correlationData = correlationData;
@@ -112,9 +111,16 @@ public class WebSocketUtils extends JavaService {
 		throws FaultException {
 		try {
 			String id = request.getFirstChild( "id" ).strValue();
+			Map< String, String > headers = new HashMap<>();
+			if( request.hasChildren( "headers" ) ) {
+				for( Map.Entry< String, ValueVector > entry : request.getFirstChild( "headers" ).children()
+					.entrySet() ) {
+					headers.put( entry.getKey(), entry.getValue().first().strValue() );
+				}
+			}
 			final JolieWebSocketClient client =
 				new JolieWebSocketClient( id, new URI( request.getFirstChild( "uri" ).strValue() ),
-					getEmbedder(), request.getFirstChild( "corrData" ) );
+					getEmbedder(), headers, request.getFirstChild( "corrData" ) );
 			clients.put( id, client );
 			client.connect();
 		} catch( URISyntaxException e ) {
