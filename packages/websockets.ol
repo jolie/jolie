@@ -24,6 +24,7 @@ type ConnectRequest {
 	id:WID //< the id that should be assigned to the websocket
 	uri:string //< the websocket URI to connect to
 	corrData?:undefined //< correlation data for the notifications received from the utilities, if any
+	headers?:undefined //< HTTP headers, if any
 }
 
 type CloseRequest {
