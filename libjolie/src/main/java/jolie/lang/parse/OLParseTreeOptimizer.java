@@ -431,12 +431,12 @@ public class OLParseTreeOptimizer {
 
 		@Override
 		public void visit( InstallStatement n ) {
-			currNode = new InstallStatement( n.context(), optimizeInstallFunctionNode( n.handlersFunction() ) );
+			currNode = new InstallStatement( n.context(), optimizeInstallFunctionNode( n.handlersFunction() ).get() );
 		}
 
-		private InstallFunctionNode optimizeInstallFunctionNode( InstallFunctionNode n ) {
+		private Optional< InstallFunctionNode > optimizeInstallFunctionNode( InstallFunctionNode n ) {
 			if( n == null ) {
-				return null;
+				return Optional.empty();
 			}
 
 			@SuppressWarnings( "unchecked" )
@@ -447,7 +447,7 @@ public class OLParseTreeOptimizer {
 				pair.value().accept( this );
 				pairs[ i++ ] = new Pair<>( pair.key(), currNode );
 			}
-			return new InstallFunctionNode( pairs );
+			return Optional.of( new InstallFunctionNode( pairs ) );
 		}
 
 		@Override

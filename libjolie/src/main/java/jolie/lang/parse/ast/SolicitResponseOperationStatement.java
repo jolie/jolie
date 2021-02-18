@@ -24,6 +24,8 @@ package jolie.lang.parse.ast;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
+import java.util.Optional;
+
 
 public class SolicitResponseOperationStatement extends OLSyntaxNode {
 	private final VariablePathNode inputVarPath;
@@ -37,13 +39,13 @@ public class SolicitResponseOperationStatement extends OLSyntaxNode {
 		String outputPortId,
 		OLSyntaxNode outputExpression,
 		VariablePathNode inputVarPath,
-		InstallFunctionNode handlersFunction ) {
+		Optional< InstallFunctionNode > handlersFunction ) {
 		super( context );
 		this.id = id;
 		this.outputExpression = outputExpression;
 		this.inputVarPath = inputVarPath;
 		this.outputPortId = outputPortId;
-		this.handlersFunction = handlersFunction;
+		this.handlersFunction = handlersFunction.orElse( null );
 	}
 
 	public InstallFunctionNode handlersFunction() {

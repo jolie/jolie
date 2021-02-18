@@ -2475,8 +2475,12 @@ public class OLParser extends AbstractParser {
 			nextToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
+			Optional< InstallFunctionNode > optInstallNode = parseInstallFunction( false );
+			if( !optInstallNode.isPresent() ) {
+				throwException( "expected install body" );
+			}
 			retVal =
-				new InstallStatement( getContext(), parseInstallFunction() );
+				new InstallStatement( getContext(), optInstallNode.get() );
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 			break;
@@ -2568,8 +2572,32 @@ public class OLParser extends AbstractParser {
 		return retVal;
 	}
 
-	private InstallFunctionNode parseInstallFunction()
+	private Optional< InstallFunctionNode > parseInstallFunction( boolean hadNewLine )
 		throws IOException, ParserException {
+		/*
+		 * Check that we're not consuming an input choice first. (This can happen for sequences separated by
+		 * spaces instead of ;.)
+		 */
+		if( token.is( Scanner.TokenType.ID ) ) {
+			Scanner.Token idToken = token;
+			nextToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				// It's an input choice
+				if( hadNewLine ) {
+					addToken( new Scanner.Token( Scanner.TokenType.NEWLINE ) );
+				}
+				addToken( new Scanner.Token( Scanner.TokenType.LSQUARE ) );
+				addToken( idToken );
+				addToken( token );
+				nextToken();
+				return Optional.empty();
+			} else {
+				addToken( idToken );
+				addToken( token );
+				nextToken();
+			}
+		}
+
 		boolean backup = insideInstallFunction;
 		insideInstallFunction = true;
 		List< Pair< String, OLSyntaxNode > > vec = new LinkedList<>();
@@ -2604,7 +2632,7 @@ public class OLParser extends AbstractParser {
 
 		insideInstallFunction = backup;
 
-		return new InstallFunctionNode( vec.toArray( new Pair[ 0 ] ) );
+		return Optional.of( new InstallFunctionNode( vec.toArray( new Pair[ 0 ] ) ) );
 	}
 
 	private OLSyntaxNode parseAssignOrDeepCopyOrPointerStatement( VariablePathNode path )
@@ -2938,13 +2966,16 @@ public class OLParser extends AbstractParser {
 
 		if( token.is( Scanner.TokenType.LPAREN ) ) { // Solicit Response operation
 			VariablePathNode inputVarPath = parseOperationVariablePathParameter();
-			InstallFunctionNode function = null;
+			Optional< InstallFunctionNode > function = Optional.empty();
 			if( token.is( Scanner.TokenType.LSQUARE ) ) {
+				boolean newLine = hasMetNewline();
 				eat( Scanner.TokenType.LSQUARE, "expected [" );
 				function =
-					parseInstallFunction();
-				eat(
-					Scanner.TokenType.RSQUARE, "expected ]" );
+					parseInstallFunction( newLine );
+				if( function.isPresent() ) {
+					eat(
+						Scanner.TokenType.RSQUARE, "expected ]" );
+				}
 			}
 
 			stm = new SolicitResponseOperationStatement(
