@@ -19,6 +19,7 @@
 
 package joliex.http;
 
+import jolie.js.JsUtils;
 import jolie.runtime.*;
 import jolie.runtime.embedding.RequestResponse;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -30,6 +31,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,7 +68,7 @@ public class HttpUtils extends JavaService {
 						while( control.get() && (line = reader.readLine()) != null ) {
 							Value v = Value.create();
 							v.setFirstChild( "sid", sid );
-							v.setFirstChild( "data", line );
+							JsUtils.parseJsonIntoValue( new StringReader( line ), v.getFirstChild( "data" ), false );
 							embedder.callOneWay( "next", v );
 						}
 						Value v = Value.create();
