@@ -71,9 +71,12 @@ public class HttpUtils extends JavaService {
 							JsUtils.parseJsonIntoValue( new StringReader( line ), v.getFirstChild( "data" ), false );
 							embedder.callOneWay( "next", v );
 						}
-						Value v = Value.create();
-						v.setFirstChild( "sid", sid );
-						embedder.callOneWay( "end", v );
+						entity.close();
+						if( control.compareAndSet( true, false ) ) {
+							Value v = Value.create();
+							v.setFirstChild( "sid", sid );
+							embedder.callOneWay( "end", v );
+						}
 					}
 					return null;
 				} );
@@ -92,6 +95,14 @@ public class HttpUtils extends JavaService {
 			throw new FaultException( "NotFound" );
 		}
 
-		control.set( false );
+		if( control.compareAndSet( true, false ) ) {
+			Value v = Value.create();
+			v.setFirstChild( "sid", sid );
+			try {
+				getEmbedder().callOneWay( "end", v );
+			} catch( IOException e ) {
+				throw new FaultException( e );
+			}
+		}
 	}
 }
