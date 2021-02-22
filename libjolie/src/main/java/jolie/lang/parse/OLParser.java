@@ -52,6 +52,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Parser for a .ol file.
@@ -3423,13 +3424,30 @@ public class OLParser extends AbstractParser {
 		return product;
 	}
 
-	private void parseImport() throws IOException, ParserException {
+	private String parseDashedIdentifier()
+		throws IOException, ParserException {
+		List< String > importTargetComponents = new ArrayList<>();
+		boolean keepRun = true;
+		while( keepRun ) {
+			assertIdentifier( "expected identifier" );
+			importTargetComponents.add( token.content() );
+			nextToken();
+			if( token.is( Scanner.TokenType.MINUS ) ) {
+				importTargetComponents.add( "-" );
+				nextToken();
+			} else {
+				keepRun = false;
+			}
+		}
+		return importTargetComponents.stream().collect( Collectors.joining() );
+	}
 
+	private void parseImport() throws IOException, ParserException {
 		if( token.is( Scanner.TokenType.FROM ) ) {
 			ParsingContext context = getContext();
 			boolean isNamespaceImport = false;
 			nextToken();
-			List< String > importTarget = new ArrayList<>();
+			List< String > importTargets = new ArrayList<>();
 			boolean importTargetIDStarted = false;
 			List< Pair< String, String > > pathNodes = null;
 			boolean keepRun = true;
@@ -3439,13 +3457,13 @@ public class OLParser extends AbstractParser {
 					nextToken();
 				} else if( token.is( Scanner.TokenType.DOT ) ) {
 					if( !importTargetIDStarted ) {
-						importTarget.add( token.content() );
+						importTargets.add( token.content() );
 					}
 					nextToken();
 				} else {
-					importTarget.add( token.content() );
+					importTargets.add( parseDashedIdentifier() );
 					importTargetIDStarted = true;
-					nextToken();
+					// nextToken();
 				}
 			} while( keepRun );
 
@@ -3478,9 +3496,9 @@ public class OLParser extends AbstractParser {
 			}
 			ImportStatement stmt = null;
 			if( isNamespaceImport ) {
-				stmt = new ImportStatement( context, Collections.unmodifiableList( importTarget ) );
+				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ) );
 			} else {
-				stmt = new ImportStatement( context, Collections.unmodifiableList( importTarget ),
+				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ),
 					Collections.unmodifiableList( pathNodes ) );
 			}
 			programBuilder.addChild( stmt );
