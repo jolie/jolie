@@ -67,31 +67,31 @@
                                 <artifactItem>
                                     <groupId>com.sun.xml.ws</groupId>
                                     <artifactId>policy</artifactId>
-                                    <version>2.7.5</version>
+                                    <version>3.0.0</version>
                                     <destFileName>policy.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.sun.xml.ws</groupId>
                                     <artifactId>rt</artifactId>
-                                    <version>2.3.0</version>
+                                    <version>3.0.0</version>
                                     <destFileName>rt.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.glassfish.jaxb</groupId>
                                     <artifactId>jaxb-runtime</artifactId>
-                                    <version>2.3.0</version>
+                                    <version>3.0.0</version>
                                     <destFileName>jaxb-runtime.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.sun.istack</groupId>
                                     <artifactId>istack-commons-runtime</artifactId>
-                                    <version>3.0.7</version>
+                                    <version>4.0.0</version>
                                     <destFileName>istack-commons-runtime.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.sun.xml.fastinfoset</groupId>
                                     <artifactId>FastInfoset</artifactId>
-                                    <version>1.2.15</version>
+                                    <version>2.0.0</version>
                                     <destFileName>FastInfoset.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
@@ -115,7 +115,7 @@
                                 <artifactItem>
                                     <groupId>com.sun.xml.stream.buffer</groupId>
                                     <artifactId>streambuffer</artifactId>
-                                    <version>1.5.6</version>
+                                    <version>2.0.1</version>
                                     <destFileName>streambuffer.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
@@ -145,7 +145,7 @@
                                 <artifactItem>
                                     <groupId>com.sun.xml.messaging.saaj</groupId>
                                     <artifactId>saaj-impl</artifactId>
-                                    <version>1.5.1</version>
+                                    <version>2.0.0</version>
                                     <destFileName>saaj-impl.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
@@ -189,7 +189,7 @@
                                 <artifactItem>
                                     <groupId>com.sun.xml.ws</groupId>
                                     <artifactId>jaxws-rt</artifactId>
-                                    <version>2.3.0</version>
+                                    <version>3.0.0</version>
                                     <destFileName>jaxws-rt.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
@@ -245,12 +245,6 @@
                         </goals>
                         <configuration>
                             <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.sun.xml.messaging.saaj</groupId>
-                                    <artifactId>saaj-impl</artifactId>
-                                    <version>1.5.1</version>
-                                    <destFileName>saaj-impl.jar</destFileName>
-                                </artifactItem>                              
                                 <artifactItem>
                                     <groupId>javax.xml.bind</groupId>
                                     <artifactId>jaxb-api</artifactId>
@@ -358,7 +352,7 @@
                                 <artifactItem>
                                     <groupId>com.sun.mail</groupId>
                                     <artifactId>smtp</artifactId>
-                                    <version>1.4.5</version>
+                                    <version>2.0.0</version>
                                     <type>jar</type>
                                     <destFileName>smtp.jar</destFileName>
                                 </artifactItem>
@@ -571,7 +565,7 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>smtp</artifactId>
-            <version>1.4.5</version>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -622,7 +616,7 @@
         <dependency>
             <groupId>com.sun.xml.fastinfoset</groupId>
             <artifactId>FastInfoset</artifactId>
-            <version>1.2.15</version>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.gmbal</groupId>
@@ -654,7 +648,7 @@
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
-            <version>2.3.0</version>
+            <version>3.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jvnet.staxex</groupId>
@@ -679,7 +673,7 @@
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>policy</artifactId>
-            <version>2.7.5</version>
+            <version>3.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.glassfish.jaxb</groupId>
@@ -690,7 +684,7 @@
         <dependency>
             <groupId>com.sun.xml.messaging.saaj</groupId>
             <artifactId>saaj-impl</artifactId>
-            <version>1.5.1</version>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.woodstox</groupId>
@@ -705,7 +699,7 @@
         <dependency>
             <groupId>com.sun.xml.stream.buffer</groupId>
             <artifactId>streambuffer</artifactId>
-            <version>1.5.6</version>
+            <version>2.0.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jvnet.staxex</groupId>
@@ -726,7 +720,7 @@
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>rt</artifactId>
-            <version>2.3.0</version>
+            <version>3.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jvnet.staxex</groupId>
@@ -748,7 +742,7 @@
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.0</version>
+            <version>3.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jvnet.staxex</groupId>
@@ -763,7 +757,7 @@
         <dependency>
             <groupId>com.sun.istack</groupId>
             <artifactId>istack-commons-runtime</artifactId>
-            <version>3.0.7</version>
+            <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.jvnet.mimepull</groupId>
