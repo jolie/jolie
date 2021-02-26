@@ -305,6 +305,7 @@ public class RuntimeService extends JavaService {
 		final Value stats = Value.create();
 		stats_files( stats.getFirstChild( "files" ) );
 		stats_os( stats.getFirstChild( "os" ) );
+		stats_memory( stats.getFirstChild( "memory" ) );
 		return stats;
 	}
 
@@ -324,5 +325,12 @@ public class RuntimeService extends JavaService {
 			stats.setFirstChild( "openCount", unixBean.getOpenFileDescriptorCount() );
 			stats.setFirstChild( "maxCount", unixBean.getMaxFileDescriptorCount() );
 		}
+	}
+
+	private void stats_memory( Value stats ) {
+		Runtime runtime = Runtime.getRuntime();
+		stats.setFirstChild( "free", runtime.freeMemory() );
+		stats.setFirstChild( "total", runtime.totalMemory() );
+		stats.setFirstChild( "used", runtime.totalMemory() - runtime.freeMemory() );
 	}
 }
