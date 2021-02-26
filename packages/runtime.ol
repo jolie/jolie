@@ -108,10 +108,10 @@ type Stats:void {
 		.systemLoadAverage:double //< System load average
 		.version:string //< OS version
 	}
-	.jvm:void{
-		freeMem:long
-		totalMem:long
-		usedMem:long
+	.memory:void{
+		free:long
+		total:long
+		used:long
 	}
 }
 

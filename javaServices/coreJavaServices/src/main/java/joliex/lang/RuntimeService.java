@@ -305,7 +305,7 @@ public class RuntimeService extends JavaService {
 		final Value stats = Value.create();
 		stats_files( stats.getFirstChild( "files" ) );
 		stats_os( stats.getFirstChild( "os" ) );
-		stats_jvm( stats.getFirstChild( "jvm" ) );
+		stats_memory( stats.getFirstChild( "memory" ) );
 		return stats;
 	}
 
@@ -327,10 +327,10 @@ public class RuntimeService extends JavaService {
 		}
 	}
 
-	private void stats_jvm( Value stats ) {
+	private void stats_memory( Value stats ) {
 		Runtime runtime = Runtime.getRuntime();
-		stats.setFirstChild( "freeMem", runtime.freeMemory() );
-		stats.setFirstChild( "totalMem", runtime.totalMemory() );
-		stats.setFirstChild( "usedMem", runtime.totalMemory() - runtime.freeMemory() );
+		stats.setFirstChild( "free", runtime.freeMemory() );
+		stats.setFirstChild( "total", runtime.totalMemory() );
+		stats.setFirstChild( "used", runtime.totalMemory() - runtime.freeMemory() );
 	}
 }
