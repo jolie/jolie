@@ -108,6 +108,12 @@ type Stats:void {
 		.systemLoadAverage:double //< System load average
 		.version:string //< OS version
 	}
+
+	.memory:void{
+		free:long
+		total:long
+		used:long
+	}
 }
 
 type MaybeString:void | string
