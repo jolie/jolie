@@ -33,12 +33,14 @@ outputPort CalcServiceJoliePort {
 
 define loadLocalService
 {
-	list@File( { .directory = "../dist/jolie/lib/jaxws" } )( list );
-	 for( file in list.result ) {
-	 	toAbsolutePath@File( "../dist/jolie/lib/jaxws/" + file )( path );
-	 	loadLibrary@Runtime( path )()
-	 };
-	loadLibrary@Runtime( "extensions/private/WS-test.jar" )();
+	// list@File( { .directory = "../dist/jolie/lib/jaxws" } )( list );
+	//  for( file in list.result ) {
+	//  	toAbsolutePath@File( "../dist/jolie/lib/jaxws/" + file )( path )
+	//  	loadLibrary@Runtime( path )()
+	//  };
+  toAbsolutePath@File( "../dist/jolie/lib/jaxws/saaj-impl.jar" )( path )
+  loadLibrary@Runtime( path )()
+	loadLibrary@Runtime( "extensions/private/WS-test.jar" )()
 	loadEmbeddedService@Runtime
 		( { .filepath = "ws.test.WSTest", .type = "Java" } )
 		( CalcServiceJoliePort.location )
