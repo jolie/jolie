@@ -29,15 +29,15 @@ define doTest
 {
 	loadLocalService;
 	start@CalcServiceJoliePort( "http://localhost:14000/" )();
-	req.x = 6;
-	req.y = 11;
-	sum@CalcServicePort( req )( res );
+	req.x = 6
+	req.y = 11
+	sum@CalcServicePort( req )( res )
 	if ( res.return != 6+11 ) {
 		throw( TestFailed, "Wrong response from the SOAP Service" )
-	};
-	prod@CalcServicePort( req )( res );
+	}
+	prod@CalcServicePort( req )( res )
 	if ( res.return != 6*11 ) {
 		throw( TestFailed, "Wrong response from the SOAP Service" )
-	};
+	}
 	close@CalcServiceJoliePort()()
 }

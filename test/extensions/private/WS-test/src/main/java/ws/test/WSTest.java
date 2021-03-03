@@ -18,6 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ************************************************************************** */
+
 package ws.test;
 
 import javax.jws.WebMethod;
