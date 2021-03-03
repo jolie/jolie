@@ -39,37 +39,28 @@
                 <version>3.1.1</version>
                 <executions>
                     <execution>
-                        <id>copy</id>
-                        <phase>install</phase>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>copy</goal>
+                            <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>javax.xml.soap</groupId>
-                                    <artifactId>javax.xml.soap-api</artifactId>
-                                    <version>1.4.0</version>
-                                    <type>jar</type>
-                                    <destFileName>javax.xml.soap-api.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>com.sun.xml.messaging.saaj</groupId>
-                                    <artifactId>saaj-impl</artifactId>
-                                    <version>1.5.0</version>
-                                    <type>jar</type>
-                                    <destFileName>saaj-impl.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>com.sun.xml.messaging.saaj</groupId>
-                                    <artifactId>saaj-impl</artifactId>
-                                    <version>1.5.0</version>
-                                    <type>jar</type>
-                                    <destFileName>saaj-impl.jar</destFileName>
-                                </artifactItem>
-                            </artifactItems>
                             <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib/jaxws</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
+                            <stripVersion>true</stripVersion>
+                            <excludeArtifactIds>
+                                xsom,
+                                wsdl4j,
+                                libjolie,
+                                junit,
+                                jolie,
+                                jolie-xml,
+                                jolie-js,
+                                http,
+                                build-tools
+                            </excludeArtifactIds>
                         </configuration>
                     </execution>
                     <execution>
@@ -126,8 +117,7 @@
         <dependency>
             <groupId>com.sun.xml.messaging.saaj</groupId>
             <artifactId>saaj-impl</artifactId>
-            <version>1.5.0</version>
+            <version>1.5.2</version>
         </dependency>
-
     </dependencies>
 </project>
