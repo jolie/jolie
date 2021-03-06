@@ -19,6 +19,7 @@
 
 package joliex.http;
 
+import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.runtime.*;
 import jolie.runtime.embedding.RequestResponse;
@@ -56,8 +57,8 @@ public class HttpUtils extends JavaService {
 		final AtomicBoolean control = new AtomicBoolean( true );
 		controls.put( sid, control );
 		final Embedder embedder = getEmbedder();
-
-		interpreter().execute( () -> {
+		final Interpreter interpreter = interpreter();
+		interpreter.execute( () -> {
 			try {
 				client.execute( httpReq, response -> {
 					HttpEntity entity = response.getEntity();
@@ -81,7 +82,16 @@ public class HttpUtils extends JavaService {
 					return null;
 				} );
 			} catch( IOException e ) {
-				e.printStackTrace();
+				if( control.compareAndSet( true, false ) ) {
+					Value v = Value.create();
+					v.setFirstChild( "sid", sid );
+					v.setFirstChild( "error", e.getMessage() );
+					try {
+						embedder.callOneWay( "end", v );
+					} catch( IOException e2 ) {
+						interpreter.logWarning( e2 );
+					}
+				}
 			}
 		} );
 		return sid;

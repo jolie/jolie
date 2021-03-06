@@ -184,6 +184,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String HOST = "host";
 		private static final String HEADERS = "headers";
 		private static final String HEADERS_WILDCARD = "*";
+		private static final String REQUEST_HEADERS = "requestHeaders";
 		private static final String ADD_HEADERS = "addHeader";
 		private static final String STATUS_CODE = "statusCode";
 		private static final String REDIRECT = "redirect";
@@ -784,6 +785,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					headerBuilder.append( header ).append( HttpUtils.CRLF );
 				}
 			}
+		}
+		if( hasParameter( Parameters.REQUEST_HEADERS ) ) {
+			getParameterFirstValue( Parameters.REQUEST_HEADERS )
+				.children().forEach( ( header, vector ) -> {
+					headerBuilder.append( header )
+						.append( ": " )
+						.append( vector.first().strValue() )
+						.append( HttpUtils.CRLF );
+				} );
 		}
 	}
 
