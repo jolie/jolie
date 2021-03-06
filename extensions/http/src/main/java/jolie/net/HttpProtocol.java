@@ -786,7 +786,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				}
 			}
 		}
-		if( hasParameter( Parameters.REQUEST_HEADERS ) ) {
+		if( !inInputPort && hasParameter( Parameters.REQUEST_HEADERS ) ) {
 			getParameterFirstValue( Parameters.REQUEST_HEADERS )
 				.children().forEach( ( header, vector ) -> {
 					headerBuilder.append( header )
