@@ -19,29 +19,6 @@ init {
 }
 
 main {
-    [ analyzeTemplate( request )( response ) {
-        response.template = Void
-        response.method = ""
-        r3 = request
-        r3.regex = ","
-        split@StringUtils( r3 )( r4 )
-        for( _p = 0, _p < #r4.result, _p++ ) {
-            trim@StringUtils( r4.result[_p] )( r_result )
-            r_result.regex = "method="
-            find@StringUtils( r_result )( there_is_method )
-            if ( there_is_method == 1) {
-                split@StringUtils( r_result )( _params )
-                trim@StringUtils( _params.result[1] )( response.method )
-            } else {
-                r_result.regex = "template="
-                find@StringUtils( r_result )( there_is_template )
-                if ( there_is_template == 1) {
-                    split@StringUtils( r_result )( _params )
-                    trim@StringUtils( _params.result[1] )( response.template )
-                }
-            }
-        }     
-    }]
 
     [ getParamList( request )( response ) {
         response = false;
