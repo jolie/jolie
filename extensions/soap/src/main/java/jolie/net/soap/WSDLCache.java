@@ -34,24 +34,24 @@ import javax.wsdl.xml.WSDLReader;
  * @author Fabrizio Montesi TODO: WSDL document removal after some time
  */
 public class WSDLCache {
-	private static WSDLCache instance = null;
+	// private static WSDLCache instance = null;
 
 	private final Map< String, Definition > cache;
 	private final WSDLFactory factory;
 
-	private WSDLCache()
+	public WSDLCache()
 		throws WSDLException {
 		cache = new HashMap<>();
 		factory = WSDLFactory.newInstance();
 	}
-
-	public static synchronized WSDLCache getInstance()
-		throws WSDLException {
-		if( instance == null ) {
-			instance = new WSDLCache();
-		}
-		return instance;
-	}
+	//
+	// public static synchronized WSDLCache getInstance()
+	// throws WSDLException {
+	// if( instance == null ) {
+	// instance = new WSDLCache();
+	// }
+	// return instance;
+	// }
 
 	public synchronized Definition get( String url )
 		throws WSDLException {

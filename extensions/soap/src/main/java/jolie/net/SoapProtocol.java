@@ -150,6 +150,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	private final Map< String, String > namespacePrefixMap = new HashMap<>();
 	private boolean received = false;
 	private String encoding;
+	private final WSDLCache wsdlCache;
 
 	private static class Parameters {
 		private static final String WRAPPED = "wrapped";
@@ -179,13 +180,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		URI uri,
 		boolean inInputPort,
 		Interpreter interpreter )
-		throws SOAPException {
+		throws SOAPException, WSDLException {
 		super( configurationPath );
 		this.uri = uri;
 		this.inInputPort = inInputPort;
 		this.transformerFactory = TransformerFactory.newInstance();
 		this.interpreter = interpreter;
 		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+		this.wsdlCache = new WSDLCache();
 	}
 
 	private void parseSchemaElement( Definition definition, Element element, XSOMParser schemaParser )
@@ -519,7 +521,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		if( wsdlDefinition == null && hasParameter( "wsdl" ) ) {
 			String wsdlUrl = getStringParameter( "wsdl" );
 			try {
-				wsdlDefinition = WSDLCache.getInstance().get( wsdlUrl );
+				wsdlDefinition = wsdlCache.get( wsdlUrl );
 			} catch( WSDLException e ) {
 				throw new IOException( e );
 			}
