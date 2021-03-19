@@ -23,6 +23,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+import javax.wsdl.WSDLException;
 import javax.xml.soap.SOAPException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
@@ -56,7 +57,7 @@ public class SoapProtocolFactory extends CommProtocolFactory {
 		throws IOException {
 		try {
 			return new SoapProtocol( configurationPath, location, true, commCore().interpreter() );
-		} catch( SOAPException e ) {
+		} catch( SOAPException | WSDLException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -65,7 +66,7 @@ public class SoapProtocolFactory extends CommProtocolFactory {
 		throws IOException {
 		try {
 			return new SoapProtocol( configurationPath, location, false, commCore().interpreter() );
-		} catch( SOAPException e ) {
+		} catch( SOAPException | WSDLException e ) {
 			throw new IOException( e );
 		}
 	}
