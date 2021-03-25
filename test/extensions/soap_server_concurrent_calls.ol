@@ -23,13 +23,14 @@
 include "../AbstractTestUnit.iol"
 include "console.iol"
 
-include "private/WS-test/lib/WS-testService.iol"
+include "private/WS-test/lib/WS-testService2.iol"
 
 define doTest
 {
 	loadLocalService;
-	start@CalcServiceJoliePort( "http://localhost:14000/" )();
 
+
+	start@CalcServiceJoliePort()()
 	for( i = 0, i < 50, i++ ) {
 		req[ i ] << {
 			x = 6
@@ -38,18 +39,10 @@ define doTest
 	}
 
 	spawn( x over #req ) in res {
-		
-		scope( call ) {
-			install( default => throw( TestFailed, call.( call.default ) ) )
-			sum@CalcServicePort( req[ x ] )( res )
-			if ( res[ x ].return != 6+11 ) {
-				throw( TestFailed, "Wrong response from the SOAP Service, session " + x + " expected 17, found " + res[ x ].return )
-			}
+		sum@CalcServicePort( req[ x ] )( res )
+		if ( res[ x ].return != 6+11 ) {
+			throw( TestFailed, "Wrong response from the SOAP Service, session " + x + " expected 17, found " + res[ x ].return )
 		}
-		
-	}
-
-	spawn( x over #req ) in res {
 		prod@CalcServicePort( req[ x ] )( res )
 		if ( res[ x ].return != 6*11 ) {
 			throw( TestFailed, "Wrong response from the SOAP Service, session " + x + ", expected 66, found " + res[ x ].return )
