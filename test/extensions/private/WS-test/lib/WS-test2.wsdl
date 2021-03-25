@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="test.jolie.org.wsdl" xmlns:xsd1="test.jolie.org.xsd" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="test.jolie.org.wsdl" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xs:schema targetNamespace="test.jolie.org.xsd" xmlns:sch="test.jolie.org.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"><xs:element name="prod"><xs:complexType><xs:sequence><xs:element maxOccurs="1" minOccurs="0" name="x" type="xs:int"/><xs:element maxOccurs="1" minOccurs="0" name="y" type="xs:int"/></xs:sequence></xs:complexType></xs:element><xs:element name="prodResponse"><xs:complexType><xs:sequence><xs:element maxOccurs="1" minOccurs="0" name="return" type="xs:int"/></xs:sequence></xs:complexType></xs:element><xs:element name="sum"><xs:complexType><xs:sequence><xs:element maxOccurs="1" minOccurs="0" name="x" type="xs:int"/><xs:element maxOccurs="1" minOccurs="0" name="y" type="xs:int"/></xs:sequence></xs:complexType></xs:element><xs:element name="sumResponse"><xs:complexType><xs:sequence><xs:element maxOccurs="1" minOccurs="0" name="return" type="xs:int"/></xs:sequence></xs:complexType></xs:element></xs:schema>
+  </wsdl:types>
+  <wsdl:message name="RequestType">
+    <wsdl:part name="body" element="xsd1:sum">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ResponseType">
+    <wsdl:part name="body" element="xsd1:sumResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="SoapPort">
+    <wsdl:operation name="prod">
+      <wsdl:input message="tns:RequestType">
+    </wsdl:input>
+      <wsdl:output message="tns:ResponseType">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="sum">
+      <wsdl:input message="tns:RequestType">
+    </wsdl:input>
+      <wsdl:output message="tns:ResponseType">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="SoapPortSOAPBinding" type="tns:SoapPort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="prod">
+      <soap:operation soapAction="prod" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="sum">
+      <soap:operation soapAction="sum" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="SoapPortService">
+    <wsdl:port name="SoapPortServicePort" binding="tns:SoapPortSOAPBinding">
+      <soap:address location="http://localhost:14000"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
