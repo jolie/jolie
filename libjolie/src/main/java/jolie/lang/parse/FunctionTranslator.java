@@ -174,11 +174,7 @@ public class FunctionTranslator {
 				Pair< Constants.OperandType, OLSyntaxNode > operand = operands.get( i );
 				operand.value().accept( this );
 				if( operand.value() instanceof SolicitResponseExpression ) {
-					String variable = String.format( "%s%d", HIDDEN_VARIABLE_PREFIX, hiddenVariableCounter++ );
-
-					VariablePathNode variablePathNode = new VariablePathNode( context, Type.NORMAL );
-					variablePathNode
-						.append( new Pair<>( new ConstantStringExpression( context, variable ), null ) );
+					VariablePathNode variablePathNode = getVariableAndIncrement( context );
 
 					VariableExpressionNode variableExpressionNode =
 						new VariableExpressionNode( context, variablePathNode );
@@ -192,18 +188,35 @@ public class FunctionTranslator {
 		public void visit( SolicitResponseExpression n ) {
 			n.expression().accept( this );
 
-			String variable = String.format( "%s%d", HIDDEN_VARIABLE_PREFIX, hiddenVariableCounter );
-			VariablePathNode variablePathNode = new VariablePathNode( n.context(), Type.NORMAL );
-			variablePathNode.append( new Pair<>( new ConstantStringExpression( n.context(), variable ), null ) );
+			VariablePathNode variablePathNode = getVariable( n.context() );
 
 			sequenceList.add( new SolicitResponseOperationStatement( n.context(), n.operationId(),
 				n.outputPortId(), n.expression(), variablePathNode, Optional.empty() ) );
 		}
 
+		private VariablePathNode getVariableAndIncrement( ParsingContext context ) {
+			return generateVariablePathNode( context, true );
+		}
+
+		private VariablePathNode getVariable( ParsingContext context ) {
+			return generateVariablePathNode( context, false );
+		}
+
+		private VariablePathNode generateVariablePathNode( ParsingContext context, boolean increment ) {
+			String variable = String.format( "%s%d", HIDDEN_VARIABLE_PREFIX, hiddenVariableCounter );
+
+			if( increment )
+				hiddenVariableCounter++;
+
+			VariablePathNode variablePathNode = new VariablePathNode( context, Type.NORMAL );
+			variablePathNode.append( new Pair<>( new ConstantStringExpression( context, variable ), null ) );
+
+			return variablePathNode;
+		}
+
 		@Override
 		public void visit( SolicitResponseOperationStatement n ) {
-			// TODO Auto-generated method stub
-
+			n.outputExpression().accept( this );
 		}
 
 		@Override
