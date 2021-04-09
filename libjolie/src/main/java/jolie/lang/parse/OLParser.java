@@ -22,6 +22,7 @@ package jolie.lang.parse;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.Constants.EmbeddedServiceType;
+import jolie.lang.parse.Scanner.TokenType;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
@@ -3148,7 +3149,16 @@ public class OLParser extends AbstractParser {
 
 		switch( token.type() ) {
 		case ID:
+			String operationId = token.content();
 			path = parseVariablePath();
+			if( token.type() == TokenType.AT ) {
+				nextToken();
+				String outputPortId = token.content();
+				nextToken();
+				retVal = new SolicitResponseExpression( getContext(), operationId, outputPortId,
+					parseOperationExpressionParameter() );
+				return retVal;
+			}
 			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
 			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
 				new ConstantIntegerExpression( getContext(), 0 ) ) );

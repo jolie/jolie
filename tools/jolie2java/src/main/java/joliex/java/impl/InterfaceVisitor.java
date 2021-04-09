@@ -73,6 +73,7 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.SolicitResponseExpression;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -311,4 +312,10 @@ public class InterfaceVisitor implements UnitOLVisitor {
 
 	@Override
 	public void visit( EmbedServiceNode n ) {}
+
+	@Override
+	public void visit(SolicitResponseExpression n) {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -22,6 +22,8 @@ package jolie.lang.parse.module;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Stream;
+
+import jolie.lang.parse.FunctionTranslator;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
@@ -64,6 +66,7 @@ public class ModuleParser {
 		OLParser olParser = new OLParser( scanner, includePaths, parserConfiguration.classLoader() );
 		olParser.putConstants( parserConfiguration.constantsMap() );
 		Program program = olParser.parse();
+		program = FunctionTranslator.run( program );
 		program = OLParseTreeOptimizer.optimize( program );
 		SymbolTable st = SymbolTableGenerator.generate( program );
 		return new ModuleRecord( scanner.source(), program, st );

@@ -91,6 +91,7 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.SolicitResponseExpression;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -1408,5 +1409,11 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( n.bindingPort() != null && !outputPorts.containsKey( n.bindingPort().id() ) ) {
 			error( n, "binding port is not defined" );
 		}
+	}
+
+	@Override
+	public void visit( SolicitResponseExpression n ) {
+		// TODO Auto-generated method stub
+
 	}
 }
