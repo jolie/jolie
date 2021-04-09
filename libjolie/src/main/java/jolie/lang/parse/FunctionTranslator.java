@@ -159,6 +159,12 @@ public class FunctionTranslator {
 		}
 
 		@Override
+		public void visit( CompareConditionNode n ) {
+			n.leftExpression().accept( this );
+			n.rightExpression().accept( this );
+		}
+
+		@Override
 		public void visit( SumExpressionNode n ) {
 			expressionNodeOperandTranslation( n.context(), n.operands() );
 		}
@@ -311,12 +317,6 @@ public class FunctionTranslator {
 
 		@Override
 		public void visit( NotExpressionNode n ) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void visit( CompareConditionNode n ) {
 			// TODO Auto-generated method stub
 
 		}
