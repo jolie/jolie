@@ -89,6 +89,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Pair;
 import jolie.lang.Constants;
+import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.context.ParsingContext;
 
 public class FunctionTranslator {
@@ -166,7 +167,9 @@ public class FunctionTranslator {
 
 		@Override
 		public void visit( SumExpressionNode n ) {
-			expressionNodeOperandTranslation( n.context(), n.operands() );
+			for( Pair< OperandType, OLSyntaxNode > nodePair : n.operands() ) {
+				nodePair.value().accept( this );
+			}
 		}
 
 		@Override
