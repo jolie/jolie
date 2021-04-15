@@ -3151,7 +3151,7 @@ public class OLParser extends AbstractParser {
 		case ID:
 			String operationId = token.content();
 			path = parseVariablePath();
-			if( token.type() == TokenType.AT ) {
+			if( token.is( TokenType.AT ) ) {
 				nextToken();
 				String outputPortId = token.content();
 				nextToken();
