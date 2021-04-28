@@ -47,7 +47,6 @@ outputPort HTTP {
 
 outputPort HTTPS {
   Protocol: https {
-      .ssl.protocol = "TLSv1.1";
       .method = "get";
       .osc.getDefinition.alias -> alias
   }
@@ -79,14 +78,20 @@ init {
 
 main {
     if ( #args != 4 ) {
-        println@Console("Usage: openapi2jolie <url|filepath> <service_name> <output_folder> <protocol http|https>")();
+        println@Console("Usage: openapi2jolie <url|filepath> <service_name> <output_folder> <protocol http|https> <ssl.protocol>")();
         throw( Error )
     }
     ;
     println@Console("Generating client...")();
-    if ( #args == 4 && (args[ 3 ] == "http" || args[ 3 ] == "https")) {
+    if ( #args > 4 && (args[ 3 ] == "http" || args[ 3 ] == "https")) {
         protocol = args[ 3 ]
+        if ( args[ 3 ] == "https" && #args == 5 ) {
+            ssl_protocol = args[ 4 ]
+        } else {
+            ssl_protocol = ""
+        }
     } else {
+        ssl_protocol = ""
         protocol = ""
     };
     output_folder = args[ 2 ];
@@ -140,6 +145,9 @@ main {
                 getDefinition@HTTP()( openapi )
             } else if ( protocol == "https" ) {
                 HTTPS.location = location;
+                if ( ssl_protocol != "" ) {
+                    HTTPS.protocol.ssl.protocol = ssl_protocol
+                }
                 getDefinition@HTTPS()( openapi )
             }
         );
