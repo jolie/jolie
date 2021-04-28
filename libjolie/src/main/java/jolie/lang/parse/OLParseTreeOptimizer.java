@@ -953,8 +953,13 @@ public class OLParseTreeOptimizer {
 
 		@Override
 		public void visit( SolicitResponseExpression n ) {
-			// TODO Auto-generated method stub
-
+			OLSyntaxNode expression = null;
+			if( n.expression() != null ) {
+				n.expression().accept( this );
+				expression = currNode;
+			}
+			currNode = new SolicitResponseExpression( n.context(), n.operationId(),
+				n.outputPortId(), expression );
 		}
 	}
 

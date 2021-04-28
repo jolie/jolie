@@ -25,6 +25,7 @@ import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
+import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.InterfaceExtenderDefinition;
@@ -85,122 +86,105 @@ import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Pair;
-import jolie.lang.Constants;
-import jolie.lang.Constants.OperandType;
+import jolie.util.Unit;
+import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.context.ParsingContext;
 
 public class FunctionTranslator {
 
-	private static class TranslationVisitor implements UnitOLVisitor {
+	private static class TranslationVisitor implements FunctionVisitor {
 
 		private static final String HIDDEN_VARIABLE_PREFIX = "#";
 
+		private final List< OLSyntaxNode > statementOrderList = new ArrayList<>();
+
 		private int hiddenVariableCounter = 0;
-		private final List< OLSyntaxNode > sequenceList = new ArrayList<>();
 
 		public Program translate( Program program ) {
-			visit( program );
-			return program;
+			return visit( program );
 		}
 
 		@Override
-		public void visit( Program n ) {
+		public Program visit( Program n ) {
+			List< OLSyntaxNode > children = new ArrayList<>();
 			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
+				children.add( node.accept( this ) );
+			}
+			return new Program( n.context(), children );
+		}
+
+		@Override
+		public ServiceNode visit( ServiceNode n ) {
+			Optional< Pair< String, TypeDefinition > > parameter =
+				n.parameterConfiguration().map( config -> new Pair<>( config.variablePath(), config.type() ) );
+
+			if( n.type() == EmbeddedServiceType.SERVICENODE ) {
+				return ServiceNode.create( n.context(), n.name(), n.accessModifier(),
+					visit( n.program() ), parameter.orElse( null ) );
+			} else {
+				return ServiceNode.create( n.context(), n.name(), n.accessModifier(),
+					visit( n.program() ), parameter.orElse( null ), n.type(), n.implementationConfiguration() );
 			}
 		}
 
 		@Override
-		public void visit( ServiceNode n ) {
-			visit( n.program() );
+		public DefinitionNode visit( DefinitionNode n ) {
+			return new DefinitionNode( n.context(), n.id(), n.body().accept( this ) );
 		}
 
 		@Override
-		public void visit( DefinitionNode n ) {
-			n.body().accept( this );
-		}
-
-		@Override
-		public void visit( ParallelStatement n ) {
+		public ParallelStatement visit( ParallelStatement n ) {
+			ParallelStatement parallelStatement = new ParallelStatement( n.context() );
 			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
+				statementOrderList.add( node.accept( this ) );
 			}
+			for( OLSyntaxNode node : statementOrderList ) {
+				parallelStatement.addChild( node );
+			}
+			statementOrderList.clear();
+			return parallelStatement;
 		}
 
 		@Override
-		public void visit( SequenceStatement n ) {
+		public SequenceStatement visit( SequenceStatement n ) {
+			SequenceStatement sequenceStatement = new SequenceStatement( n.context() );
 			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
-				sequenceList.add( node );
+				statementOrderList.add( node.accept( this ) );
 			}
-			n.children().clear();
-			n.children().addAll( sequenceList );
-		}
-
-		@Override
-		public void visit( AssignStatement n ) {
-			n.expression().accept( this );
-		}
-
-		@Override
-		public void visit( OrConditionNode n ) {
-			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
+			for( OLSyntaxNode node : statementOrderList ) {
+				sequenceStatement.addChild( node );
 			}
+			statementOrderList.clear();
+			return sequenceStatement;
 		}
 
 		@Override
-		public void visit( AndConditionNode n ) {
-			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
+		public AssignStatement visit( AssignStatement n ) {
+			OLSyntaxNode node = null;
+			if( n.expression() != null ) {
+				node = n.expression().accept( this );
 			}
-		}
-
-		@Override
-		public void visit( CompareConditionNode n ) {
-			n.leftExpression().accept( this );
-			n.rightExpression().accept( this );
-		}
-
-		@Override
-		public void visit( SumExpressionNode n ) {
-			for( Pair< OperandType, OLSyntaxNode > nodePair : n.operands() ) {
-				nodePair.value().accept( this );
+			if( node instanceof SolicitResponseExpression ) {
+				VariablePathNode variablePathNode = getVariableAndIncrement( n.context() );
+				node = new VariableExpressionNode( n.context(), variablePathNode );
 			}
+			return new AssignStatement( n.context(), n.variablePath(), node );
 		}
 
 		@Override
-		public void visit( ProductExpressionNode n ) {
-			expressionNodeOperandTranslation( n.context(), n.operands() );
-		}
-
-		private void expressionNodeOperandTranslation( ParsingContext context,
-			List< Pair< Constants.OperandType, OLSyntaxNode > > operands ) {
-			for( int i = 0; i < operands.size(); i++ ) {
-				Pair< Constants.OperandType, OLSyntaxNode > operand = operands.get( i );
-				operand.value().accept( this );
-				if( operand.value() instanceof SolicitResponseExpression ) {
-					VariablePathNode variablePathNode = getVariableAndIncrement( context );
-
-					VariableExpressionNode variableExpressionNode =
-						new VariableExpressionNode( context, variablePathNode );
-
-					operands.set( i, new Pair<>( operand.key(), variableExpressionNode ) );
-				}
+		public SolicitResponseExpression visit( SolicitResponseExpression n ) {
+			OLSyntaxNode expressionNode = null;
+			if( n.expression() != null ) {
+				expressionNode = n.expression().accept( this );
 			}
-		}
-
-		@Override
-		public void visit( SolicitResponseExpression n ) {
-			n.expression().accept( this );
-
 			VariablePathNode variablePathNode = getVariable( n.context() );
-
-			sequenceList.add( new SolicitResponseOperationStatement( n.context(), n.operationId(),
-				n.outputPortId(), n.expression(), variablePathNode, Optional.empty() ) );
+			statementOrderList.add( new SolicitResponseOperationStatement( n.context(), n.operationId(),
+				n.outputPortId(), expressionNode, variablePathNode, Optional.empty() ) );
+			return new SolicitResponseExpression( n.context(), n.operationId(), n.outputPortId(), expressionNode );
 		}
 
 		private VariablePathNode getVariableAndIncrement( ParsingContext context ) {
@@ -213,430 +197,894 @@ public class FunctionTranslator {
 
 		private VariablePathNode generateVariablePathNode( ParsingContext context, boolean increment ) {
 			String variable = String.format( "%s%d", HIDDEN_VARIABLE_PREFIX, hiddenVariableCounter );
-
-			if( increment )
+			if( increment ) {
 				hiddenVariableCounter++;
-
+			}
 			VariablePathNode variablePathNode = new VariablePathNode( context, Type.NORMAL );
 			variablePathNode.append( new Pair<>( new ConstantStringExpression( context, variable ), null ) );
-
 			return variablePathNode;
 		}
 
 		@Override
-		public void visit( SolicitResponseOperationStatement n ) {
-			n.outputExpression().accept( this );
+		public SolicitResponseOperationStatement visit( SolicitResponseOperationStatement n ) {
+			OLSyntaxNode outputExpression = null;
+			if( n.outputExpression() != null ) {
+				outputExpression = n.outputExpression().accept( this );
+			}
+			Optional< InstallFunctionNode > function = Optional.empty();
+			if( n.handlersFunction() != null ) {
+				function = Optional.of( n.handlersFunction() );
+			}
+			return new SolicitResponseOperationStatement( n.context(), n.id(), n.outputPortId(),
+				outputExpression, n.inputVarPath(), function );
 		}
 
 		@Override
-		public void visit( OneWayOperationDeclaration decl ) {
-			// TODO Auto-generated method stub
+		public OrConditionNode visit( OrConditionNode n ) {
+			return n;
+		}
 
+		@Override
+		public AndConditionNode visit( AndConditionNode n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( RequestResponseOperationDeclaration decl ) {
-			// TODO Auto-generated method stub
+		public CompareConditionNode visit( CompareConditionNode n ) {
+			return n;
+		}
 
+		@Override
+		public SumExpressionNode visit( SumExpressionNode n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( NDChoiceStatement n ) {
-			// TODO Auto-generated method stub
+		public ProductExpressionNode visit( ProductExpressionNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( OneWayOperationDeclaration decl ) {
+			return decl;
 		}
 
 		@Override
-		public void visit( OneWayOperationStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( RequestResponseOperationDeclaration decl ) {
+			return decl;
+		}
 
+		@Override
+		public OLSyntaxNode visit( NDChoiceStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( RequestResponseOperationStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( OneWayOperationStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( RequestResponseOperationStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( NotificationOperationStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( NotificationOperationStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( LinkInStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( LinkInStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( LinkOutStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( AddAssignStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( LinkOutStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( SubtractAssignStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( MultiplyAssignStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( AddAssignStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( DivideAssignStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( IfStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( SubtractAssignStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( DefinitionCallStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( WhileStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( MultiplyAssignStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( NotExpressionNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ConstantIntegerExpression n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( DivideAssignStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( ConstantDoubleExpression n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ConstantBoolExpression n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( IfStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( ConstantLongExpression n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ConstantStringExpression n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( DefinitionCallStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( VariableExpressionNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( NullProcessStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( WhileStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( Scope n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( InstallStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( NotExpressionNode n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( CompensateStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ThrowStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ConstantIntegerExpression n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( ExitStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ExecutionInfo n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ConstantDoubleExpression n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( CorrelationSetInfo n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( InputPortInfo n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ConstantBoolExpression n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( OutputPortInfo n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( PointerStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ConstantLongExpression n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( DeepCopyStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( RunStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ConstantStringExpression n ) {}
+		public OLSyntaxNode visit( UndefStatement n ) {
+			return n;
+		}
 
 		@Override
-		public void visit( VariableExpressionNode n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( ValueVectorSizeExpressionNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( PreIncrementStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( NullProcessStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( PostIncrementStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( PreDecrementStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( Scope n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( PostDecrementStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ForStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( InstallStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( ForEachSubNodeStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ForEachArrayItemStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( CompensateStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( SpawnStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( IsTypeExpressionNode n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ThrowStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( InstanceOfExpressionNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( TypeCastExpressionNode n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ExitStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( SynchronizedStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( CurrentHandlerStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ExecutionInfo n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( EmbeddedServiceNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( InstallFixedVariableExpressionNode n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( CorrelationSetInfo n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( VariablePathNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( TypeInlineDefinition n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( InputPortInfo n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( TypeDefinitionLink n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( InterfaceDefinition n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( OutputPortInfo n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( DocumentationComment n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( FreshValueExpressionNode n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( PointerStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( CourierDefinitionNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( CourierChoiceStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( DeepCopyStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( NotificationForwardStatement n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( SolicitResponseForwardStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( RunStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( InterfaceExtenderDefinition n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( InlineTreeExpressionNode n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( UndefStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( VoidExpressionNode n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ProvideUntilStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( ValueVectorSizeExpressionNode n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( TypeChoiceDefinition n ) {
+			return n;
+		}
 
+		@Override
+		public OLSyntaxNode visit( ImportStatement n ) {
+			return n;
 		}
 
 		@Override
-		public void visit( PreIncrementStatement n ) {
-			// TODO Auto-generated method stub
+		public OLSyntaxNode visit( EmbedServiceNode n ) {
+			return n;
+		}
+	}
 
+	interface FunctionVisitor extends OLVisitor< Unit, OLSyntaxNode > {
+		default OLSyntaxNode go( OLSyntaxNode n ) {
+			return n.accept( this );
 		}
 
-		@Override
-		public void visit( PostIncrementStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( Program n );
 
+		default OLSyntaxNode visit( Program n, Unit c ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( PreDecrementStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( OneWayOperationDeclaration decl );
 
+		default OLSyntaxNode visit( OneWayOperationDeclaration decl, Unit ctx ) {
+			return visit( decl );
 		}
 
-		@Override
-		public void visit( PostDecrementStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( RequestResponseOperationDeclaration decl );
 
+		default OLSyntaxNode visit( RequestResponseOperationDeclaration decl, Unit ctx ) {
+			return visit( decl );
 		}
 
-		@Override
-		public void visit( ForStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( DefinitionNode n );
 
+		default OLSyntaxNode visit( DefinitionNode n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( ForEachSubNodeStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( ParallelStatement n );
 
+		default OLSyntaxNode visit( ParallelStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( ForEachArrayItemStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( SequenceStatement n );
 
+		default OLSyntaxNode visit( SequenceStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( SpawnStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( NDChoiceStatement n );
 
+		default OLSyntaxNode visit( NDChoiceStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( IsTypeExpressionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( OneWayOperationStatement n );
 
+		default OLSyntaxNode visit( OneWayOperationStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( InstanceOfExpressionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( RequestResponseOperationStatement n );
 
+		default OLSyntaxNode visit( RequestResponseOperationStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( TypeCastExpressionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( NotificationOperationStatement n );
 
+		default OLSyntaxNode visit( NotificationOperationStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( SynchronizedStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( SolicitResponseOperationStatement n );
 
+		default OLSyntaxNode visit( SolicitResponseOperationStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( CurrentHandlerStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( LinkInStatement n );
 
+		default OLSyntaxNode visit( LinkInStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( EmbeddedServiceNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( LinkOutStatement n );
 
+		default OLSyntaxNode visit( LinkOutStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( InstallFixedVariableExpressionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( AssignStatement n );
 
+		default OLSyntaxNode visit( AssignStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( VariablePathNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( AddAssignStatement n );
 
+		default OLSyntaxNode visit( AddAssignStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( TypeInlineDefinition n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( SubtractAssignStatement n );
 
+		default OLSyntaxNode visit( SubtractAssignStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( TypeDefinitionLink n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( MultiplyAssignStatement n );
 
+		default OLSyntaxNode visit( MultiplyAssignStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( InterfaceDefinition n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( DivideAssignStatement n );
 
+		default OLSyntaxNode visit( DivideAssignStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( DocumentationComment n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( IfStatement n );
 
+		default OLSyntaxNode visit( IfStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( FreshValueExpressionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( DefinitionCallStatement n );
 
+		default OLSyntaxNode visit( DefinitionCallStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( CourierDefinitionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( WhileStatement n );
 
+		default OLSyntaxNode visit( WhileStatement n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( CourierChoiceStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( OrConditionNode n );
 
+		default OLSyntaxNode visit( OrConditionNode n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( NotificationForwardStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( AndConditionNode n );
 
+		default OLSyntaxNode visit( AndConditionNode n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( SolicitResponseForwardStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( NotExpressionNode n );
 
+		default OLSyntaxNode visit( NotExpressionNode n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( InterfaceExtenderDefinition n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( CompareConditionNode n );
 
+		default OLSyntaxNode visit( CompareConditionNode n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( InlineTreeExpressionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( ConstantIntegerExpression n );
 
+		default OLSyntaxNode visit( ConstantIntegerExpression n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( VoidExpressionNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( ConstantDoubleExpression n );
 
+		default OLSyntaxNode visit( ConstantDoubleExpression n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( ProvideUntilStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( ConstantBoolExpression n );
 
+		default OLSyntaxNode visit( ConstantBoolExpression n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( TypeChoiceDefinition n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( ConstantLongExpression n );
 
+		default OLSyntaxNode visit( ConstantLongExpression n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( ImportStatement n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( ConstantStringExpression n );
 
+		default OLSyntaxNode visit( ConstantStringExpression n, Unit ctx ) {
+			return visit( n );
 		}
 
-		@Override
-		public void visit( EmbedServiceNode n ) {
-			// TODO Auto-generated method stub
+		OLSyntaxNode visit( ProductExpressionNode n );
+
+		default OLSyntaxNode visit( ProductExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( SumExpressionNode n );
+
+		default OLSyntaxNode visit( SumExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( VariableExpressionNode n );
+
+		default OLSyntaxNode visit( VariableExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( NullProcessStatement n );
+
+		default OLSyntaxNode visit( NullProcessStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( Scope n );
+
+		default OLSyntaxNode visit( Scope n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( InstallStatement n );
+
+		default OLSyntaxNode visit( InstallStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( CompensateStatement n );
+
+		default OLSyntaxNode visit( CompensateStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ThrowStatement n );
+
+		default OLSyntaxNode visit( ThrowStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ExitStatement n );
+
+		default OLSyntaxNode visit( ExitStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ExecutionInfo n );
+
+		default OLSyntaxNode visit( ExecutionInfo n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( CorrelationSetInfo n );
+
+		default OLSyntaxNode visit( CorrelationSetInfo n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( InputPortInfo n );
+
+		default OLSyntaxNode visit( InputPortInfo n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( OutputPortInfo n );
+
+		default OLSyntaxNode visit( OutputPortInfo n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( PointerStatement n );
+
+		default OLSyntaxNode visit( PointerStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( DeepCopyStatement n );
+
+		default OLSyntaxNode visit( DeepCopyStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( RunStatement n );
+
+		default OLSyntaxNode visit( RunStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( UndefStatement n );
+
+		default OLSyntaxNode visit( UndefStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ValueVectorSizeExpressionNode n );
+
+		default OLSyntaxNode visit( ValueVectorSizeExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( PreIncrementStatement n );
+
+		default OLSyntaxNode visit( PreIncrementStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( PostIncrementStatement n );
+
+		default OLSyntaxNode visit( PostIncrementStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( PreDecrementStatement n );
+
+		default OLSyntaxNode visit( PreDecrementStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( PostDecrementStatement n );
+
+		default OLSyntaxNode visit( PostDecrementStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ForStatement n );
+
+		default OLSyntaxNode visit( ForStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ForEachSubNodeStatement n );
+
+		default OLSyntaxNode visit( ForEachSubNodeStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ForEachArrayItemStatement n );
+
+		default OLSyntaxNode visit( ForEachArrayItemStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( SpawnStatement n );
+
+		default OLSyntaxNode visit( SpawnStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( IsTypeExpressionNode n );
+
+		default OLSyntaxNode visit( IsTypeExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( InstanceOfExpressionNode n );
+
+		default OLSyntaxNode visit( InstanceOfExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( TypeCastExpressionNode n );
+
+		default OLSyntaxNode visit( TypeCastExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( SynchronizedStatement n );
+
+		default OLSyntaxNode visit( SynchronizedStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( CurrentHandlerStatement n );
+
+		default OLSyntaxNode visit( CurrentHandlerStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( EmbeddedServiceNode n );
+
+		default OLSyntaxNode visit( EmbeddedServiceNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( InstallFixedVariableExpressionNode n );
+
+		default OLSyntaxNode visit( InstallFixedVariableExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( VariablePathNode n );
+
+		default OLSyntaxNode visit( VariablePathNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( TypeInlineDefinition n );
+
+		default OLSyntaxNode visit( TypeInlineDefinition n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( TypeDefinitionLink n );
+
+		default OLSyntaxNode visit( TypeDefinitionLink n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( InterfaceDefinition n );
+
+		default OLSyntaxNode visit( InterfaceDefinition n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( DocumentationComment n );
+
+		default OLSyntaxNode visit( DocumentationComment n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( FreshValueExpressionNode n );
+
+		default OLSyntaxNode visit( FreshValueExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( CourierDefinitionNode n );
+
+		default OLSyntaxNode visit( CourierDefinitionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( CourierChoiceStatement n );
+
+		default OLSyntaxNode visit( CourierChoiceStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( NotificationForwardStatement n );
+
+		default OLSyntaxNode visit( NotificationForwardStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( SolicitResponseForwardStatement n );
+
+		default OLSyntaxNode visit( SolicitResponseForwardStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( InterfaceExtenderDefinition n );
+
+		default OLSyntaxNode visit( InterfaceExtenderDefinition n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( InlineTreeExpressionNode n );
+
+		default OLSyntaxNode visit( InlineTreeExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( VoidExpressionNode n );
+
+		default OLSyntaxNode visit( VoidExpressionNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ProvideUntilStatement n );
+
+		default OLSyntaxNode visit( ProvideUntilStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( TypeChoiceDefinition n );
+
+		default OLSyntaxNode visit( TypeChoiceDefinition n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ImportStatement n );
+
+		default OLSyntaxNode visit( ImportStatement n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( ServiceNode n );
+
+		default OLSyntaxNode visit( ServiceNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( EmbedServiceNode n );
+
+		default OLSyntaxNode visit( EmbedServiceNode n, Unit ctx ) {
+			return visit( n );
+		}
+
+		OLSyntaxNode visit( SolicitResponseExpression n );
 
+		default OLSyntaxNode visit( SolicitResponseExpression n, Unit ctx ) {
+			return visit( n );
 		}
 	}
 

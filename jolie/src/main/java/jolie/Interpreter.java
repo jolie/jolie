@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 
 import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants;
+import jolie.lang.parse.FunctionTranslator;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
@@ -1248,6 +1249,8 @@ public class Interpreter {
 				LOGGER.severe( e.getMessage() );
 				throw new InterpreterException( "Exiting" );
 			}
+
+			program = FunctionTranslator.run( program );
 
 			if( configuration.typeCheck() ) {
 				TypeChecker typeChecker = new TypeChecker(

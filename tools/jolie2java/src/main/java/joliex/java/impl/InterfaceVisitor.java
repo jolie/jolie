@@ -314,8 +314,5 @@ public class InterfaceVisitor implements UnitOLVisitor {
 	public void visit( EmbedServiceNode n ) {}
 
 	@Override
-	public void visit(SolicitResponseExpression n) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void visit( SolicitResponseExpression n ) {}
 }

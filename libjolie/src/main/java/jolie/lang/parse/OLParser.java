@@ -3150,7 +3150,7 @@ public class OLParser extends AbstractParser {
 		switch( token.type() ) {
 		case ID:
 			String operationId = token.content();
-			path = parseVariablePath();
+			nextToken();
 			if( token.is( TokenType.AT ) ) {
 				nextToken();
 				String outputPortId = token.content();
@@ -3158,6 +3158,8 @@ public class OLParser extends AbstractParser {
 				retVal = new SolicitResponseExpression( getContext(), operationId, outputPortId,
 					parseOperationExpressionParameter() );
 				return retVal;
+			} else {
+				path = _parseVariablePath( operationId );
 			}
 			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
 			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),

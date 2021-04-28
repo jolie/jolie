@@ -840,6 +840,23 @@ public class SemanticVerifier implements UnitOLVisitor {
 	}
 
 	@Override
+	public void visit( SolicitResponseExpression n ) {
+		OutputPortInfo p = outputPorts.get( n.outputPortId() );
+		if( p == null ) {
+			error( n, n.outputPortId() + " is not a valid output port " );
+		} else {
+			OperationDeclaration decl = p.operationsMap().get( n.operationId() );
+			if( decl == null ) {
+				error( n, "Operation " + n.operationId() + " has not been declared in output port " + p.id() );
+			} else if( !(decl instanceof RequestResponseOperationDeclaration) ) {
+				error( n,
+					"Operation " + n.operationId() + " is not a valid request-response operation in output port "
+						+ p.id() );
+			}
+		}
+	}
+
+	@Override
 	public void visit( ThrowStatement n ) {
 		verify( n.expression() );
 	}
@@ -1409,11 +1426,5 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( n.bindingPort() != null && !outputPorts.containsKey( n.bindingPort().id() ) ) {
 			error( n, "binding port is not defined" );
 		}
-	}
-
-	@Override
-	public void visit( SolicitResponseExpression n ) {
-		// TODO Auto-generated method stub
-
 	}
 }
