@@ -27,6 +27,8 @@ import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
+import java.util.Arrays;
+
 /**
  * Represents a variable path, e.g. a.b[3], offering mechanisms for referring to the object pointed
  * by it.
@@ -64,7 +66,7 @@ public class VariablePath implements Expression {
 	}
 
 	public VariablePath copy() {
-		return new VariablePath( path );
+		return new VariablePath( Arrays.copyOf( path, path.length ) );
 	}
 
 	@Override
