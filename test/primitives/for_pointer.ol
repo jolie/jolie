@@ -41,7 +41,7 @@ define doTest
         sum = sum + x + 1
     }
 
-println@Console( "Sum " + sum )(  )
+// println@Console( "Sum " + sum )(  )
     for( x = 0, x < 50, x++ ) {
         vect[ x ] << test_req
     }
@@ -50,16 +50,13 @@ println@Console( "Sum " + sum )(  )
         test@Test( vect[ y ] )( resultVar )       
     }
 
-for( i = 0, i < #resultVar, i++ ) {
+/* for( i = 0, i < #resultVar, i++ ) {
     println@Console( resultVar[ i ] )(  )
-}
+} */
+
     for( i = 0, i < #resultVar, i++ ) {
-     
         if ( resultVar[ i ] != sum ) {
             throw( TestFailed, "Call " + i + ", expected " + sum + " found " + resultVar[ i ] )
         }
     }
-
-
-
 }
