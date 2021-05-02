@@ -33,28 +33,20 @@ define doTest
 	if ( c != 9 ) {
 		throw( TestFailed, "Unexpected result" )
 	}
-
-	d = add@Calculator( {x = 10, y = 10} ) - mul@Calculator( {x = 2, y = 5} )
-	e = add@Calculator( {x = 10, y = 10} ) / mul@Calculator( {x = 2, y = 5} )
-	if ( d != 10 ) {
+	if ( ( add@Calculator( {x = 10, y = 10} ) - mul@Calculator( {x = 2, y = 5} ) ) != 10 ) {
 		throw( TestFailed, "Unexpected result" )
 	}
-	if ( e != 2 ) {
+	if ( 2 != ( add@Calculator( {x = 10, y = 10} ) / mul@Calculator( {x = 2, y = 5} ) ) ) {
 		throw( TestFailed, "Unexpected result" )
 	}
-
-	f = square@Calculator( square@Calculator( 3 ) )
-	g = square@Calculator( 5 ) != square@Calculator( 5 )
-	h = square@Calculator( add@Calculator( {x = 1, y = 4} ) ) >= square@Calculator( mul@Calculator( {x = 2, y = 2} ) ) 
-	if ( f != 81 ) {
+	if ( square@Calculator( square@Calculator( 3 ) ) != 81 ) {
 		throw( TestFailed, "Unexpected result" )
 	}
-	if ( g ) {
+	if ( square@Calculator( 5 ) != square@Calculator( 5 ) ) {
 		throw( TestFailed, "Unexpected result" )
 	}
-	if ( !h ) {
+	if ( !( square@Calculator( 5 ) != square@Calculator( 5 ) ) ) {
 		throw( TestFailed, "Unexpected result" )
 	}
-
 	shutdown@Calculator()
 }

@@ -3,6 +3,7 @@ package jolie.lang.parse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -101,7 +102,7 @@ public class FunctionTranslator {
 
 		private static final String HIDDEN_VARIABLE_PREFIX = "#";
 
-		private final List< OLSyntaxNode > sequenceList = new ArrayList<>();
+		private final List< OLSyntaxNode > solicitExpressionList = new ArrayList<>();
 
 		private int hiddenVariableCounter = 0;
 
@@ -151,22 +152,45 @@ public class FunctionTranslator {
 		public SequenceStatement visit( SequenceStatement n, Unit ctx ) {
 			SequenceStatement sequenceStatement = new SequenceStatement( n.context() );
 			for( OLSyntaxNode node : n.children() ) {
-				sequenceList.add( node.accept( this ) );
+				node = node.accept( this );
+				if( node instanceof SequenceStatement ) {
+					for( OLSyntaxNode subNode : ((SequenceStatement) node).children() ) {
+						sequenceStatement.addChild( subNode );
+					}
+				} else {
+					sequenceStatement.addChild( node );
+				}
 			}
-			for( OLSyntaxNode node : sequenceList ) {
+			return sequenceStatement;
+		}
+
+		private SequenceStatement makeSequence( ParsingContext context, OLSyntaxNode... additionalNodes ) {
+			SequenceStatement sequenceStatement = new SequenceStatement( context );
+			for( OLSyntaxNode node : solicitExpressionList ) {
 				sequenceStatement.addChild( node );
 			}
-			sequenceList.clear();
+			for( OLSyntaxNode node : additionalNodes ) {
+				sequenceStatement.addChild( node );
+			}
+			solicitExpressionList.clear();
 			return sequenceStatement;
 		}
 
 		@Override
-		public AssignStatement visit( AssignStatement n, Unit ctx ) {
-			OLSyntaxNode node = null;
+		public OLSyntaxNode visit( AssignStatement n, Unit ctx ) {
+			OLSyntaxNode expressionNode = null;
 			if( n.expression() != null ) {
-				node = n.expression().accept( this );
+				expressionNode = n.expression().accept( this );
 			}
-			return new AssignStatement( n.context(), n.variablePath(), node );
+			if( !solicitExpressionList.isEmpty() ) {
+				return makeSequence( n.context(), create( n, expressionNode ) );
+			} else {
+				return create( n, expressionNode );
+			}
+		}
+
+		private AssignStatement create( AssignStatement n, OLSyntaxNode expression ) {
+			return new AssignStatement( n.context(), n.variablePath(), expression );
 		}
 
 		@Override
@@ -176,7 +200,7 @@ public class FunctionTranslator {
 				expressionNode = n.expression().accept( this );
 			}
 			VariablePathNode variablePathNode = generateVariablePathNode( n.context() );
-			sequenceList.add( new SolicitResponseOperationStatement( n.context(), n.operationId(),
+			solicitExpressionList.add( new SolicitResponseOperationStatement( n.context(), n.operationId(),
 				n.outputPortId(), expressionNode, variablePathNode, Optional.empty() ) );
 			return new VariableExpressionNode( n.context(), variablePathNode );
 		}
@@ -189,11 +213,20 @@ public class FunctionTranslator {
 		}
 
 		@Override
-		public SolicitResponseOperationStatement visit( SolicitResponseOperationStatement n, Unit ctx ) {
-			OLSyntaxNode outputExpression = null;
+		public OLSyntaxNode visit( SolicitResponseOperationStatement n, Unit ctx ) {
+			OLSyntaxNode outputExpressionNode = null;
 			if( n.outputExpression() != null ) {
-				outputExpression = n.outputExpression().accept( this );
+				outputExpressionNode = n.outputExpression().accept( this );
 			}
+			if( !solicitExpressionList.isEmpty() ) {
+				return makeSequence( n.context(), create( n, outputExpressionNode ) );
+			} else {
+				return create( n, outputExpressionNode );
+			}
+		}
+
+		private SolicitResponseOperationStatement create( SolicitResponseOperationStatement n,
+			OLSyntaxNode outputExpression ) {
 			return new SolicitResponseOperationStatement( n.context(), n.id(), n.outputPortId(),
 				outputExpression, n.inputVarPath(), Optional.ofNullable( n.handlersFunction() ) );
 		}
@@ -260,7 +293,27 @@ public class FunctionTranslator {
 
 		@Override
 		public OLSyntaxNode visit( IfStatement n, Unit ctx ) {
-			return n;
+			List< Pair< OLSyntaxNode, OLSyntaxNode > > list = new ArrayList<>();
+			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
+				list.add( new Pair<>( pair.key().accept( this ), pair.value() ) );
+			}
+			SequenceStatement sequenceStatement = null;
+			if( !solicitExpressionList.isEmpty() ) {
+				sequenceStatement = makeSequence( n.context() );
+			}
+			IfStatement ifStatement = new IfStatement( n.context() );
+			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : list ) {
+				ifStatement.addChild( new Pair<>( pair.key(), pair.value().accept( this ) ) );
+			}
+			if( n.elseProcess() != null ) {
+				ifStatement.setElseProcess( n.elseProcess().accept( this ) );
+			}
+			if( sequenceStatement != null ) {
+				sequenceStatement.addChild( ifStatement );
+				return sequenceStatement;
+			} else {
+				return ifStatement;
+			}
 		}
 
 		@Override
@@ -274,18 +327,26 @@ public class FunctionTranslator {
 		}
 
 		@Override
-		public OLSyntaxNode visit( OrConditionNode n, Unit ctx ) {
-			return n;
+		public OrConditionNode visit( OrConditionNode n, Unit ctx ) {
+			OrConditionNode conditionNode = new OrConditionNode( n.context() );
+			for( OLSyntaxNode node : n.children() ) {
+				conditionNode.addChild( node.accept( this ) );
+			}
+			return conditionNode;
 		}
 
 		@Override
-		public OLSyntaxNode visit( AndConditionNode n, Unit ctx ) {
-			return n;
+		public AndConditionNode visit( AndConditionNode n, Unit ctx ) {
+			AndConditionNode conditionNode = new AndConditionNode( n.context() );
+			for( OLSyntaxNode node : n.children() ) {
+				conditionNode.addChild( node.accept( this ) );
+			}
+			return conditionNode;
 		}
 
 		@Override
 		public OLSyntaxNode visit( NotExpressionNode n, Unit ctx ) {
-			return n;
+			return new NotExpressionNode( n.context(), n.expression().accept( this ) );
 		}
 
 		@Override
