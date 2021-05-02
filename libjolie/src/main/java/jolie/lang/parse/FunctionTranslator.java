@@ -184,9 +184,8 @@ public class FunctionTranslator {
 			}
 			if( !solicitExpressionList.isEmpty() ) {
 				return makeSequence( n.context(), create( n, expressionNode ) );
-			} else {
-				return create( n, expressionNode );
 			}
+			return create( n, expressionNode );
 		}
 
 		private AssignStatement create( AssignStatement n, OLSyntaxNode expression ) {
@@ -220,9 +219,8 @@ public class FunctionTranslator {
 			}
 			if( !solicitExpressionList.isEmpty() ) {
 				return makeSequence( n.context(), create( n, outputExpressionNode ) );
-			} else {
-				return create( n, outputExpressionNode );
 			}
+			return create( n, outputExpressionNode );
 		}
 
 		private SolicitResponseOperationStatement create( SolicitResponseOperationStatement n,
@@ -311,9 +309,8 @@ public class FunctionTranslator {
 			if( sequenceStatement != null ) {
 				sequenceStatement.addChild( ifStatement );
 				return sequenceStatement;
-			} else {
-				return ifStatement;
 			}
+			return ifStatement;
 		}
 
 		@Override
