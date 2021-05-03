@@ -7,13 +7,13 @@
       "request": "launch",
       "mainClass": "jolie.Jolie",
       "projectName": "jolie-cli",
-      "cwd": "${workspaceFolder}\\test\\primitives\\embedding",
+      "cwd": "${workspaceFolder}\\test\\IO_Exception",
       "args": [
         "-l",
         ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices\\*;${workspaceFolder}\\dist\\jolie\\extensions/*",
         "-i",
         "${workspaceFolder}\\include",
-        "internal2_debug.ol"
+        "io_fault.ol"
         ]
     },
     {
