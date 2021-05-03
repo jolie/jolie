@@ -3,6 +3,21 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Launch Jolie",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie-cli",
+      "cwd": "${workspaceFolder}\\test\\primitives\\embedding",
+      "args": [
+        "-l",
+        ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices\\*;${workspaceFolder}\\dist\\jolie\\extensions/*",
+        "-i",
+        "${workspaceFolder}\\include",
+        "internal2_debug.ol"
+        ]
+    },
+    {
+      "type": "java",
       "name": "Debug (Launch) - Current File",
       "request": "launch",
       "mainClass": "${file}"
