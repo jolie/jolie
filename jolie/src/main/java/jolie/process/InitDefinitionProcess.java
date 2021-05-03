@@ -77,10 +77,10 @@ public class InitDefinitionProcess extends DefinitionProcess {
 				for( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
 					try {
 						OutputPort port = interpreter.getOutputPort( parentPort.id() );
-						port.locationVariablePath()
-							.setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
-						port.protocolConfigurationPath()
-							.setValue( parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
+						parentPort.locationVariablePath().getValueOpt( parentInitRoot )
+							.ifPresent( port.locationVariablePath()::setValue );
+						parentPort.protocolConfigurationPath().getValueOpt( parentInitRoot )
+							.ifPresent( port.protocolConfigurationPath()::setValue );
 						port.optimizeLocation();
 					} catch( InvalidIdException e ) {
 					}
