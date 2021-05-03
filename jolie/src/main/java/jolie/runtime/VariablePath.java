@@ -28,6 +28,7 @@ import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Represents a variable path, e.g. a.b[3], offering mechanisms for referring to the object pointed
@@ -238,6 +239,10 @@ public class VariablePath implements Expression {
 
 	public final Value getValueOrNull() {
 		return getValueOrNull( getRootValue() );
+	}
+
+	public final Optional< Value > getValueOpt( Value v ) {
+		return Optional.ofNullable( getValueOrNull( v ) );
 	}
 
 	public final Value getValueOrNull( Value currValue ) {
