@@ -102,7 +102,7 @@ public class FunctionTranslator {
 
 		private static final String HIDDEN_VARIABLE_PREFIX = "#";
 
-		private final List< OLSyntaxNode > solicitExpressionList = new ArrayList<>();
+		private final List< OLSyntaxNode > solicitResponseList = new ArrayList<>();
 
 		private int hiddenVariableCounter = 0;
 
@@ -166,13 +166,13 @@ public class FunctionTranslator {
 
 		private SequenceStatement makeSequence( ParsingContext context, OLSyntaxNode... additionalNodes ) {
 			SequenceStatement sequenceStatement = new SequenceStatement( context );
-			for( OLSyntaxNode node : solicitExpressionList ) {
+			for( OLSyntaxNode node : solicitResponseList ) {
 				sequenceStatement.addChild( node );
 			}
 			for( OLSyntaxNode node : additionalNodes ) {
 				sequenceStatement.addChild( node );
 			}
-			solicitExpressionList.clear();
+			solicitResponseList.clear();
 			return sequenceStatement;
 		}
 
@@ -182,7 +182,7 @@ public class FunctionTranslator {
 			if( n.expression() != null ) {
 				expressionNode = n.expression().accept( this );
 			}
-			if( !solicitExpressionList.isEmpty() ) {
+			if( !solicitResponseList.isEmpty() ) {
 				return makeSequence( n.context(), create( n, expressionNode ) );
 			}
 			return create( n, expressionNode );
@@ -199,7 +199,7 @@ public class FunctionTranslator {
 				expressionNode = n.expression().accept( this );
 			}
 			VariablePathNode variablePathNode = generateVariablePathNode( n.context() );
-			solicitExpressionList.add( new SolicitResponseOperationStatement( n.context(), n.operationId(),
+			solicitResponseList.add( new SolicitResponseOperationStatement( n.context(), n.operationId(),
 				n.outputPortId(), expressionNode, variablePathNode, Optional.empty() ) );
 			return new VariableExpressionNode( n.context(), variablePathNode );
 		}
@@ -217,7 +217,7 @@ public class FunctionTranslator {
 			if( n.outputExpression() != null ) {
 				outputExpressionNode = n.outputExpression().accept( this );
 			}
-			if( !solicitExpressionList.isEmpty() ) {
+			if( !solicitResponseList.isEmpty() ) {
 				return makeSequence( n.context(), create( n, outputExpressionNode ) );
 			}
 			return create( n, outputExpressionNode );
