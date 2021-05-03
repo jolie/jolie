@@ -291,26 +291,7 @@ public class FunctionTranslator {
 
 		@Override
 		public OLSyntaxNode visit( IfStatement n, Unit ctx ) {
-			List< Pair< OLSyntaxNode, OLSyntaxNode > > list = new ArrayList<>();
-			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
-				list.add( new Pair<>( pair.key().accept( this ), pair.value() ) );
-			}
-			SequenceStatement sequenceStatement = null;
-			if( !solicitExpressionList.isEmpty() ) {
-				sequenceStatement = makeSequence( n.context() );
-			}
-			IfStatement ifStatement = new IfStatement( n.context() );
-			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : list ) {
-				ifStatement.addChild( new Pair<>( pair.key(), pair.value().accept( this ) ) );
-			}
-			if( n.elseProcess() != null ) {
-				ifStatement.setElseProcess( n.elseProcess().accept( this ) );
-			}
-			if( sequenceStatement != null ) {
-				sequenceStatement.addChild( ifStatement );
-				return sequenceStatement;
-			}
-			return ifStatement;
+			return n;
 		}
 
 		@Override
