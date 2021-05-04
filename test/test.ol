@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2022 Fabrizio Monteis <famontesi@gmail.com>
+ * Copyright (C) 2009-2021 Fabrizio Monteis <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ include "runtime.iol"
 include "string_utils.iol"
 
 outputPort TestUnit {
-interfaces: TestUnitInterface
+	interfaces: TestUnitInterface
 }
 
 init {
