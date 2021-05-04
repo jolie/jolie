@@ -24,8 +24,8 @@ from ..test-unit import TestUnitInterface
 */
 service Test {
 	inputPort TestUnitInput {
-		Location: "local"
-		Interfaces: TestUnitInterface
+		location: "local"
+		interfaces: TestUnitInterface
 	}
 
 	main {
