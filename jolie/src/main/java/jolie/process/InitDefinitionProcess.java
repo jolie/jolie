@@ -77,8 +77,11 @@ public class InitDefinitionProcess extends DefinitionProcess {
 				for( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
 					try {
 						OutputPort port = interpreter.getOutputPort( parentPort.id() );
-						parentPort.locationVariablePath().getValueOpt( parentInitRoot )
-							.ifPresent( port.locationVariablePath()::setValue );
+
+						// TODO: This is a hack. Deprecate internal services in future releases.
+						port.locationVariablePath()
+							.setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
+
 						parentPort.protocolConfigurationPath().getValueOpt( parentInitRoot )
 							.ifPresent( port.protocolConfigurationPath()::setValue );
 						port.optimizeLocation();
