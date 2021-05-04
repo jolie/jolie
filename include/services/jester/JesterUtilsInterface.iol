@@ -47,7 +47,6 @@ type CheckBranchChoiceConsistency: void {
         
 interface JesterUtilsInterface {
 RequestResponse:
-    analyzeTemplate( string )( AnalyzeTemplateResponse ),
     getParamList( string )( GetParamsListResponse ),
     checkTypeConsistency( CheckTypeConsistencyRequest )( bool ) throws DefinitionError,
     checkBranchChoiceConsistency( CheckBranchChoiceConsistency )( bool ) throws DefinitionError,
