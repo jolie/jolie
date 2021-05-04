@@ -3,7 +3,7 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Launch Jolie",
+      "name": "Windows: Launch Jolie",
       "request": "launch",
       "mainClass": "jolie.Jolie",
       "projectName": "jolie-cli",
