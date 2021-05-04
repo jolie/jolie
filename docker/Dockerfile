@@ -1,9 +1,7 @@
 FROM openjdk:alpine as JolieBuild
 
 # Download and install Jolie. We need it for running the release tools.
-RUN apk update
-RUN apk add git maven
-# RUN git clone --depth=1 https://github.com/jolie/jolie.git jolie-git
+RUN apk add --update git maven
 COPY . /jolie-git
 WORKDIR /jolie-git
 RUN mvn -T 1C -Dmaven.test.skip -DskipTests -pl '!test' clean install
@@ -22,7 +20,7 @@ RUN jolie release.ol ../jolie-git
 
 # Start from scratch, copy the installer, install, remove the installer.
 FROM openjdk:alpine
-RUN apk add zip
+RUN apk add --update zip
 WORKDIR /
 COPY --from=JolieBuild /release_tools/release/jolie_installer.jar .
 RUN java -jar jolie_installer.jar -jh /usr/lib/jolie -jl /usr/bin && rm jolie_installer.jar
