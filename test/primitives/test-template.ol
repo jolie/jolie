@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Fabrizio Monteis <famontesi@gmail.com>
+ * Copyright (C) 2021 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,9 @@ service Test {
 	main {
 		test()() {
 			/*
-			* Write the code of your test here (replace nullProcess).
+			* Write the code of your test here (replace nullProcess),
+			* and replace the first line of the copyright header with your data.
+			*
 			* The test is supposed to throw a TestFailed fault in case of a failure.
 			* You should add a description that reports what the failure was about,
 			* for example:
