@@ -30,7 +30,15 @@ service Test {
 
 	main {
 		test()() {
-			nullProcess // Your test here
+			/*
+			* Write the code of your test here (replace nullProcess).
+			* The test is supposed to throw a TestFailed fault in case of a failure.
+			* You should add a description that reports what the failure was about,
+			* for example:
+			*
+			* throw( TestFailed, "string concatenation does not match correct result" )
+			*/
+			nullProcess
 		}
 	}
 }
