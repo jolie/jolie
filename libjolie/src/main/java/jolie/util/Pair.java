@@ -48,4 +48,8 @@ public final class Pair< K, V > implements Serializable {
 	public final V value() {
 		return value;
 	}
+
+	public static < K, V > Pair< K, V > of( K key, V value ) {
+		return new Pair<>( key, value );
+	}
 }
