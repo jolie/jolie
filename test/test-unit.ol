@@ -1,5 +1,5 @@
 /*
- * Copyright (C) YEAR AUTHOR_NAME <AUTHOR_EMAIL>
+ * Copyright (C) 2021 Fabrizio Monteis <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,16 +17,7 @@
  * MA 02110-1301  USA
  */
 
-include "../AbstractTestUnit.iol"
-
-define doTest
-{
-	/*
-	 * Write the code of your test here.
-	 * The test is supposed to throw a TestFailed fault in case of a failure.
-	 * You should add a description that reports what the failure was about,
-	 * for example:
-	 *
-	 * throw( TestFailed, "string concatenation does not match correct result" )
-	 */
+interface TestUnitInterface {
+RequestResponse:
+	test(void)(void) throws TestFailed(any)
 }

@@ -26,7 +26,24 @@ define doTest {
     router_host = "localhost:8000"
     wkdir = "./services/private"
 
-    template_json = "{ \"getUsers\":\"method=post, template=/users/{country}\", \"getOrders\":\"method=get, template=/orders/{userId}?maxItems={maxItems}\",\n\"getOrdersByItem\":\"method=post\",\n\"putOrder\":\"method=put\",\n\"deleteOrder\":\"method=delete\"}"
+    template_json = "{ 
+        \"getUsers\": {
+            \"method\":\"post\", 
+            \"template\":\"/users/{country}\"
+        }, 
+        \"getOrders\": {
+            \"method\":\"get\", 
+            \"template\":\"/orders/{userId}?maxItems={maxItems}\"
+        },
+        \"getOrdersByItem\": {
+            \"method\":\"post\"
+        },
+        \"putOrder\": {
+            \"method\":\"put\"
+        },
+        \"deleteOrder\": {
+            \"method\":\"delete\"
+        }}"
     getJsonValue@JsonUtils( template_json )( template )
     with( openapi ) {
         .filename = service_filename;

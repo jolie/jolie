@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2020 Fabrizio Monteis <famontesi@gmail.com>
+ * Copyright (C) 2009-2021 Fabrizio Monteis <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,21 +24,19 @@ include "runtime.iol"
 include "string_utils.iol"
 
 outputPort TestUnit {
-interfaces: TestUnitInterface
+	interfaces: TestUnitInterface
 }
 
-init
-{
+init {
 	dirs[0] = "primitives"
 	dirs[1] = "library"
 	dirs[2] = "extensions"
 	dirs[3] = "services"
 }
 
-define calcMaxLength
-{
+define calcMaxLength {
 	maxLength = 0
-	for( i = 0, i < #dirs, i++ ) {
+	for( listRequest.directory in dirs ) {
 		list@File( listRequest )( list )
 		for( k = 0, k < #list.result, k++ ) {
 			length@StringUtils( list.result[k] )( len )
@@ -49,36 +47,33 @@ define calcMaxLength
 	}
 }
 
-define printTestName
-{
-	testName += "..."
-	length@StringUtils( testName )( len )
+define printTestName {
+	testHeader = testName + "..."
+	length@StringUtils( testHeader )( len )
 	for( j = 0, j < maxLength + 5 - len, j++ ) {
-		testName += " "
+		testHeader += " "
 	}
-	print@Console( testName )()
+	print@Console( testHeader )()
 }
 
-main
-{
-	loadRequest.type = "Jolie"
-	if ( is_defined( args[0] ) ) {
+main {
+	if( is_defined( args[0] ) ) {
 		listRequest.regex = args[0]
 	} else {
 		listRequest.regex = ".*\\.ol"
 	}
-	listRequest.directory -> dirs[i]
 	calcMaxLength
 	exitCode = 0 // Successful exit code
-	for( i = 0, i < #dirs, i++ ) {
-		list@File( listRequest )( list );
-		for( k = 0, k < #list.result, k++ ) {
-			testName = list.result[k]
+	for( listRequest.directory in dirs ) {
+		list@File( listRequest )( list )
+		for( testName in list.result ) {
 			printTestName
-			loadRequest.filepath = listRequest.directory + "/" + list.result[k]
 			scope( s ) {
 				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )() )
-				loadEmbeddedService@Runtime( loadRequest )( TestUnit.location )
+				loadEmbeddedService@Runtime( {
+					type = "Jolie"
+					filepath = listRequest.directory + "/" + testName
+				} )( TestUnit.location )
 				install(
 					TestFailed => println@Console( "failed. " + s.TestFailed )(); exitCode = 3,
 					Timeout => println@Console( "timed out." )(); exitCode = 3
