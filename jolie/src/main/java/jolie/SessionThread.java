@@ -38,7 +38,6 @@ import jolie.lang.Constants;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
 import jolie.process.Processes;
-import jolie.process.TransformationReason;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -196,12 +195,10 @@ public class SessionThread extends ExecutionThread {
 		final List< Pair< String, Process > > instList = new ArrayList<>();
 		instList.add( Pair.of(
 			Constants.TYPE_MISMATCH_FAULT_NAME,
-			Processes.stateless( () -> interpreter.logInfo( TYPE_MISMATCH_PATH.getValue().strValue() ) )
-		) );
+			Processes.stateless( () -> interpreter.logInfo( TYPE_MISMATCH_PATH.getValue().strValue() ) ) ) );
 		instList.add( Pair.of(
 			Constants.IO_EXCEPTION_FAULT_NAME,
-			Processes.stateless( () -> interpreter.logInfo( IO_EXCEPTION_PATH.getValue().strValue() ) )
-		) );
+			Processes.stateless( () -> interpreter.logInfo( IO_EXCEPTION_PATH.getValue().strValue() ) ) ) );
 		return instList;
 	}
 

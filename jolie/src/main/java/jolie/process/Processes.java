@@ -25,15 +25,18 @@ import jolie.runtime.FaultException;
 public class Processes {
 	public static Process stateless( ProcessRunnable runnable ) {
 		return new Process() {
-			@Override public Process copy( TransformationReason reason ) {
+			@Override
+			public Process copy( TransformationReason reason ) {
 				return this;
 			}
 
-			@Override public boolean isKillable() {
+			@Override
+			public boolean isKillable() {
 				return true;
 			}
 
-			@Override public void run() throws FaultException, ExitingException {
+			@Override
+			public void run() throws FaultException, ExitingException {
 				runnable.run();
 			}
 		};
