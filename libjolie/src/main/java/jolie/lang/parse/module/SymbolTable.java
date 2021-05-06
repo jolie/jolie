@@ -63,7 +63,7 @@ public class SymbolTable {
 	 * 
 	 * @param wildCardSymbol a wildcard symbol in symbol table to replace
 	 * @param sourceSymbols array of symbols in parsed wildcardSymbol's module
-	 * @throws ModuleException when adding name duplicate name to the symbol
+	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
 	protected void resolveWildcardImport( WildcardImportedSymbolInfo wildCardSymbol,
 		SymbolInfo... sourceSymbols ) throws DuplicateSymbolException {
@@ -84,7 +84,7 @@ public class SymbolTable {
 	 * @param name Symbol name in local execution context
 	 * @param node an AST node implementing SymbolNode
 	 * 
-	 * @throws ModuleException when adding name duplicate name to the symbol
+	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
 	protected void addSymbol( String name, ImportableSymbol node ) throws DuplicateSymbolException {
 		if( isDuplicateSymbol( name ) ) {
@@ -103,7 +103,7 @@ public class SymbolTable {
 	 * @param name importing Symbol name
 	 * @param importPath a object represent importing path to module where the symbol reside
 	 * 
-	 * @throws ModuleException when adding name duplicate name to the symbol
+	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
 	protected void addSymbol( ParsingContext context, String name, ImportPath importPath )
 		throws DuplicateSymbolException {
@@ -123,7 +123,7 @@ public class SymbolTable {
 	 * @param importPath a object represent importing path to module where the symbol reside
 	 * @param originalSymbolName Name for binding result to local environment
 	 * 
-	 * @throws ModuleException when adding name duplicate name to the symbol
+	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
 	protected void addSymbolWithAlias( ParsingContext context, String name, ImportPath importPath,
 		String originalSymbolName ) throws DuplicateSymbolException {

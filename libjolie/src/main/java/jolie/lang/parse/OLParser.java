@@ -553,7 +553,7 @@ public class OLParser extends AbstractParser {
 
 								ArrayList< Integer > parametersInterval = parseListOfInteger( 2, 2, predicate );
 								basicTypeRefinementIntegerRanges
-									.addInterval( basicTypeRefinementIntegerRanges.new Interval(
+									.addInterval( new BasicTypeRefinementIntegerRanges.Interval(
 										parametersInterval.get( 0 ), parametersInterval.get( 1 ) ) );
 								if( token.type() == Scanner.TokenType.COMMA ) {
 									eat( Scanner.TokenType.COMMA, "" );
@@ -601,7 +601,7 @@ public class OLParser extends AbstractParser {
 
 								ArrayList< Double > parametersInterval = parseListOfDouble( 2, 2, predicate );
 								basicTypeRefinementDoubleRanges
-									.addInterval( basicTypeRefinementDoubleRanges.new Interval(
+									.addInterval( new BasicTypeRefinementDoubleRanges.Interval(
 										parametersInterval.get( 0 ), parametersInterval.get( 1 ) ) );
 								if( token.type() == Scanner.TokenType.COMMA ) {
 									eat( Scanner.TokenType.COMMA, "" );
@@ -699,7 +699,7 @@ public class OLParser extends AbstractParser {
 
 								ArrayList< Long > parametersInterval = parseListOfLong( 2, 2, predicate );
 								basicTypeRefinementLongRanges
-									.addInterval( basicTypeRefinementLongRanges.new Interval(
+									.addInterval( new BasicTypeRefinementLongRanges.Interval(
 										parametersInterval.get( 0 ), parametersInterval.get( 1 ) ) );
 								if( token.type() == Scanner.TokenType.COMMA ) {
 									eat( Scanner.TokenType.COMMA, "" );
@@ -1327,9 +1327,6 @@ public class OLParser extends AbstractParser {
 
 	/**
 	 * Parses an internal service, i.e. service service_name {}
-	 *
-	 * @throws IOException
-	 * @throws ParserException
 	 */
 	private EmbeddedServiceNode createInternalService(
 		ParsingContext ctx,
@@ -1479,9 +1476,6 @@ public class OLParser extends AbstractParser {
 
 	/**
 	 * Parses a service node, i.e. service service_name ( varpath : type ) {}
-	 *
-	 * @throws IOException
-	 * @throws ParserException
 	 */
 	private void parseService()
 		throws IOException, ParserException {
@@ -2922,8 +2916,6 @@ public class OLParser extends AbstractParser {
 
 	/**
 	 * @return The VariablePath parameter of the statement. May be null.
-	 * @throws IOException
-	 * @throws ParserException
 	 */
 	private VariablePathNode parseOperationVariablePathParameter()
 		throws IOException, ParserException {

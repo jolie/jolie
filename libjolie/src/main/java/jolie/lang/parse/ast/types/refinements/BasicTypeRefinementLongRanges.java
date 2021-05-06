@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class BasicTypeRefinementLongRanges implements Serializable, BasicTypeRefinement< Long > {
 
-	public class Interval {
+	public static class Interval {
 		private final long min;
 		private final long max;
 
