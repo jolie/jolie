@@ -453,7 +453,7 @@ public class SessionThread extends ExecutionThread {
 			try {
 				try {
 					if( p == null ) {
-						Interpreter.getInstance().logUnhandledFault( f );
+						// Interpreter.getInstance().logUnhandledFault( f );
 						throw f;
 					} else {
 						Value scopeValue =
@@ -468,6 +468,7 @@ public class SessionThread extends ExecutionThread {
 					throw rf.faultException();
 				}
 			} catch( FaultException fault ) {
+			    interpreter().logInfo(fault.getMessage());
 				listeners.forEach( listener -> listener.onSessionError( this, fault ) );
 			}
 			listeners.forEach( listener -> listener.onSessionExecuted( this ) );
