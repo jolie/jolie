@@ -41,9 +41,7 @@ public class Range implements Serializable {
 
 	/**
 	 * Constructor
-	 * 
-	 * @param min
-	 * @param max
+	 *
 	 * @throws IllegalArgumentException if min or max are less than zero
 	 */
 	public Range( int min, int max ) {

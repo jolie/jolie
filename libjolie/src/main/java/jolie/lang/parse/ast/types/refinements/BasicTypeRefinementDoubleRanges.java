@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class BasicTypeRefinementDoubleRanges implements Serializable, BasicTypeRefinement< Double > {
-	public class Interval {
+	public static class Interval {
 		private final double min;
 		private final double max;
 
