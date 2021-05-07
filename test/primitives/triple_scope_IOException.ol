@@ -8,7 +8,7 @@ define doTest {
 	req = "jolie"
 	;
 	with(req) {
-		.args[0] = "init_fault2.ol"; 
+		.args[0] = "triple_scope_IOException2.ol"; 
 		.workingDirectory="./primitives/unhandled_faults/";
 		.stdOutConsoleEnable = true;
 		.waitFor = 1
@@ -17,8 +17,7 @@ define doTest {
 	exec@Exec(req)(res)
 	;
 	valueToPrettyString@StringUtils(res)(s);
-	println@Console(s)()
-	;
+	
 	undef(req);
 	req = s;
 	req.substring="Thrown unhandled fault: IOException";
