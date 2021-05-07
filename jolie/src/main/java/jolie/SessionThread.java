@@ -438,7 +438,10 @@ public class SessionThread extends ExecutionThread {
 					throw rf.faultException();
 				}
 			} catch( FaultException fault ) {
-			    interpreter().logInfo(fault.getMessage());
+				Interpreter interpreter = interpreter();
+				interpreter.logInfo( fault.getMessage() );
+				interpreter.logInfo( fault.value().getFirstChild( "stackTrace" ).strValue() );
+
 				listeners.forEach( listener -> listener.onSessionError( this, fault ) );
 			}
 			listeners.forEach( listener -> listener.onSessionExecuted( this ) );

@@ -240,8 +240,8 @@ public class OOITBuilder implements UnitOLVisitor {
 		} catch( InvalidIdException e ) {
 			interpreter.register( "init",
 				new InitDefinitionProcess(
-					new ScopeProcess( "main",NullProcess.getInstance())));
-						//new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false ) ) );
+					new ScopeProcess( "main", NullProcess.getInstance() ) ) );
+			// new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false ) ) );
 		}
 	}
 
@@ -705,14 +705,11 @@ public class OOITBuilder implements UnitOLVisitor {
 			break;
 		case "init":
 			/*
-			final Process[] initChildren = {
-				new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
-				buildProcess( n.body() )
-			};
-			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
-			break;
-			*/
-			def = new InitDefinitionProcess(new ScopeProcess("main", buildProcess(n.body()), false));
+			 * final Process[] initChildren = { new InstallProcess( SessionThread.createDefaultFaultHandlers(
+			 * interpreter ) ), buildProcess( n.body() ) }; def = new InitDefinitionProcess( new ScopeProcess(
+			 * "main", new SequentialProcess( initChildren ), false ) ); break;
+			 */
+			def = new InitDefinitionProcess( new ScopeProcess( "main", buildProcess( n.body() ), false ) );
 			break;
 
 		default:
