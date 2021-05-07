@@ -8,7 +8,7 @@ define doTest {
 	req = "jolie"
 	;
 	with(req) {
-		.args[0] = "init_fault2.ol"; 
+		.args[0] = "triple_scope_myfault2.ol"; 
 		.workingDirectory="./primitives/unhandled_faults/";
 		.stdOutConsoleEnable = true;
 		.waitFor = 1
@@ -17,19 +17,18 @@ define doTest {
 	exec@Exec(req)(res)
 	;
 	valueToPrettyString@StringUtils(res)(s);
-	println@Console(s)()
-	;
+
 	undef(req);
 	req = s;
-	req.substring="Thrown unhandled fault: IOException";
+	req.substring="Thrown unhandled fault: MyErr";
 	contains@StringUtils(req)(contain);
 	if (!contain){
-		throw( TestFailed, "Not an IOException raised" )
+		throw( TestFailed, "Not an MyErr raised" )
 	}
 
-	req.substring="Connection refused";
+	req.substring="myErr fault data";
 	contains@StringUtils(req)(contain);
 	if (!contain){
-		throw( TestFailed, "IOException: not a 'Connection refused' error" )
+		throw( TestFailed, "MyErr: wrong return data fault" )
 	}
 }
