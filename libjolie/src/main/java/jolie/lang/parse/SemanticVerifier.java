@@ -352,10 +352,6 @@ public class SemanticVerifier implements UnitOLVisitor {
 	 * Finds declared symbol by name, perform lookup at both from a program's source or from the given
 	 * context. Since the context can be differ from program source if the symbol declared in the
 	 * include directive case.
-	 * 
-	 * @param context
-	 * @param name
-	 * @return
 	 */
 	private boolean hasSymbolDefined( String name, ParsingContext context ) {
 		return (symbolTables.get( program.context().source() ) != null

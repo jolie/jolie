@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2021 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,8 +19,26 @@
 
 package jolie.process;
 
-public interface Process extends ProcessRunnable {
-	Process copy( TransformationReason reason );
+import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
 
-	boolean isKillable();
+public class Processes {
+	public static Process stateless( ProcessRunnable runnable ) {
+		return new Process() {
+			@Override
+			public Process copy( TransformationReason reason ) {
+				return this;
+			}
+
+			@Override
+			public boolean isKillable() {
+				return true;
+			}
+
+			@Override
+			public void run() throws FaultException, ExitingException {
+				runnable.run();
+			}
+		};
+	}
 }

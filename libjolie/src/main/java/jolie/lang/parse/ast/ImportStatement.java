@@ -55,7 +55,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
 	 *        should give this field ["", "A", "", "B"])
 	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
-	 *        of <moduleSymbolName: localSymbolName>
+	 *        of (moduleSymbolName, localSymbolName)
 	 */
 	public ImportStatement( ParsingContext context, List< String > importTarget,
 		List< Pair< String, String > > pathNodes ) {
@@ -71,7 +71,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 *        should give this field ["", "A", "", "B"])
 	 * @param isNamespaceImport a boolean flag if the
 	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
-	 *        of <moduleSymbolName: localSymbolName>
+	 *        of (moduleSymbolName, localSymbolName)
 	 */
 	private ImportStatement( ParsingContext context, List< String > importTarget,
 		boolean isNamespaceImport, List< Pair< String, String > > pathNodes ) {

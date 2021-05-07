@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2006-2021 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import jolie.lang.Constants;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
-import jolie.process.TransformationReason;
+import jolie.process.Processes;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -193,42 +193,12 @@ public class SessionThread extends ExecutionThread {
 	 */
 	public static List< Pair< String, Process > > createDefaultFaultHandlers( final Interpreter interpreter ) {
 		final List< Pair< String, Process > > instList = new ArrayList<>();
-		instList.add( new Pair<>(
+		instList.add( Pair.of(
 			Constants.TYPE_MISMATCH_FAULT_NAME,
-			new Process() {
-				@Override
-				public void run() throws FaultException, ExitingException {
-					interpreter.logInfo( TYPE_MISMATCH_PATH.getValue().strValue() );
-				}
-
-				@Override
-				public Process copy( TransformationReason reason ) {
-					return this;
-				}
-
-				@Override
-				public boolean isKillable() {
-					return true;
-				}
-			} ) );
-		instList.add( new Pair<>(
+			Processes.stateless( () -> interpreter.logInfo( TYPE_MISMATCH_PATH.getValue().strValue() ) ) ) );
+		instList.add( Pair.of(
 			Constants.IO_EXCEPTION_FAULT_NAME,
-			new Process() {
-				@Override
-				public void run() throws FaultException, ExitingException {
-					interpreter.logInfo( IO_EXCEPTION_PATH.getValue().strValue() );
-				}
-
-				@Override
-				public Process copy( TransformationReason reason ) {
-					return this;
-				}
-
-				@Override
-				public boolean isKillable() {
-					return true;
-				}
-			} ) );
+			Processes.stateless( () -> interpreter.logInfo( IO_EXCEPTION_PATH.getValue().strValue() ) ) ) );
 		return instList;
 	}
 

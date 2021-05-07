@@ -5,37 +5,19 @@
 	<artifactId>distribution</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
-	<profiles>
-		<profile>
-			<id>Windows</id>
-			<activation>
-				<os>
-					<family>Windows</family>
-				</os>
-			</activation>
-			<properties>
-				<jolie.installation.directory>dist\jolie</jolie.installation.directory>
-				<jolie.installation.directory.executable>dist\launchers</jolie.installation.directory.executable>
-			</properties>
-		</profile>
-		<profile>
-			<id>unix</id>
-			<activation>
-				<os>
-					<family>unix</family>
-				</os>
-			</activation>
-			<properties>
-				<jolie.installation.directory>dist/jolie</jolie.installation.directory>
-				<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
-			</properties>
-		</profile>
-	</profiles>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
 		<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
-		<jolie.version>1.10.0-beta3</jolie.version>
+		<jolie.version>1.10.1-git</jolie.version>
+		<jolie.url>https://www.jolie-lang.org/</jolie.url>
+		<jolie.developer>The Jolie Developers</jolie.developer>
+		<jolie.email>webmaster@jolie-lang.org</jolie.email>
+		<jolie.organization>Jolie</jolie.organization>
+		<jolie.organizationUrl>https://www.jolie-lang.org</jolie.organizationUrl>
+		<scm.connection>scm:git:git://github.com/jolie/jolie.git</scm.connection>
+		<scm.developerConnection>scm:git:ssh://github.com:fmontesi/jolie/jolie.git</scm.developerConnection>
+		<scm.url>http://github.com/jolie/jolie/tree/master</scm.url>
 	</properties>
 	<description>The distribution of the Jolie language, containing interpreter and extensions.</description>
 	<name>distribution</name>
@@ -346,4 +328,161 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+	<scm>
+		<connection>${scm.connection}</connection>
+		<developerConnection>${scm.developerConnection}</developerConnection>
+		<url>${scm.url}</url>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>LGPL 2.1</name>
+			<url>https://github.com/jolie/jolie/blob/master/LICENSE</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>${jolie.developer}</name>
+			<email>${jolie.email}</email>
+			<organization>${jolie.organization}</organization>
+			<organizationUrl>${jolie.organizationUrl}</organizationUrl>
+		</developer>
+	</developers>
+
+	<profiles>
+		<profile>
+			<id>Windows</id>
+			<activation>
+				<os>
+					<family>Windows</family>
+				</os>
+			</activation>
+			<properties>
+				<jolie.installation.directory>dist\jolie</jolie.installation.directory>
+				<jolie.installation.directory.executable>dist\launchers</jolie.installation.directory.executable>
+			</properties>
+		</profile>
+		<profile>
+			<id>unix</id>
+			<activation>
+				<os>
+					<family>unix</family>
+				</os>
+			</activation>
+			<properties>
+				<jolie.installation.directory>dist/jolie</jolie.installation.directory>
+				<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
+			</properties>
+		</profile>
+		<profile>
+			<id>ossrh</id>
+
+			<distributionManagement>
+				<snapshotRepository>
+					<id>ossrh</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+				</snapshotRepository>
+				<repository>
+					<id>ossrh</id>
+					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+				</repository>
+			</distributionManagement>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.8</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>ossrh</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.0.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.10.4</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<configuration>
+									<gpgArguments>
+										<arg>--pinentry-mode</arg>
+										<arg>loopback</arg>
+									</gpgArguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>flatten-maven-plugin</artifactId>
+						<version>1.1.0</version>
+						<configuration>
+							<updatePomFile>true</updatePomFile>
+							<flattenMode>oss</flattenMode>
+							<pomElements>
+								<distributionManagement>remove</distributionManagement>
+								<repositories>remove</repositories>
+							</pomElements>
+						</configuration>
+						<executions>
+							<!-- enable flattening -->
+							<execution>
+								<id>flatten</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>flatten</goal>
+								</goals>
+							</execution>
+							<!-- ensure proper cleanup -->
+							<execution>
+								<id>flatten.clean</id>
+								<phase>clean</phase>
+								<goals>
+									<goal>clean</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

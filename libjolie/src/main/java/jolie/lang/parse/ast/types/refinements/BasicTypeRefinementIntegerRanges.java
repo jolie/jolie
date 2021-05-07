@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class BasicTypeRefinementIntegerRanges implements Serializable, BasicTypeRefinement< Integer > {
 
-	public class Interval {
+	public static class Interval {
 		private final int min;
 		private final int max;
 

@@ -795,8 +795,6 @@ public class SymbolReferenceResolver {
 	 * 
 	 * @param symbolInfo an importing symbol
 	 * @param lookedSources a set of sources that are already considered
-	 * 
-	 * @throws SymbolNotFoundException
 	 */
 	private SymbolInfo symbolSourceLookup( ImportedSymbolInfo symbolInfo, Set< URI > lookedSources )
 		throws SymbolNotFoundException {
@@ -826,11 +824,6 @@ public class SymbolReferenceResolver {
 	/**
 	 * resolve externalSymbol by find and set its corresponding AST node by perform lookup at
 	 * ModuleRecord Map, a result from ModuleCrawler.
-	 * 
-	 * @throws DuplicateSymbolException
-	 * @throws IllegalAccessSymbolException
-	 * @throws SymbolNotFoundException
-	 * 
 	 */
 	private void resolveExternalSymbols()
 		throws SymbolNotFoundException, IllegalAccessSymbolException, DuplicateSymbolException {

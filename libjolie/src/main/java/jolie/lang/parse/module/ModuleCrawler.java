@@ -136,10 +136,6 @@ class ModuleCrawler {
 	 * @param mainRecord root ModuleRecord object to begin the dependency crawling
 	 * @param parsingConfiguration configuration for parsing Jolie module
 	 * @param finder Jolie module finder
-	 * 
-	 * @throws ParserException
-	 * @throws IOException
-	 * @throws ModuleException
 	 */
 	protected static CrawlerResult crawl( ModuleRecord mainRecord, ModuleParsingConfiguration parsingConfiguration,
 		ModuleFinder finder )

@@ -112,11 +112,6 @@ public class Helpers {
 	/**
 	 * Acquires lock if the current thread does not hold it already, executes code and returns. The
 	 * passed lambda may throw an exception, which is then thrown by this method.
-	 * 
-	 * @param <T>
-	 * @param lock
-	 * @param code
-	 * @throws T
 	 */
 	public static < T extends Throwable > void lockAndThen( ReentrantLock lock, ExceptionalRunnable< T > code )
 		throws T {
@@ -135,13 +130,6 @@ public class Helpers {
 	/**
 	 * Acquires lock if the current thread does not hold it already, executes code and returns. The
 	 * passed lambda may throw an exception, which is then thrown by this method.
-	 * 
-	 * @param <R>
-	 * @param <T>
-	 * @param lock
-	 * @param code
-	 * @return
-	 * @throws T
 	 */
 	public static < R, T extends Throwable > R lockAndThen( ReentrantLock lock, ExceptionalCallable< R, T > code )
 		throws T {
