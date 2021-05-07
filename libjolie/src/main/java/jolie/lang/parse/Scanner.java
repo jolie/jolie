@@ -655,7 +655,7 @@ public class Scanner {
 						} else if ( ch == '}' ) {
 							retval = new Token( TokenType.RCURLY );
 						} else if ( ch == '@' ) {
-							retval = new Token( TokenType.AT );
+							retval = new Token( TokenType.AT, "@" );
 						} else if ( ch == ':' ) {
 							retval = new Token( TokenType.COLON );
 						} else if ( ch == ',' ) {
@@ -880,7 +880,7 @@ public class Scanner {
 							state = State.REAL;
 						}
 					} else {
-						retval = new Token( TokenType.MINUS );
+						retval = new Token( TokenType.MINUS, "-" );
 					}
 					break;
 				case LINE_COMMENT: // LINE_COMMENT: waiting for end of line

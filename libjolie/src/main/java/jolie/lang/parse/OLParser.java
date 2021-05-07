@@ -3416,19 +3416,26 @@ public class OLParser extends AbstractParser {
 		return product;
 	}
 
-	private String parseDashedIdentifier()
-		throws IOException, ParserException {
+	private enum ExtendedIdentifierState {
+		CAN_READ_ID, CANNOT_READ_ID, STOP
+	}
+
+	private String parseExtendedIdentifier( Scanner.TokenType... extensions )
+		throws IOException {
 		List< String > importTargetComponents = new ArrayList<>();
-		boolean keepRun = true;
-		while( keepRun ) {
-			assertIdentifier( "expected identifier" );
-			importTargetComponents.add( token.content() );
-			nextToken();
-			if( token.is( Scanner.TokenType.MINUS ) ) {
-				importTargetComponents.add( "-" );
+
+		ExtendedIdentifierState state = ExtendedIdentifierState.CAN_READ_ID;
+		while( state != ExtendedIdentifierState.STOP ) {
+			if( state == ExtendedIdentifierState.CAN_READ_ID && token.isIdentifier() ) {
+				importTargetComponents.add( token.content() );
 				nextToken();
+				state = ExtendedIdentifierState.CANNOT_READ_ID;
+			} else if( Arrays.stream( extensions ).anyMatch( extension -> token.is( extension ) ) ) {
+				importTargetComponents.add( token.content() );
+				nextToken();
+				state = ExtendedIdentifierState.CAN_READ_ID;
 			} else {
-				keepRun = false;
+				state = ExtendedIdentifierState.STOP;
 			}
 		}
 		return importTargetComponents.stream().collect( Collectors.joining() );
@@ -3453,7 +3460,7 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
-					importTargets.add( parseDashedIdentifier() );
+					importTargets.add( parseExtendedIdentifier( Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
 					importTargetIDStarted = true;
 					// nextToken();
 				}
