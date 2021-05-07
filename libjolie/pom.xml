@@ -17,7 +17,8 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	<name>libjolie</name>
-	<description>The basic library used for Jolie code parsing and analysis.</description>
+	<description>Java library for parsing and analysing Jolie code.</description>
+	<url>${jolie.url}</url>
 
 	<build>
 		<resources>
@@ -75,12 +76,4 @@
 			<version>1.12-1</version>
 		</dependency>
 	</dependencies>
-
-	<distributionManagement>
-		<repository>
-			<id>github</id>
-			<name>GitHub Jolie Apache Maven Packages</name>
-			<url>https://maven.pkg.github.com/jolie/jolie</url>
-		</repository>
-	</distributionManagement>
 </project>

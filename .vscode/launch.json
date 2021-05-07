@@ -76,13 +76,15 @@
       "name": "Tests - All",
       "request": "launch",
       "mainClass": "jolie.Jolie",
-      "projectName": "jolie",
+      "projectName": "jolie-cli",
       "cwd": "${workspaceFolder}/test",
       "args": [
         "-l",
         "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
         "-i",
         "${workspaceFolder}/include",
+        "-p",
+        "${workspaceFolder}/packages",
         "test.ol"
       ]
     },
@@ -191,7 +193,7 @@
       "cwd": "${workspaceFolder}/test",
       "args": [
         "-l",
-        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        ".lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
         "-i",
         "${workspaceFolder}/include",
         "-p",
@@ -202,10 +204,28 @@
     },
     {
       "type": "java",
+      "name": "Windows:Tests - CustomFile",
+      "request": "launch",
+      "mainClass": "jolie.Jolie",
+      "projectName": "jolie-cli",
+      "cwd": "${workspaceFolder}\\test",
+      "args": [
+        "-l",
+        ".lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices\\*;${workspaceFolder}\\dist\\jolie\\extensions\\*",
+        "-i",
+        "${workspaceFolder}\\include",
+        "-p",
+        "${workspaceFolder}\\packages",
+        "test.ol",
+        "${input:programName}"
+      ]
+    },
+    {
+      "type": "java",
       "name": "Debug - CustomFile",
       "request": "launch",
       "mainClass": "jolie.Jolie",
-      "projectName": "jolie",
+      "projectName": "jolie-cli",
       "cwd": "${workspaceFolder}/test",
       "args": [
         "-l",

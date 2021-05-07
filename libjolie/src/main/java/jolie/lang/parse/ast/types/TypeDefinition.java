@@ -174,10 +174,6 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 	/**
 	 * @author Claudio Guidi 01-Sep-2011 Fabrizio Montesi: removed some type casting
-	 * @param inputType
-	 * @param extender
-	 * @param namePrefix
-	 * @return
 	 */
 	public static TypeDefinition extend( TypeDefinition inputType, TypeDefinition extender, String namePrefix ) {
 		if( inputType instanceof TypeChoiceDefinition || extender instanceof TypeChoiceDefinition ) {
@@ -224,8 +220,6 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 * Checks if this TypeDeclaration is equivalent to other
 	 * 
 	 * @author Fabrizio Montesi
-	 * @param other
-	 * @return
 	 */
 	public boolean isEquivalentTo( TypeDefinition other ) {
 		Set< String > recursiveTypeChecked = new HashSet<>();

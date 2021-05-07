@@ -348,7 +348,6 @@ public class Scanner {
 		 * This method behaves as {@link #isKeyword(java.lang.String) isKeyword}, except that
 		 * it is case insensitive.
 		 * @param keyword the keyword to check the content of this token against
-		 * @return
 		 */
 		public boolean isKeywordIgnoreCase( String keyword )
 		{
@@ -458,8 +457,6 @@ public class Scanner {
 
 	/**
 	 * Eats all separators (whitespace) until the next input.
-	 *
-	 * @throws IOException
 	 */
 	public void eatSeparators()
 		throws IOException

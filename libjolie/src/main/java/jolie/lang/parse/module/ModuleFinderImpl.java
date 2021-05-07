@@ -118,8 +118,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 	 * Perform a lookup for Jolie's executable source code (.ol file)
 	 * 
 	 * @param basePath a path to perform lookup
-	 * @param importPath
-	 * 
+	 *
 	 * @return source object to be parsed by module parser.
 	 */
 	private ModuleSource moduleLookup( Path basePath, ImportPath importPath ) throws FileNotFoundException {

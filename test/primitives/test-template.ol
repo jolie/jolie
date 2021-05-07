@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2021 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,10 +17,30 @@
  * MA 02110-1301  USA
  */
 
-package jolie.process;
+from ..test-unit import TestUnitInterface
 
-public interface Process extends ProcessRunnable {
-	Process copy( TransformationReason reason );
+/**
+	A template for test units.
+*/
+service Test {
+	inputPort TestUnitInput {
+		location: "local"
+		interfaces: TestUnitInterface
+	}
 
-	boolean isKillable();
+	main {
+		test()() {
+			/*
+			* Write the code of your test here (replace nullProcess),
+			* and replace the first line of the copyright header with your data.
+			*
+			* The test is supposed to throw a TestFailed fault in case of a failure.
+			* You should add a description that reports what the failure was about,
+			* for example:
+			*
+			* throw( TestFailed, "string concatenation does not match correct result" )
+			*/
+			nullProcess
+		}
+	}
 }

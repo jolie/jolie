@@ -212,21 +212,20 @@ define __body {
                         if ( LOG ) { println@Console("Analyzing operation:" + oper.operation_name )() }
                         error_prefix =  "ERROR on port " + service_input_port + ", operation " + oper.operation_name + ":" + "the operation has been declared to be imported as a REST ";
                         
-                        // proceed only if a rest template has been defined for that operation
-                        if ( is_defined( request.template.( oper.operation_name ) ) ) {
-                            __given_template = request.template.( oper.operation_name )
-                        } else {
-                            __given_template = Void
-                        }
                         undef( __template )
-                        if ( !easyInterface && !(__given_template instanceof void) ) {
-                            analyzeTemplate@JesterUtils(__given_template )( analyzed_template )
-                            __template = analyzed_template.template
-                            __method = analyzed_template.method
-                            if ( __method == "" ) {
-                                 throw( DefinitionError, "Template " + __given_template + " of operation " + oper.operation_name + " does not define method, not permitted" )
+                        undef( __method )
+                        // proceed only if a rest template has been defined for that operation
+                        __method = request.template.( oper.operation_name ).method
+                        if ( is_defined( request.template.( oper.operation_name ).template ) ) {
+                            __template  = request.template.( oper.operation_name ).template
+                        } 
+                        if ( !easyInterface && !( __template instanceof void  ) ) {
+                            if ( __method == "" || __method instanceof void ) {
+                                 throw( DefinitionError, "Template " + __given_template.template + " of operation " + oper.operation_name + " does not define method, not permitted" )
                             }
-                        } else {
+                        } 
+                        
+                        if ( __method instanceof void ) {
                             __method = "post"
                         }
 
