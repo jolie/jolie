@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2008 by Fabrizio Montesi <famontesi@gmail.com>          
+ *   Copyright (C) 2008-2021 by Fabrizio Montesi <famontesi@gmail.com>          
  *                                                                         
  *   This program is free software; you can redistribute it and/or modify  
  *   it under the terms of the GNU Library General Public License as       
@@ -191,6 +191,8 @@ RequestResponse:
 
 	/** Returns the filesystem directory from which the service has been launched */
 	getServiceDirectory(void)(string) throws IOException(IOExceptionType),
+	/** Returns the real filesystem directory (following links) from which the service has been launched */
+	getRealServiceDirectory(void)(string) throws IOException(IOExceptionType),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),
 	setMimeTypeFile(string)(void) throws IOException(IOExceptionType),
