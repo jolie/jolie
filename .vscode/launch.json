@@ -193,7 +193,7 @@
       "cwd": "${workspaceFolder}/test",
       "args": [
         "-l",
-        ".lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
+        "./lib/*:${workspaceFolder}/dist/jolie/lib:${workspaceFolder}/dist/jolie/javaServices/*:${workspaceFolder}/dist/jolie/extensions/*",
         "-i",
         "${workspaceFolder}/include",
         "-p",
@@ -211,7 +211,7 @@
       "cwd": "${workspaceFolder}\\test",
       "args": [
         "-l",
-        ".lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices\\*;${workspaceFolder}\\dist\\jolie\\extensions\\*",
+        ".\\lib\\*;${workspaceFolder}\\dist\\jolie\\lib;${workspaceFolder}\\dist\\jolie\\javaServices\\*;${workspaceFolder}\\dist\\jolie\\extensions\\*",
         "-i",
         "${workspaceFolder}\\include",
         "-p",
