@@ -13,6 +13,7 @@
     <groupId>org.jolie-lang</groupId>
     <artifactId>jolie-cli</artifactId>
     <name>jolie-cli</name>
+	<url>${jolie.url}</url>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
