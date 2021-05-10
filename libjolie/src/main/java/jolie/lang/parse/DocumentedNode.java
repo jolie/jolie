@@ -21,6 +21,8 @@
 
 package jolie.lang.parse;
 
+import java.util.Optional;
+
 /**
  *
  * @author Balint Maschio
@@ -28,5 +30,5 @@ package jolie.lang.parse;
 public interface DocumentedNode {
 	void setDocumentation( String documentation );
 
-	String getDocumentation();
+	Optional< String > getDocumentation();
 }

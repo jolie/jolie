@@ -23,6 +23,7 @@ package jolie.lang.parse.ast;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.OLVisitor;
@@ -78,8 +79,8 @@ public class InterfaceDefinition extends OLSyntaxNode
 	}
 
 	@Override
-	public String getDocumentation() {
-		return this.documentation;
+	public Optional< String > getDocumentation() {
+		return Optional.ofNullable( documentation );
 	}
 
 	@Override

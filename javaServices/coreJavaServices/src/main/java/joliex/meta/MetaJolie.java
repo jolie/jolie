@@ -242,9 +242,7 @@ public class MetaJolie extends JavaService {
 		response.getFirstChild( "name" ).setValue( type.id() );
 		response.getFirstChild( "cardinality" ).deepCopy( addCardinality( type.cardinality() ) );
 		response.getFirstChild( "type" ).deepCopy( getType( type, insertTypeInInterfaceList, extension ) );
-		if( !type.getDocumentation().isEmpty() ) {
-			response.getFirstChild( "documentation" ).setValue( type.getDocumentation() );
-		}
+		response.getFirstChild( "documentation" ).setValue( type.getDocumentation().orElse( "" ) );
 		return response;
 	}
 
@@ -273,9 +271,7 @@ public class MetaJolie extends JavaService {
 		Value type = Value.create();
 		type.getFirstChild( "type" ).deepCopy( getType( typedef, insertInInterfaceList, extension ) );
 		type.getFirstChild( "name" ).setValue( typedef.id() );
-		if( !typedef.getDocumentation().isEmpty() ) {
-			type.getFirstChild( "documentation" ).setValue( typedef.getDocumentation() );
-		}
+		type.getFirstChild( "documentation" ).setValue( typedef.getDocumentation().orElse( "" ) );
 		return type;
 	}
 
@@ -379,9 +375,7 @@ public class MetaJolie extends JavaService {
 		Value itf = Value.create();
 
 		itf.getFirstChild( "name" ).setValue( interfaceDefinition.name() );
-		if( !interfaceDefinition.getDocumentation().isEmpty() ) {
-			itf.getFirstChild( "documentation" ).setValue( interfaceDefinition.getDocumentation() );
-		}
+		itf.getFirstChild( "documentation" ).setValue( interfaceDefinition.getDocumentation().orElse( "" ) );
 
 		ValueVector operations = itf.getChildren( "operations" );
 
@@ -391,14 +385,14 @@ public class MetaJolie extends JavaService {
 		opkeylist.addAll( operationMap.keySet() );
 		Collections.sort( opkeylist );
 
-
 		for( String operationName : opkeylist ) {
 			Value current_operation = Value.create();
 			OperationDeclaration operationDeclaration = operationMap.get( operationName );
 			if( operationDeclaration instanceof OneWayOperationDeclaration ) {
 				OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationDeclaration;
 				current_operation.getFirstChild( "operation_name" ).setValue( oneWayOperation.id() );
-				current_operation.getFirstChild( "documentation" ).setValue( oneWayOperation.getDocumentation() );
+				current_operation.getFirstChild( "documentation" )
+					.setValue( oneWayOperation.getDocumentation().orElse( "" ) );
 				current_operation.getFirstChild( "input" ).setValue( oneWayOperation.requestType().id() );
 
 				if( !isNativeType( oneWayOperation.requestType().id() ) ) {
@@ -414,7 +408,7 @@ public class MetaJolie extends JavaService {
 					(RequestResponseOperationDeclaration) operationDeclaration;
 				current_operation.getFirstChild( "operation_name" ).setValue( requestResponseOperation.id() );
 				current_operation.getFirstChild( "documentation" )
-					.setValue( requestResponseOperation.getDocumentation() );
+					.setValue( requestResponseOperation.getDocumentation().orElse( "" ) );
 				current_operation.getFirstChild( "input" ).setValue( requestResponseOperation.requestType().id() );
 				current_operation.getFirstChild( "output" ).setValue( requestResponseOperation.responseType().id() );
 				if( !isNativeType( requestResponseOperation.requestType().id() ) ) {

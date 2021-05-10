@@ -425,7 +425,7 @@ public class SymbolReferenceResolver {
 					iface.addOperation( op );
 					n.addOperation( op );
 				} );
-				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+				ifaceDeclFromSymbol.getDocumentation().ifPresent( iface::setDocumentation );
 			}
 			for( OperationDeclaration op : n.operations() ) {
 				op.accept( this );
@@ -456,7 +456,7 @@ public class SymbolReferenceResolver {
 					iface.addOperation( op );
 					n.addOperation( op );
 				} );
-				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+				ifaceDeclFromSymbol.getDocumentation().ifPresent( iface::setDocumentation );
 			}
 			for( OperationDeclaration op : n.operations() ) {
 				op.accept( this );
@@ -621,7 +621,7 @@ public class SymbolReferenceResolver {
 					iface.addOperation( op );
 					op.accept( this );
 				} );
-				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+				ifaceDeclFromSymbol.getDocumentation().ifPresent( iface::setDocumentation );
 
 				owIfaceBranch.body.accept( this );
 			}
@@ -645,7 +645,7 @@ public class SymbolReferenceResolver {
 					iface.addOperation( op );
 					op.accept( this );
 				} );
-				iface.setDocumentation( ifaceDeclFromSymbol.getDocumentation() );
+				ifaceDeclFromSymbol.getDocumentation().ifPresent( iface::setDocumentation );
 
 				rrIfaceBranch.body.accept( this );
 			}

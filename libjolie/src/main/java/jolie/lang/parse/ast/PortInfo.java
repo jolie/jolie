@@ -21,17 +21,13 @@
 
 package jolie.lang.parse.ast;
 
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.context.ParsingContext;
+
+import java.util.*;
 
 /**
  * Abstract class representing a port (shared between input and output ports).
@@ -89,8 +85,8 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 	}
 
 	@Override
-	public String getDocumentation() {
-		return this.document;
+	public Optional< String > getDocumentation() {
+		return Optional.ofNullable( document );
 	}
 
 	/**

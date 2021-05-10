@@ -24,6 +24,7 @@ package jolie.lang.parse.ast.types;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import jolie.lang.NativeType;
@@ -75,8 +76,8 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	}
 
 	@Override
-	public String getDocumentation() {
-		return this.document;
+	public Optional< String > getDocumentation() {
+		return Optional.ofNullable( document );
 	}
 
 	public boolean containsPath( VariablePathNode variablePath ) {

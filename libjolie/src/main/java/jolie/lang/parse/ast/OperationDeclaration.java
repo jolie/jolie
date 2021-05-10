@@ -24,6 +24,8 @@ package jolie.lang.parse.ast;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.context.ParsingContext;
 
+import java.util.Optional;
+
 
 public abstract class OperationDeclaration extends OLSyntaxNode implements DocumentedNode {
 	private final String id;
@@ -44,7 +46,7 @@ public abstract class OperationDeclaration extends OLSyntaxNode implements Docum
 	}
 
 	@Override
-	public String getDocumentation() {
-		return this.document;
+	public Optional< String > getDocumentation() {
+		return Optional.ofNullable( document );
 	}
 }
