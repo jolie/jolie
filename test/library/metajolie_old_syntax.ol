@@ -137,6 +137,8 @@ define doTest
       }
   }
 
+
+
   // comparing nodes
   a.b.c.d.m.n.l.o = 1
   a.b.c.d.m.n.l = 2
@@ -524,6 +526,7 @@ define doTest
         v2 << {
             root_type.void_type = true
             sub_type[ 0 ] << {
+                documentation = ""
                 name = "f6"
                 type << {
                     root_type.double_type << true {
@@ -553,6 +556,7 @@ define doTest
                 }										
             }
             sub_type[ 1 ] << {
+                documentation = ""
                 name = "f7"
                 type << {
                     root_type.string_type <<  true {
@@ -567,6 +571,7 @@ define doTest
                 }
             }
             sub_type[ 2 ] << {
+                documentation = ""
                 name = "f1"
                 type.root_type << {
                     string_type << true {
@@ -584,6 +589,7 @@ define doTest
                 }
             }
             sub_type[ 3 ] << {
+                documentation = ""
                 name = "f2" 
                 type.root_type << {
                     string_type << true {
@@ -600,6 +606,7 @@ define doTest
                 }
             }
             sub_type[ 4 ] << {
+                documentation = ""
                 name = "f3"
                 type.root_type << {
                     string_type << true {
@@ -617,6 +624,7 @@ define doTest
                 }
             }
             sub_type[ 5 ] << {
+                documentation = ""
                 name = "f4"
                 type.root_type.int_type << true {
                     refined_type << {
@@ -644,6 +652,7 @@ define doTest
                 }
             }
             sub_type[ 6 ] << {
+                documentation = ""
                 name = "f5"
                 type.root_type.long_type <<  true {
                     refined_type << {
