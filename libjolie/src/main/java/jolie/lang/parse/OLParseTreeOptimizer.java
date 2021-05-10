@@ -190,14 +190,11 @@ public class OLParseTreeOptimizer {
 					protocol,
 					p.aggregationList(),
 					p.redirectionMap() );
-			if( p.getDocumentation() != null && p.getDocumentation().length() > 0 ) {
-				iport.setDocumentation( p.getDocumentation() );
-			}
+			p.getDocumentation().ifPresent( iport::setDocumentation );
 			iport.operationsMap().putAll( p.operationsMap() );
 			iport.getInterfaceList().addAll( p.getInterfaceList() );
 			programChildren.add( iport );
 		}
-
 
 		@Override
 		public void visit( OneWayOperationDeclaration decl ) {}

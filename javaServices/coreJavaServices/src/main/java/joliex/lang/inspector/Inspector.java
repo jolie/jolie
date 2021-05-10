@@ -231,9 +231,7 @@ public class Inspector extends JavaService {
 		if( portInfo.protocol() != null ) {
 			result.setFirstChild( PortInfoType.PROTOCOL, portInfo.protocolId() );
 		}
-		if( portInfo.getDocumentation() != null ) {
-			result.setFirstChild( PortInfoType.DOCUMENTATION, portInfo.getDocumentation() );
-		}
+		portInfo.getDocumentation().ifPresent( doc -> result.setFirstChild( PortInfoType.DOCUMENTATION, doc ) );
 
 		ValueVector interfaces = result.getChildren( PortInfoType.INTERFACE );
 
@@ -271,9 +269,7 @@ public class Inspector extends JavaService {
 		if( portInfo.protocol() != null ) {
 			result.setFirstChild( PortInfoType.PROTOCOL, portInfo.protocolId() );
 		}
-		if( portInfo.getDocumentation() != null ) {
-			result.setFirstChild( PortInfoType.DOCUMENTATION, portInfo.getDocumentation() );
-		}
+		portInfo.getDocumentation().ifPresent( doc -> result.setFirstChild( PortInfoType.DOCUMENTATION, doc ) );
 
 		ValueVector interfaces = result.getChildren( PortInfoType.INTERFACE );
 
@@ -285,9 +281,8 @@ public class Inspector extends JavaService {
 	private static Value buildInterfaceInfo( InterfaceDefinition interfaceDefinition, Set< String > referredTypesSet ) {
 		Value result = Value.create();
 		result.setFirstChild( InterfaceInfoType.NAME, interfaceDefinition.name() );
-		if( interfaceDefinition.getDocumentation() != null ) {
-			result.setFirstChild( InterfaceInfoType.DOCUMENTATION, interfaceDefinition.getDocumentation() );
-		}
+		interfaceDefinition.getDocumentation()
+			.ifPresent( doc -> result.setFirstChild( InterfaceInfoType.DOCUMENTATION, doc ) );
 		ValueVector operations = result.getChildren( InterfaceInfoType.OPERATION );
 		interfaceDefinition.operationsMap().entrySet()
 			.forEach( o -> operations.add( buildOperationInfo( o.getValue(), referredTypesSet ) ) );
@@ -298,9 +293,8 @@ public class Inspector extends JavaService {
 		Set< String > referredTypesSet ) {
 		Value result = Value.create();
 		result.setFirstChild( OperationInfoType.NAME, operationDeclaration.id() );
-		if( operationDeclaration.getDocumentation() != null ) {
-			result.setFirstChild( OperationInfoType.DOCUMENTATION, operationDeclaration.getDocumentation() );
-		}
+		operationDeclaration.getDocumentation()
+			.ifPresent( doc -> result.setFirstChild( OperationInfoType.DOCUMENTATION, doc ) );
 		if( operationDeclaration instanceof RequestResponseOperationDeclaration ) {
 			RequestResponseOperationDeclaration rrod = (RequestResponseOperationDeclaration) operationDeclaration;
 			result.setFirstChild( OperationInfoType.REQUEST_TYPE, rrod.requestType().id() );
@@ -327,9 +321,7 @@ public class Inspector extends JavaService {
 
 	private static Value buildTypeInfo( TypeDefinition t ) {
 		Value result = Value.create();
-		if( t.getDocumentation() != null ) {
-			result.setFirstChild( TypeInfoType.DOCUMENTATION, t.getDocumentation() );
-		}
+		t.getDocumentation().ifPresent( doc -> result.setFirstChild( TypeInfoType.DOCUMENTATION, doc ) );
 
 		if( t instanceof TypeDefinitionLink ) {
 			result.setFirstChild( TypeInfoType.LINKED_TYPE_NAME, ((TypeDefinitionLink) t).linkedTypeName() );
