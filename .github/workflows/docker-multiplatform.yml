@@ -1,4 +1,4 @@
-name: Docker Hub (Build and Push)
+name: Docker Hub (Build and Push, Multiplatform)
 
 on:
   workflow_dispatch:
