@@ -164,14 +164,12 @@ public class FunctionTranslator {
 			return sequenceStatement;
 		}
 
-		private SequenceStatement makeSequence( ParsingContext context, OLSyntaxNode... additionalNodes ) {
-			SequenceStatement sequenceStatement = new SequenceStatement( context );
-			for( OLSyntaxNode node : solicitResponseList ) {
-				sequenceStatement.addChild( node );
+		private SequenceStatement makeSequence( OLSyntaxNode node ) {
+			SequenceStatement sequenceStatement = new SequenceStatement( node.context() );
+			for( OLSyntaxNode solicitResponse : solicitResponseList ) {
+				sequenceStatement.addChild( solicitResponse );
 			}
-			for( OLSyntaxNode node : additionalNodes ) {
-				sequenceStatement.addChild( node );
-			}
+			sequenceStatement.addChild( node );
 			solicitResponseList.clear();
 			return sequenceStatement;
 		}
@@ -182,14 +180,13 @@ public class FunctionTranslator {
 			if( n.expression() != null ) {
 				expressionNode = n.expression().accept( this );
 			}
-			if( !solicitResponseList.isEmpty() ) {
-				return makeSequence( n.context(), create( n, expressionNode ) );
+			OLSyntaxNode resultNode;
+			if( solicitResponseList.isEmpty() ) {
+				resultNode = new AssignStatement( n.context(), n.variablePath(), expressionNode );
+			} else {
+				resultNode = makeSequence( new AssignStatement( n.context(), n.variablePath(), expressionNode ) );
 			}
-			return create( n, expressionNode );
-		}
-
-		private AssignStatement create( AssignStatement n, OLSyntaxNode expression ) {
-			return new AssignStatement( n.context(), n.variablePath(), expression );
+			return resultNode;
 		}
 
 		@Override
@@ -217,16 +214,15 @@ public class FunctionTranslator {
 			if( n.outputExpression() != null ) {
 				outputExpressionNode = n.outputExpression().accept( this );
 			}
-			if( !solicitResponseList.isEmpty() ) {
-				return makeSequence( n.context(), create( n, outputExpressionNode ) );
+			OLSyntaxNode resultNode;
+			if( solicitResponseList.isEmpty() ) {
+				resultNode = new SolicitResponseOperationStatement( n.context(), n.id(), n.outputPortId(),
+					outputExpressionNode, n.inputVarPath(), Optional.ofNullable( n.handlersFunction() ) );
+			} else {
+				resultNode = makeSequence( new SolicitResponseOperationStatement( n.context(), n.id(), n.outputPortId(),
+					outputExpressionNode, n.inputVarPath(), Optional.ofNullable( n.handlersFunction() ) ) );
 			}
-			return create( n, outputExpressionNode );
-		}
-
-		private SolicitResponseOperationStatement create( SolicitResponseOperationStatement n,
-			OLSyntaxNode outputExpression ) {
-			return new SolicitResponseOperationStatement( n.context(), n.id(), n.outputPortId(),
-				outputExpression, n.inputVarPath(), Optional.ofNullable( n.handlersFunction() ) );
+			return resultNode;
 		}
 
 		@Override
