@@ -45,13 +45,5 @@ define doTest
 	if ( a != 81 ) {
 		throw( TestFailed, "Unexpected result" )
 	}
-	a = square@Calculator( 5 ) != square@Calculator( 5 )
-	if ( a ) {
-		throw( TestFailed, "Unexpected result" )
-	}
-	a = square@Calculator( 5 ) == square@Calculator( 5 )
-	if ( !a ) {
-		throw( TestFailed, "Unexpected result" )
-	}
 	shutdown@Calculator()
 }

@@ -302,20 +302,12 @@ public class FunctionTranslator {
 
 		@Override
 		public OrConditionNode visit( OrConditionNode n, Unit ctx ) {
-			OrConditionNode conditionNode = new OrConditionNode( n.context() );
-			for( OLSyntaxNode node : n.children() ) {
-				conditionNode.addChild( node.accept( this ) );
-			}
-			return conditionNode;
+			return n;
 		}
 
 		@Override
 		public AndConditionNode visit( AndConditionNode n, Unit ctx ) {
-			AndConditionNode conditionNode = new AndConditionNode( n.context() );
-			for( OLSyntaxNode node : n.children() ) {
-				conditionNode.addChild( node.accept( this ) );
-			}
-			return conditionNode;
+			return n;
 		}
 
 		@Override
