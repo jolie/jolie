@@ -26,7 +26,7 @@ define doTest {
 		throw( TestFailed, "Not an IOException raised" )
 	}
 
-	req.substring="Connection refused";
+	req.substring="java.net.ConnectException";
 	contains@StringUtils(req)(contain);
 	if (!contain){
 		throw( TestFailed, "IOException: not a 'Connection refused' error" )
