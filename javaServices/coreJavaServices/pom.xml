@@ -225,27 +225,6 @@
                                     <type>jar</type>
                                     <destFileName>txw2.jar</destFileName>
                                 </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.apache.httpcomponents.client5</groupId>
-                                    <artifactId>httpclient5</artifactId>
-                                    <version>5.0.3</version>
-                                    <type>jar</type>
-                                    <destFileName>httpclient5.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.apache.httpcomponents.core5</groupId>
-                                    <artifactId>httpcore5</artifactId>
-                                    <type>jar</type>
-                                    <version>5.0.3</version>
-                                    <destFileName>httpcore5.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.apache.httpcomponents.core5</groupId>
-                                    <artifactId>httpcore5-h2</artifactId>
-                                    <type>jar</type>
-                                    <version>5.0.3</version>
-                                    <destFileName>httpcore5-h2.jar</destFileName>
-                                </artifactItem>
                             </artifactItems>   
                             <!--artifactItems>
         
@@ -578,21 +557,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>5.0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.core5</groupId>
-            <artifactId>httpcore5</artifactId>
-            <version>5.0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.core5</groupId>
-            <artifactId>httpcore5-h2</artifactId>
-            <version>5.0.3</version>
         </dependency>
     </dependencies>
 </project>
