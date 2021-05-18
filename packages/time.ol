@@ -125,14 +125,20 @@ interface TimeInterface{
 		/**! It stops the current timeout previously set with a setNextTimeout */
 		stopNextTimeout( void )
 	RequestResponse:
-			/**!
-		* Cancels a timeout from a long-value created from #scheduleTimeout
+		/**!
+		It Cancels a timeout from a long-value created from #scheduleTimeout
 		*/
 		cancelTimeout(long)(bool),
 
+		/**!
+		It returns the current date time as a string
+		*/
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), 
 		
-		sleep,
+		/**!
+		It waits for a period specified in the request (in milliseconds)
+		*/
+		sleep( int )( void ),
 
 		/**!
 		* It returns a date time in a string format starting from a timestamp
