@@ -2686,7 +2686,7 @@ public class OLParser extends AbstractParser {
 		if( token.is( Scanner.TokenType.DOT ) ) {
 			return parsePrefixedVariablePath();
 		}
-		assertToken( Scanner.TokenType.ID, "Expected variable path" );
+		assertIdentifier( "Expected variable path" );
 		String varId = token.content();
 		nextToken();
 		return _parseVariablePath( varId );
