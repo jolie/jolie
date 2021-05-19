@@ -130,9 +130,15 @@ interface TimeInterface{
 		*/
 		cancelTimeout(long)(bool),
 
+		/**!
+		It returns the current date time as a string
+		*/
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), 
 		
-		sleep,
+		/**!
+		It waits for a period specified in the request (in milliseconds)
+		*/
+		sleep( int )( void ),
 
 		/**!
 		* It returns a date time in a string format starting from a timestamp

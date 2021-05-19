@@ -49,9 +49,13 @@ type SetCronJobRequest: void {
 
  interface SchedulerInterface{
    RequestResponse:
+   // Delete an existing cron job
    deleteCronJob( DeleteCronJobRequest )( void ),
+
+   /// Set a new cron job
    setCronJob( SetCronJobRequest )( void ) throws JobAlreadyExists( void )
    OneWay:
+   /// Set the callback operation name
    setCallbackOperation( SetCallBackOperationRequest )
  }
 

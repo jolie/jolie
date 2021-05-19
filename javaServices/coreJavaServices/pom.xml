@@ -28,7 +28,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Class-Path>lib/jolie.jar lib/libjolie.jar lib/mailapi.jar lib/smtp.jar lib/jolie-xml.jar lib/ini4j.jar lib/c3p0-0.9.1.1.jar lib/smack.jar lib/smackx.jar lib/wsdl4j.jar lib/xsom.jar lib/commons-lang3.jar lib/http.jar lib/jolie-js.jar lib/uri-templates.jar lib/quartz-2.2.1.jar lib/quartz-jobs-2.2.1.jar lib/slf4j-api.jar lib/slf4j-simple.jar lib/javax.activation.jar lib/joda-time.jar lib/Java-WebSocket.jar</Class-Path>
+                            <Class-Path>lib/jolie.jar lib/libjolie.jar lib/mailapi.jar lib/smtp.jar lib/jolie-xml.jar lib/ini4j.jar lib/c3p0-0.9.1.1.jar lib/smack.jar lib/smackx.jar lib/wsdl4j.jar lib/xsom.jar lib/commons-lang3.jar lib/http.jar lib/jolie-js.jar lib/uri-templates.jar lib/quartz-2.2.1.jar lib/quartz-jobs-2.2.1.jar lib/slf4j-api.jar lib/slf4j-simple.jar lib/javax.activation.jar lib/joda-time.jar</Class-Path>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -224,34 +224,6 @@
                                     <version>20110809</version>
                                     <type>jar</type>
                                     <destFileName>txw2.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.java-websocket</groupId>
-                                    <artifactId>Java-WebSocket</artifactId>
-                                    <version>1.5.1</version>
-                                    <type>jar</type>
-                                    <destFileName>Java-WebSocket.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.apache.httpcomponents.client5</groupId>
-                                    <artifactId>httpclient5</artifactId>
-                                    <version>5.0.3</version>
-                                    <type>jar</type>
-                                    <destFileName>httpclient5.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.apache.httpcomponents.core5</groupId>
-                                    <artifactId>httpcore5</artifactId>
-                                    <type>jar</type>
-                                    <version>5.0.3</version>
-                                    <destFileName>httpcore5.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.apache.httpcomponents.core5</groupId>
-                                    <artifactId>httpcore5-h2</artifactId>
-                                    <type>jar</type>
-                                    <version>5.0.3</version>
-                                    <destFileName>httpcore5-h2.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>   
                             <!--artifactItems>
@@ -582,29 +554,9 @@
             <version>20110809</version>
         </dependency>
         <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>5.0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.core5</groupId>
-            <artifactId>httpcore5</artifactId>
-            <version>5.0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.core5</groupId>
-            <artifactId>httpcore5-h2</artifactId>
-            <version>5.0.3</version>
         </dependency>
     </dependencies>
 </project>
