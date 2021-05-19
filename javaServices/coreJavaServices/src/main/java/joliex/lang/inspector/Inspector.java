@@ -191,7 +191,7 @@ public class Inspector extends JavaService {
 
 		Map< String, TypeDefinition > types = new HashMap<>();
 		for( TypeDefinition t : inspector.getTypes() ) {
-			types.put( t.id(), t );
+			types.put( t.name(), t );
 		}
 
 		referredTypes.stream().filter( types::containsKey )
@@ -202,7 +202,7 @@ public class Inspector extends JavaService {
 
 	private static Value buildTypeDefinition( TypeDefinition typeDef ) {
 		Value result = Value.create();
-		result.setFirstChild( TypeDefinitionInfoType.NAME, typeDef.id() );
+		result.setFirstChild( TypeDefinitionInfoType.NAME, typeDef.name() );
 		result.getChildren( TypeDefinitionInfoType.TYPE ).add( buildTypeInfo( typeDef ) );
 		return result;
 	}
@@ -213,7 +213,7 @@ public class Inspector extends JavaService {
 		returnValue.children().put( "types", types );
 		for( TypeDefinition type : inspector.getTypes() ) {
 			Value typeDefinition = Value.create();
-			typeDefinition.setFirstChild( TypeDefinitionInfoType.NAME, type.id() );
+			typeDefinition.setFirstChild( TypeDefinitionInfoType.NAME, type.name() );
 			typeDefinition.getChildren( TypeDefinitionInfoType.TYPE ).add( buildTypeInfo( type ) );
 			types.add( typeDefinition );
 		}
@@ -297,24 +297,24 @@ public class Inspector extends JavaService {
 			.ifPresent( doc -> result.setFirstChild( OperationInfoType.DOCUMENTATION, doc ) );
 		if( operationDeclaration instanceof RequestResponseOperationDeclaration ) {
 			RequestResponseOperationDeclaration rrod = (RequestResponseOperationDeclaration) operationDeclaration;
-			result.setFirstChild( OperationInfoType.REQUEST_TYPE, rrod.requestType().id() );
-			referredTypesSet.add( rrod.requestType().id() );
-			result.setFirstChild( OperationInfoType.RESPONSE_TYPE, rrod.responseType().id() );
-			referredTypesSet.add( rrod.responseType().id() );
+			result.setFirstChild( OperationInfoType.REQUEST_TYPE, rrod.requestType().name() );
+			referredTypesSet.add( rrod.requestType().name() );
+			result.setFirstChild( OperationInfoType.RESPONSE_TYPE, rrod.responseType().name() );
+			referredTypesSet.add( rrod.responseType().name() );
 			if( !rrod.faults().isEmpty() ) {
 				ValueVector faults = result.getChildren( OperationInfoType.FAULT );
 				rrod.faults().forEach( ( faultName, faultType ) -> {
 					Value faultInfo = Value.create();
 					faultInfo.setFirstChild( FaultInfoType.NAME, faultName );
-					faultInfo.setFirstChild( FaultInfoType.TYPE, faultType.id() );
+					faultInfo.setFirstChild( FaultInfoType.TYPE, faultType.name() );
 					faults.add( faultInfo );
-					referredTypesSet.add( faultType.id() );
+					referredTypesSet.add( faultType.name() );
 				} );
 			}
 		} else {
 			OneWayOperationDeclaration owd = (OneWayOperationDeclaration) operationDeclaration;
-			result.setFirstChild( OperationInfoType.REQUEST_TYPE, owd.requestType().id() );
-			referredTypesSet.add( owd.requestType().id() );
+			result.setFirstChild( OperationInfoType.REQUEST_TYPE, owd.requestType().name() );
+			referredTypesSet.add( owd.requestType().name() );
 		}
 		return result;
 	}

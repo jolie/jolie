@@ -340,11 +340,11 @@ public class SymbolTableGenerator {
 
 		@Override
 		public void visit( TypeInlineDefinition n ) {
-			if( NativeType.isNativeTypeKeyword( n.id() ) ) {
+			if( NativeType.isNativeTypeKeyword( n.name() ) ) {
 				return;
 			}
 			try {
-				this.symbolTable.addSymbol( n.id(), n );
+				this.symbolTable.addSymbol( n.name(), n );
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
 				this.error = new ModuleException( n.context(), e );
@@ -354,8 +354,8 @@ public class SymbolTableGenerator {
 		@Override
 		public void visit( TypeDefinitionLink n ) {
 			try {
-				if( !this.symbolTable.getSymbol( n.id() ).isPresent() ) {
-					this.symbolTable.addSymbol( n.id(), n );
+				if( !this.symbolTable.getSymbol( n.name() ).isPresent() ) {
+					this.symbolTable.addSymbol( n.name(), n );
 				}
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
@@ -410,7 +410,7 @@ public class SymbolTableGenerator {
 		@Override
 		public void visit( TypeChoiceDefinition n ) {
 			try {
-				this.symbolTable.addSymbol( n.id(), n );
+				this.symbolTable.addSymbol( n.name(), n );
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
 				this.error = new ModuleException( n.context(), e );

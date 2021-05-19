@@ -41,16 +41,16 @@ public class TypeInlineDefinition extends TypeDefinition {
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, BasicTypeDefinition basicTypeDefinition,
+	public TypeInlineDefinition( ParsingContext context, String name, BasicTypeDefinition basicTypeDefinition,
 		Range cardinality,
 		AccessModifier accessModifier ) {
-		super( context, id, cardinality, accessModifier );
+		super( context, name, cardinality, accessModifier );
 		this.basicTypeDefinition = basicTypeDefinition;
 	}
 
-	public TypeInlineDefinition( ParsingContext context, String id, BasicTypeDefinition basicTypeDefinition,
+	public TypeInlineDefinition( ParsingContext context, String name, BasicTypeDefinition basicTypeDefinition,
 		Range cardinality ) {
-		this( context, id, basicTypeDefinition, cardinality, AccessModifier.PUBLIC );
+		this( context, name, basicTypeDefinition, cardinality, AccessModifier.PUBLIC );
 	}
 
 	public BasicTypeDefinition basicType() {
@@ -62,11 +62,11 @@ public class TypeInlineDefinition extends TypeDefinition {
 		untypedSubTypes = b;
 	}
 
-	public boolean hasSubType( String id ) {
+	public boolean hasSubType( String name ) {
 		if( subTypes == null ) {
 			return false;
 		} else {
-			return subTypes.containsKey( id );
+			return subTypes.containsKey( name );
 		}
 	}
 
@@ -98,9 +98,9 @@ public class TypeInlineDefinition extends TypeDefinition {
 		return false;
 	}
 
-	public TypeDefinition getSubType( String id ) {
+	public TypeDefinition getSubType( String name ) {
 		if( subTypes != null ) {
-			return subTypes.get( id );
+			return subTypes.get( name );
 		}
 		return null;
 	}
@@ -113,7 +113,7 @@ public class TypeInlineDefinition extends TypeDefinition {
 		if( subTypes == null ) {
 			subTypes = new HashMap<>();
 		}
-		subTypes.put( type.id(), type );
+		subTypes.put( type.name(), type );
 	}
 
 	public boolean untypedSubTypes() {
@@ -127,13 +127,13 @@ public class TypeInlineDefinition extends TypeDefinition {
 
 	@Override
 	protected int hashCode( Set< String > recursiveTypeHashed ) {
-		if( recursiveTypeHashed.contains( this.id() ) ) {
+		if( recursiveTypeHashed.contains( this.name() ) ) {
 			return 0;
 		}
-		recursiveTypeHashed.add( this.id() );
+		recursiveTypeHashed.add( this.name() );
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + this.id().hashCode();
+		result = prime * result + this.name().hashCode();
 		result = prime * result + this.cardinality().hashCode();
 		result = prime * result + this.basicType().hashCode();
 		result = prime * result + recursiveTypeHashed.size();

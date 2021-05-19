@@ -234,7 +234,7 @@ public class OLParser extends AbstractParser {
 				parseBackwardAndSetDocumentation( currentType, Optional.ofNullable( commentToken ) );
 				commentToken = null;
 
-				typeName = currentType.id();
+				typeName = currentType.name();
 
 				definedTypes.put( typeName, currentType );
 				programBuilder.addChild( currentType );
@@ -332,8 +332,8 @@ public class OLParser extends AbstractParser {
 						parseBackwardAndSetDocumentation( currentSubType, commentToken );
 						commentToken = Optional.empty();
 
-						if( type.hasSubType( currentSubType.id() ) ) {
-							throwException( "sub-type " + currentSubType.id()
+						if( type.hasSubType( currentSubType.name() ) ) {
+							throwException( "sub-type " + currentSubType.name()
 								+ " conflicts with another sub-type with the same name" );
 						}
 						type.putSubType( currentSubType );
