@@ -714,7 +714,7 @@ public class MetaJolie extends JavaService {
 			} else if( !isNativeType( typedef.name() ) ) {
 				type.getFirstChild( "type" ).getFirstChild( "link_name" ).setValue( typedef.name() );
 				insertTypeDefinition( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues,
-				typedef, extension );
+					typedef, extension );
 			} else {
 				type.getFirstChild( "type" ).deepCopy( getNativeType( typedef.name() ) );
 			}
