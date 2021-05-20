@@ -6,7 +6,7 @@ Jolie is a [community effort](https://github.com/jolie/jolie/graphs/contributors
 
 # How can I contribute?
 
-There are many ways in which you can contribute, of which we point out a few below. If you have an idea that does not fall into any of the categories below, do not be discouraged: quite simply, we have probably not thought of it, and we would like to hear from you!
+There are many ways in which you can contribute, of which we point out a few below. If you have an idea that does not fall into any of the categories below, do not be discouraged: quite simply, we have probably not thought of it, and we would like to hear from you. See [how to get in touch](https://github.com/jolie/jolie#get-in-touch) and our [list of maintainers](MAINTAINERS.md).
 
 ## Code
 
@@ -30,7 +30,7 @@ Jolie is taught in a few courses, both in academia and industry. We are happy to
 
 ## Website
 
-You can help improve our [website](https://www.jolie-lang.org). You can find its source code at https://github.com/jolie/website.
+You can help improve our [website](https://www.jolie-lang.org). You can find its source code at <https://github.com/jolie/website>.
 
 # Get in touch
 
