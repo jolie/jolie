@@ -8,7 +8,7 @@ If you wish to contact a maintainer, please try to contact the one that is most 
 
 Do you want to affiliate something that you made with the Jolie project and become a maintainer? [Contact us!](https://github.com/jolie/jolie#get-in-touch)
 
-## List of Maintainers (by area, alphabetical order)
+## List of Maintainers (by area)
 
 ### Documentation
 
