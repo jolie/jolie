@@ -127,6 +127,10 @@ public class ModuleFinderImpl implements ModuleFinder {
 		for( String packageDir : packageParts ) {
 			basePath = basePath.resolve( packageDir );
 		}
+		if( basePath.resolve( moduleName ).toFile().isDirectory() ) {
+			basePath = basePath.resolve( moduleName );
+			moduleName = "main";
+		}
 		Path olTargetFile = ModuleFinder.olLookup( basePath, moduleName );
 		return new PathSource( olTargetFile );
 	}

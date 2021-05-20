@@ -189,7 +189,7 @@
       "name": "Tests - CustomFile",
       "request": "launch",
       "mainClass": "jolie.Jolie",
-      "projectName": "jolie",
+      "projectName": "jolie-cli",
       "cwd": "${workspaceFolder}/test",
       "args": [
         "-l",
