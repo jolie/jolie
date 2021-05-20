@@ -178,7 +178,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 				TypeDefinition jolieSimpleType;
 				jolieSimpleType =
 					loadSimpleType( simpleType, false, simpleTypes.get( simpleType.getName() + TYPE_SUFFIX ) );
-				simpleTypes.put( jolieSimpleType.id(), jolieSimpleType );
+				simpleTypes.put( jolieSimpleType.name(), jolieSimpleType );
 				jolieTypes.add( jolieSimpleType );
 			}
 		}
@@ -199,7 +199,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 					jolieComplexType =
 						loadComplexType( complexType, false, complexTypes.get( complexType.getName() + TYPE_SUFFIX ) );
 					if( jolieComplexType != null ) {
-						complexTypes.put( jolieComplexType.id(), jolieComplexType );
+						complexTypes.put( jolieComplexType.name(), jolieComplexType );
 					}
 				}
 				if( jolieComplexType != null ) {

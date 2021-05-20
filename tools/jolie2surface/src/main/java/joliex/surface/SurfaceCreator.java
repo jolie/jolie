@@ -118,11 +118,11 @@ public class SurfaceCreator {
 	}
 
 	private String getOWString( OneWayOperationDeclaration ow ) {
-		return ow.id() + "( " + ow.requestType().id() + " )";
+		return ow.id() + "( " + ow.requestType().name() + " )";
 	}
 
 	private String getRRString( RequestResponseOperationDeclaration rr ) {
-		String ret = rr.id() + "( " + rr.requestType().id() + " )( " + rr.responseType().id() + " )";
+		String ret = rr.id() + "( " + rr.requestType().name() + " )( " + rr.responseType().name() + " )";
 		if( rr.faults().size() > 0 ) {
 			ret = ret + " throws ";
 			boolean flag = false;
@@ -134,7 +134,7 @@ public class SurfaceCreator {
 				}
 				ret = ret + fault.getKey();
 				if( fault.getValue() != null ) {
-					ret = ret + "( " + fault.getValue().id() + " )";
+					ret = ret + "( " + fault.getValue().name() + " )";
 				}
 			}
 		}
@@ -165,7 +165,7 @@ public class SurfaceCreator {
 				ret = ret + "\t";
 			}
 
-			ret = ret + "." + type.id() + getCardinality( type.cardinality() ) + ":";
+			ret = ret + "." + type.name() + getCardinality( type.cardinality() ) + ":";
 		}
 
 		if( type instanceof TypeDefinitionLink ) {
@@ -202,13 +202,13 @@ public class SurfaceCreator {
 
 	private String getType( TypeDefinition type ) {
 		String ret = "";
-		if( !typesVector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )
-			&& !type.id().equals( "undefined" ) ) {
+		if( !typesVector.contains( type.name() ) && !NativeType.isNativeTypeKeyword( type.name() )
+			&& !type.name().equals( "undefined" ) ) {
 
-			System.out.print( "type " + type.id() + ":" );
+			System.out.print( "type " + type.name() + ":" );
 			checkType( type );
 			System.out.println();
-			typesVector.add( type.id() );
+			typesVector.add( type.name() );
 		}
 
 		return ret;
@@ -268,7 +268,7 @@ public class SurfaceCreator {
 				printType( getType( rrDecl.requestType() ) );
 				printType( getType( rrDecl.responseType() ) );
 				for( Entry< String, TypeDefinition > fault : rrDecl.faults().entrySet() ) {
-					if( !fault.getValue().id().equals( "undefined" ) ) {
+					if( !fault.getValue().name().equals( "undefined" ) ) {
 						System.out.println( getType( fault.getValue() ) );
 					}
 				}

@@ -42,7 +42,7 @@ import jolie.util.Range;
  * @author Fabrizio Montesi
  */
 public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, ImportableSymbol {
-	private final String id;
+	private final String name;
 	private final Range cardinality;
 	private String document = null;
 	private final AccessModifier accessModifier;
@@ -51,19 +51,19 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 * Constructor
 	 * 
 	 * @param context the parsing context for this AST node
-	 * @param id the name identifier for this type definition
+	 * @param name the name identifier for this type definition
 	 * @param cardinality the cardinality of this type
 	 * @param accessModifier the access modifier of symbolinfo
 	 */
-	public TypeDefinition( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier ) {
+	public TypeDefinition( ParsingContext context, String name, Range cardinality, AccessModifier accessModifier ) {
 		super( context );
-		this.id = id;
+		this.name = name;
 		this.cardinality = cardinality;
 		this.accessModifier = accessModifier;
 	}
 
-	public String id() {
-		return id;
+	public String simpleName() {
+		return this.name;
 	}
 
 	public Range cardinality() {
@@ -123,10 +123,10 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 					if( rightSubType == null ) {
 						return false;
 					}
-					if( recursiveTypesChecked.contains( rightSubType.id ) ) {
+					if( recursiveTypesChecked.contains( rightSubType.name ) ) {
 						return true;
 					} else {
-						recursiveTypesChecked.add( rightSubType.id );
+						recursiveTypesChecked.add( rightSubType.name );
 					}
 					if( entry.getValue().isEquivalentTo_recursive( right.getSubType( entry.getKey() ),
 						recursiveTypesChecked ) == false ) {
@@ -190,12 +190,13 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		final TypeInlineDefinition left = (TypeInlineDefinition) inputType;
 		final TypeInlineDefinition right = (TypeInlineDefinition) extender;
 
-		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(),
-			left.basicType(), inputType.cardinality );
+		TypeInlineDefinition newType =
+			new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.name(),
+				left.basicType(), inputType.cardinality );
 
 		if( left instanceof TypeDefinitionUndefined ) {
 			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(),
-				namePrefix + "_" + inputType.id(), BasicTypeDefinition.of( NativeType.ANY ), inputType.cardinality );
+				namePrefix + "_" + inputType.name(), BasicTypeDefinition.of( NativeType.ANY ), inputType.cardinality );
 			if( right.hasSubTypes() ) {
 				for( Entry< String, TypeDefinition > subType : right.subTypes() ) {
 					newTid.putSubType( subType.getValue() );
@@ -245,7 +246,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		if( getClass() != obj.getClass() )
 			return false;
 		TypeDefinition other = (TypeDefinition) obj;
-		if( !this.id.equals( other.id ) ) {
+		if( !this.name.equals( other.name ) ) {
 			return false;
 		}
 		return this.isEquivalentTo( other );
@@ -272,7 +273,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 	@Override
 	public String name() {
-		return this.id;
+		return this.name;
 	}
 
 	@Override

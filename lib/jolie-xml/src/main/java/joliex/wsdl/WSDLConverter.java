@@ -221,7 +221,7 @@ public class WSDLConverter {
 		} else {
 			builder.append( "type " );
 		}
-		builder.append( type.id() )
+		builder.append( type.name() )
 			.append( getCardinalityString( type ) )
 			.append( ':' );
 		if( type instanceof TypeDefinitionLink ) {

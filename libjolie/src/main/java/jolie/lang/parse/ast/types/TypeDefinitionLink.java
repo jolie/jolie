@@ -34,29 +34,50 @@ import jolie.util.Range;
 public class TypeDefinitionLink extends TypeDefinition {
 	private TypeDefinition linkedType;
 	private final String linkedTypeName;
+	private final String simpleName;
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality,
+	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality,
 		String linkedTypeName ) {
-		super( context, id, cardinality, AccessModifier.PUBLIC );
+		super( context, name, cardinality, AccessModifier.PUBLIC );
+		if( name.matches( "\\d#\\w+" ) ) {
+			this.simpleName = name.split( "\\d#" )[ 1 ];
+		} else {
+			this.simpleName = name;
+		}
 		this.linkedTypeName = linkedTypeName;
 	}
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType ) {
-		super( context, id, cardinality, AccessModifier.PUBLIC );
-		this.linkedTypeName = linkedType.id();
+	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality, TypeDefinition linkedType ) {
+		super( context, name, cardinality, AccessModifier.PUBLIC );
+		if( name.matches( "\\d#\\w" ) ) {
+			this.simpleName = name.split( "\\d#" )[ 1 ];
+		} else {
+			this.simpleName = name;
+		}
+		this.linkedTypeName = linkedType.name();
 		this.linkedType = linkedType;
 	}
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
+	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality, AccessModifier accessModifier,
 		TypeDefinition linkedType ) {
-		super( context, id, cardinality, accessModifier );
-		this.linkedTypeName = linkedType.id();
+		super( context, name, cardinality, accessModifier );
+		if( name.matches( "\\d#\\w" ) ) {
+			this.simpleName = name.split( "\\d#" )[ 1 ];
+		} else {
+			this.simpleName = name;
+		}
+		this.linkedTypeName = linkedType.name();
 		this.linkedType = linkedType;
 	}
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
+	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality, AccessModifier accessModifier,
 		String linkedTypeName ) {
-		super( context, id, cardinality, accessModifier );
+		super( context, name, cardinality, accessModifier );
+		if( name.matches( "\\d#\\w" ) ) {
+			this.simpleName = name.split( "\\d#" )[ 1 ];
+		} else {
+			this.simpleName = name;
+		}
 		this.linkedTypeName = linkedTypeName;
 	}
 
@@ -99,13 +120,13 @@ public class TypeDefinitionLink extends TypeDefinition {
 
 	@Override
 	public int hashCode( Set< String > recursiveTypeHashed ) {
-		if( recursiveTypeHashed.contains( this.id() ) ) {
+		if( recursiveTypeHashed.contains( this.name() ) ) {
 			return 0;
 		}
-		recursiveTypeHashed.add( this.id() );
+		recursiveTypeHashed.add( this.name() );
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + this.id().hashCode();
+		result = prime * result + this.name().hashCode();
 		result = prime * result + this.cardinality().hashCode();
 		result = prime * result + this.linkedTypeName.hashCode();
 		result = prime * result + recursiveTypeHashed.size();
@@ -113,5 +134,10 @@ public class TypeDefinitionLink extends TypeDefinition {
 			result = prime * result + linkedType.hashCode( recursiveTypeHashed );
 		}
 		return result;
+	}
+
+	@Override
+	public String simpleName() {
+		return this.simpleName;
 	}
 }
