@@ -567,7 +567,7 @@ public class SymbolReferenceResolver {
 					return;
 				}
 				if( !(targetSymbolInfo.get().node() instanceof TypeDefinition) ) {
-					error( buildSymbolTypeMismatchError( n, n.id(), "TypeDefinition",
+					error( buildSymbolTypeMismatchError( n, n.name(), "TypeDefinition",
 						targetSymbolInfo.get().node().getClass().getSimpleName() ) );
 					return;
 				}

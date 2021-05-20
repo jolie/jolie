@@ -131,19 +131,19 @@ public class JavaGWTDocumentCreator {
 
 						if( operationEntry.getValue() instanceof RequestResponseOperationDeclaration ) {
 							requestResponseOperation = (RequestResponseOperationDeclaration) operationEntry.getValue();
-							if( !typeMap.containsKey( requestResponseOperation.requestType().id() ) ) {
-								typeMap.put( requestResponseOperation.requestType().id(),
+							if( !typeMap.containsKey( requestResponseOperation.requestType().name() ) ) {
+								typeMap.put( requestResponseOperation.requestType().name(),
 									requestResponseOperation.requestType() );
 							}
-							if( !typeMap.containsKey( requestResponseOperation.responseType().id() ) ) {
-								typeMap.put( requestResponseOperation.responseType().id(),
+							if( !typeMap.containsKey( requestResponseOperation.responseType().name() ) ) {
+								typeMap.put( requestResponseOperation.responseType().name(),
 									requestResponseOperation.responseType() );
 							}
 						} else {
 							OneWayOperationDeclaration oneWayOperationDeclaration =
 								(OneWayOperationDeclaration) operationEntry.getValue();
-							if( !typeMap.containsKey( oneWayOperationDeclaration.requestType().id() ) ) {
-								typeMap.put( oneWayOperationDeclaration.requestType().id(),
+							if( !typeMap.containsKey( oneWayOperationDeclaration.requestType().name() ) ) {
+								typeMap.put( oneWayOperationDeclaration.requestType().name(),
 									oneWayOperationDeclaration.requestType() );
 							}
 						}
@@ -228,11 +228,11 @@ public class JavaGWTDocumentCreator {
 				RequestResponseOperationDeclaration requestResponseOperation =
 					(RequestResponseOperationDeclaration) operation;
 				stringBuilder.append( "import " ).append( namespace ).append( ".types." )
-					.append( requestResponseOperation.requestType().id() ).append( ";\n" );
+					.append( requestResponseOperation.requestType().name() ).append( ";\n" );
 				stringBuilder.append( "import " ).append( namespace ).append( "." ).append( inputPortInfo.id() )
 					.append( ".callbacks.CallBack" ).append( requestResponseOperation.id() ).append( ";\n" );
 				operationCallBuilder.append( getPortOperationMethod( requestResponseOperation.id(),
-					requestResponseOperation.requestType().id() ) );
+					requestResponseOperation.requestType().name() ) );
 				generateCallBackClass( requestResponseOperation, zipStream, inputPortInfo.id() );
 			} else {
 				OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
@@ -273,7 +273,7 @@ public class JavaGWTDocumentCreator {
 		convertClass( typeDefinition, builderHeaderclass );
 
 		String namespaceDir = namespace.replaceAll( "\\.", "/" );
-		ZipEntry zipEntry = new ZipEntry( namespaceDir + "/types/" + typeDefinition.id() + ".java" );
+		ZipEntry zipEntry = new ZipEntry( namespaceDir + "/types/" + typeDefinition.name() + ".java" );
 		zipStream.putNextEntry( zipEntry );
 		byte[] bb = builderHeaderclass.toString().getBytes();
 		zipStream.write( bb, 0, bb.length );
@@ -293,7 +293,7 @@ public class JavaGWTDocumentCreator {
 	}
 
 	private void convertClass( TypeDefinition typeDefinition, StringBuilder stringBuilder ) {
-		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " {\n" );
+		stringBuilder.append( "public class " ).append( typeDefinition.name() ).append( " {\n" );
 		if( Utils.hasSubTypes( typeDefinition ) ) {
 			ConvertSubTypes( typeDefinition, stringBuilder );
 		}
@@ -328,7 +328,7 @@ public class JavaGWTDocumentCreator {
 				.append( "import joliex.gwt.client.JolieCallback;\n" )
 				.append( "import joliex.gwt.client.Value;\n" )
 				.append( "import " ).append( namespace ).append( ".types." )
-				.append( operation.responseType().id() ).append( ";\n" )
+				.append( operation.responseType().name() ).append( ";\n" )
 				.append( "\n" )
 				.append( "public abstract class CallBack" ).append( operation.id() )
 				.append( " extends JolieCallback{\n" )
@@ -343,13 +343,13 @@ public class JavaGWTDocumentCreator {
 			stringBuilder.append( "}\n" )
 				// adding onSuccessfullReply method
 				.append( "@Override\npublic void onSuccess(Value response) {\nonSuccessfullReply( new " )
-				.append( operation.responseType().id() ).append( "( response ) );\n}\n" );
+				.append( operation.responseType().name() ).append( "( response ) );\n}\n" );
 
 			// adding abstract methods to be implemented
 			for( Entry< String, TypeDefinition > fault : operation.faults().entrySet() ) {
 				stringBuilder.append( "public abstract void onFault" ).append( fault.getKey() ).append( "();\n" );
 			}
-			stringBuilder.append( "public abstract void onSuccessfullReply(" ).append( operation.responseType().id() )
+			stringBuilder.append( "public abstract void onSuccessfullReply(" ).append( operation.responseType().name() )
 				.append( " response );\n" )
 				// closing class
 				.append( "}\n" );
@@ -391,11 +391,11 @@ public class JavaGWTDocumentCreator {
 					// link
 					if( subType.cardinality().max() > 1 ) {
 						stringBuilder.append( "private List<" )
-							.append( ((TypeDefinitionLink) subType).linkedType().id() ).append( "> " ).append( "_" )
-							.append( subType.id() ).append( ";\n" );
+							.append( ((TypeDefinitionLink) subType).linkedType().name() ).append( "> " ).append( "_" )
+							.append( subType.name() ).append( ";\n" );
 					} else {
-						stringBuilder.append( "private " ).append( ((TypeDefinitionLink) subType).linkedType().id() )
-							.append( " _" ).append( subType.id() ).append( ";\n" );
+						stringBuilder.append( "private " ).append( ((TypeDefinitionLink) subType).linkedType().name() )
+							.append( " _" ).append( subType.name() ).append( ";\n" );
 					}
 
 				} else if( subType instanceof TypeInlineDefinition ) {
@@ -407,11 +407,12 @@ public class JavaGWTDocumentCreator {
 						 * //manage type with subtypes without rootValue }
 						 */
 						if( subType.cardinality().max() > 1 ) {
-							stringBuilder.append( "private List<" ).append( subType.id() ).append( "> " ).append( "_" )
-								.append( subType.id() ).append( ";\n" );
+							stringBuilder.append( "private List<" ).append( subType.name() ).append( "> " )
+								.append( "_" )
+								.append( subType.name() ).append( ";\n" );
 						} else {
-							stringBuilder.append( "private " ).append( subType.id() ).append( " _" )
-								.append( subType.id() ).append( ";\n" );
+							stringBuilder.append( "private " ).append( subType.name() ).append( " _" )
+								.append( subType.name() ).append( ";\n" );
 						}
 
 					} else {
@@ -419,9 +420,10 @@ public class JavaGWTDocumentCreator {
 						String javaCode = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( subType ) );
 						if( subType.cardinality().max() > 1 ) {
 							stringBuilder.append( "private List<" ).append( javaCode ).append( "> " ).append( "_" )
-								.append( subType.id() ).append( ";\n" );
+								.append( subType.name() ).append( ";\n" );
 						} else {
-							stringBuilder.append( "private " ).append( javaCode ).append( " _" ).append( subType.id() )
+							stringBuilder.append( "private " ).append( javaCode ).append( " _" )
+								.append( subType.name() )
 								.append( ";\n" );
 						}
 					}
@@ -451,7 +453,7 @@ public class JavaGWTDocumentCreator {
 
 		// constructor with parameters
 
-		stringBuilder.append( "public " ).append( type.id() ).append( "( Value v ){\n" );
+		stringBuilder.append( "public " ).append( type.name() ).append( "( Value v ){\n" );
 		// stringBuilder.append("this.v=v;\n");
 
 		if( Utils.hasSubTypes( type ) ) {
@@ -464,33 +466,34 @@ public class JavaGWTDocumentCreator {
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
 					if( subType.cardinality().max() > 1 ) {
-						stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
-							.append( ((TypeDefinitionLink) subType).linkedType().id() ).append( ">();" ).append( "\n" );
+						stringBuilder.append( "_" ).append( subType.name() ).append( "= new LinkedList<" )
+							.append( ((TypeDefinitionLink) subType).linkedType().name() ).append( ">();" )
+							.append( "\n" );
 						// stringBuilder.append("}\n");
 
 						// to check:
-						stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.id() ).append( "\")){\n" )
-							.append( "for(int counter" ).append( subType.id() ).append( "=0;" ).append( "counter" )
-							.append( subType.id() ).append( "<v.getChildren(\"" ).append( subType.id() )
-							.append( "\").size();counter" ).append( subType.id() ).append( "++){\n" )
+						stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.name() ).append( "\")){\n" )
+							.append( "for(int counter" ).append( subType.name() ).append( "=0;" ).append( "counter" )
+							.append( subType.name() ).append( "<v.getChildren(\"" ).append( subType.name() )
+							.append( "\").size();counter" ).append( subType.name() ).append( "++){\n" )
 							.append( ((TypeDefinitionLink) subType).linkedTypeName() ).append( " support" )
-							.append( subType.id() )
+							.append( subType.name() )
 							.append( " = new " ).append( ((TypeDefinitionLink) subType).linkedTypeName() )
 							.append( "(v.getChildren(\"" )
-							.append( subType.id() ).append( "\").get(counter" ).append( subType.id() )
+							.append( subType.name() ).append( "\").get(counter" ).append( subType.name() )
 							.append( "));\n" )
-							.append( "_" ).append( subType.id() ).append( ".add(support" )
-							.append( subType.id() ).append( ");\n" )
+							.append( "_" ).append( subType.name() ).append( ".add(support" )
+							.append( subType.name() ).append( ");\n" )
 							.append( "}\n" )
 							// stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink)
 							// me.getValue()).linkedType().id() + ">();").append( "\n" );
 							.append( "}\n" );
 					} else {
-						stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.id() ).append( "\")){\n" )
+						stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.name() ).append( "\")){\n" )
 
-							.append( "_" ).append( subType.id() ).append( " = new " )
+							.append( "_" ).append( subType.name() ).append( " = new " )
 							.append( ((TypeDefinitionLink) subType).linkedTypeName() )
-							.append( "( v.getFirstChild(\"" ).append( subType.id() ).append( "\"));" ).append( "\n" )
+							.append( "( v.getFirstChild(\"" ).append( subType.name() ).append( "\"));" ).append( "\n" )
 							.append( "}\n" );
 					}
 				} else if( subType instanceof TypeInlineDefinition ) {
@@ -504,28 +507,30 @@ public class JavaGWTDocumentCreator {
 
 						if( subType.cardinality().max() > 1 ) {
 							stringBuilder
-								.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
-								.append( subType.id() ).append( ">();" ).append( "\n" )
+								.append( "_" ).append( subType.name() ).append( "= new LinkedList<" )
+								.append( subType.name() ).append( ">();" ).append( "\n" )
 								// to check:
-								.append( "if (v.hasChildren(\"" ).append( subType.id() ).append( "\")){\n" )
-								.append( "for(int counter" ).append( subType.id() ).append( "=0;" ).append( "counter" )
-								.append( subType.id() ).append( "<v.getChildren(\"" )
-								.append( subType.id() ).append( "\").size();counter" ).append( subType.id() )
+								.append( "if (v.hasChildren(\"" ).append( subType.name() ).append( "\")){\n" )
+								.append( "for(int counter" ).append( subType.name() ).append( "=0;" )
+								.append( "counter" )
+								.append( subType.name() ).append( "<v.getChildren(\"" )
+								.append( subType.name() ).append( "\").size();counter" ).append( subType.name() )
 								.append( "++){\n" )
-								.append( subType.id() ).append( " support" ).append( subType.id() )
-								.append( "=new " ).append( subType.id() ).append( "(v.getChildren(\"" )
-								.append( subType.id() )
-								.append( "\").get(counter" ).append( subType.id() ).append( "));\n" )
-								.append( "_" ).append( subType.id() ).append( ".add(support" ).append( subType.id() )
+								.append( subType.name() ).append( " support" ).append( subType.name() )
+								.append( "=new " ).append( subType.name() ).append( "(v.getChildren(\"" )
+								.append( subType.name() )
+								.append( "\").get(counter" ).append( subType.name() ).append( "));\n" )
+								.append( "_" ).append( subType.name() ).append( ".add(support" )
+								.append( subType.name() )
 								.append( ");\n" )
 								.append( "}\n" )
 								// stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink)
 								// me.getValue()).linkedType().id() ).append( ">();").append( "\n" );
 								.append( "}\n" );
 						} else {
-							stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.id() ).append( "\")){\n" )
-								.append( "_" ).append( subType.id() ).append( " = new " ).append( subType.id() )
-								.append( "( v.getFirstChild(\"" ).append( subType.id() )
+							stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.name() ).append( "\")){\n" )
+								.append( "_" ).append( subType.name() ).append( " = new " ).append( subType.name() )
+								.append( "( v.getFirstChild(\"" ).append( subType.name() )
 								.append( "\"));" ).append( "\n" )
 								.append( "}\n" );
 						}
@@ -537,35 +542,36 @@ public class JavaGWTDocumentCreator {
 						String javaMethod = JAVA_NATIVE_METHOD.get( Utils.nativeType( subType ) );
 
 						if( subType.cardinality().max() > 1 ) {
-							stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
+							stringBuilder.append( "_" ).append( subType.name() ).append( "= new LinkedList<" )
 								.append( javaCode ).append( ">();" ).append( "\n" );
 
-							stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.id() ).append( "\")){\n" );
-							stringBuilder.append( "for(int counter" ).append( subType.id() ).append( "=0; " )
-								.append( "counter" ).append( subType.id() ).append( "<v.getChildren(\"" )
-								.append( subType.id() ).append( "\").size(); counter" ).append( subType.id() )
+							stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.name() ).append( "\")){\n" );
+							stringBuilder.append( "for(int counter" ).append( subType.name() ).append( "=0; " )
+								.append( "counter" ).append( subType.name() ).append( "<v.getChildren(\"" )
+								.append( subType.name() ).append( "\").size(); counter" ).append( subType.name() )
 								.append( "++){\n" );
 							if( Utils.nativeType( subType ) != NativeType.ANY ) {
 								stringBuilder.append( javaCode ).append( " support" )
-									.append( subType.id() )
-									.append( " = v.getChildren(\"" ).append( subType.id() ).append( "\").get(counter" )
-									.append( subType.id() ).append( ")." ).append( javaMethod ).append( ";\n" );
-								stringBuilder.append( "_" ).append( subType.id() ).append( ".add(support" )
-									.append( subType.id() ).append( ");\n" );
+									.append( subType.name() )
+									.append( " = v.getChildren(\"" ).append( subType.name() )
+									.append( "\").get(counter" )
+									.append( subType.name() ).append( ")." ).append( javaMethod ).append( ";\n" );
+								stringBuilder.append( "_" ).append( subType.name() ).append( ".add(support" )
+									.append( subType.name() ).append( ");\n" );
 							} else {
 								for( NativeType t : NativeType.class.getEnumConstants() ) {
 									if( !JAVA_NATIVE_CHECKER.containsKey( t ) )
 										continue;
 									stringBuilder.append(
-										"if(v.getChildren(\"" ).append( subType.id() ).append( "\").get(counter" )
-										.append( subType.id() ).append( ")." ).append( JAVA_NATIVE_CHECKER.get( t ) )
+										"if(v.getChildren(\"" ).append( subType.name() ).append( "\").get(counter" )
+										.append( subType.name() ).append( ")." ).append( JAVA_NATIVE_CHECKER.get( t ) )
 										.append( "){\n" ).append( javaCode )
 										.append( " support" )
-										.append( subType.id() )
-										.append( " = v.getChildren(\"" ).append( subType.id() )
-										.append( "\").get(counter" ).append( subType.id() ).append( ")." )
+										.append( subType.name() )
+										.append( " = v.getChildren(\"" ).append( subType.name() )
+										.append( "\").get(counter" ).append( subType.name() ).append( ")." )
 										.append( JAVA_NATIVE_METHOD.get( t ) ).append( ";\n" ).append( "_" )
-										.append( subType.id() ).append( ".add(support" ).append( subType.id() )
+										.append( subType.name() ).append( ".add(support" ).append( subType.name() )
 										.append( ");\n" ).append( "}\n" );
 								}
 							}
@@ -574,21 +580,22 @@ public class JavaGWTDocumentCreator {
 							// me.getValue()).linkedType().id() ).append( ">();").append( "\n" );
 							stringBuilder.append( "}\n" );
 						} else {
-							stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.id() ).append( "\")){\n" );
+							stringBuilder.append( "if (v.hasChildren(\"" ).append( subType.name() ).append( "\")){\n" );
 
 
 							if( Utils.nativeType( subType ) != NativeType.ANY ) {
-								stringBuilder.append( "_" ).append( subType.id() ).append( "= v.getFirstChild(\"" )
-									.append( subType.id() ).append( "\")." )
+								stringBuilder.append( "_" ).append( subType.name() ).append( "= v.getFirstChild(\"" )
+									.append( subType.name() ).append( "\")." )
 									.append( javaMethod ).append( ";" ).append( "\n" );
 							} else {
 								for( NativeType t : NativeType.class.getEnumConstants() ) {
 									if( !JAVA_NATIVE_CHECKER.containsKey( t ) )
 										continue;
 									stringBuilder.append(
-										"if(v.getFirstChild(\"" ).append( subType.id() ).append( "\")." )
+										"if(v.getFirstChild(\"" ).append( subType.name() ).append( "\")." )
 										.append( JAVA_NATIVE_CHECKER.get( t ) ).append( "){\n_" )
-										.append( subType.id() ).append( " = v.getFirstChild(\"" ).append( subType.id() )
+										.append( subType.name() ).append( " = v.getFirstChild(\"" )
+										.append( subType.name() )
 										.append( "\")." ).append( JAVA_NATIVE_METHOD.get( t ) )
 										.append( ";\n" ).append( "}\n" );
 								}
@@ -622,7 +629,7 @@ public class JavaGWTDocumentCreator {
 		}
 		stringBuilder.append( "}\n" )
 			// constructor without parameters
-			.append( "public " ).append( type.id() ).append( "(){\n" );
+			.append( "public " ).append( type.name() ).append( "(){\n" );
 
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
@@ -634,8 +641,9 @@ public class JavaGWTDocumentCreator {
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
 					if( subType.cardinality().max() > 1 ) {
-						stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
-							.append( ((TypeDefinitionLink) subType).linkedType().id() ).append( ">();" ).append( "\n" );
+						stringBuilder.append( "_" ).append( subType.name() ).append( "= new LinkedList<" )
+							.append( ((TypeDefinitionLink) subType).linkedType().name() ).append( ">();" )
+							.append( "\n" );
 						// stringBuilder.append("}\n");
 					}
 				} else if( subType instanceof TypeInlineDefinition ) {
@@ -644,8 +652,8 @@ public class JavaGWTDocumentCreator {
 
 						if( subType.cardinality().max() > 1 ) {
 							stringBuilder
-								.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
-								.append( subType.id() ).append( ">();" ).append( "\n" );
+								.append( "_" ).append( subType.name() ).append( "= new LinkedList<" )
+								.append( subType.name() ).append( ">();" ).append( "\n" );
 						}
 						/*
 						 * if(subType.nativeType()==NativeType.VOID){ //manage type with subtypes and a rootValue }else{
@@ -658,7 +666,7 @@ public class JavaGWTDocumentCreator {
 						// String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
 						if( subType.cardinality().max() > 1 ) {
-							stringBuilder.append( "_" ).append( subType.id() ).append( "= new LinkedList<" )
+							stringBuilder.append( "_" ).append( subType.name() ).append( "= new LinkedList<" )
 								.append( javaCode ).append( ">();" ).append( "\n" );
 						}
 					}
@@ -683,19 +691,19 @@ public class JavaGWTDocumentCreator {
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
 					if( subType.cardinality().max() > 1 ) {
-						stringBuilder.append( "if(_" ).append( subType.id() ).append( "!=null){\n" )
-							.append( "for(int counter" ).append( subType.id() ).append( "=0;" ).append( "counter" )
-							.append( subType.id() ).append( "<" ).append( "_" ).append( subType.id() )
-							.append( ".size();counter" ).append( subType.id() ).append( "++){\n" )
-							.append( "vReturn.getNewChild(\"" ).append( subType.id() ).append( "\").deepCopy(" )
-							.append( "_" ).append( subType.id() ).append( ".get(counter" ).append( subType.id() )
+						stringBuilder.append( "if(_" ).append( subType.name() ).append( "!=null){\n" )
+							.append( "for(int counter" ).append( subType.name() ).append( "=0;" ).append( "counter" )
+							.append( subType.name() ).append( "<" ).append( "_" ).append( subType.name() )
+							.append( ".size();counter" ).append( subType.name() ).append( "++){\n" )
+							.append( "vReturn.getNewChild(\"" ).append( subType.name() ).append( "\").deepCopy(" )
+							.append( "_" ).append( subType.name() ).append( ".get(counter" ).append( subType.name() )
 							.append( ").getValue());\n" )
 							.append( "}\n" )
 							.append( "}\n" );
 					} else {
-						stringBuilder.append( "if((_" ).append( subType.id() ).append( "!=null)){\n" )
-							.append( "vReturn.getNewChild(\"" ).append( subType.id() ).append( "\")" )
-							.append( ".deepCopy(" ).append( "_" ).append( subType.id() ).append( ".getValue());\n" )
+						stringBuilder.append( "if((_" ).append( subType.name() ).append( "!=null)){\n" )
+							.append( "vReturn.getNewChild(\"" ).append( subType.name() ).append( "\")" )
+							.append( ".deepCopy(" ).append( "_" ).append( subType.name() ).append( ".getValue());\n" )
 							.append( "}\n" );
 					}
 				} else if( subType instanceof TypeInlineDefinition ) {
@@ -706,19 +714,22 @@ public class JavaGWTDocumentCreator {
 						 * //manage type with subtypes without rootValue }
 						 */
 						if( subType.cardinality().max() > 1 ) {
-							stringBuilder.append( "if(_" ).append( subType.id() ).append( "!=null){\n" )
-								.append( "for(int counter" ).append( subType.id() ).append( "=0;" ).append( "counter" )
-								.append( subType.id() ).append( "<" ).append( "_" ).append( subType.id() )
-								.append( ".size();counter" ).append( subType.id() ).append( "++){\n" )
-								.append( "vReturn.getNewChild(\"" ).append( subType.id() ).append( "\").deepCopy(" )
-								.append( "_" ).append( subType.id() ).append( ".get(counter" ).append( subType.id() )
+							stringBuilder.append( "if(_" ).append( subType.name() ).append( "!=null){\n" )
+								.append( "for(int counter" ).append( subType.name() ).append( "=0;" )
+								.append( "counter" )
+								.append( subType.name() ).append( "<" ).append( "_" ).append( subType.name() )
+								.append( ".size();counter" ).append( subType.name() ).append( "++){\n" )
+								.append( "vReturn.getNewChild(\"" ).append( subType.name() ).append( "\").deepCopy(" )
+								.append( "_" ).append( subType.name() ).append( ".get(counter" )
+								.append( subType.name() )
 								.append( ").getValue());\n" )
 								.append( "}\n" )
 								.append( "}\n" );
 						} else {
-							stringBuilder.append( "if((_" ).append( subType.id() ).append( "!=null)){\n" )
-								.append( "vReturn.getNewChild(\"" ).append( subType.id() ).append( "\")" )
-								.append( ".deepCopy(" ).append( "_" ).append( subType.id() ).append( ".getValue());\n" )
+							stringBuilder.append( "if((_" ).append( subType.name() ).append( "!=null)){\n" )
+								.append( "vReturn.getNewChild(\"" ).append( subType.name() ).append( "\")" )
+								.append( ".deepCopy(" ).append( "_" ).append( subType.name() )
+								.append( ".getValue());\n" )
 								.append( "}\n" );
 						}
 
@@ -726,25 +737,26 @@ public class JavaGWTDocumentCreator {
 						// native type
 
 						if( subType.cardinality().max() > 1 ) {
-							stringBuilder.append( "if(_" ).append( subType.id() ).append( "!=null){\n" )
-								.append( "for(int counter" ).append( subType.id() ).append( "=0;" )
-								.append( "counter" ).append( subType.id() ).append( "<" ).append( "_" )
-								.append( subType.id() )
-								.append( ".size();counter" ).append( subType.id() ).append( "++){\n" );
+							stringBuilder.append( "if(_" ).append( subType.name() ).append( "!=null){\n" )
+								.append( "for(int counter" ).append( subType.name() ).append( "=0;" )
+								.append( "counter" ).append( subType.name() ).append( "<" ).append( "_" )
+								.append( subType.name() )
+								.append( ".size();counter" ).append( subType.name() ).append( "++){\n" );
 							if( Utils.nativeType( subType ) != NativeType.ANY ) {
-								stringBuilder.append( "vReturn.getNewChild(\"" ).append( subType.id() )
-									.append( "\").setValue(_" ).append( subType.id() ).append( ".get(counter" )
-									.append( subType.id() ).append( "));\n" );
+								stringBuilder.append( "vReturn.getNewChild(\"" ).append( subType.name() )
+									.append( "\").setValue(_" ).append( subType.name() ).append( ".get(counter" )
+									.append( subType.name() ).append( "));\n" );
 							} else {
 								for( NativeType t : NativeType.class.getEnumConstants() ) {
 									if( !JAVA_NATIVE_CHECKER.containsKey( t ) )
 										continue;
 									stringBuilder.append(
-										"if(_" ).append( subType.id() ).append( ".get(counter" ).append( subType.id() )
+										"if(_" ).append( subType.name() ).append( ".get(counter" )
+										.append( subType.name() )
 										.append( ") instanceof " ).append( JAVA_NATIVE_EQUIVALENT.get( t ) )
-										.append( "){\n" ).append( "vReturn.getNewChild(\"" ).append( subType.id() )
-										.append( "\")" ).append( ".setValue(_" ).append( subType.id() )
-										.append( ".get(counter" ).append( subType.id() ).append( "));\n" )
+										.append( "){\n" ).append( "vReturn.getNewChild(\"" ).append( subType.name() )
+										.append( "\")" ).append( ".setValue(_" ).append( subType.name() )
+										.append( ".get(counter" ).append( subType.name() ).append( "));\n" )
 										.append( "}\n" );
 								}
 							}
@@ -752,19 +764,20 @@ public class JavaGWTDocumentCreator {
 								.append( "}\n" );
 
 						} else {
-							stringBuilder.append( "if((_" ).append( subType.id() ).append( "!=null)){\n" );
+							stringBuilder.append( "if((_" ).append( subType.name() ).append( "!=null)){\n" );
 							if( Utils.nativeType( subType ) != NativeType.ANY ) {
-								stringBuilder.append( "vReturn.getNewChild(\"" ).append( subType.id() ).append( "\")" )
-									.append( ".setValue(_" ).append( subType.id() ).append( ");\n" );
+								stringBuilder.append( "vReturn.getNewChild(\"" ).append( subType.name() )
+									.append( "\")" )
+									.append( ".setValue(_" ).append( subType.name() ).append( ");\n" );
 							} else {
 								for( NativeType t : NativeType.class.getEnumConstants() ) {
 									if( !JAVA_NATIVE_CHECKER.containsKey( t ) )
 										continue;
 									stringBuilder.append(
-										"if(_" ).append( subType.id() ).append( " instanceof " )
+										"if(_" ).append( subType.name() ).append( " instanceof " )
 										.append( JAVA_NATIVE_EQUIVALENT.get( t ) ).append( "){\n" )
-										.append( "vReturn.getNewChild(\"" ).append( subType.id() ).append( "\")" )
-										.append( ".setValue(_" ).append( subType.id() ).append( ");\n" )
+										.append( "vReturn.getNewChild(\"" ).append( subType.name() ).append( "\")" )
+										.append( ".setValue(_" ).append( subType.name() ).append( ");\n" )
 										.append( "}\n" );
 								}
 							}
@@ -810,7 +823,7 @@ public class JavaGWTDocumentCreator {
 
 				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 
-				String nameVariable = subType.id();
+				String nameVariable = subType.name();
 				String startingChar = nameVariable.substring( 0, 1 );
 				String remaningStr = nameVariable.substring( 1 );
 				String nameVariableOp = startingChar.toUpperCase() + remaningStr;
@@ -863,7 +876,7 @@ public class JavaGWTDocumentCreator {
 						if( subType.cardinality().max() > 1 ) {
 
 							stringBuilder
-								.append( "public " ).append( subType.id() ).append( " get" )
+								.append( "public " ).append( subType.name() ).append( " get" )
 								.append( nameVariableOp ).append( "Value( int index ){\n" )
 								.append( "return " ).append( "_" ).append( nameVariable ).append( ".get(index);\n" )
 								.append( "}\n" )
@@ -874,7 +887,7 @@ public class JavaGWTDocumentCreator {
 								.append(
 									"public " )
 								.append( "void add" ).append( nameVariableOp ).append( "Value( " )
-								.append( subType.id() ).append( " value ){\n" )
+								.append( subType.name() ).append( " value ){\n" )
 								.append( "_" ).append( nameVariable ).append( ".add(value);\n" )
 								.append( "}\n" )
 								.append( "public " ).append( "void remove" )
@@ -884,14 +897,14 @@ public class JavaGWTDocumentCreator {
 
 						} else {
 
-							stringBuilder.append( "public " ).append( subType.id() ).append( " get" )
+							stringBuilder.append( "public " ).append( subType.name() ).append( " get" )
 								.append( nameVariableOp ).append( "(){\n" )
 								.append( "return _" ).append( nameVariable ).append( ";\n" )
 								.append( "}\n" )
 								.append(
 									"public " )
 								.append( "void set" ).append( nameVariableOp ).append( "( " )
-								.append( subType.id() ).append( " value ){\n" )
+								.append( subType.name() ).append( " value ){\n" )
 								.append( "_" ).append( nameVariable ).append( " = value;\n}\n" );
 						}
 
