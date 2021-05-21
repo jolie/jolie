@@ -879,7 +879,7 @@ public abstract class Value implements Expression, Cloneable {
 				setValue( boolValue() && val.boolValue() );
 			}
 		} else {
-			assignValue( val );
+			setValue( 0 );
 		}
 	}
 
