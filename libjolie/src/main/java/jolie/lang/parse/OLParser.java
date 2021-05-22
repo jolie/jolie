@@ -3461,6 +3461,7 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
+					assertIdentifier( "expected Identifier for importing target after from" );
 					importTargets.add( parseExtendedIdentifier( Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
 					importTargetIDStarted = true;
 					// nextToken();
