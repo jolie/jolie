@@ -3,8 +3,6 @@ name: Bug report
 about: Template for issues related to bugs
 title: ''
 labels: bug
-assignees: thesave, fmontesi, klag, mwallnoefer, bmaschio
-
 ---
 
 **Describe the bug**
