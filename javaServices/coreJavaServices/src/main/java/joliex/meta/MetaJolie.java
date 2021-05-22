@@ -243,7 +243,7 @@ public class MetaJolie extends JavaService {
 		TypeDefinition type,
 		boolean insertTypeInInterfaceList, TypeDefinition extension ) {
 		Value response = Value.create();
-		response.getFirstChild( "name" ).setValue( type.id() );
+		response.getFirstChild( "name" ).setValue( type.name() );
 		response.getFirstChild( "cardinality" ).deepCopy( addCardinality( type.cardinality() ) );
 		response.getFirstChild( "type" ).deepCopy( getType(
 			listOfGeneratedTypesInTypeDefinition,
@@ -281,8 +281,8 @@ public class MetaJolie extends JavaService {
 		ArrayList< Value > listOfGeneratedTypesInValues,
 		TypeDefinition typedef, TypeDefinition extension ) {
 		// to be optimized, similar code with addType
-		if( !listOfGeneratedTypesInTypeDefinition.contains( typedef ) && !isNativeType( typedef.id() )
-			&& !typedef.id().equals( "undefined" ) ) {
+		if( !listOfGeneratedTypesInTypeDefinition.contains( typedef ) && !isNativeType( typedef.name() )
+			&& !typedef.name().equals( "undefined" ) ) {
 			listOfGeneratedTypesInTypeDefinition.add( typedef );
 			listOfGeneratedTypesInValues.add( getTypeDefinition(
 				listOfGeneratedTypesInTypeDefinition,
@@ -302,7 +302,7 @@ public class MetaJolie extends JavaService {
 			listOfGeneratedTypesInTypeDefinition,
 			listOfGeneratedTypesInValues,
 			typedef, insertInInterfaceList, extension ) );
-		type.getFirstChild( "name" ).setValue( typedef.id() );
+		type.getFirstChild( "name" ).setValue( typedef.simpleName() );
 		type.getFirstChild( "documentation" ).setValue( typedef.getDocumentation().orElse( "" ) );
 		return type;
 	}
@@ -396,8 +396,8 @@ public class MetaJolie extends JavaService {
 
 	private List< TypeDefinition > addTypeDefinition( List< TypeDefinition > types, TypeDefinition typedef ) {
 
-		if( !typedef.id().equals( "undefined" ) ) {
-			if( !types.contains( typedef ) && !isNativeType( typedef.id() ) ) {
+		if( !typedef.name().equals( "undefined" ) ) {
+			if( !types.contains( typedef ) && !isNativeType( typedef.name() ) ) {
 				types.add( typedef );
 				if( typedef instanceof TypeDefinitionLink ) {
 					addTypeDefinition( types, ((TypeDefinitionLink) typedef).linkedType() );
@@ -459,9 +459,9 @@ public class MetaJolie extends JavaService {
 				current_operation.getFirstChild( "operation_name" ).setValue( oneWayOperation.id() );
 				current_operation.getFirstChild( "documentation" )
 					.setValue( oneWayOperation.getDocumentation().orElse( "" ) );
-				current_operation.getFirstChild( "input" ).setValue( oneWayOperation.requestType().id() );
+				current_operation.getFirstChild( "input" ).setValue( oneWayOperation.requestType().name() );
 
-				if( !isNativeType( oneWayOperation.requestType().id() ) ) {
+				if( !isNativeType( oneWayOperation.requestType().name() ) ) {
 					if( owExtender == null ) {
 						insertTypeDefinition(
 							listOfGeneratedTypesInTypeDefinition,
@@ -482,9 +482,9 @@ public class MetaJolie extends JavaService {
 				current_operation.getFirstChild( "operation_name" ).setValue( requestResponseOperation.id() );
 				current_operation.getFirstChild( "documentation" )
 					.setValue( requestResponseOperation.getDocumentation().orElse( "" ) );
-				current_operation.getFirstChild( "input" ).setValue( requestResponseOperation.requestType().id() );
-				current_operation.getFirstChild( "output" ).setValue( requestResponseOperation.responseType().id() );
-				if( !isNativeType( requestResponseOperation.requestType().id() ) ) {
+				current_operation.getFirstChild( "input" ).setValue( requestResponseOperation.requestType().name() );
+				current_operation.getFirstChild( "output" ).setValue( requestResponseOperation.responseType().name() );
+				if( !isNativeType( requestResponseOperation.requestType().name() ) ) {
 					if( rrExtender == null ) {
 						insertTypeDefinition(
 							listOfGeneratedTypesInTypeDefinition,
@@ -498,7 +498,7 @@ public class MetaJolie extends JavaService {
 							rrExtender.requestType() );
 					}
 				}
-				if( !isNativeType( requestResponseOperation.responseType().id() ) ) {
+				if( !isNativeType( requestResponseOperation.responseType().name() ) ) {
 					if( rrExtender == null ) {
 						insertTypeDefinition(
 							listOfGeneratedTypesInTypeDefinition,
@@ -709,16 +709,14 @@ public class MetaJolie extends JavaService {
 		Value type = Value.create();
 		type.getFirstChild( "name" ).setValue( faultname );
 		if( typedef != null ) {
-			if( typedef.id().equals( "undefined" ) ) {
+			if( typedef.name().equals( "undefined" ) ) {
 				type.getFirstChild( "type" ).deepCopy( getTypeUndefined() );
-			} else if( !isNativeType( typedef.id() ) ) {
-				type.getFirstChild( "type" ).getFirstChild( "link_name" ).setValue( typedef.id() );
-				insertTypeDefinition(
-					listOfGeneratedTypesInTypeDefinition,
-					listOfGeneratedTypesInValues,
+			} else if( !isNativeType( typedef.name() ) ) {
+				type.getFirstChild( "type" ).getFirstChild( "link_name" ).setValue( typedef.name() );
+				insertTypeDefinition( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues,
 					typedef, extension );
 			} else {
-				type.getFirstChild( "type" ).deepCopy( getNativeType( typedef.id() ) );
+				type.getFirstChild( "type" ).deepCopy( getNativeType( typedef.name() ) );
 			}
 		}
 		return type;

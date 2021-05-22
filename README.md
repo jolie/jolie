@@ -10,6 +10,8 @@
 
 Jolie is a service-oriented programming language, designed to offer native abstractions for the development of [microservices](https://en.wikipedia.org/wiki/Microservices). See [our website](https://www.jolie-lang.org/) for more information and [installation instructions](https://jolie-lang.org/downloads.html).
 
+Have you made something in or for Jolie? Please submit it to our [awesome Jolie list](https://github.com/jolie/awesome-jolie)!
+
 # Documentation :notebook_with_decorative_cover:
 
 See <https://docs.jolie-lang.org/>.
@@ -38,7 +40,7 @@ Thank you to all our contributors!
 
 [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/jolie/jolie.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jolie/jolie/context:java) ![Java CI](https://github.com/jolie/jolie/workflows/Java%20CI/badge.svg)
 
-# Get in touch
+# Get in touch :wave:
 
 Discussions can take place over different media.
 

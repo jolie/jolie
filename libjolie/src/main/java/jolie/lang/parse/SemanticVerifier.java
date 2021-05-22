@@ -275,7 +275,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		for( Entry< TypeDefinition, List< TypeDefinition > > entry : typesToBeEqual.entrySet() ) {
 			for( TypeDefinition type : entry.getValue() ) {
 				if( !entry.getKey().isEquivalentTo( type ) ) {
-					error( type, "type " + type.id() + " has already been defined with a different structure" );
+					error( type, "type " + type.name() + " has already been defined with a different structure" );
 				}
 			}
 		}
@@ -305,7 +305,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 				for( CorrelationAliasInfo alias : csetVar.aliases() ) {
 					checkCorrelationAlias( alias );
 
-					operations = inputTypeNameMap.get( alias.guardName().id() );
+					operations = inputTypeNameMap.get( alias.guardName().name() );
 					for( String operationName : operations ) {
 						currCorrelatingOperations.add( operationName );
 						correlationFunctionInfo.putCorrelationPair(
@@ -411,7 +411,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		boolean backupRootType = isTopLevelType;
 		if( isTopLevelType ) {
 			// Check if the type has already been defined with a different structure
-			TypeDefinition type = definedTypes.get( n.id() );
+			TypeDefinition type = definedTypes.get( n.name() );
 			if( type != null ) {
 				addTypeEqualnessCheck( type, n );
 			}
@@ -428,7 +428,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		isTopLevelType = backupRootType;
 
 		if( isTopLevelType ) {
-			definedTypes.put( n.id(), n );
+			definedTypes.put( n.name(), n );
 		}
 	}
 
@@ -437,11 +437,11 @@ public class SemanticVerifier implements UnitOLVisitor {
 		checkCardinality( n );
 		if( isTopLevelType ) {
 			// Check if the type has already been defined with a different structure
-			TypeDefinition type = definedTypes.get( n.id() );
+			TypeDefinition type = definedTypes.get( n.name() );
 			if( type != null ) {
 				addTypeEqualnessCheck( type, n );
 			}
-			definedTypes.put( n.id(), n );
+			definedTypes.put( n.name(), n );
 		}
 	}
 
@@ -450,7 +450,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		boolean backupRootType = isTopLevelType;
 		if( isTopLevelType ) {
 			// Check if the type has already been defined with a different structure
-			TypeDefinition type = definedTypes.get( n.id() );
+			TypeDefinition type = definedTypes.get( n.name() );
 			if( type != null ) {
 				addTypeEqualnessCheck( type, n );
 			}
@@ -464,16 +464,16 @@ public class SemanticVerifier implements UnitOLVisitor {
 		isTopLevelType = backupRootType;
 
 		if( isTopLevelType ) {
-			definedTypes.put( n.id(), n );
+			definedTypes.put( n.name(), n );
 		}
 	}
 
 	private void checkCardinality( TypeDefinition type ) {
 		if( type.cardinality().min() < 0 ) {
-			error( type, "type " + type.id() + " specifies an invalid minimum range value (must be positive)" );
+			error( type, "type " + type.name() + " specifies an invalid minimum range value (must be positive)" );
 		}
 		if( type.cardinality().max() < 0 ) {
-			error( type, "type " + type.id() + " specifies an invalid maximum range value (must be positive)" );
+			error( type, "type " + type.name() + " specifies an invalid maximum range value (must be positive)" );
 		}
 	}
 
@@ -634,9 +634,9 @@ public class SemanticVerifier implements UnitOLVisitor {
 	@Override
 	public void visit( OneWayOperationDeclaration n ) {
 
-		if( definedTypes.get( n.requestType().id() ) == null ) {
-			if( !hasSymbolDefined( n.requestType().id(), n.context() ) ) {
-				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+		if( definedTypes.get( n.requestType().name() ) == null ) {
+			if( !hasSymbolDefined( n.requestType().name(), n.context() ) ) {
+				error( n, "unknown type: " + n.requestType().name() + " for operation " + n.id() );
 			}
 		}
 
@@ -646,26 +646,26 @@ public class SemanticVerifier implements UnitOLVisitor {
 				addOneWayEqualnessCheck( n, other );
 			} else {
 				oneWayOperations.put( n.id(), n );
-				inputTypeNameMap.put( n.requestType().id(), n.id() );
+				inputTypeNameMap.put( n.requestType().name(), n.id() );
 			}
 		}
 	}
 
 	@Override
 	public void visit( RequestResponseOperationDeclaration n ) {
-		if( definedTypes.get( n.requestType().id() ) == null ) {
-			if( !hasSymbolDefined( n.requestType().id(), n.context() ) ) {
-				error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
+		if( definedTypes.get( n.requestType().name() ) == null ) {
+			if( !hasSymbolDefined( n.requestType().name(), n.context() ) ) {
+				error( n, "unknown type: " + n.requestType().name() + " for operation " + n.id() );
 			}
 		}
-		if( definedTypes.get( n.responseType().id() ) == null ) {
-			if( !hasSymbolDefined( n.responseType().id(), n.context() ) ) {
-				error( n, "unknown type: " + n.responseType().id() + " for operation " + n.id() );
+		if( definedTypes.get( n.responseType().name() ) == null ) {
+			if( !hasSymbolDefined( n.responseType().name(), n.context() ) ) {
+				error( n, "unknown type: " + n.responseType().name() + " for operation " + n.id() );
 			}
 		}
 		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
-			if( definedTypes.get( fault.getValue().id() ) == null ) {
-				if( !hasSymbolDefined( fault.getValue().id(), n.context() ) ) {
+			if( definedTypes.get( fault.getValue().name() ) == null ) {
+				if( !hasSymbolDefined( fault.getValue().name(), n.context() ) ) {
 					error( n, "unknown type for fault " + fault.getKey() );
 				}
 			}
@@ -677,7 +677,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 				addRequestResponseEqualnessCheck( n, other );
 			} else {
 				requestResponseOperations.put( n.id(), n );
-				inputTypeNameMap.put( n.requestType().id(), n.id() );
+				inputTypeNameMap.put( n.requestType().name(), n.id() );
 			}
 		}
 	}

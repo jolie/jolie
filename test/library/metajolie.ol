@@ -684,6 +684,15 @@ define doTest
         compareValuesVectorLight@MetaJolie( { .v1 << meta_description.input.interfaces.types.type, .v2 << v2 })()
 
    }
-   
+
+   // check type names
+   rq.filename = "private/sample_service_typesymbols.ol"
+   getOutputPortMetaData@MetaJolie( rq )( meta_description )
+   for( t in meta_description.output.interfaces.types ) {
+       find@StringUtils( t.name { regex = "#" } )( find_result )
+       if ( find_result > 0 ) {
+           throw( TestFailed, "Found a type with a name that containes #: " + t.name )
+       }
+   }
 }
 

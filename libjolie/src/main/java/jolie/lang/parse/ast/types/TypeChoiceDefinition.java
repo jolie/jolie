@@ -68,13 +68,13 @@ public class TypeChoiceDefinition extends TypeDefinition {
 
 	@Override
 	public int hashCode( Set< String > recursiveTypeHashed ) {
-		if( recursiveTypeHashed.contains( this.id() ) ) {
+		if( recursiveTypeHashed.contains( this.name() ) ) {
 			return 0;
 		}
-		recursiveTypeHashed.add( this.id() );
+		recursiveTypeHashed.add( this.name() );
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + this.id().hashCode();
+		result = prime * result + this.name().hashCode();
 		result = prime * result + this.cardinality().hashCode();
 		result = prime * result + this.left.hashCode( recursiveTypeHashed );
 		result = prime * result + recursiveTypeHashed.size();

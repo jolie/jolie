@@ -157,25 +157,25 @@ public class JavaDocumentCreator {
 					operation = operationDeclaration;
 					if( operation instanceof RequestResponseOperationDeclaration ) {
 						requestResponseOperation = (RequestResponseOperationDeclaration) operation;
-						if( !typeMap.containsKey( requestResponseOperation.requestType().id() ) ) {
-							typeMap.put( requestResponseOperation.requestType().id(),
+						if( !typeMap.containsKey( requestResponseOperation.requestType().name() ) ) {
+							typeMap.put( requestResponseOperation.requestType().name(),
 								requestResponseOperation.requestType() );
 						}
-						if( !typeMap.containsKey( requestResponseOperation.responseType().id() ) ) {
-							typeMap.put( requestResponseOperation.responseType().id(),
+						if( !typeMap.containsKey( requestResponseOperation.responseType().name() ) ) {
+							typeMap.put( requestResponseOperation.responseType().name(),
 								requestResponseOperation.responseType() );
 						}
 						for( Entry< String, TypeDefinition > fault : requestResponseOperation.faults().entrySet() ) {
-							if( !typeMap.containsKey( fault.getValue().id() ) ) {
-								typeMap.put( fault.getValue().id(), fault.getValue() );
+							if( !typeMap.containsKey( fault.getValue().name() ) ) {
+								typeMap.put( fault.getValue().name(), fault.getValue() );
 							}
 							faultMap.put( getExceptionName( requestResponseOperation.id(), fault.getKey() ),
 								fault.getValue() );
 						}
 					} else {
 						OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
-						if( !typeMap.containsKey( oneWayOperationDeclaration.requestType().id() ) ) {
-							typeMap.put( oneWayOperationDeclaration.requestType().id(),
+						if( !typeMap.containsKey( oneWayOperationDeclaration.requestType().name() ) ) {
+							typeMap.put( oneWayOperationDeclaration.requestType().name(),
 								oneWayOperationDeclaration.requestType() );
 						}
 					}
@@ -390,9 +390,9 @@ public class JavaDocumentCreator {
 		appendingIndentation( outputFileText );
 		String faultTypeName = "";
 		String nativeMethod = null;
-		if( (Utils.hasSubTypes( fault.getValue() ) || !NativeType.isNativeTypeKeyword( fault.getValue().id() ))
+		if( (Utils.hasSubTypes( fault.getValue() ) || !NativeType.isNativeTypeKeyword( fault.getValue().name() ))
 			&& !(fault.getValue() instanceof TypeDefinitionUndefined) ) {
-			faultTypeName = fault.getValue().id();
+			faultTypeName = fault.getValue().name();
 		} else if( fault.getValue() instanceof TypeDefinitionUndefined ) {
 			faultTypeName = "Value";
 		} else if( Utils.nativeType( fault.getValue() ) != NativeType.VOID ) {
@@ -416,27 +416,27 @@ public class JavaDocumentCreator {
 			requestResponseOperation = (RequestResponseOperationDeclaration) operation;
 			if( requestResponseOperation.requestType() instanceof TypeDefinitionUndefined ) {
 				requestType = "Value";
-			} else if( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().id() ) ) {
+			} else if( NativeType.isNativeTypeKeyword( requestResponseOperation.requestType().name() ) ) {
 				requestType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.requestType() ) );
 				if( requestType == null ) {
 					requestType = "";
 				}
 			} else {
-				requestType = requestResponseOperation.requestType().id();
+				requestType = requestResponseOperation.requestType().name();
 			}
 
 		} else {
 			OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
 			if( oneWayOperationDeclaration.requestType() instanceof TypeDefinitionUndefined ) {
 				requestType = "Value";
-			} else if( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().id() ) ) {
+			} else if( NativeType.isNativeTypeKeyword( oneWayOperationDeclaration.requestType().name() ) ) {
 				requestType =
 					JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( oneWayOperationDeclaration.requestType() ) );
 				if( requestType == null ) {
 					requestType = "";
 				}
 			} else {
-				requestType = oneWayOperationDeclaration.requestType().id();
+				requestType = oneWayOperationDeclaration.requestType().name();
 			}
 		}
 		return requestType;
@@ -450,14 +450,14 @@ public class JavaDocumentCreator {
 
 			if( requestResponseOperation.responseType() instanceof TypeDefinitionUndefined ) {
 				responseType = "Value";
-			} else if( NativeType.isNativeTypeKeyword( requestResponseOperation.responseType().id() ) ) {
+			} else if( NativeType.isNativeTypeKeyword( requestResponseOperation.responseType().name() ) ) {
 				responseType =
 					JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( requestResponseOperation.responseType() ) );
 				if( responseType == null ) {
 					responseType = "void";
 				}
 			} else {
-				responseType = requestResponseOperation.responseType().id();
+				responseType = requestResponseOperation.responseType().name();
 			}
 
 		} else {
@@ -559,7 +559,7 @@ public class JavaDocumentCreator {
 			incrementIndentation();
 			appendingIndentation( outputFileText );
 			outputFileText.append( "final Controller controller = new Controller();\n" );
-			if( NativeType.isNativeTypeKeyword( requestTypeDefinition.id() ) ) {
+			if( NativeType.isNativeTypeKeyword( requestTypeDefinition.name() ) ) {
 				appendingIndentation( outputFileText );
 				outputFileText.append( "Value requestValue = Value.create();\n" );
 				if( !requestType.isEmpty() ) {
@@ -610,7 +610,7 @@ public class JavaDocumentCreator {
 			if( operation instanceof RequestResponseOperationDeclaration && !responseType.equals( "void" ) ) {
 
 				if( NativeType
-					.isNativeTypeKeyword( ((RequestResponseOperationDeclaration) operation).responseType().id() ) ) {
+					.isNativeTypeKeyword( ((RequestResponseOperationDeclaration) operation).responseType().name() ) ) {
 					if( Utils.nativeType(
 						((RequestResponseOperationDeclaration) operation).responseType() ) != NativeType.ANY ) {
 						String nativeMethod = "." + JAVA_NATIVE_METHOD.get(
@@ -964,7 +964,7 @@ public class JavaDocumentCreator {
 				/* inserting inner classes if present */
 				supportSet.stream().forEach( ( me ) -> {
 					TypeDefinition tdef = me.getValue();
-					appendingSubClassBody( tdef, stringBuilder, tdef.id() + TYPESUFFIX );
+					appendingSubClassBody( tdef, stringBuilder, tdef.name() + TYPESUFFIX );
 				} );
 			}
 
@@ -1172,15 +1172,15 @@ public class JavaDocumentCreator {
 	private void appendingClass( StringBuilder stringBuilder, TypeDefinition typeDefinition,
 		String interfaceToBeImplemented ) {
 		appendingIndentation( stringBuilder );
-		stringBuilder.append( "public class " ).append( typeDefinition.id() ).append( " implements " )
+		stringBuilder.append( "public class " ).append( typeDefinition.name() ).append( " implements " )
 			.append( interfaceToBeImplemented ).append( ", ValueConverter" )
 			.append( " {" + "\n" );
 
 		incrementIndentation();
 
-		appendingStaticMethodsForValueConverterJavaServiceInterface( stringBuilder, typeDefinition.id() );
+		appendingStaticMethodsForValueConverterJavaServiceInterface( stringBuilder, typeDefinition.name() );
 
-		appendingClassBody( typeDefinition, stringBuilder, typeDefinition.id() );
+		appendingClassBody( typeDefinition, stringBuilder, typeDefinition.name() );
 		decrementIndentation();
 
 
@@ -1220,18 +1220,18 @@ public class JavaDocumentCreator {
 				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
 				if( subType instanceof TypeDefinitionLink ) {
 					if( ((TypeDefinitionLink) subType).linkedType() instanceof TypeDefinitionUndefined ) {
-						variableName = checkReservedKeywords( subType.id() );
+						variableName = checkReservedKeywords( subType.name() );
 						variableType = "Value";
 					} else {
-						variableName = checkReservedKeywords( subType.id() );
+						variableName = checkReservedKeywords( subType.name() );
 						variableType = ((TypeDefinitionLink) subType).linkedTypeName();
 					}
 				} else if( subType instanceof TypeInlineDefinition ) {
 					if( Utils.hasSubTypes( subType ) ) {
-						variableName = checkReservedKeywords( subType.id() );
+						variableName = checkReservedKeywords( subType.name() );
 						variableType = variableTypeFromVariableName( variableName );
 					} else {
-						variableName = checkReservedKeywords( subType.id() );
+						variableName = checkReservedKeywords( subType.name() );
 						variableType =
 							JAVA_NATIVE_EQUIVALENT.get( ((TypeInlineDefinition) subType).basicType().nativeType() );
 					}
@@ -1313,7 +1313,7 @@ public class JavaDocumentCreator {
 			Utils.subTypes( type ).stream()
 				.forEach( t -> {
 					appendingIndentation( stringBuilder );
-					stringBuilder.append( "__fieldList__.add(\"" ).append( t.getValue().id() ).append( "\");\n" );
+					stringBuilder.append( "__fieldList__.add(\"" ).append( t.getValue().name() ).append( "\");\n" );
 				} );
 
 			appendingIndentation( stringBuilder );
@@ -1343,7 +1343,7 @@ public class JavaDocumentCreator {
 					if( subType.cardinality().max() > 1 ) {
 						/* creating the list object */
 						appendingIndentation( stringBuilder );
-						stringBuilder.append( checkReservedKeywords( subType.id() ) ).append( "= new ArrayList<" );
+						stringBuilder.append( checkReservedKeywords( subType.name() ) ).append( "= new ArrayList<" );
 						stringBuilder.append( variableNameType );
 						stringBuilder.append( ">();" ).append( "\n" );
 
@@ -1363,9 +1363,10 @@ public class JavaDocumentCreator {
 							.append( variableName ).append( " = new " )
 							.append( variableNameType )
 							.append( "( v.getChildren(\"" ).append( variableName ).append( "\").get(counter" )
-							.append( subType.id() ).append( "));\n" );
+							.append( subType.name() ).append( "));\n" );
 						appendingIndentation( ifbody );
-						ifbody.append( subType.id() ).append( ".add(support" ).append( variableName ).append( ");\n" );
+						ifbody.append( subType.name() ).append( ".add(support" ).append( variableName )
+							.append( ");\n" );
 						decrementIndentation();
 						appendingIndentation( ifbody );
 						ifbody.append( "}\n" );
@@ -1375,7 +1376,7 @@ public class JavaDocumentCreator {
 						StringBuilder ifbody = new StringBuilder();
 						incrementIndentation( 2 );
 						appendingIndentation( ifbody );
-						ifbody.append( checkReservedKeywords( subType.id() ) ).append( " = new " )
+						ifbody.append( checkReservedKeywords( subType.name() ) ).append( " = new " )
 							.append( variableNameType )
 							.append( "( v.getFirstChild(\"" ).append( variableName ).append( "\"));" ).append( "\n" );
 						decrementIndentation( 2 );
@@ -1556,16 +1557,16 @@ public class JavaDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
-				String variableName = subType.id();
+				String variableName = subType.name();
 				String variableType = "Value";
 				if( subType.cardinality().max() > 1 ) {
 					if( subType instanceof TypeDefinitionLink ) {
 						if( !isNativeTypeUndefined( subType ) ) {
-							variableType = ((TypeDefinitionLink) subType).linkedType().id();
+							variableType = ((TypeDefinitionLink) subType).linkedType().name();
 						}
 					} else if( subType instanceof TypeInlineDefinition ) {
 						if( Utils.hasSubTypes( subType ) ) {
-							variableType = subType.id() + "Type";
+							variableType = subType.name() + "Type";
 						} else {
 							variableType = JAVA_NATIVE_EQUIVALENT.get( Utils.nativeType( subType ) );
 						}
@@ -1863,7 +1864,7 @@ public class JavaDocumentCreator {
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "vReturn.getNewChild(\"" ).append( variableName )
 							.append( "\").setValue(" );
-						stringBuilder.append( checkReservedKeywords( subType.id() ) ).append( ");\n" );
+						stringBuilder.append( checkReservedKeywords( subType.name() ) ).append( ");\n" );
 					} else if( variableNameType.equals( "Value" ) ) {
 						appendingIndentation( stringBuilder );
 						stringBuilder.append( "vReturn.getChildren(\"" ).append( variableName ).append( "\").add(" );
@@ -2219,19 +2220,19 @@ public class JavaDocumentCreator {
 	private String getVariableName( TypeDefinition type ) {
 		if( type instanceof TypeDefinitionLink ) {
 			if( ((TypeDefinitionLink) type).linkedType() instanceof TypeDefinitionUndefined ) {
-				return type.id();
+				return type.name();
 			} else {
-				return type.id();
+				return type.name();
 			}
 		} else if( type instanceof TypeInlineDefinition ) {
 			if( Utils.hasSubTypes( type ) ) {
-				return type.id();
+				return type.name();
 			} else {
-				return type.id();
+				return type.name();
 			}
 		} else if( type instanceof TypeChoiceDefinition ) {
 			System.out.println( "WARNING: Type definition contains a choice variable which is not supported!" );
-			return type.id();
+			return type.name();
 		} else {
 			System.out.println( "WARNING5: variable is not a Link, a Choice or an Inline Definition!" );
 		}

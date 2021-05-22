@@ -251,24 +251,24 @@ public class WSDLDocCreator {
 
 	private void addRootType( TypeDefinition type ) throws Exception {
 		if( type instanceof TypeDefinitionLink ) {
-			throw (new Exception( "ERROR, type " + type.id()
+			throw (new Exception( "ERROR, type " + type.name()
 				+ ":conversion not allowed when the types defined as operation messages are linked type!" ));
 		}
-		if( !rootTypes.contains( type.id() ) ) {
+		if( !rootTypes.contains( type.name() ) ) {
 			schemaRootElement.appendChild( createTypeDefinition( (TypeInlineDefinition) type, false ) );
 		}
-		rootTypes.add( type.id() );
+		rootTypes.add( type.name() );
 	}
 
 	private Element createTypeDefinition( TypeInlineDefinition type, boolean inMessage ) throws Exception {
 		if( type.basicType().nativeType() != NativeType.VOID ) {
-			throw (new Exception( "ERROR, type " + type.id()
+			throw (new Exception( "ERROR, type " + type.name()
 				+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 		}
 
 		Element newEl = schemaDocument.createElement( "xs:complexType" );
 		if( inMessage == false ) {
-			String typename = type.id();
+			String typename = type.name();
 			newEl.setAttribute( "name", typename );
 		}
 		Element sequence = schemaDocument.createElement( "xs:sequence" );
@@ -278,7 +278,7 @@ public class WSDLDocCreator {
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : type.subTypes() ) {
 				TypeDefinition curType = stringTypeDefinitionEntry.getValue();
 				Element subEl = schemaDocument.createElement( "xs:element" );
-				subEl.setAttribute( "name", curType.id() );
+				subEl.setAttribute( "name", curType.name() );
 				subEl.setAttribute( "minOccurs", Integer.toString( curType.cardinality().min() ) );
 				String maxOccurs = "unbounded";
 				if( curType.cardinality().max() < MAX_CARD ) {
@@ -288,7 +288,7 @@ public class WSDLDocCreator {
 				if( curType instanceof TypeInlineDefinition ) {
 					if( ((TypeInlineDefinition) curType).hasSubTypes() ) {
 						if( ((TypeInlineDefinition) curType).basicType().nativeType() != NativeType.VOID ) {
-							throw (new Exception( "ERROR, type " + curType.id()
+							throw (new Exception( "ERROR, type " + curType.name()
 								+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 						} else {
 							subEl.appendChild( createTypeDefinition( (TypeInlineDefinition) curType, true ) );
@@ -313,7 +313,7 @@ public class WSDLDocCreator {
 		// when converting from Jolie type of messages must have root type = "void"
 		// no type link are allowed for conversion
 		// message types define elements
-		if( !rootTypes.contains( rootType.id() ) ) {
+		if( !rootTypes.contains( rootType.name() ) ) {
 			Element newEl = schemaDocument.createElement( "xs:element" );
 			newEl.setAttribute( "name", typename );
 			if( rootType instanceof TypeInlineDefinition ) {
@@ -321,17 +321,17 @@ public class WSDLDocCreator {
 				rootTypes.add( typename );
 				schemaRootElement.appendChild( newEl );
 				if( ((TypeInlineDefinition) rootType).basicType().nativeType() != NativeType.VOID ) {
-					throw (new Exception( "ERROR, type " + rootType.id()
+					throw (new Exception( "ERROR, type " + rootType.name()
 						+ ": conversion not allowed when the types defined as operation messages have native type different from void!" ));
 				}
 			} else if( rootType instanceof TypeDefinitionLink ) {
-				throw (new Exception( "ERROR, type " + rootType.id()
+				throw (new Exception( "ERROR, type " + rootType.name()
 					+ ":conversion not allowed when the types defined as operation messages are linked type!" ));
 				// newEl.appendChild( lookForLinkedType( (TypeDefinitionLink ) rootType, typename ));
 				// schemaRootElement.appendChild( createTypeDefinitionLink( ( TypeDefinitionLink ) rootType, true,
 				// typename ));
 			} else if( rootType instanceof TypeChoiceDefinition ) {
-				throw (new Exception( "ERROR, type " + rootType.id()
+				throw (new Exception( "ERROR, type " + rootType.name()
 					+ ":conversion not allowed when the types defined as operation messages are choice types!" ));
 			}
 		}
@@ -351,13 +351,13 @@ public class WSDLDocCreator {
 				OneWayOperationDeclaration op_ow = (OneWayOperationDeclaration) op;
 
 				// set the message name as the name of the jolie request message type
-				inputMessage.setQName( new QName( tns, op_ow.requestType().id() ) );
+				inputMessage.setQName( new QName( tns, op_ow.requestType().name() ) );
 				addMessageType( op_ow.requestType(), op_ow.id() );
 
 			} else {
 				RequestResponseOperationDeclaration op_rr = (RequestResponseOperationDeclaration) op;
 				// set the message name as the name of the jolie request message type
-				inputMessage.setQName( new QName( tns, op_rr.requestType().id() ) );
+				inputMessage.setQName( new QName( tns, op_rr.requestType().name() ) );
 				addMessageType( op_rr.requestType(), op_rr.id() );
 
 			}
@@ -387,7 +387,7 @@ public class WSDLDocCreator {
 			RequestResponseOperationDeclaration op_rr = (RequestResponseOperationDeclaration) op;
 			String outputPartName = op_rr.id() + "Response";
 			// set the message name as the name of the jolie response message type
-			outputMessage.setQName( new QName( tns, op_rr.responseType().id() ) );
+			outputMessage.setQName( new QName( tns, op_rr.responseType().name() ) );
 			addMessageType( op_rr.responseType(), outputPartName );
 
 			outputPart.setElementName( new QName( tnsSchema, outputPartName ) );
@@ -408,12 +408,12 @@ public class WSDLDocCreator {
 		faultMessage.setUndefined( false );
 
 		// set the fault message name as the name of the fault jolie message type
-		faultMessage.setQName( new QName( tns, tp.id() ) );
+		faultMessage.setQName( new QName( tns, tp.name() ) );
 
 		Part faultPart = localDef.createPart();
 		faultPart.setName( "body" );
 
-		String faultPartName = tp.id();
+		String faultPartName = tp.name();
 
 		try {
 			// adding wsdl_types related to this message
