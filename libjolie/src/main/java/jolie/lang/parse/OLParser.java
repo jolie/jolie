@@ -1530,6 +1530,7 @@ public class OLParser extends AbstractParser {
 				break;
 			case "courier":
 				serviceBlockProgramBuilder.addChild( parseCourierDefinition() );
+				break;
 			case "init":
 				if( internalInit == null ) {
 					internalInit = new SequenceStatement( getContext() );
