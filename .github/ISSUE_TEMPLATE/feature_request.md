@@ -3,8 +3,6 @@ name: Feature request
 about: Suggest an idea
 title: ''
 labels: enhancement
-assignees: bmaschio, fmontesi, klag, mwallnoefer, thesave
-
 ---
 
 **Is your feature request related to a problem? Please describe.**
