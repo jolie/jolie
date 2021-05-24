@@ -14,7 +14,9 @@ Have you made something in or for Jolie? Please submit it to our [awesome Jolie 
 
 # Documentation :notebook_with_decorative_cover:
 
-See <https://docs.jolie-lang.org/>.
+See <https://docs.jolie-lang.org/> for documentation on how to program with Jolie.
+
+For documentation on the interpreter, see <https://github.com/jolie/jolie/wiki/Interpreter-documentation>.
 
 # Roadmap :chart_with_upwards_trend:
 
