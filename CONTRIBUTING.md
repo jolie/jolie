@@ -12,13 +12,15 @@ There are many ways in which you can contribute, of which we point out a few bel
 
 You can contribute to one of [our code repositories](https://github.com/jolie), or develop a tool or modification in a repository of your own and tell us.
 
-If you want to contribute to the main [Jolie project repository](https://github.com/jolie/jolie), you can find some useful information in [our wiki](https://github.com/jolie/jolie/wiki). See, for example, [how to make a pull request](https://github.com/jolie/jolie/wiki/Pull-requests).
+If you want to contribute to the main [Jolie project repository](https://github.com/jolie/jolie), you can find some useful information in [our wiki](https://github.com/jolie/jolie/wiki). See, for example, [how to make a pull request](https://github.com/jolie/jolie/wiki/Pull-requests) and [documentation of the Jolie interpreter](https://github.com/jolie/jolie/wiki/Interpreter-documentation).
 
 We expect pull requests with new code that requires updating the documentation (see below) to come with a link to a corresponding pull request to the documentation repository that provides the appropriate update. If you do not have documentation yet but want to make a pull request anyway to discuss your code before writing documentation, please explicitly state so in the pull request.
 
 ## Documentation
 
 You can contribute to the [documentation of Jolie](https://docs.jolie-lang.org) through the related [GitHub repository of our docs](https://github.com/jolie/docs). Possibilities include adding new tutorials (even small ones are rather useful!), improving existing text, or adding new  explanations.
+
+You can also help by writing javadoc in the [source code of our interpreter and its libraries](https://github.com/jolie/jolie).
 
 ## Communication and events
 
