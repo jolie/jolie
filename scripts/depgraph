@@ -1,0 +1,5 @@
+#!/bin/sh
+
+mvn com.github.ferstl:depgraph-maven-plugin:aggregate -DshowGroupIds
+dot -Tsvg target/dependency-graph.dot > target/dependency-graph.svg
+
