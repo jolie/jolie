@@ -6,13 +6,13 @@ Jolie is a [community effort](https://github.com/jolie/jolie/graphs/contributors
 
 # How can I contribute?
 
-There are many ways in which you can contribute, of which we point out a few below. If you have an idea that does not fall into any of the categories below, do not be discouraged: quite simply, we have probably not thought of it, and we would like to hear from you. See [how to get in touch](https://github.com/jolie/jolie#get-in-touch) and our [list of maintainers](MAINTAINERS.md).
+There are many ways in which you can contribute, of which we point out a few below. If you have an idea that does not fall into any of the categories below, do not be discouraged: quite simply, we have probably not thought of it, and we would like to hear from you. See [how to get in touch](https://github.com/jolie/jolie#get-in-touch-wave) and our [list of maintainers](MAINTAINERS.md).
 
 ## Code
 
 You can contribute to one of [our code repositories](https://github.com/jolie), or develop a tool or modification in a repository of your own and tell us.
 
-If you want to contribute to the main [Jolie project repository](https://github.com/jolie/jolie), you can find some useful information in [our wiki](https://github.com/jolie/jolie/wiki). See, for example, [how to make a pull request](https://github.com/jolie/jolie/wiki/Pull-requests) and [documentation of the Jolie interpreter](https://github.com/jolie/jolie/wiki/Interpreter-documentation).
+If you want to contribute to the main [Jolie project repository](https://github.com/jolie/jolie), you can find some useful information in [our wiki](https://github.com/jolie/jolie/wiki). See, for example, [how to make a pull request](https://github.com/jolie/jolie/wiki/Pull-requests) and [documentation of the Jolie interpreter](https://github.com/jolie/jolie/wiki/Interpreter-documentation). Make sure to read our [git workflow](https://github.com/jolie/jolie/wiki/Git-Workflow).
 
 We expect pull requests with new code that requires updating the documentation (see below) to come with a link to a corresponding pull request to the documentation repository that provides the appropriate update. If you do not have documentation yet but want to make a pull request anyway to discuss your code before writing documentation, please explicitly state so in the pull request.
 
