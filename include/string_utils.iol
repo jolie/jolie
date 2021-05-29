@@ -82,6 +82,12 @@ type ContainsRequest:string {
 	.substring:string
 }
 
+type UrlEncodeRequest: string {
+	.characterEncoding?: string 
+}
+
+type UrlDecodeRequest: UrlEncodeRequest
+
 /**!
  * An interface for supporting string manipulation operations.
  */
@@ -117,6 +123,8 @@ RequestResponse:
 	trim(string)(string),
 	toLowerCase(string)(string),
 	toUpperCase(string)(string),
+	urlEncode( UrlEncodeRequest )( string ),
+	urlDecode( UrlDecodeRequest )( string ),
 
 	/**!
 	* checks if the passed string starts with a given prefix
