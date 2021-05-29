@@ -24,15 +24,16 @@ package joliex.util;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jolie.runtime.JavaService;
-import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
-import jolie.runtime.ValueVector;
+
+import jolie.runtime.*;
 
 public class StringUtils extends JavaService {
 	public Integer length( String request ) {
@@ -324,5 +325,32 @@ public class StringUtils extends JavaService {
 
 	public Boolean contains( Value request ) {
 		return request.strValue().contains( request.getFirstChild( "substring" ).strValue() );
+	}
+
+	public String urlEncode( Value request ) throws FaultException {
+		String characterEncoding = "UTF-8";
+		if( request.getFirstChild( "characterEncoding" ).isDefined() ) {
+			characterEncoding = request.getFirstChild( "characterEncoding" ).strValue();
+		}
+		try {
+			String response = URLEncoder.encode( request.strValue(), characterEncoding );
+			return response;
+		} catch( UnsupportedEncodingException e ) {
+			throw new FaultException( "UnsupportedEncodingException" );
+		}
+
+	}
+
+	public String urlDecode( Value request ) throws FaultException {
+		String characterEncoding = "UTF-8";
+		if( request.getFirstChild( "characterEncoding" ).isDefined() ) {
+			characterEncoding = request.getFirstChild( "characterEncoding" ).strValue();
+		}
+		try {
+			String response = URLDecoder.decode( request.strValue(), characterEncoding );
+			return response;
+		} catch( UnsupportedEncodingException e ) {
+			throw new FaultException( "UnsupportedEncodingException" );
+		}
 	}
 }
