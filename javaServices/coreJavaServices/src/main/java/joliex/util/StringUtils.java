@@ -328,13 +328,12 @@ public class StringUtils extends JavaService {
 	}
 
 	public String urlEncode( Value request ) throws FaultException {
-		String characterEncoding = "UTF-8";
+		String charset = request.firstChildOrDefault( "charset", Value::strValue, "UTF-8" );
 		if( request.getFirstChild( "characterEncoding" ).isDefined() ) {
-			characterEncoding = request.getFirstChild( "characterEncoding" ).strValue();
+			charset = request.getFirstChild( "characterEncoding" ).strValue();
 		}
 		try {
-			String response = URLEncoder.encode( request.strValue(), characterEncoding );
-			return response;
+			return URLEncoder.encode( request.strValue(), charset );
 		} catch( UnsupportedEncodingException e ) {
 			throw new FaultException( "UnsupportedEncodingException" );
 		}
@@ -342,13 +341,12 @@ public class StringUtils extends JavaService {
 	}
 
 	public String urlDecode( Value request ) throws FaultException {
-		String characterEncoding = "UTF-8";
+		String charset = request.firstChildOrDefault( "charset", Value::strValue, "UTF-8" );
 		if( request.getFirstChild( "characterEncoding" ).isDefined() ) {
-			characterEncoding = request.getFirstChild( "characterEncoding" ).strValue();
+			charset = request.getFirstChild( "characterEncoding" ).strValue();
 		}
 		try {
-			String response = URLDecoder.decode( request.strValue(), characterEncoding );
-			return response;
+			return URLDecoder.decode( request.strValue(), charset );
 		} catch( UnsupportedEncodingException e ) {
 			throw new FaultException( "UnsupportedEncodingException" );
 		}
