@@ -83,7 +83,7 @@ type ContainsRequest:string {
 }
 
 type UrlEncodeRequest: string {
-	characterEncoding?: string 
+	charset?: string 
 }
 
 type UrlDecodeRequest: UrlEncodeRequest

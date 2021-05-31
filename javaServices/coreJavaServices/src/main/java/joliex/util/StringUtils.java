@@ -329,9 +329,6 @@ public class StringUtils extends JavaService {
 
 	public String urlEncode( Value request ) throws FaultException {
 		String charset = request.firstChildOrDefault( "charset", Value::strValue, "UTF-8" );
-		if( request.getFirstChild( "characterEncoding" ).isDefined() ) {
-			charset = request.getFirstChild( "characterEncoding" ).strValue();
-		}
 		try {
 			return URLEncoder.encode( request.strValue(), charset );
 		} catch( UnsupportedEncodingException e ) {
@@ -342,9 +339,6 @@ public class StringUtils extends JavaService {
 
 	public String urlDecode( Value request ) throws FaultException {
 		String charset = request.firstChildOrDefault( "charset", Value::strValue, "UTF-8" );
-		if( request.getFirstChild( "characterEncoding" ).isDefined() ) {
-			charset = request.getFirstChild( "characterEncoding" ).strValue();
-		}
 		try {
 			return URLDecoder.decode( request.strValue(), charset );
 		} catch( UnsupportedEncodingException e ) {
