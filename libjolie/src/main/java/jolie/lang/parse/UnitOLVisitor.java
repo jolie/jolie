@@ -70,6 +70,7 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.SolicitResponseExpression;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -672,6 +673,13 @@ public interface UnitOLVisitor extends OLVisitor< Unit, Unit > {
 	void visit( EmbedServiceNode n );
 
 	default Unit visit( EmbedServiceNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( SolicitResponseExpression n );
+
+	default Unit visit( SolicitResponseExpression n, Unit ctx ) {
 		visit( n );
 		return Unit.INSTANCE;
 	}

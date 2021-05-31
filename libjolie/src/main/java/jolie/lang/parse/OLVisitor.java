@@ -69,6 +69,7 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.SolicitResponseExpression;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -276,4 +277,6 @@ public interface OLVisitor< C, R > {
 	R visit( ServiceNode n, C ctx );
 
 	R visit( EmbedServiceNode n, C ctx );
+
+	R visit( SolicitResponseExpression n, C ctx );
 }

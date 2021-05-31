@@ -1618,4 +1618,10 @@ public class OOITBuilder implements UnitOLVisitor {
 			error( n.context(), "could not find port " + n.bindingPort().id() );
 		}
 	}
+
+	@Override
+	public void visit( SolicitResponseExpression n ) {
+		// TODO Auto-generated method stub
+
+	}
 }

@@ -22,6 +22,7 @@ package jolie.lang.parse.module;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Stream;
+
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
