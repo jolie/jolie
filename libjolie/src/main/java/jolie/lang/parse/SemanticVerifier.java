@@ -742,12 +742,12 @@ public class SemanticVerifier implements UnitOLVisitor {
 							|| first instanceof OneWayOperationStatement) == false ) {
 							// The main body is not even a sequence starting with an input
 							error( n.body(),
-								"The first statement of the main procedure must be an input if the execution mode is not single" );
+								"If execution is not single, the body of main must be either an input choice or a sequence that starts with an input statement (request-response or one-way)" );
 						}
 					} else {
 						// The main body is not even a sequence
 						error( n.body(),
-							"The first statement of the main procedure must be an input if the execution mode is not single" );
+							"If execution is not single, the body of main must be either an input choice or a sequence that starts with an input statement (request-response or one-way)" );
 					}
 				}
 			}
