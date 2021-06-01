@@ -223,25 +223,6 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>copy-jolietraceviewer</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/${jolie.installation.directory}/tools</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${basedir}/tools/jolietraceviewer</directory>
-									<includes>
-										<include>jolietraceviewer.ol</include>
-									</includes>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
 						<id>copy-joliemock</id>
 						<phase>install</phase>
 						<goals>
