@@ -470,7 +470,7 @@ public class OLParser extends AbstractParser {
 				throwException( "Expected a parameter of type string, found " + token.content() );
 			}
 			if( token.type() == Scanner.TokenType.DOUBLE ) {
-				arrayList.add( new Double( token.content() ) );
+				arrayList.add( Double.valueOf( token.content() ) );
 			} else {
 				arrayList.add( Double.MAX_VALUE );
 			}
@@ -1245,21 +1245,20 @@ public class OLParser extends AbstractParser {
 		throws IOException {
 		if( node != null ) {
 			// <Java 8>
-			Optional< Scanner.Token > backwardDoc = parseBackwardDocumentation();
-			if( backwardDoc.isPresent() ) {
-				node.setDocumentation( backwardDoc.get().content() );
-			} else {
-				String forwardDoc = forwardDocToken
-					.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) ).content();
-				node.setDocumentation( forwardDoc );
-			}
+			// Optional< Scanner.Token > backwardDoc = parseBackwardDocumentation();
+			// if( backwardDoc.isPresent() ) {
+			// node.setDocumentation( backwardDoc.get().content() );
+			// } else {
+			// String forwardDoc = forwardDocToken
+			// .orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) ).content();
+			// node.setDocumentation( forwardDoc );
+			// }
 			// </Java 8>
 
-			/*
-			 * Java 9 version of the above parseBackwardDocumentation().ifPresentOrElse( doc ->
-			 * node.setDocumentation( doc.content() ), () -> node.setDocumentation( (forwardDocToken.orElse( new
-			 * Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) )).content() ) );
-			 */
+			parseBackwardDocumentation().ifPresentOrElse( doc -> node.setDocumentation( doc.content() ),
+				() -> node.setDocumentation(
+					(forwardDocToken.orElse( new Scanner.Token( Scanner.TokenType.DOCUMENTATION_FORWARD, "" ) ))
+						.content() ) );
 		} else {
 			forwardDocToken.ifPresent( this::addToken );
 			addToken( token );
