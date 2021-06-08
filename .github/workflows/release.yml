@@ -73,10 +73,9 @@ jobs:
 #      run: sudo apt-get install zip
 
     - name: Package the installer
-      env:
-        JOLIE_HOME: /jolie-bin/jolie-dist
       run: |
-        mkdir /jolie-bin \
+        mkdir jolie-bin \
+        && export JOLIE_HOME=$(pwd)/jolie-bin/jolie-dist \
         && sh jolie/scripts/dev-setup.sh /jolie-bin \
         && export JOLIE_VERSION=$(git --git-dir jolie/.git describe --abbrev=0 --tags) \
         && cd release_tools \
