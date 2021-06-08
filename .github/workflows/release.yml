@@ -58,11 +58,7 @@ jobs:
     
     - name: Compile the rest
       run: mvn -f jolie/pom.xml -DskipTests install -Dmaven.test.skip
-    
-    - name: Install Jolie
-      run: |
-        sudo jolie/scripts/dev-setup.sh /usr/bin
-    
+
     - name: Checkout release tools
       uses: actions/checkout@v2
       with:
@@ -73,17 +69,17 @@ jobs:
       run: |
         mvn -f release_tools/jolie_installer/pom.xml install
     
-    - name: Install zip (for the installer)
-      run: sudo apt-get install zip
+#    - name: Install zip (for the installer)
+#      run: sudo apt-get install zip
 
     - name: Package the installer
       env:
         JOLIE_HOME: /usr/bin/jolie-dist
-        JOLIE_VERSION: $(git --git-dir jolie/.git describe --abbrev=0 --tags)
       run: |
-        echo $JOLIE_VERSION && \
-        cd release_tools \
-        && jolie release.ol ../jolie \
+        sudo ./jolie/scripts/dev-setup.sh /usr/bin \
+        && export JOLIE_VERSION=$(git --git-dir jolie/.git describe --abbrev=0 --tags) \
+        && cd release_tools \
+        && /usr/bin/jolie release.ol ../jolie \
         && mv release/jolie_installer.jar ../jolie-${JOLIE_VERSION:1}.jar
     
     - name: Release Jolie on GitHub
