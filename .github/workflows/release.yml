@@ -79,7 +79,7 @@ jobs:
         && sh jolie/scripts/dev-setup.sh $(pwd)/jolie-bin \
         && export JOLIE_VERSION=$(git --git-dir jolie/.git describe --abbrev=0 --tags) \
         && cd release_tools \
-        && /jolie-bin/jolie release.ol ../jolie \
+        && ../jolie-bin/jolie release.ol ../jolie \
         && mv release/jolie_installer.jar ../jolie-${JOLIE_VERSION:1}.jar
     
     - name: Release Jolie on GitHub
