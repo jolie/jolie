@@ -57,9 +57,7 @@ jobs:
     #     -P ossrh
     
     - name: Compile the rest
-      run: |
-        mvn -f jolie/pom.xml \ 
-        install -Dmaven.test.skip -DskipTests
+      run: mvn -f jolie/pom.xml -DskipTests install -Dmaven.test.skip
     
     - name: Install Jolie
       run: |
