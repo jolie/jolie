@@ -76,7 +76,7 @@ jobs:
       run: |
         mkdir jolie-bin \
         && export JOLIE_HOME=$(pwd)/jolie-bin/jolie-dist \
-        && sh jolie/scripts/dev-setup.sh /jolie-bin \
+        && sh jolie/scripts/dev-setup.sh $(pwd)/jolie-bin \
         && export JOLIE_VERSION=$(git --git-dir jolie/.git describe --abbrev=0 --tags) \
         && cd release_tools \
         && /jolie-bin/jolie release.ol ../jolie \
