@@ -76,7 +76,8 @@ jobs:
       env:
         JOLIE_HOME: /jolie-bin/jolie-dist
       run: |
-        sh jolie/scripts/dev-setup.sh /jolie-bin \
+        mkdir /jolie-bin \
+        && sh jolie/scripts/dev-setup.sh /jolie-bin \
         && export JOLIE_VERSION=$(git --git-dir jolie/.git describe --abbrev=0 --tags) \
         && cd release_tools \
         && /jolie-bin/jolie release.ol ../jolie \
