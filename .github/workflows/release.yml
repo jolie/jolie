@@ -74,12 +74,12 @@ jobs:
 
     - name: Package the installer
       env:
-        JOLIE_HOME: /usr/bin/jolie-dist
+        JOLIE_HOME: /jolie-bin/jolie-dist
       run: |
-        sudo ./jolie/scripts/dev-setup.sh /usr/bin \
+        sh jolie/scripts/dev-setup.sh /jolie-bin \
         && export JOLIE_VERSION=$(git --git-dir jolie/.git describe --abbrev=0 --tags) \
         && cd release_tools \
-        && /usr/bin/jolie release.ol ../jolie \
+        && /jolie-bin/jolie release.ol ../jolie \
         && mv release/jolie_installer.jar ../jolie-${JOLIE_VERSION:1}.jar
     
     - name: Release Jolie on GitHub
