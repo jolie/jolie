@@ -44,17 +44,17 @@ jobs:
     - name: Build prerequisites
       run: mvn -f jolie/pom.xml -DskipTests install -pl build-tools
 
-    # - name: Publish to Maven Central
-    #   env:
-    #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-    #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-    #   run: |
-    #     mvn -f jolie/pom.xml \
-    #     --no-transfer-progress --batch-mode \
-    #     -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
-    #     clean deploy \
-    #     -pl libjolie,jolie,lib/jolie-js,jolie-cli \
-    #     -P ossrh
+    - name: Publish to Maven Central
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+      run: |
+        mvn -f jolie/pom.xml \
+        --no-transfer-progress --batch-mode \
+        -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
+        clean deploy \
+        -pl libjolie,jolie,lib/jolie-js,jolie-cli \
+        -P ossrh
     
     - name: Compile the rest
       run: mvn -f jolie/pom.xml -DskipTests install -Dmaven.test.skip
