@@ -1,0 +1,94 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout Jolie
+      uses: actions/checkout@v2
+      with:
+        path: jolie
+
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: 11
+        distribution: 'adopt'
+        server-id: ossrh
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+
+    - name: Cache local Maven repository
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    - name: Install gpg secret key
+      run: |
+        cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
+        gpg --list-secret-keys --keyid-format LONG
+
+    - name: Build prerequisites
+      run: mvn -f jolie/pom.xml -DskipTests install -pl build-tools
+
+    # - name: Publish to Maven Central
+    #   env:
+    #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+    #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+    #   run: |
+    #     mvn -f jolie/pom.xml \
+    #     --no-transfer-progress --batch-mode \
+    #     -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
+    #     clean deploy \
+    #     -pl libjolie,jolie,lib/jolie-js,jolie-cli \
+    #     -P ossrh
+    
+    - name: Compile the rest
+      run: |
+        mvn -f jolie/pom.xml \ 
+        install -Dmaven.test.skip -DskipTests
+    
+    - name: Install Jolie
+      run: |
+        sudo jolie/scripts/dev-setup.sh /usr/bin
+    
+    - name: Checkout release tools
+      uses: actions/checkout@v2
+      with:
+        repository: jolie/release-tools
+        path: release_tools
+    
+    - name: Compile Jolie installer
+      run: |
+        mvn -f release_tools/jolie_installer/pom.xml install
+    
+    - name: Install zip (for the installer)
+      run: sudo apt-get install zip
+
+    - name: Package the installer
+      env:
+        JOLIE_HOME: /usr/bin/jolie-dist
+        JOLIE_VERSION: $(git --git-dir jolie/.git describe --abbrev=0 --tags)
+      run: |
+        echo $JOLIE_VERSION && \
+        cd release_tools \
+        && jolie release.ol ../jolie \
+        && mv release/jolie_installer.jar ../jolie-${JOLIE_VERSION:1}.jar
+    
+    - name: Release Jolie on GitHub
+      uses: softprops/action-gh-release@v1
+      with:
+        files: jolie-*.jar
