@@ -31,6 +31,12 @@ Balint Maschio
 
 - Github: <https://github.com/bmaschio>
 
+### Module System
+
+Narongrit Unwerawattana
+
+- Github: <https://github.com/kicito>
+
 ### TQuery
 
 ![](https://github.com/thesave.png?size=50)
