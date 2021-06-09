@@ -36,25 +36,25 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
 
-    - name: Install gpg secret key
-      run: |
-        cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
-        gpg --list-secret-keys --keyid-format LONG
+    # - name: Install gpg secret key
+    #   run: |
+    #     cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
+    #     gpg --list-secret-keys --keyid-format LONG
 
-    - name: Build prerequisites
-      run: mvn -f jolie/pom.xml -DskipTests install -pl build-tools
+    # - name: Build prerequisites
+    #   run: mvn -f jolie/pom.xml -DskipTests install -pl build-tools
 
-    - name: Publish to Maven Central
-      env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-      run: |
-        mvn -f jolie/pom.xml \
-        --no-transfer-progress --batch-mode \
-        -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
-        clean deploy \
-        -pl libjolie,jolie,lib/jolie-js,jolie-cli \
-        -P ossrh
+    # - name: Publish to Maven Central
+    #   env:
+    #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+    #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+    #   run: |
+    #     mvn -f jolie/pom.xml \
+    #     --no-transfer-progress --batch-mode \
+    #     -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
+    #     clean deploy \
+    #     -pl libjolie,jolie,lib/jolie-js,jolie-cli \
+    #     -P ossrh
     
     - name: Compile the rest
       run: mvn -f jolie/pom.xml -DskipTests install -Dmaven.test.skip
@@ -87,6 +87,6 @@ jobs:
     - name: Release Jolie on GitHub
       uses: softprops/action-gh-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       with:
         files: jolie-*.jar
