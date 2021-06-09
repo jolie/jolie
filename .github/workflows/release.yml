@@ -53,7 +53,7 @@ jobs:
         --no-transfer-progress --batch-mode \
         -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
         clean deploy \
-        -pl libjolie,jolie,lib/jolie-js,jolie-cli \
+        -pl build-tools,libjolie,jolie,lib/jolie-js,jolie-cli \
         -P ossrh
     
     - name: Compile the rest
