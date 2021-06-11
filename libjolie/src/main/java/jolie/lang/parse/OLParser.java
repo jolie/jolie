@@ -2215,7 +2215,9 @@ public class OLParser extends AbstractParser {
 			retVal = parseProvideUntilStatement();
 			break;
 		case ID:
-			checkConstant();
+			if( checkConstant() ) {
+				throwException( "cannot modify a constant in a statement" );
+			}
 			String id = token.content();
 			nextToken();
 
