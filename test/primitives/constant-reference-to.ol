@@ -33,8 +33,18 @@ define doTest
 		install (
 			ParserException => nullProcess)
 
+		install (SemanticException => nullProcess)
+		// check assignment
 		getMetaData@MetaJolie( {filename = "./primitives/private/constant-assignment.ol"})( metadata )
 		throw (TestFailed,"Assignment to constant variable not detected")
+
+		//check deep copy assignment
+		getMetaData@MetaJolie( {filename = "./primitives/private/constant-deep-copy.ol"})( metadata )
+		throw (TestFailed,"Deep copy assignment to constant variable not detected")
+
+		//check reference assignment
+		getMetaData@MetaJolie( {filename = "./primitives/private/constant-reference-to.ol"})( metadata )
+		throw (TestFailed,"Reference assignment to constant variable not detected")
 	}
 }
 
