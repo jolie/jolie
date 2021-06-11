@@ -4,9 +4,12 @@ constants {
 }
 
 init {
-    INIT_CONSTANT = 7
+    a.b = 1
+    a.c = 2
+    a.d = 3
+    INIT_CONSTANT << a
 }
 
 main {
-    MAIN_CONSTANT = 7
+    MAIN_CONSTANT = a
 }
