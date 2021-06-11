@@ -1,7 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by                                                 *
- *   Fabrizio Montesi <famontesi@gmail.com>                                *
- *   Mauro Sgarzi <sgarzi.mauro@gmail.com>                                 *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -33,8 +31,8 @@ define doTest
 		install (
 			ParserException => nullProcess)
 
-		getMetaData@MetaJolie( {filename = "./primitives/private/constant-assignment.ol"})( metadata )
-		throw (TestFailed,"Assignment to constant variable not detected")
+		getMetaData@MetaJolie( {filename = "./primitives/private/constant-deep-copy.ol"})( metadata )
+		throw (TestFailed,"Deep copy assignment to constant variable not detected")
 	}
 }
 
