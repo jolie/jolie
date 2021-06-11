@@ -28,7 +28,7 @@ define doTest
 	sleep@Time( 1000 )()
 	undef(request_data)
 	with( request_meta ) {
-		.filename = "./primitives/private/constant_assignment.ol"
+		.filename = "./primitives/private/constant-assignment.ol"
 	}
 
 	scope (parseError) {
