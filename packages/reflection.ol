@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-from types.Binding import *
+from types.Binding import Binding
 
 type InvokeRequest:void {
 	.operation:string 

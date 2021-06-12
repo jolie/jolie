@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. 
  */
 
-from types.IOException import *
+from types.IOException import IOExceptionType
 
 type ReadEntryRequest:void {
 	.filename?:string

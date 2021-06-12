@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
-from types.JavaException import *
+from types.JavaException import JavaExceptionType
 type MD5Request:string {
 	.radix?:int
 } | raw {
