@@ -18,7 +18,7 @@
  * MA 02110-1301  USA
  */
 
-from types.JavaException import *
+from types.JavaException import WeakJavaExceptionType
 
 type Field {
 	name: string
