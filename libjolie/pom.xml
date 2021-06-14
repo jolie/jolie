@@ -13,8 +13,8 @@
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 	</properties>
 	<name>libjolie</name>
 	<description>Java library for parsing and analysing Jolie code.</description>
@@ -69,6 +69,7 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>build-tools</artifactId>
 			<version>1.0.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>dk.brics</groupId>

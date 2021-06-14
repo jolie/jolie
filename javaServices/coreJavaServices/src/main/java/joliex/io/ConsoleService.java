@@ -65,15 +65,14 @@ public class ConsoleService extends JavaService {
 					line = stdin.readLine();
 
 					if( sessionListeners ) {
-
 						for( String s : sessionTokens.keySet() ) {
 							Value v = Value.create();
 							v.getFirstChild( "token" ).setValue( s );
 							v.setValue( line );
-							sendMessage( CommMessage.createRequest( "in", "/", v ) );
+							getEmbedder().callOneWay( "in", v );
 						}
 					} else {
-						sendMessage( CommMessage.createRequest( "in", "/", Value.create( line ) ) );
+						getEmbedder().callOneWay( "in", Value.create( line ) );
 					}
 				}
 			} catch( ClosedByInterruptException ce ) {

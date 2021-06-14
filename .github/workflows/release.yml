@@ -79,12 +79,14 @@ jobs:
         && cd jolie \
         && sh scripts/dev-setup.sh ../jolie-bin \
         && cd ../release_tools \
-        && export JOLIE_VERSION=$(git --git-dir jolie/.git describe --abbrev=0 --tags) \
+        && export JOLIE_VERSION=$(git --git-dir ../jolie/.git describe --abbrev=0 --tags) \
         && ../jolie-bin/jolie release.ol ../jolie \
         && mv release/jolie_installer.jar ../jolie-${JOLIE_VERSION:1}.jar \
         && cd ..
     
     - name: Release Jolie on GitHub
       uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       with:
         files: jolie-*.jar
