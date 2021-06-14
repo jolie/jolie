@@ -25,6 +25,8 @@ from .types.definition_types import Interface
 from .types.definition_types import NativeType
 from .types.definition_types import TypeDefinition
 from .types.definition_types import CommunicationDependency
+from .types.definition_types import Type
+from .services.metaservice.metaservice import MetaService
 
 // FAULTS
 type InputPortMetaDataFault: void {
@@ -209,11 +211,19 @@ RequestResponse:
 }
 
 
-outputPort MetaJolie {
-Interfaces: MetaJolieInterface
-}
+service MetaJolie {
 
-embedded {
-Jolie:
-    "services/metajolie/metajolie.ol" in MetaJolie
+	
+
+    embed MetaService as metaservice
+
+    inputPort ip {
+        location:"local"
+        interfaces: MetaJolieInterface
+		aggregates: metaservice
+    }
+
+    main{
+		nullProcess
+	}
 }
