@@ -19,8 +19,6 @@
  *  For details about the authors of this software, see the AUTHORS file.
  */
 
-from types.JavaException import *
-
 type SendMailRequest:void {
 	/* Host & Authentication */
 	.host:string
