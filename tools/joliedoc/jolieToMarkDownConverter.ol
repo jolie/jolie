@@ -2,6 +2,7 @@ from inspector import Inspector
 from string_utils import StringUtils
 from console import Console
 from file import File
+from .markdownRenderService import MDRenderService, RenderInterface
 
 type ConvertDocumentRequest:void{
     .filename: string
@@ -21,56 +22,29 @@ interface RenderInterface {
 
 
 service JolieToMarkDownConverter {
-
-    
-    
     
     embed Inspector as inspector 
     embed StringUtils as stringutils
     embed Console as console
     embed File as file
+    embed MDRenderService as render
     
-    
-
     inputPort ConverterPort {
-        Interfaces: DocumentConverterInterface , RenderInterface
+        Interfaces: DocumentConverterInterface
         Location : "local"
     }
 
-    outputPort render {
-        Interfaces: RenderInterface
-    }
-
-
    execution{ concurrent }
 
-
     main{
-
-
-        [typeRender(request)(response){
-
-            for ( counterFields  = 0 , counterFields < #request.fields , counterFields++){
-                        response +=  "{\n"
-                        response += "\t" +  request.fields[counterFields].name 
-                        if (is_defined (request.fields[counterFields].fields)){
-                               typeRender@render(request.fields[counterFields])(typeRenderResponse)
-                               typeJolie += ":" + data.result.referredTypes[counterTypes].type.fields[counterFields].type.nativeType + typeRender
-                        }else{
-                               typeJolie += ":"  + data.result.referredTypes[counterTypes].type.fields[counterFields].type.nativeType + "\n"
-                        }
-                        response +=  "}\n"
-            }
-
-        }]
 
           [convertDocument(request)(reponse){
                 inspectPorts@inspector( {filename = request.filename} )( data.result ) 
                 valueToPrettyString@stringutils(data)(s)
                 println@console(s)()
-
+                fileContentMarkDown = ""
                 for (counter = 0 , counter < #data.result.inputPorts  , counter++){
-                    
+                        
                         for (counterInterfaces = 0 , counterInterfaces < #data.result.inputPorts[0].interfaces , counterInterfaces++){
                             fileContentMarkDown +=   "# " + data.result.inputPorts[counter].interfaces.name + "\n\n"
                             
@@ -103,6 +77,7 @@ service JolieToMarkDownConverter {
                 println@console(s)()
 
                     while (counter < #data.typesFromOperation ){
+
                         for ( counterTypes  = 0 , counterTypes < #data.result.referredTypes , counterTypes++){
                         if (data.result.referredTypes[counterTypes].name == data.typesFromOperation[counter] ){
                             undef(typeJolie)
