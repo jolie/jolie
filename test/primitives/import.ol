@@ -22,7 +22,7 @@ from .private.imports.point import point as p
 from .private.imports.iface import fooIface
 from .private.imports.namespace import *
 from .private.imports.namespace import n1 as asN1, n2 as asN2
-from .private.imports.pkg import mainDefaultType
+from .private.imports.@pkg import mainDefaultType
 from twice.twice.main import TwiceAPI
 from .packages.t import test
 from .packages.bar.foo import type_foo, type_bar, type_bar_package

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2020 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2006-2021 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,29 +19,6 @@
 
 package jolie.lang.parse;
 
-import jolie.lang.Constants;
-import jolie.lang.NativeType;
-import jolie.lang.Constants.EmbeddedServiceType;
-import jolie.lang.parse.ast.*;
-import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
-import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
-import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
-import jolie.lang.parse.ast.VariablePathNode.Type;
-import jolie.lang.parse.ast.courier.CourierChoiceStatement;
-import jolie.lang.parse.ast.courier.CourierDefinitionNode;
-import jolie.lang.parse.ast.courier.NotificationForwardStatement;
-import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.*;
-import jolie.lang.parse.ast.types.*;
-import jolie.lang.parse.ast.types.refinements.*;
-import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
-import jolie.lang.parse.util.ProgramBuilder;
-import jolie.util.Helpers;
-import jolie.util.Pair;
-import jolie.util.Range;
-import jolie.util.UriUtils;
-
 import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -50,9 +27,128 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import jolie.lang.Constants;
+import jolie.lang.Constants.EmbeddedServiceType;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.AddAssignStatement;
+import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.CompareConditionNode;
+import jolie.lang.parse.ast.CompensateStatement;
+import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
+import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
+import jolie.lang.parse.ast.EmbedServiceNode;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.ExecutionInfo;
+import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
+import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
+import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
+import jolie.lang.parse.ast.InstallFunctionNode;
+import jolie.lang.parse.ast.InstallStatement;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
+import jolie.lang.parse.ast.LinkInStatement;
+import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
+import jolie.lang.parse.ast.NDChoiceStatement;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.NullProcessStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OperationCollector;
+import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.PostDecrementStatement;
+import jolie.lang.parse.ast.PostIncrementStatement;
+import jolie.lang.parse.ast.PreDecrementStatement;
+import jolie.lang.parse.ast.PreIncrementStatement;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.Scope;
+import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SpawnStatement;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.SynchronizedStatement;
+import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.TypeCastExpressionNode;
+import jolie.lang.parse.ast.UndefStatement;
+import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
+import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.ast.VariablePathNode.Type;
+import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
+import jolie.lang.parse.ast.expression.AndConditionNode;
+import jolie.lang.parse.ast.expression.ConstantBoolExpression;
+import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
+import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
+import jolie.lang.parse.ast.expression.NotExpressionNode;
+import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.types.BasicTypeDefinition;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementDoubleRanges;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementIntegerRanges;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementLongRanges;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringLength;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringList;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringRegex;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.util.ProgramBuilder;
+import jolie.util.Helpers;
+import jolie.util.Pair;
+import jolie.util.Range;
+import jolie.util.UriUtils;
 
 /**
  * Parser for a .ol file.
@@ -3420,8 +3516,8 @@ public class OLParser extends AbstractParser {
 		CAN_READ_ID, CANNOT_READ_ID, STOP
 	}
 
-	private String parseExtendedIdentifier( Scanner.TokenType... extensions )
-		throws IOException {
+	private String parseExtendedIdentifier( String errorMessage, Scanner.TokenType... extensions )
+		throws IOException, ParserException {
 		List< String > importTargetComponents = new ArrayList<>();
 
 		ExtendedIdentifierState state = ExtendedIdentifierState.CAN_READ_ID;
@@ -3438,7 +3534,11 @@ public class OLParser extends AbstractParser {
 				state = ExtendedIdentifierState.STOP;
 			}
 		}
-		return importTargetComponents.stream().collect( Collectors.joining() );
+		String id = importTargetComponents.stream().collect( Collectors.joining() );
+		if( id.isEmpty() ) {
+			throwException( errorMessage );
+		}
+		return id;
 	}
 
 	private void parseImport() throws IOException, ParserException {
@@ -3460,8 +3560,8 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
-					assertIdentifier( "expected Identifier for importing target after from" );
-					importTargets.add( parseExtendedIdentifier( Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
+					importTargets.add( parseExtendedIdentifier( "expected identifier for importing target after from",
+						Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
 					importTargetIDStarted = true;
 					// nextToken();
 				}
