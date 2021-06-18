@@ -19,10 +19,13 @@
 
 package jolie.lang;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Properties;
 import java.util.jar.Attributes;
+import java.util.stream.Collectors;
 
 import jolie.lang.parse.Scanner;
 import jolie.util.Range;
@@ -36,6 +39,7 @@ public final class Constants {
 	// Release information
 	public static final String VERSION = readVersionFromProperties();
 	public static final String COPYRIGHT = "(C) 2006-2021 the Jolie developers";
+	public static final String ASCII_LOGO = readAsciiLogo();
 
 	private static String readVersionFromProperties() {
 		try( InputStream is = Constants.class.getClassLoader().getResourceAsStream( "libjolie.properties" ) ) {
@@ -51,6 +55,15 @@ public final class Constants {
 			return prop.getProperty( "jolie.version" );
 		} catch( IOException e ) {
 			return "ERROR: could not close libjolie.properties correctly.";
+		}
+	}
+
+	private static String readAsciiLogo() {
+		try( BufferedReader reader = new BufferedReader(
+			new InputStreamReader( Constants.class.getClassLoader().getResourceAsStream( "ascii-logo.txt" ) ) ) ) {
+			return reader.lines().collect( Collectors.joining( "\n" ) );
+		} catch( IOException e ) {
+			return "ERROR: could not close ascii-logo.txt correctly.";
 		}
 	}
 

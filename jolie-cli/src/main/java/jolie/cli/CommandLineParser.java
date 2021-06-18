@@ -122,7 +122,13 @@ public class CommandLineParser implements Closeable {
 	 */
 	protected String getHelpString() {
 		return new StringBuilder()
+			.append( "\n\n" )
+			.append( Constants.ASCII_LOGO )
+			.append( "\n\n\n" )
 			.append( getVersionString() )
+			.append( "\n\nGitHub: https://github.com/jolie/jolie" )
+			.append( "\nTwitter: https://twitter.com/jolielang" )
+			.append( "\nWebsite: https://www.jolie-lang.org/" )
 			.append( "\n\nUsage: jolie [options] program_file [program arguments]\n\n" )
 			.append( "Available options:\n" )
 			.append(
