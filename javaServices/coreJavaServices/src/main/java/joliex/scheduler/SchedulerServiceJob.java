@@ -29,6 +29,8 @@ import org.quartz.JobExecutionException;
 import org.quartz.SchedulerContext;
 import org.quartz.SchedulerException;
 
+import java.io.IOException;
+
 /**
  *
  * @author claudio guidi
@@ -45,8 +47,9 @@ public class SchedulerServiceJob implements org.quartz.Job {
 			Value toSend = Value.create();
 			toSend.getFirstChild( "jobName" ).setValue( context.getJobDetail().getKey().getName() );
 			toSend.getFirstChild( "groupName" ).setValue( context.getJobDetail().getKey().getGroup() );
-			service.sendMessage( CommMessage.createRequest( service.getOperationName(), "/", toSend ) );
-		} catch( SchedulerException ex ) {
+			CommMessage request = CommMessage.createRequest( service.getOperationName(), "/", toSend );
+			service.sendMessage( request ).recvResponseFor( request );
+		} catch( SchedulerException | IOException ex ) {
 			Interpreter.getInstance().logSevere( ex );
 		}
 	}
