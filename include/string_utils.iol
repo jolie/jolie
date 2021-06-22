@@ -20,66 +20,66 @@
  */
 
 type EndsWithRequest: string {
-	.suffix: string
+	suffix: string
 }
 
 type ReplaceRequest:string {
-	.regex:string
-	.replacement:string
+	regex:string
+	replacement:string
 }
 
 type JoinRequest:void {
-	.piece[0,*]:string
-	.delimiter:string
+	piece[0,*]:string
+	delimiter:string
 }
 
 type SplitByLengthRequest:string {
-	.length:int
+	length:int
 }
 
 type SplitResult:void {
-	.result[0,*]:string
+	result[0,*]:string
 }
 
 type SplitRequest:string {
-	.limit?:int
-	.regex:string
+	limit?:int
+	regex:string
 }
 
 type PadRequest:string {
-	.length:int
-	.char:string
+	length:int
+	char:string
 }
 
 type MatchRequest:string {
-	.regex:string
+	regex:string
 }
 
 type MatchResult:int { // 1 if at least a match was found, 0 otherwise.
-	.group[0,*]:string
+	group[0,*]:string
 }
 
 type StartsWithRequest:string {
-	.prefix:string
+	prefix:string
 }
 
 type SubStringRequest:string {
-	.begin:int
-	.end?:int
+	begin:int
+	end?:int
 }
 
 type StringItemList:void {
-	.item*:string
+	item*:string
 }
 
 type IndexOfRequest: string {
-	.word: string
+	word: string
 }
 
 type IndexOfResponse: int
 
 type ContainsRequest:string {
-	.substring:string
+	substring:string
 }
 
 type UrlEncodeRequest: string {
