@@ -27,6 +27,11 @@ type RegisterForInputRequest {
 	enableSessionListener?: bool
 }
 
+
+type ReadLineRequest: void {
+	secret?: bool
+}
+
 type SubscribeSessionListener {
 	token: string
 }
@@ -50,6 +55,11 @@ RequestResponse:
 	*	Parameter format allows to specifiy the timestamp output format. Bad Format will be printed out if format value is not allowed.
 	*/
 	enableTimestamp( EnableTimestampRequest )( void ),
+
+	/**!
+	* Read a line from the console using a synchronous call
+	*/
+	readLine( ReadLineRequest )( string ),
 
 	/**!
 	*  it enables the console for input listening

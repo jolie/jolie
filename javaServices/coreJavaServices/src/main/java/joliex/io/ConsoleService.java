@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
@@ -170,6 +171,16 @@ public class ConsoleService extends JavaService {
 
 		if( sessionListeners ) {
 			sessionTokens.remove( token );
+		}
+	}
+
+	@RequestResponse
+	public String readLine( Value request ) {
+		if( request.getFirstChild( "secret" ).isDefined() && request.getFirstChild( "secret" ).boolValue() ) {
+			char passwordArray[] = System.console().readPassword();
+			return new String( passwordArray );
+		} else {
+			return System.console().readLine();
 		}
 	}
 }
