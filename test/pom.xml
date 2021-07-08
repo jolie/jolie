@@ -68,6 +68,8 @@
 					<executable>${jolie.launcher}</executable>
 					<arguments>
 						<argument>--stackTraces</argument>
+						<argument>--charset</argument>
+						<argument>UTF-8</argument>
 						<argument>test.ol</argument>
 					</arguments>
 				</configuration>
