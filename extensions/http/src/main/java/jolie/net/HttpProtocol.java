@@ -445,7 +445,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
 		throws IOException {
 		EncodedContent ret = new EncodedContent();
-		if( inInputPort == false && method == Method.GET ) {
+		if( inInputPort == false && (method == Method.GET | method == Method.DELETE) ) {
 			// We are building a GET request
 			return ret;
 		}
