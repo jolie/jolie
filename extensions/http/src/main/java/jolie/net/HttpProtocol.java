@@ -365,7 +365,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						.append( '=' )
 						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
 
-					if( vecIt.hasNext() || nodesIt.hasNext() ) {
+					if( vecIt.hasNext() |
+					   nodesIt.hasNext() ) {
 						headerBuilder.append( '&' );
 					}
 				}
@@ -445,8 +446,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
 		throws IOException {
 		EncodedContent ret = new EncodedContent();
-		if( inInputPort == false && (method == Method.GET | method == Method.DELETE) ) {
-			// We are building a GET request
+		if( inInputPort == false && (method == Method.GET || method == Method.DELETE) ) {
+			// We are building a GET or DELETE request
 			return ret;
 		}
 
