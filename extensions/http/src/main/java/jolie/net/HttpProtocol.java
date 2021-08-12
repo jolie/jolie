@@ -365,8 +365,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						.append( '=' )
 						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
 
-					if( vecIt.hasNext() |
-					   nodesIt.hasNext() ) {
+					if( vecIt.hasNext() || nodesIt.hasNext() ) {
 						headerBuilder.append( '&' );
 					}
 				}
