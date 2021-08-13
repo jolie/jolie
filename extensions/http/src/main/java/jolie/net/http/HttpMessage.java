@@ -21,11 +21,7 @@
 
 package jolie.net.http;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 
@@ -219,6 +215,22 @@ public class HttpMessage {
 	public void setStatusCode( int code ) {
 		statusCode = code;
 	}
+
+	public String getMethod() {
+		String method = "";
+		if( type == Type.GET ||
+			type == Type.POST ||
+			type == Type.DELETE ||
+			type == type.PUT ||
+			type == type.PATCH ) {
+			method = type.name();
+		}
+		return method;
+
+	}
+
+	String method = "";
+
 
 	public byte[] content() {
 		return content;
