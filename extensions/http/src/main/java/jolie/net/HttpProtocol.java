@@ -19,71 +19,40 @@
 
 package jolie.net;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.net.http.HttpMessage;
-import jolie.net.http.HttpParser;
-import jolie.net.http.HttpUtils;
-import jolie.net.http.Method;
-import jolie.net.http.MultiPartFormDataParser;
+import jolie.net.http.*;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
-import jolie.runtime.typing.OneWayTypeDescription;
-import jolie.runtime.typing.OperationTypeDescription;
-import jolie.runtime.typing.RequestResponseTypeDescription;
-import jolie.runtime.typing.Type;
-import jolie.runtime.typing.TypeCastingException;
+import jolie.runtime.typing.*;
 import jolie.tracer.ProtocolTraceAction;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.*;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * HTTP protocol implementation
@@ -205,6 +174,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String DROP_URI_PATH = "dropURIPath";
 		private static final String CACHE_CONTROL = "cacheControl";
 		private static final String FORCE_CONTENT_DECODING = "forceContentDecoding";
+
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -1301,6 +1271,99 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	}
 
+
+	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
+		Value mappingValues = Value.create();
+		getParameterFirstValue( "osc" ).children().forEach( ( operationName, values ) -> {
+			if( values.get( 0 ).hasChildren( Parameters.ALIAS ) ) {
+				Value mappingValue = Value.create();
+				mappingValue.getFirstChild( "alias" )
+					.setValue( values.get( 0 ).getFirstChild( Parameters.ALIAS ).strValue() );
+				mappingValue.getFirstChild( "operationName" ).setValue( operationName );
+				mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
+					.strValue().toUpperCase() ).add( mappingValue );
+			}
+		} );
+		final String requestPath = message.requestPath().split( "\\?", 2 )[ 0 ].substring( 1 );
+
+		String[] splitRequestPath = requestPath.split( "/" );
+
+		if( message.isGet() ) {
+			boolean found = false;
+			for( int counter = 0; counter < mappingValues.getChildren( Method.GET.id() ).size() & !found; counter++ ) {
+				String parameterString = "";
+				Value value = mappingValues.getChildren( Method.GET.id() ).get( counter );
+				String[] splitAlias = value.getFirstChild( "alias" ).strValue().split( "\\?" )[ 0 ].split( "/" );
+
+				if( splitAlias.length == splitRequestPath.length ) {
+					found = true;
+					int counterPartsUrl = 0;
+					while( found && counterPartsUrl < splitRequestPath.length ) {
+						if( !splitRequestPath[ counterPartsUrl ].equals( splitAlias[ counterPartsUrl ] ) ) {
+							Matcher m =
+								Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( splitAlias[ counterPartsUrl ] );
+							if( !m.find() ) {
+								found = false;
+							} else {
+								String parameterName =
+									splitAlias[ counterPartsUrl ].split( "%(!)?\\{" )[ 1 ].split( "\\}" )[ 0 ];
+								if( parameterString.isEmpty() ) {
+									parameterString += parameterName
+										.concat( "=" )
+										.concat( splitRequestPath[ counterPartsUrl ] );
+								} else {
+									parameterString += "&"
+										.concat( parameterName )
+										.concat( "=" )
+										.concat( splitRequestPath[ counterPartsUrl ] );
+								}
+								System.out.println( "parameterString" + parameterString );
+
+							}
+						}
+						counterPartsUrl++;
+					}
+
+					if( found ) {
+						decodedMessage.operationName = value.getFirstChild( "operationName" ).strValue();
+						decodedMessage.resourcePath = "/";
+						Matcher m =
+							Pattern.compile( "^[^?#]+\\?([^#]+)" )
+								.matcher( message.requestPath() );
+						if( m.find() ) {
+
+							if( parameterString.isEmpty() ) {
+								String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
+									.concat( "?" )
+									.concat( message.requestPath().split( "\\?", 2 )[ 1 ] );
+								message.setRequestPath( messagePath );
+							} else {
+								String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
+									.concat( "?" ).concat( parameterString )
+									.concat( "&" )
+									.concat( message.requestPath().split( "\\?", 2 )[ 1 ] );
+								message.setRequestPath( messagePath );
+
+							}
+
+						} else {
+							String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
+								.concat( "?" ).concat( parameterString );
+							message.setRequestPath( messagePath );
+						}
+					}
+				} else {
+					decodedMessage.operationName = null;
+				}
+
+			}
+
+		}
+
+
+	}
+
+
 	private void recv_checkDefaultOp( HttpMessage message, DecodedMessage decodedMessage ) {
 		if( decodedMessage.resourcePath.equals( "/" )
 			&& !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
@@ -1411,14 +1474,27 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		// URI parameter parsing
-		if( message.requestPath() != null ) {
-			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
-			recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
-		}
+		/*
+		 * if( message.requestPath() != null ) { boolean strictEncoding = checkStringParameter(
+		 * Parameters.JSON_ENCODING, "strict" ); recv_parseQueryString( message, decodedMessage.value,
+		 * contentType, strictEncoding ); }
+		 */
 
 		recv_parseRequestFormat( contentType );
 		if( !message.isResponse() ) {
+
+			if( hasParameter( "osc" ) ) {
+
+				recv_extractReceivingOperation( message, decodedMessage );
+
+			}
 			recv_checkReceivingOperation( message, decodedMessage );
+		}
+
+
+		if( message.requestPath() != null ) {
+			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
+			recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
 		}
 
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
