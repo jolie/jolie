@@ -80,7 +80,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jolie-uri</artifactId>
+			<artifactId>coreJavaServices</artifactId>
 			<version>${jolie.version}</version>
 		</dependency>
 	</dependencies>
