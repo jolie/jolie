@@ -1512,8 +1512,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				Value uriTemplateCheckValue = Value.create();
 				uriTemplateCheckValue.getFirstChild( "template" )
 					.setValue( value.getFirstChild( "template" ).strValue() );
-				uriTemplateCheckValue.getFirstChild( "uri" )
-					.setValue( message.requestPath().substring( 1 ) );
+				if( message.requestPath().substring( 0, 2 ).equals( "//" ) ) {
+					/* strange jolie double slash */
+					uriTemplateCheckValue.getFirstChild( "uri" )
+						.setValue( message.requestPath().substring( 1 ) );
+				} else {
+					uriTemplateCheckValue.getFirstChild( "uri" )
+						.setValue( message.requestPath() );
+				}
 				Value responseTemplateCheckValue = uriTemplates.match( uriTemplateCheckValue );
 
 
