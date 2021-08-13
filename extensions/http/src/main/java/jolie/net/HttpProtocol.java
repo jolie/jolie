@@ -1462,9 +1462,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		String[] splitRequestPath = requestPath.split( "/" );
 
-		if( message.isGet() ) {
+		if( !message.getMethod().isEmpty() ) {
 			boolean found = false;
-			for( int counter = 0; counter < mappingValues.getChildren( Method.GET.id() ).size() & !found; counter++ ) {
+			for( int counter = 0; counter < mappingValues.getChildren( message.getMethod() ).size()
+				& !found; counter++ ) {
 				String parameterString = "";
 				Value value = mappingValues.getChildren( Method.GET.id() ).get( counter );
 				String[] splitAlias = value.getFirstChild( "alias" ).strValue().split( "\\?" )[ 0 ].split( "/" );
@@ -1491,8 +1492,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 										.concat( "=" )
 										.concat( splitRequestPath[ counterPartsUrl ] );
 								}
-								System.out.println( "parameterString" + parameterString );
-
 							}
 						}
 						counterPartsUrl++;
