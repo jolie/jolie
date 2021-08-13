@@ -19,6 +19,7 @@
 
 package jolie.net;
 
+
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
@@ -36,6 +37,9 @@ import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
 
 import jolie.xml.XmlUtils;
+
+
+import joliex.util.UriTemplates;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -177,10 +181,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String CACHE_CONTROL = "cacheControl";
 		private static final String FORCE_CONTENT_DECODING = "forceContentDecoding";
 		private static final String TEMPLATE = "template";
-		private static final String OUTGOING_HEADERS = "outHeaders";
-		private static final String INCOMING_HEADERS = "inHeaders";
-		private static final String STATUS_CODES = "statusCodes";
-
+		private static final String OUTGOING_HEADERS = "outboundHeaders";
+		private static final String INCOMMING_HEADERS = "inboundHeaders";
 
 
 		private static class MultiPartHeaders {
@@ -756,18 +758,18 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendParsedTemplate( String template, Value value, StringBuilder headerBuilder ) {
 		List< String > templateKeys = new ArrayList<>();
-		UriUtils uriUtils = new UriUtils();
+		UriTemplates uriTemplates = new UriTemplates();
 		Value uriCreateValue = Value.create();
 		uriCreateValue.getFirstChild( "template" ).setValue( template );
 		uriCreateValue.getFirstChild( "params" ).deepCopy( value );
-		String uri = uriUtils.expand( uriCreateValue );
+		String uri = uriTemplates.expand( uriCreateValue );
 
 		/* cleaning value from used keys */
 
 		Value uriTemplateCheckValue = Value.create();
 		uriTemplateCheckValue.getFirstChild( "template" ).setValue( template );
 		uriTemplateCheckValue.getFirstChild( "uri" ).setValue( uri );
-		uriUtils.match( uriTemplateCheckValue ).children().forEach( ( s, values ) -> {
+		uriTemplates.match( uriTemplateCheckValue ).children().forEach( ( s, values ) -> {
 			templateKeys.add( s );
 		} );
 
@@ -855,7 +857,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void send_appendRequestHeaders( CommMessage message, Method method, String qsFormat,
 		StringBuilder headerBuilder )
 		throws IOException {
-		send_appendRequestMethod( method, headerBuilder );
+
+		if( hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ) {
+			send_appendRequestOperationMethod(
+				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.METHOD ),
+				headerBuilder );
+		} else {
+			send_appendRequestMethod( method, headerBuilder );
+		}
+
 
 		headerBuilder.append( ' ' );
 
@@ -888,19 +898,20 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.OUTGOING_HEADERS ),
 				headerBuilder );
 		}
-
-
 	}
 
 	private void send_operationSpecificHeader( Value value, Value outboundHeaders, StringBuilder headerBuilder ) {
 		List< String > headersKeys = new ArrayList<>();
-		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
-			headerBuilder.append( headerName ).append( ": " )
-				.append( value.getFirstChild( headerValues.get( 0 ).strValue() ).strValue() )
-				.append( HttpUtils.CRLF );
-			headersKeys.add( headerValues.get( 0 ).strValue() );
+		outboundHeaders.children().forEach( ( s, values ) -> {
+			headerBuilder.append( s ).append( ": " )
+				.append( value.getFirstChild( values.get( 0 ).strValue() ).strValue() ).append( HttpUtils.CRLF );
+			headersKeys.add( values.get( 0 ).strValue() );
 		} );
 		headersKeys.forEach( value.children()::remove );
+	}
+
+	private void send_appendRequestOperationMethod( Value method, StringBuilder headerBuilder ) {
+		headerBuilder.append( method.strValue() );
 	}
 
 	private void send_appendGenericHeaders(
@@ -1449,86 +1460,73 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
 		Value mappingValues = Value.create();
 		getParameterFirstValue( "osc" ).children().forEach( ( operationName, values ) -> {
-			if( values.get( 0 ).hasChildren( Parameters.ALIAS ) ) {
+			if( values.get( 0 ).hasChildren( Parameters.TEMPLATE ) ) {
 				Value mappingValue = Value.create();
-				mappingValue.getFirstChild( "alias" )
-					.setValue( values.get( 0 ).getFirstChild( Parameters.ALIAS ).strValue() );
+				mappingValue.getFirstChild( "template" )
+					.setValue( values.get( 0 ).getFirstChild( Parameters.TEMPLATE ).strValue() );
 				mappingValue.getFirstChild( "operationName" ).setValue( operationName );
+				if( values.get( 0 ).hasChildren( Parameters.INCOMMING_HEADERS ) ) {
+					mappingValue.getFirstChild( Parameters.INCOMMING_HEADERS )
+						.deepCopy( values.get( 0 ).getFirstChild( Parameters.INCOMMING_HEADERS ) );
+				}
 				mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
 					.strValue().toUpperCase() ).add( mappingValue );
 			}
 		} );
-		final String requestPath = message.requestPath().split( "\\?", 2 )[ 0 ].substring( 1 );
-
-		String[] splitRequestPath = requestPath.split( "/" );
 
 		if( !message.getMethod().isEmpty() ) {
 			boolean found = false;
 			for( int counter = 0; counter < mappingValues.getChildren( message.getMethod() ).size()
 				& !found; counter++ ) {
-				String parameterString = "";
-				Value value = mappingValues.getChildren( Method.GET.id() ).get( counter );
-				String[] splitAlias = value.getFirstChild( "alias" ).strValue().split( "\\?" )[ 0 ].split( "/" );
 
-				if( splitAlias.length == splitRequestPath.length ) {
+				Value value = mappingValues.getChildren( message.getMethod() ).get( counter );
+
+				UriTemplates uriTemplates = new UriTemplates();
+				Value uriTemplateCheckValue = Value.create();
+				uriTemplateCheckValue.getFirstChild( "template" )
+					.setValue( value.getFirstChild( "template" ).strValue() );
+				uriTemplateCheckValue.getFirstChild( "uri" )
+					.setValue( message.requestPath().substring( 1 ) );
+				Value responseTemplateCheckValue = uriTemplates.match( uriTemplateCheckValue );
+
+
+				if( responseTemplateCheckValue.boolValue() ) {
 					found = true;
-					int counterPartsUrl = 0;
-					while( found && counterPartsUrl < splitRequestPath.length ) {
-						if( !splitRequestPath[ counterPartsUrl ].equals( splitAlias[ counterPartsUrl ] ) ) {
-							Matcher m =
-								Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( splitAlias[ counterPartsUrl ] );
-							if( !m.find() ) {
-								found = false;
-							} else {
-								String parameterName =
-									splitAlias[ counterPartsUrl ].split( "%(!)?\\{" )[ 1 ].split( "\\}" )[ 0 ];
-								if( parameterString.isEmpty() ) {
-									parameterString += parameterName
-										.concat( "=" )
-										.concat( splitRequestPath[ counterPartsUrl ] );
-								} else {
-									parameterString += "&"
-										.concat( parameterName )
-										.concat( "=" )
-										.concat( splitRequestPath[ counterPartsUrl ] );
-								}
-							}
-						}
-						counterPartsUrl++;
-					}
+					decodedMessage.operationName = value.getFirstChild( "operationName" ).strValue();
+					decodedMessage.resourcePath = "/";
+					String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() );
+					String paramString = "";
+					Iterator< Entry< String, ValueVector > > iterator =
+						responseTemplateCheckValue.children().entrySet().iterator();
 
-					if( found ) {
-						decodedMessage.operationName = value.getFirstChild( "operationName" ).strValue();
-						decodedMessage.resourcePath = "/";
-						Matcher m =
-							Pattern.compile( "^[^?#]+\\?([^#]+)" )
-								.matcher( message.requestPath() );
-						if( m.find() ) {
-
-							if( parameterString.isEmpty() ) {
-								String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
-									.concat( "?" )
-									.concat( message.requestPath().split( "\\?", 2 )[ 1 ] );
-								message.setRequestPath( messagePath );
-							} else {
-								String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
-									.concat( "?" ).concat( parameterString )
-									.concat( "&" )
-									.concat( message.requestPath().split( "\\?", 2 )[ 1 ] );
-								message.setRequestPath( messagePath );
-
-							}
-
+					while( iterator.hasNext() ) {
+						Entry< String, ValueVector > entry = iterator.next();
+						if( paramString.isEmpty() ) {
+							paramString += "?".concat( entry.getKey() ).concat( "=" )
+								.concat( entry.getValue().get( 0 ).strValue() );
 						} else {
-							String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
-								.concat( "?" ).concat( parameterString );
-							message.setRequestPath( messagePath );
+							paramString += "&".concat( entry.getKey() ).concat( "=" )
+								.concat( entry.getValue().get( 0 ).strValue() );
 						}
 					}
-				} else {
-					decodedMessage.operationName = null;
-				}
 
+					if( value.hasChildren( Parameters.INCOMMING_HEADERS ) ) {
+						iterator = value.getFirstChild( Parameters.INCOMMING_HEADERS ).children().entrySet().iterator();
+						while( iterator.hasNext() ) {
+							Entry< String, ValueVector > entry = iterator.next();
+							if( paramString.isEmpty() ) {
+								paramString += "?".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
+									.concat( message.getProperty( entry.getKey() ) );
+							} else {
+								paramString += "&".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
+									.concat( message.getProperty( entry.getKey() ) );
+							}
+						}
+					}
+
+					messagePath += paramString;
+					message.setRequestPath( messagePath );
+				}
 			}
 
 		}
