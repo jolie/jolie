@@ -78,5 +78,10 @@
 			<artifactId>jolie-xml</artifactId>
 			<version>${jolie.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>coreJavaServices</artifactId>
+			<version>${jolie.version}</version>
+		</dependency>
 	</dependencies>
 </project>
