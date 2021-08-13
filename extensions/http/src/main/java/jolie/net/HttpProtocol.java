@@ -1445,7 +1445,28 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				Value value = mappingValues.getChildren( Method.GET.id() ).get( counter );
 				String[] splitAlias = value.getFirstChild( "alias" ).strValue().split( "\\?" )[ 0 ].split( "/" );
 
+<<<<<<< HEAD
 				if( splitAlias.length == splitRequestPath.length ) {
+=======
+				Value value = mappingValues.getChildren( message.getMethod() ).get( counter );
+
+				UriTemplates uriTemplates = new UriTemplates();
+				Value uriTemplateCheckValue = Value.create();
+				uriTemplateCheckValue.getFirstChild( "template" )
+					.setValue( value.getFirstChild( "template" ).strValue() );
+				if( message.requestPath().substring( 0, 2 ).equals( "//" ) ) {
+					/* strange jolie double slash */
+					uriTemplateCheckValue.getFirstChild( "uri" )
+						.setValue( message.requestPath().substring( 1 ) );
+				} else {
+					uriTemplateCheckValue.getFirstChild( "uri" )
+						.setValue( message.requestPath() );
+				}
+				Value responseTemplateCheckValue = uriTemplates.match( uriTemplateCheckValue );
+
+
+				if( responseTemplateCheckValue.boolValue() ) {
+>>>>>>> 03b47a5b ( guard against double // in jolie call)
 					found = true;
 					int counterPartsUrl = 0;
 					while( found && counterPartsUrl < splitRequestPath.length ) {
