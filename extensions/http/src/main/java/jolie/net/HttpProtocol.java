@@ -1421,8 +1421,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 
-<<<<<<< HEAD
-=======
 	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
 		Value mappingValues = Value.create();
 		getParameterFirstValue( "osc" ).children().forEach( ( operationName, values ) -> {
@@ -1514,7 +1512,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 
->>>>>>> 9d1b7ded (added get support with osc in http)
 	private void recv_checkDefaultOp( HttpMessage message, DecodedMessage decodedMessage ) {
 		if( decodedMessage.resourcePath.equals( "/" )
 			&& !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
@@ -1634,24 +1631,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		recv_parseRequestFormat( contentType );
 		if( !message.isResponse() ) {
-<<<<<<< HEAD
-			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
-				recv_extractReceivingOperation( message, decodedMessage );
-=======
 
 			if( hasParameter( "osc" ) ) {
 
 				recv_extractReceivingOperation( message, decodedMessage );
 
->>>>>>> 9d1b7ded (added get support with osc in http)
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
 		}
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 9d1b7ded (added get support with osc in http)
 		if( message.requestPath() != null ) {
 			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 			recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
