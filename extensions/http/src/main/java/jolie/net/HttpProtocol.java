@@ -37,8 +37,6 @@ import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
 
 import jolie.xml.XmlUtils;
-
-
 import joliex.util.UriTemplates;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -204,7 +202,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String FORCE_CONTENT_DECODING = "forceContentDecoding";
 		private static final String TEMPLATE = "template";
 		private static final String OUTGOING_HEADERS = "outboundHeaders";
-		private static final String INCOMMING_HEADERS = "inboundHeaders";
+		private static final String INCOMING_HEADERS = "inboundHeaders";
+		private static final String EXCEPTIONS = "exceptions";
 
 
 		private static class MultiPartHeaders {
@@ -673,6 +672,68 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
+	private void send_appendOscResponseHeaders( CommMessage message, StringBuilder headerBuilder ) {
+		int statusCode = DEFAULT_STATUS_CODE;
+		String statusDescription = null;
+
+		if( hasOperationSpecificParameter( message.operationName(), Parameters.EXCEPTIONS ) ) {
+			Value exceptionsValue =
+				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.EXCEPTIONS );
+			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
+				statusCode = exceptionsValue.getFirstChild( message.fault().faultName() ).intValue();
+				if( !STATUS_CODE_DESCRIPTIONS.containsKey( statusCode ) ) {
+					Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
+						message.operationName() +
+						" is sending a message with status code " +
+						statusCode +
+						", which is not in the HTTP specifications." );
+					statusDescription = "Internal Server Error";
+				} else if( isLocationNeeded( statusCode ) && !hasParameter( Parameters.REDIRECT ) ) {
+					// if statusCode is a redirection code, location parameter is needed
+					Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
+						message.operationName() +
+						" is sending a message with status code " +
+						statusCode +
+						", which expects a redirect parameter but the latter is not set." );
+				}
+			} else if( hasParameter( Parameters.REDIRECT ) ) {
+				statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
+			} else {
+				if( "IOException".equals( message.fault().faultName() ) ) {
+					statusCode = 404;
+				} else {
+					statusCode = 500;
+				}
+			}
+
+		}
+
+		if( statusDescription == null ) {
+			statusDescription = STATUS_CODE_DESCRIPTIONS.get( statusCode );
+		}
+		headerBuilder.append( "HTTP/1.1 " ).append( statusCode ).append( " " ).append( statusDescription )
+			.append( HttpUtils.CRLF );
+
+		if( hasParameter( Parameters.REDIRECT ) ) {
+			headerBuilder.append( "Location: " ).append( getStringParameter( Parameters.REDIRECT ) )
+				.append( HttpUtils.CRLF );
+		}
+
+		send_appendSetCookieHeader( message, headerBuilder );
+		headerBuilder.append( "Server: Jolie" ).append( HttpUtils.CRLF );
+		StringBuilder cacheControlHeader = new StringBuilder();
+		if( hasParameter( Parameters.CACHE_CONTROL ) ) {
+			Value cacheControl = getParameterFirstValue( Parameters.CACHE_CONTROL );
+			if( cacheControl.hasChildren( "maxAge" ) ) {
+				cacheControlHeader.append( "max-age=" ).append( cacheControl.getFirstChild( "maxAge" ).intValue() );
+			}
+		}
+		if( cacheControlHeader.length() > 0 ) {
+			headerBuilder.append( "Cache-Control: " ).append( cacheControlHeader ).append( HttpUtils.CRLF );
+		}
+
+	}
+
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder ) {
 		int statusCode = DEFAULT_STATUS_CODE;
 		String statusDescription = null;
@@ -1047,6 +1108,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if( inInputPort ) {
 			// We're responding to a request
+			if( hasOperationSpecificParameter( message.operationName(), Parameters.TEMPLATE ) & message.isFault() ) {
+				send_appendOscResponseHeaders( message, headerBuilder );
+			} else {
+				send_appendResponseHeaders( message, headerBuilder );
+			}
 			send_appendResponseHeaders( message, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
 			send_appendHeader( headerBuilder );
@@ -1492,9 +1558,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				mappingValue.getFirstChild( "template" )
 					.setValue( values.get( 0 ).getFirstChild( Parameters.TEMPLATE ).strValue() );
 				mappingValue.getFirstChild( "operationName" ).setValue( operationName );
-				if( values.get( 0 ).hasChildren( Parameters.INCOMMING_HEADERS ) ) {
-					mappingValue.getFirstChild( Parameters.INCOMMING_HEADERS )
-						.deepCopy( values.get( 0 ).getFirstChild( Parameters.INCOMMING_HEADERS ) );
+				if( values.get( 0 ).hasChildren( Parameters.INCOMING_HEADERS ) ) {
+					mappingValue.getFirstChild( Parameters.INCOMING_HEADERS )
+						.deepCopy( values.get( 0 ).getFirstChild( Parameters.INCOMING_HEADERS ) );
 				}
 				mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
 					.strValue().toUpperCase() ).add( mappingValue );
@@ -1543,8 +1609,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						}
 					}
 
-					if( value.hasChildren( Parameters.INCOMMING_HEADERS ) ) {
-						iterator = value.getFirstChild( Parameters.INCOMMING_HEADERS ).children().entrySet().iterator();
+					if( value.hasChildren( Parameters.INCOMING_HEADERS ) ) {
+						iterator = value.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
 						while( iterator.hasNext() ) {
 							Entry< String, ValueVector > entry = iterator.next();
 							if( paramString.isEmpty() ) {
