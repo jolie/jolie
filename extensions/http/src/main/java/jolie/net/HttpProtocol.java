@@ -33,9 +33,11 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.*;
 import jolie.tracer.ProtocolTraceAction;
+import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
+
 import jolie.xml.XmlUtils;
-import joliex.util.UriTemplates;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -774,18 +776,18 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendParsedTemplate( String template, Value value, StringBuilder headerBuilder ) {
 		List< String > templateKeys = new ArrayList<>();
-		UriTemplates uriTemplates = new UriTemplates();
+		UriUtils uriUtils = new UriUtils();
 		Value uriCreateValue = Value.create();
 		uriCreateValue.getFirstChild( "template" ).setValue( template );
 		uriCreateValue.getFirstChild( "params" ).deepCopy( value );
-		String uri = uriTemplates.expand( uriCreateValue );
+		String uri = uriUtils.expand( uriCreateValue );
 
 		/* cleaning value from used keys */
 
 		Value uriTemplateCheckValue = Value.create();
 		uriTemplateCheckValue.getFirstChild( "template" ).setValue( template );
 		uriTemplateCheckValue.getFirstChild( "uri" ).setValue( uri );
-		uriTemplates.match( uriTemplateCheckValue ).children().forEach( ( s, values ) -> {
+		uriUtils.match( uriTemplateCheckValue ).children().forEach( ( s, values ) -> {
 			templateKeys.add( s );
 		} );
 
@@ -1042,7 +1044,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			} else {
 				send_appendResponseHeaders( message, headerBuilder );
 			}
-			send_appendResponseHeaders( message, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
 			send_appendHeader( headerBuilder );
 
@@ -1423,7 +1424,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 				Value value = mappingValues.getChildren( message.getMethod() ).get( counter );
 
-				UriTemplates uriTemplates = new UriTemplates();
+				UriUtils uriUtils = new UriUtils();
 				Value uriTemplateCheckValue = Value.create();
 				uriTemplateCheckValue.getFirstChild( "template" )
 					.setValue( value.getFirstChild( "template" ).strValue() );
@@ -1435,7 +1436,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					uriTemplateCheckValue.getFirstChild( "uri" )
 						.setValue( message.requestPath() );
 				}
-				Value responseTemplateCheckValue = uriTemplates.match( uriTemplateCheckValue );
+				Value responseTemplateCheckValue = uriUtils.match( uriTemplateCheckValue );
 
 
 				if( responseTemplateCheckValue.boolValue() ) {

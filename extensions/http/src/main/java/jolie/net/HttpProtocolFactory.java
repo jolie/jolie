@@ -33,7 +33,8 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps( { "jolie-xml.jar", "jolie-js.jar", "json_simple.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "jolie-js.jar", "json_simple.jar", "jolie-uri.jar", "uri-templates.jar",
+	"joda-time.jar" } )
 public class HttpProtocolFactory extends CommProtocolFactory {
 	private final TransformerFactory transformerFactory;
 	private final DocumentBuilderFactory docBuilderFactory;
