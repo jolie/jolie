@@ -36,7 +36,6 @@ import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
 
 import jolie.xml.XmlUtils;
-<<<<<<< HEAD
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -57,9 +56,6 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-=======
-import joliex.util.UriTemplates;
->>>>>>> 8efc1adb (Added exceptions personalised status code)
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -203,16 +199,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String CACHE_CONTROL = "cacheControl";
 		private static final String FORCE_CONTENT_DECODING = "forceContentDecoding";
 		private static final String TEMPLATE = "template";
-<<<<<<< HEAD
 		private static final String OUTGOING_HEADERS = "outHeaders";
 		private static final String INCOMING_HEADERS = "inHeaders";
 		private static final String STATUS_CODES = "statusCodes";
 
-=======
-		private static final String OUTGOING_HEADERS = "outboundHeaders";
-		private static final String INCOMING_HEADERS = "inboundHeaders";
-		private static final String EXCEPTIONS = "exceptions";
->>>>>>> 8efc1adb (Added exceptions personalised status code)
 
 
 		private static class MultiPartHeaders {
@@ -647,68 +637,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void send_appendOscResponseHeaders( CommMessage message, StringBuilder headerBuilder ) {
-		int statusCode = DEFAULT_STATUS_CODE;
-		String statusDescription = null;
-
-		if( hasOperationSpecificParameter( message.operationName(), Parameters.EXCEPTIONS ) ) {
-			Value exceptionsValue =
-				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.EXCEPTIONS );
-			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
-				statusCode = exceptionsValue.getFirstChild( message.fault().faultName() ).intValue();
-				if( !STATUS_CODE_DESCRIPTIONS.containsKey( statusCode ) ) {
-					Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
-						message.operationName() +
-						" is sending a message with status code " +
-						statusCode +
-						", which is not in the HTTP specifications." );
-					statusDescription = "Internal Server Error";
-				} else if( isLocationNeeded( statusCode ) && !hasParameter( Parameters.REDIRECT ) ) {
-					// if statusCode is a redirection code, location parameter is needed
-					Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
-						message.operationName() +
-						" is sending a message with status code " +
-						statusCode +
-						", which expects a redirect parameter but the latter is not set." );
-				}
-			} else if( hasParameter( Parameters.REDIRECT ) ) {
-				statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
-			} else {
-				if( "IOException".equals( message.fault().faultName() ) ) {
-					statusCode = 404;
-				} else {
-					statusCode = 500;
-				}
-			}
-
-		}
-
-		if( statusDescription == null ) {
-			statusDescription = STATUS_CODE_DESCRIPTIONS.get( statusCode );
-		}
-		headerBuilder.append( "HTTP/1.1 " ).append( statusCode ).append( " " ).append( statusDescription )
-			.append( HttpUtils.CRLF );
-
-		if( hasParameter( Parameters.REDIRECT ) ) {
-			headerBuilder.append( "Location: " ).append( getStringParameter( Parameters.REDIRECT ) )
-				.append( HttpUtils.CRLF );
-		}
-
-		send_appendSetCookieHeader( message, headerBuilder );
-		headerBuilder.append( "Server: Jolie" ).append( HttpUtils.CRLF );
-		StringBuilder cacheControlHeader = new StringBuilder();
-		if( hasParameter( Parameters.CACHE_CONTROL ) ) {
-			Value cacheControl = getParameterFirstValue( Parameters.CACHE_CONTROL );
-			if( cacheControl.hasChildren( "maxAge" ) ) {
-				cacheControlHeader.append( "max-age=" ).append( cacheControl.getFirstChild( "maxAge" ).intValue() );
-			}
-		}
-		if( cacheControlHeader.length() > 0 ) {
-			headerBuilder.append( "Cache-Control: " ).append( cacheControlHeader ).append( HttpUtils.CRLF );
-		}
-
-	}
-
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder ) {
 		int statusCode = DEFAULT_STATUS_CODE;
 		String statusDescription = null;
@@ -1065,11 +993,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if( inInputPort ) {
 			// We're responding to a request
-			if( hasOperationSpecificParameter( message.operationName(), Parameters.TEMPLATE ) & message.isFault() ) {
-				send_appendOscResponseHeaders( message, headerBuilder );
-			} else {
-				send_appendResponseHeaders( message, headerBuilder );
-			}
 			send_appendResponseHeaders( message, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
 			send_appendHeader( headerBuilder );
@@ -1506,13 +1429,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				mappingValue.getFirstChild( "alias" )
 					.setValue( values.get( 0 ).getFirstChild( Parameters.ALIAS ).strValue() );
 				mappingValue.getFirstChild( "operationName" ).setValue( operationName );
-<<<<<<< HEAD
-=======
-				if( values.get( 0 ).hasChildren( Parameters.INCOMING_HEADERS ) ) {
-					mappingValue.getFirstChild( Parameters.INCOMING_HEADERS )
-						.deepCopy( values.get( 0 ).getFirstChild( Parameters.INCOMING_HEADERS ) );
-				}
->>>>>>> 8efc1adb (Added exceptions personalised status code)
 				mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
 					.strValue().toUpperCase() ).add( mappingValue );
 			}
@@ -1529,9 +1445,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				Value value = mappingValues.getChildren( Method.GET.id() ).get( counter );
 				String[] splitAlias = value.getFirstChild( "alias" ).strValue().split( "\\?" )[ 0 ].split( "/" );
 
-<<<<<<< HEAD
-				if( splitAlias.length == splitRequestPath.length ) {
-=======
 				Value value = mappingValues.getChildren( message.getMethod() ).get( counter );
 
 				UriTemplates uriTemplates = new UriTemplates();
@@ -1550,7 +1463,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 
 				if( responseTemplateCheckValue.boolValue() ) {
->>>>>>> 03b47a5b ( guard against double // in jolie call)
 					found = true;
 					int counterPartsUrl = 0;
 					while( found && counterPartsUrl < splitRequestPath.length ) {
@@ -1577,7 +1489,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						counterPartsUrl++;
 					}
 
-<<<<<<< HEAD
 					if( found ) {
 						decodedMessage.operationName = value.getFirstChild( "operationName" ).strValue();
 						decodedMessage.resourcePath = "/";
@@ -1591,15 +1502,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 									.concat( "?" )
 									.concat( message.requestPath().split( "\\?", 2 )[ 1 ] );
 								message.setRequestPath( messagePath );
-=======
-					if( value.hasChildren( Parameters.INCOMING_HEADERS ) ) {
-						iterator = value.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
-						while( iterator.hasNext() ) {
-							Entry< String, ValueVector > entry = iterator.next();
-							if( paramString.isEmpty() ) {
-								paramString += "?".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
-									.concat( message.getProperty( entry.getKey() ) );
->>>>>>> 8efc1adb (Added exceptions personalised status code)
 							} else {
 								String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
 									.concat( "?" ).concat( parameterString )
