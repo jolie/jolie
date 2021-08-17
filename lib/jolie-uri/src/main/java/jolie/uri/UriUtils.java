@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2015 by Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2011-2015 by Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2013 by Claudio Guidi
+ * Copyright (C) 2015 by Matthias Dieter Wallnöfer
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +22,7 @@
 package jolie.uri;
 
 import com.damnhandy.uri.template.UriTemplate;
+
 import com.damnhandy.uri.template.UriTemplateMatcherFactory;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.Value;
@@ -29,33 +32,30 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@AndJarDeps( { "uri-templates.jar", "joda-time.jar" } )
+@AndJarDeps({ "uri-templates.jar", "joda-time.jar" })
 public class UriUtils {
-	public static Value match( Value request ) {
-		return match( request.getFirstChild( "template" ).strValue(), request.getFirstChild( "uri" ).strValue() );
-	}
 
-	public static Value match( String template, String uri ) {
-		UriTemplate t = UriTemplate.fromTemplate( template );
-		Pattern p = UriTemplateMatcherFactory.getReverseMatchPattern( t );
-		Matcher m = p.matcher( uri );
+	public Value match(Value request) {
+		UriTemplate t = UriTemplate.fromTemplate(request.getFirstChild("template").strValue());
+		Pattern p = UriTemplateMatcherFactory.getReverseMatchPattern(t);
+		Matcher m = p.matcher(request.getFirstChild("uri").strValue());
 		Value response = Value.create();
 		boolean matches = m.matches();
-		response.setValue( matches );
-		if( matches ) {
-			for( String param : t.getVariables() ) {
-				response.setFirstChild( param, m.group( param ) );
+		response.setValue(matches);
+		if (matches) {
+			for (String param : t.getVariables()) {
+				response.setFirstChild(param, m.group(param));
 			}
 		}
 		return response;
 	}
 
-	public static String expand( Value request ) {
-		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
-		if( request.hasChildren( "params" ) ) {
-			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children()
-				.entrySet() ) {
-				t.set( entry.getKey(), entry.getValue().first().valueObject() );
+	public String expand(Value request) {
+		UriTemplate t = UriTemplate.fromTemplate(request.getFirstChild("template").strValue());
+		if (request.hasChildren("params")) {
+			for (final Map.Entry<String, ValueVector> entry : request.getFirstChild("params").children()
+					.entrySet()) {
+				t.set(entry.getKey(), entry.getValue().first().valueObject());
 			}
 		}
 		return t.expand();
