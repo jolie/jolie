@@ -1,40 +1,35 @@
-from .private.http_template_interface import HttpTemplateInterface
-from .private.http_template_server import HttpTemplateServer
 from ..test-unit import TestUnitInterface
-from string_utils import StringUtils
-from console import Console
+from  .private.http_template_interface import HttpTemplateInterface
+from  .private.http_template_server import HttpTemplateServer
+
 
 service Test {
+
+
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface
 	}
 
-    outputPort TestHttpTemplateB{
-        Location : "socket://localhost:9099"
-    }
 
     outputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
-           compression= false 
-           osc.getOrder.template="/api/orders/{id}" 
-           osc.getOrder.method="GET"
-           osc.getOrder.outHeaders.("Authorization")= "token"
-           osc.getOrders.template="/api/orders" 
-           osc.getOrders.method="GET"
-           osc.getOrders.outHeaders.("Authorization")= "token"
-           osc.addOrder.template="/api/orders" 
-           osc.addOrder.method="POST"
-           osc.addOrder.outHeaders.("Authorization")= "token"
-           osc.addOrder.statusCodes.IOException = 500
+           .osc.getOrder.template="/api/orders/{id}" 
+           .osc.getOrder.method="GET"
+           .osc.getOrder.outboundHeaders.("Authorization")= "token"
+           .osc.getOrders.template="/api/orders" 
+           .osc.getOrders.method="GET"
+           .osc.getOrders.outboundHeaders.("Authorization")= "token"
+           .osc.addOrder.template="/api/orders" 
+           .osc.addOrder.method="POST"
+           .osc.addOrder.outboundHeaders.("Authorization")= "token"
         }
-        Location : "socket://localhost:9099"
+        Location : "socket://localhost:80"
     }
 
-    embed StringUtils as stringUtils
-    embed Console as console 
-    embed HttpTemplateServer in TestHttpTemplateB
+
+   embed HttpTemplateServer in TestHttpTemplate
     
 
 	main {
@@ -55,16 +50,16 @@ service Test {
                                        ammount = 11.0})()
             addOrder@TestHttpTemplate({token="sometoken" 
                                        ammount = 21.0})()    
-            getOrders@TestHttpTemplate({token="sometoken"})(resultGetOrders) 
+            getOrders@TestHttpTemplate({token="sometoken" 
+                                       ammount = 21.0})(resultGetOrders) 
             if (#resultGetOrders.orders!=3){
                 throw( TestFailed, "wrong number of results in getOrders" )
             }    
-            request.token = "sometoken"
-            request.id = resultGetOrders.orders[2].id
-            getOrder@TestHttpTemplate(request)(resultGetOrder) 
-        
-            if(resultGetOrders.orders[2].id != resultGetOrder.id){
-                throw( TestFailed, "wrong id" )
+
+            getOrder@TestHttpTemplate({token="sometoken" 
+                                       id = resultGetOrders.orders.id})(resultGetOrder) 
+            if(resultGetOrder.ammount != resultGetOrders.orders.id){
+                throw( TestFailed, "wrong number of results in getOrders" )
             }                                                                                                         
 
 		}

@@ -13,10 +13,11 @@ type GetOrderResponse:Order
 
 type GetOrdersRequest:void{
     token:string
+    orderId:string 
 }
 
 type GetOrdersResponse:void{
-    orders*: Order
+    orders: Order
 }
 
 type AddOrderRequest:void{
@@ -31,7 +32,7 @@ interface HttpTemplateInterface{
     RequestResponse:
 
     getOrders(GetOrdersRequest)(GetOrdersResponse),
-    getOrder(GetOrderRequest)( GetOrderResponse),
+    getOrder(GetOrdersRequest)( GetOrdersResponse),
     addOrder(AddOrderRequest)(AddOrderResponse),
 
 }

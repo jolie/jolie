@@ -1,34 +1,31 @@
-from .http_template_interface import HttpTemplateInterface
+from http_template_interface import HttpTemplateInterface
 from string_utils import StringUtils
-from console import Console
 
 service HttpTemplateServer{
 
     inputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
-           .compression= false
-           .osc.getOrder.template = "/api/orders/{id}" 
-           .osc.getOrder.method = "GET"
-           .osc.getOrder.inHeaders.Authorization = "token"
-           .osc.getOrders.template = "/api/orders" 
-           .osc.getOrders.method = "GET"
-           .osc.getOrders.inHeaders.Authorization = "token"
+           .osc.getOrder.template="/api/orders/{id}" 
+           .osc.getOrder.method="GET"
+           .osc.getOrder.outboundHeaders.("Authorization")= "token"
+           .osc.getOrders.template="/api/orders" 
+           .osc.getOrders.method="GET"
+           .osc.getOrders.outboundHeaders.("Authorization")= "token"
            .osc.addOrder.template="/api/orders" 
            .osc.addOrder.method="POST"
-           .osc.addOrder.inHeaders.Authorization = "token"
+           .osc.addOrder.outboundHeaders.("Authorization")= "token"
         }
-        location : "socket://localhost:9099"
+        location : "socket://localhost:80"
     }
-    execution: concurrent
+    execution { concurrent}
     
     embed StringUtils as stringUtils
-    embed Console as console 
     
     main{
         [getOrder(request)(response){
            response.id = request.id
-           response.ammount = global.orders.(request.id).ammount
+           response.ammount = global.orders.(id).ammount
         }]
         [getOrders(request)(response){
             foreach (orderId : global.orders ){
@@ -37,9 +34,8 @@ service HttpTemplateServer{
             }
         }]
         [addOrder(request)(response){
-            getRandomUUID@stringUtils(  )( orderId )
+            getRandomUUID@stringUtils( request )( orderId )
             global.orders.(orderId).ammount = request.ammount
-        
         }]
     }
 }

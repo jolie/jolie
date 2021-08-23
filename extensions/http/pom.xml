@@ -80,15 +80,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-<<<<<<< HEAD
-<<<<<<< HEAD
-			<artifactId>jolie-uri</artifactId>
-=======
 			<artifactId>coreJavaServices</artifactId>
->>>>>>>  added templating bidirectional support osc method specific hearder mapping
-=======
-			<artifactId>jolie-uri</artifactId>
->>>>>>> Created jolie-uri lib and raplaced in http protocol template handeling
 			<version>${jolie.version}</version>
 		</dependency>
 	</dependencies>
