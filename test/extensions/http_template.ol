@@ -15,18 +15,17 @@ service Test {
     outputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
-           osc.getOrder.template="/api/orders/{id}" 
-           osc.getOrder.method="GET"
-           osc.getOrder.outHeaders.("Authorization")= "token"
-           osc.getOrders.template="/api/orders" 
-           osc.getOrders.method="GET"
-           osc.getOrders.outHeaders.("Authorization")= "token"
-           osc.addOrder.template="/api/orders" 
-           osc.addOrder.method="POST"
-           osc.addOrder.outHeaders.("Authorization")= "token"
-           osc.addOrder.statusCodes.IOException = 500
+           .osc.getOrder.template="/api/orders/{id}" 
+           .osc.getOrder.method="GET"
+           .osc.getOrder.outboundHeaders.("Authorization")= "token"
+           .osc.getOrders.template="/api/orders" 
+           .osc.getOrders.method="GET"
+           .osc.getOrders.outboundHeaders.("Authorization")= "token"
+           .osc.addOrder.template="/api/orders" 
+           .osc.addOrder.method="POST"
+           .osc.addOrder.outboundHeaders.("Authorization")= "token"
         }
-        Location : "socket://localhost:9099"
+        Location : "socket://localhost:80"
     }
 
 

@@ -6,19 +6,19 @@ service HttpTemplateServer{
     inputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
-           .osc.getOrder.template = "/api/orders/{id}" 
-           .osc.getOrder.method = "GET"
-           .osc.getOrder.inHeaders.Authorization = "token"
-           .osc.getOrders.template = "/api/orders" 
-           .osc.getOrders.method = "GET"
-           .osc.getOrders.outHeaders.Authorization = "token"
+           .osc.getOrder.template="/api/orders/{id}" 
+           .osc.getOrder.method="GET"
+           .osc.getOrder.outboundHeaders.("Authorization")= "token"
+           .osc.getOrders.template="/api/orders" 
+           .osc.getOrders.method="GET"
+           .osc.getOrders.outboundHeaders.("Authorization")= "token"
            .osc.addOrder.template="/api/orders" 
            .osc.addOrder.method="POST"
-           .osc.addOrder.outHeaders.Authorization = "token"
+           .osc.addOrder.outboundHeaders.("Authorization")= "token"
         }
-        location : "socket://localhost:9099"
+        location : "socket://localhost:80"
     }
-    execution: concurrent
+    execution { concurrent}
     
     embed StringUtils as stringUtils
     
