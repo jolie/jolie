@@ -226,10 +226,6 @@ public class HttpMessage {
 			method = type.name();
 		}
 		return method;
-<<<<<<< HEAD
-=======
-
->>>>>>> 4180c681 (generilised for all methods)
 	}
 
 	String method = "";
