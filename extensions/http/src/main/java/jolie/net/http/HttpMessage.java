@@ -226,7 +226,6 @@ public class HttpMessage {
 			method = type.name();
 		}
 		return method;
-
 	}
 
 	String method = "";
