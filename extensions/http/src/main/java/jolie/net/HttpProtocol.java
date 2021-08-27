@@ -69,7 +69,6 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -202,7 +201,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String OUTGOING_HEADERS = "outHeaders";
 		private static final String INCOMING_HEADERS = "inHeaders";
 		private static final String STATUS_CODES = "statusCodes";
+<<<<<<< HEAD
 
+=======
+>>>>>>> b3632764 (streaming)
 
 
 		private static class MultiPartHeaders {
@@ -1420,7 +1422,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	}
 
-
 	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
 		Value mappingValues = Value.create();
 		getParameterFirstValue( "osc" ).children().forEach( ( operationName, values ) -> {
@@ -1648,11 +1649,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		recv_parseRequestFormat( contentType );
 		if( !message.isResponse() ) {
-
-			if( hasParameter( "osc" ) ) {
-
+			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 				recv_extractReceivingOperation( message, decodedMessage );
-
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
 		}
