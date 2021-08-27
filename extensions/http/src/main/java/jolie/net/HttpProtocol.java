@@ -50,6 +50,7 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.lang.reflect.Parameter;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -201,9 +202,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String CACHE_CONTROL = "cacheControl";
 		private static final String FORCE_CONTENT_DECODING = "forceContentDecoding";
 		private static final String TEMPLATE = "template";
-		private static final String OUTGOING_HEADERS = "outboundHeaders";
-		private static final String INCOMING_HEADERS = "inboundHeaders";
-		private static final String EXCEPTIONS = "exceptions";
+		private static final String OUTGOING_HEADERS = "outHeaders";
+		private static final String INCOMING_HEADERS = "inHeaders";
+		private static final String STATUS_CODES = "statusCodes";
 
 
 		private static class MultiPartHeaders {
@@ -672,68 +673,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void send_appendOscResponseHeaders( CommMessage message, StringBuilder headerBuilder ) {
-		int statusCode = DEFAULT_STATUS_CODE;
-		String statusDescription = null;
-
-		if( hasOperationSpecificParameter( message.operationName(), Parameters.EXCEPTIONS ) ) {
-			Value exceptionsValue =
-				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.EXCEPTIONS );
-			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
-				statusCode = exceptionsValue.getFirstChild( message.fault().faultName() ).intValue();
-				if( !STATUS_CODE_DESCRIPTIONS.containsKey( statusCode ) ) {
-					Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
-						message.operationName() +
-						" is sending a message with status code " +
-						statusCode +
-						", which is not in the HTTP specifications." );
-					statusDescription = "Internal Server Error";
-				} else if( isLocationNeeded( statusCode ) && !hasParameter( Parameters.REDIRECT ) ) {
-					// if statusCode is a redirection code, location parameter is needed
-					Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
-						message.operationName() +
-						" is sending a message with status code " +
-						statusCode +
-						", which expects a redirect parameter but the latter is not set." );
-				}
-			} else if( hasParameter( Parameters.REDIRECT ) ) {
-				statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
-			} else {
-				if( "IOException".equals( message.fault().faultName() ) ) {
-					statusCode = 404;
-				} else {
-					statusCode = 500;
-				}
-			}
-
-		}
-
-		if( statusDescription == null ) {
-			statusDescription = STATUS_CODE_DESCRIPTIONS.get( statusCode );
-		}
-		headerBuilder.append( "HTTP/1.1 " ).append( statusCode ).append( " " ).append( statusDescription )
-			.append( HttpUtils.CRLF );
-
-		if( hasParameter( Parameters.REDIRECT ) ) {
-			headerBuilder.append( "Location: " ).append( getStringParameter( Parameters.REDIRECT ) )
-				.append( HttpUtils.CRLF );
-		}
-
-		send_appendSetCookieHeader( message, headerBuilder );
-		headerBuilder.append( "Server: Jolie" ).append( HttpUtils.CRLF );
-		StringBuilder cacheControlHeader = new StringBuilder();
-		if( hasParameter( Parameters.CACHE_CONTROL ) ) {
-			Value cacheControl = getParameterFirstValue( Parameters.CACHE_CONTROL );
-			if( cacheControl.hasChildren( "maxAge" ) ) {
-				cacheControlHeader.append( "max-age=" ).append( cacheControl.getFirstChild( "maxAge" ).intValue() );
-			}
-		}
-		if( cacheControlHeader.length() > 0 ) {
-			headerBuilder.append( "Cache-Control: " ).append( cacheControlHeader ).append( HttpUtils.CRLF );
-		}
-
-	}
-
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder ) {
 		int statusCode = DEFAULT_STATUS_CODE;
 		String statusDescription = null;
@@ -744,7 +683,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
 				statusCode = exceptionsValue.getFirstChild( message.fault().faultName() ).intValue();
 			}
-		} else if( hasParameter( Parameters.STATUS_CODE ) ) {
+		} else if ( hasParameter( Parameters.STATUS_CODE ) ) {
 			statusCode = getIntParameter( Parameters.STATUS_CODE );
 		} else if( hasParameter( Parameters.REDIRECT ) ) {
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
@@ -939,15 +878,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void send_appendRequestHeaders( CommMessage message, Method method, String qsFormat,
 		StringBuilder headerBuilder )
 		throws IOException {
-
-		if( hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ) {
-			send_appendRequestOperationMethod(
-				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.METHOD ),
-				headerBuilder );
-		} else {
-			send_appendRequestMethod( method, headerBuilder );
-		}
-
+		send_appendRequestMethod( method, headerBuilder );
 
 		headerBuilder.append( ' ' );
 
@@ -984,16 +915,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_operationSpecificHeader( Value value, Value outboundHeaders, StringBuilder headerBuilder ) {
 		List< String > headersKeys = new ArrayList<>();
-		outboundHeaders.children().forEach( ( s, values ) -> {
-			headerBuilder.append( s ).append( ": " )
-				.append( value.getFirstChild( values.get( 0 ).strValue() ).strValue() ).append( HttpUtils.CRLF );
-			headersKeys.add( values.get( 0 ).strValue() );
+		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
+			headerBuilder.append( headerName ).append( ": " )
+				.append( value.getFirstChild( headerValues.get( 0 ).strValue() ).strValue() ).append( HttpUtils.CRLF );
+			headersKeys.add( headerValues.get( 0 ).strValue() );
 		} );
 		headersKeys.forEach( value.children()::remove );
-	}
-
-	private void send_appendRequestOperationMethod( Value method, StringBuilder headerBuilder ) {
-		headerBuilder.append( method.strValue() );
 	}
 
 	private void send_appendGenericHeaders(
@@ -1108,11 +1035,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if( inInputPort ) {
 			// We're responding to a request
-			if( hasOperationSpecificParameter( message.operationName(), Parameters.TEMPLATE ) & message.isFault() ) {
-				send_appendOscResponseHeaders( message, headerBuilder );
-			} else {
-				send_appendResponseHeaders( message, headerBuilder );
-			}
+			send_appendResponseHeaders( message, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
 			send_appendHeader( headerBuilder );
 
@@ -1479,92 +1402,57 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
 		if( message.getMethod().isEmpty() )
 			return;
+		// Value mappingValues = Value.create();
 
-		Value configurationValue = getParameterFirstValue( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION );
-		Iterator< Entry< String, ValueVector > > configurationIterator =
-			configurationValue.children().entrySet().iterator();
-		boolean foundMatch = false;
-		System.out.println( configurationIterator.hasNext() );
-		while( configurationIterator.hasNext() & !foundMatch ) {
-			Entry< String, ValueVector > configEntry = configurationIterator.next();
-
-			Value opConfig = configEntry.getValue().get( 0 );
-			Value uriTemplateResult = Value.create();
-			String uri = message.requestPath().substring( 0, 2 ).equals( "//" ) // FIXME, TODO: strange jolie
-				// double slash
-				? message.requestPath().substring( 1 )
-				: message.requestPath();
-			System.out.println( uri + " " + opConfig.hasChildren( Parameters.TEMPLATE ) );
-			if( opConfig.hasChildren( Parameters.TEMPLATE ) ) {
-				uriTemplateResult =
-					UriUtils.match( opConfig.getFirstChild( Parameters.TEMPLATE ).strValue(), uri );
-			}
-			String opConfigMethod = opConfig.getFirstChild( Parameters.METHOD ).strValue();
-
-			if( uriTemplateResult.boolValue() & message.getMethod().equalsIgnoreCase( opConfigMethod ) ) {
-				foundMatch = true;
-				decodedMessage.operationName = configEntry.getKey();
-				decodedMessage.resourcePath = "/";
-
-				String messagePath = "/".concat( configEntry.getKey() );
-				String paramString = "";
-
-				Iterator< Entry< String, ValueVector > > uriTemplateIterator =
-					uriTemplateResult.children().entrySet().iterator();
-
-				while( uriTemplateIterator.hasNext() ) {
-
-					Entry< String, ValueVector > entry = uriTemplateIterator.next();
-
-					if( paramString.isEmpty() ) {
-						paramString += "?".concat( entry.getKey() ).concat( "=" )
-							.concat( entry.getValue().get( 0 ).strValue() );
+		Value uriTemplateResult = 
+			getParameterFirstValue( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ).children().entrySet().stream()
+				.filter( entry -> {
+					if ( entry.getValue().get( 0 ).hasChildren( Parameters.METHOD ) ) {
+						return entry.getValue().get( 0 ).getFirstChild( Parameters.METHOD ).strValue().equalsIgnoreCase( message.getMethod() );
 					} else {
-						paramString += "&".concat( entry.getKey() ).concat( "=" )
-							.concat( entry.getValue().get( 0 ).strValue() );
+						return true;
 					}
-				}
+				} )
+				.map( entry -> {
+					Value opConfig = entry.getValue().get( 0 );
+					String uri = message.requestPath().substring( 0, 2 ).equals( "//" ) // FIXME, TODO: strange jolie double slash
+						? message.requestPath().substring( 1 )
+						: message.requestPath();
+					Value uriTemplateResult = UriUtils.match( opConfig.getFirstChild( "template" ).strValue(), uri );
+					uriTemplateResult.setFirstChild( "operation", entry.getKey() );
+					return uriTemplateResult;
+				} )
+				.filter( uriTemplateResult -> uriTemplateResult.boolValue() )
+				.findAny();
 
-				if( opConfig.hasChildren( Parameters.INCOMING_HEADERS ) ) {
-					Iterator< Entry< String, ValueVector > > inHeadersIterator =
-						opConfig.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
-					while( inHeadersIterator.hasNext() ) {
-						Entry< String, ValueVector > entry = inHeadersIterator.next();
-						if( paramString.isEmpty() ) {
-							paramString += "?".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
-								.concat( message.getProperty( entry.getKey() ) );
-						} else {
-							paramString += "&".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
-								.concat( message.getProperty( entry.getKey() ) );
-						}
-					}
-				}
+			
 
-				messagePath += paramString;
-				message.setRequestPath( messagePath );
+		// .forEach( ( operationName, values ) -> {
+		// 	Value opConfig = values.get( 0 );
+		// 	if( opConfig.hasChildren( Parameters.METHOD ) ) {
+		// 		String method = opConfig.getFirstChild( Parameters.METHOD ).strValue();
+		// 		message.getMethod().equalsIgnoreCase( method );
+		// 	}
+		// 	if( opConfig.hasChildren( Parameters.TEMPLATE ) ) {
+		// 		String template = opConfig.getFirstChild( Parameters.TEMPLATE ).strValue();
+		// 	}
+		// 	if( opConfig.hasChildren( Parameters.INCOMING_HEADERS ) ) {
+		// 		Value inHeaders = opConfig.getFirstChild( Parameters.INCOMING_HEADERS );
+		// 	}
 
-			}
-		}
-
-	}
-
-
-	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
-		Value mappingValues = Value.create();
-		getParameterFirstValue( "osc" ).children().forEach( ( operationName, values ) -> {
-			if( values.get( 0 ).hasChildren( Parameters.TEMPLATE ) ) {
-				Value mappingValue = Value.create();
-				mappingValue.getFirstChild( "template" )
-					.setValue( values.get( 0 ).getFirstChild( Parameters.TEMPLATE ).strValue() );
-				mappingValue.getFirstChild( "operationName" ).setValue( operationName );
-				if( values.get( 0 ).hasChildren( Parameters.INCOMING_HEADERS ) ) {
-					mappingValue.getFirstChild( Parameters.INCOMING_HEADERS )
-						.deepCopy( values.get( 0 ).getFirstChild( Parameters.INCOMING_HEADERS ) );
-				}
-				mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
-					.strValue().toUpperCase() ).add( mappingValue );
-			}
-		} );
+		// 	if( values.get( 0 ).hasChildren( Parameters.TEMPLATE ) ) {
+		// 		Value mappingValue = Value.create();
+		// 		mappingValue.getFirstChild( "template" )
+		// 			.setValue( values.get( 0 ).getFirstChild( Parameters.TEMPLATE ).strValue() );
+		// 		mappingValue.getFirstChild( "operationName" ).setValue( operationName );
+		// 		if( values.get( 0 ).hasChildren( Parameters.INCOMING_HEADERS ) ) {
+		// 			mappingValue.getFirstChild( Parameters.INCOMING_HEADERS )
+		// 				.deepCopy( values.get( 0 ).getFirstChild( Parameters.INCOMING_HEADERS ) );
+		// 		}
+		// 		mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
+		// 			.strValue().toUpperCase() ).add( mappingValue );
+		// 	}
+		// } );
 
 		if( !message.getMethod().isEmpty() ) {
 			boolean found = false;
@@ -1752,11 +1640,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		recv_parseRequestFormat( contentType );
 		if( !message.isResponse() ) {
-
-			if( hasParameter( "osc" ) ) {
-
+			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 				recv_extractReceivingOperation( message, decodedMessage );
-
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
 		}
