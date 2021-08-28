@@ -43,6 +43,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -50,7 +51,7 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.lang.reflect.Parameter;
+
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -627,7 +628,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
 				statusCode = exceptionsValue.getFirstChild( message.fault().faultName() ).intValue();
 			}
-		} else if ( hasParameter( Parameters.STATUS_CODE ) ) {
+		} else if( hasParameter( Parameters.STATUS_CODE ) ) {
 			statusCode = getIntParameter( Parameters.STATUS_CODE );
 		} else if( hasParameter( Parameters.REDIRECT ) ) {
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
@@ -1331,121 +1332,72 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
 		if( message.getMethod().isEmpty() )
 			return;
-		// Value mappingValues = Value.create();
 
-		Value uriTemplateResult = 
-			getParameterFirstValue( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ).children().entrySet().stream()
-				.filter( entry -> {
-					if ( entry.getValue().get( 0 ).hasChildren( Parameters.METHOD ) ) {
-						return entry.getValue().get( 0 ).getFirstChild( Parameters.METHOD ).strValue().equalsIgnoreCase( message.getMethod() );
-					} else {
-						return true;
-					}
-				} )
-				.map( entry -> {
-					Value opConfig = entry.getValue().get( 0 );
-					String uri = message.requestPath().substring( 0, 2 ).equals( "//" ) // FIXME, TODO: strange jolie double slash
-						? message.requestPath().substring( 1 )
-						: message.requestPath();
-					Value uriTemplateResult = UriUtils.match( opConfig.getFirstChild( "template" ).strValue(), uri );
-					uriTemplateResult.setFirstChild( "operation", entry.getKey() );
-					return uriTemplateResult;
-				} )
-				.filter( uriTemplateResult -> uriTemplateResult.boolValue() )
-				.findAny();
+		Value configurationValue = getParameterFirstValue( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+		Iterator< Entry< String, ValueVector > > configurationIterator =
+			configurationValue.children().entrySet().iterator();
+		boolean foundMatch = false;
+		System.out.println( configurationIterator.hasNext() );
+		while( configurationIterator.hasNext() & !foundMatch ) {
+			Entry< String, ValueVector > configEntry = configurationIterator.next();
 
-			
-
-		// .forEach( ( operationName, values ) -> {
-		// 	Value opConfig = values.get( 0 );
-		// 	if( opConfig.hasChildren( Parameters.METHOD ) ) {
-		// 		String method = opConfig.getFirstChild( Parameters.METHOD ).strValue();
-		// 		message.getMethod().equalsIgnoreCase( method );
-		// 	}
-		// 	if( opConfig.hasChildren( Parameters.TEMPLATE ) ) {
-		// 		String template = opConfig.getFirstChild( Parameters.TEMPLATE ).strValue();
-		// 	}
-		// 	if( opConfig.hasChildren( Parameters.INCOMING_HEADERS ) ) {
-		// 		Value inHeaders = opConfig.getFirstChild( Parameters.INCOMING_HEADERS );
-		// 	}
-
-		// 	if( values.get( 0 ).hasChildren( Parameters.TEMPLATE ) ) {
-		// 		Value mappingValue = Value.create();
-		// 		mappingValue.getFirstChild( "template" )
-		// 			.setValue( values.get( 0 ).getFirstChild( Parameters.TEMPLATE ).strValue() );
-		// 		mappingValue.getFirstChild( "operationName" ).setValue( operationName );
-		// 		if( values.get( 0 ).hasChildren( Parameters.INCOMING_HEADERS ) ) {
-		// 			mappingValue.getFirstChild( Parameters.INCOMING_HEADERS )
-		// 				.deepCopy( values.get( 0 ).getFirstChild( Parameters.INCOMING_HEADERS ) );
-		// 		}
-		// 		mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
-		// 			.strValue().toUpperCase() ).add( mappingValue );
-		// 	}
-		// } );
-
-		if( !message.getMethod().isEmpty() ) {
-			boolean found = false;
-			for( int counter = 0; counter < mappingValues.getChildren( message.getMethod() ).size()
-				& !found; counter++ ) {
-
-				Value value = mappingValues.getChildren( message.getMethod() ).get( counter );
-
-				UriUtils uriUtils = new UriUtils();
-				Value uriTemplateCheckValue = Value.create();
-				uriTemplateCheckValue.getFirstChild( "template" )
-					.setValue( value.getFirstChild( "template" ).strValue() );
-				if( message.requestPath().substring( 0, 2 ).equals( "//" ) ) {
-					/* strange jolie double slash */
-					uriTemplateCheckValue.getFirstChild( "uri" )
-						.setValue( message.requestPath().substring( 1 ) );
-				} else {
-					uriTemplateCheckValue.getFirstChild( "uri" )
-						.setValue( message.requestPath() );
-				}
-				Value responseTemplateCheckValue = uriUtils.match( uriTemplateCheckValue );
-
-
-				if( responseTemplateCheckValue.boolValue() ) {
-					found = true;
-					decodedMessage.operationName = value.getFirstChild( "operationName" ).strValue();
-					decodedMessage.resourcePath = "/";
-					String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() );
-					String paramString = "";
-					Iterator< Entry< String, ValueVector > > iterator =
-						responseTemplateCheckValue.children().entrySet().iterator();
-
-					while( iterator.hasNext() ) {
-						Entry< String, ValueVector > entry = iterator.next();
-						if( paramString.isEmpty() ) {
-							paramString += "?".concat( entry.getKey() ).concat( "=" )
-								.concat( entry.getValue().get( 0 ).strValue() );
-						} else {
-							paramString += "&".concat( entry.getKey() ).concat( "=" )
-								.concat( entry.getValue().get( 0 ).strValue() );
-						}
-					}
-
-					if( value.hasChildren( Parameters.INCOMING_HEADERS ) ) {
-						iterator = value.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
-						while( iterator.hasNext() ) {
-							Entry< String, ValueVector > entry = iterator.next();
-							if( paramString.isEmpty() ) {
-								paramString += "?".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
-									.concat( message.getProperty( entry.getKey() ) );
-							} else {
-								paramString += "&".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
-									.concat( message.getProperty( entry.getKey() ) );
-							}
-						}
-					}
-
-					messagePath += paramString;
-					message.setRequestPath( messagePath );
-				}
+			Value opConfig = configEntry.getValue().get( 0 );
+			Value uriTemplateResult = Value.create();
+			String uri = message.requestPath().substring( 0, 2 ).equals( "//" ) // FIXME, TODO: strange jolie
+				// double slash
+				? message.requestPath().substring( 1 )
+				: message.requestPath();
+			System.out.println( uri + " " + opConfig.hasChildren( Parameters.TEMPLATE ) );
+			if( opConfig.hasChildren( Parameters.TEMPLATE ) ) {
+				uriTemplateResult =
+					UriUtils.match( opConfig.getFirstChild( Parameters.TEMPLATE ).strValue(), uri );
 			}
+			String opConfigMethod = opConfig.getFirstChild( Parameters.METHOD ).strValue();
 
+			if( uriTemplateResult.boolValue() & message.getMethod().equalsIgnoreCase( opConfigMethod ) ) {
+				foundMatch = true;
+				decodedMessage.operationName = configEntry.getKey();
+				decodedMessage.resourcePath = "/";
+
+				String messagePath = "/".concat( configEntry.getKey() );
+				String paramString = "";
+
+				Iterator< Entry< String, ValueVector > > uriTemplateIterator =
+					uriTemplateResult.children().entrySet().iterator();
+
+				while( uriTemplateIterator.hasNext() ) {
+
+					Entry< String, ValueVector > entry = uriTemplateIterator.next();
+
+					if( paramString.isEmpty() ) {
+						paramString += "?".concat( entry.getKey() ).concat( "=" )
+							.concat( entry.getValue().get( 0 ).strValue() );
+					} else {
+						paramString += "&".concat( entry.getKey() ).concat( "=" )
+							.concat( entry.getValue().get( 0 ).strValue() );
+					}
+				}
+
+				if( opConfig.hasChildren( Parameters.INCOMING_HEADERS ) ) {
+					Iterator< Entry< String, ValueVector > > inHeadersIterator =
+						opConfig.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
+					while( inHeadersIterator.hasNext() ) {
+						Entry< String, ValueVector > entry = inHeadersIterator.next();
+						if( paramString.isEmpty() ) {
+							paramString += "?".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
+								.concat( message.getProperty( entry.getKey() ) );
+						} else {
+							paramString += "&".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
+								.concat( message.getProperty( entry.getKey() ) );
+						}
+					}
+				}
+
+				messagePath += paramString;
+				message.setRequestPath( messagePath );
+
+			}
 		}
-
 
 	}
 
@@ -1523,6 +1475,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		String charset = HttpUtils.getCharset( null, message );
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
+
+		
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
