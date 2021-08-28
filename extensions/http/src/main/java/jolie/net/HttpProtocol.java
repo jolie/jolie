@@ -69,6 +69,10 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+<<<<<<< HEAD
+=======
+
+>>>>>>> a0ee5adc (uri correction)
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -1411,6 +1415,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 							paramString += "&".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
 								.concat( message.getProperty( entry.getKey() ) );
 						}
+						counterPartsUrl++;
 					}
 				}
 
@@ -1419,113 +1424,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 			}
 		}
-
-	}
-
-	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
-		Value mappingValues = Value.create();
-		getParameterFirstValue( "osc" ).children().forEach( ( operationName, values ) -> {
-			if( values.get( 0 ).hasChildren( Parameters.ALIAS ) ) {
-				Value mappingValue = Value.create();
-				mappingValue.getFirstChild( "alias" )
-					.setValue( values.get( 0 ).getFirstChild( Parameters.ALIAS ).strValue() );
-				mappingValue.getFirstChild( "operationName" ).setValue( operationName );
-				mappingValues.getChildren( values.get( 0 ).getFirstChild( Parameters.METHOD )
-					.strValue().toUpperCase() ).add( mappingValue );
-			}
-		} );
-		final String requestPath = message.requestPath().split( "\\?", 2 )[ 0 ].substring( 1 );
-
-		String[] splitRequestPath = requestPath.split( "/" );
-
-		if( !message.getMethod().isEmpty() ) {
-			boolean found = false;
-			for( int counter = 0; counter < mappingValues.getChildren( message.getMethod() ).size()
-				& !found; counter++ ) {
-				String parameterString = "";
-				Value value = mappingValues.getChildren( Method.GET.id() ).get( counter );
-				String[] splitAlias = value.getFirstChild( "alias" ).strValue().split( "\\?" )[ 0 ].split( "/" );
-
-				Value value = mappingValues.getChildren( message.getMethod() ).get( counter );
-
-				UriTemplates uriTemplates = new UriTemplates();
-				Value uriTemplateCheckValue = Value.create();
-				uriTemplateCheckValue.getFirstChild( "template" )
-					.setValue( value.getFirstChild( "template" ).strValue() );
-				if( message.requestPath().substring( 0, 2 ).equals( "//" ) ) {
-					/* strange jolie double slash */
-					uriTemplateCheckValue.getFirstChild( "uri" )
-						.setValue( message.requestPath().substring( 1 ) );
-				} else {
-					uriTemplateCheckValue.getFirstChild( "uri" )
-						.setValue( message.requestPath() );
-				}
-				Value responseTemplateCheckValue = uriTemplates.match( uriTemplateCheckValue );
-
-
-				if( responseTemplateCheckValue.boolValue() ) {
-					found = true;
-					int counterPartsUrl = 0;
-					while( found && counterPartsUrl < splitRequestPath.length ) {
-						if( !splitRequestPath[ counterPartsUrl ].equals( splitAlias[ counterPartsUrl ] ) ) {
-							Matcher m =
-								Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( splitAlias[ counterPartsUrl ] );
-							if( !m.find() ) {
-								found = false;
-							} else {
-								String parameterName =
-									splitAlias[ counterPartsUrl ].split( "%(!)?\\{" )[ 1 ].split( "\\}" )[ 0 ];
-								if( parameterString.isEmpty() ) {
-									parameterString += parameterName
-										.concat( "=" )
-										.concat( splitRequestPath[ counterPartsUrl ] );
-								} else {
-									parameterString += "&"
-										.concat( parameterName )
-										.concat( "=" )
-										.concat( splitRequestPath[ counterPartsUrl ] );
-								}
-							}
-						}
-						counterPartsUrl++;
-					}
-
-					if( found ) {
-						decodedMessage.operationName = value.getFirstChild( "operationName" ).strValue();
-						decodedMessage.resourcePath = "/";
-						Matcher m =
-							Pattern.compile( "^[^?#]+\\?([^#]+)" )
-								.matcher( message.requestPath() );
-						if( m.find() ) {
-
-							if( parameterString.isEmpty() ) {
-								String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
-									.concat( "?" )
-									.concat( message.requestPath().split( "\\?", 2 )[ 1 ] );
-								message.setRequestPath( messagePath );
-							} else {
-								String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
-									.concat( "?" ).concat( parameterString )
-									.concat( "&" )
-									.concat( message.requestPath().split( "\\?", 2 )[ 1 ] );
-								message.setRequestPath( messagePath );
-
-							}
-
-						} else {
-							String messagePath = "/".concat( value.getFirstChild( "operationName" ).strValue() )
-								.concat( "?" ).concat( parameterString );
-							message.setRequestPath( messagePath );
-						}
-					}
-				} else {
-					decodedMessage.operationName = null;
-				}
-
-			}
-
-		}
-
 
 	}
 
@@ -1604,6 +1502,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 
+		
+
+		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
