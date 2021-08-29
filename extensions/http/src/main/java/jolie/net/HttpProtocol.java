@@ -27,10 +27,7 @@ import jolie.lang.NativeType;
 import jolie.net.http.*;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
-import jolie.runtime.ByteArray;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
+import jolie.runtime.*;
 import jolie.runtime.typing.*;
 import jolie.tracer.ProtocolTraceAction;
 import jolie.uri.UriUtils;
@@ -1526,7 +1523,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 
-		
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -1605,9 +1601,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		if( message.isResponse() ) {
-			FaultException faultException = null;
+			FaultException faultExeception = null;
 			if( hasOperationSpecificParameter( inputId, Parameters.STATUS_CODES ) ) {
-				faultException = recv_mapHttpStatusCodeFault( message,
+				faultExeception = recv_mapHttpStatusCodeFault( message,
 					getOperationSpecificParameterFirstValue( inputId, Parameters.STATUS_CODES ),
 					decodedMessage.value );
 			}
@@ -1626,10 +1622,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( Parameters.STATUS_CODE )
 					.setValue( message.statusCode() );
 			}
+			System.out.println( faultExeception.faultName() );
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal =
 				new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value,
-					faultException );
+					faultExeception );
 		} else if( message.isError() == false ) {
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath,
@@ -1701,19 +1698,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private FaultException recv_mapHttpStatusCodeFault( HttpMessage message, Value httpStatusValue,
 		Value decodedMessageValue ) {
 		FaultException faultException = null;
-		Iterator< Entry< String, ValueVector > > statusCodeIterator =
-			httpStatusValue.children().entrySet().iterator();
-		while( statusCodeIterator.hasNext() && faultException == null ) {
+		Iterator< Entry< String, ValueVector > > statusCodeIterator = httpStatusValue.children().entrySet().iterator();
+		boolean foundStatusCode = false;
+
+		while( statusCodeIterator.hasNext() & !foundStatusCode ) {
 			Entry< String, ValueVector > entry = statusCodeIterator.next();
 			int configuredStatusCode = entry.getValue().get( 0 ).intValue();
 			if( configuredStatusCode == message.statusCode() ) {
-				if( message.getPropertyOrEmptyString( Headers.CONTENT_TYPE )
-					.equals( ContentTypes.APPLICATION_JSON ) ) {
-					faultException = new FaultException( entry.getKey(),
+				faultException = new FaultException( entry.getKey(),
 						decodedMessageValue.getFirstChild( "error" ).getFirstChild( "data" ) );
-				} else {
-					faultException = new FaultException( entry.getKey() );
-				}
+				foundStatusCode = true;
 			}
 		}
 		return faultException;
