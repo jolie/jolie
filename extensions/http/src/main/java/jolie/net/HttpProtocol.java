@@ -26,10 +26,7 @@ import jolie.lang.NativeType;
 import jolie.net.http.*;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
-import jolie.runtime.ByteArray;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
+import jolie.runtime.*;
 import jolie.runtime.typing.*;
 import jolie.tracer.ProtocolTraceAction;
 import jolie.uri.UriUtils;
@@ -1502,9 +1499,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 
-		
-
-		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
