@@ -88,7 +88,8 @@ import java.util.regex.Pattern;
 public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol {
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
-	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC 2616#7.2.1
+	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC
+																					// 2616#7.2.1
 	private static final String DEFAULT_FORMAT = "xml";
 	private static final Map< Integer, String > STATUS_CODE_DESCRIPTIONS = new HashMap<>();
 	private static final Set< Integer > LOCATION_REQUIRED_STATUS_CODES = new HashSet<>();
@@ -1224,7 +1225,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException {
 		Value headers = null;
 		if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.INCOMING_HEADERS ) ) {
-			headers = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.INCOMING_HEADERS );
+			headers =
+				getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.INCOMING_HEADERS );
 		} else if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.HEADERS ) ) {
 			headers = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERS );
 		} else if( hasParameter( Parameters.HEADERS ) ) {
@@ -1613,7 +1615,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( Parameters.STATUS_CODE )
 					.setValue( message.statusCode() );
 			}
-			System.out.println( faultException.faultName() );
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal =
 				new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value,
