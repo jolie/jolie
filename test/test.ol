@@ -69,7 +69,7 @@ main {
 		for( testName in list.result ) {
 			printTestName
 			scope( s ) {
-				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )() )
+				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )(); exitCode = 3 )
 				loadEmbeddedService@Runtime( {
 					type = "Jolie"
 					filepath = listRequest.directory + "/" + testName

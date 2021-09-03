@@ -1,16 +1,12 @@
+from .private.http_template_interface import HttpTemplateInterface
+from .private.http_template_server import HttpTemplateServer
 from ..test-unit import TestUnitInterface
-from  .private.http_template_interface import HttpTemplateInterface
-from  .private.http_template_server import HttpTemplateServer
-
 
 service Test {
-
-
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface
 	}
-
 
     outputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
