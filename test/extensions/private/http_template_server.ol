@@ -1,4 +1,4 @@
-from http_template_interface import HttpTemplateInterface
+from .http_template_interface import HttpTemplateInterface
 from string_utils import StringUtils
 
 service HttpTemplateServer{
