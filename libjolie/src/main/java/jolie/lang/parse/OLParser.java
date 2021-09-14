@@ -289,25 +289,20 @@ public class OLParser extends AbstractParser {
 
 	private void parseTypes()
 		throws IOException, ParserException {
-		Scanner.Token commentToken = null;
-		Scanner.Token accessModToken = null;
+
 		boolean keepRun = true;
-		boolean haveComment = false;
-		boolean haveAccessModToken = false;
 
 		while( keepRun ) {
-			if( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
-				haveComment = true;
-				commentToken = token;
-				nextToken();
-			} else if( token.is( Scanner.TokenType.PRIVATE ) || token.is( Scanner.TokenType.PUBLIC ) ) {
-				haveAccessModToken = true;
-				accessModToken = token;
-				nextToken();
-			} else if( token.isKeyword( "type" ) ) {
-				AccessModifier accessModifier =
-					(accessModToken != null && accessModToken.is( Scanner.TokenType.PRIVATE )) ? AccessModifier.PRIVATE
+
+			Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
+			Optional< Scanner.Token > accessModifierToken = parseAccessModifier();
+			if( token.isKeyword( "type" ) ) {
+				AccessModifier accessModifier = AccessModifier.PUBLIC;
+				if( accessModifierToken.isPresent() ) {
+					accessModifier = accessModifierToken.get().is( Scanner.TokenType.PRIVATE ) ? AccessModifier.PRIVATE
 						: AccessModifier.PUBLIC;
+					accessModifierToken = Optional.empty();
+				}
 
 				String typeName;
 				TypeDefinition currentType;
@@ -323,12 +318,12 @@ public class OLParser extends AbstractParser {
 				}
 
 				currentType = parseType( typeName, accessModifier );
-
-				if( haveComment ) {
-					haveComment = false;
+				if( forwardDocToken.isPresent() ) {
+					parseBackwardAndSetDocumentation( currentType, forwardDocToken );
+					forwardDocToken = Optional.empty();
+				} else {
+					parseBackwardAndSetDocumentation( currentType, Optional.empty() );
 				}
-				parseBackwardAndSetDocumentation( currentType, Optional.ofNullable( commentToken ) );
-				commentToken = null;
 
 				typeName = currentType.name();
 
@@ -336,16 +331,10 @@ public class OLParser extends AbstractParser {
 				programBuilder.addChild( currentType );
 			} else {
 				keepRun = false;
-				if( haveComment ) { // we return the comment and the subsequent token since we did not use them
-					addToken( commentToken );
-					addToken( token );
-					nextToken();
-				}
-				if( haveAccessModToken ) {
-					addToken( accessModToken );
-					addToken( token );
-					nextToken();
-				}
+				forwardDocToken.ifPresent( this::addToken );
+				accessModifierToken.ifPresent( this::addToken );
+				addToken( token );
+				nextToken();
 			}
 		}
 	}
@@ -1281,16 +1270,21 @@ public class OLParser extends AbstractParser {
 	private void parsePort()
 		throws IOException, ParserException {
 		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
+		Optional< Scanner.Token > accessModifierToken = parseAccessModifier();
 
 		final DocumentedNode node;
 		final PortInfo p;
 		if( token.isKeyword( "inputPort" ) || token.isKeyword( "outputPort" ) ) {
+			if( accessModifierToken.isPresent() ) {
+				throwException( "unexpected access modifier before inputPort/outputPort" );
+			}
 			p = _parsePort();
 			programBuilder.addChild( p );
 			node = p;
 			parseBackwardAndSetDocumentation( node, forwardDocToken );
 		} else {
 			forwardDocToken.ifPresent( this::addToken );
+			accessModifierToken.ifPresent( this::addToken );
 			addToken( token );
 			nextToken();
 		}
@@ -1607,7 +1601,7 @@ public class OLParser extends AbstractParser {
 		boolean keepRun = true;
 
 		while( keepRun ) {
-			forwardDocToken = parseForwardDocumentation();
+			Optional< Scanner.Token > internalForwardDocToken = parseForwardDocumentation();
 			switch( token.content() ) {
 			case "Interfaces": // internal service node syntax
 				internalIfaces = parseInternalServiceInterface();
@@ -1641,7 +1635,7 @@ public class OLParser extends AbstractParser {
 			case "inputPort":
 			case "outputPort":
 				PortInfo p = _parsePort();
-				parseBackwardAndSetDocumentation( ((DocumentedNode) p), forwardDocToken );
+				parseBackwardAndSetDocumentation( ((DocumentedNode) p), internalForwardDocToken );
 				serviceBlockProgramBuilder.addChild( p );
 				break;
 			case "define":
