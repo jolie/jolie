@@ -191,8 +191,12 @@ RequestResponse:
 
 	/** Returns the filesystem directory from which the service has been launched */
 	getServiceDirectory(void)(string) throws IOException(IOExceptionType),
+	/** Returns the name of the file from which the service has been launched */
+	getServiceFileName(void)(string),
 	/** Returns the real filesystem directory (following links) from which the service has been launched */
 	getRealServiceDirectory(void)(string) throws IOException(IOExceptionType),
+	/** Returns the name of the real file (following links) from which the service has been launched */
+	getRealServiceFileName(void)(string) throws IOException(IOExceptionType),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),
 	setMimeTypeFile(string)(void) throws IOException(IOExceptionType),
