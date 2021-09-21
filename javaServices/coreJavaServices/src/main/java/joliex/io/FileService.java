@@ -474,6 +474,21 @@ public class FileService extends JavaService {
 	}
 
 	@RequestResponse
+	public String getServiceFileName() {
+		return Paths.get( interpreter().programFilepath() ).getFileName().toString();
+	}
+
+	@RequestResponse
+	public String getRealServiceFileName()
+		throws FaultException {
+		try {
+			return Paths.get( interpreter().programFilepath() ).toRealPath().getFileName().toString();
+		} catch( IOException e ) {
+			throw new FaultException( "IOException", e );
+		}
+	}
+
+	@RequestResponse
 	public String getFileSeparator() {
 		return jolie.lang.Constants.FILE_SEPARATOR;
 	}
