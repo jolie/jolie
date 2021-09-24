@@ -50,8 +50,9 @@
       <module name="http" target="1.8" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
-      <module name="jolie" target="1.8" />
+      <module name="jolie" target="11" />
       <module name="jolie-cli" target="1.8" />
+      <module name="jolie-distribution" target="1.5" />
       <module name="jolie-embedding-legacy" target="1.8" />
       <module name="jolie-java" target="1.8" />
       <module name="jolie-js" target="1.8" />
@@ -65,7 +66,7 @@
       <module name="joliec" target="1.8" />
       <module name="jsonrpc" target="1.8" />
       <module name="launchers" target="1.5" />
-      <module name="libjolie" target="1.8" />
+      <module name="libjolie" target="11" />
       <module name="local" target="1.8" />
       <module name="localsocket" target="1.8" />
       <module name="metaservice-java" target="1.8" />

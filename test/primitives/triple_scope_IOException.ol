@@ -1,15 +1,18 @@
 include "exec.iol"
 include "string_utils.iol"
 include "console.iol"
+include "file.iol"
 
 include "../AbstractTestUnit.iol"
 
-define doTest {	
+define doTest {
+	getFileSeparator@File()( fs )
+
 	req = "jolie"
 	;
 	with(req) {
 		.args[0] = "triple_scope_IOException2.ol"; 
-		.workingDirectory="./primitives/unhandled_faults/";
+		.workingDirectory= "." + fs + "primitives" + fs + "unhandled_faults" + fs;
 		.stdOutConsoleEnable = true;
 		.waitFor = 1
 	}
