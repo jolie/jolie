@@ -1,12 +1,18 @@
 include "exec.iol"
 include "string_utils.iol"
 include "console.iol"
+include "runtime.iol"
 
 include "../AbstractTestUnit.iol"
 
-define doTest {	
-	req = "jolie"
-	;
+define doTest {
+	getenv@Runtime("windir")(windir);
+	if (!is_defined(windir)) {
+		req = "jolie"
+	} else {
+		req = "jolie.bat"
+	}
+
 	with(req) {
 		.args[0] = "init_fault2.ol"; 
 		.workingDirectory="./primitives/unhandled_faults/";
