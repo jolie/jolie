@@ -54,7 +54,7 @@
 				<executions>
 					<execution>
 						<id>test</id>
-						<phase>install</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
