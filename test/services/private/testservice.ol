@@ -92,6 +92,7 @@ interface DemoInterface {
 execution{ concurrent }
 inputPort DEMO {
   Location: "local"
+  Protocol: sodep
   Interfaces: DemoInterface
 }
 
