@@ -173,15 +173,14 @@ define doTest {
         putOrder@Test( rq )( rs )
     }
 
-    undef( rq )
-    scope( call ) {
-        install( Fault404 =>  throw( TestFailed, "deleteOrder - Received 404 when 200 was expected" ) )
-        with( rq ) {
-            .orderId = 10
-        }
-        deleteOrder@Test( rq )( rs )
-    }
-
+    // undef( rq )
+    // scope( call ) {
+    //     install( Fault404 =>  throw( TestFailed, "deleteOrder - Received 404 when 200 was expected" ) )
+    //     with( rq ) {
+    //         .orderId = 5
+    //     }
+    //     deleteOrder@Test( rq )( rs )
+    // }
 
     undef( rq )
     scope( call ) {

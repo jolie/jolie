@@ -45,8 +45,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -1054,7 +1056,9 @@ public class JavaDocumentCreatorTest {
 						String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
 						for( int y = 0; y < addMethodList.get( mNameTmp ).getParameterTypes().length; y++ ) {
 							Class SubClass = addMethodList.get( mNameTmp ).getParameterTypes()[ y ];
-							Constructor subClassConstructor = SubClass.getConstructors()[ 0 ];
+							Constructor subClassConstructor = Arrays.stream( SubClass.getConstructors() )
+								.filter( constructor -> constructor.getParameterCount() > 1 ).findAny()
+								.orElseThrow( () -> new NoSuchMethodException() );
 							Object subClassInstance = subClassConstructor.newInstance( obj, value );
 							addMethodList.get( mNameTmp ).invoke( obj, subClassInstance );
 							Object getSubClassInstance = getMethodValueList.get( mNameTmp ).invoke( obj, i );

@@ -340,7 +340,7 @@ public class OOITBuilder implements UnitOLVisitor {
 		Expression protocolExpr = buildExpression( protocolNode );
 
 		if( protocolExpr instanceof VariablePath ) {
-			VariablePath path = (VariablePath) protocolExpr;
+			VariablePath path = new ClosedVariablePath( (VariablePath) protocolExpr, initValue );
 			protocolExpr = path.getValue();
 		}
 
@@ -501,7 +501,7 @@ public class OOITBuilder implements UnitOLVisitor {
 			if( protocolExpr instanceof Value || protocolExpr instanceof InlineTreeExpression ) {
 				protocolStr = protocolExpr.evaluate().strValue();
 			} else if( protocolExpr instanceof VariablePath ) {
-				VariablePath path = (VariablePath) protocolExpr;
+				VariablePath path = new ClosedVariablePath( (VariablePath) protocolExpr, initValue );
 				protocolStr = path.getValue().strValue();
 			}
 		} else {

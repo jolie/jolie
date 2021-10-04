@@ -183,7 +183,8 @@ public class CommCore {
 		CommChannelFactory factory = getCommChannelFactory( medium );
 		if( factory == null ) {
 			throw new UnsupportedCommMediumException(
-				"medium = " + medium + ", location = " + uri.toString() + ", output port = " + port.id() );
+				"medium = " + medium + ", location = " + uri.toString() + ", output port = "
+					+ (port != null ? port.id() : "null") );
 		}
 
 		return factory.createChannel( uri, port );
