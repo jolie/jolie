@@ -69,13 +69,14 @@ main {
 		for( testName in list.result ) {
 			printTestName
 			scope( s ) {
-				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )(); exitCode = 3 )
+				install( RuntimeException => println@Console( "failed (RuntimeException). " + s.RuntimeException.stackTrace )(); exitCode = 3 )
 				loadEmbeddedService@Runtime( {
 					type = "Jolie"
 					filepath = listRequest.directory + "/" + testName
 				} )( TestUnit.location )
 				install(
-					TestFailed => println@Console( "failed. " + s.TestFailed )(); exitCode = 3,
+					TestFailed => println@Console( "failed (TestFailed). " + s.TestFailed )(); exitCode = 3,
+					default => println@Console( "failed (default handler)." )(); exitCode = 3,
 					Timeout => println@Console( "timed out." )(); exitCode = 3
 				)
 				test@TestUnit()()
