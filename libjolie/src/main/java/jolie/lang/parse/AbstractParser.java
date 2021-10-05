@@ -29,6 +29,7 @@ import java.util.List;
 
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.CodeCheckMessage;
 
 
 /**
@@ -262,8 +263,9 @@ public abstract class AbstractParser {
 		if( !token.content().equals( "" ) ) {
 			m += ", token content " + token.content();
 		}
-
-		throw new ParserException( getContext(), m );
+		ParsingContext context = getContext();
+		CodeCheckMessage exceptionMessage = new CodeCheckMessage( context, m, null );
+		throw new ParserException( exceptionMessage );
 	}
 
 	/**
@@ -275,6 +277,8 @@ public abstract class AbstractParser {
 	 */
 	protected final void throwException( Exception exception )
 		throws ParserException {
-		throw new ParserException( getContext(), exception.getMessage() );
+		ParsingContext context = getContext();
+		CodeCheckMessage exceptionMessage = new CodeCheckMessage( context, exception.getMessage(), null );
+		throw new ParserException( exceptionMessage );
 	}
 }

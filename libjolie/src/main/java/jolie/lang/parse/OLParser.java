@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.NativeType;
@@ -1220,7 +1221,9 @@ public class OLParser extends AbstractParser {
 				try {
 					includeFile = retrieveIncludeFile( includePaths[ i ], includeStr );
 				} catch( URISyntaxException e ) {
-					throw new ParserException( getContext(), e.getMessage() );
+					ParsingContext context = getContext();
+					CodeCheckMessage exceptionMessage = new CodeCheckMessage( context, e.getMessage(), null );
+					throw new ParserException( exceptionMessage );
 				}
 			}
 

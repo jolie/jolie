@@ -24,27 +24,17 @@ package jolie.lang.parse;
 
 import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.CodeCheckException;
+import jolie.lang.CodeCheckMessage;
 
-public class ParserException extends Exception {
+public class ParserException extends CodeCheckException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	private final ParsingContext context;
-	private final String mesg;
 
-	public ParserException( ParsingContext context, String mesg ) {
-		this.context = context;
-		this.mesg = mesg;
-	}
-
-	@Override
-	public String getMessage() {
-		return new StringBuilder()
-			.append( context.sourceName() )
-			.append( ':' )
-			.append( context.line() )
-			.append( ": error: " )
-			.append( mesg )
-			.toString();
+	public ParserException( CodeCheckMessage mesg ) {
+		super( mesg );
+		this.context = mesg.context();
 	}
 
 	public ParsingContext context() {
