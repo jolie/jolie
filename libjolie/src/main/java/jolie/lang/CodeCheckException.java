@@ -1,23 +1,21 @@
 package jolie.lang;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Iterator;
 
 public class CodeCheckException extends Exception {
-	ArrayList< CodeCheckMessage > messages;
+	private final List< CodeCheckMessage > messageList;
 
-	// For ParserException
-	public CodeCheckException( CodeCheckMessage message ) {
-		this.messages = new ArrayList<>();
-		this.messages.add( message );
+	public CodeCheckException( List< CodeCheckMessage > messageList ) {
+		this.messageList = messageList;
 	}
 
-	public ArrayList< CodeCheckMessage > messages() {
-		return messages;
+	public List< CodeCheckMessage > messages() {
+		return messageList;
 	}
 
 	public String getMessage() {
-		Iterator< CodeCheckMessage > iterator = messages.iterator();
+		Iterator< CodeCheckMessage > iterator = messageList.iterator();
 		StringBuilder messageString = new StringBuilder();
 		while( iterator.hasNext() ) {
 			CodeCheckMessage currentMessage = (CodeCheckMessage) iterator.next();
@@ -28,7 +26,8 @@ public class CodeCheckException extends Exception {
 				.append( ": error: " )
 				.append( currentMessage.description() )
 				.append( "\n" );
-			if( currentMessage.help().isPresent() ) {
+			if( currentMessage.help().isPresent() ) { // help can be null, so check to make sure message is made
+														// correctly
 				messageString
 					.append( "help: " )
 					.append( currentMessage.help().get() )

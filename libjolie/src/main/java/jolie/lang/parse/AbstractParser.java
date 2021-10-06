@@ -264,7 +264,7 @@ public abstract class AbstractParser {
 			m += ", token content " + token.content();
 		}
 		ParsingContext context = getContext();
-		CodeCheckMessage exceptionMessage = new CodeCheckMessage( context, m, null );
+		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
 		throw new ParserException( exceptionMessage );
 	}
 
@@ -278,7 +278,7 @@ public abstract class AbstractParser {
 	protected final void throwException( Exception exception )
 		throws ParserException {
 		ParsingContext context = getContext();
-		CodeCheckMessage exceptionMessage = new CodeCheckMessage( context, exception.getMessage(), null );
+		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, exception.getMessage() );
 		throw new ParserException( exceptionMessage );
 	}
 }

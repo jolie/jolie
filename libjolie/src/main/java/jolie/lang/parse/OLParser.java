@@ -1222,7 +1222,7 @@ public class OLParser extends AbstractParser {
 					includeFile = retrieveIncludeFile( includePaths[ i ], includeStr );
 				} catch( URISyntaxException e ) {
 					ParsingContext context = getContext();
-					CodeCheckMessage exceptionMessage = new CodeCheckMessage( context, e.getMessage(), null );
+					CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, e.getMessage() );
 					throw new ParserException( exceptionMessage );
 				}
 			}

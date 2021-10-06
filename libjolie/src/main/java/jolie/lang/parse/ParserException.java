@@ -22,6 +22,8 @@
 
 package jolie.lang.parse;
 
+import java.util.List;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.CodeCheckException;
@@ -33,7 +35,7 @@ public class ParserException extends CodeCheckException {
 	private final ParsingContext context;
 
 	public ParserException( CodeCheckMessage mesg ) {
-		super( mesg );
+		super( List.of( mesg ) );
 		this.context = mesg.context();
 	}
 
