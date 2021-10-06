@@ -4,6 +4,10 @@ import jolie.lang.parse.context.ParsingContext;
 
 import java.security.InvalidParameterException;
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class CodeCheckMessage {
 	private final ParsingContext context;
@@ -65,5 +69,15 @@ public class CodeCheckMessage {
 
 	public Optional< String > description() {
 		return Optional.ofNullable( description );
+	}
+
+	public static List< CodeCheckMessage > errorToMessage( Collection< CodeCheckingError > errors ) {
+		List< CodeCheckMessage > messageList = new ArrayList<>();
+		Iterator< CodeCheckingError > iter = errors.iterator();
+		while( iter.hasNext() ) {
+			CodeCheckingError error = (CodeCheckingError) iter.next();
+			messageList.add( CodeCheckMessage.withoutHelp( error.context(), error.message() ) );
+		}
+		return messageList;
 	}
 }

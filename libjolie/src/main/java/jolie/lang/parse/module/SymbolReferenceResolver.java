@@ -184,15 +184,7 @@ public class SymbolReferenceResolver {
 			currentURI = p.context().source();
 			visit( p );
 			if( !isValid() ) {
-				List< CodeCheckMessage > messageList = new ArrayList< CodeCheckMessage >() {
-
-				};
-				Iterator< CodeCheckingError > iter = errors.iterator();
-				while( iter.hasNext() ) {
-					CodeCheckingError error = (CodeCheckingError) iter.next();
-					messageList.add( CodeCheckMessage.withoutHelp( error.context(), error.message() ) );
-				}
-				throw new ModuleException( messageList );
+				throw new ModuleException( errors );
 			}
 		}
 

@@ -19,14 +19,11 @@
 
 package jolie.lang.parse.module;
 
-//import java.util.Collection;
-//import java.util.Optional;
-//import java.util.stream.Collectors;
+import java.util.Collection;
 import java.util.List;
 
-//import jolie.lang.CodeCheckingError;
+import jolie.lang.CodeCheckingError;
 import jolie.lang.Constants;
-//import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.CodeCheckException;
 import jolie.lang.CodeCheckMessage;
 
@@ -37,7 +34,8 @@ public class ModuleException extends CodeCheckException {
 		super( List.of( message ) );
 	}
 
-	public ModuleException( List< CodeCheckMessage > messageList ) {
-		super( messageList );
+	public ModuleException( Collection< CodeCheckingError > errors ) {
+		super( CodeCheckMessage.errorToMessage( errors ) );
 	}
+
 }
