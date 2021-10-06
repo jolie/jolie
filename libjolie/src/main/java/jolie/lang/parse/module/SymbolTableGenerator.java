@@ -20,6 +20,8 @@
 package jolie.lang.parse.module;
 
 import java.util.Map;
+
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.NativeType;
 import jolie.lang.parse.UnitOLVisitor;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -347,7 +349,7 @@ public class SymbolTableGenerator {
 				this.symbolTable.addSymbol( n.name(), n );
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
-				this.error = new ModuleException( n.context(), e );
+				this.error = new ModuleException( CodeCheckMessage.withoutHelp( n.context(), e.toString() ) );
 			}
 		}
 
@@ -359,7 +361,7 @@ public class SymbolTableGenerator {
 				}
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
-				this.error = new ModuleException( n.context(), e );
+				this.error = new ModuleException( CodeCheckMessage.withoutHelp( n.context(), e.toString() ) );
 			}
 		}
 
@@ -369,7 +371,7 @@ public class SymbolTableGenerator {
 				this.symbolTable.addSymbol( n.name(), n );
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
-				this.error = new ModuleException( n.context(), e );
+				this.error = new ModuleException( CodeCheckMessage.withoutHelp( n.context(), e.toString() ) );
 				return;
 			}
 			for( Map.Entry< String, OperationDeclaration > op : n.operationsMap().entrySet() ) {
@@ -413,7 +415,7 @@ public class SymbolTableGenerator {
 				this.symbolTable.addSymbol( n.name(), n );
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
-				this.error = new ModuleException( n.context(), e );
+				this.error = new ModuleException( CodeCheckMessage.withoutHelp( n.context(), e.toString() ) );
 			}
 		}
 
@@ -429,7 +431,7 @@ public class SymbolTableGenerator {
 							importPath, targetSymbol.originalSymbolName() );
 					} catch( DuplicateSymbolException e ) {
 						this.valid = false;
-						this.error = new ModuleException( n.context(), e );
+						this.error = new ModuleException( CodeCheckMessage.withoutHelp( n.context(), e.toString() ) );
 					}
 				}
 			}
@@ -441,7 +443,7 @@ public class SymbolTableGenerator {
 				this.symbolTable.addSymbol( n.name(), n );
 			} catch( DuplicateSymbolException e ) {
 				this.valid = false;
-				this.error = new ModuleException( n.context(), e );
+				this.error = new ModuleException( CodeCheckMessage.withoutHelp( n.context(), e.toString() ) );
 			}
 		}
 

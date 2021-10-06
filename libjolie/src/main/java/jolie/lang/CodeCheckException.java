@@ -20,19 +20,7 @@ public class CodeCheckException extends Exception {
 		while( iterator.hasNext() ) {
 			CodeCheckMessage currentMessage = (CodeCheckMessage) iterator.next();
 			messageString
-				.append( currentMessage.context().sourceName() )
-				.append( ':' )
-				.append( currentMessage.context().line() )
-				.append( ": error: " )
-				.append( currentMessage.description() )
-				.append( "\n" );
-			if( currentMessage.help().isPresent() ) { // help can be null, so check to make sure message is made
-														// correctly
-				messageString
-					.append( "help: " )
-					.append( currentMessage.help().get() )
-					.append( "\n" );
-			}
+				.append( currentMessage.getMessage() );
 		}
 		return messageString.toString();
 	}

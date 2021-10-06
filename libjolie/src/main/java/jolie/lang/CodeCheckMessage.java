@@ -29,28 +29,26 @@ public class CodeCheckMessage {
 	}
 
 	public String getMessage() {
-		if( context == null || description == null ) {
-			return "No message was made.";
-		} else if( help != null ) {
-			return new StringBuilder()
+		StringBuilder messageBuilder = new StringBuilder();
+		if( context != null ) {
+			messageBuilder
 				.append( context.sourceName() )
 				.append( ':' )
-				.append( context.line() )
-				.append( ": error: " )
-				.append( description )
+				.append( context.line() );
+		}
+		messageBuilder.append( ": error: " );
+		if( description != null ) {
+			messageBuilder
+				.append( description );
+		}
+		if( help != null ) {
+			messageBuilder
 				.append( "\n" )
 				.append( "help: " )
 				.append( help )
 				.toString();
-		} else {
-			return new StringBuilder()
-				.append( context.sourceName() )
-				.append( ':' )
-				.append( context.line() )
-				.append( ": error: " )
-				.append( description )
-				.toString();
 		}
+		return messageBuilder.toString();
 	}
 
 	public void setHelp( String help ) {
@@ -61,11 +59,11 @@ public class CodeCheckMessage {
 		return Optional.ofNullable( help );
 	}
 
-	public ParsingContext context() {
-		return context;
+	public Optional< ParsingContext > context() {
+		return Optional.ofNullable( context );
 	}
 
-	public String description() {
-		return description;
+	public Optional< String > description() {
+		return Optional.ofNullable( description );
 	}
 }

@@ -20,6 +20,8 @@
 package jolie.lang.parse.module;
 
 import java.util.Optional;
+
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
 import jolie.lang.parse.context.ParsingContext;
 
@@ -46,8 +48,9 @@ class ImportedSymbolInfo extends SymbolInfo {
 	 */
 	protected void setModuleSource( ModuleSource moduleSource ) throws ModuleException {
 		if( this.moduleSource != null ) {
-			throw new ModuleException( this.context(),
-				"original source of symbol " + this.name() + " is already defined" );
+			String m = "original source of symbol " + this.name() + " is already defined";
+			CodeCheckMessage message = CodeCheckMessage.withoutHelp( this.context(), m );
+			throw new ModuleException( message );
 		}
 		this.moduleSource = moduleSource;
 	}

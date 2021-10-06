@@ -22,6 +22,7 @@ package jolie.lang.parse.module;
 import java.net.URI;
 import java.util.*;
 
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.CodeCheckingError;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperandType;
@@ -183,7 +184,15 @@ public class SymbolReferenceResolver {
 			currentURI = p.context().source();
 			visit( p );
 			if( !isValid() ) {
-				throw new ModuleException( errors );
+				List< CodeCheckMessage > messageList = new ArrayList< CodeCheckMessage >() {
+
+				};
+				Iterator< CodeCheckingError > iter = errors.iterator();
+				while( iter.hasNext() ) {
+					CodeCheckingError error = (CodeCheckingError) iter.next();
+					messageList.add( CodeCheckMessage.withoutHelp( error.context(), error.message() ) );
+				}
+				throw new ModuleException( messageList );
 			}
 		}
 
@@ -869,7 +878,8 @@ public class SymbolReferenceResolver {
 			resolver.resolveExternalSymbols();
 		} catch( SymbolNotFoundException | IllegalAccessSymbolException
 			| DuplicateSymbolException e ) {
-			throw new ModuleException( e.getMessage() );
+			CodeCheckMessage message = CodeCheckMessage.withoutHelp( null, e.getMessage() );
+			throw new ModuleException( message );
 		}
 		resolver.resolveLinkedTypes();
 	}

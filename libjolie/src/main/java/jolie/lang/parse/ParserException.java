@@ -36,9 +36,15 @@ public class ParserException extends CodeCheckException {
 
 	public ParserException( CodeCheckMessage mesg ) {
 		super( List.of( mesg ) );
-		this.context = mesg.context();
+		this.context = mesg.context().isPresent() ? mesg.context().get() : null;
 	}
 
+	// Since no ParserException is made without context, it will not be a problem to return context,
+	// cause it will never be null,
+	// but this is probably a bad idea for the future, so should de fixed.
+	// Also, the MetaJolie uses this to set the context, but the message that MetaJolie gets first
+	// already contains this information.
+	// Should maybe not be duplicated?
 	public ParsingContext context() {
 		return context;
 	}

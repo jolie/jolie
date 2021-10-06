@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
@@ -95,7 +97,8 @@ class ModuleCrawler {
 				importedSymbol.setModuleSource( moduleSource );
 				modulesToCrawl.add( moduleSource );
 			} catch( ModuleNotFoundException e ) {
-				throw new ModuleException( importedSymbol.context(), e );
+				CodeCheckMessage message = CodeCheckMessage.withoutHelp( importedSymbol.context(), e.toString() );
+				throw new ModuleException( message );
 			}
 		}
 		ModuleCrawler.putToCache( record );
