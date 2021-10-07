@@ -26,18 +26,10 @@ import java.util.List;
 import jolie.lang.Constants;
 
 public class ModuleNotFoundException extends FileNotFoundException {
-
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	private final List< String > lookedPaths;
-
 	private final String moduleName;
-
-	public ModuleNotFoundException( String moduleName ) {
-		super( moduleName );
-		this.moduleName = moduleName;
-		this.lookedPaths = new ArrayList<>();
-	}
 
 	public ModuleNotFoundException( String moduleName, List< String > lookedPaths ) {
 		super( moduleName );
@@ -51,11 +43,6 @@ public class ModuleNotFoundException extends FileNotFoundException {
 		this.lookedPaths = new ArrayList<>();
 		this.lookedPaths.add( lookedPath );
 	}
-
-	public void addLookedPath( String path ) {
-		this.lookedPaths.add( path );
-	}
-
 
 	@Override
 	public String getMessage() {
