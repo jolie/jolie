@@ -31,9 +31,7 @@ public class ModuleException extends CodeCheckException {
 	public ModuleException( CodeCheckMessage message ) {
 		super( List.of( message ) );
 	}
-
 	public ModuleException( List< CodeCheckMessage > errors ) {
 		super( errors );
 	}
-
 }
