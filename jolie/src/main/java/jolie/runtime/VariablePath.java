@@ -423,10 +423,14 @@ public class VariablePath implements Expression {
 	public final void deepCopy( VariablePath rightPath ) {
 		Object myObj = getValueOrValueVector();
 		if( myObj instanceof Value ) {
-			((Value) myObj).deepCopy( rightPath.getValue() );
+			Value otherValue = rightPath.getValueOrNull();
+			((Value) myObj).deepCopy( otherValue != null ? otherValue : Value.create() );
 		} else {
 			ValueVector myVec = (ValueVector) myObj;
-			ValueVector rightVec = rightPath.getValueVector();
+			ValueVector rightVec = rightPath.getValueVectorOrNull();
+			if( rightVec == null ) {
+				rightVec = ValueVector.create();
+			}
 			for( int i = 0; i < rightVec.size(); i++ ) {
 				myVec.get( i ).deepCopy( rightVec.get( i ) );
 			}
