@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Iterator;
 
 public class CodeCheckException extends Exception {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
 	private final List< CodeCheckMessage > messageList;
 
 	public CodeCheckException( List< CodeCheckMessage > messageList ) {
@@ -20,7 +22,7 @@ public class CodeCheckException extends Exception {
 		while( iterator.hasNext() ) {
 			CodeCheckMessage currentMessage = (CodeCheckMessage) iterator.next();
 			messageString
-				.append( currentMessage.getMessage() );
+				.append( currentMessage.toString() );
 		}
 		return messageString.toString();
 	}

@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
-import jolie.lang.CodeCheckingError;
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.CodeCheckingException;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
@@ -161,7 +161,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 	}
 
 	private final Program program;
-	private final List< CodeCheckingError > errors = new ArrayList<>();
+	private final List< CodeCheckMessage > errors = new ArrayList<>();
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
@@ -268,7 +268,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 	}
 
 	private void error( OLSyntaxNode node, String message ) {
-		errors.add( CodeCheckingError.build( node, message ) );
+		errors.add( CodeCheckMessage.buildWithoutHelp( node, message ) );
 	}
 
 	private void checkToBeEqualTypes() {

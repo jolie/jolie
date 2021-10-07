@@ -19,20 +19,19 @@
 
 package jolie.lang;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 public class CodeCheckingException extends CodeCheckException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private final Collection< CodeCheckingError > errors;
+	private final List< CodeCheckMessage > errors;
 
-	public CodeCheckingException( Collection< CodeCheckingError > errors ) {
-		super( CodeCheckMessage.errorToMessage( errors ) );
-		this.errors = Collections.unmodifiableCollection( errors );
+	public CodeCheckingException( List< CodeCheckMessage > errors ) {
+		super( errors );
+		this.errors = errors;
 	}
 
-	public Collection< CodeCheckingError > errors() {
+	public List< CodeCheckMessage > errors() {
 		return errors;
 	}
 }

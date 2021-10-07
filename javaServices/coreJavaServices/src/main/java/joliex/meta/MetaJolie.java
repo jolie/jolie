@@ -22,8 +22,8 @@ package joliex.meta;
 
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
-import jolie.lang.CodeCheckingError;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckMessage;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.*;
@@ -985,16 +985,16 @@ public class MetaJolie extends JavaService {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( CodeCheckingException e ) {
+		} catch( CodeCheckException e ) {
 			Value fault = Value.create();
 			int i = 0;
-			for( CodeCheckingError error : e.errors() ) {
+			for( CodeCheckMessage error : e.messages() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().line() );
+					.setValue( error.context().isPresent() ? error.context().get().line() : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( error.context().sourceName() );
+					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
 			}
 			throw new FaultException( "SemanticException", fault );
@@ -1050,16 +1050,16 @@ public class MetaJolie extends JavaService {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( CodeCheckingException e ) {
+		} catch( CodeCheckException e ) {
 			Value fault = Value.create();
 			int i = 0;
-			for( CodeCheckingError error : e.errors() ) {
+			for( CodeCheckMessage error : e.messages() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().line() );
+					.setValue( error.context().isPresent() ? error.context().get().line() : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( error.context().sourceName() );
+					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
 			}
 			throw new FaultException( "SemanticException", fault );
@@ -1244,16 +1244,16 @@ public class MetaJolie extends JavaService {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( CodeCheckingException e ) {
+		} catch( CodeCheckException e ) {
 			Value fault = Value.create();
 			int i = 0;
-			for( CodeCheckingError error : e.errors() ) {
+			for( CodeCheckMessage error : e.messages() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().line() );
+					.setValue( error.context().isPresent() ? error.context().get().line() : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( error.context().sourceName() );
+					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
 			}
 			throw new FaultException( "SemanticException", fault );
