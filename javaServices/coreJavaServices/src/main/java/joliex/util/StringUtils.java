@@ -281,7 +281,7 @@ public class StringUtils extends JavaService {
 
 	public String valueToPrettyString( Value request ) {
 		Writer writer = new StringWriter();
-		ValuePrettyPrinter printer = new ValuePrettyPrinter( request, writer, "Value" );
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( request, writer, "root" );
 		try {
 			printer.run();
 		} catch( IOException e ) {
