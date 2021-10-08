@@ -24,6 +24,9 @@ package jolie.runtime;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import jolie.lang.NativeType;
@@ -60,11 +63,9 @@ public class ValuePrettyPrinter {
 
 	public void run()
 		throws IOException {
-		writeIndented( header );
+		writeIndented( header, List.of() );
 		writeNativeValue( root );
-		indent();
-		writeChildren( root );
-		unindent();
+		writeChildren( root, List.of() );
 	}
 
 	public void setIndentationOffset( int offset ) {
@@ -77,15 +78,19 @@ public class ValuePrettyPrinter {
 			writer.write( " (cset)" );
 		}
 		if( value.valueObject() != null ) {
+			writer.write( ":" );
+			writer.write( prettyNativeTypeName( value ) );
 			writer.write( " = " );
 			if( value.valueObject() instanceof ByteArray && byteTruncation > -1 ) {
 				String s = value.byteArrayValue().toString();
 				writer.write( s.substring( 0, Math.min( byteTruncation, s.length() ) ) + "..." );
+			} else if( value.isString() ) {
+				writer.write( '"' );
+				writer.write( value.valueObject().toString() );
+				writer.write( '"' );
 			} else {
 				writer.write( value.valueObject().toString() );
 			}
-			writer.write( " : " );
-			writer.write( prettyNativeTypeName( value ) );
 		}
 		writer.write( '\n' );
 	}
@@ -110,34 +115,49 @@ public class ValuePrettyPrinter {
 		}
 	}
 
-	private void writeChildren( Value value )
+	private void writeChildren( Value value, List< Boolean > hasMore )
 		throws IOException {
-		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+		Iterator< Entry< String, ValueVector > > childrenIt = value.children().entrySet().iterator();
+		while( childrenIt.hasNext() ) {
+			Entry< String, ValueVector > entry = childrenIt.next();
 			if( entry.getValue().isEmpty() ) {
-				writeIndented( "." );
+				writeIndented( childrenIt.hasNext() ? "├─── " : "╰─── ", hasMore );
 				writer.write( entry.getKey() );
-				writer.write( " (empty)" );
+				writer.write( " (empty array)" );
 			} else {
+				int size = entry.getValue().size();
+				Iterator< Value > elementsIt = entry.getValue().iterator();
 				int i = 0;
-				for( Value child : entry.getValue() ) {
-					writeIndented( "." );
+				while( elementsIt.hasNext() ) {
+					Value child = elementsIt.next();
+					writeIndented( (elementsIt.hasNext() || childrenIt.hasNext()) ? "├─── " : "╰─── ",
+						hasMore );
 					writer.write( entry.getKey() );
-					writer.write( '[' );
-					writer.write( Integer.toString( i ) );
-					writer.write( ']' );
+					if( size > 1 ) {
+						writer.write( '[' );
+						writer.write( Integer.toString( i ) );
+						writer.write( ']' );
+					}
 					writeNativeValue( child );
+
 					indent();
-					writeChildren( child );
+					List< Boolean > l = new ArrayList<>( hasMore );
+					l.add( childrenIt.hasNext() );
+					writeChildren( child, l );
 					unindent();
+
 					i++;
 				}
 			}
 		}
 	}
 
-	private void writeIndented( String s )
+	private void writeIndented( String s, List< Boolean > hasMore )
 		throws IOException {
 		for( int i = 0; i < indentation; i++ ) {
+			if( hasMore.get( i ) ) {
+				writer.write( '│' );
+			}
 			writer.write( '\t' );
 		}
 		writer.write( s );
