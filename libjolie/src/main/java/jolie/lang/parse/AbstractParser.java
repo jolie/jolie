@@ -47,6 +47,7 @@ public abstract class AbstractParser {
 	private boolean backup = false;
 	private final List< Scanner.Token > backupTokens = new ArrayList<>();
 	private boolean metNewline = false;
+	private final List< String > lineTokens = new ArrayList<>( 100 );
 
 	protected final String build( String... args ) {
 		stringBuilder.setLength( 0 );
@@ -101,9 +102,21 @@ public abstract class AbstractParser {
 			run = token.is( Scanner.TokenType.NEWLINE );
 			metNewline = metNewline || run;
 		} while( run );
-
 		if( backup ) {
 			backupTokens.add( token );
+		}
+	}
+
+	/**
+	 * Used to read the rest of the line, after an error has occured.
+	 */
+	public final void readLineAfterError() {
+		try {
+			// scanner.setErrorColumn( scanner.currentColumn() );
+			scanner.readLine();
+		} catch( Exception e ) {
+			System.out.println( "IOException: " + e.getMessage() );
+			System.out.println( "Could not read the rest of the line, where the error occured." );
 		}
 	}
 
@@ -165,12 +178,23 @@ public abstract class AbstractParser {
 	}
 
 	/**
+	 * Used for getting the string of the line, where the error occured.
+	 * 
+	 * @return current line in file
+	 */
+	public String lineString() {
+		String temp = lineTokens.get( scanner.line() );
+		return temp;
+	}
+
+
+	/**
 	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
 	 * 
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContext() {
-		return new URIParsingContext( scanner.source(), scanner.line() );
+		return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(), scanner.lineString() );
 	}
 
 	/**
@@ -263,7 +287,13 @@ public abstract class AbstractParser {
 		if( !token.content().equals( "" ) ) {
 			m += ", token content " + token.content();
 		}
-		ParsingContext context = getContext();
+		URIParsingContext context = (URIParsingContext) getContext();
+		// Printing line number, text of the line and pointer to where error is
+		m += "\n\n" + context.line() + ":" + context.lineString() + "\n";
+		for( int i = 0; i < context.currentColumn(); i++ ) {
+			m += " ";
+		}
+		m += "^";
 		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
 		throw new ParserException( exceptionMessage );
 	}

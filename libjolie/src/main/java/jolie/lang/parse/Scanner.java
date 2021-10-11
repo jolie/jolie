@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -362,6 +363,9 @@ public class Scanner {
     private int line;						// current line
 	private final URI source;				// source name
 	private final boolean includeDocumentation;	// include documentation tokens
+	private final ArrayList<String> lineTokens = new ArrayList<>();
+	private int currColumn;					// column of the current character
+	private int errorColumn;				// column of the error character (first character of the current token or line)
 
 	/**
 	 * Constructor
@@ -380,6 +384,7 @@ public class Scanner {
 		this.source = source;
 		this.includeDocumentation = includeDocumentation;
 		line = 1;
+		currColumn = 1;
 		readChar();
 	}
 
@@ -453,6 +458,27 @@ public class Scanner {
 	public URI source()
 	{
 		return source;
+	}
+
+
+	public String lineString() {
+		try{
+		return lineTokens.get(line());
+		} catch (IndexOutOfBoundsException e){
+			return lineTokens.get(line()-1);
+		}
+	}
+
+	public int currentColumn() {
+		return currColumn;
+	}
+
+	public int errorColumn() {
+		return errorColumn;
+	}
+
+	public void setErrorColumn(int myColumn){
+		errorColumn = myColumn;
 	}
 
 	/**
@@ -529,9 +555,23 @@ public class Scanner {
 		currInt = reader.read();
 
 		ch = (char) currInt;
-
+		if( lineTokens.isEmpty() ) {
+			lineTokens.add(0, " ");
+		}
+		String temp;
+		try {
+			temp = lineTokens.get( line() );
+			temp += ch;
+			lineTokens.set( line(), temp );
+		} catch( IndexOutOfBoundsException e ) {
+			temp = "";
+			temp += ch;
+			lineTokens.add( line(), temp );
+		}
+		currColumn++;
 		if ( ch == '\n' ) {
 			line++;
+			currColumn = 1;
 		}
 	}
 
@@ -589,7 +629,7 @@ public class Scanner {
 		boolean keepRun = true;
         // current state
         State state = State.FIRST_CHARACTER;
-        
+        errorColumn = currColumn;
 		while ( currInt != -1 && isHorizontalWhitespace( ch ) ) {
 			readChar();
 		}

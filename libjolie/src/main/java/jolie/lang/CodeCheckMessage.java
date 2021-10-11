@@ -69,10 +69,13 @@ public class CodeCheckMessage {
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
+			URIParsingContext myContext = (URIParsingContext) context;
 			messageBuilder
 				.append( context.sourceName() )
 				.append( ':' )
-				.append( context.line() );
+				.append( context.line() )
+				.append( ':' )
+				.append( myContext.lineString() );
 		}
 		messageBuilder.append( ": error: " );
 		if( description != null ) {

@@ -36,12 +36,16 @@ import jolie.lang.Constants;
 public class URIParsingContext extends AbstractParsingContext {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final URI uri;
+	private final String lineString;
+	private final int column;
 
-	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0 );
+	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, "" );
 
-	public URIParsingContext( URI uri, int line ) {
+	public URIParsingContext( URI uri, int line, int column, String lineString ) {
 		super( line );
 		this.uri = uri;
+		this.column = column; // The number character in line, where error occured
+		this.lineString = lineString; // this is the line in the file where the error occured
 	}
 
 	@Override
@@ -57,5 +61,13 @@ public class URIParsingContext extends AbstractParsingContext {
 		} catch( InvalidPathException | FileSystemNotFoundException e ) {
 			return uri.toString();
 		}
+	}
+
+	public int currentColumn() {
+		return column;
+	}
+
+	public String lineString() {
+		return lineString;
 	}
 }

@@ -18,7 +18,7 @@
  * MA 02110-1301  USA
  */
 
- package jolie.lang;
+package jolie.lang;
 
 import java.util.List;
 import java.util.Iterator;
