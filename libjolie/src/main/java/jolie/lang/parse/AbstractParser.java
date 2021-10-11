@@ -177,16 +177,6 @@ public abstract class AbstractParser {
 		this.scanner = scanner;
 	}
 
-	/**
-	 * Used for getting the string of the line, where the error occured.
-	 * 
-	 * @return current line in file
-	 */
-	public String lineString() {
-		String temp = lineTokens.get( scanner.line() );
-		return temp;
-	}
-
 
 	/**
 	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}

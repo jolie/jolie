@@ -460,7 +460,11 @@ public class Scanner {
 		return source;
 	}
 
-
+	/**
+	 * Used for getting the string of the line, where the error occured.
+	 * 
+	 * @return current line in file
+	 */
 	public String lineString() {
 		try{
 		return lineTokens.get(line());
