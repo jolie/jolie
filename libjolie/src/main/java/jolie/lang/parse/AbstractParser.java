@@ -47,7 +47,6 @@ public abstract class AbstractParser {
 	private boolean backup = false;
 	private final List< Scanner.Token > backupTokens = new ArrayList<>();
 	private boolean metNewline = false;
-	private final List< String > lineTokens = new ArrayList<>( 100 );
 
 	protected final String build( String... args ) {
 		stringBuilder.setLength( 0 );
@@ -265,6 +264,14 @@ public abstract class AbstractParser {
 		}
 	}
 
+	public String createHelpMessage( Scanner.Token token ) {
+		// String tokenContent = token.content();
+
+		String help = " ";
+
+		return help;
+	}
+
 	/**
 	 * Shortcut to throw a correctly formed ParserException.
 	 * 
@@ -273,17 +280,12 @@ public abstract class AbstractParser {
 	 */
 	protected final void throwException( String mesg )
 		throws ParserException {
+		readLineAfterError();
 		String m = mesg + ". Found token type " + token.type().toString();
 		if( !token.content().equals( "" ) ) {
 			m += ", token content " + token.content();
 		}
 		URIParsingContext context = (URIParsingContext) getContext();
-		// Printing line number, text of the line and pointer to where error is
-		m += "\n\n" + context.line() + ":" + context.lineString() + "\n";
-		for( int i = 0; i < context.currentColumn(); i++ ) {
-			m += " ";
-		}
-		m += "^";
 		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
 		throw new ParserException( exceptionMessage );
 	}

@@ -71,23 +71,34 @@ public class CodeCheckMessage {
 		if( context != null ) {
 			URIParsingContext myContext = (URIParsingContext) context;
 			messageBuilder
+				.append( ": error: " )
 				.append( context.sourceName() )
-				.append( ':' )
+				.append( ":" )
 				.append( context.line() )
-				.append( ':' )
-				.append( myContext.lineString() );
-		}
-		messageBuilder.append( ": error: " );
-		if( description != null ) {
-			messageBuilder
-				.append( description );
+				.append( ": " );
+			if( description != null ) {
+				messageBuilder
+					.append( description )
+					.append( '\n' );
+			} else {
+				messageBuilder.append( "No descriptive error message found.\n" );
+			}
+			messageBuilder.append( '\n' ).append( context.line() ).append( ':' ).append( myContext.lineString() )
+				.append( '\n' );
+			for( int i = 0; i < myContext.currentColumn(); i++ ) {
+				messageBuilder.append( " " );
+			}
+			messageBuilder.append( "^\n" );
+		} else {
+			messageBuilder.append( ": error: " );
+			if( description != null ) {
+				messageBuilder.append( description ).append( '\n' );
+			} else {
+				messageBuilder.append( "No descriptive error message found.\n" );
+			}
 		}
 		if( help != null ) {
-			messageBuilder
-				.append( "\n" )
-				.append( "help: " )
-				.append( help )
-				.toString();
+			messageBuilder.append( "help: " ).append( help );
 		}
 		return messageBuilder.toString();
 	}
