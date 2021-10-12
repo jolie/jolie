@@ -71,11 +71,10 @@ public class CodeCheckMessage {
 		if( context != null ) {
 			URIParsingContext myContext = (URIParsingContext) context;
 			messageBuilder
-				.append( ": error: " )
 				.append( context.sourceName() )
 				.append( ":" )
 				.append( context.line() )
-				.append( ": " );
+				.append( ": error: " );
 			if( description != null ) {
 				messageBuilder
 					.append( description )
