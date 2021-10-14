@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
@@ -265,11 +266,22 @@ public abstract class AbstractParser {
 	}
 
 	public String createHelpMessage( Scanner.Token token ) {
-		// String tokenContent = token.content();
-
-		String help = " ";
-
-		return help;
+		String tokenContent = token.content();
+		StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " );
+		LevenshteinDistance dist = new LevenshteinDistance();
+		if( dist.apply( tokenContent, "interface" ) <= 2 ) {
+			help.append( "interface" );
+		} else if( dist.apply( tokenContent, "service" ) <= 2 ) {
+			help.append( "service" );
+		} else if( dist.apply( tokenContent, "from" ) <= 2 ) {
+			help.append( "from" );
+		} else if( dist.apply( tokenContent, "type" ) <= 2 ) {
+			help.append( "type" );
+		} else {
+			help =
+				new StringBuilder( "You are missing a keyword. Possible inputs are: service, interface, from or type" );
+		}
+		return help.toString();
 	}
 
 	/**
@@ -286,7 +298,8 @@ public abstract class AbstractParser {
 			m += ", token content " + token.content();
 		}
 		URIParsingContext context = (URIParsingContext) getContext();
-		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
+		String help = createHelpMessage( token );
+		CodeCheckMessage exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 		throw new ParserException( exceptionMessage );
 	}
 

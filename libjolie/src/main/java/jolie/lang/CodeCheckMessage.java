@@ -97,7 +97,7 @@ public class CodeCheckMessage {
 			}
 		}
 		if( help != null ) {
-			messageBuilder.append( "help: " ).append( help );
+			messageBuilder.append( help );
 		}
 		return messageBuilder.toString();
 	}
