@@ -112,7 +112,6 @@ public abstract class AbstractParser {
 	 */
 	public final void readLineAfterError() {
 		try {
-			// scanner.setErrorColumn( scanner.currentColumn() );
 			scanner.readLine();
 		} catch( Exception e ) {
 			System.out.println( "IOException: " + e.getMessage() );
@@ -185,6 +184,23 @@ public abstract class AbstractParser {
 	 */
 	public final ParsingContext getContext() {
 		return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(), scanner.lineString() );
+	}
+
+	/**
+	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
+	 * 
+	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
+	 */
+	public final ParsingContext getContextDuringError() {
+		int linenr = scanner.line();
+		readLineAfterError();
+		if( linenr < scanner.line() ) {
+			return new URIParsingContext( scanner.source(), linenr, scanner.errorColumn(),
+				scanner.lineString().replace( '\n', ' ' ).stripTrailing() );
+		} else {
+			return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(),
+				scanner.lineString() );
+		}
 	}
 
 	/**
@@ -265,23 +281,39 @@ public abstract class AbstractParser {
 		}
 	}
 
-	public String createHelpMessage( Scanner.Token token ) {
-		String tokenContent = token.content();
+	public String createHelpMessage( URIParsingContext context, String tokenContent ) {
 		StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " );
 		LevenshteinDistance dist = new LevenshteinDistance();
+		String proposedWord;
 		if( dist.apply( tokenContent, "interface" ) <= 2 ) {
 			help.append( "interface" );
+			proposedWord = "interface";
 		} else if( dist.apply( tokenContent, "service" ) <= 2 ) {
 			help.append( "service" );
+			proposedWord = "service";
 		} else if( dist.apply( tokenContent, "from" ) <= 2 ) {
 			help.append( "from" );
+			proposedWord = "from";
 		} else if( dist.apply( tokenContent, "type" ) <= 2 ) {
 			help.append( "type" );
+			proposedWord = "type";
 		} else {
 			help =
 				new StringBuilder( "You are missing a keyword. Possible inputs are: service, interface, from or type" );
-			return help.toString();
+			proposedWord = "service";
 		}
+		help.append( ". Perhaps you meant:\n" ).append( context.line() ).append( ':' );
+		if( context.currentColumn() != 0 ) {
+			help.append( context.lineString().substring( 0, context.currentColumn() ) ).append( proposedWord );
+		} else {
+			help.append( proposedWord );
+
+		}
+		help.append( context.lineString().substring( context.currentColumn() + tokenContent.length() ) ).append( '\n' );
+		for( int i = 0; i < context.currentColumn() + (" " + context.line()).length(); i++ ) {
+			help.append( " " );
+		}
+		help.append( '^' );
 
 		return help.toString();
 	}
@@ -294,14 +326,16 @@ public abstract class AbstractParser {
 	 */
 	protected final void throwException( String mesg )
 		throws ParserException {
-		readLineAfterError();
 		String m = mesg;
+		CodeCheckMessage exceptionMessage;
+		URIParsingContext context = (URIParsingContext) getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			m += "Unexpected term: " + token.content();
+			String help = createHelpMessage( context, token.content() );
+			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+		} else {
+			exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
 		}
-		URIParsingContext context = (URIParsingContext) getContext();
-		String help = createHelpMessage( token );
-		CodeCheckMessage exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 		throw new ParserException( exceptionMessage );
 	}
 

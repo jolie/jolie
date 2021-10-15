@@ -70,21 +70,15 @@ public class CodeCheckMessage {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
 			URIParsingContext myContext = (URIParsingContext) context;
-			messageBuilder
-				.append( context.sourceName() )
-				.append( ":" )
-				.append( context.line() )
+			messageBuilder.append( myContext.sourceName() ).append( ":" ).append( myContext.line() )
 				.append( ": error: " );
 			if( description != null ) {
-				messageBuilder
-					.append( description )
-					.append( '\n' );
+				messageBuilder.append( description ).append( '\n' );
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
-			messageBuilder.append( '\n' ).append( context.line() ).append( ':' ).append( myContext.lineString() )
-				.append( '\n' );
-			for( int i = 0; i < myContext.currentColumn(); i++ ) {
+			messageBuilder.append( myContext.line() ).append( ':' ).append( myContext.lineString() ).append( '\n' );
+			for( int i = 0; i < myContext.currentColumn() + (" " + myContext.line()).length(); i++ ) {
 				messageBuilder.append( " " );
 			}
 			messageBuilder.append( "^\n" );

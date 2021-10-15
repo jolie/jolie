@@ -384,7 +384,7 @@ public class Scanner {
 		this.source = source;
 		this.includeDocumentation = includeDocumentation;
 		line = 1;
-		currColumn = 1;
+		currColumn = 0;
 		readChar();
 	}
 
@@ -477,8 +477,9 @@ public class Scanner {
 		return currColumn;
 	}
 
+	//returns the value minus one, because errorcolumn is set to currentcolumn while reading, and thus has 1 added to it
 	public int errorColumn() {
-		return errorColumn;
+		return errorColumn-1;
 	}
 
 	public void setErrorColumn(int myColumn){
@@ -575,7 +576,7 @@ public class Scanner {
 		currColumn++;
 		if ( ch == '\n' ) {
 			line++;
-			currColumn = 1;
+			currColumn = 0;
 		}
 	}
 
@@ -633,12 +634,12 @@ public class Scanner {
 		boolean keepRun = true;
         // current state
         State state = State.FIRST_CHARACTER;
-        errorColumn = currColumn;
 		while ( currInt != -1 && isHorizontalWhitespace( ch ) ) {
 			readChar();
 		}
 
 		if ( currInt == -1 ) {
+			errorColumn = currColumn-1;
 			return new Token( TokenType.EOF );
 		}
 
@@ -1051,7 +1052,7 @@ public class Scanner {
 		if ( retval == null ) {
 			retval = new Token( TokenType.ERROR );
 		}
-
+		errorColumn = currColumn-retval.content.length();
 		return retval;
 	}
 }
