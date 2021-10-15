@@ -268,7 +268,7 @@ public class OLParser extends AbstractParser {
 		} while( t != token ); // Loop until no procedures can eat the initial token
 
 		if( t.isNot( Scanner.TokenType.EOF ) ) {
-			throwException( "Invalid token encountered" );
+			throwException( "" );
 		}
 	}
 

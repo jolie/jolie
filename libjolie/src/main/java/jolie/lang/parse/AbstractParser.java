@@ -280,7 +280,9 @@ public abstract class AbstractParser {
 		} else {
 			help =
 				new StringBuilder( "You are missing a keyword. Possible inputs are: service, interface, from or type" );
+			return help.toString();
 		}
+
 		return help.toString();
 	}
 
@@ -293,9 +295,9 @@ public abstract class AbstractParser {
 	protected final void throwException( String mesg )
 		throws ParserException {
 		readLineAfterError();
-		String m = mesg + ". Found token type " + token.type().toString();
+		String m = mesg;
 		if( !token.content().equals( "" ) ) {
-			m += ", token content " + token.content();
+			m += "Unexpected term: " + token.content();
 		}
 		URIParsingContext context = (URIParsingContext) getContext();
 		String help = createHelpMessage( token );
