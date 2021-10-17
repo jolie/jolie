@@ -29,7 +29,7 @@ import jolie.lang.parse.context.ParsingContext;
 
 public class ModuleException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	private ParsingContext context = null;
+	private final ParsingContext context;
 
 	public ModuleException( ParsingContext context, String message ) {
 		super( message );
@@ -38,6 +38,7 @@ public class ModuleException extends Exception {
 
 	public ModuleException( String message ) {
 		super( message );
+		this.context = null;
 	}
 
 	public ModuleException( ParsingContext context, Throwable arg1 ) {
@@ -48,14 +49,11 @@ public class ModuleException extends Exception {
 	public ModuleException( Collection< CodeCheckingError > errors ) {
 		super(
 			errors.stream().map( CodeCheckingError::toString ).collect( Collectors.joining( "\n" ) ) );
-	}
-
-	public void setContext( ParsingContext context ) {
-		this.context = context;
+		this.context = null;
 	}
 
 	public Optional< ParsingContext > context() {
-		return Optional.of( context );
+		return Optional.ofNullable( context );
 	}
 
 	@Override

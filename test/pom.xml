@@ -26,6 +26,7 @@
 				<jolie.launcher>${project.parent.basedir}\${jolie.installation.directory.executable}\windows\jolie.bat</jolie.launcher>
 				<jolie.home>${project.parent.basedir}\${jolie.installation.directory}</jolie.home>
 				<test.dir>${project.parent.basedir}\test</test.dir>
+				<test.pathenv>${env.PATH};${project.parent.basedir}\${jolie.installation.directory.executable}\windows</test.pathenv>
 			</properties>
 		</profile>
 		<profile>
@@ -39,6 +40,7 @@
 				<jolie.launcher>${project.parent.basedir}/${jolie.installation.directory.executable}/unix/jolie</jolie.launcher>
 				<jolie.home>${project.parent.basedir}/${jolie.installation.directory}</jolie.home>
 				<test.dir>${project.parent.basedir}/test</test.dir>
+				<test.pathenv>${env.PATH}:${project.parent.basedir}/${jolie.installation.directory.executable}/unix</test.pathenv>
 			</properties>
 		</profile>
 	</profiles>
@@ -63,6 +65,7 @@
 				<configuration>
 					<environmentVariables>
 						<JOLIE_HOME>${jolie.home}</JOLIE_HOME>
+						<PATH>${test.pathenv}</PATH>
 					</environmentVariables>
 					<workingDirectory>${test.dir}</workingDirectory>
 					<executable>${jolie.launcher}</executable>
