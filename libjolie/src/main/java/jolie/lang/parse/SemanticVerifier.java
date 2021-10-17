@@ -866,6 +866,9 @@ public class SemanticVerifier implements UnitOLVisitor {
 			if( n.inputVarPath().isCSet() ) {
 				error( n, "Receiving a message in a correlation variable is forbidden" );
 			}
+			if( n.inputVarPath().isGlobal() ) {
+				error( n, "Receiving a message in a global variable is forbidden" );
+			}
 			encounteredAssignment( n.inputVarPath() );
 		}
 	}
@@ -880,6 +883,9 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( n.inputVarPath() != null ) {
 			if( n.inputVarPath().isCSet() ) {
 				error( n, "Receiving a message in a correlation variable is forbidden" );
+			}
+			if( n.inputVarPath().isGlobal() ) {
+				error( n, "Receiving a message in a global variable is forbidden" );
 			}
 			encounteredAssignment( n.inputVarPath() );
 		}
