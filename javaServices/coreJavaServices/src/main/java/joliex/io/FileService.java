@@ -759,7 +759,7 @@ public class FileService extends JavaService {
 				Value fileValue = Value.create( p.toString() );
 				if( fileInfo ) {
 					Value info = fileValue.getFirstChild( "info" );
-					File currFile = p.toFile();
+					File currFile = new File( path.toString() );
 					info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
 					info.getFirstChild( "size" ).setValue( currFile.length() );
 					info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
