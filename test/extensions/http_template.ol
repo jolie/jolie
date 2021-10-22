@@ -1,6 +1,8 @@
 from .private.http_template_interface import HttpTemplateInterface
 from .private.http_template_server import HttpTemplateServer
 from ..test-unit import TestUnitInterface
+from string_utils import StringUtils
+from console import Console
 
 service Test {
 	inputPort TestUnitInput {
@@ -8,9 +10,14 @@ service Test {
 		interfaces: TestUnitInterface
 	}
 
+    outputPort TestHttpTemplateB{
+        Location : "socket://localhost:9099"
+    }
+
     outputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
+           compression= false 
            osc.getOrder.template="/api/orders/{id}" 
            osc.getOrder.method="GET"
            osc.getOrder.outHeaders.("Authorization")= "token"
@@ -25,8 +32,9 @@ service Test {
         Location : "socket://localhost:9099"
     }
 
-
-   embed HttpTemplateServer in TestHttpTemplate
+    embed StringUtils as stringUtils
+    embed Console as console 
+    embed HttpTemplateServer in TestHttpTemplateB
     
 
 	main {
@@ -47,16 +55,16 @@ service Test {
                                        ammount = 11.0})()
             addOrder@TestHttpTemplate({token="sometoken" 
                                        ammount = 21.0})()    
-            getOrders@TestHttpTemplate({token="sometoken" 
-                                       ammount = 21.0})(resultGetOrders) 
+            getOrders@TestHttpTemplate({token="sometoken"})(resultGetOrders) 
             if (#resultGetOrders.orders!=3){
                 throw( TestFailed, "wrong number of results in getOrders" )
             }    
-
-            getOrder@TestHttpTemplate({token="sometoken" 
-                                       id = resultGetOrders.orders.id})(resultGetOrder) 
-            if(resultGetOrder.ammount != resultGetOrders.orders.id){
-                throw( TestFailed, "wrong number of results in getOrders" )
+            request.token = "sometoken"
+            request.id = resultGetOrders.orders[2].id
+            getOrder@TestHttpTemplate(request)(resultGetOrder) 
+        
+            if(resultGetOrders.orders[2].id != resultGetOrder.id){
+                throw( TestFailed, "wrong id" )
             }                                                                                                         
 
 		}
