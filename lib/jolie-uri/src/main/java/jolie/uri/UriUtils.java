@@ -24,7 +24,6 @@ import com.damnhandy.uri.template.UriTemplateMatcherFactory;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
