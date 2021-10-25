@@ -112,7 +112,7 @@ public abstract class AbstractParser {
 	 */
 	public final void readLineAfterError() {
 		try {
-			scanner.readLine();
+			scanner.readLineAfterError();
 		} catch( Exception e ) {
 			System.out.println( "IOException: " + e.getMessage() );
 			System.out.println( "Could not read the rest of the line, where the error occured." );
@@ -297,9 +297,13 @@ public abstract class AbstractParser {
 		} else if( dist.apply( tokenContent, "type" ) <= 2 ) {
 			help.append( "type" );
 			proposedWord = "type";
+		} else if( dist.apply( tokenContent, "include" ) <= 2 ) {
+			help.append( "include" );
+			proposedWord = "include";
 		} else {
 			help =
-				new StringBuilder( "You are missing a keyword. Possible inputs are: service, interface, from or type" );
+				new StringBuilder(
+					"You are missing a keyword. Possible inputs are: service, interface, from, include or type" );
 			proposedWord = "service";
 		}
 		help.append( ". Perhaps you meant:\n" ).append( context.line() ).append( ':' );
@@ -334,6 +338,11 @@ public abstract class AbstractParser {
 			String help = createHelpMessage( context, token.content() );
 			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 		} else {
+			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
+			// curly bracket and not at/before the curly bracket
+			// example, if service does not have a name
+			context = new URIParsingContext( context.source(), context.line(), context.currentColumn() - 1,
+				context.lineString() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
 		}
 		throw new ParserException( exceptionMessage );

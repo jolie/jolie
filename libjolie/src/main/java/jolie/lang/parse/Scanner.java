@@ -425,6 +425,18 @@ public class Scanner {
 		return tokenBuilder.toString();
 	}
 
+	public String readLineAfterError()
+		throws IOException
+	{
+		resetTokenBuilder();
+		readChar();
+		while( !isNewLineChar( ch ) && reader.ready()) {
+			tokenBuilder.append( ch );
+			readChar();
+		}
+		return tokenBuilder.toString();
+	}
+
 	public InputStream inputStream()
 	{
 		return stream;
