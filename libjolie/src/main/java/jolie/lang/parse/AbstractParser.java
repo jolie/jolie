@@ -334,6 +334,9 @@ public abstract class AbstractParser {
 		CodeCheckMessage exceptionMessage;
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
 		if( !token.content().equals( "" ) ) {
+			if( !m.equals( "" ) ) {
+				m += ". ";
+			}
 			m += "Unexpected term: " + token.content();
 			String help = createHelpMessage( context, token.content() );
 			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
