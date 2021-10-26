@@ -1675,7 +1675,7 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
-				assertToken( Scanner.TokenType.RCURLY, "invalid token found inside service " + serviceName );
+				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName );
 				keepRun = false;
 			}
 		}
@@ -1802,7 +1802,7 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.COLON, "expected :" );
 				parseAggregationList( aggregationList );
 			} else {
-				throwException( "Unrecognized token in inputPort " + inputPortName );
+				throwException( "Unrecognized term in inputPort " + inputPortName );
 			}
 		}
 		eat( Scanner.TokenType.RCURLY, "} expected" );

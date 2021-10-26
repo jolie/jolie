@@ -282,44 +282,65 @@ public abstract class AbstractParser {
 	}
 
 	public String createHelpMessage( URIParsingContext context, String tokenContent ) {
-		StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " );
 		LevenshteinDistance dist = new LevenshteinDistance();
-		String proposedWord;
-		if( dist.apply( tokenContent, "interface" ) <= 2 ) {
-			help.append( "interface" );
-			proposedWord = "interface";
-		} else if( dist.apply( tokenContent, "service" ) <= 2 ) {
-			help.append( "service" );
-			proposedWord = "service";
-		} else if( dist.apply( tokenContent, "from" ) <= 2 ) {
-			help.append( "from" );
-			proposedWord = "from";
-		} else if( dist.apply( tokenContent, "type" ) <= 2 ) {
-			help.append( "type" );
-			proposedWord = "type";
-		} else if( dist.apply( tokenContent, "include" ) <= 2 ) {
-			help.append( "include" );
-			proposedWord = "include";
-		} else {
-			help =
+		String[] possibleTokens = { "service", "interface", "from", "include", "type", "import", // outermost keywords
+			"init", "main", "oneWay", "requestResponse", "RequestResponse", "OneWay", "execution", "synchronized",
+			"concurrent", "inputPort", "location", "protocol", "interfaces", "Aggregates", "redirects", "outputPort",
+			"embed", "single", "sequential",
+			"nullProcess", "scope", "install", "spawn", "if", "else", "else if", "define", "while", "this", "throw",
+			"throws", "with",
+			"comp", "exit", "constants", "undef", "is_defined", "for", "foreach", "instanceof", "throws", "with",
+			"true", "false",
+			"provide", "as", "private", "public", "in", "cset", "until", "over", "cH", "comp", "Jolie", "Java",
+			"javaScript", "courier", "forward", "interface", "extender" };
+		ArrayList< String > proposedWord = new ArrayList<>();
+		for( String correctToken : possibleTokens ) {
+			if( dist.apply( tokenContent, correctToken ) <= 2 ) {
+				proposedWord.add( correctToken );
+			}
+
+		}
+		if( proposedWord.isEmpty() ) {
+			StringBuilder help =
 				new StringBuilder(
-					"You are missing a keyword. Possible inputs are: service, interface, from, include or type" );
-			proposedWord = "service";
-		}
-		help.append( ". Perhaps you meant:\n" ).append( context.line() ).append( ':' );
-		if( context.currentColumn() != 0 ) {
-			help.append( context.lineString().substring( 0, context.currentColumn() ) ).append( proposedWord );
+					"You are missing a keyword. Possible inputs are: service, interface, from, include, type..." )
+						.append( "\nAll known keywords are displayed below:\n" );
+			for( String correctToken : possibleTokens ) {
+				help.append( correctToken ).append( ", " );
+			}
+			help.delete( help.length() - 2, help.length() );
+			return help.toString();
 		} else {
-			help.append( proposedWord );
+			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " );
+			for( String word : proposedWord ) {
+				if( word != null ) {
+					help.append( word ).append( ", " );
 
-		}
-		help.append( context.lineString().substring( context.currentColumn() + tokenContent.length() ) ).append( '\n' );
-		for( int i = 0; i < context.currentColumn() + (" " + context.line()).length(); i++ ) {
-			help.append( " " );
-		}
-		help.append( '^' );
+				}
+			}
+			help.delete( help.length() - 2, help.length() );
 
-		return help.toString();
+			help.append( ". Perhaps you meant:\n" ).append( context.line() ).append( ':' );
+			int numberSpaces;
+			if( context.currentColumn() != 0 ) {
+				help.append( context.lineString().substring( 0, context.currentColumn() ) )
+					.append( proposedWord.get( 0 ) )
+					.append( context.lineString().substring( context.currentColumn() + tokenContent.length() ) )
+					.append( '\n' );
+				numberSpaces = context.currentColumn() + (":" + context.line()).length();
+			} else {
+				help.append( proposedWord.get( 0 ) )
+					.append( context.lineString().substring( context.currentColumn() + tokenContent.length() ) )
+					.append( '\n' );
+				numberSpaces = context.currentColumn() + (":" + context.line()).length();
+
+			}
+			for( int j = 0; j < numberSpaces; j++ ) {
+				help.append( " " );
+			}
+			help.append( '^' );
+			return help.toString();
+		}
 	}
 
 	/**

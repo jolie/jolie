@@ -573,7 +573,7 @@ public class Scanner {
 
 		ch = (char) currInt;
 		if( lineTokens.isEmpty() ) {
-			lineTokens.add(0, " ");
+			lineTokens.add(0, "");
 		}
 		String temp;
 		try {
@@ -585,7 +585,11 @@ public class Scanner {
 			temp += ch;
 			lineTokens.add( line(), temp );
 		}
-		currColumn++;
+		if(ch == '\t'){
+			currColumn += 4;
+		} else{
+			currColumn++;
+		}
 		if ( ch == '\n' ) {
 			line++;
 			currColumn = 0;
