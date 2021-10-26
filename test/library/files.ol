@@ -28,7 +28,7 @@ define testList
 	} )( response )
 
 	for( f in response.result ) {
-		if ( f.info.size == 0 ) {
+		if ( f.info.size == 0 && !f.info.isDirectory ) {
 				throw( TestFailed, f + " should not have size 0 " )
 		}
 		if ( f.info.lastModified == 0 ) {
