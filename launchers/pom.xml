@@ -11,7 +11,7 @@
 	<groupId>org.jolie-lang</groupId>
 	<artifactId>launchers</artifactId>
 	<version>${jolie.version}</version>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<name>launchers</name>
 	<description>The Jolie command line launchers.</description>
 	<profiles>
