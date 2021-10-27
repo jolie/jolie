@@ -218,6 +218,12 @@ public abstract class AbstractParser {
 		nextToken();
 	}
 
+	protected final void eat( Scanner.TokenType type, String errorMessage, String[] possibleTerms )
+		throws ParserException, IOException {
+		assertToken( type, errorMessage, possibleTerms );
+		nextToken();
+	}
+
 	protected final void maybeEat( Scanner.TokenType... types )
 		throws ParserException, IOException {
 		for( Scanner.TokenType type : types ) {
@@ -253,6 +259,12 @@ public abstract class AbstractParser {
 		nextToken();
 	}
 
+	protected final void eatIdentifier( String errorMessage, String[] possibleTerms )
+		throws ParserException, IOException {
+		assertIdentifier( errorMessage, possibleTerms );
+		nextToken();
+	}
+
 	/**
 	 * Asserts that the current token is an identifier (or an unreserved keyword).
 	 * 
@@ -264,6 +276,13 @@ public abstract class AbstractParser {
 		throws ParserException {
 		if( !token.isIdentifier() ) {
 			throwException( errorMessage );
+		}
+	}
+
+	protected final void assertIdentifier( String errorMessage, String[] possibleTerms )
+		throws ParserException {
+		if( !token.isIdentifier() ) {
+			throwException( errorMessage, possibleTerms );
 		}
 	}
 
@@ -281,18 +300,15 @@ public abstract class AbstractParser {
 		}
 	}
 
-	public String createHelpMessage( URIParsingContext context, String tokenContent ) {
+	protected final void assertToken( Scanner.TokenType type, String errorMessage, String[] possibleTerms )
+		throws ParserException {
+		if( token.isNot( type ) ) {
+			throwException( errorMessage, possibleTerms );
+		}
+	}
+
+	public String createHelpMessage( URIParsingContext context, String tokenContent, String[] possibleTokens ) {
 		LevenshteinDistance dist = new LevenshteinDistance();
-		String[] possibleTokens = { "service", "interface", "from", "include", "type", "import", // outermost keywords
-			"init", "main", "oneWay", "requestResponse", "RequestResponse", "OneWay", "execution", "synchronized",
-			"concurrent", "inputPort", "location", "protocol", "interfaces", "Aggregates", "redirects", "outputPort",
-			"embed", "single", "sequential",
-			"nullProcess", "scope", "install", "spawn", "if", "else", "else if", "define", "while", "this", "throw",
-			"throws", "with",
-			"comp", "exit", "constants", "undef", "is_defined", "for", "foreach", "instanceof", "throws", "with",
-			"true", "false",
-			"provide", "as", "private", "public", "in", "cset", "until", "over", "cH", "comp", "Jolie", "Java",
-			"javaScript", "courier", "forward", "interface", "extender" };
 		ArrayList< String > proposedWord = new ArrayList<>();
 		for( String correctToken : possibleTokens ) {
 			if( dist.apply( tokenContent, correctToken ) <= 2 ) {
@@ -303,8 +319,7 @@ public abstract class AbstractParser {
 		if( proposedWord.isEmpty() ) {
 			StringBuilder help =
 				new StringBuilder(
-					"You are missing a keyword. Possible inputs are: service, interface, from, include, type..." )
-						.append( "\nAll known keywords are displayed below:\n" );
+					"You are missing a keyword. Possible inputs are:\n" );
 			for( String correctToken : possibleTokens ) {
 				help.append( correctToken ).append( ", " );
 			}
@@ -356,10 +371,12 @@ public abstract class AbstractParser {
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			if( !m.equals( "" ) ) {
-				m += ". ";
+				m += ": " + token.content();
+			} else {
+				m += ". Found term: " + token.content();
 			}
-			m += "Unexpected term: " + token.content();
-			String help = createHelpMessage( context, token.content() );
+			String[] possibleTokens = { "These error messages have yet to get possible tokens!" };
+			String help = createHelpMessage( context, token.content(), possibleTokens );
 			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 		} else {
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
@@ -368,6 +385,46 @@ public abstract class AbstractParser {
 			context = new URIParsingContext( context.source(), context.line(), context.currentColumn() - 1,
 				context.lineString() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
+		}
+		throw new ParserException( exceptionMessage );
+	}
+
+	/**
+	 * Shortcut to throw a correctly formed ParserException.
+	 * 
+	 * @param mesg The message to insert in the ParserException.
+	 * @throws ParserException Every time, as its the purpose of this method.
+	 */
+	protected final void throwException( String mesg, String[] possibleTokens )
+		throws ParserException {
+		String m = mesg;
+		CodeCheckMessage exceptionMessage;
+		URIParsingContext context = (URIParsingContext) getContextDuringError();
+		String help;
+		if( !token.content().equals( "" ) ) {
+			if( !m.equals( "" ) ) {
+				m += ". Found term: " + token.content();
+			} else {
+				m += ". Found term: " + token.content();
+			}
+
+			help = createHelpMessage( context, token.content(), possibleTokens );
+			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+		} else {
+			if( !m.equals( "" ) ) {
+				m += ". Could not be found.";
+			}
+			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
+			// curly bracket and not at/before the curly bracket
+			// example, if service does not have a name
+			context = new URIParsingContext( context.source(), context.line(), context.currentColumn() - 1,
+				context.lineString() );
+			if( possibleTokens.length > 0 ) {
+				help = createHelpMessage( context, token.content(), possibleTokens );
+				exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+			} else {
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
+			}
 		}
 		throw new ParserException( exceptionMessage );
 	}

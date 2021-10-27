@@ -268,7 +268,8 @@ public class OLParser extends AbstractParser {
 		} while( t != token ); // Loop until no procedures can eat the initial token
 
 		if( t.isNot( Scanner.TokenType.EOF ) ) {
-			throwException( "" );
+			String[] possibleTerms = { "service", "interface", "from", "include", "type", "import", "execution" };
+			throwException( "Unexpected term", possibleTerms );
 		}
 	}
 
@@ -950,7 +951,7 @@ public class OLParser extends AbstractParser {
 					}
 				}
 			}
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected } number 1" );
 		}
 	}
 
@@ -1000,7 +1001,7 @@ public class OLParser extends AbstractParser {
 			}
 
 			result.add( new CorrelationSetInfo( getContext(), variables ) );
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected } number 2" );
 		}
 		return result.toArray( new CorrelationSetInfo[ 0 ] );
 	}
@@ -1025,8 +1026,8 @@ public class OLParser extends AbstractParser {
 		} else {
 			throwException( "expected : or { after execution" );
 		}
-
-		assertToken( Scanner.TokenType.ID, "expected execution modality" );
+		String[] possibleTerms = { "sequential", "concurrent", "single" };
+		assertToken( Scanner.TokenType.ID, "expected execution modality", possibleTerms );
 		switch( token.content() ) {
 		case "sequential":
 			mode = Constants.ExecutionMode.SEQUENTIAL;
@@ -1038,7 +1039,7 @@ public class OLParser extends AbstractParser {
 			mode = Constants.ExecutionMode.SINGLE;
 			break;
 		default:
-			throwException( "Expected execution mode, found " + token.content() );
+			throwException( "Expected execution mode", possibleTerms );
 			break;
 		}
 		nextToken();
@@ -1071,7 +1072,7 @@ public class OLParser extends AbstractParser {
 					nextToken();
 				}
 			}
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected } number 3" );
 		}
 	}
 
@@ -1221,7 +1222,9 @@ public class OLParser extends AbstractParser {
 				try {
 					includeFile = retrieveIncludeFile( includePaths[ i ], includeStr );
 				} catch( URISyntaxException e ) {
-					throwException( e.getMessage() );
+					// String[] possibleTokens = { "service", "interface", "from", "include", "type", "import",
+					// "execution", "concurrent", "single", "sequential" };
+					throwException( e.getMessage() );// , possibleTokens );
 				}
 			}
 
@@ -1673,14 +1676,16 @@ public class OLParser extends AbstractParser {
 					}
 					configMap.put( key, value );
 				}
-				eat( Scanner.TokenType.RCURLY, "expected }" );
+				eat( Scanner.TokenType.RCURLY, "expected } number 4" );
 			default:
-				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName );
+				String[] possibleTerms = { "init", "main", "execution", "inputPort", "outputPort", "embed", "as" };
+				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
+					possibleTerms );
 				keepRun = false;
 			}
 		}
 
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.RCURLY, "expected } number 5" );
 		// it is a Jolie internal service
 		if( internalIfaces != null && internalIfaces.length > 0 ) {
 			if( internalMain == null ) {
@@ -1887,7 +1892,7 @@ public class OLParser extends AbstractParser {
 			new InterfaceExtenderDefinition( getContext(), name, accessModifier );
 		parseOperations( currInterfaceExtender );
 		interfaceExtenders.put( name, extender );
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.RCURLY, "expected } number 6" );
 		currInterfaceExtender = null;
 		return extender;
 	}
@@ -1902,7 +1907,9 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		// We are inside an interface and are trying to recognize stuff before the ending curlybracket
+		String[] possibleTerms = { "requestResponse", "RequestResponse", "OneWay", "oneWay" };
+		eat( Scanner.TokenType.RCURLY, "expected }", possibleTerms );
 
 		return iface;
 	}
@@ -1977,7 +1984,7 @@ public class OLParser extends AbstractParser {
 			}
 
 		}
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.RCURLY, "expected } number 8" );
 		return p;
 	}
 
@@ -2282,7 +2289,7 @@ public class OLParser extends AbstractParser {
 
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		ret = parseProcess();
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.RCURLY, "expected } number 9" );
 		inVariablePaths.remove( inVariablePaths.size() - 1 );
 
 		return ret;
@@ -2364,7 +2371,7 @@ public class OLParser extends AbstractParser {
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			retVal = new SynchronizedStatement( getContext(), sid, parseProcess() );
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected } number 10" );
 			break;
 		case SPAWN:
 			nextToken();
@@ -2385,7 +2392,7 @@ public class OLParser extends AbstractParser {
 			}
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			OLSyntaxNode process = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected } number 11" );
 			retVal = new SpawnStatement(
 				getContext(),
 				indexVariablePath,
@@ -2496,7 +2503,7 @@ public class OLParser extends AbstractParser {
 			retVal =
 				parseProcess();
 			eat(
-				Scanner.TokenType.RCURLY, "expected }" );
+				Scanner.TokenType.RCURLY, "expected } number 12" );
 			break;
 		case SCOPE:
 			nextToken();
@@ -2516,7 +2523,7 @@ public class OLParser extends AbstractParser {
 			retVal =
 				new Scope( getContext(), scopeId, parseProcess() );
 			eat(
-				Scanner.TokenType.RCURLY, "expected }" );
+				Scanner.TokenType.RCURLY, "expected } number 13" );
 			break;
 		case COMPENSATE:
 			nextToken();
@@ -2911,7 +2918,7 @@ public class OLParser extends AbstractParser {
 			eat( Scanner.TokenType.RSQUARE, "expected ]" );
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			body = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected } number 14" );
 
 			if( iface == null ) { // It's an operation
 				if( outputVariablePath == null ) { // One-Way
@@ -2960,7 +2967,7 @@ public class OLParser extends AbstractParser {
 			if( token.is( Scanner.TokenType.LCURLY ) ) {
 				eat( Scanner.TokenType.LCURLY, "expected {" );
 				process = parseProcess();
-				eat( Scanner.TokenType.RCURLY, "expected }" );
+				eat( Scanner.TokenType.RCURLY, "expected } number 15" );
 			} else {
 				process = new NullProcessStatement( getContext() );
 			}
@@ -2995,7 +3002,7 @@ public class OLParser extends AbstractParser {
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // Request Response body
 				nextToken();
 				process = parseProcess();
-				eat( Scanner.TokenType.RCURLY, "expected }" );
+				eat( Scanner.TokenType.RCURLY, "expected } while in requestresponse" );
 			}
 			stm =
 				new RequestResponseOperationStatement(
@@ -3090,7 +3097,7 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		process =
 			parseProcess();
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.RCURLY, "expected } 16" );
 		return new WhileStatement( context, cond, process );
 	}
 
@@ -3473,7 +3480,7 @@ public class OLParser extends AbstractParser {
 			maybeEat( Scanner.TokenType.COMMA, Scanner.TokenType.SEQUENCE );
 		}
 
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.RCURLY, "expected } 17" );
 
 		return new InlineTreeExpressionNode(
 			rootExpression.context(),
@@ -3513,7 +3520,8 @@ public class OLParser extends AbstractParser {
 		CAN_READ_ID, CANNOT_READ_ID, STOP
 	}
 
-	private String parseExtendedIdentifier( String errorMessage, Scanner.TokenType... extensions )
+	private String parseExtendedIdentifier( String errorMessage, String[] possibleTerms,
+		Scanner.TokenType... extensions )
 		throws IOException, ParserException {
 		List< String > importTargetComponents = new ArrayList<>();
 
@@ -3533,7 +3541,7 @@ public class OLParser extends AbstractParser {
 		}
 		String id = importTargetComponents.stream().collect( Collectors.joining() );
 		if( id.isEmpty() ) {
-			throwException( errorMessage );
+			throwException( errorMessage, possibleTerms );
 		}
 		return id;
 	}
@@ -3557,8 +3565,10 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
-					importTargets.add( parseExtendedIdentifier( "expected identifier for importing target after from",
-						Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
+					String[] possibleTerms = { "import" };
+					importTargets.add(
+						parseExtendedIdentifier( "expected identifier for importing target after from", possibleTerms,
+							Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
 					importTargetIDStarted = true;
 					// nextToken();
 				}
