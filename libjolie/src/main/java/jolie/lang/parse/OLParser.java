@@ -951,7 +951,7 @@ public class OLParser extends AbstractParser {
 					}
 				}
 			}
-			eat( Scanner.TokenType.RCURLY, "expected } number 1" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
 
@@ -1001,7 +1001,7 @@ public class OLParser extends AbstractParser {
 			}
 
 			result.add( new CorrelationSetInfo( getContext(), variables ) );
-			eat( Scanner.TokenType.RCURLY, "expected } number 2" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 		return result.toArray( new CorrelationSetInfo[ 0 ] );
 	}
@@ -1072,7 +1072,7 @@ public class OLParser extends AbstractParser {
 					nextToken();
 				}
 			}
-			eat( Scanner.TokenType.RCURLY, "expected } number 3" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
 
@@ -1676,7 +1676,7 @@ public class OLParser extends AbstractParser {
 					}
 					configMap.put( key, value );
 				}
-				eat( Scanner.TokenType.RCURLY, "expected } number 4" );
+				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
 				String[] possibleTerms = { "init", "main", "execution", "inputPort", "outputPort", "embed", "as" };
 				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
@@ -1685,7 +1685,7 @@ public class OLParser extends AbstractParser {
 			}
 		}
 
-		eat( Scanner.TokenType.RCURLY, "expected } number 5" );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 		// it is a Jolie internal service
 		if( internalIfaces != null && internalIfaces.length > 0 ) {
 			if( internalMain == null ) {
@@ -1892,7 +1892,7 @@ public class OLParser extends AbstractParser {
 			new InterfaceExtenderDefinition( getContext(), name, accessModifier );
 		parseOperations( currInterfaceExtender );
 		interfaceExtenders.put( name, extender );
-		eat( Scanner.TokenType.RCURLY, "expected } number 6" );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 		currInterfaceExtender = null;
 		return extender;
 	}
@@ -1984,7 +1984,7 @@ public class OLParser extends AbstractParser {
 			}
 
 		}
-		eat( Scanner.TokenType.RCURLY, "expected } number 8" );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 		return p;
 	}
 
@@ -2289,7 +2289,7 @@ public class OLParser extends AbstractParser {
 
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		ret = parseProcess();
-		eat( Scanner.TokenType.RCURLY, "expected } number 9" );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 		inVariablePaths.remove( inVariablePaths.size() - 1 );
 
 		return ret;
@@ -2371,7 +2371,7 @@ public class OLParser extends AbstractParser {
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			retVal = new SynchronizedStatement( getContext(), sid, parseProcess() );
-			eat( Scanner.TokenType.RCURLY, "expected } number 10" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 			break;
 		case SPAWN:
 			nextToken();
@@ -2392,7 +2392,7 @@ public class OLParser extends AbstractParser {
 			}
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			OLSyntaxNode process = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected } number 11" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 			retVal = new SpawnStatement(
 				getContext(),
 				indexVariablePath,
@@ -2503,7 +2503,7 @@ public class OLParser extends AbstractParser {
 			retVal =
 				parseProcess();
 			eat(
-				Scanner.TokenType.RCURLY, "expected } number 12" );
+				Scanner.TokenType.RCURLY, "expected }" );
 			break;
 		case SCOPE:
 			nextToken();
@@ -2523,7 +2523,7 @@ public class OLParser extends AbstractParser {
 			retVal =
 				new Scope( getContext(), scopeId, parseProcess() );
 			eat(
-				Scanner.TokenType.RCURLY, "expected } number 13" );
+				Scanner.TokenType.RCURLY, "expected }" );
 			break;
 		case COMPENSATE:
 			nextToken();
@@ -2918,7 +2918,7 @@ public class OLParser extends AbstractParser {
 			eat( Scanner.TokenType.RSQUARE, "expected ]" );
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			body = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected } number 14" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 
 			if( iface == null ) { // It's an operation
 				if( outputVariablePath == null ) { // One-Way
@@ -2967,7 +2967,7 @@ public class OLParser extends AbstractParser {
 			if( token.is( Scanner.TokenType.LCURLY ) ) {
 				eat( Scanner.TokenType.LCURLY, "expected {" );
 				process = parseProcess();
-				eat( Scanner.TokenType.RCURLY, "expected } number 15" );
+				eat( Scanner.TokenType.RCURLY, "expected }" );
 			} else {
 				process = new NullProcessStatement( getContext() );
 			}
@@ -3002,7 +3002,7 @@ public class OLParser extends AbstractParser {
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // Request Response body
 				nextToken();
 				process = parseProcess();
-				eat( Scanner.TokenType.RCURLY, "expected } while in requestresponse" );
+				eat( Scanner.TokenType.RCURLY, "expected }" );
 			}
 			stm =
 				new RequestResponseOperationStatement(
@@ -3097,7 +3097,7 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		process =
 			parseProcess();
-		eat( Scanner.TokenType.RCURLY, "expected } 16" );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 		return new WhileStatement( context, cond, process );
 	}
 
@@ -3480,7 +3480,7 @@ public class OLParser extends AbstractParser {
 			maybeEat( Scanner.TokenType.COMMA, Scanner.TokenType.SEQUENCE );
 		}
 
-		eat( Scanner.TokenType.RCURLY, "expected } 17" );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 
 		return new InlineTreeExpressionNode(
 			rootExpression.context(),
