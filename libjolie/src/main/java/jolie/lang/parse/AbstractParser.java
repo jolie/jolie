@@ -316,7 +316,7 @@ public abstract class AbstractParser {
 			}
 
 		}
-		if( proposedWord.isEmpty() ) {
+		if( proposedWord.isEmpty() ^ tokenContent.isEmpty() ) {
 			StringBuilder help =
 				new StringBuilder(
 					"You are missing a keyword. Possible inputs are:\n" );
@@ -337,17 +337,17 @@ public abstract class AbstractParser {
 
 			help.append( ". Perhaps you meant:\n" ).append( context.line() ).append( ':' );
 			int numberSpaces;
-			if( context.currentColumn() != 0 ) {
-				help.append( context.lineString().substring( 0, context.currentColumn() ) )
+			if( context.column() != 0 ) {
+				help.append( context.lineString().substring( 0, context.column() ) )
 					.append( proposedWord.get( 0 ) )
-					.append( context.lineString().substring( context.currentColumn() + tokenContent.length() ) )
+					.append( context.lineString().substring( context.column() + tokenContent.length() ) )
 					.append( '\n' );
-				numberSpaces = context.currentColumn() + (":" + context.line()).length();
+				numberSpaces = context.column() + (":" + context.line()).length();
 			} else {
 				help.append( proposedWord.get( 0 ) )
-					.append( context.lineString().substring( context.currentColumn() + tokenContent.length() ) )
+					.append( context.lineString().substring( context.column() + tokenContent.length() ) )
 					.append( '\n' );
-				numberSpaces = context.currentColumn() + (":" + context.line()).length();
+				numberSpaces = context.column() + (":" + context.line()).length();
 
 			}
 			for( int j = 0; j < numberSpaces; j++ ) {
@@ -382,7 +382,7 @@ public abstract class AbstractParser {
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
-			context = new URIParsingContext( context.source(), context.line(), context.currentColumn() - 1,
+			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
 				context.lineString() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
 		}
@@ -417,7 +417,7 @@ public abstract class AbstractParser {
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
-			context = new URIParsingContext( context.source(), context.line(), context.currentColumn() - 1,
+			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
 				context.lineString() );
 			if( possibleTokens.length > 0 ) {
 				help = createHelpMessage( context, token.content(), possibleTokens );

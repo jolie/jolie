@@ -23,7 +23,7 @@ package joliex.lang.inspector;
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
 import jolie.Interpreter;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.*;
@@ -120,7 +120,7 @@ public class Inspector extends JavaService {
 			return buildPortInspectionResponse( inspector );
 		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
-		} catch( CodeCheckingException ex ) {
+		} catch( CodeCheckException ex ) {
 			throw new FaultException(
 				"SemanticException",
 				ex.getMessage() );
@@ -138,7 +138,7 @@ public class Inspector extends JavaService {
 			return buildProgramTypeInfo( inspector );
 		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
-		} catch( CodeCheckingException ex ) {
+		} catch( CodeCheckException ex ) {
 			throw new FaultException(
 				"SemanticException",
 				ex.getMessage() );
@@ -147,7 +147,7 @@ public class Inspector extends JavaService {
 
 	private static ProgramInspector getInspector( String filename, Optional< String > source, String[] includePaths,
 		Interpreter interpreter )
-		throws CommandLineException, IOException, ParserException, CodeCheckingException, ModuleException {
+		throws CommandLineException, IOException, ParserException, CodeCheckException, ModuleException {
 		String[] args = { filename };
 		Interpreter.Configuration interpreterConfiguration =
 			new CommandLineParser( args, Inspector.class.getClassLoader() ).getInterpreterConfiguration();

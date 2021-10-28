@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2021 Fabrizio Montesi <famontesi@gmail.com>,
- * Vicki Mixen <vicki@mixen.dk>
+ * Copyright (C) 2021 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2021 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,7 +41,7 @@ public class CodeCheckMessage {
 	public static CodeCheckMessage withHelp( ParsingContext context, String description, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
-			throw (new InvalidParameterException( "Parameter help cannot be null." ));
+			throw new InvalidParameterException( "Parameter help cannot be null." );
 		}
 		return new CodeCheckMessage( context, description, help );
 	}
@@ -49,7 +49,7 @@ public class CodeCheckMessage {
 	public static CodeCheckMessage buildWithHelp( OLSyntaxNode node, String message, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
-			throw (new InvalidParameterException( "Parameter help cannot be null." ));
+			throw new InvalidParameterException( "Parameter help cannot be null." );
 		}
 		return new CodeCheckMessage(
 			(node != null) ? node.context() : URIParsingContext.DEFAULT,
@@ -78,7 +78,7 @@ public class CodeCheckMessage {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
 			messageBuilder.append( myContext.line() ).append( ':' ).append( myContext.lineString() ).append( '\n' );
-			for( int i = 0; i < myContext.currentColumn() + (" " + myContext.line()).length(); i++ ) {
+			for( int i = 0; i < myContext.column() + (" " + myContext.line()).length(); i++ ) {
 				messageBuilder.append( " " );
 			}
 			messageBuilder.append( "^\n" );

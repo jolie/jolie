@@ -49,7 +49,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.ParserException;
@@ -1244,7 +1244,7 @@ public class Interpreter {
 
 			try {
 				semanticVerifier.validate();
-			} catch( CodeCheckingException e ) {
+			} catch( CodeCheckException e ) {
 				LOGGER.severe( e.getMessage() );
 				throw new InterpreterException( "Exiting" );
 			}

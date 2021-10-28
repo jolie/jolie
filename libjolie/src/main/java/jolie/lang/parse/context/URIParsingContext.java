@@ -63,7 +63,7 @@ public class URIParsingContext extends AbstractParsingContext {
 		}
 	}
 
-	public int currentColumn() {
+	public int column() {
 		return column;
 	}
 

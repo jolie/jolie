@@ -21,7 +21,7 @@
 
 package jolie.lang.parse.util;
 
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
@@ -55,7 +55,7 @@ public class ParsingUtils {
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration semanticConfiguration,
 		boolean includeDocumentation )
-		throws IOException, ParserException, CodeCheckingException, ModuleException {
+		throws IOException, ParserException, CodeCheckException, ModuleException {
 
 		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 			charset,
@@ -83,7 +83,7 @@ public class ParsingUtils {
 		Map< String, Scanner.Token > definedConstants,
 		String executionTarget,
 		boolean includeDocumentation )
-		throws IOException, ParserException, CodeCheckingException, ModuleException {
+		throws IOException, ParserException, CodeCheckException, ModuleException {
 		return parseProgram(
 			inputStream,
 			source,

@@ -33,7 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import jolie.lang.CodeCheckMessage;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
@@ -361,7 +361,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 	}
 
 	public void validate()
-		throws CodeCheckingException {
+		throws CodeCheckException {
 		program.accept( this );
 		if( services.values().size() == 0 ) {
 			// this is an jolie's internal service (service with Interfaces)
@@ -399,7 +399,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 			 * for( SemanticException.SemanticError e : semanticException.getErrorList() ){ logger.severe(
 			 * e.getMessage() ); }
 			 */
-			throw new CodeCheckingException( errors );
+			throw new CodeCheckException( errors );
 		}
 	}
 
