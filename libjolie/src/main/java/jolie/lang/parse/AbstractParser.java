@@ -110,12 +110,11 @@ public abstract class AbstractParser {
 	/**
 	 * Used to read the rest of the line, after an error has occured.
 	 */
-	public final void readLineAfterError() {
+	public final void readLineAfterError() throws IOException {
 		try {
 			scanner.readLineAfterError();
 		} catch( Exception e ) {
-			System.out.println( "IOException: " + e.getMessage() );
-			System.out.println( "Could not read the rest of the line, where the error occured." );
+			throw new IOException( "Error occured while creating parserException.", e );
 		}
 	}
 
@@ -191,7 +190,7 @@ public abstract class AbstractParser {
 	 * 
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
-	public final ParsingContext getContextDuringError() {
+	public final ParsingContext getContextDuringError() throws IOException {
 		int linenr = scanner.line();
 		readLineAfterError();
 		if( linenr < scanner.line() ) {
@@ -273,14 +272,14 @@ public abstract class AbstractParser {
 	 * @throws ParserException if the current token is not an identifier.
 	 */
 	protected final void assertIdentifier( String errorMessage )
-		throws ParserException {
+		throws ParserException, IOException {
 		if( !token.isIdentifier() ) {
 			throwException( errorMessage );
 		}
 	}
 
 	protected final void assertIdentifier( String errorMessage, String[] possibleTerms )
-		throws ParserException {
+		throws ParserException, IOException {
 		if( !token.isIdentifier() ) {
 			throwException( errorMessage, possibleTerms );
 		}
@@ -294,14 +293,14 @@ public abstract class AbstractParser {
 	 * @throws ParserException If the token type is wrong.
 	 */
 	protected final void assertToken( Scanner.TokenType type, String errorMessage )
-		throws ParserException {
+		throws ParserException, IOException {
 		if( token.isNot( type ) ) {
 			throwException( errorMessage );
 		}
 	}
 
 	protected final void assertToken( Scanner.TokenType type, String errorMessage, String[] possibleTerms )
-		throws ParserException {
+		throws ParserException, IOException {
 		if( token.isNot( type ) ) {
 			throwException( errorMessage, possibleTerms );
 		}
@@ -365,7 +364,7 @@ public abstract class AbstractParser {
 	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
 	protected final void throwException( String mesg )
-		throws ParserException {
+		throws ParserException, IOException {
 		String m = mesg;
 		CodeCheckMessage exceptionMessage;
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
@@ -396,7 +395,7 @@ public abstract class AbstractParser {
 	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
 	protected final void throwException( String mesg, String[] possibleTokens )
-		throws ParserException {
+		throws ParserException, IOException {
 		String m = mesg;
 		CodeCheckMessage exceptionMessage;
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
