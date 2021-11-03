@@ -1807,18 +1807,20 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.COLON, "expected :" );
 				parseAggregationList( aggregationList );
 			} else {
-				throwException( "Unrecognized term in inputPort " + inputPortName );
+				throwExceptionInputPort( "Unrecognized term in inputPort " + inputPortName, inputPortName );
 			}
 		}
 		eat( Scanner.TokenType.RCURLY, "} expected" );
 		if( location == null ) {
-			throwException( "expected location URI for " + inputPortName );
+			throwExceptionInputPort( "expected location URI for " + inputPortName, inputPortName );
 		} else if( (interfaceList.isEmpty() && iface.operationsMap().isEmpty()) && redirectionMap.isEmpty()
 			&& aggregationList.isEmpty() ) {
-			throwException( "expected at least one operation, interface, aggregation or redirection for inputPort "
-				+ inputPortName );
+			throwExceptionInputPort(
+				"expected at least one operation, interface, aggregation or redirection for inputPort "
+					+ inputPortName,
+				inputPortName );
 		} else if( protocol == null && !isLocationLocal ) {
-			throwException( "expected protocol for inputPort " + inputPortName );
+			throwExceptionInputPort( "expected protocol for inputPort " + inputPortName, inputPortName );
 		}
 		InputPortInfo iport =
 			new InputPortInfo( getContext(), inputPortName, location, protocol,
