@@ -498,6 +498,10 @@ public class Scanner {
 		errorColumn = myColumn;
 	}
 
+	public ArrayList<String> getAllLines(){
+		return lineTokens;
+	}
+
 	/**
 	 * Eats all separators (whitespace) until the next input.
 	 */

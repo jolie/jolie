@@ -114,7 +114,8 @@ public abstract class AbstractParser {
 		try {
 			scanner.readLineAfterError();
 		} catch( Exception e ) {
-			throw new IOException( "Error occured while creating parserException.", e );
+			// Maybe add text : "Error occured while creating parserException."
+			throw new IOException( e );
 		}
 	}
 
@@ -315,10 +316,19 @@ public abstract class AbstractParser {
 			}
 
 		}
-		if( proposedWord.isEmpty() ^ tokenContent.isEmpty() ) {
+		if( proposedWord.isEmpty() && tokenContent.isEmpty() ) {
 			StringBuilder help =
 				new StringBuilder(
 					"You are missing a keyword. Possible inputs are:\n" );
+			for( String correctToken : possibleTokens ) {
+				help.append( correctToken ).append( ", " );
+			}
+			help.delete( help.length() - 2, help.length() );
+			return help.toString();
+		} else if( proposedWord.isEmpty() && !tokenContent.isEmpty() ) {
+			StringBuilder help =
+				new StringBuilder(
+					"The term did not match possible terms. Possible inputs are:\n" );
 			for( String correctToken : possibleTokens ) {
 				help.append( correctToken ).append( ", " );
 			}
@@ -355,6 +365,20 @@ public abstract class AbstractParser {
 			help.append( '^' );
 			return help.toString();
 		}
+	}
+	// Should have more booleans, when more cases are covered, where extra lines of code are necessary, fx with execution modality 
+	public String createHelpMessageWithScope( URIParsingContext context, String tokenContent, String extraLines,
+		boolean InputPort ) {
+		StringBuilder help =
+			new StringBuilder( extraLines ).append( context.line() ).append( ':' ).append( context.lineString() )
+				.append( '\n' );
+		if( tokenContent.isEmpty() && InputPort ) {
+			help.append(
+				"A term is missing. Possible inputs are: location, protocol, interfaces, aggregates, redirects, RequestResponse, OneWay.\n" );
+		} else {
+			help.append( "The term: " ).append( tokenContent ).append( " is missing.\n" );
+		}
+		return help.toString();
 	}
 
 	/**
@@ -424,6 +448,76 @@ public abstract class AbstractParser {
 			} else {
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
 			}
+		}
+		throw new ParserException( exceptionMessage );
+	}
+
+	protected final String getWholeScope( String name, String scope ) {
+		ArrayList< String > allLines = scanner.getAllLines();
+		int startLine = 0;
+		for( int i = 0; i < allLines.size(); i++ ) {
+			String currentLine = allLines.get( i );
+			if( currentLine.contains( name ) && currentLine.contains( scope ) ) {
+				startLine = i;
+			}
+		}
+		StringBuilder lines = new StringBuilder();
+		int leftCurlies = 0;
+		int rightCurlies = 0;
+		for( int j = startLine; j < allLines.size(); j++ ) {
+			String currentLine = allLines.get( j );
+			lines.append( j ).append( ':' ).append( currentLine );
+			if( currentLine.contains( "{" ) ) {
+				char[] lineChars = currentLine.toCharArray();
+				for( char c : lineChars ) {
+					if( c == '{' ) {
+						leftCurlies++;
+					}
+				}
+			}
+			if( currentLine.contains( "}" ) ) {
+				char[] lineChars = currentLine.toCharArray();
+				for( char c : lineChars ) {
+					if( c == '}' ) {
+						rightCurlies++;
+					}
+				}
+			}
+			if( leftCurlies == rightCurlies ) {
+				break;
+			}
+		}
+		return lines.toString();
+	}
+
+	protected final void throwExceptionInputPort( String mesg, String inputPortName )
+		throws ParserException, IOException {
+		String m = mesg;
+		CodeCheckMessage exceptionMessage;
+		URIParsingContext context = (URIParsingContext) getContextDuringError();
+		if( !token.content().equals( "" ) ) {
+			if( !m.equals( "" ) ) {
+				m += ": " + token.content();
+			} else {
+				m += ". Found term: " + token.content();
+			}
+			String[] possibleTokens =
+				{ "location", "protocol", "interfaces", "aggregates", "redirects", "RequestResponse", "OneWay" };
+			String help = createHelpMessage( context, token.content(), possibleTokens );
+			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+		} else {
+			String help;
+			String extralines = getWholeScope( inputPortName, "inputPort" );
+			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
+				context.lineString() );
+			if( m.contains( "location URI" ) ) {
+				help = createHelpMessageWithScope( context, "location", extralines, true );
+			} else if( m.contains( "protocol" ) ) {
+				help = createHelpMessageWithScope( context, "protocol", extralines, true );
+			} else {
+				help = createHelpMessageWithScope( context, token.content(), extralines, true );
+			}
+			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 		}
 		throw new ParserException( exceptionMessage );
 	}
