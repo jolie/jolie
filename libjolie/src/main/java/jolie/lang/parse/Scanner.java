@@ -429,10 +429,12 @@ public class Scanner {
 		throws IOException
 	{
 		resetTokenBuilder();
-		readChar();
-		while( !isNewLineChar( ch ) && reader.ready()) {
-			tokenBuilder.append( ch );
-			readChar();
+		if(currInt != -1){ // if currInt == -1, EOF was already found, and there is no more line to read after the error
+			readCharAfterError();
+			while( !isNewLineChar( ch ) && reader.ready() && currInt != -1) {
+				tokenBuilder.append( ch );
+				readCharAfterError();
+			}
 		}
 		return tokenBuilder.toString();
 	}
@@ -574,6 +576,43 @@ public class Scanner {
 		throws IOException
 	{
 		currInt = reader.read();
+
+		ch = (char) currInt;
+		if( lineTokens.isEmpty() ) {
+			lineTokens.add(0, "");
+		}
+		String temp;
+		if(currInt != -1){ //Cannot just return, as this messes with codeckecking after parsing
+			// The if statement makes sure no extra caracters are added when EOF is reached
+			try {
+				temp = lineTokens.get( line() );
+				temp += ch;
+				lineTokens.set( line(), temp );
+			} catch( IndexOutOfBoundsException e ) {
+				temp = "";
+				temp += ch;
+				lineTokens.add( line(), temp );
+			}
+		}
+		if(ch == '\t'){
+			currColumn += 4;
+		} else{
+			currColumn++;
+		}
+		if ( ch == '\n' ) {
+			line++;
+			currColumn = 0;
+		}
+	}
+
+	// The same as readChar except it returns as soon as EOF is found, instead of avoiding adding -1 to the token
+	public final void readCharAfterError()
+		throws IOException
+	{
+		currInt = reader.read();
+		if (currInt == -1){
+			return;
+		}
 
 		ch = (char) currInt;
 		if( lineTokens.isEmpty() ) {

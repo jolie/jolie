@@ -366,7 +366,9 @@ public abstract class AbstractParser {
 			return help.toString();
 		}
 	}
-	// Should have more booleans, when more cases are covered, where extra lines of code are necessary, fx with execution modality 
+
+	// Should have more booleans, when more cases are covered, where extra lines of code are necessary,
+	// fx with execution modality
 	public String createHelpMessageWithScope( URIParsingContext context, String tokenContent, String extraLines,
 		boolean InputPort ) {
 		StringBuilder help =
@@ -374,7 +376,7 @@ public abstract class AbstractParser {
 				.append( '\n' );
 		if( tokenContent.isEmpty() && InputPort ) {
 			help.append(
-				"A term is missing. Possible inputs are: location, protocol, interfaces, aggregates, redirects, RequestResponse, OneWay.\n" );
+				"A term is missing. Possible inputs are: location, protocol, interfaces, aggregates, redirects.\n" );
 		} else {
 			help.append( "The term: " ).append( tokenContent ).append( " is missing.\n" );
 		}
