@@ -30,24 +30,26 @@ import java.util.stream.Stream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import jolie.lang.Constants;
+import jolie.lang.parse.module.ImportPath;
 
 public class ModuleNotFoundException extends FileNotFoundException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private final List< String > lookedPaths;
-	private final String moduleName;
+	private final List< Path > lookedPaths;
+	private final ImportPath importPath;
 
-	public ModuleNotFoundException( String moduleName, List< String > lookedPaths ) {
-		super( moduleName );
-		this.moduleName = moduleName;
+	public ModuleNotFoundException( ImportPath importPath, List< Path > lookedPaths ) {
+		super();
+		this.importPath = importPath;
 		this.lookedPaths = lookedPaths;
 	}
 
-	public ModuleNotFoundException( String moduleName, String lookedPath ) {
-		super( moduleName );
-		this.moduleName = moduleName;
+	public ModuleNotFoundException( ImportPath importPath, Path lookedPath ) {
+		super();
+		this.importPath = importPath;
 		this.lookedPaths = new ArrayList<>();
 		this.lookedPaths.add( lookedPath );
 	}
@@ -55,80 +57,66 @@ public class ModuleNotFoundException extends FileNotFoundException {
 	@Override
 	public String getMessage() {
 		StringBuilder message =
-			new StringBuilder( "Module \"" ).append( this.moduleName )
-				.append( "\" not found from lookup paths: (this line is printed twice for some reason)\n" );
+			new StringBuilder().append( "Module " ).append( '\"' ).append( this.importPath )
+				.append( "\" not found from lookup paths:\n" );
 		Set< String > fileNames = new HashSet<>();
-		String[] moduleNameParts = (this.moduleName.substring( 1, this.moduleName.length() - 1 )).split( ", " );
-		for( String ms : this.lookedPaths ) {
-			message.append( ms ).append( "\n" );
+		Stream< Path > stream;
+		try {
+			stream = Files.list( Paths.get( ".\\" ) );
+			fileNames.addAll( stream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
+				.map( Path::toString ).collect( Collectors.toSet() ) );
+			stream.close();
+		} catch( IOException e ) {
+		}
+		for( Path path : this.lookedPaths ) {
+			Stream< Path > forloopStream;
 			try {
-				if( ms.startsWith( moduleNameParts[ 0 ] ) ) {
-					Stream< Path > stream;
-					stream = Files.list( Paths.get( ".\\" ) );
-					fileNames
-						.addAll( stream.map( Path::getFileName ).map( Path::toString ).collect( Collectors.toSet() ) );
-					stream.close();
-					String trailing = "";
-					for( String parts : moduleNameParts ) {
-						Stream< Path > forloopStream;
-						if( !moduleNameParts[ moduleNameParts.length - 1 ].equals( parts ) ) {
-							trailing += parts + "\\";
-							forloopStream = Files.list( Paths.get( ".\\" + trailing ) );
-							fileNames.addAll( forloopStream.map( Path::getFileName ).map( Path::toString )
-								.collect( Collectors.toSet() ) );
-							forloopStream.close();
-						}
-
-					}
-				} else if( ms.startsWith( ".\\" ) ) {
-					String trailing = "";
-					String[] pathParts = ms.split( "\\\\" );
-					String lastPart = pathParts[ pathParts.length - 1 ];
-					for( String parts : pathParts ) {
-						Stream< Path > forloopStream;
-						if( !lastPart.equals( parts ) ) {
-							trailing += parts + "\\";
-							forloopStream = Files.list( Paths.get( trailing ) );
-							fileNames.addAll( forloopStream.map( Path::getFileName ).map( Path::toString )
-								.collect( Collectors.toSet() ) );
-							forloopStream.close();
-						}
-
-					}
-				} else if( ms.startsWith( System.getenv( "JOLIE_HOME" ) ) ) {
-					Stream< Path > stream;
-					String path = System.getenv( "JOLIE_HOME" ) + "\\packages";
-					stream = Files.list( Paths.get( path ) );
-					fileNames
-						.addAll( stream.map( Path::getFileName ).map( Path::toString ).collect( Collectors.toSet() ) );
-					stream.close();
-					String trailing = path + "\\";
-					for( String parts : moduleNameParts ) {
-						Stream< Path > forloopStream;
-						if( !moduleNameParts[ moduleNameParts.length - 1 ].equals( parts ) ) {
-							trailing += parts + "\\";
-							forloopStream = Files.list( Paths.get( trailing ) );
-							fileNames.addAll( forloopStream.map( Path::getFileName ).map( Path::toString )
-								.collect( Collectors.toSet() ) );
-							forloopStream.close();
-						}
-
-					}
-				} else if( ms.startsWith( System.getProperty( "user.dir" ) + "\\lib" ) ) {
-					Stream< Path > stream;
-					int index = ms.indexOf( moduleNameParts[ 0 ] + ".jap" );
-					String path = ms.substring( 0, index );
-					stream = Files.list( Paths.get( path ) );
-					fileNames
-						.addAll( stream.map( Path::getFileName ).map( Path::toString ).collect( Collectors.toSet() ) );
-					stream.close();
+				Path currentPath = path;
+				while( !Files.isDirectory( currentPath ) ) {
+					currentPath = currentPath.getParent();
 				}
+				forloopStream = Files.list( currentPath );
+				fileNames.addAll( forloopStream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
+					.map( Path::toString ).collect( Collectors.toSet() ) );
+				forloopStream.close();
 			} catch( IOException e ) {
 			}
 		}
-		message.append( "maybe you meant: (this is also printed twice for some reason)\n" );
-		for( String p : fileNames ) {
-			message.append( p ).append( "\n" );
+
+		LevenshteinDistance dist = new LevenshteinDistance();
+		ArrayList< String > proposedModules = new ArrayList<>();
+		for( String correctModule : fileNames ) {
+			String moduleName;
+			if( correctModule.contains( "." ) ) {
+				int column = correctModule.indexOf( "." );
+				moduleName = correctModule.substring( 0, column );
+			} else {
+				moduleName = correctModule;
+			}
+			if( dist.apply( this.importPath.toString(), moduleName ) <= 2 ) {
+				proposedModules.add( moduleName );
+			}
+
+		}
+		if( !proposedModules.isEmpty() ) {
+			message.append( "Maybe you meant:\n" );
+			for( String module : proposedModules ) {
+				String temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
+				message.append( temp ).append( "\n" );
+			}
+		} else {
+			message.append( "Could not find modules mathing \"" ).append( this.importPath )
+				.append( "\". Here are some modules that can be imported:\n" );
+			for( String module : fileNames ) {
+				String temp;
+				if( module.contains( "." ) ) {
+					int column = module.indexOf( "." );
+					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1, column );
+				} else {
+					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
+				}
+				message.append( temp ).append( "\n" );
+			}
 		}
 		return message.toString();
 	}
