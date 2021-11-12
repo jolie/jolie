@@ -268,6 +268,7 @@ public class OLParser extends AbstractParser {
 		} while( t != token ); // Loop until no procedures can eat the initial token
 
 		if( t.isNot( Scanner.TokenType.EOF ) ) {
+			// Vicki made change here
 			String[] possibleTerms = { "service", "interface", "from", "include", "type", "import", "execution" };
 			throwException( "Unexpected term", possibleTerms );
 		}
@@ -1026,6 +1027,7 @@ public class OLParser extends AbstractParser {
 		} else {
 			throwException( "expected : or { after execution" );
 		}
+		// Vicki made change here
 		String[] possibleTerms = { "sequential", "concurrent", "single" };
 		assertToken( Scanner.TokenType.ID, "expected execution modality", possibleTerms );
 		switch( token.content() ) {
@@ -1039,6 +1041,7 @@ public class OLParser extends AbstractParser {
 			mode = Constants.ExecutionMode.SINGLE;
 			break;
 		default:
+			// Vicki made change here
 			throwException( "Expected execution mode", possibleTerms );
 			break;
 		}
@@ -1222,9 +1225,7 @@ public class OLParser extends AbstractParser {
 				try {
 					includeFile = retrieveIncludeFile( includePaths[ i ], includeStr );
 				} catch( URISyntaxException e ) {
-					// String[] possibleTokens = { "service", "interface", "from", "include", "type", "import",
-					// "execution", "concurrent", "single", "sequential" };
-					throwException( e.getMessage() );// , possibleTokens );
+					throwException( e.getMessage() );
 				}
 			}
 
@@ -1678,6 +1679,7 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
+				// Vicki made change here
 				String[] possibleTerms = { "init", "main", "execution", "inputPort", "outputPort", "embed", "as" };
 				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
 					possibleTerms );
@@ -1807,20 +1809,24 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.COLON, "expected :" );
 				parseAggregationList( aggregationList );
 			} else {
-				throwExceptionInputPort( "Unrecognized term in inputPort " + inputPortName, inputPortName );
+				throwExceptionWithScope( "Unrecognized term in inputPort " + inputPortName, inputPortName,
+					"inputPort" );
 			}
 		}
 		eat( Scanner.TokenType.RCURLY, "} expected" );
 		if( location == null ) {
-			throwExceptionInputPort( "expected location URI for " + inputPortName, inputPortName );
+			// Vicki made change here
+			throwExceptionWithScope( "expected location URI for " + inputPortName, inputPortName, "inputPort" );
 		} else if( (interfaceList.isEmpty() && iface.operationsMap().isEmpty()) && redirectionMap.isEmpty()
 			&& aggregationList.isEmpty() ) {
-			throwExceptionInputPort(
+			// Vicki made change here
+			throwExceptionWithScope(
 				"expected at least one operation, interface, aggregation or redirection for inputPort "
 					+ inputPortName,
-				inputPortName );
+				inputPortName, "inputPort" );
 		} else if( protocol == null && !isLocationLocal ) {
-			throwExceptionInputPort( "expected protocol for inputPort " + inputPortName, inputPortName );
+			// Vicki made change here
+			throwExceptionWithScope( "expected protocol for inputPort " + inputPortName, inputPortName, "inputPort" );
 		}
 		InputPortInfo iport =
 			new InputPortInfo( getContext(), inputPortName, location, protocol,
@@ -1909,6 +1915,7 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
+		// Vicki made change here
 		// We are inside an interface and are trying to recognize stuff before the ending curlybracket
 		String[] possibleTerms = { "requestResponse", "RequestResponse", "OneWay", "oneWay" };
 		eat( Scanner.TokenType.RCURLY, "expected }", possibleTerms );
@@ -3522,6 +3529,7 @@ public class OLParser extends AbstractParser {
 		CAN_READ_ID, CANNOT_READ_ID, STOP
 	}
 
+	// Vicki made change here
 	private String parseExtendedIdentifier( String errorMessage, String[] possibleTerms,
 		Scanner.TokenType... extensions )
 		throws IOException, ParserException {
@@ -3543,6 +3551,7 @@ public class OLParser extends AbstractParser {
 		}
 		String id = importTargetComponents.stream().collect( Collectors.joining() );
 		if( id.isEmpty() ) {
+			// Vicki made change here
 			throwException( errorMessage, possibleTerms );
 		}
 		return id;
@@ -3567,6 +3576,7 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
+					// Vicki made change here
 					String[] possibleTerms = { "import" };
 					importTargets.add(
 						parseExtendedIdentifier( "expected identifier for importing target after from", possibleTerms,
