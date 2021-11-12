@@ -492,34 +492,44 @@ public abstract class AbstractParser {
 		return lines.toString();
 	}
 
-	protected final void throwExceptionInputPort( String mesg, String inputPortName )
+	/**
+	 * Shortcut to throw a correctly formed ParserException.
+	 * 
+	 * @param mesg The message to insert in the ParserException.
+	 * @param scopeName The name of the scope, e.g. the inputPort name
+	 * @param scope The scope we are in, e.g. an inputPort
+	 * @throws ParserException Every time, as its the purpose of this method.
+	 */
+	protected final void throwExceptionWithScope( String mesg, String scopeName, String scope )
 		throws ParserException, IOException {
-		String m = mesg;
 		CodeCheckMessage exceptionMessage;
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
 		if( !token.content().equals( "" ) ) {
-			if( !m.equals( "" ) ) {
-				m += ": " + token.content();
+			if( !mesg.equals( "" ) ) {
+				mesg += ": " + token.content();
 			} else {
-				m += ". Found term: " + token.content();
+				mesg += ". Found term: " + token.content();
 			}
-			String[] possibleTokens =
-				{ "location", "protocol", "interfaces", "aggregates", "redirects", "RequestResponse", "OneWay" };
-			String help = createHelpMessage( context, token.content(), possibleTokens );
-			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
-		} else {
-			String help;
-			String extralines = getWholeScope( inputPortName, "inputPort" );
+		}
+		String help;
+		switch( scope ) {
+		case "inputPort":
+			String extralines = getWholeScope( scopeName, scope );
 			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
 				context.lineString() );
-			if( m.contains( "location URI" ) ) {
+			if( mesg.contains( "location URI" ) ) {
 				help = createHelpMessageWithScope( context, "location", extralines, true );
-			} else if( m.contains( "protocol" ) ) {
+			} else if( mesg.contains( "protocol" ) ) {
 				help = createHelpMessageWithScope( context, "protocol", extralines, true );
 			} else {
 				help = createHelpMessageWithScope( context, token.content(), extralines, true );
 			}
-			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			break;
+		default:
+			help = createHelpMessage( context, token.content(), null );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+
 		}
 		throw new ParserException( exceptionMessage );
 	}
