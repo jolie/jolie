@@ -261,12 +261,6 @@ public abstract class AbstractParser {
 		nextToken();
 	}
 
-	protected final void eatIdentifier( String errorMessage, String[] possibleTerms )
-		throws ParserException, IOException {
-		assertIdentifier( errorMessage, possibleTerms );
-		nextToken();
-	}
-
 	/**
 	 * Asserts that the current token is an identifier (or an unreserved keyword).
 	 * 
@@ -278,13 +272,6 @@ public abstract class AbstractParser {
 		throws ParserException, IOException {
 		if( !token.isIdentifier() ) {
 			throwException( errorMessage );
-		}
-	}
-
-	protected final void assertIdentifier( String errorMessage, String[] possibleTerms )
-		throws ParserException, IOException {
-		if( !token.isIdentifier() ) {
-			throwException( errorMessage, possibleTerms );
 		}
 	}
 
@@ -301,14 +288,6 @@ public abstract class AbstractParser {
 			throwException( errorMessage );
 		}
 	}
-
-	protected final void assertToken( Scanner.TokenType type, String errorMessage, String[] possibleTerms )
-		throws ParserException, IOException {
-		if( token.isNot( type ) ) {
-			throwException( errorMessage, possibleTerms );
-		}
-	}
-
 	protected final void assertToken( Scanner.TokenType type, String errorMessage, String scopeName, String scope )
 		throws ParserException, IOException {
 		if( token.isNot( type ) ) {
@@ -431,46 +410,6 @@ public abstract class AbstractParser {
 			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
 				context.lineString() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
-		}
-		throw new ParserException( exceptionMessage );
-	}
-
-	/**
-	 * Shortcut to throw a correctly formed ParserException.
-	 * 
-	 * @param mesg The message to insert in the ParserException.
-	 * @param possibleTokens a list of keywords, which can be written where the parsing error occured
-	 * @throws ParserException Every time, as its the purpose of this method.
-	 */
-	protected final void throwException( String mesg, String[] possibleTokens )
-		throws ParserException, IOException {
-		CodeCheckMessage exceptionMessage;
-		URIParsingContext context = (URIParsingContext) getContextDuringError();
-		String help;
-		if( !token.content().equals( "" ) ) {
-			if( !mesg.equals( "" ) ) {
-				mesg += ". Found term: " + token.content();
-			} else {
-				mesg += ". Found term: " + token.content();
-			}
-
-			help = createHelpMessage( context, token.content(), Arrays.asList( possibleTokens ) );
-			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
-		} else {
-			if( !mesg.equals( "" ) ) {
-				mesg += ". Could not be found.";
-			}
-			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
-			// curly bracket and not at/before the curly bracket
-			// example, if service does not have a name
-			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
-				context.lineString() );
-			if( possibleTokens.length > 0 ) {
-				help = createHelpMessage( context, token.content(), Arrays.asList( possibleTokens ) );
-				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
-			} else {
-				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
-			}
 		}
 		throw new ParserException( exceptionMessage );
 	}
