@@ -377,11 +377,48 @@ public abstract class AbstractParser {
 		StringBuilder help =
 			new StringBuilder( extraLines ).append( context.line() ).append( ':' ).append( context.lineString() )
 				.append( '\n' );
-		if( tokenContent.isEmpty() && InputPort ) {
-			help.append(
-				"A term is missing. Possible inputs are: location, protocol, interfaces, aggregates, redirects.\n" );
+		List< String > possibleTerms = KeywordClass.getKeywordsForScope( "inputPort" );
+		if( tokenContent.isEmpty() ) {
+			help.append( "A term is missing. Possible inputs are:\n" );
+			for( String term : possibleTerms ) {
+				help.append( term ).append( "\n" );
+			}
 		} else {
-			help.append( "The term: " ).append( tokenContent ).append( " is missing.\n" );
+			LevenshteinDistance dist = new LevenshteinDistance();
+			ArrayList< String > proposedWord = new ArrayList<>();
+			for( String correctTerm : possibleTerms ) {
+				if( dist.apply( tokenContent, correctTerm ) <= 2 ) {
+					proposedWord.add( correctTerm );
+				}
+
+			}
+			if( !proposedWord.isEmpty() ) {
+				help.append( "\nYour term is similar to what would be valid input: " );
+				for( String word : proposedWord ) {
+					help.append( word ).append( ", " );
+				}
+				help.delete( help.length() - 2, help.length() );
+				help.append( ". Perhaps you meant:\n" ).append( context.line() )
+					.append( ':' );
+				int numberSpaces;
+				if( context.column() != 0 ) {
+					help.append( context.lineString().substring( 0, context.column() ) )
+						.append( proposedWord.get( 0 ) )
+						.append( context.lineString().substring( context.column() + tokenContent.length() ) )
+						.append( '\n' );
+					numberSpaces = context.column() + (":" + context.line()).length();
+				} else {
+					help.append( proposedWord.get( 0 ) )
+						.append( context.lineString().substring( context.column() + tokenContent.length() ) )
+						.append( '\n' );
+					numberSpaces = context.column() + (":" + context.line()).length();
+
+				}
+				for( int j = 0; j < numberSpaces; j++ ) {
+					help.append( " " );
+				}
+				help.append( '^' );
+			}
 		}
 		return help.toString();
 	}
@@ -500,11 +537,13 @@ public abstract class AbstractParser {
 		switch( scope ) {
 		case "inputPort":
 			extralines = getWholeScope( scopeName, scope );
-			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
-				context.lineString() );
 			if( mesg.contains( "location URI" ) ) {
+				context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
+					context.lineString() );
 				help = createHelpMessageWithScope( context, "location", extralines, true );
 			} else if( mesg.contains( "protocol" ) ) {
+				context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
+					context.lineString() );
 				help = createHelpMessageWithScope( context, "protocol", extralines, true );
 			} else {
 				help = createHelpMessageWithScope( context, token.content(), extralines, true );
