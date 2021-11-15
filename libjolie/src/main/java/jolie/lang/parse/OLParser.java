@@ -1028,8 +1028,7 @@ public class OLParser extends AbstractParser {
 			throwException( "expected : or { after execution" );
 		}
 		// Vicki made change here
-		String[] possibleTerms = { "sequential", "concurrent", "single" };
-		assertToken( Scanner.TokenType.ID, "expected execution modality", possibleTerms );
+		assertToken( Scanner.TokenType.ID, "expected execution modality", null, "execution" );
 		switch( token.content() ) {
 		case "sequential":
 			mode = Constants.ExecutionMode.SEQUENTIAL;
@@ -1042,7 +1041,7 @@ public class OLParser extends AbstractParser {
 			break;
 		default:
 			// Vicki made change here
-			throwException( "Expected execution mode", possibleTerms );
+			throwExceptionWithScope( "Expected execution mode", null, "execution" );
 			break;
 		}
 		nextToken();
@@ -1680,9 +1679,8 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
 				// Vicki made change here
-				String[] possibleTerms = { "init", "main", "execution", "inputPort", "outputPort", "embed", "as" };
 				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
-					possibleTerms );
+					serviceName, "service" );
 				keepRun = false;
 			}
 		}

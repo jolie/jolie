@@ -24,6 +24,7 @@ package jolie.lang.parse;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -31,6 +32,7 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.CodeCheckMessage;
+import jolie.lang.KeywordClass;
 
 
 /**
@@ -307,6 +309,13 @@ public abstract class AbstractParser {
 		}
 	}
 
+	protected final void assertToken( Scanner.TokenType type, String errorMessage, String scopeName, String scope )
+		throws ParserException, IOException {
+		if( token.isNot( type ) ) {
+			throwExceptionWithScope( errorMessage, scopeName, scope );
+		}
+	}
+
 	/**
 	 * Creates help message from the context, the token/term which was incorrect during parsing and a
 	 * list of possible tokens/terms which can replace the current token. If the tokenContent is not
@@ -318,7 +327,7 @@ public abstract class AbstractParser {
 	 * @param tokenContent content of the token, which was wrong or missing(if empty)
 	 * @param possibleTokens list of possible keywords, which the user could have meant or are missing
 	 */
-	public String createHelpMessage( URIParsingContext context, String tokenContent, String[] possibleTokens ) {
+	public String createHelpMessage( URIParsingContext context, String tokenContent, List< String > possibleTokens ) {
 		LevenshteinDistance dist = new LevenshteinDistance();
 		ArrayList< String > proposedWord = new ArrayList<>();
 		for( String correctToken : possibleTokens ) {
@@ -414,7 +423,7 @@ public abstract class AbstractParser {
 			} else {
 				m += ". Found term: " + token.content();
 			}
-			String[] possibleTokens = { "These error messages have yet to get possible tokens!" };
+			List< String > possibleTokens = Arrays.asList( "These error messages have yet to get possible tokens!" );
 			String help = createHelpMessage( context, token.content(), possibleTokens );
 			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 		} else {
@@ -448,7 +457,7 @@ public abstract class AbstractParser {
 				m += ". Found term: " + token.content();
 			}
 
-			help = createHelpMessage( context, token.content(), possibleTokens );
+			help = createHelpMessage( context, token.content(), Arrays.asList( possibleTokens ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 		} else {
 			if( !m.equals( "" ) ) {
@@ -460,7 +469,7 @@ public abstract class AbstractParser {
 			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
 				context.lineString() );
 			if( possibleTokens.length > 0 ) {
-				help = createHelpMessage( context, token.content(), possibleTokens );
+				help = createHelpMessage( context, token.content(), Arrays.asList( possibleTokens ) );
 				exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
 			} else {
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
@@ -550,6 +559,14 @@ public abstract class AbstractParser {
 			} else {
 				help = createHelpMessageWithScope( context, token.content(), extralines, true );
 			}
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			break;
+		case "execution":
+			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			break;
+		case "service":
+			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		default:
