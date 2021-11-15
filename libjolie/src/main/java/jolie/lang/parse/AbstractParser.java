@@ -288,6 +288,7 @@ public abstract class AbstractParser {
 			throwException( errorMessage );
 		}
 	}
+
 	protected final void assertToken( Scanner.TokenType type, String errorMessage, String scopeName, String scope )
 		throws ParserException, IOException {
 		if( token.isNot( type ) ) {
@@ -425,7 +426,7 @@ public abstract class AbstractParser {
 		ArrayList< String > allLines = scanner.getAllLines();
 		int startLine = 0;
 		// Find the line of code from all lines read until now, which is a from "something" import
-		// "something else"
+		// "something else", where import is spelled wrong or does not occur
 		if( scope.equals( "import" ) ) {
 			StringBuilder lines = new StringBuilder();
 			for( int i = 0; i < allLines.size(); i++ ) {
@@ -525,7 +526,7 @@ public abstract class AbstractParser {
 			int column = tempSplit[ 0 ].length() + tempSplit[ 1 ].length();
 			context = new URIParsingContext( context.source(), lineNumber, column,
 				extralines.substring( 2, extralines.length() - 1 ) );
-			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
+			help = createHelpMessage( context, tempSplit[ 2 ], KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "outer":
