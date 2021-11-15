@@ -220,9 +220,9 @@ public abstract class AbstractParser {
 		nextToken();
 	}
 
-	protected final void eat( Scanner.TokenType type, String errorMessage, String[] possibleTerms )
+	protected final void eat( Scanner.TokenType type, String errorMessage, String scopeName, String scope )
 		throws ParserException, IOException {
-		assertToken( type, errorMessage, possibleTerms );
+		assertToken( type, errorMessage, scopeName, scope );
 		nextToken();
 	}
 
@@ -485,6 +485,18 @@ public abstract class AbstractParser {
 	protected final String getWholeScope( String name, String scope ) {
 		ArrayList< String > allLines = scanner.getAllLines();
 		int startLine = 0;
+		// Find the line of code from all lines read until now, which is a from "something" import
+		// "something else"
+		if( scope.equals( "import" ) ) {
+			StringBuilder lines = new StringBuilder();
+			for( int i = 0; i < allLines.size(); i++ ) {
+				String currentLine = allLines.get( i );
+				if( currentLine.contains( "from" ) && !currentLine.contains( "import" ) ) {
+					lines.append( i ).append( ':' ).append( currentLine );
+				}
+			}
+			return lines.toString();
+		}
 		// Find the line of code from all lines read until now, which has the scope and name of the scope
 		for( int i = 0; i < allLines.size(); i++ ) {
 			String currentLine = allLines.get( i );
@@ -544,9 +556,10 @@ public abstract class AbstractParser {
 			}
 		}
 		String help;
+		String extralines;
 		switch( scope ) {
 		case "inputPort":
-			String extralines = getWholeScope( scopeName, scope );
+			extralines = getWholeScope( scopeName, scope );
 			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
 				context.lineString() );
 			if( mesg.contains( "location URI" ) ) {
@@ -563,6 +576,24 @@ public abstract class AbstractParser {
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "service":
+			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			break;
+		case "import":
+			extralines = getWholeScope( null, scope );
+			int lineNumber = Integer.parseInt( extralines.substring( 0, 1 ) );
+			String[] tempSplit = extralines.split( " ", 0 );
+			int column = tempSplit[ 0 ].length() + tempSplit[ 1 ].length();
+			context = new URIParsingContext( context.source(), lineNumber, column,
+				extralines.substring( 2, extralines.length() - 1 ) );
+			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			break;
+		case "outer":
+			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			break;
+		case "interface":
 			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;

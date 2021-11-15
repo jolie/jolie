@@ -269,8 +269,7 @@ public class OLParser extends AbstractParser {
 
 		if( t.isNot( Scanner.TokenType.EOF ) ) {
 			// Vicki made change here
-			String[] possibleTerms = { "service", "interface", "from", "include", "type", "import", "execution" };
-			throwException( "Unexpected term", possibleTerms );
+			throwExceptionWithScope( "Unexpected term", null, "outer" );
 		}
 	}
 
@@ -1914,9 +1913,7 @@ public class OLParser extends AbstractParser {
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
 		// Vicki made change here
-		// We are inside an interface and are trying to recognize stuff before the ending curlybracket
-		String[] possibleTerms = { "requestResponse", "RequestResponse", "OneWay", "oneWay" };
-		eat( Scanner.TokenType.RCURLY, "expected }", possibleTerms );
+		eat( Scanner.TokenType.RCURLY, "expected }", name, "interface" );
 
 		return iface;
 	}
@@ -3528,7 +3525,7 @@ public class OLParser extends AbstractParser {
 	}
 
 	// Vicki made change here
-	private String parseExtendedIdentifier( String errorMessage, String[] possibleTerms,
+	private String parseExtendedIdentifier( String errorMessage,
 		Scanner.TokenType... extensions )
 		throws IOException, ParserException {
 		List< String > importTargetComponents = new ArrayList<>();
@@ -3550,7 +3547,7 @@ public class OLParser extends AbstractParser {
 		String id = importTargetComponents.stream().collect( Collectors.joining() );
 		if( id.isEmpty() ) {
 			// Vicki made change here
-			throwException( errorMessage, possibleTerms );
+			throwExceptionWithScope( errorMessage, null, "import" );
 		}
 		return id;
 	}
@@ -3575,9 +3572,8 @@ public class OLParser extends AbstractParser {
 					nextToken();
 				} else {
 					// Vicki made change here
-					String[] possibleTerms = { "import" };
 					importTargets.add(
-						parseExtendedIdentifier( "expected identifier for importing target after from", possibleTerms,
+						parseExtendedIdentifier( "expected identifier for importing target after from",
 							Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
 					importTargetIDStarted = true;
 					// nextToken();
