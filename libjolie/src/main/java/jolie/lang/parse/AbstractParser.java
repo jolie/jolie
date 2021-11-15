@@ -307,6 +307,17 @@ public abstract class AbstractParser {
 		}
 	}
 
+	/**
+	 * Creates help message from the context, the token/term which was incorrect during parsing and a
+	 * list of possible tokens/terms which can replace the current token. If the tokenContent is not
+	 * empty, the possibleTokens is checked whether it contains keywords close in levenshteins distance
+	 * to the tokenContent, and these words are added to the help message, such that the user can see
+	 * correct keywords matching closely to their own token.
+	 * 
+	 * @param context context of the code, when parsing error occured
+	 * @param tokenContent content of the token, which was wrong or missing(if empty)
+	 * @param possibleTokens list of possible keywords, which the user could have meant or are missing
+	 */
 	public String createHelpMessage( URIParsingContext context, String tokenContent, String[] possibleTokens ) {
 		LevenshteinDistance dist = new LevenshteinDistance();
 		ArrayList< String > proposedWord = new ArrayList<>();
@@ -316,7 +327,8 @@ public abstract class AbstractParser {
 			}
 
 		}
-		if( proposedWord.isEmpty() && tokenContent.isEmpty() ) {
+		if( proposedWord.isEmpty() && tokenContent.isEmpty() ) { // if the token is missing, the user is given all
+																	// possible tokens that can be written
 			StringBuilder help =
 				new StringBuilder(
 					"You are missing a keyword. Possible inputs are:\n" );
@@ -325,7 +337,8 @@ public abstract class AbstractParser {
 			}
 			help.delete( help.length() - 2, help.length() );
 			return help.toString();
-		} else if( proposedWord.isEmpty() && !tokenContent.isEmpty() ) {
+		} else if( proposedWord.isEmpty() && !tokenContent.isEmpty() ) { // If none of the correct terms match the
+																			// written token
 			StringBuilder help =
 				new StringBuilder(
 					"The term did not match possible terms. Possible inputs are:\n" );
@@ -334,7 +347,8 @@ public abstract class AbstractParser {
 			}
 			help.delete( help.length() - 2, help.length() );
 			return help.toString();
-		} else {
+		} else { // If one or more words are really close to the token, the suggested correct token will be presented
+					// with the original code line, to show how to write it correctly
 			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " );
 			for( String word : proposedWord ) {
 				if( word != null ) {
@@ -418,6 +432,7 @@ public abstract class AbstractParser {
 	 * Shortcut to throw a correctly formed ParserException.
 	 * 
 	 * @param mesg The message to insert in the ParserException.
+	 * @param possibleTokens a list of keywords, which can be written where the parsing error occured
 	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
 	protected final void throwException( String mesg, String[] possibleTokens )
@@ -454,15 +469,25 @@ public abstract class AbstractParser {
 		throw new ParserException( exceptionMessage );
 	}
 
+	/**
+	 * Method to find all lines of code of the scope with the name we are looking at during a parsing
+	 * error
+	 * 
+	 * @param name The name of the scope, e.g. the inputPort name
+	 * @param scope The scope we are in, e.g. an inputPort
+	 */
 	protected final String getWholeScope( String name, String scope ) {
 		ArrayList< String > allLines = scanner.getAllLines();
 		int startLine = 0;
+		// Find the line of code from all lines read until now, which has the scope and name of the scope
 		for( int i = 0; i < allLines.size(); i++ ) {
 			String currentLine = allLines.get( i );
 			if( currentLine.contains( name ) && currentLine.contains( scope ) ) {
 				startLine = i;
 			}
 		}
+		// Save all lines of the scope by reading until an even number of left curly brackets and right
+		// curly brackets are found
 		StringBuilder lines = new StringBuilder();
 		int leftCurlies = 0;
 		int rightCurlies = 0;
@@ -489,6 +514,7 @@ public abstract class AbstractParser {
 				break;
 			}
 		}
+		// Return all the code lines of the scope
 		return lines.toString();
 	}
 
