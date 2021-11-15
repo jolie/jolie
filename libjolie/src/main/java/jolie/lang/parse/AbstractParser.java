@@ -414,25 +414,23 @@ public abstract class AbstractParser {
 	 */
 	protected final void throwException( String mesg )
 		throws ParserException, IOException {
-		String m = mesg;
 		CodeCheckMessage exceptionMessage;
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
 		if( !token.content().equals( "" ) ) {
-			if( !m.equals( "" ) ) {
-				m += ": " + token.content();
+			if( !mesg.equals( "" ) ) {
+				mesg += ": " + token.content();
 			} else {
-				m += ". Found term: " + token.content();
+				mesg += ". Found term: " + token.content();
 			}
-			List< String > possibleTokens = Arrays.asList( "These error messages have yet to get possible tokens!" );
-			String help = createHelpMessage( context, token.content(), possibleTokens );
-			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+			String help = createHelpMessage( context, token.content(), Arrays.asList() );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 		} else {
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
 			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
 				context.lineString() );
-			exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
+			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		}
 		throw new ParserException( exceptionMessage );
 	}
@@ -446,22 +444,21 @@ public abstract class AbstractParser {
 	 */
 	protected final void throwException( String mesg, String[] possibleTokens )
 		throws ParserException, IOException {
-		String m = mesg;
 		CodeCheckMessage exceptionMessage;
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
 		String help;
 		if( !token.content().equals( "" ) ) {
-			if( !m.equals( "" ) ) {
-				m += ". Found term: " + token.content();
+			if( !mesg.equals( "" ) ) {
+				mesg += ". Found term: " + token.content();
 			} else {
-				m += ". Found term: " + token.content();
+				mesg += ". Found term: " + token.content();
 			}
 
 			help = createHelpMessage( context, token.content(), Arrays.asList( possibleTokens ) );
-			exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 		} else {
-			if( !m.equals( "" ) ) {
-				m += ". Could not be found.";
+			if( !mesg.equals( "" ) ) {
+				mesg += ". Could not be found.";
 			}
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
@@ -470,9 +467,9 @@ public abstract class AbstractParser {
 				context.lineString() );
 			if( possibleTokens.length > 0 ) {
 				help = createHelpMessage( context, token.content(), Arrays.asList( possibleTokens ) );
-				exceptionMessage = CodeCheckMessage.withHelp( context, m, help );
+				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			} else {
-				exceptionMessage = CodeCheckMessage.withoutHelp( context, m );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			}
 		}
 		throw new ParserException( exceptionMessage );
