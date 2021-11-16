@@ -374,9 +374,7 @@ public abstract class AbstractParser {
 	// fx with execution modality
 	public String createHelpMessageWithScope( URIParsingContext context, String tokenContent, String extraLines,
 		boolean InputPort ) {
-		StringBuilder help =
-			new StringBuilder( extraLines ).append( context.line() ).append( ':' ).append( context.lineString() )
-				.append( '\n' );
+		StringBuilder help = new StringBuilder();
 		List< String > possibleTerms = KeywordClass.getKeywordsForScope( "inputPort" );
 		if( tokenContent == null || tokenContent.isEmpty() ) {
 			help.append( "A term is missing. Possible inputs are:\n" );
@@ -399,18 +397,36 @@ public abstract class AbstractParser {
 				}
 
 				help.delete( help.length() - 2, help.length() );
-				help.append( ". Perhaps you meant:\n" ).append( context.line() ).append( ':' );
+				help.append( ". Perhaps you meant:\n" );
 				int numberSpaces;
 				if( context.column() != 0 ) {
-					help.append( context.lineString().substring( 0, context.column() ) )
-						.append( proposedWord.get( 0 ) )
-						.append( context.lineString().substring( context.column() + tokenContent.length() ) )
-						.append( '\n' );
+					String[] lineStringSplit = context.lineString().split( "\n" );
+					for( String split : lineStringSplit ) {
+						if( split.contains( context.line() + ":" ) ) {
+							int correctColumn = context.column() + split.split( ":" )[ 0 ].length() + 1;
+							help.append( split.substring( 0, correctColumn ) )
+								.append( proposedWord.get( 0 ) )
+								.append( split.substring( correctColumn + tokenContent.length() ) )
+								.append( "\n" );
+						} else {
+							help.append( split ).append( "\n" );
+						}
+					}
 					numberSpaces = context.column() + (":" + context.line()).length();
 				} else {
-					help.append( proposedWord.get( 0 ) )
-						.append( context.lineString().substring( context.column() + tokenContent.length() ) )
-						.append( '\n' );
+					String[] lineStringSplit = context.lineString().split( "\n" );
+					for( String split : lineStringSplit ) {
+						if( split.contains( context.line() + ":" ) ) {
+							int correctColumn = context.column() + split.split( ":" )[ 0 ].length() + 1;
+							help.append( split.split( ":" )[ 0 ] )
+								.append( ":" )
+								.append( proposedWord.get( 0 ) )
+								.append( split.substring( correctColumn + tokenContent.length() ) )
+								.append( "\n" );
+						} else {
+							help.append( split ).append( "\n" );
+						}
+					}
 					numberSpaces = context.column() + (":" + context.line()).length();
 				}
 				for( int j = 0; j < numberSpaces; j++ ) {
@@ -509,6 +525,7 @@ public abstract class AbstractParser {
 			}
 		}
 		// Return all the code lines of the scope
+		lines.delete( lines.length() - 2, lines.length() );
 		return lines.toString();
 	}
 
@@ -536,8 +553,21 @@ public abstract class AbstractParser {
 		switch( scope ) {
 		case "inputPort":
 			extralines = getWholeScope( scopeName, scope );
-			help = createHelpMessageWithScope( context, token.content(), extralines, true );
-			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			if( !extralines.contains( context.line() + ":" ) ) {
+				String[] allLinesSplit = extralines.split( "\n" );
+				String[] tempSplit = allLinesSplit[ allLinesSplit.length - 1 ].split( ":" );
+				int lastLineNumber = Integer.parseInt( tempSplit[ 0 ] );
+				String[] tempSplit2 = allLinesSplit[ allLinesSplit.length - 1 ].split( "}" );
+				int columnNumber = tempSplit2[ 0 ].length() - 2;
+				URIParsingContext tempContext =
+					new URIParsingContext( context.source(), lastLineNumber, columnNumber, extralines );
+				help = createHelpMessageWithScope( tempContext, token.content(), extralines, true );
+				exceptionMessage = CodeCheckMessage.withHelp( tempContext, mesg, help );
+			} else {
+				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
+				help = createHelpMessageWithScope( context, token.content(), extralines, true );
+				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			}
 			break;
 		case "execution":
 			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
