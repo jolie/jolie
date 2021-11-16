@@ -24,7 +24,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class KeywordClass {
-
+	/**
+	 * 
+	 * @return List of keywords that can be used inside the inputPort scope
+	 */
 	public static List< String > inputPortKeywords() {
 		List< String > keywords = Arrays.asList( "location", "protocol", "interfaces", "aggregates", "redirects",
 			"RequestResponse", "OneWay" );
@@ -37,6 +40,10 @@ public class KeywordClass {
 		return keywords;
 	}
 
+	/**
+	 * 
+	 * @return List of keywords that can be used in the outermost scope
+	 */
 	public static List< String > outerKeywords() {
 		List< String > keywords = Arrays.asList( "service", "interface", "from", "include", "type", "import",
 			"execution", "constants", "cset", "embedded", "currier", "public", "private", "extender" );
@@ -56,7 +63,7 @@ public class KeywordClass {
 
 	public static List< String > mainKeywords() {
 		List< String > keywords = Arrays.asList( "for", "while", "if", "else", "else if", "foreach", "with", "undef",
-			"synchronized", "scope", "install", "spawn", "over", "in", "throw", "cH", "comp" );
+			"synchronized", "scope", "install", "spawn", "over", "in", "throw", "cH", "comp", "nullProcess" );
 		return keywords;
 	}
 
