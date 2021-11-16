@@ -77,7 +77,13 @@ public class CodeCheckMessage {
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
-			messageBuilder.append( myContext.line() ).append( ':' ).append( myContext.lineString() ).append( '\n' );
+			if( myContext.lineString().contains( myContext.line() + ":" ) ) {
+				messageBuilder.append( myContext.lineString() ).append( '\n' );
+			} else if( (myContext.lineString().split( "\n" )).length > 1 ) {
+				messageBuilder.append( myContext.lineString() ).append( '\n' );
+			} else {
+				messageBuilder.append( myContext.line() ).append( ':' ).append( myContext.lineString() ).append( '\n' );
+			}
 			for( int i = 0; i < myContext.column() + (" " + myContext.line()).length(); i++ ) {
 				messageBuilder.append( " " );
 			}
