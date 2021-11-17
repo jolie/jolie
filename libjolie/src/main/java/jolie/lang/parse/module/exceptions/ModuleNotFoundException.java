@@ -54,11 +54,8 @@ public class ModuleNotFoundException extends FileNotFoundException {
 		this.lookedPaths.add( lookedPath );
 	}
 
-	@Override
-	public String getMessage() {
-		StringBuilder message =
-			new StringBuilder().append( "Module " ).append( '\"' ).append( this.importPath )
-				.append( "\" not found from lookup paths:\n" );
+	public String getHelp() {
+		StringBuilder message = new StringBuilder();
 		Set< String > fileNames = new HashSet<>();
 		Stream< Path > stream;
 		try {
@@ -118,6 +115,14 @@ public class ModuleNotFoundException extends FileNotFoundException {
 				message.append( temp ).append( "\n" );
 			}
 		}
+		return message.toString();
+	}
+
+	@Override
+	public String getMessage() {
+		StringBuilder message =
+			new StringBuilder().append( "Module " ).append( '\"' ).append( this.importPath )
+				.append( "\" not found from lookup paths.\n" );
 		return message.toString();
 	}
 
