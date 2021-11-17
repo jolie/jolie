@@ -373,9 +373,9 @@ public abstract class AbstractParser {
 	// Should have more booleans, when more cases are covered, where extra lines of code are necessary,
 	// fx with execution modality
 	public String createHelpMessageWithScope( URIParsingContext context, String tokenContent, String extraLines,
-		boolean InputPort ) {
+		String scope ) {
 		StringBuilder help = new StringBuilder();
-		List< String > possibleTerms = KeywordClass.getKeywordsForScope( "inputPort" );
+		List< String > possibleTerms = KeywordClass.getKeywordsForScope( scope );
 		if( tokenContent == null || tokenContent.isEmpty() ) {
 			help.append( "A term is missing. Possible inputs are:\n" );
 			for( String term : possibleTerms ) {
@@ -477,52 +477,62 @@ public abstract class AbstractParser {
 	protected final String getWholeScope( String name, String scope ) {
 		ArrayList< String > allLines = scanner.getAllLines();
 		int startLine = 0;
-		// Find the line of code from all lines read until now, which is a from "something" import
-		// "something else", where import is spelled wrong or does not occur
-		if( scope.equals( "import" ) ) {
-			StringBuilder lines = new StringBuilder();
+		StringBuilder lines = new StringBuilder();
+		switch( scope ) {
+		case "import":
+			// Find the line of code from all lines read until now, which is a 'from "something" import
+			// "something else"', where import is spelled wrong or does not occur
 			for( int i = 0; i < allLines.size(); i++ ) {
 				String currentLine = allLines.get( i );
 				if( currentLine.contains( "from" ) && !currentLine.contains( "import" ) ) {
 					lines.append( i ).append( ':' ).append( currentLine );
 				}
 			}
-			return lines.toString();
-		}
-		// Find the line of code from all lines read until now, which has the scope and name of the scope
-		for( int i = 0; i < allLines.size(); i++ ) {
-			String currentLine = allLines.get( i );
-			if( currentLine.contains( name ) && currentLine.contains( scope ) ) {
-				startLine = i;
-			}
-		}
-		// Save all lines of the scope by reading until an even number of left curly brackets and right
-		// curly brackets are found
-		StringBuilder lines = new StringBuilder();
-		int leftCurlies = 0;
-		int rightCurlies = 0;
-		for( int j = startLine; j < allLines.size(); j++ ) {
-			String currentLine = allLines.get( j );
-			lines.append( j ).append( ':' ).append( currentLine );
-			if( currentLine.contains( "{" ) ) {
-				char[] lineChars = currentLine.toCharArray();
-				for( char c : lineChars ) {
-					if( c == '{' ) {
-						leftCurlies++;
-					}
+			break;
+		case "execution":
+			for( int i = 0; i < allLines.size(); i++ ) {
+				String currentLine = allLines.get( i );
+				if( currentLine.contains( "execution" ) ) {
+					lines.append( i ).append( ':' ).append( currentLine );
 				}
 			}
-			if( currentLine.contains( "}" ) ) {
-				char[] lineChars = currentLine.toCharArray();
-				for( char c : lineChars ) {
-					if( c == '}' ) {
-						rightCurlies++;
-					}
+			break;
+		default:
+			// Find the line of code from all lines read until now, which has the scope and name of the scope
+			for( int i = 0; i < allLines.size(); i++ ) {
+				String currentLine = allLines.get( i );
+				if( currentLine.contains( name ) && currentLine.contains( scope ) ) {
+					startLine = i;
 				}
 			}
-			if( leftCurlies == rightCurlies ) {
-				break;
+			// Save all lines of the scope by reading until an even number of left curly brackets and right
+			// curly brackets are found
+			int leftCurlies = 0;
+			int rightCurlies = 0;
+			for( int j = startLine; j < allLines.size(); j++ ) {
+				String currentLine = allLines.get( j );
+				lines.append( j ).append( ':' ).append( currentLine );
+				if( currentLine.contains( "{" ) ) {
+					char[] lineChars = currentLine.toCharArray();
+					for( char c : lineChars ) {
+						if( c == '{' ) {
+							leftCurlies++;
+						}
+					}
+				}
+				if( currentLine.contains( "}" ) ) {
+					char[] lineChars = currentLine.toCharArray();
+					for( char c : lineChars ) {
+						if( c == '}' ) {
+							rightCurlies++;
+						}
+					}
+				}
+				if( leftCurlies == rightCurlies ) {
+					break;
+				}
 			}
+			break;
 		}
 		// Return all the code lines of the scope
 		lines.delete( lines.length() - 2, lines.length() );
@@ -559,7 +569,7 @@ public abstract class AbstractParser {
 			} else {
 				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
 			}
-			help = createHelpMessageWithScope( context, token.content(), extralines, true );
+			help = createHelpMessageWithScope( context, token.content(), extralines, scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "execution":
@@ -578,11 +588,10 @@ public abstract class AbstractParser {
 			break;
 		case "import":
 			extralines = getWholeScope( null, scope );
-			int lineNumber = Integer.parseInt( extralines.substring( 0, 1 ) );
+			int lineNumber = Integer.parseInt( extralines.split( ":" )[ 0 ] );
 			String[] tempSplit = extralines.split( " ", 0 );
-			int column = tempSplit[ 0 ].length() + tempSplit[ 1 ].length();
-			context = new URIParsingContext( context.source(), lineNumber, column,
-				extralines.substring( 2, extralines.length() - 1 ) );
+			int column = tempSplit[ 0 ].length() + tempSplit[ 1 ].length() + extralines.split( ":" )[ 0 ].length() + 1;
+			context = new URIParsingContext( context.source(), lineNumber, column, extralines );
 			help = createHelpMessage( context, tempSplit[ 2 ], KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
