@@ -542,11 +542,7 @@ public abstract class AbstractParser {
 		CodeCheckMessage exceptionMessage;
 		URIParsingContext context = (URIParsingContext) getContextDuringError();
 		if( !token.content().equals( "" ) ) {
-			if( !mesg.equals( "" ) ) {
-				mesg += ": " + token.content();
-			} else {
-				mesg += ". Found term: " + token.content();
-			}
+			mesg += ". Found term: " + token.content();
 		}
 		String help;
 		String extralines;
@@ -558,18 +554,21 @@ public abstract class AbstractParser {
 				String[] tempSplit = allLinesSplit[ allLinesSplit.length - 1 ].split( ":" );
 				int lastLineNumber = Integer.parseInt( tempSplit[ 0 ] );
 				String[] tempSplit2 = allLinesSplit[ allLinesSplit.length - 1 ].split( "}" );
-				int columnNumber = tempSplit2[ 0 ].length() - 2;
-				URIParsingContext tempContext =
-					new URIParsingContext( context.source(), lastLineNumber, columnNumber, extralines );
-				help = createHelpMessageWithScope( tempContext, token.content(), extralines, true );
-				exceptionMessage = CodeCheckMessage.withHelp( tempContext, mesg, help );
+				int columnNumber = tempSplit2[ 0 ].length() - tempSplit[ 0 ].length() - 1;
+				context = new URIParsingContext( context.source(), lastLineNumber, columnNumber, extralines );
 			} else {
 				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
-				help = createHelpMessageWithScope( context, token.content(), extralines, true );
-				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			}
+			help = createHelpMessageWithScope( context, token.content(), extralines, true );
+			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "execution":
+			if( !context.lineString().contains( "execution" ) ) {
+				extralines = getWholeScope( "", scope );
+				int LineNumber = Integer.parseInt( extralines.split( ":" )[ 0 ] );
+				int columnNumber = extralines.lastIndexOf( ':' ) - extralines.split( ":" )[ 0 ].length() - 1;
+				context = new URIParsingContext( context.source(), LineNumber, columnNumber, extralines );
+			}
 			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
