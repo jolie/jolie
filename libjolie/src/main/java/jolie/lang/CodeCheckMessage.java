@@ -23,20 +23,21 @@ package jolie.lang;
 import java.security.InvalidParameterException;
 import java.util.Optional;
 import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 
 public class CodeCheckMessage {
-	private final URIParsingContext context;
+	private final ParsingContext context;
 	private final String description;
 	private final String help;
 
-	private CodeCheckMessage( URIParsingContext context, String description, String help ) {
+	private CodeCheckMessage( ParsingContext context, String description, String help ) {
 		this.context = context;
 		this.description = description;
 		this.help = help;
 	}
 
-	public static CodeCheckMessage withHelp( URIParsingContext context, String description, String help )
+	public static CodeCheckMessage withHelp( ParsingContext context, String description, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
 			throw new InvalidParameterException( "Parameter help cannot be null." );
@@ -54,7 +55,7 @@ public class CodeCheckMessage {
 			message, null );
 	}
 
-	public static CodeCheckMessage withoutHelp( URIParsingContext context, String description ) {
+	public static CodeCheckMessage withoutHelp( ParsingContext context, String description ) {
 		return new CodeCheckMessage( context, description, null );
 	}
 
@@ -67,7 +68,7 @@ public class CodeCheckMessage {
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
-			URIParsingContext myContext = context;
+			ParsingContext myContext = context;
 			messageBuilder.append( myContext.sourceName() ).append( ":" ).append( myContext.line() )
 				.append( ": error: " );
 			if( description != null ) {
@@ -104,7 +105,7 @@ public class CodeCheckMessage {
 		return Optional.ofNullable( help );
 	}
 
-	public Optional< URIParsingContext > context() {
+	public Optional< ParsingContext > context() {
 		return Optional.ofNullable( context );
 	}
 
