@@ -199,6 +199,11 @@ public abstract class AbstractParser {
 		if( linenr < scanner.line() ) {
 			return new URIParsingContext( scanner.source(), linenr, scanner.errorColumn(),
 				scanner.lineString().replace( '\n', ' ' ).stripTrailing() );
+		} else if( scanner.errorColumn() < 0 ) {
+			String correctLine = scanner.getAllLines().get( linenr - 1 ).replace( '\n', ' ' ).stripTrailing();
+			return new URIParsingContext( scanner.source(), linenr - 1, correctLine.length(),
+				correctLine );
+
 		} else {
 			return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(),
 				scanner.lineString() );
@@ -360,7 +365,6 @@ public abstract class AbstractParser {
 					.append( context.lineString().substring( context.column() + tokenContent.length() ) )
 					.append( '\n' );
 				numberSpaces = context.column() + (":" + context.line()).length();
-
 			}
 			for( int j = 0; j < numberSpaces; j++ ) {
 				help.append( " " );
