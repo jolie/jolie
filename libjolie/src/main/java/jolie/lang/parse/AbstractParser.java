@@ -312,7 +312,7 @@ public abstract class AbstractParser {
 	 * @param tokenContent content of the token, which was wrong or missing(if empty)
 	 * @param possibleTokens list of possible keywords, which the user could have meant or are missing
 	 */
-	public String createHelpMessage( URIParsingContext context, String tokenContent, List< String > possibleTokens ) {
+	public String createHelpMessage( ParsingContext context, String tokenContent, List< String > possibleTokens ) {
 		LevenshteinDistance dist = new LevenshteinDistance();
 		ArrayList< String > proposedWord = new ArrayList<>();
 		for( String correctToken : possibleTokens ) {
@@ -362,7 +362,7 @@ public abstract class AbstractParser {
 
 	// Should have more booleans, when more cases are covered, where extra lines of code are necessary,
 	// fx with execution modality
-	public String createHelpMessageWithScope( URIParsingContext context, String tokenContent, String extraLines,
+	public String createHelpMessageWithScope( ParsingContext context, String tokenContent, String extraLines,
 		String scope ) {
 		StringBuilder help = new StringBuilder();
 		List< String > possibleTerms = KeywordClass.getKeywordsForScope( scope );
@@ -433,7 +433,7 @@ public abstract class AbstractParser {
 	protected final void throwException( String mesg )
 		throws ParserException, IOException {
 		CodeCheckMessage exceptionMessage;
-		URIParsingContext context = (URIParsingContext) getContextDuringError();
+		ParsingContext context = getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			if( !mesg.equals( "" ) ) {
 				mesg += ": " + token.content();
@@ -537,7 +537,7 @@ public abstract class AbstractParser {
 	protected final void throwExceptionWithScope( String mesg, String scopeName, String scope )
 		throws ParserException, IOException {
 		CodeCheckMessage exceptionMessage;
-		URIParsingContext context = (URIParsingContext) getContextDuringError();
+		ParsingContext context = getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			mesg += ". Found term: " + token.content();
 		}
@@ -614,7 +614,7 @@ public abstract class AbstractParser {
 	 */
 	protected final void throwException( Exception exception )
 		throws ParserException {
-		URIParsingContext context = getContext();
+		ParsingContext context = getContext();
 		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, exception.getMessage() );
 		throw new ParserException( exceptionMessage );
 	}

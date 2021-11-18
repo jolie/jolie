@@ -54,4 +54,8 @@ public interface ParsingContext extends Serializable {
 	 * @return the line at which the node has been read
 	 */
 	int line();
+
+	int column();
+
+	String lineString();
 }

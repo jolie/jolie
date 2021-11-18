@@ -33,19 +33,20 @@ import jolie.lang.Constants;
  * 
  * @author Fabrizio Montesi
  */
-public class URIParsingContext extends AbstractParsingContext {
+public class URIParsingContext implements ParsingContext {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final URI uri;
 	private final String lineString;
 	private final int column;
+	private final int line;
 
 	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, "" );
 
 	public URIParsingContext( URI uri, int line, int column, String lineString ) {
-		super( line );
 		this.uri = uri;
 		this.column = column; // The number character in line, where error occured
 		this.lineString = lineString; // this is the line in the file where the error occured
+		this.line = line;
 	}
 
 	@Override
@@ -63,10 +64,17 @@ public class URIParsingContext extends AbstractParsingContext {
 		}
 	}
 
+	@Override
+	public int line() {
+		return line;
+	}
+
+	@Override
 	public int column() {
 		return column;
 	}
 
+	@Override
 	public String lineString() {
 		return lineString;
 	}
