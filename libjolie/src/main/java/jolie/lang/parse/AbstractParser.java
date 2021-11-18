@@ -325,34 +325,20 @@ public abstract class AbstractParser {
 										// possible tokens that can be written
 			StringBuilder help =
 				new StringBuilder(
-					"You are missing a keyword. Possible inputs are:\n" );
-			for( String correctToken : possibleTokens ) {
-				help.append( correctToken ).append( ", " );
-			}
-			help.delete( help.length() - 2, help.length() );
+					"You are missing a keyword. Possible inputs are:\n" ).append( String.join( ", ", possibleTokens ) );
 			return help.toString();
 		} else if( proposedWord.isEmpty() && !tokenContent.isEmpty() ) { // If none of the correct terms match the
 																			// written token
 			StringBuilder help =
 				new StringBuilder(
-					"The term did not match possible terms. Possible inputs are:\n" );
-			for( String correctToken : possibleTokens ) {
-				help.append( correctToken ).append( ", " );
-			}
-			help.delete( help.length() - 2, help.length() );
+					"The term did not match possible terms. Possible inputs are:\n" )
+						.append( String.join( ", ", possibleTokens ) );
 			return help.toString();
 		} else { // If one or more words are really close to the token, the suggested correct token will be presented
 					// with the original code line, to show how to write it correctly
-			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " );
-			for( String word : proposedWord ) {
-				if( word != null ) {
-					help.append( word ).append( ", " );
-
-				}
-			}
-			help.delete( help.length() - 2, help.length() );
-
-			help.append( ". Perhaps you meant:\n" ).append( context.line() ).append( ':' );
+			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " )
+				.append( String.join( ", ", proposedWord ) ).append( ". Perhaps you meant:\n" ).append( context.line() )
+				.append( ':' );
 			int numberSpaces;
 			if( context.column() != 0 ) {
 				help.append( context.lineString().substring( 0, context.column() ) )
@@ -395,13 +381,9 @@ public abstract class AbstractParser {
 
 			}
 			if( !proposedWord.isEmpty() ) {
-				help.append( "\nYour term is similar to what would be valid input: " );
-				for( String word : proposedWord ) {
-					help.append( word ).append( ", " );
-				}
-
-				help.delete( help.length() - 2, help.length() );
-				help.append( ". Perhaps you meant:\n" );
+				help.append( "\nYour term is similar to what would be valid input: " )
+					.append( String.join( ", ", proposedWord ) )
+					.append( ". Perhaps you meant:\n" );
 				int numberSpaces;
 				if( context.column() != 0 ) {
 					String[] lineStringSplit = context.lineString().split( "\n" );
