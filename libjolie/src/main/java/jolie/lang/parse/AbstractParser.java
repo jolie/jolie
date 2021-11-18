@@ -180,11 +180,11 @@ public abstract class AbstractParser {
 
 
 	/**
-	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
+	 * Returns the current {@link URIParsingContext} from the underlying {@link Scanner}
 	 * 
-	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
+	 * @return the current {@link URIParsingContext} from the underlying {@link Scanner}
 	 */
-	public final ParsingContext getContext() {
+	public final URIParsingContext getContext() {
 		return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(), scanner.lineString() );
 	}
 
@@ -193,7 +193,7 @@ public abstract class AbstractParser {
 	 * 
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
-	public final ParsingContext getContextDuringError() throws IOException {
+	public final URIParsingContext getContextDuringError() throws IOException {
 		int linenr = scanner.line();
 		readLineAfterError();
 		if( linenr < scanner.line() ) {
@@ -433,7 +433,7 @@ public abstract class AbstractParser {
 	protected final void throwException( String mesg )
 		throws ParserException, IOException {
 		CodeCheckMessage exceptionMessage;
-		URIParsingContext context = (URIParsingContext) getContextDuringError();
+		URIParsingContext context = getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			if( !mesg.equals( "" ) ) {
 				mesg += ": " + token.content();
@@ -537,7 +537,7 @@ public abstract class AbstractParser {
 	protected final void throwExceptionWithScope( String mesg, String scopeName, String scope )
 		throws ParserException, IOException {
 		CodeCheckMessage exceptionMessage;
-		URIParsingContext context = (URIParsingContext) getContextDuringError();
+		URIParsingContext context = getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			mesg += ". Found term: " + token.content();
 		}

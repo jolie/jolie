@@ -21,13 +21,13 @@ package jolie.lang.parse.ast.expression;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class NotExpressionNode extends OLSyntaxNode {
 	private final OLSyntaxNode expression;
 
-	public NotExpressionNode( ParsingContext context, OLSyntaxNode expression ) {
+	public NotExpressionNode( URIParsingContext context, OLSyntaxNode expression ) {
 		super( context );
 		this.expression = expression;
 	}

@@ -23,14 +23,14 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class TypeCastExpressionNode extends OLSyntaxNode {
 	private final OLSyntaxNode expression;
 	private final NativeType type;
 
-	public TypeCastExpressionNode( ParsingContext context, NativeType type, OLSyntaxNode expression ) {
+	public TypeCastExpressionNode( URIParsingContext context, NativeType type, OLSyntaxNode expression ) {
 		super( context );
 		this.type = type;
 		this.expression = expression;

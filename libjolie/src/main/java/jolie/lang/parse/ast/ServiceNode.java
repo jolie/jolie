@@ -25,7 +25,7 @@ import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 
 public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
@@ -57,7 +57,7 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 	private final Constants.EmbeddedServiceType type;
 	private final Map< String, String > config;
 
-	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+	public static ServiceNode create( URIParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter, Constants.EmbeddedServiceType technology,
 		Map< String, String > config ) {
 		if( config == null ) {
@@ -72,19 +72,19 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 			"Unsupported foreign service node implementation: " + technology.toString() );
 	}
 
-	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+	public static ServiceNode create( URIParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter ) {
 		return new ServiceNode( context, name, accessModifier, p, parameter,
 			Constants.EmbeddedServiceType.SERVICENODE );
 	}
 
-	protected ServiceNode( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+	protected ServiceNode( URIParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter,
 		Constants.EmbeddedServiceType type ) {
 		this( context, name, accessModifier, p, parameter, type, null );
 	}
 
-	protected ServiceNode( ParsingContext context, String name, AccessModifier accessModifier, Program p,
+	protected ServiceNode( URIParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter,
 		Constants.EmbeddedServiceType type, Map< String, String > config ) {
 		super( context );

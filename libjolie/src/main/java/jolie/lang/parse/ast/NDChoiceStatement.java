@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 
 
@@ -33,7 +33,7 @@ import jolie.util.Pair;
 public class NDChoiceStatement extends OLSyntaxNode {
 	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 
-	public NDChoiceStatement( ParsingContext context ) {
+	public NDChoiceStatement( URIParsingContext context ) {
 		super( context );
 		children = new LinkedList<>();
 	}

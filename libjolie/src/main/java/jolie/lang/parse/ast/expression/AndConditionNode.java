@@ -24,14 +24,14 @@ import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 
 public class AndConditionNode extends OLSyntaxNode {
 	private final List< OLSyntaxNode > children = new ArrayList<>();
 
-	public AndConditionNode( ParsingContext context ) {
+	public AndConditionNode( URIParsingContext context ) {
 		super( context );
 	}
 

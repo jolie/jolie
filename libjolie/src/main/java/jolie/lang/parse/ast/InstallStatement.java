@@ -22,13 +22,13 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class InstallStatement extends OLSyntaxNode {
 	private final InstallFunctionNode handlersFunction;
 
-	public InstallStatement( ParsingContext context, InstallFunctionNode handlersFunction ) {
+	public InstallStatement( URIParsingContext context, InstallFunctionNode handlersFunction ) {
 		super( context );
 		this.handlersFunction = handlersFunction;
 	}

@@ -22,14 +22,14 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class Scope extends OLSyntaxNode {
 	private final String id;
 	private final OLSyntaxNode body;
 
-	public Scope( ParsingContext context, String id, OLSyntaxNode body ) {
+	public Scope( URIParsingContext context, String id, OLSyntaxNode body ) {
 		super( context );
 		this.id = id;
 		this.body = body;

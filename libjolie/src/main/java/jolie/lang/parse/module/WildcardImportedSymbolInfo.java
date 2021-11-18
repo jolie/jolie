@@ -19,7 +19,7 @@
 
 package jolie.lang.parse.module;
 
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 /**
  * A class represent a Symbol defined within external execution environment. Create when consuming a
@@ -27,7 +27,7 @@ import jolie.lang.parse.context.ParsingContext;
  */
 class WildcardImportedSymbolInfo extends ImportedSymbolInfo {
 
-	protected WildcardImportedSymbolInfo( ParsingContext context, ImportPath importPath ) {
+	protected WildcardImportedSymbolInfo( URIParsingContext context, ImportPath importPath ) {
 		super( context, importPath.toString(), importPath, null );
 	}
 

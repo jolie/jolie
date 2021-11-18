@@ -33,6 +33,7 @@ import java.nio.file.Paths;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import jolie.lang.Constants;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.ImportPath;
 
 public class ModuleNotFoundException extends FileNotFoundException {
@@ -54,7 +55,7 @@ public class ModuleNotFoundException extends FileNotFoundException {
 		this.lookedPaths.add( lookedPath );
 	}
 
-	public String getHelp() {
+	public String getHelp( URIParsingContext context ) {
 		StringBuilder message = new StringBuilder();
 		Set< String > fileNames = new HashSet<>();
 		Stream< Path > stream;

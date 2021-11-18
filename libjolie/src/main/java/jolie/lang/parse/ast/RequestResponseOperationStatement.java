@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class RequestResponseOperationStatement extends OLSyntaxNode {
@@ -31,7 +31,7 @@ public class RequestResponseOperationStatement extends OLSyntaxNode {
 	private final String id;
 
 	public RequestResponseOperationStatement(
-		ParsingContext context,
+		URIParsingContext context,
 		String id,
 		VariablePathNode inputVarPath,
 		OLSyntaxNode outputExpression,

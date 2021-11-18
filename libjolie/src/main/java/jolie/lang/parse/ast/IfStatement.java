@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 
 
@@ -34,7 +34,7 @@ public class IfStatement extends OLSyntaxNode {
 	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 	private OLSyntaxNode elseProcess;
 
-	public IfStatement( ParsingContext context ) {
+	public IfStatement( URIParsingContext context ) {
 		super( context );
 		children = new LinkedList<>();
 		elseProcess = null;

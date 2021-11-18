@@ -21,7 +21,7 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 
 public class ForEachArrayItemStatement extends OLSyntaxNode {
@@ -29,7 +29,7 @@ public class ForEachArrayItemStatement extends OLSyntaxNode {
 	private final OLSyntaxNode body;
 
 	public ForEachArrayItemStatement(
-		ParsingContext context,
+		URIParsingContext context,
 		VariablePathNode keyPath,
 		VariablePathNode targetPath,
 		OLSyntaxNode body ) {

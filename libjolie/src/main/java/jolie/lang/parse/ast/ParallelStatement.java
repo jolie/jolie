@@ -25,14 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 
 public class ParallelStatement extends OLSyntaxNode {
 	private final List< OLSyntaxNode > children;
 
-	public ParallelStatement( ParsingContext context ) {
+	public ParallelStatement( URIParsingContext context ) {
 		super( context );
 		children = new ArrayList<>();
 	}
