@@ -23,12 +23,12 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 public class ExecutionInfo extends OLSyntaxNode {
 	private final Constants.ExecutionMode mode;
 
-	public ExecutionInfo( ParsingContext context, Constants.ExecutionMode mode ) {
+	public ExecutionInfo( URIParsingContext context, Constants.ExecutionMode mode ) {
 		super( context );
 		this.mode = mode;
 	}

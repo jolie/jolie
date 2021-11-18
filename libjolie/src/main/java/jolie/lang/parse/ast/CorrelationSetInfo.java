@@ -27,7 +27,7 @@ import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 public class CorrelationSetInfo extends OLSyntaxNode {
 	public static class CorrelationAliasInfo implements Serializable {
@@ -73,7 +73,7 @@ public class CorrelationSetInfo extends OLSyntaxNode {
 
 	private final List< CorrelationVariableInfo > variables;
 
-	public CorrelationSetInfo( ParsingContext context, List< CorrelationVariableInfo > variables ) {
+	public CorrelationSetInfo( URIParsingContext context, List< CorrelationVariableInfo > variables ) {
 		super( context );
 		this.variables = variables;
 	}

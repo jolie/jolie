@@ -26,7 +26,7 @@ import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 
 
@@ -34,7 +34,7 @@ import jolie.util.Pair;
 public class SumExpressionNode extends OLSyntaxNode {
 	private final List< Pair< Constants.OperandType, OLSyntaxNode > > operands;
 
-	public SumExpressionNode( ParsingContext context ) {
+	public SumExpressionNode( URIParsingContext context ) {
 		super( context );
 		operands = new ArrayList<>();
 	}

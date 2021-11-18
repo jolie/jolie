@@ -54,4 +54,19 @@ public interface ParsingContext extends Serializable {
 	 * @return the line at which the node has been read
 	 */
 	int line();
+
+	/**
+	 * Returns the column at which the error is.
+	 * 
+	 * @return the column at which the error is
+	 */
+	int column();
+
+	/**
+	 * Returns the line(s) where the error is, as a string.
+	 * 
+	 * @return the line(s) where the error is, as a string.
+	 */
+	String lineString();
+
 }

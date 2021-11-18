@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class ForEachSubNodeStatement extends OLSyntaxNode {
@@ -30,7 +30,7 @@ public class ForEachSubNodeStatement extends OLSyntaxNode {
 	private final OLSyntaxNode body;
 
 	public ForEachSubNodeStatement(
-		ParsingContext context,
+		URIParsingContext context,
 		VariablePathNode keyPath,
 		VariablePathNode targetPath,
 		OLSyntaxNode body ) {

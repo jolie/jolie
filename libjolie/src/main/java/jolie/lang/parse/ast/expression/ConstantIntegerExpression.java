@@ -22,13 +22,13 @@ package jolie.lang.parse.ast.expression;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class ConstantIntegerExpression extends OLSyntaxNode {
 	private final int value;
 
-	public ConstantIntegerExpression( ParsingContext context, int value ) {
+	public ConstantIntegerExpression( URIParsingContext context, int value ) {
 		super( context );
 		this.value = value;
 	}

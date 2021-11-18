@@ -22,14 +22,14 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 public class OutputPortInfo extends PortInfo {
 
 	private OLSyntaxNode protocol = null;
 	private OLSyntaxNode location = null;
 
-	public OutputPortInfo( ParsingContext context, String id ) {
+	public OutputPortInfo( URIParsingContext context, String id ) {
 		super( context, id );
 	}
 

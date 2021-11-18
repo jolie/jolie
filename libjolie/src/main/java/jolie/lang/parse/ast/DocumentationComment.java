@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 /**
  *
@@ -31,7 +31,7 @@ import jolie.lang.parse.context.ParsingContext;
 public class DocumentationComment extends OLSyntaxNode {
 	final private String comment;
 
-	public DocumentationComment( ParsingContext context, String InputComment ) {
+	public DocumentationComment( URIParsingContext context, String InputComment ) {
 		super( context );
 		this.comment = InputComment;
 	}

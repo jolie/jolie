@@ -22,14 +22,14 @@ package jolie.lang.parse.ast.courier;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class CourierDefinitionNode extends OLSyntaxNode {
 	private final String inputPortName;
 	private final OLSyntaxNode body;
 
-	public CourierDefinitionNode( ParsingContext context, String inputPortName, OLSyntaxNode body ) {
+	public CourierDefinitionNode( URIParsingContext context, String inputPortName, OLSyntaxNode body ) {
 		super( context );
 		this.inputPortName = inputPortName;
 		this.body = body;

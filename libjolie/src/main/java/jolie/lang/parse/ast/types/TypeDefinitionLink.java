@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -36,7 +36,7 @@ public class TypeDefinitionLink extends TypeDefinition {
 	private final String linkedTypeName;
 	private final String simpleName;
 
-	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality,
+	public TypeDefinitionLink( URIParsingContext context, String name, Range cardinality,
 		String linkedTypeName ) {
 		super( context, name, cardinality, AccessModifier.PUBLIC );
 		if( name.matches( "\\d#\\w+" ) ) {
@@ -47,7 +47,7 @@ public class TypeDefinitionLink extends TypeDefinition {
 		this.linkedTypeName = linkedTypeName;
 	}
 
-	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality, TypeDefinition linkedType ) {
+	public TypeDefinitionLink( URIParsingContext context, String name, Range cardinality, TypeDefinition linkedType ) {
 		super( context, name, cardinality, AccessModifier.PUBLIC );
 		if( name.matches( "\\d#\\w" ) ) {
 			this.simpleName = name.split( "\\d#" )[ 1 ];
@@ -58,7 +58,7 @@ public class TypeDefinitionLink extends TypeDefinition {
 		this.linkedType = linkedType;
 	}
 
-	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality, AccessModifier accessModifier,
+	public TypeDefinitionLink( URIParsingContext context, String name, Range cardinality, AccessModifier accessModifier,
 		TypeDefinition linkedType ) {
 		super( context, name, cardinality, accessModifier );
 		if( name.matches( "\\d#\\w" ) ) {
@@ -70,7 +70,7 @@ public class TypeDefinitionLink extends TypeDefinition {
 		this.linkedType = linkedType;
 	}
 
-	public TypeDefinitionLink( ParsingContext context, String name, Range cardinality, AccessModifier accessModifier,
+	public TypeDefinitionLink( URIParsingContext context, String name, Range cardinality, AccessModifier accessModifier,
 		String linkedTypeName ) {
 		super( context, name, cardinality, accessModifier );
 		if( name.matches( "\\d#\\w" ) ) {

@@ -25,19 +25,19 @@ import java.io.Serializable;
 
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Unit;
 
 public abstract class OLSyntaxNode implements Serializable {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private final ParsingContext context;
+	private final URIParsingContext context;
 
-	public OLSyntaxNode( ParsingContext context ) {
+	public OLSyntaxNode( URIParsingContext context ) {
 		this.context = context;
 	}
 
-	public ParsingContext context() {
+	public URIParsingContext context() {
 		return context;
 	}
 

@@ -22,7 +22,7 @@ package jolie.lang.parse.ast.expression;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class IsTypeExpressionNode extends OLSyntaxNode {
@@ -33,7 +33,7 @@ public class IsTypeExpressionNode extends OLSyntaxNode {
 	private final VariablePathNode variablePath;
 	private final CheckType type;
 
-	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePathNode variablePath ) {
+	public IsTypeExpressionNode( URIParsingContext context, CheckType type, VariablePathNode variablePath ) {
 		super( context );
 		this.type = type;
 		this.variablePath = variablePath;

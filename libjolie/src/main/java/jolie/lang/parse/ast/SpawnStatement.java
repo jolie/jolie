@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class SpawnStatement extends OLSyntaxNode {
@@ -31,7 +31,7 @@ public class SpawnStatement extends OLSyntaxNode {
 	private final OLSyntaxNode upperBoundExpression, body;
 
 	public SpawnStatement(
-		ParsingContext context,
+		URIParsingContext context,
 		VariablePathNode indexVariablePath,
 		OLSyntaxNode upperBoundExpression,
 		VariablePathNode inVariablePath,

@@ -22,13 +22,13 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class DefinitionCallStatement extends OLSyntaxNode {
 	private final String id;
 
-	public DefinitionCallStatement( ParsingContext context, String id ) {
+	public DefinitionCallStatement( URIParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}

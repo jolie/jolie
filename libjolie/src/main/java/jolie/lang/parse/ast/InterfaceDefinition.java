@@ -27,7 +27,7 @@ import java.util.Optional;
 
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 /**
  *
@@ -40,11 +40,11 @@ public class InterfaceDefinition extends OLSyntaxNode
 	private String documentation;
 	private final AccessModifier accessModifier;
 
-	public InterfaceDefinition( ParsingContext context, String name ) {
+	public InterfaceDefinition( URIParsingContext context, String name ) {
 		this( context, name, AccessModifier.PUBLIC );
 	}
 
-	public InterfaceDefinition( ParsingContext context, String name, AccessModifier accessModifier ) {
+	public InterfaceDefinition( URIParsingContext context, String name, AccessModifier accessModifier ) {
 		super( context );
 		this.name = name;
 		this.accessModifier = accessModifier;

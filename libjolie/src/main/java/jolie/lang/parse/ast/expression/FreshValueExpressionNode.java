@@ -21,11 +21,11 @@ package jolie.lang.parse.ast.expression;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class FreshValueExpressionNode extends OLSyntaxNode {
-	public FreshValueExpressionNode( ParsingContext context ) {
+	public FreshValueExpressionNode( URIParsingContext context ) {
 		super( context );
 	}
 

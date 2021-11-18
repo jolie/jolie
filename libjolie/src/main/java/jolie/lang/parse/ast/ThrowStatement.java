@@ -22,20 +22,20 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class ThrowStatement extends OLSyntaxNode {
 	private final String id;
 	private final OLSyntaxNode expression;
 
-	public ThrowStatement( ParsingContext context, String id ) {
+	public ThrowStatement( URIParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 		this.expression = null;
 	}
 
-	public ThrowStatement( ParsingContext context, String id, OLSyntaxNode expression ) {
+	public ThrowStatement( URIParsingContext context, String id, OLSyntaxNode expression ) {
 		super( context );
 		this.id = id;
 		this.expression = expression;

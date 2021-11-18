@@ -22,13 +22,13 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 public class ProvideUntilStatement extends OLSyntaxNode {
 	private final OLSyntaxNode provide, until;
 
-	public ProvideUntilStatement( ParsingContext context, OLSyntaxNode provide, OLSyntaxNode until ) {
+	public ProvideUntilStatement( URIParsingContext context, OLSyntaxNode provide, OLSyntaxNode until ) {
 		super( context );
 		this.provide = provide;
 		this.until = until;
