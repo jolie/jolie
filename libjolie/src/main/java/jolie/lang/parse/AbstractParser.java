@@ -614,7 +614,7 @@ public abstract class AbstractParser {
 	 */
 	protected final void throwException( Exception exception )
 		throws ParserException {
-		ParsingContext context = getContext();
+		URIParsingContext context = getContext();
 		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, exception.getMessage() );
 		throw new ParserException( exceptionMessage );
 	}
