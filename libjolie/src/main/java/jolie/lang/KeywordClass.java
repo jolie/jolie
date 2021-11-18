@@ -20,66 +20,139 @@
 
 package jolie.lang;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class KeywordClass {
-	/**
-	 * 
-	 * @return List of keywords that can be used inside the inputPort scope
-	 */
+
+	// Can also be used for outputPort
+	public static final String INPUTPORT_LOCATION = "location";
+	public static final String INNPUTPORT_PROTOCOL = "protocol";
+	public static final String INPUTPORT_INTERFACES = "interfaces";
+	public static final String INPUTPORT_AGGREGATES = "aggregates";
+	public static final String INPUTPORT_REDIRECTS = "redirects";
+	public static final String REQUESTRESPONSE = "requestResponse";
+	public static final String ONEWAY = "oneWay";
+
+	// Outermost scope
+	public static final String SERVICE = "service";
+	public static final String INTERFACE = "interface";
+	public static final String FROM = "from";
+	public static final String IMPORT = "import";
+	public static final String INCLUDE = "include";
+	public static final String TYPE = "type";
+	public static final String EXECUTION = "execution"; // can also be used inside service
+	public static final String CONSTANTS = "constants";
+	public static final String CSET = "cset";
+	public static final String EMBEDDED = "embedded";
+	public static final String CURRIER = "currier";
+	public static final String PUBLIC = "public";
+	public static final String PRIVATE = "private";
+	public static final String EXTENDER = "extender";
+
+	// Execution modalities
+	public static final String SEQUENTIAL = "sequential";
+	public static final String CONCURRENT = "concurrent";
+	public static final String SINGLE = "single";
+
+	// Service scope
+	public static final String INIT = "init";
+	public static final String MAIN = "main";
+	public static final String INPUTPORT = "inputPort";
+	public static final String OUTPUTPORT = "outputPort";
+	public static final String EMBED = "embed";
+	public static final String EMBED_AS = "as";
+	public static final String DEFINE = "define";
+
+	// Main and other inner scopes
+	public static final String FOR = "for";
+	public static final String WHILE = "while";
+	public static final String IF = "if";
+	public static final String ELSE = "else";
+	public static final String ELSE_IF = "else if";
+	public static final String FOREACH = "foreach";
+	public static final String WITH = "with";
+	public static final String UNDEF = "undef";
+	public static final String SYNCHRONIZED = "synchronized";
+	public static final String SCOPE = "scope";
+	public static final String INSTALL = "install";
+	public static final String SPAWN = "spawn";
+	public static final String OVER = "over";
+	public static final String IN = "in";
+	public static final String THROW = "throw";
+	public static final String CH = "cH";
+	public static final String COMP = "comp";
+	public static final String NULLPROCESS = "nullProcess";
+
+	// Languages that can be embedded
+	public static final String JOLIE = "Jolie";
+	public static final String JAVA = "Java";
+	public static final String JAVASCRIPTS = "JavaScript";
+
+	// Currier scope
+	public static final String FORWARD = "forward";
+
+
+	private static final List< String > INPUTPORTKEYWORDS =
+		List.of( "location", "protocol", "interfaces", "aggregates", "redirects",
+			"requestResponse", "oneWay" );
+
+	private static final List< String > OUTPUTPORTKEYWORDS =
+		List.of( "location", "protocol", "interfaces", "aggregates", "redirects",
+			"requestResponse", "oneWay" );
+
+	private static final List< String > OUTERKEYWORDS =
+		List.of( "service", "interface", "from", "include", "type", "import",
+			"execution", "constants", "cset", "embedded", "currier", "public", "private", "extender" );
+
+	private static final List< String > EXECUTIONKEYWORDS = List.of( "sequential", "concurrent", "single" );
+
+	private static final List< String > SERVICEKEYWORDS =
+		List.of( "execution", "init", "main", "inputPort", "outputPort", "embed", "as", "define" );
+
+	private static final List< String > MAINKEYWORDS =
+		List.of( "for", "while", "if", "else", "else if", "foreach", "with", "undef",
+			"synchronized", "scope", "install", "spawn", "over", "in", "throw", "cH", "comp", "nullProcess" );
+
+	private static final List< String > INTERFACEKEYWORDS = List.of( "oneWay", "requestResponse" );
+
+	private static final List< String > EMBEDDEDKEYWORDS = List.of( "Jolie", "Java", "JavaScript" );
+
+	private static final List< String > CURRIERKEYWORDS = List.of( "forward" );
+
 	public static List< String > inputPortKeywords() {
-		List< String > keywords = Arrays.asList( "location", "protocol", "interfaces", "aggregates", "redirects",
-			"RequestResponse", "OneWay" );
-		return keywords;
+		return INPUTPORTKEYWORDS;
 	}
 
 	public static List< String > outputPortKeywords() {
-		List< String > keywords = Arrays.asList( "location", "protocol", "interfaces", "aggregates", "redirects",
-			"RequestResponse", "OneWay" );
-		return keywords;
+		return OUTPUTPORTKEYWORDS;
 	}
 
-	/**
-	 * 
-	 * @return List of keywords that can be used in the outermost scope
-	 */
 	public static List< String > outerKeywords() {
-		List< String > keywords = Arrays.asList( "service", "interface", "from", "include", "type", "import",
-			"execution", "constants", "cset", "embedded", "currier", "public", "private", "extender" );
-		return keywords;
+		return OUTERKEYWORDS;
 	}
 
 	public static List< String > executionKeywords() {
-		List< String > keywords = Arrays.asList( "sequential", "concurrent", "single" );
-		return keywords;
+		return EXECUTIONKEYWORDS;
 	}
 
 	public static List< String > serviceKeywords() {
-		List< String > keywords =
-			Arrays.asList( "execution", "init", "main", "inputPort", "outputPort", "embed", "as", "define" );
-		return keywords;
+		return SERVICEKEYWORDS;
 	}
 
 	public static List< String > mainKeywords() {
-		List< String > keywords = Arrays.asList( "for", "while", "if", "else", "else if", "foreach", "with", "undef",
-			"synchronized", "scope", "install", "spawn", "over", "in", "throw", "cH", "comp", "nullProcess" );
-		return keywords;
+		return MAINKEYWORDS;
 	}
 
 	public static List< String > interfaceKeywords() {
-		List< String > keywords = Arrays.asList( "OneWay", "oneWay", "RequestResponse", "requestResponse" );
-		return keywords;
+		return INTERFACEKEYWORDS;
 	}
 
 	public static List< String > embeddedKeywords() {
-		List< String > keywords = Arrays.asList( "Jolie", "Java", "JavaScript", "in" );
-		return keywords;
+		return EMBEDDEDKEYWORDS;
 	}
 
 	public static List< String > cuorierKeywords() {
-		List< String > keywords = Arrays.asList( "forward" );
-		return keywords;
+		return CURRIERKEYWORDS;
 	}
 
 	public static List< String > getKeywordsForScope( String scope ) {
@@ -101,9 +174,9 @@ public class KeywordClass {
 		case "execution":
 			return executionKeywords();
 		case "import":
-			return Arrays.asList( "import" );
+			return List.of( "import" );
 		default:
-			return Arrays.asList();
+			return List.of();
 		}
 	}
 }
