@@ -1,7 +1,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * @author Karoly Szanto
@@ -10,7 +10,7 @@ public class SubtractAssignStatement extends OLSyntaxNode {
 	private final VariablePathNode variablePath;
 	private final OLSyntaxNode expression;
 
-	public SubtractAssignStatement( URIParsingContext context, VariablePathNode path, OLSyntaxNode expression ) {
+	public SubtractAssignStatement( ParsingContext context, VariablePathNode path, OLSyntaxNode expression ) {
 		super( context );
 		this.variablePath = path;
 		this.expression = expression;

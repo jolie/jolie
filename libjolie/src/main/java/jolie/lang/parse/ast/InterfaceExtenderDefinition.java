@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  *
@@ -32,7 +32,7 @@ public class InterfaceExtenderDefinition extends InterfaceDefinition {
 	private OneWayOperationDeclaration defaultOneWayOperation = null;
 	private RequestResponseOperationDeclaration defaultRequestResponseOperation = null;
 
-	public InterfaceExtenderDefinition( URIParsingContext context, String name, AccessModifier accessModifier ) {
+	public InterfaceExtenderDefinition( ParsingContext context, String name, AccessModifier accessModifier ) {
 		super( context, name, accessModifier );
 	}
 

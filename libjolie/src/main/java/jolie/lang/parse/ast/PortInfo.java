@@ -25,7 +25,7 @@ import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 import java.util.*;
 
@@ -41,7 +41,7 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 	private final List< InterfaceDefinition > interfaceList = new ArrayList<>();
 	private String document;
 
-	public PortInfo( URIParsingContext context, String id ) {
+	public PortInfo( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}

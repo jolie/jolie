@@ -2,7 +2,7 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class EmbedServiceNode extends OLSyntaxNode {
 	private static final long serialVersionUID = Constants.serialVersionUID();
@@ -14,7 +14,7 @@ public class EmbedServiceNode extends OLSyntaxNode {
 
 	private ServiceNode service;
 
-	public EmbedServiceNode( URIParsingContext context, String serviceName,
+	public EmbedServiceNode( ParsingContext context, String serviceName,
 		OutputPortInfo bindingPort, boolean isNewPort, OLSyntaxNode passingParam ) {
 		super( context );
 		this.serviceName = serviceName;

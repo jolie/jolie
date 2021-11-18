@@ -26,7 +26,7 @@ import java.util.Map;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class RequestResponseOperationDeclaration extends OperationDeclaration {
@@ -34,7 +34,7 @@ public class RequestResponseOperationDeclaration extends OperationDeclaration {
 	private final TypeDefinition requestType, responseType;
 
 	public RequestResponseOperationDeclaration(
-		URIParsingContext context,
+		ParsingContext context,
 		String id,
 		TypeDefinition requestType,
 		TypeDefinition responseType,

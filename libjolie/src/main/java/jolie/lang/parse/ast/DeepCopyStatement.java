@@ -23,7 +23,7 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class DeepCopyStatement extends OLSyntaxNode {
@@ -31,7 +31,7 @@ public class DeepCopyStatement extends OLSyntaxNode {
 	private final OLSyntaxNode rightExpression;
 	private final boolean copyLinks;
 
-	public DeepCopyStatement( URIParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression,
+	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression,
 		boolean copyLinks ) {
 		super( context );
 		if( rightExpression instanceof VariableExpressionNode ) {

@@ -21,13 +21,13 @@ package jolie.lang.parse.ast.expression;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class ConstantBoolExpression extends OLSyntaxNode {
 	private final boolean value;
 
-	public ConstantBoolExpression( URIParsingContext context, boolean value ) {
+	public ConstantBoolExpression( ParsingContext context, boolean value ) {
 		super( context );
 		this.value = value;
 	}

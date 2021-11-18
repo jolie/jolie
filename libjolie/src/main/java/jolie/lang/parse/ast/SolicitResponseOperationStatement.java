@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 import java.util.Optional;
 
@@ -34,7 +34,7 @@ public class SolicitResponseOperationStatement extends OLSyntaxNode {
 	private final InstallFunctionNode handlersFunction;
 
 	public SolicitResponseOperationStatement(
-		URIParsingContext context,
+		ParsingContext context,
 		String id,
 		String outputPortId,
 		OLSyntaxNode outputExpression,

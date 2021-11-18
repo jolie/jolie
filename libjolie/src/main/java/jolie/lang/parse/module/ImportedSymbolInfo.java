@@ -23,7 +23,7 @@ import java.util.Optional;
 
 import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * A class represent a Symbol defined within external execution environment. Create when consuming
@@ -35,7 +35,7 @@ class ImportedSymbolInfo extends SymbolInfo {
 	private final String originalSymbolName;
 	private ModuleSource moduleSource;
 
-	protected ImportedSymbolInfo( URIParsingContext context, String name, ImportPath importPath,
+	protected ImportedSymbolInfo( ParsingContext context, String name, ImportPath importPath,
 		String originalSymbolName ) {
 		super( context, name, Scope.EXTERNAL, AccessModifier.PRIVATE );
 		this.importPath = importPath;

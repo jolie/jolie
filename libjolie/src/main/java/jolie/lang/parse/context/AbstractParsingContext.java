@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,26 +19,25 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.context;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.Constants;
 
+/**
+ * Skeleton class provided for implementing {@link ParsingContext}.
+ * 
+ * @author Fabrizio Montesi
+ */
+public abstract class AbstractParsingContext implements ParsingContext {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+	private final int line;
 
-public class PostDecrementStatement extends OLSyntaxNode {
-	private final VariablePathNode variablePath;
-
-	public PostDecrementStatement( ParsingContext context, VariablePathNode variablePath ) {
-		super( context );
-		this.variablePath = variablePath;
-	}
-
-	public VariablePathNode variablePath() {
-		return variablePath;
+	public AbstractParsingContext( int line ) {
+		this.line = line;
 	}
 
 	@Override
-	public < C, R > R accept( OLVisitor< C, R > visitor, C ctx ) {
-		return visitor.visit( this, ctx );
+	public int line() {
+		return line;
 	}
 }

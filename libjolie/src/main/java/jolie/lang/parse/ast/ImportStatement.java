@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 /**
@@ -44,7 +44,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
 	 *        should give this field ["", "A", "", "B"])
 	 */
-	public ImportStatement( URIParsingContext context, List< String > importTarget ) {
+	public ImportStatement( ParsingContext context, List< String > importTarget ) {
 		this( context, importTarget, true, null );
 	}
 
@@ -57,7 +57,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
 	 *        of (moduleSymbolName, localSymbolName)
 	 */
-	public ImportStatement( URIParsingContext context, List< String > importTarget,
+	public ImportStatement( ParsingContext context, List< String > importTarget,
 		List< Pair< String, String > > pathNodes ) {
 		this( context, importTarget, false, pathNodes );
 	}
@@ -73,7 +73,7 @@ public class ImportStatement extends OLSyntaxNode {
 	 * @param pathNodes list of parsed Symbol token in target Symbol each element in list refer to pair
 	 *        of (moduleSymbolName, localSymbolName)
 	 */
-	private ImportStatement( URIParsingContext context, List< String > importTarget,
+	private ImportStatement( ParsingContext context, List< String > importTarget,
 		boolean isNamespaceImport, List< Pair< String, String > > pathNodes ) {
 		super( context );
 		this.importTarget = importTarget;

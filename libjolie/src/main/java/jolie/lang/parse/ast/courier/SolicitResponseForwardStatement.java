@@ -22,7 +22,7 @@ package jolie.lang.parse.ast.courier;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * 
@@ -34,7 +34,7 @@ public class SolicitResponseForwardStatement extends OLSyntaxNode {
 	private final VariablePathNode inputVariablePath;
 
 	public SolicitResponseForwardStatement(
-		URIParsingContext context,
+		ParsingContext context,
 		String outputPortName,
 		VariablePathNode outputVariablePath,
 		VariablePathNode inputVariablePath ) {

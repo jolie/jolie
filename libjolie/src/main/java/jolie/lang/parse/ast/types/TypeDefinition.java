@@ -32,7 +32,7 @@ import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.ImportableSymbol;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -55,7 +55,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 * @param cardinality the cardinality of this type
 	 * @param accessModifier the access modifier of symbolinfo
 	 */
-	public TypeDefinition( URIParsingContext context, String name, Range cardinality, AccessModifier accessModifier ) {
+	public TypeDefinition( ParsingContext context, String name, Range cardinality, AccessModifier accessModifier ) {
 		super( context );
 		this.name = name;
 		this.cardinality = cardinality;

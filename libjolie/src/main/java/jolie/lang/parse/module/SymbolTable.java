@@ -26,7 +26,7 @@ import java.util.Optional;
 import jolie.lang.parse.ast.ImportableSymbol;
 import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.SymbolInfo.Scope;
 import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 
@@ -105,7 +105,7 @@ public class SymbolTable {
 	 * 
 	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
-	protected void addSymbol( URIParsingContext context, String name, ImportPath importPath )
+	protected void addSymbol( ParsingContext context, String name, ImportPath importPath )
 		throws DuplicateSymbolException {
 		if( isDuplicateSymbol( name ) ) {
 			throw new DuplicateSymbolException( name );
@@ -125,7 +125,7 @@ public class SymbolTable {
 	 * 
 	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
-	protected void addSymbolWithAlias( URIParsingContext context, String name, ImportPath importPath,
+	protected void addSymbolWithAlias( ParsingContext context, String name, ImportPath importPath,
 		String originalSymbolName ) throws DuplicateSymbolException {
 		if( isDuplicateSymbol( name ) ) {
 			throw new DuplicateSymbolException( name );
@@ -140,7 +140,7 @@ public class SymbolTable {
 	 * @param importPath a object represent importing path to module where the symbol reside
 	 * 
 	 */
-	protected void addWildcardSymbol( URIParsingContext context, ImportPath importPath ) {
+	protected void addWildcardSymbol( ParsingContext context, ImportPath importPath ) {
 		this.symbols.put( importPath.toString(),
 			new WildcardImportedSymbolInfo( context, importPath ) );
 	}

@@ -25,14 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 
 public class SequenceStatement extends OLSyntaxNode {
 	private final List< OLSyntaxNode > children;
 
-	public SequenceStatement( URIParsingContext context ) {
+	public SequenceStatement( ParsingContext context ) {
 		super( context );
 		children = new ArrayList<>();
 	}

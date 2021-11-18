@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -33,12 +33,12 @@ public class TypeChoiceDefinition extends TypeDefinition {
 	private final TypeDefinition left;
 	private final TypeDefinition right;
 
-	public TypeChoiceDefinition( URIParsingContext context, String id, Range cardinality, TypeDefinition left,
+	public TypeChoiceDefinition( ParsingContext context, String id, Range cardinality, TypeDefinition left,
 		TypeDefinition right ) {
 		this( context, id, cardinality, AccessModifier.PUBLIC, left, right );
 	}
 
-	public TypeChoiceDefinition( URIParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
+	public TypeChoiceDefinition( ParsingContext context, String id, Range cardinality, AccessModifier accessModifier,
 		TypeDefinition left,
 		TypeDefinition right ) {
 		super( context, id, cardinality, accessModifier );

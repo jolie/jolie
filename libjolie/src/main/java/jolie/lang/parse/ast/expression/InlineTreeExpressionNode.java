@@ -24,7 +24,7 @@ import java.io.Serializable;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class InlineTreeExpressionNode extends OLSyntaxNode {
@@ -89,7 +89,7 @@ public class InlineTreeExpressionNode extends OLSyntaxNode {
 	private final Operation[] operations;
 
 	public InlineTreeExpressionNode(
-		URIParsingContext context,
+		ParsingContext context,
 		OLSyntaxNode rootExpression,
 		Operation[] operations ) {
 		super( context );

@@ -143,6 +143,7 @@ import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementLongRanges;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringLength;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringList;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringRegex;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.util.ProgramBuilder;
 import jolie.util.Helpers;
@@ -199,7 +200,7 @@ public class OLParser extends AbstractParser {
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader ) {
 		super( scanner );
-		final URIParsingContext context = new URIParsingContext( scanner.source(), 0, 0, "" );
+		final ParsingContext context = new URIParsingContext( scanner.source(), 0, 0, "" );
 		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
@@ -211,7 +212,7 @@ public class OLParser extends AbstractParser {
 		constantsMap.putAll( constantsToPut );
 	}
 
-	public static Map< String, TypeDefinition > createTypeDeclarationMap( URIParsingContext context ) {
+	public static Map< String, TypeDefinition > createTypeDeclarationMap( ParsingContext context ) {
 		Map< String, TypeDefinition > definedTypes = new HashMap<>();
 
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
@@ -1420,7 +1421,7 @@ public class OLParser extends AbstractParser {
 	 * Parses an internal service, i.e. service service_name {}
 	 */
 	private EmbeddedServiceNode createInternalService(
-		URIParsingContext ctx,
+		ParsingContext ctx,
 		String serviceName,
 		InterfaceDefinition[] ifaces,
 		SequenceStatement init,
@@ -1513,7 +1514,7 @@ public class OLParser extends AbstractParser {
 	}
 
 	private ServiceNode createForeignServiceNode(
-		URIParsingContext ctx,
+		ParsingContext ctx,
 		String serviceName,
 		Pair< String, TypeDefinition > parameter,
 		AccessModifier accessModifier,
@@ -1525,7 +1526,7 @@ public class OLParser extends AbstractParser {
 	}
 
 	private ServiceNode createJolieServiceNode(
-		URIParsingContext ctx,
+		ParsingContext ctx,
 		String serviceName,
 		Pair< String, TypeDefinition > parameter,
 		AccessModifier accessModifier,
@@ -1586,7 +1587,7 @@ public class OLParser extends AbstractParser {
 		Map< String, String > configMap = new HashMap<>();
 
 		assertToken( Scanner.TokenType.ID, "expected service name" );
-		URIParsingContext ctx = getContext();
+		ParsingContext ctx = getContext();
 		String serviceName = token.content();
 		nextToken();
 
@@ -2638,7 +2639,7 @@ public class OLParser extends AbstractParser {
 
 	private OLSyntaxNode parseProvideUntilStatement()
 		throws IOException, ParserException {
-		URIParsingContext context = getContext();
+		ParsingContext context = getContext();
 		NDChoiceStatement provide = parseNDChoiceStatement();
 		if( !token.isKeyword( "until" ) ) {
 			throwException( "expected until" );
@@ -2770,11 +2771,11 @@ public class OLParser extends AbstractParser {
 			retVal =
 				new PointerStatement( getContext(), path, parseVariablePath() );
 		} else if( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
-			URIParsingContext context = getContext();
+			ParsingContext context = getContext();
 			nextToken();
 			retVal = new DeepCopyStatement( context, path, parseExpression(), false );
 		} else if( token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) ) {
-			URIParsingContext context = getContext();
+			ParsingContext context = getContext();
 			nextToken();
 			retVal = new DeepCopyStatement( context, path, parseExpression(), true );
 		} else {
@@ -2995,7 +2996,7 @@ public class OLParser extends AbstractParser {
 
 	private OLSyntaxNode parseInputOperationStatement( String id )
 		throws IOException, ParserException {
-		URIParsingContext context = getContext();
+		ParsingContext context = getContext();
 		VariablePathNode inputVarPath = parseOperationVariablePathParameter();
 		OLSyntaxNode stm;
 
@@ -3052,7 +3053,7 @@ public class OLParser extends AbstractParser {
 
 	private OLSyntaxNode parseOutputOperationStatement( String id )
 		throws IOException, ParserException {
-		URIParsingContext context = getContext();
+		ParsingContext context = getContext();
 		String outputPortId = token.content();
 		nextToken();
 
@@ -3090,7 +3091,7 @@ public class OLParser extends AbstractParser {
 
 	private OLSyntaxNode parseWhileStatement()
 		throws IOException, ParserException {
-		URIParsingContext context = getContext();
+		ParsingContext context = getContext();
 		OLSyntaxNode cond, process;
 		nextToken();
 
@@ -3553,7 +3554,7 @@ public class OLParser extends AbstractParser {
 
 	private void parseImport() throws IOException, ParserException {
 		if( token.is( Scanner.TokenType.FROM ) ) {
-			URIParsingContext context = getContext();
+			ParsingContext context = getContext();
 			boolean isNamespaceImport = false;
 			nextToken();
 			List< String > importTargets = new ArrayList<>();
