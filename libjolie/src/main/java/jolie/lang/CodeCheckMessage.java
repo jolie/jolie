@@ -20,25 +20,23 @@
 
 package jolie.lang;
 
-import jolie.lang.parse.context.ParsingContext;
-
 import java.security.InvalidParameterException;
 import java.util.Optional;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.URIParsingContext;
 
 public class CodeCheckMessage {
-	private final ParsingContext context;
+	private final URIParsingContext context;
 	private final String description;
-	private String help;
+	private final String help;
 
-	private CodeCheckMessage( ParsingContext context, String description, String help ) {
+	private CodeCheckMessage( URIParsingContext context, String description, String help ) {
 		this.context = context;
 		this.description = description;
 		this.help = help;
 	}
 
-	public static CodeCheckMessage withHelp( ParsingContext context, String description, String help )
+	public static CodeCheckMessage withHelp( URIParsingContext context, String description, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
 			throw new InvalidParameterException( "Parameter help cannot be null." );
@@ -56,7 +54,7 @@ public class CodeCheckMessage {
 			message, null );
 	}
 
-	public static CodeCheckMessage withoutHelp( ParsingContext context, String description ) {
+	public static CodeCheckMessage withoutHelp( URIParsingContext context, String description ) {
 		return new CodeCheckMessage( context, description, null );
 	}
 
@@ -69,7 +67,7 @@ public class CodeCheckMessage {
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
-			URIParsingContext myContext = (URIParsingContext) context;
+			URIParsingContext myContext = context;
 			messageBuilder.append( myContext.sourceName() ).append( ":" ).append( myContext.line() )
 				.append( ": error: " );
 			if( description != null ) {
@@ -102,15 +100,11 @@ public class CodeCheckMessage {
 		return messageBuilder.toString();
 	}
 
-	public void setHelp( String help ) {
-		this.help = help;
-	}
-
 	public Optional< String > help() {
 		return Optional.ofNullable( help );
 	}
 
-	public Optional< ParsingContext > context() {
+	public Optional< URIParsingContext > context() {
 		return Optional.ofNullable( context );
 	}
 
