@@ -321,8 +321,8 @@ public abstract class AbstractParser {
 			}
 
 		}
-		if( proposedWord.isEmpty() && tokenContent.isEmpty() ) { // if the token is missing, the user is given all
-																	// possible tokens that can be written
+		if( tokenContent.isEmpty() ) { // if the token is missing, the user is given all
+										// possible tokens that can be written
 			StringBuilder help =
 				new StringBuilder(
 					"You are missing a keyword. Possible inputs are:\n" );
@@ -588,6 +588,13 @@ public abstract class AbstractParser {
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "service":
+			if( mesg.contains( "unexpected term found inside service" ) && token.content().isEmpty() ) {
+				extralines = getWholeScope( scopeName, scope );
+				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
+				help = createHelpMessageWithScope( context, token.content(), extralines, scope );
+				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+				break;
+			}
 			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
