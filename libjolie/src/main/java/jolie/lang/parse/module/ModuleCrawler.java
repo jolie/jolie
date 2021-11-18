@@ -97,10 +97,8 @@ class ModuleCrawler {
 				importedSymbol.setModuleSource( moduleSource );
 				modulesToCrawl.add( moduleSource );
 			} catch( ModuleNotFoundException e ) {
-
 				CodeCheckMessage message =
-					CodeCheckMessage.withHelp( importedSymbol.context(), e.getMessage(),
-						e.getHelp( importedSymbol.context() ) );
+					CodeCheckMessage.withHelp( importedSymbol.context(), e.getMessage(), e.getHelp() );
 				throw new ModuleException( message );
 			}
 		}

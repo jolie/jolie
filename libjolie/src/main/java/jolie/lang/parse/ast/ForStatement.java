@@ -22,14 +22,14 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class ForStatement extends OLSyntaxNode {
 	private final OLSyntaxNode init, condition, post, body;
 
 	public ForStatement(
-		URIParsingContext context,
+		ParsingContext context,
 		OLSyntaxNode init,
 		OLSyntaxNode condition,
 		OLSyntaxNode post,

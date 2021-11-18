@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class NotificationOperationStatement extends OLSyntaxNode {
@@ -30,7 +30,7 @@ public class NotificationOperationStatement extends OLSyntaxNode {
 	private final OLSyntaxNode outputExpression;
 
 	public NotificationOperationStatement(
-		URIParsingContext context,
+		ParsingContext context,
 		String id,
 		String outputPortId,
 		OLSyntaxNode outputExpression ) {

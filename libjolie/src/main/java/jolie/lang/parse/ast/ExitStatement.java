@@ -22,10 +22,10 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class ExitStatement extends OLSyntaxNode {
-	public ExitStatement( URIParsingContext context ) {
+	public ExitStatement( ParsingContext context ) {
 		super( context );
 	}
 

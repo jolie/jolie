@@ -22,13 +22,13 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class PostIncrementStatement extends OLSyntaxNode {
 	private final VariablePathNode variablePath;
 
-	public PostIncrementStatement( URIParsingContext context, VariablePathNode variablePath ) {
+	public PostIncrementStatement( ParsingContext context, VariablePathNode variablePath ) {
 		super( context );
 		this.variablePath = variablePath;
 	}

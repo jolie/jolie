@@ -21,7 +21,7 @@ package jolie.lang.parse.module;
 
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * an abstract class of Symbol declaration in Jolie
@@ -54,7 +54,7 @@ public abstract class SymbolInfo {
 	/**
 	 * Declaration context of the symbol
 	 */
-	private final URIParsingContext context;
+	private final ParsingContext context;
 
 	/**
 	 * pointer to an AST node
@@ -69,7 +69,7 @@ public abstract class SymbolInfo {
 	 * @param scope scope of the symbol origin
 	 * @param accessModifier modifier identify accessibility of this symbol
 	 */
-	protected SymbolInfo( URIParsingContext context, String name, Scope scope, AccessModifier accessModifier ) {
+	protected SymbolInfo( ParsingContext context, String name, Scope scope, AccessModifier accessModifier ) {
 		this.context = context;
 		this.name = name;
 		this.scope = scope;
@@ -99,7 +99,7 @@ public abstract class SymbolInfo {
 		return accessModifier;
 	}
 
-	protected URIParsingContext context() {
+	protected ParsingContext context() {
 		return context;
 	}
 

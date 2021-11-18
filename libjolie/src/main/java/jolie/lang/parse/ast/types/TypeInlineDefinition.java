@@ -29,7 +29,7 @@ import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -41,14 +41,14 @@ public class TypeInlineDefinition extends TypeDefinition {
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( URIParsingContext context, String name, BasicTypeDefinition basicTypeDefinition,
+	public TypeInlineDefinition( ParsingContext context, String name, BasicTypeDefinition basicTypeDefinition,
 		Range cardinality,
 		AccessModifier accessModifier ) {
 		super( context, name, cardinality, accessModifier );
 		this.basicTypeDefinition = basicTypeDefinition;
 	}
 
-	public TypeInlineDefinition( URIParsingContext context, String name, BasicTypeDefinition basicTypeDefinition,
+	public TypeInlineDefinition( ParsingContext context, String name, BasicTypeDefinition basicTypeDefinition,
 		Range cardinality ) {
 		this( context, name, basicTypeDefinition, cardinality, AccessModifier.PUBLIC );
 	}

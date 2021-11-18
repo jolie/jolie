@@ -24,13 +24,13 @@ package jolie.lang.parse.ast;
 import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class Program extends OLSyntaxNode {
 	private final List< OLSyntaxNode > children;
 
-	public Program( URIParsingContext context, List< OLSyntaxNode > children ) {
+	public Program( ParsingContext context, List< OLSyntaxNode > children ) {
 		super( context );
 		this.children = children;
 	}

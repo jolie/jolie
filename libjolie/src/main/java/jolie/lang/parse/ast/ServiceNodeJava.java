@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 public class ServiceNodeJava extends ServiceNode {
@@ -36,7 +36,7 @@ public class ServiceNodeJava extends ServiceNode {
 		return config.containsKey( "class" );
 	}
 
-	protected ServiceNodeJava( URIParsingContext context, String name, AccessModifier accessModifier, Program p,
+	protected ServiceNodeJava( ParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter, Map< String, String > config ) {
 		super( context, name, accessModifier, p, parameter, Constants.EmbeddedServiceType.SERVICENODE_JAVA, config );
 		this.outputPortInfos = new HashMap<>();

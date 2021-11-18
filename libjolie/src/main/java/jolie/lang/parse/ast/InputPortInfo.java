@@ -24,7 +24,7 @@ package jolie.lang.parse.ast;
 import java.io.Serializable;
 import java.util.Map;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class InputPortInfo extends PortInfo {
 	public static class AggregationItemInfo implements Serializable {
@@ -51,7 +51,7 @@ public class InputPortInfo extends PortInfo {
 	private final Map< String, String > redirectionMap;
 
 	public InputPortInfo(
-		URIParsingContext context,
+		ParsingContext context,
 		String id,
 		OLSyntaxNode location,
 		OLSyntaxNode protocol,

@@ -110,7 +110,7 @@ import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 
@@ -126,10 +126,10 @@ public class OLParseTreeOptimizer {
 	 */
 	private static class OptimizerVisitor implements UnitOLVisitor {
 		private final List< OLSyntaxNode > programChildren = new ArrayList<>();
-		private final URIParsingContext context;
+		private final ParsingContext context;
 		private OLSyntaxNode currNode;
 
-		public OptimizerVisitor( URIParsingContext context ) {
+		public OptimizerVisitor( ParsingContext context ) {
 			this.context = context;
 		}
 

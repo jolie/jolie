@@ -22,7 +22,7 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.DocumentedNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ public abstract class OperationDeclaration extends OLSyntaxNode implements Docum
 	private final String id;
 	private String document = null;
 
-	public OperationDeclaration( URIParsingContext context, String id ) {
+	public OperationDeclaration( ParsingContext context, String id ) {
 		super( context );
 		this.id = id;
 	}

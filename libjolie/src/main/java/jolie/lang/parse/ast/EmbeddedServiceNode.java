@@ -23,7 +23,7 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class EmbeddedServiceNode extends OLSyntaxNode {
 	private final String servicePath;
@@ -33,7 +33,7 @@ public class EmbeddedServiceNode extends OLSyntaxNode {
 	private Program program = null;
 
 	public EmbeddedServiceNode(
-		URIParsingContext context,
+		ParsingContext context,
 		Constants.EmbeddedServiceType type,
 		String servicePath,
 		String portId ) {

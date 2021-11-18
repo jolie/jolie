@@ -29,7 +29,7 @@ import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 
@@ -41,13 +41,13 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable {
 	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
 	private final Type type;
 
-	public VariablePathNode( URIParsingContext context, Type type ) {
+	public VariablePathNode( ParsingContext context, Type type ) {
 		super( context );
 		path = new ArrayList<>();
 		this.type = type;
 	}
 
-	public VariablePathNode( URIParsingContext context, Type type, int size ) {
+	public VariablePathNode( ParsingContext context, Type type, int size ) {
 		super( context );
 		path = new ArrayList<>( size );
 		this.type = type;

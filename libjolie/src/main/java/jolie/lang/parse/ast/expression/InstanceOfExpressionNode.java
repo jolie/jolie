@@ -22,14 +22,14 @@ package jolie.lang.parse.ast.expression;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class InstanceOfExpressionNode extends OLSyntaxNode {
 	private final OLSyntaxNode expression;
 	private final TypeDefinition type;
 
-	public InstanceOfExpressionNode( URIParsingContext context, OLSyntaxNode expression, TypeDefinition type ) {
+	public InstanceOfExpressionNode( ParsingContext context, OLSyntaxNode expression, TypeDefinition type ) {
 		super( context );
 		this.type = type;
 		this.expression = expression;

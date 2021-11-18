@@ -29,7 +29,7 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * 
@@ -115,7 +115,7 @@ public class CourierChoiceStatement extends OLSyntaxNode {
 	private final List< OperationRequestResponseBranch > operationRequestResponseBranches =
 		new LinkedList<>();
 
-	public CourierChoiceStatement( URIParsingContext context ) {
+	public CourierChoiceStatement( ParsingContext context ) {
 		super( context );
 	}
 

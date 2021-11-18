@@ -22,10 +22,10 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class NullProcessStatement extends OLSyntaxNode {
-	public NullProcessStatement( URIParsingContext context ) {
+	public NullProcessStatement( ParsingContext context ) {
 		super( context );
 	}
 

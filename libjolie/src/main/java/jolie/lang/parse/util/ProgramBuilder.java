@@ -32,13 +32,13 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class ProgramBuilder {
-	private final URIParsingContext context;
+	private final ParsingContext context;
 	private final List< OLSyntaxNode > children = new ArrayList<>();
 
-	public ProgramBuilder( URIParsingContext context ) {
+	public ProgramBuilder( ParsingContext context ) {
 		this.context = context;
 	}
 
