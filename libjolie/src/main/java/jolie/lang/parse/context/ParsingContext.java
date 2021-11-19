@@ -24,6 +24,7 @@ package jolie.lang.parse.context;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.List;
 
 /**
  * A {@code ParsingContext} allows for the retrieval of information regarding the context in which
@@ -57,5 +58,5 @@ public interface ParsingContext extends Serializable {
 
 	int column();
 
-	String lineString();
+	List< String > code();
 }

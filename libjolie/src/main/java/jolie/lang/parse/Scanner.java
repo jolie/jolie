@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -479,11 +480,19 @@ public class Scanner {
 	 * 
 	 * @return current line in file
 	 */
-	public String lineString() {
+	public List<String> CodeLine() {
 		try{
-		return lineTokens.get(line());
+			String line = line()+":"+lineTokens.get(line());
+			if(!line.endsWith("\n")){
+				line += "\n";
+			}
+			return List.of(line);
 		} catch (IndexOutOfBoundsException e){
-			return lineTokens.get(line()-1);
+			String line = (line()-1)+":"+lineTokens.get(line()-1);
+			if(!line.endsWith("\n")){
+				line += "\n";
+			}
+			return List.of(line);
 		}
 	}
 
@@ -500,7 +509,7 @@ public class Scanner {
 		errorColumn = myColumn;
 	}
 
-	public ArrayList<String> getAllLines(){
+	public List<String> getAllCodeLines(){
 		return lineTokens;
 	}
 

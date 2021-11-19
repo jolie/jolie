@@ -200,7 +200,7 @@ public class OLParser extends AbstractParser {
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader ) {
 		super( scanner );
-		final ParsingContext context = new URIParsingContext( scanner.source(), 0, 0, "" );
+		final ParsingContext context = new URIParsingContext( scanner.source(), 0, 0, List.of() );
 		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;

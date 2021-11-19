@@ -185,7 +185,8 @@ public abstract class AbstractParser {
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContext() {
-		return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(), scanner.lineString() );
+		return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(),
+			scanner.CodeLine() );
 	}
 
 	/**
@@ -198,15 +199,18 @@ public abstract class AbstractParser {
 		readLineAfterError();
 		if( linenr < scanner.line() ) {
 			return new URIParsingContext( scanner.source(), linenr, scanner.errorColumn(),
-				scanner.lineString().replace( '\n', ' ' ).stripTrailing() );
+				scanner.CodeLine() );
 		} else if( scanner.errorColumn() < 0 ) {
-			String correctLine = scanner.getAllLines().get( linenr - 1 ).replace( '\n', ' ' ).stripTrailing();
+			String correctLine = scanner.getAllCodeLines().get( linenr - 1 );
+			if( !correctLine.endsWith( "\n" ) ) {
+				correctLine += "\n";
+			}
 			return new URIParsingContext( scanner.source(), linenr - 1, correctLine.length(),
-				correctLine );
+				List.of( correctLine ) );
 
 		} else {
 			return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(),
-				scanner.lineString() );
+				scanner.CodeLine() );
 		}
 	}
 
@@ -313,46 +317,38 @@ public abstract class AbstractParser {
 	 * @param possibleTokens list of possible keywords, which the user could have meant or are missing
 	 */
 	public String createHelpMessage( ParsingContext context, String tokenContent, List< String > possibleTokens ) {
+		if( tokenContent.isEmpty() ) { // if the token is missing, the user is given all
+			// possible tokens that can be written
+			StringBuilder help = new StringBuilder( "You are missing a keyword. Possible inputs are:\n" )
+				.append( String.join( ", ", possibleTokens ) );
+			return help.toString();
+		}
+		// if tokenContent not empty, look for closely related correct keywords
 		LevenshteinDistance dist = new LevenshteinDistance();
 		ArrayList< String > proposedWord = new ArrayList<>();
 		for( String correctToken : possibleTokens ) {
 			if( dist.apply( tokenContent, correctToken ) <= 2 ) {
 				proposedWord.add( correctToken );
 			}
-
 		}
-		if( tokenContent.isEmpty() ) { // if the token is missing, the user is given all
-										// possible tokens that can be written
-			StringBuilder help =
-				new StringBuilder(
-					"You are missing a keyword. Possible inputs are:\n" ).append( String.join( ", ", possibleTokens ) );
-			return help.toString();
-		} else if( proposedWord.isEmpty() && !tokenContent.isEmpty() ) { // If none of the correct terms match the
-																			// written token
-			StringBuilder help =
-				new StringBuilder(
-					"The term did not match possible terms. Possible inputs are:\n" )
-						.append( String.join( ", ", possibleTokens ) );
+		if( proposedWord.isEmpty() && !tokenContent.isEmpty() ) { // If none of the correct terms match the written
+																	// token
+			StringBuilder help = new StringBuilder( "The term did not match possible terms. Possible inputs are:\n" )
+				.append( String.join( ", ", possibleTokens ) );
 			return help.toString();
 		} else { // If one or more words are really close to the token, the suggested correct token will be presented
 					// with the original code line, to show how to write it correctly
 			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " )
-				.append( String.join( ", ", proposedWord ) ).append( ". Perhaps you meant:\n" ).append( context.line() )
-				.append( ':' );
-			int numberSpaces;
-			if( context.column() != 0 ) {
-				help.append( context.lineString().substring( 0, context.column() ) )
-					.append( proposedWord.get( 0 ) )
-					.append( context.lineString().substring( context.column() + tokenContent.length() ) )
-					.append( '\n' );
-				numberSpaces = context.column() + (":" + context.line()).length();
-			} else {
-				help.append( proposedWord.get( 0 ) )
-					.append( context.lineString().substring( context.column() + tokenContent.length() ) )
-					.append( '\n' );
-				numberSpaces = context.column() + (":" + context.line()).length();
+				.append( String.join( ", ", proposedWord ) )
+				.append( ". Perhaps you meant:\n" );
+			int columnSpace = context.column() + (context.line() + ":").length();
+			help.append( context.code().get( 0 ).substring( 0, columnSpace ) )
+				.append( proposedWord.get( 0 ) )
+				.append( context.code().get( 0 ).substring( tokenContent.length() + columnSpace ) );
+			if( !context.code().get( 0 ).endsWith( "\n" ) ) {
+				help.append( "\n" );
 			}
-			for( int j = 0; j < numberSpaces; j++ ) {
+			for( int j = 0; j < columnSpace; j++ ) {
 				help.append( " " );
 			}
 			help.append( '^' );
@@ -362,7 +358,7 @@ public abstract class AbstractParser {
 
 	// Should have more booleans, when more cases are covered, where extra lines of code are necessary,
 	// fx with execution modality
-	public String createHelpMessageWithScope( ParsingContext context, String tokenContent, String extraLines,
+	public String createHelpMessageWithScope( ParsingContext context, String tokenContent,
 		String scope ) {
 		StringBuilder help = new StringBuilder();
 		List< String > possibleTerms = KeywordClass.getKeywordsForScope( scope );
@@ -384,36 +380,18 @@ public abstract class AbstractParser {
 				help.append( "\nYour term is similar to what would be valid input: " )
 					.append( String.join( ", ", proposedWord ) )
 					.append( ". Perhaps you meant:\n" );
-				int numberSpaces;
-				if( context.column() != 0 ) {
-					String[] lineStringSplit = context.lineString().split( "\n" );
-					for( String split : lineStringSplit ) {
-						if( split.contains( context.line() + ":" ) ) {
-							int correctColumn = context.column() + split.split( ":" )[ 0 ].length() + 1;
-							help.append( split.substring( 0, correctColumn ) )
-								.append( proposedWord.get( 0 ) )
-								.append( split.substring( correctColumn + tokenContent.length() ) )
-								.append( "\n" );
-						} else {
-							help.append( split ).append( "\n" );
-						}
+				int numberSpaces = context.column() + (":" + context.line()).length();
+				for( String line : context.code() ) {
+					if( line.contains( context.line() + ":" ) ) {
+						help.append( line.substring( 0, numberSpaces ) )
+							.append( proposedWord.get( 0 ) )
+							.append( line.substring( numberSpaces + tokenContent.length() ) );
+					} else {
+						help.append( line );
 					}
-					numberSpaces = context.column() + (":" + context.line()).length();
-				} else {
-					String[] lineStringSplit = context.lineString().split( "\n" );
-					for( String split : lineStringSplit ) {
-						if( split.contains( context.line() + ":" ) ) {
-							int correctColumn = context.column() + split.split( ":" )[ 0 ].length() + 1;
-							help.append( split.split( ":" )[ 0 ] )
-								.append( ":" )
-								.append( proposedWord.get( 0 ) )
-								.append( split.substring( correctColumn + tokenContent.length() ) )
-								.append( "\n" );
-						} else {
-							help.append( split ).append( "\n" );
-						}
+					if( !line.endsWith( "\n" ) ) {
+						help.append( "\n" );
 					}
-					numberSpaces = context.column() + (":" + context.line()).length();
 				}
 				for( int j = 0; j < numberSpaces; j++ ) {
 					help.append( " " );
@@ -447,7 +425,7 @@ public abstract class AbstractParser {
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
 			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
-				context.lineString() );
+				context.code() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		}
 		throw new ParserException( exceptionMessage );
@@ -460,10 +438,10 @@ public abstract class AbstractParser {
 	 * @param name The name of the scope, e.g. the inputPort name
 	 * @param scope The scope we are in, e.g. an inputPort
 	 */
-	protected final String getWholeScope( String name, String scope ) {
-		ArrayList< String > allLines = scanner.getAllLines();
+	protected final List< String > getWholeScope( String name, String scope ) {
+		List< String > allLines = scanner.getAllCodeLines();
 		int startLine = 0;
-		StringBuilder lines = new StringBuilder();
+		ArrayList< String > lines = new ArrayList<>();
 		switch( scope ) {
 		case "import":
 			// Find the line of code from all lines read until now, which is a 'from "something" import
@@ -471,7 +449,8 @@ public abstract class AbstractParser {
 			for( int i = 0; i < allLines.size(); i++ ) {
 				String currentLine = allLines.get( i );
 				if( currentLine.contains( "from" ) && !currentLine.contains( "import" ) ) {
-					lines.append( i ).append( ':' ).append( currentLine );
+					String line = i + ":" + currentLine;
+					lines.add( line );
 				}
 			}
 			break;
@@ -480,7 +459,8 @@ public abstract class AbstractParser {
 			for( int i = 0; i < allLines.size(); i++ ) {
 				String currentLine = allLines.get( i );
 				if( currentLine.contains( "execution" ) ) {
-					lines.append( i ).append( ':' ).append( currentLine );
+					String line = i + ":" + currentLine;
+					lines.add( line );
 				}
 			}
 			break;
@@ -498,7 +478,8 @@ public abstract class AbstractParser {
 			int rightCurlies = 0;
 			for( int j = startLine; j < allLines.size(); j++ ) {
 				String currentLine = allLines.get( j );
-				lines.append( j ).append( ':' ).append( currentLine );
+				String line = j + ":" + currentLine;
+				lines.add( line );
 				if( currentLine.contains( "{" ) ) {
 					char[] lineChars = currentLine.toCharArray();
 					for( char c : lineChars ) {
@@ -522,8 +503,8 @@ public abstract class AbstractParser {
 			break;
 		}
 		// Return all the code lines of the scope
-		lines.delete( lines.length() - 2, lines.length() );
-		return lines.toString();
+		// lines.delete( lines.length() - 2, lines.length() );
+		return lines;
 	}
 
 	/**
@@ -542,38 +523,52 @@ public abstract class AbstractParser {
 			mesg += ". Found term: " + token.content();
 		}
 		String help;
-		String extralines;
+		List< String > extralines;
 		switch( scope ) {
 		case "inputPort":
 			extralines = getWholeScope( scopeName, scope );
-			if( !extralines.contains( context.line() + ":" ) ) {
-				String[] allLinesSplit = extralines.split( "\n" );
-				String[] tempSplit = allLinesSplit[ allLinesSplit.length - 1 ].split( ":" );
-				int lastLineNumber = Integer.parseInt( tempSplit[ 0 ] );
-				String[] tempSplit2 = allLinesSplit[ allLinesSplit.length - 1 ].split( "}" );
-				int columnNumber = tempSplit2[ 0 ].length() - tempSplit[ 0 ].length() - 1;
+			Boolean containsErrorLineNumber = false;
+			for( String line : extralines ) {
+				if( line.contains( context.line() + ":" ) ) {
+					containsErrorLineNumber = true;
+				}
+			}
+			if( !containsErrorLineNumber ) { // If the extra lines do not contain the line where the
+												// error was found
+				String[] tempSplit = extralines.get( extralines.size() - 1 ).split( ":" ); // Split last line in
+																							// linenumber and line
+				int lastLineNumber = Integer.parseInt( tempSplit[ 0 ] ); // Get the last lines number
+				String[] tempSplit2 = extralines.get( extralines.size() - 1 ).split( "}" ); // split the last
+				// line by curly bracket
+				int columnNumber = tempSplit2[ 0 ].length() - (tempSplit[ 0 ].length() + 1); // get the column
+				// number, not
+				// counting lineNumber and :
 				context = new URIParsingContext( context.source(), lastLineNumber, columnNumber, extralines );
 			} else {
 				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
 			}
-			help = createHelpMessageWithScope( context, token.content(), extralines, scope );
+			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "execution":
-			if( !context.lineString().contains( "execution" ) ) {
-				extralines = getWholeScope( "", scope );
-				int LineNumber = Integer.parseInt( extralines.split( ":" )[ 0 ] );
-				int columnNumber = extralines.lastIndexOf( ':' ) - extralines.split( ":" )[ 0 ].length() - 1;
+			if( !context.code().get( 0 ).contains( "execution" ) ) {
+				extralines = getWholeScope( "", scope ); // look for line containing execution
+				int LineNumber = Integer.parseInt( extralines.get( 0 ).split( ":" )[ 0 ] ); // get lineNumber of line
+																							// with execution
+				// find column of : after execution, don't count linenumber and : in front of line
+				int columnNumber =
+					extralines.get( 0 ).lastIndexOf( ':' ) - extralines.get( 0 ).split( ":" )[ 0 ].length() - 1;
 				context = new URIParsingContext( context.source(), LineNumber, columnNumber, extralines );
 			}
 			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "service":
+			// if the service is empty and it does not have an ending curlybracket
 			if( mesg.contains( "unexpected term found inside service" ) && token.content().isEmpty() ) {
 				extralines = getWholeScope( scopeName, scope );
 				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
-				help = createHelpMessageWithScope( context, token.content(), extralines, scope );
+				help = createHelpMessageWithScope( context, token.content(), scope );
 				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 				break;
 			}
@@ -581,10 +576,12 @@ public abstract class AbstractParser {
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "import":
-			extralines = getWholeScope( null, scope );
-			int lineNumber = Integer.parseInt( extralines.split( ":" )[ 0 ] );
-			String[] tempSplit = extralines.split( " ", 0 );
-			int column = tempSplit[ 0 ].length() + tempSplit[ 1 ].length() + extralines.split( ":" )[ 0 ].length() + 1;
+			extralines = getWholeScope( null, scope ); // find line where import is spelled wrong
+			// get correct line number and column number
+			int lineNumber = Integer.parseInt( extralines.get( 0 ).split( ":" )[ 0 ] );
+			String[] tempSplit = extralines.get( 0 ).split( " ", 0 );
+			int column =
+				tempSplit[ 0 ].length() + tempSplit[ 1 ].length();
 			context = new URIParsingContext( context.source(), lineNumber, column, extralines );
 			help = createHelpMessage( context, tempSplit[ 2 ], KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );

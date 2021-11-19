@@ -26,7 +26,9 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import jolie.lang.Constants;
+
 
 /**
  * A very simple {@code ParsingContext} based upon an URI.
@@ -36,16 +38,17 @@ import jolie.lang.Constants;
 public class URIParsingContext implements ParsingContext {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final URI uri;
-	private final String lineString;
+	private final List< String > code;
 	private final int column;
 	private final int line;
 
-	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, "" );
+	public static final URIParsingContext DEFAULT =
+		new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, List.of() );
 
-	public URIParsingContext( URI uri, int line, int column, String lineString ) {
+	public URIParsingContext( URI uri, int line, int column, List< String > code ) {
 		this.uri = uri;
 		this.column = column; // The number character in line, where error occured
-		this.lineString = lineString; // this is the line in the file where the error occured
+		this.code = code; // this is the line(s) in the file where the error occured
 		this.line = line;
 	}
 
@@ -75,7 +78,7 @@ public class URIParsingContext implements ParsingContext {
 	}
 
 	@Override
-	public String lineString() {
-		return lineString;
+	public List< String > code() {
+		return code;
 	}
 }

@@ -68,22 +68,20 @@ public class CodeCheckMessage {
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
-			ParsingContext myContext = context;
-			messageBuilder.append( myContext.sourceName() ).append( ":" ).append( myContext.line() )
+			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.line() )
 				.append( ": error: " );
 			if( description != null ) {
 				messageBuilder.append( description ).append( '\n' );
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
-			if( myContext.lineString().contains( myContext.line() + ":" ) ) {
-				messageBuilder.append( myContext.lineString() ).append( '\n' );
-			} else if( (myContext.lineString().split( "\n" )).length > 1 ) {
-				messageBuilder.append( myContext.lineString() ).append( '\n' );
-			} else {
-				messageBuilder.append( myContext.line() ).append( ':' ).append( myContext.lineString() ).append( '\n' );
+			messageBuilder.append( String.join( "", context.code() ) ); // Appends all lines of code involved with
+																		// error
+			if( !context.code().get( context.code().size() - 1 ).endsWith( "\n" ) ) {
+				messageBuilder.append( "\n" );
 			}
-			for( int i = 0; i < myContext.column() + (" " + myContext.line()).length(); i++ ) {
+
+			for( int i = 0; i < context.column() + (" " + context.line()).length(); i++ ) {
 				messageBuilder.append( " " );
 			}
 			messageBuilder.append( "^\n" );
