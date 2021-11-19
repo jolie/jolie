@@ -102,7 +102,7 @@ public class ModuleNotFoundException extends FileNotFoundException {
 				message.append( temp ).append( "\n" );
 			}
 		} else {
-			message.append( "Could not find modules mathing \"" ).append( this.importPath )
+			message.append( "Could not find modules matching \"" ).append( this.importPath )
 				.append( "\". Here are some modules that can be imported:\n" );
 			for( String module : fileNames ) {
 				String temp;
