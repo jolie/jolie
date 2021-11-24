@@ -93,7 +93,7 @@ define doTest
 		scope( s ) {
 			install( TypeMismatch => nullProcess );
 			echoPerson@Server( person )( response );
-			if ( is_defined( response ) ) {
+			if ( !(response instanceof void) ) {
 				throw( TestFailed, "Should not return data" )
 			}
 		};
@@ -103,7 +103,7 @@ define doTest
 		scope( s ) {
 			install( TypeMismatch => nullProcess );
 			identity@Server( reqVal )( response2 );
-			if ( is_defined( response2 ) ) {
+			if ( !(response2 instanceof void) ) {
 				throw( TestFailed, "Should not return data" )
 			}
 		};
