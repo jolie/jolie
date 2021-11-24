@@ -39,25 +39,24 @@ define doTest
 	}
 
 	x = undefined
-	if( is_defined( x ) ) {
-		throw( TestFailed, "Variable has been undefined" )
+	if( !is_defined( x ) ) {
+		throw( TestFailed, "Variable has been defined to be void" )
 	}
-
 	if( is_defined( undefined ) ) {
 		throw( TestFailed, "Constant has been defined" )
 	}
 
 	x = any
-	if ( is_defined( x ) ) {
-		throw( TestFailed, "Variable has been undefined" )
+	if ( !is_defined( x ) ) {
+		throw( TestFailed, "Variable has been defined to be void" )
 	}
 	if ( is_defined( any ) ) {
 		throw( TestFailed, "Constant has been defined" )
 	}
 
 	x = void
-	if ( is_defined( x ) ) {
-		throw( TestFailed, "Variable has been undefined" )
+	if ( !is_defined( x ) ) {
+		throw( TestFailed, "Variable has been defined to be void" )
 	}
 	if ( is_defined( void ) ) {
 		throw( TestFailed, "Constant has been defined" )
