@@ -1730,7 +1730,7 @@ public class OLParser extends AbstractParser {
 		OLSyntaxNode protocol = null;
 		OLSyntaxNode location = null;
 		List< InterfaceDefinition > interfaceList = new ArrayList<>();
-
+		// int startingCodeLine = line();
 		nextToken();
 		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
 		inputPortName = token.content();
@@ -1813,17 +1813,24 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.RCURLY, "} expected" );
 		if( location == null ) {
 			// Vicki made change here
+			// int endingCodeLine = line();
+			// String mesg = "Start line = " + startingCodeLine + "\nEnding line = " + endingCodeLine + "\n";
 			throwExceptionWithScope( "expected location URI for " + inputPortName, inputPortName, "inputPort" );
 		} else if( (interfaceList.isEmpty() && iface.operationsMap().isEmpty()) && redirectionMap.isEmpty()
 			&& aggregationList.isEmpty() ) {
 			// Vicki made change here
+			// int endingCodeLine = line();
+			// String mesg = "Start line = " + startingCodeLine + "\nEnding line = " + endingCodeLine + "\n";
 			throwExceptionWithScope(
 				"expected at least one operation, interface, aggregation or redirection for inputPort "
 					+ inputPortName,
 				inputPortName, "inputPort" );
 		} else if( protocol == null && !isLocationLocal ) {
 			// Vicki made change here
-			throwExceptionWithScope( "expected protocol for inputPort " + inputPortName, inputPortName, "inputPort" );
+			// int endingCodeLine = line();
+			// String mesg = "Start line = " + startingCodeLine + "\nEnding line = " + endingCodeLine + "\n";
+			throwExceptionWithScope( "expected protocol for inputPort " + inputPortName, inputPortName,
+				"inputPort" );
 		}
 		InputPortInfo iport =
 			new InputPortInfo( getContext(), inputPortName, location, protocol,

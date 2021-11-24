@@ -21,16 +21,28 @@ package jolie.lang.parse.module;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 class ModuleCrawler {
@@ -97,8 +109,15 @@ class ModuleCrawler {
 				importedSymbol.setModuleSource( moduleSource );
 				modulesToCrawl.add( moduleSource );
 			} catch( ModuleNotFoundException e ) {
-				CodeCheckMessage message =
-					CodeCheckMessage.withHelp( importedSymbol.context(), e.getMessage(), e.getHelp() );
+				// Add the importpath and name to the line of code, as the rest of the line cannot be gotten from
+				// the context, since the getContextDuringError cannot be used in here, and the context is not
+				// updated after the error is found.
+				String codeLine = importedSymbol.context().code().get( 0 ).replace( "\n", "" );
+				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
+				int column = codeLine.length() - codeLine.split( ":" )[ 0 ].length() - 1;
+				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
+					importedSymbol.context().line(), column, List.of( CodeLineWithPath ) );
+				CodeCheckMessage message = CodeCheckMessage.withHelp( context, e.getMessage(), getHelp( e ) );
 				throw new ModuleException( message );
 			}
 		}
@@ -146,5 +165,69 @@ class ModuleCrawler {
 		throws ParserException, IOException, ModuleException {
 		ModuleCrawler crawler = new ModuleCrawler( parsingConfiguration, finder );
 		return crawler.crawl( mainRecord );
+	}
+
+	private String getHelp( ModuleNotFoundException exception ) {
+		StringBuilder message = new StringBuilder();
+		Set< String > fileNames = new HashSet<>();
+		Stream< Path > stream;
+		try {
+			stream = Files.list( Paths.get( ".\\" ) );
+			fileNames.addAll( stream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
+				.map( Path::toString ).collect( Collectors.toSet() ) );
+			stream.close();
+		} catch( IOException e ) {
+		}
+		for( Path path : exception.lookedPaths() ) {
+			Stream< Path > forloopStream;
+			try {
+				Path currentPath = path;
+				while( !Files.isDirectory( currentPath ) ) {
+					currentPath = currentPath.getParent();
+				}
+				forloopStream = Files.list( currentPath );
+				fileNames.addAll( forloopStream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
+					.map( Path::toString ).collect( Collectors.toSet() ) );
+				forloopStream.close();
+			} catch( IOException e ) {
+			}
+		}
+
+		LevenshteinDistance dist = new LevenshteinDistance();
+		ArrayList< String > proposedModules = new ArrayList<>();
+		for( String correctModule : fileNames ) {
+			String moduleName;
+			if( correctModule.contains( "." ) ) {
+				int column = correctModule.indexOf( "." );
+				moduleName = correctModule.substring( 0, column );
+			} else {
+				moduleName = correctModule;
+			}
+			if( dist.apply( exception.importPath().toString(), moduleName ) <= 2 ) {
+				proposedModules.add( moduleName );
+			}
+
+		}
+		if( !proposedModules.isEmpty() ) {
+			message.append( "Maybe you meant:\n" );
+			for( String module : proposedModules ) {
+				String temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
+				message.append( temp ).append( "\n" );
+			}
+		} else {
+			message.append( "Could not find modules matching \"" ).append( exception.importPath() )
+				.append( "\". Here are some modules that can be imported:\n" );
+			for( String module : fileNames ) {
+				String temp;
+				if( module.contains( "." ) ) {
+					int column = module.indexOf( "." );
+					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1, column );
+				} else {
+					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
+				}
+				message.append( temp ).append( "\n" );
+			}
+		}
+		return message.toString();
 	}
 }

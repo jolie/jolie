@@ -214,6 +214,10 @@ public abstract class AbstractParser {
 		}
 	}
 
+	public final int line() {
+		return scanner.line();
+	}
+
 	/**
 	 * Eats the current token, asserting its type. Calling eat( type, errorMessage ) is equivalent to
 	 * call subsequently tokenAssert( type, errorMessage ) and getToken().
@@ -567,9 +571,14 @@ public abstract class AbstractParser {
 			// if the service is empty and it does not have an ending curlybracket
 			if( mesg.contains( "unexpected term found inside service" ) && token.content().isEmpty() ) {
 				extralines = getWholeScope( scopeName, scope );
-				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
+				int LineNumber = Integer.parseInt( extralines.get( 0 ).split( ":" )[ 0 ] );
+				int columnNumber =
+					extralines.get( 0 ).lastIndexOf( '{' ) - extralines.get( 0 ).split( ":" )[ 0 ].length() - 1;
+				context =
+					new URIParsingContext( context.source(), LineNumber, columnNumber, List.of( extralines.get( 0 ) ) );
 				help = createHelpMessageWithScope( context, token.content(), scope );
-				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+				exceptionMessage = CodeCheckMessage.withHelp( context,
+					"Service " + scopeName + " is empty and does not have an ending }", help );
 				break;
 			}
 			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
