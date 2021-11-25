@@ -60,5 +60,7 @@ public interface ParsingContext extends Serializable {
 
 	int column();
 
-	List< String > code();
+	List< String > enclosingCode();
+
+	List< String > enclosingCodeWithLineNumbers();
 }

@@ -22,7 +22,7 @@ package jolie.lang;
 
 import java.util.List;
 
-public class KeywordClass {
+public class Keywords {
 
 	// Can also be used for outputPort
 	public static final String INPUTPORT_LOCATION = "location";
@@ -57,8 +57,8 @@ public class KeywordClass {
 	// Service scope
 	public static final String INIT = "init";
 	public static final String MAIN = "main";
-	public static final String INPUTPORT = "inputPort";
-	public static final String OUTPUTPORT = "outputPort";
+	public static final String INPUT_PORT = "inputPort";
+	public static final String OUTPUT_PORT = "outputPort";
 	public static final String EMBED = "embed";
 	public static final String EMBED_AS = "as";
 	public static final String DEFINE = "define";
@@ -81,7 +81,7 @@ public class KeywordClass {
 	public static final String THROW = "throw";
 	public static final String CH = "cH";
 	public static final String COMP = "comp";
-	public static final String NULLPROCESS = "nullProcess";
+	public static final String NULL_PROCESS = "nullProcess";
 
 	// Languages that can be embedded
 	public static final String JOLIE = "Jolie";
@@ -91,68 +91,76 @@ public class KeywordClass {
 	// Currier scope
 	public static final String FORWARD = "forward";
 
+	// Keywords moved from Constants
+	public static final String GLOBAL = "global";
+	public static final String CSETS = "csets";
 
-	private static final List< String > INPUTPORTKEYWORDS =
+	// Outer scope name
+	public static final String OUTER = "outer";
+
+
+
+	private static final List< String > INPUTPORT_KEYWORDS =
 		List.of( "location", "protocol", "interfaces", "aggregates", "redirects",
 			"requestResponse", "oneWay" );
 
-	private static final List< String > OUTPUTPORTKEYWORDS =
+	private static final List< String > OUTPUTPORT_KEYWORDS =
 		List.of( "location", "protocol", "interfaces", "aggregates", "redirects",
 			"requestResponse", "oneWay" );
 
-	private static final List< String > OUTERKEYWORDS =
+	private static final List< String > OUTER_KEYWORDS =
 		List.of( "service", "interface", "from", "include", "type", "import",
 			"execution", "constants", "cset", "embedded", "currier", "public", "private", "extender" );
 
-	private static final List< String > EXECUTIONKEYWORDS = List.of( "sequential", "concurrent", "single" );
+	private static final List< String > EXECUTION_KEYWORDS = List.of( "sequential", "concurrent", "single" );
 
-	private static final List< String > SERVICEKEYWORDS =
+	private static final List< String > SERVICE_KEYWORDS =
 		List.of( "execution", "init", "main", "inputPort", "outputPort", "embed", "as", "define" );
 
-	private static final List< String > MAINKEYWORDS =
+	private static final List< String > MAIN_KEYWORDS =
 		List.of( "for", "while", "if", "else", "else if", "foreach", "with", "undef",
 			"synchronized", "scope", "install", "spawn", "over", "in", "throw", "cH", "comp", "nullProcess" );
 
-	private static final List< String > INTERFACEKEYWORDS = List.of( "oneWay", "requestResponse" );
+	private static final List< String > INTERFACE_KEYWORDS = List.of( "oneWay", "requestResponse" );
 
-	private static final List< String > EMBEDDEDKEYWORDS = List.of( "Jolie", "Java", "JavaScript" );
+	private static final List< String > EMBEDDED_KEYWORDS = List.of( "Jolie", "Java", "JavaScript" );
 
-	private static final List< String > CURRIERKEYWORDS = List.of( "forward" );
+	private static final List< String > COURIER_KEYWORDS = List.of( "forward" );
 
 	public static List< String > inputPortKeywords() {
-		return INPUTPORTKEYWORDS;
+		return INPUTPORT_KEYWORDS;
 	}
 
 	public static List< String > outputPortKeywords() {
-		return OUTPUTPORTKEYWORDS;
+		return OUTPUTPORT_KEYWORDS;
 	}
 
 	public static List< String > outerKeywords() {
-		return OUTERKEYWORDS;
+		return OUTER_KEYWORDS;
 	}
 
 	public static List< String > executionKeywords() {
-		return EXECUTIONKEYWORDS;
+		return EXECUTION_KEYWORDS;
 	}
 
 	public static List< String > serviceKeywords() {
-		return SERVICEKEYWORDS;
+		return SERVICE_KEYWORDS;
 	}
 
 	public static List< String > mainKeywords() {
-		return MAINKEYWORDS;
+		return MAIN_KEYWORDS;
 	}
 
 	public static List< String > interfaceKeywords() {
-		return INTERFACEKEYWORDS;
+		return INTERFACE_KEYWORDS;
 	}
 
 	public static List< String > embeddedKeywords() {
-		return EMBEDDEDKEYWORDS;
+		return EMBEDDED_KEYWORDS;
 	}
 
-	public static List< String > cuorierKeywords() {
-		return CURRIERKEYWORDS;
+	public static List< String > courierKeywords() {
+		return COURIER_KEYWORDS;
 	}
 
 	public static List< String > getKeywordsForScope( String scope ) {

@@ -75,13 +75,15 @@ public class CodeCheckMessage {
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
-			messageBuilder.append( String.join( "", context.code() ) ); // Appends all lines of code involved with
-																		// error
-			if( !context.code().get( context.code().size() - 1 ).endsWith( "\n" ) ) {
+			messageBuilder.append( String.join( "", context.enclosingCodeWithLineNumbers() ) ); // Appends all lines of
+																								// code involved
+			// with
+			// error
+			if( !context.enclosingCode().get( context.enclosingCode().size() - 1 ).endsWith( "\n" ) ) {
 				messageBuilder.append( "\n" );
 			}
 
-			for( int i = 0; i < context.column() + (" " + context.startline()).length(); i++ ) {
+			for( int i = 0; i < context.column() + (" " + context.endline()).length(); i++ ) {
 				messageBuilder.append( " " );
 			}
 			messageBuilder.append( "^\n" );
