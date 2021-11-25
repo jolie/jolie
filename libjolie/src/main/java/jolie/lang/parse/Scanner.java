@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
+import jolie.lang.Constants;
 import jolie.lang.NativeType;
 
 /**
@@ -362,11 +363,11 @@ public class Scanner {
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
     private int line;						// current line
-	private int startline;
-	private int endline;
+	private int startLine;
+	private int endLine;
 	private final URI source;				// source name
 	private final boolean includeDocumentation;	// include documentation tokens
-	private final ArrayList<String> lineTokens = new ArrayList<>();
+	private final ArrayList<String> readCodeLines = new ArrayList<>();
 	private int currColumn;					// column of the current character
 	private int errorColumn;				// column of the error character (first character of the current token or line)
 
@@ -387,8 +388,8 @@ public class Scanner {
 		this.source = source;
 		this.includeDocumentation = includeDocumentation;
 		line = 1;
-		startline = 1;
-		endline = 1;
+		startLine = 1;
+		endLine = 1;
 		currColumn = 0;
 		readChar();
 	}
@@ -484,15 +485,31 @@ public class Scanner {
 	 * 
 	 * @return current line in file
 	 */
-	public List<String> CodeLine() {
+	public List<String> codeLineWithLineNumber() {
 		try{
-			String line = line()+":"+lineTokens.get(line());
+			String line = line()+":"+readCodeLines.get(line());
 			if(!line.endsWith("\n")){
 				line += "\n";
 			}
 			return List.of(line);
 		} catch (IndexOutOfBoundsException e){
-			String line = (line()-1)+":"+lineTokens.get(line()-1);
+			String line = (line()-1)+":"+readCodeLines.get(line()-1);
+			if(!line.endsWith("\n")){
+				line += "\n";
+			}
+			return List.of(line);
+		}
+	}
+
+	public List<String> codeLine(){
+		try{
+			String line = readCodeLines.get(line());
+			if(!line.endsWith("\n")){
+				line += "\n";
+			}
+			return List.of(line);
+		} catch (IndexOutOfBoundsException e){
+			String line = readCodeLines.get(line()-1);
 			if(!line.endsWith("\n")){
 				line += "\n";
 			}
@@ -514,20 +531,20 @@ public class Scanner {
 	}
 
 	public List<String> getAllCodeLines(){
-		return lineTokens;
+		return readCodeLines;
 	}
 
-	public int startline(){
-		return startline;
+	public int startLine(){
+		return startLine;
 	}
-	public void setStartline(int startline){
-		this.startline = startline;
+	public void setStartLine(int startLine){
+		this.startLine = startLine;
 	}
-	public int endline(){
-		return endline;
+	public int endLine(){
+		return endLine;
 	}
-	public void setEndline(int endline){
-		this.endline = endline;
+	public void setEndLine(int endLine){
+		this.endLine = endLine;
 	}
 
 	/**
@@ -604,24 +621,24 @@ public class Scanner {
 		currInt = reader.read();
 
 		ch = (char) currInt;
-		if( lineTokens.isEmpty() ) {
-			lineTokens.add(0, "");
+		if( readCodeLines.isEmpty() ) {
+			readCodeLines.add(0, "");
 		}
 		String temp;
 		if(currInt != -1){ //Cannot just return, as this messes with codeckecking after parsing
 			// The if statement makes sure no extra caracters are added when EOF is reached
 			try {
-				temp = lineTokens.get( line() );
+				temp = readCodeLines.get( line() );
 				temp += ch;
-				lineTokens.set( line(), temp );
+				readCodeLines.set( line(), temp );
 			} catch( IndexOutOfBoundsException e ) {
 				temp = "";
 				temp += ch;
-				lineTokens.add( line(), temp );
+				readCodeLines.add( line(), temp );
 			}
 		}
 		if(ch == '\t'){
-			currColumn += 4;
+			currColumn += Constants.TAB_SIZE;
 		} else{
 			currColumn++;
 		}
@@ -641,21 +658,21 @@ public class Scanner {
 		}
 
 		ch = (char) currInt;
-		if( lineTokens.isEmpty() ) {
-			lineTokens.add(0, "");
+		if( readCodeLines.isEmpty() ) {
+			readCodeLines.add(0, "");
 		}
 		String temp;
 		try {
-			temp = lineTokens.get( line() );
+			temp = readCodeLines.get( line() );
 			temp += ch;
-			lineTokens.set( line(), temp );
+			readCodeLines.set( line(), temp );
 		} catch( IndexOutOfBoundsException e ) {
 			temp = "";
 			temp += ch;
-			lineTokens.add( line(), temp );
+			readCodeLines.add( line(), temp );
 		}
 		if(ch == '\t'){
-			currColumn += 4;
+			currColumn += Constants.TAB_SIZE;
 		} else{
 			currColumn++;
 		}

@@ -26,6 +26,7 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import jolie.lang.Constants;
 
@@ -85,7 +86,19 @@ public class URIParsingContext implements ParsingContext {
 	}
 
 	@Override
-	public List< String > code() {
+	public List< String > enclosingCode() {
 		return code;
+	}
+
+	@Override
+	public List< String > enclosingCodeWithLineNumbers() {
+		int i = startline;
+		List< String > linesWithNumbers = new ArrayList<>();
+		for( String line : code ) {
+			String newLine = i + ":" + line;
+			linesWithNumbers.add( newLine );
+			i++;
+		}
+		return linesWithNumbers;
 	}
 }

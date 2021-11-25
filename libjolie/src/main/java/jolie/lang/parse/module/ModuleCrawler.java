@@ -112,9 +112,9 @@ class ModuleCrawler {
 				// Add the importpath and name to the line of code, as the rest of the line cannot be gotten from
 				// the context, since the getContextDuringError cannot be used in here, and the context is not
 				// updated after the error is found.
-				String codeLine = importedSymbol.context().code().get( 0 ).replace( "\n", "" );
+				String codeLine = importedSymbol.context().enclosingCode().get( 0 ).replace( "\n", "" );
 				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
-				int column = codeLine.length() - codeLine.split( ":" )[ 0 ].length() - 1;
+				int column = codeLine.length();
 				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
 					importedSymbol.context().startline(), importedSymbol.context().endline(), column,
 					List.of( CodeLineWithPath ) );

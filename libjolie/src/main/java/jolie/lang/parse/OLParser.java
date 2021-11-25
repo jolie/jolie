@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 //import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
+import jolie.lang.Keywords;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -251,8 +252,7 @@ public class OLParser extends AbstractParser {
 
 	private void parseLoop( ParsingRunnable... parseRunnables )
 		throws IOException, ParserException {
-		int startingCodeLine = line();
-		setStartline( startingCodeLine );
+		setStartline();
 		nextToken();
 		if( token.is( Scanner.TokenType.HASH ) ) {
 			// Shebang scripting
@@ -270,9 +270,7 @@ public class OLParser extends AbstractParser {
 		} while( t != token ); // Loop until no procedures can eat the initial token
 
 		if( t.isNot( Scanner.TokenType.EOF ) ) {
-			// Vicki made change here
-			int endline = line();
-			setEndline( endline );
+			setEndLine();
 			throwExceptionWithScope( "Unexpected term", null, "outer" );
 		}
 	}
@@ -1020,8 +1018,7 @@ public class OLParser extends AbstractParser {
 	private ExecutionInfo _parseExecutionInfo()
 		throws IOException, ParserException {
 		Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
-		int startingCodeLine = line();
-		setStartline( startingCodeLine );
+		setStartline();
 		nextToken();
 		boolean inCurlyBrackets = false;
 		if( token.is( Scanner.TokenType.COLON ) ) {
@@ -1032,9 +1029,7 @@ public class OLParser extends AbstractParser {
 		} else {
 			throwException( "expected : or { after execution" );
 		}
-		// Vicki made change here
-		int endline = line();
-		setEndline( endline );
+		setEndLine();
 		assertToken( Scanner.TokenType.ID, "expected execution modality", null, "execution" );
 		switch( token.content() ) {
 		case "sequential":
@@ -1047,7 +1042,6 @@ public class OLParser extends AbstractParser {
 			mode = Constants.ExecutionMode.SINGLE;
 			break;
 		default:
-			// Vicki made change here
 			throwExceptionWithScope( "Expected execution mode", null, "execution" );
 			break;
 		}
@@ -1685,7 +1679,6 @@ public class OLParser extends AbstractParser {
 				}
 				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
-				// Vicki made change here
 				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
 					serviceName, "service" );
 				keepRun = false;
@@ -1738,8 +1731,7 @@ public class OLParser extends AbstractParser {
 		OLSyntaxNode protocol = null;
 		OLSyntaxNode location = null;
 		List< InterfaceDefinition > interfaceList = new ArrayList<>();
-		int startingCodeLine = line();
-		setStartline( startingCodeLine );
+		setStartline();
 		nextToken();
 		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
 		inputPortName = token.content();
@@ -1815,30 +1807,25 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.COLON, "expected :" );
 				parseAggregationList( aggregationList );
 			} else {
-				int endingCodeLine = line();
-				setEndline( endingCodeLine );
+				setEndLine();
 				throwExceptionWithScope( "Unrecognized term in inputPort " + inputPortName, inputPortName,
 					"inputPort" );
 			}
 		}
 		// setting the start and endline before asserting (though the assert will always be true here),
-		// so we do not get to the next line before throwing error
-		int endingCodeLine = line();
-		setEndline( endingCodeLine );
+		// so we have the correct last line number of code for the error
+		setEndLine();
 		assertToken( Scanner.TokenType.RCURLY, "} expected" );
 		if( location == null ) {
-			// Vicki made change here
 			throwExceptionWithScope( "expected location URI for " + inputPortName, inputPortName,
 				"inputPort" );
 		} else if( (interfaceList.isEmpty() && iface.operationsMap().isEmpty()) && redirectionMap.isEmpty()
 			&& aggregationList.isEmpty() ) {
-			// Vicki made change here
 			throwExceptionWithScope(
 				"expected at least one operation, interface, aggregation or redirection for inputPort "
 					+ inputPortName,
 				inputPortName, "inputPort" );
 		} else if( protocol == null && !isLocationLocal ) {
-			// Vicki made change here
 			throwExceptionWithScope( "expected protocol for inputPort " + inputPortName, inputPortName,
 				"inputPort" );
 		}
@@ -1930,7 +1917,6 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
-		// Vicki made change here
 		eat( Scanner.TokenType.RCURLY, "expected }", name, "interface" );
 
 		return iface;
@@ -2820,10 +2806,10 @@ public class OLParser extends AbstractParser {
 		VariablePathNode path;
 
 		switch( varId ) {
-		case Constants.GLOBAL:
+		case Keywords.GLOBAL:
 			path = new VariablePathNode( getContext(), Type.GLOBAL );
 			break;
-		case Constants.CSETS:
+		case Keywords.CSETS:
 			path = new VariablePathNode( getContext(), Type.CSET );
 			path.append( new Pair<>( new ConstantStringExpression( getContext(), varId ),
 				new ConstantIntegerExpression( getContext(), 0 ) ) );
@@ -3542,13 +3528,11 @@ public class OLParser extends AbstractParser {
 		CAN_READ_ID, CANNOT_READ_ID, STOP
 	}
 
-	// Vicki made change here
 	private String parseExtendedIdentifier( String errorMessage,
 		Scanner.TokenType... extensions )
 		throws IOException, ParserException {
 		List< String > importTargetComponents = new ArrayList<>();
-		int startingCodeLine = line();
-		setStartline( startingCodeLine );
+		setStartline();
 		ExtendedIdentifierState state = ExtendedIdentifierState.CAN_READ_ID;
 		while( state != ExtendedIdentifierState.STOP ) {
 			if( state == ExtendedIdentifierState.CAN_READ_ID && token.isIdentifier() ) {
@@ -3565,9 +3549,7 @@ public class OLParser extends AbstractParser {
 		}
 		String id = importTargetComponents.stream().collect( Collectors.joining() );
 		if( id.isEmpty() ) {
-			// Vicki made change here
-			int endline = line();
-			setEndline( endline );
+			setEndLine();
 			throwExceptionWithScope( errorMessage, null, "import" );
 		}
 		return id;
@@ -3592,7 +3574,6 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
-					// Vicki made change here
 					importTargets.add(
 						parseExtendedIdentifier( "expected identifier for importing target after from",
 							Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
