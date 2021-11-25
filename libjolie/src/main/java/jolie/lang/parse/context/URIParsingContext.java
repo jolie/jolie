@@ -40,16 +40,18 @@ public class URIParsingContext implements ParsingContext {
 	private final URI uri;
 	private final List< String > code;
 	private final int column;
-	private final int line;
+	private final int startline;
+	private final int endline;
 
 	public static final URIParsingContext DEFAULT =
-		new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, List.of() );
+		new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, 0, List.of() );
 
-	public URIParsingContext( URI uri, int line, int column, List< String > code ) {
+	public URIParsingContext( URI uri, int startline, int endline, int column, List< String > code ) {
 		this.uri = uri;
 		this.column = column; // The number character in line, where error occured
 		this.code = code; // this is the line(s) in the file where the error occured
-		this.line = line;
+		this.startline = startline;
+		this.endline = endline;
 	}
 
 	@Override
@@ -68,8 +70,13 @@ public class URIParsingContext implements ParsingContext {
 	}
 
 	@Override
-	public int line() {
-		return line;
+	public int startline() {
+		return startline;
+	}
+
+	@Override
+	public int endline() {
+		return endline;
 	}
 
 	@Override

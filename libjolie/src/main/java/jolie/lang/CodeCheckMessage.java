@@ -68,7 +68,7 @@ public class CodeCheckMessage {
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
-			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.line() )
+			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startline() )
 				.append( ": error: " );
 			if( description != null ) {
 				messageBuilder.append( description ).append( '\n' );
@@ -81,7 +81,7 @@ public class CodeCheckMessage {
 				messageBuilder.append( "\n" );
 			}
 
-			for( int i = 0; i < context.column() + (" " + context.line()).length(); i++ ) {
+			for( int i = 0; i < context.column() + (" " + context.startline()).length(); i++ ) {
 				messageBuilder.append( " " );
 			}
 			messageBuilder.append( "^\n" );
