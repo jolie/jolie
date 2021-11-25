@@ -185,7 +185,7 @@ public abstract class AbstractParser {
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContext() {
-		return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(),
+		return new URIParsingContext( scanner.source(), scanner.startline(), scanner.endline(), scanner.errorColumn(),
 			scanner.CodeLine() );
 	}
 
@@ -198,24 +198,42 @@ public abstract class AbstractParser {
 		int linenr = scanner.line();
 		readLineAfterError();
 		if( linenr < scanner.line() ) {
-			return new URIParsingContext( scanner.source(), linenr, scanner.errorColumn(),
+			return new URIParsingContext( scanner.source(), scanner.startline(), scanner.endline(),
+				scanner.errorColumn(),
 				scanner.CodeLine() );
 		} else if( scanner.errorColumn() < 0 ) {
 			String correctLine = scanner.getAllCodeLines().get( linenr - 1 );
 			if( !correctLine.endsWith( "\n" ) ) {
 				correctLine += "\n";
 			}
-			return new URIParsingContext( scanner.source(), linenr - 1, correctLine.length(),
+			return new URIParsingContext( scanner.source(), linenr - 1, linenr - 1, correctLine.length(),
 				List.of( correctLine ) );
 
 		} else {
-			return new URIParsingContext( scanner.source(), scanner.line(), scanner.errorColumn(),
+			return new URIParsingContext( scanner.source(), scanner.startline(), scanner.endline(),
+				scanner.errorColumn(),
 				scanner.CodeLine() );
 		}
 	}
 
 	public final int line() {
 		return scanner.line();
+	}
+
+	public final int startline() {
+		return scanner.startline();
+	}
+
+	public void setStartline( int startline ) {
+		scanner.setStartline( startline );
+	}
+
+	public final int endline() {
+		return scanner.endline();
+	}
+
+	public void setEndline( int startline ) {
+		scanner.setEndline( startline );
 	}
 
 	/**
@@ -345,7 +363,7 @@ public abstract class AbstractParser {
 			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " )
 				.append( String.join( ", ", proposedWord ) )
 				.append( ". Perhaps you meant:\n" );
-			int columnSpace = context.column() + (context.line() + ":").length();
+			int columnSpace = context.column() + (context.startline() + ":").length();
 			help.append( context.code().get( 0 ).substring( 0, columnSpace ) )
 				.append( proposedWord.get( 0 ) )
 				.append( context.code().get( 0 ).substring( tokenContent.length() + columnSpace ) );
@@ -384,9 +402,9 @@ public abstract class AbstractParser {
 				help.append( "\nYour term is similar to what would be valid input: " )
 					.append( String.join( ", ", proposedWord ) )
 					.append( ". Perhaps you meant:\n" );
-				int numberSpaces = context.column() + (":" + context.line()).length();
+				int numberSpaces = context.column() + (":" + context.startline()).length();
 				for( String line : context.code() ) {
-					if( line.contains( context.line() + ":" ) ) {
+					if( line.contains( context.endline() + ":" ) ) {
 						help.append( line.substring( 0, numberSpaces ) )
 							.append( proposedWord.get( 0 ) )
 							.append( line.substring( numberSpaces + tokenContent.length() ) );
@@ -428,8 +446,9 @@ public abstract class AbstractParser {
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
-			context = new URIParsingContext( context.source(), context.line(), context.column() - 1,
-				context.code() );
+			context =
+				new URIParsingContext( context.source(), context.startline(), context.endline(), context.column() - 1,
+					context.code() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		}
 		throw new ParserException( exceptionMessage );
@@ -444,70 +463,12 @@ public abstract class AbstractParser {
 	 */
 	protected final List< String > getWholeScope( String name, String scope ) {
 		List< String > allLines = scanner.getAllCodeLines();
-		int startLine = 0;
 		ArrayList< String > lines = new ArrayList<>();
-		switch( scope ) {
-		case "import":
-			// Find the line of code from all lines read until now, which is a 'from "something" import
-			// "something else"', where import is spelled wrong or does not occur
-			for( int i = 0; i < allLines.size(); i++ ) {
-				String currentLine = allLines.get( i );
-				if( currentLine.contains( "from" ) && !currentLine.contains( "import" ) ) {
-					String line = i + ":" + currentLine;
-					lines.add( line );
-				}
-			}
-			break;
-		case "execution":
-			// Find the line of code where execution is written
-			for( int i = 0; i < allLines.size(); i++ ) {
-				String currentLine = allLines.get( i );
-				if( currentLine.contains( "execution" ) ) {
-					String line = i + ":" + currentLine;
-					lines.add( line );
-				}
-			}
-			break;
-		default:
-			// Find the line of code from all lines read until now, which has the scope and name of the scope
-			for( int i = 0; i < allLines.size(); i++ ) {
-				String currentLine = allLines.get( i );
-				if( currentLine.contains( name ) && currentLine.contains( scope ) ) {
-					startLine = i;
-				}
-			}
-			// Save all lines of the scope by reading until an even number of left curly brackets and right
-			// curly brackets are found
-			int leftCurlies = 0;
-			int rightCurlies = 0;
-			for( int j = startLine; j < allLines.size(); j++ ) {
-				String currentLine = allLines.get( j );
-				String line = j + ":" + currentLine;
-				lines.add( line );
-				if( currentLine.contains( "{" ) ) {
-					char[] lineChars = currentLine.toCharArray();
-					for( char c : lineChars ) {
-						if( c == '{' ) {
-							leftCurlies++;
-						}
-					}
-				}
-				if( currentLine.contains( "}" ) ) {
-					char[] lineChars = currentLine.toCharArray();
-					for( char c : lineChars ) {
-						if( c == '}' ) {
-							rightCurlies++;
-						}
-					}
-				}
-				if( leftCurlies == rightCurlies ) {
-					break;
-				}
-			}
-			break;
+		for( int i = startline(); i <= endline(); i++ ) {
+			String currentLine = allLines.get( i );
+			String line = i + ":" + currentLine;
+			lines.add( line );
 		}
-		// Return all the code lines of the scope
-		// lines.delete( lines.length() - 2, lines.length() );
 		return lines;
 	}
 
@@ -528,42 +489,27 @@ public abstract class AbstractParser {
 		}
 		String help;
 		List< String > extralines;
+		int columnNumber = 0;
 		switch( scope ) {
 		case "inputPort":
 			extralines = getWholeScope( scopeName, scope );
-			Boolean containsErrorLineNumber = false;
-			for( String line : extralines ) {
-				if( line.contains( context.line() + ":" ) ) {
-					containsErrorLineNumber = true;
-				}
-			}
-			if( !containsErrorLineNumber ) { // If the extra lines do not contain the line where the
-												// error was found
-				String[] tempSplit = extralines.get( extralines.size() - 1 ).split( ":" ); // Split last line in
-																							// linenumber and line
-				int lastLineNumber = Integer.parseInt( tempSplit[ 0 ] ); // Get the last lines number
-				String[] tempSplit2 = extralines.get( extralines.size() - 1 ).split( "}" ); // split the last
-				// line by curly bracket
-				int columnNumber = tempSplit2[ 0 ].length() - (tempSplit[ 0 ].length() + 1); // get the column
-				// number, not
-				// counting lineNumber and :
-				context = new URIParsingContext( context.source(), lastLineNumber, columnNumber, extralines );
+			if( extralines.get( extralines.size() - 1 ).contains( "}" ) ) {
+				String[] tempSplit = extralines.get( extralines.size() - 1 ).split( ":" );
+				String[] tempSplit2 = extralines.get( extralines.size() - 1 ).split( "}" );
+				columnNumber = tempSplit2[ 0 ].length() - (tempSplit[ 0 ].length() + 1);
+				context = new URIParsingContext( context.source(), context.startline(), context.endline(), columnNumber,
+					extralines );
 			} else {
-				context = new URIParsingContext( context.source(), context.line(), context.column(), extralines );
+				context = new URIParsingContext( context.source(), context.startline(), context.endline(),
+					context.column(), extralines );
 			}
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case "execution":
-			if( !context.code().get( 0 ).contains( "execution" ) ) {
-				extralines = getWholeScope( "", scope ); // look for line containing execution
-				int LineNumber = Integer.parseInt( extralines.get( 0 ).split( ":" )[ 0 ] ); // get lineNumber of line
-																							// with execution
-				// find column of : after execution, don't count linenumber and : in front of line
-				int columnNumber =
-					extralines.get( 0 ).lastIndexOf( ':' ) - extralines.get( 0 ).split( ":" )[ 0 ].length() - 1;
-				context = new URIParsingContext( context.source(), LineNumber, columnNumber, extralines );
-			}
+			extralines = getWholeScope( "", scope ); // look for line containing execution
+			context = new URIParsingContext( context.source(), context.startline(), context.endline(), context.column(),
+				extralines );
 			help = createHelpMessage( context, token.content(), KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
@@ -571,11 +517,10 @@ public abstract class AbstractParser {
 			// if the service is empty and it does not have an ending curlybracket
 			if( mesg.contains( "unexpected term found inside service" ) && token.content().isEmpty() ) {
 				extralines = getWholeScope( scopeName, scope );
-				int LineNumber = Integer.parseInt( extralines.get( 0 ).split( ":" )[ 0 ] );
-				int columnNumber =
+				columnNumber =
 					extralines.get( 0 ).lastIndexOf( '{' ) - extralines.get( 0 ).split( ":" )[ 0 ].length() - 1;
-				context =
-					new URIParsingContext( context.source(), LineNumber, columnNumber, List.of( extralines.get( 0 ) ) );
+				context = new URIParsingContext( context.source(), context.startline(), context.endline(), columnNumber,
+					List.of( extralines.get( 0 ) ) );
 				help = createHelpMessageWithScope( context, token.content(), scope );
 				exceptionMessage = CodeCheckMessage.withHelp( context,
 					"Service " + scopeName + " is empty and does not have an ending }", help );
@@ -586,12 +531,10 @@ public abstract class AbstractParser {
 			break;
 		case "import":
 			extralines = getWholeScope( null, scope ); // find line where import is spelled wrong
-			// get correct line number and column number
-			int lineNumber = Integer.parseInt( extralines.get( 0 ).split( ":" )[ 0 ] );
 			String[] tempSplit = extralines.get( 0 ).split( " ", 0 );
-			int column =
-				tempSplit[ 0 ].length() + tempSplit[ 1 ].length();
-			context = new URIParsingContext( context.source(), lineNumber, column, extralines );
+			columnNumber = tempSplit[ 0 ].length() + tempSplit[ 1 ].length();
+			context = new URIParsingContext( context.source(), context.startline(), context.endline(), columnNumber,
+				extralines );
 			help = createHelpMessage( context, tempSplit[ 2 ], KeywordClass.getKeywordsForScope( scope ) );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;

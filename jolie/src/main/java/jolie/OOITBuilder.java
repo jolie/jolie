@@ -143,7 +143,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	}
 
 	private static String buildErrorMessage( ParsingContext context, String message ) {
-		return context.sourceName() + ":" + context.line() + ": " + message;
+		return context.sourceName() + ":" + context.startline() + ": " + message;
 	}
 
 	private void error( ParsingContext context, String message ) {

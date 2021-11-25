@@ -282,7 +282,7 @@ public class TypeChecker implements UnitOLVisitor {
 		valid = false;
 		if( node != null ) {
 			ParsingContext context = node.context();
-			LOGGER.severe( context.sourceName() + ":" + context.line() + ": " + message );
+			LOGGER.severe( context.sourceName() + ":" + context.startline() + ": " + message );
 		} else {
 			LOGGER.severe( message );
 		}

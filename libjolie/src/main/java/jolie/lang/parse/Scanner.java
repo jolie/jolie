@@ -362,6 +362,8 @@ public class Scanner {
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
     private int line;						// current line
+	private int startline;
+	private int endline;
 	private final URI source;				// source name
 	private final boolean includeDocumentation;	// include documentation tokens
 	private final ArrayList<String> lineTokens = new ArrayList<>();
@@ -385,6 +387,8 @@ public class Scanner {
 		this.source = source;
 		this.includeDocumentation = includeDocumentation;
 		line = 1;
+		startline = 1;
+		endline = 1;
 		currColumn = 0;
 		readChar();
 	}
@@ -506,11 +510,24 @@ public class Scanner {
 	}
 
 	public void setErrorColumn(int myColumn){
-		errorColumn = myColumn;
+		this.errorColumn = myColumn;
 	}
 
 	public List<String> getAllCodeLines(){
 		return lineTokens;
+	}
+
+	public int startline(){
+		return startline;
+	}
+	public void setStartline(int startline){
+		this.startline = startline;
+	}
+	public int endline(){
+		return endline;
+	}
+	public void setEndline(int endline){
+		this.endline = endline;
 	}
 
 	/**
