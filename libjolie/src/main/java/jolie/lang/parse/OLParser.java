@@ -331,7 +331,6 @@ public class OLParser extends AbstractParser {
 				currentType = parseType( typeName, accessModifier, context );
 				if( forwardDocToken.isPresent() ) {
 					parseBackwardAndSetDocumentation( currentType, forwardDocToken );
-					forwardDocToken = Optional.empty();
 				} else {
 					parseBackwardAndSetDocumentation( currentType, Optional.empty() );
 				}
