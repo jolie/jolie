@@ -42,6 +42,8 @@ type UnsubscribeSessionListener {
 
 type InRequest:string {
 	token?: string
+} | void {
+	token?: string
 }
 
 interface ConsoleIface {

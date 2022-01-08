@@ -59,7 +59,7 @@ public class ConsoleService extends JavaService {
 						Channels.newInputStream(
 							fis.getChannel() ) ) ) ) {
 				String line;
-				while( keepRun ) {
+				do {
 					line = stdin.readLine();
 
 					if( sessionListeners ) {
@@ -72,7 +72,7 @@ public class ConsoleService extends JavaService {
 					} else {
 						getEmbedder().callOneWay( "in", Value.create( line ) );
 					}
-				}
+				} while( line != null && keepRun );
 			} catch( ClosedByInterruptException ce ) {
 			} catch( IOException e ) {
 				interpreter().logWarning( e );
