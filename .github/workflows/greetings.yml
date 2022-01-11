@@ -26,8 +26,8 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/first-interaction@v1
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: 'Welcome to the Jolie community! Thank you for taking your time to contribute to the project, we really appreciate it. :tada: A member of the Jolie team will look at this as soon as possible. You can also reach us directly via chat or e-mail, see <https://github.com/jolie/jolie#get-in-touch>.'
-        pr-message: 'Welcome to the Jolie community! Thank you for taking your time to contribute to the project, we really appreciate it. :tada: A member of the Jolie team will look at this as soon as possible. You can also reach us directly via chat or e-mail, see <https://github.com/jolie/jolie#get-in-touch>.'
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: "Welcome to the Jolie community! Thank you for taking your time to contribute to the project, we really appreciate it. :tada: A member of the Jolie team will look at this as soon as possible. You can also reach us directly via chat or e-mail, see <https://github.com/jolie/jolie#get-in-touch>."
+          pr-message: "Welcome to the Jolie community! Thank you for taking your time to contribute to the project, we really appreciate it. :tada: A member of the Jolie team will look at this as soon as possible. You can also reach us directly via chat or e-mail, see <https://github.com/jolie/jolie#get-in-touch>."

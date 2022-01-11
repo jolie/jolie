@@ -36,7 +36,7 @@ import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
 
 public class ConsoleService extends JavaService {
-	private Map< String, String > sessionTokens;
+	private Map<String, String> sessionTokens;
 	private boolean sessionListeners = false;
 	private boolean enableTimestamp = false;
 	private static final String TIMESTAMP_DEFAULT_FORMAT = "dd/MM/yyyy HH:mm:ss";
@@ -52,30 +52,30 @@ public class ConsoleService extends JavaService {
 
 		@Override
 		public void run() {
-			try(
-				FileInputStream fis = new FileInputStream( FileDescriptor.in );
-				BufferedReader stdin = new BufferedReader(
-					new InputStreamReader(
-						Channels.newInputStream(
-							fis.getChannel() ) ) ) ) {
+			try (
+					FileInputStream fis = new FileInputStream(FileDescriptor.in);
+					BufferedReader stdin = new BufferedReader(
+							new InputStreamReader(
+									Channels.newInputStream(
+											fis.getChannel())))) {
 				String line;
 				do {
 					line = stdin.readLine();
 
-					if( sessionListeners ) {
-						for( String s : sessionTokens.keySet() ) {
+					if (sessionListeners) {
+						for (String s : sessionTokens.keySet()) {
 							Value v = Value.create();
-							v.getFirstChild( "token" ).setValue( s );
-							v.setValue( line );
-							getEmbedder().callOneWay( "in", v );
+							v.getFirstChild("token").setValue(s);
+							v.setValue(line);
+							getEmbedder().callOneWay("in", v);
 						}
 					} else {
-						getEmbedder().callOneWay( "in", Value.create( line ) );
+						getEmbedder().callOneWay("in", Value.create(line));
 					}
-				} while( line != null && keepRun );
-			} catch( ClosedByInterruptException ce ) {
-			} catch( IOException e ) {
-				interpreter().logWarning( e );
+				} while (line != null && keepRun);
+			} catch (ClosedByInterruptException ce) {
+			} catch (IOException e) {
+				interpreter().logWarning(e);
 			}
 		}
 	}
@@ -83,9 +83,9 @@ public class ConsoleService extends JavaService {
 	private ConsoleInputThread consoleInputThread;
 
 	@RequestResponse
-	public void registerForInput( Value request ) {
-		if( request.getFirstChild( "enableSessionListener" ).isDefined() ) {
-			if( request.getFirstChild( "enableSessionListener" ).boolValue() ) {
+	public void registerForInput(Value request) {
+		if (request.getFirstChild("enableSessionListener").isDefined()) {
+			if (request.getFirstChild("enableSessionListener").boolValue()) {
 				sessionListeners = true;
 				sessionTokens = new HashMap<>();
 			}
@@ -96,7 +96,7 @@ public class ConsoleService extends JavaService {
 
 	@Override
 	protected void finalize()
-		throws Throwable {
+			throws Throwable {
 		try {
 			consoleInputThread.kill();
 		} finally {
@@ -105,44 +105,44 @@ public class ConsoleService extends JavaService {
 	}
 
 	@RequestResponse
-	public void print( String s ) {
-		if( enableTimestamp ) {
+	public void print(String s) {
+		if (enableTimestamp) {
 			try {
-				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
+				SimpleDateFormat sdf = new SimpleDateFormat(timestampFormat);
 				final Date now = new Date();
-				String ts = sdf.format( now );
-				System.out.print( ts + " " + s );
-			} catch( Exception e ) {
-				System.out.print( "Bad Format " + s );
+				String ts = sdf.format(now);
+				System.out.print(ts + " " + s);
+			} catch (Exception e) {
+				System.out.print("Bad Format " + s);
 			}
 		} else {
-			System.out.print( s );
+			System.out.print(s);
 		}
 	}
 
 	@RequestResponse
-	public void println( String s ) {
-		if( enableTimestamp ) {
+	public void println(String s) {
+		if (enableTimestamp) {
 			try {
-				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
+				SimpleDateFormat sdf = new SimpleDateFormat(timestampFormat);
 				final Date now = new Date();
-				String ts = sdf.format( now );
-				System.out.println( ts + " " + s );
-			} catch( Exception e ) {
-				System.out.println( "Bad Format " + s );
+				String ts = sdf.format(now);
+				System.out.println(ts + " " + s);
+			} catch (Exception e) {
+				System.out.println("Bad Format " + s);
 			}
 		} else {
-			System.out.println( s );
+			System.out.println(s);
 		}
 	}
 
 	@RequestResponse
-	public void enableTimestamp( Value request ) {
+	public void enableTimestamp(Value request) {
 		boolean enable = request.boolValue();
-		if( enable ) {
+		if (enable) {
 			enableTimestamp = true;
-			if( request.getFirstChild( "format" ).isDefined() ) {
-				timestampFormat = request.getFirstChild( "format" ).strValue();
+			if (request.getFirstChild("format").isDefined()) {
+				timestampFormat = request.getFirstChild("format").strValue();
 			} else {
 				timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 			}
@@ -154,29 +154,29 @@ public class ConsoleService extends JavaService {
 	}
 
 	@RequestResponse
-	public void subscribeSessionListener( Value request ) {
-		String token = request.getFirstChild( "token" ).strValue();
+	public void subscribeSessionListener(Value request) {
+		String token = request.getFirstChild("token").strValue();
 
-		if( sessionListeners ) {
-			sessionTokens.put( token, token );
+		if (sessionListeners) {
+			sessionTokens.put(token, token);
 
 		}
 	}
 
 	@RequestResponse
-	public void unsubscribeSessionListener( Value request ) {
-		String token = request.getFirstChild( "token" ).strValue();
+	public void unsubscribeSessionListener(Value request) {
+		String token = request.getFirstChild("token").strValue();
 
-		if( sessionListeners ) {
-			sessionTokens.remove( token );
+		if (sessionListeners) {
+			sessionTokens.remove(token);
 		}
 	}
 
 	@RequestResponse
-	public String readLine( Value request ) {
-		if( request.getFirstChild( "secret" ).isDefined() && request.getFirstChild( "secret" ).boolValue() ) {
+	public String readLine(Value request) {
+		if (request.getFirstChild("secret").isDefined() && request.getFirstChild("secret").boolValue()) {
 			char passwordArray[] = System.console().readPassword();
-			return new String( passwordArray );
+			return new String(passwordArray);
 		} else {
 			return System.console().readLine();
 		}
