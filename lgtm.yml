@@ -3,4 +3,8 @@ path_classifiers:
     - lib/xsom
   test:
     - test
-java_version: 11
+
+extraction:
+  java:
+    index:
+      java_version: 11

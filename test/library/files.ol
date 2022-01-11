@@ -21,6 +21,29 @@ define testList
 	if ( response.result[1] != "subdir1" ) {
 		throw( TestFailed, "list@File: wrong result[1]. Expected " + listDir + fs + "subdir1, got " + response.result[2] )
 	}
+
+	list@File( {
+		.directory = listDir,
+		.info = true
+	} )( response )
+
+	for( f in response.result ) {
+		if ( f.info.size == 0 && !f.info.isDirectory ) {
+				throw( TestFailed, f + " should not have size 0 " )
+		}
+		if ( f.info.lastModified == 0 ) {
+				throw( TestFailed, f + " has lastModified = 0 " )
+		}
+		if ( f == "subdir1" ) {
+			if ( !f.info.isDirectory ) {
+				throw( TestFailed, "subdir1 is a directory" )
+			}
+		} else {
+			if ( f.info.isDirectory ) {
+				throw( TestFailed, f + " is not a directory" )
+			}
+		}
+	}
 }
 
 define checkResult

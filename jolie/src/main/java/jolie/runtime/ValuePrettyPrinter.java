@@ -155,7 +155,7 @@ public class ValuePrettyPrinter {
 	private void writeIndented( String s, List< Boolean > hasMore )
 		throws IOException {
 		for( int i = 0; i < indentation; i++ ) {
-			if( hasMore.get( i ) ) {
+			if( hasMore.size() > i && hasMore.get( i ) ) {
 				writer.write( '│' );
 			}
 			writer.write( '\t' );
