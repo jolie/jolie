@@ -263,7 +263,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( node == null ) {
 			LOGGER.warning( message );
 		} else {
-			LOGGER.warning( node.context().sourceName() + ":" + node.context().startline() + ": " + message );
+			LOGGER.warning( node.context().sourceName() + ":" + node.context().startLine() + ": " + message );
 		}
 	}
 
@@ -385,8 +385,19 @@ public class SemanticVerifier implements UnitOLVisitor {
 			if( executionService != null ) {
 				executionService.program().accept( this );
 				if( configuration.checkForMain && !mainDefined ) {
-					error( program,
-						"Main procedure for service \"" + configuration.executionTarget + "\" is not defined" );
+					// Noticed that sometimes the configuration.executionTarget is null, but the name of the service is
+					// in the executionService
+					// TODO: get the lines of the service missing a main
+					if( configuration.executionTarget != null ) {
+						error( program,
+							"Main procedure for service \"" + configuration.executionTarget + "\" is not defined" );
+					} else if( executionService.name() != null ) {
+						error( program,
+							"Main procedure for service \"" + executionService.name() + "\" is not defined" );
+					} else {
+						error( program,
+							"Main procedure for service is not defined" );
+					}
 				}
 			}
 		}

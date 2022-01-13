@@ -54,11 +54,13 @@ public interface ParsingContext extends Serializable {
 	 * 
 	 * @return the line at which the node has been read
 	 */
-	int startline();
+	int startLine();
 
-	int endline();
+	int endLine();
 
-	int column();
+	int startColumn();
+
+	int endColumn();
 
 	List< String > enclosingCode();
 

@@ -68,25 +68,26 @@ public class CodeCheckMessage {
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
-			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startline() )
+			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startLine() )
 				.append( ": error: " );
 			if( description != null ) {
-				messageBuilder.append( description ).append( '\n' );
+				messageBuilder.append( description );// .append( "startline: " + context.startline() + ", endline: " +
+														// context.endline() ).append( '\n' );
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
-			messageBuilder.append( String.join( "", context.enclosingCodeWithLineNumbers() ) ); // Appends all lines of
-																								// code involved
-			// with
-			// error
-			if( !context.enclosingCode().get( context.enclosingCode().size() - 1 ).endsWith( "\n" ) ) {
-				messageBuilder.append( "\n" );
-			}
+			if( !context.enclosingCode().isEmpty() ) {
+				// Appends all lines of code involved with the error
+				messageBuilder.append( String.join( "", context.enclosingCodeWithLineNumbers() ) );
+				if( !context.enclosingCode().get( context.enclosingCode().size() - 1 ).endsWith( "\n" ) ) {
+					messageBuilder.append( "\n" );
+				}
 
-			for( int i = 0; i < context.column() + (" " + context.endline()).length(); i++ ) {
-				messageBuilder.append( " " );
+				for( int i = 0; i < context.startColumn() + (" " + context.endLine()).length(); i++ ) {
+					messageBuilder.append( " " );
+				}
+				messageBuilder.append( "^\n" );
 			}
-			messageBuilder.append( "^\n" );
 		} else {
 			messageBuilder.append( ": error: " );
 			if( description != null ) {

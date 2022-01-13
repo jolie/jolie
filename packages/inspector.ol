@@ -92,6 +92,12 @@ type TypesInspectionResponse {
 	types*: TypeDefinition
 }
 
+type FileInspectionResponse{
+	inputPorts*: PortInfo
+	outputPorts*: PortInfo
+	referredTypes*: TypeDefinition
+}
+
 type InspectionRequest {
 	filename: string
 	includePaths*: string
@@ -100,6 +106,12 @@ type InspectionRequest {
 
 interface InspectorInterface {
 RequestResponse:
+	// general inspection
+	inspectFile(InspectionRequest)(FileInspectionResponse)
+		throws	ParserException( WeakJavaExceptionType )
+						SemanticException( WeakJavaExceptionType )
+						FileNotFoundException( WeakJavaExceptionType )
+						IOException( WeakJavaExceptionType ),
 	inspectPorts( InspectionRequest )( PortInspectionResponse )
 		throws	ParserException( WeakJavaExceptionType )
 						SemanticException( WeakJavaExceptionType )

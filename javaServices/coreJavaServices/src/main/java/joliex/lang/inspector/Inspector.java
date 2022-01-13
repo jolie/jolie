@@ -47,6 +47,12 @@ import java.io.InputStream;
 import java.util.*;
 
 public class Inspector extends JavaService {
+	private static final class FileInspectionResponse {
+		private static final String INPUT_PORT = "inputPorts";
+		private static final String OUTPUT_PORT = "outputPorts";
+		private static final String REFERRED_TYPES = "referredTypes";
+	}
+
 	private static final class PortInspectionResponse {
 		private static final String INPUT_PORT = "inputPorts";
 		private static final String OUTPUT_PORT = "outputPorts";
@@ -104,7 +110,7 @@ public class Inspector extends JavaService {
 	}
 
 	@RequestResponse
-	public Value inspectPorts( Value request ) throws FaultException {
+	public Value inspectFile( Value request ) throws FaultException {
 		try {
 			final ProgramInspector inspector;
 			String[] includePaths =
@@ -118,6 +124,30 @@ public class Inspector extends JavaService {
 						interpreter() );
 			}
 			return buildPortInspectionResponse( inspector );
+		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
+			throw new FaultException( ex );
+		} catch( CodeCheckException ex ) {
+			throw new FaultException(
+				"SemanticException",
+				ex.getMessage() );
+		}
+	}
+
+	@RequestResponse
+	public Value inspectPorts( Value request ) throws FaultException {
+		try {
+			final ProgramInspector inspector;
+			String[] includePaths =
+				request.getChildren( "includePaths" ).stream().map( Value::strValue ).toArray( String[]::new );
+			if( request.hasChildren( "source" ) ) {
+				inspector = getInspector( request.getFirstChild( "filename" ).strValue(),
+					Optional.of( request.getFirstChild( "source" ).strValue() ), includePaths, interpreter() );
+			} else {
+				inspector =
+					getInspector( request.getFirstChild( "filename" ).strValue(), Optional.empty(), includePaths,
+						interpreter() );
+			}
+			return buildFileInspectionResponse( inspector );
 		} catch( CommandLineException | IOException | ParserException | ModuleException ex ) {
 			throw new FaultException( ex );
 		} catch( CodeCheckException ex ) {
@@ -172,6 +202,32 @@ public class Inspector extends JavaService {
 			configuration,
 			true );
 		return ParsingUtils.createInspector( program );
+	}
+
+	private static Value buildFileInspectionResponse( ProgramInspector inspector ) {
+		Value result = Value.create();
+		ValueVector inputPorts = result.getChildren( FileInspectionResponse.INPUT_PORT );
+		ValueVector outputPorts = result.getChildren( FileInspectionResponse.OUTPUT_PORT );
+		ValueVector referredTypesValues = result.getChildren( FileInspectionResponse.REFERRED_TYPES );
+
+		Set< String > referredTypes = new HashSet<>();
+		for( InputPortInfo portInfo : inspector.getInputPorts() ) {
+			inputPorts.add( buildPortInfo( portInfo, inspector, referredTypes ) );
+		}
+
+		for( OutputPortInfo portInfo : inspector.getOutputPorts() ) {
+			outputPorts.add( buildPortInfo( portInfo, referredTypes ) );
+		}
+
+		Map< String, TypeDefinition > types = new HashMap<>();
+		for( TypeDefinition t : inspector.getTypes() ) {
+			types.put( t.name(), t );
+		}
+
+		referredTypes.stream().filter( types::containsKey )
+			.forEach( typeName -> referredTypesValues.add( buildTypeDefinition( types.get( typeName ) ) ) );
+
+		return result;
 	}
 
 	private static Value buildPortInspectionResponse( ProgramInspector inspector ) {

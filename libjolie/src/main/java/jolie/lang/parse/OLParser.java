@@ -201,7 +201,7 @@ public class OLParser extends AbstractParser {
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader ) {
 		super( scanner );
-		final ParsingContext context = new URIParsingContext( scanner.source(), 0, 0, 0, List.of() );
+		final ParsingContext context = new URIParsingContext( scanner.source(), 1, 1, 0, 0, List.of() );
 		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
@@ -252,7 +252,6 @@ public class OLParser extends AbstractParser {
 
 	private void parseLoop( ParsingRunnable... parseRunnables )
 		throws IOException, ParserException {
-		setStartline();
 		nextToken();
 		if( token.is( Scanner.TokenType.HASH ) ) {
 			// Shebang scripting
@@ -270,6 +269,7 @@ public class OLParser extends AbstractParser {
 		} while( t != token ); // Loop until no procedures can eat the initial token
 
 		if( t.isNot( Scanner.TokenType.EOF ) ) {
+			setStartLine();
 			setEndLine();
 			throwExceptionWithScope( "Unexpected term", null, "outer" );
 		}
@@ -1018,7 +1018,7 @@ public class OLParser extends AbstractParser {
 	private ExecutionInfo _parseExecutionInfo()
 		throws IOException, ParserException {
 		Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
-		setStartline();
+		setStartLine();
 		nextToken();
 		boolean inCurlyBrackets = false;
 		if( token.is( Scanner.TokenType.COLON ) ) {
@@ -1583,11 +1583,13 @@ public class OLParser extends AbstractParser {
 			nextToken();
 			return;
 		}
+		setStartLine();
 		nextToken();
 
 		Constants.EmbeddedServiceType tech = Constants.EmbeddedServiceType.SERVICENODE;
 		Map< String, String > configMap = new HashMap<>();
 
+		setEndLine();
 		assertToken( Scanner.TokenType.ID, "expected service name" );
 		ParsingContext ctx = getContext();
 		String serviceName = token.content();
@@ -1595,6 +1597,7 @@ public class OLParser extends AbstractParser {
 
 		Pair< String, TypeDefinition > parameter = parseServiceParameter();
 
+		setEndLine();
 		eat( Scanner.TokenType.LCURLY, "{ expected" );
 		// jolie internal service's Interface
 		InterfaceDefinition[] internalIfaces = null;
@@ -1677,18 +1680,24 @@ public class OLParser extends AbstractParser {
 					}
 					configMap.put( key, value );
 				}
+				setEndLine();
 				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
+				setEndLine();
+				if( token.isNot( Scanner.TokenType.EOF ) ) {
+					setStartLine();
+				}
 				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
 					serviceName, "service" );
 				keepRun = false;
 			}
 		}
-
+		setEndLine();
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 		// it is a Jolie internal service
 		if( internalIfaces != null && internalIfaces.length > 0 ) {
 			if( internalMain == null ) {
+				setEndLine();
 				throwException( "You must specify a main for service " + serviceName );
 			}
 			EmbeddedServiceNode node = createInternalService( ctx, serviceName, internalIfaces,
@@ -1731,7 +1740,7 @@ public class OLParser extends AbstractParser {
 		OLSyntaxNode protocol = null;
 		OLSyntaxNode location = null;
 		List< InterfaceDefinition > interfaceList = new ArrayList<>();
-		setStartline();
+		setStartLine();
 		nextToken();
 		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
 		inputPortName = token.content();
@@ -3532,7 +3541,7 @@ public class OLParser extends AbstractParser {
 		Scanner.TokenType... extensions )
 		throws IOException, ParserException {
 		List< String > importTargetComponents = new ArrayList<>();
-		setStartline();
+		setStartLine();
 		ExtendedIdentifierState state = ExtendedIdentifierState.CAN_READ_ID;
 		while( state != ExtendedIdentifierState.STOP ) {
 			if( state == ExtendedIdentifierState.CAN_READ_ID && token.isIdentifier() ) {

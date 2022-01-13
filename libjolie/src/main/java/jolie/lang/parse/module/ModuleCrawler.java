@@ -116,7 +116,8 @@ class ModuleCrawler {
 				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
 				int column = codeLine.length();
 				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
-					importedSymbol.context().startline(), importedSymbol.context().endline(), column,
+					importedSymbol.context().startLine(), importedSymbol.context().endLine(), column,
+					column + e.importPath().toString().length(),
 					List.of( CodeLineWithPath ) );
 				CodeCheckMessage message = CodeCheckMessage.withHelp( context, e.getMessage(), getHelp( e ) );
 				throw new ModuleException( message );

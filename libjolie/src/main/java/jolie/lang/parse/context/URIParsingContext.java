@@ -40,19 +40,22 @@ public class URIParsingContext implements ParsingContext {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final URI uri;
 	private final List< String > code;
-	private final int column;
-	private final int startline;
-	private final int endline;
+	private final int startColumn;
+	private final int endColumn;
+	private final int startLine;
+	private final int endLine;
 
 	public static final URIParsingContext DEFAULT =
-		new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, 0, List.of() );
+		new URIParsingContext( URI.create( "urn:undefined" ), 1, 1, 0, 0, List.of() );
 
-	public URIParsingContext( URI uri, int startline, int endline, int column, List< String > code ) {
+	public URIParsingContext( URI uri, int startLine, int endLine, int startColumn, int endColumn,
+		List< String > code ) {
 		this.uri = uri;
-		this.column = column; // The number character in line, where error occured
+		this.startColumn = startColumn; // The number character in line, where error occured
+		this.endColumn = endColumn;
 		this.code = code; // this is the line(s) in the file where the error occured
-		this.startline = startline;
-		this.endline = endline;
+		this.startLine = startLine;
+		this.endLine = endLine;
 	}
 
 	@Override
@@ -71,18 +74,23 @@ public class URIParsingContext implements ParsingContext {
 	}
 
 	@Override
-	public int startline() {
-		return startline;
+	public int startLine() {
+		return startLine;
 	}
 
 	@Override
-	public int endline() {
-		return endline;
+	public int endLine() {
+		return endLine;
 	}
 
 	@Override
-	public int column() {
-		return column;
+	public int startColumn() {
+		return startColumn;
+	}
+
+	@Override
+	public int endColumn() {
+		return endColumn;
 	}
 
 	@Override
@@ -92,7 +100,7 @@ public class URIParsingContext implements ParsingContext {
 
 	@Override
 	public List< String > enclosingCodeWithLineNumbers() {
-		int i = startline;
+		int i = startLine;
 		List< String > linesWithNumbers = new ArrayList<>();
 		for( String line : code ) {
 			String newLine = i + ":" + line;

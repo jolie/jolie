@@ -186,34 +186,78 @@ public abstract class AbstractParser {
 	 */
 	public final ParsingContext getContext() {
 		return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(), scanner.errorColumn(),
+			scanner.errorColumn() + token.content().length(),
 			scanner.codeLine() );
 	}
 
 	/**
-	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
+	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner} taking start and
+	 * end line numbers into account
 	 * 
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContextDuringError() throws IOException {
-		int linenr = scanner.line();
 		readLineAfterError();
-		if( linenr < scanner.line() ) {
-			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
-				scanner.errorColumn(),
+		if( scanner.startLine() == 0 && scanner.endLine() == 0 ) { // If neither start nor end has been changed, then
+																	// use currentline
+			return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
+				scanner.errorColumn() + token.content().length(),
 				scanner.codeLine() );
-		} else if( scanner.errorColumn() < 0 ) {
-			String correctLine = scanner.getAllCodeLines().get( linenr - 1 );
-			if( !correctLine.endsWith( "\n" ) ) {
-				correctLine += "\n";
-			}
-			return new URIParsingContext( scanner.source(), linenr - 1, linenr - 1, correctLine.length(),
+		} else if( scanner.line() == scanner.startLine() && scanner.line() == scanner.endLine() ) { // start, end and
+																									// current the same
+			return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
+				scanner.errorColumn() + token.content().length(),
+				scanner.codeLine() );
+		} else if( scanner.line() != scanner.startLine() && scanner.line() == scanner.endLine() ) { // start different
+																									// than current and
+																									// end
+			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
+				scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
+				scanner.codeLine() );
+		} else if( scanner.line() == scanner.startLine() && scanner.line() != scanner.endLine() ) {// end different than
+																									// start and current
+																									// (hopefully does
+																									// not happen)
+			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
+				scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
+				scanner.codeLine() );
+		} else if( scanner.startLine() == scanner.endLine() && scanner.startLine() != scanner.line() ) { // current
+																											// different
+																											// from
+																											// start and
+																											// end
+																											// (hopefully
+																											// does not
+																											// happen)
+			return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
+				scanner.errorColumn() + token.content().length(),
+				scanner.codeLine() );
+		} else if( scanner.errorColumn() < 0 ) { // The reader read to the next line, need to go back a line and fix
+													// errorColumn
+			int linenr = scanner.line() - 1;
+			String correctLine = scanner.getAllCodeLines().get( linenr );
+			return new URIParsingContext( scanner.source(), linenr, linenr, correctLine.length(),
+				scanner.errorColumn() + token.content().length(),
 				List.of( correctLine ) );
-
 		} else {
 			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
-				scanner.errorColumn(),
+				scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
 				scanner.codeLine() );
 		}
+		/*
+		 * if( linenr < scanner.line() ) { return new URIParsingContext( scanner.source(),
+		 * scanner.startLine(), scanner.endLine(), scanner.errorColumn(), scanner.codeLine() ); } else if(
+		 * scanner.errorColumn() < 0 ) { String correctLine = scanner.getAllCodeLines().get( linenr - 1 );
+		 * if( !correctLine.endsWith( "\n" ) ) { correctLine += "\n"; } return new URIParsingContext(
+		 * scanner.source(), linenr - 1, linenr - 1, correctLine.length(), List.of( correctLine ) );
+		 * 
+		 * } else if( scanner.startLine() != scanner.endLine() ) { if( scanner.endLine() == scanner.line() )
+		 * { return new URIParsingContext( scanner.source(), scanner.endLine(), scanner.endLine(),
+		 * scanner.errorColumn(), scanner.codeLine() ); } else { return new URIParsingContext(
+		 * scanner.source(), scanner.startLine(), scanner.endLine(), scanner.errorColumn(),
+		 * scanner.codeLine() ); } } else { return new URIParsingContext( scanner.source(), scanner.line(),
+		 * scanner.line(), scanner.errorColumn(), scanner.codeLine() ); }
+		 */
 	}
 
 	public final int line() {
@@ -224,7 +268,7 @@ public abstract class AbstractParser {
 		return scanner.startLine();
 	}
 
-	public void setStartline() {
+	public void setStartLine() {
 		scanner.setStartLine( line() );
 	}
 
@@ -338,7 +382,8 @@ public abstract class AbstractParser {
 	 * @param tokenContent content of the token, which was wrong or missing(if empty)
 	 * @param possibleTokens list of possible keywords, which the user could have meant or are missing
 	 */
-	public static String createHelpMessage( ParsingContext context, String tokenContent, List< String > possibleTokens ) {
+	public static String createHelpMessage( ParsingContext context, String tokenContent,
+		List< String > possibleTokens ) {
 		if( tokenContent.isEmpty() ) { // if the token is missing, the user is given all
 			// possible tokens that can be written
 			StringBuilder help = new StringBuilder( "You are missing a keyword. Possible inputs are:\n" )
@@ -363,7 +408,7 @@ public abstract class AbstractParser {
 			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " )
 				.append( String.join( ", ", proposedWord ) )
 				.append( ". Perhaps you meant:\n" );
-			int columnSpace = context.column() + (context.startline() + ":").length();
+			int columnSpace = context.startColumn() + (context.startLine() + ":").length();
 			help.append( context.enclosingCode().get( 0 ).substring( 0, columnSpace ) )
 				.append( proposedWord.get( 0 ) )
 				.append( context.enclosingCode().get( 0 ).substring( tokenContent.length() + columnSpace ) );
@@ -409,9 +454,9 @@ public abstract class AbstractParser {
 				help.append( "\nYour term is similar to what would be valid input: " )
 					.append( String.join( ", ", proposedWord ) )
 					.append( ". Perhaps you meant:\n" );
-				int numberSpaces = context.column() + (":" + context.endline()).length();
+				int numberSpaces = context.startColumn() + (":" + context.endLine()).length();
 				for( String line : context.enclosingCodeWithLineNumbers() ) {
-					if( line.contains( context.endline() + ":" ) ) {
+					if( line.contains( context.endLine() + ":" ) ) {
 						help.append( line.substring( 0, numberSpaces ) )
 							.append( proposedWord.get( 0 ) )
 							.append( line.substring( numberSpaces + tokenContent.length() ) );
@@ -446,18 +491,20 @@ public abstract class AbstractParser {
 		ParsingContext context = getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			if( !mesg.equals( "" ) ) {
-				mesg += ": " + token.content();
+				mesg += ": " + token.content() + "\n";
 			} else {
-				mesg += ". Found term: " + token.content();
+				mesg += ". Found term: " + token.content() + "\n";
 			}
 			String help = createHelpMessage( context, token.content(), Arrays.asList() );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 		} else {
+			mesg += "\n";
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
 			context =
-				new URIParsingContext( context.source(), context.startline(), context.endline(), context.column() - 1,
+				new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+					context.startColumn() - 1, context.startColumn() - 1,
 					context.enclosingCode() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		}
@@ -475,8 +522,12 @@ public abstract class AbstractParser {
 		List< String > allLines = scanner.getAllCodeLines();
 		ArrayList< String > lines = new ArrayList<>();
 		for( int i = startLine(); i <= endLine(); i++ ) {
-			String currentLine = allLines.get( i );
-			lines.add( currentLine );
+			try {
+				String currentLine = allLines.get( i );
+				lines.add( currentLine );
+			} catch( IndexOutOfBoundsException e ) {
+				// do nothing
+			}
 		}
 		return lines;
 	}
@@ -494,7 +545,9 @@ public abstract class AbstractParser {
 		CodeCheckMessage exceptionMessage;
 		ParsingContext context = getContextDuringError();
 		if( !token.content().equals( "" ) ) {
-			mesg += ". Found term: " + token.content();
+			mesg += ". Found term: " + token.content() + "\n";
+		} else {
+			mesg += "\n";
 		}
 		String help;
 		List< String > extralines;
@@ -506,18 +559,20 @@ public abstract class AbstractParser {
 				// originally threw the error
 				int columnNumber = extralines.get( extralines.size() - 1 ).lastIndexOf( "}" );
 				context =
-					new URIParsingContext( context.source(), context.startline(), context.endline(), columnNumber,
+					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+						columnNumber + token.content().length(),
 						extralines );
 			} else {
-				context = new URIParsingContext( context.source(), context.startline(), context.endline(),
-					context.column(), extralines );
+				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+					context.startColumn(), context.startColumn() + token.content().length(), extralines );
 			}
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case Keywords.EXECUTION:
 			extralines = getWholeScope( "", scope ); // look for line containing execution
-			context = new URIParsingContext( context.source(), context.startline(), context.endline(), context.column(),
+			context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+				context.startColumn(), context.startColumn() + token.content().length(),
 				extralines );
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
@@ -529,11 +584,12 @@ public abstract class AbstractParser {
 				// Change column to where starting curly bracket is, as this is the start of the empty service
 				int columnNumber = extralines.get( 0 ).lastIndexOf( '{' );
 				context =
-					new URIParsingContext( context.source(), context.startline(), context.endline(), columnNumber,
+					new URIParsingContext( context.source(), context.startLine(), context.startLine(), columnNumber,
+						columnNumber + token.content().length(),
 						List.of( extralines.get( 0 ) ) );
 				help = createHelpMessageWithScope( context, token.content(), scope );
 				exceptionMessage = CodeCheckMessage.withHelp( context,
-					"Service " + scopeName + " is empty and does not have an ending }", help );
+					"Service " + scopeName + " is empty and does not have an ending }\n", help );
 				break;
 			}
 			help = createHelpMessageWithScope( context, token.content(), scope );
@@ -544,7 +600,8 @@ public abstract class AbstractParser {
 			// Find the column where the spelled wrong import is
 			String[] tempSplit = extralines.get( 0 ).split( " ", 0 );
 			int columnNumber = (tempSplit[ 0 ] + " " + tempSplit[ 1 ] + " ").length();
-			context = new URIParsingContext( context.source(), context.startline(), context.endline(), columnNumber,
+			context = new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+				columnNumber + token.content().length(),
 				extralines );
 			// Put the wrongly spelled import as tokenContent, as the token.content() is empty, but we want the
 			// error message to display the wrongly spelled word
