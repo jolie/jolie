@@ -24,17 +24,8 @@
 from .private.http_template_interface import HttpTemplateInterface
 from .private.http_template_server import HttpTemplateServer
 from ..test-unit import TestUnitInterface
-
 from string_utils import StringUtils
 from console import Console
-
-
-service Test {
-	inputPort TestUnitInput {
-		location: "local"
-		interfaces: TestUnitInterface
-	}
-
 
     outputPort TestHttpTemplateB{
         Location : "socket://localhost:9099"
