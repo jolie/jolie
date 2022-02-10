@@ -1,19 +1,9 @@
 from .private.http_template_interface import HttpTemplateInterface
 from .private.http_template_server import HttpTemplateServer
 from ..test-unit import TestUnitInterface
-<<<<<<< HEAD
 from string_utils import StringUtils
 from console import Console
-=======
->>>>>>> d351ec71e4490f8a6ec54d4d216638fd96debedd
 
-service Test {
-	inputPort TestUnitInput {
-		location: "local"
-		interfaces: TestUnitInterface
-	}
-
-<<<<<<< HEAD
     outputPort TestHttpTemplateB{
         Location : "socket://localhost:9099"
     }
@@ -21,12 +11,6 @@ service Test {
     outputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
-           compression= false 
-=======
-    outputPort TestHttpTemplate {
-        interfaces: HttpTemplateInterface
-        protocol: "http"{
->>>>>>> d351ec71e4490f8a6ec54d4d216638fd96debedd
            osc.getOrder.template="/api/orders/{id}" 
            osc.getOrder.method="GET"
            osc.getOrder.outHeaders.("Authorization")= "token"
