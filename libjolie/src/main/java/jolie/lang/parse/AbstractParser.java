@@ -500,13 +500,9 @@ public abstract class AbstractParser {
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
-			System.out.println("context line: "+context.startLine());
-			System.out.println("context column: "+context.startColumn());
-			System.out.println("context endline: "+context.endLine());
-			System.out.println("context endcolumn: "+context.endColumn());
 			context =
 				new URIParsingContext( context.source(), context.startLine(), context.endLine(),
-					context.startColumn() - 1, context.startColumn() - 1,
+					context.startColumn() - 1, context.endColumn() - 1,
 					context.enclosingCode() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		}
@@ -614,6 +610,9 @@ public abstract class AbstractParser {
 				exceptionMessage = CodeCheckMessage.withHelp( context,
 					"Service " + scopeName + " is empty and does not have an ending }\n", help );
 				break;
+			} else if( token.content().isEmpty() ) {
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
 			}
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
@@ -637,6 +636,10 @@ public abstract class AbstractParser {
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case Keywords.INTERFACE:
+			if( token.content().isEmpty() ) {
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
+			}
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;

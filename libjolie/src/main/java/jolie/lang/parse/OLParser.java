@@ -1595,7 +1595,7 @@ public class OLParser extends AbstractParser {
 		Map< String, String > configMap = new HashMap<>();
 
 		setEndLine();
-		assertToken( Scanner.TokenType.ID, "expected service name" );
+		assertToken( Scanner.TokenType.ID, "expected service name", "", Keywords.SERVICE );
 		ParsingContext ctx = getContext();
 		String serviceName = token.content();
 		nextToken();
@@ -1930,7 +1930,7 @@ public class OLParser extends AbstractParser {
 		InterfaceDefinition iface;
 		setStartLine();
 		setEndLine();
-		assertToken( Scanner.TokenType.ID, "expected interface name" );
+		assertToken( Scanner.TokenType.ID, "expected interface name", "", Keywords.INTERFACE );
 		name = token.content();
 		nextToken();
 		setStartLine();
