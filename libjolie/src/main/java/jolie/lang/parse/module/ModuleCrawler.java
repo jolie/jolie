@@ -116,7 +116,7 @@ class ModuleCrawler {
 				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
 				int column = codeLine.length();
 				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
-					importedSymbol.context().startLine(), importedSymbol.context().endLine(), column,
+					importedSymbol.context().endLine(), importedSymbol.context().endLine(), column,
 					column + e.importPath().toString().length(),
 					List.of( CodeLineWithPath ) );
 				CodeCheckMessage message = CodeCheckMessage.withHelp( context, e.getMessage(), getHelp( e ) );
@@ -191,6 +191,7 @@ class ModuleCrawler {
 				fileNames.addAll( forloopStream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
 					.map( Path::toString ).collect( Collectors.toSet() ) );
 				forloopStream.close();
+
 			} catch( IOException e ) {
 			}
 		}

@@ -213,6 +213,10 @@ public class SemanticVerifier implements UnitOLVisitor {
 		this.services = new HashMap<>();
 	}
 
+	public Map< URI, SymbolTable > symbolTables() {
+		return symbolTables;
+	}
+
 	public CorrelationFunctionInfo correlationFunctionInfo() {
 		return correlationFunctionInfo;
 	}

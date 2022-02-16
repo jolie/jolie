@@ -297,7 +297,7 @@ public class OLParser extends AbstractParser {
 		boolean keepRun = true;
 
 		while( keepRun ) {
-
+			setStartLine();
 			Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
 			Optional< Scanner.Token > accessModifierToken = parseAccessModifier();
 			if( token.isKeyword( "type" ) ) {
@@ -313,7 +313,8 @@ public class OLParser extends AbstractParser {
 
 				nextToken();
 				typeName = token.content();
-				eat( Scanner.TokenType.ID, "expected type name" );
+				setEndLine();
+				eat( Scanner.TokenType.ID, "expected type name", "", Keywords.TYPE );
 				if( token.is( Scanner.TokenType.COLON ) ) {
 					nextToken();
 				} else {
@@ -346,7 +347,8 @@ public class OLParser extends AbstractParser {
 	private TypeDefinition parseType( String typeName, AccessModifier accessModifier )
 		throws IOException, ParserException {
 		TypeDefinition currentType;
-
+		setStartLine();
+		setEndLine();
 		BasicTypeDefinition basicTypeDefinition = readBasicType();
 		if( basicTypeDefinition == null ) { // It's a user-defined type
 			currentType =
@@ -373,6 +375,8 @@ public class OLParser extends AbstractParser {
 
 	private void parseSubTypes( TypeInlineDefinition type )
 		throws IOException, ParserException {
+		setStartLine();
+		setEndLine();
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 
 		Optional< Scanner.Token > commentToken = Optional.empty();
@@ -1027,6 +1031,7 @@ public class OLParser extends AbstractParser {
 			inCurlyBrackets = true;
 			nextToken();
 		} else {
+			setEndLine();
 			throwException( "expected : or { after execution" );
 		}
 		setEndLine();
@@ -1635,6 +1640,8 @@ public class OLParser extends AbstractParser {
 				internalInit.addChild( parseInit() );
 				break;
 			case "main":
+				setStartLine();
+				setEndLine();
 				if( internalMain != null ) {
 					throwException( "you must specify only one main definition" );
 				}
@@ -1816,6 +1823,7 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.COLON, "expected :" );
 				parseAggregationList( aggregationList );
 			} else {
+				setStartLine();
 				setEndLine();
 				throwExceptionWithScope( "Unrecognized term in inputPort " + inputPortName, inputPortName,
 					"inputPort" );
@@ -1920,13 +1928,19 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		String name;
 		InterfaceDefinition iface;
+		setStartLine();
+		setEndLine();
 		assertToken( Scanner.TokenType.ID, "expected interface name" );
 		name = token.content();
 		nextToken();
-		eat( Scanner.TokenType.LCURLY, "expected {" );
+		setStartLine();
+		setEndLine();
+		eat( Scanner.TokenType.LCURLY, "expected {", name, Keywords.INTERFACE );
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
-		eat( Scanner.TokenType.RCURLY, "expected }", name, "interface" );
+		setStartLine();
+		setEndLine();
+		eat( Scanner.TokenType.RCURLY, "expected }", name, Keywords.INTERFACE );
 
 		return iface;
 	}
@@ -2182,9 +2196,9 @@ public class OLParser extends AbstractParser {
 	private DefinitionNode parseMain()
 		throws IOException, ParserException {
 		nextToken();
-		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
+		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier", "", Keywords.MAIN );
 		DefinitionNode retVal = new DefinitionNode( getContext(), "main", parseProcess() );
-		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
+		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition", "", Keywords.MAIN );
 		return retVal;
 	}
 
@@ -3541,7 +3555,6 @@ public class OLParser extends AbstractParser {
 		Scanner.TokenType... extensions )
 		throws IOException, ParserException {
 		List< String > importTargetComponents = new ArrayList<>();
-		setStartLine();
 		ExtendedIdentifierState state = ExtendedIdentifierState.CAN_READ_ID;
 		while( state != ExtendedIdentifierState.STOP ) {
 			if( state == ExtendedIdentifierState.CAN_READ_ID && token.isIdentifier() ) {
@@ -3583,6 +3596,7 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
+					setEndLine();
 					importTargets.add(
 						parseExtendedIdentifier( "expected identifier for importing target after from",
 							Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
@@ -3595,6 +3609,7 @@ public class OLParser extends AbstractParser {
 				isNamespaceImport = true;
 				nextToken();
 			} else {
+				setEndLine();
 				assertIdentifier( "expected Identifier or * after import" );
 				pathNodes = new ArrayList<>();
 				keepRun = false;
@@ -3604,6 +3619,7 @@ public class OLParser extends AbstractParser {
 					nextToken();
 					if( token.is( Scanner.TokenType.AS ) ) {
 						nextToken();
+						setEndLine();
 						assertIdentifier( "expected Identifier after as" );
 						localName = token.content();
 						nextToken();
@@ -3618,6 +3634,7 @@ public class OLParser extends AbstractParser {
 					}
 				} while( keepRun );
 			}
+			setEndLine();
 			ImportStatement stmt = null;
 			if( isNamespaceImport ) {
 				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ) );

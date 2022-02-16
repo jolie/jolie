@@ -29,6 +29,7 @@ import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParsingConfiguration;
 import jolie.lang.parse.module.Modules;
+import jolie.lang.parse.module.Modules.ModuleParsedResult;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class ParsingUtils {
 			definedConstants,
 			includeDocumentation );
 
-		Modules.ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
 
 		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
 			parseResult.symbolTables(), semanticConfiguration );
@@ -94,6 +95,32 @@ public class ParsingUtils {
 			definedConstants,
 			new SemanticVerifier.Configuration( executionTarget ),
 			includeDocumentation );
+	}
+
+	public static SemanticVerifier parseProgramModule(
+		InputStream inputStream,
+		URI source,
+		String charset,
+		String[] includePaths,
+		String[] packagePaths,
+		ClassLoader classLoader,
+		Map< String, Scanner.Token > definedConstants,
+		SemanticVerifier.Configuration semanticConfiguration,
+		boolean includeDocumentation )
+		throws IOException, ParserException, CodeCheckException, ModuleException {
+		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
+			charset,
+			includePaths,
+			packagePaths,
+			classLoader,
+			definedConstants,
+			includeDocumentation );
+
+		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
+			parseResult.symbolTables(), semanticConfiguration );
+		semanticVerifier.validate();
+		return semanticVerifier;
 	}
 
 	/**

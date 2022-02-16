@@ -526,8 +526,8 @@ public class Scanner {
 		return errorColumn-1;
 	}
 
-	public void setErrorColumn(int myColumn){
-		this.errorColumn = myColumn;
+	public void setErrorColumn(){
+		this.errorColumn = currentColumn();
 	}
 
 	public List<String> getAllCodeLines(){
