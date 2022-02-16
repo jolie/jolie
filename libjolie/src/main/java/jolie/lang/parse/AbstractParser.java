@@ -500,6 +500,10 @@ public abstract class AbstractParser {
 			// I remove 1 from currentcolumn, because the message otherwise look as if the error is within the
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
+			System.out.println("context line: "+context.startLine());
+			System.out.println("context column: "+context.startColumn());
+			System.out.println("context endline: "+context.endLine());
+			System.out.println("context endcolumn: "+context.endColumn());
 			context =
 				new URIParsingContext( context.source(), context.startLine(), context.endLine(),
 					context.startColumn() - 1, context.startColumn() - 1,
