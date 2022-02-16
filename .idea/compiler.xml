@@ -18,6 +18,7 @@
         <module name="libjolie" />
         <module name="rmi" />
         <module name="joliec" />
+        <module name="launchers" />
         <module name="xmlrpc" />
         <module name="jolie-embedding-legacy" />
         <module name="localsocket" />
