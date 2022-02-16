@@ -618,17 +618,16 @@ public abstract class AbstractParser {
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case Keywords.IMPORT:
-			// extralines = getWholeScope( null, scope ); // find line where import is spelled wrong
-			// Find the column where the spelled wrong import is
-			// String[] tempSplit = extralines.get( 0 ).split( " ", 0 );
-			// int columnNumber = (tempSplit[ 0 ] + " " + tempSplit[ 1 ] + " ").length();
-			/*
-			 * context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
-			 * columnNumber, columnNumber + tempSplit[ 2 ].length(), extralines );
-			 */
-			// Put the wrongly spelled import as tokenContent, as the token.content() is empty, but we want the
-			// error message to display the wrongly spelled word
-			// help = createHelpMessageWithScope( context, tempSplit[ 2 ], scope );
+			if( mesg.contains( "expected identifier for importing target after from" ) ) {
+				extralines = getWholeScope( null, scope ); // find line where import is spelled wrong
+				String[] tempSplit = extralines.get( 0 ).split( " ", 0 );
+				if( tempSplit.length > 1 ) {
+					int columnNumber = (tempSplit[ 0 ] + " " + tempSplit[ 1 ] + " ").length();
+					context =
+						new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+							columnNumber + tempSplit[ 2 ].length(), extralines );
+				}
+			}
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			break;
 		case Keywords.OUTER:
