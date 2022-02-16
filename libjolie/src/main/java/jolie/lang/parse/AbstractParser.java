@@ -570,14 +570,29 @@ public abstract class AbstractParser {
 		case Keywords.EXECUTION:
 			extralines = getWholeScope( "", scope ); // look for line containing execution
 			int startColumn = 0;
-			if( extralines.get( 0 ).contains( "execution:" ) ) {
+			int endColumn = 0;
+			int startLine = 0;
+			int endLine = 0;
+			System.out.println( "get(0): " + extralines.get( 0 ) );
+			if( extralines.get( 0 ).contains( "execution:" ) && extralines.get( 0 ).contains( token.content() ) ) {
 				startColumn = extralines.get( 0 ).indexOf( token.content() );
+				endColumn = startColumn + token.content().length();
+				startLine = context.startLine();
+				endLine = context.endLine();
+			} else if( extralines.get( 0 ).contains( "execution:" )
+				&& !extralines.get( 0 ).contains( token.content() ) ) {
+				startColumn = extralines.get( 0 ).indexOf( "execution:" ) + "execution:".length();
+				endColumn = startColumn;
+				startLine = context.startLine();
+				endLine = startLine;
 			} else {
 				startColumn = context.startColumn();
+				endColumn = context.endColumn();
+				startLine = context.startLine();
+				endLine = context.endLine();
 			}
-			context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
-				startColumn, startColumn + token.content().length(),
-				extralines );
+			context = new URIParsingContext( context.source(), startLine, endLine,
+				startColumn, endColumn, extralines );
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;

@@ -1035,7 +1035,7 @@ public class OLParser extends AbstractParser {
 			throwException( "expected : or { after execution" );
 		}
 		setEndLine();
-		assertToken( Scanner.TokenType.ID, "expected execution modality", null, "execution" );
+		assertToken( Scanner.TokenType.ID, "expected execution modality", null, Keywords.EXECUTION );
 		switch( token.content() ) {
 		case "sequential":
 			mode = Constants.ExecutionMode.SEQUENTIAL;
@@ -1047,7 +1047,7 @@ public class OLParser extends AbstractParser {
 			mode = Constants.ExecutionMode.SINGLE;
 			break;
 		default:
-			throwExceptionWithScope( "Expected execution mode", null, "execution" );
+			throwExceptionWithScope( "Expected execution mode", null, Keywords.EXECUTION );
 			break;
 		}
 		nextToken();
