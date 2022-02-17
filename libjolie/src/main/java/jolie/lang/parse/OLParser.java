@@ -1935,6 +1935,7 @@ public class OLParser extends AbstractParser {
 		nextToken();
 		setStartLine();
 		setEndLine();
+		System.out.println("Det er denne {");
 		eat( Scanner.TokenType.LCURLY, "expected {", name, Keywords.INTERFACE );
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
