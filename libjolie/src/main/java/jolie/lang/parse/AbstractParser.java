@@ -597,18 +597,28 @@ public abstract class AbstractParser {
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
 		case Keywords.SERVICE:
-			// if the service is empty and it does not have an ending curlybracket
+			// if the service does not have an ending curlybracket
 			if( mesg.contains( "unexpected term found inside service" ) && token.content().isEmpty() ) {
 				extralines = getWholeScope( scopeName, scope );
-				// Change column to where starting curly bracket is, as this is the start of the empty service
-				int columnNumber = extralines.get( 0 ).lastIndexOf( '{' );
+				int columnNumber = extralines.get( extralines.size() - 1 ).length();
 				context =
-					new URIParsingContext( context.source(), context.startLine(), context.startLine(), columnNumber,
-						columnNumber + token.content().length(),
-						List.of( extralines.get( 0 ) ) );
+					new URIParsingContext( context.source(), context.endLine(), context.endLine(), columnNumber,
+						columnNumber, List.of( extralines.get( extralines.size() - 1 ) ) );
 				help = createHelpMessageWithScope( context, token.content(), scope );
-				exceptionMessage = CodeCheckMessage.withHelp( context,
-					"Service " + scopeName + " is empty and does not have an ending }\n", help );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context,
+					"Service " + scopeName + " does not have an ending }\n" );
+				break;
+			} else if( mesg.contains( "expected {" ) && token.content().isEmpty() ) {
+				extralines = getWholeScope( scopeName, scope );
+				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+					extralines.get( 0 ).length() - 1, extralines.get( 0 ).length() - 1, extralines );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
+			} else if( mesg.contains( "expected {" ) ) {
+				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+					context.enclosingCode().get( 0 ).length() - 1,
+					context.enclosingCode().get( 0 ).length() - 1, context.enclosingCode() );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 				break;
 			} else if( token.content().isEmpty() ) {
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );

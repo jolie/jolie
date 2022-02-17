@@ -1603,7 +1603,7 @@ public class OLParser extends AbstractParser {
 		Pair< String, TypeDefinition > parameter = parseServiceParameter();
 
 		setEndLine();
-		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		eat( Scanner.TokenType.LCURLY, "expected {", serviceName, Keywords.SERVICE );
 		// jolie internal service's Interface
 		InterfaceDefinition[] internalIfaces = null;
 
