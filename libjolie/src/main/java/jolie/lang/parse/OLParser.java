@@ -2332,6 +2332,7 @@ public class OLParser extends AbstractParser {
 	private OLSyntaxNode parseBasicStatement( boolean throwException )
 		throws IOException, ParserException {
 		OLSyntaxNode retVal = null;
+		setStartLine();
 
 		switch( token.type() ) {
 		case LSQUARE:
@@ -2656,7 +2657,8 @@ public class OLParser extends AbstractParser {
 		}
 
 		if( throwException && retVal == null ) {
-			throwException( "expected basic statement" );
+			setEndLine();
+			throwExceptionWithScope( "expected basic statement", null, Keywords.MAIN );
 		}
 
 		return retVal;

@@ -675,10 +675,19 @@ public abstract class AbstractParser {
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 			break;
-		/*
-		 * case Keywords.MAIN: help = createHelpMessageWithScope( context, token.content(), scope );
-		 * exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help ); break;
-		 */
+		case Keywords.MAIN:
+			if( mesg.contains( "expected basic statement" ) ) {
+				int column = context.enclosingCode().get( context.enclosingCode().size() - 1 ).lastIndexOf( "}" );
+				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+					column, column, context.enclosingCode() );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
+			}
+			context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+				context.endColumn(), context.endColumn(), context.enclosingCode() );
+			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+			break;
+
 		default:
 			help = createHelpMessage( context, token.content(), List.of() );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
