@@ -1933,13 +1933,10 @@ public class OLParser extends AbstractParser {
 		assertToken( Scanner.TokenType.ID, "expected interface name", "", Keywords.INTERFACE );
 		name = token.content();
 		nextToken();
-		setStartLine();
 		setEndLine();
-		System.out.println("Det er denne {");
 		eat( Scanner.TokenType.LCURLY, "expected {", name, Keywords.INTERFACE );
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
-		setStartLine();
 		setEndLine();
 		eat( Scanner.TokenType.RCURLY, "expected }", name, Keywords.INTERFACE );
 

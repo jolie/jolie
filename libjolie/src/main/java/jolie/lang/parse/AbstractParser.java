@@ -636,6 +636,29 @@ public abstract class AbstractParser {
 			break;
 		case Keywords.INTERFACE:
 			if( token.content().isEmpty() ) {
+				if( mesg.contains( "expected {" ) ) {
+					extralines = getWholeScope( scopeName, scope );
+					context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+						extralines.get( 0 ).length() - 1, extralines.get( 0 ).length(),
+						List.of( extralines.get( 0 ) ) );
+					exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+					break;
+				}
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
+			}
+			if( mesg.contains( "expected {" ) ) { // and token.content() is not empty
+				extralines = getWholeScope( scopeName, scope );
+				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+					extralines.get( 0 ).length() - 1, extralines.get( 0 ).length(),
+					List.of( extralines.get( 0 ) ) );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
+			}
+			if( mesg.contains( "expected }" ) ) { // and token.content() is not empty
+				extralines = getWholeScope( scopeName, scope );
+				context = new URIParsingContext( context.source(), context.startLine(), context.endLine() - 1,
+					extralines.get( 0 ).length() - 1, extralines.get( extralines.size() - 1 ).length(), extralines );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 				break;
 			}
