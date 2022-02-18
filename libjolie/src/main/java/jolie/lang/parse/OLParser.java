@@ -1749,10 +1749,12 @@ public class OLParser extends AbstractParser {
 		List< InterfaceDefinition > interfaceList = new ArrayList<>();
 		setStartLine();
 		nextToken();
-		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
+		setEndLine();
+		assertToken( Scanner.TokenType.ID, "expected inputPort name", null, Keywords.INPUT_PORT );
 		inputPortName = token.content();
 		nextToken();
-		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		setEndLine();
+		eat( Scanner.TokenType.LCURLY, "expected {", inputPortName, Keywords.INPUT_PORT );
 		InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + inputPortName );
 
 		Map< String, String > redirectionMap = new HashMap<>();

@@ -552,7 +552,11 @@ public abstract class AbstractParser {
 		switch( scope ) {
 		case Keywords.INPUT_PORT:
 			extralines = getWholeScope( scopeName, scope );
-			if( extralines.get( extralines.size() - 1 ).contains( "}" ) ) {
+			if( mesg.contains( "expected {" ) ) {
+				int column = context.enclosingCode().get( 0 ).length() - 1;
+				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(), column,
+					column, context.enclosingCode() );
+			} else if( extralines.get( extralines.size() - 1 ).contains( "}" ) ) {
 				// If a term is missing, it needs the column of the last curly bracket instead of where it
 				// originally threw the error
 				int columnNumber = extralines.get( extralines.size() - 1 ).lastIndexOf( "}" );
@@ -560,12 +564,21 @@ public abstract class AbstractParser {
 					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 						columnNumber + token.content().length(),
 						extralines );
+				help = createHelpMessageWithScope( context, token.content(), scope );
+				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+				break;
+			} else if( extralines.get( 0 ).contains( "{" ) && mesg.contains( "expected inputPort name" ) ) {
+				int columnNumber = extralines.get( 0 ).lastIndexOf( "{" );
+				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+					columnNumber, extralines );
 			} else {
 				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
 					context.startColumn(), context.startColumn() + token.content().length(), extralines );
+				help = createHelpMessageWithScope( context, token.content(), scope );
+				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+				break;
 			}
-			help = createHelpMessageWithScope( context, token.content(), scope );
-			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			break;
 		case Keywords.EXECUTION:
 			extralines = getWholeScope( "", scope ); // look for line containing execution
