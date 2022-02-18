@@ -2071,6 +2071,7 @@ public class OLParser extends AbstractParser {
 
 	private void parseRequestResponseOperations( OperationCollector oc )
 		throws IOException, ParserException {
+		setStartLine();
 		nextToken();
 		eat( Scanner.TokenType.COLON, "expected :" );
 		boolean keepRun = true;
@@ -2092,6 +2093,7 @@ public class OLParser extends AbstractParser {
 					nextToken(); // eat (
 					requestTypeName = token.content();
 					nextToken();
+					setEndLine();
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 					eat( Scanner.TokenType.LPAREN, "expected (" );
 					responseTypeName = token.content();
