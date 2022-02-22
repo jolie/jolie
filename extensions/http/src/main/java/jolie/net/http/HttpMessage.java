@@ -228,7 +228,7 @@ public class HttpMessage {
 		return method;
 	}
 
-	String method = "";
+	
 
 
 	public byte[] content() {
