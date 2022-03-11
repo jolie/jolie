@@ -1,11 +1,33 @@
+/***************************************************************************
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2022 by Balint Maschio <bmaschio77@gmail.com            *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
+
 from .private.http_template_interface import HttpTemplateInterface
 from .private.http_template_server import HttpTemplateServer
 from ..test-unit import TestUnitInterface
-<<<<<<< HEAD
+
 from string_utils import StringUtils
 from console import Console
-=======
->>>>>>> d351ec71e4490f8a6ec54d4d216638fd96debedd
+
 
 service Test {
 	inputPort TestUnitInput {
@@ -13,7 +35,7 @@ service Test {
 		interfaces: TestUnitInterface
 	}
 
-<<<<<<< HEAD
+
     outputPort TestHttpTemplateB{
         Location : "socket://localhost:9099"
     }
@@ -21,12 +43,6 @@ service Test {
     outputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
-           compression= false 
-=======
-    outputPort TestHttpTemplate {
-        interfaces: HttpTemplateInterface
-        protocol: "http"{
->>>>>>> d351ec71e4490f8a6ec54d4d216638fd96debedd
            osc.getOrder.template="/api/orders/{id}" 
            osc.getOrder.method="GET"
            osc.getOrder.outHeaders.("Authorization")= "token"

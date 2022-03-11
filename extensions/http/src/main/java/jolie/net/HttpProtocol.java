@@ -19,10 +19,7 @@
 
 package jolie.net;
 
-<<<<<<< HEAD
-=======
 
->>>>>>> d351ec71e4490f8a6ec54d4d216638fd96debedd
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
