@@ -55,27 +55,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.*;
-
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * HTTP protocol implementation
@@ -1400,10 +1379,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
-<<<<<<< HEAD
 
-=======
->>>>>>> d351ec71e4490f8a6ec54d4d216638fd96debedd
 		if( message.getMethod().isEmpty() )
 			return;
 
