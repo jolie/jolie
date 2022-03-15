@@ -228,7 +228,6 @@ public class HttpMessage {
 		return method;
 	}
 
-	
 
 
 	public byte[] content() {

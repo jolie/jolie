@@ -21,7 +21,6 @@ package jolie.uri;
 
 import com.damnhandy.uri.template.UriTemplate;
 import com.damnhandy.uri.template.UriTemplateMatcherFactory;
-import jolie.runtime.AndJarDeps;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import java.util.Map;
