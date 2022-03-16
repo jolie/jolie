@@ -1,6 +1,5 @@
 package jolie.monitoring.events;
 
-import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
