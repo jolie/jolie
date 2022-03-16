@@ -1203,7 +1203,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
 		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" ).append( getHttpHeader( message, charset ) );
+		debugSB.append( "[HTTP debug] Receiving:\n" ).append( getHttpHeader( message ) );
 		if( showContent ) {
 			debugSB.append( "--> Message content\n" )
 				.append( getHttpBody( message, charset ) );
@@ -1214,7 +1214,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	/*
 	 * return the received message's header
 	 */
-	private String getHttpHeader( HttpMessage message, String charset )
+	private String getHttpHeader( HttpMessage message )
 		throws IOException {
 		StringBuilder headerStr = new StringBuilder();
 		headerStr.append( "HTTP Code: " ).append( message.statusCode() )
@@ -1401,18 +1401,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-		/*
-		 * if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-		 * Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(),
-		 * ExecutionThread.currentThread().getSessionId(), Long.toString( sessionMessage.message().id() ),
-		 * sessionMessage.message().value() ) ); }
-		 */
-
 		if( Interpreter.getInstance().isMonitoring() ) {
 			Interpreter.getInstance().fireMonitorEvent(
 				new ProtocolMessageEvent(
+					getDebugMessage( message, charset, true ),
 					getHttpBody( message, charset ),
-					getHttpHeader( message, charset ),
+					getHttpHeader( message ),
 					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
 
