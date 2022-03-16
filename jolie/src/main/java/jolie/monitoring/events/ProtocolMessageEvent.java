@@ -47,9 +47,12 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	}
 
 
-	public ProtocolMessageEvent( String message, String header, String service,
-		ProtocolMessageEvent.Protocol protocol, String processId, String scope, ParsingContext context ) {
-
+	/*
+	 * public ProtocolMessageEvent( String message, String header, String service,
+	 * ProtocolMessageEvent.Protocol protocol, String processId, String scope, ParsingContext context )
+	 * {
+	 */
+	public ProtocolMessageEvent( String message, String header, ProtocolMessageEvent.Protocol protocol ) {
 		super( "ProtocolMessage", Value.create() );
 
 		data().getFirstChild( FieldNames.PROTOCOL.getName() ).setValue( protocol.getProtocol() );
