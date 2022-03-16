@@ -20,7 +20,7 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	}
 
 	public static enum FieldNames {
-		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" );
+		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" ), BODY( "body" );
 
 		private String fieldName;
 
@@ -45,17 +45,16 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 		return value.getFirstChild( FieldNames.HEADER.getName() ).strValue();
 	}
 
+	public static String body( Value value ) {
+		return value.getFirstChild( FieldNames.BODY.getName() ).strValue();
+	}
 
-	/*
-	 * public ProtocolMessageEvent( String message, String header, String service,
-	 * ProtocolMessageEvent.Protocol protocol, String processId, String scope, ParsingContext context )
-	 * {
-	 */
-	public ProtocolMessageEvent( String message, String header, ProtocolMessageEvent.Protocol protocol ) {
-		super( "ProtocolMessage", Value.create() );
+	public ProtocolMessageEvent( String message, String body, String header, ProtocolMessageEvent.Protocol protocol ) {
+		super( "ProtocolMessage - " + protocol.getProtocol(), Value.create() );
 
 		data().getFirstChild( FieldNames.PROTOCOL.getName() ).setValue( protocol.getProtocol() );
 		data().getFirstChild( FieldNames.HEADER.getName() ).setValue( header );
 		data().getFirstChild( FieldNames.MESSAGE.getName() ).setValue( message );
+		data().getFirstChild( FieldNames.BODY.getName() ).setValue( body );
 	}
 }
