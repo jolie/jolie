@@ -5,7 +5,7 @@ import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
 public class ProtocolMessageEvent extends MonitoringEvent {
- 
+
 	public enum Protocol {
 		SOAP( "soap" ), HTTP( "http" );
 
@@ -50,7 +50,7 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	public ProtocolMessageEvent( String message, String header, String service,
 		ProtocolMessageEvent.Protocol protocol, String processId, String scope, ParsingContext context ) {
 
-		super( EventTypes.PROTOCOL_MESSAGE, service, scope, processId, context, Value.create() );
+		super( "ProtocolMessage", Value.create() );
 
 		data().getFirstChild( FieldNames.PROTOCOL.getName() ).setValue( protocol.getProtocol() );
 		data().getFirstChild( FieldNames.HEADER.getName() ).setValue( header );
