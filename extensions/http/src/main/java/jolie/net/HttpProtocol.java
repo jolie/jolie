@@ -85,6 +85,8 @@ import jolie.tracer.ProtocolTraceAction;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
 
+import jolie.monitoring.events.ProtocolMessageEvent;
+
 /**
  * HTTP protocol implementation
  * 
@@ -1201,26 +1203,48 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
 		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" ).append( "HTTP Code: " ).append( message.statusCode() )
+		debugSB.append( "[HTTP debug] Receiving:\n" ).append( getHttpHeader( message, charset ) );
+		if( showContent ) {
+			debugSB.append( "--> Message content\n" )
+				.append( getHttpBody( message, charset ) );
+		}
+		return debugSB.toString();
+	}
+
+	/*
+	 * return the received message's header
+	 */
+	private String getHttpHeader( HttpMessage message, String charset )
+		throws IOException {
+		StringBuilder headerStr = new StringBuilder();
+		headerStr.append( "HTTP Code: " ).append( message.statusCode() )
 			.append( "\n" ).append( "HTTP Method: " ).append( message.type().name() ).append( "\n" )
 			.append( "Resource: " ).append( message.requestPath() ).append( "\n" )
 			.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
-			debugSB.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
+			headerStr.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
 		}
 		for( HttpMessage.Cookie cookie : message.setCookies() ) {
-			debugSB.append( "\tset-cookie: " ).append( cookie.toString() ).append( '\n' );
+			headerStr.append( "\tset-cookie: " ).append( cookie.toString() ).append( '\n' );
 		}
 		for( Entry< String, String > entry : message.cookies().entrySet() ) {
-			debugSB.append( "\tcookie: " ).append( entry.getKey() ).append( '=' ).append( entry.getValue() )
+			headerStr.append( "\tcookie: " ).append( entry.getKey() ).append( '=' ).append( entry.getValue() )
 				.append( '\n' );
 		}
-		if( showContent ) {
-			debugSB.append( "--> Message content\n" )
-				.append( new String( message.content(), charset ) );
-		}
-		return debugSB.toString();
+		return headerStr.toString();
 	}
+
+	/*
+	 * Prints debug information about a received message
+	 */
+	private String getHttpBody( HttpMessage message, String charset )
+		throws IOException {
+		StringBuilder bodyStr = new StringBuilder();
+		bodyStr.append( new String( message.content(), charset ) );
+		return bodyStr.toString();
+	}
+
+
 
 	private void recv_parseRequestFormat( String type )
 		throws IOException {
@@ -1376,6 +1400,21 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		DecodedMessage decodedMessage = new DecodedMessage();
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
+
+		/*
+		 * if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
+		 * Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(),
+		 * ExecutionThread.currentThread().getSessionId(), Long.toString( sessionMessage.message().id() ),
+		 * sessionMessage.message().value() ) ); }
+		 */
+
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					getHttpBody( message, charset ),
+					getHttpHeader( message, charset ),
+					ProtocolMessageEvent.Protocol.HTTP ) );
+		}
 
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {
 			boolean showContent = false;
