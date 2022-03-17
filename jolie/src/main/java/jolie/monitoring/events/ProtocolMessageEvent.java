@@ -37,24 +37,28 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 		return value.getFirstChild( FieldNames.PROTOCOL.getName() ).strValue();
 	}
 
-	public static String message( Value value ) {
-		return value.getFirstChild( FieldNames.MESSAGE.getName() ).strValue();
+	public static Value message( Value value ) {
+		return value.getFirstChild( FieldNames.MESSAGE.getName() );
 	}
 
 	public static String header( Value value ) {
-		return value.getFirstChild( FieldNames.HEADER.getName() ).strValue();
+		return value.getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.HEADER.getName() )
+			.strValue();
 	}
 
 	public static String body( Value value ) {
-		return value.getFirstChild( FieldNames.BODY.getName() ).strValue();
+		return value.getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.BODY.getName() )
+			.strValue();
 	}
 
-	public ProtocolMessageEvent( String message, String body, String header, ProtocolMessageEvent.Protocol protocol ) {
+	public ProtocolMessageEvent( String body, String header, ProtocolMessageEvent.Protocol protocol ) {
 		super( "ProtocolMessage - " + protocol.getProtocol(), Value.create() );
 
 		data().getFirstChild( FieldNames.PROTOCOL.getName() ).setValue( protocol.getProtocol() );
-		data().getFirstChild( FieldNames.HEADER.getName() ).setValue( header );
-		data().getFirstChild( FieldNames.MESSAGE.getName() ).setValue( message );
-		data().getFirstChild( FieldNames.BODY.getName() ).setValue( body );
+
+		data().getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.HEADER.getName() )
+			.setValue( header );
+		data().getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.BODY.getName() )
+			.setValue( body );
 	}
 }
