@@ -1203,7 +1203,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
 		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" ).append( getHttpHeader( message ) );
+		debugSB.append( "\n[HTTP debug] Receiving:\n" ).append( getHttpHeader( message ) );
 		if( showContent ) {
 			debugSB.append( "--> Message content\n" )
 				.append( getHttpBody( message, charset ) );
@@ -1404,7 +1404,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( Interpreter.getInstance().isMonitoring() ) {
 			Interpreter.getInstance().fireMonitorEvent(
 				new ProtocolMessageEvent(
-					getDebugMessage( message, charset, true ),
 					getHttpBody( message, charset ),
 					getHttpHeader( message ),
 					ProtocolMessageEvent.Protocol.HTTP ) );
