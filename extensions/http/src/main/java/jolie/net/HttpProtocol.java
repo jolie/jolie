@@ -968,6 +968,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( contentType != null ) {
 			encodedContent.contentType = contentType;
 		}
+
+		// message's body in string format needed for the monitoring
+		String bodyMessageString =
+			encodedContent != null && encodedContent.content != null ? encodedContent.content.toString( charset ) : "";
+
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
 
@@ -991,6 +996,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			ostream.write( encodedContent.content.getBytes() );
 		}
 		headRequest = false;
+
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					bodyMessageString,
+					headerBuilder.toString(),
+					ProtocolMessageEvent.Protocol.HTTP ) );
+		}
+
 	}
 
 	@Override
