@@ -126,6 +126,7 @@ import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
@@ -3227,11 +3228,12 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		OLSyntaxNode retVal = null;
 		VariablePathNode path = null;
-
+		String id = null;
 		checkConstant();
 
 		switch( token.type() ) {
 		case ID:
+			id = token.content();
 			path = parseVariablePath();
 			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
 			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
@@ -3258,6 +3260,21 @@ public class OLParser extends AbstractParser {
 
 		if( path != null ) {
 			switch( token.type() ) {
+			case AT:
+				nextToken();
+				String outputPortId = token.content();
+				OLSyntaxNode outputExpression = parseOperationExpressionParameter();
+				Optional<InstallFunctionNode> function = Optional.empty();
+				if(token.is((Scanner.TokenType.LSQUARE))) {
+					boolean newLine = hasMetNewline();
+					eat(Scanner.TokenType.LSQUARE, "Expected [");
+					function = parseInstallFunction(newLine);
+					if(function.isPresent()) {
+						eat(Scanner.TokenType.RSQUARE, "Exptected ]");
+					}
+				}
+				retVal = new SolicitResponseExpressionNode(getContext(), id, outputPortId, outputExpression, function);
+				break;
 			case INCREMENT:
 				nextToken();
 				retVal =
