@@ -86,6 +86,7 @@ import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
 
 import jolie.monitoring.events.ProtocolMessageEvent;
+import jolie.ExecutionThread;
 
 /**
  * HTTP protocol implementation
@@ -1002,6 +1003,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				new ProtocolMessageEvent(
 					bodyMessageString,
 					headerBuilder.toString(),
+					ExecutionThread.currentThread().getSessionId(),
 					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
 
@@ -1420,6 +1422,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				new ProtocolMessageEvent(
 					getHttpBody( message, charset ),
 					getHttpHeader( message ),
+					ExecutionThread.currentThread().getSessionId(),
 					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
 

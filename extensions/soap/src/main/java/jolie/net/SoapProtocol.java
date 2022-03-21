@@ -127,6 +127,7 @@ import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.ProtocolTraceAction;
 
 import jolie.monitoring.events.ProtocolMessageEvent;
+import jolie.ExecutionThread;
 
 /**
  * Implements the SOAP over HTTP protocol.
@@ -1051,6 +1052,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					new ProtocolMessageEvent(
 						plainTextContent.toString( "utf-8" ),
 						httpMessage.toString(),
+						ExecutionThread.currentThread().getSessionId(),
 						ProtocolMessageEvent.Protocol.SOAP ) );
 			}
 
@@ -1323,6 +1325,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					new ProtocolMessageEvent(
 						new String( message.content(), charset ),
 						headerMonitor.toString(),
+						ExecutionThread.currentThread().getSessionId(),
 						ProtocolMessageEvent.Protocol.SOAP ) );
 			}
 
