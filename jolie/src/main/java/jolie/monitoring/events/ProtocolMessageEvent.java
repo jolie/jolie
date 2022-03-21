@@ -20,7 +20,7 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	}
 
 	public static enum FieldNames {
-		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" ), BODY( "body" );
+		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" ), BODY( "body" ), PROCESSID( "processId" );
 
 		private String fieldName;
 
@@ -51,8 +51,11 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 			.strValue();
 	}
 
-	public ProtocolMessageEvent( String body, String header, ProtocolMessageEvent.Protocol protocol ) {
-		super( "ProtocolMessage - " + protocol.getProtocol(), Value.create() );
+	public ProtocolMessageEvent( String body, String header, String processId,
+		ProtocolMessageEvent.Protocol protocol ) {
+		super( "ProtocolMessage-".concat( protocol.getProtocol() ), Value.create() );
+
+		data().getFirstChild( FieldNames.PROCESSID.getName() ).setValue( processId );
 
 		data().getFirstChild( FieldNames.PROTOCOL.getName() ).setValue( protocol.getProtocol() );
 
