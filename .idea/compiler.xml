@@ -15,8 +15,8 @@
         <module name="jolie-ssl" />
         <module name="jolie-java" />
         <module name="local" />
-        <module name="rmi" />
         <module name="libjolie" />
+        <module name="rmi" />
         <module name="joliec" />
         <module name="launchers" />
         <module name="xmlrpc" />
@@ -31,9 +31,9 @@
         <module name="jolie-js" />
         <module name="jolie2plasma" />
         <module name="btl2cap" />
+        <module name="jolie (1)" />
         <module name="sodeps" />
         <module name="jolie-uri" />
-        <module name="jolie" />
         <module name="javascript" />
         <module name="jolie2surface" />
         <module name="http" />
@@ -43,5 +43,10 @@
         <module name="soap" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="distribution" target="1.5" />
+      <module name="jolie-distribution" target="1.5" />
+      <module name="jolie2dummy" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
