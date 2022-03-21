@@ -126,6 +126,8 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.ProtocolTraceAction;
 
+import jolie.monitoring.events.ProtocolMessageEvent;
+
 /**
  * Implements the SOAP over HTTP protocol.
  *
@@ -1044,6 +1046,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 			} );
 
+			if( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance().fireMonitorEvent(
+					new ProtocolMessageEvent(
+						plainTextContent.toString( "utf-8" ),
+						httpMessage.toString(),
+						ProtocolMessageEvent.Protocol.SOAP ) );
+			}
+
+
 			inputId = message.operationName();
 		} catch( Exception e ) {
 			if( received ) {
@@ -1302,6 +1313,19 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
+
+			if( Interpreter.getInstance().isMonitoring() ) {
+				final StringBuilder headerMonitor = new StringBuilder();
+
+				headerMonitor.append( getHeadersFromHttpMessage( message ) ).append( "\n" );
+
+				Interpreter.getInstance().fireMonitorEvent(
+					new ProtocolMessageEvent(
+						new String( message.content(), charset ),
+						headerMonitor.toString(),
+						ProtocolMessageEvent.Protocol.SOAP ) );
+			}
+
 		} catch( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {
