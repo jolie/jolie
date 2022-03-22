@@ -180,97 +180,126 @@ public abstract class AbstractParser {
 
 
 	/**
-	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
+	 * Returns a simple {@link ParsingContext} from the underlying {@link Scanner} and does not take
+	 * startLine and endLine into account
 	 * 
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContext() {
-		if( scanner.line() == scanner.startLine() && scanner.line() == scanner.endLine() ) {
-			return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
-				scanner.errorColumn() + token.content().length(),
-				scanner.codeLine() );
-		} else if( scanner.startLine() == scanner.endLine() && scanner.startLine() != scanner.line() ) {
-			return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
-				scanner.errorColumn() + token.content().length(),
-				scanner.codeLine() );
-		} else {
-			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
-				scanner.errorColumn(),
-				scanner.errorColumn() + token.content().length(),
-				scanner.codeLine() );
-		}
+		return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
+			scanner.errorColumn() + token.content().length(),
+			scanner.codeLine() );
 	}
 
 	/**
 	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner} taking start and
-	 * end line numbers into account
+	 * end line into account
 	 * 
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContextDuringError() throws IOException {
+		String contextString = "";
+		contextString += "line: " + scanner.line() + "\n";
+		contextString += "startLine: " + scanner.startLine() + "\n";
+		contextString += "endLine: " + scanner.endLine() + "\n";
+		contextString += "errorColumn: " + scanner.errorColumn() + "\n";
+		contextString += "errorColumn+token: " + (scanner.errorColumn() + token.content().length()) + "\n";
+		contextString += "codeLine:\n" + scanner.codeLine() + "\n";
+		System.out.println( "context just before readLineAfterError:\n" + contextString );
+		// read the rest of the line, so we can use the whole line in the error message
 		readLineAfterError();
-		if( scanner.startLine() == 0 && scanner.endLine() == 0 ) { // If neither start nor end has been changed, then
-																	// use currentline
-			return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
-				scanner.errorColumn() + token.content().length(),
+		String contextString1 = "";
+		contextString1 += "line: " + scanner.line() + "\n";
+		contextString1 += "startLine: " + scanner.startLine() + "\n";
+		contextString1 += "endLine: " + scanner.endLine() + "\n";
+		contextString1 += "errorColumn: " + scanner.errorColumn() + "\n";
+		contextString1 += "errorColumn+token: " + (scanner.errorColumn() + token.content().length()) + "\n";
+		contextString1 += "codeLine:\n" + scanner.codeLine() + "\n";
+		System.out.println( "context1 after readLineAfterError:\n" + contextString1 );
+		// TODO: change this to 0 instead of 1, as this would simplyfy code
+		// If startline, endline and line are 1, the line is 1. If startline and endline are 1, but line is
+		// not then startline and endline have not been set yet and line is line
+		if( scanner.startLine() == 1 && scanner.endLine() == 1 && scanner.line() >= 1 ) {
+			if( scanner.errorColumn() == -1 && scanner.line() > 1 ) {
+				// If the errorcolumn is -1 then we have read a newline character but nothing on the new line
+				// meaning we do not need what is on the last line, so we remove that line
+				// and change the errorcolumn to the last character on the net to last line
+				// System.out.println( "startline,endline = 1, errorcolumn = -1!!!!!!!!!!!!!!!!!1" );
+				/*
+				 * String contextString1 = ""; contextString1 += "startLine: " + scanner.startLine() + "\n";
+				 * contextString1 += "endLine: " + scanner.endLine() + "\n"; contextString1 += "errorColumn: " +
+				 * scanner.errorColumn() + "\n"; contextString1 += "endColumn+token: " + (scanner.errorColumn() +
+				 * token.content().length()) + "\n"; contextString1 += "codeLine:\n" + scanner.codeLine() + "\n";
+				 * System.out.println( "context:\n" + contextString1 );
+				 */
+				scanner.codeLine().remove( scanner.codeLine().size() - 1 );
+				int column = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1; // last index of
+																									// (new)last line
+				URIParsingContext newContext =
+					new URIParsingContext( scanner.source(), scanner.line() - 1, scanner.line() - 1,
+						column, column, scanner.codeLine() );
+				// System.out.println( "new context:\n" + newContext.toString() );
+				return newContext;
+			} else if( scanner.errorColumn() == -1 && scanner.line() <= 1 ) { // nothing has been read yet
+				return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(),
+					0, 0 + token.content().length(), scanner.codeLine() );
+			} else { // errorColum >= 0
+				return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(),
+					scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
+					scanner.codeLine() );
+			}
+		}
+		// if the start and end line are larger than 1 and the error column is -1
+		if( scanner.errorColumn() == -1 && scanner.endLine() > 1 && scanner.startLine() < scanner.endLine() ) {
+			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
+			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine() - 1,
+				newColumn, newColumn + token.content().length(),
 				scanner.codeLine() );
-		} else if( scanner.line() == scanner.startLine() && scanner.line() == scanner.endLine() ) { // start, end and
-																									// current the same
-			return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
-				scanner.errorColumn() + token.content().length(),
-				scanner.codeLine() );
-		} else if( scanner.line() != scanner.startLine() && scanner.line() == scanner.endLine() ) { // start different
-																									// than current and
-																									// end
-			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
-				scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
-				scanner.codeLine() );
-		} else if( scanner.line() == scanner.startLine() && scanner.line() != scanner.endLine() ) {// end different than
-																									// start and current
-																									// (hopefully does
-																									// not happen)
-			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
-				scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
-				scanner.codeLine() );
-		} else if( scanner.startLine() == scanner.endLine() && scanner.startLine() != scanner.line() ) { // current
-																											// different
-																											// from
-																											// start and
-																											// end
-			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
-				0,
-				Integer.MAX_VALUE,
-				scanner.codeLine() );
-		} else if( scanner.errorColumn() < 0 ) { // The reader read to the next line, need to go back a line and fix
-													// errorColumn
-			int linenr = scanner.line() - 1;
-			String correctLine = scanner.getAllCodeLines().get( linenr );
-			return new URIParsingContext( scanner.source(), linenr, linenr, correctLine.length(),
-				scanner.errorColumn() + token.content().length(),
-				List.of( correctLine ) );
-		} else {
-			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
-				scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
+		} else if( scanner.errorColumn() == -1 && scanner.endLine() > 1 && scanner.startLine() >= scanner.endLine() ) {
+			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
+			return new URIParsingContext( scanner.source(), scanner.startLine() - 1, scanner.endLine() - 1,
+				newColumn, newColumn + token.content().length(),
 				scanner.codeLine() );
 		}
+		return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
+			scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
+			scanner.codeLine() );
 	}
 
+	/**
+	 * 
+	 * @return the current line of the parser
+	 */
 	public final int line() {
 		return scanner.line();
 	}
 
+	/**
+	 * 
+	 * @return the startLine
+	 */
 	public final int startLine() {
 		return scanner.startLine();
 	}
 
+	/**
+	 * sets the startLine to the current line
+	 */
 	public void setStartLine() {
 		scanner.setStartLine( line() );
 	}
 
+	/**
+	 * 
+	 * @return the endLine
+	 */
 	public final int endLine() {
 		return scanner.endLine();
 	}
 
+	/**
+	 * sets the endLine to the current line
+	 */
 	public void setEndLine() {
 		scanner.setEndLine( line() );
 	}
@@ -290,6 +319,17 @@ public abstract class AbstractParser {
 		nextToken();
 	}
 
+	/**
+	 * Eats the current token, asserting its type. Calling eat( type, errorMessage ) is equivalent to
+	 * call subsequently tokenAssert( type, errorMessage ) and getToken().
+	 * 
+	 * @param type The type of the token to eat.
+	 * @param errorMessage The error message to display in case of a wrong token type.
+	 * @param scopeName the name of the current scope e.g a service name, if the scope has one
+	 * @param scope the scope e.g inputPort
+	 * @throws ParserException If the token type is wrong.
+	 * @throws IOException If the internal scanner raises one.
+	 */
 	protected final void eat( Scanner.TokenType type, String errorMessage, String scopeName, String scope )
 		throws ParserException, IOException {
 		assertToken( type, errorMessage, scopeName, scope );
@@ -322,9 +362,17 @@ public abstract class AbstractParser {
 	 * 
 	 * @param errorMessage The error message to throw as a {@link ParserException} in case the current
 	 *        token is not an identifier.
+	 * @param scopeName the name of the current scope e.g a service name, if the scope has one
+	 * @param scope the scope e.g inputPort
 	 * @throws ParserException If the current token is not an identifier.
 	 * @throws IOException If the internal scanner cannot read the next token.
 	 */
+	protected final void eatIdentifier( String errorMessage, String scopeName, String scope )
+		throws ParserException, IOException {
+		assertIdentifier( errorMessage, scopeName, scope );
+		nextToken();
+	}
+
 	protected final void eatIdentifier( String errorMessage )
 		throws ParserException, IOException {
 		assertIdentifier( errorMessage );
@@ -342,6 +390,22 @@ public abstract class AbstractParser {
 		throws ParserException, IOException {
 		if( !token.isIdentifier() ) {
 			throwException( errorMessage );
+		}
+	}
+
+	/**
+	 * Asserts that the current token is an identifier (or an unreserved keyword).
+	 * 
+	 * @param errorMessage the error message to throw as a {@link ParserException} if the current token
+	 *        is not an identifier.
+	 * @param scopeName the name of the current scope e.g a service name, if the scope has one
+	 * @param scope the scope e.g inputPort
+	 * @throws ParserException if the current token is not an identifier.
+	 */
+	protected final void assertIdentifier( String errorMessage, String scopeName, String scope )
+		throws ParserException, IOException {
+		if( !token.isIdentifier() ) {
+			throwExceptionWithScope( errorMessage, scopeName, scope );
 		}
 	}
 
@@ -380,6 +444,9 @@ public abstract class AbstractParser {
 	public static String createHelpMessage( ParsingContext context, String tokenContent,
 		List< String > possibleTokens ) {
 		if( tokenContent.isEmpty() && possibleTokens.isEmpty() ) {
+			return "";
+		}
+		if( !tokenContent.isEmpty() && possibleTokens.isEmpty() ) {
 			return "";
 		}
 		if( tokenContent.isEmpty() ) { // if the token is missing, the user is given all
@@ -486,10 +553,15 @@ public abstract class AbstractParser {
 	protected final void throwException( String mesg )
 		throws ParserException, IOException {
 		CodeCheckMessage exceptionMessage;
-		ParsingContext context = getContextDuringError();
+		ParsingContext context = getContext();// getContextDuringError();
 		if( !token.content().equals( "" ) ) {
 			if( !mesg.equals( "" ) ) {
-				mesg += ": " + token.content() + "\n";
+				if( mesg.contains( "term" ) ) {
+					mesg += ": " + token.content() + "\n";
+				} else {
+					mesg += ". Found term: " + token.content() + "\n";
+				}
+
 			} else {
 				mesg += ". Found term: " + token.content() + "\n";
 			}
@@ -504,6 +576,7 @@ public abstract class AbstractParser {
 				new URIParsingContext( context.source(), context.startLine(), context.endLine(),
 					context.startColumn() - 1, context.endColumn() - 1,
 					context.enclosingCode() );
+			// System.out.println( "context:\n" + context.toString() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		}
 		throw new ParserException( exceptionMessage );
@@ -543,12 +616,14 @@ public abstract class AbstractParser {
 		CodeCheckMessage exceptionMessage;
 		ParsingContext context = getContextDuringError();
 		if( !token.content().equals( "" ) ) {
+			// Add the token we found to the message
 			mesg += ". Found term: " + token.content() + "\n";
 		} else {
 			mesg += "\n";
 		}
 		String help;
 		List< String > extralines;
+		// Create the help and exception message according to the scope
 		switch( scope ) {
 		case Keywords.INPUT_PORT:
 			extralines = getWholeScope( scopeName, scope );
@@ -559,9 +634,11 @@ public abstract class AbstractParser {
 			} else if( extralines.get( extralines.size() - 1 ).contains( "}" ) ) {
 				// If a term is missing, it needs the column of the last curly bracket instead of where it
 				// originally threw the error
+				// System.out.println( "extralines:\n" + extralines );
+				// System.out.println( "if contains } context:\n" + context.toString() );
 				int columnNumber = extralines.get( extralines.size() - 1 ).lastIndexOf( "}" );
 				context =
-					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+					new URIParsingContext( context.source(), context.endLine(), context.endLine(), columnNumber,
 						columnNumber + token.content().length(),
 						extralines );
 				help = createHelpMessageWithScope( context, token.content(), scope );
@@ -571,6 +648,11 @@ public abstract class AbstractParser {
 				int columnNumber = extralines.get( 0 ).lastIndexOf( "{" );
 				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 					columnNumber, extralines );
+			} else if( mesg.contains( "expected :" ) ) {
+				context = new URIParsingContext( context.source(), context.endLine(), context.endLine(),
+					context.startColumn(), context.startColumn() + token.content().length(), extralines );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
 			} else {
 				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
 					context.startColumn(), context.startColumn() + token.content().length(), extralines );
@@ -578,26 +660,18 @@ public abstract class AbstractParser {
 				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 				break;
 			}
-			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
-			break;
 		case Keywords.EXECUTION:
 			extralines = getWholeScope( "", scope ); // look for line containing execution
 			int startColumn = 0;
 			int endColumn = 0;
 			int startLine = 0;
 			int endLine = 0;
-			System.out.println( "get(0): " + extralines.get( 0 ) );
+			// System.out.println( "get(0): " + extralines.get( 0 ) );
 			if( extralines.get( 0 ).contains( "execution:" ) && extralines.get( 0 ).contains( token.content() ) ) {
 				startColumn = extralines.get( 0 ).indexOf( token.content() );
 				endColumn = startColumn + token.content().length();
 				startLine = context.startLine();
 				endLine = context.endLine();
-			} else if( extralines.get( 0 ).contains( "execution:" )
-				&& !extralines.get( 0 ).contains( token.content() ) ) {
-				startColumn = extralines.get( 0 ).indexOf( "execution:" ) + "execution:".length();
-				endColumn = startColumn;
-				startLine = context.startLine();
-				endLine = startLine;
 			} else {
 				startColumn = context.startColumn();
 				endColumn = context.endColumn();
@@ -613,10 +687,10 @@ public abstract class AbstractParser {
 			// if the service does not have an ending curlybracket
 			if( mesg.contains( "unexpected term found inside service" ) && token.content().isEmpty() ) {
 				extralines = getWholeScope( scopeName, scope );
-				int columnNumber = extralines.get( extralines.size() - 1 ).length();
+				int columnNumber = extralines.get( extralines.size() - 1 ).length() - 1;
 				context =
-					new URIParsingContext( context.source(), context.endLine(), context.endLine(), columnNumber,
-						columnNumber, List.of( extralines.get( extralines.size() - 1 ) ) );
+					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+						columnNumber, extralines );
 				help = createHelpMessageWithScope( context, token.content(), scope );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context,
 					"Service " + scopeName + " does not have an ending }\n" );
@@ -662,8 +736,16 @@ public abstract class AbstractParser {
 				if( mesg.contains( "expected {" ) ) {
 					extralines = getWholeScope( scopeName, scope );
 					context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
-						extralines.get( 0 ).length() - 1, extralines.get( 0 ).length(),
+						extralines.get( 0 ).length() - 1, extralines.get( 0 ).length() - 1,
 						List.of( extralines.get( 0 ) ) );
+					exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+					break;
+				} else if( mesg.contains( "expected }" ) ) {
+					extralines = getWholeScope( scopeName, scope );
+					context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+						extralines.get( extralines.size() - 1 ).length() - 1,
+						extralines.get( extralines.size() - 1 ).length(),
+						extralines );
 					exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 					break;
 				}
@@ -679,10 +761,11 @@ public abstract class AbstractParser {
 				break;
 			}
 			if( mesg.contains( "expected }" ) ) { // and token.content() is not empty
-				extralines = getWholeScope( scopeName, scope );
-				context = new URIParsingContext( context.source(), context.startLine(), context.endLine() - 1,
-					extralines.get( 0 ).length() - 1, extralines.get( extralines.size() - 1 ).length(), extralines );
-				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				context = new URIParsingContext( context.source(), context.endLine(), context.endLine(),
+					context.startColumn(), context.endColumn(),
+					List.of( context.enclosingCode().get( context.enclosingCode().size() - 1 ) ) );
+				help = createHelpMessageWithScope( context, token.content(), scope );
+				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
 				break;
 			}
 			help = createHelpMessageWithScope( context, token.content(), scope );
@@ -700,7 +783,28 @@ public abstract class AbstractParser {
 				context.endColumn(), context.endColumn(), context.enclosingCode() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			break;
+		case Keywords.TYPE:
+			if( mesg.contains( "expected type node name" ) ) {
+				extralines = getWholeScope( scopeName, scope );
+				String correctLine = "";
+				int i = context.startLine();
+				for( String string : extralines ) {
+					if( string.matches( "^.+:\\s*$" ) ) {
+						correctLine = string;
+						break;
+					}
+					i += 1;
 
+				}
+				context = new URIParsingContext( context.source(), i, i, correctLine.length() - 1,
+					correctLine.length() - 1, List.of( correctLine ) );
+				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
+				break;
+			}
+			extralines = getWholeScope( scopeName, scope );
+			context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+				context.startColumn(), context.endColumn(), extralines );
+			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		default:
 			help = createHelpMessage( context, token.content(), List.of() );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );

@@ -109,4 +109,16 @@ public class URIParsingContext implements ParsingContext {
 		}
 		return linesWithNumbers;
 	}
+
+	public String toString() {
+		String contextString = "";
+		contextString += "source: " + uri + "\n";
+		contextString += "startLine: " + startLine + "\n";
+		contextString += "endLine: " + endLine + "\n";
+		contextString += "startColumn: " + startColumn + "\n";
+		contextString += "endColumn: " + endColumn + "\n";
+		contextString += "enclosingCode:\n" + enclosingCode() + "\n";
+		contextString += "enclosingCodeWithLineNumer:\n" + enclosingCodeWithLineNumbers() + "\n";
+		return contextString;
+	}
 }

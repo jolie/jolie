@@ -65,4 +65,6 @@ public interface ParsingContext extends Serializable {
 	List< String > enclosingCode();
 
 	List< String > enclosingCodeWithLineNumbers();
+
+	String toString();
 }
