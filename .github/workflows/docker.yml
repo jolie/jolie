@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker:
+  dockerhub:
     runs-on: ubuntu-latest
     steps:
       -
