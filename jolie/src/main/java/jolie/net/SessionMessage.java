@@ -27,15 +27,15 @@ package jolie.net;
  * @author Fabrizio Montesi
  */
 public class SessionMessage {
-	private final CommMessage message;
+	private final CommMessageFromProtocol message;
 	private final CommChannel channel;
 
-	public SessionMessage( CommMessage message, CommChannel channel ) {
+	public SessionMessage( CommMessageFromProtocol message, CommChannel channel ) {
 		this.message = message;
 		this.channel = channel;
 	}
 
-	public CommMessage message() {
+	public CommMessageFromProtocol message() {
 		return message;
 	}
 
