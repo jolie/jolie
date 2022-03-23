@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -49,8 +50,8 @@ public abstract class CommProtocol {
 
 			public void sendImpl( CommMessage message ) {}
 
-			public CommMessage recvImpl() {
-				return CommMessage.UNDEFINED_MESSAGE;
+			public CommMessageFromProtocol recvImpl() {
+				return new CommMessageFromProtocol( CommMessage.UNDEFINED_MESSAGE, null );
 			}
 		}
 
@@ -220,7 +221,7 @@ public abstract class CommProtocol {
 		return (hasParameter( id ) ? getParameterFirstValue( id ).intValue() : 0);
 	}
 
-	abstract public CommMessage recv( InputStream istream, OutputStream ostream )
+	abstract public CommMessageFromProtocol recv( InputStream istream, OutputStream ostream )
 		throws IOException;
 
 	abstract public void send( OutputStream ostream, CommMessage message, InputStream istream )

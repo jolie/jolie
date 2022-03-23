@@ -69,6 +69,7 @@ import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
@@ -139,9 +140,10 @@ public class Interpreter {
 							logWarning( e );
 							try {
 								message.channel()
-									.send( CommMessage.createFaultResponse( message.message(), new FaultException(
-										"CorrelationError",
-										"The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+									.send( CommMessage.createFaultResponse( message.message().getMessage(),
+										new FaultException(
+											"CorrelationError",
+											"The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
 							} catch( IOException ioe ) {
 								logSevere( ioe );
 							}
@@ -1283,12 +1285,12 @@ public class Interpreter {
 	 * @param channel the channel of the message triggering the session start
 	 * @return {@code true} if the service session is started, {@code false} otherwise
 	 */
-	public boolean startServiceSession( final CommMessage message, CommChannel channel ) {
+	public boolean startServiceSession( final CommMessageFromProtocol message, CommChannel channel ) {
 		if( executionMode == Constants.ExecutionMode.SINGLE ) {
 			return false;
 		}
 
-		SessionStarter starter = sessionStarters.get( message.operationName() );
+		SessionStarter starter = sessionStarters.get( message.getMessage().operationName() );
 		if( starter == null ) {
 			return false;
 		}
@@ -1311,15 +1313,15 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), message.value() );
+			logSessionStart( message.getMessage().operationName(), spawnedSession.getSessionId(),
+				message.getMessage().id(), message.getMessage().value() );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 			} );
 			spawnedSession.start();
@@ -1346,7 +1348,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
@@ -1358,7 +1360,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 			} );
 			synchronized( waitingSessionThreads ) {

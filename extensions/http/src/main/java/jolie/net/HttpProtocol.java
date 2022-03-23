@@ -1408,7 +1408,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	@Override
-	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpMessage message = new HttpParser( istream ).parse();
 		String charset = HttpUtils.getCharset( null, message );
@@ -1417,13 +1417,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
+		// set protocolEvent only if monitoring is enabled
+		ProtocolMessageEvent protocolEvent = null;
+
 		if( Interpreter.getInstance().isMonitoring() ) {
-			Interpreter.getInstance().fireMonitorEvent(
-				new ProtocolMessageEvent(
-					getHttpBody( message, charset ),
-					getHttpHeader( message ),
-					ExecutionThread.currentThread().getSessionId(),
-					ProtocolMessageEvent.Protocol.HTTP ) );
+			protocolEvent = new ProtocolMessageEvent(
+				getHttpBody( message, charset ),
+				getHttpHeader( message ),
+				ExecutionThread.currentThread().getSessionId(),
+				ProtocolMessageEvent.Protocol.HTTP );
 		}
 
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -1577,11 +1579,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		}
 
-		return retVal;
+		return new CommMessageFromProtocol( retVal, protocolEvent );
 	}
 
 	@Override
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}

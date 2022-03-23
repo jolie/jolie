@@ -172,7 +172,7 @@ public abstract class CommChannel {
 	 * @return the received message
 	 * @throws IOException in case of some communication error
 	 */
-	public CommMessage recv()
+	public CommMessageFromProtocol recv()
 		throws IOException {
 		return Helpers.lockAndThen( lock, this::recvImpl );
 	}
@@ -203,7 +203,7 @@ public abstract class CommChannel {
 		}
 	}
 
-	protected abstract CommMessage recvImpl()
+	protected abstract CommMessageFromProtocol recvImpl()
 		throws IOException;
 
 	protected abstract void sendImpl( CommMessage message )

@@ -147,7 +147,7 @@ public class SessionThread extends ExecutionThread {
 		@Override
 		protected void setResult( SessionMessage sessionMessage ) {
 			for( String operationName : operationNames ) {
-				if( operationName.equals( sessionMessage.message().operationName() ) == false ) {
+				if( operationName.equals( sessionMessage.message().getMessage().operationName() ) == false ) {
 					Deque< SessionMessageFuture > waitersList = messageWaiters.get( operationName );
 					if( waitersList != null ) {
 						waitersList.remove( this );
@@ -292,14 +292,14 @@ public class SessionThread extends ExecutionThread {
 				queue = it.next();
 				message = queue.peekFirst();
 				if( message != null ) {
-					operation = operations.get( message.message().operationName() );
+					operation = operations.get( message.message().getMessage().operationName() );
 				}
 			}
 			if( message == null ) {
 				queue = uncorrelatedMessageQueue;
 				message = queue.peekFirst();
 				if( message != null ) {
-					operation = operations.get( message.message().operationName() );
+					operation = operations.get( message.message().getMessage().operationName() );
 				}
 			}
 
@@ -315,7 +315,7 @@ public class SessionThread extends ExecutionThread {
 				SessionMessageFuture f;
 				while( keepRun && !queue.isEmpty() ) {
 					message = queue.peekFirst();
-					f = getMessageWaiter( message.message().operationName() );
+					f = getMessageWaiter( message.message().getMessage().operationName() );
 					if( f != null ) { // We found a waiter for the unlocked message
 						f.setResult( message );
 						queue.removeFirst();
@@ -339,7 +339,7 @@ public class SessionThread extends ExecutionThread {
 		synchronized( messageQueues ) {
 			final SessionMessage message = queue.peekFirst();
 			if( message == null
-				|| message.message().operationName().equals( operation.id() ) == false ) {
+				|| message.message().getMessage().operationName().equals( operation.id() ) == false ) {
 				addMessageWaiter( operation, future );
 			} else {
 				future.setResult( message );
@@ -349,7 +349,8 @@ public class SessionThread extends ExecutionThread {
 				boolean keepRun = true;
 				while( keepRun && !queue.isEmpty() ) {
 					final SessionMessage otherMessage = queue.peekFirst();
-					final SessionMessageFuture currFuture = getMessageWaiter( otherMessage.message().operationName() );
+					final SessionMessageFuture currFuture =
+						getMessageWaiter( otherMessage.message().getMessage().operationName() );
 					if( currFuture != null ) { // We found a waiter for the unlocked message
 						currFuture.setResult( otherMessage );
 						queue.removeFirst();
@@ -387,13 +388,14 @@ public class SessionThread extends ExecutionThread {
 	public void pushMessage( SessionMessage message ) {
 		synchronized( messageQueues ) {
 			Deque< SessionMessage > queue;
-			CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.message().operationName() );
+			CorrelationSet cset =
+				interpreter().getCorrelationSetForOperation( message.message().getMessage().operationName() );
 			if( cset != null ) {
 				queue = messageQueues.get( cset );
 			} else {
 				queue = uncorrelatedMessageQueue;
 			}
-			SessionMessageFuture future = getMessageWaiter( message.message().operationName() );
+			SessionMessageFuture future = getMessageWaiter( message.message().getMessage().operationName() );
 			if( future != null && queue.isEmpty() ) {
 				future.setResult( message );
 			} else {

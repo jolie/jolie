@@ -34,7 +34,7 @@ import java.util.zip.GZIPOutputStream;
 
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-
+import jolie.net.CommMessageFromProtocol;
 import jolie.runtime.ByteArray;
 
 /**
@@ -120,12 +120,13 @@ public class HttpUtils {
 	}
 
 	public interface HttpProtocol {
-		CommMessage recv_internal( InputStream istream, OutputStream ostream ) throws IOException;
+		CommMessageFromProtocol recv_internal( InputStream istream, OutputStream ostream ) throws IOException;
 
 		void send_internal( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException;
 	}
 
-	public static CommMessage recv( InputStream istream, OutputStream ostream, boolean inInputPort, CommChannel channel,
+	public static CommMessageFromProtocol recv( InputStream istream, OutputStream ostream, boolean inInputPort,
+		CommChannel channel,
 		HttpProtocol service )
 		throws IOException {
 		try {

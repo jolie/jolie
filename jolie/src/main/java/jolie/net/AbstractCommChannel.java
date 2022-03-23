@@ -212,16 +212,16 @@ public abstract class AbstractCommChannel extends CommChannel {
 			 */
 			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
 
-			CommMessage response;
+			CommMessageFromProtocol response;
 			while( keepRun ) {
 				synchronized( parent.responseRecvMutex ) {
 					try {
 						response = parent.recv();
 						if( response != null ) {
-							if( response.hasGenericId() ) {
-								handleGenericMessage( response );
+							if( response.getMessage().hasGenericId() ) {
+								handleGenericMessage( response.getMessage() );
 							} else {
-								handleMessage( response );
+								handleMessage( response.getMessage() );
 							}
 						}
 						if( parent.waiters.isEmpty() ) {

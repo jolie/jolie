@@ -441,7 +441,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
-	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
@@ -510,10 +510,10 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		}
 
 		received = true;
-		return retVal;
+		return new CommMessageFromProtocol( retVal, null );
 	}
 
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}

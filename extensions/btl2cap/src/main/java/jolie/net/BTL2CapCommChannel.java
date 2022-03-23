@@ -67,7 +67,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		}
 	}
 
-	protected CommMessage recvImpl()
+	protected CommMessageFromProtocol recvImpl()
 		throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		byte[] chunk;

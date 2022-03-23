@@ -32,6 +32,7 @@ import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
@@ -92,7 +93,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel 
 	}
 
 	@Override
-	protected CommMessage recvImpl()
+	protected CommMessageFromProtocol recvImpl()
 		throws IOException {
 		throw new IOException( "Unsupported operation" );
 	}

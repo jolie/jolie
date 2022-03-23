@@ -23,7 +23,7 @@
 package jolie.net;
 
 import jolie.monitoring.events.ProtocolMessageEvent;
-import jolie.net.CommMessage;
+
 
 /**
  * A <code>CommMessageProtocol</code> represents a generic communication message + an protocolEvent

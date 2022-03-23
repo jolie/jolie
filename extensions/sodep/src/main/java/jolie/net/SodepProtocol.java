@@ -261,7 +261,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		writeMessage( oos, message );
 	}
 
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 
@@ -271,6 +271,6 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		}
 
 		final DataInputStream ios = new DataInputStream( istream );
-		return readMessage( ios );
+		return new CommMessageFromProtocol( readMessage( ios ), null );
 	}
 }

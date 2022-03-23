@@ -342,7 +342,7 @@ public class CommCore {
 			}
 		}
 
-		private void handleRedirectionInput( CommMessage message, String[] ss )
+		private void handleRedirectionInput( CommMessageFromProtocol message, String[] ss )
 			throws IOException, URISyntaxException {
 			// Redirection
 			String rPath;
@@ -365,89 +365,95 @@ public class CommCore {
 			}
 			try {
 				CommChannel oChannel = oPort.getNewCommChannel();
+				CommMessage tmpMsg = message.getMessage();
 				CommMessage rMessage =
 					new CommMessage(
-						message.id(),
-						message.operationName(),
+						tmpMsg.id(),
+						tmpMsg.operationName(),
 						rPath,
-						message.value(),
-						message.fault() );
+						tmpMsg.value(),
+						tmpMsg.fault() );
 				oChannel.setRedirectionChannel( channel );
 				oChannel.setRedirectionMessageId( rMessage.id() );
 				oChannel.send( rMessage );
 				oChannel.setToBeClosed( false );
 				oChannel.disposeForInput();
 			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( message,
+				channel.send( CommMessage.createFaultResponse( message.getMessage(),
 					new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
 				channel.disposeForInput();
 				throw e;
 			}
 		}
 
-		private void handleAggregatedInput( CommMessage message, AggregatedOperation operation )
+		private void handleAggregatedInput( CommMessageFromProtocol message, AggregatedOperation operation )
 			throws IOException, URISyntaxException {
 			operation.runAggregationBehaviour( message, channel );
 		}
 
-		private void handleDirectMessage( CommMessage message )
+		private void handleDirectMessage( CommMessageFromProtocol message )
 			throws IOException {
 			try {
 				InputOperation operation =
-					interpreter.getInputOperation( message.operationName() );
+					interpreter.getInputOperation( message.getMessage().operationName() );
 				try {
-					operation.requestType().check( message.value() );
+					operation.requestType().check( message.getMessage().value() );
 					interpreter.correlationEngine().onMessageReceive( message, channel );
 					if( operation instanceof OneWayOperation ) {
 						// We need to send the acknowledgement
-						channel.send( CommMessage.createEmptyResponse( message ) );
+						channel.send( CommMessage.createEmptyResponse( message.getMessage() ) );
 						// channel.release();
 					}
 				} catch( TypeCheckingException e ) {
 					interpreter.logWarning(
 						"Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 					try {
-						channel.send( CommMessage.createFaultResponse( message,
+						channel.send( CommMessage.createFaultResponse( message.getMessage(),
 							new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 					} catch( IOException ioe ) {
 						Interpreter.getInstance().logSevere( ioe );
 					}
 				} catch( CorrelationError e ) {
 					interpreter.logWarning( "Received a non correlating message for operation "
-						+ message.operationName() + ". Sending CorrelationError to the caller." );
-					channel.send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError",
+						+ message.getMessage().operationName() + ". Sending CorrelationError to the caller." );
+					channel.send( CommMessage.createFaultResponse( message.getMessage(), new FaultException(
+						"CorrelationError",
 						"The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
 				}
 			} catch( InvalidIdException e ) {
-				interpreter.logWarning( "Received a message for undefined operation " + message.operationName()
-					+ ". Sending IOException to the caller." );
-				channel.send( CommMessage.createFaultResponse( message,
-					new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+				interpreter
+					.logWarning( "Received a message for undefined operation " + message.getMessage().operationName()
+						+ ". Sending IOException to the caller." );
+				channel.send( CommMessage.createFaultResponse( message.getMessage(),
+					new FaultException( "IOException",
+						"Invalid operation: " + message.getMessage().operationName() ) ) );
 			} finally {
 				channel.disposeForInput();
 			}
 		}
 
-		private void handleMessage( CommMessage message )
+		private void handleMessage( CommMessageFromProtocol message )
 			throws IOException {
 			try {
-				String[] ss = PATH_SPLIT_PATTERN.split( message.resourcePath() );
+				String[] ss = PATH_SPLIT_PATTERN.split( message.getMessage().resourcePath() );
 				if( ss.length > 1 ) {
 					handleRedirectionInput( message, ss );
 				} else {
-					if( port.canHandleInputOperationDirectly( message.operationName() ) ) {
+					if( port.canHandleInputOperationDirectly( message.getMessage().operationName() ) ) {
 						handleDirectMessage( message );
 					} else {
-						AggregatedOperation operation = port.getAggregatedOperation( message.operationName() );
+						AggregatedOperation operation =
+							port.getAggregatedOperation( message.getMessage().operationName() );
 						if( operation == null ) {
 							interpreter.logWarning(
-								"Received a message for operation " + message.operationName() +
+								"Received a message for operation " + message.getMessage().operationName() +
 									", not specified in the input port " + port.name()
 									+ " at the receiving service. Sending IOException to the caller." );
 							try {
 								channel
-									.send( CommMessage.createFaultResponse( message, new FaultException( "IOException",
-										"Invalid operation: " + message.operationName() ) ) );
+									.send( CommMessage.createFaultResponse( message.getMessage(),
+										new FaultException( "IOException",
+											"Invalid operation: " + message.getMessage().operationName() ) ) );
 							} finally {
 								channel.disposeForInput();
 							}
@@ -470,7 +476,7 @@ public class CommCore {
 			try {
 				if( channel.redirectionChannel() == null ) {
 					assert (port != null);
-					final CommMessage message = channel.recv();
+					final CommMessageFromProtocol message = channel.recv();
 					if( message != null ) {
 						handleMessage( message );
 					} else {

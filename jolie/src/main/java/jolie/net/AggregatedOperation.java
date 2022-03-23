@@ -76,11 +76,11 @@ public abstract class AggregatedOperation {
 		}
 
 		@Override
-		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( final CommMessageFromProtocol requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException {
 			final Interpreter interpreter = Interpreter.getInstance();
 			try {
-				operation.requestType().check( requestMessage.value() );
+				operation.requestType().check( requestMessage.getMessage().value() );
 
 				ExecutionThread initThread = Interpreter.getInstance().initThread();
 				try {
@@ -133,16 +133,16 @@ public abstract class AggregatedOperation {
 				synchronized( f ) {
 					if( f[ 0 ] == null ) {
 						// We need to send the acknowledgement
-						channel.send( CommMessage.createEmptyResponse( requestMessage ) );
+						channel.send( CommMessage.createEmptyResponse( requestMessage.getMessage() ) );
 					} else {
-						channel.send( CommMessage.createFaultResponse( requestMessage, f[ 0 ] ) );
+						channel.send( CommMessage.createFaultResponse( requestMessage.getMessage(), f[ 0 ] ) );
 					}
 				}
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning(
 					"TypeMismatch for received message (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage,
+					channel.send( CommMessage.createFaultResponse( requestMessage.getMessage(),
 						new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
 					Interpreter.getInstance().logSevere( ioe );
@@ -185,11 +185,11 @@ public abstract class AggregatedOperation {
 		}
 
 		@Override
-		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( final CommMessageFromProtocol requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException {
 			final Interpreter interpreter = Interpreter.getInstance();
 			try {
-				operation.requestType().check( requestMessage.value() );
+				operation.requestType().check( requestMessage.getMessage().value() );
 
 				ExecutionThread initThread = Interpreter.getInstance().initThread();
 				try {
@@ -207,7 +207,7 @@ public abstract class AggregatedOperation {
 				interpreter.logWarning(
 					"Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage,
+					channel.send( CommMessage.createFaultResponse( requestMessage.getMessage(),
 						new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
 					Interpreter.getInstance().logSevere( ioe );
@@ -241,18 +241,20 @@ public abstract class AggregatedOperation {
 		}
 
 		@Override
-		public void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
+		public void runAggregationBehaviour( CommMessageFromProtocol requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException {
 			CommChannel oChannel = null;
 			try {
 				oChannel = outputPort.getNewCommChannel();
-				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
+				final CommMessage requestToAggregated =
+					outputPort.createAggregatedRequest( requestMessage.getMessage() );
 				oChannel.send( requestToAggregated );
 				final CommMessage response = oChannel.recvResponseFor( requestToAggregated ).get();
-				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(),
+				channel.send( new CommMessage( requestMessage.getMessage().id(), response.operationName(),
+					response.resourcePath(),
 					response.value(), response.fault() ) );
 			} catch( InterruptedException | ExecutionException | IOException e ) {
-				channel.send( CommMessage.createFaultResponse( requestMessage,
+				channel.send( CommMessage.createFaultResponse( requestMessage.getMessage(),
 					new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
 			} finally {
 				if( oChannel != null ) {
@@ -319,6 +321,6 @@ public abstract class AggregatedOperation {
 		return name;
 	}
 
-	public abstract void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
+	public abstract void runAggregationBehaviour( CommMessageFromProtocol requestMessage, CommChannel channel )
 		throws IOException, URISyntaxException;
 }

@@ -44,14 +44,14 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		}
 
 		@Override
-		protected CommMessage recvImpl()
+		protected CommMessageFromProtocol recvImpl()
 			throws IOException {
 			if( request == null ) {
 				throw new IOException( "Unsupported operation" );
 			}
 			CommMessage r = request;
 			request = null;
-			return r;
+			return new CommMessageFromProtocol( r, null );
 		}
 
 		@Override
@@ -97,7 +97,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override
-	protected CommMessage recvImpl()
+	protected CommMessageFromProtocol recvImpl()
 		throws IOException {
 		throw new IOException( "Unsupported operation" );
 	}

@@ -47,6 +47,7 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.TrustManagerFactory;
 
 import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.net.protocols.CommProtocol;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.Value;
@@ -451,7 +452,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 	}
 
 	@Override
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		outputStream = ostream;
 		inputStream = istream;
@@ -460,7 +461,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 			wrappedProtocol.setChannel( this.channel() );
 		}
 
-		CommMessage message = wrappedProtocol.recv( sslInputStream, sslOutputStream );
+		CommMessageFromProtocol message = wrappedProtocol.recv( sslInputStream, sslOutputStream );
 		sslOutputStream.flush();
 		return message;
 	}

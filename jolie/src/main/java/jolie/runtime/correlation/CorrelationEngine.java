@@ -25,7 +25,7 @@ import jolie.Interpreter;
 import jolie.SessionListener;
 import jolie.SessionThread;
 import jolie.net.CommChannel;
-import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.runtime.Value;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 import jolie.runtime.correlation.impl.SimpleCorrelationEngine;
@@ -66,11 +66,11 @@ public abstract class CorrelationEngine implements SessionListener {
 	}
 
 	public abstract void onSessionStart( SessionThread session, Interpreter.SessionStarter starter,
-		CommMessage message );
+		CommMessageFromProtocol message );
 
 	public abstract void onSingleExecutionSessionStart( SessionThread session );
 
-	protected abstract boolean routeMessage( CommMessage message, CommChannel channel );
+	protected abstract boolean routeMessage( CommMessageFromProtocol message, CommChannel channel );
 
 	private final Interpreter interpreter;
 
@@ -83,7 +83,7 @@ public abstract class CorrelationEngine implements SessionListener {
 	}
 
 	protected void initCorrelationValues( SessionThread session, Interpreter.SessionStarter starter,
-		CommMessage message ) {
+		CommMessageFromProtocol message ) {
 		Value messageValue;
 		CorrelationSet correlationSet = starter.correlationInitializer();
 		if( correlationSet == null ) { // TODO check this w.r.t. the type system
@@ -91,7 +91,7 @@ public abstract class CorrelationEngine implements SessionListener {
 		}
 		for( CorrelationPair pair : starter.correlationInitializer()
 			.getOperationCorrelationPairs( starter.guard().inputOperation().id() ) ) {
-			messageValue = pair.messagePath().getValueOrNull( message.value() );
+			messageValue = pair.messagePath().getValueOrNull( message.getMessage().value() );
 			if( messageValue == null ) {
 				messageValue = Value.create();
 			}
@@ -99,7 +99,7 @@ public abstract class CorrelationEngine implements SessionListener {
 		}
 	}
 
-	public synchronized void onMessageReceive( final CommMessage message, final CommChannel channel )
+	public synchronized void onMessageReceive( final CommMessageFromProtocol message, final CommChannel channel )
 		throws CorrelationError {
 		if( !(
 		// We try to find a correlating process.

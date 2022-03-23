@@ -95,7 +95,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 	 * @see CommMessage
 	 */
 	@Override
-	protected CommMessage recvImpl()
+	protected CommMessageFromProtocol recvImpl()
 		throws IOException {
 		try {
 			return protocol().recv( istream, ostream );

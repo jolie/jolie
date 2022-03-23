@@ -71,10 +71,11 @@ public class ProvideUntilProcess implements Process {
 				Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
 
 				SessionMessage m = f.get();
-				Pair< InputOperationProcess, Process > branch = provide.branches().get( m.message().operationName() );
+				Pair< InputOperationProcess, Process > branch =
+					provide.branches().get( m.message().getMessage().operationName() );
 				if( branch == null ) {
 					// It is an until branch
-					branch = until.branches().get( m.message().operationName() );
+					branch = until.branches().get( m.message().getMessage().operationName() );
 					keepRun = false;
 				}
 				branch.key().receiveMessage( m, ethread.state() ).run();

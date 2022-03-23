@@ -33,6 +33,7 @@ import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.net.PollableCommChannel;
 import jolie.runtime.Value;
 import jolie.runtime.typing.Type;
@@ -105,7 +106,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	}
 
 	@Override
-	protected CommMessage recvImpl()
+	protected CommMessageFromProtocol recvImpl()
 		throws IOException {
 		throw new IOException( "Unsupported operation" );
 	}

@@ -32,6 +32,7 @@ import jolie.monitoring.events.OperationEndedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -102,12 +103,17 @@ public class RequestResponseProcess implements InputOperationProcess {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent(
 				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-					Long.toString( sessionMessage.message().id() ), sessionMessage.message().value() ) );
+					Long.toString( sessionMessage.message().getMessage().id() ),
+					sessionMessage.message().getMessage().value() ) );
 		}
 
-		log( "RECEIVED", sessionMessage.message() );
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent( sessionMessage.message().getMessageEvent() );
+		}
+
+		log( "RECEIVED", sessionMessage.message().getMessage() );
 		if( inputVarPath != null ) {
-			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
+			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().getMessage().value() );
 		}
 
 		return new Process() {
@@ -170,7 +176,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 		return CommMessage.createFaultResponse( request, f );
 	}
 
-	private void runBehaviour( CommChannel channel, CommMessage message )
+	private void runBehaviour( CommChannel channel, CommMessageFromProtocol message )
 		throws FaultException {
 		// Variables for monitor
 		int responseStatus;
@@ -188,21 +194,21 @@ public class RequestResponseProcess implements InputOperationProcess {
 				ExecutionThread ethread = ExecutionThread.currentThread();
 				if( ethread.isKilled() ) {
 					try {
-						response = createFaultMessage( message, ethread.killerFault() );
+						response = createFaultMessage( message.getMessage(), ethread.killerFault() );
 						responseStatus = OperationEndedEvent.FAULT;
 						details = ethread.killerFault().faultName();
 					} catch( TypeCheckingException e ) {
 						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName()
 								+ " (operation " + operation.id() + "): " + e.getMessage() );
-						response = CommMessage.createFaultResponse( message, typeMismatch );
+						response = CommMessage.createFaultResponse( message.getMessage(), typeMismatch );
 						responseStatus = OperationEndedEvent.ERROR;
 						details = typeMismatch.faultName();
 					}
 				} else {
 					response =
 						CommMessage.createResponse(
-							message,
+							message.getMessage(),
 							(outputExpression == null) ? Value.UNDEFINED_VALUE : outputExpression.evaluate() );
 					responseStatus = OperationEndedEvent.SUCCESS;
 					details = "";
@@ -214,7 +220,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 								"Request-Response input operation output value TypeMismatch (operation "
 									+ operation.id() + "): " + e.getMessage() );
-							response = CommMessage.createFaultResponse( message, new FaultException(
+							response = CommMessage.createFaultResponse( message.getMessage(), new FaultException(
 								Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 							responseStatus = OperationEndedEvent.ERROR;
 							details = Constants.TYPE_MISMATCH_FAULT_NAME;
@@ -226,14 +232,14 @@ public class RequestResponseProcess implements InputOperationProcess {
 			}
 		} catch( FaultException f ) {
 			try {
-				response = createFaultMessage( message, f );
+				response = createFaultMessage( message.getMessage(), f );
 				responseStatus = OperationEndedEvent.FAULT;
 				details = f.faultName();
 			} catch( TypeCheckingException e ) {
 				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 					"Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id()
 						+ "): " + e.getMessage() );
-				response = CommMessage.createFaultResponse( message, typeMismatch );
+				response = CommMessage.createFaultResponse( message.getMessage(), typeMismatch );
 				responseStatus = OperationEndedEvent.ERROR;
 				details = typeMismatch.faultName();
 			}

@@ -1192,7 +1192,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	 * ); try { return schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) ); }
 	 * catch( SAXException e ) { throw new IOException( e ); } }
 	 */
-	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
@@ -1209,6 +1209,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		String messageId = "";
 		FaultException fault = null;
 		Value value = Value.create();
+
+		// set protocolEvent only if monitoring is enabled
+		ProtocolMessageEvent protocolEvent = null;
 
 		try {
 			if( message.size() > 0 ) {
@@ -1316,17 +1319,16 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 			} );
 
+
 			if( Interpreter.getInstance().isMonitoring() ) {
 				final StringBuilder headerMonitor = new StringBuilder();
 
 				headerMonitor.append( getHeadersFromHttpMessage( message ) ).append( "\n" );
-
-				Interpreter.getInstance().fireMonitorEvent(
-					new ProtocolMessageEvent(
-						new String( message.content(), charset ),
-						headerMonitor.toString(),
-						ExecutionThread.currentThread().getSessionId(),
-						ProtocolMessageEvent.Protocol.SOAP ) );
+				protocolEvent = new ProtocolMessageEvent(
+					new String( message.content(), charset ),
+					headerMonitor.toString(),
+					ExecutionThread.currentThread().getSessionId(),
+					ProtocolMessageEvent.Protocol.SOAP );
 			}
 
 		} catch( SOAPException | ParserConfigurationException e ) {
@@ -1369,10 +1371,10 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 		}
 
-		return retVal;
+		return new CommMessageFromProtocol( retVal, protocolEvent );
 	}
 
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}

@@ -73,7 +73,7 @@ public class MetaServiceChannel implements Cloneable {
 
 	public Value recv()
 		throws IOException, FaultException {
-		CommMessage message = channel.recv();
+		CommMessage message = channel.recv().getMessage();
 		if( message.isFault() ) {
 			throw message.fault();
 		}

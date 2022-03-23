@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import jolie.Interpreter;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.net.PollableCommChannel;
 
 public class RMICommChannel extends AbstractCommChannel implements PollableCommChannel {
@@ -43,7 +44,7 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 	}
 
 	@Override
-	protected CommMessage recvImpl()
+	protected CommMessageFromProtocol recvImpl()
 		throws IOException {
 		throw new IOException( "Unsupported operation" );
 		// return remoteChannel.recv();

@@ -103,7 +103,7 @@ public class SocketSodepService extends Service {
 
 			service.lock.lock();
 			try {
-				CommMessage response = service.protocol.recv( service.istream, service.ostream );
+				CommMessage response = service.protocol.recv( service.istream, service.ostream ).getMessage();
 				if( response.isFault() ) {
 					callback.onFault( response.fault() );
 				} else {

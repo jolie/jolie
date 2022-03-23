@@ -101,7 +101,7 @@ public class NDChoiceProcess implements Process {
 		Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
 		try {
 			SessionMessage m = f.get();
-			Pair< InputOperationProcess, Process > branch = branches.get( m.message().operationName() );
+			Pair< InputOperationProcess, Process > branch = branches.get( m.message().getMessage().operationName() );
 			branch.key().receiveMessage( m, ethread.state() ).run();
 			branch.value().run();
 		} catch( CancellationException | ExecutionException | InterruptedException e ) {

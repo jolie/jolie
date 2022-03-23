@@ -30,7 +30,7 @@ import jolie.Interpreter;
 import jolie.SessionThread;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.net.CommChannel;
-import jolie.net.CommMessage;
+import jolie.net.CommMessageFromProtocol;
 import jolie.net.SessionMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -51,7 +51,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine {
 		super( interpreter );
 	}
 
-	public boolean routeMessage( CommMessage message, CommChannel channel ) {
+	public boolean routeMessage( CommMessageFromProtocol message, CommChannel channel ) {
 		for( SessionThread session : sessions ) {
 			if( correlate( session, message ) ) {
 				session.pushMessage( new SessionMessage( message, channel ) );
@@ -61,7 +61,8 @@ public class SimpleCorrelationEngine extends CorrelationEngine {
 		return false;
 	}
 
-	public void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message ) {
+	public void onSessionStart( SessionThread session, Interpreter.SessionStarter starter,
+		CommMessageFromProtocol message ) {
 		sessions.add( session );
 		initCorrelationValues( session, starter, message );
 	}
@@ -78,7 +79,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine {
 		onSessionExecuted( session );
 	}
 
-	private boolean correlate( SessionThread session, CommMessage message ) {
+	private boolean correlate( SessionThread session, CommMessageFromProtocol message ) {
 		if( (interpreter().correlationSets().isEmpty()
 			&& interpreter().executionMode() == ExecutionMode.SINGLE)
 			||
@@ -86,17 +87,17 @@ public class SimpleCorrelationEngine extends CorrelationEngine {
 			return true;
 		}
 
-		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
+		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.getMessage().operationName() );
 		if( cset == null ) {
 			return interpreter().executionMode() == ExecutionMode.SINGLE; // It must be a session starter.
 		}
-		final List< CorrelationPair > pairs = cset.getOperationCorrelationPairs( message.operationName() );
+		final List< CorrelationPair > pairs = cset.getOperationCorrelationPairs( message.getMessage().operationName() );
 		for( CorrelationPair cpair : pairs ) {
 			final Value sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
 			if( sessionValue == null ) {
 				return false;
 			} else {
-				Value messageValue = cpair.messagePath().getValueOrNull( message.value() );
+				Value messageValue = cpair.messagePath().getValueOrNull( message.getMessage().value() );
 				if( messageValue == null ) {
 					return false;
 				} else {

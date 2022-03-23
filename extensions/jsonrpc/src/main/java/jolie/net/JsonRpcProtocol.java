@@ -296,7 +296,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
-	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			if( inInputPort && configurationPath().getValue().hasChildren( Parameters.CLIENT_LOCATION ) ) {
@@ -318,7 +318,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			// LSP supports only utf-8 encoding
 			String charset = "utf-8";
 			// encoding = message.getProperty( "accept-encoding" )
-			return recv_createCommMessage( message.size(), message.content(), charset );
+			return new CommMessageFromProtocol( recv_createCommMessage( message.size(), message.content(), charset ),
+				null );
 		} else {
 			HttpParser parser = new HttpParser( istream );
 			HttpMessage message = parser.parse();
@@ -334,7 +335,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 
 			encoding = message.getProperty( "accept-encoding" );
 
-			return recv_createCommMessage( message.size(), message.content(), charset );
+			return new CommMessageFromProtocol( recv_createCommMessage( message.size(), message.content(), charset ),
+				null );
 		}
 	}
 
@@ -400,7 +402,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		channelInterface = channel().parentPort().getInterface();
 	}
 
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	public CommMessageFromProtocol recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		setChannelInterface();
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );

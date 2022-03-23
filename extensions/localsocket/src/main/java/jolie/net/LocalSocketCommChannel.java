@@ -53,7 +53,7 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 		socketOutputStream.flush();
 	}
 
-	protected CommMessage recvImpl()
+	protected CommMessageFromProtocol recvImpl()
 		throws IOException {
 		return protocol().recv( bufferedInputStream, socketOutputStream );
 	}
