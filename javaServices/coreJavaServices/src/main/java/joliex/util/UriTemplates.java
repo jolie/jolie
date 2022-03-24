@@ -26,13 +26,13 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.uri.UriUtils;
 
-@AndJarDeps({ "uri-templates.jar", "jolie-uri.jar", "joda-time.jar" })
+@AndJarDeps( { "uri-templates.jar", "jolie-uri.jar", "joda-time.jar" } )
 public class UriTemplates extends JavaService {
-	public Value match(Value request) {
-		return UriUtils.match(request);
+	public Value match( Value request ) {
+		return UriUtils.match( request );
 	}
 
-	public String expand(Value request) {
-		return UriUtils.expand(request);
+	public String expand( Value request ) {
+		return UriUtils.expand( request );
 	}
 }

@@ -27,6 +27,14 @@ from ..test-unit import TestUnitInterface
 from string_utils import StringUtils
 from console import Console
 
+
+service test{
+
+    inputPort TestUnitInput {
+		location: "local"
+		interfaces: TestUnitInterface
+	}
+
     outputPort TestHttpTemplateB{
         Location : "socket://localhost:9099"
     }
