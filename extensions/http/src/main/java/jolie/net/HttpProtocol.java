@@ -32,14 +32,11 @@ import jolie.runtime.typing.*;
 import jolie.tracer.ProtocolTraceAction;
 import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
-
 import jolie.xml.XmlUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -48,7 +45,6 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -654,7 +650,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		int statusCode = DEFAULT_STATUS_CODE;
 		String statusDescription = null;
 
-		if( message.isFault() && hasOperationSpecificParameter( message.operationName(), Parameters.STATUS_CODES ) ) {
+		if( message.isFault()
+			&& hasOperationSpecificParameter( message.operationName(), Parameters.STATUS_CODES ) ) {
 			Value exceptionsValue =
 				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.STATUS_CODES );
 			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
@@ -888,13 +885,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.OUTGOING_HEADERS ),
 				headerBuilder );
 		}
+
+
 	}
 
 	private void send_operationSpecificHeader( Value value, Value outboundHeaders, StringBuilder headerBuilder ) {
 		List< String > headersKeys = new ArrayList<>();
 		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
 			headerBuilder.append( headerName ).append( ": " )
-				.append( value.getFirstChild( headerValues.get( 0 ).strValue() ).strValue() ).append( HttpUtils.CRLF );
+				.append( value.getFirstChild( headerValues.get( 0 ).strValue() ).strValue() )
+				.append( HttpUtils.CRLF );
 			headersKeys.add( headerValues.get( 0 ).strValue() );
 		} );
 		headersKeys.forEach( value.children()::remove );
@@ -1203,9 +1203,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_checkForGenericHeader( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException {
 		Value headers = null;
+
 		if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.INCOMING_HEADERS ) ) {
 			headers =
-				getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.INCOMING_HEADERS );
+				getOperationSpecificParameterFirstValue( decodedMessage.operationName,
+					Parameters.INCOMING_HEADERS );
 		} else if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.HEADERS ) ) {
 			headers = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERS );
 		} else if( hasParameter( Parameters.HEADERS ) ) {
@@ -1414,8 +1416,25 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 						.concat( entry.getKey() ).concat( "=" )
 						.concat( entry.getValue().get( 0 ).strValue() );
 				}
+				if( opConfig.hasChildren( Parameters.INCOMING_HEADERS ) ) {
 
-				message.setRequestPath( messagePath + paramString );
+					Iterator< Entry< String, ValueVector > > inHeadersIterator =
+						opConfig.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
+					while( inHeadersIterator.hasNext() ) {
+						Entry< String, ValueVector > entry = inHeadersIterator.next();
+						if( paramString.isEmpty() ) {
+							paramString += "?".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
+								.concat( message.getProperty( entry.getKey() ) );
+						} else {
+							paramString += "&".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
+								.concat( message.getProperty( entry.getKey() ) );
+						}
+
+					}
+				}
+
+				messagePath += paramString;
+				message.setRequestPath( messagePath );
 			}
 		}
 	}
@@ -1669,12 +1688,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private FaultException recv_mapHttpStatusCodeFault( HttpMessage message, Value httpStatusValue,
 		Value decodedMessageValue ) {
 		FaultException faultException = null;
-		Iterator< Entry< String, ValueVector > > statusCodeIterator = httpStatusValue.children().entrySet().iterator();
+		Iterator< Entry< String, ValueVector > > statusCodeIterator =
+			httpStatusValue.children().entrySet().iterator();
 		while( statusCodeIterator.hasNext() && faultException == null ) {
 			Entry< String, ValueVector > entry = statusCodeIterator.next();
 			int configuredStatusCode = entry.getValue().get( 0 ).intValue();
 			if( configuredStatusCode == message.statusCode() ) {
-				if( message.getPropertyOrEmptyString( Headers.CONTENT_TYPE ).equals( ContentTypes.APPLICATION_JSON ) ) {
+				if( message.getPropertyOrEmptyString( Headers.CONTENT_TYPE )
+					.equals( ContentTypes.APPLICATION_JSON ) ) {
 					faultException = new FaultException( entry.getKey(),
 						decodedMessageValue.getFirstChild( "error" ).getFirstChild( "data" ) );
 				} else {
