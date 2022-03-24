@@ -1,0 +1,13 @@
+header:
+  license:
+    spdx-id: LGPL-2.0-or-later
+
+  paths-ignore:
+    - 'lib/xsom'
+    - 'dist'
+    - 'licenses'
+    - '**/*.md'
+    - 'LICENSE'
+    - 'LICENSE.uri-libs.txt'
+
+  comment: on-failure
