@@ -27,6 +27,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.events.OperationStartedEvent;
+import jolie.monitoring.events.ProtocolMessageEvent;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
@@ -67,15 +68,21 @@ public class OneWayProcess implements InputOperationProcess {
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
+			String threadId = ExecutionThread.currentThread().getSessionId();
+
+			ProtocolMessageEvent protocolMessageEvent = sessionMessage.message().getMessageEvent();
+
+			if( protocolMessageEvent != null ) {
+				protocolMessageEvent.setProcessId( threadId );
+				Interpreter.getInstance().fireMonitorEvent( protocolMessageEvent );
+			}
+
 			Interpreter.getInstance().fireMonitorEvent(
-				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
+				new OperationStartedEvent( operation.id(), threadId,
 					Long.toString( sessionMessage.message().getMessage().id() ),
 					sessionMessage.message().getMessage().value() ) );
 		}
 
-		if( Interpreter.getInstance().isMonitoring() ) {
-			Interpreter.getInstance().fireMonitorEvent( sessionMessage.message().getMessageEvent() );
-		}
 
 		log( "RECEIVED", sessionMessage.message().getMessage() );
 		if( varPath != null ) {

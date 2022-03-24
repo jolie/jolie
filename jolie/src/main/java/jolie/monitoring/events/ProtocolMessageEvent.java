@@ -51,6 +51,14 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 			.strValue();
 	}
 
+	public void setProcessId( String processId ) {
+		data().getFirstChild( FieldNames.PROCESSID.getName() ).setValue( processId );
+	}
+
+	public String getProcessId() {
+		return data().getFirstChild( FieldNames.PROCESSID.getName() ).strValue();
+	}
+
 	public ProtocolMessageEvent( String body, String header, String processId,
 		ProtocolMessageEvent.Protocol protocol ) {
 		super( "ProtocolMessage-".concat( protocol.getProtocol() ), Value.create() );

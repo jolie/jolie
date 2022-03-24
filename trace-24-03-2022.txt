@@ -1,0 +1,1819 @@
+[leonardo.ol]   46.     HTTP    HTTP MESSAGE RECEIVED                   /listTypes
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: POST
+Resource: /listTypes
+--> Header properties
+        sec-fetch-mode: cors
+        content-length: 41
+        referer: http://localhost:14001/
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        origin: http://localhost:14001
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-gpc: 1
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        content-type: application/json;charset=UTF-8
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+--> Message content
+{"typeName":"domain_id","whereFields":{}}
+[leonardo.ol]   47.     HTTP    HTTP MESSAGE RECEIVED                   /listTypes
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: POST
+Resource: /listTypes
+--> Header properties
+        sec-fetch-mode: cors
+        content-length: 37
+        referer: http://localhost:14001/
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        origin: http://localhost:14001
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-gpc: 1
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        content-type: application/json;charset=UTF-8
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+--> Message content
+{"typeName":"op_id","whereFields":{}}
+[leonardo.ol]   48.     HTTP    HTTP MESSAGE RECEIVED                   /listTypes
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: POST
+Resource: /listTypes
+--> Header properties
+        sec-fetch-mode: cors
+        content-length: 39
+        referer: http://localhost:14001/
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        origin: http://localhost:14001
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-gpc: 1
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        content-type: application/json;charset=UTF-8
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+--> Message content
+{"typeName":"serv_id","whereFields":{}}
+[leonardo.ol]   49.     HTTP    HTTP MESSAGE RECEIVED                   /listTypes
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: POST
+Resource: /listTypes
+--> Header properties
+        sec-fetch-mode: cors
+        content-length: 40
+        referer: http://localhost:14001/
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        origin: http://localhost:14001
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-gpc: 1
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        content-type: application/json;charset=UTF-8
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+--> Message content
+{"typeName":"scope_id","whereFields":{}}
+[leonardo.ol]   50.     HTTP    HTTP MESSAGE RECEIVED                   /listTypes
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: POST
+Resource: /listTypes
+--> Header properties
+        sec-fetch-mode: cors
+        content-length: 38
+        referer: http://localhost:14001/
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        origin: http://localhost:14001
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-gpc: 1
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        content-type: application/json;charset=UTF-8
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+--> Message content
+{"typeName":"evt_id","whereFields":{}}
+[leonardo.ol]   51.     HTTP    HTTP MESSAGE RECEIVED                   /listTypes
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: POST
+Resource: /listTypes
+--> Header properties
+        sec-fetch-mode: cors
+        content-length: 40
+        referer: http://localhost:14001/
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        origin: http://localhost:14001
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-gpc: 1
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        content-type: application/json;charset=UTF-8
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+--> Message content
+{"typeName":"evt_type","whereFields":{}}
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11752.       >> RR   listTypes                       RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "scope_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11753.       >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "scope_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11754.       >> RR   listTypes                       RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "domain_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11755.       >> RR   listTypes                       RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "evt_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11756.       >> RR   listTypes                       RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "serv_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11757.       >> RR   listTypes                       RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "op_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11758.       >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "op_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+[leonardo.ol]   59.     HTTP    HTTP MESSAGE RECEIVED                   /jung/json/dictionary.datatables.it.json
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: GET
+Resource: /jung/json/dictionary.datatables.it.json
+--> Header properties
+        sec-fetch-mode: cors
+        referer: http://localhost:14001/
+        sec-gpc: 1
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13260.       >> CSR  listTypes@Logger                        SENDING MSG_ID:232
+                                                Value:
+                                                ├─── typeName:string = "op_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11761.       >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "serv_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711094.      >> RR   listTypes                       RECEIVED    MSG_ID:232
+                                                Value:
+                                                ├─── typeName:string = "op_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13262.       >> CSR  listTypes@Logger                        SENDING MSG_ID:231
+                                                Value:
+                                                ├─── typeName:string = "scope_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711095.      >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:232
+                                                Value:
+                                                ├─── typeName:string = "op_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11763.       >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "evt_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711096.      >> RR   listTypes                       RECEIVED    MSG_ID:231
+                                                Value:
+                                                ├─── typeName:string = "scope_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11764.       >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "domain_id"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711097.      >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:231
+                                                Value:
+                                                ├─── typeName:string = "scope_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11765.       >> RR   listTypes                       RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "evt_type"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14891098.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT op_id FROM log "
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13266.       >> CSR  listTypes@Logger                        SENDING MSG_ID:235
+                                                Value:
+                                                ├─── typeName:string = "domain_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14901099.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13267.       >> CSR  listTypes@Logger                        SENT    MSG_ID:235
+                                                Value:
+                                                ├─── typeName:string = "domain_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14911100.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13268.       >> CSR  listTypes@Logger                        SENDING MSG_ID:234
+                                                Value:
+                                                ├─── typeName:string = "evt_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14891101.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT scope_id FROM log "
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13269.       >> CSR  listTypes@Logger                        SENDING MSG_ID:233
+                                                Value:
+                                                ├─── typeName:string = "serv_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14901102.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13270.       >> CSR  listTypes@Logger                        SENT    MSG_ID:231
+                                                Value:
+                                                ├─── typeName:string = "scope_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14921103.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13271.       >> CSR  listTypes@Logger                        SENT    MSG_ID:232
+                                                Value:
+                                                ├─── typeName:string = "op_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711104.      >> RR   listTypes                       RECEIVED    MSG_ID:235
+                                                Value:
+                                                ├─── typeName:string = "domain_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:18772.       >> RR   default                 RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── data
+                                                ├─── userAgent:string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0"
+                                                ├─── requestUri:string = "/jung/json/dictionary.datatables.it.json"
+                                                ├─── operation:string = "jung/json/dictionary.datatables.it.json"
+                                                ├─── cookies
+│                                                       ├─── adminer_permanent:string = ""
+│                                                       ├─── adminer_sid:string = "cba33b006bb3d08fa715a66a7b6d6e2a"
+│                                                       ├─── lang:string = "it"
+│                                                       ├─── adminer_key:string = "ac496dda5d71d1e44b647984f2ab22d1"
+│                                                       ├─── adminer_version:string = "4.8.1"
+│                                                       ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711105.      >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:235
+                                                Value:
+                                                ├─── typeName:string = "domain_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:18773.       >> RR   default                 RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── data
+                                                ├─── userAgent:string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0"
+                                                ├─── requestUri:string = "/jung/json/dictionary.datatables.it.json"
+                                                ├─── operation:string = "jung/json/dictionary.datatables.it.json"
+                                                ├─── cookies
+│                                                       ├─── adminer_permanent:string = ""
+│                                                       ├─── adminer_sid:string = "cba33b006bb3d08fa715a66a7b6d6e2a"
+│                                                       ├─── lang:string = "it"
+│                                                       ├─── adminer_key:string = "ac496dda5d71d1e44b647984f2ab22d1"
+│                                                       ├─── adminer_version:string = "4.8.1"
+│                                                       ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14931106.      :: ASSIGNMENT   POINTS                  nulValue:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13274.       >> CSR  listTypes@Logger                        SENT    MSG_ID:233
+                                                Value:
+                                                ├─── typeName:string = "serv_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14911107.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:19175.       :: ASSIGNMENT   ASSIGN                  null               Value::string = "jung/json/dictionary.datatables.it.json"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15011108.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT op_id FROM log  ORDER BY op_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:19276.       :: ASSIGNMENT   ASSIGN                  null               Value::string = "\?"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711109.      >> RR   listTypes                       RECEIVED    MSG_ID:233
+                                                Value:
+                                                ├─── typeName:string = "serv_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13277.       >> CSR  listTypes@Logger                        SENT    MSG_ID:234
+                                                Value:
+                                                ├─── typeName:string = "evt_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711110.      >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:233
+                                                Value:
+                                                ├─── typeName:string = "serv_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:11778.       >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── typeName:string = "evt_type"
+                                                ├─── whereFields
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14891111.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT domain_id FROM log "
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:19379.       << SR   split@StringUtils                       SENDING MSG_ID:237
+                                                Value::string = "jung/json/dictionary.datatables.it.json"
+                                                ╰─── regex:string = "\?"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14901112.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:19380.       << SR   split@StringUtils                       SENT    MSG_ID:237
+                                                Value::string = "jung/json/dictionary.datatables.it.json"
+                                                ╰─── regex:string = "\?"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14911113.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13281.       >> CSR  listTypes@Logger                        SENDING MSG_ID:238
+                                                Value:
+                                                ├─── typeName:string = "evt_type"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711114.      >> RR   listTypes                       RECEIVED    MSG_ID:234
+                                                Value:
+                                                ├─── typeName:string = "evt_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:19382.       << SR   split@StringUtils                       RECEIVED   MSG_ID:237
+                                                Value:
+                                                ╰─── result:string = "jung/json/dictionary.datatables.it.json"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711115.      >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:234
+                                                Value:
+                                                ├─── typeName:string = "evt_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13283.       >> CSR  listTypes@Logger                        SENT    MSG_ID:238
+                                                Value:
+                                                ├─── typeName:string = "evt_type"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14891116.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT serv_id FROM log "
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:19984.       :: ASSIGNMENT   ASSIGN                  null               Value::string = "./www/jung/json/dictionary.datatables.it.json"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14901117.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20185.       << SR   getMimeType@File                        SENDING MSG_ID:239
+                                                Value::string = "./www/jung/json/dictionary.datatables.it.json"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14911118.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20186.       << SR   getMimeType@File                        SENT    MSG_ID:239
+                                                Value::string = "./www/jung/json/dictionary.datatables.it.json"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031119.      << SR   query@Database                  SENDING     MSG_ID:236
+                                                Value::string = "SELECT DISTINCT op_id FROM log  ORDER BY op_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20187.       << SR   getMimeType@File                        RECEIVED   MSG_ID:239
+                                                Value::string = "application/octet-stream"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14921120.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20288.       :: ASSIGNMENT   ASSIGN                  null               Value::string = "/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031121.      << SR   query@Database                  SENMSG_ID:236
+                                                Value::string = "SELECT DISTINCT op_id FROM log  ORDER BY op_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20389.       << SR   split@StringUtils                       SENDING MSG_ID:240
+                                                Value::string = "application/octet-stream"
+                                                ╰─── regex:string = "/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14921122.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20390.       << SR   split@StringUtils                       SENT    MSG_ID:240
+                                                Value::string = "application/octet-stream"
+                                                ╰─── regex:string = "/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14891123.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT evt_id FROM log "
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20391.       << SR   split@StringUtils                       RECEIVED   MSG_ID:240
+                                                Value:
+                                                ├─── result[0]:string = "application"
+                                                ╰─── result[1]:string = "octet-stream"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14901124.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14911125.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:20892.       :: ASSIGNMENT   ASSIGN                  null               Value::string = "binary"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711126.      >> RR   listTypes                       RECEIVED    MSG_ID:238
+                                                Value:
+                                                ├─── typeName:string = "evt_type"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:21193.       << SR   readFile@File                   SENDING MSG_ID:241
+                                                Value:
+                                                ├─── filename:string = "./www/jung/json/dictionary.datatables.it.json"
+                                                ╰─── format:string = "binary"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14921127.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:21194.       << SR   readFile@File                   SENT    MSG_ID:241
+                                                Value:
+                                                ├─── filename:string = "./www/jung/json/dictionary.datatables.it.json"
+                                                ╰─── format:string = "binary"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711128.      >> RR   listTypes                       RECEIVED-zorro-threadOperation: ??  MSG_ID:238
+                                                Value:
+                                                ├─── typeName:string = "evt_type"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:21195.       << SR   readFile@File                   RECEIVED        MSG_ID:241
+                                                Value::raw =
+{
+        "sEmptyTable":     "Nessun dato presente nella...
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031129.      << SR   query@Database                  RECEIVED    MSG_ID:236
+                                                Value:
+                                                ├─── row[0]
+                                                        ╰─── op_id:string = ""
+                                                ╰─── row[1]
+                                                        ╰─── op_id:string = "echo"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14921130.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+[leonardo.ol]   96.     HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/octet-stream; charset=utf-8
+Content-Length: 817
+
+
+{
+        "sEmptyTable":     "Nessun dato presente nella tabella",
+        "sInfo":           "Vista da _START_ a _END_ di _TOTAL_ elementi",
+        "sInfoEmpty":      "Vista da 0 a 0 di 0 elementi",
+        "sInfoFiltered":   "(filtrati da _MAX_ elementi totali)",
+        "sInfoPostFix":    "",
+        "sInfoThousands":  ".",
+        "sLengthMenu":     "Visualizza _MENU_ elementi",
+        "sLoadingRecords": "Caricamento...",
+        "sProcessing":     "Elaborazione...",
+        "sSearch":         "Cerca:",
+        "sZeroRecords":    "La ricerca non ha portato alcun risultato.",
+        "oPaginate": {
+                "sFirst":      "Inizio",
+                "sPrevious":   "Precedente",
+                "sNext":       "Successivo",
+                "sLast":       "Fine"
+        },
+        "oAria": {
+                "sSortAscending":  ": attiva per ordinare la colonna in ordine crescente",
+                "sSortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+        }
+}
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14931131.      :: ASSIGNMENT   POINTS                  nulValue:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14931132.      :: ASSIGNMENT   POINTS                  nulValue:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15011133.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT serv_id FROM log  ORDER BY serv_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:18797.       >> RR   default                 SENT    MSG_ID:0
+                                                Value::raw =
+{
+        "sEmptyTable":     "Nessun dato presente nella...
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14931134.      :: ASSIGNMENT   POINTS                  nulValue:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15061135.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14891136.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT evt_type FROM log "
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14931137.      :: ASSIGNMENT   POINTS                  nulValue:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14901138.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14911139.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071140.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15011141.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT evt_id FROM log  ORDER BY evt_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031142.      << SR   query@Database                  SENDING     MSG_ID:243
+                                                Value::string = "SELECT DISTINCT evt_id FROM log  ORDER BY evt_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031143.      << SR   query@Database                  SENDING     MSG_ID:242
+                                                Value::string = "SELECT DISTINCT serv_id FROM log  ORDER BY serv_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15011144.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT scope_id FROM log  ORDER BY scope_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031145.      << SR   query@Database                  SENMSG_ID:242
+                                                Value::string = "SELECT DISTINCT serv_id FROM log  ORDER BY serv_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031146.      << SR   query@Database                  SENMSG_ID:243
+                                                Value::string = "SELECT DISTINCT evt_id FROM log  ORDER BY evt_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071147.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "echo"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14921148.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:13298.       >> CSR  listTypes@Logger                        RECEIVED   MSG_ID:232
+                                                Value:
+                                                ├─── typeName:string = "op_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15011149.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT domain_id FROM log  ORDER BY domain_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14931150.      :: ASSIGNMENT   POINTS                  nulValue:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711151.      >> RR   listTypes                       SENMSG_ID:232
+                                                Value:
+                                                ├─── types[0]:string = ""
+                                                ╰─── types[1]:string = "echo"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031152.      << SR   query@Database                  SENDING     MSG_ID:244
+                                                Value::string = "SELECT DISTINCT scope_id FROM log  ORDER BY scope_id"
+
+[leonardo.ol]   99.     HTTP    HTTP COMPRESSING MESSAGE                        /{"types":["","echo"]}
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15011153.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT DISTINCT evt_type FROM log  ORDER BY evt_type"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031154.      << SR   query@Database                  RECEIVED    MSG_ID:243
+                                                Value:
+                                                ├─── row[0]
+                                                        ╰─── evt_id:string = "OperationEnded"
+                                                ├─── row[1]
+                                                        ╰─── evt_id:string = "OperationStarted"
+                                                ╰─── row[2]
+                                                        ╰─── evt_id:string = "ProtocolMessage-http"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031155.      << SR   query@Database                  SENDING     MSG_ID:245
+                                                Value::string = "SELECT DISTINCT domain_id FROM log  ORDER BY domain_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15061156.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031157.      << SR   query@Database                  RECEIVED    MSG_ID:242
+                                                Value:
+                                                ╰─── row
+                                                        ╰─── serv_id:string = "echo"
+
+[leonardo.ol]   100.    HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 41
+
+�V*�,H-V��VR�QJM��W��z]��
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031158.      << SR   query@Database                  SENDING     MSG_ID:246
+                                                Value::string = "SELECT DISTINCT evt_type FROM log  ORDER BY evt_type"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031159.      << SR   query@Database                  SENMSG_ID:244
+                                                Value::string = "SELECT DISTINCT scope_id FROM log  ORDER BY scope_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117101.      >> RR   listTypes                       SENT    MSG_ID:0
+                                                Value:
+                                                ├─── types[0]:string = ""
+                                                ╰─── types[1]:string = "echo"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031160.      << SR   query@Database                  SENMSG_ID:246
+                                                Value::string = "SELECT DISTINCT evt_type FROM log  ORDER BY evt_type"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15061161.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071162.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "OperationEnded"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031163.      << SR   query@Database                  SENMSG_ID:245
+                                                Value::string = "SELECT DISTINCT domain_id FROM log  ORDER BY domain_id"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031164.      << SR   query@Database                  RECEIVED    MSG_ID:245
+                                                Value:
+                                                ╰─── row
+                                                        ╰─── domain_id:string = "HTTP"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071165.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "OperationStarted"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031166.      << SR   query@Database                  RECEIVED    MSG_ID:246
+                                                Value:
+                                                ├─── row[0]
+                                                        ╰─── evt_type:string = ""
+                                                ├─── row[1]
+                                                        ╰─── evt_type:string = "REQUEST"
+                                                ╰─── row[2]
+                                                        ╰─── evt_type:string = "SUCCESS"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071167.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "echo"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15031168.      << SR   query@Database                  RECEIVED    MSG_ID:244
+                                                Value:
+                                                ╰─── row
+                                                        ╰─── scope_id:string = "main"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132102.      >> CSR  listTypes@Logger                        RECEIVED   MSG_ID:233
+                                                Value:
+                                                ├─── typeName:string = "serv_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711169.      >> RR   listTypes                       SENMSG_ID:233
+                                                Value:
+                                                ╰─── types:string = "echo"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15061170.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071171.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "ProtocolMessage-http"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15061172.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+[leonardo.ol]   103.    HTTP    HTTP COMPRESSING MESSAGE                        /{"types":["echo"]}
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711173.      >> RR   listTypes                       SENMSG_ID:234
+                                                Value:
+                                                ├─── types[0]:string = "OperationEnded"
+                                                ├─── types[1]:string = "OperationStarted"
+                                                ╰─── types[2]:string = "ProtocolMessage-http"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132104.      >> CSR  listTypes@Logger                        RECEIVED   MSG_ID:234
+                                                Value:
+                                                ├─── typeName:string = "evt_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071174.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ""
+
+[leonardo.ol]   105.    HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 38
+
+�V*�,H-V��VJM��W����
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15061175.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+[leonardo.ol]   106.    HTTP    HTTP COMPRESSING MESSAGE                        /{"types":["OperationEnded","OperationStarted","ProtocolMessage-http"]}
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071176.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "REQUEST"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071177.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "HTTP"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117107.      >> RR   listTypes                       SENT    MSG_ID:0
+                                                Value:
+                                                ╰─── types:string = "echo"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071178.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SUCCESS"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132108.      >> CSR  listTypes@Logger                        RECEIVED   MSG_ID:235
+                                                Value:
+                                                ├─── typeName:string = "domain_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15071179.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "main"
+
+[leonardo.ol]   109.    HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 78
+
+�V*�,H-V��V�/H-J,���s�KIMQ��$�����K��s|S���Su3JJ
+�bk�:�PF
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711180.      >> RR   listTypes                       SENMSG_ID:238
+                                                Value:
+                                                ├─── types[0]:string = ""
+                                                ├─── types[1]:string = "REQUEST"
+                                                ╰─── types[2]:string = "SUCCESS"
+
+[leonardo.ol]   110.    HTTP    HTTP COMPRESSING MESSAGE                        /{"types":["HTTP"]}
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711181.      >> RR   listTypes                       SENMSG_ID:235
+                                                Value:
+                                                ╰─── types:string = "HTTP"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132111.      >> CSR  listTypes@Logger                        RECEIVED   MSG_ID:231
+                                                Value:
+                                                ├─── typeName:string = "scope_id"
+                                                ╰─── whereFields
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:14711182.      >> RR   listTypes                       SENMSG_ID:231
+                                                Value:
+                                                ╰─── types:string = "main"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132112.      >> CSR  listTypes@Logger                        RECEIVED   MSG_ID:238
+                                                Value:
+                                                ├─── typeName:string = "evt_type"
+                                                ╰─── whereFields
+
+[leonardo.ol]   113.    HTTP    HTTP COMPRESSING MESSAGE                        /{"types":["main"]}
+[leonardo.ol]   114.    HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 38
+
+�V*�,H-V��V�           P�� ]n
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117115.      >> RR   listTypes                       SENT    MSG_ID:0
+                                                Value:
+                                                ├─── types[0]:string = "OperationEnded"
+                                                ├─── types[1]:string = "OperationStarted"
+                                                ╰─── types[2]:string = "ProtocolMessage-http"
+
+[leonardo.ol]   116.    HTTP    HTTP COMPRESSING MESSAGE                        /{"types":["","REQUEST","SUCCESS"]}
+[leonardo.ol]   117.    HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 38
+
+�V*�,H-V��V�M��S���w*�
+[leonardo.ol]   118.    HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 52
+
+�V*�,H-V��VR�Q
+r
+��C��]���bk!b��"
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117119.      >> RR   listTypes                       SENT    MSG_ID:0
+                                                Value:
+                                                ╰─── types:string = "HTTP"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117120.      >> RR   listTypes                       SENT    MSG_ID:0
+                                                Value:
+                                                ╰─── types:string = "main"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117121.      >> RR   listTypes                       SENT    MSG_ID:0
+                                                Value:
+                                                ├─── types[0]:string = ""
+                                                ├─── types[1]:string = "REQUEST"
+                                                ╰─── types[2]:string = "SUCCESS"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501183.      << SR   sleep@Time                      RECEIVED    MSG_ID:226
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771184.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:247
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771185.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:247
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771186.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:247
+                                                Value::long = 1648113589976
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211187.       << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:248
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211188.       << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:248
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211189.       << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:248
+                                                Value::long = 1648113589977
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2221190.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2231191.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/curlog.tmp"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241192.       << SR   rename@File                     SENDING     MSG_ID:249
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241193.       << SR   rename@File                     SENMSG_ID:249
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241194.       << SR   rename@File                     RECEIVED    MSG_ID:249
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251195.       << SR   writeFile@File                  SENDING     MSG_ID:250
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251196.       << SR   writeFile@File                  SENMSG_ID:250
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251197.       << SR   writeFile@File                  RECEIVED    MSG_ID:250
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2271198.       :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841199.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851200.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871201.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881202.      << SR   list@File                       SENDING     MSG_ID:251
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881203.      << SR   list@File                       SENMSG_ID:251
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881204.      << SR   list@File                       RECEIVED    MSG_ID:251
+                                                Value:
+                                                ╰─── result:string = "1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921205.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921206.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11931207.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051208.      << SR   readFile@File                   SENDING     MSG_ID:252
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051209.      << SR   readFile@File                   SENMSG_ID:252
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051210.      << SR   readFile@File                   RECEIVED    MSG_ID:252
+                                                Value::string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12441211.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12451212.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461213.      << SR   delete@File                     SENDING     MSG_ID:253
+                                                Value::string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461214.      << SR   delete@File                     SENMSG_ID:253
+                                                Value::string = "./logs/1648113589977.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461215.      << SR   delete@File                     RECEIVED    MSG_ID:253
+                                                Value::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771216.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:254
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771217.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:254
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771218.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:254
+                                                Value::long = 1648113589983
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841219.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851220.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871221.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881222.      << SR   list@File                       SENDING     MSG_ID:255
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881223.      << SR   list@File                       SENMSG_ID:255
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881224.      << SR   list@File                       RECEIVED    MSG_ID:255
+                                                Value:
+                                                ╰─── result (empty array)
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501225.      << SR   sleep@Time                      SENDING     MSG_ID:256
+                                                Value::int = 4000
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501226.      << SR   sleep@Time                      SENMSG_ID:256
+                                                Value::int = 4000
+
+[leonardo.ol]   122.    HTTP    HTTP MESSAGE RECEIVED                   /readLogs
+[HTTP debug] Receiving:
+HTTP Code: 0
+HTTP Method: POST
+Resource: /readLogs
+--> Header properties
+        sec-fetch-mode: cors
+        content-length: 44
+        referer: http://localhost:14001/
+        sec-fetch-site: same-origin
+        accept-language: en-US,en;q=0.5
+        origin: http://localhost:14001
+        accept: application/json, text/javascript, */*; q=0.01
+        sec-gpc: 1
+        host: localhost:14001
+        x-requested-with: XMLHttpRequest
+        content-type: application/json;charset=UTF-8
+        connection: keep-alive
+        accept-encoding: gzip, deflate
+        user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0
+        sec-fetch-dest: empty
+        cookie: adminer_permanent=
+        cookie: adminer_sid=cba33b006bb3d08fa715a66a7b6d6e2a
+        cookie: lang=it
+        cookie: adminer_key=ac496dda5d71d1e44b647984f2ab22d1
+        cookie: adminer_version=4.8.1
+        cookie: sid=10145085b69a6931d4a5a7b562515a0e
+--> Message content
+{"maxRecords":500,"page":0,"whereFields":{}}
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117123.      >> RR   readLogs                        RECEIVED        MSG_ID:0
+                                                Value:
+                                                ├─── maxRecords:int = 500
+                                                ├─── whereFields
+                                                ├─── page:int = 0
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117124.      >> RR   readLogs                        RECEIVED-zorro-threadOperation: ??  MSG_ID:0
+                                                Value:
+                                                ├─── maxRecords:int = 500
+                                                ├─── whereFields
+                                                ├─── page:int = 0
+                                                ╰─── sid:string = "10145085b69a6931d4a5a7b562515a0e"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132125.      >> CSR  readLogs@Logger                 SENDING MSG_ID:257
+                                                Value:
+                                                ├─── maxRecords:int = 500
+                                                ├─── whereFields
+                                                ╰─── page:int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132126.      >> CSR  readLogs@Logger                 SENT    MSG_ID:257
+                                                Value:
+                                                ├─── maxRecords:int = 500
+                                                ├─── whereFields
+                                                ╰─── page:int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15151227.      >> RR   readLogs                        RECEIVED    MSG_ID:257
+                                                Value:
+                                                ├─── maxRecords:int = 500
+                                                ├─── whereFields
+                                                ╰─── page:int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15151228.      >> RR   readLogs                        RECEIVED-zorro-threadOperation: ??  MSG_ID:257
+                                                Value:
+                                                ├─── maxRecords:int = 500
+                                                ├─── whereFields
+                                                ╰─── page:int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15241229.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT COUNT(*) AS record_count FROM log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15251230.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT id,domain_id,serv_id,op_id,
+                                cast ( extract( epoch from evt_ts ) * 1000 as bigint ) as evt_ts,
+                                cast ( extract( epoch from evtarr_ts ) * 1000 as bigint ) as evtarr_ts,
+                                evt_type,evt_id,message,ip,scope_id,cell_id,serial_event_id,process_id,message_id,pri,memory FROM log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15271231.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15281232.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15291233.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15301234.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17011235.      :: ASSIGNMENT   ASSIGN                  nulValue::string = " LIMIT :max_records OFFSET :starting_record"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17031236.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 500
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17081237.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17181238.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT COUNT(*) AS record_count FROM log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17191239.      << SR   query@Database                  SENDING     MSG_ID:258
+                                                Value::string = "SELECT COUNT(*) AS record_count FROM log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17191240.      << SR   query@Database                  SENMSG_ID:258
+                                                Value::string = "SELECT COUNT(*) AS record_count FROM log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17191241.      << SR   query@Database                  RECEIVED    MSG_ID:258
+                                                Value:
+                                                ╰─── row
+                                                        ╰─── record_count:long = 4
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17361242.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "SELECT id,domain_id,serv_id,op_id,
+                                cast ( extract( epoch from evt_ts ) * 1000 as bigint ) as evt_ts,
+                                cast ( extract( epoch from evtarr_ts ) * 1000 as bigint ) as evtarr_ts,
+                                evt_type,evt_id,message,ip,scope_id,cell_id,serial_event_id,process_id,message_id,pri,memory FROM log ORDER BY evt_ts DESC, serial_event_id DESC  LIMIT :max_records OFFSET :starting_record"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17371243.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 500
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17391244.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17421245.      << SR   query@Database                  SENDING     MSG_ID:259
+                                                Value::string = "SELECT id,domain_id,serv_id,op_id,
+                                cast ( extract( epoch from evt_ts ) * 1000 as bigint ) as evt_ts,
+                                cast ( extract( epoch from evtarr_ts ) * 1000 as bigint ) as evtarr_ts,
+                                evt_type,evt_id,message,ip,scope_id,cell_id,serial_event_id,process_id,message_id,pri,memory FROM log ORDER BY evt_ts DESC, serial_event_id DESC  LIMIT :max_records OFFSET :starting_record"
+                                                ├─── starting_record:int = 0
+                                                ╰─── max_records:int = 500
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17421246.      << SR   query@Database                  SENMSG_ID:259
+                                                Value::string = "SELECT id,domain_id,serv_id,op_id,
+                                cast ( extract( epoch from evt_ts ) * 1000 as bigint ) as evt_ts,
+                                cast ( extract( epoch from evtarr_ts ) * 1000 as bigint ) as evtarr_ts,
+                                evt_type,evt_id,message,ip,scope_id,cell_id,serial_event_id,process_id,message_id,pri,memory FROM log ORDER BY evt_ts DESC, serial_event_id DESC  LIMIT :max_records OFFSET :starting_record"
+                                                ├─── starting_record:int = 0
+                                                ╰─── max_records:int = 500
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17421247.      << SR   query@Database                  RECEIVED    MSG_ID:259
+                                                Value:
+                                                ├─── row[0]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 10197968
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = "echo"
+                                                        ├─── message_id:string = "0"
+                                                        ├─── message:string = ""
+                                                        ├─── evt_type:string = "SUCCESS"
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582321
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "OperationEnded"
+                                                        ├─── id:int = 1110862
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ├─── row[1]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 9149392
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = ""
+                                                        ├─── message_id:string = ""
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = ""
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582319
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "ProtocolMessage-http"
+                                                        ├─── id:int = 1110860
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ├─── row[2]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 7050192
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = "echo"
+                                                        ├─── message_id:string = "0"
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = "REQUEST"
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582311
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "OperationStarted"
+                                                        ├─── id:int = 1110861
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ╰─── row[3]
+                                                        ├─── process_id:string = "16481135657622"
+                                                        ├─── memory:long = 25309880
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = ""
+                                                        ├─── message_id:string = ""
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = ""
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582287
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "ProtocolMessage-http"
+                                                        ├─── id:int = 1110859
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:17431248.      :: ASSIGNMENT   ASSIGN                  nulValue::long = 4
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:132127.      >> CSR  readLogs@Logger                 RECEIVED        MSG_ID:257
+                                                Value:
+                                                ├─── maxRecords:int = 500
+                                                ├─── whereFields
+                                                ╰─── page:int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:15151249.      >> RR   readLogs                        SENMSG_ID:257
+                                                Value:
+                                                ├─── totRecords:long = 4
+                                                ├─── row[0]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 10197968
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = "echo"
+                                                        ├─── message_id:string = "0"
+                                                        ├─── message:string = ""
+                                                        ├─── evt_type:string = "SUCCESS"
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582321
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "OperationEnded"
+                                                        ├─── id:int = 1110862
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ├─── row[1]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 9149392
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = ""
+                                                        ├─── message_id:string = ""
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = ""
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582319
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "ProtocolMessage-http"
+                                                        ├─── id:int = 1110860
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ├─── row[2]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 7050192
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = "echo"
+                                                        ├─── message_id:string = "0"
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = "REQUEST"
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582311
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "OperationStarted"
+                                                        ├─── id:int = 1110861
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ╰─── row[3]
+                                                        ├─── process_id:string = "16481135657622"
+                                                        ├─── memory:long = 25309880
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = ""
+                                                        ├─── message_id:string = ""
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = ""
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582287
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "ProtocolMessage-http"
+                                                        ├─── id:int = 1110859
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+
+[leonardo.ol]   128.    HTTP    HTTP COMPRESSING MESSAGE                        /{"totRecords":4,"row":[{"process_id":"16481135657623","memory":10197968,"pri":"NORMAL","serv_id":"echo","ip":"localhost","serial_event_id":0,"op_id":"echo","message_id":"0","message":"","evt_type":"SUCCESS","domain_id":"HTTP","evt_ts":1648113582321,"scope_id":"main","evt_id":"OperationEnded","id":1110862,"cell_id":0,"evtarr_ts":1648113585965},{"process_id":"16481135657623","memory":9149392,"pri":"NORMAL","serv_id":"echo","ip":"localhost","serial_event_id":0,"op_id":"","message_id":"","message":"null","evt_type":"","domain_id":"HTTP","evt_ts":1648113582319,"scope_id":"main","evt_id":"ProtocolMessage-http","id":1110860,"cell_id":0,"evtarr_ts":1648113585965},{"process_id":"16481135657623","memory":7050192,"pri":"NORMAL","serv_id":"echo","ip":"localhost","serial_event_id":0,"op_id":"echo","message_id":"0","message":"null","evt_type":"REQUEST","domain_id":"HTTP","evt_ts":1648113582311,"scope_id":"main","evt_id":"OperationStarted","id":1110861,"cell_id":0,"evtarr_ts":1648113585965},{"process_id":"16481135657622","memory":25309880,"pri":"NORMAL","serv_id":"echo","ip":"localhost","serial_event_id":0,"op_id":"","message_id":"","message":"null","evt_type":"","domain_id":"HTTP","evt_ts":1648113582287,"scope_id":"main","evt_id":"ProtocolMessage-http","id":1110859,"cell_id":0,"evtarr_ts":1648113585965}]}
+[leonardo.ol]   129.    HTTP    HTTP MESSAGE SENT                       /[HTTP debug] Sending:
+HTTP/1.1 200 OK
+Server: Jolie
+Connection: close
+X-Jolie-MessageID: 0
+X-Jolie-ServicePath: /
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 346
+
+ՒQK�0��K�+$��6}�Q����nO"����ސ����ޭ-��r�$7�@<��V�ʖ���8x#�ӁXJ��*IJX4I
+                                                                           E$∇$ ����I�(���������=Z�v]V�-�PY<(^t��'��o�ޞ�|=�fy�b uQ5]�n�Z\}���'r��+���O���<ϭv���ɚR���Qe��$�Qژ��)��_/d$��P��Md(�����k^���
+
+������摿                                                     ��-xP`f�[7[�m�$�S
+^[[?1;0c/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/leonardo.ol:117130.      >> RR   readLogs                        SENT    MSG_ID:0
+                                                Value:
+                                                ├─── totRecords:long = 4
+                                                ├─── row[0]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 10197968
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = "echo"
+                                                        ├─── message_id:string = "0"
+                                                        ├─── message:string = ""
+                                                        ├─── evt_type:string = "SUCCESS"
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582321
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "OperationEnded"
+                                                        ├─── id:int = 1110862
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ├─── row[1]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 9149392
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = ""
+                                                        ├─── message_id:string = ""
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = ""
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582319
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "ProtocolMessage-http"
+                                                        ├─── id:int = 1110860
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ├─── row[2]
+                                                        ├─── process_id:string = "16481135657623"
+                                                        ├─── memory:long = 7050192
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = "echo"
+                                                        ├─── message_id:string = "0"
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = "REQUEST"
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582311
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "OperationStarted"
+                                                        ├─── id:int = 1110861
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+                                                ╰─── row[3]
+                                                        ├─── process_id:string = "16481135657622"
+                                                        ├─── memory:long = 25309880
+                                                        ├─── pri:string = "NORMAL"
+                                                        ├─── serv_id:string = "echo"
+                                                        ├─── ip:string = "localhost"
+                                                        ├─── serial_event_id:long = 0
+                                                        ├─── op_id:string = ""
+                                                        ├─── message_id:string = ""
+                                                        ├─── message:string = "null"
+                                                        ├─── evt_type:string = ""
+                                                        ├─── domain_id:string = "HTTP"
+                                                        ├─── evt_ts:long = 1648113582287
+                                                        ├─── scope_id:string = "main"
+                                                        ├─── evt_id:string = "ProtocolMessage-http"
+                                                        ├─── id:int = 1110859
+                                                        ├─── cell_id:long = 0
+                                                        ╰─── evtarr_ts:long = 1648113585965
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501250.      << SR   sleep@Time                      RECEIVED    MSG_ID:256
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771251.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:260
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771252.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:260
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771253.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:260
+                                                Value::long = 1648113593996
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211254.       << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:261
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211255.       << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:261
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211256.       << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:261
+                                                Value::long = 1648113593998
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2221257.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2231258.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/curlog.tmp"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241259.       << SR   rename@File                     SENDING     MSG_ID:262
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241260.       << SR   rename@File                     SENMSG_ID:262
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241261.       << SR   rename@File                     RECEIVED    MSG_ID:262
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251262.       << SR   writeFile@File                  SENDING     MSG_ID:263
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251263.       << SR   writeFile@File                  SENMSG_ID:263
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251264.       << SR   writeFile@File                  RECEIVED    MSG_ID:263
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2271265.       :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841266.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851267.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871268.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881269.      << SR   list@File                       SENDING     MSG_ID:264
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881270.      << SR   list@File                       SENMSG_ID:264
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881271.      << SR   list@File                       RECEIVED    MSG_ID:264
+                                                Value:
+                                                ╰─── result:string = "1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921272.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921273.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11931274.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051275.      << SR   readFile@File                   SENDING     MSG_ID:265
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051276.      << SR   readFile@File                   SENMSG_ID:265
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051277.      << SR   readFile@File                   RECEIVED    MSG_ID:265
+                                                Value::string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12441278.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12451279.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461280.      << SR   delete@File                     SENDING     MSG_ID:266
+                                                Value::string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461281.      << SR   delete@File                     SENMSG_ID:266
+                                                Value::string = "./logs/1648113593998.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461282.      << SR   delete@File                     RECEIVED    MSG_ID:266
+                                                Value::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771283.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:267
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771284.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:267
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771285.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:267
+                                                Value::long = 1648113594005
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841286.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851287.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871288.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881289.      << SR   list@File                       SENDING     MSG_ID:268
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881290.      << SR   list@File                       SENMSG_ID:268
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881291.      << SR   list@File                       RECEIVED    MSG_ID:268
+                                                Value:
+                                                ╰─── result (empty array)
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501292.      << SR   sleep@Time                      SENDING     MSG_ID:269
+                                                Value::int = 4000
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501293.      << SR   sleep@Time                      SENMSG_ID:269
+                                                Value::int = 4000
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501294.      << SR   sleep@Time                      RECEIVED    MSG_ID:269
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771295.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:270
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771296.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:270
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771297.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:270
+                                                Value::long = 1648113598011
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211298.       << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:271
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211299.       << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:271
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211300.       << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:271
+                                                Value::long = 1648113598012
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2221301.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2231302.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/curlog.tmp"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241303.       << SR   rename@File                     SENDING     MSG_ID:272
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241304.       << SR   rename@File                     SENMSG_ID:272
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241305.       << SR   rename@File                     RECEIVED    MSG_ID:272
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251306.       << SR   writeFile@File                  SENDING     MSG_ID:273
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251307.       << SR   writeFile@File                  SENMSG_ID:273
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251308.       << SR   writeFile@File                  RECEIVED    MSG_ID:273
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2271309.       :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841310.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851311.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871312.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881313.      << SR   list@File                       SENDING     MSG_ID:274
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881314.      << SR   list@File                       SENMSG_ID:274
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881315.      << SR   list@File                       RECEIVED    MSG_ID:274
+                                                Value:
+                                                ╰─── result:string = "1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921316.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921317.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11931318.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051319.      << SR   readFile@File                   SENDING     MSG_ID:275
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051320.      << SR   readFile@File                   SENMSG_ID:275
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051321.      << SR   readFile@File                   RECEIVED    MSG_ID:275
+                                                Value::string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12441322.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12451323.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461324.      << SR   delete@File                     SENDING     MSG_ID:276
+                                                Value::string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461325.      << SR   delete@File                     SENMSG_ID:276
+                                                Value::string = "./logs/1648113598012.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461326.      << SR   delete@File                     RECEIVED    MSG_ID:276
+                                                Value::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771327.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:277
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771328.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:277
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771329.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:277
+                                                Value::long = 1648113598019
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841330.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851331.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871332.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881333.      << SR   list@File                       SENDING     MSG_ID:278
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881334.      << SR   list@File                       SENMSG_ID:278
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881335.      << SR   list@File                       RECEIVED    MSG_ID:278
+                                                Value:
+                                                ╰─── result (empty array)
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501336.      << SR   sleep@Time                      SENDING     MSG_ID:279
+                                                Value::int = 4000
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501337.      << SR   sleep@Time                      SENMSG_ID:279
+                                                Value::int = 4000
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501338.      << SR   sleep@Time                      RECEIVED    MSG_ID:279
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771339.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:280
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771340.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:280
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771341.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:280
+                                                Value::long = 1648113602032
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211342.       << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:281
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211343.       << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:281
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2211344.       << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:281
+                                                Value::long = 1648113602033
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2221345.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2231346.       :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/curlog.tmp"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241347.       << SR   rename@File                     SENDING     MSG_ID:282
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241348.       << SR   rename@File                     SENMSG_ID:282
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── to:string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2241349.       << SR   rename@File                     RECEIVED    MSG_ID:282
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251350.       << SR   writeFile@File                  SENDING     MSG_ID:283
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251351.       << SR   writeFile@File                  SENMSG_ID:283
+                                                Value:
+                                                ├─── filename:string = "./logs/curlog.tmp"
+                                                ╰─── content:string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2251352.       << SR   writeFile@File                  RECEIVED    MSG_ID:283
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:2271353.       :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841354.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851355.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871356.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881357.      << SR   list@File                       SENDING     MSG_ID:284
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881358.      << SR   list@File                       SENMSG_ID:284
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881359.      << SR   list@File                       RECEIVED    MSG_ID:284
+                                                Value:
+                                                ╰─── result:string = "1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921360.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11921361.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11931362.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051363.      << SR   readFile@File                   SENDING     MSG_ID:285
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051364.      << SR   readFile@File                   SENMSG_ID:285
+                                                Value:
+                                                ╰─── filename:string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12051365.      << SR   readFile@File                   RECEIVED    MSG_ID:285
+                                                Value::string = ""
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12441366.      :: ASSIGNMENT   ASSIGN                  nulValue::int = 0
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12451367.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461368.      << SR   delete@File                     SENDING     MSG_ID:286
+                                                Value::string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461369.      << SR   delete@File                     SENMSG_ID:286
+                                                Value::string = "./logs/1648113602033.log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12461370.      << SR   delete@File                     RECEIVED    MSG_ID:286
+                                                Value::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771371.      << SR   getCurrentTimeMillis@Time          SENDING  MSG_ID:287
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771372.      << SR   getCurrentTimeMillis@Time          SENT     MSG_ID:287
+                                                Value:
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11771373.      << SR   getCurrentTimeMillis@Time          RECEIVED MSG_ID:287
+                                                Value::long = 1648113602039
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11841374.      :: ASSIGNMENT   ASSIGN                  nulValue::bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11851375.      :: ASSIGNMENT   ASSIGN                  nulValue::string = ".*log"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11871376.      :: ASSIGNMENT   ASSIGN                  nulValue::string = "./logs/"
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881377.      << SR   list@File                       SENDING     MSG_ID:288
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881378.      << SR   list@File                       SENMSG_ID:288
+                                                Value:
+                                                ├─── regex:string = ".*log"
+                                                ├─── directory:string = "./logs/"
+                                                ╰─── order
+                                                        ╰─── byname:bool = true
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:11881379.      << SR   list@File                       RECEIVED    MSG_ID:288
+                                                Value:
+                                                ╰─── result (empty array)
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501380.      << SR   sleep@Time                      SENDING     MSG_ID:289
+                                                Value::int = 4000
+
+/mnt/d/JUNG/jung.cloud_node/deployer/MONITOR/JMONMONITOR/1.0.1/./__logger/main_logger.ol:12501381.      << SR   sleep@Time                      SENMSG_ID:289
+                                                Value::int = 4000

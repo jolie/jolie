@@ -30,6 +30,7 @@ import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.monitoring.events.OperationEndedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
+import jolie.monitoring.events.ProtocolMessageEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.CommMessageFromProtocol;
@@ -100,18 +101,26 @@ public class RequestResponseProcess implements InputOperationProcess {
 	}
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
+
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
+			String threadId = ExecutionThread.currentThread().getSessionId();
+
+			ProtocolMessageEvent protocolMessageEvent = sessionMessage.message().getMessageEvent();
+			if( protocolMessageEvent != null ) {
+				protocolMessageEvent.setProcessId( threadId );
+				Interpreter.getInstance().fireMonitorEvent( protocolMessageEvent );
+			}
+
 			Interpreter.getInstance().fireMonitorEvent(
-				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
+				new OperationStartedEvent( operation.id(),
+					threadId,
 					Long.toString( sessionMessage.message().getMessage().id() ),
 					sessionMessage.message().getMessage().value() ) );
 		}
 
-		if( Interpreter.getInstance().isMonitoring() ) {
-			Interpreter.getInstance().fireMonitorEvent( sessionMessage.message().getMessageEvent() );
-		}
 
 		log( "RECEIVED", sessionMessage.message().getMessage() );
+
 		if( inputVarPath != null ) {
 			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().getMessage().value() );
 		}

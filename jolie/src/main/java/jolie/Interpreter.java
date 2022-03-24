@@ -64,6 +64,7 @@ import jolie.lang.parse.module.SymbolTable;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
+import jolie.monitoring.events.ProtocolMessageEvent;
 import jolie.monitoring.events.SessionEndedEvent;
 import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
@@ -1313,14 +1314,22 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.getMessage().operationName(), spawnedSession.getSessionId(),
-				message.getMessage().id(), message.getMessage().value() );
+			logSessionStart( message, spawnedSession.getSessionId() );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
 					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
+					if( isMonitoring() ) {
+						// fire a ProtocolEvent if present
+
+						ProtocolMessageEvent protocolMessageEvent = message.getMessageEvent();
+						if( protocolMessageEvent != null ) {
+							protocolMessageEvent.setProcessId( session.getSessionId() );
+							Interpreter.getInstance().fireMonitorEvent( protocolMessageEvent );
+						}
+					}
 					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 			} );
@@ -1360,6 +1369,15 @@ public class Interpreter {
 							}
 						}
 					}
+					if( isMonitoring() ) {
+						// fire a ProtocolEvent if present
+
+						ProtocolMessageEvent protocolMessageEvent = message.getMessageEvent();
+						if( protocolMessageEvent != null ) {
+							protocolMessageEvent.setProcessId( session.getSessionId() );
+							Interpreter.getInstance().fireMonitorEvent( protocolMessageEvent );
+						}
+					}
 					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 			} );
@@ -1375,11 +1393,20 @@ public class Interpreter {
 		return true;
 	}
 
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message ) {
+	private void logSessionStart( CommMessageFromProtocol message, String sessionId ) {
 		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new SessionStartedEvent( message.getMessage().operationName(), sessionId ) );
+
+			// fire a ProtocolEvent if present
+			ProtocolMessageEvent protocolMessageEvent = message.getMessageEvent();
+			if( protocolMessageEvent != null ) {
+				protocolMessageEvent.setProcessId( sessionId );
+				Interpreter.getInstance().fireMonitorEvent( protocolMessageEvent );
+			}
+
 			fireMonitorEvent(
-				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
+				new OperationStartedEvent( message.getMessage().operationName(), sessionId,
+					Long.toString( message.getMessage().id() ), message.getMessage().value() ) );
 		}
 	}
 
