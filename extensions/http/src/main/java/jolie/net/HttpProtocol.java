@@ -19,7 +19,6 @@
 
 package jolie.net;
 
-
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
@@ -52,7 +51,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 /**
  * HTTP protocol implementation
@@ -179,7 +177,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String INCOMING_HEADERS = "inHeaders";
 		private static final String STATUS_CODES = "statusCodes";
 
-
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
 		}
@@ -263,9 +260,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			for( Entry< String, ValueVector > entry : cookieParam.children().entrySet() ) {
 				cookieConfig = entry.getValue().first();
 				if( message.value().hasChildren( cookieConfig.strValue() ) ) {
-					domain =
-						cookieConfig.hasChildren( "domain" ) ? cookieConfig.getFirstChild( "domain" ).strValue()
-							: "";
+					domain = cookieConfig.hasChildren( "domain" ) ? cookieConfig.getFirstChild( "domain" ).strValue()
+						: "";
 					if( domain.isEmpty() || hostname.endsWith( domain ) ) {
 						cookieSB
 							.append( entry.getKey() )
@@ -334,8 +330,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Value copyValue = Value.create();
 		copyValue.deepCopy( value );
 		List< String > headersKeys = new ArrayList<>();
-		Value outboundHeaders =
-			getOperationSpecificParameterFirstValue( message.operationName(), Parameters.OUTGOING_HEADERS );
+		Value outboundHeaders = getOperationSpecificParameterFirstValue( message.operationName(),
+			Parameters.OUTGOING_HEADERS );
 		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
 			headersKeys.add( headerValues.get( 0 ).strValue() );
 		} );
@@ -370,15 +366,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		copyValue.deepCopy( message.value() );
 		List< String > headersKeys = new ArrayList<>();
 
-
-		Value outboundHeaders =
-			getOperationSpecificParameterFirstValue( message.operationName(), Parameters.OUTGOING_HEADERS );
+		Value outboundHeaders = getOperationSpecificParameterFirstValue( message.operationName(),
+			Parameters.OUTGOING_HEADERS );
 
 		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
 			headersKeys.add( headerName );
 		} );
 		headersKeys.forEach( copyValue.children()::remove );
-
 
 		if( copyValue.isDefined() || copyValue.hasChildren() ) {
 			headerBuilder.append( "?" );
@@ -404,8 +398,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				if( "$".equals( currKey ) ) {
 					currStrValue = URLEncoder.encode( value.strValue(), HttpUtils.URL_DECODER_ENC );
 				} else {
-					currStrValue =
-						URLEncoder.encode( value.getFirstChild( currKey ).strValue(), HttpUtils.URL_DECODER_ENC );
+					currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(),
+						HttpUtils.URL_DECODER_ENC );
 					aliasKeys.add( currKey );
 				}
 			} else { // ! is given after %: We have to insert the string raw
@@ -545,8 +539,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			ret.content = new ByteArray( bStream.toByteArray() );
 		} else if( "x-www-form-urlencoded".equals( format ) ) {
 			ret.contentType = "application/x-www-form-urlencoded";
-			Iterator< Entry< String, ValueVector > > it =
-				message.value().children().entrySet().iterator();
+			Iterator< Entry< String, ValueVector > > it = message.value().children().entrySet().iterator();
 			StringBuilder builder = new StringBuilder();
 			if( message.isFault() ) {
 				builder.append( "faultName=" )
@@ -614,8 +607,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void send_appendResponseUserHeader( CommMessage message, StringBuilder headerBuilder ) {
 		Value responseHeaderParameters = null;
 		if( hasOperationSpecificParameter( message.operationName(), Parameters.RESPONSE_USER ) ) {
-			responseHeaderParameters =
-				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.RESPONSE_USER );
+			responseHeaderParameters = getOperationSpecificParameterFirstValue( message.operationName(),
+				Parameters.RESPONSE_USER );
 			if( (responseHeaderParameters != null)
 				&& (responseHeaderParameters.hasChildren( Parameters.HEADER_USER )) ) {
 				for( Entry< String, ValueVector > entry : responseHeaderParameters
@@ -652,8 +645,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if( message.isFault()
 			&& hasOperationSpecificParameter( message.operationName(), Parameters.STATUS_CODES ) ) {
-			Value exceptionsValue =
-				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.STATUS_CODES );
+			Value exceptionsValue = getOperationSpecificParameterFirstValue( message.operationName(),
+				Parameters.STATUS_CODES );
 			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
 				statusCode = exceptionsValue.getFirstChild( message.fault().faultName() ).intValue();
 			}
@@ -741,7 +734,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headerBuilder.append( message.operationName() );
 		}
 
-
 		if( method == Method.GET ) {
 			if( qsFormat.equals( "json" ) ) {
 				send_appendJsonQueryString( message, headerBuilder );
@@ -779,9 +771,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			Value v = message.value()
 				.getFirstChild( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() );
 			// String realm = v.getFirstChild( "realm" ).strValue();
-			String userpass =
-				v.getFirstChild( "userid" ).strValue() + ":" +
-					v.getFirstChild( "password" ).strValue();
+			String userpass = v.getFirstChild( "userid" ).strValue() + ":" +
+				v.getFirstChild( "password" ).strValue();
 			Base64.Encoder encoder = Base64.getEncoder();
 			userpass = encoder.encodeToString( userpass.getBytes() );
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
@@ -793,8 +784,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void send_appendRequestUserHeader( CommMessage message, StringBuilder headerBuilder ) {
 		Value responseHeaderParameters = null;
 		if( hasOperationSpecificParameter( message.operationName(), Parameters.REQUEST_USER ) ) {
-			responseHeaderParameters =
-				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.RESPONSE_USER );
+			responseHeaderParameters = getOperationSpecificParameterFirstValue( message.operationName(),
+				Parameters.RESPONSE_USER );
 			if( (responseHeaderParameters != null)
 				&& (responseHeaderParameters.hasChildren( Parameters.HEADER_USER )) ) {
 				for( Entry< String, ValueVector > entry : responseHeaderParameters
@@ -885,7 +876,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				getOperationSpecificParameterFirstValue( message.operationName(), Parameters.OUTGOING_HEADERS ),
 				headerBuilder );
 		}
-
 
 	}
 
@@ -1124,9 +1114,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					cookieConfig = cookies.getFirstChild( cookie.name() );
 					if( cookieConfig.isString() ) {
 						v = value.getFirstChild( cookieConfig.strValue() );
-						type =
-							cookieConfig.hasChildren( "type" ) ? cookieConfig.getFirstChild( "type" ).strValue()
-								: "string";
+						type = cookieConfig.hasChildren( "type" ) ? cookieConfig.getFirstChild( "type" ).strValue()
+							: "string";
 						recv_assignCookieValue( cookie.value(), v, type );
 					}
 				}
@@ -1205,9 +1194,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Value headers = null;
 
 		if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.INCOMING_HEADERS ) ) {
-			headers =
-				getOperationSpecificParameterFirstValue( decodedMessage.operationName,
-					Parameters.INCOMING_HEADERS );
+			headers = getOperationSpecificParameterFirstValue( decodedMessage.operationName,
+				Parameters.INCOMING_HEADERS );
 		} else if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.HEADERS ) ) {
 			headers = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERS );
 		} else if( hasParameter( Parameters.HEADERS ) ) {
@@ -1357,8 +1345,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( decodedMessage.operationName == null ) {
 			final String requestPath = message.requestPath().split( "\\?", 2 )[ 0 ].substring( 1 );
 			if( requestPath.startsWith( LocationParser.RESOURCE_SEPARATOR ) ) {
-				final String compositePath =
-					requestPath.substring( LocationParser.RESOURCE_SEPARATOR.length() - 1 );
+				final String compositePath = requestPath.substring( LocationParser.RESOURCE_SEPARATOR.length() - 1 );
 				final Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( compositePath );
 				if( m.find() ) {
 					decodedMessage.resourcePath = compositePath.substring( 0, m.start() );
@@ -1381,8 +1368,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			return;
 
 		Value configurationValue = getParameterFirstValue( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION );
-		Iterator< Entry< String, ValueVector > > configurationIterator =
-			configurationValue.children().entrySet().iterator();
+		Iterator< Entry< String, ValueVector > > configurationIterator = configurationValue.children().entrySet()
+			.iterator();
 		boolean foundMatch = false;
 		while( configurationIterator.hasNext() & !foundMatch ) {
 			Entry< String, ValueVector > configEntry = configurationIterator.next();
@@ -1394,8 +1381,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				? message.requestPath().substring( 1 )
 				: message.requestPath();
 			if( opConfig.hasChildren( Parameters.TEMPLATE ) ) {
-				uriTemplateResult =
-					UriUtils.match( opConfig.getFirstChild( Parameters.TEMPLATE ).strValue(), uri );
+				uriTemplateResult = UriUtils.match( opConfig.getFirstChild( Parameters.TEMPLATE ).strValue(), uri );
 			}
 			String opConfigMethod = opConfig.getFirstChild( Parameters.METHOD ).strValue();
 
@@ -1405,40 +1391,49 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				decodedMessage.resourcePath = "/";
 
 				String messagePath = "/".concat( configEntry.getKey() );
-				String paramString = "";
+				StringBuilder paramStringBuilder = new StringBuilder();
 
-				Iterator< Entry< String, ValueVector > > uriTemplateIterator =
-					uriTemplateResult.children().entrySet().iterator();
+				Iterator< Entry< String, ValueVector > > uriTemplateIterator = uriTemplateResult.children().entrySet()
+					.iterator();
 
 				while( uriTemplateIterator.hasNext() ) {
 					Entry< String, ValueVector > entry = uriTemplateIterator.next();
-					paramString += (paramString.isEmpty() ? "?" : "&")
-						.concat( entry.getKey() ).concat( "=" )
-						.concat( entry.getValue().get( 0 ).strValue() );
+					if( paramStringBuilder.length() == 0 ) {
+						paramStringBuilder.append( "?" );
+
+					} else {
+						paramStringBuilder.append( "&" );
+					}
+
+					paramStringBuilder.append( entry.getKey() )
+						.append( "=" )
+						.append( entry.getValue().get( 0 ).strValue() );
 				}
 				if( opConfig.hasChildren( Parameters.INCOMING_HEADERS ) ) {
 
-					Iterator< Entry< String, ValueVector > > inHeadersIterator =
-						opConfig.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
+					Iterator< Entry< String, ValueVector > > inHeadersIterator = opConfig
+						.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
 					while( inHeadersIterator.hasNext() ) {
 						Entry< String, ValueVector > entry = inHeadersIterator.next();
-						if( paramString.isEmpty() ) {
-							paramString += "?".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
-								.concat( message.getProperty( entry.getKey() ) );
+						if( paramStringBuilder.length() == 0 ) {
+							paramStringBuilder.append( "?" ).append( entry.getValue().get( 0 ).strValue() )
+								.append( "=" )
+								.append( message.getProperty( entry.getKey() ) );
 						} else {
-							paramString += "&".concat( entry.getValue().get( 0 ).strValue() ).concat( "=" )
-								.concat( message.getProperty( entry.getKey() ) );
+							paramStringBuilder.append( "&" )
+								.append( entry.getValue().get( 0 ).strValue() )
+								.append( "=" )
+								.append( message.getProperty( entry.getKey() ) );
 						}
 
 					}
 				}
 
-				messagePath += paramString;
+				messagePath += paramStringBuilder.toString();
 				message.setRequestPath( messagePath );
 			}
 		}
 	}
-
 
 	private void recv_checkDefaultOp( HttpMessage message, DecodedMessage decodedMessage ) {
 		if( decodedMessage.resourcePath.equals( "/" )
@@ -1614,9 +1609,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					.setValue( message.statusCode() );
 			}
 			recv_checkForSetCookie( message, decodedMessage.value );
-			retVal =
-				new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value,
-					faultException );
+			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value,
+				faultException );
 		} else if( message.isError() == false ) {
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath,
@@ -1626,16 +1620,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
 			&& (channel().parentPort().getInterface().containsOperation( retVal.operationName() )
 				|| (channel().parentInputPort() != null
-					&& channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null)) ) {
+					&& channel().parentInputPort()
+						.getAggregatedOperation( retVal.operationName() ) != null)) ) {
 			try {
 				// The message is for this service
 				boolean hasInput = false;
 				OneWayTypeDescription oneWayTypeDescription = null;
 				if( channel().parentInputPort() != null ) {
 					if( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-						oneWayTypeDescription =
-							channel().parentInputPort().getAggregatedOperation( retVal.operationName() )
-								.getOperationTypeDescription().asOneWayTypeDescription();
+						oneWayTypeDescription = channel().parentInputPort()
+							.getAggregatedOperation( retVal.operationName() )
+							.getOperationTypeDescription().asOneWayTypeDescription();
 						hasInput = true;
 					}
 				}
@@ -1652,9 +1647,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					RequestResponseTypeDescription rrTypeDescription = null;
 					if( channel().parentInputPort() != null ) {
 						if( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-							rrTypeDescription =
-								channel().parentInputPort().getAggregatedOperation( retVal.operationName() )
-									.getOperationTypeDescription().asRequestResponseTypeDescription();
+							rrTypeDescription = channel().parentInputPort()
+								.getAggregatedOperation( retVal.operationName() )
+								.getOperationTypeDescription().asRequestResponseTypeDescription();
 							hasInput = true;
 						}
 					}
@@ -1688,8 +1683,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private FaultException recv_mapHttpStatusCodeFault( HttpMessage message, Value httpStatusValue,
 		Value decodedMessageValue ) {
 		FaultException faultException = null;
-		Iterator< Entry< String, ValueVector > > statusCodeIterator =
-			httpStatusValue.children().entrySet().iterator();
+		Iterator< Entry< String, ValueVector > > statusCodeIterator = httpStatusValue.children().entrySet().iterator();
 		while( statusCodeIterator.hasNext() && faultException == null ) {
 			Entry< String, ValueVector > entry = statusCodeIterator.next();
 			int configuredStatusCode = entry.getValue().get( 0 ).intValue();
@@ -1720,9 +1714,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			throw new IOException( "Could not retrieve communication port for HTTP protocol" );
 		}
 
-		OperationTypeDescription opDesc =
-			channel().parentPort().getOperationTypeDescription( message.operationName(),
-				Constants.ROOT_RESOURCE_PATH );
+		OperationTypeDescription opDesc = channel().parentPort().getOperationTypeDescription( message.operationName(),
+			Constants.ROOT_RESOURCE_PATH );
 
 		if( opDesc == null ) {
 			return null;
