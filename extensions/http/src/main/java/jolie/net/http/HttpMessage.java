@@ -24,7 +24,6 @@ package jolie.net.http;
 import java.util.*;
 import java.util.Map.Entry;
 
-
 public class HttpMessage {
 	public enum Type {
 		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, PATCH, UNSUPPORTED, ERROR
@@ -39,12 +38,12 @@ public class HttpMessage {
 		private final boolean secure;
 
 		public Cookie(
-			String name,
-			String value,
-			String domain,
-			String path,
-			String expirationDate,
-			boolean secure ) {
+				String name,
+				String value,
+				String domain,
+				String path,
+				String expirationDate,
+				boolean secure) {
 			this.name = name;
 			this.value = value;
 			this.domain = domain;
@@ -56,10 +55,10 @@ public class HttpMessage {
 		@Override
 		public String toString() {
 			return (name + "=" + value + "; " +
-				"expires=" + expirationDate + "; " +
-				"domain=" + domain + "; " +
-				"path=" + path +
-				((secure) ? ("; secure") : ""));
+					"expires=" + expirationDate + "; " +
+					"domain=" + domain + "; " +
+					"path=" + path +
+					((secure) ? ("; secure") : ""));
 		}
 
 		public String name() {
@@ -90,10 +89,10 @@ public class HttpMessage {
 	private Version version;
 	private final Type type;
 	private byte[] content = null;
-	final private Map< String, String > propMap = new HashMap<>();
-	final private List< Cookie > setCookies = new ArrayList<>();
+	final private Map<String, String> propMap = new HashMap<>();
+	final private List<Cookie> setCookies = new ArrayList<>();
 
-	final private Map< String, String > cookies = new HashMap<>();
+	final private Map<String, String> cookies = new HashMap<>();
 
 	private int statusCode;
 	private String requestPath;
@@ -116,28 +115,28 @@ public class HttpMessage {
 		return type == Type.DELETE;
 	}
 
-	public void addCookie( String name, String value ) {
-		cookies.put( name, value );
+	public void addCookie(String name, String value) {
+		cookies.put(name, value);
 	}
 
-	public Map< String, String > cookies() {
+	public Map<String, String> cookies() {
 		return cookies;
 	}
 
-	public void addSetCookie( Cookie cookie ) {
-		setCookies.add( cookie );
+	public void addSetCookie(Cookie cookie) {
+		setCookies.add(cookie);
 	}
 
-	@SuppressWarnings( "PMD" )
-	public List< Cookie > setCookies() {
+	@SuppressWarnings("PMD")
+	public List<Cookie> setCookies() {
 		return setCookies;
 	}
 
-	public HttpMessage( Type type ) {
+	public HttpMessage(Type type) {
 		this.type = type;
 	}
 
-	protected void setVersion( Version version ) {
+	protected void setVersion(Version version) {
 		this.version = version;
 	}
 
@@ -145,32 +144,32 @@ public class HttpMessage {
 		return version;
 	}
 
-	public void setContent( byte[] content ) {
+	public void setContent(byte[] content) {
 		this.content = content;
 	}
 
-	public Collection< Entry< String, String > > properties() {
+	public Collection<Entry<String, String>> properties() {
 		return propMap.entrySet();
 	}
 
-	public void setRequestPath( String path ) {
+	public void setRequestPath(String path) {
 		requestPath = path;
 	}
 
-	public void setUserAgent( String userAgent ) {
+	public void setUserAgent(String userAgent) {
 		this.userAgent = userAgent;
 	}
 
-	public void setProperty( String name, String value ) {
-		propMap.put( name.toLowerCase(), value );
+	public void setProperty(String name, String value) {
+		propMap.put(name.toLowerCase(), value);
 	}
 
-	public String getProperty( String name ) {
-		return propMap.get( name.toLowerCase() );
+	public String getProperty(String name) {
+		return propMap.get(name.toLowerCase());
 	}
 
-	public String getPropertyOrEmptyString( String name ) {
-		String ret = propMap.get( name.toLowerCase() );
+	public String getPropertyOrEmptyString(String name) {
+		String ret = propMap.get(name.toLowerCase());
 		return (ret == null) ? "" : ret;
 	}
 
@@ -178,12 +177,12 @@ public class HttpMessage {
 		return reason;
 	}
 
-	public void setReason( String reason ) {
+	public void setReason(String reason) {
 		this.reason = reason;
 	}
 
 	public int size() {
-		if( content == null )
+		if (content == null)
 			return 0;
 		return content.length;
 	}
@@ -212,23 +211,21 @@ public class HttpMessage {
 		return statusCode;
 	}
 
-	public void setStatusCode( int code ) {
+	public void setStatusCode(int code) {
 		statusCode = code;
 	}
 
 	public String getMethod() {
 		String method = "";
-		if( type == Type.GET ||
-			type == Type.POST ||
-			type == Type.DELETE ||
-			type == type.PUT ||
-			type == type.PATCH ) {
+		if (type == Type.GET ||
+				type == Type.POST ||
+				type == Type.DELETE ||
+				type == Type.PUT ||
+				type == Type.PATCH) {
 			method = type.name();
 		}
 		return method;
 	}
-
-
 
 	public byte[] content() {
 		return content;
