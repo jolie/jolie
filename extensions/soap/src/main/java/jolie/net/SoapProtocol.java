@@ -1213,6 +1213,17 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		// set protocolEvent only if monitoring is enabled
 		ProtocolMessageEvent protocolEvent = null;
 
+		if( Interpreter.getInstance().isMonitoring() ) {
+			final StringBuilder headerMonitor = new StringBuilder();
+
+			headerMonitor.append( getHeadersFromHttpMessage( message ) ).append( "\n" );
+			protocolEvent = new ProtocolMessageEvent(
+				new String( message.content(), charset ),
+				headerMonitor.toString(),
+				ExecutionThread.currentThread().getSessionId(),
+				ProtocolMessageEvent.Protocol.SOAP );
+		}
+
 		try {
 			if( message.size() > 0 ) {
 				if( checkBooleanParameter( "debug" ) ) {
@@ -1319,19 +1330,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 			} );
 
-
-			if( Interpreter.getInstance().isMonitoring() ) {
-				final StringBuilder headerMonitor = new StringBuilder();
-
-				headerMonitor.append( getHeadersFromHttpMessage( message ) ).append( "\n" );
-				protocolEvent = new ProtocolMessageEvent(
-					new String( message.content(), charset ),
-					headerMonitor.toString(),
-					ExecutionThread.currentThread().getSessionId(),
-					ProtocolMessageEvent.Protocol.SOAP );
-			}
-
 		} catch( SOAPException | ParserConfigurationException e ) {
+			// log the soap message
+			if( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance().fireMonitorEvent( protocolEvent );
+			}
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			// TODO support resourcePath
