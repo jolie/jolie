@@ -1420,166 +1420,177 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		// set protocolEvent only if monitoring is enabled
 		ProtocolMessageEvent protocolEvent = null;
 
-		if( Interpreter.getInstance().isMonitoring() ) {
-			protocolEvent = new ProtocolMessageEvent(
-				getHttpBody( message, charset ),
-				getHttpHeader( message ),
-				ExecutionThread.currentThread().getSessionId(),
-				ProtocolMessageEvent.Protocol.HTTP );
-		}
-
-		if( checkBooleanParameter( Parameters.DEBUG ) ) {
-			boolean showContent = false;
-			if( getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
-				&& message.size() > 0 ) {
-				showContent = true;
-			}
-			Interpreter.getInstance().logInfo( getDebugMessage( message, charset, showContent ) );
-		}
-
-		// tracer
-		Interpreter.getInstance().tracer().trace( () -> {
-			try {
-				final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
-				return new ProtocolTraceAction( ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED",
-					message.requestPath(), traceMessage, null );
-			} catch( IOException e ) {
-				return new ProtocolTraceAction( ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED",
-					message.requestPath(), e.getMessage(), null );
-
+		try {
+			if( Interpreter.getInstance().isMonitoring() ) {
+				protocolEvent = new ProtocolMessageEvent(
+					getHttpBody( message, charset ),
+					getHttpHeader( message ),
+					ExecutionThread.currentThread().getSessionId(),
+					ProtocolMessageEvent.Protocol.HTTP );
 			}
 
-		} );
-
-		recv_checkForStatusCode( message );
-
-		encoding = message.getProperty( "accept-encoding" );
-		headRequest = inInputPort && message.isHead();
-
-		String contentType = DEFAULT_CONTENT_TYPE;
-		if( message.getProperty( "content-type" ) != null ) {
-			contentType = message.getProperty( "content-type" ).split( ";", 2 )[ 0 ].toLowerCase();
-		}
-
-		// URI parameter parsing
-		if( message.requestPath() != null ) {
-			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
-			recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
-		}
-
-		recv_parseRequestFormat( contentType );
-		if( !message.isResponse() ) {
-			recv_checkReceivingOperation( message, decodedMessage );
-		}
-
-		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
-		if( !message.isGet() && !message.isHead() ) {
-			// body parsing
-			if( message.size() > 0 ) {
-				recv_parseMessage( message, decodedMessage, contentType, charset );
+			if( checkBooleanParameter( Parameters.DEBUG ) ) {
+				boolean showContent = false;
+				if( getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
+					&& message.size() > 0 ) {
+					showContent = true;
+				}
+				Interpreter.getInstance().logInfo( getDebugMessage( message, charset, showContent ) );
 			}
-		}
 
-		if( !message.isResponse() ) {
-			recv_checkDefaultOp( message, decodedMessage );
-		}
-
-		if( checkBooleanParameter( Parameters.CONCURRENT ) ) {
-			String messageId = message.getProperty( Headers.JOLIE_MESSAGE_ID );
-			if( messageId != null ) {
+			// tracer
+			Interpreter.getInstance().tracer().trace( () -> {
 				try {
-					decodedMessage.id = Long.parseLong( messageId );
-				} catch( NumberFormatException e ) {
-				}
-			}
-		}
+					final String traceMessage = getDebugMessage( message, charset, message.size() > 0 );
+					return new ProtocolTraceAction( ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED",
+						message.requestPath(), traceMessage, null );
+				} catch( IOException e ) {
+					return new ProtocolTraceAction( ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED",
+						message.requestPath(), e.getMessage(), null );
 
-		if( message.isResponse() ) {
-			String responseHeader = "";
-			if( hasParameter( Parameters.RESPONSE_HEADER )
-				|| hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
-				if( hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
-					responseHeader = getOperationSpecificStringParameter( inputId, Parameters.RESPONSE_HEADER );
-				} else {
-					responseHeader = getStringParameter( Parameters.RESPONSE_HEADER );
 				}
-				for( Entry< String, String > param : message.properties() ) {
-					decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( param.getKey() )
-						.setValue( param.getValue() );
-				}
-				decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( Parameters.STATUS_CODE )
-					.setValue( message.statusCode() );
+
+			} );
+
+			recv_checkForStatusCode( message );
+
+			encoding = message.getProperty( "accept-encoding" );
+			headRequest = inInputPort && message.isHead();
+
+			String contentType = DEFAULT_CONTENT_TYPE;
+			if( message.getProperty( "content-type" ) != null ) {
+				contentType = message.getProperty( "content-type" ).split( ";", 2 )[ 0 ].toLowerCase();
 			}
 
-			recv_checkForSetCookie( message, decodedMessage.value );
-			retVal =
-				new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
-		} else if( message.isError() == false ) {
-			recv_checkForMessageProperties( message, decodedMessage );
-			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath,
-				decodedMessage.value, null );
-		}
+			// URI parameter parsing
+			if( message.requestPath() != null ) {
+				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
+				recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
+			}
 
-		if( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
-			&& (channel().parentPort().getInterface().containsOperation( retVal.operationName() )
-				|| (channel().parentInputPort() != null
-					&& channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null)) ) {
-			try {
-				// The message is for this service
-				boolean hasInput = false;
-				OneWayTypeDescription oneWayTypeDescription = null;
-				if( channel().parentInputPort() != null ) {
-					if( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-						oneWayTypeDescription =
-							channel().parentInputPort().getAggregatedOperation( retVal.operationName() )
-								.getOperationTypeDescription().asOneWayTypeDescription();
-						hasInput = true;
+			recv_parseRequestFormat( contentType );
+
+			if( !message.isResponse() ) {
+				recv_checkReceivingOperation( message, decodedMessage );
+			}
+
+			/* https://tools.ietf.org/html/rfc7231#section-4.3 */
+			if( !message.isGet() && !message.isHead() ) {
+				// body parsing
+				if( message.size() > 0 ) {
+					recv_parseMessage( message, decodedMessage, contentType, charset );
+				}
+			}
+
+			if( !message.isResponse() ) {
+				recv_checkDefaultOp( message, decodedMessage );
+			}
+
+			if( checkBooleanParameter( Parameters.CONCURRENT ) ) {
+				String messageId = message.getProperty( Headers.JOLIE_MESSAGE_ID );
+				if( messageId != null ) {
+					try {
+						decodedMessage.id = Long.parseLong( messageId );
+					} catch( NumberFormatException e ) {
 					}
 				}
-				if( !hasInput ) {
-					Interface iface = channel().parentPort().getInterface();
-					oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
+			}
+
+			if( message.isResponse() ) {
+				String responseHeader = "";
+				if( hasParameter( Parameters.RESPONSE_HEADER )
+					|| hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
+					if( hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
+						responseHeader = getOperationSpecificStringParameter( inputId, Parameters.RESPONSE_HEADER );
+					} else {
+						responseHeader = getStringParameter( Parameters.RESPONSE_HEADER );
+					}
+					for( Entry< String, String > param : message.properties() ) {
+						decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( param.getKey() )
+							.setValue( param.getValue() );
+					}
+					decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( Parameters.STATUS_CODE )
+						.setValue( message.statusCode() );
 				}
 
-				if( oneWayTypeDescription != null ) {
-					// We are receiving a One-Way message
-					oneWayTypeDescription.requestType().cast( retVal.value() );
-				} else {
-					hasInput = false;
-					RequestResponseTypeDescription rrTypeDescription = null;
+				recv_checkForSetCookie( message, decodedMessage.value );
+				retVal =
+					new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value,
+						null );
+			} else if( message.isError() == false ) {
+				recv_checkForMessageProperties( message, decodedMessage );
+				retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath,
+					decodedMessage.value, null );
+			}
+
+			if( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
+				&& (channel().parentPort().getInterface().containsOperation( retVal.operationName() )
+					|| (channel().parentInputPort() != null
+						&& channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null)) ) {
+				try {
+					// The message is for this service
+					boolean hasInput = false;
+					OneWayTypeDescription oneWayTypeDescription = null;
 					if( channel().parentInputPort() != null ) {
 						if( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-							rrTypeDescription =
+							oneWayTypeDescription =
 								channel().parentInputPort().getAggregatedOperation( retVal.operationName() )
-									.getOperationTypeDescription().asRequestResponseTypeDescription();
+									.getOperationTypeDescription().asOneWayTypeDescription();
 							hasInput = true;
 						}
 					}
-
 					if( !hasInput ) {
 						Interface iface = channel().parentPort().getInterface();
-						rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
+						oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
 					}
 
-					if( retVal.isFault() ) {
-						Type faultType = rrTypeDescription.faults().get( retVal.fault().faultName() );
-						if( faultType != null ) {
-							faultType.cast( retVal.value() );
-						}
+					if( oneWayTypeDescription != null ) {
+						// We are receiving a One-Way message
+						oneWayTypeDescription.requestType().cast( retVal.value() );
 					} else {
-						if( message.isResponse() ) {
-							rrTypeDescription.responseType().cast( retVal.value() );
+						hasInput = false;
+						RequestResponseTypeDescription rrTypeDescription = null;
+						if( channel().parentInputPort() != null ) {
+							if( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
+								rrTypeDescription =
+									channel().parentInputPort().getAggregatedOperation( retVal.operationName() )
+										.getOperationTypeDescription().asRequestResponseTypeDescription();
+								hasInput = true;
+							}
+						}
+
+						if( !hasInput ) {
+							Interface iface = channel().parentPort().getInterface();
+							rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
+						}
+
+						if( retVal.isFault() ) {
+							Type faultType = rrTypeDescription.faults().get( retVal.fault().faultName() );
+							if( faultType != null ) {
+								faultType.cast( retVal.value() );
+							}
 						} else {
-							rrTypeDescription.requestType().cast( retVal.value() );
+							if( message.isResponse() ) {
+								rrTypeDescription.responseType().cast( retVal.value() );
+							} else {
+								rrTypeDescription.requestType().cast( retVal.value() );
+							}
 						}
 					}
+				} catch( TypeCastingException e ) {
+					// TODO: do something here?
 				}
-			} catch( TypeCastingException e ) {
-				// TODO: do something here?
 			}
-		}
 
-		return new CommMessageFromProtocol( retVal, protocolEvent );
+			return new CommMessageFromProtocol( retVal, protocolEvent );
+		} catch( IOException e ) {
+			// if the monitor is active we must log the received http request
+			// and continue to propagate the exception
+			if( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance().fireMonitorEvent( protocolEvent );
+			}
+			throw e;
+		}
 	}
 
 	@Override
