@@ -1378,6 +1378,7 @@ public class Interpreter {
 							Interpreter.getInstance().fireMonitorEvent( protocolMessageEvent );
 						}
 					}
+
 					logSessionEnd( message.getMessage().operationName(), session.getSessionId() );
 				}
 			} );
