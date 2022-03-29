@@ -89,7 +89,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		boolean isLsp = checkStringParameter( Parameters.TRANSPORT, LSP );
 
 		if( !isLsp ) {
-			if( !message.isFault() && message.hasGenericId() && inInputPort ) {
+			if( !message.isFault() && message.hasGenericRequestId() && inInputPort ) {
 				// JSON-RPC notification mechanism (method call with dropped result)
 				// we just send HTTP status code 204
 				StringBuilder httpMessage = new StringBuilder();
@@ -106,7 +106,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		 * If we are in LSP mode, we do not want to send ACKs to the client.
 		 */
 		if( isLsp ) {
-			if( message.hasGenericId() && message.value().getChildren( "result" ).isEmpty() ) {
+			if( message.hasGenericRequestId() && message.value().getChildren( "result" ).isEmpty() ) {
 				return;
 			}
 		}
@@ -139,8 +139,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			new Range( 0, 1 ), false, null ) );
 
 		if( message.isFault() ) {
-			String jsonRpcId = jsonRpcIdMap.get( message.id() );
-			value.setFirstChild( "id", jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
+			String jsonRpcId = jsonRpcIdMap.get( message.requestId() );
+			value.setFirstChild( "id", jsonRpcId != null ? jsonRpcId : Long.toString( message.requestId() ) );
 			Value error = value.getFirstChild( "error" );
 			error.getFirstChild( "code" ).setValue( -32000 );
 			error.getFirstChild( "message" ).setValue( message.fault().faultName() );
@@ -154,8 +154,9 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			// boolean check = isLsp ? isRR : true;
 			if( inInputPort && (isRR || !isLsp) ) {
 				value.getChildren( "result" ).set( 0, message.value() );
-				String jsonRpcId = jsonRpcIdMap.get( message.id() );
-				value.getFirstChild( "id" ).setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.id() ) );
+				String jsonRpcId = jsonRpcIdMap.get( message.requestId() );
+				value.getFirstChild( "id" )
+					.setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.requestId() ) );
 
 				if( channelInterface.requestResponseOperations().containsKey( originalOpName ) ) {
 					operationType = channelInterface.requestResponseOperations().get( originalOpName ).responseType();
@@ -167,7 +168,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				operationType = operationType.getMinimalType( message.value() ).orElse( Type.UNDEFINED );
 				subTypes.put( "result", operationType );
 			} else {
-				jsonRpcOpMap.put( Long.toString( message.id() ), operationNameAliased );
+				jsonRpcOpMap.put( Long.toString( message.requestId() ), operationNameAliased );
 				value.getFirstChild( "method" ).setValue( operationNameAliased );
 
 				if( isRR ) {
@@ -193,8 +194,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					subTypes.put( "params", operationType );
 				}
 
-				if( !message.hasGenericId() && !isLsp ) {
-					value.getFirstChild( "id" ).setValue( message.id() );
+				if( !message.hasGenericRequestId() && !isLsp ) {
+					value.getFirstChild( "id" ).setValue( message.requestId() );
 				}
 			}
 		}
@@ -370,7 +371,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					throw new IOException(
 						"A JSON-RPC notification (message without \"id\") needs to be a request, not a response!" );
 				}
-				return new CommMessage( CommMessage.GENERIC_ID, operation,
+				return new CommMessage( CommMessage.GENERIC_REQUEST_ID, operation,
 					"/", value.getFirstChild( "params" ), null );
 			}
 			String jsonRpcId = value.getFirstChild( "id" ).strValue();

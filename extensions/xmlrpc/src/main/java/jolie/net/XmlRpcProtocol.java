@@ -500,11 +500,11 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			if( message.isResponse() ) {
 				// fault = new FaultException( "InternalServerError", "" );
 				// TODO support resourcePath
-				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, inputId, "/", value, fault );
 			} else if( !message.isError() ) {
 				// TODO support resourcePath
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
-				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, opname, "/", value, fault );
 
 			}
 		}
