@@ -52,13 +52,13 @@ import jolie.runtime.Value;
 public class CommMessage implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private static final AtomicLong MESSAGE_ID_COUNTER = new AtomicLong( 1L );
+	private static final AtomicLong REQUEST_ID_COUNTER = new AtomicLong( 1L );
 
 	public static final long GENERIC_REQUEST_ID = 0L;
 	public static final CommMessage UNDEFINED_MESSAGE =
 		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
 
-  private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
+	private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
 
 	private final long requestId;
 	private final String operationName;
@@ -100,13 +100,13 @@ public class CommMessage implements Serializable {
 		return requestId;
 	}
 
-	public static long getNewMessageId() {
+	public static long getNewRequestId() {
 		int cellId = 0;
 		final Interpreter interpreter = Interpreter.getInstance();
 		if( interpreter != null ) {
 			cellId = interpreter.configuration().cellId();
 		}
-		return (((long) cellId) << 32) | (MESSAGE_ID_COUNTER.getAndIncrement() & 0xffffffffL);
+		return (((long) cellId) << 32) | (REQUEST_ID_COUNTER.getAndIncrement() & 0xffffffffL);
 	}
 
 	/**
@@ -118,7 +118,7 @@ public class CommMessage implements Serializable {
 	 * @return a request message as per specified by the parameters
 	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value ) {
-		return new CommMessage( getNewMessageId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
+		return new CommMessage( getNewRequestId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
 	}
 
 	/**
@@ -170,7 +170,7 @@ public class CommMessage implements Serializable {
 		this.resourcePath = resourcePath;
 		this.value = value;
 		this.fault = fault;
-		id = ID_COUNTER.getAndIncrement();
+		this.id = ID_COUNTER.getAndIncrement();
 	}
 
 	/**
