@@ -847,7 +847,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headerBuilder.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
 		if( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
-			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() )
+			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.requestId() )
 				.append( HttpUtils.CRLF );
 		}
 
@@ -1358,7 +1358,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private String operationName = null;
 		private Value value = Value.create();
 		private String resourcePath = "/";
-		private long id = CommMessage.GENERIC_ID;
+		private long id = CommMessage.GENERIC_REQUEST_ID;
 	}
 
 	private void recv_checkForStatusCode( HttpMessage message ) {

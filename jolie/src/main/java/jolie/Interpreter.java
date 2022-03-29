@@ -1312,7 +1312,7 @@ public class Interpreter {
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), message.value() );
+				message.requestId(), message.value() );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
 					logSessionEnd( message.operationName(), session.getSessionId() );

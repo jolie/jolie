@@ -748,7 +748,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					// before.
 					messageIdElement.setValue( "uuid:1" );
 				} else {
-					messageIdElement.setValue( "uuid:" + message.id() );
+					messageIdElement.setValue( "uuid:" + message.requestId() );
 				}
 				// Action element
 				Name actionName =
@@ -1280,12 +1280,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				if( fault != null && message.statusCode() == 500 ) {
 					fault = new FaultException( "InternalServerError", "" );
 				}
-				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, inputId, resourcePath, value, fault );
 			} else if( !message.isError() ) {
 				if( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
-				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, messageId, resourcePath, value, fault );
 			}
 
 			final String mId = messageId;
@@ -1306,7 +1306,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			// TODO support resourcePath
-			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value,
+			retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, messageId, "/", value,
 				new FaultException( "TypeMismatch", e ) );
 		}
 

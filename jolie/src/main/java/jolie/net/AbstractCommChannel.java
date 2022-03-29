@@ -60,12 +60,12 @@ public abstract class AbstractCommChannel extends CommChannel {
 			CommMessage response;
 			ResponseContainer monitor = null;
 			synchronized( responseRecvMutex ) {
-				response = pendingResponses.remove( request.id() );
+				response = pendingResponses.remove( request.requestId() );
 				if( response == null ) {
 					if( pendingGenericResponses.isEmpty() ) {
-						assert (waiters.containsKey( request.id() ) == false);
+						assert (waiters.containsKey( request.requestId() ) == false);
 						monitor = new ResponseContainer();
-						waiters.put( request.id(), monitor );
+						waiters.put( request.requestId(), monitor );
 						// responseRecvMutex.notify();
 					} else {
 						response = pendingGenericResponses.remove( 0 );
@@ -175,8 +175,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 
 		private void handleMessage( CommMessage response ) {
 			ResponseContainer monitor;
-			if( (monitor = parent.waiters.remove( response.id() )) == null ) {
-				parent.pendingResponses.put( response.id(), response );
+			if( (monitor = parent.waiters.remove( response.requestId() )) == null ) {
+				parent.pendingResponses.put( response.requestId(), response );
 			} else {
 				synchronized( monitor ) {
 					monitor.response = response;
@@ -218,7 +218,7 @@ public abstract class AbstractCommChannel extends CommChannel {
 					try {
 						response = parent.recv();
 						if( response != null ) {
-							if( response.hasGenericId() ) {
+							if( response.hasGenericRequestId() ) {
 								handleGenericMessage( response );
 							} else {
 								handleMessage( response );
