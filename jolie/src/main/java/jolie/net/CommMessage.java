@@ -58,11 +58,14 @@ public class CommMessage implements Serializable {
 	public static final CommMessage UNDEFINED_MESSAGE =
 		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
 
+	private static final AtomicLong ID_COUNTER = new AtomicLong();
+		
 	private final long requestId;
 	private final String operationName;
 	private final String resourcePath;
 	private final Value value;
 	private final FaultException fault;
+	private final long id;
 
 	/**
 	 * Returns the resource path of this message.
@@ -167,6 +170,16 @@ public class CommMessage implements Serializable {
 		this.resourcePath = resourcePath;
 		this.value = value;
 		this.fault = fault;
+		id = ID_COUNTER.getAndIncrement();
+	}
+
+	/**
+	 * return the id associated with the message
+	 * 
+	 * @return id associeted with the CommMessage
+ 	 */
+	  public long getId () {
+		return id;
 	}
 
 	/**
