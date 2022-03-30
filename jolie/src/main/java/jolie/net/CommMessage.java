@@ -55,10 +55,11 @@ public class CommMessage implements Serializable {
 	private static final AtomicLong REQUEST_ID_COUNTER = new AtomicLong( 1L );
 
 	public static final long GENERIC_REQUEST_ID = 0L;
-	public static final CommMessage UNDEFINED_MESSAGE =
-		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
 
 	private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
+
+	public static final CommMessage UNDEFINED_MESSAGE =
+		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
 
 	private final long requestId;
 	private final String operationName;
