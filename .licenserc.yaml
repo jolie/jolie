@@ -3,8 +3,10 @@ header:
     spdx-id: LGPL-2.0-or-later
 
   paths-ignore:
+    - '.gitignore'
     - 'lib/xsom'
     - 'dist'
+    - '**/.idea'
     - 'licenses'
     - '**/*.md'
     - 'LICENSE'
