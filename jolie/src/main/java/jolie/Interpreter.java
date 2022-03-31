@@ -1335,6 +1335,10 @@ public class Interpreter {
 			spawnedSession = new SessionThread(
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
+
+			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
+				message.requestId(), message.value() );
+
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
