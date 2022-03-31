@@ -127,7 +127,6 @@ import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.ProtocolTraceAction;
 
 import jolie.monitoring.events.ProtocolMessageEvent;
-import jolie.ExecutionThread;
 
 /**
  * Implements the SOAP over HTTP protocol.
@@ -700,6 +699,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 		final StringBuilder httpMessage = new StringBuilder();
 		ByteArray content = null;
+		String bodyMessage = "???"; // body message for ProtocolMessageEvent
 
 		try {
 			inputId = message.operationName();
@@ -1016,6 +1016,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			ByteArray plainTextContent = content;
+			bodyMessage = plainTextContent.toString();
+
 			if( encoding != null && checkBooleanParameter( "compression", true ) ) {
 				content = HttpUtils.encode( encoding, content, httpMessage );
 			}
@@ -1046,15 +1048,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
-
-			if( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent(
-					new ProtocolMessageEvent(
-						plainTextContent.toString( "utf-8" ),
-						httpMessage.toString(),
-						ExecutionThread.currentThread().getSessionId(),
-						ProtocolMessageEvent.Protocol.SOAP ) );
-			}
 
 
 			inputId = message.operationName();
@@ -1090,6 +1083,16 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			} else {
 				throw new IOException( e );
 			}
+		}
+
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					bodyMessage,
+					httpMessage.toString(),
+					"",
+					Long.toString( message.getId() ),
+					ProtocolMessageEvent.Protocol.SOAP ) );
 		}
 
 		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
@@ -1325,7 +1328,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					new ProtocolMessageEvent(
 						new String( message.content(), charset ),
 						headerMonitor.toString(),
-						ExecutionThread.currentThread().getSessionId(),
+						"",
+						Long.toString( retVal.getId() ),
 						ProtocolMessageEvent.Protocol.SOAP ) );
 			}
 
