@@ -1311,15 +1311,16 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.requestId(), message.value() );
+
+			logSessionStart( message, spawnedSession.getSessionId() );
+
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 			} );
 			spawnedSession.start();
@@ -1336,8 +1337,7 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.requestId(), message.value() );
+			logSessionStart( message, spawnedSession.getSessionId() );
 
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
@@ -1350,7 +1350,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
@@ -1362,7 +1362,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 			} );
 			synchronized( waitingSessionThreads ) {
@@ -1377,17 +1377,20 @@ public class Interpreter {
 		return true;
 	}
 
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message ) {
+	private void logSessionStart( CommMessage commMessage, String sessionId ) {
 		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new SessionStartedEvent( commMessage.operationName(), sessionId,
+				Long.toString( commMessage.getId() ) ) );
 			fireMonitorEvent(
-				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
+				new OperationStartedEvent( commMessage.operationName(), sessionId,
+					Long.toString( commMessage.requestId() ), commMessage.value() ) );
 		}
 	}
 
-	private void logSessionEnd( String operationName, String sessionId ) {
+	private void logSessionEnd( CommMessage commMessage, String sessionId ) {
 		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
+			fireMonitorEvent(
+				new SessionEndedEvent( commMessage.operationName(), sessionId, Long.toString( commMessage.getId() ) ) );
 		}
 	}
 
