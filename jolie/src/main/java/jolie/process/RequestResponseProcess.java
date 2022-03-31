@@ -253,7 +253,8 @@ public class RequestResponseProcess implements InputOperationProcess {
 			if( Interpreter.getInstance().isMonitoring() ) {
 				Interpreter.getInstance().fireMonitorEvent(
 					new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-						Long.toString( response.requestId() ), responseStatus, details, monitorValue ) );
+						Long.toString( response.requestId() ), responseStatus, details, monitorValue,
+						Long.toString( response.getId() ) ) );
 			}
 		} catch( IOException e ) {
 			// Interpreter.getInstance().logSevere( e );
