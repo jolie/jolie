@@ -20,7 +20,8 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	}
 
 	public static enum FieldNames {
-		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" ), BODY( "body" ), PROCESSID( "processId" );
+		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" ), BODY( "body" ), PROCESSID( "processId" ), RAWID(
+			"rawId" );
 
 		private String fieldName;
 
@@ -51,7 +52,11 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 			.strValue();
 	}
 
-	public ProtocolMessageEvent( String body, String header, String processId,
+	public static String rawId( Value value ) {
+		return value.getFirstChild( FieldNames.RAWID.getName() ).strValue();
+	}
+
+	public ProtocolMessageEvent( String body, String header, String processId, String rawId,
 		ProtocolMessageEvent.Protocol protocol ) {
 		super( "ProtocolMessage-".concat( protocol.getProtocol() ), Value.create() );
 
@@ -63,5 +68,7 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 			.setValue( header );
 		data().getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.BODY.getName() )
 			.setValue( body );
+
+		data().getFirstChild( FieldNames.RAWID.getName() ).setValue( rawId );
 	}
 }
