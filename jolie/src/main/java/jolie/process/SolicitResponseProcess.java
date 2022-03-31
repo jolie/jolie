@@ -123,7 +123,8 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
 								Long.toString( message.requestId() ), OperationCallEvent.FAULT,
-								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value(),
+								Long.toString( message.getId() ) ) );
 					}
 
 					throw (e);
@@ -138,7 +139,8 @@ public class SolicitResponseProcess implements Process {
 				Interpreter.getInstance()
 					.fireMonitorEvent( new OperationCallEvent( operationId,
 						ExecutionThread.currentThread().getSessionId(), Long.toString( message.requestId() ),
-						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value(),
+						Long.toString( message.getId() ) ) );
 			}
 
 			CommMessage response = null;
