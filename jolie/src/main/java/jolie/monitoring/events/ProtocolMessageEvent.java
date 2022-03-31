@@ -21,8 +21,7 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 
 	public static enum FieldNames {
 		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" ), BODY( "body" ), PROCESSID(
-			"processId" ), RAWID(
-				"rawId" );
+			"processId" ), RAWID( "rawId" );
 
 		private String fieldName;
 
