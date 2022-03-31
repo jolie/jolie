@@ -61,6 +61,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
@@ -979,7 +980,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				new ProtocolMessageEvent(
 					bodyMessageString,
 					headerBuilder.toString(),
-					"",
+					ExecutionThread.currentThread().getSessionId(),
 					Long.toString( message.getId() ),
 					ProtocolMessageEvent.Protocol.HTTP ) );
 		}

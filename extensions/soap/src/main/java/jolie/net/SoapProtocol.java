@@ -105,6 +105,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.http.HttpMessage;
@@ -1090,7 +1091,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				new ProtocolMessageEvent(
 					bodyMessage,
 					httpMessage.toString(),
-					"",
+					ExecutionThread.currentThread().getSessionId(),
 					Long.toString( message.getId() ),
 					ProtocolMessageEvent.Protocol.SOAP ) );
 		}
