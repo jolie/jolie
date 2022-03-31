@@ -30,7 +30,8 @@ import jolie.runtime.Value;
  */
 public class OperationStartedEvent extends MonitoringEvent {
 
-	public OperationStartedEvent( String operationName, String processId, String messageId, Value message, String rawId ) {
+	public OperationStartedEvent( String operationName, String processId, String messageId, Value message,
+		String rawId ) {
 
 		super( "OperationStarted", Value.create() );
 
