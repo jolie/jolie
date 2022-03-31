@@ -1383,7 +1383,8 @@ public class Interpreter {
 				Long.toString( commMessage.getId() ) ) );
 			fireMonitorEvent(
 				new OperationStartedEvent( commMessage.operationName(), sessionId,
-					Long.toString( commMessage.requestId() ), commMessage.value() ) );
+					Long.toString( commMessage.requestId() ), commMessage.value(),
+					Long.toString( commMessage.getId() ) ) );
 		}
 	}
 

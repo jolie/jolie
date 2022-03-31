@@ -102,7 +102,8 @@ public class RequestResponseProcess implements InputOperationProcess {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent(
 				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
-					Long.toString( sessionMessage.message().requestId() ), sessionMessage.message().value() ) );
+					Long.toString( sessionMessage.message().requestId() ), sessionMessage.message().value(),
+					Long.toString( sessionMessage.message().getId() ) ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
