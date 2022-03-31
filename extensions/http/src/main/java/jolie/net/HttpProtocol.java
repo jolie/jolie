@@ -86,7 +86,6 @@ import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
 
 import jolie.monitoring.events.ProtocolMessageEvent;
-import jolie.ExecutionThread;
 
 /**
  * HTTP protocol implementation
@@ -965,6 +964,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			send_appendRequestUserHeader( message, headerBuilder );
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
 		}
+
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		if( contentType != null ) {
 			encodedContent.contentType = contentType;
@@ -973,6 +973,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		// message's body in string format needed for the monitoring
 		String bodyMessageString =
 			encodedContent != null && encodedContent.content != null ? encodedContent.content.toString( charset ) : "";
+
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					bodyMessageString,
+					headerBuilder.toString(),
+					"",
+					Long.toString( message.getId() ),
+					ProtocolMessageEvent.Protocol.HTTP ) );
+		}
 
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
@@ -997,16 +1007,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			ostream.write( encodedContent.content.getBytes() );
 		}
 		headRequest = false;
-
-		if( Interpreter.getInstance().isMonitoring() ) {
-			Interpreter.getInstance().fireMonitorEvent(
-				new ProtocolMessageEvent(
-					bodyMessageString,
-					headerBuilder.toString(),
-					ExecutionThread.currentThread().getSessionId(),
-					ProtocolMessageEvent.Protocol.HTTP ) );
-		}
-
 	}
 
 	@Override
@@ -1417,15 +1417,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-		if( Interpreter.getInstance().isMonitoring() ) {
-			Interpreter.getInstance().fireMonitorEvent(
-				new ProtocolMessageEvent(
-					getHttpBody( message, charset ),
-					getHttpHeader( message ),
-					ExecutionThread.currentThread().getSessionId(),
-					ProtocolMessageEvent.Protocol.HTTP ) );
-		}
-
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {
 			boolean showContent = false;
 			if( getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
@@ -1516,6 +1507,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath,
 				decodedMessage.value, null );
+		}
+
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					getHttpBody( message, charset ),
+					getHttpHeader( message ),
+					"",
+					Long.toString( retVal.getId() ),
+					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
 
 		if( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
