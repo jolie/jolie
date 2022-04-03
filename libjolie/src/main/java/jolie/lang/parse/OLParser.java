@@ -3083,7 +3083,7 @@ public class OLParser extends AbstractParser {
 		String outputPortId = token.content();
 		nextToken();
 		OLSyntaxNode outputExpression = parseOperationExpressionParameter();
-		OLSyntaxNode expr = new SolicitResponseExpressionNode(context, id, outputPortId, outputExpression);
+		OLSyntaxNode expr = new SolicitResponseExpressionNode( context, id, outputPortId, outputExpression );
 		
 		return expr;
 	}
@@ -3245,10 +3245,10 @@ public class OLParser extends AbstractParser {
 		case ID:
 			String id = token.content();
 			path = parseVariablePath();
-			if(token.type() == Scanner.TokenType.AT){
+			if( token.type() == Scanner.TokenType.AT){
 				nextToken();
-				return parseOutputExpressionNode(id);
-			}else{
+				return parseOutputExpressionNode( id );
+			} else {
 				VariablePathNode freshValuePath = new VariablePathNode(getContext(), Type.NORMAL);
 				freshValuePath.append(new Pair<>(new ConstantStringExpression(getContext(), "new"),
 						new ConstantIntegerExpression(getContext(), 0)));

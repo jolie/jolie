@@ -11,8 +11,11 @@ public class SolicitResponseExpressionNode extends OLSyntaxNode {
     private final String id, outputPortId;
     private final OLSyntaxNode outputExpression;
 
-    public SolicitResponseExpressionNode(ParsingContext context, String id, String outputPortId,
-        OLSyntaxNode outputExpression) {
+    public SolicitResponseExpressionNode(
+        ParsingContext context, 
+        String id, 
+        String outputPortId,
+        OLSyntaxNode outputExpression ) {
         super(context);
         this.id = id;
         this.outputPortId = outputPortId;
@@ -32,9 +35,8 @@ public class SolicitResponseExpressionNode extends OLSyntaxNode {
     }
 
     @Override
-    public <C, R> R accept(OLVisitor<C, R> v, C ctx) {
-        // TODO
-        return null;
+    public <C, R> R accept( OLVisitor<C, R> visitor, C ctx ) {
+        return visitor.visit( this, ctx );
     }
     
 }

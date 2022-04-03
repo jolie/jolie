@@ -96,6 +96,7 @@ import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
@@ -276,4 +277,6 @@ public interface OLVisitor< C, R > {
 	R visit( ServiceNode n, C ctx );
 
 	R visit( EmbedServiceNode n, C ctx );
+
+	R visit( SolicitResponseExpressionNode solicitResponseExpressionNode, C ctx );
 }
