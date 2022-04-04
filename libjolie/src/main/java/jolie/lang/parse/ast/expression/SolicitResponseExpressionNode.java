@@ -10,21 +10,21 @@ import jolie.lang.parse.context.ParsingContext;
 public class SolicitResponseExpressionNode extends OLSyntaxNode {
 	private final String id, outputPortId;
 	private final OLSyntaxNode outputExpression;
-	private final InstallFunctionNode handlersFunction;
+	//private final InstallFunctionNode handlersFunction;
 
 	//TODO handle if id is null
 	public SolicitResponseExpressionNode( ParsingContext context, String id, String outputPortId,
-		OLSyntaxNode outputExpression, Optional< InstallFunctionNode > handlersFunction ) {
+		OLSyntaxNode outputExpression ) {
 		super( context );
 		this.id = id;
 		this.outputPortId = outputPortId;
 		this.outputExpression = outputExpression;
-		this.handlersFunction = handlersFunction.orElse( null );
+		//this.handlersFunction = handlersFunction.orElse( null );
 	}
 
-	public InstallFunctionNode handlerFunction() {
+	/*public InstallFunctionNode handlerFunction() {
 		return handlersFunction;
-	}
+	}*/
 
 	public String id() {
 		return id;

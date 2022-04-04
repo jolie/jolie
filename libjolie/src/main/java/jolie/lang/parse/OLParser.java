@@ -3264,16 +3264,16 @@ public class OLParser extends AbstractParser {
 				nextToken();
 				String outputPortId = token.content();
 				OLSyntaxNode outputExpression = parseOperationExpressionParameter();
-				Optional<InstallFunctionNode> function = Optional.empty();
-				if(token.is((Scanner.TokenType.LSQUARE))) {
+				/*Optional<InstallFunctionNode> function = Optional.empty();
+				if(token.is((Scanner.TokenType.LSQUARE))) { // Probably not something we want to have
 					boolean newLine = hasMetNewline();
 					eat(Scanner.TokenType.LSQUARE, "Expected [");
 					function = parseInstallFunction(newLine);
 					if(function.isPresent()) {
 						eat(Scanner.TokenType.RSQUARE, "Exptected ]");
 					}
-				}
-				retVal = new SolicitResponseExpressionNode(getContext(), id, outputPortId, outputExpression, function);
+				}*/
+				retVal = new SolicitResponseExpressionNode(getContext(), id, outputPortId, outputExpression);
 				break;
 			case INCREMENT:
 				nextToken();
