@@ -21,17 +21,17 @@
 
 include "types/definition_types.iol"
 
-type ExternalDocs: void {
-    .url: string
-    .description?: string
+type ExternalDocs {
+    url: string
+    description?: string
 }
 
-type Item: void {
-    .type: string
-    .format?: string
-    .items*: Item
-    .maximum: int
-    .minimum: int
+type Item {
+    type: string
+    format?: string
+    items*: Item
+    maximum: int
+    minimum: int
     /* NOT USED FOR Jolie purpouses
     .collectionFormat
     .default
@@ -48,78 +48,77 @@ type Item: void {
   */
 }
 
-type OperationObject: void {
-    .tags*: string
-    .summary?: string
-    .description?: string
-    .externalDocs?: ExternalDocs
-    .operationId: string
-    .consumes*: string
-    .produces*: string
-    .parameters*: Parameter
-    .responses*: Responses
+type OperationObject {
+    tags*: string
+    summary?: string
+    description?: string
+    externalDocs?: ExternalDocs
+    operationId: string
+    consumes*: string
+    produces*: string
+    parameters*: Parameter
+    responses*: Responses
 }
 
-type InBody: void {
-    .schema_subType: SubType   // used when there are more parameters in the body
+type InBody  {
+    schema_subType: SubType   // used when there are more parameters in the body
 } | void {
-    .schema_type: Type         // used when there is one single parameter in the body
+    schema_type: Type         // used when there is one single parameter in the body
 } | void {
-    .schema_ref?: string       // add a reference to a schema
+    schema_ref?: string       // add a reference to a schema
 }
 
-type Parameter: void {
-    .name: string
-    .in: void {
-        .in_body?:InBody
-        .other?: string {               // "query", "header", "path", "formData"
-            .type: Type
-            .allowEmptyValue?: bool
+type Parameter {
+    name: string
+    in: void {
+        in_body?:InBody
+        other?: string {               // "query", "header", "path", "formData"
+            type: Type
+            allowEmptyValue?: bool
         }
     }
-    .required?: bool
-    .description?: string
+    required?: bool
+    description?: string
 }
 
-type Responses: void {
-    .status: int 
-    .schema?: Type
-    .description: string
+type Responses {
+    status: int 
+    schema?: Type
+    description: string
 }
 
-
-type GetOpenApiDefinitionRequest: void {
-    .info: void {
-        .title: string
-        .description?: string
-        .termsOfService?: string
-        .contact?: void {
-            .name?: string
-            .url?: string
-            .email?: string
+type GetOpenApiDefinitionRequest {
+    info: void {
+        title: string
+        description?: string
+        termsOfService?: string
+        contact?: void {
+            name?: string
+            url?: string
+            email?: string
         }
-        .license?: void {
-            .name: string
-            .url: string
+        license?: void {
+            name: string
+            url: string
         }
-        .version: string
+        version: string
     }
-    .host: string
-    .basePath: string
-    .schemes*: string
-    .consumes*: string
-    .produces*: string
-    .tags*: void {
-        .name: string
-        .description?: string
-        .externalDocs?: ExternalDocs
+    host: string
+    basePath: string
+    schemes*: string
+    consumes*: string
+    produces*: string
+    tags*: void {
+        name: string
+        description?: string
+        externalDocs?: ExternalDocs
     }
-    .externalDocs?: ExternalDocs
-    .paths*: string {
-        .get?: OperationObject
-        .post?: OperationObject
-        .delete?: OperationObject
-        .put?: OperationObject
+    externalDocs?: ExternalDocs
+    paths*: string {
+        get?: OperationObject
+        post?: OperationObject
+        delete?: OperationObject
+        put?: OperationObject
         /* TODO
         .options?: OperationObject
         .head?: OperationObject
@@ -127,7 +126,7 @@ type GetOpenApiDefinitionRequest: void {
         .parameters?:
         */
     }
-    .definitions*: TypeDefinition | FaultDefinitionForOpenAPI
+    definitions*: TypeDefinition | FaultDefinitionForOpenAPI
     /* TODO
       .security?
       .securityDefinitions?
@@ -136,39 +135,50 @@ type GetOpenApiDefinitionRequest: void {
     */
 }
 
-type FaultDefinitionForOpenAPI: void {
-    .fault: TypeDefinition
-    .name: string
+type FaultDefinitionForOpenAPI {
+    fault: TypeDefinition
+    name: string
 }
+
+type DefinitionIsArrayRequest {
+    name: string
+    definition: undefined
+}
+
 type GetOpenApiDefinitionResponse: undefined
 
-type GetJolieTypeFromOpenApiParametersRequest: void {
-    .definition: undefined
-    .name: string
+type GetJolieTypeFromOpenApiParametersRequest {
+    definition: undefined
+    name: string
+    array_def_list?: undefined
 }
 
-type GetJolieTypeFromOpenApiDefinitionRequest: void {
-    .name: string
-    .definition: undefined
+type GetJolieTypeFromOpenApiDefinitionRequest {
+    name: string
+    definition: undefined
+    array_def_list?: undefined
 }
 
-type GetJolieDefinitionFromOpenApiObjectRequest: void {
-    .definition: undefined
-    .indentation: int
+type GetJolieDefinitionFromOpenApiObjectRequest {
+    definition: undefined
+    indentation: int
+    array_def_list?: undefined
 }
 
-type GetJolieDefinitionFromOpenApiArrayRequest: void {
-    .definition: undefined
-    .indentation: int
+type GetJolieDefinitionFromOpenApiArrayRequest {
+    definition: undefined
+    indentation: int
+    array_def_list?: undefined
 }
 
-type GetJolieNativeTypeFromOpenApiNativeTypeRequest: void {
-    .type: string | void
-    .format?: string
+type GetJolieNativeTypeFromOpenApiNativeTypeRequest {
+    type: string | void
+    format?: string
 }
 
 interface OpenApiDefinitionInterface {
   RequestResponse:
+      definitionIsArray( DefinitionIsArrayRequest )( bool ),
       getOpenApiDefinition( GetOpenApiDefinitionRequest )( GetOpenApiDefinitionResponse ),
       getJolieTypeFromOpenApiDefinition( GetJolieTypeFromOpenApiDefinitionRequest )( string ),
       getJolieTypeFromOpenApiParameters( GetJolieTypeFromOpenApiParametersRequest )( string ),
@@ -177,5 +187,6 @@ interface OpenApiDefinitionInterface {
       getJolieDefinitionFromOpenApiArray( GetJolieDefinitionFromOpenApiArrayRequest )( string ),
       getJolieNativeTypeFromOpenApiNativeType( GetJolieNativeTypeFromOpenApiNativeTypeRequest )( string ),
       getReferenceName( string )( string )
+
 
 }

@@ -115,16 +115,30 @@ main {
         openapi -> request.openapi
         _create_outputport_info
 
+        // create definition array
         foreach( definition : openapi.definitions ) {
             get_def.name = definition;
-            get_def.definition -> openapi.definitions.( definition );
-            getJolieTypeFromOpenApiDefinition@OpenApiDefinition( get_def )( j_definition );
-            interface_file = interface_file + j_definition
-        };
+            get_def.definition -> openapi.definitions.( definition )
+            definitionIsArray@OpenApiDefinition( get_def )( is_array )
+            if ( is_array ) {
+                array_def_list.( definition ) << openapi.definitions.( definition )
+            }
+        }
+
+        foreach( definition : openapi.definitions ) {
+            
+                get_def.name = definition;
+                get_def.definition -> openapi.definitions.( definition );
+                get_def.array_def_list -> array_def_list
+                getJolieTypeFromOpenApiDefinition@OpenApiDefinition( get_def )( j_definition );
+                interface_file = interface_file + j_definition
+                
+        }
 
         for( o = 0, o < #outputPort.interface.operation, o++ ) {
             rq_p.definition.parameters -> outputPort.interface.operation[ o ].parameters;
             rq_p.name = outputPort.interface.operation[ o ] + "Request";
+            rq_p.array_def_list -> array_def_list
             getJolieTypeFromOpenApiParameters@OpenApiDefinition( rq_p )( parameters );
 
             type_string = parameters;
@@ -229,14 +243,25 @@ main {
         client_file = client_file + "execution{ concurrent }\n\n";
 
         endsWith@StringUtils( outputPort.location { .suffix = "/" } )( ends_with_slash )
-        if ( ends_with_slash ) {
-            sbst = outputPort.location
-            length@StringUtils( outputPort.location )( location_length )
-            with ( sbst ) {
-                .begin = 0;
-                .end = location_length - 1
+        split@StringUtils( outputPort.location { .regex = "/" } )( spl_loc )
+        // if location is in the form socket://ip:port it must not finish with /, in this case the interpreter will put the /
+        // if it is in the form socket://ip:port/something it must be finish with / because the interpreter won't put the /
+        if ( #spl_loc.result == 3 ) {
+            // it is in the form socket://ip:port
+            if ( ends_with_slash ) {
+                sbst = outputPort.location
+                length@StringUtils( outputPort.location )( location_length )
+                with ( sbst ) {
+                    .begin = 0;
+                    .end = location_length - 1
+                }
+                substring@StringUtils( sbst )( outputPort.location )
             }
-            substring@StringUtils( sbst )( outputPort.location )
+        } else {
+            // it is in the form socket://ip:port/something
+            if ( !ends_with_slash ) {
+                outputPort.location = outputPort.location + "/"
+            }
         }
 
         client_file = client_file + "outputPort " + outputPort.name + "{\n";
