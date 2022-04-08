@@ -1,41 +1,41 @@
 type Order: void {
-	.petId:long
-	.quantity:int
-	.id:long
-	.shipDate:string
-	.complete:bool
-	.status:string
+	.petId?:long
+	.quantity?:int
+	.id?:long
+	.shipDate?:string
+	.complete?:bool
+	.status?:string
 }
 type User: void {
-	.firstName:string
-	.lastName:string
-	.password:string
-	.userStatus:int
-	.phone:string
-	.id:long
-	.email:string
-	.username:string
+	.firstName?:string
+	.lastName?:string
+	.password?:string
+	.userStatus?:int
+	.phone?:string
+	.id?:long
+	.email?:string
+	.username?:string
 }
 type Category: void {
-	.name:string
-	.id:long
+	.name?:string
+	.id?:long
 }
 type Tag: void {
-	.name:string
-	.id:long
+	.name?:string
+	.id?:long
 }
 type Pet: void {
 	.photoUrls[0,*]:string
 	.name:string
-	.id:long
-	.category:Category
+	.id?:long
+	.category?:Category
 	.tags[0,*]:Tag
-	.status:string
+	.status?:string
 }
 type ApiResponse: void {
-	.code:int
-	.type:string
-	.message:string
+	.code?:int
+	.type?:string
+	.message?:string
 }
 type addPetRequest: Pet
 type addPetResponse:undefined 
