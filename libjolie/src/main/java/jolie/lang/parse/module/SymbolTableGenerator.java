@@ -100,6 +100,7 @@ import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
@@ -447,6 +448,9 @@ public class SymbolTableGenerator {
 
 		@Override
 		public void visit( EmbedServiceNode n ) {}
+
+		@Override
+		public void visit(SolicitResponseExpressionNode n) {}
 
 	}
 

@@ -118,6 +118,7 @@ import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
@@ -832,6 +833,21 @@ public class SemanticVerifier implements UnitOLVisitor {
 		 * if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) { error( n,
 		 * "Receiving a message in a correlation variable is forbidden" ); }
 		 */
+	}
+
+	@Override
+	public void visit( SolicitResponseExpressionNode n ) {
+		OutputPortInfo p = outputPorts.get( n.outputPortId() );
+		if(p == null) {
+			error(n, n.outputPortId() + " is not a valid output port");
+		} else {
+			OperationDeclaration decl = p.operationsMap().get(n.id());
+			if(decl == null) {
+				error(n, "Operation " + n.id() + " has not been declared in output port " + p.id());
+			} else if(!(decl instanceof RequestResponseOperationDeclaration)) {
+				error(n, "Operation " + n.id() + " is not a valid request-response operation in output port " + p.id());
+			}
+		}
 	}
 
 	@Override
