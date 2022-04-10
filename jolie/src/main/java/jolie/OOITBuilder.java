@@ -1620,6 +1620,16 @@ public class OOITBuilder implements UnitOLVisitor {
 	}
 
 	public void visit( SolicitResponseExpressionNode n ) {
-		//TODO
+		try {
+			currExpression =
+				new SolicitResponseExpression(
+					n.id(),
+					interpreter.getOutputPort( n.outputPortId() ),
+					buildExpression( n.outputExpression() ),
+					solicitResponseTypes.get( n.outputPortId() ).get( n.id() ),
+					n.context() );
+		} catch( InvalidIdException e ) {
+			error( n.context(), e );
+		}
 	}
 }

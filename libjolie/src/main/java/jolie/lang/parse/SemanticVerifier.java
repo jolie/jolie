@@ -816,18 +816,8 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( n.inputVarPath() != null ) {
 			encounteredAssignment( n.inputVarPath() );
 		}
-		OutputPortInfo p = outputPorts.get( n.outputPortId() );
-		if( p == null ) {
-			error( n, n.outputPortId() + " is not a valid output port" );
-		} else {
-			OperationDeclaration decl = p.operationsMap().get( n.id() );
-			if( decl == null ) {
-				error( n, "Operation " + n.id() + " has not been declared in output port " + p.id() );
-			} else if( !(decl instanceof RequestResponseOperationDeclaration) ) {
-				error( n,
-					"Operation " + n.id() + " is not a valid request-response operation in output port " + p.id() );
-			}
-		}
+
+		checkOutputPort( n, n.id(), n.outputPortId() );
 
 		/*
 		 * if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) { error( n,
@@ -1415,18 +1405,21 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	@Override
 	public void visit( SolicitResponseExpressionNode n ) {
-		OutputPortInfo p = outputPorts.get( n.outputPortId() );
+		checkOutputPort( n, n.id(), n.outputPortId() );
+	}
 
+	private void checkOutputPort( OLSyntaxNode n, String id, String outputPortId ) {
+		OutputPortInfo p = outputPorts.get( outputPortId );
 		if( p == null ) {
-			error( n, n.outputPortId() + " is not a valid output port" );
-		}else{
-			OperationDeclaration decl = p.operationsMap().get( n.id() );
+			error( n, outputPortId + " is not a valid output port" );
+		} else {
+			OperationDeclaration decl = p.operationsMap().get( id );
 			if( decl == null ) {
-				error( n, "Operation " + n.id() + " has not been declared in output port " + p.id() );
-			} else if ( !( decl instanceof RequestResponseOperationDeclaration ) ) {
-				error( n, "Operation " + n.id() + " is not a valid request-response operation in output port " + p.id() );
+				error( n, "Operation " + id + " has not been declared in output port " + p.id() );
+			} else if( !(decl instanceof RequestResponseOperationDeclaration) ) {
+				error( n,
+					"Operation " + id + " is not a valid request-response operation in output port " + p.id() );
 			}
 		}
-
 	}
 }

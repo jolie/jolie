@@ -24,6 +24,7 @@ package jolie.runtime.expression;
 
 
 import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public class OrCondition implements Expression {
@@ -37,7 +38,7 @@ public class OrCondition implements Expression {
 		return new OrCondition( children );
 	}
 
-	public Value evaluate() {
+	public Value evaluate() throws FaultException {
 		for( Expression cond : children ) {
 			if( cond.evaluate().boolValue() ) {
 				return Value.create( true );

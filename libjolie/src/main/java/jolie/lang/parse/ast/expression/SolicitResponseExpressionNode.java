@@ -1,7 +1,4 @@
 package jolie.lang.parse.ast.expression;
-// import jolie.lang.parse.OLVisitor;
-// import jolie.lang.parse.context.ParsingContext;
-// import java.util.Optional;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -12,11 +9,11 @@ public class SolicitResponseExpressionNode extends OLSyntaxNode {
     private final OLSyntaxNode outputExpression;
 
     public SolicitResponseExpressionNode(
-        ParsingContext context, 
-        String id, 
+        ParsingContext context,
+        String id,
         String outputPortId,
         OLSyntaxNode outputExpression ) {
-        super(context);
+        super( context );
         this.id = id;
         this.outputPortId = outputPortId;
         this.outputExpression = outputExpression;
@@ -35,8 +32,8 @@ public class SolicitResponseExpressionNode extends OLSyntaxNode {
     }
 
     @Override
-    public <C, R> R accept( OLVisitor<C, R> visitor, C ctx ) {
+    public < C, R > R accept( OLVisitor< C, R > visitor, C ctx ) {
         return visitor.visit( this, ctx );
     }
-    
+
 }

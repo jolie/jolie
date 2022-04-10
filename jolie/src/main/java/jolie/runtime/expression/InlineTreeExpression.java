@@ -23,6 +23,7 @@
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -135,7 +136,7 @@ public class InlineTreeExpression implements Expression {
 	}
 
 	@Override
-	public Value evaluate() {
+	public Value evaluate() throws FaultException {
 		Value inlineValue = Value.create();
 		inlineValue.assignValue( rootExpression.evaluate() );
 
