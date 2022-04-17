@@ -67,7 +67,11 @@ public class InlineTreeExpression implements Expression {
 					throw new RuntimeException( "incomplete case analysis" );
 				}
 			} else {
-				path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
+				try {
+					path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
+				} catch( FaultException e ) {
+					throw new AssertionError( "Expression.evaluate() should never throw Exception here" );
+				}
 			}
 		}
 	}
@@ -88,7 +92,11 @@ public class InlineTreeExpression implements Expression {
 
 		@Override
 		public void run( Value inlineValue ) {
-			path.getValue( inlineValue ).assignValue( expression.evaluate() );
+			try {
+				path.getValue( inlineValue ).assignValue( expression.evaluate() );
+			} catch( FaultException e ) {
+				throw new AssertionError( "Expression.evaluate() should never throw Exception here" );
+			}
 		}
 	}
 
