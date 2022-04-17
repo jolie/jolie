@@ -759,9 +759,9 @@ public class SymbolReferenceResolver {
 			}
 		}
 
-		
+
 		@Override
-		public void visit( SolicitResponseExpressionNode n ) { }
+		public void visit( SolicitResponseExpressionNode n ) {}
 	}
 
 	/**

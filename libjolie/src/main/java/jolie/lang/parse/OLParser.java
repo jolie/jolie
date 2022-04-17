@@ -3078,13 +3078,13 @@ public class OLParser extends AbstractParser {
 		return stm;
 	}
 
-	private OLSyntaxNode parseOutputExpressionNode(String id) throws IOException, ParserException{
+	private OLSyntaxNode parseOutputExpressionNode( String id ) throws IOException, ParserException {
 		ParsingContext context = getContext();
 		String outputPortId = token.content();
 		nextToken();
 		OLSyntaxNode outputExpression = parseOperationExpressionParameter();
 		OLSyntaxNode expr = new SolicitResponseExpressionNode( context, id, outputPortId, outputExpression );
-		
+
 		return expr;
 	}
 
@@ -3245,25 +3245,25 @@ public class OLParser extends AbstractParser {
 		case ID:
 			String id = token.content();
 			path = parseVariablePath();
-			if( token.type() == Scanner.TokenType.AT){
+			if( token.type() == Scanner.TokenType.AT ) {
 				nextToken();
 				return parseOutputExpressionNode( id );
 			} else {
-				VariablePathNode freshValuePath = new VariablePathNode(getContext(), Type.NORMAL);
-				freshValuePath.append(new Pair<>(new ConstantStringExpression(getContext(), "new"),
-						new ConstantIntegerExpression(getContext(), 0)));
-				if (path.isEquivalentTo(freshValuePath)) {
-					retVal = new FreshValueExpressionNode(path.context());
+				VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
+				freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
+					new ConstantIntegerExpression( getContext(), 0 ) ) );
+				if( path.isEquivalentTo( freshValuePath ) ) {
+					retVal = new FreshValueExpressionNode( path.context() );
 					return retVal;
 				}
-			}	
-			VariablePathNode freshValuePath = new VariablePathNode(getContext(), Type.NORMAL);
-			freshValuePath.append(new Pair<>(new ConstantStringExpression(getContext(), "new"),
-					new ConstantIntegerExpression(getContext(), 0)));
-			if (path.isEquivalentTo(freshValuePath)) {
-				retVal = new FreshValueExpressionNode(path.context());
+			}
+			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
+			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
+				new ConstantIntegerExpression( getContext(), 0 ) ) );
+			if( path.isEquivalentTo( freshValuePath ) ) {
+				retVal = new FreshValueExpressionNode( path.context() );
 				return retVal;
-			}		
+			}
 			break;
 		case DOT:
 			path = parseVariablePath();

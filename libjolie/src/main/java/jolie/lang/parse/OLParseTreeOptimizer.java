@@ -956,7 +956,7 @@ public class OLParseTreeOptimizer {
 				outputExpression = currNode;
 			}
 
-			currNode = new SolicitResponseExpressionNode( 
+			currNode = new SolicitResponseExpressionNode(
 				n.context(),
 				n.id(),
 				n.outputPortId(),
