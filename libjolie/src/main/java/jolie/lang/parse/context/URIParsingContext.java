@@ -48,6 +48,16 @@ public class URIParsingContext implements ParsingContext {
 	public static final URIParsingContext DEFAULT =
 		new URIParsingContext( URI.create( "urn:undefined" ), 1, 1, 0, 0, List.of() );
 
+	/**
+	 * URIParsingContext contructor. startLine, endLine, startColumn, endColumn indicate which part of the source code
+	 * in the source of the uri we are looking at, and the list code may contain the indicated code
+	 * @param uri
+	 * @param startLine
+	 * @param endLine
+	 * @param startColumn
+	 * @param endColumn
+	 * @param code
+	 */
 	public URIParsingContext( URI uri, int startLine, int endLine, int startColumn, int endColumn,
 		List< String > code ) {
 		this.uri = uri;
@@ -58,11 +68,17 @@ public class URIParsingContext implements ParsingContext {
 		this.endLine = endLine;
 	}
 
+	/**
+	 * returns the uri
+	 */
 	@Override
 	public URI source() {
 		return uri;
 	}
 
+	/**
+	 * returns the file name of the uri
+	 */
 	@Override
 	public String sourceName() {
 		try {
@@ -73,31 +89,50 @@ public class URIParsingContext implements ParsingContext {
 		}
 	}
 
+	/**
+	 * returns the startLine
+	 */
 	@Override
 	public int startLine() {
 		return startLine;
 	}
 
+	/**
+	 * returns the endLine
+	 */
 	@Override
 	public int endLine() {
 		return endLine;
 	}
 
+	/**
+	 * returns the startColumn
+	 */
 	@Override
 	public int startColumn() {
 		return startColumn;
 	}
 
+	/**
+	 * returns the endColumn
+	 */
 	@Override
 	public int endColumn() {
 		return endColumn;
 	}
 
+	/**
+	 * returns the code which the URIParsingContext points at as a List of strings
+	 */
 	@Override
 	public List< String > enclosingCode() {
 		return code;
 	}
 
+	/**
+	 * returns the code which the URIParsingContext points at as a List of strings,
+	 * and has the correct line numbers on each line as well
+	 */
 	@Override
 	public List< String > enclosingCodeWithLineNumbers() {
 		int i = startLine;
@@ -110,6 +145,9 @@ public class URIParsingContext implements ParsingContext {
 		return linesWithNumbers;
 	}
 
+	/**
+	 * toString method, for easy printing
+	 */
 	public String toString() {
 		String contextString = "";
 		contextString += "source: " + uri + "\n";

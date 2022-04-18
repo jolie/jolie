@@ -50,21 +50,48 @@ public interface ParsingContext extends Serializable {
 	String sourceName();
 
 	/**
-	 * Returns the line at which the node has been read.
+	 * Returns the startLine at which the node has been read.
 	 * 
-	 * @return the line at which the node has been read
+	 * @return the startLine at which the node has been read
 	 */
 	int startLine();
 
+	/**
+	 * Returns the endLine at which the node has been read.
+	 * 
+	 * @return the endLine at which the node has been read
+	 */
 	int endLine();
 
+	/**
+	 * Returns the startColumn at which the node has been read.
+	 * 
+	 * @return the startColumn at which the node has been read
+	 */
 	int startColumn();
 
+	/**
+	 * Returns the endColumn at which the node has been read.
+	 * 
+	 * @return the endColumn at which the node has been read
+	 */
 	int endColumn();
 
+	/**
+	 * Returns the code as a List of strings, which were read
+	 * @return the code as a List of strings, which were read
+	 */
 	List< String > enclosingCode();
 
+	/**
+	 * Returns the code as a List of strings, which were read, with line numbers
+	 * @return the code as a List of strings, which were read, with line numbers
+	 */
 	List< String > enclosingCodeWithLineNumbers();
 
+	/**
+	 * Returns a string interpretations of the ParsingContext
+	 * @return a string interpretations of the ParsingContext
+	 */
 	String toString();
 }
