@@ -31,12 +31,26 @@ public class CodeCheckMessage {
 	private final String description;
 	private final String help;
 
+	/**
+	 * Private contructer of codeCheckMessage
+	 * @param context
+	 * @param description
+	 * @param help
+	 */
 	private CodeCheckMessage( ParsingContext context, String description, String help ) {
 		this.context = context;
 		this.description = description;
 		this.help = help;
 	}
 
+	/**
+	 * public contructer of codeCheckMessage, for when the message includes a help message
+	 * @param context
+	 * @param description
+	 * @param help
+	 * @return
+	 * @throws InvalidParameterException
+	 */
 	public static CodeCheckMessage withHelp( ParsingContext context, String description, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
@@ -45,6 +59,14 @@ public class CodeCheckMessage {
 		return new CodeCheckMessage( context, description, help );
 	}
 
+	/**
+	 * Public contructer of codeCheckMessage, when information is in a OLSyntaxNode, help message included
+	 * @param node
+	 * @param message
+	 * @param help
+	 * @return
+	 * @throws InvalidParameterException
+	 */
 	public static CodeCheckMessage buildWithHelp( OLSyntaxNode node, String message, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
@@ -55,16 +77,31 @@ public class CodeCheckMessage {
 			message, null );
 	}
 
+	/**
+	 * Public contructer of codeCheckMessage, which du not include help in the message
+	 * @param context
+	 * @param description
+	 * @return
+	 */
 	public static CodeCheckMessage withoutHelp( ParsingContext context, String description ) {
 		return new CodeCheckMessage( context, description, null );
 	}
 
+	/**
+	 * Public contructer of codeCheckMessage, when information is in a OLSyntaxNode, no help message included
+	 * @param node
+	 * @param message
+	 * @return
+	 */
 	public static CodeCheckMessage buildWithoutHelp( OLSyntaxNode node, String message ) {
 		return new CodeCheckMessage(
 			(node != null) ? node.context() : URIParsingContext.DEFAULT,
 			message, null );
 	}
 
+	/**
+	 * Returns a string, containing the information from the codeCheckMessage
+	 */
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
@@ -102,14 +139,26 @@ public class CodeCheckMessage {
 		return messageBuilder.toString();
 	}
 
+	/**
+	 * Get an optional of help from the codeCheckMessage
+	 * @return
+	 */
 	public Optional< String > help() {
 		return Optional.ofNullable( help );
 	}
 
+	/**
+	 * Get an optional of the context from the codeCheckMessage
+	 * @return
+	 */
 	public Optional< ParsingContext > context() {
 		return Optional.ofNullable( context );
 	}
 
+	/**
+	 * Get an optional of the description from the codeCheckMessage
+	 * @return
+	 */
 	public Optional< String > description() {
 		return Optional.ofNullable( description );
 	}
