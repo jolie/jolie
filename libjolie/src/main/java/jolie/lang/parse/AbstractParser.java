@@ -304,6 +304,14 @@ public abstract class AbstractParser {
 		scanner.setEndLine( line() );
 	}
 
+	public final int errorColumn() {
+		return scanner.errorColumn();
+	}
+
+	public final List< String > codeLine() {
+		return scanner.codeLine();
+	}
+
 	/**
 	 * Eats the current token, asserting its type. Calling eat( type, errorMessage ) is equivalent to
 	 * call subsequently tokenAssert( type, errorMessage ) and getToken().

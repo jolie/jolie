@@ -297,7 +297,7 @@ public class OLParser extends AbstractParser {
 		boolean keepRun = true;
 
 		while( keepRun ) {
-			setStartLine();
+			int startLine = line();
 			Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
 			Optional< Scanner.Token > accessModifierToken = parseAccessModifier();
 			if( token.isKeyword( "type" ) ) {
@@ -310,11 +310,15 @@ public class OLParser extends AbstractParser {
 
 				String typeName;
 				TypeDefinition currentType;
-
 				nextToken();
+				int startColumn = errorColumn();
 				typeName = token.content();
-				setEndLine();
+				int endLine = line();
 				eat( Scanner.TokenType.ID, "expected type name" );
+				// Creating a new parsingContext manually to get the correct line and column for the type
+				// Used in error messages and symbolTable for the vscode extension
+				ParsingContext context = new URIParsingContext( getContext().source(), startLine, endLine, startColumn,
+					startColumn + typeName.length(), codeLine() );
 				if( token.is( Scanner.TokenType.COLON ) ) {
 					nextToken();
 				} else {
@@ -322,7 +326,7 @@ public class OLParser extends AbstractParser {
 					nextToken();
 				}
 
-				currentType = parseType( typeName, accessModifier );
+				currentType = parseType( typeName, accessModifier, context );
 				if( forwardDocToken.isPresent() ) {
 					parseBackwardAndSetDocumentation( currentType, forwardDocToken );
 					forwardDocToken = Optional.empty();
@@ -344,19 +348,17 @@ public class OLParser extends AbstractParser {
 		}
 	}
 
-	private TypeDefinition parseType( String typeName, AccessModifier accessModifier )
+	private TypeDefinition parseType( String typeName, AccessModifier accessModifier, ParsingContext context )
 		throws IOException, ParserException {
 		TypeDefinition currentType;
-		setStartLine();
-		setEndLine();
 		BasicTypeDefinition basicTypeDefinition = readBasicType();
 		if( basicTypeDefinition == null ) { // It's a user-defined type
 			currentType =
-				new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
+				new TypeDefinitionLink( context, typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
 			nextToken();
 		} else {
 			currentType =
-				new TypeInlineDefinition( getContext(), typeName, basicTypeDefinition, Constants.RANGE_ONE_TO_ONE );
+				new TypeInlineDefinition( context, typeName, basicTypeDefinition, Constants.RANGE_ONE_TO_ONE );
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
@@ -364,14 +366,13 @@ public class OLParser extends AbstractParser {
 
 		if( token.is( Scanner.TokenType.PARALLEL ) ) { // It's a sum (union, choice) type
 			nextToken();
-			final TypeDefinition secondType = parseType( typeName, accessModifier );
-			// Changed to use the currentTypes context because the line number otherwise might be wrong
-			return new TypeChoiceDefinition( currentType.context(), typeName, Constants.RANGE_ONE_TO_ONE, currentType,
+			int startLine = line();
+			int column = errorColumn();
+			ParsingContext secondContext = new URIParsingContext( context.source(), startLine, startLine, column,
+				column + token.content().length(), codeLine() );
+			final TypeDefinition secondType = parseType( typeName, accessModifier, secondContext );
+			return new TypeChoiceDefinition( context, typeName, Constants.RANGE_ONE_TO_ONE, currentType,
 				secondType );
-			/*
-			 * return new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType,
-			 * secondType );
-			 */
 		}
 
 		return currentType;
@@ -1513,7 +1514,7 @@ public class OLParser extends AbstractParser {
 
 				eat( Scanner.TokenType.COLON, "expected :" );
 				String typeName = token.content();
-				TypeDefinition parameterType = parseType( typeName, AccessModifier.PRIVATE );
+				TypeDefinition parameterType = parseType( typeName, AccessModifier.PRIVATE, getContext() );
 
 				eat( Scanner.TokenType.RPAREN, "expected )" );
 				return new Pair<>( paramPath, parameterType );
