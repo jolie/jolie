@@ -28,14 +28,25 @@ public class CodeCheckException extends Exception {
 
 	private final List< CodeCheckMessage > messageList;
 
+	/**
+	 * Contructs a CodeCheckException from a list of CodeCheckMessages
+	 * @param messageList
+	 */
 	public CodeCheckException( List< CodeCheckMessage > messageList ) {
 		this.messageList = messageList;
 	}
 
+	/**
+	 * Returns the list of CodeCheckMessages from the CodeCheckException
+	 * @return
+	 */
 	public List< CodeCheckMessage > messages() {
 		return messageList;
 	}
 
+	/**
+	 * Returns a string containing all CodeCheckMessages from the CodeCheckException
+	 */
 	public String getMessage() {
 		Iterator< CodeCheckMessage > iterator = messageList.iterator();
 		StringBuilder messageString = new StringBuilder();

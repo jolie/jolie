@@ -44,7 +44,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * public contructer of codeCheckMessage, for when the message includes a help message
+	 * public contructer of CodeCheckMessage, for when the message includes a help message
 	 * @param context
 	 * @param description
 	 * @param help
@@ -60,7 +60,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Public contructer of codeCheckMessage, when information is in a OLSyntaxNode, help message included
+	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, help message included
 	 * @param node
 	 * @param message
 	 * @param help
@@ -78,7 +78,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Public contructer of codeCheckMessage, which du not include help in the message
+	 * Public contructer of CodeCheckMessage, which du not include help in the message
 	 * @param context
 	 * @param description
 	 * @return
@@ -88,7 +88,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Public contructer of codeCheckMessage, when information is in a OLSyntaxNode, no help message included
+	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, no help message included
 	 * @param node
 	 * @param message
 	 * @return
@@ -100,16 +100,17 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Returns a string, containing the information from the codeCheckMessage
+	 * Returns a string, containing the information from the CodeCheckMessage
 	 */
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
+			// Add context
 			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startLine() )
 				.append( ": error: " );
+			// Add description
 			if( description != null ) {
-				messageBuilder.append( description );// .append( "startline: " + context.startline() + ", endline: " +
-														// context.endline() ).append( '\n' );
+				messageBuilder.append( description );
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
@@ -126,21 +127,23 @@ public class CodeCheckMessage {
 				messageBuilder.append( "^\n" );
 			}
 		} else {
+			// no context, simply write error
 			messageBuilder.append( ": error: " );
+			// Add description
 			if( description != null ) {
 				messageBuilder.append( description ).append( '\n' );
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
 		}
-		if( help != null ) {
+		if( help != null ) { // Add help message
 			messageBuilder.append( help );
 		}
 		return messageBuilder.toString();
 	}
 
 	/**
-	 * Get an optional of help from the codeCheckMessage
+	 * Get an optional of help from the CodeCheckMessage
 	 * @return
 	 */
 	public Optional< String > help() {
@@ -148,7 +151,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Get an optional of the context from the codeCheckMessage
+	 * Get an optional of the context from the CodeCheckMessage
 	 * @return
 	 */
 	public Optional< ParsingContext > context() {
@@ -156,7 +159,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Get an optional of the description from the codeCheckMessage
+	 * Get an optional of the description from the CodeCheckMessage
 	 * @return
 	 */
 	public Optional< String > description() {
