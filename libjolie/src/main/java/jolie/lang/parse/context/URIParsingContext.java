@@ -49,8 +49,10 @@ public class URIParsingContext implements ParsingContext {
 		new URIParsingContext( URI.create( "urn:undefined" ), 1, 1, 0, 0, List.of() );
 
 	/**
-	 * URIParsingContext contructor. startLine, endLine, startColumn, endColumn indicate which part of the source code
-	 * in the source of the uri we are looking at, and the list code may contain the indicated code
+	 * URIParsingContext contructor. startLine, endLine, startColumn, endColumn indicate which part of
+	 * the source code in the source of the uri we are looking at, and the list code may contain the
+	 * indicated code
+	 * 
 	 * @param uri
 	 * @param startLine
 	 * @param endLine
@@ -130,8 +132,8 @@ public class URIParsingContext implements ParsingContext {
 	}
 
 	/**
-	 * returns the code which the URIParsingContext points at as a List of strings,
-	 * and has the correct line numbers on each line as well
+	 * returns the code which the URIParsingContext points at as a List of strings, and has the correct
+	 * line numbers on each line as well
 	 */
 	@Override
 	public List< String > enclosingCodeWithLineNumbers() {

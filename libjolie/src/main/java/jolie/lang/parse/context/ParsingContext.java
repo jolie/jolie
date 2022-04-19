@@ -79,18 +79,21 @@ public interface ParsingContext extends Serializable {
 
 	/**
 	 * Returns the code as a List of strings, which were read
+	 * 
 	 * @return the code as a List of strings, which were read
 	 */
 	List< String > enclosingCode();
 
 	/**
 	 * Returns the code as a List of strings, which were read, with line numbers
+	 * 
 	 * @return the code as a List of strings, which were read, with line numbers
 	 */
 	List< String > enclosingCodeWithLineNumbers();
 
 	/**
 	 * Returns a string interpretations of the ParsingContext
+	 * 
 	 * @return a string interpretations of the ParsingContext
 	 */
 	String toString();
