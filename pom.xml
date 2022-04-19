@@ -30,6 +30,7 @@
 		<module>lib/jolie-js</module>
 		<module>lib/jolie-ssl</module>
 		<module>lib/jolie-xml</module>
+		<module>lib/jolie-uri</module>
 		<module>lib/xsom</module>
 		<module>support/jolie-java</module>
 		<module>support/metaservice-java</module>
