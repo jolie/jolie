@@ -487,7 +487,8 @@ public abstract class AbstractParser {
 			StringBuilder help = new StringBuilder( "Your term is similar to what would be valid input: " )
 				.append( String.join( ", ", proposedWord ) )
 				.append( ". Perhaps you meant:\n" );
-			// Since we are not looking at a whole scope, but a single line, we just assume the error is at the startLine,
+			// Since we are not looking at a whole scope, but a single line, we just assume the error is at the
+			// startLine,
 			// which is the first line in the enclosingCode
 			int columnSpace = context.startColumn() + (context.startLine() + ":").length();
 			help.append( context.enclosingCode().get( 0 ).substring( 0, columnSpace ) )
