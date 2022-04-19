@@ -363,8 +363,8 @@ public class Scanner {
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
     private int line;						// current line
-	private int startLine;
-	private int endLine;
+	private int startLine;					// start line for eventual error (has to be set)
+	private int endLine;					// end line, same as start line
 	private final URI source;				// source name
 	private final boolean includeDocumentation;	// include documentation tokens
 	private final ArrayList<String> readCodeLines = new ArrayList<>();
@@ -387,7 +387,7 @@ public class Scanner {
 		this.reader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
 		this.source = source;
 		this.includeDocumentation = includeDocumentation;
-		line = 1;
+		line = 1; // TODO: set lines to start at 0, to make remove line calculations here and in language server
 		startLine = 1;
 		endLine = 1;
 		currColumn = 0;
@@ -431,10 +431,17 @@ public class Scanner {
 		return tokenBuilder.toString();
 	}
 
+	/**
+	 * Extra method to read line. Used when exception happens and the rest of the line, where exception happened has to be read
+	 * to create the error message and help message
+	 * @return
+	 * @throws IOException
+	 */
 	public String readLineAfterError()
 		throws IOException
 	{
 		resetTokenBuilder();
+		// TODO: would it make more sense to just have the while loop?
 		if(currInt != -1){ // if currInt == -1, EOF was already found, and there is no more line to read after the error
 			readCharAfterError();
 			while( !isNewLineChar( ch ) && reader.ready() && currInt != -1) {
@@ -481,9 +488,9 @@ public class Scanner {
 	}
 
 	/**
-	 * Used for getting the string of the line, where the error occured.
+	 * Used for getting the string of the line, where the error occured, with line number.
 	 * 
-	 * @return current line in file
+	 * @return current line in file, with line number
 	 */
 	public List<String> codeLineWithLineNumber() {
 		try{
@@ -493,14 +500,22 @@ public class Scanner {
 			}
 			return List.of(line);
 		} catch (IndexOutOfBoundsException e){
-			String line = (line()-1)+":"+readCodeLines.get(line()-1);
-			if(!line.endsWith("\n")){
-				line += "\n";
+			if(line()>0){
+				String line = (line()-1)+":"+readCodeLines.get(line()-1);
+				if(!line.endsWith("\n")){
+					line += "\n";
+				}
+				return List.of(line);
+			} else{ // if line is 0, and indexoutofbound happened, then no line has been read yet
+				return List.of();
 			}
-			return List.of(line);
 		}
 	}
 
+	/**
+	 * Used for getting the erroneous line of code
+	 * @return current line in file
+	 */
 	public List<String> codeLine(){
 		try{
 			String line = readCodeLines.get(line());
@@ -509,40 +524,77 @@ public class Scanner {
 			}
 			return List.of(line);
 		} catch (IndexOutOfBoundsException e){
-			String line = readCodeLines.get(line()-1);
-			if(!line.endsWith("\n")){
-				line += "\n";
+			if(line()>0){
+				String line = readCodeLines.get(line()-1);
+				if(!line.endsWith("\n")){
+					line += "\n";
+				}
+				return List.of(line);
+			} else { // no lines have been read yet
+				return List.of();
 			}
-			return List.of(line);
 		}
 	}
 
+	/**
+	 * Returns the current column, meaning the index of the current character in the line
+	 * @return current column
+	 */
 	public int currentColumn() {
 		return currColumn;
 	}
 
-	//returns the value minus one, because errorcolumn is set to currentcolumn while reading, and thus has 1 added to it
+	/**
+	 * Returns the value minus one, because errorcolumn is set to currentcolumn while reading, and thus has 1 added to it
+	 * because the current column has already moved to the next characer of where the word started we are reading
+	 * @return the starting index of the token which is erroneous 
+	 */
 	public int errorColumn() {
 		return errorColumn-1;
 	}
 
+	/**
+	 * Sets the errorColumn to the currentColumn
+	 */
 	public void setErrorColumn(){
 		this.errorColumn = currentColumn();
 	}
 
+	/**
+	 * Return all the lines of code that have been read during parsing, as a list of lines
+	 * @return all read code lines
+	 */
 	public List<String> getAllCodeLines(){
 		return readCodeLines;
 	}
 
+	/**
+	 * Returns the startLine
+	 * @return startLine
+	 */
 	public int startLine(){
 		return startLine;
 	}
+
+	/**
+	 * Sets the startLine to the given int
+	 * @param startLine
+	 */
 	public void setStartLine(int startLine){
 		this.startLine = startLine;
 	}
+	/**
+	 * Returns the endLine
+	 * @return endLine
+	 */
 	public int endLine(){
 		return endLine;
 	}
+
+	/**
+	 * Sets the endLine to the given int
+	 * @param endLine
+	 */
 	public void setEndLine(int endLine){
 		this.endLine = endLine;
 	}
@@ -621,24 +673,25 @@ public class Scanner {
 		currInt = reader.read();
 
 		ch = (char) currInt;
-		if( readCodeLines.isEmpty() ) {
+		if( readCodeLines.isEmpty() ) { // initialize the list of code lines, if it is empty
 			readCodeLines.add(0, "");
 		}
 		String temp;
 		if(currInt != -1){ //Cannot just return, as this messes with codeckecking after parsing
 			// The if statement makes sure no extra caracters are added when EOF is reached
-			try {
+			try { // Set the line of code to the line index in readCodeLines
 				temp = readCodeLines.get( line() );
 				temp += ch;
 				readCodeLines.set( line(), temp );
 			} catch( IndexOutOfBoundsException e ) {
+				// the index in readCodeLines has not been initialized, add it to the list
 				temp = "";
 				temp += ch;
 				readCodeLines.add( line(), temp );
 			}
 		}
 		if(ch == '\t'){
-			currColumn += Constants.TAB_SIZE;
+			currColumn += Constants.TAB_SIZE; // column has to have the tabSize added to be correct for the error context
 		} else{
 			currColumn++;
 		}
@@ -648,7 +701,10 @@ public class Scanner {
 		}
 	}
 
-	// The same as readChar except it returns as soon as EOF is found, instead of avoiding adding -1 to the token
+	/**
+	 * The same as readChar except it returns as soon as EOF is found, instead of avoiding adding -1 to the token
+	 * @throws IOException
+	 */
 	public final void readCharAfterError()
 		throws IOException
 	{
@@ -658,21 +714,22 @@ public class Scanner {
 		}
 
 		ch = (char) currInt;
-		if( readCodeLines.isEmpty() ) {
+		if( readCodeLines.isEmpty() ) { // Initialize list of code lines, if it is empty
 			readCodeLines.add(0, "");
 		}
 		String temp;
-		try {
+		try { // set the line in readCodeLines to the line with the new char
 			temp = readCodeLines.get( line() );
 			temp += ch;
 			readCodeLines.set( line(), temp );
 		} catch( IndexOutOfBoundsException e ) {
+			// line in readCodeLines does not exist yet, add it with the new char
 			temp = "";
 			temp += ch;
 			readCodeLines.add( line(), temp );
 		}
 		if(ch == '\t'){
-			currColumn += Constants.TAB_SIZE;
+			currColumn += Constants.TAB_SIZE; // increase the currentcolumn with tabSize instead of 1, when char is tab
 		} else{
 			currColumn++;
 		}
