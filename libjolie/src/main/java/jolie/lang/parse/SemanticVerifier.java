@@ -213,6 +213,11 @@ public class SemanticVerifier implements UnitOLVisitor {
 		this.services = new HashMap<>();
 	}
 
+	/**
+	 * Returns the symbolTables. Used by the languageserver for vscode extension
+	 * 
+	 * @return symbolTebles
+	 */
 	public Map< URI, SymbolTable > symbolTables() {
 		return symbolTables;
 	}

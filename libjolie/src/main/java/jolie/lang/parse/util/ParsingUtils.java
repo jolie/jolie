@@ -97,6 +97,25 @@ public class ParsingUtils {
 			includeDocumentation );
 	}
 
+	/**
+	 * Works just like parseProgram, but returns the SemanticVerifier instead. Is used by the
+	 * languageserver for the vscode extension
+	 * 
+	 * @param inputStream
+	 * @param source
+	 * @param charset
+	 * @param includePaths
+	 * @param packagePaths
+	 * @param classLoader
+	 * @param definedConstants
+	 * @param semanticConfiguration
+	 * @param includeDocumentation
+	 * @return the SemanticVerifier
+	 * @throws IOException
+	 * @throws ParserException
+	 * @throws CodeCheckException
+	 * @throws ModuleException
+	 */
 	public static SemanticVerifier parseProgramModule(
 		InputStream inputStream,
 		URI source,
