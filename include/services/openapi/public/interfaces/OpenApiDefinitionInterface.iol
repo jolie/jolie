@@ -147,6 +147,16 @@ type DefinitionIsArrayRequest {
 
 type GetOpenApiDefinitionResponse: undefined
 
+type GetJolieTransformationFromSchemaRequest: void {
+    schema: undefined 
+    indentation: int
+    array_def_list?: undefined
+}
+
+type GetJolieTransformationFromSchemaResponse: string {
+    cardinality?: string
+}
+
 type GetJolieTypeFromOpenApiParametersRequest {
     definition: undefined
     name: string
@@ -171,6 +181,10 @@ type GetJolieDefinitionFromOpenApiArrayRequest {
     array_def_list?: undefined
 }
 
+type GetJolieDefinitionFromOpenApiArrayResponse: string {
+    cardinality: string 
+}
+
 type GetJolieNativeTypeFromOpenApiNativeTypeRequest {
     type: string | void
     format?: string
@@ -180,11 +194,12 @@ interface OpenApiDefinitionInterface {
   RequestResponse:
       definitionIsArray( DefinitionIsArrayRequest )( bool ),
       getOpenApiDefinition( GetOpenApiDefinitionRequest )( GetOpenApiDefinitionResponse ),
+      getJolieTransformationFromSchema( GetJolieTransformationFromSchemaRequest )( GetJolieTransformationFromSchemaResponse ) throws DefinitionError,
       getJolieTypeFromOpenApiDefinition( GetJolieTypeFromOpenApiDefinitionRequest )( string ),
       getJolieTypeFromOpenApiParameters( GetJolieTypeFromOpenApiParametersRequest )( string ),
       getJolieDefinitionFromOpenApiObject( GetJolieDefinitionFromOpenApiObjectRequest )( string )
         throws DefinitionError,
-      getJolieDefinitionFromOpenApiArray( GetJolieDefinitionFromOpenApiArrayRequest )( string ),
+      getJolieDefinitionFromOpenApiArray( GetJolieDefinitionFromOpenApiArrayRequest )( GetJolieDefinitionFromOpenApiArrayResponse ),
       getJolieNativeTypeFromOpenApiNativeType( GetJolieNativeTypeFromOpenApiNativeTypeRequest )( string ),
       getReferenceName( string )( string )
 

@@ -51,7 +51,7 @@ type deleteUserRequest: void {
 type deleteUserResponse:undefined 
 type updateUserRequest: void {
 .username:string
-.body: undefined
+.body: User
 }
 type updateUserResponse:undefined 
 type findPetsByStatusRequest: void {

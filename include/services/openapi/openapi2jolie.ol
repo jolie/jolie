@@ -152,7 +152,7 @@ main {
                     rq_arr.definition -> outputPort.interface.operation[ o ].response.schema;
                     rq_arr.indentation = 1;
                     getJolieDefinitionFromOpenApiArray@OpenApiDefinition( rq_arr )( array );
-                    type_string = type_string + " void {\n\t._" + array + "}\n"
+                    type_string = type_string + " void {\n\t._" + array. cardinality + ":" + array + "}\n"
                 } else if ( outputPort.interface.operation[ o ].response.schema.type == "object" ) {
                     type_string = type_string + "undefined\n"
                 } else {
