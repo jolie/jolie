@@ -219,8 +219,8 @@ public abstract class AbstractParser {
 		// TODO: change this to 0 instead of 1, as this would simplyfy code
 		// If startline, endline and line are 1, the line is 1. If startline and endline are 1, but line is
 		// not then startline and endline have not been set yet and line is line
-		if( scanner.startLine() == 1 && scanner.endLine() == 1 && scanner.line() >= 1 ) {
-			if( scanner.errorColumn() == -1 && scanner.line() > 1 ) {
+		if( scanner.startLine() == 0 && scanner.endLine() == 0 && scanner.line() >= 0 ) {
+			if( scanner.errorColumn() == -1 && scanner.line() > 0 ) {
 				// If the errorcolumn is -1 then we have read a newline character but nothing on the new line
 				// meaning we do not need what is on the last line, so we remove that line
 				// and change the errorcolumn to the last character on the net to last line
@@ -240,7 +240,7 @@ public abstract class AbstractParser {
 						column, column, scanner.codeLine() );
 				// System.out.println( "new context:\n" + newContext.toString() );
 				return newContext;
-			} else if( scanner.errorColumn() == -1 && scanner.line() <= 1 ) { // nothing has been read yet
+			} else if( scanner.errorColumn() == -1 && scanner.line() <= 0 ) { // nothing has been read yet
 				return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(),
 					0, 0 + token.content().length(), scanner.codeLine() );
 			} else { // errorColum >= 0
@@ -249,13 +249,13 @@ public abstract class AbstractParser {
 					scanner.codeLine() );
 			}
 		}
-		// if the start and end line are larger than 1 and the error column is -1
-		if( scanner.errorColumn() == -1 && scanner.endLine() > 1 && scanner.startLine() < scanner.endLine() ) {
+		// if the start and end line are larger than 0 and the error column is -1
+		if( scanner.errorColumn() == -1 && scanner.endLine() > 0 && scanner.startLine() < scanner.endLine() ) {
 			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
 			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine() - 1,
 				newColumn, newColumn + token.content().length(),
 				scanner.codeLine() );
-		} else if( scanner.errorColumn() == -1 && scanner.endLine() > 1 && scanner.startLine() >= scanner.endLine() ) {
+		} else if( scanner.errorColumn() == -1 && scanner.endLine() > 0 && scanner.startLine() >= scanner.endLine() ) {
 			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
 			return new URIParsingContext( scanner.source(), scanner.startLine() - 1, scanner.endLine() - 1,
 				newColumn, newColumn + token.content().length(),
@@ -490,7 +490,7 @@ public abstract class AbstractParser {
 			// Since we are not looking at a whole scope, but a single line, we just assume the error is at the
 			// startLine,
 			// which is the first line in the enclosingCode
-			int columnSpace = context.startColumn() + (context.startLine() + ":").length();
+			int columnSpace = context.startColumn() + (context.startLine() + 1 + ":").length();
 			help.append( context.enclosingCode().get( 0 ).substring( 0, columnSpace ) )
 				.append( proposedWord.get( 0 ) )
 				.append( context.enclosingCode().get( 0 ).substring( tokenContent.length() + columnSpace ) );
@@ -540,9 +540,9 @@ public abstract class AbstractParser {
 				help.append( "\nYour term is similar to what would be valid input: " )
 					.append( String.join( ", ", proposedWord ) )
 					.append( ". Perhaps you meant:\n" );
-				int numberSpaces = context.startColumn() + (":" + context.endLine()).length();
+				int numberSpaces = context.startColumn() + (":" + (context.endLine() + 1)).length();
 				for( String line : context.enclosingCodeWithLineNumbers() ) {
-					if( line.contains( context.endLine() + ":" ) ) {
+					if( line.contains( context.endLine() + 1 + ":" ) ) {
 						// For the line with error, substitute the token with the first proposed term
 						help.append( line.substring( 0, numberSpaces ) )
 							.append( proposedWord.get( 0 ) )
@@ -663,7 +663,7 @@ public abstract class AbstractParser {
 				// originally threw the error
 				int columnNumber = extralines.get( extralines.size() - 1 ).lastIndexOf( "}" );
 				context =
-					new URIParsingContext( context.source(), context.endLine(), context.endLine(), columnNumber,
+					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 						columnNumber + token.content().length(),
 						extralines );
 				help = createHelpMessageWithScope( context, token.content(), scope );
@@ -677,8 +677,22 @@ public abstract class AbstractParser {
 			} else if( mesg.contains( "expected :" ) ) {
 				// location or others is missing ':'
 				// point to the word after the colon
-				context = new URIParsingContext( context.source(), context.endLine(), context.endLine(),
-					context.startColumn(), context.startColumn() + token.content().length(), extralines );
+				int column;
+				if( mesg.contains( "after Location" ) ) {
+					column = extralines.get( extralines.size() - 1 ).toLowerCase().indexOf( "location" ) + 8;
+				} else if( mesg.contains( "after Protocol" ) ) {
+					column = extralines.get( extralines.size() - 1 ).toLowerCase().indexOf( "protocol" ) + 8;
+				} else if( mesg.contains( "after Aggregates" ) ) {
+					column = extralines.get( extralines.size() - 1 ).toLowerCase().indexOf( "aggregates" ) + 10;
+				} else if( mesg.contains( "after Interfaces" ) ) {
+					column = extralines.get( extralines.size() - 1 ).toLowerCase().indexOf( "interfaces" ) + 10;
+				} else if( mesg.contains( "after Redirects" ) ) {
+					column = extralines.get( extralines.size() - 1 ).toLowerCase().indexOf( "redirects" ) + 9;
+				} else {
+					column = context.startColumn();
+				}
+				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+					column, column, extralines );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else {
 				// in all other cases, set the endColumn to the startColumn+token
@@ -819,16 +833,20 @@ public abstract class AbstractParser {
 				int i = context.startLine();
 				for( String string : extralines ) {
 					if( string.matches( "^.+:\\s*$" ) ) { // finds the line with nothing after the colon
+						// TODO: should match even when a comment is written after
+						// "^.+:(\\s*|\\s+//.*|\\s+/\\*.*)$" (does not work for some reason)
 						correctLine = string;
+						int column = correctLine.indexOf( ':' );
+						context =
+							new URIParsingContext( context.source(), i, i, column, column, List.of( correctLine ) );
 						break;
 					}
 					i += 1;
-
 				}
-				// set correct line and column
-				// TODO: for some reason the column for this error is wrong
-				context = new URIParsingContext( context.source(), i, i, correctLine.length(),
-					correctLine.length(), List.of( correctLine ) );
+				if( correctLine.equals( "" ) ) {
+					context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+						context.startColumn(), context.endColumn(), extralines );
+				}
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else {
 				// any other error for type scope

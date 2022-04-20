@@ -272,7 +272,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( node == null ) {
 			LOGGER.warning( message );
 		} else {
-			LOGGER.warning( node.context().sourceName() + ":" + node.context().startLine() + ": " + message );
+			LOGGER.warning( node.context().sourceName() + ":" + (node.context().startLine() + 1) + ": " + message );
 		}
 	}
 

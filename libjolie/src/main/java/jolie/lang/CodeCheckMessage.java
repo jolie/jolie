@@ -113,7 +113,7 @@ public class CodeCheckMessage {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
 			// Add context
-			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startLine() )
+			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startLine() + 1 )
 				.append( ": error: " );
 			// Add description
 			if( description != null ) {
@@ -128,7 +128,7 @@ public class CodeCheckMessage {
 					messageBuilder.append( "\n" );
 				}
 				// Add the extra line with the upwards arrow, to the startcolumn
-				for( int i = 0; i < context.startColumn() + (":" + context.endLine()).length(); i++ ) {
+				for( int i = 0; i < context.startColumn() + (":" + (context.endLine() + 1)).length(); i++ ) {
 					messageBuilder.append( " " );
 				}
 				messageBuilder.append( "^\n" );

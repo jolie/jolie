@@ -140,7 +140,7 @@ public class URIParsingContext implements ParsingContext {
 		int i = startLine;
 		List< String > linesWithNumbers = new ArrayList<>();
 		for( String line : code ) {
-			String newLine = i + ":" + line;
+			String newLine = i + 1 + ":" + line;
 			linesWithNumbers.add( newLine );
 			i++;
 		}

@@ -387,9 +387,9 @@ public class Scanner {
 		this.reader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
 		this.source = source;
 		this.includeDocumentation = includeDocumentation;
-		line = 1; // TODO: set lines to start at 0, to make remove line calculations here and in language server
-		startLine = 1;
-		endLine = 1;
+		line = 0; // TODO: set lines to start at 0, to make remove line calculations here and in language server
+		startLine = 0;
+		endLine = 0;
 		currColumn = 0;
 		readChar();
 	}
@@ -494,14 +494,14 @@ public class Scanner {
 	 */
 	public List<String> codeLineWithLineNumber() {
 		try{
-			String line = line()+":"+readCodeLines.get(line());
+			String line = 1+line()+":"+readCodeLines.get(line());
 			if(!line.endsWith("\n")){
 				line += "\n";
 			}
 			return List.of(line);
 		} catch (IndexOutOfBoundsException e){
 			if(line()>0){
-				String line = (line()-1)+":"+readCodeLines.get(line()-1);
+				String line = 1+(line()-1)+":"+readCodeLines.get(line()-1);
 				if(!line.endsWith("\n")){
 					line += "\n";
 				}
@@ -681,12 +681,20 @@ public class Scanner {
 			// The if statement makes sure no extra caracters are added when EOF is reached
 			try { // Set the line of code to the line index in readCodeLines
 				temp = readCodeLines.get( line() );
-				temp += ch;
+				if(ch == '\t'){
+					temp += " ".repeat(Constants.TAB_SIZE);
+				} else {
+					temp += ch;
+				}
 				readCodeLines.set( line(), temp );
 			} catch( IndexOutOfBoundsException e ) {
 				// the index in readCodeLines has not been initialized, add it to the list
 				temp = "";
-				temp += ch;
+				if(ch == '\t'){
+					temp += " ".repeat(Constants.TAB_SIZE);
+				} else {
+					temp += ch;
+				}
 				readCodeLines.add( line(), temp );
 			}
 		}
@@ -720,12 +728,20 @@ public class Scanner {
 		String temp;
 		try { // set the line in readCodeLines to the line with the new char
 			temp = readCodeLines.get( line() );
-			temp += ch;
+			if(ch == '\t'){
+				temp += " ".repeat(Constants.TAB_SIZE);
+			} else {
+				temp += ch;
+			}
 			readCodeLines.set( line(), temp );
 		} catch( IndexOutOfBoundsException e ) {
 			// line in readCodeLines does not exist yet, add it with the new char
 			temp = "";
-			temp += ch;
+			if(ch == '\t'){
+				temp += " ".repeat(Constants.TAB_SIZE);
+			} else {
+				temp += ch;
+			}
 			readCodeLines.add( line(), temp );
 		}
 		if(ch == '\t'){
