@@ -25,15 +25,27 @@ package joliex.util;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @AndJarDeps( { "jolie-uri.jar", "uri-templates.jar", "joda-time.jar" } )
 public class UriTemplates extends JavaService {
 	public Value match( Value request ) {
-		return jolie.uri.UriUtils.match( request );
+		return jolie.uri.UriUtils.match( request.getFirstChild( "template" ).strValue(),
+			request.getFirstChild( "uri" ).strValue() );
 	}
 
 	public String expand( Value request ) {
-		return jolie.uri.UriUtils.expand( request );
+		Map< String, Object > params = new HashMap<>();
+		if( request.hasChildren( "params" ) ) {
+			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children()
+				.entrySet() ) {
+				params.put( entry.getKey(), entry.getValue().first().valueObject() );
+			}
+		}
+		return jolie.uri.UriUtils.expand( request.getFirstChild( "template" ).strValue(), params );
 	}
 }
