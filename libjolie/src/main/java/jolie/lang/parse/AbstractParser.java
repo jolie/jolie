@@ -198,25 +198,8 @@ public abstract class AbstractParser {
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContextDuringError() throws IOException {
-		String contextString = "";
-		contextString += "line: " + scanner.line() + "\n";
-		contextString += "startLine: " + scanner.startLine() + "\n";
-		contextString += "endLine: " + scanner.endLine() + "\n";
-		contextString += "errorColumn: " + scanner.errorColumn() + "\n";
-		contextString += "errorColumn+token: " + (scanner.errorColumn() + token.content().length()) + "\n";
-		contextString += "codeLine:\n" + scanner.codeLine() + "\n";
-		System.out.println( "context just before readLineAfterError:\n" + contextString );
 		// read the rest of the line, so we can use the whole line in the error message
 		readLineAfterError();
-		String contextString1 = "";
-		contextString1 += "line: " + scanner.line() + "\n";
-		contextString1 += "startLine: " + scanner.startLine() + "\n";
-		contextString1 += "endLine: " + scanner.endLine() + "\n";
-		contextString1 += "errorColumn: " + scanner.errorColumn() + "\n";
-		contextString1 += "errorColumn+token: " + (scanner.errorColumn() + token.content().length()) + "\n";
-		contextString1 += "codeLine:\n" + scanner.codeLine() + "\n";
-		System.out.println( "context1 after readLineAfterError:\n" + contextString1 );
-		// TODO: change this to 0 instead of 1, as this would simplyfy code
 		// If startline, endline and line are 1, the line is 1. If startline and endline are 1, but line is
 		// not then startline and endline have not been set yet and line is line
 		if( scanner.startLine() == 0 && scanner.endLine() == 0 && scanner.line() >= 0 ) {
@@ -224,21 +207,12 @@ public abstract class AbstractParser {
 				// If the errorcolumn is -1 then we have read a newline character but nothing on the new line
 				// meaning we do not need what is on the last line, so we remove that line
 				// and change the errorcolumn to the last character on the net to last line
-				// System.out.println( "startline,endline = 1, errorcolumn = -1!!!!!!!!!!!!!!!!!1" );
-				/*
-				 * String contextString1 = ""; contextString1 += "startLine: " + scanner.startLine() + "\n";
-				 * contextString1 += "endLine: " + scanner.endLine() + "\n"; contextString1 += "errorColumn: " +
-				 * scanner.errorColumn() + "\n"; contextString1 += "endColumn+token: " + (scanner.errorColumn() +
-				 * token.content().length()) + "\n"; contextString1 += "codeLine:\n" + scanner.codeLine() + "\n";
-				 * System.out.println( "context:\n" + contextString1 );
-				 */
 				scanner.codeLine().remove( scanner.codeLine().size() - 1 );
 				int column = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1; // last index of
 																									// (new)last line
 				URIParsingContext newContext =
 					new URIParsingContext( scanner.source(), scanner.line() - 1, scanner.line() - 1,
 						column, column, scanner.codeLine() );
-				// System.out.println( "new context:\n" + newContext.toString() );
 				return newContext;
 			} else if( scanner.errorColumn() == -1 && scanner.line() <= 0 ) { // nothing has been read yet
 				return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(),
