@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi <famontesi@gmail.com>               *
+ *   Copyright (C) by Fabrizio Montesi <famontesi@gmail.com>			   *
+ *   Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>	               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *

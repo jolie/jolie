@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
