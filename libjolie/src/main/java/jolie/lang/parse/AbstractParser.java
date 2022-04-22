@@ -201,7 +201,7 @@ public abstract class AbstractParser {
 	public final ParsingContext getContextDuringError() throws IOException {
 		// read the rest of the line, so we can use the whole line in the error message
 		readLineAfterError();
-		// If startline, endline and line are 1, the line is 1. If startline and endline are 1, but line is
+		// If startline, endline and line are 0, the line is 0. If startline and endline are 0, but line is
 		// not then startline and endline have not been set yet and line is line
 		if( scanner.startLine() == 0 && scanner.endLine() == 0 && scanner.line() >= 0 ) {
 			if( scanner.errorColumn() == -1 && scanner.line() > 0 ) {

@@ -388,7 +388,7 @@ public class Scanner {
 		this.reader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
 		this.source = source;
 		this.includeDocumentation = includeDocumentation;
-		line = 0; // TODO: set lines to start at 0, to make remove line calculations here and in language server
+		line = 0;
 		startLine = 0;
 		endLine = 0;
 		currColumn = 0;

@@ -47,7 +47,7 @@ public class URIParsingContext implements ParsingContext {
 	private final int endLine;
 
 	public static final URIParsingContext DEFAULT =
-		new URIParsingContext( URI.create( "urn:undefined" ), 1, 1, 0, 0, List.of() );
+		new URIParsingContext( URI.create( "urn:undefined" ), 0, 0, 0, 0, List.of() );
 
 	/**
 	 * URIParsingContext contructor. startLine, endLine, startColumn, endColumn indicate which part of
