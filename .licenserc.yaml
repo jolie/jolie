@@ -17,7 +17,7 @@
 #
 header:
   license:
-    spdx-id: LGPL-2.0-or-later
+    spdx-id: LGPL-2.1-or-later
 
   paths-ignore:
     - '.gitignore'
