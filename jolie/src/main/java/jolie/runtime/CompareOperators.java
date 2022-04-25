@@ -24,7 +24,7 @@ package jolie.runtime;
 import java.util.function.BiPredicate;
 
 /**
- * Boolean comparison operators for {@code Value} objects.
+ * Boolean comparison operators for {@link Value} objects.
  * 
  * @author Fabrizio Montesi
  */
