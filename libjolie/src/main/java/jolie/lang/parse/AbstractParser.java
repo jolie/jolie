@@ -201,9 +201,10 @@ public abstract class AbstractParser {
 	public final ParsingContext getContextDuringError() throws IOException {
 		// read the rest of the line, so we can use the whole line in the error message
 		readLineAfterError();
+		int lineState = scanner.lineState();
 		// If startline, endline and line are 0, the line is 0. If startline and endline are 0, but line is
 		// not then startline and endline have not been set yet and line is line
-		if( scanner.startLine() == 0 && scanner.endLine() == 0 && scanner.line() >= 0 ) {
+		if( lineState == 0 ) {
 			if( scanner.errorColumn() == -1 && scanner.line() > 0 ) {
 				// If the errorcolumn is -1 then we have read a newline character but nothing on the new line
 				// meaning we do not need what is on the last line, so we remove that line
@@ -225,12 +226,12 @@ public abstract class AbstractParser {
 			}
 		}
 		// if the start and end line are larger than 0 and the error column is -1
-		if( scanner.errorColumn() == -1 && scanner.endLine() > 0 && scanner.startLine() < scanner.endLine() ) {
+		if( scanner.errorColumn() == -1 && lineState == 1 ) {
 			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
 			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine() - 1,
 				newColumn, newColumn + token.content().length(),
 				scanner.codeLine() );
-		} else if( scanner.errorColumn() == -1 && scanner.endLine() > 0 && scanner.startLine() >= scanner.endLine() ) {
+		} else if( scanner.errorColumn() == -1 && lineState == 2 ) {
 			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
 			return new URIParsingContext( scanner.source(), scanner.startLine() - 1, scanner.endLine() - 1,
 				newColumn, newColumn + token.content().length(),

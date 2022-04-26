@@ -601,6 +601,30 @@ public class Scanner {
 	}
 
 	/**
+	 * used in AbstractParser getContextDuringError()
+	 * returns 1 when startline == 0, endline == 0 and line >= 0
+	 * returns 2 when endline > 0 and startline < endline
+	 * returns 3 when endline > 0 and startline >= endline
+	 * returns -1 if none of the others match
+	 * @return
+	 */
+	public int lineState(){
+		// start and end line might not have been set
+		if(startLine() == 0 && endLine() == 0 && line() >= 0){
+			return 0;
+		}
+		// end line has been set and is larger than start line
+		if(endLine() > 0 && startLine() < endLine()){
+			return 1;
+		}
+		// if end line has been set and start line is larger or equal to end line
+		if(endLine() > 0 && startLine() >= endLine()){
+			return 2;
+		}
+		return -1;
+	}
+
+	/**
 	 * Eats all separators (whitespace) until the next input.
 	 */
 	public void eatSeparators()
