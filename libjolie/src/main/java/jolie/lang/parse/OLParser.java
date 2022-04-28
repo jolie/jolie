@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006-2021 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk> 
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -201,7 +202,7 @@ public class OLParser extends AbstractParser {
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader ) {
 		super( scanner );
-		final ParsingContext context = new URIParsingContext( scanner.source(), 0, 0, 0, List.of() );
+		final ParsingContext context = new URIParsingContext( scanner.source(), 1, 1, 0, 0, List.of() );
 		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
@@ -252,7 +253,6 @@ public class OLParser extends AbstractParser {
 
 	private void parseLoop( ParsingRunnable... parseRunnables )
 		throws IOException, ParserException {
-		setStartline();
 		nextToken();
 		if( token.is( Scanner.TokenType.HASH ) ) {
 			// Shebang scripting
@@ -270,6 +270,8 @@ public class OLParser extends AbstractParser {
 		} while( t != token ); // Loop until no procedures can eat the initial token
 
 		if( t.isNot( Scanner.TokenType.EOF ) ) {
+			// A term not parsable has been found, throw exception
+			setStartLine();
 			setEndLine();
 			throwExceptionWithScope( "Unexpected term", null, "outer" );
 		}
@@ -297,7 +299,7 @@ public class OLParser extends AbstractParser {
 		boolean keepRun = true;
 
 		while( keepRun ) {
-
+			int startLine = line(); // remember the line we started parsing type at
 			Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
 			Optional< Scanner.Token > accessModifierToken = parseAccessModifier();
 			if( token.isKeyword( "type" ) ) {
@@ -310,18 +312,23 @@ public class OLParser extends AbstractParser {
 
 				String typeName;
 				TypeDefinition currentType;
-
 				nextToken();
+				int startColumn = errorColumn(); // remember column of the start of the typename
 				typeName = token.content();
+				int endLine = line(); // remember the line we are ending the type at
 				eat( Scanner.TokenType.ID, "expected type name" );
+				// Creating a new parsingContext manually to get the correct line and column for the type
+				// Used in error messages and symbolTable for the vscode extension
+				ParsingContext context = new URIParsingContext( getContext().source(), startLine, endLine, startColumn,
+					startColumn + typeName.length(), codeLine() );
 				if( token.is( Scanner.TokenType.COLON ) ) {
 					nextToken();
 				} else {
 					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
 					nextToken();
 				}
-
-				currentType = parseType( typeName, accessModifier );
+				// call parseType with the context with correct lines and columns
+				currentType = parseType( typeName, accessModifier, context );
 				if( forwardDocToken.isPresent() ) {
 					parseBackwardAndSetDocumentation( currentType, forwardDocToken );
 					forwardDocToken = Optional.empty();
@@ -343,19 +350,17 @@ public class OLParser extends AbstractParser {
 		}
 	}
 
-	private TypeDefinition parseType( String typeName, AccessModifier accessModifier )
+	private TypeDefinition parseType( String typeName, AccessModifier accessModifier, ParsingContext context )
 		throws IOException, ParserException {
 		TypeDefinition currentType;
-
 		BasicTypeDefinition basicTypeDefinition = readBasicType();
 		if( basicTypeDefinition == null ) { // It's a user-defined type
 			currentType =
-				new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
+				new TypeDefinitionLink( context, typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
 			nextToken();
 		} else {
 			currentType =
-				new TypeInlineDefinition( getContext(), typeName, basicTypeDefinition, Constants.RANGE_ONE_TO_ONE );
-
+				new TypeInlineDefinition( context, typeName, basicTypeDefinition, Constants.RANGE_ONE_TO_ONE );
 			if( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
@@ -363,8 +368,13 @@ public class OLParser extends AbstractParser {
 
 		if( token.is( Scanner.TokenType.PARALLEL ) ) { // It's a sum (union, choice) type
 			nextToken();
-			final TypeDefinition secondType = parseType( typeName, accessModifier );
-			return new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType,
+			// create a new context for the secondType (not sure if necessary)
+			int startLine = line();
+			int column = errorColumn();
+			ParsingContext secondContext = new URIParsingContext( context.source(), startLine, startLine, column,
+				column + token.content().length(), codeLine() );
+			final TypeDefinition secondType = parseType( typeName, accessModifier, secondContext );
+			return new TypeChoiceDefinition( context, typeName, Constants.RANGE_ONE_TO_ONE, currentType,
 				secondType );
 		}
 
@@ -385,6 +395,7 @@ public class OLParser extends AbstractParser {
 				type.setUntypedSubTypes( true );
 				nextToken();
 			} else {
+				setStartLine(); // set startLine for eventual error
 				TypeDefinition currentSubType;
 				while( !token.is( Scanner.TokenType.RCURLY ) ) {
 					if( token.is( Scanner.TokenType.DOCUMENTATION_FORWARD ) ) {
@@ -405,7 +416,8 @@ public class OLParser extends AbstractParser {
 						if( token.is( Scanner.TokenType.STRING ) ) {
 							nextToken();
 						} else {
-							eatIdentifier( "expected type node name" );
+							setEndLine(); // set endLine for error
+							eatIdentifier( "expected type node name", "", Keywords.TYPE );
 						}
 
 						Range cardinality = parseCardinality();
@@ -415,7 +427,6 @@ public class OLParser extends AbstractParser {
 							prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
 							nextToken();
 						}
-
 						currentSubType = parseSubType( id, cardinality );
 
 						parseBackwardAndSetDocumentation( currentSubType, commentToken );
@@ -1018,7 +1029,7 @@ public class OLParser extends AbstractParser {
 	private ExecutionInfo _parseExecutionInfo()
 		throws IOException, ParserException {
 		Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
-		setStartline();
+		setStartLine(); // remember line we started parsing execution info
 		nextToken();
 		boolean inCurlyBrackets = false;
 		if( token.is( Scanner.TokenType.COLON ) ) {
@@ -1027,10 +1038,12 @@ public class OLParser extends AbstractParser {
 			inCurlyBrackets = true;
 			nextToken();
 		} else {
+			setEndLine(); // remember ending line of parsing execution for error
 			throwException( "expected : or { after execution" );
 		}
-		setEndLine();
-		assertToken( Scanner.TokenType.ID, "expected execution modality", null, "execution" );
+		setEndLine(); // remember ending line of parsing execution for error
+		// assert token, set scope for eventual error
+		assertToken( Scanner.TokenType.ID, "expected execution modality", null, Keywords.EXECUTION );
 		switch( token.content() ) {
 		case "sequential":
 			mode = Constants.ExecutionMode.SEQUENTIAL;
@@ -1042,7 +1055,8 @@ public class OLParser extends AbstractParser {
 			mode = Constants.ExecutionMode.SINGLE;
 			break;
 		default:
-			throwExceptionWithScope( "Expected execution mode", null, "execution" );
+			// throw error with scope set
+			throwExceptionWithScope( "Expected execution mode", null, Keywords.EXECUTION );
 			break;
 		}
 		nextToken();
@@ -1505,7 +1519,7 @@ public class OLParser extends AbstractParser {
 
 				eat( Scanner.TokenType.COLON, "expected :" );
 				String typeName = token.content();
-				TypeDefinition parameterType = parseType( typeName, AccessModifier.PRIVATE );
+				TypeDefinition parameterType = parseType( typeName, AccessModifier.PRIVATE, getContext() );
 
 				eat( Scanner.TokenType.RPAREN, "expected )" );
 				return new Pair<>( paramPath, parameterType );
@@ -1583,11 +1597,13 @@ public class OLParser extends AbstractParser {
 			nextToken();
 			return;
 		}
+		setStartLine(); // remember line we started parsing service at
 		nextToken();
 
 		Constants.EmbeddedServiceType tech = Constants.EmbeddedServiceType.SERVICENODE;
 		Map< String, String > configMap = new HashMap<>();
 
+		setEndLine(); // remember endline of parsing service for error
 		assertToken( Scanner.TokenType.ID, "expected service name" );
 		ParsingContext ctx = getContext();
 		String serviceName = token.content();
@@ -1595,7 +1611,9 @@ public class OLParser extends AbstractParser {
 
 		Pair< String, TypeDefinition > parameter = parseServiceParameter();
 
-		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		setEndLine();// remember endline of parsing service for error
+		// look for curly bracket with scope and scopeName in case of error
+		eat( Scanner.TokenType.LCURLY, "expected {", serviceName, Keywords.SERVICE );
 		// jolie internal service's Interface
 		InterfaceDefinition[] internalIfaces = null;
 
@@ -1632,6 +1650,9 @@ public class OLParser extends AbstractParser {
 				internalInit.addChild( parseInit() );
 				break;
 			case "main":
+				// remember start and end line for error
+				setStartLine();
+				setEndLine();
 				if( internalMain != null ) {
 					throwException( "you must specify only one main definition" );
 				}
@@ -1677,18 +1698,25 @@ public class OLParser extends AbstractParser {
 					}
 					configMap.put( key, value );
 				}
+				setEndLine(); // remember end line for error
 				eat( Scanner.TokenType.RCURLY, "expected }" );
 			default:
+				setEndLine(); // remember end line for error
+				if( token.isNot( Scanner.TokenType.EOF ) ) {
+					setStartLine(); // remember start line for error
+				}
+				// assert with scopeName and scope in case of error
 				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
 					serviceName, "service" );
 				keepRun = false;
 			}
 		}
-
+		setEndLine(); // remember end line for error
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 		// it is a Jolie internal service
 		if( internalIfaces != null && internalIfaces.length > 0 ) {
 			if( internalMain == null ) {
+				setEndLine(); // remember end line for error
 				throwException( "You must specify a main for service " + serviceName );
 			}
 			EmbeddedServiceNode node = createInternalService( ctx, serviceName, internalIfaces,
@@ -1731,12 +1759,14 @@ public class OLParser extends AbstractParser {
 		OLSyntaxNode protocol = null;
 		OLSyntaxNode location = null;
 		List< InterfaceDefinition > interfaceList = new ArrayList<>();
-		setStartline();
+		setStartLine(); // remember start line for error
 		nextToken();
-		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
+		setEndLine(); // remember end line for error
+		assertToken( Scanner.TokenType.ID, "expected inputPort name", null, Keywords.INPUT_PORT );
 		inputPortName = token.content();
 		nextToken();
-		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		setEndLine(); // remember end line for error
+		eat( Scanner.TokenType.LCURLY, "expected {", inputPortName, Keywords.INPUT_PORT );
 		InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + inputPortName );
 
 		Map< String, String > redirectionMap = new HashMap<>();
@@ -1753,7 +1783,8 @@ public class OLParser extends AbstractParser {
 					throwException( "Location already defined for service " + inputPortName );
 				}
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected : after location" );
+				setEndLine(); // remember end line for error
+				eat( Scanner.TokenType.COLON, "expected : after Location", inputPortName, Keywords.INPUT_PORT );
 				checkConstant();
 				if( token.content().startsWith( "local" ) ) {
 					// check if the inputPort is listening to local protocol
@@ -1762,10 +1793,12 @@ public class OLParser extends AbstractParser {
 				location = parseBasicExpression();
 			} else if( token.isKeyword( "interfaces" ) || token.isKeyword( "Interfaces" ) ) {
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected : after interfaces" );
+				setEndLine(); // remember end line for error
+				eat( Scanner.TokenType.COLON, "expected : after Interfaces", inputPortName, Keywords.INPUT_PORT );
 				boolean keepRun = true;
 				while( keepRun ) {
-					assertToken( Scanner.TokenType.ID, "expected interface name" );
+					setEndLine(); // remember end line for error
+					assertToken( Scanner.TokenType.ID, "expected interface name", inputPortName, Keywords.INPUT_PORT );
 					InterfaceDefinition i =
 						new InterfaceDefinition( getContext(), token.content() );
 					interfaceList.add( i );
@@ -1782,12 +1815,14 @@ public class OLParser extends AbstractParser {
 					throwException( "Protocol already defined for inputPort " + inputPortName );
 				}
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected : after protocol" );
+				setEndLine(); // remember end line for error
+				eat( Scanner.TokenType.COLON, "expected : after Protocol", inputPortName, Keywords.INPUT_PORT );
 				checkConstant();
 				protocol = parseBasicExpression();
 			} else if( token.isKeyword( "redirects" ) || token.isKeyword( "Redirects" ) ) {
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected :" );
+				setEndLine(); // remember end line for error
+				eat( Scanner.TokenType.COLON, "expected : after Redirects", inputPortName, Keywords.INPUT_PORT );
 				String subLocationName;
 				while( token.is( Scanner.TokenType.ID ) ) {
 					subLocationName = token.content();
@@ -1804,30 +1839,31 @@ public class OLParser extends AbstractParser {
 				}
 			} else if( token.isKeyword( "aggregates" ) || token.isKeyword( "Aggregates" ) ) {
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected :" );
+				setEndLine(); // remember end line for error
+				eat( Scanner.TokenType.COLON, "expected : after Aggregates", inputPortName, Keywords.INPUT_PORT );
 				parseAggregationList( aggregationList );
 			} else {
-				setEndLine();
+				setEndLine(); // remember end line for error
 				throwExceptionWithScope( "Unrecognized term in inputPort " + inputPortName, inputPortName,
-					"inputPort" );
+					Keywords.INPUT_PORT );
 			}
 		}
-		// setting the start and endline before asserting (though the assert will always be true here),
+		// setting the endline before asserting (though the assert will always be true here),
 		// so we have the correct last line number of code for the error
 		setEndLine();
 		assertToken( Scanner.TokenType.RCURLY, "} expected" );
 		if( location == null ) {
 			throwExceptionWithScope( "expected location URI for " + inputPortName, inputPortName,
-				"inputPort" );
+				Keywords.INPUT_PORT );
 		} else if( (interfaceList.isEmpty() && iface.operationsMap().isEmpty()) && redirectionMap.isEmpty()
 			&& aggregationList.isEmpty() ) {
 			throwExceptionWithScope(
 				"expected at least one operation, interface, aggregation or redirection for inputPort "
 					+ inputPortName,
-				inputPortName, "inputPort" );
+				inputPortName, Keywords.INPUT_PORT );
 		} else if( protocol == null && !isLocationLocal ) {
 			throwExceptionWithScope( "expected protocol for inputPort " + inputPortName, inputPortName,
-				"inputPort" );
+				Keywords.INPUT_PORT );
 		}
 		nextToken();
 		InputPortInfo iport =
@@ -1911,13 +1947,18 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		String name;
 		InterfaceDefinition iface;
+		// set start and end line in case of error
+		setStartLine();
+		setEndLine();
 		assertToken( Scanner.TokenType.ID, "expected interface name" );
 		name = token.content();
 		nextToken();
-		eat( Scanner.TokenType.LCURLY, "expected {" );
+		setEndLine(); // remember end line for error
+		eat( Scanner.TokenType.LCURLY, "expected {", name, Keywords.INTERFACE );
 		iface = new InterfaceDefinition( getContext(), name, accessModifier );
 		parseOperations( iface );
-		eat( Scanner.TokenType.RCURLY, "expected }", name, "interface" );
+		setEndLine(); // remember end line for error
+		eat( Scanner.TokenType.RCURLY, "expected }", name, Keywords.INTERFACE );
 
 		return iface;
 	}
@@ -1952,7 +1993,10 @@ public class OLParser extends AbstractParser {
 				parseRequestResponseOperations( p );
 			} else if( token.isKeyword( "interfaces" ) || token.isKeyword( "Interfaces" ) ) {
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
+				// set start and end line in case of error
+				setStartLine();
+				setEndLine();
+				eat( Scanner.TokenType.COLON, "expected : after Interfaces", p.id(), Keywords.OUTPUT_PORT );
 				boolean r = true;
 				while( r ) {
 					assertToken( Scanner.TokenType.ID, "expected interface name" );
@@ -1972,7 +2016,10 @@ public class OLParser extends AbstractParser {
 				}
 
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected :" );
+				// set start and end line in case of error
+				setStartLine();
+				setEndLine();
+				eat( Scanner.TokenType.COLON, "expected : after Location", p.id(), Keywords.OUTPUT_PORT );
 				checkConstant();
 
 				OLSyntaxNode expr = parseBasicExpression();
@@ -1983,7 +2030,10 @@ public class OLParser extends AbstractParser {
 				}
 
 				nextToken();
-				eat( Scanner.TokenType.COLON, "expected :" );
+				// set start and end line in case of error
+				setStartLine();
+				setEndLine();
+				eat( Scanner.TokenType.COLON, "expected : after Protocol", p.id(), Keywords.OUTPUT_PORT );
 				checkConstant();
 				OLSyntaxNode protocol = parseBasicExpression();
 				p.setProtocol( protocol );
@@ -1999,7 +2049,7 @@ public class OLParser extends AbstractParser {
 	private void parseOneWayOperations( OperationCollector oc )
 		throws IOException, ParserException {
 		nextToken();
-		eat( Scanner.TokenType.COLON, "expected :" );
+		eat( Scanner.TokenType.COLON, "expected : after OneWay expression" );
 
 		boolean keepRun = true;
 		Scanner.Token commentToken = null;
@@ -2049,7 +2099,7 @@ public class OLParser extends AbstractParser {
 	private void parseRequestResponseOperations( OperationCollector oc )
 		throws IOException, ParserException {
 		nextToken();
-		eat( Scanner.TokenType.COLON, "expected :" );
+		eat( Scanner.TokenType.COLON, "expected : after RequestResponse expression" );
 		boolean keepRun = true;
 		Scanner.Token commentToken = null;
 		String opId;
@@ -2173,9 +2223,9 @@ public class OLParser extends AbstractParser {
 	private DefinitionNode parseMain()
 		throws IOException, ParserException {
 		nextToken();
-		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
+		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier", "", Keywords.MAIN );
 		DefinitionNode retVal = new DefinitionNode( getContext(), "main", parseProcess() );
-		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
+		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition", "", Keywords.MAIN );
 		return retVal;
 	}
 
@@ -2311,6 +2361,7 @@ public class OLParser extends AbstractParser {
 	private OLSyntaxNode parseBasicStatement( boolean throwException )
 		throws IOException, ParserException {
 		OLSyntaxNode retVal = null;
+		setStartLine(); // set start line in case of error
 
 		switch( token.type() ) {
 		case LSQUARE:
@@ -2635,7 +2686,8 @@ public class OLParser extends AbstractParser {
 		}
 
 		if( throwException && retVal == null ) {
-			throwException( "expected basic statement" );
+			setEndLine(); // set end line for error
+			throwExceptionWithScope( "expected basic statement", null, Keywords.MAIN );
 		}
 
 		return retVal;
@@ -3057,6 +3109,7 @@ public class OLParser extends AbstractParser {
 
 	private OLSyntaxNode parseOutputOperationStatement( String id )
 		throws IOException, ParserException {
+		setStartLine(); // set start line for eventual error
 		ParsingContext context = getContext();
 		String outputPortId = token.content();
 		nextToken();
@@ -3078,7 +3131,6 @@ public class OLParser extends AbstractParser {
 						Scanner.TokenType.RSQUARE, "expected ]" );
 				}
 			}
-
 			stm = new SolicitResponseOperationStatement(
 				context,
 				id,
@@ -3440,7 +3492,11 @@ public class OLParser extends AbstractParser {
 			if( token.is( Scanner.TokenType.LCURLY ) ) {
 				retVal = new VoidExpressionNode( getContext() );
 			} else {
-				throwException( "expected expression" );
+				// set start and end line for error
+				setStartLine();
+				setEndLine();
+				// Using with scope to get the correct context
+				throwExceptionWithScope( "expected expression", "", "" );
 			}
 		}
 
@@ -3532,7 +3588,6 @@ public class OLParser extends AbstractParser {
 		Scanner.TokenType... extensions )
 		throws IOException, ParserException {
 		List< String > importTargetComponents = new ArrayList<>();
-		setStartline();
 		ExtendedIdentifierState state = ExtendedIdentifierState.CAN_READ_ID;
 		while( state != ExtendedIdentifierState.STOP ) {
 			if( state == ExtendedIdentifierState.CAN_READ_ID && token.isIdentifier() ) {
@@ -3549,7 +3604,7 @@ public class OLParser extends AbstractParser {
 		}
 		String id = importTargetComponents.stream().collect( Collectors.joining() );
 		if( id.isEmpty() ) {
-			setEndLine();
+			setEndLine(); // set end line for error
 			throwExceptionWithScope( errorMessage, null, "import" );
 		}
 		return id;
@@ -3574,6 +3629,7 @@ public class OLParser extends AbstractParser {
 					}
 					nextToken();
 				} else {
+					setEndLine(); // set end line for error
 					importTargets.add(
 						parseExtendedIdentifier( "expected identifier for importing target after from",
 							Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
@@ -3586,6 +3642,7 @@ public class OLParser extends AbstractParser {
 				isNamespaceImport = true;
 				nextToken();
 			} else {
+				setEndLine(); // set end line for eventual error
 				assertIdentifier( "expected Identifier or * after import" );
 				pathNodes = new ArrayList<>();
 				keepRun = false;
@@ -3595,6 +3652,7 @@ public class OLParser extends AbstractParser {
 					nextToken();
 					if( token.is( Scanner.TokenType.AS ) ) {
 						nextToken();
+						setEndLine(); // set end line for eventual error
 						assertIdentifier( "expected Identifier after as" );
 						localName = token.content();
 						nextToken();
@@ -3609,6 +3667,7 @@ public class OLParser extends AbstractParser {
 					}
 				} while( keepRun );
 			}
+			setEndLine(); // set end line for eventual error
 			ImportStatement stmt = null;
 			if( isNamespaceImport ) {
 				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ) );

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2021 Fabrizio Montesi <famontesi@gmail.com>
- * Copyright (C) 2021 Vicki Mixen <vicki@mixen.dk>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,14 +28,27 @@ public class CodeCheckException extends Exception {
 
 	private final List< CodeCheckMessage > messageList;
 
+	/**
+	 * Contructs a CodeCheckException from a list of CodeCheckMessages
+	 * 
+	 * @param messageList
+	 */
 	public CodeCheckException( List< CodeCheckMessage > messageList ) {
 		this.messageList = messageList;
 	}
 
+	/**
+	 * Returns the list of CodeCheckMessages from the CodeCheckException
+	 * 
+	 * @return
+	 */
 	public List< CodeCheckMessage > messages() {
 		return messageList;
 	}
 
+	/**
+	 * Returns a string containing all CodeCheckMessages from the CodeCheckException
+	 */
 	public String getMessage() {
 		Iterator< CodeCheckMessage > iterator = messageList.iterator();
 		StringBuilder messageString = new StringBuilder();

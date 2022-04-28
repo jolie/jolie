@@ -29,13 +29,13 @@ import jolie.lang.parse.context.ParsingContext;
  * A class represent a Symbol defined within external execution environment. Create when consuming
  * an import statement
  */
-class ImportedSymbolInfo extends SymbolInfo {
+public class ImportedSymbolInfo extends SymbolInfo {
 
 	private final ImportPath importPath;
 	private final String originalSymbolName;
 	private ModuleSource moduleSource;
 
-	protected ImportedSymbolInfo( ParsingContext context, String name, ImportPath importPath,
+	public ImportedSymbolInfo( ParsingContext context, String name, ImportPath importPath,
 		String originalSymbolName ) {
 		super( context, name, Scope.EXTERNAL, AccessModifier.PRIVATE );
 		this.importPath = importPath;
@@ -55,15 +55,15 @@ class ImportedSymbolInfo extends SymbolInfo {
 		this.moduleSource = moduleSource;
 	}
 
-	protected ImportPath importPath() {
+	public ImportPath importPath() {
 		return this.importPath;
 	}
 
-	protected Optional< ModuleSource > moduleSource() {
+	public Optional< ModuleSource > moduleSource() {
 		return Optional.of( this.moduleSource );
 	}
 
-	protected String originalSymbolName() {
+	public String originalSymbolName() {
 		return this.originalSymbolName;
 	}
 

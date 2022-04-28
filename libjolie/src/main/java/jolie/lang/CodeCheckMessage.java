@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2021 Fabrizio Montesi <famontesi@gmail.com>
- * Copyright (C) 2021 Vicki Mixen <vicki@mixen.dk>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,12 +31,28 @@ public class CodeCheckMessage {
 	private final String description;
 	private final String help;
 
+	/**
+	 * Private contructer of codeCheckMessage
+	 * 
+	 * @param context
+	 * @param description
+	 * @param help
+	 */
 	private CodeCheckMessage( ParsingContext context, String description, String help ) {
 		this.context = context;
 		this.description = description;
 		this.help = help;
 	}
 
+	/**
+	 * public contructer of CodeCheckMessage, for when the message includes a help message
+	 * 
+	 * @param context
+	 * @param description
+	 * @param help
+	 * @return
+	 * @throws InvalidParameterException
+	 */
 	public static CodeCheckMessage withHelp( ParsingContext context, String description, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
@@ -45,6 +61,16 @@ public class CodeCheckMessage {
 		return new CodeCheckMessage( context, description, help );
 	}
 
+	/**
+	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, help message
+	 * included
+	 * 
+	 * @param node
+	 * @param message
+	 * @param help
+	 * @return
+	 * @throws InvalidParameterException
+	 */
 	public static CodeCheckMessage buildWithHelp( OLSyntaxNode node, String message, String help )
 		throws InvalidParameterException {
 		if( help == null ) {
@@ -55,60 +81,97 @@ public class CodeCheckMessage {
 			message, null );
 	}
 
+	/**
+	 * Public contructer of CodeCheckMessage, which du not include help in the message
+	 * 
+	 * @param context
+	 * @param description
+	 * @return
+	 */
 	public static CodeCheckMessage withoutHelp( ParsingContext context, String description ) {
 		return new CodeCheckMessage( context, description, null );
 	}
 
+	/**
+	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, no help message
+	 * included
+	 * 
+	 * @param node
+	 * @param message
+	 * @return
+	 */
 	public static CodeCheckMessage buildWithoutHelp( OLSyntaxNode node, String message ) {
 		return new CodeCheckMessage(
 			(node != null) ? node.context() : URIParsingContext.DEFAULT,
 			message, null );
 	}
 
+	/**
+	 * Returns a string, containing the information from the CodeCheckMessage
+	 */
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {
-			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startline() )
+			// Add context
+			messageBuilder.append( context.sourceName() ).append( ":" ).append( context.startLine() + 1 )
 				.append( ": error: " );
+			// Add description
 			if( description != null ) {
-				messageBuilder.append( description ).append( '\n' );
+				messageBuilder.append( description );
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
-			messageBuilder.append( String.join( "", context.enclosingCodeWithLineNumbers() ) ); // Appends all lines of
-																								// code involved
-			// with
-			// error
-			if( !context.enclosingCode().get( context.enclosingCode().size() - 1 ).endsWith( "\n" ) ) {
-				messageBuilder.append( "\n" );
+			if( !context.enclosingCode().isEmpty() ) {
+				// Appends all lines of code involved with the error
+				messageBuilder.append( String.join( "", context.enclosingCodeWithLineNumbers() ) );
+				if( !context.enclosingCode().get( context.enclosingCode().size() - 1 ).endsWith( "\n" ) ) {
+					messageBuilder.append( "\n" );
+				}
+				// Add the extra line with the upwards arrow, to the startcolumn
+				for( int i = 0; i < context.startColumn() + (":" + (context.endLine() + 1)).length(); i++ ) {
+					messageBuilder.append( " " );
+				}
+				messageBuilder.append( "^\n" );
 			}
-
-			for( int i = 0; i < context.column() + (" " + context.endline()).length(); i++ ) {
-				messageBuilder.append( " " );
-			}
-			messageBuilder.append( "^\n" );
 		} else {
+			// no context, simply write error
 			messageBuilder.append( ": error: " );
+			// Add description
 			if( description != null ) {
 				messageBuilder.append( description ).append( '\n' );
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}
 		}
-		if( help != null ) {
+		if( help != null ) { // Add help message
 			messageBuilder.append( help );
 		}
 		return messageBuilder.toString();
 	}
 
+	/**
+	 * Get an optional of help from the CodeCheckMessage
+	 * 
+	 * @return
+	 */
 	public Optional< String > help() {
 		return Optional.ofNullable( help );
 	}
 
+	/**
+	 * Get an optional of the context from the CodeCheckMessage
+	 * 
+	 * @return
+	 */
 	public Optional< ParsingContext > context() {
 		return Optional.ofNullable( context );
 	}
 
+	/**
+	 * Get an optional of the description from the CodeCheckMessage
+	 * 
+	 * @return
+	 */
 	public Optional< String > description() {
 		return Optional.ofNullable( description );
 	}

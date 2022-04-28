@@ -978,7 +978,7 @@ public class MetaJolie extends JavaService {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().startline() );
+			fault.getFirstChild( "line" ).setValue( e.context().startLine() + 1 );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
 		} catch( ModuleException e ) {
@@ -992,7 +992,7 @@ public class MetaJolie extends JavaService {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().isPresent() ? error.context().get().startline() : null );
+					.setValue( error.context().isPresent() ? error.context().get().startLine() + 1 : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
 					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
@@ -1043,7 +1043,7 @@ public class MetaJolie extends JavaService {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().startline() );
+			fault.getFirstChild( "line" ).setValue( e.context().startLine() + 1 );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
 		} catch( ModuleException e ) {
@@ -1057,7 +1057,7 @@ public class MetaJolie extends JavaService {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().isPresent() ? error.context().get().startline() : null );
+					.setValue( error.context().isPresent() ? error.context().get().startLine() + 1 : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
 					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
@@ -1237,7 +1237,7 @@ public class MetaJolie extends JavaService {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().startline() );
+			fault.getFirstChild( "line" ).setValue( e.context().startLine() + 1 );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
 		} catch( ModuleException e ) {
@@ -1251,7 +1251,7 @@ public class MetaJolie extends JavaService {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().isPresent() ? error.context().get().startline() : null );
+					.setValue( error.context().isPresent() ? error.context().get().startLine() + 1 : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
 					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;

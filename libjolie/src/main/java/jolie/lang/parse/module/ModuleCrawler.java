@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -116,7 +117,8 @@ class ModuleCrawler {
 				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
 				int column = codeLine.length();
 				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
-					importedSymbol.context().startline(), importedSymbol.context().endline(), column,
+					importedSymbol.context().endLine(), importedSymbol.context().endLine(), column,
+					column + e.importPath().toString().length(),
 					List.of( CodeLineWithPath ) );
 				CodeCheckMessage message = CodeCheckMessage.withHelp( context, e.getMessage(), getHelp( e ) );
 				throw new ModuleException( message );
@@ -168,17 +170,21 @@ class ModuleCrawler {
 		return crawler.crawl( mainRecord );
 	}
 
+	/**
+	 * Creates help message for exceptions occuring while crawling through modules
+	 */
 	private String getHelp( ModuleNotFoundException exception ) {
 		StringBuilder message = new StringBuilder();
 		Set< String > fileNames = new HashSet<>();
 		Stream< Path > stream;
-		try {
+		try { // get all file names in current directory
 			stream = Files.list( Paths.get( ".\\" ) );
 			fileNames.addAll( stream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
 				.map( Path::toString ).collect( Collectors.toSet() ) );
 			stream.close();
 		} catch( IOException e ) {
 		}
+		// Get file names from lookedPaths parent directory
 		for( Path path : exception.lookedPaths() ) {
 			Stream< Path > forloopStream;
 			try {
@@ -190,10 +196,11 @@ class ModuleCrawler {
 				fileNames.addAll( forloopStream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
 					.map( Path::toString ).collect( Collectors.toSet() ) );
 				forloopStream.close();
+
 			} catch( IOException e ) {
 			}
 		}
-
+		// Calculate distance between module and file names
 		LevenshteinDistance dist = new LevenshteinDistance();
 		ArrayList< String > proposedModules = new ArrayList<>();
 		for( String correctModule : fileNames ) {
@@ -209,6 +216,7 @@ class ModuleCrawler {
 			}
 
 		}
+		// Create help from matching file names
 		if( !proposedModules.isEmpty() ) {
 			message.append( "Maybe you meant:\n" );
 			for( String module : proposedModules ) {
@@ -216,10 +224,12 @@ class ModuleCrawler {
 				message.append( temp ).append( "\n" );
 			}
 		} else {
+			// If no mathing file names were found, report the file names that could be used instead
 			message.append( "Could not find modules matching \"" ).append( exception.importPath() )
 				.append( "\". Here are some modules that can be imported:\n" );
 			for( String module : fileNames ) {
 				String temp;
+				// Correctly add the module names to the string
 				if( module.contains( "." ) ) {
 					int column = module.indexOf( "." );
 					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1, column );

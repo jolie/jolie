@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -213,6 +214,15 @@ public class SemanticVerifier implements UnitOLVisitor {
 		this.services = new HashMap<>();
 	}
 
+	/**
+	 * Returns the symbolTables. Used by the languageserver for vscode extension
+	 * 
+	 * @return symbolTebles
+	 */
+	public Map< URI, SymbolTable > symbolTables() {
+		return symbolTables;
+	}
+
 	public CorrelationFunctionInfo correlationFunctionInfo() {
 		return correlationFunctionInfo;
 	}
@@ -263,7 +273,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( node == null ) {
 			LOGGER.warning( message );
 		} else {
-			LOGGER.warning( node.context().sourceName() + ":" + node.context().startline() + ": " + message );
+			LOGGER.warning( node.context().sourceName() + ":" + (node.context().startLine() + 1) + ": " + message );
 		}
 	}
 
@@ -385,8 +395,17 @@ public class SemanticVerifier implements UnitOLVisitor {
 			if( executionService != null ) {
 				executionService.program().accept( this );
 				if( configuration.checkForMain && !mainDefined ) {
-					error( program,
-						"Main procedure for service \"" + configuration.executionTarget + "\" is not defined" );
+					// Noticed that sometimes the configuration.executionTarget is null, but the name of the service is
+					// in the executionService
+					if( configuration.executionTarget != null ) {
+						error( executionService.node(),
+							"Main procedure for service \"" + configuration.executionTarget + "\" is not defined" );
+					} else if( executionService.name() != null ) {
+						error( executionService.node(),
+							"Main procedure for service \"" + executionService.name() + "\" is not defined" );
+					} else {
+						error( executionService.node(), "Main procedure for service is not defined" );
+					}
 				}
 			}
 		}
