@@ -495,14 +495,16 @@ public class Scanner {
 	 */
 	public List<String> codeLineWithLineNumber() {
 		try{
-			String line = 1+line()+":"+readCodeLines.get(line());
+			int lineNumber = line() + 1;
+			String line = lineNumber + ":" + readCodeLines.get( line() );
 			if(!line.endsWith("\n")){
 				line += "\n";
 			}
 			return List.of(line);
 		} catch (IndexOutOfBoundsException e){
 			if(line()>0){
-				String line = 1+(line()-1)+":"+readCodeLines.get(line()-1);
+				int lineNumber = line();
+				String line = lineNumber + ":" + readCodeLines.get( line() - 1 );
 				if(!line.endsWith("\n")){
 					line += "\n";
 				}
