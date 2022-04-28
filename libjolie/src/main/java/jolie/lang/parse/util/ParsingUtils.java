@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright 2010 (C) by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright 2010 (C) by Fabrizio Montesi <famontesi@gmail.com>		   *
+ *   Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>	     	       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,7 +22,7 @@
 
 package jolie.lang.parse.util;
 
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
@@ -29,6 +30,7 @@ import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParsingConfiguration;
 import jolie.lang.parse.module.Modules;
+import jolie.lang.parse.module.Modules.ModuleParsedResult;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 import java.io.IOException;
@@ -55,7 +57,7 @@ public class ParsingUtils {
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration semanticConfiguration,
 		boolean includeDocumentation )
-		throws IOException, ParserException, CodeCheckingException, ModuleException {
+		throws IOException, ParserException, CodeCheckException, ModuleException {
 
 		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 			charset,
@@ -65,7 +67,7 @@ public class ParsingUtils {
 			definedConstants,
 			includeDocumentation );
 
-		Modules.ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
 
 		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
 			parseResult.symbolTables(), semanticConfiguration );
@@ -83,7 +85,7 @@ public class ParsingUtils {
 		Map< String, Scanner.Token > definedConstants,
 		String executionTarget,
 		boolean includeDocumentation )
-		throws IOException, ParserException, CodeCheckingException, ModuleException {
+		throws IOException, ParserException, CodeCheckException, ModuleException {
 		return parseProgram(
 			inputStream,
 			source,
@@ -94,6 +96,51 @@ public class ParsingUtils {
 			definedConstants,
 			new SemanticVerifier.Configuration( executionTarget ),
 			includeDocumentation );
+	}
+
+	/**
+	 * Works just like parseProgram, but returns the SemanticVerifier instead. Is used by the
+	 * languageserver for the vscode extension
+	 * 
+	 * @param inputStream
+	 * @param source
+	 * @param charset
+	 * @param includePaths
+	 * @param packagePaths
+	 * @param classLoader
+	 * @param definedConstants
+	 * @param semanticConfiguration
+	 * @param includeDocumentation
+	 * @return the SemanticVerifier
+	 * @throws IOException
+	 * @throws ParserException
+	 * @throws CodeCheckException
+	 * @throws ModuleException
+	 */
+	public static SemanticVerifier parseProgramModule(
+		InputStream inputStream,
+		URI source,
+		String charset,
+		String[] includePaths,
+		String[] packagePaths,
+		ClassLoader classLoader,
+		Map< String, Scanner.Token > definedConstants,
+		SemanticVerifier.Configuration semanticConfiguration,
+		boolean includeDocumentation )
+		throws IOException, ParserException, CodeCheckException, ModuleException {
+		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
+			charset,
+			includePaths,
+			packagePaths,
+			classLoader,
+			definedConstants,
+			includeDocumentation );
+
+		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
+			parseResult.symbolTables(), semanticConfiguration );
+		semanticVerifier.validate();
+		return semanticVerifier;
 	}
 
 	/**

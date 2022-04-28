@@ -25,7 +25,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import jolie.lang.Constants;
+import jolie.lang.Keywords;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
@@ -177,7 +177,7 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable {
 		StringBuilder builder = new StringBuilder();
 		Pair< OLSyntaxNode, OLSyntaxNode > node;
 		if( isGlobal() ) {
-			builder.append( Constants.GLOBAL );
+			builder.append( Keywords.GLOBAL );
 			if( path.size() > 1 ) {
 				builder.append( '.' );
 			}

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006-2019 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,8 +33,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
-import jolie.lang.CodeCheckingError;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckMessage;
+import jolie.lang.CodeCheckException;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
@@ -161,7 +162,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 	}
 
 	private final Program program;
-	private final List< CodeCheckingError > errors = new ArrayList<>();
+	private final List< CodeCheckMessage > errors = new ArrayList<>();
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
@@ -211,6 +212,15 @@ public class SemanticVerifier implements UnitOLVisitor {
 		this.configuration = configuration;
 		this.symbolTables = symbolTables;
 		this.services = new HashMap<>();
+	}
+
+	/**
+	 * Returns the symbolTables. Used by the languageserver for vscode extension
+	 * 
+	 * @return symbolTebles
+	 */
+	public Map< URI, SymbolTable > symbolTables() {
+		return symbolTables;
 	}
 
 	public CorrelationFunctionInfo correlationFunctionInfo() {
@@ -263,12 +273,12 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( node == null ) {
 			LOGGER.warning( message );
 		} else {
-			LOGGER.warning( node.context().sourceName() + ":" + node.context().line() + ": " + message );
+			LOGGER.warning( node.context().sourceName() + ":" + (node.context().startLine() + 1) + ": " + message );
 		}
 	}
 
 	private void error( OLSyntaxNode node, String message ) {
-		errors.add( CodeCheckingError.build( node, message ) );
+		errors.add( CodeCheckMessage.buildWithoutHelp( node, message ) );
 	}
 
 	private void checkToBeEqualTypes() {
@@ -361,7 +371,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 	}
 
 	public void validate()
-		throws CodeCheckingException {
+		throws CodeCheckException {
 		program.accept( this );
 		if( services.values().size() == 0 ) {
 			// this is an jolie's internal service (service with Interfaces)
@@ -385,8 +395,17 @@ public class SemanticVerifier implements UnitOLVisitor {
 			if( executionService != null ) {
 				executionService.program().accept( this );
 				if( configuration.checkForMain && !mainDefined ) {
-					error( program,
-						"Main procedure for service \"" + configuration.executionTarget + "\" is not defined" );
+					// Noticed that sometimes the configuration.executionTarget is null, but the name of the service is
+					// in the executionService
+					if( configuration.executionTarget != null ) {
+						error( executionService.node(),
+							"Main procedure for service \"" + configuration.executionTarget + "\" is not defined" );
+					} else if( executionService.name() != null ) {
+						error( executionService.node(),
+							"Main procedure for service \"" + executionService.name() + "\" is not defined" );
+					} else {
+						error( executionService.node(), "Main procedure for service is not defined" );
+					}
 				}
 			}
 		}
@@ -399,7 +418,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 			 * for( SemanticException.SemanticError e : semanticException.getErrorList() ){ logger.severe(
 			 * e.getMessage() ); }
 			 */
-			throw new CodeCheckingException( errors );
+			throw new CodeCheckException( errors );
 		}
 	}
 

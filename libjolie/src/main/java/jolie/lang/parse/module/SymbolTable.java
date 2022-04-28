@@ -145,16 +145,16 @@ public class SymbolTable {
 			new WildcardImportedSymbolInfo( context, importPath ) );
 	}
 
-	protected SymbolInfo[] symbols() {
+	public SymbolInfo[] symbols() {
 		return this.symbols.values().toArray( new SymbolInfo[ 0 ] );
 	}
 
-	protected LocalSymbolInfo[] localSymbols() {
+	public LocalSymbolInfo[] localSymbols() {
 		return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.LOCAL )
 			.toArray( LocalSymbolInfo[]::new );
 	}
 
-	protected ImportedSymbolInfo[] importedSymbolInfos() {
+	public ImportedSymbolInfo[] importedSymbolInfos() {
 		return this.symbols.values().stream().filter( symbol -> symbol.scope() == Scope.EXTERNAL )
 			.toArray( ImportedSymbolInfo[]::new );
 	}
