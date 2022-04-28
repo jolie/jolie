@@ -1231,7 +1231,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	/*
 	 * return the received message's header
 	 */
-	private String getHttpHeader( HttpMessage message )
+	private static String getHttpHeader( HttpMessage message )
 		throws IOException {
 		StringBuilder headerStr = new StringBuilder();
 		headerStr.append( "HTTP Code: " ).append( message.statusCode() )
@@ -1254,7 +1254,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	/*
 	 * Prints debug information about a received message
 	 */
-	private String getHttpBody( HttpMessage message, String charset )
+	private static String getHttpBody( HttpMessage message, String charset )
 		throws IOException {
 		StringBuilder bodyStr = new StringBuilder();
 		bodyStr.append( new String( message.content(), charset ) );
