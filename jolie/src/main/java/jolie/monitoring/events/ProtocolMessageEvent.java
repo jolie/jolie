@@ -30,7 +30,7 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 	public enum Protocol {
 		SOAP( "soap" ), HTTP( "http" );
 
-		private String protocol;
+		private final String protocol;
 
 		Protocol( String protocol ) {
 			this.protocol = protocol;
@@ -41,56 +41,56 @@ public class ProtocolMessageEvent extends MonitoringEvent {
 		}
 	}
 
-	public static enum FieldNames {
+	public static enum Field {
 		PROTOCOL( "protocol" ), MESSAGE( "message" ), HEADER( "header" ), BODY( "body" ), PROCESSID(
 			"processId" ), RAWID( "rawId" );
 
-		private String fieldName;
+		private final String id;
 
-		FieldNames( String name ) {
-			this.fieldName = name;
+		Field( String name ) {
+			this.id = name;
 		}
 
-		public String getName() {
-			return this.fieldName;
+		public String id() {
+			return this.id;
 		}
 	}
 
 	public static String protocol( Value value ) {
-		return value.getFirstChild( FieldNames.PROTOCOL.getName() ).strValue();
+		return value.getFirstChild( Field.PROTOCOL.id() ).strValue();
 	}
 
 	public static Value message( Value value ) {
-		return value.getFirstChild( FieldNames.MESSAGE.getName() );
+		return value.getFirstChild( Field.MESSAGE.id() );
 	}
 
 	public static String header( Value value ) {
-		return value.getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.HEADER.getName() )
+		return value.getFirstChild( Field.MESSAGE.id() ).getFirstChild( Field.HEADER.id() )
 			.strValue();
 	}
 
 	public static String body( Value value ) {
-		return value.getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.BODY.getName() )
+		return value.getFirstChild( Field.MESSAGE.id() ).getFirstChild( Field.BODY.id() )
 			.strValue();
 	}
 
 	public static String rawId( Value value ) {
-		return value.getFirstChild( FieldNames.RAWID.getName() ).strValue();
+		return value.getFirstChild( Field.RAWID.id() ).strValue();
 	}
 
 	public ProtocolMessageEvent( String body, String header, String processId, String rawId,
 		ProtocolMessageEvent.Protocol protocol ) {
 		super( "ProtocolMessage-".concat( protocol.getProtocol() ), Value.create() );
 
-		data().getFirstChild( FieldNames.PROCESSID.getName() ).setValue( processId );
+		data().getFirstChild( Field.PROCESSID.id() ).setValue( processId );
 
-		data().getFirstChild( FieldNames.PROTOCOL.getName() ).setValue( protocol.getProtocol() );
+		data().getFirstChild( Field.PROTOCOL.id() ).setValue( protocol.getProtocol() );
 
-		data().getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.HEADER.getName() )
+		data().getFirstChild( Field.MESSAGE.id() ).getFirstChild( Field.HEADER.id() )
 			.setValue( header );
-		data().getFirstChild( FieldNames.MESSAGE.getName() ).getFirstChild( FieldNames.BODY.getName() )
+		data().getFirstChild( Field.MESSAGE.id() ).getFirstChild( Field.BODY.id() )
 			.setValue( body );
 
-		data().getFirstChild( FieldNames.RAWID.getName() ).setValue( rawId );
+		data().getFirstChild( Field.RAWID.id() ).setValue( rawId );
 	}
 }
