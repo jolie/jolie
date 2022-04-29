@@ -59,8 +59,7 @@ define doTest {
     getJsonValue@JsonUtils( openapi_definition )( json_value )
 
     f.filename = "./services/private/generated.json"
-    f.format = "json"
-    f.content -> json_value
+    f.content -> openapi_definition
     writeFile@File( f )(  )
 
     paths[ 0 ] = "/getOrdersByItem"

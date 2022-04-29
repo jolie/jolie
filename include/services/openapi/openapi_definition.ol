@@ -69,7 +69,7 @@ define __indentation {
 }
 
 define _checkFieldCharacters {
-    match@StringUtils( __field { regex = "(.*)[!@#$%&*()_+=|<>?{}\\[\\]~-](.*)" } )( contains_special_chars )
+    match@StringUtils( __field { regex = "(.*)[!@#$%&*()+=|<>?{}\\[\\]~-](.*)" } )( contains_special_chars )
     if ( contains_special_chars ) {
         __field = "\"" + __field + "\""
     }
@@ -186,36 +186,23 @@ main {
                        // parameters
                        for( par = 0, par < #request.paths[ p ].( op ).parameters, par++ ) {
                           undef( cur_par );
-                          if ( #request.paths[ p ].( op ).parameters == 1 ) {
-                              cur_par.ln -> json.paths.(__template ).( op ).parameters[ 0 ]._
-                          } else {
-                              cur_par.ln -> json.paths.(__template ).( op ).parameters[ par ]
-                          };
+                          cur_par.ln -> json.paths.(__template ).( op ).parameters[ 0 ]._[ par ]
                           cur_par.ln.name = request.paths[ p ].( op ).parameters[ par ].name;
                           if ( LOG ) { println@Console("parameter:" + cur_par.ln.name )() };
                           if ( is_defined( request.paths[ p ].( op ).parameters[ par ].in.in_body ) ) {
+                                cur_par.ln.name = "body"
                                 in_body -> request.paths[ p ].( op ).parameters[ par ].in.in_body;
                                 cur_par.ln.in = "body";
-                                if ( is_defined( in_body.schema_subType ) ) {
-                                    sb_type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_subType;
-                                    cur_par.ln.name = sb_type.name;
-                                    if ( sb_type.cardinality.min > 0 ) {
-                                          cur_par.ln.required = true
-                                    };
-
-                                    getType@JSONSchemaGenerator( sb_type.type )( sbt_type_generated );
-                                    cur_par.ln.schema << sbt_type_generated
-                               }  else if ( is_defined( in_body.schema_type ) ) {
+                                if ( is_defined( in_body.schema_type ) ) {
                                     type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type;
                                     cur_par.ln.required = true;
                                     getType@JSONSchemaGenerator( type )( generated_type );
                                     cur_par.ln.schema << generated_type
-                               } else if ( is_defined( in_body.schema_ref ) ) {
+                                } else if ( is_defined( in_body.schema_ref ) ) {
                                     cur_par.ln.schema.("$ref") = "#/definitions/" + in_body.schema_ref
                                     cur_par.ln.required = true
-                               }
-                          };
-                          if ( is_defined( request.paths[ p ].( op ).parameters[ par ].in.other ) ) {
+                                }
+                          } else if ( is_defined( request.paths[ p ].( op ).parameters[ par ].in.other ) ) {
                                 getNativeType@JSONSchemaGenerator( request.paths[ p ].( op ).parameters[ par ].in.other.type.root_type )( resp_root_type );
                                 if ( request.paths[ p ].( op ).parameters[ par ].required ) {
                                     cur_par.ln.required = true
@@ -237,6 +224,8 @@ main {
          ;
          if ( LOG ) { println@Console("converting value to JSON string..." )() };
          getJsonString@JsonUtils( json )( response );
+         // necessary for converting null into {}
+         replaceAll@StringUtils( response { regex = ":null", replacement = ":{}"})( response )
          if ( LOG ) { println@Console("converted!" )() }
     } ]
 
@@ -251,13 +240,43 @@ main {
                 if ( !(request.array_def_list.( ref_name ) instanceof void ) ) {
                     println@Console("Warning! definition " + ref_name + " directly points to an array that is not portable into a jolie type. Converted as a simple type")()
                 } 
-                response = "type " + __cleaned_name + ": " + ref_name + "\n"
+                // parameter should be always in the body
+                response = "type " + __cleaned_name + ": void {\n"
+                response = response + "\t." + request.definition.parameters[ 0 ].name + ": " + ref_name + "\n"
+                response = response + "}\n"
           } else {
                 response = "type " + __cleaned_name + ": void {\n";
                 for( p = 0, p < #request.definition.parameters, p++ ) {
                     cur_par -> request.definition.parameters[ p ];
                     __field = cur_par.name 
+
+                    /* path and query parameters must be differentiated from parameters with same name in schemas 
+                    Ex: in a post path like /a/b/{userId}
+                    with a body schema that contains parameters: userId, name and surname
+                    the final jolie types would be
+                    
+                    type ... {
+                        userId
+                        userId
+                        name
+                        surname
+                    }
+
+                    userId will be reported twice because it appears both in the body schema and in the path.
+
+                    In order to avoid these cases we use _p or _q prefixes for path and query parameters. The example above will become:
+
+                    type {
+                        _puserId
+                        userId
+                        name
+                        surname
+                    }
+                    */
+                    if ( cur_par.in == "path" ) { __field = "_p" + __field }
+                    if ( cur_par.in == "query" ) { __field = "_q" + __field }
                     _checkFieldCharacters
+
                     response = response + "\t." + __field
                     if ( is_defined( cur_par.type ) ) {
                         if ( cur_par.type == "array" ) {

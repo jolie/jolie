@@ -60,7 +60,7 @@ define _create_outputport_info {
                 ;
                 op_max = #outputPort.interface.operation;
                 spl = path;
-                spl.replacement = "%!\\{";
+                spl.replacement = "%!\\{_p";  // _p has been added in order to be compatible with path parameters on the interface which are prefixed with letter p
                 spl.regex = "\\{";
                 replaceAll@StringUtils( spl )( corrected_path );
 
@@ -227,7 +227,8 @@ main {
         _create_outputport_info
 
         //writing client service file
-        client_file = "include \"" + port_name + "Interface.iol\"\n\n";
+        client_file = "include \"" + port_name + "Interface.iol\"\n";
+        client_file = client_file + "include \"string_utils.iol\"\n\n";
 
         client_file = client_file + "interface " + outputPort.interface + "HTTP {\n";
         client_file = client_file + "RequestResponse:\n";
@@ -273,20 +274,9 @@ main {
         client_file = client_file + ".format = \"json\";"
         client_file = client_file + ".responseHeaders=\"@header\";"
         for( o = 0, o < #outputPort.interface.operation, o++ ) {
-            startsWith@StringUtils(  outputPort.interface.operation[ o ].path  { .prefix = "/" } )( starts_with_slash )
-            if ( starts_with_slash ) {
-                sbst = outputPort.interface.operation[ o ].path
-                length@StringUtils( outputPort.interface.operation[ o ].path )( path_length )
-                with ( sbst ) {
-                    .begin = 1;
-                    .end = path_length
-                }
-                substring@StringUtils( sbst )( alias_path )
-            }  else {
-                alias_path = outputPort.interface.operation[ o ].path
-            }
+            
             client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
-                            + ".alias=\"" + alias_path + "\";\n";
+                            + ".alias-> alias;\n";
             client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
                             + ".method=\"" + outputPort.interface.operation[ o ].method + "\"";
             if ( o < (#outputPort.interface.operation - 1) ) {
@@ -306,8 +296,55 @@ main {
 
         client_file = client_file + "main {\n";
         for( o = 0, o < #outputPort.interface.operation, o++ ) {
+            undef( parameters )
+            for( p in outputPort.interface.operation[ o ].parameters ) {
+                parameters.( p.name ) << p
+            }
+
+            startsWith@StringUtils(  outputPort.interface.operation[ o ].path  { .prefix = "/" } )( starts_with_slash )
+            if ( starts_with_slash ) {
+                sbst = outputPort.interface.operation[ o ].path
+                length@StringUtils( outputPort.interface.operation[ o ].path )( path_length )
+                with ( sbst ) {
+                    .begin = 1;
+                    .end = path_length
+                }
+                substring@StringUtils( sbst )( alias_path )
+            }  else {
+                alias_path = outputPort.interface.operation[ o ].path
+            }
             client_file = client_file + "\t[ " + outputPort.interface.operation[ o ] + "( request )( response ) {\n";
-            client_file = client_file + "\t\t" + outputPort.interface.operation[ o ] + "@" + outputPort.name + "( request )( response )\n";
+            
+            client_file = client_file + "
+            query_parameter_is_present = false
+            alias = \"" +  alias_path + "\"
+            foreach( f : request ) {
+                // depending on the type of the field (query, path or body ) there are different behaviour
+                startsWith@StringUtils( f { .prefix = \"_p\" } )( is_path )
+                startsWith@StringUtils( f { .prefix = \"_q\" } )( is_query )
+                if ( is_path || is_query ) {
+                    requestToAPI.( f ) = request.( f )
+                } else {
+					// it is a body parameter the name must be skipped
+					foreach( sf : request.( f ) ) {
+						requestToAPI.( sf ) << request.( f ).( sf )
+					}
+				}
+                if ( is_query ) {
+                    if ( !query_parameter_is_present ) { alias = alias + \"?\" }
+                    else { 
+                        query_parameter_is_present = true
+                        alias = alias + \"&\" 
+                    }
+                    length@StringUtils( f )( field_length )
+                    substring@StringUtils( f { begin = 2, end = field_length } )( real_query_parameter_name )
+                    alias = alias + real_query_parameter_name + \"=%!{\" + f + \"}\"
+                }
+
+            }\n"
+
+
+            client_file = client_file + "\t\t" + outputPort.interface.operation[ o ] + "@" + outputPort.name + "( requestToAPI )( response )\n";
             if ( is_defined( outputPort.interface.operation[ o ].faults ) ) {
                 if ( outputPort.interface.operation[ o ].faults.( "500" ).description == "JolieFault") {
                     // openapi generated by jolie2openapi
