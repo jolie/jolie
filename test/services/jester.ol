@@ -129,13 +129,18 @@ define doTest {
         }
     }
 
+    getInputPortMetaData@MetaJolie({ filename = SOURCEFILE } )( testservice_ip_meta )
+    getSurfaceWithoutOutputPort@MetaRender( testservice_ip_meta.input )( testservice_surface )
     
     undef( f )
-    f.content = client_interface + "outputPort DEMO {\nInterfaces: DEMOInterface\n}\n\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+    f.content = testservice_surface + "outputPort DEMO {\nInterfaces: DEMOInterface\n}\n\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
     f.filename = "jester_config.iol"
     writeFile@File( f )()
     
     getJesterConfig@JesterConfigurator( jester )( config );
+
+
+    println@Console( s )()
 
     loadEmbeddedService@Runtime( { .filepath = "-C DEBUG=false" +
                                                 " -C API_ROUTER_HTTP=\"socket://" + router_host  + 
@@ -152,8 +157,8 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrders - Received 404 when 200 was expected" ) )
         with( rq ) {
-            .userId = "ciao";
-            .maxItems = 10
+            ._puserId = "ciao";
+            ._qmaxItems = 10
         }
         getOrders@Test( rq )( rs )
     }
@@ -162,7 +167,7 @@ define doTest {
 
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "putOrder - Received 404 when 200 was expected" ) )
-        with( rq ) {
+        with( rq.body ) {
             .userId = "ciao"
             with( .order ) {
                 .title = "title";
@@ -185,10 +190,12 @@ define doTest {
     undef( rq )
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getUser - Received 404 when 200 was expected" ) )
-        with( rq ) {
-            .city = "Springfield";
-            .country = "USA";
-            .surname = "White"
+        rq << {
+            ._pcountry = "USA"
+            body << {
+                city = "Springfield"
+                surname = "White"
+            }
         }
         getUsers@Test( rq )( rs )
     }
@@ -200,7 +207,7 @@ define doTest {
     undef( rq ) 
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (0) - Received 404 when 200 was expected" ) )
-        with( rq ) {
+        with( rq.body ) {
             .userId = "ciao";
             .itemName= "ciao";
             .quantity = 0
@@ -213,7 +220,7 @@ define doTest {
     undef( rq )
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (1) - Received 404 when 200 was expected" ) )
-        with( rq ) {
+        with( rq.body ) {
             .userId = "ciao";
             .itemName= "ciao"
         }
@@ -224,7 +231,7 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (2) - Received 404 when 200 was expected" ) )
     
-        with( rq ) {
+        with( rq.body ) {
             .userId = "ciao"
         }
         getOrdersByItem@Test( rq )( rs )
@@ -234,7 +241,7 @@ define doTest {
     undef( rq )
     scope( fault ) {
         install( FaultTest => nullProcess )
-        with( rq ) {
+        with( rq.body ) {
             .userId = "ciao";
             .itemName= "ciao";
             .quantity = 10

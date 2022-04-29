@@ -61,9 +61,7 @@ type OperationObject {
 }
 
 type InBody  {
-    schema_subType: SubType   // used when there are more parameters in the body
-} | void {
-    schema_type: Type         // used when there is one single parameter in the body
+    schema_type: Type         // used when there are more parameters in the body
 } | void {
     schema_ref?: string       // add a reference to a schema
 }
