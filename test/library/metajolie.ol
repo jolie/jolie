@@ -707,5 +707,47 @@ define doTest
            throw( TestFailed, "Found a type with a name that containes #: " + t.name )
        }
    }
+
+   // check two inputports
+   undef( rq )
+   rq.filename = "private/sample_service7.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description )
+   if ( #meta_description.input != 2 ) {
+      throw( TestFailed, "Test \"check two inputports\": Expected 2 input port, found " + #meta_description.input )
+   }
+
+   for( ip in meta_description.input ) {
+       if ( #ip.interfaces != 1 ) {
+            throw( TestFailed, "Test \"check two inputports\": Expected 1 interface for port " + ip.name + ", found " + #ip.interfaces )
+       }
+       for( i in ip.interfaces ) {
+           if ( #i.types != 2 ) {
+               throw( TestFailed, "Test \"check two inputports\": Expected 2 types for interface " + i.name + " and port " 
+               + ip.name + ", found " + #i.types  )
+           }
+       }
+   }
+
+
+   // check two outputports
+   undef( rq )
+   rq.filename = "private/sample_service7.ol"
+   getOutputPortMetaData@MetaJolie( rq )( meta_description )
+   if ( #meta_description.output != 2 ) {
+      throw( TestFailed, "Test \"check two outputports\": Expected 2 output port, found " + #meta_description.output )
+   }
+
+   for( o in meta_description.output ) {
+       if ( #o.interfaces != 1 ) {
+            throw( TestFailed, "Test \"check two outputports\": Expected 1 interface for port " + o.name + ", found " + #o.interfaces )
+       }
+       for( i in o.interfaces ) {
+           if ( #i.types != 2 ) {
+               throw( TestFailed, "Test \"check two outputports\": Expected 2 types for interface " + i.name + " and port " 
+               + o.name + ", found " + #i.types  )
+           }
+       }
+   }
+
 }
 
