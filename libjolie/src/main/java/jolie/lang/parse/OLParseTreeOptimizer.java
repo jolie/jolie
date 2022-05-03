@@ -510,15 +510,15 @@ public class OLParseTreeOptimizer {
 		@Override
 		public void visit( SolicitResponseExpressionNode n ) {
 			OLSyntaxNode outputExpression = null;
-			if( n.outputExpression() != null) {
+			if( n.outputExpression() != null ) {
 				n.outputExpression().accept( this );
 				outputExpression = currNode;
 			}
 			currNode = new SolicitResponseExpressionNode(
 				n.context(),
 				n.id(),
-				n.outputPortId(), 
-				outputExpression);
+				n.outputPortId(),
+				outputExpression );
 		}
 
 		@Override

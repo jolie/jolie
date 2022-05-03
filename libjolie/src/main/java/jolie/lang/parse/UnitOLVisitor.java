@@ -677,7 +677,7 @@ public interface UnitOLVisitor extends OLVisitor< Unit, Unit > {
 		return Unit.INSTANCE;
 	}
 
-	void visit( SolicitResponseExpressionNode n ); 
+	void visit( SolicitResponseExpressionNode n );
 
 	default Unit visit( SolicitResponseExpressionNode n, Unit ctx ) {
 		visit( n );

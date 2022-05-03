@@ -875,6 +875,17 @@ public class OOITBuilder implements UnitOLVisitor {
 		}
 	}
 
+	public void visit( SolicitResponseExpressionNode n ) {
+		try {
+			currExpression = new SolicitResponseExpression(
+				n.id(),
+				interpreter.getOutputPort( n.outputPortId() ),
+				buildExpression( n.outputExpression() ) );
+		} catch( InvalidIdException e ) {
+			error( n.context(), e );
+		}
+	}
+
 	public void visit( LinkInStatement n ) {
 		currProcess = new LinkInProcess( n.id() );
 	}

@@ -314,5 +314,5 @@ public class InterfaceVisitor implements UnitOLVisitor {
 	public void visit( EmbedServiceNode n ) {}
 
 	@Override
-	public void visit(SolicitResponseExpressionNode n) {}
+	public void visit( SolicitResponseExpressionNode n ) {}
 }

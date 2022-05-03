@@ -278,5 +278,5 @@ public interface OLVisitor< C, R > {
 
 	R visit( EmbedServiceNode n, C ctx );
 
-	R visit( SolicitResponseExpressionNode n, C ctx);
+	R visit( SolicitResponseExpressionNode n, C ctx );
 }

@@ -450,7 +450,7 @@ public class SymbolTableGenerator {
 		public void visit( EmbedServiceNode n ) {}
 
 		@Override
-		public void visit(SolicitResponseExpressionNode n) {}
+		public void visit( SolicitResponseExpressionNode n ) {}
 
 	}
 

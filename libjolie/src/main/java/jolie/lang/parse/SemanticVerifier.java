@@ -838,14 +838,15 @@ public class SemanticVerifier implements UnitOLVisitor {
 	@Override
 	public void visit( SolicitResponseExpressionNode n ) {
 		OutputPortInfo p = outputPorts.get( n.outputPortId() );
-		if(p == null) {
-			error(n, n.outputPortId() + " is not a valid output port");
+		if( p == null ) {
+			error( n, n.outputPortId() + " is not a valid output port" );
 		} else {
-			OperationDeclaration decl = p.operationsMap().get(n.id());
-			if(decl == null) {
-				error(n, "Operation " + n.id() + " has not been declared in output port " + p.id());
-			} else if(!(decl instanceof RequestResponseOperationDeclaration)) {
-				error(n, "Operation " + n.id() + " is not a valid request-response operation in output port " + p.id());
+			OperationDeclaration decl = p.operationsMap().get( n.id() );
+			if( decl == null ) {
+				error( n, "Operation " + n.id() + " has not been declared in output port " + p.id() );
+			} else if( !(decl instanceof RequestResponseOperationDeclaration) ) {
+				error( n,
+					"Operation " + n.id() + " is not a valid request-response operation in output port " + p.id() );
 			}
 		}
 	}

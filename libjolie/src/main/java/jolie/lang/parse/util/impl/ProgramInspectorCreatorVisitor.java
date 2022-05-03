@@ -533,7 +533,7 @@ public class ProgramInspectorCreatorVisitor implements UnitOLVisitor {
 	public void visit( EmbedServiceNode n ) {}
 
 	@Override
-	public void visit(SolicitResponseExpressionNode n) {
-		addOlSyntaxNodeToBehaviouralDependencies(n);
+	public void visit( SolicitResponseExpressionNode n ) {
+		addOlSyntaxNodeToBehaviouralDependencies( n );
 	}
 }
