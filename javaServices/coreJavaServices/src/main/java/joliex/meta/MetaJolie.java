@@ -938,8 +938,7 @@ public class MetaJolie extends JavaService {
 
 	@RequestResponse
 	public Value getInputPortMetaData( Value request ) throws FaultException {
-		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
-		ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
+
 		Value response = Value.create();
 		try {
 			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
@@ -964,6 +963,8 @@ public class MetaJolie extends JavaService {
 
 			if( inputPortList.length > 0 ) {
 				for( int ip = 0; ip < inputPortList.length; ip++ ) {
+					ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
+					ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
 					InputPortInfo inputPort = inputPortList[ ip ];
 					input.get( ip ).deepCopy( getInputPort(
 						listOfGeneratedTypesInTypeDefinition,
@@ -1005,8 +1006,7 @@ public class MetaJolie extends JavaService {
 
 	@RequestResponse
 	public Value getOutputPortMetaData( Value request ) throws FaultException {
-		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
-		ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
+
 		Value response = Value.create();
 		try {
 			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
@@ -1029,6 +1029,8 @@ public class MetaJolie extends JavaService {
 
 			if( outputPortList.length > 0 ) {
 				for( int ip = 0; ip < outputPortList.length; ip++ ) {
+					ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
+					ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
 					OutputPortInfo outputPortInfo = outputPortList[ ip ];
 					output.get( ip ).deepCopy( getOutputPort(
 						listOfGeneratedTypesInTypeDefinition,
