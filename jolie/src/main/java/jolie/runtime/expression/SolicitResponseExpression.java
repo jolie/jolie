@@ -53,7 +53,7 @@ public class SolicitResponseExpression implements Expression {
 
 			// Check to see if it there is Fault in response
 			/*
-			 * if( response.isFault() ) { }
+			 * if( response.isFault() ) { throw response.fault(); }
 			 */
 
 
@@ -71,7 +71,7 @@ public class SolicitResponseExpression implements Expression {
 
 	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
-		return null;
+		return new SolicitResponseExpression( operationId, outputPort, outputExpression );
 	}
 
 }
