@@ -18,6 +18,7 @@ import jolie.net.ports.OutputPort;
 import jolie.process.TransformationReason;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
@@ -31,6 +32,7 @@ public class SolicitResponseExpression implements Expression {
     private final Expression outputExpression; // may be null
     private final RequestResponseTypeDescription types;
     private final ParsingContext context;
+    private final VariablePath inputVarPath; // may be null
 
     public SolicitResponseExpression(
         String operationId,
@@ -43,6 +45,22 @@ public class SolicitResponseExpression implements Expression {
         this.outputExpression = outputExpression;
         this.types = types;
         this.context = context;
+        this.inputVarPath = null;
+    }
+
+    public SolicitResponseExpression(
+        String operationId,
+        OutputPort outputPort,
+        Expression outputExpression,
+        RequestResponseTypeDescription types,
+        ParsingContext context,
+        VariablePath inputVarPath ) {
+        this.operationId = operationId;
+        this.outputPort = outputPort;
+        this.outputExpression = outputExpression;
+        this.types = types;
+        this.context = context;
+        this.inputVarPath = inputVarPath;
     }
 
     @Override
@@ -127,6 +145,10 @@ public class SolicitResponseExpression implements Expression {
                 }
             } while( response == null );
             log( "RECEIVED", response );
+
+            if( inputVarPath != null ) {
+                inputVarPath.setValue( response.value() );
+            }
 
             if( response.isFault() ) {
                 Type faultType = types.getFaultType( response.fault().faultName() );

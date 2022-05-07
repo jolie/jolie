@@ -82,11 +82,10 @@ public class SolicitResponseProcess implements Process {
 				outputPort,
 				outputExpression,
 				types,
-				context );
-
-		if( inputVarPath != null ) {
-			inputVarPath.setValue( solicitResponseExpression.evaluate() );
-		}
+				context,
+				inputVarPath );
+		
+		solicitResponseExpression.evaluate();
 
 		try {
 			installProcess.run();
