@@ -23,6 +23,7 @@
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public class CastLongExpression implements Expression {
@@ -36,7 +37,7 @@ public class CastLongExpression implements Expression {
 		return new CastLongExpression( expression.cloneExpression( reason ) );
 	}
 
-	public Value evaluate() {
+	public Value evaluate() throws FaultException {
 		return Value.create( expression.evaluate().longValue() );
 	}
 }

@@ -23,6 +23,7 @@
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -66,7 +67,11 @@ public class InlineTreeExpression implements Expression {
 					throw new RuntimeException( "incomplete case analysis" );
 				}
 			} else {
-				path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
+				try {
+					path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
+				} catch( FaultException e ) {
+					throw new AssertionError( "Expression.evaluate() should never throw Exception here" );
+				}
 			}
 		}
 	}
@@ -87,7 +92,11 @@ public class InlineTreeExpression implements Expression {
 
 		@Override
 		public void run( Value inlineValue ) {
-			path.getValue( inlineValue ).assignValue( expression.evaluate() );
+			try {
+				path.getValue( inlineValue ).assignValue( expression.evaluate() );
+			} catch( FaultException e ) {
+				throw new AssertionError( "Expression.evaluate() should never throw Exception here" );
+			}
 		}
 	}
 
@@ -135,7 +144,7 @@ public class InlineTreeExpression implements Expression {
 	}
 
 	@Override
-	public Value evaluate() {
+	public Value evaluate() throws FaultException {
 		Value inlineValue = Value.create();
 		inlineValue.assignValue( rootExpression.evaluate() );
 

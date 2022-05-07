@@ -129,6 +129,7 @@ import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
@@ -3145,6 +3146,16 @@ public class OLParser extends AbstractParser {
 		return stm;
 	}
 
+	private OLSyntaxNode parseOutputExpressionNode( String id ) throws IOException, ParserException {
+		ParsingContext context = getContext();
+		String outputPortId = token.content();
+		nextToken();
+		OLSyntaxNode outputExpression = parseOperationExpressionParameter();
+		OLSyntaxNode expr = new SolicitResponseExpressionNode( context, id, outputPortId, outputExpression );
+
+		return expr;
+	}
+
 	private OLSyntaxNode parseWhileStatement()
 		throws IOException, ParserException {
 		ParsingContext context = getContext();
@@ -3300,7 +3311,20 @@ public class OLParser extends AbstractParser {
 
 		switch( token.type() ) {
 		case ID:
+			String id = token.content();
 			path = parseVariablePath();
+			if( token.type() == Scanner.TokenType.AT ) {
+				nextToken();
+				return parseOutputExpressionNode( id );
+			} else {
+				VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
+				freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
+					new ConstantIntegerExpression( getContext(), 0 ) ) );
+				if( path.isEquivalentTo( freshValuePath ) ) {
+					retVal = new FreshValueExpressionNode( path.context() );
+					return retVal;
+				}
+			}
 			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
 			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
 				new ConstantIntegerExpression( getContext(), 0 ) ) );

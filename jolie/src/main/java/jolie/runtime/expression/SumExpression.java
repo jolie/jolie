@@ -25,6 +25,7 @@ package jolie.runtime.expression;
 
 import jolie.lang.Constants;
 import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public final class SumExpression implements Expression {
@@ -46,7 +47,7 @@ public final class SumExpression implements Expression {
 	}
 
 	@Override
-	public Value evaluate() {
+	public Value evaluate() throws FaultException {
 		final Value val = Value.create( children[ 0 ].expression().evaluate() );
 		for( int i = 1; i < children.length; i++ ) {
 			if( children[ i ].type() == Constants.OperandType.ADD ) {
