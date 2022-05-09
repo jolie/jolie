@@ -11,6 +11,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public class SolicitResponseExpression implements Expression {
@@ -25,7 +26,7 @@ public class SolicitResponseExpression implements Expression {
 	}
 
 	@Override
-	public Value evaluate() {
+	public Value evaluate() throws FaultException {
 		// TODO implement all exception cases
 		try {
 			CommMessage message =
@@ -55,8 +56,6 @@ public class SolicitResponseExpression implements Expression {
 			/*
 			 * if( response.isFault() ) { throw response.fault(); }
 			 */
-
-
 
 			return response.value();
 		} catch( IOException e ) {

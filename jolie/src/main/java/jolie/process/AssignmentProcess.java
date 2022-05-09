@@ -24,6 +24,7 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
@@ -69,7 +70,7 @@ public class AssignmentProcess implements Process, Expression {
 	}
 
 	/** Evaluates the expression and stores its value in the variable. */
-	public void run() {
+	public void run() throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
 		Value evaluationValue = expression.evaluate();
@@ -83,7 +84,7 @@ public class AssignmentProcess implements Process, Expression {
 			context ) );
 	}
 
-	public Value evaluate() {
+	public Value evaluate() throws FaultException {
 		Value val = varPath.getValue();
 		val.assignValue( expression.evaluate() );
 		return val;

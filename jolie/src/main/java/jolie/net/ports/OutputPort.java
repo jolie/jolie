@@ -40,6 +40,7 @@ import jolie.process.NullProcess;
 import jolie.process.Process;
 import jolie.process.SequentialProcess;
 import jolie.runtime.AbstractIdentifiableObject;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
@@ -203,16 +204,25 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		if( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
 		}
-		return interpreter.commCore().createOutputCommProtocol(
-			protocolId,
-			protocolVariablePath,
-			new URI( locationExpression.evaluate().strValue() ) );
+		try {
+			return interpreter.commCore().createOutputCommProtocol(
+				protocolId,
+				protocolVariablePath,
+				new URI( locationExpression.evaluate().strValue() ) );
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should not be possible that a FaultException was thrown here", e.getCause() );
+		}
 	}
 
 	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException {
 		CommChannel ret;
-		Value loc = locationExpression.evaluate();
+		Value loc = null;
+		try {
+			loc = locationExpression.evaluate();
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
+		}
 		if( loc.isChannel() ) {
 			// It's a local channel
 			ret = loc.channelValue();
@@ -258,7 +268,12 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 */
 	public String getResourcePath()
 		throws URISyntaxException {
-		Value location = locationExpression.evaluate();
+		Value location = null;
+		try {
+			location = locationExpression.evaluate();
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
+		}
 		if( location.isChannel() ) {
 			return "/";
 		}

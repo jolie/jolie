@@ -24,6 +24,7 @@ import jolie.Interpreter;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.ServiceNodeJava;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 
@@ -56,7 +57,7 @@ public abstract class ServiceNodeLoader extends EmbeddedServiceLoader {
 	}
 
 	@Override
-	public void load() throws EmbeddedServiceLoadingException {
+	public void load() throws EmbeddedServiceLoadingException, FaultException {
 		Value passingValue = passingParameter == null ? Value.create() : passingParameter.evaluate();
 		load( passingValue );
 	}

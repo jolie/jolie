@@ -87,22 +87,26 @@ public class VariablePath implements Expression {
 		int i, myIndex, otherIndex;
 		Pair< Expression, Expression > pair, otherPair;
 		Expression expr, otherExpr;
-		for( i = 0; i < path.length; i++ ) {
-			pair = path[ i ];
-			otherPair = otherVarPath.path[ i ];
+		try {
+			for( i = 0; i < path.length; i++ ) {
+				pair = path[ i ];
+				otherPair = otherVarPath.path[ i ];
 
-			// *.element_name is not a subpath of *.other_name
-			if( !pair.key().evaluate().strValue().equals( otherPair.key().evaluate().strValue() ) )
-				return null;
+				// *.element_name is not a subpath of *.other_name
+				if( !pair.key().evaluate().strValue().equals( otherPair.key().evaluate().strValue() ) )
+					return null;
 
-			// If element name is equal, check for the same index
-			expr = pair.value();
-			otherExpr = otherPair.value();
+				// If element name is equal, check for the same index
+				expr = pair.value();
+				otherExpr = otherPair.value();
 
-			myIndex = (expr == null) ? 0 : expr.evaluate().intValue();
-			otherIndex = (otherExpr == null) ? 0 : otherExpr.evaluate().intValue();
-			if( myIndex != otherIndex )
-				return null;
+				myIndex = (expr == null) ? 0 : expr.evaluate().intValue();
+				otherIndex = (otherExpr == null) ? 0 : otherExpr.evaluate().intValue();
+				if( myIndex != otherIndex )
+					return null;
+			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 
 		// Now i represents the beginning of the subpath, we can just copy it from there
@@ -135,35 +139,39 @@ public class VariablePath implements Expression {
 		int index;
 		String keyStr;
 
-		for( int i = 0; i < path.length; i++ ) {
-			pair = path[ i ];
-			keyStr = pair.key().evaluate().strValue();
-			currVector = currValue.children().get( keyStr );
-			if( currVector == null ) {
-				return;
-			} else if( currVector.size() < 1 ) {
-				currValue.children().remove( keyStr );
-				return;
-			}
-			if( pair.value() == null ) {
-				if( (i + 1) < path.length ) {
-					currValue = currVector.get( 0 );
-				} else { // We're finished
+		try {
+			for( int i = 0; i < path.length; i++ ) {
+				pair = path[ i ];
+				keyStr = pair.key().evaluate().strValue();
+				currVector = currValue.children().get( keyStr );
+				if( currVector == null ) {
+					return;
+				} else if( currVector.size() < 1 ) {
 					currValue.children().remove( keyStr );
+					return;
 				}
-			} else {
-				index = pair.value().evaluate().intValue();
-				if( (i + 1) < path.length ) {
-					if( currVector.size() <= index ) {
-						return;
+				if( pair.value() == null ) {
+					if( (i + 1) < path.length ) {
+						currValue = currVector.get( 0 );
+					} else { // We're finished
+						currValue.children().remove( keyStr );
 					}
-					currValue = currVector.get( index );
 				} else {
-					if( currVector.size() > index ) {
-						currVector.remove( index );
+					index = pair.value().evaluate().intValue();
+					if( (i + 1) < path.length ) {
+						if( currVector.size() <= index ) {
+							return;
+						}
+						currValue = currVector.get( index );
+					} else {
+						if( currVector.size() > index ) {
+							currVector.remove( index );
+						}
 					}
 				}
 			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 	}
 
@@ -186,12 +194,16 @@ public class VariablePath implements Expression {
 	}
 
 	public final Value getValue( Value currValue ) {
-		for( Pair< Expression, Expression > pair : path ) {
-			final String keyStr = pair.key().evaluate().strValue();
-			currValue =
-				pair.value() == null
-					? currValue.getFirstChild( keyStr )
-					: currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
+		try {
+			for( Pair< Expression, Expression > pair : path ) {
+				final String keyStr = pair.key().evaluate().strValue();
+				currValue =
+					pair.value() == null
+						? currValue.getFirstChild( keyStr )
+						: currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
+			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 
 		return currValue;
@@ -207,32 +219,37 @@ public class VariablePath implements Expression {
 		if( path.length == 0 ) {
 			currValue.refCopy( value );
 		} else {
-			for( int i = 0; i < path.length; i++ ) {
-				pair = path[ i ];
-				keyStr = pair.key().evaluate().strValue();
-				currVector = currValue.getChildren( keyStr );
-				if( pair.value() == null ) {
-					if( (i + 1) < path.length ) {
-						currValue = currVector.get( 0 );
-					} else { // We're finished
-						if( currVector.get( 0 ).isUsedInCorrelation() ) {
-							currVector.get( 0 ).refCopy( value );
-						} else {
-							currVector.set( 0, value );
+			try {
+				for( int i = 0; i < path.length; i++ ) {
+					pair = path[ i ];
+					keyStr = pair.key().evaluate().strValue();
+					currVector = currValue.getChildren( keyStr );
+					if( pair.value() == null ) {
+						if( (i + 1) < path.length ) {
+							currValue = currVector.get( 0 );
+						} else { // We're finished
+							if( currVector.get( 0 ).isUsedInCorrelation() ) {
+								currVector.get( 0 ).refCopy( value );
+							} else {
+								currVector.set( 0, value );
+							}
 						}
-					}
-				} else {
-					index = pair.value().evaluate().intValue();
-					if( (i + 1) < path.length ) {
-						currValue = currVector.get( index );
 					} else {
-						if( currVector.get( index ).isUsedInCorrelation() ) {
-							currVector.get( index ).refCopy( value );
+						index = pair.value().evaluate().intValue();
+						if( (i + 1) < path.length ) {
+							currValue = currVector.get( index );
 						} else {
-							currVector.set( index, value );
+							if( currVector.get( index ).isUsedInCorrelation() ) {
+								currVector.get( index ).refCopy( value );
+							} else {
+								currVector.set( index, value );
+							}
 						}
 					}
 				}
+			} catch( FaultException e ) {
+				throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here",
+					e.getCause() );
 			}
 		}
 	}
@@ -246,35 +263,39 @@ public class VariablePath implements Expression {
 	}
 
 	public final Value getValueOrNull( Value currValue ) {
-		for( int i = 0; i < path.length; i++ ) {
-			final Pair< Expression, Expression > pair = path[ i ];
-			final ValueVector currVector = currValue.children().get( pair.key().evaluate().strValue() );
-			if( currVector == null ) {
-				return null;
-			}
-			if( pair.value() == null ) {
-				if( (i + 1) < path.length ) {
-					if( currVector.isEmpty() ) {
-						return null;
-					}
-					currValue = currVector.get( 0 );
-				} else { // We're finished
-					if( currVector.isEmpty() ) {
-						return null;
-					} else {
-						return currVector.get( 0 );
-					}
-				}
-			} else {
-				final int index = pair.value().evaluate().intValue();
-				if( currVector.size() <= index ) {
+		try {
+			for( int i = 0; i < path.length; i++ ) {
+				final Pair< Expression, Expression > pair = path[ i ];
+				final ValueVector currVector = currValue.children().get( pair.key().evaluate().strValue() );
+				if( currVector == null ) {
 					return null;
 				}
-				currValue = currVector.get( index );
-				if( (i + 1) >= path.length ) {
-					return currValue;
+				if( pair.value() == null ) {
+					if( (i + 1) < path.length ) {
+						if( currVector.isEmpty() ) {
+							return null;
+						}
+						currValue = currVector.get( 0 );
+					} else { // We're finished
+						if( currVector.isEmpty() ) {
+							return null;
+						} else {
+							return currVector.get( 0 );
+						}
+					}
+				} else {
+					final int index = pair.value().evaluate().intValue();
+					if( currVector.size() <= index ) {
+						return null;
+					}
+					currValue = currVector.get( index );
+					if( (i + 1) >= path.length ) {
+						return currValue;
+					}
 				}
 			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 
 		return currValue;
@@ -298,13 +319,17 @@ public class VariablePath implements Expression {
 	private FaultException buildAliasAccessException() {
 		String alias = "";
 		boolean isRoot = true;
-		for( Pair< Expression, Expression > p : path ) {
-			if( isRoot ) {
-				alias += p.key().evaluate().strValue();
-				isRoot = false;
-			} else {
-				alias += "." + p.key().evaluate().strValue();
+		try {
+			for( Pair< Expression, Expression > p : path ) {
+				if( isRoot ) {
+					alias += p.key().evaluate().strValue();
+					isRoot = false;
+				} else {
+					alias += "." + p.key().evaluate().strValue();
+				}
 			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 		return new FaultException( "AliasAccessException",
 			"Found a loop when accessing an alias pointing to path: " + alias );
@@ -313,42 +338,50 @@ public class VariablePath implements Expression {
 
 	public final ValueVector getValueVector( Value currValue ) {
 		ValueVector currVector = null;
-		for( int i = 0; i < path.length; i++ ) {
-			final Pair< Expression, Expression > pair = path[ i ];
-			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
-			if( (i + 1) < path.length ) {
-				if( pair.value() == null ) {
-					currValue = currVector.get( 0 );
-				} else {
-					currValue = currVector.get( pair.value().evaluate().intValue() );
+		try {
+			for( int i = 0; i < path.length; i++ ) {
+				final Pair< Expression, Expression > pair = path[ i ];
+				currVector = currValue.getChildren( pair.key().evaluate().strValue() );
+				if( (i + 1) < path.length ) {
+					if( pair.value() == null ) {
+						currValue = currVector.get( 0 );
+					} else {
+						currValue = currVector.get( pair.value().evaluate().intValue() );
+					}
 				}
 			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 		return currVector;
 	}
 
 	public final ValueVector getValueVectorOrNull( Value currValue ) {
 		ValueVector currVector = null;
-		for( int i = 0; i < path.length; i++ ) {
-			final Pair< Expression, Expression > pair = path[ i ];
-			currVector = currValue.children().get( pair.key().evaluate().strValue() );
-			if( currVector == null ) {
-				return null;
-			}
-			if( (i + 1) < path.length ) {
-				if( pair.value() == null ) {
-					if( currVector.isEmpty() ) {
-						return null;
+		try {
+			for( int i = 0; i < path.length; i++ ) {
+				final Pair< Expression, Expression > pair = path[ i ];
+				currVector = currValue.children().get( pair.key().evaluate().strValue() );
+				if( currVector == null ) {
+					return null;
+				}
+				if( (i + 1) < path.length ) {
+					if( pair.value() == null ) {
+						if( currVector.isEmpty() ) {
+							return null;
+						}
+						currValue = currVector.get( 0 );
+					} else {
+						final int index = pair.value().evaluate().intValue();
+						if( currVector.size() <= index ) {
+							return null;
+						}
+						currValue = currVector.get( index );
 					}
-					currValue = currVector.get( 0 );
-				} else {
-					final int index = pair.value().evaluate().intValue();
-					if( currVector.size() <= index ) {
-						return null;
-					}
-					currValue = currVector.get( index );
 				}
 			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 		return currVector;
 	}
@@ -371,24 +404,28 @@ public class VariablePath implements Expression {
 		int index;
 		String keyStr;
 
-		for( int i = 0; i < path.length; i++ ) {
-			pair = path[ i ];
-			keyStr = pair.key().evaluate().strValue();
-			currVector = currValue.getChildren( keyStr );
-			if( pair.value() == null ) {
-				if( (i + 1) < path.length ) {
-					currValue = currVector.get( 0 );
-				} else { // We're finished
-					currValue.children().put( keyStr, ValueVector.createLink( rightPath ) );
-				}
-			} else {
-				index = pair.value().evaluate().intValue();
-				if( (i + 1) < path.length ) {
-					currValue = currVector.get( index );
+		try {
+			for( int i = 0; i < path.length; i++ ) {
+				pair = path[ i ];
+				keyStr = pair.key().evaluate().strValue();
+				currVector = currValue.getChildren( keyStr );
+				if( pair.value() == null ) {
+					if( (i + 1) < path.length ) {
+						currValue = currVector.get( 0 );
+					} else { // We're finished
+						currValue.children().put( keyStr, ValueVector.createLink( rightPath ) );
+					}
 				} else {
-					currVector.set( index, Value.createLink( rightPath ) );
+					index = pair.value().evaluate().intValue();
+					if( (i + 1) < path.length ) {
+						currValue = currVector.get( index );
+					} else {
+						currVector.set( index, Value.createLink( rightPath ) );
+					}
 				}
 			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 	}
 
@@ -398,23 +435,27 @@ public class VariablePath implements Expression {
 		Value currValue = getRootValue();
 		int index;
 
-		for( int i = 0; i < path.length; i++ ) {
-			pair = path[ i ];
-			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
-			if( pair.value() == null ) {
-				if( (i + 1) < path.length ) {
-					currValue = currVector.get( 0 );
-				} else { // We're finished
-					return currVector;
-				}
-			} else {
-				index = pair.value().evaluate().intValue();
-				if( (i + 1) < path.length ) {
-					currValue = currVector.get( index );
+		try {
+			for( int i = 0; i < path.length; i++ ) {
+				pair = path[ i ];
+				currVector = currValue.getChildren( pair.key().evaluate().strValue() );
+				if( pair.value() == null ) {
+					if( (i + 1) < path.length ) {
+						currValue = currVector.get( 0 );
+					} else { // We're finished
+						return currVector;
+					}
 				} else {
-					return currVector.get( index );
+					index = pair.value().evaluate().intValue();
+					if( (i + 1) < path.length ) {
+						currValue = currVector.get( index );
+					} else {
+						return currVector.get( index );
+					}
 				}
 			}
+		} catch( FaultException e ) {
+			throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here", e.getCause() );
 		}
 
 		return currValue;
