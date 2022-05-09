@@ -884,7 +884,8 @@ public class OOITBuilder implements UnitOLVisitor {
 			currExpression = new SolicitResponseExpression(
 				n.id(),
 				interpreter.getOutputPort( n.outputPortId() ),
-				buildExpression( n.outputExpression() ) );
+				buildExpression( n.outputExpression() ),
+				solicitResponseTypes.get( n.outputPortId() ).get( n.id() ) );
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
