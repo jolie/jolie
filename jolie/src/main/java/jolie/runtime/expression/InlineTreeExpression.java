@@ -38,7 +38,7 @@ public class InlineTreeExpression implements Expression {
 	public interface Operation {
 		Operation cloneOperation( TransformationReason reason );
 
-		void run( Value inlineValue );
+		void run( Value inlineValue ) throws FaultException;
 	}
 
 	public static class DeepCopyOperation implements Operation {
@@ -56,7 +56,7 @@ public class InlineTreeExpression implements Expression {
 		}
 
 		@Override
-		public void run( Value inlineValue ) {
+		public void run( Value inlineValue ) throws FaultException {
 			if( expression instanceof VariablePath ) {
 				Object myObj = ((VariablePath) expression).getValueOrValueVector();
 				if( myObj instanceof Value ) {
@@ -67,12 +67,7 @@ public class InlineTreeExpression implements Expression {
 					throw new RuntimeException( "incomplete case analysis" );
 				}
 			} else {
-				try {
-					path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
-				} catch( FaultException e ) {
-					throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here",
-						e.getCause() );
-				}
+				path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
 			}
 		}
 	}
@@ -92,13 +87,8 @@ public class InlineTreeExpression implements Expression {
 		}
 
 		@Override
-		public void run( Value inlineValue ) {
-			try {
-				path.getValue( inlineValue ).assignValue( expression.evaluate() );
-			} catch( FaultException e ) {
-				throw new AssertionError( "It should mot ne possible that a FaultExeption was thrown here",
-					e.getCause() );
-			}
+		public void run( Value inlineValue ) throws FaultException {
+			path.getValue( inlineValue ).assignValue( expression.evaluate() );
 		}
 	}
 
