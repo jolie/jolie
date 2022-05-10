@@ -210,7 +210,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 				protocolVariablePath,
 				new URI( locationExpression.evaluate().strValue() ) );
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 	}
 
@@ -221,7 +221,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		try {
 			loc = locationExpression.evaluate();
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 		if( loc.isChannel() ) {
 			// It's a local channel
@@ -272,7 +272,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 		try {
 			location = locationExpression.evaluate();
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 		if( location.isChannel() ) {
 			return "/";

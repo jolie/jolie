@@ -503,7 +503,7 @@ public class OOITBuilder implements UnitOLVisitor {
 				try {
 					protocolStr = protocolExpr.evaluate().strValue();
 				} catch( FaultException e ) {
-					throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+					throw new AssertionError( "Expression evaluation should never throw an exception here" );
 				}
 			} else if( protocolExpr instanceof VariablePath ) {
 				VariablePath path = new ClosedVariablePath( (VariablePath) protocolExpr, initValue );

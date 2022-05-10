@@ -70,7 +70,7 @@ public class InlineTreeExpression implements Expression {
 				try {
 					path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
 				} catch( FaultException e ) {
-					throw new AssertionError( "Expression.evaluate() should never throw Exception here" );
+					throw new AssertionError( "Expression evaluation should never throw Exception here" );
 				}
 			}
 		}
@@ -95,7 +95,7 @@ public class InlineTreeExpression implements Expression {
 			try {
 				path.getValue( inlineValue ).assignValue( expression.evaluate() );
 			} catch( FaultException e ) {
-				throw new AssertionError( "Expression.evaluate() should never throw Exception here" );
+				throw new AssertionError( "Expression evaluation should never throw Exception here" );
 			}
 		}
 	}

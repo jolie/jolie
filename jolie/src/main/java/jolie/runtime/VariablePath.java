@@ -106,7 +106,7 @@ public class VariablePath implements Expression {
 					return null;
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 
 		// Now i represents the beginning of the subpath, we can just copy it from there
@@ -170,7 +170,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 	}
 
@@ -202,7 +202,7 @@ public class VariablePath implements Expression {
 						: currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 
 		return currValue;
@@ -248,7 +248,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 	}
 
@@ -293,7 +293,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 
 		return currValue;
@@ -327,7 +327,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 
 		return new FaultException( "AliasAccessException",
@@ -350,7 +350,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 		return currVector;
 	}
@@ -380,7 +380,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 		return currVector;
 	}
@@ -423,7 +423,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 	}
 
@@ -452,7 +452,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		} catch( FaultException e ) {
-			throw new AssertionError( "Expression.evaluate() should never throw an exception here" );
+			throw new AssertionError( "Expression evaluation should never throw an exception here" );
 		}
 
 		return currValue;

@@ -3325,13 +3325,6 @@ public class OLParser extends AbstractParser {
 					return retVal;
 				}
 			}
-			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
-			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
-				new ConstantIntegerExpression( getContext(), 0 ) ) );
-			if( path.isEquivalentTo( freshValuePath ) ) {
-				retVal = new FreshValueExpressionNode( path.context() );
-				return retVal;
-			}
 			break;
 		case DOT:
 			path = parseVariablePath();
