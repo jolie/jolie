@@ -208,6 +208,19 @@ define doTest
 
 
    // testing lessThan operations
+   undef( rq )
+   rq.filename = "private/sample_service6_old_syntax.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description6 )
+
+   undef( rq )
+   rq.i1 -> meta_description6.input.interfaces
+   rq.i2 -> meta_description6.input.interfaces
+   interfaceDefinitionLessThan@MetaJolie( rq )( result )
+   if ( !result.result ) {
+       throw( TestFailed, "Expected true for interfaceDefinitionLessThan between the same interface of TmpInterface5" )
+   }
+
+   undef( rq )
    with( rq ) {
       .filename = "private/sample_service3_old_syntax.ol"
    }

@@ -1,3 +1,4 @@
+#
 # To use this dockerfile locally, launch the following command from the root directory of your local copy of this repository.
 # docker build -f docker/Dockerfile -t jolielang/jolie .
 

@@ -367,13 +367,13 @@ public class CommCore {
 				CommChannel oChannel = oPort.getNewCommChannel();
 				CommMessage rMessage =
 					new CommMessage(
-						message.id(),
+						message.requestId(),
 						message.operationName(),
 						rPath,
 						message.value(),
 						message.fault() );
 				oChannel.setRedirectionChannel( channel );
-				oChannel.setRedirectionMessageId( rMessage.id() );
+				oChannel.setRedirectionMessageId( rMessage.requestId() );
 				oChannel.send( rMessage );
 				oChannel.setToBeClosed( false );
 				oChannel.disposeForInput();

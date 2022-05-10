@@ -20,6 +20,8 @@
 package jolie.lang.parse.module;
 
 import java.util.Optional;
+
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
 import jolie.lang.parse.context.ParsingContext;
 
@@ -27,13 +29,13 @@ import jolie.lang.parse.context.ParsingContext;
  * A class represent a Symbol defined within external execution environment. Create when consuming
  * an import statement
  */
-class ImportedSymbolInfo extends SymbolInfo {
+public class ImportedSymbolInfo extends SymbolInfo {
 
 	private final ImportPath importPath;
 	private final String originalSymbolName;
 	private ModuleSource moduleSource;
 
-	protected ImportedSymbolInfo( ParsingContext context, String name, ImportPath importPath,
+	public ImportedSymbolInfo( ParsingContext context, String name, ImportPath importPath,
 		String originalSymbolName ) {
 		super( context, name, Scope.EXTERNAL, AccessModifier.PRIVATE );
 		this.importPath = importPath;
@@ -46,21 +48,22 @@ class ImportedSymbolInfo extends SymbolInfo {
 	 */
 	protected void setModuleSource( ModuleSource moduleSource ) throws ModuleException {
 		if( this.moduleSource != null ) {
-			throw new ModuleException( this.context(),
-				"original source of symbol " + this.name() + " is already defined" );
+			String m = "original source of symbol " + this.name() + " is already defined";
+			CodeCheckMessage message = CodeCheckMessage.withoutHelp( this.context(), m );
+			throw new ModuleException( message );
 		}
 		this.moduleSource = moduleSource;
 	}
 
-	protected ImportPath importPath() {
+	public ImportPath importPath() {
 		return this.importPath;
 	}
 
-	protected Optional< ModuleSource > moduleSource() {
+	public Optional< ModuleSource > moduleSource() {
 		return Optional.of( this.moduleSource );
 	}
 
-	protected String originalSymbolName() {
+	public String originalSymbolName() {
 		return this.originalSymbolName;
 	}
 

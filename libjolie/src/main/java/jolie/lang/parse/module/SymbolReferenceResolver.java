@@ -22,7 +22,7 @@ package jolie.lang.parse.module;
 import java.net.URI;
 import java.util.*;
 
-import jolie.lang.CodeCheckingError;
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.UnitOLVisitor;
@@ -129,13 +129,13 @@ import jolie.lang.parse.module.exceptions.SymbolNotFoundException;
 import jolie.util.Pair;
 
 public class SymbolReferenceResolver {
-	private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name ) {
-		return CodeCheckingError.build( node, "Symbol not found: " + name
+	private static CodeCheckMessage buildSymbolNotFoundError( OLSyntaxNode node, String name ) {
+		return CodeCheckMessage.buildWithoutHelp( node, "Symbol not found: " + name
 			+ " is not defined in this module (the symbol could not be retrieved from the symbol table)" );
 	}
 
-	private static CodeCheckingError buildInfiniteTypeDefinitionLinkLoop( OLSyntaxNode node, String name ) {
-		return CodeCheckingError.build( node, "Type definition link loop detected: " + name
+	private static CodeCheckMessage buildInfiniteTypeDefinitionLinkLoop( OLSyntaxNode node, String name ) {
+		return CodeCheckMessage.buildWithoutHelp( node, "Type definition link loop detected: " + name
 			+ " (this might mean that the referred type has not been defined or could not be retrieved)" );
 	}
 
@@ -146,15 +146,16 @@ public class SymbolReferenceResolver {
 	// + " (the symbol could not be retrieved from the symbol table)" );
 	// }
 
-	private static CodeCheckingError buildSymbolTypeMismatchError( OLSyntaxNode node, String symbolName,
+	private static CodeCheckMessage buildSymbolTypeMismatchError( OLSyntaxNode node, String symbolName,
 		String expectedType, String actualType ) {
-		return CodeCheckingError.build( node, "Symbol is used incorrectly: " + symbolName + " is used as "
+		return CodeCheckMessage.buildWithoutHelp( node, "Symbol is used incorrectly: " + symbolName + " is used as "
 			+ expectedType + ", but it actually has type " + actualType );
 	}
 
-	private static CodeCheckingError buildMissingServiceInputportError( ServiceNode node, String portId ) {
-		return CodeCheckingError.build( node, "Unable to bind operations to port " + portId + ": " + node.name()
-			+ " service doesn't have an inputPort with location 'local' defined." );
+	private static CodeCheckMessage buildMissingServiceInputportError( ServiceNode node, String portId ) {
+		return CodeCheckMessage.buildWithoutHelp( node,
+			"Unable to bind operations to port " + portId + ": " + node.name()
+				+ " service doesn't have an inputPort with location 'local' defined." );
 	}
 
 	// private static CodeCheckingError buildTypeLinkOutOfBoundError( TypeDefinitionLink node ) {
@@ -164,11 +165,11 @@ public class SymbolReferenceResolver {
 
 	private class SymbolReferenceResolverVisitor implements UnitOLVisitor {
 		private URI currentURI;
-		private final List< CodeCheckingError > errors = new ArrayList<>();
+		private final List< CodeCheckMessage > errors = new ArrayList<>();
 
 		protected SymbolReferenceResolverVisitor() {}
 
-		private void error( CodeCheckingError e ) {
+		private void error( CodeCheckMessage e ) {
 			errors.add( e );
 		}
 
@@ -869,7 +870,8 @@ public class SymbolReferenceResolver {
 			resolver.resolveExternalSymbols();
 		} catch( SymbolNotFoundException | IllegalAccessSymbolException
 			| DuplicateSymbolException e ) {
-			throw new ModuleException( e.getMessage() );
+			CodeCheckMessage message = CodeCheckMessage.withoutHelp( null, e.getMessage() );
+			throw new ModuleException( message );
 		}
 		resolver.resolveLinkedTypes();
 	}

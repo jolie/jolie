@@ -24,7 +24,7 @@ package jolie.runtime;
 import java.util.function.BiPredicate;
 
 /**
- * A CompareOperator performs some kind of boolean comparison between two values.
+ * Boolean comparison operators for {@link Value} objects.
  * 
  * @author Fabrizio Montesi
  */

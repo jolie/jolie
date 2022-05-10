@@ -214,7 +214,7 @@ define __body {
                         
                         undef( __template )
                         undef( __method )
-                        // proceed only if a rest template has been defined for that operation
+                        // defining method
                         __method = request.template.( oper.operation_name ).method
                         if ( is_defined( request.template.( oper.operation_name ).template ) ) {
                             __template  = request.template.( oper.operation_name ).template
@@ -233,16 +233,24 @@ define __body {
 
                         path_counter++;
 
+                        // start definition of specific path method
                         with( openapi.paths[ path_counter ].( __method ) ) {
+                            // general data
                             .tags = c_interface_name;
                             .description = "";
                             .operationId = oper.operation_name;
                             .consumes[0] = "application/json";
                             .produces = "application/json";
+
+                            // standard responses
+
+                            // 200
                             with( .responses[ 0 ] ) {
                                     .status = 200;
                                     .description = "OK";
                                     tp_resp_count = 0; tp_resp_found = false;
+
+                                    // looking for response type in the list of the interface types
                                     while( !tp_resp_found && tp_resp_count < #c_interface.types ) {
                                         if ( c_interface.types[ tp_resp_count ].name == oper.output ) {
                                             tp_resp_found = true
@@ -251,14 +259,19 @@ define __body {
                                         }
                                     };
                                     if ( tp_resp_found ) {
+                                        // if the response type has been found, the schema link to the definition is reported
                                         .schema.link_name << c_interface.types[ tp_resp_count ].name
                                     }
                             }
+
+                            // 404
                             with( .responses[ 1 ] ) {
                                 .status = 404;
                                 .description = "resource not found"
                             }
                             undef( fnames )
+
+                            // if jolie faults exist, thwy will be collected under 500
                             if ( #oper.fault > 0 ) {
                                 for ( f = 0, f < #oper.fault, f++ ) {
                                         
@@ -276,10 +289,12 @@ define __body {
                                 }
                             }
                         };
+
+                        // analyzing request
                         openapi_params_count = -1
                         current_openapi_path -> openapi.paths[ path_counter ].( __method )
 
-                        /* find request type description */
+                        /* finding request type description */
                         tp_count = 0; tp_found = false;
                         while( !tp_found && tp_count < #c_interface.types ) {
                             if ( c_interface.types[ tp_count ].name == oper.input ) {
@@ -290,19 +305,24 @@ define __body {
                         }
 
                         if ( tp_found ) {
-                            // check the consistency of the root type of the type
+                            // a request type has been found
+                            // check the consistency of the root type of the type: it cannot be void, etc
                             check_rq = c_interface.types[ tp_count ].name
                             check_rq.type_map -> global.type_map
                             checkTypeConsistency@JesterUtils( check_rq )()
-                        }
-                        real_current_type -> c_interface.types[ tp_count ]
-                        get_actual_ctype_rq = c_interface.types[ tp_count ].name
-                        get_actual_ctype_rq.type_map -> global.type_map 
-                        getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
-                        current_type -> global.type_map.( actual_type_name )
 
+                            // in case the request type is a link, we must find the last linked type and pointing to that type
+                            real_current_type -> c_interface.types[ tp_count ]
+                            get_actual_ctype_rq = c_interface.types[ tp_count ].name
+                            get_actual_ctype_rq.type_map -> global.type_map 
+                            getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
+                            current_type -> global.type_map.( actual_type_name )
+                        }
+
+                        // request analysis depends on the presence of a template
                         if ( !( __template instanceof void ) ) {
-                        
+                            
+                            // the template exists, thus the parameters of the template must be separated from the body if they exist
                             getParamList@JesterUtils( __template )( found_params )
 
                             if ( found_params ) {
@@ -316,49 +336,81 @@ define __body {
                                             throw( DefinitionError, error_msg )
                                     } else {
                                             /* if there are parameters in the template the request type must be analyzed */
+                                            // ranging over the subtypes of the request for finding those field that corresponds to those in the template
+                                            undef( body_params )
                                             for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
+                                                
                                                 current_sbt -> current_type.type.sub_type[ sbt ];
                                                 current_root_type -> current_sbt.type.root_type;  
                                                 __str_to_search = current_sbt.name 
                                                 __found = ""
-                                                check_param_found                               
+                                                check_param_found
+                                                // variable __found can be "body", "path" or "query"   
+
+                                                /* path and query parameters msut be defined separately, whereas body parameters must be collected 
+                                                under a single parameter here named "body" */                           
                                                 
-                                                openapi_params_count++;
-                                                with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                                    /* if a parameter name corresponds with a node of the the type, such a node must be declared as a simple native type node */
-                                                    .name = current_sbt.name;
-                                                    if ( current_sbt.cardinality.min > 0 ) {
-                                                        .required = true
-                                                    };
-                                                    
-                                                    if ( current_sbt.type instanceof TypeInLine ) {
-                                                        if ( #current_sbt.type.sub_type > 0 ) {
-                                                            error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted when it is used in a template"
-                                                            throw( DefinitionError, error_msg )
-                                                        }
-                                                    } else if ( current_sbt.type instanceof TypeChoice ) {
-                                                         error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type choice. Not permitted when a template is defined"
-                                                        throw( DefinitionError, error_msg )
-                                                    } else if ( current_sbt.type instanceof TypeLink ) {
-                                                            get_actual_ctype_rq = current_sbt.type.link_name
-                                                            get_actual_ctype_rq.type_map -> global.type_map 
-                                                            getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
-                                                            if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
-                                                                error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                // preparing the definition of the current parameter if it is in path or query
+                                                if ( __found != "body" ) {
+                                                    openapi_params_count++;
+                                                    with( current_openapi_path.parameters[ openapi_params_count ] ) {
+                                                        /* if a parameter name corresponds with a node of the type, such a node must be declared as a simple native type node */
+                                                        .name = current_sbt.name;
+                                                        if ( current_sbt.cardinality.min > 0 ) {
+                                                            .required = true
+                                                        };
+                                                        
+                                                        // a path or query parameter cannot be a structured type in jolie
+                                                        if ( current_sbt.type instanceof TypeInLine ) {
+                                                            if ( #current_sbt.type.sub_type > 0 ) {
+                                                                error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted when it is used in a template"
                                                                 throw( DefinitionError, error_msg )
                                                             }
-                                                    }
+                                                        } else if ( current_sbt.type instanceof TypeChoice ) {
+                                                            error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type choice. Not permitted when a template is defined"
+                                                            throw( DefinitionError, error_msg )
+                                                        } else if ( current_sbt.type instanceof TypeLink ) {
+                                                                get_actual_ctype_rq = current_sbt.type.link_name
+                                                                get_actual_ctype_rq.type_map -> global.type_map 
+                                                                getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
+                                                                if ( global.type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
+                                                                    error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                                    throw( DefinitionError, error_msg )
+                                                                }
+                                                        }
 
-                                                    if ( __found == "body" ) {
-                                                        .in.in_body.schema_subType << current_sbt
-                                                    } else {
                                                         .in.other = __found;
                                                         .in.other.type << current_sbt.type 
                                                     }
+                                                } else {
+                                                    // it is a body parameter
+                                                    body_params[ #body_params ] << current_sbt
                                                 }
                                             }
+
+                                            // checking if there are parameters in the body and preparing their definition
+                                            if ( #body_params > 0 && __method != "get" ) {
+                                                // creating a type on the fly which contains all the body parameters
+
+                                                undef( body_type ) 
+                                                body_type.root_type.void_type = true 
+                                                for ( bp in body_params ) {
+                                                    body_type.sub_type[ #body_type.sub_type ] << bp
+                                                }
+
+                                                
+                                                openapi_params_count++
+                                                current_openapi_path.parameters[ openapi_params_count ] << {
+                                                    name = "body"
+                                                    required = true
+                                                    in.in_body.schema_type << body_type
+                                                }
+                                                
+                                            }
                                     }
+
                             } else {
+                                    // there are not parameters in the template
                                     /* the root type of the request type must be always void */
                                     if ( !tp_found ) {
                                         if ( oper.input != "void" ) {
@@ -375,17 +427,13 @@ define __body {
                                                 }
                                             }
                                     } else {
+                                        // methods POST, PUT, DELETE
                                             if ( tp_found ) {
                                                 /* the fields of the request type must be transformed into parameters */
-                                                for( sf = 0, sf < #current_type.type.sub_type, sf++ ) {
-                                                        openapi_params_count++;
-                                                        with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                                            .name = real_current_type.type.sub_type[ sf ].name;
-                                                            if ( current_type.type.sub_type[ sf ].cardinality.min > 0 ) {
-                                                                .required = true
-                                                            };
-                                                            .in.in_body.schema_subType << current_type.type.sub_type[ sf ]
-                                                        }
+                                                current_openapi_path.parameters[ openapi_params_count ] << {
+                                                    name = "body"
+                                                    required = true
+                                                    in.in_body.schema_type << current_type.type
                                                 }
                                             }
                                     }
@@ -394,45 +442,46 @@ define __body {
                             /* the template is not defined */
                             __template = "/" + oper.operation_name;
 
-                            /* if it is a GET, extract the path params from the request message */
+                            /* if it is a GET, extract the query params from the request message */
                             if ( __method == "get" ) {
                                     for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
-                                    /* casting */
-                                    current_sbt -> current_type.type.sub_type[ sbt ];
-                                    current_root_type -> current_sbt.type.root_type;
+                                            /* casting */
+                                            current_sbt -> current_type.type.sub_type[ sbt ];
+                                            current_root_type -> current_sbt.type.root_type;
 
-                                    openapi_params_count++;
-                                    with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                        .name = current_sbt.name;
-                                        if ( current_sbt.cardinality.min > 0 ) {
-                                            .required = true
-                                        };
-
-                                        if ( current_sbt.type instanceof TypeInLine  ) {
-                                                if ( #current_sbt.type.sub_type > 0 ) {
-                                                        error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " has a type with subnodes which is not permitted"
-                                                        throw( DefinitionError, error_msg )
+                                            openapi_params_count++;
+                                            with( current_openapi_path.parameters[ openapi_params_count ] ) {
+                                                .name = current_sbt.name;
+                                                if ( current_sbt.cardinality.min > 0 ) {
+                                                    .required = true
                                                 };
-                                                .in.other = "path";
-                                                .in.other.type << current_sbt.type
 
-                                                if ( current_sbt.type instanceof TypeLink ) {
-                                                        error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                if ( current_sbt.type instanceof TypeInLine  ) {
+                                                        if ( #current_sbt.type.sub_type > 0 ) {
+                                                                error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " has a type with subnodes which is not permitted"
+                                                                throw( DefinitionError, error_msg )
+                                                        };
+                                                        .in.other = "query";
+                                                        .in.other.type << current_sbt.type
+
+                                                        if ( current_sbt.type instanceof TypeLink ) {
+                                                                error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
+                                                                throw( DefinitionError, error_msg )
+                                                        }
+                                                } else {
+                                                        error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " of request type is not an inline type. REST template for GET method cannot be created!"
                                                         throw( DefinitionError, error_msg )
                                                 }
-                                        } else {
-                                                error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " of request type is not an inline type. REST template for GET method cannot be created!"
-                                                throw( DefinitionError, error_msg )
-                                        }
+                                            }
+                                            ;
+                                            __template = __template + "/{" + current_sbt.name + "}"
                                     }
-                                    ;
-                                    __template = __template + "/{" + current_sbt.name + "}"
-                                }
                             } else {
+                                // methods POST, PUT, DELETE
                                     if ( tp_found ) {
                                         with( current_openapi_path.parameters ) {
                                             .in.in_body.schema_ref = real_current_type.name;
-                                            .name = real_current_type.name;
+                                            .name = "body";
                                             .required = true
                                         }
 

@@ -24,7 +24,7 @@ import jolie.lang.parse.ast.ImportableSymbol;
 /**
  * A class represent Symbol define within local execution environment
  */
-class LocalSymbolInfo extends SymbolInfo {
+public class LocalSymbolInfo extends SymbolInfo {
 
 	protected LocalSymbolInfo( String name, ImportableSymbol node ) {
 		super( node.node().context(), name, Scope.LOCAL, node.accessModifier() );

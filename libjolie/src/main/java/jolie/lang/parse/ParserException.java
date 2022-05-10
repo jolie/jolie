@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Fabrizio Montesi									   *
+ *   Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>                  *                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,31 +23,29 @@
 
 package jolie.lang.parse;
 
+import java.util.List;
+
 import jolie.lang.Constants;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.CodeCheckException;
+import jolie.lang.CodeCheckMessage;
 
-public class ParserException extends Exception {
+public class ParserException extends CodeCheckException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	private final ParsingContext context;
-	private final String mesg;
 
-	public ParserException( ParsingContext context, String mesg ) {
-		this.context = context;
-		this.mesg = mesg;
+	public ParserException( CodeCheckMessage mesg ) {
+		super( List.of( mesg ) );
+		this.context = mesg.context().isPresent() ? mesg.context().get() : null;
 	}
 
-	@Override
-	public String getMessage() {
-		return new StringBuilder()
-			.append( context.sourceName() )
-			.append( ':' )
-			.append( context.line() )
-			.append( ": error: " )
-			.append( mesg )
-			.toString();
-	}
-
+	// Since no ParserException is made without context, it will not be a problem to return context,
+	// cause it will never be null,
+	// but this is probably a bad idea for the future, so should de fixed.
+	// Also, the MetaJolie uses this to set the context, but the message that MetaJolie gets first
+	// already contains this information.
+	// Should maybe not be duplicated?
 	public ParsingContext context() {
 		return context;
 	}

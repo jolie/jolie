@@ -197,7 +197,7 @@ service Utils {
             t1 -> request.t1; t2 -> request.t2
 
             checkNativeType@MetaJolieJavaService( { .type_name = t1 })( t1_is_native_type )
-            if ( t1_is_native_type ) {
+            if ( t1_is_native_type.result ) {
                 getNativeTypeFromString@MetaJolieJavaService( { .type_name = t1 })( rq.t1.type.root_type ) 
             } else {
                 if ( t1 != "undefined" ) { rq.t1.type.link_name = t1 }
@@ -206,7 +206,7 @@ service Utils {
             rq.t1.types -> request.t1.types
 
             checkNativeType@MetaJolieJavaService( { .type_name = t2 })( t2_is_native_type )
-            if ( t2_is_native_type ) {
+            if ( t2_is_native_type.result ) {
                 getNativeTypeFromString@MetaJolieJavaService( { .type_name = t2 })( rq.t2.type.root_type ) 
             } else {
                  if ( t2 != "undefined" ) { rq.t2.type.link_name = t2 }
@@ -364,9 +364,9 @@ main {
                         )
                 
                         rq_ck.t1 = o1.input
-                        rq_ck.t1.types -> i1.types
+                        if ( is_defined( i1.types ) ) { rq_ck.t1.types -> i1.types }
                         rq_ck.t2 = operations2.( o1.operation_name ).input
-                        rq_ck.t2.types -> i2.types
+                        if ( is_defined( i2.types ) ) { rq_ck.t2.types -> i2.types }
                         checkOperationTypes@Utils( rq_ck )( nt_ck )
                         if ( !nt_ck ) {
                             response.result = false 
@@ -384,9 +384,10 @@ main {
                                 )
                         
                                 rq_ck.t1 = operations2.( o1.operation_name ).output
-                                rq_ck.t1.types -> i2.types
+
+                                if ( is_defined( i2.types ) ) { rq_ck.t1.types -> i2.types }
                                 rq_ck.t2 = o1.output
-                                rq_ck.t2.types -> i1.types
+                                if ( is_defined( i1.types ) ) { rq_ck.t2.types -> i1.types }
                                 checkOperationTypes@Utils( rq_ck )( nt_ck )
                                 if ( !nt_ck ) {
                                     response.result = false 

@@ -162,7 +162,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 
 	private void writeMessage( DataOutput out, CommMessage message )
 		throws IOException {
-		out.writeLong( message.id() );
+		out.writeLong( message.requestId() );
 		writeString( out, message.resourcePath() );
 		writeString( out, message.operationName() );
 		FaultException fault = message.fault();
