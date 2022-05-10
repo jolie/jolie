@@ -31,12 +31,12 @@ import jolie.runtime.Value;
  */
 public class SessionStartedEvent extends MonitoringEvent {
 
-	public SessionStartedEvent( String operationName, String processId, String rawId ) {
+	public SessionStartedEvent( String operationName, String processId, String internalMessageId ) {
 		super( "SessionStarted", Value.create() );
 
 		data().getFirstChild( "processId" ).setValue( processId );
 		data().getFirstChild( "operationName" ).setValue( operationName );
-		data().getFirstChild( "rawId" ).setValue( rawId );
+		data().getFirstChild( "internalMessageId" ).setValue( internalMessageId );
 
 	}
 }

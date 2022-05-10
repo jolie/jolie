@@ -34,7 +34,7 @@ public class OperationCallEvent extends MonitoringEvent {
 
 
 	public OperationCallEvent( String operationName, String processId, String messageId, int status, String details,
-		String outputPort, Value message, String rawId ) {
+		String outputPort, Value message, String internalMessageId ) {
 		super( "OperationCall", Value.create() );
 
 		data().getFirstChild( "operationName" ).setValue( operationName );
@@ -45,6 +45,6 @@ public class OperationCallEvent extends MonitoringEvent {
 		data().getFirstChild( "outputPort" ).setValue( outputPort );
 		data().getFirstChild( "message" ).deepCopy( message );
 
-		data().getFirstChild( "rawId" ).setValue( rawId );
+		data().getFirstChild( "internalMessageId" ).setValue( internalMessageId );
 	}
 }
