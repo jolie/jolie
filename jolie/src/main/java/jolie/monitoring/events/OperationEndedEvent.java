@@ -18,7 +18,7 @@ public class OperationEndedEvent extends MonitoringEvent {
 	public static final int ERROR = 2;
 
 	public OperationEndedEvent( String operationName, String processId, String messageId, int status, String details,
-		Value message ) {
+		Value message, String internalMessageId ) {
 
 		super( "OperationEnded", Value.create() );
 
@@ -28,6 +28,7 @@ public class OperationEndedEvent extends MonitoringEvent {
 		data().getFirstChild( "status" ).setValue( status );
 		data().getFirstChild( "details" ).setValue( details );
 		data().getFirstChild( "message" ).deepCopy( message );
+		data().getFirstChild( "internalMessageId" ).setValue( internalMessageId );
 
 	}
 

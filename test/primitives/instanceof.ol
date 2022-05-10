@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2012-2021 by Fabrizio Montesi <famontesi@gmail.com>     *
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -32,8 +32,7 @@ type Person:void {
 include "../AbstractTestUnit.iol"
 include "security_utils.iol"
 
-define doTest
-{
+define doTest {
 	x = undefined;
 	if ( !(x instanceof undefined) ) {
 		throw( TestFailed, "instanceof does not work with undefined variables" )
@@ -189,4 +188,7 @@ define doTest
 	if ( person instanceof void || person instanceof any ) {
 		throw( TestFailed, "instanceof does not work with structured data types" )
 	}
+
+	if( !("Hi" { name = "Homer" age = 42 } instanceof string { name: string age: int }) )
+		throw( TestFailed, "inline tree does not have the expected inline type" )
 }

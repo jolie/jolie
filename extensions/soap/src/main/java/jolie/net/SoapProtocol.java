@@ -105,6 +105,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.http.HttpMessage;
@@ -125,6 +126,8 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.ProtocolTraceAction;
+
+import jolie.monitoring.events.ProtocolMessageEvent;
 
 /**
  * Implements the SOAP over HTTP protocol.
@@ -1013,6 +1016,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			ByteArray plainTextContent = content;
+
 			if( encoding != null && checkBooleanParameter( "compression", true ) ) {
 				content = HttpUtils.encode( encoding, content, httpMessage );
 			}
@@ -1044,6 +1048,16 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 			} );
 
+			if( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance().fireMonitorEvent(
+					new ProtocolMessageEvent(
+						plainTextContent.toString( "utf-8" ),
+						httpMessage.toString(),
+						ExecutionThread.currentThread().getSessionId(),
+						Long.toString( message.getId() ),
+						ProtocolMessageEvent.Protocol.SOAP ) );
+			}
+
 			inputId = message.operationName();
 		} catch( Exception e ) {
 			if( received ) {
@@ -1062,12 +1076,24 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 					soapMessage.writeTo( tmpStream );
 					content = new ByteArray( tmpStream.toByteArray() );
+
 					httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( HttpUtils.CRLF )
 						.append( "Server: Jolie" ).append( HttpUtils.CRLF )
 						.append( "Connection: close" ).append( HttpUtils.CRLF )
 						.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF )
 						.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF )
 						.append( HttpUtils.CRLF );
+
+					if( Interpreter.getInstance().isMonitoring() ) {
+						Interpreter.getInstance().fireMonitorEvent(
+							new ProtocolMessageEvent(
+								content.toString( "utf-8" ),
+								httpMessage.toString(),
+								ExecutionThread.currentThread().getSessionId(),
+								Long.toString( message.getId() ),
+								ProtocolMessageEvent.Protocol.SOAP ) );
+					}
+
 
 				} catch( SOAPException se ) {
 					System.out.println( se.getMessage() );
@@ -1302,6 +1328,21 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				}
 
 			} );
+
+			if( Interpreter.getInstance().isMonitoring() ) {
+				final StringBuilder headerMonitor = new StringBuilder();
+
+				headerMonitor.append( getHeadersFromHttpMessage( message ) ).append( "\n" );
+
+				Interpreter.getInstance().fireMonitorEvent(
+					new ProtocolMessageEvent(
+						new String( message.content(), charset ),
+						headerMonitor.toString(),
+						"",
+						Long.toString( retVal.getId() ),
+						ProtocolMessageEvent.Protocol.SOAP ) );
+			}
+
 		} catch( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {

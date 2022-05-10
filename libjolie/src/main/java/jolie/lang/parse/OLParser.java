@@ -332,7 +332,6 @@ public class OLParser extends AbstractParser {
 				currentType = parseType( typeName, accessModifier, context );
 				if( forwardDocToken.isPresent() ) {
 					parseBackwardAndSetDocumentation( currentType, forwardDocToken );
-					forwardDocToken = Optional.empty();
 				} else {
 					parseBackwardAndSetDocumentation( currentType, Optional.empty() );
 				}
@@ -3196,21 +3195,21 @@ public class OLParser extends AbstractParser {
 		return andCond;
 	}
 
-	private NativeType readNativeType() {
-		if( token.is( Scanner.TokenType.CAST_INT ) ) {
-			return NativeType.INT;
-		} else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
-			return NativeType.DOUBLE;
-		} else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
-			return NativeType.STRING;
-		} else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
-			return NativeType.LONG;
-		} else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
-			return NativeType.BOOL;
-		} else {
-			return NativeType.fromString( token.content() );
-		}
-	}
+	// private NativeType readNativeType() {
+	// if( token.is( Scanner.TokenType.CAST_INT ) ) {
+	// return NativeType.INT;
+	// } else if( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
+	// return NativeType.DOUBLE;
+	// } else if( token.is( Scanner.TokenType.CAST_STRING ) ) {
+	// return NativeType.STRING;
+	// } else if( token.is( Scanner.TokenType.CAST_LONG ) ) {
+	// return NativeType.LONG;
+	// } else if( token.is( Scanner.TokenType.CAST_BOOL ) ) {
+	// return NativeType.BOOL;
+	// } else {
+	// return NativeType.fromString( token.content() );
+	// }
+	// }
 
 	private OLSyntaxNode parseBasicCondition()
 		throws IOException, ParserException {
@@ -3232,17 +3231,21 @@ public class OLParser extends AbstractParser {
 		} else if( opType == Scanner.TokenType.INSTANCE_OF ) {
 			nextToken();
 
-			NativeType nativeType = readNativeType();
-			if( nativeType == null ) { // It's a user-defined type
-				assertToken( Scanner.TokenType.ID, "expected type name after instanceof" );
-			}
+			// NativeType nativeType = readNativeType();
+			// if( nativeType == null ) { // It's a user-defined type
+			// assertToken( Scanner.TokenType.ID, "expected type name after instanceof" );
+			// }
 
-			String typeName = token.content();
-			TypeDefinition type = definedTypes.getOrDefault( typeName, new TypeDefinitionLink( getContext(),
-				typeName, Constants.RANGE_ONE_TO_ONE, typeName ) );
+			// String typeName = token.content();
+			// TypeDefinition type = definedTypes.getOrDefault( typeName, new TypeDefinitionLink( getContext(),
+			// typeName, Constants.RANGE_ONE_TO_ONE, typeName ) );
 
-			ret = new InstanceOfExpressionNode( getContext(), expr1, type );
-			nextToken();
+			ParsingContext context = getContext();
+			// TODO: parseType should be refactored to return unnamed TypeExpressions
+			ret =
+				new InstanceOfExpressionNode( context, expr1,
+					parseType( "#InlineType", AccessModifier.PRIVATE, context ) );
+			// nextToken();
 		} else {
 			ret = expr1;
 		}

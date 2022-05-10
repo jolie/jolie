@@ -48,7 +48,6 @@
       <module name="btl2cap" target="1.8" />
       <module name="build-tools" target="1.5" />
       <module name="coreJavaServices" target="1.8" />
-      <module name="distribution" target="1.5" />
       <module name="http" target="1.8" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
