@@ -61,6 +61,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
@@ -84,6 +85,8 @@ import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.ProtocolTraceAction;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
+
+import jolie.monitoring.events.ProtocolMessageEvent;
 
 /**
  * HTTP protocol implementation
@@ -962,10 +965,26 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			send_appendRequestUserHeader( message, headerBuilder );
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
 		}
+
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		if( contentType != null ) {
 			encodedContent.contentType = contentType;
 		}
+
+		// message's body in string format needed for the monitoring
+		String bodyMessageString =
+			encodedContent != null && encodedContent.content != null ? encodedContent.content.toString( charset ) : "";
+
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					bodyMessageString,
+					headerBuilder.toString(),
+					ExecutionThread.currentThread().getSessionId(),
+					Long.toString( message.getId() ),
+					ProtocolMessageEvent.Protocol.HTTP ) );
+		}
+
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
 
@@ -1201,26 +1220,48 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
 		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Receiving:\n" ).append( "HTTP Code: " ).append( message.statusCode() )
+		debugSB.append( "\n[HTTP debug] Receiving:\n" ).append( getHttpHeader( message ) );
+		if( showContent ) {
+			debugSB.append( "--> Message content\n" )
+				.append( getHttpBody( message, charset ) );
+		}
+		return debugSB.toString();
+	}
+
+	/*
+	 * return the received message's header
+	 */
+	private static String getHttpHeader( HttpMessage message )
+		throws IOException {
+		StringBuilder headerStr = new StringBuilder();
+		headerStr.append( "HTTP Code: " ).append( message.statusCode() )
 			.append( "\n" ).append( "HTTP Method: " ).append( message.type().name() ).append( "\n" )
 			.append( "Resource: " ).append( message.requestPath() ).append( "\n" )
 			.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
-			debugSB.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
+			headerStr.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
 		}
 		for( HttpMessage.Cookie cookie : message.setCookies() ) {
-			debugSB.append( "\tset-cookie: " ).append( cookie.toString() ).append( '\n' );
+			headerStr.append( "\tset-cookie: " ).append( cookie.toString() ).append( '\n' );
 		}
 		for( Entry< String, String > entry : message.cookies().entrySet() ) {
-			debugSB.append( "\tcookie: " ).append( entry.getKey() ).append( '=' ).append( entry.getValue() )
+			headerStr.append( "\tcookie: " ).append( entry.getKey() ).append( '=' ).append( entry.getValue() )
 				.append( '\n' );
 		}
-		if( showContent ) {
-			debugSB.append( "--> Message content\n" )
-				.append( new String( message.content(), charset ) );
-		}
-		return debugSB.toString();
+		return headerStr.toString();
 	}
+
+	/*
+	 * Prints debug information about a received message
+	 */
+	private static String getHttpBody( HttpMessage message, String charset )
+		throws IOException {
+		StringBuilder bodyStr = new StringBuilder();
+		bodyStr.append( new String( message.content(), charset ) );
+		return bodyStr.toString();
+	}
+
+
 
 	private void recv_parseRequestFormat( String type )
 		throws IOException {
@@ -1467,6 +1508,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath,
 				decodedMessage.value, null );
+		}
+
+		if( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent(
+				new ProtocolMessageEvent(
+					getHttpBody( message, charset ),
+					getHttpHeader( message ),
+					"",
+					Long.toString( retVal.getId() ),
+					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
 
 		if( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
