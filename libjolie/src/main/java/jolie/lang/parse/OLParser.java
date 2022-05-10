@@ -3229,9 +3229,11 @@ public class OLParser extends AbstractParser {
 			// TypeDefinition type = definedTypes.getOrDefault( typeName, new TypeDefinitionLink( getContext(),
 			// typeName, Constants.RANGE_ONE_TO_ONE, typeName ) );
 
+			ParsingContext context = getContext();
 			// TODO: parseType should be refactored to return unnamed TypeExpressions
 			ret =
-				new InstanceOfExpressionNode( getContext(), expr1, parseType( "#InlineType", AccessModifier.PRIVATE ) );
+				new InstanceOfExpressionNode( context, expr1,
+					parseType( "#InlineType", AccessModifier.PRIVATE, context ) );
 			// nextToken();
 		} else {
 			ret = expr1;
