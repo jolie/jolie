@@ -52,14 +52,17 @@ service Test {
                 throw(TestFailed, "Did not return 55 as expected")
             }
 
-			testResult = abs@Math(summation@Math(request))
-			if(testResult != 55) {
-				throw(TestFailed, "Did not work with nested function calls")
-			}
-
 			testResult = summation@Math(request) + abs@Math(-5)
 			if(testResult != 60) {
 				throw(TestFailed, "Did not work with multiple terms")
+			}
+
+			request.from = -10
+			request.to = -1
+
+			testResult = abs@Math(summation@Math(request))
+			if(testResult != 55) {
+				throw(TestFailed, "Did not work with nested function calls")
 			}
 		}
 	}
