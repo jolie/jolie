@@ -23,7 +23,7 @@ package joliex.surface;
 
 import jolie.cli.CommandLineException;
 import jolie.JolieURLStreamHandlerFactory;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
@@ -66,7 +66,7 @@ public class GetSurface {
 				cmdParser.noLocation(), cmdParser.noProtocol() );
 		} catch( CommandLineException | ParserException | ModuleException e ) {
 			System.out.println( e.getMessage() );
-		} catch( IOException | CodeCheckingException e ) {
+		} catch( IOException | CodeCheckException e ) {
 			e.printStackTrace();
 		}
 	}

@@ -91,7 +91,8 @@ public class FileTracer implements Tracer {
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
-					.append( action.context().sourceName() ).append( "\",\"" ).append( action.context().line() )
+					.append( action.context().sourceName() ).append( "\",\"" )
+					.append( action.context().startLine() + 1 )
 					.append( "\"," );
 			}
 
@@ -124,7 +125,8 @@ public class FileTracer implements Tracer {
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
-					.append( action.context().sourceName() ).append( "\",\"" ).append( action.context().line() )
+					.append( action.context().sourceName() ).append( "\",\"" )
+					.append( action.context().startLine() + 1 )
 					.append( "\"," );
 			}
 			switch( action.type() ) {
@@ -193,7 +195,8 @@ public class FileTracer implements Tracer {
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
-					.append( action.context().sourceName() ).append( "\",\"" ).append( action.context().line() )
+					.append( action.context().sourceName() ).append( "\",\"" )
+					.append( action.context().startLine() + 1 )
 					.append( "\"," );
 			}
 			switch( action.type() ) {
@@ -249,7 +252,8 @@ public class FileTracer implements Tracer {
 					.append( "\",\"" ).append( interpreter.programFilename() ).append( "\",\"\"," );
 			} else {
 				stBuilder.append( "\"" ).append( action.context().source() ).append( "\",\"" )
-					.append( action.context().sourceName() ).append( "\",\"" ).append( action.context().line() )
+					.append( action.context().sourceName() ).append( "\",\"" )
+					.append( action.context().startLine() + 1 )
 					.append( "\"," );
 			}
 			switch( action.type() ) {

@@ -35,48 +35,10 @@
                 "parameters": [
                     {
                         "schema": {
-                            "$ref": "#/definitions\/GetOrdersByItemRequest"
+                            "$ref": "#\/definitions\/GetOrdersByItemRequest"
                         },
                         "in": "body",
-                        "name": "GetOrdersByItemRequest",
-                        "required": true
-                    }
-                ],
-                "tags": "DemoInterface",
-                "consumes": "application\/json"
-            }
-        },
-        "/putOrder": {
-            "put": {
-                "produces": [
-                    "application\/json"
-                ],
-                "description": "",
-                "operationId": "putOrder",
-                "responses": {
-                    "200": {
-                        "schema": {
-                            "$ref": "#\/definitions\/PutOrderResponse"
-                        },
-                        "description": "OK"
-                    },
-                    "500": {
-                        "schema": {
-                            "$ref": "#\/definitions\/JolieFaultType2"
-                        },
-                        "description": "JolieFault"
-                    },
-                    "404": {
-                        "description": "resource not found"
-                    }
-                },
-                "parameters": [
-                    {
-                        "schema": {
-                            "$ref": "#/definitions\/PutOrderRequest"
-                        },
-                        "in": "body",
-                        "name": "PutOrderRequest",
+                        "name": "body",
                         "required": true
                     }
                 ],
@@ -128,9 +90,53 @@
                 ]
             }
         },
+        "/putOrder": {
+            "put": {
+                "produces": [
+                    "application\/json"
+                ],
+                "description": "",
+                "operationId": "putOrder",
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#\/definitions\/PutOrderResponse"
+                        },
+                        "description": "OK"
+                    },
+                    "500": {
+                        "schema": {
+                            "$ref": "#\/definitions\/JolieFaultType2"
+                        },
+                        "description": "JolieFault"
+                    },
+                    "404": {
+                        "description": "resource not found"
+                    }
+                },
+                "parameters": [
+                    {
+                        "schema": {
+                            "$ref": "#\/definitions\/PutOrderRequest"
+                        },
+                        "in": "body",
+                        "name": "body",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "DemoInterface"
+                ],
+                "consumes": [
+                    "application\/json"
+                ]
+            }
+        },
         "/users/{country}": {
             "post": {
-                "produces": "application\/json",
+                "produces": [
+                    "application\/json"
+                ],
                 "description": "",
                 "operationId": "getUsers",
                 "responses": {
@@ -153,23 +159,27 @@
                     },
                     {
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "city": {
+                                    "type": "string"
+                                },
+                                "surname": {
+                                    "type": "string"
+                                }
+                            }
                         },
                         "in": "body",
-                        "name": "city",
-                        "required": true
-                    },
-                    {
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "body",
-                        "name": "surname",
+                        "name": "body",
                         "required": true
                     }
                 ],
-                "tags": "DemoInterface",
-                "consumes": "application\/json"
+                "tags": [
+                    "DemoInterface"
+                ],
+                "consumes": [
+                    "application\/json"
+                ]
             }
         },
         "/deleteOrder": {
@@ -193,10 +203,10 @@
                 "parameters": [
                     {
                         "schema": {
-                            "$ref": "#/definitions\/DeleteOrderRequest"
+                            "$ref": "#\/definitions\/DeleteOrderRequest"
                         },
                         "in": "body",
-                        "name": "DeleteOrderRequest",
+                        "name": "body",
                         "required": true
                     }
                 ],
@@ -237,6 +247,7 @@
                 }
             }
         },
+        "PutOrderResponse": {},
         "Orders": {
             "type": "object",
             "properties": {
@@ -249,7 +260,6 @@
                 }
             }
         },
-        "PutOrderResponse": null,
         "GetUsersResponse": {
             "type": "object",
             "properties": {
@@ -276,6 +286,17 @@
                 }
             }
         },
+        "PutOrderRequest": {
+            "type": "object",
+            "properties": {
+                "userId": {
+                    "type": "string"
+                },
+                "order": {
+                    "$ref": "#\/definitions\/Order"
+                }
+            }
+        },
         "GetUsersRequest": {
             "type": "object",
             "properties": {
@@ -287,17 +308,6 @@
                 },
                 "surname": {
                     "type": "string"
-                }
-            }
-        },
-        "PutOrderRequest": {
-            "type": "object",
-            "properties": {
-                "userId": {
-                    "type": "string"
-                },
-                "order": {
-                    "$ref": "#\/definitions\/Order"
                 }
             }
         },
@@ -370,6 +380,14 @@
                 }
             }
         },
+        "DeleteOrderRequestLinked": {
+            "type": "object",
+            "properties": {
+                "orderId": {
+                    "type": "integer"
+                }
+            }
+        },
         "GetOrdersByItemRequest": {
             "oneOf": [
                 {
@@ -410,14 +428,6 @@
         "GetOrdersByItemResponse": {
             "$ref": "#\/definitions\/Orders"
         },
-        "DeleteOrderRequestLinked": {
-            "type": "object",
-            "properties": {
-                "orderId": {
-                    "type": "integer"
-                }
-            }
-        },
         "JolieFaultType0": {
             "type": "object",
             "properties": {
@@ -425,13 +435,13 @@
                     "pattern": "FaultTest2",
                     "type": "string"
                 },
-                "content": null
+                "content": {}
             }
         },
         "DeleteOrderRequest": {
             "$ref": "#\/definitions\/DeleteOrderRequestLinked"
         },
-        "DeleteOrderResponse": null,
+        "DeleteOrderResponse": {},
         "GetOrdersResponse": {
             "$ref": "#\/definitions\/Orders"
         }

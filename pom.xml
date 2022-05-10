@@ -9,7 +9,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
 		<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
-		<jolie.version>1.10.6-git</jolie.version>
+		<jolie.version>1.11.0-git</jolie.version>
 		<jolie.url>https://www.jolie-lang.org/</jolie.url>
 		<jolie.developer>The Jolie Developers</jolie.developer>
 		<jolie.email>webmaster@jolie-lang.org</jolie.email>
@@ -30,6 +30,7 @@
 		<module>lib/jolie-js</module>
 		<module>lib/jolie-ssl</module>
 		<module>lib/jolie-xml</module>
+		<module>lib/jolie-uri</module>
 		<module>lib/xsom</module>
 		<module>support/jolie-java</module>
 		<module>support/metaservice-java</module>

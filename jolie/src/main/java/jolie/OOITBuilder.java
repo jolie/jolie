@@ -20,6 +20,7 @@
 package jolie;
 
 import jolie.lang.Constants;
+import jolie.lang.Keywords;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.CorrelationFunctionInfo;
@@ -143,7 +144,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	}
 
 	private static String buildErrorMessage( ParsingContext context, String message ) {
-		return context.sourceName() + ":" + context.line() + ": " + message;
+		return context.sourceName() + ":" + (context.startLine() + 1) + ": " + message;
 	}
 
 	private void error( ParsingContext context, String message ) {
@@ -972,7 +973,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	private VariablePath buildCorrelationVariablePath( VariablePathNode path ) {
 		VariablePathNode csetVarPathNode = new VariablePathNode( path.context(), VariablePathNode.Type.CSET );
 		csetVarPathNode.append( new Pair<>(
-			new ConstantStringExpression( path.context(), Constants.CSETS ),
+			new ConstantStringExpression( path.context(), Keywords.CSETS ),
 			new ConstantIntegerExpression( path.context(), 0 ) ) );
 		csetVarPathNode.path().addAll( path.path() );
 		return buildVariablePath( csetVarPathNode );

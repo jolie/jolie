@@ -71,8 +71,10 @@ public class ModuleFinderImpl implements ModuleFinder {
 			} else {
 				return this.findAbsoluteImport( importPath );
 			}
+		} catch( ModuleNotFoundException e ) {
+			throw e;
 		} catch( FileNotFoundException e ) {
-			throw new ModuleNotFoundException( importPath.pathParts().toString(), e.getMessage() );
+			throw new ModuleNotFoundException( importPath, Paths.get( e.getMessage() ) );
 		}
 	}
 
@@ -82,24 +84,24 @@ public class ModuleFinderImpl implements ModuleFinder {
 		 * inside of this jap. 3. Try to resolve P from the list of packages directories.
 		 */
 
-		List< String > errMessageList = new ArrayList<>();
+		List< Path > errPathList = new ArrayList<>();
 		try {
 			// 1. resolve from Working directory
 			return this.moduleLookup( this.workingDirectory, importPath );
 		} catch( FileNotFoundException e ) {
-			errMessageList.add( e.getMessage() );
+			errPathList.add( this.workingDirectory );
 		}
-
+		Path japPath;
 		try {
 			// 2. WDIR/lib/FIRST.jap with entry of REST.ol
 			// where importPath[0] = FIRST
 			// and importPath[1...] = REST
-			Path japPath =
+			japPath =
 				ModuleFinder.japLookup( this.workingDirectory.resolve( "lib" ), importPath.pathParts().get( 0 ) );
 			List< String > rest = importPath.pathParts().subList( 1, importPath.pathParts().size() );
 			return new JapSource( japPath, rest );
 		} catch( IOException e ) {
-			errMessageList.add( e.getMessage() );
+			errPathList.add( Paths.get( e.getMessage() ) );
 		}
 
 		// 3. Try to resolve P from the list of packages directories.
@@ -108,10 +110,10 @@ public class ModuleFinderImpl implements ModuleFinder {
 				ModuleSource moduleFile = moduleLookup( packagePath, importPath );
 				return moduleFile;
 			} catch( FileNotFoundException e ) {
-				errMessageList.add( e.getMessage() );
+				errPathList.add( packagePath );
 			}
 		}
-		throw new ModuleNotFoundException( importPath.pathParts().toString(), errMessageList );
+		throw new ModuleNotFoundException( importPath, errPathList );
 	}
 
 	/**

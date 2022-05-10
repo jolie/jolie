@@ -21,33 +21,44 @@ package jolie.lang.parse.module.exceptions;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.nio.file.Path;
+
 import jolie.lang.Constants;
+import jolie.lang.parse.module.ImportPath;
 
 public class ModuleNotFoundException extends FileNotFoundException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private final List< String > lookedPaths;
-	private final String moduleName;
+	private final List< Path > lookedPaths;
+	private final ImportPath importPath;
 
-	public ModuleNotFoundException( String moduleName, List< String > lookedPaths ) {
-		super( moduleName );
-		this.moduleName = moduleName;
+	public ModuleNotFoundException( ImportPath importPath, List< Path > lookedPaths ) {
+		super();
+		this.importPath = importPath;
 		this.lookedPaths = lookedPaths;
 	}
 
-	public ModuleNotFoundException( String moduleName, String lookedPath ) {
-		super( moduleName );
-		this.moduleName = moduleName;
+	public ModuleNotFoundException( ImportPath importPath, Path lookedPath ) {
+		super();
+		this.importPath = importPath;
 		this.lookedPaths = new ArrayList<>();
 		this.lookedPaths.add( lookedPath );
 	}
 
-	@Override
-	public String getMessage() {
-		return "Module \"" + this.moduleName + "\" not found from lookup path "
-			+ Arrays.toString( this.lookedPaths.toArray() );
+	public final List< Path > lookedPaths() {
+		return this.lookedPaths;
 	}
 
+	public final ImportPath importPath() {
+		return this.importPath;
+	}
+
+	@Override
+	public String getMessage() {
+		StringBuilder message =
+			new StringBuilder().append( "Module " ).append( '\"' ).append( this.importPath )
+				.append( "\" not found from lookup paths.\n" );
+		return message.toString();
+	}
 }

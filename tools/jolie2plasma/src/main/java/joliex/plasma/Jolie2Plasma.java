@@ -24,10 +24,8 @@ package joliex.plasma;
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
 import jolie.JolieURLStreamHandlerFactory;
-import jolie.lang.CodeCheckingException;
-import jolie.lang.parse.ParserException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import joliex.plasma.impl.InterfaceVisitor;
 
@@ -75,9 +73,7 @@ public class Jolie2Plasma {
 			System.out.println( e.getMessage() );
 			System.out.println(
 				"Syntax is: jolie2plasma [jolie options] <jolie filename> <output filename> [interface name list]" );
-		} catch( IOException | InterfaceVisitor.InterfaceNotFound | CodeCheckingException | ParserException e ) {
-			e.printStackTrace();
-		} catch( ModuleException e ) {
+		} catch( IOException | InterfaceVisitor.InterfaceNotFound | CodeCheckException e ) {
 			e.printStackTrace();
 		}
 	}

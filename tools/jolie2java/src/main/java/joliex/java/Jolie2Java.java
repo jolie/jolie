@@ -5,11 +5,9 @@
 package joliex.java;
 
 import jolie.cli.CommandLineException;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.JolieURLStreamHandlerFactory;
-import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.runtime.FaultException;
@@ -71,9 +69,7 @@ public class Jolie2Java {
 			System.out.println( "Generation done!" );
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
-		} catch( IOException | FaultException | CodeCheckingException | ParserException e ) {
-			e.printStackTrace();
-		} catch( ModuleException e ) {
+		} catch( IOException | FaultException | CodeCheckException e ) {
 			e.printStackTrace();
 		}
 	}

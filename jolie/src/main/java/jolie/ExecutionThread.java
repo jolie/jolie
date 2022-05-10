@@ -113,7 +113,7 @@ public abstract class ExecutionThread extends JolieThread {
 			if( erase ) { // Not called by cH (TODO: this is obscure!)
 				if( p == null ) {
 					// Give the default handler
-					faultName = Constants.Keywords.DEFAULT_HANDLER_NAME;
+					faultName = Constants.DEFAULT_HANDLER_NAME;
 					p = faultMap.get( faultName );
 				}
 				if( p != null ) {

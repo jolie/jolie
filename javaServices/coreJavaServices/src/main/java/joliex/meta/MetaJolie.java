@@ -22,8 +22,8 @@ package joliex.meta;
 
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
-import jolie.lang.CodeCheckingError;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckMessage;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.*;
@@ -938,8 +938,7 @@ public class MetaJolie extends JavaService {
 
 	@RequestResponse
 	public Value getInputPortMetaData( Value request ) throws FaultException {
-		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
-		ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
+
 		Value response = Value.create();
 		try {
 			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
@@ -964,6 +963,8 @@ public class MetaJolie extends JavaService {
 
 			if( inputPortList.length > 0 ) {
 				for( int ip = 0; ip < inputPortList.length; ip++ ) {
+					ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
+					ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
 					InputPortInfo inputPort = inputPortList[ ip ];
 					input.get( ip ).deepCopy( getInputPort(
 						listOfGeneratedTypesInTypeDefinition,
@@ -978,23 +979,23 @@ public class MetaJolie extends JavaService {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().line() );
+			fault.getFirstChild( "line" ).setValue( e.context().startLine() + 1 );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
 		} catch( ModuleException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( CodeCheckingException e ) {
+		} catch( CodeCheckException e ) {
 			Value fault = Value.create();
 			int i = 0;
-			for( CodeCheckingError error : e.errors() ) {
+			for( CodeCheckMessage error : e.messages() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().line() );
+					.setValue( error.context().isPresent() ? error.context().get().startLine() + 1 : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( error.context().sourceName() );
+					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
 			}
 			throw new FaultException( "SemanticException", fault );
@@ -1005,8 +1006,7 @@ public class MetaJolie extends JavaService {
 
 	@RequestResponse
 	public Value getOutputPortMetaData( Value request ) throws FaultException {
-		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
-		ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
+
 		Value response = Value.create();
 		try {
 			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
@@ -1029,6 +1029,8 @@ public class MetaJolie extends JavaService {
 
 			if( outputPortList.length > 0 ) {
 				for( int ip = 0; ip < outputPortList.length; ip++ ) {
+					ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition = new ArrayList<>();
+					ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
 					OutputPortInfo outputPortInfo = outputPortList[ ip ];
 					output.get( ip ).deepCopy( getOutputPort(
 						listOfGeneratedTypesInTypeDefinition,
@@ -1043,23 +1045,23 @@ public class MetaJolie extends JavaService {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().line() );
+			fault.getFirstChild( "line" ).setValue( e.context().startLine() + 1 );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
 		} catch( ModuleException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( CodeCheckingException e ) {
+		} catch( CodeCheckException e ) {
 			Value fault = Value.create();
 			int i = 0;
-			for( CodeCheckingError error : e.errors() ) {
+			for( CodeCheckMessage error : e.messages() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().line() );
+					.setValue( error.context().isPresent() ? error.context().get().startLine() + 1 : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( error.context().sourceName() );
+					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
 			}
 			throw new FaultException( "SemanticException", fault );
@@ -1237,23 +1239,23 @@ public class MetaJolie extends JavaService {
 		} catch( ParserException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
-			fault.getFirstChild( "line" ).setValue( e.context().line() );
+			fault.getFirstChild( "line" ).setValue( e.context().startLine() + 1 );
 			fault.getFirstChild( "sourceName" ).setValue( e.context().sourceName() );
 			throw new FaultException( "ParserException", fault );
 		} catch( ModuleException e ) {
 			Value fault = Value.create();
 			fault.getFirstChild( "message" ).setValue( e.getMessage() );
 			throw new FaultException( "ModuleException", fault );
-		} catch( CodeCheckingException e ) {
+		} catch( CodeCheckException e ) {
 			Value fault = Value.create();
 			int i = 0;
-			for( CodeCheckingError error : e.errors() ) {
+			for( CodeCheckMessage error : e.messages() ) {
 				fault.getChildren( "error" ).get( i ).getFirstChild( "message" )
 					.setValue( error.toString() );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "line" )
-					.setValue( error.context().line() );
+					.setValue( error.context().isPresent() ? error.context().get().startLine() + 1 : null );
 				fault.getChildren( "error" ).get( i ).getFirstChild( "sourceName" )
-					.setValue( error.context().sourceName() );
+					.setValue( error.context().isPresent() ? error.context().get().sourceName() : null );
 				i++;
 			}
 			throw new FaultException( "SemanticException", fault );

@@ -247,8 +247,8 @@ public class SSLProtocol extends SequentialCommProtocol {
 		throws IOException {
 		// Set default parameters
 		String protocol = getSSLStringParameter( "protocol", "TLSv1.2" ),
-			keyStoreFormat = getSSLStringParameter( "keyStoreFormat", "JKS" ),
-			trustStoreFormat = getSSLStringParameter( "trustStoreFormat", "JKS" ),
+			keyStoreFormat = getSSLStringParameter( "keyStoreFormat", KeyStore.getDefaultType() ),
+			trustStoreFormat = getSSLStringParameter( "trustStoreFormat", KeyStore.getDefaultType() ),
 			keyStoreFile = getSSLStringParameter( "keyStore", null ),
 			keyStorePassword = getSSLStringParameter( "keyStorePassword", null ),
 			trustStoreFile =
@@ -277,7 +277,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 				ks.load( null, null );
 			}
 
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance( "SunX509" );
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance( KeyManagerFactory.getDefaultAlgorithm() );
 			kmf.init( ks, passphrase );
 
 
@@ -290,7 +290,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 				ts.load( is, passphrase );
 			}
 
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance( "SunX509" );
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance( KeyManagerFactory.getDefaultAlgorithm() );
 			tmf.init( ts );
 
 			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );

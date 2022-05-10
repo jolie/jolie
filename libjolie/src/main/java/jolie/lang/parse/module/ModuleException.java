@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,50 +20,20 @@
 
 package jolie.lang.parse.module;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.List;
 
-import jolie.lang.CodeCheckingError;
 import jolie.lang.Constants;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.CodeCheckException;
+import jolie.lang.CodeCheckMessage;
 
-public class ModuleException extends Exception {
+public class ModuleException extends CodeCheckException {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	private final ParsingContext context;
 
-	public ModuleException( ParsingContext context, String message ) {
-		super( message );
-		this.context = context;
+	public ModuleException( CodeCheckMessage message ) {
+		super( List.of( message ) );
 	}
 
-	public ModuleException( String message ) {
-		super( message );
-		this.context = null;
-	}
-
-	public ModuleException( ParsingContext context, Throwable arg1 ) {
-		super( arg1 );
-		this.context = context;
-	}
-
-	public ModuleException( Collection< CodeCheckingError > errors ) {
-		super(
-			errors.stream().map( CodeCheckingError::toString ).collect( Collectors.joining( "\n" ) ) );
-		this.context = null;
-	}
-
-	public Optional< ParsingContext > context() {
-		return Optional.ofNullable( context );
-	}
-
-	@Override
-	public String getMessage() {
-		if( context != null ) {
-			return new StringBuilder().append( context.sourceName() ).append( ':' )
-				.append( context.line() ).append( ": error: " ).append( super.getMessage() )
-				.toString();
-		}
-		return super.getMessage();
+	public ModuleException( List< CodeCheckMessage > errors ) {
+		super( errors );
 	}
 }
