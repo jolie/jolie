@@ -7,7 +7,7 @@ include "../AbstractTestUnit.iol"
 
 define doTest {
 	getenv@Runtime("windir")(windir);
-	if (!is_defined(windir)) {
+	if (windir instanceof void) {
 		req = "jolie"
 	} else {
 		req = "jolie.bat"

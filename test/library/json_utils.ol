@@ -132,8 +132,8 @@ define doTest
 	undef( v );
 	getJsonString@JsonUtils( v )( str );
 	getJsonValue@JsonUtils( str )( v );
-	if ( is_defined( v ) ) {
-		throw( TestFailed, "getJsonValue: expected undefined" )
+	if ( !(v instanceof void) ) {
+		throw( TestFailed, "getJsonValue: expected void" )
 	};
 	getJsonString@JsonUtils( v )( str2 );
 	if ( str != str2 ) {

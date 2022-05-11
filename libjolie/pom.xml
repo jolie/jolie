@@ -55,6 +55,13 @@
 									<type>jar</type>
 									<destFileName>automaton.jar</destFileName>
 								</artifactItem>
+								<artifactItem>
+									<groupId>org.apache.commons</groupId>
+   									<artifactId>commons-text</artifactId>
+   									<version>1.9</version>
+									<type>jar</type>
+									<destFileName>commons-text.jar</destFileName>
+								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
 						</configuration>
@@ -75,6 +82,11 @@
 			<groupId>dk.brics</groupId>
 			<artifactId>automaton</artifactId>
 			<version>1.12-1</version>
+		</dependency>
+		<dependency>
+   			<groupId>org.apache.commons</groupId>
+   			<artifactId>commons-text</artifactId>
+   			<version>1.9</version>
 		</dependency>
 	</dependencies>
 </project>

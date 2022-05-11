@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,14 +22,28 @@ package jolie.lang.parse.module;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+
+import org.apache.commons.text.similarity.LevenshteinDistance;
+
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 class ModuleCrawler {
@@ -95,7 +110,18 @@ class ModuleCrawler {
 				importedSymbol.setModuleSource( moduleSource );
 				modulesToCrawl.add( moduleSource );
 			} catch( ModuleNotFoundException e ) {
-				throw new ModuleException( importedSymbol.context(), e );
+				// Add the importpath and name to the line of code, as the rest of the line cannot be gotten from
+				// the context, since the getContextDuringError cannot be used in here, and the context is not
+				// updated after the error is found.
+				String codeLine = importedSymbol.context().enclosingCode().get( 0 ).replace( "\n", "" );
+				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
+				int column = codeLine.length();
+				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
+					importedSymbol.context().endLine(), importedSymbol.context().endLine(), column,
+					column + e.importPath().toString().length(),
+					List.of( CodeLineWithPath ) );
+				CodeCheckMessage message = CodeCheckMessage.withHelp( context, e.getMessage(), getHelp( e ) );
+				throw new ModuleException( message );
 			}
 		}
 		ModuleCrawler.putToCache( record );
@@ -142,5 +168,77 @@ class ModuleCrawler {
 		throws ParserException, IOException, ModuleException {
 		ModuleCrawler crawler = new ModuleCrawler( parsingConfiguration, finder );
 		return crawler.crawl( mainRecord );
+	}
+
+	/**
+	 * Creates help message for exceptions occuring while crawling through modules
+	 */
+	private String getHelp( ModuleNotFoundException exception ) {
+		StringBuilder message = new StringBuilder();
+		Set< String > fileNames = new HashSet<>();
+		Stream< Path > stream;
+		try { // get all file names in current directory
+			stream = Files.list( Paths.get( ".\\" ) );
+			fileNames.addAll( stream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
+				.map( Path::toString ).collect( Collectors.toSet() ) );
+			stream.close();
+		} catch( IOException e ) {
+		}
+		// Get file names from lookedPaths parent directory
+		for( Path path : exception.lookedPaths() ) {
+			Stream< Path > forloopStream;
+			try {
+				Path currentPath = path;
+				while( !Files.isDirectory( currentPath ) ) {
+					currentPath = currentPath.getParent();
+				}
+				forloopStream = Files.list( currentPath );
+				fileNames.addAll( forloopStream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
+					.map( Path::toString ).collect( Collectors.toSet() ) );
+				forloopStream.close();
+
+			} catch( IOException e ) {
+			}
+		}
+		// Calculate distance between module and file names
+		LevenshteinDistance dist = new LevenshteinDistance();
+		ArrayList< String > proposedModules = new ArrayList<>();
+		for( String correctModule : fileNames ) {
+			String moduleName;
+			if( correctModule.contains( "." ) ) {
+				int column = correctModule.indexOf( "." );
+				moduleName = correctModule.substring( 0, column );
+			} else {
+				moduleName = correctModule;
+			}
+			if( dist.apply( exception.importPath().toString(), moduleName ) <= 2 ) {
+				proposedModules.add( moduleName );
+			}
+
+		}
+		// Create help from matching file names
+		if( !proposedModules.isEmpty() ) {
+			message.append( "Maybe you meant:\n" );
+			for( String module : proposedModules ) {
+				String temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
+				message.append( temp ).append( "\n" );
+			}
+		} else {
+			// If no mathing file names were found, report the file names that could be used instead
+			message.append( "Could not find modules matching \"" ).append( exception.importPath() )
+				.append( "\". Here are some modules that can be imported:\n" );
+			for( String module : fileNames ) {
+				String temp;
+				// Correctly add the module names to the string
+				if( module.contains( "." ) ) {
+					int column = module.indexOf( "." );
+					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1, column );
+				} else {
+					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
+				}
+				message.append( temp ).append( "\n" );
+			}
+		}
+		return message.toString();
 	}
 }

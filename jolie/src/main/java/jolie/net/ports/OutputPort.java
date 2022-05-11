@@ -167,7 +167,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	public CommMessage createAggregatedRequest( CommMessage message )
 		throws URISyntaxException {
 		return new CommMessage(
-			CommMessage.getNewMessageId(),
+			CommMessage.getNewRequestId(),
 			message.operationName(),
 			getResourcePath(),
 			message.value(),

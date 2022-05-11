@@ -122,10 +122,7 @@ public final class Constants {
 
 	public final static Range RANGE_ONE_TO_ONE = new Range( 1, 1 );
 
-	public interface Keywords {
-		String DEFAULT_HANDLER_NAME = "default";
-	}
-
+	public static final String DEFAULT_HANDLER_NAME = "default";
 	public static final String TYPE_MISMATCH_FAULT_NAME = "TypeMismatch";
 	public static final String IO_EXCEPTION_FAULT_NAME = "IOException";
 	public static final String TIMEOUT_EXCEPTION_FAULT_NAME = "Timeout";
@@ -139,8 +136,6 @@ public final class Constants {
 	// public static String newLineString = System.getProperty( "line.separator" );
 	public static final String FILE_SEPARATOR = System.getProperty( "file.separator" );
 	public static final String PATH_SEPARATOR = System.getProperty( "path.separator" );
-	public static final String GLOBAL = "global";
-	public static final String CSETS = "csets";
 	public static final String ROOT_RESOURCE_PATH = "/";
 	public static final String JOLIE_LOGGER_NAME = "Jolie";
 
@@ -194,4 +189,6 @@ public final class Constants {
 	public static long serialVersionUID() {
 		return 1L;
 	}
+
+	public static final int TAB_SIZE = 4;
 }

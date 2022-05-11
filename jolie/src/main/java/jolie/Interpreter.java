@@ -49,7 +49,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.ParserException;
@@ -1244,7 +1244,7 @@ public class Interpreter {
 
 			try {
 				semanticVerifier.validate();
-			} catch( CodeCheckingException e ) {
+			} catch( CodeCheckException e ) {
 				LOGGER.severe( e.getMessage() );
 				throw new InterpreterException( "Exiting" );
 			}
@@ -1311,15 +1311,16 @@ public class Interpreter {
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(),
-				message.id(), message.value() );
+
+			logSessionStart( message, spawnedSession.getSessionId() );
+
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 			} );
 			spawnedSession.start();
@@ -1335,6 +1336,8 @@ public class Interpreter {
 			spawnedSession = new SessionThread(
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
+
+			logSessionStart( message, spawnedSession.getSessionId() );
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session ) {
@@ -1346,7 +1349,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 
 				public void onSessionError( SessionThread session, FaultException fault ) {
@@ -1358,7 +1361,7 @@ public class Interpreter {
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( message, session.getSessionId() );
 				}
 			} );
 			synchronized( waitingSessionThreads ) {
@@ -1373,17 +1376,21 @@ public class Interpreter {
 		return true;
 	}
 
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message ) {
+	private void logSessionStart( CommMessage commMessage, String sessionId ) {
 		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new SessionStartedEvent( commMessage.operationName(), sessionId,
+				Long.toString( commMessage.getId() ) ) );
 			fireMonitorEvent(
-				new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
+				new OperationStartedEvent( commMessage.operationName(), sessionId,
+					Long.toString( commMessage.requestId() ), commMessage.value(),
+					Long.toString( commMessage.getId() ) ) );
 		}
 	}
 
-	private void logSessionEnd( String operationName, String sessionId ) {
+	private void logSessionEnd( CommMessage commMessage, String sessionId ) {
 		if( isMonitoring() ) {
-			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
+			fireMonitorEvent(
+				new SessionEndedEvent( commMessage.operationName(), sessionId, Long.toString( commMessage.getId() ) ) );
 		}
 	}
 

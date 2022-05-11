@@ -90,7 +90,8 @@ public class PrintingTracer implements Tracer {
 			if( action.context() == null ) {
 				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
 			} else {
-				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
+				stBuilder.append( action.context().sourceName() ).append( ":" )
+					.append( action.context().startLine() + 1 );
 			}
 			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
@@ -119,7 +120,7 @@ public class PrintingTracer implements Tracer {
 				.append( "\t" ).append( action.name() )
 				.append( "\t\t\t" ).append( action.description() );
 			if( action.message() != null ) {
-				stBuilder.append( "\tMSG_ID:" ).append( action.message().id() ).append( "\n" );
+				stBuilder.append( "\tMSG_ID:" ).append( action.message().requestId() ).append( "\n" );
 				Writer writer = new StringWriter();
 				Value messageValue = action.message().value().clone();
 				if( action.message().isFault() ) {
@@ -150,7 +151,8 @@ public class PrintingTracer implements Tracer {
 			if( action.context() == null ) {
 				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
 			} else {
-				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
+				stBuilder.append( action.context().sourceName() ).append( ":" )
+					.append( action.context().startLine() + 1 );
 			}
 			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
@@ -197,7 +199,8 @@ public class PrintingTracer implements Tracer {
 			if( action.context() == null ) {
 				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
 			} else {
-				stBuilder.append( action.context().sourceName() ).append( ":" ).append( action.context().line() );
+				stBuilder.append( action.context().sourceName() ).append( ":" )
+					.append( action.context().startLine() + 1 );
 			}
 			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {

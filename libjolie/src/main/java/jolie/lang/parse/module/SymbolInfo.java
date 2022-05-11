@@ -76,7 +76,7 @@ public abstract class SymbolInfo {
 		this.accessModifier = accessModifier;
 	}
 
-	protected String name() {
+	public String name() {
 		return name;
 	}
 
@@ -87,19 +87,19 @@ public abstract class SymbolInfo {
 		this.node = pointer;
 	}
 
-	protected OLSyntaxNode node() {
+	public OLSyntaxNode node() {
 		return node;
 	}
 
-	protected Scope scope() {
+	public Scope scope() {
 		return scope;
 	}
 
-	protected AccessModifier accessModifier() {
+	public AccessModifier accessModifier() {
 		return accessModifier;
 	}
 
-	protected ParsingContext context() {
+	public ParsingContext context() {
 		return context;
 	}
 

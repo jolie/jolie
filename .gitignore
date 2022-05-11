@@ -13,3 +13,4 @@
 **/*.iml
 test/extensions/private/WS-test.jar
 test/extensions/private/WS-test/lib/lib/
+.vscode/tasks.json

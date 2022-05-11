@@ -24,39 +24,40 @@ include "../AbstractTestUnit.iol"
 
 define doTest
 {
-	undef( x );
-	if ( #x != 0 ) {
+	undef( x )
+	if( #x != 0 ) {
 		throw( TestFailed, "Undefined variable size is not zero" )
-	};
-	if ( is_defined( x ) ) {
+	}
+
+	if( is_defined( x ) ) {
 		throw( TestFailed, "Vector size operator defines an undefined variable" )
-	};
+	}
 
-	x = true;
-	if ( !is_defined( x ) ) {
+	x = true
+	if( !is_defined( x ) ) {
 		throw( TestFailed, "Variable has been defined" )
-	};
+	}
 
-	x = undefined;
-	if ( is_defined( x ) ) {
-		throw( TestFailed, "Variable has been undefined" )
-	};
-	if ( is_defined( undefined ) ) {
+	x = undefined
+	if( !is_defined( x ) ) {
+		throw( TestFailed, "Variable has been defined to be void" )
+	}
+	if( is_defined( undefined ) ) {
 		throw( TestFailed, "Constant has been defined" )
-	};
+	}
 
-	x = any;
-	if ( is_defined( x ) ) {
-		throw( TestFailed, "Variable has been undefined" )
-	};
+	x = any
+	if ( !is_defined( x ) ) {
+		throw( TestFailed, "Variable has been defined to be void" )
+	}
 	if ( is_defined( any ) ) {
 		throw( TestFailed, "Constant has been defined" )
-	};
+	}
 
-	x = void;
-	if ( is_defined( x ) ) {
-		throw( TestFailed, "Variable has been undefined" )
-	};
+	x = void
+	if ( !is_defined( x ) ) {
+		throw( TestFailed, "Variable has been defined to be void" )
+	}
 	if ( is_defined( void ) ) {
 		throw( TestFailed, "Constant has been defined" )
 	}

@@ -52,17 +52,19 @@ import jolie.runtime.Value;
 public class CommMessage implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	private static final AtomicLong REQUEST_ID_COUNTER = new AtomicLong( 1L );
 	private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
 
-	public static final long GENERIC_ID = 0L;
+	public static final long GENERIC_REQUEST_ID = 0L;
 	public static final CommMessage UNDEFINED_MESSAGE =
-		new CommMessage( GENERIC_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
+		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
 
-	private final long id;
+	private final long requestId;
 	private final String operationName;
 	private final String resourcePath;
 	private final Value value;
 	private final FaultException fault;
+	private final long id;
 
 	/**
 	 * Returns the resource path of this message.
@@ -84,8 +86,8 @@ public class CommMessage implements Serializable {
 	 * 
 	 * @return <code>true</code> if this message has a generic identifier, <code>false</code> otherwise
 	 */
-	public boolean hasGenericId() {
-		return id == GENERIC_ID;
+	public boolean hasGenericRequestId() {
+		return requestId == GENERIC_REQUEST_ID;
 	}
 
 	/**
@@ -93,17 +95,17 @@ public class CommMessage implements Serializable {
 	 * 
 	 * @return the identifier of this message
 	 */
-	public long id() {
-		return id;
+	public long requestId() {
+		return requestId;
 	}
 
-	public static long getNewMessageId() {
+	public static long getNewRequestId() {
 		int cellId = 0;
 		final Interpreter interpreter = Interpreter.getInstance();
 		if( interpreter != null ) {
 			cellId = interpreter.configuration().cellId();
 		}
-		return (((long) cellId) << 32) | (ID_COUNTER.getAndIncrement() & 0xffffffffL);
+		return (((long) cellId) << 32) | (REQUEST_ID_COUNTER.getAndIncrement() & 0xffffffffL);
 	}
 
 	/**
@@ -115,7 +117,7 @@ public class CommMessage implements Serializable {
 	 * @return a request message as per specified by the parameters
 	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value ) {
-		return new CommMessage( getNewMessageId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
+		return new CommMessage( getNewRequestId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
 	}
 
 	/**
@@ -137,7 +139,7 @@ public class CommMessage implements Serializable {
 	 */
 	public static CommMessage createResponse( CommMessage request, Value value ) {
 		// TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", Value.createDeepCopy( value ), null );
+		return new CommMessage( request.requestId, request.operationName, "/", Value.createDeepCopy( value ), null );
 	}
 
 	/**
@@ -149,24 +151,34 @@ public class CommMessage implements Serializable {
 	 */
 	public static CommMessage createFaultResponse( CommMessage request, FaultException fault ) {
 		// TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", Value.create(), fault );
+		return new CommMessage( request.requestId, request.operationName, "/", Value.create(), fault );
 	}
 
 	/**
 	 * Constructor
 	 * 
-	 * @param id the identifier for this message
+	 * @param requestId the identifier for the request
 	 * @param operationName the operation name for this message
 	 * @param resourcePath the resource path for this message
 	 * @param value the message data to equip the message with
 	 * @param fault the fault to equip the message with
 	 */
-	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault ) {
-		this.id = id;
+	public CommMessage( long requestId, String operationName, String resourcePath, Value value, FaultException fault ) {
+		this.requestId = requestId;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
 		this.value = value;
 		this.fault = fault;
+		this.id = ID_COUNTER.getAndIncrement();
+	}
+
+	/**
+	 * return the id associated with the message
+	 * 
+	 * @return id associeted with the CommMessage
+	 */
+	public long getId() {
+		return id;
 	}
 
 	/**

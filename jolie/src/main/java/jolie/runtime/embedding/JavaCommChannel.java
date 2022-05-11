@@ -76,7 +76,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel 
 	protected void sendImpl( final CommMessage message )
 		throws IOException {
 		final CompletableFuture< CommMessage > f = new CompletableFuture<>();
-		messages.put( message.id(), f );
+		messages.put( message.requestId(), f );
 
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		Interpreter.getInstance().commCore().executor().submit( () -> {
@@ -100,7 +100,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel 
 	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException {
-		return messages.remove( request.id() );
+		return messages.remove( request.requestId() );
 	}
 
 	@Override

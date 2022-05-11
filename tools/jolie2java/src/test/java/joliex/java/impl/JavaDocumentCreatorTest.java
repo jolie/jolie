@@ -19,7 +19,7 @@
 package joliex.java.impl;
 
 import jolie.cli.CommandLineException;
-import jolie.lang.CodeCheckingException;
+import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
@@ -83,7 +83,7 @@ public class JavaDocumentCreatorTest {
 
 	@BeforeClass
 	public static void setUpClass()
-		throws IOException, ParserException, CodeCheckingException, CommandLineException, ModuleException {
+		throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		// clean past generated files if they exist
 		File generatedPath = new File( outputDirectory );
 		if( generatedPath.exists() ) {

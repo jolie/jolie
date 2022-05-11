@@ -110,6 +110,8 @@ main {
             else if ( !is_defined( current_type.type.root_type.void_type ) ) {
                 throw( DefinitionError, "" )
             }
+
+            
             else {
                 response = true
             }

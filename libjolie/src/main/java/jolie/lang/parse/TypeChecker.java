@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import jolie.lang.Constants;
+import jolie.lang.Keywords;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
@@ -283,7 +284,7 @@ public class TypeChecker implements UnitOLVisitor {
 		valid = false;
 		if( node != null ) {
 			ParsingContext context = node.context();
-			LOGGER.severe( context.sourceName() + ":" + context.line() + ": " + message );
+			LOGGER.severe( context.sourceName() + ":" + (context.startLine() + 1) + ": " + message );
 		} else {
 			LOGGER.severe( message );
 		}
@@ -326,7 +327,7 @@ public class TypeChecker implements UnitOLVisitor {
 			for( CorrelationVariableInfo cvar : cset.variables() ) {
 				path = new VariablePathNode( cvar.correlationVariablePath().context(), VariablePathNode.Type.CSET );
 				path.path().add( new Pair<>(
-					new ConstantStringExpression( cset.context(), Constants.CSETS ),
+					new ConstantStringExpression( cset.context(), Keywords.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 ) ) );
 				path.path().addAll( cvar.correlationVariablePath().path() );
 				FlaggedVariablePathNode flaggedPath = typingResult.providedCorrPaths.getContained( path );
@@ -569,7 +570,7 @@ public class TypeChecker implements UnitOLVisitor {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
 				path.path().add( new Pair<>(
-					new ConstantStringExpression( cset.context(), Constants.CSETS ),
+					new ConstantStringExpression( cset.context(), Keywords.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 ) ) );
 				path.path().addAll( cvar.correlationVariablePath().path() );
 				if( sessionStarter ) {
@@ -604,7 +605,7 @@ public class TypeChecker implements UnitOLVisitor {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
 				path.path().add( new Pair<>(
-					new ConstantStringExpression( cset.context(), Constants.CSETS ),
+					new ConstantStringExpression( cset.context(), Keywords.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 ) ) );
 				path.path().addAll( cvar.correlationVariablePath().path() );
 				if( sessionStarter ) {
