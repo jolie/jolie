@@ -84,8 +84,12 @@ public class SolicitResponseProcess implements Process {
 				types,
 				context,
 				inputVarPath );
-		
-		solicitResponseExpression.evaluate();
+
+		try {
+			solicitResponseExpression.evaluate();
+		} catch( FaultException.RuntimeFaultException e ) {
+			throw e.faultException();
+		}
 
 		try {
 			installProcess.run();
