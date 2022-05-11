@@ -23,7 +23,6 @@
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -38,7 +37,7 @@ public class InlineTreeExpression implements Expression {
 	public interface Operation {
 		Operation cloneOperation( TransformationReason reason );
 
-		void run( Value inlineValue ) throws FaultException;
+		void run( Value inlineValue );
 	}
 
 	public static class DeepCopyOperation implements Operation {
@@ -56,7 +55,7 @@ public class InlineTreeExpression implements Expression {
 		}
 
 		@Override
-		public void run( Value inlineValue ) throws FaultException {
+		public void run( Value inlineValue ) {
 			if( expression instanceof VariablePath ) {
 				Object myObj = ((VariablePath) expression).getValueOrValueVector();
 				if( myObj instanceof Value ) {
@@ -87,7 +86,7 @@ public class InlineTreeExpression implements Expression {
 		}
 
 		@Override
-		public void run( Value inlineValue ) throws FaultException {
+		public void run( Value inlineValue ) {
 			path.getValue( inlineValue ).assignValue( expression.evaluate() );
 		}
 	}
@@ -136,7 +135,7 @@ public class InlineTreeExpression implements Expression {
 	}
 
 	@Override
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value inlineValue = Value.create();
 		inlineValue.assignValue( rootExpression.evaluate() );
 

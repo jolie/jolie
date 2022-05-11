@@ -1,6 +1,5 @@
 package jolie.tracer;
 
-import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
@@ -10,7 +9,7 @@ public final class TracerUtils {
 		ALL, COMM, COMP
 	}
 
-	public static String getVarPathString( Pair< Expression, Expression >[] path ) throws FaultException {
+	public static String getVarPathString( Pair< Expression, Expression >[] path ) {
 		StringBuilder stringBuilder = new StringBuilder();
 		for( int p = 0; p < path.length; p++ ) {
 			if( p > 0 ) {

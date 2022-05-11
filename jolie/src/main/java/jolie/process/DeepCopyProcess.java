@@ -24,7 +24,6 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.runtime.FaultException;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 import jolie.tracer.AssignmentTraceAction;
@@ -55,7 +54,7 @@ public class DeepCopyProcess implements Process {
 	}
 
 	@Override
-	public void run() throws FaultException {
+	public void run() {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
 

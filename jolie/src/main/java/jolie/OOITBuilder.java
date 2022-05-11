@@ -499,11 +499,7 @@ public class OOITBuilder implements UnitOLVisitor {
 				return;
 			}
 			if( protocolExpr instanceof Value || protocolExpr instanceof InlineTreeExpression ) {
-				try {
-					protocolStr = protocolExpr.evaluate().strValue();
-				} catch( FaultException e ) {
-					error( n.context(), e );
-				}
+				protocolStr = protocolExpr.evaluate().strValue();
 			} else if( protocolExpr instanceof VariablePath ) {
 				VariablePath path = new ClosedVariablePath( (VariablePath) protocolExpr, initValue );
 				protocolStr = path.getValue().strValue();

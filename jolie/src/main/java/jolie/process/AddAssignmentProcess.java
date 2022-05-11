@@ -22,7 +22,6 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
@@ -64,14 +63,14 @@ public class AddAssignmentProcess implements Process, Expression {
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run() throws FaultException {
+	public void run() {
 		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
 		varPath.getValue().add( expression.evaluate() );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.add( expression.evaluate() );
 		return val;

@@ -62,7 +62,7 @@ public class SolicitResponseExpression implements Expression {
 	}
 
 	@Override
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		try {
 			CommMessage message =
 				CommMessage.createRequest( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
@@ -129,9 +129,9 @@ public class SolicitResponseExpression implements Expression {
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
 									outputPort.id(), response.fault().value() ) );
 						}
-						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
+						throw (new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
-								+ outputPort.id() + "): " + e.getMessage() );
+								+ outputPort.id() + "): " + e.getMessage() ).toRuntimeFaultException());
 					}
 				} else {
 					if( Interpreter.getInstance().isMonitoring() ) {
@@ -141,19 +141,20 @@ public class SolicitResponseExpression implements Expression {
 								outputPort.id(), response.fault().value() ) );
 					}
 				}
-				throw response.fault();
+				throw response.fault().toRuntimeFaultException();
 			}
 
 			return response.value();
 		} catch( IOException e ) {
-			throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME );
+			throw (new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME )).toRuntimeFaultException();
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TimeoutException e ) {
-			throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME );
+			throw (new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME )).toRuntimeFaultException();
 		} catch( TypeCheckingException e ) {
-			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
-				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + ") " + e.getMessage() );
+			throw (new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
+				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + ") " + e.getMessage() ))
+					.toRuntimeFaultException();
 		}
 		return null;
 	}
