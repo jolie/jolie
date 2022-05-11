@@ -70,7 +70,7 @@ public class OneWayProcess implements InputOperationProcess {
 			Interpreter.getInstance().fireMonitorEvent(
 				new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(),
 					Long.toString( sessionMessage.message().requestId() ), sessionMessage.message().value(),
-					Long.toString( sessionMessage.message().getId() ) ) );
+					Long.toString( sessionMessage.message().id() ) ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );

@@ -1379,18 +1379,18 @@ public class Interpreter {
 	private void logSessionStart( CommMessage commMessage, String sessionId ) {
 		if( isMonitoring() ) {
 			fireMonitorEvent( new SessionStartedEvent( commMessage.operationName(), sessionId,
-				Long.toString( commMessage.getId() ) ) );
+				Long.toString( commMessage.id() ) ) );
 			fireMonitorEvent(
 				new OperationStartedEvent( commMessage.operationName(), sessionId,
 					Long.toString( commMessage.requestId() ), commMessage.value(),
-					Long.toString( commMessage.getId() ) ) );
+					Long.toString( commMessage.id() ) ) );
 		}
 	}
 
 	private void logSessionEnd( CommMessage commMessage, String sessionId ) {
 		if( isMonitoring() ) {
 			fireMonitorEvent(
-				new SessionEndedEvent( commMessage.operationName(), sessionId, Long.toString( commMessage.getId() ) ) );
+				new SessionEndedEvent( commMessage.operationName(), sessionId, Long.toString( commMessage.id() ) ) );
 		}
 	}
 
