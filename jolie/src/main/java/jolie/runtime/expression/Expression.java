@@ -28,7 +28,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public interface Expression {
-	Value evaluate() throws FaultException;
+	Value evaluate() throws FaultException.RuntimeFaultException;
 
 	Expression cloneExpression( TransformationReason reason );
 

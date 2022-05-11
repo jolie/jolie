@@ -23,7 +23,6 @@
 package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
@@ -46,7 +45,7 @@ public class InstanceOfExpression implements Expression {
 		return new InstanceOfExpression( expression, type );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		boolean ret = true;
 		try {
 			type.check( expression.evaluate() );

@@ -25,7 +25,6 @@ package jolie.runtime.expression;
 import java.util.function.BiPredicate;
 
 import jolie.process.TransformationReason;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 
@@ -50,7 +49,7 @@ public class CompareCondition implements Expression {
 			compareOperator );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		return Value.create( compareOperator.test( leftExpression.evaluate(), rightExpression.evaluate() ) );
 	}
 }

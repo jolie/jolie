@@ -43,7 +43,7 @@ public class ProductExpression implements Expression {
 	}
 
 	@Override
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value val = Value.create( children[ 0 ].expression().evaluate() );
 		for( int i = 1; i < children.length; i++ ) {
 			switch( children[ i ].type() ) {

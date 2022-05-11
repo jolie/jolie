@@ -55,7 +55,7 @@ public class AndCondition implements Expression {
 	 * @return true if every condition is satisfied, false otherwise.
 	 * @throws FaultException
 	 */
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		for( Expression condition : children ) {
 			if( condition.evaluate().boolValue() == false ) {
 				return Value.create( false );

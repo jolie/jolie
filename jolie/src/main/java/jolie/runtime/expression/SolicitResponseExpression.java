@@ -107,7 +107,7 @@ public class SolicitResponseExpression implements Expression {
 
     @Override
     public Value evaluate()
-        throws FaultException {
+        throws FaultException.RuntimeFaultException {
         CommChannel channel = null;
         CommMessage response = null;
         try {
@@ -198,7 +198,7 @@ public class SolicitResponseExpression implements Expression {
                         }
                         throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
                             "Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
-                                + outputPort.id() + "): " + e.getMessage() );
+                                + outputPort.id() + "): " + e.getMessage() ).toRuntimeFaultException();
                     }
                 } else {
                     if( Interpreter.getInstance().isMonitoring() ) {
@@ -232,7 +232,7 @@ public class SolicitResponseExpression implements Expression {
 									Long.toString( response.getId() ) ) );
                         }
                         throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
-                            + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+                            + operationId + "@" + outputPort.id() + "): " + e.getMessage() ).toRuntimeFaultException();
                     }
                 } else {
                     if( Interpreter.getInstance().isMonitoring() ) {
@@ -245,14 +245,16 @@ public class SolicitResponseExpression implements Expression {
             }
 
         } catch( TimeoutException e ) { // The response timed out
-            throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME );
+            throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME ).toRuntimeFaultException();
         } catch( IOException e ) {
-            throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+            throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ).toRuntimeFaultException();
         } catch( URISyntaxException e ) {
             Interpreter.getInstance().logSevere( e );
         } catch( TypeCheckingException e ) {
             throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
-                "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+                "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() ).toRuntimeFaultException();
+        } catch ( FaultException e ){
+            throw e.toRuntimeFaultException();
         } finally {
             if( channel != null ) {
                 try {
@@ -263,7 +265,11 @@ public class SolicitResponseExpression implements Expression {
             }
         }
 
-        return response.value();
+        if(response != null){
+            return response.value();
+        }else{
+            return null;
+        }
     }
 
 }

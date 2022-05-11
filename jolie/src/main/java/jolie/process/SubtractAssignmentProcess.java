@@ -74,7 +74,7 @@ public class SubtractAssignmentProcess implements Process, Expression {
 		varPath.getValue().subtract( expression.evaluate() );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.subtract( expression.evaluate() );
 		return val;

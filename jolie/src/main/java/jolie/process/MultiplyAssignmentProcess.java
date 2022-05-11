@@ -70,7 +70,7 @@ public class MultiplyAssignmentProcess implements Process, Expression {
 		varPath.getValue().multiply( expression.evaluate() );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.multiply( expression.evaluate() );
 		return val;

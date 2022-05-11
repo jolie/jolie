@@ -71,7 +71,7 @@ public class AddAssignmentProcess implements Process, Expression {
 		varPath.getValue().add( expression.evaluate() );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.add( expression.evaluate() );
 		return val;

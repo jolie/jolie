@@ -84,7 +84,7 @@ public class AssignmentProcess implements Process, Expression {
 			context ) );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.assignValue( expression.evaluate() );
 		return val;

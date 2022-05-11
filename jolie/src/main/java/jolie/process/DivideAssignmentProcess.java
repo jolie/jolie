@@ -70,7 +70,7 @@ public class DivideAssignmentProcess implements Process, Expression {
 		varPath.getValue().divide( expression.evaluate() );
 	}
 
-	public Value evaluate() throws FaultException {
+	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.divide( expression.evaluate() );
 		return val;
