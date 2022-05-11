@@ -75,8 +75,9 @@ public class SolicitResponseExpression implements Expression {
 					if( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-								Long.toString( message.id() ), OperationCallEvent.FAULT, "TypeMismatch",
-								outputPort.id(), message.value() ) );
+								Long.toString( message.requestId() ), OperationCallEvent.FAULT,
+								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value(),
+								Long.toString( message.getId() ) ) );
 					}
 					throw (e);
 				}
@@ -86,10 +87,11 @@ public class SolicitResponseExpression implements Expression {
 			channel.send( message );
 
 			if( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent(
-					new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-						Long.toString( message.id() ),
-						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+				Interpreter.getInstance()
+					.fireMonitorEvent( new OperationCallEvent( operationId,
+						ExecutionThread.currentThread().getSessionId(), Long.toString( message.requestId() ),
+						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value(),
+						Long.toString( message.getId() ) ) );
 			}
 
 			CommMessage response = null;
@@ -116,18 +118,21 @@ public class SolicitResponseExpression implements Expression {
 					try {
 						faultType.check( response.fault().value() );
 						if( Interpreter.getInstance().isMonitoring() ) {
-							Interpreter.getInstance().fireMonitorEvent(
-								new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-									Long.toString( response.id() ), OperationReplyEvent.FAULT,
-									response.fault().faultName(), outputPort.id(), response.value() ) );
+							Interpreter.getInstance()
+								.fireMonitorEvent( new OperationReplyEvent( operationId,
+									ExecutionThread.currentThread().getSessionId(),
+									Long.toString( response.requestId() ), OperationReplyEvent.FAULT,
+									response.fault().faultName(), outputPort.id(), response.fault().value(),
+									Long.toString( response.getId() ) ) );
 						}
 					} catch( TypeCheckingException e ) {
 						if( Interpreter.getInstance().isMonitoring() ) {
-							Interpreter.getInstance().fireMonitorEvent(
-								new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-									Long.toString( response.id() ), OperationReplyEvent.FAULT,
+							Interpreter.getInstance()
+								.fireMonitorEvent( new OperationReplyEvent( operationId,
+									ExecutionThread.currentThread().getSessionId(),
+									Long.toString( response.requestId() ), OperationReplyEvent.FAULT,
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
-									outputPort.id(), response.fault().value() ) );
+									outputPort.id(), response.fault().value(), Long.toString( response.getId() ) ) );
 						}
 						throw (new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
@@ -137,8 +142,9 @@ public class SolicitResponseExpression implements Expression {
 					if( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
-								Long.toString( response.id() ), OperationReplyEvent.FAULT, response.fault().faultName(),
-								outputPort.id(), response.fault().value() ) );
+								Long.toString( response.requestId() ), OperationReplyEvent.FAULT,
+								response.fault().faultName(), outputPort.id(), response.fault().value(),
+								Long.toString( response.getId() ) ) );
 					}
 				}
 				throw response.fault().toRuntimeFaultException();
