@@ -102,7 +102,7 @@ public class NotificationProcess implements Process {
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
 								Long.toString( message.requestId() ), OperationCallEvent.FAULT,
 								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value(),
-								Long.toString( message.getId() ) ) );
+								Long.toString( message.id() ) ) );
 					}
 					throw (e);
 				}
@@ -119,7 +119,7 @@ public class NotificationProcess implements Process {
 					.fireMonitorEvent( new OperationCallEvent( operationId,
 						ExecutionThread.currentThread().getSessionId(), Long.toString( message.requestId() ),
 						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value(),
-						Long.toString( message.getId() ) ) );
+						Long.toString( message.id() ) ) );
 			}
 
 			CommMessage response = null;

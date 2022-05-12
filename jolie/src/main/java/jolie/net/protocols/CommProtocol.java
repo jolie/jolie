@@ -57,8 +57,8 @@ public abstract class CommProtocol {
 		private final static DummyChannel DUMMY_CHANNEL = new DummyChannel();
 	}
 
-	private static class Parameters {
-		private static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
+	public static class Parameters {
+		public static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
 	}
 
 
