@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class UriUtils {
 	public static Value match( Value request ) {
 		return match( request.getFirstChild( "template" ).strValue(), request.getFirstChild( "uri" ).strValue() );

@@ -19,6 +19,50 @@
 
 package jolie.net;
 
+import jolie.ExecutionThread;
+import jolie.Interpreter;
+import jolie.js.JsUtils;
+import jolie.lang.Constants;
+import jolie.lang.NativeType;
+import jolie.monitoring.events.ProtocolMessageEvent;
+import jolie.net.http.HttpMessage;
+import jolie.net.http.HttpParser;
+import jolie.net.http.HttpUtils;
+import jolie.net.http.Method;
+import jolie.net.http.MultiPartFormDataParser;
+import jolie.net.ports.Interface;
+import jolie.net.protocols.CommProtocol;
+import jolie.runtime.ByteArray;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.OperationTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCastingException;
+import jolie.tracer.ProtocolTraceAction;
+import jolie.uri.UriUtils;
+import jolie.util.LocationParser;
+import jolie.xml.XmlUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,50 +86,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-
-import jolie.runtime.*;
-import jolie.uri.UriUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.js.JsUtils;
-import jolie.lang.Constants;
-import jolie.lang.NativeType;
-import jolie.net.http.HttpMessage;
-import jolie.net.http.HttpParser;
-import jolie.net.http.HttpUtils;
-import jolie.net.http.Method;
-import jolie.net.http.MultiPartFormDataParser;
-import jolie.net.ports.Interface;
-import jolie.net.protocols.CommProtocol;
-import jolie.runtime.typing.OneWayTypeDescription;
-import jolie.runtime.typing.OperationTypeDescription;
-import jolie.runtime.typing.RequestResponseTypeDescription;
-import jolie.runtime.typing.Type;
-import jolie.runtime.typing.TypeCastingException;
-import jolie.tracer.ProtocolTraceAction;
-import jolie.util.LocationParser;
-import jolie.xml.XmlUtils;
-
-import jolie.monitoring.events.ProtocolMessageEvent;
 
 /**
  * HTTP protocol implementation
@@ -359,17 +359,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendQuerystring( Value value, StringBuilder headerBuilder, CommMessage message )
 		throws IOException {
-
-
-		List< String > headersKeys = new ArrayList<>();
-		Value outboundHeaders = getOperationSpecificParameterFirstValue( message.operationName(),
-			Parameters.OUTGOING_HEADERS );
-
-		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
-			headersKeys.add( headerValues.get( 0 ).strValue() );
-		} );
-
-		headersKeys.forEach( value.children()::remove );
+		getOperationSpecificParameterFirstValue( message.operationName(),
+			Parameters.OUTGOING_HEADERS ).children()
+				.forEach( ( headerName, headerValues ) -> value.children().remove( headerValues.get( 0 ).strValue() ) );
 
 		if( value.hasChildren() ) {
 			headerBuilder.append( '?' );
@@ -394,16 +386,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendJsonQueryString( CommMessage message, StringBuilder headerBuilder )
 		throws IOException {
-
-		List< String > headersKeys = new ArrayList<>();
-
-		Value outboundHeaders = getOperationSpecificParameterFirstValue( message.operationName(),
-			Parameters.OUTGOING_HEADERS );
-
-		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
-			headersKeys.add( headerName );
-		} );
-		headersKeys.forEach( message.value().children()::remove );
+		getOperationSpecificParameterFirstValue( message.operationName(),
+			Parameters.OUTGOING_HEADERS ).children().forEach(
+				( headerName, headerValues ) -> message.value().children().remove( headerValues.get( 0 ).strValue() ) );
 		if( message.value().isDefined() || message.value().hasChildren() ) {
 			headerBuilder.append( "?" );
 			StringBuilder builder = new StringBuilder();
