@@ -360,19 +360,20 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void send_appendQuerystring( Value value, StringBuilder headerBuilder, CommMessage message )
 		throws IOException {
 
-		Value copyValue = Value.create();
-		copyValue.deepCopy( value );
+
 		List< String > headersKeys = new ArrayList<>();
 		Value outboundHeaders = getOperationSpecificParameterFirstValue( message.operationName(),
 			Parameters.OUTGOING_HEADERS );
+
 		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
 			headersKeys.add( headerValues.get( 0 ).strValue() );
 		} );
-		headersKeys.forEach( copyValue.children()::remove );
 
-		if( copyValue.hasChildren() ) {
+		headersKeys.forEach( value.children()::remove );
+
+		if( value.hasChildren() ) {
 			headerBuilder.append( '?' );
-			Iterator< Entry< String, ValueVector > > nodesIt = copyValue.children().entrySet().iterator();
+			Iterator< Entry< String, ValueVector > > nodesIt = value.children().entrySet().iterator();
 			while( nodesIt.hasNext() ) {
 				Entry< String, ValueVector > entry = nodesIt.next();
 				Iterator< Value > vecIt = entry.getValue().iterator();
@@ -393,8 +394,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendJsonQueryString( CommMessage message, StringBuilder headerBuilder )
 		throws IOException {
-		Value copyValue = Value.create();
-		copyValue.deepCopy( message.value() );
+
 		List< String > headersKeys = new ArrayList<>();
 
 		Value outboundHeaders = getOperationSpecificParameterFirstValue( message.operationName(),
@@ -403,11 +403,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		outboundHeaders.children().forEach( ( headerName, headerValues ) -> {
 			headersKeys.add( headerName );
 		} );
-		headersKeys.forEach( copyValue.children()::remove );
-		if( copyValue.isDefined() || copyValue.hasChildren() ) {
+		headersKeys.forEach( message.value().children()::remove );
+		if( message.value().isDefined() || message.value().hasChildren() ) {
 			headerBuilder.append( "?" );
 			StringBuilder builder = new StringBuilder();
-			JsUtils.valueToJsonString( copyValue, true, getSendType( message ), builder );
+			JsUtils.valueToJsonString( message.value(), true, getSendType( message ), builder );
 			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
 		}
 	}
