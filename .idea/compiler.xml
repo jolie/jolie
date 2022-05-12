@@ -21,8 +21,8 @@
         <module name="launchers" />
         <module name="xmlrpc" />
         <module name="jolie-embedding-legacy" />
-        <module name="https" />
         <module name="localsocket" />
+        <module name="https" />
         <module name="jsonrpc" />
         <module name="jolie2java" />
         <module name="jolie-cli" />
@@ -48,7 +48,6 @@
       <module name="btl2cap" target="1.8" />
       <module name="build-tools" target="1.5" />
       <module name="coreJavaServices" target="1.8" />
-      <module name="distribution" target="1.5" />
       <module name="http" target="1.8" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
