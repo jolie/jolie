@@ -124,7 +124,7 @@ public class SolicitResponseProcess implements Process {
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),
 								Long.toString( message.requestId() ), OperationCallEvent.FAULT,
 								"TypeMismatch:" + e.getMessage(), outputPort.id(), message.value(),
-								Long.toString( message.getId() ) ) );
+								Long.toString( message.id() ) ) );
 					}
 
 					throw (e);
@@ -140,7 +140,7 @@ public class SolicitResponseProcess implements Process {
 					.fireMonitorEvent( new OperationCallEvent( operationId,
 						ExecutionThread.currentThread().getSessionId(), Long.toString( message.requestId() ),
 						OperationCallEvent.SUCCESS, "", outputPort.id(), message.value(),
-						Long.toString( message.getId() ) ) );
+						Long.toString( message.id() ) ) );
 			}
 
 			CommMessage response = null;
@@ -175,7 +175,7 @@ public class SolicitResponseProcess implements Process {
 									ExecutionThread.currentThread().getSessionId(),
 									Long.toString( response.requestId() ), OperationReplyEvent.FAULT,
 									response.fault().faultName(), outputPort.id(), response.fault().value(),
-									Long.toString( response.getId() ) ) );
+									Long.toString( response.id() ) ) );
 						}
 					} catch( TypeCheckingException e ) {
 						if( Interpreter.getInstance().isMonitoring() ) {
@@ -184,7 +184,7 @@ public class SolicitResponseProcess implements Process {
 									ExecutionThread.currentThread().getSessionId(),
 									Long.toString( response.requestId() ), OperationReplyEvent.FAULT,
 									"TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(),
-									outputPort.id(), response.fault().value(), Long.toString( response.getId() ) ) );
+									outputPort.id(), response.fault().value(), Long.toString( response.id() ) ) );
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
@@ -196,7 +196,7 @@ public class SolicitResponseProcess implements Process {
 							new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(),
 								Long.toString( response.requestId() ), OperationReplyEvent.FAULT,
 								response.fault().faultName(), outputPort.id(), response.fault().value(),
-								Long.toString( response.getId() ) ) );
+								Long.toString( response.id() ) ) );
 					}
 				}
 				throw response.fault();
@@ -209,7 +209,7 @@ public class SolicitResponseProcess implements Process {
 								.fireMonitorEvent( new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.toString( response.requestId() ), OperationReplyEvent.SUCCESS, "",
-									outputPort.id(), response.value(), Long.toString( response.getId() ) ) );
+									outputPort.id(), response.value(), Long.toString( response.id() ) ) );
 						}
 					} catch( TypeCheckingException e ) {
 						if( Interpreter.getInstance().isMonitoring() ) {
@@ -217,7 +217,7 @@ public class SolicitResponseProcess implements Process {
 								.fireMonitorEvent( new OperationReplyEvent( operationId,
 									ExecutionThread.currentThread().getSessionId(),
 									Long.toString( response.requestId() ), OperationReplyEvent.FAULT, e.getMessage(),
-									outputPort.id(), response.value(), Long.toString( response.getId() ) ) );
+									outputPort.id(), response.value(), Long.toString( response.id() ) ) );
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
 							+ operationId + "@" + outputPort.id() + "): " + e.getMessage() );
@@ -227,7 +227,7 @@ public class SolicitResponseProcess implements Process {
 						Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId,
 							ExecutionThread.currentThread().getSessionId(), Long.toString( response.requestId() ),
 							OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value(),
-							Long.toString( response.getId() ) ) );
+							Long.toString( response.id() ) ) );
 					}
 				}
 			}

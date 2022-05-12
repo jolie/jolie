@@ -1058,7 +1058,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					bodyMessageString,
 					headerBuilder.toString(),
 					ExecutionThread.currentThread().getSessionId(),
-					Long.toString( message.getId() ),
+					Long.toString( message.id() ),
 					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
 
@@ -1681,7 +1681,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					getHttpBody( message, charset ),
 					getHttpHeader( message ),
 					"",
-					Long.toString( retVal.getId() ),
+					Long.toString( retVal.id() ),
 					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
 
