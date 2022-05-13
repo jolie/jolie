@@ -104,7 +104,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	@Override
 	protected void sendImpl( CommMessage message ) {
-		CompletableFuture f = new CompletableFuture<>();
+		CompletableFuture< CommMessage > f = new CompletableFuture<>();
 		responseWaiters.put( message.requestId(), f );
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );
 	}
