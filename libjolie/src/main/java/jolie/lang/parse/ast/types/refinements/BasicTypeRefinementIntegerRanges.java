@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class BasicTypeRefinementIntegerRanges implements Serializable, BasicTypeRefinement< Integer > {
-
 	public static class Interval {
 		private final int min;
 		private final int max;
@@ -47,13 +46,12 @@ public class BasicTypeRefinementIntegerRanges implements Serializable, BasicType
 	}
 
 	@Override
-	public boolean checkEqualness( BasicTypeRefinement basicTypeRefinement ) {
+	public boolean checkEqualness( BasicTypeRefinement< ? > basicTypeRefinement ) {
 		if( basicTypeRefinement instanceof BasicTypeRefinementIntegerRanges ) {
 			BasicTypeRefinementIntegerRanges basicTypeRefinementIntegerRanges =
 				(BasicTypeRefinementIntegerRanges) basicTypeRefinement;
 			return ranges.stream()
 				.allMatch( i -> checkIntervalToIntervals( i, basicTypeRefinementIntegerRanges.getRanges() ) );
-
 		} else {
 			return false;
 		}

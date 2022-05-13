@@ -20,7 +20,7 @@ public class BasicTypeRefinementStringRegex implements Serializable, BasicTypeRe
 	}
 
 	@Override
-	public boolean checkEqualness( BasicTypeRefinement basicTypeRefinement ) {
+	public boolean checkEqualness( BasicTypeRefinement< ? > basicTypeRefinement ) {
 		if( basicTypeRefinement instanceof BasicTypeRefinementStringRegex ) {
 			BasicTypeRefinementStringRegex basicTypeRefinementStringRegex =
 				(BasicTypeRefinementStringRegex) basicTypeRefinement;

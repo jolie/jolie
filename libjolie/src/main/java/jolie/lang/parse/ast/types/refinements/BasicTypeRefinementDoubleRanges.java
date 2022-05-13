@@ -44,13 +44,12 @@ public class BasicTypeRefinementDoubleRanges implements Serializable, BasicTypeR
 	}
 
 	@Override
-	public boolean checkEqualness( BasicTypeRefinement basicTypeRefinement ) {
+	public boolean checkEqualness( BasicTypeRefinement< ? > basicTypeRefinement ) {
 		if( basicTypeRefinement instanceof BasicTypeRefinementDoubleRanges ) {
 			BasicTypeRefinementDoubleRanges basicTypeRefinementIntegerRanges =
 				(BasicTypeRefinementDoubleRanges) basicTypeRefinement;
 			return ranges.stream()
 				.allMatch( i -> checkIntervalToIntervals( i, basicTypeRefinementIntegerRanges.getRanges() ) );
-
 		} else {
 			return false;
 		}

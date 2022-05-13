@@ -2786,7 +2786,7 @@ public class OLParser extends AbstractParser {
 
 		insideInstallFunction = backup;
 
-		return Optional.of( new InstallFunctionNode( vec.toArray( new Pair[ 0 ] ) ) );
+		return Optional.of( new InstallFunctionNode( vec.< Pair< String, OLSyntaxNode > >toArray( new Pair[ 0 ] ) ) );
 	}
 
 	private OLSyntaxNode parseAssignOrDeepCopyOrPointerStatement( VariablePathNode path )

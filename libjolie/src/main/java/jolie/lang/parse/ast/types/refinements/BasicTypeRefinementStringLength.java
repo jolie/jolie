@@ -3,7 +3,6 @@ package jolie.lang.parse.ast.types.refinements;
 import java.io.Serializable;
 
 public class BasicTypeRefinementStringLength implements Serializable, BasicTypeRefinement< String > {
-
 	private final int max;
 	private final int min;
 
@@ -18,7 +17,7 @@ public class BasicTypeRefinementStringLength implements Serializable, BasicTypeR
 	}
 
 	@Override
-	public boolean checkEqualness( BasicTypeRefinement basicTypeRefinement ) {
+	public boolean checkEqualness( BasicTypeRefinement< ? > basicTypeRefinement ) {
 		if( basicTypeRefinement instanceof BasicTypeRefinementStringLength ) {
 			BasicTypeRefinementStringLength basicTypeRefinementStringLength =
 				(BasicTypeRefinementStringLength) basicTypeRefinement;

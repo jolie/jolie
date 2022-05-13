@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class BasicTypeRefinementStringList implements Serializable, BasicTypeRefinement< String > {
-
 	private final ArrayList< String > list = new ArrayList<>();
 
 	public BasicTypeRefinementStringList( ArrayList< String > arrayList ) {
@@ -17,7 +16,7 @@ public class BasicTypeRefinementStringList implements Serializable, BasicTypeRef
 	}
 
 	@Override
-	public boolean checkEqualness( BasicTypeRefinement basicTypeRefinement ) {
+	public boolean checkEqualness( BasicTypeRefinement< ? > basicTypeRefinement ) {
 		if( basicTypeRefinement instanceof BasicTypeRefinementStringList ) {
 			BasicTypeRefinementStringList basicTypeRefinementStringList =
 				(BasicTypeRefinementStringList) basicTypeRefinement;
