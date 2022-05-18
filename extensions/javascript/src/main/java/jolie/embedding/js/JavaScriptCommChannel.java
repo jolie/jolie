@@ -92,7 +92,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 			}
 
 			response = new CommMessage(
-				message.id(),
+				message.requestId(),
 				message.operationName(),
 				message.resourcePath(),
 				value,
@@ -101,7 +101,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 			response = CommMessage.createEmptyResponse( message );
 		}
 
-		messages.put( message.id(), response );
+		messages.put( message.requestId(), response );
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException {
-		return CompletableFuture.completedFuture( messages.remove( request.id() ) );
+		return CompletableFuture.completedFuture( messages.remove( request.requestId() ) );
 	}
 
 	@Override

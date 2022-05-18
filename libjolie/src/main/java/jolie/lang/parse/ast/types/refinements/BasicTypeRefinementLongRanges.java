@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class BasicTypeRefinementLongRanges implements Serializable, BasicTypeRefinement< Long > {
-
 	public static class Interval {
 		private final long min;
 		private final long max;
@@ -47,7 +46,7 @@ public class BasicTypeRefinementLongRanges implements Serializable, BasicTypeRef
 	}
 
 	@Override
-	public boolean checkEqualness( BasicTypeRefinement basicTypeRefinement ) {
+	public boolean checkEqualness( BasicTypeRefinement< ? > basicTypeRefinement ) {
 		if( basicTypeRefinement instanceof BasicTypeRefinementLongRanges ) {
 			BasicTypeRefinementLongRanges basicTypeRefinementIntegerRanges =
 				(BasicTypeRefinementLongRanges) basicTypeRefinement;

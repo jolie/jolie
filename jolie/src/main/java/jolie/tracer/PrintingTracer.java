@@ -120,7 +120,7 @@ public class PrintingTracer implements Tracer {
 				.append( "\t" ).append( action.name() )
 				.append( "\t\t\t" ).append( action.description() );
 			if( action.message() != null ) {
-				stBuilder.append( "\tMSG_ID:" ).append( action.message().id() ).append( "\n" );
+				stBuilder.append( "\tMSG_ID:" ).append( action.message().requestId() ).append( "\n" );
 				Writer writer = new StringWriter();
 				Value messageValue = action.message().value().clone();
 				if( action.message().isFault() ) {

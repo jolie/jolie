@@ -395,7 +395,7 @@ public abstract class Type implements Cloneable {
 	}
 
 	private static Type extend( TypeImpl t1, TypeImpl t2 ) {
-		BasicType basicType = t1.basicType();
+		BasicType< ? > basicType = t1.basicType();
 		Range cardinality = t1.cardinality();
 		Map< String, Type > subTypes = new HashMap<>();
 		t1.subTypes().entrySet().forEach( entry -> subTypes.put( entry.getKey(), entry.getValue() ) );

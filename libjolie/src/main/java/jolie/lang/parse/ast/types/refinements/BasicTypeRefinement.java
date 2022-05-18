@@ -25,7 +25,7 @@ package jolie.lang.parse.ast.types.refinements;
 public interface BasicTypeRefinement< T > {
 	boolean checkValue( T value );
 
-	boolean checkEqualness( BasicTypeRefinement basicTypeRefinement );
+	boolean checkEqualness( BasicTypeRefinement< ? > basicTypeRefinement );
 
 	String getDocumentation();
 }

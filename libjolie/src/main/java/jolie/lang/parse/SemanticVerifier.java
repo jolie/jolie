@@ -629,7 +629,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		}
 
 		if( n.location() != null
-			&& !(n.location() instanceof ConstantStringExpression || n.location() instanceof VariablePathNode) ) {
+			&& !(n.location() instanceof ConstantStringExpression || n.location() instanceof VariableExpressionNode) ) {
 			error( n, "output port " + n.id() + "'s location is not a valid expression" );
 		}
 

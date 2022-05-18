@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2015 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2022 by Balint Maschio <bmaschio77@gmail.com            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,18 +19,39 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+type Order:void{
+    id:string
+    ammount:double
+}
 
-package com.damnhandy.uri.template;
+type GetOrderRequest:void{
+    token:string
+    id:string
+}
 
-import java.util.regex.Pattern;
+type GetOrderResponse:Order
 
-/**
- * Helper class for accessing reverse matchers for uri templates.
- * 
- * @author Fabrizio Montesi
- */
-public class UriTemplateMatcherFactory {
-	public static Pattern getReverseMatchPattern( UriTemplate t ) {
-		return t.getReverseMatchPattern();
-	}
+type GetOrdersRequest:void{
+    token:string
+}
+
+type GetOrdersResponse:void{
+    orders*: Order
+}
+
+type AddOrderRequest:void{
+    token:string
+    ammount:double
+}
+
+type AddOrderResponse:void
+
+
+interface HttpTemplateInterface{
+    RequestResponse:
+
+    getOrders(GetOrdersRequest)(GetOrdersResponse),
+    getOrder(GetOrderRequest)( GetOrderResponse),
+    addOrder(AddOrderRequest)(AddOrderResponse),
+
 }

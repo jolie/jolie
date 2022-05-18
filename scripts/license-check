@@ -1,0 +1,3 @@
+#!/bin/sh
+
+docker run -it --rm -v $(pwd):/github/workspace apache/skywalking-eyes -v error header check

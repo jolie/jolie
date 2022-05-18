@@ -154,7 +154,7 @@ public class FileTracer implements Tracer {
 			stBuilder.append( "\"" ).append( action.description() ).append( "\"," )
 				.append( "\"" ).append( action.name() ).append( "\"" );
 			if( action.message() != null ) {
-				stBuilder.append( ",\"" ).append( action.message().id() ).append( "\"," );
+				stBuilder.append( ",\"" ).append( action.message().requestId() ).append( "\"," );
 
 				Writer writer = new StringWriter();
 				Value messageValue = action.message().value().clone();
