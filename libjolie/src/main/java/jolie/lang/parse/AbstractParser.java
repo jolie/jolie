@@ -25,7 +25,6 @@ package jolie.lang.parse;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
-//import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -565,7 +564,6 @@ public abstract class AbstractParser {
 			} else {
 				mesg += ". Found term: " + token.content() + "\n";
 			}
-			// String help = createHelpMessage( context, token.content(), Arrays.asList() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		} else {
 			mesg += "\n";
@@ -836,7 +834,6 @@ public abstract class AbstractParser {
 			}
 			break;
 		default:
-			// help = createHelpMessage( context, token.content(), List.of() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 
 		}
