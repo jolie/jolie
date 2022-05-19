@@ -139,13 +139,6 @@ public class SymbolReferenceResolver {
 			+ " (this might mean that the referred type has not been defined or could not be retrieved)" );
 	}
 
-	// private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name,
-	// ImportPath path ) {
-	// return CodeCheckingError.build( node, "Symbol not found: " + name + " is not defined in module "
-	// + path
-	// + " (the symbol could not be retrieved from the symbol table)" );
-	// }
-
 	private static CodeCheckMessage buildSymbolTypeMismatchError( OLSyntaxNode node, String symbolName,
 		String expectedType, String actualType ) {
 		return CodeCheckMessage.buildWithoutHelp( node, "Symbol is used incorrectly: " + symbolName + " is used as "
@@ -157,11 +150,6 @@ public class SymbolReferenceResolver {
 			"Unable to bind operations to port " + portId + ": " + node.name()
 				+ " service doesn't have an inputPort with location 'local' defined." );
 	}
-
-	// private static CodeCheckingError buildTypeLinkOutOfBoundError( TypeDefinitionLink node ) {
-	// return CodeCheckingError.build( node, "Unable to find linked type: " + node.name()
-	// + " has infinite loop to it's linked type" );
-	// }
 
 	private class SymbolReferenceResolverVisitor implements UnitOLVisitor {
 		private URI currentURI;
