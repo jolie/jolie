@@ -3317,6 +3317,9 @@ public class OLParser extends AbstractParser {
 			String id = token.content();
 			path = parseVariablePath();
 			if( token.type() == Scanner.TokenType.AT ) {
+				if( path.path().size() > 1 || path.path().get( 0 ).value() != null ) {
+					throwException( "unexpected token " + token.type() );
+				}
 				nextToken();
 				return parseOutputExpressionNode( id );
 			} else {
