@@ -91,9 +91,9 @@ public class CommMessage implements Serializable {
 	}
 
 	/**
-	 * Returns the identifier of this message.
+	 * Returns the request identifier of this message.
 	 * 
-	 * @return the identifier of this message
+	 * @return the request identifier of this message
 	 */
 	public long requestId() {
 		return requestId;
@@ -173,11 +173,11 @@ public class CommMessage implements Serializable {
 	}
 
 	/**
-	 * return the id associated with the message
+	 * Returns the id associated with the message
 	 * 
-	 * @return id associeted with the CommMessage
+	 * @return the id associated with the message
 	 */
-	public long getId() {
+	public long id() {
 		return id;
 	}
 

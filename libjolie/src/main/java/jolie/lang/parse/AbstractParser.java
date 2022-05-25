@@ -25,7 +25,6 @@ package jolie.lang.parse;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -565,8 +564,7 @@ public abstract class AbstractParser {
 			} else {
 				mesg += ". Found term: " + token.content() + "\n";
 			}
-			String help = createHelpMessage( context, token.content(), Arrays.asList() );
-			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 		} else {
 			mesg += "\n";
 			// I remove 1 from the columns, because the message otherwise looks as if the error is within the
@@ -742,6 +740,9 @@ public abstract class AbstractParser {
 					context =
 						new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 							columnNumber + tempSplit[ 2 ].length(), extralines );
+					String importHelp = createHelpMessage( context, tempSplit[ 2 ], List.of( "from" ) );
+					exceptionMessage = CodeCheckMessage.withHelp( context, mesg, importHelp );
+					break;
 				}
 			}
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
@@ -833,8 +834,7 @@ public abstract class AbstractParser {
 			}
 			break;
 		default:
-			help = createHelpMessage( context, token.content(), List.of() );
-			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
+			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 
 		}
 		throw new ParserException( exceptionMessage );

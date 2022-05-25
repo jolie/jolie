@@ -118,6 +118,9 @@ public class CodeCheckMessage {
 			// Add description
 			if( description != null ) {
 				messageBuilder.append( description );
+				if( !description.endsWith( "\n" ) ) {
+					messageBuilder.append( "\n" );
+				}
 			} else {
 				messageBuilder.append( "No descriptive error message found.\n" );
 			}

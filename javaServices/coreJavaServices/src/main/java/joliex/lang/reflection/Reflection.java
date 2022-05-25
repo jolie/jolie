@@ -23,7 +23,6 @@ package joliex.lang.reflection;
 
 import java.io.IOException;
 import jolie.ExecutionThread;
-import jolie.Interpreter;
 import jolie.SessionListener;
 import jolie.SessionThread;
 import jolie.TransparentExecutionThread;
@@ -46,12 +45,6 @@ import jolie.util.Pair;
 public class Reflection extends JavaService {
 	private static class FaultReference {
 		private FaultException fault = null;
-	}
-
-	private final Interpreter interpreter;
-
-	public Reflection() {
-		this.interpreter = Interpreter.getInstance();
 	}
 
 	private Value runSolicitResponseInvocation( String operationName, OutputPort port, Value data,
@@ -96,7 +89,7 @@ public class Reflection extends JavaService {
 			data,
 			desc,
 			null );
-		SessionThread t = new SessionThread( p, interpreter.initThread() );
+		SessionThread t = new SessionThread( p, interpreter().initThread() );
 		final FaultReference ref = new FaultReference();
 		t.addSessionListener( new SessionListener() {
 			public void onSessionExecuted( SessionThread session ) {}
@@ -122,7 +115,7 @@ public class Reflection extends JavaService {
 			(request.hasChildren( "resourcePath" )) ? request.getFirstChild( "resourcePath" ).strValue() : "/";
 		final Value data = request.getFirstChild( "data" );
 		try {
-			OutputPort port = interpreter.getOutputPort( request.getFirstChild( "outputPort" ).strValue() );
+			OutputPort port = interpreter().getOutputPort( request.getFirstChild( "outputPort" ).strValue() );
 			OperationTypeDescription opDesc = port.getOperationTypeDescription( operation, resourcePath );
 			if( opDesc == null ) {
 				throw new InvalidIdException( operation );
@@ -136,7 +129,7 @@ public class Reflection extends JavaService {
 			throw new FaultException( "OperationNotFound",
 				"Could not find operation " + operation + "@" + outputPortName );
 		} catch( InterruptedException e ) {
-			interpreter.logSevere( e );
+			interpreter().logSevere( e );
 			throw new FaultException( new IOException( "Interrupted" ) );
 		} catch( FaultException e ) {
 			Value v = Value.create();

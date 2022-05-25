@@ -1054,7 +1054,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						plainTextContent.toString( "utf-8" ),
 						httpMessage.toString(),
 						ExecutionThread.currentThread().getSessionId(),
-						Long.toString( message.getId() ),
+						Long.toString( message.id() ),
 						ProtocolMessageEvent.Protocol.SOAP ) );
 			}
 
@@ -1090,7 +1090,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 								content.toString( "utf-8" ),
 								httpMessage.toString(),
 								ExecutionThread.currentThread().getSessionId(),
-								Long.toString( message.getId() ),
+								Long.toString( message.id() ),
 								ProtocolMessageEvent.Protocol.SOAP ) );
 					}
 
@@ -1339,7 +1339,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						new String( message.content(), charset ),
 						headerMonitor.toString(),
 						"",
-						Long.toString( retVal.getId() ),
+						Long.toString( retVal.id() ),
 						ProtocolMessageEvent.Protocol.SOAP ) );
 			}
 
