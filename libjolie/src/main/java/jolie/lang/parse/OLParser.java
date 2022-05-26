@@ -3315,14 +3315,12 @@ public class OLParser extends AbstractParser {
 		switch( token.type() ) {
 		case ID:
 			String id = token.content();
-			path = parseVariablePath();
+			nextToken();
 			if( token.type() == Scanner.TokenType.AT ) {
-				if( path.path().size() > 1 || path.path().get( 0 ).value() != null ) {
-					throwException( "unexpected token " + token.type() );
-				}
 				nextToken();
 				return parseOutputExpressionNode( id );
 			} else {
+				path = _parseVariablePath( id );
 				VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
 				freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
 					new ConstantIntegerExpression( getContext(), 0 ) ) );
