@@ -23,7 +23,6 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
@@ -66,7 +65,7 @@ public class SubtractAssignmentProcess implements Process, Expression {
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run() throws FaultException {
+	public void run() {
 		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}

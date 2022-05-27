@@ -26,7 +26,6 @@ package jolie.runtime.expression;
 import java.util.concurrent.locks.Condition;
 
 import jolie.process.TransformationReason;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 /**
@@ -53,7 +52,6 @@ public class AndCondition implements Expression {
 	 * checking the other conditions.
 	 * 
 	 * @return true if every condition is satisfied, false otherwise.
-	 * @throws FaultException
 	 */
 	public Value evaluate() {
 		for( Expression condition : children ) {

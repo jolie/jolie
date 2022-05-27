@@ -25,7 +25,6 @@ import jolie.lang.Constants;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ServiceNode;
 import jolie.net.CommChannel;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
@@ -101,7 +100,7 @@ public abstract class EmbeddedServiceLoader {
 	}
 
 	public abstract void load()
-		throws EmbeddedServiceLoadingException, FaultException;
+		throws EmbeddedServiceLoadingException;
 
 	public static abstract class EmbeddedServiceConfiguration {
 		private final Constants.EmbeddedServiceType type;

@@ -24,11 +24,10 @@ package jolie.runtime.expression;
 
 import jolie.lang.Constants;
 import jolie.process.TransformationReason;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public interface Expression {
-	Value evaluate() throws FaultException.RuntimeFaultException;
+	Value evaluate();
 
 	Expression cloneExpression( TransformationReason reason );
 

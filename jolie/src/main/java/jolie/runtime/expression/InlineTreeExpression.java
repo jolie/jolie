@@ -67,7 +67,6 @@ public class InlineTreeExpression implements Expression {
 				}
 			} else {
 				path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
-
 			}
 		}
 	}
@@ -89,7 +88,6 @@ public class InlineTreeExpression implements Expression {
 		@Override
 		public void run( Value inlineValue ) {
 			path.getValue( inlineValue ).assignValue( expression.evaluate() );
-
 		}
 	}
 
