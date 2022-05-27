@@ -803,7 +803,7 @@ public abstract class AbstractParser {
 			}
 			break;
 		case Keywords.TYPE:
-			if( mesg.contains( "expected type node name" ) ) {
+			if( mesg.contains( "expected type for node" ) ) {
 				// if nothing is written after the colon, when defining a type
 				extralines = getWholeScope( scopeName, scope );
 				String correctLine = "";
