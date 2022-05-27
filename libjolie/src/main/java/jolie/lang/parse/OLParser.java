@@ -416,7 +416,7 @@ public class OLParser extends AbstractParser {
 							nextToken();
 						} else {
 							setEndLine(); // set endLine for error
-							eatIdentifier( "expected type node name", "", Keywords.TYPE );
+							eatIdentifier( "expected type for node", "", Keywords.TYPE );
 						}
 
 						Range cardinality = parseCardinality();
