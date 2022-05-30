@@ -105,6 +105,7 @@ public class VariablePath implements Expression {
 				return null;
 		}
 
+
 		// Now i represents the beginning of the subpath, we can just copy it from there
 		@SuppressWarnings( "unchecked" )
 		Pair< Expression, Expression >[] subPath = new Pair[ otherVarPath.path.length - i ];
@@ -134,7 +135,6 @@ public class VariablePath implements Expression {
 		Value currValue = getRootValue();
 		int index;
 		String keyStr;
-
 		for( int i = 0; i < path.length; i++ ) {
 			pair = path[ i ];
 			keyStr = pair.key().evaluate().strValue();
@@ -194,6 +194,7 @@ public class VariablePath implements Expression {
 					: currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
 		}
 
+
 		return currValue;
 	}
 
@@ -235,6 +236,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		}
+
 	}
 
 	public final Value getValueOrNull() {
@@ -306,6 +308,8 @@ public class VariablePath implements Expression {
 				alias += "." + p.key().evaluate().strValue();
 			}
 		}
+
+
 		return new FaultException( "AliasAccessException",
 			"Found a loop when accessing an alias pointing to path: " + alias );
 	}
@@ -324,6 +328,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		}
+
 		return currVector;
 	}
 
@@ -350,6 +355,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		}
+
 		return currVector;
 	}
 
@@ -370,7 +376,6 @@ public class VariablePath implements Expression {
 		ValueVector currVector;
 		int index;
 		String keyStr;
-
 		for( int i = 0; i < path.length; i++ ) {
 			pair = path[ i ];
 			keyStr = pair.key().evaluate().strValue();
@@ -390,6 +395,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		}
+
 	}
 
 	public Object getValueOrValueVector() {
@@ -397,7 +403,6 @@ public class VariablePath implements Expression {
 		ValueVector currVector;
 		Value currValue = getRootValue();
 		int index;
-
 		for( int i = 0; i < path.length; i++ ) {
 			pair = path[ i ];
 			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
@@ -416,6 +421,7 @@ public class VariablePath implements Expression {
 				}
 			}
 		}
+
 
 		return currValue;
 	}

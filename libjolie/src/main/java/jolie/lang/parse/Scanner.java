@@ -43,7 +43,7 @@ public class Scanner {
 	/** Token types */
 	public enum TokenType {
 		EOF,				///< End Of File
-		ID,					///< [a-z][a-zA-Z0-9]*
+		ID,					///< [a-zA-Z_][a-zA-Z0-9_]*
 		COMMA,				///< ,
 		DOT,				///< .
 		INT,				///< [0-9]+

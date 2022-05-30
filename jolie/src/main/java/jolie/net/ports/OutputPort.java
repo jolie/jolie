@@ -207,12 +207,15 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 			protocolId,
 			protocolVariablePath,
 			new URI( locationExpression.evaluate().strValue() ) );
+
 	}
 
 	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException {
 		CommChannel ret;
-		Value loc = locationExpression.evaluate();
+		Value loc;
+		loc = locationExpression.evaluate();
+
 		if( loc.isChannel() ) {
 			// It's a local channel
 			ret = loc.channelValue();
@@ -258,7 +261,9 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	 */
 	public String getResourcePath()
 		throws URISyntaxException {
-		Value location = locationExpression.evaluate();
+		Value location;
+		location = locationExpression.evaluate();
+
 		if( location.isChannel() ) {
 			return "/";
 		}

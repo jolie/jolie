@@ -501,6 +501,7 @@ public class OOITBuilder implements UnitOLVisitor {
 			}
 			if( protocolExpr instanceof Value || protocolExpr instanceof InlineTreeExpression ) {
 				protocolStr = protocolExpr.evaluate().strValue();
+
 			} else if( protocolExpr instanceof VariablePath ) {
 				VariablePath path = new ClosedVariablePath( (VariablePath) protocolExpr, initValue );
 				protocolStr = path.getValue().strValue();
@@ -1617,6 +1618,20 @@ public class OOITBuilder implements UnitOLVisitor {
 			error( n.context(), e );
 		} catch( InvalidIdException e ) {
 			error( n.context(), "could not find port " + n.bindingPort().id() );
+		}
+	}
+
+	public void visit( SolicitResponseExpressionNode n ) {
+		try {
+			currExpression =
+				new SolicitResponseExpression(
+					n.id(),
+					interpreter.getOutputPort( n.outputPortId() ),
+					buildExpression( n.outputExpression() ),
+					solicitResponseTypes.get( n.outputPortId() ).get( n.id() ),
+					n.context() );
+		} catch( InvalidIdException e ) {
+			error( n.context(), e );
 		}
 	}
 }

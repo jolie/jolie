@@ -103,6 +103,7 @@ import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
@@ -945,6 +946,21 @@ public class OLParseTreeOptimizer {
 			}
 
 			programChildren.add( node );
+		}
+
+		@Override
+		public void visit( SolicitResponseExpressionNode n ) {
+			OLSyntaxNode outputExpression = null;
+			if( n.outputExpression() != null ) {
+				n.outputExpression().accept( this );
+				outputExpression = currNode;
+			}
+
+			currNode = new SolicitResponseExpressionNode(
+				n.context(),
+				n.id(),
+				n.outputPortId(),
+				outputExpression );
 		}
 	}
 
