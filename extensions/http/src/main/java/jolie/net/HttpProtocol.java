@@ -1384,9 +1384,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		return null;
 	}
 
+	private String cutBeforeQuerystring( String requestPath ) {
+		return requestPath.split( "\\?", 2 )[ 0 ];
+	}
+
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
 		if( decodedMessage.operationName == null ) {
-			final String requestPath = message.requestPath().split( "\\?", 2 )[ 0 ].substring( 1 );
+			final String requestPath = cutBeforeQuerystring( message.requestPath() ).substring( 1 );
 			if( requestPath.startsWith( LocationParser.RESOURCE_SEPARATOR ) ) {
 				final String compositePath = requestPath.substring( LocationParser.RESOURCE_SEPARATOR.length() - 1 );
 				final Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( compositePath );
@@ -1404,13 +1408,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				}
 			}
 		}
-
 	}
 
-	private void recv_extractReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
+	private void recv_templatedOperation( HttpMessage message, DecodedMessage decodedMessage ) {
 		if( message.getMethod().isEmpty() )
 			return;
 
+		String uri = cutBeforeQuerystring( message.requestPath().substring( 0, 2 ).equals( "//" ) // FIXME, TODO:
+																									// strange jolie
+			// double slash
+			? message.requestPath().substring( 1 )
+			: message.requestPath() );
 		Value configurationValue = getParameterFirstValue( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 		Iterator< Entry< String, ValueVector > > configurationIterator = configurationValue.children().entrySet()
 			.iterator();
@@ -1420,10 +1428,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 			Value opConfig = configEntry.getValue().get( 0 );
 			Value uriTemplateResult = Value.create();
-			String uri = message.requestPath().substring( 0, 2 ).equals( "//" ) // FIXME, TODO: strange jolie
-				// double slash
-				? message.requestPath().substring( 1 )
-				: message.requestPath();
 			if( opConfig.hasChildren( Parameters.TEMPLATE ) ) {
 				uriTemplateResult = UriUtils.match( opConfig.getFirstChild( Parameters.TEMPLATE ).strValue(), uri );
 			}
@@ -1434,48 +1438,22 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				decodedMessage.operationName = configEntry.getKey();
 				decodedMessage.resourcePath = "/";
 
-				String messagePath = "/".concat( configEntry.getKey() );
-				StringBuilder paramStringBuilder = new StringBuilder();
 				Iterator< Entry< String, ValueVector > > uriTemplateIterator = uriTemplateResult.children().entrySet()
 					.iterator();
-
 				while( uriTemplateIterator.hasNext() ) {
 					Entry< String, ValueVector > entry = uriTemplateIterator.next();
-
-					if( paramStringBuilder.length() == 0 ) {
-						paramStringBuilder.append( "?" );
-
-					} else {
-						paramStringBuilder.append( "&" );
-					}
-
-					paramStringBuilder.append( entry.getKey() )
-						.append( "=" )
-						.append( entry.getValue().get( 0 ).strValue() );
+					decodedMessage.value.getFirstChild( entry.getKey() )
+						.setValue( entry.getValue().get( 0 ).strValue() );
 				}
 				if( opConfig.hasChildren( Parameters.INCOMING_HEADERS ) ) {
-
 					Iterator< Entry< String, ValueVector > > inHeadersIterator = opConfig
 						.getFirstChild( Parameters.INCOMING_HEADERS ).children().entrySet().iterator();
 					while( inHeadersIterator.hasNext() ) {
 						Entry< String, ValueVector > entry = inHeadersIterator.next();
-						if( paramStringBuilder.length() == 0 ) {
-							paramStringBuilder.append( "?" ).append( entry.getValue().get( 0 ).strValue() )
-								.append( "=" )
-								.append( message.getProperty( entry.getKey() ) );
-						} else {
-							paramStringBuilder.append( "&" )
-								.append( entry.getValue().get( 0 ).strValue() )
-								.append( "=" )
-								.append( message.getProperty( entry.getKey() ) );
-						}
-
+						decodedMessage.value.getFirstChild( entry.getValue().get( 0 ).strValue() )
+							.setValue( message.getProperty( entry.getKey() ) );
 					}
 				}
-				messagePath += paramStringBuilder.toString();
-
-				message.setRequestPath( messagePath );
-
 			}
 		}
 	}
@@ -1589,15 +1567,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			contentType = message.getProperty( "content-type" ).split( ";", 2 )[ 0 ].toLowerCase();
 		}
 
-
 		recv_parseRequestFormat( contentType );
 		if( !message.isResponse() ) {
 			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
-				recv_extractReceivingOperation( message, decodedMessage );
+				recv_templatedOperation( message, decodedMessage );
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
 		}
-
 
 		// URI parameter parsing
 		if( message.requestPath() != null ) {
