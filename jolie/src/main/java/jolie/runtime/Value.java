@@ -116,6 +116,11 @@ class ValueLink extends Value implements Cloneable {
 	public boolean isLink() {
 		return true;
 	}
+
+	@Override
+	public boolean isEqualTo( Value v ) {
+		return this.getLinkedValue().isEqualTo( v );
+	}
 }
 
 
@@ -237,6 +242,11 @@ class ValueImpl extends Value implements Cloneable, Serializable {
 	public ValueImpl( Value val ) {
 		valueObject = val.valueObject();
 	}
+
+	@Override
+	public boolean isEqualTo( Value v ) {
+		return this.equals( v );
+	}
 }
 
 
@@ -330,6 +340,11 @@ class RootValueImpl extends Value implements Cloneable {
 	@Override
 	public Object valueObject() {
 		return null;
+	}
+
+	@Override
+	public boolean isEqualTo( Value v ) {
+		return this.equals( v );
 	}
 }
 
@@ -467,6 +482,8 @@ public abstract class Value implements Expression, Cloneable {
 	public abstract boolean hasChildren( String childId );
 
 	public abstract ValueVector getChildren( String childId );
+
+	public abstract boolean isEqualTo( Value v );
 
 	public final < V > V firstChildOrCompute( String childId, Function< ? super Value, ? extends V > mappingFunction,
 		Function< ? super String, ? extends V > defaultMappingFunction ) {

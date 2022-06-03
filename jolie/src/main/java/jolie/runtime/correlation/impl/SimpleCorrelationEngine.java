@@ -102,7 +102,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine {
 				} else {
 					// TODO: Value.equals is type insensitive, fix this with an additional check.
 					if( !sessionValue.isDefined() || !messageValue.isDefined()
-						|| !sessionValue.equals( messageValue ) ) {
+						|| !sessionValue.isEqualTo( messageValue ) ) {
 						return false;
 					}
 				}

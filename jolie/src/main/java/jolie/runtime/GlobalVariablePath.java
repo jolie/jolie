@@ -22,6 +22,8 @@
 package jolie.runtime;
 
 
+import java.util.Arrays;
+
 import jolie.Interpreter;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
@@ -54,5 +56,10 @@ public class GlobalVariablePath extends VariablePath {
 	@Override
 	protected Value getRootValue() {
 		return Interpreter.getInstance().globalValue();
+	}
+
+	@Override
+	public VariablePath copy() {
+		return new GlobalVariablePath( Arrays.copyOf( path(), path().length ) );
 	}
 }
