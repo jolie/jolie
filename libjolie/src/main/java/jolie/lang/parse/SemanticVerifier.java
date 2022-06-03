@@ -836,7 +836,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 			encounteredAssignment( n.inputVarPath() );
 		}
 
-		checkOutputPort( n, n.id(), n.outputPortId() );
+		checkSolicitResponseInOutputPort( n, n.id(), n.outputPortId() );
 
 		/*
 		 * if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) { error( n,
@@ -1424,10 +1424,10 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	@Override
 	public void visit( SolicitResponseExpressionNode n ) {
-		checkOutputPort( n, n.id(), n.outputPortId() );
+		checkSolicitResponseInOutputPort( n, n.id(), n.outputPortId() );
 	}
 
-	private void checkOutputPort( OLSyntaxNode n, String id, String outputPortId ) {
+	private void checkSolicitResponseInOutputPort( OLSyntaxNode n, String id, String outputPortId ) {
 		OutputPortInfo p = outputPorts.get( outputPortId );
 		if( p == null ) {
 			error( n, outputPortId + " is not a valid output port" );
