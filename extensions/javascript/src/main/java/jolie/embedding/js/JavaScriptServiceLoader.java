@@ -51,9 +51,10 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader {
 			}
 
 			final ScriptEngineManager manager = new ScriptEngineManager();
-			this.engine = manager.getEngineByName( "graal.js" );
+			this.engine = manager.getEngineByName( "nashorn" );
 			if( engine == null ) {
-				throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
+				throw new EmbeddedServiceLoaderCreationException(
+					"JavaScript engine (nashorn) not found. Check your system." );
 			}
 
 			try {
