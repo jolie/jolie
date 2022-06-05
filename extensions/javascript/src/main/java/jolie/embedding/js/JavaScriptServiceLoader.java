@@ -51,13 +51,13 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader {
 			}
 
 			final ScriptEngineManager manager = new ScriptEngineManager();
-			this.engine = manager.getEngineByName( "JavaScript" );
+			this.engine = manager.getEngineByName( "graal.js" );
 			if( engine == null ) {
 				throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
 			}
 
 			try {
-				// Nashorn (Java JS interpreter) on Windows requires '/' as a path separator. Hence use
+				// The JS engine on Windows requires '/' as a path separator. Hence use
 				// jsPath.toUri().toString() instead of jsPath().toString()
 				engine.eval( "load('" + jsPath.toUri().toString() + "');" );
 			} catch( ScriptException e ) {
