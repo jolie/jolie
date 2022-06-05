@@ -14,7 +14,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<graalvm.version>22.1.0</graalvm.version>
 	</properties>
 	<name>javascript</name>
 	<description>Javascript embedding extension for Jolie.</description>
@@ -38,7 +37,7 @@
 				<version>3.1.1</version>
 				<executions>
 					<execution>
-						<id>copy-installed</id>
+						<id>copy-extension</id>
 						<phase>install</phase>
 						<goals>
 							<goal>copy</goal>
@@ -52,20 +51,35 @@
 									<type>jar</type>
 									<destFileName>${project.artifactId}.jar</destFileName>
 								</artifactItem>
-								<dependency>
-									<groupId>org.graalvm.js</groupId>
-									<artifactId>js</artifactId>
-									<version>${graalvm.version}</version>
-								</dependency>
-								<artifactItem>
-									<groupId>org.graalvm.js</groupId>
-									<artifactId>js-scriptengine</artifactId>
-									<version>${graalvm.version}</version>
-									<type>jar</type>
-									<destFileName>js-scriptengine.jar</destFileName>
-								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>copy-libs</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<excludeGroupIds>${project.groupId},dk.brics,org.apache.commons</excludeGroupIds>
+							<!-- <artifactItems>
+								<artifactItem>
+									<groupId>org.openjdk.nashorn</groupId>
+									<artifactId>nashorn-core</artifactId>
+									<version>15.4</version>
+									<type>jar</type>
+									<destFileName>nashorn-core.jar</destFileName>
+								</artifactItem>
+							</artifactItems> -->
+							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
@@ -79,19 +93,9 @@
 			<version>${jolie.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.graalvm.sdk</groupId>
-			<artifactId>graal-sdk</artifactId>
-			<version>${graalvm.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.graalvm.js</groupId>
-			<artifactId>js</artifactId>
-			<version>${graalvm.version}</version>
-		</dependency>  
-		<dependency>
-			<groupId>org.graalvm.js</groupId>
-			<artifactId>js-scriptengine</artifactId>
-			<version>${graalvm.version}</version>
+			<groupId>org.openjdk.nashorn</groupId>
+			<artifactId>nashorn-core</artifactId>
+			<version>15.4</version>
 		</dependency>
 	</dependencies>
 </project>
