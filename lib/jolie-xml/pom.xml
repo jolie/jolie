@@ -26,7 +26,7 @@
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>3.1.1</version>
 				<executions>
-					<execution>
+					<!-- <execution>
 						<id>copy</id>
 						<phase>install</phase>
 						<goals>
@@ -44,7 +44,7 @@
 							</artifactItems>
 							<outputDirectory>${jolie.installation.directory}/lib</outputDirectory>
 						</configuration>
-					</execution>
+					</execution> -->
 					<execution>
 						<id>copy-installed</id>
 						<phase>install</phase>

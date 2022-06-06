@@ -40,26 +40,6 @@
 				<version>3.1.1</version>
 				<executions>
 					<execution>
-						<id>copy</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>com.github.bdeneuter</groupId>
-									<artifactId>cx.ath.matthew</artifactId>
-									<version>0.8</version>
-									<type>jar</type>
-									<destFileName>cx.ath.matthew.jar</destFileName>
-								</artifactItem>
-							</artifactItems>
-							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
-          
-						</configuration>
-					</execution>
-					<execution>
 						<id>copy-installed</id>
 						<phase>install</phase>
 						<goals>

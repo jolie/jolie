@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<parent>
 		<groupId>org.jolie-lang</groupId>
 		<artifactId>distribution</artifactId>
@@ -40,25 +39,6 @@
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>3.1.1</version>
 				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.ini4j</groupId>
-									<artifactId>ini4j</artifactId>
-									<version>0.5.4</version>
-									<type>jar</type>
-									<destFileName>ini4j.jar</destFileName>
-								</artifactItem>
-							</artifactItems>
-							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
-						</configuration>
-					</execution>
 					<execution>
 						<id>copy-installed</id>
 						<phase>install</phase>

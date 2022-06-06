@@ -57,33 +57,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.1.1</version>
-				<executions>
-					<execution>
-						<id>copy-libs</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<excludeGroupIds>${project.groupId},dk.brics,org.apache.commons</excludeGroupIds>
-							<!-- <artifactItems>
-								<artifactItem>
-									<groupId>org.openjdk.nashorn</groupId>
-									<artifactId>nashorn-core</artifactId>
-									<version>15.4</version>
-									<type>jar</type>
-									<destFileName>nashorn-core.jar</destFileName>
-								</artifactItem>
-							</artifactItems> -->
-							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
