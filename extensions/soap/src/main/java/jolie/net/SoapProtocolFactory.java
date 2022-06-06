@@ -34,18 +34,18 @@ import jolie.runtime.VariablePath;
 	"relaxngDatatype.jar",
 	"xsom.jar",
 	"wsdl4j.jar",
-	"jaxws/automaton.jar",
-	"jaxws/hamcrest-core.jar",
-	"jaxws/isorelax.jar",
-	"jaxws/jakarta.activation.jar",
-	"jaxws/jakarta.xml.soap-api.jar",
-	"jaxws/javax.xml.soap-api.jar",
-	"jaxws/jing.jar",
-	"jaxws/json-simple.jar",
-	"jaxws/saaj-impl.jar",
-	"jaxws/Saxon-HE.jar",
-	"jaxws/stax-ex.jar",
-	"jaxws/xercesImpl.jar"
+	"automaton.jar",
+	"hamcrest-core.jar",
+	"isorelax.jar",
+	"jakarta.activation.jar",
+	"jakarta.xml.soap-api.jar",
+	"javax.xml.soap-api.jar",
+	"jing.jar",
+	"json-simple.jar",
+	"saaj-impl.jar",
+	"Saxon-HE.jar",
+	"stax-ex.jar",
+	"xercesImpl.jar"
 } )
 
 public class SoapProtocolFactory extends CommProtocolFactory {

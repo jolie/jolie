@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-@AndJarDeps( { "jolie-uri.jar", "uri-templates.jar", "joda-time.jar" } )
+@AndJarDeps( { "jolie-uri.jar", "handy-uri-templates.jar", "joda-time.jar" } )
 public class UriTemplates extends JavaService {
 	public Value match( Value request ) {
 		return jolie.uri.UriUtils.match( request.getFirstChild( "template" ).strValue(),

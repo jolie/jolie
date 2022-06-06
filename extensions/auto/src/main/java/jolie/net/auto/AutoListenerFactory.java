@@ -38,7 +38,7 @@ import jolie.util.Helpers;
  * 
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "ini4j.jar", "jolie-js.jar", "json_simple.jar" } )
+@AndJarDeps( { "ini4j.jar", "jolie-js.jar", "json-simple.jar" } )
 public class AutoListenerFactory extends CommListenerFactory {
 	public AutoListenerFactory( CommCore commCore ) {
 		super( commCore );
