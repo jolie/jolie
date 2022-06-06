@@ -34,7 +34,7 @@ import jolie.runtime.AndJarDeps;
  * @author Claudio Guidi
  */
 @AndJarDeps( {
-	"ini4j.jar", "jolie-js.jar", "json_simple.jar"
+	"ini4j.jar", "jolie-js.jar", "json-simple.jar"
 } )
 public class AutoChannelFactory extends CommChannelFactory {
 

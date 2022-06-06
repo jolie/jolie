@@ -34,9 +34,9 @@ import jolie.runtime.expression.Expression;
  * 
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-js.jar", "json_simple.jar", "nashorn-core-15.4.jar",
-	"asm-7.3.1.jar", "asm-analysis-7.3.1.jar", "asm-commons-7.3.1.jar",
-	"asm-tree-7.3.1.jar", "asm-util-7.3.1.jar", "hamcrest-core-1.1.jar"
+@AndJarDeps( { "jolie-js.jar", "json-simple.jar", "nashorn-core.jar",
+	"asm.jar", "asm-analysis.jar", "asm-commons.jar",
+	"asm-tree.jar", "asm-util.jar", "hamcrest-core.jar"
 } )
 public class JavaScriptServiceLoaderFactory implements EmbeddedServiceLoaderFactory {
 	@Override
