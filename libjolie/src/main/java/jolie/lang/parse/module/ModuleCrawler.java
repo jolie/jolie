@@ -218,7 +218,7 @@ class ModuleCrawler {
 		}
 		// Create help from matching file names
 		if( !proposedModules.isEmpty() ) {
-			message.append( "Maybe you meant:\n" ).append( String.join( ", ", proposedModules ) );
+			message.append( "Maybe you meant one of these modules: " ).append( String.join( ", ", proposedModules ) );
 		} else {
 			// If no mathing file names were found, report the file names that could be used instead
 			message.append( "Could not find modules matching \"" ).append( exception.importPath() )
@@ -238,7 +238,7 @@ class ModuleCrawler {
 		if( message.charAt( message.length() - 2 ) == ',' ) {
 			message.delete( message.length() - 2, message.length() );
 		}
-		message.append( "\n" );
+		// message.append( "\n" );
 		return message.toString();
 	}
 }

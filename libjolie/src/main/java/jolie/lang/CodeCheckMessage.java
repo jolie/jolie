@@ -117,12 +117,12 @@ public class CodeCheckMessage {
 				.append( ": error: " );
 			// Add description
 			if( description != null ) {
-				messageBuilder.append( description );
+				messageBuilder.append( description ).append( '\n' );
 				if( !description.endsWith( "\n" ) ) {
-					messageBuilder.append( "\n" );
+					messageBuilder.append( '\n' );
 				}
 			} else {
-				messageBuilder.append( "No descriptive error message found.\n" );
+				messageBuilder.append( "No descriptive error message found.\n\n" );
 			}
 			if( !context.enclosingCode().isEmpty() ) {
 				// Appends all lines of code involved with the error
@@ -147,7 +147,7 @@ public class CodeCheckMessage {
 			}
 		}
 		if( help != null ) { // Add help message
-			messageBuilder.append( help );
+			messageBuilder.append( '\n' ).append( help );
 		}
 		return messageBuilder.toString();
 	}

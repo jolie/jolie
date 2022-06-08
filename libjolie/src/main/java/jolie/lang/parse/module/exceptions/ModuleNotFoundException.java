@@ -56,9 +56,10 @@ public class ModuleNotFoundException extends FileNotFoundException {
 
 	@Override
 	public String getMessage() {
-		StringBuilder message =
+		StringBuilder builder =
 			new StringBuilder().append( "Module " ).append( '\"' ).append( this.importPath )
-				.append( "\" not found from lookup paths.\n" );
-		return message.toString();
+				.append( "\" not found. I looked for modules in the following paths:" );
+		lookedPaths.forEach( path -> builder.append( path ).append( '\n' ) );
+		return builder.toString();
 	}
 }
