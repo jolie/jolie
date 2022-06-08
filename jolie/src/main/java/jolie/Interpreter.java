@@ -55,7 +55,7 @@ import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.TypeChecker;
+import jolie.lang.parse.CSetChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParsingConfiguration;
@@ -1250,7 +1250,7 @@ public class Interpreter {
 			}
 
 			if( configuration.typeCheck() ) {
-				TypeChecker typeChecker = new TypeChecker(
+				CSetChecker typeChecker = new CSetChecker(
 					program,
 					semanticVerifier.executionMode(),
 					semanticVerifier.correlationFunctionInfo() );

@@ -123,7 +123,7 @@ import jolie.util.Pair;
  *
  * @author Fabrizio Montesi
  */
-public class TypeChecker implements UnitOLVisitor {
+public class CSetChecker implements UnitOLVisitor {
 	private static class FlaggedVariablePathNode extends VariablePathNode {
 		private static final long serialVersionUID = Constants.serialVersionUID();
 		private final boolean isFresh;
@@ -273,7 +273,7 @@ public class TypeChecker implements UnitOLVisitor {
 	private final Map< String, TypingResult > definitionTyping = new HashMap<>();
 	private boolean sessionStarter = false;
 
-	public TypeChecker( Program program, ExecutionMode executionMode,
+	public CSetChecker( Program program, ExecutionMode executionMode,
 		CorrelationFunctionInfo correlationFunctionInfo ) {
 		this.program = program;
 		this.executionMode = executionMode;
