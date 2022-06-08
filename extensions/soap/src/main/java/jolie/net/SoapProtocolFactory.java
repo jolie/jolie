@@ -23,8 +23,10 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+
 import javax.wsdl.WSDLException;
-import javax.xml.soap.SOAPException;
+
+import jakarta.xml.soap.SOAPException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
