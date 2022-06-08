@@ -42,12 +42,12 @@ import jolie.runtime.VariablePath;
 	"javax.xml.soap-api.jar",
 	"jing.jar",
 	"json-simple.jar",
-	"saaj-impl.jar",
 	"Saxon-HE.jar",
 	"stax-ex.jar",
+	"webservices-rt.jar",
+	"webservices-api.jar",
 	"xercesImpl.jar"
 } )
-
 public class SoapProtocolFactory extends CommProtocolFactory {
 	public SoapProtocolFactory( CommCore commCore ) {
 		super( commCore );

@@ -12,5 +12,5 @@
 **/.idea/shelf
 **/*.iml
 test/extensions/private/WS-test.jar
-test/extensions/private/WS-test/lib/lib/
+test/extensions/private/WS-test/lib/
 .vscode/tasks.json
