@@ -75,18 +75,6 @@ service Test {
 			} ) ) {
 				throw( TestFailed, "value equality does not match expected result" )
 			}
-
-			/*
-			* Write the code of your test here (replace nullProcess),
-			* and replace the first line of the copyright header with your data.
-			*
-			* The test is supposed to throw a TestFailed fault in case of a failure.
-			* You should add a description that reports what the failure was about,
-			* for example:
-			*
-			* throw( TestFailed, "string concatenation does not match correct result" )
-			*/
-			nullProcess
 		}
 	}
 }
