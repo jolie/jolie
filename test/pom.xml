@@ -75,7 +75,7 @@
 						<argument>UTF-8</argument>
 						<argument>test.ol</argument>
 						<!-- Edit the next line with your desired target if you want a specific test -->
-						<!-- <argument>.*soap.*</argument> -->
+						<!-- <argument>.*values.*</argument> -->
 					</arguments>
 				</configuration>
 			</plugin>
