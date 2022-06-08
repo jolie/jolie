@@ -1244,6 +1244,7 @@ public class Interpreter {
 
 			try {
 				semanticVerifier.validate();
+				TypeChecker.check( program );
 			} catch( CodeCheckException e ) {
 				LOGGER.severe( e.getMessage() );
 				throw new InterpreterException( "Exiting" );

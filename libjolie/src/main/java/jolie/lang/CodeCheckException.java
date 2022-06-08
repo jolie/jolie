@@ -38,6 +38,15 @@ public class CodeCheckException extends Exception {
 	}
 
 	/**
+	 * Contructs a CodeCheckException from a single CodeCheckMessage
+	 *
+	 * @param message
+	 */
+	public CodeCheckException( CodeCheckMessage message ) {
+		this.messageList = List.of( message );
+	}
+
+	/**
 	 * Returns the list of CodeCheckMessages from the CodeCheckException
 	 * 
 	 * @return
