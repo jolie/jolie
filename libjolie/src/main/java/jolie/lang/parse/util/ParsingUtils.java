@@ -57,7 +57,7 @@ public class ParsingUtils {
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration semanticConfiguration,
 		boolean includeDocumentation )
-		throws IOException, ParserException, CodeCheckException, ModuleException {
+		throws IOException, CodeCheckException {
 
 		ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 			charset,
@@ -85,7 +85,7 @@ public class ParsingUtils {
 		Map< String, Scanner.Token > definedConstants,
 		String executionTarget,
 		boolean includeDocumentation )
-		throws IOException, ParserException, CodeCheckException, ModuleException {
+		throws IOException, CodeCheckException {
 		return parseProgram(
 			inputStream,
 			source,
