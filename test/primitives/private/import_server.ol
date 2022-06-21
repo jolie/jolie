@@ -1,26 +1,28 @@
 from .imports.iface import fooIface
 
-inputPort importServer{
-    Interfaces: fooIface
-    Location: "local"
-}
+service main {
+    inputPort importServer {
+        Interfaces: fooIface
+        Location: "local"
+    }
 
-execution{ concurrent }
+    execution{ concurrent }
 
-init {
-    install( err => nullProcess )
-}
+    init {
+        install( err => nullProcess )
+    }
 
-main{
-    [fooOp(req)(res){
-        if (req.a == "err"){
-            throw( err, {msg = "error"} )
-        } else {
-            res.b = "success"
+    main{
+        [fooOp(req)(res){
+            if (req.a == "err"){
+                throw( err, {msg = "error"} )
+            } else {
+                res.b = "success"
+            }
+        }]
+
+        [barOp(req)]{
+            nullProcess
         }
-    }]
-
-    [barOp(req)]{
-        nullProcess
     }
 }
