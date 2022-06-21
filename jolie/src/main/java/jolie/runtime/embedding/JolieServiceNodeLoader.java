@@ -22,6 +22,7 @@ package jolie.runtime.embedding;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.Interpreter;
@@ -53,8 +54,8 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 
 			interpreter = new Interpreter(
 				configuration,
-				super.interpreter().programDirectory(),
-				super.interpreter(),
+				Paths.get( serviceNode().context().source() ).toFile(),
+				interpreter().symbolTables(),
 				builder.toProgram(),
 				v );
 
