@@ -807,12 +807,13 @@ public class SymbolReferenceResolver {
 		ModuleRecord externalSourceRecord =
 			this.moduleMap.get( symbolInfo.moduleSource().get().uri() );
 		if( externalSourceRecord == null ) {
-			throw new SymbolNotFoundException( symbolInfo.name(), symbolInfo.moduleSource().get().uri().toString() );
+			throw new SymbolNotFoundException( symbolInfo.originalSymbolName(),
+				symbolInfo.moduleSource().get().uri().toString() );
 		}
 		Optional< SymbolInfo > externalSourceSymbol =
 			externalSourceRecord.symbolTable().getSymbol( symbolInfo.originalSymbolName() );
 		if( !externalSourceSymbol.isPresent() || lookedSources.contains( externalSourceRecord.uri() ) ) {
-			throw new SymbolNotFoundException( symbolInfo.name(), symbolInfo.importPath() );
+			throw new SymbolNotFoundException( symbolInfo.originalSymbolName(), symbolInfo.importPath() );
 		}
 		lookedSources.add( externalSourceRecord.uri() );
 		if( externalSourceSymbol.get().scope() == Scope.LOCAL ) {

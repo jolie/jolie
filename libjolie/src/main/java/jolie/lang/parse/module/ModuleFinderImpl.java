@@ -66,7 +66,8 @@ public class ModuleFinderImpl implements ModuleFinder {
 	}
 
 	public ModuleSource find( URI source, ImportPath importPath ) throws ModuleNotFoundException {
-		Path parentPath = Files.isRegularFile( Paths.get(source) ) ? Paths.get(source).getParent() : Paths.get(source);
+		Path parentPath =
+			Files.isRegularFile( Paths.get( source ) ) ? Paths.get( source ).getParent() : Paths.get( source );
 
 		try {
 			if( importPath.isRelativeImport() ) {
@@ -84,15 +85,12 @@ public class ModuleFinderImpl implements ModuleFinder {
 
 	private ModuleSource findAbsoluteImport( ImportPath importPath, Path parentPath ) throws ModuleNotFoundException {
 		/**
-		 * Given
-		 * WDIR = current working directory
-		 * P = importing tokens
-		 * FIRST = first token of import path
+		 * Given WDIR = current working directory P = importing tokens FIRST = first token of import path
 		 * REST = the rest of importing tokens
 		 * 
-		 * 1. Check if FIRST.jap is in WDIR/lib. If so, resolve REST inside of it.
-		 * 2. Try to resolve P from the packages directory, up one level, until system root
-		 * 3. Try to resolve P from the list of packages directories passing through -p flag.
+		 * 1. Check if FIRST.jap is in WDIR/lib. If so, resolve REST inside of it. 2. Try to resolve P from
+		 * the packages directory, up one level, until system root 3. Try to resolve P from the list of
+		 * packages directories passing through -p flag.
 		 */
 
 		List< Path > errPathList = new ArrayList<>();
@@ -163,7 +161,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 	 */
 	private ModuleSource moduleLookupFromPackages( Path basePath, ImportPath importPath )
 		throws FileNotFoundException {
-			
+
 		Path targetPath = basePath;
 		String[] lookupPaths = new String[ basePath.getNameCount() ];
 		for( int i = 0; i < basePath.getNameCount(); i++ ) {
