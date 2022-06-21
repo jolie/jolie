@@ -1,6 +1,6 @@
 
-from library.private.SampleInterface6 import TmpInterface1
-from library.private.SampleInterface6 import TmpInterface2
+from .SampleInterface6 import TmpInterface1
+from .SampleInterface6 import TmpInterface2
 
 service Test6 {
   outputPort Op1 {

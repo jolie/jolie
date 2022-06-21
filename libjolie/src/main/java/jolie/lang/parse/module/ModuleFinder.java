@@ -42,7 +42,8 @@ public interface ModuleFinder {
 	 * 
 	 * @param basePath base path for lookup
 	 * @param filename a filename
-	 * @return a new path of ol file, null if file is not found
+	 * @return a new path of ol file,
+	 * @throws FileNotFoundException if file is not found
 	 */
 	static Path olLookup( Path basePath, String filename ) throws FileNotFoundException {
 		Path olPath = basePath.resolve( filename + ".ol" );

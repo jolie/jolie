@@ -27,8 +27,8 @@ define doTest
   f.filename = "library/private/sample_service.ol"
   readFile@File( f )( testservice )
   replace_str = testservice
-  replace_str.regex = "library/private/SampleInterface"
-  replace_str.replacement = "../private/SampleInterface"
+  replace_str.regex = ".SampleInterface"
+  replace_str.replacement = "..SampleInterface"
   replaceAll@StringUtils( replace_str )( testservice_final )
   mkdir@File( TMPDIR )(  )
   testservice = surface + "\n" + testservice_final

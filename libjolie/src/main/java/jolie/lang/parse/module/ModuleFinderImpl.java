@@ -22,11 +22,14 @@ package jolie.lang.parse.module;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 public class ModuleFinderImpl implements ModuleFinder {
@@ -49,27 +52,28 @@ public class ModuleFinderImpl implements ModuleFinder {
 	/**
 	 * the working directory path of the execution process
 	 */
-	private final Path workingDirectory;
+	private final Path programDirectoryPath;
 
 	public ModuleFinderImpl( String[] packagePaths ) {
 		this( Paths.get( "" ), packagePaths );
 	}
 
-	public ModuleFinderImpl( Path workingDirectory, String[] packagePaths ) {
-		this.workingDirectory = workingDirectory;
+	public ModuleFinderImpl( Path programDirectoryPath, String[] packagePaths ) {
+		this.programDirectoryPath = programDirectoryPath;
 		this.packagePaths = Arrays.stream( packagePaths )
 			.map( Paths::get )
 			.toArray( Path[]::new );
 	}
 
-	public ModuleSource find( URI parentUri, ImportPath importPath ) throws ModuleNotFoundException {
+	public ModuleSource find( URI source, ImportPath importPath ) throws ModuleNotFoundException {
+		Path parentPath = Files.isRegularFile( Paths.get(source) ) ? Paths.get(source).getParent() : Paths.get(source);
+
 		try {
 			if( importPath.isRelativeImport() ) {
-				Path parentPath = Paths.get( parentUri );
 				ModuleLookUpTarget target = this.resolveDotPrefix( importPath, parentPath );
 				return this.moduleLookup( target.basePath, target.importPath );
 			} else {
-				return this.findAbsoluteImport( importPath );
+				return this.findAbsoluteImport( importPath, parentPath );
 			}
 		} catch( ModuleNotFoundException e ) {
 			throw e;
@@ -78,36 +82,47 @@ public class ModuleFinderImpl implements ModuleFinder {
 		}
 	}
 
-	private ModuleSource findAbsoluteImport( ImportPath importPath ) throws ModuleNotFoundException {
+	private ModuleSource findAbsoluteImport( ImportPath importPath, Path parentPath ) throws ModuleNotFoundException {
 		/**
-		 * 1. Try to resolve P directly from WDIR. 2. Check if FIRST.jap is in WDIR/lib. If so, resolve REST
-		 * inside of this jap. 3. Try to resolve P from the list of packages directories.
+		 * Given
+		 * WDIR = current working directory
+		 * P = importing tokens
+		 * FIRST = first token of import path
+		 * REST = the rest of importing tokens
+		 * 
+		 * 1. Check if FIRST.jap is in WDIR/lib. If so, resolve REST inside of it.
+		 * 2. Try to resolve P from the packages directory, up one level, until system root
+		 * 3. Try to resolve P from the list of packages directories passing through -p flag.
 		 */
 
 		List< Path > errPathList = new ArrayList<>();
-		try {
-			// 1. resolve from Working directory
-			return this.moduleLookup( this.workingDirectory, importPath );
-		} catch( FileNotFoundException e ) {
-			errPathList.add( this.workingDirectory );
-		}
+
 		Path japPath;
 		try {
-			// 2. WDIR/lib/FIRST.jap with entry of REST.ol
+			// 1. WDIR/lib/FIRST.jap with entry of REST.ol
 			// where importPath[0] = FIRST
 			// and importPath[1...] = REST
 			japPath =
-				ModuleFinder.japLookup( this.workingDirectory.resolve( "lib" ), importPath.pathParts().get( 0 ) );
+				ModuleFinder.japLookup( this.programDirectoryPath.resolve( "lib" ), importPath.pathParts().get( 0 ) );
 			List< String > rest = importPath.pathParts().subList( 1, importPath.pathParts().size() );
 			return new JapSource( japPath, rest );
 		} catch( IOException e ) {
 			errPathList.add( Paths.get( e.getMessage() ) );
 		}
 
+		// 2. Try to resolve P from the packages directory from self to parent, until system root is
+		// reached.
+		try {
+			return this.moduleLookupFromPackages( parentPath, importPath );
+		} catch( FileNotFoundException e ) {
+			errPathList.addAll( Arrays.stream( e.getMessage().split( "," ) ).map( path -> Paths.get( path ) )
+				.collect( Collectors.toList() ) );
+		}
+
 		// 3. Try to resolve P from the list of packages directories.
 		for( Path packagePath : this.packagePaths ) {
 			try {
-				ModuleSource moduleFile = moduleLookup( packagePath, importPath );
+				ModuleSource moduleFile = this.moduleLookup( packagePath, importPath );
 				return moduleFile;
 			} catch( FileNotFoundException e ) {
 				errPathList.add( packagePath );
@@ -119,7 +134,8 @@ public class ModuleFinderImpl implements ModuleFinder {
 	/**
 	 * Perform a lookup for Jolie's executable source code (.ol file)
 	 * 
-	 * @param basePath a path to perform lookup
+	 * @param filePath path to perform lookup
+	 * @param importPath import target
 	 *
 	 * @return source object to be parsed by module parser.
 	 */
@@ -135,6 +151,40 @@ public class ModuleFinderImpl implements ModuleFinder {
 		}
 		Path olTargetFile = ModuleFinder.olLookup( basePath, moduleName );
 		return new PathSource( olTargetFile );
+	}
+
+	/**
+	 * Perform a lookup for Jolie's executable source code (.ol file) at `packages` folder for each
+	 * parent directory from basePath.
+	 * 
+	 * @param basePath a path to perform lookup
+	 *
+	 * @return source object to be parsed by module parser.
+	 */
+	private ModuleSource moduleLookupFromPackages( Path basePath, ImportPath importPath )
+		throws FileNotFoundException {
+			
+		Path targetPath = basePath;
+		String[] lookupPaths = new String[ basePath.getNameCount() ];
+		for( int i = 0; i < basePath.getNameCount(); i++ ) {
+			boolean shouldPopTwice = false;
+			if( !targetPath.getFileName().equals( "packages" ) ) {
+				targetPath = targetPath.resolve( "packages" );
+				shouldPopTwice = true;
+			}
+
+			try {
+				return this.moduleLookup( targetPath, importPath );
+			} catch( FileNotFoundException e ) {
+				lookupPaths[ i ] = targetPath.toString();
+			}
+
+			targetPath = shouldPopTwice ? targetPath.getParent().getParent() : targetPath.getParent();
+		}
+
+		throw new FileNotFoundException(
+			Arrays.stream( lookupPaths ).filter( s -> s != null && s.length() != 0 )
+				.collect( Collectors.joining( "," ) ) );
 	}
 
 	/**

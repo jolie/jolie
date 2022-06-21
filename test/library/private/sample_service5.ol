@@ -1,5 +1,5 @@
 from console import Console
-from library.private.SampleInterface4 import TmpInterface4
+from .SampleInterface4 import TmpInterface4
 
 service Test5 {
   embed Console as Console
