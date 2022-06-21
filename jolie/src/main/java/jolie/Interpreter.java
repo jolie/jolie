@@ -913,7 +913,7 @@ public class Interpreter {
 	 *
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
 	 *        a JAP file.
-	 * @param parentInterpreter
+	 * @param parentSymbolTables symbol table from the parent service
 	 * @param internalServiceProgram
 	 * @param receivingEmbeddedValue
 	 * @throws FileNotFoundException if one of the passed input files is not found.
