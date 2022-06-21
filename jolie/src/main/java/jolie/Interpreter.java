@@ -909,7 +909,7 @@ public class Interpreter {
 	}
 
 	/**
-	 * Constructor.
+	 * Constructor. for the JolieServiceNodeLoader
 	 *
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
 	 *        a JAP file.
@@ -920,13 +920,12 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
-		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram,
+		File programDirectory, Map< URI, SymbolTable > parentSymbolTables, Program internalServiceProgram,
 		Value receivingEmbeddedValue )
 		throws FileNotFoundException, IOException {
 		this( configuration, programDirectory, Optional.of( receivingEmbeddedValue ) );
-
-		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
+		this.symbolTables.putAll( parentSymbolTables );
 	}
 
 	/**
@@ -1211,7 +1210,6 @@ public class Interpreter {
 				if( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 					program = OLParseTreeOptimizer.optimize( program );
-					symbolTables.putAll( this.parentInterpreter.symbolTables );
 				} else {
 					ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 						configuration().charset(),
@@ -1406,6 +1404,10 @@ public class Interpreter {
 			}
 		}
 		return factory;
+	}
+
+	public Map< URI, SymbolTable > symbolTables() {
+		return this.symbolTables;
 	}
 
 	public static class Configuration {
