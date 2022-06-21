@@ -1,5 +1,5 @@
 from console import Console
-from library.private.SampleRefinedTypesInterface import TmpInterface
+from .SampleRefinedTypesInterface import TmpInterface
 
 service TestRefinedTypes {
 

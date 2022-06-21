@@ -559,7 +559,7 @@ public class CommandLineParser implements Closeable {
 		}
 
 		GetOLStreamResult olResult =
-			getOLStream( ignoreFile, olFilepath, includeList, libList, packagesList, optionsList, jolieClassLoader );
+			getOLStream( ignoreFile, olFilepath, includeList, libList, optionsList, jolieClassLoader );
 
 		if( olResult.stream == null ) {
 			if( ignoreFile ) {
@@ -568,7 +568,7 @@ public class CommandLineParser implements Closeable {
 			} else if( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
-				olResult = getOLStream( ignoreFile, olFilepath, includeList, libList, packagesList, optionsList,
+				olResult = getOLStream( ignoreFile, olFilepath, includeList, libList, optionsList,
 					jolieClassLoader );
 				if( olResult.stream == null ) {
 					throw new FileNotFoundException( olFilepath );
@@ -654,7 +654,6 @@ public class CommandLineParser implements Closeable {
 
 	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths,
 		Deque< String > libPaths,
-		Deque< String > packagesPaths,
 		Deque< String > optionsList, ClassLoader classLoader )
 		throws IOException {
 		GetOLStreamResult result = new GetOLStreamResult();
@@ -726,7 +725,6 @@ public class CommandLineParser implements Closeable {
 			final Optional< String > parent;
 			if( f.exists() && f.getParent() != null ) {
 				parent = Optional.of( f.getParent() );
-				packagesPaths.addFirst( parent.get() + File.separator + "packages" );
 				libPaths.addFirst( parent.get() + File.separator + "lib/*" );
 			} else if( olURL != null ) {
 				String urlString = olURL.toString();

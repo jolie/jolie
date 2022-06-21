@@ -1,5 +1,5 @@
 from console import Console
-from library.private.SampleInterface2 import TmpInterface2
+from .SampleInterface2 import TmpInterface2
 
 service Test3 {
 

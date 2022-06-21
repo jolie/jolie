@@ -3,6 +3,8 @@ package jolie.lang.parse.module;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
@@ -36,13 +38,15 @@ public class Modules {
 	}
 
 	public static ModuleParsedResult parseModule( ModuleParsingConfiguration configuration, InputStream stream,
-		URI programDirectory )
+		URI programURI )
 		throws ParserException, IOException, ModuleException {
 		ModuleParser parser = new ModuleParser( configuration );
-		ModuleFinder finder = new ModuleFinderImpl( configuration.packagePaths() );
+		Path programDirectory = Paths.get( programURI ).toFile().isFile() ? Paths.get( programURI ).getParent()
+			: Paths.get( programURI );
+		ModuleFinder finder = new ModuleFinderImpl( programDirectory, configuration.packagePaths() );
 
 		ModuleRecord mainRecord = parser.parse(
-			new Scanner( stream, programDirectory, configuration.charset(), configuration.includeDocumentation() ) );
+			new Scanner( stream, programURI, configuration.charset(), configuration.includeDocumentation() ) );
 
 		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, configuration, finder );
 
