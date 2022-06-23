@@ -135,7 +135,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 	/**
 	 * Perform a lookup for Jolie's executable source code (.ol file)
 	 * 
-	 * @param filePath path to perform lookup
+	 * @param basePath path to perform lookup
 	 * @param importPath import target
 	 *
 	 * @return source object to be parsed by module parser.
@@ -169,7 +169,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 		String[] lookupPaths = new String[ basePath.getNameCount() ];
 		for( int i = 0; i < basePath.getNameCount(); i++ ) {
 			boolean shouldPopTwice = false;
-			if( !targetPath.getFileName().equals( "packages" ) ) {
+			if( !targetPath.getFileName().toString().equals( "packages" ) ) {
 				targetPath = targetPath.resolve( "packages" );
 				shouldPopTwice = true;
 			}
