@@ -52,14 +52,16 @@ public class ModuleFinderImpl implements ModuleFinder {
 	/**
 	 * the working directory path of the execution process
 	 */
-	private final Path programDirectoryPath;
+	private final Path workingDirectoryPath;
 
 	public ModuleFinderImpl( String[] packagePaths ) {
-		this( Paths.get( "" ), packagePaths );
+		this( Paths.get( "" ).toUri(), packagePaths );
 	}
 
-	public ModuleFinderImpl( Path programDirectoryPath, String[] packagePaths ) {
-		this.programDirectoryPath = programDirectoryPath;
+	public ModuleFinderImpl( URI workingDirectoryPath, String[] packagePaths ) {
+		this.workingDirectoryPath =
+			Files.isRegularFile( Paths.get( workingDirectoryPath ) ) ? Paths.get( workingDirectoryPath ).getParent()
+				: Paths.get( workingDirectoryPath );
 		this.packagePaths = Arrays.stream( packagePaths )
 			.map( Paths::get )
 			.toArray( Path[]::new );
@@ -101,7 +103,8 @@ public class ModuleFinderImpl implements ModuleFinder {
 			// where importPath[0] = FIRST
 			// and importPath[1...] = REST
 			japPath =
-				ModuleFinder.japLookup( this.programDirectoryPath.resolve( "lib" ), importPath.pathParts().get( 0 ) );
+				ModuleFinder.japLookup( this.workingDirectoryPath.resolve( "lib" ),
+					importPath.pathParts().get( 0 ) );
 			List< String > rest = importPath.pathParts().subList( 1, importPath.pathParts().size() );
 			return new JapSource( japPath, rest );
 		} catch( IOException e ) {

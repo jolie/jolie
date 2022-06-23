@@ -140,9 +140,11 @@ public class SymbolReferenceResolver {
 			+ " (this might mean that the referred type has not been defined or could not be retrieved)" );
 	}
 
-	// private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node, String name,
+	// private static CodeCheckingError buildSymbolNotFoundError( OLSyntaxNode node,
+	// String name,
 	// ImportPath path ) {
-	// return CodeCheckingError.build( node, "Symbol not found: " + name + " is not defined in module "
+	// return CodeCheckingError.build( node, "Symbol not found: " + name + " is not
+	// defined in module "
 	// + path
 	// + " (the symbol could not be retrieved from the symbol table)" );
 	// }
@@ -159,8 +161,10 @@ public class SymbolReferenceResolver {
 				+ " service doesn't have an inputPort with location 'local' defined." );
 	}
 
-	// private static CodeCheckingError buildTypeLinkOutOfBoundError( TypeDefinitionLink node ) {
-	// return CodeCheckingError.build( node, "Unable to find linked type: " + node.name()
+	// private static CodeCheckingError buildTypeLinkOutOfBoundError(
+	// TypeDefinitionLink node ) {
+	// return CodeCheckingError.build( node, "Unable to find linked type: " +
+	// node.name()
 	// + " has infinite loop to it's linked type" );
 	// }
 
@@ -540,7 +544,6 @@ public class SymbolReferenceResolver {
 			}
 		}
 
-
 		@Override
 		public void visit( InstallFixedVariableExpressionNode n ) {}
 
@@ -562,8 +565,7 @@ public class SymbolReferenceResolver {
 			if( n.linkedTypeName().equals( TypeDefinitionUndefined.UNDEFINED_KEYWORD ) ) {
 				linkedType = TypeDefinitionUndefined.getInstance();
 			} else {
-				Optional< SymbolInfo > targetSymbolInfo =
-					getSymbol( n.context(), n.linkedTypeName() );
+				Optional< SymbolInfo > targetSymbolInfo = getSymbol( n.context(), n.linkedTypeName() );
 				if( !targetSymbolInfo.isPresent() ) {
 					error( buildSymbolNotFoundError( n, n.linkedTypeName() ) );
 					return;
@@ -714,12 +716,12 @@ public class SymbolReferenceResolver {
 		public void visit( ImportStatement n ) {}
 
 		private Optional< SymbolInfo > getSymbol( ParsingContext context, String name ) {
-			if( symbolTables.containsKey( currentURI )
-				&& symbolTables.get( currentURI ).getSymbol( name ).isPresent() ) {
-				return symbolTables.get( currentURI ).getSymbol( name );
-			} else if( symbolTables.containsKey( context.source() )
+			if( symbolTables.containsKey( context.source() )
 				&& symbolTables.get( context.source() ).getSymbol( name ).isPresent() ) {
 				return symbolTables.get( context.source() ).getSymbol( name );
+			} else if( symbolTables.containsKey( currentURI )
+				&& symbolTables.get( currentURI ).getSymbol( name ).isPresent() ) {
+				return symbolTables.get( currentURI ).getSymbol( name );
 			}
 			return Optional.empty();
 		}
@@ -732,8 +734,7 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( EmbedServiceNode n ) {
-			Optional< SymbolInfo > targetSymbolInfo =
-				getSymbol( n.context(), n.serviceName() );
+			Optional< SymbolInfo > targetSymbolInfo = getSymbol( n.context(), n.serviceName() );
 			if( !targetSymbolInfo.isPresent() ) {
 				error( buildSymbolNotFoundError( n, n.serviceName() ) );
 				return;
@@ -760,7 +761,6 @@ public class SymbolReferenceResolver {
 			}
 		}
 
-
 		@Override
 		public void visit( SolicitResponseExpressionNode n ) {}
 	}
@@ -774,8 +774,7 @@ public class SymbolReferenceResolver {
 	 */
 	private void bindServiceOperationsToOutputPort( ServiceNode n, OutputPortInfo op ) {
 		// binds operation from ServiceNode to port
-		InterfacesAndOperations publicIfacesAndOps =
-			getInterfacesFromInputPortLocal( n );
+		InterfacesAndOperations publicIfacesAndOps = getInterfacesFromInputPortLocal( n );
 		for( InterfaceDefinition iface : publicIfacesAndOps.interfaces() ) {
 			op.addInterface( iface );
 			iface.operationsMap().values().forEach( op::addOperation );
@@ -804,14 +803,13 @@ public class SymbolReferenceResolver {
 	 */
 	private SymbolInfo symbolSourceLookup( ImportedSymbolInfo symbolInfo, Set< URI > lookedSources )
 		throws SymbolNotFoundException {
-		ModuleRecord externalSourceRecord =
-			this.moduleMap.get( symbolInfo.moduleSource().get().uri() );
+		ModuleRecord externalSourceRecord = this.moduleMap.get( symbolInfo.moduleSource().get().uri() );
 		if( externalSourceRecord == null ) {
 			throw new SymbolNotFoundException( symbolInfo.originalSymbolName(),
 				symbolInfo.moduleSource().get().uri().toString() );
 		}
-		Optional< SymbolInfo > externalSourceSymbol =
-			externalSourceRecord.symbolTable().getSymbol( symbolInfo.originalSymbolName() );
+		Optional< SymbolInfo > externalSourceSymbol = externalSourceRecord.symbolTable()
+			.getSymbol( symbolInfo.originalSymbolName() );
 		if( !externalSourceSymbol.isPresent() || lookedSources.contains( externalSourceRecord.uri() ) ) {
 			throw new SymbolNotFoundException( symbolInfo.originalSymbolName(), symbolInfo.importPath() );
 		}
