@@ -530,7 +530,13 @@ public class CommandLineParser implements Closeable {
 			} else if( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
 			} else if( path.endsWith( "/*" ) ) {
-				Path dir = Paths.get( path.substring( 0, path.length() - 2 ) );
+				Path dir;
+				if( path.startsWith( "file:" ) ) {
+					dir = Paths.get( path.substring( 5, path.length() - 2 ) );
+				} else {
+					dir = Paths.get( path.substring( 0, path.length() - 2 ) );
+				}
+
 				if( Files.isDirectory( dir ) ) {
 					dir = dir.toRealPath();
 					List< String > archives = Files.list( dir ).map( Path::toString )

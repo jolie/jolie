@@ -58,22 +58,36 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		CommandLineParser commandLineParser = new CommandLineParser( newArgs, currInterpreter.getClassLoader(), false );
 
-		Interpreter.Configuration config = commandLineParser.getInterpreterConfiguration();
-		Interpreter.Configuration.create(
-			config.connectionsLimit(), config.cellId(), config.correlationAlgorithm(), config.includePaths(),
-			config.optionArgs(),
-			config.libUrls(), config.inputStream(), config.charset(), config.programFilepath(), config.arguments(),
-			config.constants(),
-			config.jolieClassLoader(), config.isProgramCompiled(), config.typeCheck(), config.tracer(),
-			config.tracerLevel(),
-			config.tracerMode(), config.check(), config.printStackTraces(), config.responseTimeout(), config.logLevel(),
-			config.programDirectory(), config.packagePaths(),
+		Interpreter.Configuration config = Interpreter.Configuration.create(
+			commandLineParser.getInterpreterConfiguration().connectionsLimit(),
+			commandLineParser.getInterpreterConfiguration().cellId(),
+			commandLineParser.getInterpreterConfiguration().correlationAlgorithm(),
+			commandLineParser.getInterpreterConfiguration().includePaths(),
+			commandLineParser.getInterpreterConfiguration().optionArgs(),
+			commandLineParser.getInterpreterConfiguration().libUrls(),
+			commandLineParser.getInterpreterConfiguration().inputStream(),
+			commandLineParser.getInterpreterConfiguration().charset(),
+			commandLineParser.getInterpreterConfiguration().programFilepath(),
+			commandLineParser.getInterpreterConfiguration().arguments(),
+			commandLineParser.getInterpreterConfiguration().constants(),
+			commandLineParser.getInterpreterConfiguration().jolieClassLoader(),
+			commandLineParser.getInterpreterConfiguration().isProgramCompiled(),
+			commandLineParser.getInterpreterConfiguration().typeCheck(),
+			commandLineParser.getInterpreterConfiguration().tracer(),
+			commandLineParser.getInterpreterConfiguration().tracerLevel(),
+			commandLineParser.getInterpreterConfiguration().tracerMode(),
+			commandLineParser.getInterpreterConfiguration().check(),
+			commandLineParser.getInterpreterConfiguration().printStackTraces(),
+			commandLineParser.getInterpreterConfiguration().responseTimeout(),
+			commandLineParser.getInterpreterConfiguration().logLevel(),
+			commandLineParser.getInterpreterConfiguration().programDirectory(),
+			commandLineParser.getInterpreterConfiguration().packagePaths(),
 			// difference:
-			serviceName.orElse( config.executionTarget() ),
+			serviceName.orElse( commandLineParser.getInterpreterConfiguration().executionTarget() ),
 			Optional.empty() );
 
 		interpreter = new Interpreter(
-			commandLineParser.getInterpreterConfiguration(),
+			config,
 			currInterpreter.programDirectory(),
 			params );
 	}

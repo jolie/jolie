@@ -54,10 +54,6 @@ public class ModuleFinderImpl implements ModuleFinder {
 	 */
 	private final Path workingDirectoryPath;
 
-	public ModuleFinderImpl( String[] packagePaths ) {
-		this( Paths.get( "" ).toUri(), packagePaths );
-	}
-
 	public ModuleFinderImpl( URI workingDirectoryPath, String[] packagePaths ) {
 		this.workingDirectoryPath =
 			Files.isRegularFile( Paths.get( workingDirectoryPath ) ) ? Paths.get( workingDirectoryPath ).getParent()
@@ -69,7 +65,8 @@ public class ModuleFinderImpl implements ModuleFinder {
 
 	public ModuleSource find( URI source, ImportPath importPath ) throws ModuleNotFoundException {
 		Path parentPath =
-			Files.isRegularFile( Paths.get( source ) ) ? Paths.get( source ).getParent() : Paths.get( source );
+			Files.isRegularFile( Paths.get( source ) ) ? Paths.get( source ).getParent()
+				: Paths.get( source );
 
 		try {
 			if( importPath.isRelativeImport() ) {

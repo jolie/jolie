@@ -40,10 +40,15 @@ public class Modules {
 		URI programURI )
 		throws ParserException, IOException, ModuleException {
 		ModuleParser parser = new ModuleParser( configuration );
-		ModuleFinder finder = new ModuleFinderImpl( programURI, configuration.packagePaths() );
-
 		ModuleRecord mainRecord = parser.parse(
 			new Scanner( stream, programURI, configuration.charset(), configuration.includeDocumentation() ) );
+		ModuleFinder finder;
+
+		if( programURI.toString().contains( "jap:" ) ) {
+			finder = new ModuleFinderDummy();
+		} else {
+			finder = new ModuleFinderImpl( programURI, configuration.packagePaths() );
+		}
 
 		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, configuration, finder );
 
