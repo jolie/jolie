@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jolie.lang.Constants;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 public class ModuleFinderImpl implements ModuleFinder {
@@ -166,8 +167,8 @@ public class ModuleFinderImpl implements ModuleFinder {
 		String[] lookupPaths = new String[ basePath.getNameCount() ];
 		for( int i = 0; i < basePath.getNameCount(); i++ ) {
 			boolean shouldPopTwice = false;
-			if( !targetPath.getFileName().toString().equals( "packages" ) ) {
-				targetPath = targetPath.resolve( "packages" );
+			if( !targetPath.getFileName().toString().equals( Constants.PACKAGE_DIR ) ) {
+				targetPath = targetPath.resolve( Constants.PACKAGE_DIR );
 				shouldPopTwice = true;
 			}
 
