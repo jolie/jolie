@@ -289,14 +289,26 @@ public class XmlUtils {
 				&& value.isDouble() ) {
 
 				String pattern = type.asSimpleType().asRestriction().getDeclaredFacet( "pattern" ).getValue().value;
-				Pattern patternToMatch = Pattern.compile( ".*\\{(.*?)\\}" );
-				Matcher matcher = patternToMatch.matcher( pattern );
+				Pattern patternForDigitNumber = Pattern.compile( ".*\\{(.*?)\\}" );
+				Matcher matcher = patternForDigitNumber.matcher( pattern );
+
+				Pattern patternForSeparator = Pattern.compile( ".*([,\\.])\\[0-9\\].*" );
+				Matcher matcherForSeparator = patternForSeparator.matcher( pattern );
+
 				if( matcher.find() ) {
 					String foundMinMax = matcher.group( 1 );
 					DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-					symbols.setDecimalSeparator( '.' );
-					symbols.setGroupingSeparator( '.' );
+					if( matcherForSeparator.matches() ) {
+						symbols.setDecimalSeparator( matcherForSeparator.group( 1 ).charAt( 0 ) );
+					} else {
+						symbols.setDecimalSeparator( '.' );
+					}
+
+					// symbols.setGroupingSeparator( ); // TODO
 					DecimalFormat df = new DecimalFormat();
+
+					// at the present grouping is not managed
+					df.setGroupingUsed( false );
 					df.setDecimalFormatSymbols( symbols );
 
 					df.setMinimumFractionDigits( Integer.parseInt( foundMinMax.split( "," )[ 0 ] ) );
