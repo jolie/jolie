@@ -191,4 +191,6 @@ public final class Constants {
 	}
 
 	public static final int TAB_SIZE = 4;
+
+	public static final String PACKAGE_DIR = "packages";
 }
