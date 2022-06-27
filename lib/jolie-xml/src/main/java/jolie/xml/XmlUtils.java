@@ -320,6 +320,8 @@ public class XmlUtils {
 				} else {
 					element.appendChild( doc.createTextNode( value.strValue() ) );
 				}
+			} else {
+				element.appendChild( doc.createTextNode( value.strValue() ) );
 			}
 
 		} else if( type.isComplexType() ) {
