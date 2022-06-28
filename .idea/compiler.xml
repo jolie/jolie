@@ -18,7 +18,6 @@
         <module name="libjolie" />
         <module name="rmi" />
         <module name="joliec" />
-        <module name="launchers" />
         <module name="xmlrpc" />
         <module name="jolie-embedding-legacy" />
         <module name="localsocket" />
@@ -32,7 +31,6 @@
         <module name="jolie2plasma" />
         <module name="btl2cap" />
         <module name="sodeps" />
-        <module name="jolie-uri" />
         <module name="jolie" />
         <module name="javascript" />
         <module name="jolie2surface" />
@@ -47,13 +45,13 @@
       <module name="auto" target="1.8" />
       <module name="btl2cap" target="1.8" />
       <module name="build-tools" target="1.5" />
-      <module name="coreJavaServices" target="1.8" />
+      <module name="coreJavaServices" target="11" />
       <module name="distribution" target="1.5" />
       <module name="http" target="1.8" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
       <module name="jolie" target="11" />
-      <module name="jolie-cli" target="11" />
+      <module name="jolie-cli" target="1.8" />
       <module name="jolie-distribution" target="1.5" />
       <module name="jolie-embedding-legacy" target="1.8" />
       <module name="jolie-java" target="1.8" />

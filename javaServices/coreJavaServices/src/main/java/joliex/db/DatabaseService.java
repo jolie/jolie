@@ -35,6 +35,7 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import jolie.runtime.ByteArray;
 import jolie.runtime.CanUseJars;
@@ -127,10 +128,7 @@ public class DatabaseService extends JavaService {
 		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
 		boolean isEmbedded = false;
-		String encoding = "utf8";
-		if( request.hasChildren( "encoding" ) ) {
-			request.getFirstChild( "encoding" ).strValue();
-		}
+		Optional< String > encoding = Optional.ofNullable( request.hasChildren( "encoding" ) ? request.getFirstChild( "encoding" ).strValue() : null );
 
 		try {
 			if( driverClass == null ) {
@@ -187,12 +185,13 @@ public class DatabaseService extends JavaService {
 			} else {
 				if( driver.startsWith( "hsqldb" ) ) {
 					connectionString = "jdbc:" + driver + ":" + driver.substring( driver.indexOf( '_' ) + 1 ) + "//"
-						+ host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName + "?characterEncoding="
-						+ encoding;
+						+ host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
 				} else {
 					connectionString =
-						"jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName
-							+ "?characterEncoding=" + encoding;
+						"jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
+				}
+				if( encoding.isPresent() ) {
+					connectionString += "?characterEncoding=" + encoding.get();
 				}
 				connection = DriverManager.getConnection(
 					connectionString,
