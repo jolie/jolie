@@ -44,6 +44,7 @@ public class Modules {
 			new Scanner( stream, programURI, configuration.charset(), configuration.includeDocumentation() ) );
 		ModuleFinder finder;
 
+		// TODO: This is a hack for Windows. Re-evaluate in the future.
 		if( programURI.toString().contains( "jap:" ) ) {
 			finder = new ModuleFinderDummy();
 		} else {
