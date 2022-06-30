@@ -21,6 +21,7 @@
  ***************************************************************************/
 package jolie.net.ssl;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -252,7 +253,8 @@ public class SSLProtocol extends SequentialCommProtocol {
 			keyStoreFile = getSSLStringParameter( "keyStore", null ),
 			keyStorePassword = getSSLStringParameter( "keyStorePassword", null ),
 			trustStoreFile =
-				getSSLStringParameter( "trustStore", System.getProperty( "java.home" ) + "/lib/security/cacerts" ),
+				getSSLStringParameter( "trustStore",
+					System.getProperty( "java.home" ) + "/lib/security/cacerts".replace( '/', File.separatorChar ) ),
 			trustStorePassword = getSSLStringParameter( "trustStorePassword", null );
 		if( keyStoreFile == null && isClient == false ) {
 			throw new IOException( "Compulsory parameter needed for server mode: ssl.keyStore" );
@@ -290,7 +292,7 @@ public class SSLProtocol extends SequentialCommProtocol {
 				ts.load( is, passphrase );
 			}
 
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance( KeyManagerFactory.getDefaultAlgorithm() );
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance( TrustManagerFactory.getDefaultAlgorithm() );
 			tmf.init( ts );
 
 			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
