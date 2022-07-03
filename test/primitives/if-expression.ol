@@ -18,6 +18,7 @@
  */
 
 from ..test-unit import TestUnitInterface
+from math import Math
 
 service Test {
 	inputPort TestUnitInput {
@@ -25,10 +26,12 @@ service Test {
 		interfaces: TestUnitInterface
 	}
 
+	embed Math as math
+
 	main {
 		test()() {
-			x = if( 1 > 0 ) "then" else "else"
-			if( x != "then" )
+			x = if( 1 > 0 ) pow@math( { base = 2, exponent = 3 } ) else "else"
+			if( x != 8 )
 				throw( TestFailed, "if expression (1 > 0)" )
 
 			x = if( 0 > 1 ) "then" else "else"
