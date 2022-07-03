@@ -653,7 +653,6 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	@Override
 	public void visit( OneWayOperationDeclaration n ) {
-
 		if( definedTypes.get( n.requestType().name() ) == null ) {
 			if( !hasSymbolDefined( n.requestType().name(), n.context() ) ) {
 				error( n, "unknown type: " + n.requestType().name() + " for operation " + n.id() );
