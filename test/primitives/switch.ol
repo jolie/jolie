@@ -27,6 +27,8 @@ service Test {
 
 	main {
 		test()() {
+			// TODO: deep or shallow equality when a value is used?
+			// TODO: Weird that instanceof requires deep type equality but the standard value case doesn't (5 matches 5 { x = "h" }, but int doesn't).
 			if(
 				!switch( 5 ) {
 					5 -> true
@@ -56,7 +58,7 @@ service Test {
 
 			x = switch( { name = "Homer" } ) {
 				instanceof int -> false
-				{ name:string } -> "OK"
+				instanceof { name:string } -> "OK"
 				default -> 2
 			}
 			if( x != "OK" )
@@ -73,8 +75,8 @@ service Test {
 
 			x << switch( people ) {
 				instanceof int -> {}
-				{ items[0] = "Homer" } -> {}
-				{ items[0] = "Homer", items[1] = "Bart" } -> { correct = true }
+				=== { items[0] = "Homer" } -> {}
+				=== { items[0] = "Homer", items[1] = "Bart" } -> { correct = true }
 				default -> {}
 			}
 			if( !x.correct )
