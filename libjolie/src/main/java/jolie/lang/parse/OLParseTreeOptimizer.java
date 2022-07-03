@@ -90,23 +90,7 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -732,6 +716,12 @@ public class OLParseTreeOptimizer {
 			currNode = new ValueVectorSizeExpressionNode(
 				n.context(),
 				optimizePath( n.variablePath() ) );
+		}
+
+		@Override
+		public void visit( IfExpressionNode n ) {
+			currNode = new IfExpressionNode( n.context(), optimizeNode( n.guard() ), optimizeNode( n.thenExpression() ),
+				optimizeNode( n.elseExpression() ) );
 		}
 
 		@Override

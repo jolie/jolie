@@ -128,7 +128,8 @@ public class DatabaseService extends JavaService {
 		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
 		boolean isEmbedded = false;
-		Optional< String > encoding = Optional.ofNullable( request.hasChildren( "encoding" ) ? request.getFirstChild( "encoding" ).strValue() : null );
+		Optional< String > encoding = Optional
+			.ofNullable( request.hasChildren( "encoding" ) ? request.getFirstChild( "encoding" ).strValue() : null );
 
 		try {
 			if( driverClass == null ) {

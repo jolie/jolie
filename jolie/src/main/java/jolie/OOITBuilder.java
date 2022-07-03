@@ -1082,6 +1082,11 @@ public class OOITBuilder implements UnitOLVisitor {
 		currExpression = new AndCondition( children );
 	}
 
+	public void visit( IfExpressionNode n ) {
+		currExpression = new IfExpression( buildExpression( n.guard() ), buildExpression( n.thenExpression() ),
+			buildExpression( n.elseExpression() ) );
+	}
+
 	public void visit( NotExpressionNode n ) {
 		n.expression().accept( this );
 		currExpression = new NotExpression( currExpression );
@@ -1448,8 +1453,6 @@ public class OOITBuilder implements UnitOLVisitor {
 				extendedFaultMap.putAll( extenderDesc.faults() );
 			}
 		}
-
-
 
 		return new RequestResponseOperation(
 			operationName,
