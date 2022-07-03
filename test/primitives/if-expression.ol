@@ -19,9 +19,6 @@
 
 from ..test-unit import TestUnitInterface
 
-/**
-	A template for test units.
-*/
 service Test {
 	inputPort TestUnitInput {
 		location: "local"
