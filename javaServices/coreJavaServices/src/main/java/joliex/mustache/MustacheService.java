@@ -19,6 +19,8 @@
 
 package joliex.mustache;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -26,6 +28,8 @@ import jolie.runtime.Value;
 @AndJarDeps( "compiler.jar" )
 public class MustacheService extends JavaService {
 	public String render( Value request ) {
+		DefaultMustacheFactory mustacheFactory = new DefaultMustacheFactory();
+		mustacheFactory.setObjectHandler( new JolieMustacheObjectHandler() );
 		return "";
 	}
 }
