@@ -51,11 +51,43 @@ service Test {
 
 			if(
 				render@mustache( {
-					template = "{{#dont}}Don't{{/dont}}OK"
-					data << { dont = false }
+					template = "{{#cond}}Don't{{/cond}}OK"
+					data << { cond = false }
 				} )
 				!= "OK"
 			) throw( TestFailed, "false section" )
+
+			if(
+				render@mustache( {
+					template = "{{#cond}}true{{/cond}}{{^cond}}false{{/cond}}"
+					data << { cond = false }
+				} )
+				!= "false"
+			) throw( TestFailed, "inverted section" )
+
+			if(
+				render@mustache( {
+					template = "{{#items}}{{x}}{{/items}}"
+					data << {
+						items[0].x = 0
+						items[1].x = 1
+					}
+				} )
+				!= "01"
+			) throw( TestFailed, "array" )
+
+			if(
+				render@mustache( {
+					template = "{{#address}}{{street}}, {{city}}{{/address}}"
+					data << {
+						address << {
+							street = "Supervej"
+							city = "Odense"
+						}
+					}
+				} )
+				!= "Supervej, Odense"
+			) throw( TestFailed, "structure" )
 		}
 	}
 }
