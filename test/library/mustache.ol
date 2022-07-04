@@ -33,12 +33,21 @@ service Test {
 
 	main {
 		test()() {
-			render@mustache( {
-				template = ""
-				data = {}
-			} )( result )
-			if( result != "" )
-				throw( TestFailed, "empty template" )
+			if(
+				render@mustache( {
+					template = ""
+					data = {}
+				} )
+				!= ""
+			) throw( TestFailed, "empty template" )
+
+			// if(
+			// 	render@mustache( {
+			// 		template = "{{name}}"
+			// 		data << { name = "Homer" }
+			// 	} )
+			// 	!= "Homer"
+			// ) throw( TestFailed, "name template" )
 		}
 	}
 }

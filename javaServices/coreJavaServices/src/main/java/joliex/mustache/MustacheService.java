@@ -19,7 +19,11 @@
 
 package joliex.mustache;
 
+import java.io.StringReader;
+import java.io.StringWriter;
+
 import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
 
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.JavaService;
@@ -30,6 +34,12 @@ public class MustacheService extends JavaService {
 	public String render( Value request ) {
 		DefaultMustacheFactory mustacheFactory = new DefaultMustacheFactory();
 		mustacheFactory.setObjectHandler( new JolieMustacheObjectHandler() );
-		return "";
+		Mustache mustache = mustacheFactory.compile(
+			new StringReader( request.getFirstChild( "template" ).strValue() ),
+			"Jolie" );
+		StringWriter outputWriter = new StringWriter();
+		mustache.execute( outputWriter, request.getFirstChild( "data" ) );
+		outputWriter.flush();
+		return outputWriter.toString();
 	}
 }
