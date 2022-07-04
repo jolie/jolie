@@ -20,9 +20,6 @@
 from ..test-unit import TestUnitInterface
 from mustache import Mustache
 
-/**
-	A template for test units.
-*/
 service Test {
 	inputPort TestUnitInput {
 		location: "local"
