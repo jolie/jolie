@@ -41,13 +41,13 @@ service Test {
 				!= ""
 			) throw( TestFailed, "empty template" )
 
-			// if(
-			// 	render@mustache( {
-			// 		template = "{{name}}"
-			// 		data << { name = "Homer" }
-			// 	} )
-			// 	!= "Homer"
-			// ) throw( TestFailed, "name template" )
+			if(
+				render@mustache( {
+					template = "{{name}}"
+					data << { name = "Homer" }
+				} )
+				!= "Homer"
+			) throw( TestFailed, "name template" )
 		}
 	}
 }
