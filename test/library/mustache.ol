@@ -48,6 +48,14 @@ service Test {
 				} )
 				!= "Homer"
 			) throw( TestFailed, "name template" )
+
+			if(
+				render@mustache( {
+					template = "{{#dont}}Don't{{/dont}}OK"
+					data << { dont = false }
+				} )
+				!= "OK"
+			) throw( TestFailed, "false section" )
 		}
 	}
 }
