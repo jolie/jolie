@@ -90,7 +90,8 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		interpreter = new Interpreter(
 			config,
 			currInterpreter.programDirectory(),
-			params );
+			params,
+			Optional.of( currInterpreter.logPrefix() ) );
 	}
 
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
@@ -100,7 +101,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 			Interpreter.Configuration.create( currInterpreter.configuration(), new File( "#native_code_" +
 				SERVICE_LOADER_COUNTER.getAndIncrement() ), new ByteArrayInputStream( code.getBytes() ) );
 		interpreter = new Interpreter( configuration, currInterpreter.programDirectory(),
-			Optional.empty() );
+			Optional.empty(), Optional.of( currInterpreter.logPrefix() ) );
 	}
 
 	@Override

@@ -19,7 +19,6 @@
 
 package jolie.runtime.embedding;
 
-import java.util.concurrent.atomic.AtomicLong;
 import jolie.Interpreter;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.parse.ast.ServiceNode;
@@ -31,7 +30,6 @@ public abstract class ServiceNodeLoader extends EmbeddedServiceLoader {
 	private final Interpreter currInterpreter;
 	private final ServiceNode serviceNode;
 	private final Expression passingParameter;
-	protected final static AtomicLong SERVICE_LOADER_COUNTER = new AtomicLong();
 
 	protected ServiceNodeLoader( Expression channelDest, Interpreter currInterpreter,
 		ServiceNode serviceNode, Expression passingParameter ) {

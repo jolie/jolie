@@ -664,7 +664,7 @@ public class Interpreter {
 	}
 
 	private String buildLogMessage( String message ) {
-		return logPrefix + message;
+		return '[' + logPrefix + "] " + message;
 	}
 
 	/**
@@ -835,7 +835,7 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
-		File programDirectory, Optional< Value > params )
+		File programDirectory, Optional< Value > params, Optional< String > parentLogPrefix )
 		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.configuration = configuration;
@@ -856,9 +856,10 @@ public class Interpreter {
 		commCore = new CommCore( this, configuration.connectionsLimit() /* , cmdParser.connectionsCache() */ );
 		includePaths = configuration.includePaths();
 
-		logPrefix = '[' +
-			configuration.programFilepath().getName() +
-			"] ";
+		logPrefix =
+			(parentLogPrefix.isPresent() ? parentLogPrefix.get() + " -> " + configuration.programFilepath().getName()
+				: configuration.programFilepath().getName())
+				+ (configuration.executionTarget() != null ? " -> " + configuration.executionTarget() : "");
 
 		if( configuration.tracer() ) {
 			if( configuration.tracerMode().equals( "file" ) ) {
@@ -902,7 +903,7 @@ public class Interpreter {
 	public Interpreter( Configuration configuration,
 		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws FileNotFoundException, IOException {
-		this( configuration, programDirectory, Optional.empty() );
+		this( configuration, programDirectory, Optional.empty(), Optional.of( parentInterpreter.logPrefix() ) );
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
@@ -921,9 +922,9 @@ public class Interpreter {
 	 */
 	public Interpreter( Configuration configuration,
 		File programDirectory, Map< URI, SymbolTable > parentSymbolTables, Program internalServiceProgram,
-		Value receivingEmbeddedValue )
+		Value receivingEmbeddedValue, String parentLogPrefix )
 		throws FileNotFoundException, IOException {
-		this( configuration, programDirectory, Optional.of( receivingEmbeddedValue ) );
+		this( configuration, programDirectory, Optional.of( receivingEmbeddedValue ), Optional.of( parentLogPrefix ) );
 		this.internalServiceProgram = internalServiceProgram;
 		this.symbolTables.putAll( parentSymbolTables );
 	}

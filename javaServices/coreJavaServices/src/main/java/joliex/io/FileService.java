@@ -841,14 +841,16 @@ public class FileService extends JavaService {
 	public Value getParentPath( Value request ) throws FaultException {
 		Value response = Value.create();
 		String fileName = request.strValue();
-		URI uri = null;
 		Path parent = null;
 
 		try {
-			uri = new URL( fileName ).toURI();
-			parent = Paths.get( uri ).getParent();
-		} catch( InvalidPathException | URISyntaxException | MalformedURLException invalidPathException ) {
-			throw new FaultException( invalidPathException );
+			parent = Paths.get( fileName ).getParent();
+		} catch( InvalidPathException e ) {
+			try {
+				parent = Paths.get( new URL( fileName ).toURI() ).getParent();
+			} catch( InvalidPathException | URISyntaxException | MalformedURLException invalidPathException ) {
+				throw new FaultException( invalidPathException );
+			}
 		}
 
 		if( parent == null ) {

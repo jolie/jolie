@@ -18,13 +18,15 @@
  */
 
 type RenderRequest {
-	template:string
-	data:undefined
+	template:string ///< The mustache template
+	data:undefined ///< The data for the template
+	dir?:string ///< The directory in which to look for other templates (for partials)
 }
 
 interface MustacheInterface {
 RequestResponse:
-	render(RenderRequest)(string)
+	/// Renders a mustache template
+	render( RenderRequest )( string )
 }
 
 service Mustache {
