@@ -116,8 +116,12 @@ service Main {
             }
 
             scope(s) {
-                install( TypeMismatch => nullProcess )
-                notExisting@TestHttpTemplate()()
+                install ( default =>
+                    if ( s.default!= "TypeMismatch" || !is_defined(response.IOException) ) {
+                            throw( TestFailed, "Wrong Exception" )
+                        }
+                    );
+                notExisting@TestHttpTemplate()(response)
             }
         }
     }

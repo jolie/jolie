@@ -81,6 +81,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1132,7 +1133,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		return null;
 	}
 
-	private void recv_checkReceivingOperation( HttpMessage message, HttpUtils.DecodedMessage decodedMessage ) {
+	private Optional< RequestErrorCommMessage > recv_checkReceivingOperation( HttpMessage message,
+		HttpUtils.DecodedMessage decodedMessage ) {
 		if( decodedMessage.operationName == null ) {
 			final String requestPath = HttpUtils.cutBeforeQuerystring( message.requestPath() ).substring( 1 );
 			if( requestPath.startsWith( LocationParser.RESOURCE_SEPARATOR ) ) {
@@ -1151,7 +1153,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					decodedMessage.resourcePath = "/";
 				}
 			}
+			if( hasOperationSpecificParameter( decodedMessage.operationName, HttpUtils.Parameters.TEMPLATE ) ) {
+				return Optional.of( new RequestErrorCommMessage( decodedMessage.id, decodedMessage.operationName,
+					decodedMessage.resourcePath, decodedMessage.value, null,
+					getOperationSpecificStringParameter( decodedMessage.operationName,
+						HttpUtils.Parameters.TEMPLATE ) ) );
+			}
 		}
+
+		return Optional.empty();
 	}
 
 	private void recv_templatedOperation( HttpMessage message, HttpUtils.DecodedMessage decodedMessage )
@@ -1316,7 +1326,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 				recv_templatedOperation( message, decodedMessage );
 			}
-			recv_checkReceivingOperation( message, decodedMessage );
+			Optional< RequestErrorCommMessage > requestErrorCommMessage =
+				recv_checkReceivingOperation( message, decodedMessage );
+
+			if( requestErrorCommMessage.isPresent() )
+				return requestErrorCommMessage.get();
 		}
 
 		// URI parameter parsing
