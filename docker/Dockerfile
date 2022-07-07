@@ -14,7 +14,7 @@ ENV JOLIE_HOME /usr/lib/jolie
 
 # Download and use the release tools to generate jolie_installer.jar
 WORKDIR /
-RUN git clone --depth=1 https://github.com/jolie/release_tools.git
+RUN git clone --depth=1 --branch v1.10 https://github.com/jolie/release_tools.git
 WORKDIR /release_tools/jolie_installer
 RUN mvn -T 1C -Dmaven.test.skip -DskipTests clean install
 WORKDIR /release_tools
