@@ -34,7 +34,7 @@ jobs:
     - name: Checkout Jolie
       uses: actions/checkout@v2
       with:
-        path: jolie
+        path: jolie-git
 
     - name: Set up JDK
       uses: actions/setup-java@v2
@@ -59,14 +59,14 @@ jobs:
         gpg --list-secret-keys --keyid-format LONG
 
     - name: Build prerequisites
-      run: mvn -f jolie/pom.xml -DskipTests install -pl build-tools
+      run: mvn -f jolie-git/pom.xml -DskipTests install -pl build-tools
 
     - name: Publish to Maven Central
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
       run: |
-        mvn -f jolie/pom.xml \
+        mvn -f jolie-git/pom.xml \
         --no-transfer-progress --batch-mode \
         -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
         clean deploy \
@@ -74,17 +74,11 @@ jobs:
         -P ossrh
     
     - name: Compile the rest
-      run: mvn -f jolie/pom.xml -DskipTests install -Dmaven.test.skip
+      run: mvn -f jolie-git/pom.xml -DskipTests install -Dmaven.test.skip
 
-    - name: Checkout release tools
-      uses: actions/checkout@v2
-      with:
-        repository: jolie/release_tools
-        path: release_tools
-    
     - name: Compile Jolie installer
       run: |
-        mvn -f release_tools/jolie_installer/pom.xml install
+        mvn -f jolie-git/release-tools/installer/pom.xml install
     
 #    - name: Install zip (for the installer)
 #      run: sudo apt-get install zip
@@ -93,13 +87,13 @@ jobs:
       run: |
         mkdir jolie-bin \
         && export JOLIE_HOME=$(pwd)/jolie-bin/jolie-dist \
-        && cd jolie \
+        && cd jolie-git \
         && sh scripts/dev-setup.sh ../jolie-bin \
-        && cd ../release_tools \
-        && export JOLIE_VERSION=$(git --git-dir ../jolie/.git describe --abbrev=0 --tags) \
-        && ../jolie-bin/jolie release.ol ../jolie \
-        && mv release/jolie_installer.jar ../jolie-${JOLIE_VERSION:1}.jar \
-        && cd ..
+        && cd release-tools \
+        && export JOLIE_VERSION=$(git --git-dir ../.git describe --abbrev=0 --tags) \
+        && ../jolie-bin/jolie release.ol .. \
+        && mv release/jolie-installer.jar ../../jolie-${JOLIE_VERSION:1}.jar \
+        && cd ../..
     
     - name: Release Jolie on GitHub
       uses: softprops/action-gh-release@v1

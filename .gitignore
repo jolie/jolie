@@ -14,3 +14,4 @@
 test/extensions/private/WS-test.jar
 test/extensions/private/WS-test/lib/
 .vscode/tasks.json
+release-tools/release

@@ -1,3 +1,5 @@
+# Warning: this file is outdated
+
 FROM arm32v7/openjdk as JolieBuild
 
 # Download and install Jolie. We need it for running the release tools.
