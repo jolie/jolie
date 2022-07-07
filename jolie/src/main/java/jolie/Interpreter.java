@@ -272,7 +272,6 @@ public class Interpreter {
 	private final ExecutorService timeoutHandlerExecutor =
 		Executors.newSingleThreadExecutor( new NativeJolieThreadFactory( this ) );
 
-
 	private final File programDirectory;
 	private OutputPort monitor = null;
 
