@@ -1414,9 +1414,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( message.getMethod().isEmpty() )
 			return;
 
-		String uri = cutBeforeQuerystring( message.requestPath().substring( 0, 2 ).equals( "//" ) // FIXME, TODO:
-																									// strange jolie
-			// double slash
+		// FIXME, TODO: strange jolie double slash
+		String uri = cutBeforeQuerystring( message.requestPath().startsWith( "//" )
 			? message.requestPath().substring( 1 )
 			: message.requestPath() );
 		Value configurationValue = getParameterFirstValue( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION );
