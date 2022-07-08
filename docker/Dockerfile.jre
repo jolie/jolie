@@ -1,3 +1,5 @@
+# Warning: this file is outdated
+
 FROM openjdk:alpine as JolieBuild
 
 # Download and install Jolie. We need it for running the release tools.
