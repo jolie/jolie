@@ -191,6 +191,10 @@ public abstract class ValueVector implements Iterable< Value > {
 		values().add( value );
 	}
 
+	public synchronized void add( int index, Value value ) {
+		values().add( index, value );
+	}
+
 	// TODO: improve performance
 	public synchronized void deepCopy( ValueVector vec ) {
 		for( int i = 0; i < vec.size(); i++ ) {
@@ -203,7 +207,6 @@ public abstract class ValueVector implements Iterable< Value > {
 			get( i ).deepCopyWithLinks( vec.get( i ) );
 		}
 	}
-
 
 	protected abstract List< Value > values();
 

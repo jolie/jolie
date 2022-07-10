@@ -100,7 +100,7 @@ public class Values extends JavaService {
 		return r;
 	}
 
-	private static boolean checkVectorEquality( ValueVector v1, ValueVector v2 ) {
+	public static boolean checkVectorEquality( ValueVector v1, ValueVector v2 ) {
 		if( v1.size() == v2.size() ) {
 			for( int i = 0; i < v1.size(); i++ ) {
 				if( !checkTreeEquals( v1.get( i ), v2.get( i ) ) ) {
