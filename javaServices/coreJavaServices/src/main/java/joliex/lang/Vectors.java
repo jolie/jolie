@@ -65,4 +65,15 @@ public class Vectors extends JavaService {
 			request.getFirstChild( "fst" ).getFirstChild( VECTOR ).getChildren( ITEMS ),
 			request.getFirstChild( "snd" ).getFirstChild( VECTOR ).getChildren( ITEMS ) );
 	}
+
+	public Value concat( Value request ) {
+		ValueVector vec = request.getFirstChild( "fst" ).getChildren( ITEMS );
+		for( Value value : request.getFirstChild( "snd" ).getChildren( ITEMS ) ) {
+			vec.add( value );
+		}
+
+		Value retVal = Value.create();
+		retVal.children().put( ITEMS, vec );
+		return retVal;
+	}
 }

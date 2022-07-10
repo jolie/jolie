@@ -23,7 +23,7 @@ type Vector {
 	items*:undefined
 }
 
-type VectorComparisonRequest {
+type VectorPair {
 	fst:Vector
 	snd:Vector
 }
@@ -54,13 +54,15 @@ type SliceRequest:void {
 interface VectorsInterface {
 RequestResponse:
 	/// Checks if two vectors are deeply equal (all elements of the two vectors must be respectively deeply equal).
-	equals( VectorComparisonRequest )( bool ),
+	equals( VectorPair )( bool ),
 	/// Inserts an element at the specified index. The rest of the vector is shifted to the right.
 	insert( InsertRequest )( Vector ),
 	/// Slices the vector from an index to another.
 	slice( SliceRequest )( Vector ),
 	/// Adds an element to the end of a vector.
-	add( AddRequest )( Vector )
+	add( AddRequest )( Vector ),
+	/// Concatenates two vectors.
+	concat( VectorPair )( Vector )
 }
 
 service Vectors {

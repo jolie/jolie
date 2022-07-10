@@ -80,6 +80,26 @@ service Test {
 				} )
 			} ) )
 				throw( TestFailed, "slice@vectors" )
+			
+			if( !equals@vectors( {
+				fst << {
+					items[0] = "0"
+					items[1] = "1"
+					items[2] = "2"
+					items[3] = "3"
+				}
+				snd << concat@vectors( { 
+					fst << {
+						items[0] = "0"
+						items[1] = "1"
+					}
+					snd << {
+						items[0] = "2"
+						items[1] = "3"
+					}
+				} )
+			} ) )
+				throw( TestFailed, "concat@vectors" )
 		}
 	}
 }
