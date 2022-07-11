@@ -497,6 +497,11 @@ public class SemanticVerifier implements UnitOLVisitor {
 	}
 
 	@Override
+	public void visit( ByRefExpressionNode n ) {
+		go( n.path() );
+	}
+
+	@Override
 	public void visit( VariablePathNode n ) {
 		if( insideInit && n.isCSet() ) {
 			error( n, "Correlation variable access is forbidden in init procedures" );

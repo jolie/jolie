@@ -674,4 +674,11 @@ public interface UnitOLVisitor extends OLVisitor< Unit, Unit > {
 		visit( n );
 		return Unit.INSTANCE;
 	}
+
+	void visit( ByRefExpressionNode n );
+
+	default Unit visit( ByRefExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
 }

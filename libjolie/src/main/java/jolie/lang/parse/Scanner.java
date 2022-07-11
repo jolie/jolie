@@ -79,6 +79,7 @@ public class Scanner {
 		LINKOUT,			///< linkOut
 		INSTANCE_OF,		///< instanceof
 		EQUAL,				///< ==
+		AMPERSAND,			///< &
 		AND,				///< &&
 		OR,					///< ||
 		PARALLEL,			///< |
@@ -804,7 +805,7 @@ public class Scanner {
 		MULTIPLY_or_MULTIPLY_ASSIGN,
 		ASSIGN_or_EQUAL,
 		PARALLEL_or_LOGIC_OR,
-		LOGIC_AND,
+		AMPERSAND_or_LOGIC_AND,
 		LANGLE_or_MINOR_OR_EQUAL_or_DEEP_COPY_LEFT_or_DEEP_COPY_WITH_LINKS_LEFT,
 		DEEP_COPY_WITH_LINKS_LEFT_or_DEEP_COPY_LEFT,
 		RANGLE_or_MINOR_OR_EQUAL,
@@ -875,7 +876,7 @@ public class Scanner {
 					} else if ( ch == '|' ) {
 						state = State.PARALLEL_or_LOGIC_OR;
 					} else if ( ch == '&' ) {
-						state = State.LOGIC_AND;
+						state = State.AMPERSAND_or_LOGIC_AND;
 					} else if ( ch == '<' ) {
 						state = State.LANGLE_or_MINOR_OR_EQUAL_or_DEEP_COPY_LEFT_or_DEEP_COPY_WITH_LINKS_LEFT;
 					} else if ( ch == '>' ) {
@@ -1022,11 +1023,12 @@ public class Scanner {
 						retval = new Token( TokenType.PARALLEL );
 					}
 					break;
-				case LOGIC_AND: // LOGICAL AND
+				case AMPERSAND_or_LOGIC_AND: // AMPERSAND or logical AND
 					if ( ch == '&' ) {
 						retval = new Token( TokenType.AND );
 						readChar();
-					}
+					} else
+						retval = new Token( TokenType.AMPERSAND );
 					break;
 				case LANGLE_or_MINOR_OR_EQUAL_or_DEEP_COPY_LEFT_or_DEEP_COPY_WITH_LINKS_LEFT: // LANGLE OR MINOR_OR_EQUAL OR DEEP_COPY_LEFT
 					if ( ch == '=' ) {

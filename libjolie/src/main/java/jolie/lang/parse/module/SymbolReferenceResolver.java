@@ -706,6 +706,11 @@ public class SymbolReferenceResolver {
 		@Override
 		public void visit( ImportStatement n ) {}
 
+		@Override
+		public void visit( ByRefExpressionNode n ) {
+			go( n.path() );
+		}
+
 		private Optional< SymbolInfo > getSymbol( ParsingContext context, String name ) {
 			if( symbolTables.containsKey( context.source() )
 				&& symbolTables.get( context.source() ).getSymbol( name ).isPresent() ) {

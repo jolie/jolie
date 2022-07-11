@@ -965,4 +965,7 @@ public class TypeChecker implements UnitOLVisitor {
 
 	@Override
 	public void visit( SolicitResponseExpressionNode n ) {}
+
+	@Override
+	public void visit( ByRefExpressionNode n ) {}
 }

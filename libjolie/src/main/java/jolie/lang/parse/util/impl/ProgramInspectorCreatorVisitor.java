@@ -525,4 +525,9 @@ public class ProgramInspectorCreatorVisitor implements UnitOLVisitor {
 		n.thenExpression().accept( this );
 		n.elseExpression().accept( this );
 	}
+
+	@Override
+	public void visit( ByRefExpressionNode n ) {
+		go( n.path() );
+	}
 }

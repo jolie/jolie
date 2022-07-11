@@ -939,6 +939,11 @@ public class OLParseTreeOptimizer {
 		}
 
 		@Override
+		public void visit( ByRefExpressionNode n ) {
+			currNode = new ByRefExpressionNode( n.context(), optimizePath( n.path() ) );
+		}
+
+		@Override
 		public void visit( SolicitResponseExpressionNode n ) {
 			OLSyntaxNode outputExpression = null;
 			if( n.outputExpression() != null ) {

@@ -3374,6 +3374,10 @@ public class OLParser extends AbstractParser {
 			}
 		} else {
 			switch( token.type() ) {
+			case AMPERSAND:
+				nextToken();
+				retVal = new ByRefExpressionNode( getContext(), parseVariablePath() );
+				break;
 			case NOT:
 				nextToken();
 				retVal = new NotExpressionNode( getContext(), parseFactor() );

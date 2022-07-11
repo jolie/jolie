@@ -1637,4 +1637,8 @@ public class OOITBuilder implements UnitOLVisitor {
 			error( n.context(), e );
 		}
 	}
+
+	public void visit( ByRefExpressionNode n ) {
+		currExpression = new ByRefExpression( buildVariablePath( n.path() ) );
+	}
 }

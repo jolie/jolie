@@ -445,6 +445,10 @@ public class SymbolTableGenerator {
 		@Override
 		public void visit( SolicitResponseExpressionNode n ) {}
 
+		@Override
+		public void visit( ByRefExpressionNode n ) {
+			go( n.path() );
+		}
 	}
 
 	/**
