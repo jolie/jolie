@@ -22,6 +22,7 @@
 package joliex.security;
 
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.UUID;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -40,5 +41,10 @@ public class SecurityUtils extends JavaService {
 
 	public String createSecureToken() {
 		return UUID.randomUUID().toString();
+	}
+
+	public String base64( Value request ) {
+		byte[] encoded = Base64.getEncoder().encode( request.strValue().getBytes() );
+		return new String( encoded );
 	}
 }

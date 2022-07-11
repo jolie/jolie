@@ -27,7 +27,8 @@ type SecureRandomRequest:void {
 interface SecurityUtilsInterface {
 RequestResponse:
 	secureRandom(SecureRandomRequest)(raw),
-	createSecureToken(void)(string)
+	createSecureToken(void)(string),
+	base64(string)(string)
 }
 
 outputPort SecurityUtils {
