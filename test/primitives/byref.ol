@@ -19,6 +19,7 @@
 
 from ..test-unit import TestUnitInterface
 from .private.byref-server import ByRefServer
+from .private.quicksort import Quicksort
 
 service Test {
 	inputPort TestUnitInput {
@@ -27,6 +28,7 @@ service Test {
 	}
 
 	embed ByRefServer as byRefServer
+	embed Quicksort as quicksort
 
 	main {
 		test()() {
@@ -48,6 +50,16 @@ service Test {
 			run@byRefServer( request )()
 			if( request.x != 1 )
 				throw( TestFailed, "passing a copy exposed a side-effect" )
+			
+			// Create a reverse ordered vector
+			for( i = 0, i < 100, i++ ) {
+				vector.items[i] = 99 - i
+			}
+			sort@quicksort( &vector )( vector )
+			for( i = 0, i < 100, i++ ) {
+				if( vector.items[i] != string( i ) )
+					throw( TestFailed, "sorting by reference does not work, item " + i + " has value " + vector.items[i] + " (expected " + i + ")" )
+			}
 		}
 	}
 }
