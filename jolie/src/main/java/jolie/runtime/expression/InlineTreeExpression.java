@@ -66,7 +66,7 @@ public class InlineTreeExpression implements Expression {
 					throw new RuntimeException( "incomplete case analysis" );
 				}
 			} else {
-				path.getValue( inlineValue ).deepCopyWithLinks( expression.evaluate() );
+				path.getValue( inlineValue ).refCopy( expression.evaluate() );
 			}
 		}
 	}

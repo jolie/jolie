@@ -202,17 +202,17 @@ class ValueImpl extends Value implements Cloneable, Serializable {
 	}
 
 	@Override
-	protected void _deepCopy( Value value, boolean copyLinks ) {
+	protected void _deepCopy( Value other, boolean copyLinks ) {
 		/**
 		 * TODO: check if a << b | b << a can generate deadlocks
 		 */
-		assignValue( value );
+		assignValue( other );
 
-		if( value.hasChildren() ) {
+		if( other.hasChildren() ) {
 			int i;
 			ValueImpl newValue;
 			Map< String, ValueVector > myChildren = children();
-			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+			for( Entry< String, ValueVector > entry : other.children().entrySet() ) {
 				if( copyLinks && entry.getValue().isLink() ) {
 					myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
 				} else {

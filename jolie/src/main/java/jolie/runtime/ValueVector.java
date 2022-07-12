@@ -220,6 +220,12 @@ public abstract class ValueVector implements Iterable< Value > {
 		}
 	}
 
+	public synchronized void refCopy( ValueVector other ) {
+		for( int i = 0; i < other.size(); i++ ) {
+			get( i ).refCopy( other.get( i ) );
+		}
+	}
+
 	protected abstract List< Value > values();
 
 	public abstract boolean isLink();
