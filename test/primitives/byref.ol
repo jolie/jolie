@@ -18,12 +18,15 @@
  */
 
 from ..test-unit import TestUnitInterface
+from .private.byref-server import ByRefServer
 
 service Test {
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface
 	}
+
+	embed ByRefServer as byRefServer
 
 	main {
 		test()() {
@@ -35,6 +38,16 @@ service Test {
 			y << &x
 			if( is_defined( x ) )
 				throw( TestFailed, "passing by reference did not undefine" )
+
+			request.x = 1
+			run@byRefServer( &request )()
+			if( is_defined( request.x ) )
+				throw( TestFailed, "passing by reference exposed a side-effect" )
+			
+			request.x = 1
+			run@byRefServer( request )()
+			if( request.x != 1 )
+				throw( TestFailed, "passing a copy exposed a side-effect" )
 		}
 	}
 }

@@ -43,7 +43,6 @@ public class DeepCopyProcess implements Process {
 		this.context = context;
 	}
 
-
 	@Override
 	public Process copy( TransformationReason reason ) {
 		return new DeepCopyProcess(

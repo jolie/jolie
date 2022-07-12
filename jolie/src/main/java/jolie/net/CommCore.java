@@ -481,13 +481,13 @@ public class CommCore {
 					CommMessage response = null;
 					try {
 						response = channel.recvResponseFor(
-							new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) )
+							new CommMessage( channel.redirectionMessageId(), "", "/", Value.create(), null ) )
 							.get();
 					} catch( InterruptedException | ExecutionException e ) {
 						interpreter.logFine( e );
 					} finally {
 						if( response == null ) {
-							response = new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE,
+							response = new CommMessage( channel.redirectionMessageId(), "", "/", Value.create(),
 								new FaultException( "IOException", "Internal server error" ) );
 						}
 						forwardResponse( response );

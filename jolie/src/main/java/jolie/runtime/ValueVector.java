@@ -34,6 +34,11 @@ class ValueVectorLink extends ValueVector implements Cloneable {
 	private final VariablePath linkPath;
 
 	@Override
+	public ValueVector resolveLinks() {
+		return getLinkedValueVector().resolveLinks();
+	}
+
+	@Override
 	public ValueVectorLink clone() {
 		return new ValueVectorLink( linkPath );
 	}
@@ -82,6 +87,12 @@ class ValueVectorLink extends ValueVector implements Cloneable {
 class ValueVectorImpl extends ValueVector implements Serializable {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private final ArrayList< Value > values;
+
+	@Override
+	public ValueVector resolveLinks() {
+		values.replaceAll( Value::resolveLinks );
+		return this;
+	}
 
 	@Override
 	protected List< Value > values() {
@@ -142,6 +153,8 @@ public abstract class ValueVector implements Iterable< Value > {
 		return new ValueVectorImpl();
 	}
 
+	public abstract ValueVector resolveLinks();
+
 	public synchronized Value remove( int i ) {
 		return values().remove( i );
 	}
@@ -185,7 +198,6 @@ public abstract class ValueVector implements Iterable< Value > {
 	public abstract int size();
 
 	public abstract List< Value > valuesCopy();
-
 
 	public synchronized void add( Value value ) {
 		values().add( value );

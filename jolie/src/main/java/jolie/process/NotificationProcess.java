@@ -90,7 +90,7 @@ public class NotificationProcess implements Process {
 		try {
 			CommMessage message =
 				(outputExpression == null)
-					? CommMessage.createRequest( operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE )
+					? CommMessage.createRequest( operationId, outputPort.getResourcePath(), Value.create() )
 					: CommMessage.createRequest( operationId, outputPort.getResourcePath(),
 						outputExpression.evaluate() );
 			if( oneWayDescription != null ) {

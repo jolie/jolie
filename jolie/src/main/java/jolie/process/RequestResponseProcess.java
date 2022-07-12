@@ -204,7 +204,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 					response =
 						CommMessage.createResponse(
 							message,
-							(outputExpression == null) ? Value.UNDEFINED_VALUE : outputExpression.evaluate() );
+							(outputExpression == null) ? Value.create() : outputExpression.evaluate() );
 					responseStatus = OperationEndedEvent.SUCCESS;
 					details = "";
 					if( operation.typeDescription().responseType() != null ) {

@@ -57,7 +57,7 @@ public class CommMessage implements Serializable {
 
 	public static final long GENERIC_REQUEST_ID = 0L;
 	public static final CommMessage UNDEFINED_MESSAGE =
-		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
+		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.create(), null );
 
 	private final long requestId;
 	private final String operationName;
@@ -117,7 +117,7 @@ public class CommMessage implements Serializable {
 	 * @return a request message as per specified by the parameters
 	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value ) {
-		return new CommMessage( getNewRequestId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
+		return new CommMessage( getNewRequestId(), operationName, resourcePath, value.resolveLinks(), null );
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class CommMessage implements Serializable {
 	 */
 	public static CommMessage createResponse( CommMessage request, Value value ) {
 		// TODO support resourcePath
-		return new CommMessage( request.requestId, request.operationName, "/", Value.createDeepCopy( value ), null );
+		return new CommMessage( request.requestId, request.operationName, "/", value.resolveLinks(), null );
 	}
 
 	/**

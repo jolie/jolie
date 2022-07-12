@@ -114,7 +114,7 @@ public class SolicitResponseExpression implements Expression {
 				CommMessage.createRequest(
 					operationId,
 					outputPort.getResourcePath(),
-					(outputExpression == null) ? Value.UNDEFINED_VALUE : outputExpression.evaluate() );
+					(outputExpression == null) ? Value.create() : outputExpression.evaluate() );
 
 			log( "SENDING", message );
 			if( types.requestType() != null ) {

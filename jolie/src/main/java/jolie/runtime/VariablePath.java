@@ -442,6 +442,6 @@ public class VariablePath implements Expression {
 	@Override
 	public final Value evaluate() {
 		final Value v = getValueOrNull();
-		return (v == null) ? Value.UNDEFINED_VALUE : v;
+		return (v == null) ? Value.create() : Value.createDeepCopy( v );
 	}
 }

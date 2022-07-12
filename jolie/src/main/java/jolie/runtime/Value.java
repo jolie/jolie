@@ -48,6 +48,11 @@ class ValueLink extends Value implements Cloneable {
 	}
 
 	@Override
+	public Value resolveLinks() {
+		return Value.createDeepCopy( getLinkedValue() );
+	}
+
+	@Override
 	public ValueVector getChildren( String childId ) {
 		return getLinkedValue().getChildren( childId );
 	}
@@ -133,6 +138,19 @@ class ValueImpl extends Value implements Cloneable, Serializable {
 	@Override
 	public void setValueObject( Object object ) {
 		valueObject = object;
+	}
+
+	@Override
+	public Value resolveLinks() {
+		if( children.get() == null ) {
+			return this;
+		}
+
+		children.getAndUpdate( childrenMap -> {
+			childrenMap.keySet().forEach( key -> childrenMap.compute( key, ( k, vec ) -> vec.resolveLinks() ) );
+			return childrenMap;
+		} );
+		return this;
 	}
 
 	@Override
@@ -257,6 +275,11 @@ class RootValueImpl extends Value implements Cloneable {
 
 	private final Map< String, ValueVector > children =
 		new ConcurrentHashMap<>( INITIAL_CAPACITY, LOAD_FACTOR );
+
+	@Override
+	public Value resolveLinks() {
+		throw new UnsupportedOperationException( "resolveLinks should not be called on a root value" );
+	}
 
 	@Override
 	public RootValueImpl clone() {
@@ -385,7 +408,7 @@ class CSetValue extends ValueImpl {
 public abstract class Value implements Expression, Cloneable {
 	public abstract boolean isLink();
 
-	public static final Value UNDEFINED_VALUE = Value.create();
+	public abstract Value resolveLinks();
 
 	public boolean isUsedInCorrelation() {
 		return false;
@@ -458,8 +481,6 @@ public abstract class Value implements Expression, Cloneable {
 	public final void deepCopyWithLinks( Value value ) {
 		_deepCopy( value, true );
 	}
-
-
 
 	public final void refCopy( Value value ) {
 		_refCopy( value );
