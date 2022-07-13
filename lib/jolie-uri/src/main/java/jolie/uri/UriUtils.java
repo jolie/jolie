@@ -19,9 +19,12 @@
 
 package jolie.uri;
 
+import com.damnhandy.uri.template.MalformedUriTemplateException;
 import com.damnhandy.uri.template.UriTemplate;
 import com.damnhandy.uri.template.UriTemplateMatcherFactory;
 import jolie.runtime.Value;
+
+import java.net.MalformedURLException;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,10 +49,14 @@ public class UriUtils {
 		return response;
 	}
 
-	public static String expand( String template, Map< String, Object > params ) {
-		UriTemplate t = UriTemplate.fromTemplate( template );
-		t.set( params );
-		return t.expand();
+	public static String expand( String template, Map< String, Object > params ) throws MalformedURLException {
+		try {
+			UriTemplate t = UriTemplate.fromTemplate( template );
+			t.set( params );
+			return t.expand();
+		} catch( MalformedUriTemplateException e ) {
+			throw new MalformedURLException( e.getMessage() );
+		}
 	}
 
 
