@@ -85,6 +85,8 @@ public class ScopeProcess implements Process {
 				} else {
 					fault = f;
 				}
+			} catch( Exception e ) {
+				fault = new FaultException( e );
 			}
 		}
 	}
