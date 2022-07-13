@@ -72,6 +72,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -755,9 +756,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void send_appendParsedTemplate( String template, Value value, StringBuilder headerBuilder ) {
+	private void send_appendParsedTemplate( String template, Value value, StringBuilder headerBuilder )
+		throws MalformedURLException {
 		List< String > templateKeys = new ArrayList<>();
-		UriUtils uriUtils = new UriUtils();
 		Map< String, Object > params = new HashMap<>();
 
 		for( final Map.Entry< String, ValueVector > entry : value.children()
@@ -765,12 +766,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			params.put( entry.getKey(), entry.getValue().first().valueObject() );
 		}
 
-		String uri = uriUtils.expand( template, params );
+		String uri = UriUtils.expand( template, params );
 
 		/* cleaning value from used keys */
 
 
-		uriUtils.match( template, uri ).children().forEach( ( s, values ) -> {
+		UriUtils.match( template, uri ).children().forEach( ( s, values ) -> {
 			templateKeys.add( s );
 		} );
 
