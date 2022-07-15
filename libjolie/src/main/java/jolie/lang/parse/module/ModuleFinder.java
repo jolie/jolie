@@ -11,6 +11,11 @@ import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
  */
 public interface ModuleFinder {
 
+	/*
+	 * Default module name to look for when the import path points to a jolie package
+	 */
+	public static final String DEFAULT_MODULE_NAME = "main";
+
 	/**
 	 * finds module based on a passing module target string
 	 * 

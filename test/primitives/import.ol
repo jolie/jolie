@@ -30,6 +30,7 @@ from .packages.service import serviceA
 from ..test-unit import TestUnitInterface
 from .private.import_server_old import Main as s1
 from .private.import_server import main as s2
+from .private.import_default import defaultService as s3
 from finder.A import A
 from finder.B import B
 
@@ -43,6 +44,7 @@ service Test {
 	embed B as B
 	embed s1 as s1
 	embed s2 as s2
+	embed s3 as s3
 
 	main {
 		test()() {
@@ -75,6 +77,13 @@ service Test {
 			// test for new syntax
 			barOp@s2({b = "somestr"})
 			fooOp@s2({a = "somestr"})(res)
+			if ( res.b != "success" ) {
+				throw( TestFailed, "import interface is not correctly import" )
+			}
+
+			// test for new syntax
+			barOp@s3({b = "somestr"})
+			fooOp@s3({a = "somestr"})(res)
 			if ( res.b != "success" ) {
 				throw( TestFailed, "import interface is not correctly import" )
 			}

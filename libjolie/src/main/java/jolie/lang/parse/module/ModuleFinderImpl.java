@@ -146,7 +146,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 		}
 		if( basePath.resolve( moduleName ).toFile().isDirectory() ) {
 			basePath = basePath.resolve( moduleName );
-			moduleName = "main";
+			moduleName = DEFAULT_MODULE_NAME;
 		}
 		Path olTargetFile = ModuleFinder.olLookup( basePath, moduleName );
 		return new PathSource( olTargetFile );
