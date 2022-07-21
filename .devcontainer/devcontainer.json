@@ -7,5 +7,11 @@
 				"jolie.vscode-jolie"
 			]
 		}
-	}
+	},
+	"features": {
+		"node": {
+			"version": "lts"
+		}
+	},
+	"postCreateCommand": "bash scripts/dev-setup.sh /usr/bin && echo 'export JOLIE_HOME=/usr/bin/jolie-dist' >> /root/.bashrc"
 }
