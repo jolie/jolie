@@ -1,0 +1,11 @@
+{
+	"image": "maven:3-eclipse-temurin-17",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"vscjava.vscode-java-pack",
+				"jolie.vscode-jolie"
+			]
+		}
+	}
+}
