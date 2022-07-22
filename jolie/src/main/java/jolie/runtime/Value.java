@@ -40,7 +40,7 @@ import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.TypeCastingException;
 
-class ValueLink extends Value implements Cloneable {
+class ValueLink extends Value {
 	private final VariablePath linkPath;
 
 	private Value getLinkedValue() {
@@ -124,7 +124,7 @@ class ValueLink extends Value implements Cloneable {
 }
 
 
-class ValueImpl extends Value implements Cloneable, Serializable {
+class ValueImpl extends Value implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private volatile Object valueObject = null;
@@ -251,7 +251,7 @@ class ValueImpl extends Value implements Cloneable, Serializable {
 
 
 /** TODO: remove code duplication from ValueImpl */
-class RootValueImpl extends Value implements Cloneable {
+class RootValueImpl extends Value {
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 
