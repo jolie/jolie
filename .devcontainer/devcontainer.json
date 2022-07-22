@@ -1,17 +1,26 @@
 {
-	"image": "maven:3-eclipse-temurin-17",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"vscjava.vscode-java-pack",
-				"jolie.vscode-jolie"
-			]
-		}
+	"build": {
+		"dockerfile": "Dockerfile"
 	},
+	"postCreateCommand": "./.devcontainer/container-setup.sh",
+	"containerUser": "jolie",
 	"features": {
 		"node": {
 			"version": "lts"
 		}
 	},
-	"postCreateCommand": "bash scripts/dev-setup.sh /usr/bin && echo 'export JOLIE_HOME=/usr/bin/jolie-dist' >> /root/.bashrc"
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"vscjava.vscode-java-pack",
+				"redhat.fabric8-analytics",
+				"jolie.vscode-jolie",
+				"redhat.vscode-xml",
+				"cschleiden.vscode-github-actions",
+				"GitHub.vscode-pull-request-github",
+				"eamodio.gitlens",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
 }

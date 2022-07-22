@@ -101,6 +101,12 @@
 			<groupId>org.relaxng</groupId>
 			<artifactId>jing</artifactId>
 			<version>20181222</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 </project>
