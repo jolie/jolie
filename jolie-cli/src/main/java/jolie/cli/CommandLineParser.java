@@ -21,7 +21,6 @@ package jolie.cli;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,13 +34,23 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.jap.JapURLConnection;
@@ -55,7 +64,7 @@ import jolie.util.UriUtils;
  * 
  * @author Fabrizio Montesi
  */
-public class CommandLineParser implements Closeable {
+public class CommandLineParser implements AutoCloseable {
 	private final static String OPTION_SEPARATOR = " ";
 
 	private final int connectionsLimit;

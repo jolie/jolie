@@ -179,29 +179,32 @@ public class Inspector extends JavaService {
 		Interpreter interpreter )
 		throws CommandLineException, IOException, ParserException, CodeCheckException, ModuleException {
 		String[] args = { filename };
-		Interpreter.Configuration interpreterConfiguration =
-			new CommandLineParser( args, Inspector.class.getClassLoader() ).getInterpreterConfiguration();
-		SemanticVerifier.Configuration configuration =
-			new SemanticVerifier.Configuration( interpreterConfiguration.executionTarget() );
-		configuration.setCheckForMain( false );
-		final InputStream sourceIs;
-		if( source.isPresent() ) {
-			sourceIs = new ByteArrayInputStream( source.get().getBytes() );
-		} else {
-			sourceIs = interpreterConfiguration.inputStream();
+		try(
+			CommandLineParser cmdParser =
+				new CommandLineParser( args, Inspector.class.getClassLoader() ) ) {
+			Interpreter.Configuration interpreterConfiguration = cmdParser.getInterpreterConfiguration();
+			SemanticVerifier.Configuration configuration =
+				new SemanticVerifier.Configuration( interpreterConfiguration.executionTarget() );
+			configuration.setCheckForMain( false );
+			final InputStream sourceIs;
+			if( source.isPresent() ) {
+				sourceIs = new ByteArrayInputStream( source.get().getBytes() );
+			} else {
+				sourceIs = interpreterConfiguration.inputStream();
+			}
+			Program program = ParsingUtils.parseProgram(
+				sourceIs,
+				interpreterConfiguration.programFilepath().toURI(),
+				interpreterConfiguration.charset(),
+				includePaths,
+				// interpreterConfiguration.packagePaths(),
+				interpreter.configuration().packagePaths(), // TODO make this a parameter from the Jolie request
+				interpreterConfiguration.jolieClassLoader(),
+				interpreterConfiguration.constants(),
+				configuration,
+				true );
+			return ParsingUtils.createInspector( program );
 		}
-		Program program = ParsingUtils.parseProgram(
-			sourceIs,
-			interpreterConfiguration.programFilepath().toURI(),
-			interpreterConfiguration.charset(),
-			includePaths,
-			// interpreterConfiguration.packagePaths(),
-			interpreter.configuration().packagePaths(), // TODO make this a parameter from the Jolie request
-			interpreterConfiguration.jolieClassLoader(),
-			interpreterConfiguration.constants(),
-			configuration,
-			true );
-		return ParsingUtils.createInspector( program );
 	}
 
 	private static Value buildFileInspectionResponse( ProgramInspector inspector ) {
