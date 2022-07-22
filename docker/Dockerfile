@@ -2,7 +2,7 @@
 # To use this dockerfile locally, launch the following command from the root directory of your local copy of this repository.
 # docker build -f docker/Dockerfile -t jolielang/jolie .
 
-FROM adoptopenjdk/openjdk11:alpine as JolieBuild
+FROM eclipse-temurin:11-alpine as JolieBuild
 
 # Download and install Jolie. We need it for running the release tools.
 RUN apk add --update git maven
@@ -23,7 +23,7 @@ WORKDIR /jolie-git/release-tools
 RUN jolie release.ol ..
 
 # Start from scratch, copy the installer, install, remove the installer.
-FROM adoptopenjdk/openjdk11:alpine
+FROM eclipse-temurin:11-alpine
 WORKDIR /
 COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
 RUN apk add --update zip \
