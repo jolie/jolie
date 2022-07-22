@@ -22,7 +22,8 @@
 				"ms-azuretools.vscode-docker",
 				"christian-kohler.path-intellisense",
 				"redhat.vscode-yaml",
-				"ms-kubernetes-tools.vscode-kubernetes-tools"
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"cracrayol.java-pmd"
 			]
 		}
 	}

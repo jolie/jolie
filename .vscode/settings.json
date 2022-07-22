@@ -1,3 +1,8 @@
 {
-	"java.configuration.updateBuildConfiguration": "automatic"
+	"java.configuration.updateBuildConfiguration": "automatic",
+	"java.format.settings.url": "./build-tools/src/main/resources/java-jolie-style.xml",
+	"[java]": {
+		"editor.insertSpaces": false
+	},
+	"javaPMD.rulesets": [ "./build-tools/src/main/resources/pmd-ruleset.xml" ]
 }
