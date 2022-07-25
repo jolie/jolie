@@ -9,7 +9,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
 		<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
-		<jolie.version>1.10.11</jolie.version>
+		<jolie.version>1.10.12</jolie.version>
 		<jolie.url>https://www.jolie-lang.org/</jolie.url>
 		<jolie.developer>The Jolie Developers</jolie.developer>
 		<jolie.email>webmaster@jolie-lang.org</jolie.email>

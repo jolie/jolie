@@ -91,7 +91,7 @@ jobs:
         && sh scripts/dev-setup.sh ../jolie-bin \
         && cd release-tools \
         && export JOLIE_VERSION=$(git --git-dir ../.git describe --abbrev=0 --tags) \
-        && ../jolie-bin/jolie release.ol .. \
+        && ../../jolie-bin/jolie release.ol .. \
         && mv release/jolie-installer.jar ../../jolie-${JOLIE_VERSION:1}.jar \
         && cd ../..
     
