@@ -14,10 +14,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301 USA
-#
+
 # To use this dockerfile locally, launch the following command from the root directory of your local copy of this repository.
 # docker build -f docker/Dockerfile -t jolielang/jolie .
-#
+
 FROM eclipse-temurin:11-alpine as JolieBuild
 
 # Download and install Jolie. We need it for running the release tools.
