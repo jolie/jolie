@@ -53,6 +53,7 @@ public class BTServiceDiscoveryListener implements DiscoveryListener {
 
 	public void inquiryCompleted( int discType ) {}
 
+	@SuppressWarnings("unchecked")
 	public void servicesDiscovered( int transID, ServiceRecord[] serviceRecords ) {
 		DataElement e;
 		ServiceRecord r;

@@ -73,6 +73,11 @@
 					<artifactId>maven-pmd-plugin</artifactId>
 					<version>3.13.0</version>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -279,9 +284,9 @@
 					</execution>
 				</executions>
 				<configuration>
-					<compilerSource>1.8</compilerSource>
-					<compilerCompliance>1.8</compilerCompliance>
-					<compilerTargetPlatform>1.8</compilerTargetPlatform>
+					<compilerSource>11</compilerSource>
+					<compilerCompliance>11</compilerCompliance>
+					<compilerTargetPlatform>11</compilerTargetPlatform>
 					<lineEnding>LF</lineEnding>
 					<encoding>UTF-8</encoding>
 					<configFile>java-jolie-style.xml</configFile>
