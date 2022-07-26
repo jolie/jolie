@@ -76,15 +76,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1389,7 +1382,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		return requestPath.split( "\\?", 2 )[ 0 ];
 	}
 
-	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage ) {
+	private Optional< RequestErrorCommMessage > recv_checkReceivingOperation( HttpMessage message,
+		DecodedMessage decodedMessage ) {
 		if( decodedMessage.operationName == null ) {
 			final String requestPath = cutBeforeQuerystring( message.requestPath() ).substring( 1 );
 			if( requestPath.startsWith( LocationParser.RESOURCE_SEPARATOR ) ) {
@@ -1401,6 +1395,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				} else {
 					decodedMessage.resourcePath = compositePath;
 				}
+
 			} else {
 				decodedMessage.operationName = requestPath;
 				decodedMessage.resourcePath = message.getProperty( Headers.JOLIE_RESOURCE_PATH );
@@ -1408,7 +1403,20 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					decodedMessage.resourcePath = "/";
 				}
 			}
+			if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.TEMPLATE ) ) {
+				return Optional.of( new RequestErrorCommMessage( decodedMessage.id, decodedMessage.operationName,
+					decodedMessage.resourcePath, decodedMessage.value, null,
+					getOperationSpecificStringParameter( decodedMessage.operationName, Parameters.TEMPLATE ) ) );
+			}
+			if( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.TEMPLATE ) ) {
+				return Optional.of( new RequestErrorCommMessage( decodedMessage.id, decodedMessage.operationName,
+					decodedMessage.resourcePath, decodedMessage.value, null,
+					getOperationSpecificStringParameter( decodedMessage.operationName, Parameters.TEMPLATE ) ) );
+			}
+
 		}
+
+		return Optional.empty();
 	}
 
 	private void recv_templatedOperation( HttpMessage message, DecodedMessage decodedMessage ) {
@@ -1552,9 +1560,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			} catch( IOException e ) {
 				return new ProtocolTraceAction( ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE RECEIVED",
 					message.requestPath(), e.getMessage(), null );
-
 			}
-
 		} );
 
 		recv_checkForStatusCode( message );
@@ -1572,7 +1578,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 				recv_templatedOperation( message, decodedMessage );
 			}
-			recv_checkReceivingOperation( message, decodedMessage );
+			Optional< RequestErrorCommMessage > requestErrorCommMessage =
+				recv_checkReceivingOperation( message, decodedMessage );
+
+			if( requestErrorCommMessage.isPresent() )
+				return requestErrorCommMessage.get();
 		}
 
 		// URI parameter parsing

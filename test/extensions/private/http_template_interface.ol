@@ -50,8 +50,8 @@ type AddOrderResponse:void
 interface HttpTemplateInterface{
     RequestResponse:
 
-    getOrders(GetOrdersRequest)(GetOrdersResponse),
-    getOrder(GetOrderRequest)( GetOrderResponse),
-    addOrder(AddOrderRequest)(AddOrderResponse),
+    getOrders(GetOrdersRequest)(GetOrdersResponse) ,
+    getOrder(GetOrderRequest)( GetOrderResponse) ,
+    addOrder(AddOrderRequest)(AddOrderResponse) ,
 
 }

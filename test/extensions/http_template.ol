@@ -55,6 +55,13 @@ service Test {
         Location : "socket://localhost:9099"
     }
 
+
+        outputPort TestHttpNoTemplate {
+            interfaces: HttpTemplateInterface
+            protocol: "http"
+            Location : "socket://localhost:9099"
+        }
+
     embed StringUtils as stringUtils
     embed Console as console
     embed HttpTemplateServer in TestHttpTemplateB
@@ -88,6 +95,16 @@ service Test {
 
             if(resultGetOrders.orders[2].id != resultGetOrder.id){
                 throw( TestFailed, "wrong id" )
+            }
+
+
+            scope (addOrder){
+                   install ( default =>
+                        if (addOrder.default!= "TypeMismatch" || !is_defined(response.IOException) ){
+                             throw( TestFailed, "Wrong Exception " )
+                        }
+                        );
+                   addOrder@TestHttpNoTemplate({token="sometoken" ammount = 10.0})(response)
             }
 
 		}
