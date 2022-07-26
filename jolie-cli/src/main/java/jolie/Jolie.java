@@ -70,7 +70,8 @@ public class Jolie {
 		// TODO: remove this hack by extracting CommandLineParser here
 		boolean printStackTraces = Arrays.asList( args ).contains( "--stackTraces" );
 
-		try( CommandLineParser commandLineParser = new CommandLineParser( args, Jolie.class.getClassLoader(), false ) ) {
+		try( CommandLineParser commandLineParser =
+			new CommandLineParser( args, Jolie.class.getClassLoader(), false ) ) {
 			Interpreter.Configuration config = commandLineParser.getInterpreterConfiguration();
 			Optional< Value > params = Optional.of( Value.create() );
 			if( config.parametersPath().isPresent() ) {

@@ -29,7 +29,8 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
 public class LocalListenerFactory extends CommListenerFactory {
-	// TODO (FM): I made this complicated StaticUtils instead of just having a static ConcurrentHashMap here.. one day we should simplify this.
+	// TODO (FM): I made this complicated StaticUtils instead of just having a static ConcurrentHashMap
+	// here.. one day we should simplify this.
 	static {
 		StaticUtils.create(
 			LocalListenerFactory.class,
