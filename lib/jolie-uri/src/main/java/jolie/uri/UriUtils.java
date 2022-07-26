@@ -19,15 +19,11 @@
 
 package jolie.uri;
 
-import com.damnhandy.uri.template.MalformedUriTemplateException;
-import com.damnhandy.uri.template.UriTemplate;
-import com.damnhandy.uri.template.UriTemplateMatcherFactory;
 import jolie.runtime.Value;
 
 import java.net.MalformedURLException;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.springframework.web.util.UriTemplate;
 
 public class UriUtils {
 	public static Value match( Value request ) {
@@ -35,15 +31,14 @@ public class UriUtils {
 	}
 
 	public static Value match( String template, String uri ) {
-		UriTemplate t = UriTemplate.fromTemplate( template );
-		Pattern p = UriTemplateMatcherFactory.getReverseMatchPattern( t );
-		Matcher m = p.matcher( uri );
+		UriTemplate t = new UriTemplate( template );
 		Value response = Value.create();
-		boolean matches = m.matches();
+		boolean matches = t.matches( uri );
 		response.setValue( matches );
 		if( matches ) {
-			for( String param : t.getVariables() ) {
-				response.setFirstChild( param, m.group( param ) );
+			Map< String, String > map = t.match( uri );
+			for( Map.Entry< String, String > res : map.entrySet() ) {
+				response.setFirstChild( res.getKey(), res.getValue() );
 			}
 		}
 		return response;
@@ -51,10 +46,9 @@ public class UriUtils {
 
 	public static String expand( String template, Map< String, Object > params ) throws MalformedURLException {
 		try {
-			UriTemplate t = UriTemplate.fromTemplate( template );
-			t.set( params );
-			return t.expand();
-		} catch( MalformedUriTemplateException e ) {
+			UriTemplate t = new UriTemplate( template );
+			return t.expand( params ).toString();
+		} catch( IllegalArgumentException e ) {
 			throw new MalformedURLException( e.getMessage() );
 		}
 	}

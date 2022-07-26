@@ -33,7 +33,7 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 
-@AndJarDeps( { "jolie-uri.jar", "handy-uri-templates.jar", "joda-time.jar" } )
+@AndJarDeps( { "jolie-uri.jar", "spring-web.jar", "spring-core.jar", "joda-time.jar" } )
 public class UriTemplates extends JavaService {
 	public Value match( Value request ) {
 		return jolie.uri.UriUtils.match( request.getFirstChild( "template" ).strValue(),
