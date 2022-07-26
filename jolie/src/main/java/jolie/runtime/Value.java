@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2006-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2022 by Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+ * USA
+ */
 
 package jolie.runtime;
 
@@ -40,372 +38,203 @@ import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.TypeCastingException;
 
-class ValueLink extends Value implements Cloneable {
-	private final VariablePath linkPath;
+public interface Value extends Expression, Cloneable {
+	boolean isLink();
+	Value resolveLinks();
+	boolean isUsedInCorrelation();
 
-	private Value getLinkedValue() {
-		return linkPath.getValue( this );
-	}
-
-	@Override
-	public Value resolveLinks() {
-		return Value.createDeepCopy( getLinkedValue() );
-	}
-
-	@Override
-	public ValueVector getChildren( String childId ) {
-		return getLinkedValue().getChildren( childId );
-	}
-
-	/*
-	 * private void writeObject( ObjectOutputStream out ) throws IOException { out.writeObject(
-	 * getLinkedValue() ); }
+	/**
+	 * Merges {@code other} into this value, considering also its sub-tree.
+	 * Links are copied or resolved depending on the {@code copyLinks} parameter.
+	 *
+	 * @param value The value to be copied.
+	 * @param copyLinks Whether links should be copied (true) or resolved (false)
 	 */
+	void deepCopy( Value value, boolean copyLinks );
 
-	@Override
-	public final Value evaluate() {
-		return getLinkedValue();
+	/**
+	 * Behaves as {@code deepCopy( value, false )}.
+	 */
+	default void deepCopy( Value value ) {
+		deepCopy( value, false );
 	}
 
-	@Override
-	public boolean hasChildren() {
-		return getLinkedValue().hasChildren();
+	/**
+	 * Behaves as {@code deepCopy( value, true )}.
+	 */
+	default void deepCopyWithLinks( Value value ) {
+		deepCopy( value, true );
 	}
 
-	@Override
-	public boolean hasChildren( String childId ) {
-		return getLinkedValue().hasChildren( childId );
+	void refCopy( Value value );
+
+	void erase();
+
+	Map< String, ValueVector > children();
+
+	Object valueObject();
+
+	boolean hasChildren();
+
+	boolean hasChildren( String childId );
+
+	ValueVector getChildren( String childId );
+
+	boolean isEqualTo( Value v );
+
+	< V > V firstChildOrCompute( String childId, Function< ? super Value, ? extends V > mappingFunction,
+		Function< ? super String, ? extends V > defaultMappingFunction );
+
+	< V > V firstChildOrDefault( String childId, Function< ? super Value, ? extends V > mappingFunction,
+		V defaultValue );
+
+	Value clone();
+
+	Value getNewChild( String childId );
+
+	Value getFirstChild( String childId );
+
+	void setFirstChild( String childId, Object object );
+
+	void setValue( Object object );
+
+	void setValue( String object );
+
+	void setValue( Long object );
+
+	void setValue( Boolean object );
+
+	void setValue( Integer object );
+
+	void setValue( Double object );
+
+	boolean equals( Value val );
+
+	boolean isInt();
+	boolean isLong();
+
+	boolean isBool();
+
+	boolean isByteArray();
+
+	boolean isDouble();
+
+	boolean isString();
+
+	boolean isChannel();
+
+	boolean isDefined();
+
+	void setValue( CommChannel value );
+
+	CommChannel channelValue();
+
+	String strValue();
+
+	String strValueStrict() throws TypeCastingException;
+
+	ByteArray byteArrayValue();
+
+	ByteArray byteArrayValueStrict()
+		throws TypeCastingException;
+
+	int intValue();
+
+	int intValueStrict()
+		throws TypeCastingException;
+	boolean boolValue();
+
+	boolean boolValueStrict()
+		throws TypeCastingException;
+
+	long longValue();
+
+	long longValueStrict()
+		throws TypeCastingException;
+
+	double doubleValue();
+
+	double doubleValueStrict()
+		throws TypeCastingException;
+
+	void add( Value val );
+
+	void subtract( Value val );
+
+	void multiply( Value val );
+
+	void divide( Value val );
+
+	void modulo( Value val );
+
+	void assignValue( Value val );
+
+	void setValueObject( Object object );
+
+	static Value createRootValue() {
+		return new RootValueImpl();
 	}
 
-	@Override
-	protected void _refCopy( Value value ) {
-		getLinkedValue()._refCopy( value );
+	static Value createLink( VariablePath path ) {
+		return new ValueLink( path );
 	}
 
-	@Override
-	public void setValueObject( Object object ) {
-		getLinkedValue().setValueObject( object );
+	static Value create() {
+		return new ValueImpl();
 	}
 
-	@Override
-	public void erase() {
-		getLinkedValue().erase();
+	static Value createCSetValue() {
+		return new CSetValue();
 	}
 
-	@Override
-	public ValueLink clone() {
-		return new ValueLink( linkPath );
+	static Value create( Boolean bool ) {
+		return new ValueImpl( bool );
 	}
 
-	@Override
-	public void _deepCopy( Value value, boolean copyLinks ) {
-		getLinkedValue()._deepCopy( value, copyLinks );
+	static Value create( String str ) {
+		return new ValueImpl( str );
 	}
 
-	@Override
-	public Map< String, ValueVector > children() {
-		return getLinkedValue().children();
+	static Value create( Integer i ) {
+		return new ValueImpl( i );
 	}
 
-	@Override
-	public Object valueObject() {
-		return getLinkedValue().valueObject();
+	static Value create( Long l ) {
+		return new ValueImpl( l );
 	}
 
-	public ValueLink( VariablePath path ) {
-		assert (path != null);
-		linkPath = path;
+	static Value create( Double d ) {
+		return new ValueImpl( d );
 	}
 
-	@Override
-	public boolean isLink() {
-		return true;
+	static Value create( ByteArray b ) {
+		return new ValueImpl( b );
 	}
 
-	@Override
-	public boolean isEqualTo( Value v ) {
-		return this.getLinkedValue().isEqualTo( v );
-	}
-}
-
-
-class ValueImpl extends Value implements Cloneable, Serializable {
-	private static final long serialVersionUID = 1L;
-
-	private volatile Object valueObject = null;
-	private final AtomicReference< Map< String, ValueVector > > children = new AtomicReference<>();
-
-	@Override
-	public void setValueObject( Object object ) {
-		valueObject = object;
+	static Value create( Value value ) {
+		return new ValueImpl( value );
 	}
 
-	@Override
-	public Value resolveLinks() {
-		if( children.get() == null ) {
-			return this;
-		}
-
-		children.getAndUpdate( childrenMap -> {
-			childrenMap.keySet().forEach( key -> childrenMap.compute( key, ( k, vec ) -> vec.resolveLinks() ) );
-			return childrenMap;
-		} );
-		return this;
+	static Value createClone( Value value ) {
+		return value.clone();
 	}
 
-	@Override
-	public ValueVector getChildren( String childId ) {
-		return children().computeIfAbsent( childId, k -> ValueVector.create() );
-	}
-
-	@Override
-	public ValueImpl clone() {
-		ValueImpl ret = new ValueImpl();
-		ret._deepCopy( this, true );
+	static Value createDeepCopy( Value value ) {
+		Value ret = Value.create();
+		ret.deepCopy( value );
 		return ret;
 	}
-
-	@Override
-	protected void _refCopy( Value value ) {
-		setValueObject( value.valueObject() );
-		this.children.set( value.children() );
-	}
-
-	@Override
-	public final Value evaluate() {
-		return this;
-	}
-
-	@Override
-	public void erase() {
-		valueObject = null;
-		children.set( null );
-	}
-
-	protected ValueImpl() {}
-
-	@Override
-	public boolean isLink() {
-		return false;
-	}
-
-	@Override
-	public boolean hasChildren() {
-		Map< String, ValueVector > c = children.get();
-		return (c != null && !c.isEmpty());
-	}
-
-	@Override
-	public boolean hasChildren( String childId ) {
-		Map< String, ValueVector > c = children.get();
-		return (c != null && c.containsKey( childId ));
-	}
-
-	@Override
-	protected void _deepCopy( Value other, boolean copyLinks ) {
-		/**
-		 * TODO: check if a << b | b << a can generate deadlocks
-		 */
-		assignValue( other );
-
-		if( other.hasChildren() ) {
-			int i;
-			ValueImpl newValue;
-			Map< String, ValueVector > myChildren = children();
-			for( Entry< String, ValueVector > entry : other.children().entrySet() ) {
-				if( copyLinks && entry.getValue().isLink() ) {
-					myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
-				} else {
-					List< Value > otherVector = entry.getValue().valuesCopy();
-					ValueVector vec = getChildren( entry.getKey(), myChildren );
-					i = 0;
-					for( Value v : otherVector ) {
-						if( copyLinks && v.isLink() ) {
-							vec.set( i, ((ValueLink) v).clone() );
-						} else {
-							newValue = (v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl());
-							newValue._deepCopy( v, copyLinks );
-							vec.set( i, newValue );
-						}
-						i++;
-					}
-				}
-			}
-		}
-	}
-
-	private static ValueVector getChildren( String childId, Map< String, ValueVector > children ) {
-		return children.computeIfAbsent( childId, k -> ValueVector.create() );
-	}
-
-	private final static int INITIAL_CAPACITY = 8;
-	private final static float LOAD_FACTOR = 0.75f;
-
-	@Override
-	public Map< String, ValueVector > children() {
-		// Create the map if not present
-		children.getAndUpdate( v -> v == null ? new ConcurrentHashMap<>( INITIAL_CAPACITY, LOAD_FACTOR ) : v );
-		return children.get();
-	}
-
-	@Override
-	public Object valueObject() {
-		return valueObject;
-	}
-
-	protected ValueImpl( Object object ) {
-		valueObject = object;
-	}
-
-	public ValueImpl( Value val ) {
-		valueObject = val.valueObject();
-	}
-
-	@Override
-	public boolean isEqualTo( Value v ) {
-		return this.equals( v );
-	}
 }
-
-
-/** TODO: remove code duplication from ValueImpl */
-class RootValueImpl extends Value implements Cloneable {
-	private final static int INITIAL_CAPACITY = 8;
-	private final static float LOAD_FACTOR = 0.75f;
-
-	private final Map< String, ValueVector > children =
-		new ConcurrentHashMap<>( INITIAL_CAPACITY, LOAD_FACTOR );
-
-	@Override
-	public Value resolveLinks() {
-		throw new UnsupportedOperationException( "resolveLinks should not be called on a root value" );
-	}
-
-	@Override
-	public RootValueImpl clone() {
-		RootValueImpl ret = new RootValueImpl();
-		ret._deepCopy( this, true );
-		return ret;
-	}
-
-	@Override
-	public void setValueObject( Object object ) {}
-
-	@Override
-	protected void _refCopy( Value value ) {}
-
-	@Override
-	public ValueVector getChildren( String childId ) {
-		return children.computeIfAbsent( childId, k -> ValueVector.create() );
-	}
-
-	@Override
-	public final Value evaluate() {
-		return this;
-	}
-
-	@Override
-	public void erase() {
-		children.clear();
-	}
-
-	@Override
-	public boolean isLink() {
-		return false;
-	}
-
-	@Override
-	public final Map< String, ValueVector > children() {
-		return children;
-	}
-
-	@Override
-	public boolean hasChildren() {
-		return children.isEmpty() == false;
-	}
-
-	@Override
-	public boolean hasChildren( String childId ) {
-		return children.containsKey( childId );
-	}
-
-	@Override
-	protected void _deepCopy( Value value, boolean copyLinks ) {
-		if( value.hasChildren() ) {
-			int i;
-			ValueImpl newValue;
-			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-				if( copyLinks && entry.getValue().isLink() ) {
-					children.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
-				} else {
-					List< Value > otherVector = entry.getValue().valuesCopy();
-					ValueVector vec = getChildren( entry.getKey(), children );
-					i = 0;
-					for( Value v : otherVector ) {
-						if( copyLinks && v.isLink() ) {
-							vec.set( i, ((ValueLink) v).clone() );
-						} else {
-							newValue = (v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl());
-							newValue._deepCopy( v, copyLinks );
-							vec.set( i, newValue );
-						}
-						i++;
-					}
-				}
-			}
-		}
-	}
-
-	private static ValueVector getChildren( String childId, Map< String, ValueVector > children ) {
-		return children.computeIfAbsent( childId, k -> ValueVector.create() );
-	}
-
-	@Override
-	public Object valueObject() {
-		return null;
-	}
-
-	@Override
-	public boolean isEqualTo( Value v ) {
-		return this.equals( v );
-	}
-}
-
-
-class CSetValue extends ValueImpl {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-
-	// @Override
-	// public void setValueObject( Object object ) {
-	// // CommCore commCore = Interpreter.getInstance().commCore();
-	// // synchronized( commCore.correlationLock() )
-	// // removeFromRadixTree();
-	// super.setValueObject( object );
-	// // addToRadixTree();
-	// // }
-	// }
-
-	@Override
-	public CSetValue clone() {
-		CSetValue ret = new CSetValue();
-		ret._deepCopy( this, true );
-		return ret;
-	}
-
-	@Override
-	public boolean isUsedInCorrelation() {
-		return true;
-	}
-}
-
 
 /**
  * Handles JOLIE internal data representation.
- * 
- * @author Fabrizio Montesi 2007 - Claudio Guidi: added support for double values 2008 - Fabrizio
- *         Montesi: new system for internal value storing
+ *
+ * @author Fabrizio Montesi
+ *
+ * 2007 - Claudio Guidi: added support for double values
+ * 2008 - Fabrizio Montesi: new system for internal value storing
  */
-public abstract class Value implements Expression, Cloneable {
+abstract class AbstractValue implements Value {
 	public abstract boolean isLink();
 
 	public abstract Value resolveLinks();
@@ -414,89 +243,13 @@ public abstract class Value implements Expression, Cloneable {
 		return false;
 	}
 
-	public static Value createRootValue() {
-		return new RootValueImpl();
-	}
-
-	public static Value createLink( VariablePath path ) {
-		return new ValueLink( path );
-	}
-
-	public static Value create() {
-		return new ValueImpl();
-	}
-
-	public static Value createCSetValue() {
-		return new CSetValue();
-	}
-
-	public static Value create( Boolean bool ) {
-		return new ValueImpl( bool );
-	}
-
-	public static Value create( String str ) {
-		return new ValueImpl( str );
-	}
-
-	public static Value create( Integer i ) {
-		return new ValueImpl( i );
-	}
-
-	public static Value create( Long l ) {
-		return new ValueImpl( l );
-	}
-
-	public static Value create( Double d ) {
-		return new ValueImpl( d );
-	}
-
-	public static Value create( ByteArray b ) {
-		return new ValueImpl( b );
-	}
-
-	public static Value create( Value value ) {
-		return new ValueImpl( value );
-	}
-
-	public static Value createClone( Value value ) {
-		return value.clone();
-	}
-
-	public static Value createDeepCopy( Value value ) {
-		Value ret = Value.create();
-		ret.deepCopy( value );
-		return ret;
-	}
-
-	/**
-	 * Makes this value an identical copy (by value) of the parameter, considering also its sub-tree. In
-	 * case of a sub-link, its pointed Value tree is copied.
-	 * 
-	 * @param value The value to be copied.
-	 */
-	public final void deepCopy( Value value ) {
-		_deepCopy( value, false );
-	}
-
-	public final void deepCopyWithLinks( Value value ) {
-		_deepCopy( value, true );
-	}
-
-	public final void refCopy( Value value ) {
-		_refCopy( value );
-	}
-
-	protected abstract void _refCopy( Value value );
-
 	public abstract void erase();
 
-	protected abstract void _deepCopy( Value value, boolean copyLinks );
+	public abstract void deepCopy( Value value, boolean copyLinks );
 
 	public abstract Map< String, ValueVector > children();
 
 	public abstract Object valueObject();
-
-	protected abstract void setValueObject( Object object );
 
 	public abstract boolean hasChildren();
 
@@ -954,3 +707,361 @@ public abstract class Value implements Expression, Cloneable {
 		return Value.createClone( this );
 	}
 }
+
+class ValueLink extends AbstractValue implements Cloneable {
+	private final VariablePath linkPath;
+
+	private Value getLinkedValue() {
+		return linkPath.getValue( this );
+	}
+
+	@Override
+	public Value resolveLinks() {
+		return Value.createDeepCopy( getLinkedValue() );
+	}
+
+	@Override
+	public ValueVector getChildren( String childId ) {
+		return getLinkedValue().getChildren( childId );
+	}
+
+	/*
+	 * private void writeObject( ObjectOutputStream out ) throws IOException { out.writeObject(
+	 * getLinkedValue() ); }
+	 */
+
+	@Override
+	public final Value evaluate() {
+		return getLinkedValue();
+	}
+
+	@Override
+	public boolean hasChildren() {
+		return getLinkedValue().hasChildren();
+	}
+
+	@Override
+	public boolean hasChildren( String childId ) {
+		return getLinkedValue().hasChildren( childId );
+	}
+
+	@Override
+	public void refCopy( Value value ) {
+		getLinkedValue().refCopy( value );
+	}
+
+	@Override
+	public void setValueObject( Object object ) {
+		getLinkedValue().setValueObject( object );
+	}
+
+	@Override
+	public void erase() {
+		getLinkedValue().erase();
+	}
+
+	@Override
+	public ValueLink clone() {
+		return new ValueLink( linkPath );
+	}
+
+	@Override
+	public void deepCopy( Value value, boolean copyLinks ) {
+		getLinkedValue().deepCopy( value, copyLinks );
+	}
+
+	@Override
+	public Map< String, ValueVector > children() {
+		return getLinkedValue().children();
+	}
+
+	@Override
+	public Object valueObject() {
+		return getLinkedValue().valueObject();
+	}
+
+	public ValueLink( VariablePath path ) {
+		assert (path != null);
+		linkPath = path;
+	}
+
+	@Override
+	public boolean isLink() {
+		return true;
+	}
+
+	@Override
+	public boolean isEqualTo( Value v ) {
+		return this.getLinkedValue().isEqualTo( v );
+	}
+}
+
+
+class ValueImpl extends AbstractValue implements Cloneable, Serializable {
+	private static final long serialVersionUID = 1L;
+
+	private volatile Object valueObject = null;
+	private final AtomicReference< Map< String, ValueVector > > children = new AtomicReference<>();
+
+	@Override
+	public void setValueObject( Object object ) {
+		valueObject = object;
+	}
+
+	@Override
+	public Value resolveLinks() {
+		if( children.get() == null ) {
+			return this;
+		}
+
+		children.getAndUpdate( childrenMap -> {
+			childrenMap.keySet().forEach( key -> childrenMap.compute( key, ( k, vec ) -> vec.resolveLinks() ) );
+			return childrenMap;
+		} );
+		return this;
+	}
+
+	@Override
+	public ValueVector getChildren( String childId ) {
+		return children().computeIfAbsent( childId, k -> ValueVector.create() );
+	}
+
+	@Override
+	public ValueImpl clone() {
+		ValueImpl ret = new ValueImpl();
+		ret.deepCopy( this, true );
+		return ret;
+	}
+
+	@Override
+	public void refCopy( Value value ) {
+		setValueObject( value.valueObject() );
+		this.children.set( value.children() );
+	}
+
+	@Override
+	public final Value evaluate() {
+		return this;
+	}
+
+	@Override
+	public void erase() {
+		valueObject = null;
+		children.set( null );
+	}
+
+	protected ValueImpl() {}
+
+	@Override
+	public boolean isLink() {
+		return false;
+	}
+
+	@Override
+	public boolean hasChildren() {
+		Map< String, ValueVector > c = children.get();
+		return (c != null && !c.isEmpty());
+	}
+
+	@Override
+	public boolean hasChildren( String childId ) {
+		Map< String, ValueVector > c = children.get();
+		return (c != null && c.containsKey( childId ));
+	}
+
+	@Override
+	public void deepCopy( Value other, boolean copyLinks ) {
+		/**
+		 * TODO: check if a << b | b << a can generate deadlocks
+		 */
+		assignValue( other );
+
+		if( other.hasChildren() ) {
+			int i;
+			ValueImpl newValue;
+			Map< String, ValueVector > myChildren = children();
+			for( Entry< String, ValueVector > entry : other.children().entrySet() ) {
+				if( copyLinks && entry.getValue().isLink() ) {
+					myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
+				} else {
+					List< Value > otherVector = entry.getValue().valuesCopy();
+					ValueVector vec = getChildren( entry.getKey(), myChildren );
+					i = 0;
+					for( Value v : otherVector ) {
+						if( copyLinks && v.isLink() ) {
+							vec.set( i, ((ValueLink) v).clone() );
+						} else {
+							newValue = (v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl());
+							newValue.deepCopy( v, copyLinks );
+							vec.set( i, newValue );
+						}
+						i++;
+					}
+				}
+			}
+		}
+	}
+
+	private static ValueVector getChildren( String childId, Map< String, ValueVector > children ) {
+		return children.computeIfAbsent( childId, k -> ValueVector.create() );
+	}
+
+	private final static int INITIAL_CAPACITY = 8;
+	private final static float LOAD_FACTOR = 0.75f;
+
+	@Override
+	public Map< String, ValueVector > children() {
+		// Create the map if not present
+		children.getAndUpdate( v -> v == null ? new ConcurrentHashMap<>( INITIAL_CAPACITY, LOAD_FACTOR ) : v );
+		return children.get();
+	}
+
+	@Override
+	public Object valueObject() {
+		return valueObject;
+	}
+
+	protected ValueImpl( Object object ) {
+		valueObject = object;
+	}
+
+	public ValueImpl( Value val ) {
+		valueObject = val.valueObject();
+	}
+
+	@Override
+	public boolean isEqualTo( Value v ) {
+		return this.equals( v );
+	}
+}
+
+
+/** TODO: remove code duplication from ValueImpl */
+class RootValueImpl extends AbstractValue implements Cloneable {
+	private final static int INITIAL_CAPACITY = 8;
+	private final static float LOAD_FACTOR = 0.75f;
+
+	private final Map< String, ValueVector > children =
+		new ConcurrentHashMap<>( INITIAL_CAPACITY, LOAD_FACTOR );
+
+	@Override
+	public Value resolveLinks() {
+		throw new UnsupportedOperationException( "resolveLinks should not be called on a root value" );
+	}
+
+	@Override
+	public RootValueImpl clone() {
+		RootValueImpl ret = new RootValueImpl();
+		ret.deepCopy( this, true );
+		return ret;
+	}
+
+	@Override
+	public void setValueObject( Object object ) {}
+
+	public void refCopy( Value value ) {}
+
+	@Override
+	public ValueVector getChildren( String childId ) {
+		return children.computeIfAbsent( childId, k -> ValueVector.create() );
+	}
+
+	@Override
+	public final Value evaluate() {
+		return this;
+	}
+
+	@Override
+	public void erase() {
+		children.clear();
+	}
+
+	@Override
+	public boolean isLink() {
+		return false;
+	}
+
+	@Override
+	public final Map< String, ValueVector > children() {
+		return children;
+	}
+
+	@Override
+	public boolean hasChildren() {
+		return children.isEmpty() == false;
+	}
+
+	@Override
+	public boolean hasChildren( String childId ) {
+		return children.containsKey( childId );
+	}
+
+	@Override
+	public void deepCopy( Value value, boolean copyLinks ) {
+		if( value.hasChildren() ) {
+			int i;
+			ValueImpl newValue;
+			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+				if( copyLinks && entry.getValue().isLink() ) {
+					children.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
+				} else {
+					List< Value > otherVector = entry.getValue().valuesCopy();
+					ValueVector vec = getChildren( entry.getKey(), children );
+					i = 0;
+					for( Value v : otherVector ) {
+						if( copyLinks && v.isLink() ) {
+							vec.set( i, ((ValueLink) v).clone() );
+						} else {
+							newValue = (v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl());
+							newValue.deepCopy( v, copyLinks );
+							vec.set( i, newValue );
+						}
+						i++;
+					}
+				}
+			}
+		}
+	}
+
+	private static ValueVector getChildren( String childId, Map< String, ValueVector > children ) {
+		return children.computeIfAbsent( childId, k -> ValueVector.create() );
+	}
+
+	@Override
+	public Object valueObject() {
+		return null;
+	}
+
+	@Override
+	public boolean isEqualTo( Value v ) {
+		return this.equals( v );
+	}
+}
+
+
+class CSetValue extends ValueImpl {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
+	// @Override
+	// public void setValueObject( Object object ) {
+	// // CommCore commCore = Interpreter.getInstance().commCore();
+	// // synchronized( commCore.correlationLock() )
+	// // removeFromRadixTree();
+	// super.setValueObject( object );
+	// // addToRadixTree();
+	// // }
+	// }
+
+	@Override
+	public CSetValue clone() {
+		CSetValue ret = new CSetValue();
+		ret.deepCopy( this, true );
+		return ret;
+	}
+
+	@Override
+	public boolean isUsedInCorrelation() {
+		return true;
+	}
+}
+
