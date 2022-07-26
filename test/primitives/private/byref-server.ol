@@ -17,17 +17,47 @@
  * MA 02110-1301  USA
  */
 
+from runtime import Runtime
+
+interface ByRefServerInterface {
+RequestResponse: run, sumNodes
+}
+
 service ByRefServer {
-	execution: sequential
+	execution: concurrent
+
+	embed Runtime as runtime
 	
 	inputPort Input {
 		location: "local"
-		RequestResponse: run
+		interfaces: ByRefServerInterface
+	}
+
+	outputPort self {
+		interfaces: ByRefServerInterface
+	}
+
+	init {
+		getLocalLocation@runtime()( self.location )
 	}
 
 	main {
-		run( request )() {
+		[ run( request )() {
 			request.x = 3
-		}
+		} ]
+
+		[ sumNodes( request )( &response ) {
+			response.result =
+				if( request instanceof int { ? } ) request
+				else 0
+
+			response.data = {}
+
+			foreach( k : request ) {
+				sumNodes@self( &request.(k) )( nodeResponse )
+				response.result += nodeResponse.result
+				response.data.(k) << &nodeResponse.data
+			}
+		} ]
 	}
 }

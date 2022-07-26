@@ -20,6 +20,7 @@
 from ..test-unit import TestUnitInterface
 from .private.byref-server import ByRefServer
 from .private.quicksort import Quicksort
+from values import Values
 
 service Test {
 	inputPort TestUnitInput {
@@ -29,6 +30,7 @@ service Test {
 
 	embed ByRefServer as byRefServer
 	embed Quicksort as quicksort
+	embed Values as values
 
 	main {
 		test()() {
@@ -50,6 +52,23 @@ service Test {
 			run@byRefServer( request )()
 			if( request.x != 1 )
 				throw( TestFailed, "passing a copy exposed a side-effect" )
+			undef( request )
+			
+			request << {
+				a = 1
+				b = 3
+				c << {
+					c1 = 5
+					c2 = 2
+				}
+			}
+			originalRequest << request
+			sumNodes@byRefServer( &request )( response )
+			if( !equals@values( { fst << originalRequest, snd << response.data } ) )
+				throw( TestFailed, "read-only navigation of a tree modified the tree" )
+			
+			if( response.result != 11 )
+				throw( TestFailed, "wrong result in read-only tree navigation (expected 11, got " + response.result + ")" )
 			
 			// Create a reverse ordered vector
 			for( i = 0, i < 100, i++ ) {
