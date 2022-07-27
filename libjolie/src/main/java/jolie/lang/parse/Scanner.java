@@ -64,6 +64,7 @@ public class Scanner {
 		ASTERISK,			///< *
 		DIVIDE,				///< /
 		ASSIGN,				///< =
+		DEEP_ASSIGN,		///< :=
 		PLUS,				///< +
 		ADD_ASSIGN,			///< +=
 		MINUS_ASSIGN,		///< -=
@@ -802,6 +803,7 @@ public class Scanner {
 		STRING,
 		PLUS_or_CHOICE,
 		MULTIPLY_or_MULTIPLY_ASSIGN,
+		COLON_or_DEEP_ASSIGN,
 		ASSIGN_or_EQUAL,
 		PARALLEL_or_LOGIC_OR,
 		LOGIC_AND,
@@ -872,6 +874,8 @@ public class Scanner {
 						state = State.MULTIPLY_or_MULTIPLY_ASSIGN;
 					} else if ( ch == '=' ) {
 						state = State.ASSIGN_or_EQUAL;
+					} else if ( ch == ':' ) {
+						state = State.COLON_or_DEEP_ASSIGN;
 					} else if ( ch == '|' ) {
 						state = State.PARALLEL_or_LOGIC_OR;
 					} else if ( ch == '&' ) {
@@ -903,8 +907,6 @@ public class Scanner {
 							retval = new Token( TokenType.RCURLY );
 						} else if ( ch == '@' ) {
 							retval = new Token( TokenType.AT, "@" );
-						} else if ( ch == ':' ) {
-							retval = new Token( TokenType.COLON );
 						} else if ( ch == ',' ) {
 							retval = new Token( TokenType.COMMA );
 						} else if ( ch == ';' ) {
@@ -1001,6 +1003,14 @@ public class Scanner {
 						readChar();
 					} else {
 						retval = new Token( TokenType.ASTERISK, "*" );
+					}
+					break;
+				case COLON_or_DEEP_ASSIGN:
+					if( ch == '=' ) {
+						retval = new Token( TokenType.DEEP_ASSIGN );
+						readChar();
+					} else {
+						retval = new Token( TokenType.COLON );
 					}
 					break;
 				case ASSIGN_or_EQUAL: // ASSIGN OR EQUAL
