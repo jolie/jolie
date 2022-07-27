@@ -5,7 +5,7 @@ import jolie.runtime.Value;
 
 public class AssignmentTraceAction implements TraceAction {
 	public enum Type {
-		ASSIGNMENT, POINTER, DEEPCOPY
+		ASSIGNMENT, POINTER, DEEP_COPY, DEEP_ASSIGN
 	}
 
 	private final Type type;

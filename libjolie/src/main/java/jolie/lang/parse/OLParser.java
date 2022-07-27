@@ -20,6 +20,30 @@
 
 package jolie.lang.parse;
 
+import jolie.lang.Constants;
+import jolie.lang.Constants.EmbeddedServiceType;
+import jolie.lang.Keywords;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
+import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
+import jolie.lang.parse.ast.VariablePathNode.Type;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
+import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.types.*;
+import jolie.lang.parse.ast.types.refinements.*;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.util.ProgramBuilder;
+import jolie.util.Helpers;
+import jolie.util.Pair;
+import jolie.util.Range;
+import jolie.util.UriUtils;
+
 import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -28,115 +52,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.nio.file.*;
+import java.util.*;
 import java.util.stream.Collectors;
-
-//import jolie.lang.CodeCheckMessage;
-import jolie.lang.Constants;
-import jolie.lang.Keywords;
-import jolie.lang.Constants.EmbeddedServiceType;
-import jolie.lang.NativeType;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
-import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
-import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.EmbedServiceNode;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachArrayItemStatement;
-import jolie.lang.parse.ast.ForEachSubNodeStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.ImportStatement;
-import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallFunctionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationCollector;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PortInfo;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.Scope;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.ServiceNode;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.ast.VariablePathNode.Type;
-import jolie.lang.parse.ast.WhileStatement;
-import jolie.lang.parse.ast.courier.CourierChoiceStatement;
-import jolie.lang.parse.ast.courier.CourierDefinitionNode;
-import jolie.lang.parse.ast.courier.NotificationForwardStatement;
-import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.*;
-import jolie.lang.parse.ast.types.BasicTypeDefinition;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementDoubleRanges;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementIntegerRanges;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementLongRanges;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringLength;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringList;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringRegex;
-import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
-import jolie.lang.parse.util.ProgramBuilder;
-import jolie.util.Helpers;
-import jolie.util.Pair;
-import jolie.util.Range;
-import jolie.util.UriUtils;
 
 /**
  * Parser for a .ol file.
@@ -2366,13 +2284,12 @@ public class OLParser extends AbstractParser {
 			String id = token.content();
 			nextToken();
 
-			if( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT )
-				|| token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN )
-				|| token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN )
-				|| token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO )
-				|| token.is( Scanner.TokenType.DEEP_COPY_LEFT )
-				|| token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) || token.is( Scanner.TokenType.DECREMENT )
-				|| token.is( Scanner.TokenType.INCREMENT ) ) {
+			if( token.isAny( Scanner.TokenType.LSQUARE, Scanner.TokenType.DOT,
+				Scanner.TokenType.ASSIGN, Scanner.TokenType.ADD_ASSIGN, Scanner.TokenType.MINUS_ASSIGN,
+				Scanner.TokenType.MULTIPLY_ASSIGN, Scanner.TokenType.DIVIDE_ASSIGN, Scanner.TokenType.POINTS_TO,
+				Scanner.TokenType.DEEP_COPY_LEFT,
+				Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT, Scanner.TokenType.DECREMENT,
+				Scanner.TokenType.INCREMENT, Scanner.TokenType.DEEP_ASSIGN ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
 			} else if( id.equals( "forward" )
 				&& (token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN )) ) {
@@ -2782,48 +2699,66 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		OLSyntaxNode retVal = null;
 
-		if( token.is( Scanner.TokenType.ASSIGN ) ) {
+		switch( token.type() ) {
+		case ASSIGN:
 			nextToken();
 			retVal =
 				new AssignStatement( getContext(), path, parseExpression() );
-		} else if( token.is( Scanner.TokenType.ADD_ASSIGN ) ) {
+			break;
+		case DEEP_ASSIGN:
+			nextToken();
+			retVal = new DeepAssignStatement( getContext(), path, parseExpression() );
+			break;
+		case ADD_ASSIGN:
 			nextToken();
 			retVal =
 				new AddAssignStatement( getContext(), path, parseExpression() );
-		} else if( token.is( Scanner.TokenType.MINUS_ASSIGN ) ) {
+			break;
+		case MINUS_ASSIGN:
 			nextToken();
 			retVal =
 				new SubtractAssignStatement( getContext(), path, parseExpression() );
-		} else if( token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) ) {
+			break;
+		case MULTIPLY_ASSIGN:
 			nextToken();
 			retVal =
 				new MultiplyAssignStatement( getContext(), path, parseExpression() );
-		} else if( token.is( Scanner.TokenType.DIVIDE_ASSIGN ) ) {
+			break;
+		case DIVIDE_ASSIGN:
 			nextToken();
 			retVal =
 				new DivideAssignStatement( getContext(), path, parseExpression() );
-		} else if( token.is( Scanner.TokenType.INCREMENT ) ) {
+			break;
+		case INCREMENT:
 			nextToken();
 			retVal =
 				new PostIncrementStatement( getContext(), path );
-		} else if( token.is( Scanner.TokenType.DECREMENT ) ) {
+			break;
+		case DECREMENT:
 			nextToken();
 			retVal =
 				new PostDecrementStatement( getContext(), path );
-		} else if( token.is( Scanner.TokenType.POINTS_TO ) ) {
+			break;
+		case POINTS_TO:
 			nextToken();
 			retVal =
 				new PointerStatement( getContext(), path, parseVariablePath() );
-		} else if( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
+			break;
+		case DEEP_COPY_LEFT: {
 			ParsingContext context = getContext();
 			nextToken();
 			retVal = new DeepCopyStatement( context, path, parseExpression(), false );
-		} else if( token.is( Scanner.TokenType.DEEP_COPY_WITH_LINKS_LEFT ) ) {
+		}
+			break;
+		case DEEP_COPY_WITH_LINKS_LEFT: {
 			ParsingContext context = getContext();
 			nextToken();
 			retVal = new DeepCopyStatement( context, path, parseExpression(), true );
-		} else {
-			throwException( "expected = or -> or << or -- or ++" );
+		}
+			break;
+		default:
+			throwException( "expected an operator like = or := or -> or << or -- or ++" );
+			break;
 		}
 
 		return retVal;
@@ -3553,20 +3488,24 @@ public class OLParser extends AbstractParser {
 
 			InlineTreeExpressionNode.Operation operation = null;
 			switch( token.type() ) {
-			case DEEP_COPY_LEFT:
-				nextToken();
-				operation = new InlineTreeExpressionNode.DeepCopyOperation( path, parseExpression() );
-				break;
 			case ASSIGN:
 				nextToken();
 				operation = new InlineTreeExpressionNode.AssignmentOperation( path, parseExpression() );
+				break;
+			case DEEP_ASSIGN:
+				nextToken();
+				operation = new InlineTreeExpressionNode.DeepAssignmentOperation( path, parseExpression() );
 				break;
 			case POINTS_TO:
 				nextToken();
 				operation = new InlineTreeExpressionNode.PointsToOperation( path, parseVariablePath() );
 				break;
+			case DEEP_COPY_LEFT:
+				nextToken();
+				operation = new InlineTreeExpressionNode.DeepCopyOperation( path, parseExpression() );
+				break;
 			default:
-				throwException( "expected =, <<, or ->" );
+				throwException( "expected =, :=, or ->" );
 				break;
 			}
 

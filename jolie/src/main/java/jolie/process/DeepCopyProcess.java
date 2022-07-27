@@ -70,7 +70,7 @@ public class DeepCopyProcess implements Process {
 		final Tracer tracer = Interpreter.getInstance().tracer();
 
 		tracer.trace( () -> new AssignmentTraceAction(
-			AssignmentTraceAction.Type.DEEPCOPY,
+			AssignmentTraceAction.Type.DEEP_COPY,
 			"COPIED",
 			null,
 			leftPath.getValue( ExecutionThread.currentThread().state().root().clone() ),

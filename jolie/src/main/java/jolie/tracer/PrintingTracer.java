@@ -162,7 +162,7 @@ public class PrintingTracer implements Tracer {
 			case POINTER:
 				stBuilder.append( ":: POINTER" );
 				break;
-			case DEEPCOPY:
+			case DEEP_COPY:
 				stBuilder.append( ":: DEEPCOPY" );
 				break;
 			default:

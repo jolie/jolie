@@ -310,9 +310,18 @@ public class Scanner {
 		 * @param compareType the type to compare the type of this token with
 		 * @return <code>true</code> if this token has the passed type, <code>false</code> otherwise
 		 */
-		public boolean is( TokenType compareType )
-		{
+		public boolean is( TokenType compareType ) {
 			return type == compareType;
+		}
+
+		public boolean isAny( TokenType... compareTypes ) {
+			for( TokenType type : compareTypes ) {
+				if( is( type ) ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/**

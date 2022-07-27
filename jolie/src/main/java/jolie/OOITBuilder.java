@@ -20,14 +20,14 @@
 package jolie;
 
 import jolie.lang.Constants;
-import jolie.lang.Keywords;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
+import jolie.lang.Keywords;
 import jolie.lang.parse.CorrelationFunctionInfo;
 import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.OLParser;
-import jolie.lang.parse.UnitOLVisitor;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.UnitOLVisitor;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
 import jolie.lang.parse.ast.ServiceNode.ParameterConfiguration;
@@ -59,11 +59,7 @@ import jolie.runtime.embedding.EmbeddedServiceLoader.EmbeddedServiceConfiguratio
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.expression.*;
 import jolie.runtime.expression.Expression.Operand;
-import jolie.runtime.typing.BasicType;
-import jolie.runtime.typing.OneWayTypeDescription;
-import jolie.runtime.typing.RequestResponseTypeDescription;
-import jolie.runtime.typing.Type;
-import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.typing.*;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
@@ -925,6 +921,11 @@ public class OOITBuilder implements UnitOLVisitor {
 				currExpression, n.context() );
 		currProcess = p;
 		currExpression = p;
+	}
+
+	public void visit( DeepAssignStatement n ) {
+		currProcess =
+			new DeepAssignProcess( buildVariablePath( n.path() ), buildExpression( n.expression() ), n.context() );
 	}
 
 	public void visit( AddAssignStatement n ) {

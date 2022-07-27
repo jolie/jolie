@@ -206,7 +206,7 @@ public class FileTracer implements Tracer {
 			case POINTER:
 				stBuilder.append( "\"" ).append( "alias" ).append( "\"," );
 				break;
-			case DEEPCOPY:
+			case DEEP_COPY:
 				stBuilder.append( "\"" ).append( "dcopy" ).append( "\"," );
 				break;
 			default:

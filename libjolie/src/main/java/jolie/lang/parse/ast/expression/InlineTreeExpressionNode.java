@@ -67,6 +67,24 @@ public class InlineTreeExpressionNode extends OLSyntaxNode {
 		}
 	}
 
+	public static class DeepAssignmentOperation implements Operation, Serializable {
+		private final VariablePathNode path;
+		private final OLSyntaxNode expression;
+
+		public DeepAssignmentOperation( VariablePathNode path, OLSyntaxNode expression ) {
+			this.path = path;
+			this.expression = expression;
+		}
+
+		public VariablePathNode path() {
+			return path;
+		}
+
+		public OLSyntaxNode expression() {
+			return expression;
+		}
+	}
+
 	public static class PointsToOperation implements Operation, Serializable {
 		private final VariablePathNode path;
 		private final VariablePathNode target;

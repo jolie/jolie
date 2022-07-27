@@ -19,77 +19,15 @@
 
 package jolie.lang.parse.module;
 
-import java.net.URI;
-import java.util.*;
-
 import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.UnitOLVisitor;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.DocumentationComment;
-import jolie.lang.parse.ast.EmbedServiceNode;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachArrayItemStatement;
-import jolie.lang.parse.ast.ForEachSubNodeStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.ImportStatement;
 import jolie.lang.parse.ast.ImportableSymbol.AccessModifier;
-import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InputPortInfo.AggregationItemInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.RunStatement;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.ServiceNode;
-import jolie.lang.parse.ast.ServiceNodeJava;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement.InterfaceOneWayBranch;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement.InterfaceRequestResponseBranch;
@@ -100,11 +38,7 @@ import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode.Operation;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.module.ModuleCrawler.CrawlerResult;
 import jolie.lang.parse.module.SymbolInfo.Scope;
@@ -112,6 +46,9 @@ import jolie.lang.parse.module.exceptions.DuplicateSymbolException;
 import jolie.lang.parse.module.exceptions.IllegalAccessSymbolException;
 import jolie.lang.parse.module.exceptions.SymbolNotFoundException;
 import jolie.util.Pair;
+
+import java.net.URI;
+import java.util.*;
 
 public class SymbolReferenceResolver {
 	private static CodeCheckMessage buildSymbolNotFoundError( OLSyntaxNode node, String name ) {
@@ -256,27 +193,32 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( AssignStatement n ) {
-			n.expression().accept( this );
+			go( n.expression() );
+		}
+
+		@Override
+		public void visit( DeepAssignStatement n ) {
+			go( n.expression() );
 		}
 
 		@Override
 		public void visit( AddAssignStatement n ) {
-			n.expression().accept( this );
+			go( n.expression() );
 		}
 
 		@Override
 		public void visit( SubtractAssignStatement n ) {
-			n.expression().accept( this );
+			go( n.expression() );
 		}
 
 		@Override
 		public void visit( MultiplyAssignStatement n ) {
-			n.expression().accept( this );
+			go( n.expression() );
 		}
 
 		@Override
 		public void visit( DivideAssignStatement n ) {
-			n.expression().accept( this );
+			go( n.expression() );
 		}
 
 		@Override
@@ -315,7 +257,7 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( NotExpressionNode n ) {
-			n.expression().accept( this );
+			go( n.expression() );
 		}
 
 		@Override
@@ -377,7 +319,7 @@ public class SymbolReferenceResolver {
 		@Override
 		public void visit( ThrowStatement n ) {
 			if( n.expression() != null ) {
-				n.expression().accept( this );
+				go( n.expression() );
 			}
 		}
 
