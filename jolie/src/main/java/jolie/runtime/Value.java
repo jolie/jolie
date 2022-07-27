@@ -460,6 +460,11 @@ public abstract class Value implements Expression, Cloneable {
 		deepCopy( other );
 	}
 
+	public final void deepAssignWithLinks( Value other ) {
+		children().clear();
+		deepCopyWithLinks( other );
+	}
+
 	public final void deepCopyWithLinks( Value value ) {
 		_deepCopy( value, true );
 	}

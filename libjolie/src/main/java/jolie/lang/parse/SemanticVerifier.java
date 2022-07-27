@@ -1097,7 +1097,8 @@ public class SemanticVerifier implements UnitOLVisitor {
 				go( op.path() );
 				go( op.target() );
 			} else {
-				error( n, "incomplete case analysis for InlineTreeExpressionNode.Operation (" + n.getClass() + ")" );
+				error( n,
+					"incomplete case analysis for InlineTreeExpressionNode.Operation (" + operation.getClass() + ")" );
 			}
 		}
 	}

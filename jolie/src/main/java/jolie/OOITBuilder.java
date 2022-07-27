@@ -1227,6 +1227,12 @@ public class OOITBuilder implements UnitOLVisitor {
 			return new InlineTreeExpression.AssignmentOperation(
 				buildVariablePath( op.path() ),
 				buildExpression( op.expression() ) );
+		} else if( operation instanceof InlineTreeExpressionNode.DeepAssignmentOperation ) {
+			InlineTreeExpressionNode.DeepAssignmentOperation op =
+				(InlineTreeExpressionNode.DeepAssignmentOperation) operation;
+			return new InlineTreeExpression.DeepAssignmentOperation(
+				buildVariablePath( op.path() ),
+				buildExpression( op.expression() ) );
 		} else if( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
 			InlineTreeExpressionNode.DeepCopyOperation op = (InlineTreeExpressionNode.DeepCopyOperation) operation;
 			return new InlineTreeExpression.DeepCopyOperation(

@@ -813,6 +813,12 @@ public class OLParseTreeOptimizer {
 					operations[ i++ ] = new InlineTreeExpressionNode.AssignmentOperation(
 						optimizePath( op.path() ),
 						optimizeNode( op.expression() ) );
+				} else if( operation instanceof InlineTreeExpressionNode.DeepAssignmentOperation ) {
+					InlineTreeExpressionNode.DeepAssignmentOperation op =
+						(InlineTreeExpressionNode.DeepAssignmentOperation) operation;
+					operations[ i++ ] = new InlineTreeExpressionNode.DeepAssignmentOperation(
+						optimizePath( op.path() ),
+						optimizeNode( op.expression() ) );
 				} else if( operation instanceof InlineTreeExpressionNode.DeepCopyOperation ) {
 					InlineTreeExpressionNode.DeepCopyOperation op =
 						(InlineTreeExpressionNode.DeepCopyOperation) operation;

@@ -71,6 +71,26 @@ public class InlineTreeExpression implements Expression {
 		}
 	}
 
+	public static class DeepAssignmentOperation implements Operation {
+		private final VariablePath path;
+		private final Expression expression;
+
+		public DeepAssignmentOperation( VariablePath path, Expression expression ) {
+			this.path = path;
+			this.expression = expression;
+		}
+
+		@Override
+		public Operation cloneOperation( TransformationReason reason ) {
+			return new DeepAssignmentOperation( path.copy(), expression.cloneExpression( reason ) );
+		}
+
+		@Override
+		public void run( Value inlineValue ) {
+			path.getValue( inlineValue ).deepAssignWithLinks( expression.evaluate() );
+		}
+	}
+
 	public static class AssignmentOperation implements Operation {
 		private final VariablePath path;
 		private final Expression expression;
