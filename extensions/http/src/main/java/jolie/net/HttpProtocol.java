@@ -751,7 +751,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if( qsFormat.equals( "json" ) ) {
 				send_appendJsonQueryString( message, headerBuilder );
 			} else {
-				send_appendQuerystring( message.value(), headerBuilder, message );
+				send_appendQuerystring( message.value().clone(), headerBuilder, message );
 			}
 		}
 	}
