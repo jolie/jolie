@@ -85,8 +85,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * HTTP protocol implementation
@@ -360,28 +362,31 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendQuerystring( Value value, StringBuilder headerBuilder, CommMessage message )
 		throws IOException {
-		getOperationSpecificParameterFirstValue( message.operationName(),
-			Parameters.OUTGOING_HEADERS ).children()
-				.forEach( ( headerName, headerValues ) -> value.children().remove( headerValues.get( 0 ).strValue() ) );
+		// get parameter for headers
+		List< String > headerParameters =
+			getOperationSpecificParameterFirstValue( message.operationName(),
+				Parameters.OUTGOING_HEADERS ).children().values().stream().map( (vv -> vv.get( 0 ).strValue()) )
+					.collect( Collectors.toList() );
 
 		if( value.hasChildren() ) {
+			StringJoiner sj = new StringJoiner( "&" );
+
 			headerBuilder.append( '?' );
 			Iterator< Entry< String, ValueVector > > nodesIt = value.children().entrySet().iterator();
 			while( nodesIt.hasNext() ) {
 				Entry< String, ValueVector > entry = nodesIt.next();
+				if( headerParameters.contains( entry.getKey() ) ) {
+					// skip value declared for headers, do not append it to query string
+					continue;
+				}
 				Iterator< Value > vecIt = entry.getValue().iterator();
 				while( vecIt.hasNext() ) {
 					Value v = vecIt.next();
-					headerBuilder
-						.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
-						.append( '=' )
-						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
-
-					if( vecIt.hasNext() || nodesIt.hasNext() ) {
-						headerBuilder.append( '&' );
-					}
+					sj.add( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) + "="
+						+ URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
 				}
 			}
+			headerBuilder.append( sj.toString() );
 		}
 	}
 
@@ -751,7 +756,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if( qsFormat.equals( "json" ) ) {
 				send_appendJsonQueryString( message, headerBuilder );
 			} else {
-				send_appendQuerystring( message.value().clone(), headerBuilder, message );
+				send_appendQuerystring( message.value(), headerBuilder, message );
 			}
 		}
 	}
