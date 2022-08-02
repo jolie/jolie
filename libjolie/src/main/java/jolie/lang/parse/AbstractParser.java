@@ -700,7 +700,7 @@ public abstract class AbstractParser {
 			if( mesg.contains( "unexpected term found inside service" ) && token.content().isEmpty() ) {
 				// if the service does not have an ending curlybracket
 				extralines = getWholeScope( scopeName, scope );
-				int columnNumber = extralines.get( extralines.size() - 1 ).length() - 1;
+				int columnNumber = (!extralines.isEmpty()) ? extralines.get( extralines.size() - 1 ).length() - 1 : 0;
 				context =
 					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 						columnNumber, extralines );
