@@ -21,7 +21,6 @@
 
 package jolie.lang.parse.ast;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +32,7 @@ import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 
-public class VariablePathNode extends OLSyntaxNode implements Serializable {
+public class VariablePathNode extends OLSyntaxNode {
 	public enum Type {
 		NORMAL, GLOBAL, CSET
 	}
