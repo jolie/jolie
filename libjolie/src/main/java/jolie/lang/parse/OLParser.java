@@ -2715,6 +2715,7 @@ public class OLParser extends AbstractParser {
 		return retVal;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private Optional< InstallFunctionNode > parseInstallFunction( boolean hadNewLine )
 		throws IOException, ParserException {
 		/*
