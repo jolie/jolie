@@ -29,11 +29,17 @@ import java.io.Writer;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import jolie.runtime.*;
+import java.util.stream.Collectors;
+import org.apache.commons.text.StringSubstitutor;
+import jolie.runtime.FaultException;
+import jolie.runtime.JavaService;
+import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
+import jolie.runtime.ValueVector;
 
 public class StringUtils extends JavaService {
 	public Integer length( String request ) {
@@ -344,5 +350,13 @@ public class StringUtils extends JavaService {
 		} catch( UnsupportedEncodingException e ) {
 			throw new FaultException( "UnsupportedEncodingException" );
 		}
+	}
+
+	public String sub( Value request ) {
+		Map< String, String > valuesMap =
+			request.children().entrySet().stream()
+				.filter( entry -> !entry.getValue().isEmpty() )
+				.collect( Collectors.toMap( entry -> entry.getKey(), entry -> entry.getValue().first().strValue() ) );
+		return new StringSubstitutor( valuesMap ).replace( request.strValue() );
 	}
 }

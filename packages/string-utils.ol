@@ -88,6 +88,8 @@ type UrlEncodeRequest: string {
 
 type UrlDecodeRequest: UrlEncodeRequest
 
+type RenderRequest: string { ? }
+
 /**!
  * An interface for supporting string manipulation operations.
  */
@@ -130,7 +132,9 @@ RequestResponse:
 	* checks if the passed string starts with a given prefix
 	*/
 	startsWith(StartsWithRequest)( bool ),
-	valueToPrettyString(undefined)(string)
+	valueToPrettyString(undefined)(string),
+
+	render( RenderRequest )( string )
 }
 
 
