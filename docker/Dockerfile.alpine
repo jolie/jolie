@@ -43,5 +43,5 @@ WORKDIR /
 COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
 RUN apk add --update zip \
     && java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
-    && rm jolie-installer.jar
+    && rm jolie-installer.jar && rm -rf /tmp/*
 ENV JOLIE_HOME /usr/lib/jolie

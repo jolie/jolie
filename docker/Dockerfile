@@ -43,5 +43,5 @@ WORKDIR /
 COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
 RUN apt-get update && apt-get install -y unzip \
     && java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
-    && rm jolie-installer.jar
+    && rm jolie-installer.jar && rm -rf /tmp/*
 ENV JOLIE_HOME /usr/lib/jolie
