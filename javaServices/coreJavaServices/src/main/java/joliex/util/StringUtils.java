@@ -35,12 +35,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 
+@AndJarDeps( { "commons-text.jar", "commons-lang3.jar" } )
 public class StringUtils extends JavaService {
 	public Integer length( String request ) {
 		return request.length();
@@ -352,7 +354,7 @@ public class StringUtils extends JavaService {
 		}
 	}
 
-	public String sub( Value request ) {
+	public String ip( Value request ) {
 		Map< String, String > valuesMap =
 			request.children().entrySet().stream()
 				.filter( entry -> !entry.getValue().isEmpty() )

@@ -88,7 +88,7 @@ type UrlEncodeRequest: string {
 
 type UrlDecodeRequest: UrlEncodeRequest
 
-type RenderRequest: string { ? }
+type InterpolationRequest: string { ? }
 
 /**!
  * An interface for supporting string manipulation operations.
@@ -134,7 +134,10 @@ RequestResponse:
 	startsWith(StartsWithRequest)( bool ),
 	valueToPrettyString(undefined)(string),
 
-	render( RenderRequest )( string )
+	/**! Interpolates a string.
+	* For example, a request value "Hello ${name}" { name = "Homer" } is transformed into "Hello Homer"
+	*/
+	ip( InterpolationRequest )( string )
 }
 
 
