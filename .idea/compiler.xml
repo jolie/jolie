@@ -44,12 +44,12 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="auto" target="1.8" />
-      <module name="btl2cap" target="1.8" />
+      <module name="auto" target="11" />
+      <module name="btl2cap" target="11" />
       <module name="build-tools" target="1.5" />
       <module name="coreJavaServices" target="11" />
       <module name="distribution" target="1.5" />
-      <module name="http" target="1.8" />
+      <module name="http" target="11" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
       <module name="jolie" target="11" />
@@ -68,7 +68,7 @@
       <module name="jolie2wsdl" target="1.8" />
       <module name="joliec" target="1.8" />
       <module name="jsonrpc" target="1.8" />
-      <module name="launchers" target="1.5" />
+      <module name="launchers" target="1.6" />
       <module name="libjolie" target="11" />
       <module name="local" target="1.8" />
       <module name="localsocket" target="1.8" />
