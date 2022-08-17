@@ -28,13 +28,14 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
+import org.apache.commons.text.lookup.StringLookup;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -354,11 +355,25 @@ public class StringUtils extends JavaService {
 		}
 	}
 
-	public String ip( Value request ) {
-		Map< String, String > valuesMap =
-			request.children().entrySet().stream()
-				.filter( entry -> !entry.getValue().isEmpty() )
-				.collect( Collectors.toMap( entry -> entry.getKey(), entry -> entry.getValue().first().strValue() ) );
-		return new StringSubstitutor( valuesMap ).replace( request.strValue() );
+	public String fmt( Value request ) {
+		// Map< String, String > valuesMap =
+		// request.children().entrySet().stream()
+		// .filter( entry -> !entry.getValue().isEmpty() )
+		// .collect( Collectors.toMap( entry -> entry.getKey(), entry -> entry.getValue().first().strValue()
+		// ) );
+		StringLookup lookup = key -> {
+			var keyParts = key.split( ",", 2 );
+			var varName = keyParts[ 0 ];
+			var formatting = keyParts.length > 1 ? Optional.of( keyParts[ 1 ] ) : Optional.empty();
+
+			var value = request.getFirstChild( varName );
+
+			String formattedValue =
+				formatting.isPresent() ? MessageFormat.format( "{0," + formatting.get() + "}", value.valueObject() )
+					: value.strValue();
+
+			return formattedValue;
+		};
+		return new StringSubstitutor( lookup, "{", "}", '\\' ).replace( request.strValue() );
 	}
 }

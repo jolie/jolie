@@ -19,6 +19,7 @@
 
 from ..test-unit import TestUnitInterface
 from string-utils import StringUtils
+from console import Console
 
 service Test {
 	inputPort TestUnitInput {
@@ -27,11 +28,22 @@ service Test {
 	}
 
 	embed StringUtils as su
+	embed Console as console
 
 	main {
 		test()() {
-			if( ip@su( "Hello ${name}" { name = "Homer" } ) != "Hello Homer" )
+			if( fmt@su( "Hello {name}" { name = "Homer" } ) != "Hello Homer" )
 				throw( TestFailed, "Hello Homer" )
+			
+			template = "The disk contains {files,number,integer} file(s)"
+			if( fmt@su( template { files = 0 } ) != "The disk contains 0 file(s)" )
+				throw( TestFailed, "The disk contains 0 file(s)" )
+			
+			if( fmt@su( template { files = 12312332 } ) != "The disk contains 12,312,332 file(s)" )
+				throw( TestFailed, "The disk contains 12,312,332 file(s)" )
+
+			if( fmt@su( "Up to {pct,number,percent}" { pct = 0.6 } ) != "Up to 60%" )
+				throw( TestFailed, "Up to 60%" )
 		}
 	}
 }
