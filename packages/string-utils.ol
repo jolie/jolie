@@ -134,8 +134,9 @@ RequestResponse:
 	startsWith(StartsWithRequest)( bool ),
 	valueToPrettyString(undefined)(string),
 
-	/**! Interpolates a string.
-	* For example, a request value "Hello ${name}" { name = "Homer" } is transformed into "Hello Homer"
+	/**! Formats a string.
+	* For example, a request value "Hello {name}" { name = "Homer" } is transformed into "Hello Homer"
+	* You can use formatting rules as in Java's MessageFormat, for example, "Up to {pct,number,percent}" { pct = 0.6 } becomes "Up to 60%"
 	*/
 	fmt( FormatRequest )( string )
 }

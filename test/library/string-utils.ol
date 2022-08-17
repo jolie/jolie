@@ -19,7 +19,6 @@
 
 from ..test-unit import TestUnitInterface
 from string-utils import StringUtils
-from console import Console
 
 service Test {
 	inputPort TestUnitInput {
@@ -28,7 +27,6 @@ service Test {
 	}
 
 	embed StringUtils as su
-	embed Console as console
 
 	main {
 		test()() {
