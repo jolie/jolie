@@ -142,7 +142,7 @@ public class ValuePrettyPrinter {
 
 					indent();
 					List< Boolean > l = new ArrayList<>( hasMore );
-					l.add( childrenIt.hasNext() );
+					l.add( childrenIt.hasNext() || elementsIt.hasNext() );
 					writeChildren( child, l );
 					unindent();
 
