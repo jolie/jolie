@@ -22,6 +22,7 @@
 package joliex.lang.reflection;
 
 import java.io.IOException;
+import java.util.HashMap;
 import jolie.ExecutionThread;
 import jolie.SessionListener;
 import jolie.SessionThread;
@@ -125,6 +126,33 @@ public class Reflection extends JavaService {
 				return runNotificationInvocation( operation, port, data, opDesc.asOneWayTypeDescription() );
 			}
 			throw new InvalidIdException( operation );
+		} catch( InvalidIdException e ) {
+			throw new FaultException( "OperationNotFound",
+				"Could not find operation " + operation + "@" + outputPortName );
+		} catch( InterruptedException e ) {
+			interpreter().logSevere( e );
+			throw new FaultException( new IOException( "Interrupted" ) );
+		} catch( FaultException e ) {
+			Value v = Value.create();
+			v.setFirstChild( "name", e.faultName() );
+			v.getChildren( "data" ).set( 0, e.value() );
+			throw new FaultException( "InvocationFault", v );
+		}
+	}
+
+	@RequestResponse
+	public Value invokeRRUnsafe( Value request )
+		throws FaultException {
+		final String operation = request.getFirstChild( "operation" ).strValue();
+		final String outputPortName = request.getFirstChild( "outputPort" ).strValue();
+		// final String resourcePath =
+		// (request.hasChildren( "resourcePath" )) ? request.getFirstChild( "resourcePath" ).strValue() :
+		// "/";
+		final Value data = request.getFirstChild( "data" );
+		try {
+			OutputPort port = interpreter().getOutputPort( request.getFirstChild( "outputPort" ).strValue() );
+			return runSolicitResponseInvocation( operation, port, data,
+				new RequestResponseTypeDescription( null, null, new HashMap<>() ) );
 		} catch( InvalidIdException e ) {
 			throw new FaultException( "OperationNotFound",
 				"Could not find operation " + operation + "@" + outputPortName );
