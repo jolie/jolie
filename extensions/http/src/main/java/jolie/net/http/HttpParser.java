@@ -261,7 +261,7 @@ public class HttpParser {
 
 		String p = message.getProperty( "transfer-encoding" );
 
-		if( p != null && p.startsWith( "chunked" ) ) {
+		if( p != null && p.trim().startsWith( "chunked" ) ) {
 			// Transfer-encoding has the precedence over Content-Length
 			chunked = true;
 		} else {
