@@ -145,7 +145,17 @@ class ModuleCrawler {
 			}
 
 			if( ModuleCrawler.inCache( module.uri() ) ) {
-				result.addModuleRecord( ModuleCrawler.getRecordFromCache( module.uri() ) );
+				ModuleRecord cached = ModuleCrawler.getRecordFromCache( module.uri() );
+				for( ImportedSymbolInfo importedSymbol : cached.symbolTable().importedSymbolInfos() ) {
+					if( importedSymbol.moduleSource().isPresent() ) {
+						dependencies.add( importedSymbol.moduleSource().get() );
+					} else {
+						ModuleRecord record = new ModuleParser( parserConfiguration ).parse( module );
+						result.addModuleRecord( record );
+						dependencies.addAll( crawlModule( record ) );
+					}
+				}
+				result.addModuleRecord( cached );
 			} else {
 				ModuleRecord record = new ModuleParser( parserConfiguration ).parse( module );
 				result.addModuleRecord( record );
