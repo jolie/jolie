@@ -38,7 +38,7 @@ WORKDIR /jolie-git/release-tools
 RUN jolie release.ol ..
 
 # Start from scratch, copy the installer, install, remove the installer.
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:11-jre-alpine
 WORKDIR /
 COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
 RUN apk add --update zip \
