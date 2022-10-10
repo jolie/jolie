@@ -1436,7 +1436,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if( opConfig.hasChildren( Parameters.TEMPLATE ) ) {
 				uriTemplateResult = UriUtils.match( opConfig.getFirstChild( Parameters.TEMPLATE ).strValue(), uri );
 			}
-			String opConfigMethod = opConfig.getFirstChild( Parameters.METHOD ).strValue();
+			String opConfigMethod = opConfig.firstChildOrDefault( Parameters.METHOD, Value::strValue, "" );
 
 			if( uriTemplateResult.boolValue() && message.getMethod().equalsIgnoreCase( opConfigMethod ) ) {
 				foundMatch = true;
@@ -1464,7 +1464,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private void recv_checkDefaultOp( HttpMessage message, DecodedMessage decodedMessage ) {
-		if( decodedMessage.resourcePath.equals( "/" )
+		if( "/".equals( decodedMessage.resourcePath )
 			&& !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
 			String defaultOpId = getDefaultOperation( message.type() );
 			if( defaultOpId != null ) {
