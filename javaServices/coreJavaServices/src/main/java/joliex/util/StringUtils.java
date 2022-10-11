@@ -30,6 +30,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -356,24 +357,32 @@ public class StringUtils extends JavaService {
 	}
 
 	public String fmt( Value request ) {
-		// Map< String, String > valuesMap =
-		// request.children().entrySet().stream()
-		// .filter( entry -> !entry.getValue().isEmpty() )
-		// .collect( Collectors.toMap( entry -> entry.getKey(), entry -> entry.getValue().first().strValue()
-		// ) );
+		final var hasLocale = request.valueObject() == null;
+		final var data = hasLocale ? request.getFirstChild( "data" ) : request;
+		final var format = hasLocale ? request.getFirstChild( "format" ).strValue() : request.strValue();
+
 		StringLookup lookup = key -> {
 			var keyParts = key.split( ",", 2 );
 			var varName = keyParts[ 0 ];
 			var formatting = keyParts.length > 1 ? Optional.of( keyParts[ 1 ] ) : Optional.empty();
 
-			var value = request.getFirstChild( varName );
+			var field = data.getFirstChild( varName );
 
-			String formattedValue =
-				formatting.isPresent() ? MessageFormat.format( "{0," + formatting.get() + "}", value.valueObject() )
-					: value.strValue();
+			final String formattedValue;
+			if( formatting.isPresent() ) {
+				String pattern = "{0," + formatting.get() + "}";
+				MessageFormat messageFormat = hasLocale
+					? new MessageFormat( pattern,
+						Locale.forLanguageTag( request.getFirstChild( "locale" ).strValue() ) )
+					: new MessageFormat( pattern );
+				formattedValue =
+					messageFormat.format( new Object[] { field.valueObject() } );
+			} else {
+				formattedValue = field.strValue();
+			}
 
 			return formattedValue;
 		};
-		return new StringSubstitutor( lookup, "{", "}", '\\' ).replace( request.strValue() );
+		return new StringSubstitutor( lookup, "{", "}", '\\' ).replace( format );
 	}
 }

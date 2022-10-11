@@ -37,7 +37,7 @@ service Test {
 			if( fmt@su( template { files = 0 } ) != "The disk contains 0 file(s)" )
 				throw( TestFailed, "The disk contains 0 file(s)" )
 			
-			if( fmt@su( template { files = 12312332 } ) != "The disk contains 12,312,332 file(s)" )
+			if( fmt@su( { format = template, locale = "en-us", data.files = 12312332 } ) != "The disk contains 12,312,332 file(s)" )
 				throw( TestFailed, "The disk contains 12,312,332 file(s)" )
 
 			if( fmt@su( "Up to {pct,number,percent}" { pct = 0.6 } ) != "Up to 60%" )

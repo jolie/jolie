@@ -89,6 +89,11 @@ type UrlEncodeRequest: string {
 type UrlDecodeRequest: UrlEncodeRequest
 
 type FormatRequest: string { ? }
+	| void {
+		format: string
+		locale: string
+		data: void { ? }
+	}
 
 /**!
  * An interface for supporting string manipulation operations.
