@@ -20,6 +20,8 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.lang.Constants;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
@@ -42,18 +44,50 @@ public class PostIncrementProcess implements Process, Expression {
 	}
 
 	@Override
-	public void run() {
+	public void run() throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
 		final Value val = path.getValue();
-		val.setValue( val.intValue() + 1 );
+
+		if( !val.isDefined() ) {
+			val.setValue( 1 );
+		} else {
+			final Object o = val.valueObject();
+			if( o instanceof Integer ) {
+				val.setValue( ((Integer) o).intValue() + 1 );
+			} else if( o instanceof Double ) {
+				val.setValue( ((Double) o).doubleValue() + 1 );
+			} else if( o instanceof Long ) {
+				val.setValue( ((Long) o).longValue() + 1 );
+			} else {
+				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." );
+			}
+		}
 	}
 
 	@Override
 	public Value evaluate() {
 		final Value val = path.getValue();
-		final Value orig = Value.create( val.intValue() );
-		val.setValue( val.intValue() + 1 );
+		Value orig = null;
+		if( !val.isDefined() ) {
+			orig = Value.create( 0 );
+			val.setValue( 1 );
+		} else {
+			final Object o = val.valueObject();
+			if( o instanceof Integer ) {
+				orig = Value.create( ((Integer) o).intValue() );
+				val.setValue( ((Integer) o).intValue() + 1 );
+			} else if( o instanceof Double ) {
+				orig = Value.create( ((Double) o).doubleValue() );
+				val.setValue( ((Double) o).doubleValue() + 1 );
+			} else if( o instanceof Long ) {
+				orig = Value.create( ((Long) o).longValue() );
+				val.setValue( ((Long) o).longValue() + 1 );
+			} else {
+				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." )
+					.toRuntimeFaultException();
+			}
+		}
 		return orig;
 	}
 

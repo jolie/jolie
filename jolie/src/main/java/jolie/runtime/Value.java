@@ -552,18 +552,18 @@ public abstract class Value implements Expression, Cloneable {
 	public final synchronized boolean equals( Value val ) {
 		boolean r = false;
 		if( val.isDefined() ) {
-			if( isByteArray() ) {
+			if( isByteArray() || val.isByteArray() ) {
 				r = byteArrayValue().equals( val.byteArrayValue() );
-			} else if( isString() ) {
+			} else if( isString() || val.isString() ) {
 				r = strValue().equals( val.strValue() );
-			} else if( isInt() ) {
-				r = intValue() == val.intValue();
-			} else if( isDouble() ) {
+			} else if( isDouble() || val.isDouble() ) {
 				r = doubleValue() == val.doubleValue();
-			} else if( isBool() ) {
-				r = boolValue() == val.boolValue();
-			} else if( isLong() ) {
+			} else if( isLong() || val.isLong() ) {
 				r = longValue() == val.longValue();
+			} else if( isInt() || val.isInt() ) {
+				r = intValue() == val.intValue();
+			} else if( isBool() || val.isBool() ) {
+				r = boolValue() == val.boolValue();
 			} else if( valueObject() != null ) {
 				r = valueObject().equals( val.valueObject() );
 			}

@@ -29,15 +29,16 @@ import java.util.function.BiPredicate;
  * @author Fabrizio Montesi
  */
 public final class CompareOperators {
+
 	public final static BiPredicate< Value, Value > EQUAL =
 		( left, right ) -> left.isEqualTo( right );
 	public final static BiPredicate< Value, Value > NOT_EQUAL = EQUAL.negate();
 	public final static BiPredicate< Value, Value > MINOR =
 		( left, right ) -> {
-			if( left.isDouble() ) {
+			if( left.isDouble() || right.isDouble() ) {
 				return (left.doubleValue() < right.doubleValue());
 			}
-			if( left.isLong() ) {
+			if( left.isLong() || right.isLong() ) {
 				return (left.longValue() < right.longValue());
 			} else {
 				return (left.intValue() < right.intValue());
@@ -45,10 +46,10 @@ public final class CompareOperators {
 		};
 	public final static BiPredicate< Value, Value > MAJOR =
 		( left, right ) -> {
-			if( left.isDouble() ) {
+			if( left.isDouble() || right.isDouble() ) {
 				return (left.doubleValue() > right.doubleValue());
 			}
-			if( left.isLong() ) {
+			if( left.isLong() || right.isLong() ) {
 				return (left.longValue() > right.longValue());
 			} else {
 				return (left.intValue() > right.intValue());
@@ -56,10 +57,10 @@ public final class CompareOperators {
 		};
 	public final static BiPredicate< Value, Value > MINOR_OR_EQUAL =
 		( left, right ) -> {
-			if( left.isDouble() ) {
+			if( left.isDouble() || right.isDouble() ) {
 				return (left.doubleValue() <= right.doubleValue());
 			}
-			if( left.isLong() ) {
+			if( left.isLong() || right.isLong() ) {
 				return (left.longValue() <= right.longValue());
 			} else {
 				return (left.intValue() <= right.intValue());
@@ -67,10 +68,10 @@ public final class CompareOperators {
 		};
 	public final static BiPredicate< Value, Value > MAJOR_OR_EQUAL =
 		( left, right ) -> {
-			if( left.isDouble() ) {
+			if( left.isDouble() || right.isDouble() ) {
 				return (left.doubleValue() >= right.doubleValue());
 			}
-			if( left.isLong() ) {
+			if( left.isLong() || right.isLong() ) {
 				return (left.longValue() >= right.longValue());
 			} else {
 				return (left.intValue() >= right.intValue());
