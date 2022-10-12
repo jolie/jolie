@@ -3384,11 +3384,23 @@ public class OLParser extends AbstractParser {
 				nextToken();
 				break;
 			case INT:
-				retVal = new ConstantIntegerExpression( getContext(), Integer.parseInt( token.content() ) );
+				int intVal = 0;
+				try {
+					intVal = Integer.parseInt( token.content() );
+				} catch( NumberFormatException e ) {
+					throwException( e.getMessage() );
+				}
+				retVal = new ConstantIntegerExpression( getContext(), intVal );
 				nextToken();
 				break;
 			case LONG:
-				retVal = new ConstantLongExpression( getContext(), Long.parseLong( token.content() ) );
+				long longVal = 0;
+				try {
+					longVal = Long.parseLong( token.content() );
+				} catch( NumberFormatException e ) {
+					throwException( e.getMessage() );
+				}
+				retVal = new ConstantLongExpression( getContext(), longVal );
 				nextToken();
 				break;
 			case TRUE:
@@ -3400,7 +3412,13 @@ public class OLParser extends AbstractParser {
 				nextToken();
 				break;
 			case DOUBLE:
-				retVal = new ConstantDoubleExpression( getContext(), Double.parseDouble( token.content() ) );
+				double doubleVal = 0;
+				try {
+					doubleVal = Double.parseDouble( token.content() );
+				} catch( NumberFormatException e ) {
+					throwException( e.getMessage() );
+				}
+				retVal = new ConstantDoubleExpression( getContext(), doubleVal );
 				nextToken();
 				break;
 			case LPAREN:

@@ -242,7 +242,7 @@ define testTypeImplicitConversion{
 	testAIsInt
 }
 
-define doTest
+define testArithmeticOperators
 {
 	if ( "Hello, " + "World!" != "Hello, World!" ) {
 		throw( TestFailed, "string concatenation does not match correct result" )
@@ -259,6 +259,18 @@ define doTest
 		throw( TestFailed, "compact inline arithmetic operators do not work correctly" )
 	};
 
+
+	// issue 432
+	a = 1662929984215L
+	a++
+	if ( a != 1662929984216L ) {
+		throw( TestFailed, "expected a to be 1662929984216, received a = " + a )
+	}
+}
+
+define doTest
+{
+	testArithmeticOperators;
 	testBooleans;
 	testCasts;
 	testTypeImplicitConversion

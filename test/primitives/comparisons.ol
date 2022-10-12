@@ -51,7 +51,7 @@ define doTest
 		throw( TestFailed, "int: conversion problems" )
 	};
 	if ( x != bool(1) || x != long(1) || x != double(1) || x != string(1) ) {
-		throw( TestFailed, "int: conversion problems" )
+		throw( TestFailed, "int: conversion problems with cast" )
 	};
 
 	x = 1L;
@@ -75,11 +75,11 @@ define doTest
 	if ( 1.0 != 1.0 || x != x || x != double(x) ) {
 		throw( TestFailed, "double: values do not match" )
 	};
-	if ( x != true || x != 1 || x != 1L || x != "1" ) {
-		throw( TestFailed, "int: conversion problems" )
+	if ( x != true || x != 1 || x != 1L || x != "1.0" ) {
+		throw( TestFailed, "double: conversion problems" )
 	};
 	if ( x != bool(1.0) || x != int(1.0) || x != long(1.0) || x != string(1.0) ) {
-		throw( TestFailed, "int: conversion problems" )
+		throw( TestFailed, "double: conversion problems with cast" )
 	};
 
 	x = "Döner";
@@ -111,6 +111,29 @@ define doTest
 	};
 	if ( a.a == b.a ) {
 		throw( TestFailed, "compound: child values do match" )
+	}
+
+
+	
+	if ( 777640662 == 1662929984216L ) {
+		throw( TestFailed, "expected 777640662 != 1662929984216L, but it is evaluated to true " + a )
+	}
+	
+	if ( 1662929984216L == 777640662 ) {
+		throw( TestFailed, "expected 1662929984216L != 777640662, but it is evaluated to true " + a )
+	}
+
+	if ( 0.0 == 9223372032559808512L  ) { // 111111111111111111111111111111100000000000000000000000000000000_2
+		throw( TestFailed, "expected 9223372032559808512L be inequal to 0.0, but it is evaluated to false " + a )
+	}
+
+	if ( 9223372032559808512L == 0.0  ) { // 111111111111111111111111111111100000000000000000000000000000000_2
+		throw( TestFailed, "expected 9223372032559808512L be inequal to 0.0, but it is evaluated to false " + a )
+	}
+
+	// (2^31) - 1 int vs double
+	if ( 2147483647 != 2147483647.0  ) {
+		throw( TestFailed, "expected 2147483647 be equal to 2147483647.0, but it is evaluated to false " + a )
 	}
 }
 
