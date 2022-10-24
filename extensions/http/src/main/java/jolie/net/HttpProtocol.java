@@ -445,11 +445,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		headerBuilder.append( result );
 	}
 
-	private String send_getFormat() {
+	private String send_getFormat( String operationName ) {
 		String format = DEFAULT_FORMAT;
 		if( inInputPort && responseFormat != null ) {
 			format = responseFormat;
 			responseFormat = null;
+		} else if( hasOperationSpecificParameter( operationName, Parameters.FORMAT ) ) {
+			format = getOperationSpecificStringParameter( operationName, Parameters.FORMAT );
 		} else if( hasParameter( Parameters.FORMAT ) ) {
 			format = getStringParameter( Parameters.FORMAT );
 		}
@@ -1010,7 +1012,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException {
 		Method method = send_getRequestMethod( message );
 		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "utf-8" ), null );
-		String format = send_getFormat();
+		String format = send_getFormat( message.operationName() );
 		String contentType = null;
 		StringBuilder headerBuilder = new StringBuilder();
 
