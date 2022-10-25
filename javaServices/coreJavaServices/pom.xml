@@ -551,7 +551,7 @@
         <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
             <artifactId>woodstox-core</artifactId>
-            <version>5.1.0</version>
+            <version>5.4.0</version>
         </dependency>
         <dependency>
             <groupId>javax.jws</groupId>
