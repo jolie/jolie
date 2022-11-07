@@ -1206,6 +1206,8 @@ public class Interpreter {
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
 		configuration.clear();
+		symbolTables.clear();
+		Modules.freeCache( configuration.programFilepath().toURI() );
 		commCore = null;
 		// System.gc();
 	}
@@ -1247,7 +1249,7 @@ public class Interpreter {
 					Modules.ModuleParsedResult parsedResult =
 						Modules.parseModule( configuration, configuration().inputStream(),
 							configuration().programFilepath().toURI() );
-					symbolTables.putAll( parsedResult.symbolTables() );
+					this.symbolTables.putAll( parsedResult.symbolTables() );
 					program = parsedResult.mainProgram();
 				}
 			}
@@ -1264,7 +1266,7 @@ public class Interpreter {
 			if( check ) {
 				conf.setCheckForMain( false );
 			}
-			semanticVerifier = new SemanticVerifier( program, symbolTables, conf );
+			semanticVerifier = new SemanticVerifier( program, this.symbolTables, conf );
 
 			try {
 				semanticVerifier.validate();

@@ -57,4 +57,13 @@ public class Modules {
 
 		return new ModuleParsedResult( mainRecord.program(), crawlResult.symbolTables() );
 	}
+
+	/**
+	 * Clear the module cache entry
+	 * 
+	 * @param source source of module
+	 */
+	public static void freeCache( URI source ) {
+		ModuleRecordCache.remove( source );
+	}
 }
