@@ -33,10 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
@@ -72,20 +70,6 @@ class ModuleCrawler {
 			this.moduleCrawled.values().stream().forEach( mr -> result.put( mr.uri(), mr.symbolTable() ) );
 			return result;
 		}
-	}
-
-	private static final Map< URI, ModuleRecord > CACHE = new ConcurrentHashMap<>();
-
-	private static void putToCache( ModuleRecord mc ) {
-		ModuleCrawler.CACHE.put( mc.uri(), mc );
-	}
-
-	private static boolean inCache( URI source ) {
-		return ModuleCrawler.CACHE.containsKey( source );
-	}
-
-	private static ModuleRecord getRecordFromCache( URI source ) {
-		return ModuleCrawler.CACHE.get( source );
 	}
 
 	private final ModuleFinder finder;
@@ -124,7 +108,10 @@ class ModuleCrawler {
 				throw new ModuleException( message );
 			}
 		}
-		ModuleCrawler.putToCache( record );
+		ModuleRecordCache.put( record, modulesToCrawl
+			.stream()
+			.map( ModuleSource::uri )
+			.collect( Collectors.toList() ) );
 		return modulesToCrawl;
 	}
 
@@ -144,8 +131,8 @@ class ModuleCrawler {
 				continue;
 			}
 
-			if( ModuleCrawler.inCache( module.uri() ) ) {
-				ModuleRecord cached = ModuleCrawler.getRecordFromCache( module.uri() );
+			if( ModuleRecordCache.contains( module.uri() ) ) {
+				ModuleRecord cached = ModuleRecordCache.get( module.uri() );
 				for( ImportedSymbolInfo importedSymbol : cached.symbolTable().importedSymbolInfos() ) {
 					if( importedSymbol.moduleSource().isPresent() ) {
 						dependencies.add( importedSymbol.moduleSource().get() );
