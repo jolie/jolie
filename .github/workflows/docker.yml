@@ -27,6 +27,7 @@ on:
 
 jobs:
   dockerhub:
+    if: github.repository == 'jolie/jolie'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
