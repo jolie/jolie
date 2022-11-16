@@ -52,7 +52,13 @@ RUN apt-get install -y sudo \
 	&& echo 'jolie ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers.d/jolie \
 	&& chmod 0440 /etc/sudoers.d/jolie
 
-# Install nodejs, npm, and build-essential
-RUN apt-get install -y nodejs npm build-essential
+# Install nodejs, npm, and jpm
+RUN apt-get install -y \
+    software-properties-common \
+    npm
+RUN npm install n -g && \
+    n lts
+
+RUN npm install @jolie/jpm -g 
 
 USER jolie
