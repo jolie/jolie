@@ -27,12 +27,25 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.lang.ref.Cleaner;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -48,7 +61,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-
 import jolie.lang.CodeCheckException;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -74,7 +86,15 @@ import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
-import jolie.runtime.*;
+import jolie.runtime.FaultException;
+import jolie.runtime.InputOperation;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
+import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.TimeoutHandler;
+import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
+import jolie.runtime.ValueVector;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
@@ -274,6 +294,12 @@ public class Interpreter {
 
 	private final File programDirectory;
 	private OutputPort monitor = null;
+
+	private final Cleaner cleaner = Cleaner.create();
+
+	public Cleaner cleaner() {
+		return cleaner;
+	}
 
 	public void setMonitor( OutputPort monitor ) {
 		this.monitor = monitor;

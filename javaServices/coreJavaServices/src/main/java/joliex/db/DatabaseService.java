@@ -75,21 +75,6 @@ public class DatabaseService extends JavaService {
 	private final Object transactionMutex = new Object();
 	private final static String TEMPLATE_FIELD = "_template";
 
-	@Override
-	protected void finalize()
-		throws Throwable {
-		try {
-			if( connection != null ) {
-				try {
-					connection.close();
-				} catch( SQLException e ) {
-				}
-			}
-		} finally {
-			super.finalize();
-		}
-	}
-
 	@RequestResponse
 	public void close() {
 		if( connection != null ) {
@@ -202,6 +187,15 @@ public class DatabaseService extends JavaService {
 
 			if( connection == null ) {
 				throw new FaultException( "ConnectionError" );
+			} else {
+				final Connection currConnection = connection;
+				interpreter().cleaner().register( this, () -> {
+					try {
+						if( !currConnection.isClosed() ) {
+							currConnection.close();
+						}
+					} catch( SQLException e ) {}
+				} );
 			}
 		} catch( ClassNotFoundException e ) {
 			throw new FaultException( "DriverClassNotFound", e );
