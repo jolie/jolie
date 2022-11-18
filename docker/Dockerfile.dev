@@ -52,11 +52,10 @@ RUN apt-get install -y sudo \
 	&& echo 'jolie ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers.d/jolie \
 	&& chmod 0440 /etc/sudoers.d/jolie
 
-# Install nodejs, npm, jpm, and httpie
+# Install nodejs, npm, and jpm
 RUN apt-get install -y \
     software-properties-common \
-    npm \
-    httpie
+    npm
 RUN npm install n -g && \
     n lts
 
