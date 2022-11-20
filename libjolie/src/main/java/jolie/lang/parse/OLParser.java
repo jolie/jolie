@@ -2964,10 +2964,20 @@ public class OLParser extends AbstractParser {
 				throwException( "expected courier input guard (interface or operation name)" );
 			}
 
-			eat( Scanner.TokenType.RSQUARE, "expected ]" );
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			body = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			if( token.is( Scanner.TokenType.LCURLY ) ) {
+				nextToken();
+				body = parseProcess();
+				eat( Scanner.TokenType.RCURLY, "expected }" );
+				eat( Scanner.TokenType.RSQUARE, "expected ]" );
+			} else if( token.is( Scanner.TokenType.RSQUARE ) ) {
+				nextToken();
+				eat( Scanner.TokenType.LCURLY, "expected {" );
+				body = parseProcess();
+				eat( Scanner.TokenType.RCURLY, "expected }" );
+			} else {
+				body = null;
+				throwException( "expected {" );
+			}
 
 			if( iface == null ) { // It's an operation
 				if( outputVariablePath == null ) { // One-Way
