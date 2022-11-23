@@ -21,44 +21,37 @@
 
 package jolie.net.soap;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import javax.wsdl.Definition;
-import javax.wsdl.WSDLException;
-import javax.wsdl.factory.WSDLFactory;
-import javax.wsdl.xml.WSDLReader;
+import com.sun.xml.xsom.parser.XSOMParser;
 
 /**
  * Implements a WSDL document cache for the SOAP protocol.
  *
- * @author Fabrizio Montesi TODO: WSDL document removal after some time
+ * @author Claudio Guidi
  */
-public class WSDLCache {
-	// private static WSDLCache instance = null;
+public class XSOMParserCache {
+	// private static XSOMParserCache instance = null;
 
-	private static final Map< String, Definition > CACHE = new HashMap<>();;
-	private static WSDLFactory factory;
+	private static final Map< URI, XSOMParser > CACHE = new HashMap<>();
 
-	static {
-		try {
-			factory = WSDLFactory.newInstance();
-		} catch( WSDLException e ) {
-			e.printStackTrace();
+	private XSOMParserCache() {}
+	//
+	// public static synchronized XSOMParserCache getInstance()
+	// throws WSDLException {
+	// if( instance == null ) {
+	// instance = new XSOMParserCache();
+	// }
+	// return instance;
+	// }
+
+	public static synchronized XSOMParser get( URI uri ) {
+		XSOMParser parser = CACHE.get( uri );
+		if( parser == null ) {
+			parser = new XSOMParser();
+			CACHE.put( uri, parser );
 		}
-	}
-
-	public WSDLCache() {}
-
-
-	public static synchronized Definition get( String url )
-		throws WSDLException {
-		Definition definition = CACHE.get( url );
-		if( definition == null ) {
-			WSDLReader reader = factory.newWSDLReader();
-			reader.setFeature( "javax.wsdl.verbose", false );
-			definition = reader.readWSDL( url );
-			CACHE.put( url, definition );
-		}
-		return definition;
+		return parser;
 	}
 }

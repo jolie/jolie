@@ -117,6 +117,7 @@ import jolie.net.http.UnsupportedMethodException;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.net.soap.WSDLCache;
+import jolie.net.soap.XSOMParserCache;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -142,13 +143,13 @@ import jolie.tracer.ProtocolTraceAction;
 public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol {
 	private String inputId = null;
 	private final Interpreter interpreter;
-	private final MessageFactory messageFactory;
+	private static MessageFactory messageFactory;
 	private XSSchemaSet schemaSet = null;
 	private final URI uri;
 	private final boolean inInputPort;
 	private Definition wsdlDefinition = null;
 	private Port wsdlPort = null;
-	private final TransformerFactory transformerFactory;
+	private static final TransformerFactory TRANSFORMERFACTORY = TransformerFactory.newInstance();
 	private final Map< String, String > namespacePrefixMap = new HashMap<>();
 	private boolean received = false;
 	private String encoding;
@@ -162,6 +163,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		private static final String OPERATION = "operation";
 		private static final String STYLE = "style";
 		private static final String HTTP_BASIC_AUTHENTICATION = "HttpBasicAuthentication";
+	}
+
+	static {
+		try {
+			messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+		} catch( SOAPException e ) {
+			e.printStackTrace();
+		}
 	}
 
 	/*
@@ -186,16 +195,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		super( configurationPath );
 		this.uri = uri;
 		this.inInputPort = inInputPort;
-		this.transformerFactory = TransformerFactory.newInstance();
 		this.interpreter = interpreter;
-		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 		this.wsdlCache = new WSDLCache();
 	}
 
 	private void parseSchemaElement( Definition definition, Element element, XSOMParser schemaParser )
 		throws IOException {
 		try {
-			Transformer transformer = transformerFactory.newTransformer();
+			Transformer transformer = TRANSFORMERFACTORY.newTransformer();
 			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
 			StringWriter sw = new StringWriter();
 			StreamResult result = new StreamResult( sw );
@@ -237,8 +244,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 	private XSSchemaSet getSchemaSet()
 		throws IOException, SAXException {
-		if( schemaSet == null ) {
-			XSOMParser schemaParser = new XSOMParser();
+		XSOMParser schemaParser = XSOMParserCache.get( uri );
+		if( schemaParser.getResult() == null ) {
+
 			ValueVector vec = getParameterVector( "schema" );
 			if( vec.size() > 0 ) {
 				for( Value v : vec ) {
@@ -254,6 +262,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					namespacePrefixMap.put( schema.getTargetNamespace(), nsPrefix + i++ );
 				}
 			}
+		} else {
+			schemaSet = schemaParser.getResult();
 		}
 
 		return schemaSet;
