@@ -194,7 +194,8 @@ public class DatabaseService extends JavaService {
 						if( !currConnection.isClosed() ) {
 							currConnection.close();
 						}
-					} catch( SQLException e ) {}
+					} catch( SQLException e ) {
+					}
 				} );
 			}
 		} catch( ClassNotFoundException e ) {
