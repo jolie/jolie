@@ -102,14 +102,18 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * @return the current writer
 	 */
 	public Writer falsey( Iteration iteration, Writer writer, Object object, List< Object > scopes ) {
-		if( object instanceof ValueVector ) {
+		if( object == null ) {
+			iteration.next( writer, object, scopes );
+		} else if( object instanceof ValueVector ) {
 			ValueVector vec = (ValueVector) object;
 			if( vec.size() == 1 ) {
-				return !vec.first().boolValue() ? iteration.next( writer, vec.first(), scopes ) : writer;
-			} else if( vec.size() > 1 ) {
-				iteration.next( writer, vec.first(), scopes );
+				Value first = vec.first();
+				if( first.isBool() && !first.boolValue() ) {
+					iteration.next( writer, object, scopes );
+				}
 			}
 		}
+
 		return writer;
 	}
 

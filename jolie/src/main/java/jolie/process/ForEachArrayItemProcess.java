@@ -60,6 +60,7 @@ public class ForEachArrayItemProcess implements Process {
 				process.run();
 			}
 		}
+		keyPath.undef();
 	}
 
 	@Override
