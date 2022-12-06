@@ -1,0 +1,4 @@
+name: "Jolie CodeQL configuration"
+
+paths-ignore:
+  - lib/xsom
