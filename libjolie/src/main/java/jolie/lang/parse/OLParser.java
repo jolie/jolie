@@ -2589,29 +2589,37 @@ public class OLParser extends AbstractParser {
 			break;
 		case THROW:
 			nextToken();
-			eat(
-				Scanner.TokenType.LPAREN, "expected (" );
-			checkConstant();
-
-			assertToken(
-				Scanner.TokenType.ID, "expected fault identifier" );
-			String faultName = token.content();
-			nextToken();
-
-			if( token.is( Scanner.TokenType.RPAREN ) ) {
-				retVal = new ThrowStatement( getContext(), faultName );
+			final String faultName;
+			final Optional< OLSyntaxNode > expression;
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				nextToken();
+				checkConstant();
+				assertToken(
+					Scanner.TokenType.ID, "expected fault identifier" );
+				faultName = token.content();
+				nextToken();
+				if( token.is( Scanner.TokenType.RPAREN ) ) {
+					expression = Optional.empty();
+					nextToken();
+				} else {
+					eat( Scanner.TokenType.COMMA, "expected , or )" );
+					expression = Optional.of( parseExpression() );
+					eat( Scanner.TokenType.RPAREN, "expected )" );
+				}
+			} else if( token.isIdentifier() ) {
+				checkConstant();
+				faultName = token.content();
+				nextToken();
+				expression =
+					token.is( Scanner.TokenType.LPAREN ) ? Optional.of( inParens( this::parseExpression ) )
+						: Optional.empty();
 			} else {
-				eat( Scanner.TokenType.COMMA, "expected , or )" );
-				OLSyntaxNode expression = parseExpression();
-				/*
-				 * assertToken( Scanner.TokenType.ID, "expected variable path" ); String varId = token.content();
-				 * nextToken(); VariablePathNode path = parseVariablePath( varId );
-				 */
-				retVal =
-					new ThrowStatement( getContext(), faultName, expression );
+				faultName = null;
+				expression = null;
+				throwException( "expected fault name after throw, for example throw MyFault" );
 			}
-
-			eat( Scanner.TokenType.RPAREN, "expected )" );
+			retVal = expression.isPresent() ? new ThrowStatement( getContext(), faultName, expression.get() )
+				: new ThrowStatement( getContext(), faultName );
 			break;
 		case INSTALL:
 			nextToken();
