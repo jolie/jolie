@@ -375,18 +375,18 @@ public class Interpreter {
 	public void addTimeoutHandler( TimeoutHandler handler ) {
 		synchronized( timeoutHandlerQueue ) {
 			timeoutHandlerQueue.add( new WeakReference<>( handler ) );
-			if( timeoutHandlerQueue.size() == 1 ) {
-				schedule( new TimerTask() {
-					@Override
-					public void run() {
-						synchronized( timeoutHandlerQueue ) {
-							checkForExpiredTimeoutHandlers();
-						}
+			// if( timeoutHandlerQueue.size() == 1 ) {
+			schedule( new TimerTask() {
+				@Override
+				public void run() {
+					synchronized( timeoutHandlerQueue ) {
+						checkForExpiredTimeoutHandlers();
 					}
-				}, handler.time() - System.currentTimeMillis() + 1 );
-			} else {
-				checkForExpiredTimeoutHandlers();
-			}
+				}
+			}, handler.time() - System.currentTimeMillis() + 1 );
+			/*
+			 * } else { checkForExpiredTimeoutHandlers(); }
+			 */
 		}
 	}
 
