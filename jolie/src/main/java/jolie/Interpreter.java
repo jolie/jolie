@@ -28,7 +28,6 @@ import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.lang.ref.Cleaner;
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -42,16 +41,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,7 +88,6 @@ import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
@@ -273,7 +269,6 @@ public class Interpreter {
 	private final Tracer tracer;
 
 	private boolean check = false;
-	private Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
@@ -282,15 +277,8 @@ public class Interpreter {
 
 	private final Configuration configuration;
 
-	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
-	// private long persistentConnectionTimeout = 1;
-
-	// 11 is the default initial capacity for PriorityQueue
-	private final Queue< WeakReference< TimeoutHandler > > timeoutHandlerQueue =
-		new PriorityQueue<>( 11, new TimeoutHandler.Comparator() );
-
-	private final ExecutorService timeoutHandlerExecutor =
-		Executors.newSingleThreadExecutor( new NativeJolieThreadFactory( this ) );
+	private final ScheduledExecutorService scheduledExecutor =
+		Executors.newSingleThreadScheduledExecutor( new NativeJolieThreadFactory( this ) );
 
 	private final File programDirectory;
 	private OutputPort monitor = null;
@@ -359,61 +347,8 @@ public class Interpreter {
 		return correlationEngine;
 	}
 
-	private Timer timer() {
-		if( timer == null ) {
-			timer = new Timer( configuration.programFilepath().getName() + "-Timer" );
-		}
-		return timer;
-	}
-
-	public void schedule( TimerTask task, long delay ) {
-		if( !exiting ) {
-			timer().schedule( task, delay );
-		}
-	}
-
-	public void addTimeoutHandler( TimeoutHandler handler ) {
-		synchronized( timeoutHandlerQueue ) {
-			timeoutHandlerQueue.add( new WeakReference<>( handler ) );
-			if( timeoutHandlerQueue.size() == 1 ) {
-				schedule( new TimerTask() {
-					@Override
-					public void run() {
-						synchronized( timeoutHandlerQueue ) {
-							checkForExpiredTimeoutHandlers();
-						}
-					}
-				}, handler.time() - System.currentTimeMillis() + 1 );
-			} else {
-				checkForExpiredTimeoutHandlers();
-			}
-		}
-	}
-
-	/*
-	 * public void removeTimeoutHandler( TimeoutHandler handler ) { synchronized( timeoutHandlerQueue )
-	 * { timeoutHandlerQueue.remove( handler ); checkForExpiredTimeoutHandlers(); } }
-	 */
-
-	private void checkForExpiredTimeoutHandlers() {
-		long currentTime = System.currentTimeMillis();
-		WeakReference< TimeoutHandler > whandler = timeoutHandlerQueue.peek();
-		boolean keepRun = true;
-		TimeoutHandler handler;
-		while( whandler != null && keepRun ) {
-			handler = whandler.get();
-			if( handler == null ) {
-				timeoutHandlerQueue.remove();
-				whandler = timeoutHandlerQueue.peek();
-			} else if( handler.time() < currentTime || exiting ) {
-				// final TimeoutHandler h = handler;
-				timeoutHandlerExecutor.execute( handler );
-				timeoutHandlerQueue.poll();
-				whandler = timeoutHandlerQueue.peek();
-			} else {
-				keepRun = false;
-			}
-		}
+	public Future< ? > schedule( Runnable task, long delay ) {
+		return scheduledExecutor.schedule( task, delay, TimeUnit.MILLISECONDS );
 	}
 
 	/**
@@ -638,13 +573,10 @@ public class Interpreter {
 		} finally {
 			exitingLock.unlock();
 		}
-		if( timer != null ) {
-			timer.cancel();
-		}
-		checkForExpiredTimeoutHandlers();
+		final List< Runnable > pendingTimedTasks = scheduledExecutor.shutdownNow();
+		execute( () -> pendingTimedTasks.forEach( Runnable::run ) );
 		processExecutorService.shutdown();
 		nativeExecutorService.shutdown();
-		timeoutHandlerExecutor.shutdown();
 		commCore.shutdown( terminationTimeout );
 		try {
 			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
@@ -655,7 +587,7 @@ public class Interpreter {
 		} catch( InterruptedException e ) {
 		}
 		try {
-			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
+			scheduledExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch( InterruptedException e ) {
 		}
 		free();

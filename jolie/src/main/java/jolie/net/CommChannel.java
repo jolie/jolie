@@ -25,11 +25,10 @@ package jolie.net;
 import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
-
+import jolie.Interpreter;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
-import jolie.runtime.TimeoutHandler;
 import jolie.util.Helpers;
 
 /**
@@ -58,14 +57,26 @@ public abstract class CommChannel {
 
 	private long redirectionMessageId = 0L;
 
-	private TimeoutHandler timeoutHandler = null;
+	private Future< ? > timeoutHandler = null;
 
-	protected void setTimeoutHandler( TimeoutHandler timeoutHandler ) {
-		this.timeoutHandler = timeoutHandler;
+	protected boolean cancelTimeoutHandler() {
+		return Helpers.lockAndThen( lock, () ->
+		// true if there is no handler or if we can cancel it
+		timeoutHandler == null || timeoutHandler.cancel( false ) );
 	}
 
-	protected TimeoutHandler timeoutHandler() {
-		return timeoutHandler;
+	protected void setTimeoutHandler( Runnable newTimeoutHandler, Interpreter interpreter, long delay ) {
+		Helpers.lockAndThen( lock, () -> {
+			// If there is no current handler or if we are still in time to cancel the current handler
+			if( timeoutHandler == null || timeoutHandler.cancel( false ) ) {
+				timeoutHandler = interpreter.schedule( () -> {
+					Helpers.lockAndThen( lock, () -> {
+						newTimeoutHandler.run();
+						this.timeoutHandler = null;
+					} );
+				}, delay );
+			}
+		} );
 	}
 
 	protected long redirectionMessageId() {

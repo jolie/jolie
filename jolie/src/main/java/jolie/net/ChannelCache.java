@@ -19,13 +19,11 @@
 
 package jolie.net;
 
-import jolie.Interpreter;
-import jolie.runtime.TimeoutHandler;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import jolie.Interpreter;
 
 public class ChannelCache {
 	// Location URI -> Protocol name -> Persistent CommChannel object
@@ -63,13 +61,16 @@ public class ChannelCache {
 							removePersistentChannel( location, protocol, protocolChannels );
 							// } else {
 							// If we return a channel, make sure it will not timeout!
-							ret.setTimeoutHandler( null );
+							boolean available = ret.cancelTimeoutHandler();
 							// if ( ret.timeoutHandler() != null ) {
 							// interpreter.removeTimeoutHandler( ret.timeoutHandler() );
 							// ret.setTimeoutHandler( null );
 							// }
 							// }
 							ret.lock.unlock();
+							if( !available ) {
+								ret = null;
+							}
 						} else { // Channel is closed
 							removePersistentChannel( location, protocol, protocolChannels );
 							ret.lock.unlock();
@@ -107,28 +108,15 @@ public class ChannelCache {
 
 	private void setTimeoutHandler( final CommChannel channel, final URI location, final String protocol,
 		Interpreter interpreter ) {
-		/*
-		 * if ( channel.timeoutHandler() != null ) { interpreter.removeTimeoutHandler(
-		 * channel.timeoutHandler() ); }
-		 */
-
-		final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
-			@Override
-			public void onTimeout() {
-				try {
-					synchronized( persistentChannels ) {
-						if( channel.timeoutHandler() == this ) {
-							removePersistentChannel( location, protocol, channel );
-							channel.close();
-							channel.setTimeoutHandler( null );
-						}
-					}
-				} catch( IOException e ) {
-					interpreter.logSevere( e );
+		channel.setTimeoutHandler( () -> {
+			try {
+				synchronized( persistentChannels ) {
+					removePersistentChannel( location, protocol, channel );
 				}
+				channel.close();
+			} catch( IOException e ) {
+				interpreter.logSevere( e );
 			}
-		};
-		channel.setTimeoutHandler( handler );
-		interpreter.addTimeoutHandler( handler );
+		}, interpreter, interpreter.persistentConnectionTimeout() );
 	}
 }
