@@ -45,7 +45,7 @@ import jolie.runtime.embedding.RequestResponse;
  *
  * @author claudio guidi
  */
-@AndJarDeps( { "quartz-2.2.1.jar", "quartz-jobs-2.2.1.jar", "slf4j-api.jar", "c3p0-0.9.1.1.jar" } )
+@AndJarDeps( { "quartz.jar", "quartz-jobs.jar", "slf4j-api.jar", "c3p0.jar" } )
 public class SchedulerService extends JavaService {
 
 	private final Scheduler scheduler;
