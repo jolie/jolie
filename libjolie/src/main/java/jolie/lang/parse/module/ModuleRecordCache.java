@@ -31,17 +31,17 @@ public class ModuleRecordCache {
 	/**
 	 * Module record Cache
 	 */
-	private static final Map< URI, ModuleRecord > CACHE = new ConcurrentHashMap<>();
+	private final Map< URI, ModuleRecord > cache = new ConcurrentHashMap<>();
 
 	/*
 	 * Dependencies loaded from parsing Module <key>
 	 */
-	private static final Map< URI, Set< URI > > DEPENDENCIES_LOADED_FROM = new ConcurrentHashMap<>();
+	private final Map< URI, Set< URI > > dependenciesLoadedFrom = new ConcurrentHashMap<>();
 
 	/*
 	 * Dependencies needed by the module <key>
 	 */
-	private static final Map< URI, Set< URI > > DEPENDENCIES_NEEDED_BY = new ConcurrentHashMap<>();
+	private final Map< URI, Set< URI > > dependenciesNeededBy = new ConcurrentHashMap<>();
 
 	/**
 	 * Register dependency graph of the module's URI and its dependencies
@@ -49,26 +49,26 @@ public class ModuleRecordCache {
 	 * @param moduleURI target module
 	 * @param dependencies list of dependencies needed by moduleURI
 	 */
-	private static void putDependencies( URI moduleURI, List< URI > dependencies ) {
-		DEPENDENCIES_LOADED_FROM.putIfAbsent( moduleURI, new HashSet<>() );
-		DEPENDENCIES_LOADED_FROM.get( moduleURI ).addAll( dependencies );
+	private void putDependencies( URI moduleURI, List< URI > dependencies ) {
+		dependenciesLoadedFrom.putIfAbsent( moduleURI, new HashSet<>() );
+		dependenciesLoadedFrom.get( moduleURI ).addAll( dependencies );
 		dependencies.forEach( d -> {
-			DEPENDENCIES_NEEDED_BY.putIfAbsent( d, new HashSet<>() );
-			DEPENDENCIES_NEEDED_BY.get( d ).add( moduleURI );
+			dependenciesNeededBy.putIfAbsent( d, new HashSet<>() );
+			dependenciesNeededBy.get( d ).add( moduleURI );
 		} );
 	}
 
-	protected static void put( ModuleRecord mc, List< URI > dependencies ) {
-		CACHE.put( mc.uri(), mc );
-		ModuleRecordCache.putDependencies( mc.uri(), dependencies );
+	protected void put( ModuleRecord mc, List< URI > dependencies ) {
+		cache.put( mc.uri(), mc );
+		this.putDependencies( mc.uri(), dependencies );
 	}
 
-	protected static boolean contains( URI source ) {
-		return CACHE.containsKey( source );
+	protected boolean contains( URI source ) {
+		return cache.containsKey( source );
 	}
 
-	protected static ModuleRecord get( URI source ) {
-		return CACHE.get( source );
+	protected ModuleRecord get( URI source ) {
+		return cache.get( source );
 	}
 
 	/**
@@ -76,24 +76,24 @@ public class ModuleRecordCache {
 	 * 
 	 * @param source target module to remove cache
 	 */
-	private static void removeDependencies( URI source ) {
-		Optional< Set< URI > > dependenciesSet = Optional.ofNullable( DEPENDENCIES_LOADED_FROM.remove( source ) );
+	private void removeDependencies( URI source ) {
+		Optional< Set< URI > > dependenciesSet = Optional.ofNullable( dependenciesLoadedFrom.remove( source ) );
 		dependenciesSet.ifPresent( dependency -> {
 			dependency.forEach( d -> {
-				Optional< Set< URI > > neededBySet = Optional.ofNullable( DEPENDENCIES_NEEDED_BY.get( d ) );
+				Optional< Set< URI > > neededBySet = Optional.ofNullable( dependenciesNeededBy.get( d ) );
 				neededBySet.ifPresent( s -> s.remove( source ) );
 				if( neededBySet.isEmpty() ) {
-					ModuleRecordCache.remove( d );
+					this.remove( d );
 				}
 			} );
 		} );
 	}
 
-	protected static void remove( URI source ) {
+	protected void remove( URI source ) {
 		if( source != null ) {
 			try {
-				if( CACHE.remove( source ) != null ) {
-					ModuleRecordCache.removeDependencies( source );
+				if( cache.remove( source ) != null ) {
+					this.removeDependencies( source );
 				}
 			} catch( ClassCastException e ) {
 			}

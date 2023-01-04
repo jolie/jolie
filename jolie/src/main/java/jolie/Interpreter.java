@@ -1177,7 +1177,8 @@ public class Interpreter {
 						configuration().packagePaths(),
 						configuration().jolieClassLoader(),
 						configuration().constants(),
-						false );
+						false,
+						true );
 					Modules.ModuleParsedResult parsedResult =
 						Modules.parseModule( configuration, configuration().inputStream(),
 							configuration().programFilepath().toURI() );
