@@ -18,16 +18,19 @@ public class ModuleParsingConfiguration {
 
 	private final Map< String, Scanner.Token > constantsMap;
 
+	private final boolean useGlobalCache;
+
 
 	public ModuleParsingConfiguration( String charset, String[] includePaths, String[] packagePaths,
 		ClassLoader classLoader,
-		Map< String, Scanner.Token > constantsMap, boolean includeDocumentation ) {
+		Map< String, Scanner.Token > constantsMap, boolean includeDocumentation, boolean useGlobalCache ) {
 		this.charset = charset;
 		this.includePaths = includePaths;
 		this.packagePaths = packagePaths;
 		this.classLoader = classLoader;
 		this.constantsMap = constantsMap;
 		this.includeDocumentation = includeDocumentation;
+		this.useGlobalCache = useGlobalCache;
 	}
 
 	public String[] includePaths() {
@@ -48,6 +51,10 @@ public class ModuleParsingConfiguration {
 
 	public boolean includeDocumentation() {
 		return includeDocumentation;
+	}
+
+	public boolean useGlobalCache() {
+		return useGlobalCache;
 	}
 
 	public Map< String, Scanner.Token > constantsMap() {

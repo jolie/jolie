@@ -65,7 +65,8 @@ public class ParsingUtils {
 			packagePaths,
 			classLoader,
 			definedConstants,
-			includeDocumentation );
+			includeDocumentation,
+			false );
 
 		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
 
@@ -134,7 +135,7 @@ public class ParsingUtils {
 			packagePaths,
 			classLoader,
 			definedConstants,
-			includeDocumentation );
+			includeDocumentation, false );
 
 		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
 		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),

@@ -74,10 +74,16 @@ class ModuleCrawler {
 
 	private final ModuleFinder finder;
 	private final ModuleParsingConfiguration parserConfiguration;
+	private final ModuleRecordCache cache;
 
 	private ModuleCrawler( ModuleParsingConfiguration parserConfiguration, ModuleFinder finder ) {
 		this.finder = finder;
 		this.parserConfiguration = parserConfiguration;
+		if( parserConfiguration.useGlobalCache() ) {
+			this.cache = Modules.CACHE;
+		} else {
+			this.cache = new ModuleRecordCache();
+		}
 	}
 
 	private ModuleSource findModule( ImportPath importPath, URI source )
@@ -108,7 +114,7 @@ class ModuleCrawler {
 				throw new ModuleException( message );
 			}
 		}
-		ModuleRecordCache.put( record, modulesToCrawl
+		cache.put( record, modulesToCrawl
 			.stream()
 			.map( ModuleSource::uri )
 			.collect( Collectors.toList() ) );
@@ -131,8 +137,8 @@ class ModuleCrawler {
 				continue;
 			}
 
-			if( ModuleRecordCache.contains( module.uri() ) ) {
-				ModuleRecord cached = ModuleRecordCache.get( module.uri() );
+			if( cache.contains( module.uri() ) ) {
+				ModuleRecord cached = cache.get( module.uri() );
 				for( ImportedSymbolInfo importedSymbol : cached.symbolTable().importedSymbolInfos() ) {
 					if( importedSymbol.moduleSource().isPresent() ) {
 						dependencies.add( importedSymbol.moduleSource().get() );

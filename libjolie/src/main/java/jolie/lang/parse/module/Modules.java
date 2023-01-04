@@ -36,6 +36,27 @@ public class Modules {
 		}
 	}
 
+	/**
+	 * Global module record cache
+	 * 
+	 */
+	protected static final ModuleRecordCache CACHE = new ModuleRecordCache();
+
+	/**
+	 * parses jolie's code stream to ModuleParsedResult, which contains executable ast and it's
+	 * symbolTables.
+	 * 
+	 * Note: this method is meant to be used through the execution of jolie program, as it calls static
+	 * crawl method that cache the result
+	 * 
+	 * @param configuration
+	 * @param stream jolie code Inputstream
+	 * @param programURI resource URI
+	 * @return
+	 * @throws ParserException
+	 * @throws IOException
+	 * @throws ModuleException
+	 */
 	public static ModuleParsedResult parseModule( ModuleParsingConfiguration configuration, InputStream stream,
 		URI programURI )
 		throws ParserException, IOException, ModuleException {
@@ -58,12 +79,51 @@ public class Modules {
 		return new ModuleParsedResult( mainRecord.program(), crawlResult.symbolTables() );
 	}
 
+
+
+	/**
+	 * parses jolie's code stream to ModuleParsedResult, which contains executable ast and it's
+	 * symbolTables.
+	 * 
+	 * Note: this method is meant to be used to parse jolie code, no cache will be store in memory
+	 * 
+	 * @param configuration
+	 * @param stream jolie code Inputstream
+	 * @param programURI resource URI
+	 * @return
+	 * @throws ParserException
+	 * @throws IOException
+	 * @throws ModuleException
+	 */
+	public static ModuleParsedResult parseModuleLocal( ModuleParsingConfiguration configuration, InputStream stream,
+		URI programURI )
+		throws ParserException, IOException, ModuleException {
+		ModuleParser parser = new ModuleParser( configuration );
+		ModuleRecord mainRecord = parser.parse(
+			new Scanner( stream, programURI, configuration.charset(), configuration.includeDocumentation() ) );
+		ModuleFinder finder;
+
+		// TODO: This is a hack for Windows. Re-evaluate in the future.
+		if( programURI.toString().contains( "jap:" ) ) {
+			finder = new ModuleFinderDummy();
+		} else {
+			finder = new ModuleFinderImpl( programURI, configuration.packagePaths() );
+		}
+
+		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, configuration, finder );
+
+		SymbolReferenceResolver.resolve( crawlResult );
+
+		return new ModuleParsedResult( mainRecord.program(), crawlResult.symbolTables() );
+	}
+
+
 	/**
 	 * Clear the module cache entry
 	 * 
 	 * @param source source of module
 	 */
 	public static void freeCache( URI source ) {
-		ModuleRecordCache.remove( source );
+		Modules.CACHE.remove( source );
 	}
 }
