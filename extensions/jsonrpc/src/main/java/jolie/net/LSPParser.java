@@ -136,6 +136,8 @@ public class LSPParser {
 
 		if( buffer != null ) {
 			message.setContent( buffer );
+		} else {
+			message.setContent( new byte[ 0 ] );
 		}
 	}
 
