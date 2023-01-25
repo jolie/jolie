@@ -348,6 +348,8 @@ public class HttpParser {
 			}
 
 			message.setContent( buffer );
+		} else {
+			message.setContent( new byte[ 0 ] );
 		}
 	}
 
