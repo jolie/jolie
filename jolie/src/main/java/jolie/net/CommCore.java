@@ -669,12 +669,9 @@ public class CommCore {
 											try {
 												key.channel().configureBlocking( true );
 												if( channel.isOpen() ) {
-													/*
-													 * if ( channel.selectionTimeoutHandler() != null ) {
-													 * interpreter.removeTimeoutHandler(
-													 * channel.selectionTimeoutHandler() ); }
-													 */
-													scheduleReceive( channel, channel.parentInputPort() );
+													if( channel.cancelTimeoutHandler() ) {
+														scheduleReceive( channel, channel.parentInputPort() );
+													}
 												} else {
 													channel.closeImpl();
 												}
@@ -805,6 +802,18 @@ public class CommCore {
 		throws IOException {
 		final int i = nextSelector.getAndIncrement() % selectorThreads().length;
 		selectorThreads()[ i ].register( channel, i );
+
+		channel.setTimeoutHandler( () -> {
+			if( isSelecting( channel ) ) {
+				try {
+					channel.setToBeClosed( true );
+					unregisterForSelection( channel );
+					// channel.close(); // Probably unnecessary, since I see code for closing in SelectorThread
+				} catch( IOException e ) {
+					interpreter.logWarning( e );
+				}
+			}
+		}, interpreter, interpreter.persistentConnectionTimeout() );
 		/*
 		 * final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
 		 * 
