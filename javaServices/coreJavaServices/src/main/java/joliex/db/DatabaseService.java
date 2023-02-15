@@ -201,7 +201,7 @@ public class DatabaseService extends JavaService {
 		} catch( ClassNotFoundException e ) {
 			throw new FaultException( "DriverClassNotFound", e );
 		} catch( SQLException e ) {
-			throw new FaultException( "ConnectionError", e );
+			throw createFaultException( e );
 		}
 	}
 
@@ -232,7 +232,7 @@ public class DatabaseService extends JavaService {
 					}
 				}
 			} catch( SQLException e ) {
-				throw new FaultException( "ConnectionError", e );
+				throw createFaultException( e );
 			}
 		}
 	}
@@ -256,7 +256,7 @@ public class DatabaseService extends JavaService {
 				}
 			}
 		} catch( SQLException e ) {
-			throw new FaultException( "ConnectionError", e );
+			throw createFaultException( e );
 		}
 	}
 
@@ -265,21 +265,13 @@ public class DatabaseService extends JavaService {
 		throws FaultException {
 		_checkConnection();
 		Value resultValue = Value.create();
-		PreparedStatement stm = null;
-		try {
+		try( PreparedStatement stm =
+			new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement() ) {
 			synchronized( transactionMutex ) {
-				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
 				resultValue.setValue( stm.executeUpdate() );
 			}
 		} catch( SQLException e ) {
 			throw createFaultException( e );
-		} finally {
-			if( stm != null ) {
-				try {
-					stm.close();
-				} catch( SQLException e ) {
-				}
-			}
 		}
 		return resultValue;
 	}
@@ -468,16 +460,14 @@ public class DatabaseService extends JavaService {
 			}
 
 			Value currResultValue;
-			PreparedStatement stm;
 			int updateCount;
 
 			for( Value statementValue : request.getChildren( "statement" ) ) {
 				currResultValue = Value.create();
-				stm = null;
-				try {
+				try( PreparedStatement stm =
+					new NamedStatementParser( connection, statementValue.strValue(), statementValue )
+						.getPreparedStatement() ) {
 					updateCount = -1;
-					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue )
-						.getPreparedStatement();
 					if( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
 						if( updateCount == -1 ) {
@@ -500,14 +490,6 @@ public class DatabaseService extends JavaService {
 						connection = null;
 					}
 					throw createFaultException( e );
-				} finally {
-					if( stm != null ) {
-						try {
-							stm.close();
-						} catch( SQLException e ) {
-							throw createFaultException( e );
-						}
-					}
 				}
 			}
 
@@ -542,11 +524,10 @@ public class DatabaseService extends JavaService {
 		throws FaultException {
 		_checkConnection();
 		Value resultValue = Value.create();
-		PreparedStatement stm = null;
 
-		try {
-			synchronized( transactionMutex ) {
-				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
+		synchronized( transactionMutex ) {
+			try( PreparedStatement stm =
+				new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement() ) {
 				ResultSet result = stm.executeQuery();
 				if( request.hasChildren( TEMPLATE_FIELD ) ) {
 					resultSetToValueVectorWithTemplate( result, resultValue.getChildren( "row" ),
@@ -555,15 +536,8 @@ public class DatabaseService extends JavaService {
 					resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 				}
 				result.close();
-			}
-		} catch( SQLException e ) {
-			throw createFaultException( e );
-		} finally {
-			if( stm != null ) {
-				try {
-					stm.close();
-				} catch( SQLException e ) {
-				}
+			} catch( SQLException e ) {
+				throw createFaultException( e );
 			}
 		}
 
