@@ -78,5 +78,7 @@ public class BTL2CapListener extends CommListener {
 			connectionNotifier.close();
 		} catch( IOException e ) {
 		}
+		super.clearInterpreter();
+		super.inputPort().clearLocationValue();
 	}
 }
