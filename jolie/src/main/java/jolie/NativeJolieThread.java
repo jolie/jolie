@@ -21,15 +21,17 @@
 
 package jolie;
 
+import java.lang.ref.WeakReference;
+
 public class NativeJolieThread extends Thread implements InterpreterThread {
-	private final Interpreter interpreter;
+	private final WeakReference< Interpreter > interpreter;
 
 	/**
 	 * Constructor
 	 */
 	public NativeJolieThread( Interpreter interpreter, ThreadGroup group, String name ) {
 		super( group, interpreter.programFilename() + "-" + name );
-		this.interpreter = interpreter;
+		this.interpreter = new WeakReference<>( interpreter );
 	}
 
 	/**
@@ -41,7 +43,7 @@ public class NativeJolieThread extends Thread implements InterpreterThread {
 	 */
 	public NativeJolieThread( Interpreter interpreter, String name ) {
 		super( interpreter.programFilename() + "-" + name );
-		this.interpreter = interpreter;
+		this.interpreter = new WeakReference<>( interpreter );
 	}
 
 	/**
@@ -59,13 +61,22 @@ public class NativeJolieThread extends Thread implements InterpreterThread {
 	 */
 	public NativeJolieThread( Interpreter interpreter, Runnable r ) {
 		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
-		this.interpreter = interpreter;
+		this.interpreter = new WeakReference<>( interpreter );
 	}
 
 	/**
 	 * Returns the interpreter that this thread refers to.
 	 */
 	public Interpreter interpreter() {
-		return interpreter;
+		return interpreter.get();
+	}
+
+	/**
+	 * Clear interpreter reference
+	 */
+	public void clearInterpreter() {
+		if( !interpreter.isEnqueued() ) {
+			interpreter.clear();
+		}
 	}
 }

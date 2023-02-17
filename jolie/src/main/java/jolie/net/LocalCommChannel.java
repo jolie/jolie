@@ -20,6 +20,7 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,22 +79,22 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		protected void closeImpl() {}
 	}
 
-	private final Interpreter interpreter;
+	private final WeakReference< Interpreter > interpreter;
 	private final CommListener listener;
 	private final Map< Long, CompletableFuture< CommMessage > > responseWaiters = new ConcurrentHashMap<>();
 
 	public LocalCommChannel( Interpreter interpreter, CommListener listener ) {
-		this.interpreter = interpreter;
+		this.interpreter = new WeakReference<>( interpreter );
 		this.listener = listener;
 	}
 
 	@Override
 	public CommChannel createDuplicate() {
-		return new LocalCommChannel( interpreter, listener );
+		return new LocalCommChannel( interpreter.get(), listener );
 	}
 
 	public Interpreter interpreter() {
-		return interpreter;
+		return interpreter.get();
 	}
 
 	@Override
@@ -103,10 +104,15 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message ) {
-		CompletableFuture< CommMessage > f = new CompletableFuture<>();
-		responseWaiters.put( message.requestId(), f );
-		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );
+	protected void sendImpl( CommMessage message ) throws IOException {
+		Interpreter interpreter = interpreter();
+		if( interpreter == null ) {
+			throw new IOException( "Sending Channel is closed" );
+		} else {
+			CompletableFuture< CommMessage > f = new CompletableFuture<>();
+			responseWaiters.put( message.requestId(), f );
+			interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );
+		}
 	}
 
 	@Override

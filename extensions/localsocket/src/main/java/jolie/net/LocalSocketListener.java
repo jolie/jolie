@@ -58,6 +58,8 @@ public class LocalSocketListener extends CommListener {
 		if( !socketAddress.isAbstract() ) {
 			new File( socketAddress.getPath() ).delete();
 		}
+		super.clearInterpreter();
+		super.inputPort().clearLocationValue();
 	}
 
 	@Override

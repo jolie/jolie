@@ -181,4 +181,8 @@ public class InputPort implements Port {
 
 		return ret;
 	}
+
+	public void clearLocationValue() {
+		this.locationVariablePath.getValue().erase();
+	}
 }

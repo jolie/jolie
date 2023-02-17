@@ -71,6 +71,8 @@ public class SocketListener extends CommListener {
 			} catch( IOException e ) {
 			}
 		}
+		super.clearInterpreter();
+		super.inputPort().clearLocationValue();
 	}
 
 	@Override
