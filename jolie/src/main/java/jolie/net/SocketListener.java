@@ -64,15 +64,13 @@ public class SocketListener extends CommListener {
 	}
 
 	@Override
-	public void shutdown() {
+	public void onShutdown() {
 		if( serverChannel.isOpen() ) {
 			try {
 				serverChannel.close();
 			} catch( IOException e ) {
 			}
 		}
-		super.clearInterpreter();
-		super.inputPort().clearLocationValue();
 	}
 
 	@Override

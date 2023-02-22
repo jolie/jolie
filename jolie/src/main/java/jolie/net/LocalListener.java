@@ -82,10 +82,7 @@ public class LocalListener extends CommListener {
 	}
 
 	@Override
-	public void shutdown() {
-		super.clearInterpreter();
-		super.inputPort().clearLocationValue();
-	}
+	public void onShutdown() {}
 
 	@Override
 	public void run() {}
