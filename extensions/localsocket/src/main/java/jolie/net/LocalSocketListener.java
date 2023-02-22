@@ -54,12 +54,10 @@ public class LocalSocketListener extends CommListener {
 	}
 
 	@Override
-	public void shutdown() {
+	public void onShutdown() {
 		if( !socketAddress.isAbstract() ) {
 			new File( socketAddress.getPath() ).delete();
 		}
-		super.clearInterpreter();
-		super.inputPort().clearLocationValue();
 	}
 
 	@Override

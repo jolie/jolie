@@ -73,12 +73,10 @@ public class BTL2CapListener extends CommListener {
 	}
 
 	@Override
-	public void shutdown() {
+	public void onShutdown() {
 		try {
 			connectionNotifier.close();
 		} catch( IOException e ) {
 		}
-		super.clearInterpreter();
-		super.inputPort().clearLocationValue();
 	}
 }

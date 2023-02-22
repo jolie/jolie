@@ -80,10 +80,19 @@ public abstract class CommListener extends NativeJolieThread {
 	}
 
 	/**
-	 * Requests the shutdown of this listener, so that it receives no more messages.
+	 * Specific shutdown behavior for each implementation.
 	 *
 	 * The behaviour of this method depends on the implementation: there is no guarantee that the
 	 * shutdown has been completed on return of this method, only that it has been requested.
 	 */
-	abstract public void shutdown();
+	abstract public void onShutdown();
+
+	/**
+	 * Requests the shutdown of this listener, so that it receives no more messages.
+	 */
+	public void shutdown() {
+		this.onShutdown();
+		this.inputPort().clearLocationValue();
+		super.clearInterpreter();
+	}
 }
