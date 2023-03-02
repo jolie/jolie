@@ -48,6 +48,7 @@ type SetCronJobRequest: void {
 }
 
 interface SchedulerInterface{
+   RequestResponse:
    // Delete an existing cron job
    deleteCronJob( DeleteCronJobRequest )( void ),
 
