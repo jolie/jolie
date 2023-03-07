@@ -50,7 +50,7 @@ import jolie.util.Helpers;
 public abstract class CommChannel {
 	protected final ReentrantLock lock = new ReentrantLock( false );
 
-	private boolean toBeClosed = true;
+	private volatile boolean toBeClosed = true;
 	private InputPort inputPort = null;
 	private OutputPort outputPort = null;
 	private boolean isOpen = true;
@@ -228,13 +228,13 @@ public abstract class CommChannel {
 	 */
 	public final void release()
 		throws IOException {
-		Helpers.lockAndThen( lock, () -> {
-			if( toBeClosed() ) {
-				close();
-			} else {
-				releaseImpl();
-			}
-		} );
+		// Helpers.lockAndThen( lock, () -> {
+		if( toBeClosed() ) {
+			close();
+		} else {
+			releaseImpl();
+		}
+		// } );
 	}
 
 	protected void releaseImpl()

@@ -56,11 +56,11 @@ public abstract class StreamingCommChannel extends AbstractCommChannel {
 	@Override
 	protected void releaseImpl()
 		throws IOException {
-		Helpers.lockAndThen( lock,
-			() -> {
-				if( parentPort() instanceof OutputPort ) {
-					((OutputPort) parentPort()).putPersistentChannel( location, protocol.name(), this );
-				}
-			} );
+		// Helpers.lockAndThen( lock,
+		// () -> {
+		if( parentPort() instanceof OutputPort ) {
+			((OutputPort) parentPort()).putPersistentChannel( location, protocol.name(), this );
+		}
+		// } );
 	}
 }

@@ -99,11 +99,11 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 	@Override
 	protected void releaseImpl()
 		throws IOException {
-		Helpers.lockAndThen( lock, () -> {
-			final CommCore commCore = Interpreter.getInstance().commCore();
-			if( commCore.isSelecting( this ) == false ) {
-				super.releaseImpl();
-			}
-		} );
+		// Helpers.lockAndThen( lock, () -> {
+		final CommCore commCore = Interpreter.getInstance().commCore();
+		if( commCore.isSelecting( this ) == false ) {
+			super.releaseImpl();
+		}
+		// } );
 	}
 }
