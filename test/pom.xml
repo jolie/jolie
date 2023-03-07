@@ -12,6 +12,9 @@
 	<artifactId>test</artifactId>
 	<version>${jolie.version}</version>
 	<packaging>pom</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<name>test</name>
 	<description>The Jolie interpreter test suite.</description>
 	<profiles>
@@ -66,13 +69,14 @@
 					<environmentVariables>
 						<JOLIE_HOME>${jolie.home}</JOLIE_HOME>
 						<PATH>${test.pathenv}</PATH>
+						<JAVA_TOOL_OPTIONS>-Dfile.encoding=UTF8</JAVA_TOOL_OPTIONS>
 					</environmentVariables>
 					<workingDirectory>${test.dir}</workingDirectory>
 					<executable>${jolie.launcher}</executable>
 					<arguments>
 						<argument>--stackTraces</argument>
 						<argument>--charset</argument>
-						<argument>UTF-8</argument>
+						<argument>${project.build.sourceEncoding}</argument>
 						<argument>test.ol</argument>
 						<!-- Edit the next line with your desired target if you want a specific test -->
 						<!-- <argument>.*values.*</argument> -->
