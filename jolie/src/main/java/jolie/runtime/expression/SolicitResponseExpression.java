@@ -241,7 +241,6 @@ public class SolicitResponseExpression implements Expression {
 					}
 				}
 			}
-
 		} catch( TimeoutException e ) { // The response timed out
 			throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME ).toRuntimeFaultException();
 		} catch( IOException e ) {
