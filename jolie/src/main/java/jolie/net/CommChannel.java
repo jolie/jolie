@@ -75,8 +75,10 @@ public abstract class CommChannel {
 			// If there is no current handler or if we are still in time to cancel the current handler
 			if( timeoutHandler == null || timeoutHandler.cancel( false ) ) {
 				timeoutHandler = interpreter.schedule( () -> {
-					newTimeoutHandler.run();
-					this.timeoutHandler = null;
+					synchronized( timeoutHandlerMutex ) {
+						newTimeoutHandler.run();
+						this.timeoutHandler = null;
+					}
 				}, delay );
 			}
 		}

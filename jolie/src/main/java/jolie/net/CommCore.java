@@ -840,7 +840,7 @@ public class CommCore {
 			}
 			executorService.shutdown();
 			try {
-				executorService.awaitTermination( interpreter.persistentConnectionTimeout(), TimeUnit.MILLISECONDS );
+				executorService.awaitTermination( timeout, TimeUnit.MILLISECONDS );
 			} catch( InterruptedException e ) {
 			}
 			threadGroup.interrupt();
