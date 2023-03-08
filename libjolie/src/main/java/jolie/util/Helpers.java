@@ -148,9 +148,9 @@ public class Helpers {
 	}
 
 	/**
-	 * Tries to acquires lock if the current thread does not hold it already, executes code and returns. The
-	 * passed lambda may throw an exception, which is then thrown by this method.
-	 * If the lock cannot be acquired, the lambda is not run.
+	 * Tries to acquires lock if the current thread does not hold it already, executes code and returns.
+	 * The passed lambda may throw an exception, which is then thrown by this method. If the lock cannot
+	 * be acquired, the lambda is not run.
 	 */
 	public static < T extends Throwable > void tryLockAndThen( ReentrantLock lock, ExceptionalRunnable< T > code )
 		throws T {
@@ -166,12 +166,13 @@ public class Helpers {
 	}
 
 	/**
-	 * Tries to acquires lock if the current thread does not hold it already, executes code and returns. The
-	 * passed lambda may throw an exception, which is then thrown by this method.
-	 * If the lock cannot be acquired, the lambda is not run.
+	 * Tries to acquires lock if the current thread does not hold it already, executes code and returns.
+	 * The passed lambda may throw an exception, which is then thrown by this method. If the lock cannot
+	 * be acquired, the lambda is not run.
 	 */
-	public static < T extends Throwable, R extends Throwable > void tryLockOrElse( ReentrantLock lock, ExceptionalRunnable< T > code, ExceptionalRunnable< R > elseCode )
-		throws T, R {
+	public static < T1 extends Throwable, T2 extends Throwable > void tryLockOrElse( ReentrantLock lock,
+		ExceptionalRunnable< T1 > code, ExceptionalRunnable< T2 > elseCode )
+		throws T1, T2 {
 		if( lock.isHeldByCurrentThread() ) {
 			code.run();
 		} else if( lock.tryLock() ) {
@@ -183,5 +184,28 @@ public class Helpers {
 		} else {
 			elseCode.run();
 		}
+	}
+
+	/**
+	 * Tries to acquires lock if the current thread does not hold it already, executes code and returns.
+	 * The passed lambda may throw an exception, which is then thrown by this method. If the lock cannot
+	 * be acquired, the lambda is not run.
+	 */
+	public static < R, T1 extends Throwable, T2 extends Throwable > R tryLockOrElse( ReentrantLock lock,
+		ExceptionalCallable< R, T1 > code, ExceptionalCallable< R, T2 > elseCode )
+		throws T1, T2 {
+		final R ret;
+		if( lock.isHeldByCurrentThread() ) {
+			ret = code.call();
+		} else if( lock.tryLock() ) {
+			try {
+				ret = code.call();
+			} finally {
+				lock.unlock();
+			}
+		} else {
+			ret = elseCode.call();
+		}
+		return ret;
 	}
 }
