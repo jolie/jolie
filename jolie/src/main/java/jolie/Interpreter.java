@@ -60,6 +60,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import jolie.lang.CodeCheckException;
 import jolie.lang.Constants;
+import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
@@ -269,9 +270,8 @@ public class Interpreter {
 	private final Tracer tracer;
 
 	private boolean check = false;
-	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
-	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
-	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
+	private final long persistentConnectionTimeout = 2 * 1000; // 2 seconds
+	private final long awaitTerminationTimeout = 5 * 1000; // 5 seconds
 
 	private final Map< URI, SymbolTable > symbolTables;
 
@@ -543,7 +543,7 @@ public class Interpreter {
 	 * with caution.
 	 */
 	public void exit() {
-		exit( awaitTerminationTimeout );
+		exit( executionMode == ExecutionMode.CONCURRENT ? awaitTerminationTimeout : 0L );
 	}
 
 	/**
