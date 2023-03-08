@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.channels.SelectableChannel;
-
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;
@@ -93,7 +92,7 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException {
-		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().registerForSelection( this ) );
+		Interpreter.getInstance().commCore().registerForSelection( this );
 	}
 
 	@Override

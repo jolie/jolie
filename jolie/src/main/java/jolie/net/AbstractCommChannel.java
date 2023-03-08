@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -76,10 +77,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 		synchronized( responseRecvMutex ) {
 			var optResponse = removeResponseFromCache( request );
 			if( optResponse.isPresent() ) {
-				System.out.println( "Found in cache " + request.requestId() );
 				return CompletableFuture.completedFuture( optResponse.get() );
 			} else {
-				System.out.println( "Not Found in cache " + request.requestId() );
 				assert !waiters.containsKey( request.requestId() );
 				var responseFuture = new CompletableFuture< CommMessage >();
 				waiters.put( request.requestId(), responseFuture );
@@ -113,8 +112,14 @@ public abstract class AbstractCommChannel extends CommChannel {
 		}
 
 		private void timeout() {
+			synchronized( parent.responseRecvMutex ) {
+				try {
+					parent.close();
+				} catch( IOException e ) {
+					Interpreter.getInstance().logWarning( e );
+				}
+			}
 			// synchronized( parent.responseRecvMutex ) {
-			System.out.println( "Timeout triggered" );
 			// try {
 			// Helpers.lockAndThen( parent.lock, parent::close );
 			// } catch( IOException e ) {
@@ -142,7 +147,6 @@ public abstract class AbstractCommChannel extends CommChannel {
 		}
 
 		private void handleMessage( CommMessage response ) {
-			System.out.println( "Handling message " + response.requestId() );
 			var responseFuture = parent.waiters.remove( response.requestId() );
 			if( responseFuture != null ) {
 				responseFuture.complete( response );
@@ -176,22 +180,24 @@ public abstract class AbstractCommChannel extends CommChannel {
 			CommMessage response;
 			while( keepRun ) {
 				synchronized( parent.responseRecvMutex ) {
-					try {
-						resetTimeout();
-						response = parent.recv();
-						if( response != null ) {
+					resetTimeout();
+				}
+				try {
+					response = parent.recv();
+					if( response != null ) {
+						synchronized( parent.responseRecvMutex ) {
 							if( response.hasGenericRequestId() ) {
 								handleGenericMessage( response );
 							} else {
 								handleMessage( response );
 							}
 						}
-					} catch( IOException e ) {
-						throwIOExceptionFault( e );
-						keepRun = false;
-						parent.responseReceiver = null;
-						// TODO: close the channel?
 					}
+				} catch( IOException e ) {
+					throwIOExceptionFault( e );
+					keepRun = false;
+					parent.responseReceiver = null;
+					// TODO: close the channel?
 				}
 			}
 		}

@@ -21,12 +21,10 @@
 
 package jolie.net;
 
-import jolie.net.ports.OutputPort;
-import jolie.net.protocols.CommProtocol;
-import jolie.util.Helpers;
-
 import java.io.IOException;
 import java.net.URI;
+import jolie.net.ports.OutputPort;
+import jolie.net.protocols.CommProtocol;
 
 /**
  * This abstract class implements a communication channel based on a <code>CommProtocol</code>.

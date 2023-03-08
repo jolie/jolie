@@ -57,26 +57,29 @@ public abstract class CommChannel {
 
 	private long redirectionMessageId = 0L;
 
+	private final Object timeoutHandlerMutex = new Object();
 	private Future< ? > timeoutHandler = null;
 
 	protected boolean cancelTimeoutHandler() {
-		return Helpers.lockAndThen( lock, () ->
-		// true if there is no handler or if we can cancel it
-		timeoutHandler == null || timeoutHandler.cancel( false ) );
+		boolean result;
+		synchronized( timeoutHandlerMutex ) {
+			// true if there is no handler or if we can cancel it
+			result = timeoutHandler == null || timeoutHandler.cancel( false );
+			timeoutHandler = null;
+		}
+		return result;
 	}
 
 	protected void setTimeoutHandler( Runnable newTimeoutHandler, Interpreter interpreter, long delay ) {
-		Helpers.lockAndThen( lock, () -> {
+		synchronized( timeoutHandlerMutex ) {
 			// If there is no current handler or if we are still in time to cancel the current handler
 			if( timeoutHandler == null || timeoutHandler.cancel( false ) ) {
 				timeoutHandler = interpreter.schedule( () -> {
-					Helpers.lockAndThen( lock, () -> {
-						newTimeoutHandler.run();
-						this.timeoutHandler = null;
-					} );
+					newTimeoutHandler.run();
+					this.timeoutHandler = null;
 				}, delay );
 			}
-		} );
+		}
 	}
 
 	protected long redirectionMessageId() {
@@ -228,13 +231,11 @@ public abstract class CommChannel {
 	 */
 	public final void release()
 		throws IOException {
-		// Helpers.lockAndThen( lock, () -> {
 		if( toBeClosed() ) {
 			close();
 		} else {
 			releaseImpl();
 		}
-		// } );
 	}
 
 	protected void releaseImpl()
@@ -255,6 +256,7 @@ public abstract class CommChannel {
 	 */
 	public final void disposeForInput()
 		throws IOException {
+		// TODO: might be useless locking
 		Helpers.lockAndThen( lock, () -> {
 			if( toBeClosed() == false ) {
 				disposeForInputImpl();
