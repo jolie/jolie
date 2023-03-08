@@ -543,7 +543,7 @@ public class Interpreter {
 	 * with caution.
 	 */
 	public void exit() {
-		exit( executionMode == ExecutionMode.CONCURRENT ? awaitTerminationTimeout : 0L );
+		exit( executionMode == ExecutionMode.SINGLE ? 0L : awaitTerminationTimeout );
 	}
 
 	/**
