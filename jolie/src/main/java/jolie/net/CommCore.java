@@ -465,7 +465,7 @@ public class CommCore {
 		public void run() {
 			final CommChannelHandler thread = CommChannelHandler.currentThread();
 			thread.setExecutionThread( interpreter().initThread().getNewSessionThread() );
-			channel.lock.lock();
+			channel.rwLock.lock();
 			channelHandlersLock.readLock().lock();
 			try {
 				if( channel.redirectionChannel() == null ) {
@@ -477,7 +477,7 @@ public class CommCore {
 						channel.disposeForInput();
 					}
 				} else {
-					channel.lock.unlock();
+					channel.rwLock.unlock();
 					CommMessage response = null;
 					try {
 						response = channel.recvResponseFor(
@@ -504,8 +504,8 @@ public class CommCore {
 				}
 			} finally {
 				channelHandlersLock.readLock().unlock();
-				if( channel.lock.isHeldByCurrentThread() ) {
-					channel.lock.unlock();
+				if( channel.rwLock.isHeldByCurrentThread() ) {
+					channel.rwLock.unlock();
 				}
 				thread.setExecutionThread( null );
 			}
@@ -661,7 +661,7 @@ public class CommCore {
 						if( key.isValid() ) {
 							final SelectableStreamingCommChannel channel =
 								(SelectableStreamingCommChannel) key.attachment();
-							if( channel.lock.tryLock() ) {
+							if( channel.rwLock.tryLock() ) {
 								key.cancel();
 								selectorTasks.add( () -> {
 									try {
@@ -684,11 +684,11 @@ public class CommCore {
 										} catch( IOException e ) {
 											throw e;
 										} finally {
-											channel.lock.unlock();
+											channel.rwLock.unlock();
 										}
 									} catch( IOException e ) {
-										if( channel.lock.isHeldByCurrentThread() ) {
-											channel.lock.unlock();
+										if( channel.rwLock.isHeldByCurrentThread() ) {
+											channel.rwLock.unlock();
 										}
 										interpreter.logWarning( e );
 									}

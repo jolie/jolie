@@ -51,30 +51,19 @@ public class ChannelCache {
 			if( protocolChannels != null ) {
 				ret = protocolChannels.get( protocol );
 				if( ret != null ) {
-					if( ret.lock.tryLock() ) {
-						if( ret.isOpen() ) {
-							/*
-							 * We are going to return this channel, but first check if it supports concurrent use. If
-							 * not, then others should not access this until the caller is finished using it.
-							 */
-							// if ( ret.isThreadSafe() == false ) {
-							removePersistentChannel( location, protocol, protocolChannels );
-							// } else {
-							// If we return a channel, make sure it will not timeout!
-							boolean available = ret.cancelTimeoutHandler();
-							// if ( ret.timeoutHandler() != null ) {
-							// interpreter.removeTimeoutHandler( ret.timeoutHandler() );
-							// ret.setTimeoutHandler( null );
-							// }
-							// }
-							ret.lock.unlock();
-							if( !available ) {
+					if( ret.rwLock.tryLock() ) {
+						try {
+							if( ret.isOpen() ) {
+								removePersistentChannel( location, protocol, protocolChannels );
+								if( !ret.cancelTimeoutHandler() ) {
+									ret = null;
+								}
+							} else { // Channel is closed
+								removePersistentChannel( location, protocol, protocolChannels );
 								ret = null;
 							}
-						} else { // Channel is closed
-							removePersistentChannel( location, protocol, protocolChannels );
-							ret.lock.unlock();
-							ret = null;
+						} finally {
+							ret.rwLock.unlock();
 						}
 					} else { // Channel is busy
 						removePersistentChannel( location, protocol, protocolChannels );
@@ -112,8 +101,8 @@ public class ChannelCache {
 			try {
 				synchronized( persistentChannels ) {
 					removePersistentChannel( location, protocol, channel );
+					channel.close();
 				}
-				channel.close();
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
 			}

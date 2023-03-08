@@ -119,13 +119,6 @@ public abstract class AbstractCommChannel extends CommChannel {
 					Interpreter.getInstance().logWarning( e );
 				}
 			}
-			// synchronized( parent.responseRecvMutex ) {
-			// try {
-			// Helpers.lockAndThen( parent.lock, parent::close );
-			// } catch( IOException e ) {
-			// Interpreter.getInstance().logWarning( e );
-			// }
-			// }
 		}
 
 		private void handleGenericMessage( CommMessage response ) {
@@ -193,10 +186,18 @@ public abstract class AbstractCommChannel extends CommChannel {
 							}
 						}
 					}
+					synchronized( parent.responseRecvMutex ) {
+						if( parent.waiters.isEmpty() ) {
+							parent.responseReceiver = null;
+							keepRun = false;
+						}
+					}
 				} catch( IOException e ) {
-					throwIOExceptionFault( e );
-					keepRun = false;
-					parent.responseReceiver = null;
+					synchronized( parent.responseRecvMutex ) {
+						throwIOExceptionFault( e );
+						keepRun = false;
+						parent.responseReceiver = null;
+					}
 					// TODO: close the channel?
 				}
 			}

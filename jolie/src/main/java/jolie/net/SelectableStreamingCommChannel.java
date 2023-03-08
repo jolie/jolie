@@ -71,7 +71,7 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 	@Override
 	public final void send( CommMessage message )
 		throws IOException {
-		Helpers.lockAndThen( lock, () -> _send( message ) );
+		Helpers.lockAndThen( rwLock, () -> _send( message ) );
 	}
 
 	private void _send( CommMessage message )
