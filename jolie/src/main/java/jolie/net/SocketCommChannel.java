@@ -175,7 +175,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 
 		final boolean ret;
 		try {
-			ret = Helpers.lockAndThen( lock, this::_isOpenImpl );
+			ret = Helpers.lockAndThen( rwLock, this::_isOpenImpl );
 		} catch( IOException e ) {
 			Interpreter.getInstance().logWarning( e );
 			return false;

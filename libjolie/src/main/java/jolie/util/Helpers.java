@@ -146,4 +146,42 @@ public class Helpers {
 		}
 		return ret;
 	}
+
+	/**
+	 * Tries to acquires lock if the current thread does not hold it already, executes code and returns. The
+	 * passed lambda may throw an exception, which is then thrown by this method.
+	 * If the lock cannot be acquired, the lambda is not run.
+	 */
+	public static < T extends Throwable > void tryLockAndThen( ReentrantLock lock, ExceptionalRunnable< T > code )
+		throws T {
+		if( lock.isHeldByCurrentThread() ) {
+			code.run();
+		} else if( lock.tryLock() ) {
+			try {
+				code.run();
+			} finally {
+				lock.unlock();
+			}
+		}
+	}
+
+	/**
+	 * Tries to acquires lock if the current thread does not hold it already, executes code and returns. The
+	 * passed lambda may throw an exception, which is then thrown by this method.
+	 * If the lock cannot be acquired, the lambda is not run.
+	 */
+	public static < T extends Throwable, R extends Throwable > void tryLockOrElse( ReentrantLock lock, ExceptionalRunnable< T > code, ExceptionalRunnable< R > elseCode )
+		throws T, R {
+		if( lock.isHeldByCurrentThread() ) {
+			code.run();
+		} else if( lock.tryLock() ) {
+			try {
+				code.run();
+			} finally {
+				lock.unlock();
+			}
+		} else {
+			elseCode.run();
+		}
+	}
 }

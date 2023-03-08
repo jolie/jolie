@@ -48,7 +48,7 @@ import jolie.util.Helpers;
  * @see CommMessage
  */
 public abstract class CommChannel {
-	protected final ReentrantLock lock = new ReentrantLock( false );
+	protected final ReentrantLock rwLock = new ReentrantLock( false );
 
 	private volatile boolean toBeClosed = true;
 	private InputPort inputPort = null;
@@ -171,7 +171,14 @@ public abstract class CommChannel {
 	 * @return <code>true</code> if this channel is open, <code>false</code> otherwise
 	 */
 	public final boolean isOpen() {
-		return isOpen && isOpenImpl();
+		boolean result;
+		if( rwLock.tryLock() ) {
+			result = isOpen && isOpenImpl();
+			rwLock.unlock();
+		} else {
+			result = true;
+		}
+		return result;
 	}
 
 	protected boolean isOpenImpl() {
@@ -190,7 +197,7 @@ public abstract class CommChannel {
 	 */
 	public CommMessage recv()
 		throws IOException {
-		return Helpers.lockAndThen( lock, this::recvImpl );
+		return Helpers.lockAndThen( rwLock, this::recvImpl );
 	}
 
 	/**
@@ -212,7 +219,7 @@ public abstract class CommChannel {
 	public void send( final CommMessage message )
 		throws IOException {
 		try {
-			Helpers.lockAndThen( lock, () -> sendImpl( message ) );
+			Helpers.lockAndThen( rwLock, () -> sendImpl( message ) );
 		} catch( IOException e ) {
 			setToBeClosed( true );
 			throw e;
@@ -259,7 +266,7 @@ public abstract class CommChannel {
 	public final void disposeForInput()
 		throws IOException {
 		// TODO: might be useless locking
-		Helpers.lockAndThen( lock, () -> {
+		Helpers.lockAndThen( rwLock, () -> {
 			if( toBeClosed() == false ) {
 				disposeForInputImpl();
 			} /*
