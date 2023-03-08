@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.Interpreter;
+import jolie.util.Helpers;
 
 public class ChannelCache {
 	// Location URI -> Protocol name -> Persistent CommChannel object
@@ -45,35 +46,21 @@ public class ChannelCache {
 	}
 
 	public CommChannel getPersistentChannel( URI location, String protocol ) {
-		CommChannel ret = null;
 		synchronized( persistentChannels ) {
 			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
 			if( protocolChannels != null ) {
-				ret = protocolChannels.get( protocol );
+				final var ret = protocolChannels.get( protocol );
 				if( ret != null ) {
-					if( ret.rwLock.tryLock() ) {
-						try {
-							if( ret.isOpen() ) {
-								removePersistentChannel( location, protocol, protocolChannels );
-								if( !ret.cancelTimeoutHandler() ) {
-									ret = null;
-								}
-							} else { // Channel is closed
-								removePersistentChannel( location, protocol, protocolChannels );
-								ret = null;
-							}
-						} finally {
-							ret.rwLock.unlock();
-						}
-					} else { // Channel is busy
-						removePersistentChannel( location, protocol, protocolChannels );
-						ret = null;
+					removePersistentChannel( location, protocol, protocolChannels );
+					if( Helpers.tryLockOrElse( ret.rwLock, () -> ret.isOpen() && ret.cancelTimeoutHandler(),
+						() -> false ) ) {
+						return ret;
 					}
 				}
 			}
 		}
 
-		return ret;
+		return null;
 	}
 
 	public void putPersistentChannel( URI location, String protocol, final CommChannel channel,
