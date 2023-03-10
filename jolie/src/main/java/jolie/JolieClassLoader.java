@@ -340,6 +340,13 @@ public final class JolieClassLoader extends URLClassLoader {
 			url = findResource( jarName );
 		}
 		if( url == null ) {
+			// Try again with URI method, since from
+			// Java 17's URLClassLoader.findResource fixes undocumented
+			// throws IllegalArgumentException on Windows
+			jarName = new File( jarName ).toURI().toString();
+			url = findResource( jarName );
+		}
+		if( url == null ) {
 			throw new IOException( "Resource not found: " + jarName );
 		}
 
