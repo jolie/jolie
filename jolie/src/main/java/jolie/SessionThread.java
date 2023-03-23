@@ -23,17 +23,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import jolie.lang.Constants;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
@@ -53,119 +49,15 @@ import jolie.util.Pair;
  * @author Fabrizio Montesi
  */
 public class SessionThread extends ExecutionThread {
-	private static class SessionMessageFuture implements Future< SessionMessage > {
-		private final Lock lock;
-		private final Condition condition;
-		private SessionMessage sessionMessage = null;
-		private boolean isDone = false;
-		private boolean isCancelled = false;
-
-		public SessionMessageFuture() {
-			lock = new ReentrantLock();
-			condition = lock.newCondition();
-		}
-
-		@Override
-		public boolean cancel( boolean mayInterruptIfRunning ) {
-			lock.lock();
-			try {
-				if( !isDone ) {
-					this.sessionMessage = null;
-					isDone = true;
-					isCancelled = true;
-					condition.signalAll();
-				}
-			} finally {
-				lock.unlock();
-			}
-
-			return true;
-		}
-
-		@Override
-		public SessionMessage get( long timeout, TimeUnit unit )
-			throws InterruptedException, TimeoutException {
-			try {
-				lock.lock();
-				if( !isDone ) {
-					if( !condition.await( timeout, unit ) ) {
-						throw new TimeoutException();
-					}
-				}
-			} finally {
-				lock.unlock();
-			}
-			return sessionMessage;
-		}
-
-		@Override
-		public SessionMessage get()
-			throws InterruptedException {
-			try {
-				lock.lock();
-				if( !isDone ) {
-					condition.await();
-				}
-			} finally {
-				lock.unlock();
-			}
-			return sessionMessage;
-		}
-
-		@Override
-		public boolean isCancelled() {
-			return isCancelled;
-		}
-
-		@Override
-		public boolean isDone() {
-			return isDone;
-		}
-
-		protected void setResult( SessionMessage sessionMessage ) {
-			lock.lock();
-			try {
-				if( !isDone ) {
-					this.sessionMessage = sessionMessage;
-					isDone = true;
-					condition.signalAll();
-				}
-			} finally {
-				lock.unlock();
-			}
-		}
-	}
-
-	private class SessionMessageNDFuture extends SessionMessageFuture {
-		private final String[] operationNames;
-
-		public SessionMessageNDFuture( String[] operationNames ) {
-			super();
-			this.operationNames = operationNames;
-		}
-
-		@Override
-		protected void setResult( SessionMessage sessionMessage ) {
-			for( String operationName : operationNames ) {
-				if( operationName.equals( sessionMessage.message().operationName() ) == false ) {
-					Deque< SessionMessageFuture > waitersList = messageWaiters.get( operationName );
-					if( waitersList != null ) {
-						waitersList.remove( this );
-					}
-				}
-			}
-			super.setResult( sessionMessage );
-		}
-	}
-
 	private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
 
 	private final long id = ID_COUNTER.getAndIncrement();
 	private final jolie.State state;
 	private final List< SessionListener > listeners = new ArrayList<>();
+
 	protected final Map< CorrelationSet, Deque< SessionMessage > > messageQueues = new HashMap<>();
 	protected final Deque< SessionMessage > uncorrelatedMessageQueue = new ArrayDeque<>();
-	private final Map< String, Deque< SessionMessageFuture > > messageWaiters = new HashMap<>();
+	private final Map< String, Set< CompletableFuture< SessionMessage > > > messageWaiters = new HashMap<>();
 
 	private final static VariablePath TYPE_MISMATCH_PATH;
 	private final static VariablePath IO_EXCEPTION_PATH;
@@ -279,100 +171,76 @@ public class SessionThread extends ExecutionThread {
 	@Override
 	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations,
 		ExecutionThread ethread ) {
-		final SessionMessageFuture future =
-			new SessionMessageNDFuture( operations.keySet().toArray( new String[ 0 ] ) );
-		ethread.cancelIfKilled( future );
-		synchronized( messageQueues ) {
-			Deque< SessionMessage > queue = null;
-			SessionMessage message = null;
-			InputOperation operation = null;
-
-			Iterator< Deque< SessionMessage > > it = messageQueues.values().iterator();
-			while( operation == null && it.hasNext() ) {
-				queue = it.next();
-				message = queue.peekFirst();
-				if( message != null ) {
-					operation = operations.get( message.message().operationName() );
-				}
-			}
-			if( message == null ) {
-				queue = uncorrelatedMessageQueue;
-				message = queue.peekFirst();
-				if( message != null ) {
-					operation = operations.get( message.message().operationName() );
-				}
-			}
-
-			if( message == null || operation == null ) {
-				operations.entrySet().forEach(
-					entry -> addMessageWaiter( entry.getValue(), future ) );
-			} else {
-				future.setResult( message );
-				queue.removeFirst();
-
-				// Check if we unlocked other receives
-				boolean keepRun = true;
-				SessionMessageFuture f;
-				while( keepRun && !queue.isEmpty() ) {
-					message = queue.peekFirst();
-					f = getMessageWaiter( message.message().operationName() );
-					if( f != null ) { // We found a waiter for the unlocked message
-						f.setResult( message );
-						queue.removeFirst();
-					} else {
-						keepRun = false;
-					}
-				}
-			}
+		final var messageFuture = new CompletableFuture< SessionMessage >();
+		ethread.cancelIfKilled( messageFuture );
+		if( messageFuture.isCancelled() ) {
+			return messageFuture;
 		}
-		return future;
+
+		operations.forEach( ( opName, operation ) -> {
+			final var queue = getQueueForOperation( operation.id() );
+			final var message = queue.peekFirst();
+			if( message != null && message.message().operationName().equals( operation.id() ) ) {
+				messageFuture.complete( message );
+				queue.removeFirst();
+				checkPendingWaiters( queue );
+			}
+		} );
+
+		if( !messageFuture.isDone() ) {
+			operations.entrySet().forEach(
+				entry -> addMessageWaiter( entry.getValue(), messageFuture ) );
+		}
+
+		return messageFuture;
 	}
 
 	@Override
-	public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread ) {
-		final SessionMessageFuture future = new SessionMessageFuture();
-		ethread.cancelIfKilled( future );
-		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( operation.id() );
-		final Deque< SessionMessage > queue =
-			cset == null ? uncorrelatedMessageQueue
-				: messageQueues.get( cset );
-		synchronized( messageQueues ) {
-			final SessionMessage message = queue.peekFirst();
-			if( message == null
-				|| message.message().operationName().equals( operation.id() ) == false ) {
-				addMessageWaiter( operation, future );
-			} else {
-				future.setResult( message );
-				queue.removeFirst();
+	public synchronized Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread ) {
+		final var messageFuture = new CompletableFuture< SessionMessage >();
+		ethread.cancelIfKilled( messageFuture );
+		if( messageFuture.isCancelled() ) {
+			return messageFuture;
+		}
 
-				// Check if we unlocked other receives
-				boolean keepRun = true;
-				while( keepRun && !queue.isEmpty() ) {
-					final SessionMessage otherMessage = queue.peekFirst();
-					final SessionMessageFuture currFuture = getMessageWaiter( otherMessage.message().operationName() );
-					if( currFuture != null ) { // We found a waiter for the unlocked message
-						currFuture.setResult( otherMessage );
-						queue.removeFirst();
-					} else {
-						keepRun = false;
-					}
-				}
+		final var queue = getQueueForOperation( operation.id() );
+		final SessionMessage message = queue.peekFirst();
+		if( message != null && message.message().operationName().equals( operation.id() ) ) {
+			messageFuture.complete( message );
+			queue.removeFirst();
+			checkPendingWaiters( queue );
+		} else {
+			addMessageWaiter( operation, messageFuture );
+		}
+
+		return messageFuture;
+	}
+
+	private void checkPendingWaiters( Deque< SessionMessage > queue ) {
+		boolean keepRun = true;
+		while( keepRun && !queue.isEmpty() ) {
+			final var message = queue.peekFirst();
+			final var future = getMessageWaiter( message.message().operationName() );
+			if( future != null ) { // We found a waiter for the unlocked message
+				completeWaiter( future, message );
+				queue.removeFirst();
+			} else {
+				keepRun = false;
 			}
 		}
-		return future;
 	}
 
-	private void addMessageWaiter( InputOperation operation, SessionMessageFuture future ) {
-		Deque< SessionMessageFuture > waitersList = messageWaiters.get( operation.id() );
+	private void addMessageWaiter( InputOperation operation, CompletableFuture< SessionMessage > future ) {
+		var waitersList = messageWaiters.get( operation.id() );
 		if( waitersList == null ) {
-			waitersList = new ArrayDeque<>();
+			waitersList = new HashSet<>();
 			messageWaiters.put( operation.id(), waitersList );
 		}
-		waitersList.addLast( future );
+		waitersList.add( future );
 	}
 
-	private SessionMessageFuture getMessageWaiter( String operationName ) {
-		Deque< SessionMessageFuture > waitersList = messageWaiters.get( operationName );
+	private CompletableFuture< SessionMessage > getMessageWaiter( String operationName ) {
+		var waitersList = messageWaiters.get( operationName );
 		if( waitersList == null || waitersList.isEmpty() ) {
 			return null;
 		}
@@ -381,24 +249,29 @@ public class SessionThread extends ExecutionThread {
 			messageWaiters.remove( operationName );
 		}
 
-		return waitersList.removeFirst();
+		final var it = waitersList.iterator();
+		final var f = it.next();
+		it.remove();
+		return f;
 	}
 
-	public void pushMessage( SessionMessage message ) {
-		synchronized( messageQueues ) {
-			Deque< SessionMessage > queue;
-			CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.message().operationName() );
-			if( cset != null ) {
-				queue = messageQueues.get( cset );
-			} else {
-				queue = uncorrelatedMessageQueue;
-			}
-			SessionMessageFuture future = getMessageWaiter( message.message().operationName() );
-			if( future != null && queue.isEmpty() ) {
-				future.setResult( message );
-			} else {
-				queue.addLast( message );
-			}
+	private Deque< SessionMessage > getQueueForOperation( String operationName ) {
+		final var cset = interpreter().getCorrelationSetForOperation( operationName );
+		return cset == null ? uncorrelatedMessageQueue : messageQueues.get( cset );
+	}
+
+	private void completeWaiter( CompletableFuture< SessionMessage > waiter, SessionMessage message ) {
+		waiter.complete( message );
+		messageWaiters.values().forEach( waiterSet -> waiterSet.remove( waiter ) );
+	}
+
+	public synchronized void pushMessage( SessionMessage message ) {
+		final var queue = getQueueForOperation( message.message().operationName() );
+		final var future = getMessageWaiter( message.message().operationName() );
+		if( future != null && queue.isEmpty() ) {
+			completeWaiter( future, message );
+		} else {
+			queue.addLast( message );
 		}
 	}
 
