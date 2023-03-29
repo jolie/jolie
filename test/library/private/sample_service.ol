@@ -1,7 +1,7 @@
 from console import Console
 from .SampleInterface import TmpInterface
 
-service Test {
+service Main {
 
   embed Console as Console
 

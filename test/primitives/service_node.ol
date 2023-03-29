@@ -36,8 +36,7 @@ interface MulServiceInterface{
     requestResponse:multiply(int)(int)
 }
 
-service main{
-
+service Main {
     execution { single }
 
     inputPort TestUnitInput {

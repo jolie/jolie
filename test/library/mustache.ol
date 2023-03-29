@@ -20,7 +20,7 @@
 from ..test-unit import TestUnitInterface
 from mustache import Mustache
 
-service Test {
+service Main {
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface

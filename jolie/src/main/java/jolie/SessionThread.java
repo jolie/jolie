@@ -169,7 +169,7 @@ public class SessionThread extends ExecutionThread {
 	}
 
 	@Override
-	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations,
+	public synchronized Future< SessionMessage > requestMessage( Map< String, InputOperation > operations,
 		ExecutionThread ethread ) {
 		final var messageFuture = new CompletableFuture< SessionMessage >();
 		ethread.cancelIfKilled( messageFuture );
@@ -231,11 +231,7 @@ public class SessionThread extends ExecutionThread {
 	}
 
 	private void addMessageWaiter( InputOperation operation, CompletableFuture< SessionMessage > future ) {
-		var waitersList = messageWaiters.get( operation.id() );
-		if( waitersList == null ) {
-			waitersList = new HashSet<>();
-			messageWaiters.put( operation.id(), waitersList );
-		}
+		var waitersList = messageWaiters.computeIfAbsent( operation.id(), opName -> new HashSet<>() );
 		waitersList.add( future );
 	}
 

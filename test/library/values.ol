@@ -23,7 +23,7 @@ from values import Values
 /**
 	A template for test units.
 */
-service Test {
+service Main {
 	embed Values as values
 
 	inputPort TestUnitInput {

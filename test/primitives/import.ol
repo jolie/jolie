@@ -34,7 +34,7 @@ from .private.import_default import defaultService as s3
 from finder.A import A
 from finder.B import B
 
-service Test {
+service Main {
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface

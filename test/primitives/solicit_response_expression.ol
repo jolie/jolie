@@ -23,7 +23,7 @@ from ..test-unit import TestUnitInterface
 from math import Math
 
 
-service Test {
+service Main {
 
     embed Math as Math
 

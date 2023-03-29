@@ -20,7 +20,7 @@
 from ..test-unit import TestUnitInterface
 from string-utils import StringUtils
 
-service Test {
+service Main {
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface

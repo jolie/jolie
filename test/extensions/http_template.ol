@@ -28,7 +28,7 @@ from string_utils import StringUtils
 from console import Console
 
 
-service Test {
+service Main {
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface

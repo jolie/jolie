@@ -22,7 +22,7 @@ from ..test-unit import TestUnitInterface
 /**
 	A template for test units.
 */
-service Test {
+service Main {
 	inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface

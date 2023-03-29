@@ -19,15 +19,14 @@
 
 include "TestUnit.iol"
 
-execution { single }
+execution: single
 
 inputPort TestUnitInput {
-Location: "local"
-Interfaces: TestUnitInterface
+	location: "local"
+	interfaces: TestUnitInterface
 }
 
-main
-{
+main {
 	test()() {
 		doTest
 	}
