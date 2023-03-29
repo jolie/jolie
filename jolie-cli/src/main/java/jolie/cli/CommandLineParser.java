@@ -283,7 +283,7 @@ public class CommandLineParser implements AutoCloseable {
 		Deque< String > libList = new ArrayDeque<>();
 		Deque< String > packagesList = new ArrayDeque<>();
 		int cLimit = -1;
-		long rTimeout = 36000 * 1000; // 10 minutes
+		long rTimeout = 60 * 1000; // 1 minute, in milliseconds
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
 		String tService = null;
 		Path tParams = null;
