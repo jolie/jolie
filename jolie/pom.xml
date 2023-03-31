@@ -47,6 +47,10 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0</version>
+			</plugin>
 		</plugins>
 	</build>
 	<description>The Jolie interpreter and runtime library.</description>
@@ -55,6 +59,12 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>libjolie</artifactId>
 			<version>${jolie.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+			<version>5.9.2</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>

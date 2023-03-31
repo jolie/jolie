@@ -82,12 +82,12 @@ service Main {
 						filepath = listRequest.directory + "/" + testName
 					} )( TestUnit.location )
 					install(
-						TestFailed => println@Console( "failed (TestFailed). " + s.TestFailed )(); exitCode = 3,
-						default => println@Console( "failed (default handler)." )(); exitCode = 3,
-						Timeout => println@Console( "timed out." )(); exitCode = 3
+						TestFailed => println@Console( "❌ failed (TestFailed). " + s.TestFailed )(); exitCode = 3,
+						default => println@Console( "❌ failed (default handler)." )(); exitCode = 3,
+						Timeout => println@Console( "🕑 timed out." )(); exitCode = 3
 					)
 					test@TestUnit()()
-					println@Console( "passed." )()
+					println@Console( "passed ✅" )()
 					callExit@Runtime( TestUnit.location )()
 				}
 			}
