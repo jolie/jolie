@@ -189,8 +189,9 @@ public abstract class AbstractCommChannel extends CommChannel {
 					}
 					synchronized( parent.responseRecvMutex ) {
 						if( parent.waiters.isEmpty() ) {
-							parent.responseReceiver = null;
 							keepRun = false;
+							parent.responseReceiver = null;
+							timeoutHandler.cancel( false );
 						}
 					}
 				} catch( IOException e ) {
@@ -198,6 +199,7 @@ public abstract class AbstractCommChannel extends CommChannel {
 						throwIOExceptionFault( e );
 						keepRun = false;
 						parent.responseReceiver = null;
+						timeoutHandler.cancel( false );
 					}
 					// TODO: close the channel?
 				}
