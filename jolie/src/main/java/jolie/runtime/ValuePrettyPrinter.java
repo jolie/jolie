@@ -123,7 +123,7 @@ public class ValuePrettyPrinter {
 			if( entry.getValue().isEmpty() ) {
 				writeIndented( childrenIt.hasNext() ? "├─── " : "╰─── ", hasMore );
 				writer.write( entry.getKey() );
-				writer.write( " (empty array)" );
+				writer.write( " (empty array)\n" );
 			} else {
 				int size = entry.getValue().size();
 				Iterator< Value > elementsIt = entry.getValue().iterator();
