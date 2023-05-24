@@ -602,13 +602,12 @@ public class Scanner {
 		this.endLine = endLine;
 	}
 
-	/**
+	/*
 	 * used in AbstractParser getContextDuringError()
 	 * returns 1 when startline == 0, endline == 0 and line >= 0
 	 * returns 2 when endline > 0 and startline < endline
 	 * returns 3 when endline > 0 and startline >= endline
 	 * returns -1 if none of the others match
-	 * @return
 	 */
 	public int lineState(){
 		// start and end line might not have been set
