@@ -73,6 +73,13 @@ jobs:
         && mv release/jolie-installer.jar ../../jolie-${JOLIE_VERSION:1}.jar \
         && cd ../..
     
+    - name: Release Jolie on GitHub
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      with:
+        files: jolie-*.jar
+
     - name: Publish on Maven Central
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
@@ -84,10 +91,4 @@ jobs:
         deploy \
         -pl libjolie,jolie,lib/jolie-js,jolie-cli \
         -P ossrh
-
-    - name: Release Jolie on GitHub
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        files: jolie-*.jar
+   
