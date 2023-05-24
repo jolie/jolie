@@ -42,6 +42,11 @@ jobs:
         java-version: 11
         distribution: 'temurin'
         cache: 'maven'
+        server-id: ossrh
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+        gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
     - name: Build prerequisites
       run: mvn -f jolie-git/pom.xml -DskipTests install -pl build-tools
@@ -74,18 +79,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       with:
         files: jolie-*.jar
-    
-    - name: Set up Maven Central
-      uses: actions/setup-java@v3
-      with:
-        java-version: 11
-        distribution: 'temurin'
-        cache: 'maven'
-        server-id: ossrh
-        server-username: MAVEN_USERNAME
-        server-password: MAVEN_PASSWORD
-        gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
-        gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
     - name: Publish on Maven Central
       env:
