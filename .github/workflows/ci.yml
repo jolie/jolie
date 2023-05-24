@@ -42,7 +42,7 @@ jobs:
         run: mvn install --file pom.xml
         timeout-minutes: 20
       - name: Build JavaDoc
-        run: mvn javadoc:javadoc --file pom.xml
+        run: mvn javadoc:javadoc --file pom.xml -pl libjolie,jolie,lib/jolie-js,jolie-cli
         timeout-minutes: 20
       - name: Build the Jolie installer
         working-directory: ./release-tools/installer
