@@ -86,7 +86,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
       run: |
-        mvn -X -f jolie-git/pom.xml \
+        mvn -f jolie-git/pom.xml \
         --no-transfer-progress --batch-mode \
         deploy \
         -pl libjolie,jolie,lib/jolie-js,jolie-cli \
