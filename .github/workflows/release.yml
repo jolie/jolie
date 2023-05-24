@@ -47,6 +47,11 @@ jobs:
         server-password: MAVEN_PASSWORD
         gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
         gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+    
+    - name: print
+      run: |
+        cat /home/runner/.m2/settings.xml
+        gpg --list-secret-keys
 
     - name: Build prerequisites
       run: mvn -f jolie-git/pom.xml -DskipTests install -pl build-tools
