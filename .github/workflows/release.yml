@@ -48,7 +48,9 @@ jobs:
 
     - name: Install gpg secret key
       run: |
+        # Import key
         cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
+        # Verify key
         gpg --list-secret-keys --keyid-format LONG
 
     - name: Build prerequisites
