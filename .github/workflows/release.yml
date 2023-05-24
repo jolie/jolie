@@ -45,6 +45,8 @@ jobs:
         server-id: ossrh
         server-username: MAVEN_USERNAME
         server-password: MAVEN_PASSWORD
+        gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
     - name: Install gpg secret key
       run: |
@@ -89,10 +91,10 @@ jobs:
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
       run: |
         mvn -f jolie-git/pom.xml \
         --no-transfer-progress --batch-mode \
-        -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
         deploy \
         -pl libjolie,jolie,lib/jolie-js,jolie-cli \
         -P ossrh
