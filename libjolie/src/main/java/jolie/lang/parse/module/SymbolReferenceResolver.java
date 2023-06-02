@@ -828,6 +828,12 @@ public class SymbolReferenceResolver {
 				if( importedSymbol instanceof WildcardImportedSymbolInfo ) {
 					ModuleRecord wildcardImportedRecord =
 						this.moduleMap.get( importedSymbol.moduleSource().get().uri() );
+					
+					// Resolve the target module referencing before importing in to the main module record,
+					// So it do not need the extra information on the importing symbols.
+					SymbolReferenceResolverVisitor resolver = new SymbolReferenceResolverVisitor();
+					resolver.visit( wildcardImportedRecord.program() );
+
 					md.symbolTable().resolveWildcardImport( (WildcardImportedSymbolInfo) importedSymbol,
 						wildcardImportedRecord.symbolTable().symbols() );
 				} else if( importedSymbol.node() == null ) {
