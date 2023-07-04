@@ -83,9 +83,9 @@ Protocol: https {
 	.default.options = "options";
 	.method -> method;
 	.headers.authorization = "authorization";
-	.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
-	.response.headers.("Access-Control-Allow-Origin") = "*";
-	.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
+	//.response.headers.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS";
+	//.response.headers.("Access-Control-Allow-Origin") = "*";
+	//.response.headers.("Access-Control-Allow-Headers") = "Content-Type";
 	.response.headers -> responseOutgoingHeaders;
 	.statusCode -> statusCode;
     .ssl.keyStore= KEY_STORE;
@@ -190,7 +190,7 @@ define findRoute
 }
 define headerHandler{
    findRoute;
-   invokeRequestHearder.data.operation = op
+   invokeRequestHearder.data.operation = method
    invokeRequestHearder.data.headers << request
    invokeRequestHearder.operation = "incomingHeaderHandler"
    invokeRequestHearder.outputPort = "HeaderPort"
@@ -204,7 +204,7 @@ define headerHandler{
 define headerHandlerResponse{
 
    undef (invokeRequestHearder)
-   invokeRequestHearder.data.operation = op
+   invokeRequestHearder.data.operation = method
    invokeRequestHearder.data.response << response
    invokeRequestHearder.operation = "outgoingHeaderHandler"
    invokeRequestHearder.outputPort = "HeaderPort"
@@ -297,6 +297,8 @@ define route
 					
 			)
 			invoke@Reflection( invokeReq )( response )
+
+			// default response headers
 			responseOutgoingHeaders.("Access-Control-Allow-Methods") = "POST,GET,DELETE,PUT,OPTIONS"
 			responseOutgoingHeaders.("Access-Control-Allow-Origin") = "*"
 			responseOutgoingHeaders.("Access-Control-Allow-Headers") = "Content-Type"
@@ -377,13 +379,20 @@ main
            headerHandler
 		}
 		route
-		 if (HANDLER ){
+		if (HANDLER ){
            headerHandlerResponse
 		}
 	} ]
 
 	[ options( request )( response ) {
+		method = "options";
+		if (HANDLER){
+           headerHandler
+		}
 		response = ""
+		if (HANDLER ){
+           headerHandlerResponse
+		}
 	}]
 
 	[ makeLink( request )( response ) {
