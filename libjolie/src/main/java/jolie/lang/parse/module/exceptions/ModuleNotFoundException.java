@@ -58,7 +58,7 @@ public class ModuleNotFoundException extends FileNotFoundException {
 	public String getMessage() {
 		StringBuilder builder =
 			new StringBuilder().append( "Module " ).append( '\"' ).append( this.importPath )
-				.append( "\" not found. I looked for modules in the following paths:" );
+				.append( "\" not found. I looked for modules in the following paths:\n" );
 		lookedPaths.forEach( path -> builder.append( path ).append( '\n' ) );
 		return builder.toString();
 	}
