@@ -38,6 +38,8 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: jolielang/jolie
+          flavor: |
+            latest=true
           tags: |
             type=edge
             type=semver,pattern={{version}}
@@ -47,6 +49,8 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: jolielang/jolie
+          flavor: |
+            latest=false
           tags: |
             type=edge,suffix=-alpine
             type=semver,pattern={{version}},suffix=-alpine
@@ -56,6 +60,8 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: jolielang/jolie
+          flavor: |
+            latest=false
           tags: |
             type=edge,suffix=-dev
             type=semver,pattern={{version}},suffix=-dev
