@@ -214,6 +214,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String OUTGOING_HEADERS = "outHeaders";
 		private static final String INCOMING_HEADERS = "inHeaders";
 		private static final String STATUS_CODES = "statusCodes";
+		private static final String FORCING_RECEIVING_CHARSET = "forcingReceivingCharset";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -1535,10 +1536,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpMessage message = new HttpParser( istream ).parse();
-		String charset = HttpUtils.getCharset( null, message );
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
-
+		// if charset is missing, default is iso-8859-1
+		String defaultCharset = null;
+		// forcing receving charset if specified as a parameter
+		if( message.isResponse() ) {
+			defaultCharset = getStringParameter( Parameters.FORCING_RECEIVING_CHARSET );
+		}
+		String charset = HttpUtils.getCharset( defaultCharset, message );
+		
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -1581,6 +1588,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
 		}
+
+
 
 		// URI parameter parsing
 		if( message.requestPath() != null ) {
