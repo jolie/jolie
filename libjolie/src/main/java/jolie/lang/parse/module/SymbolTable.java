@@ -69,7 +69,7 @@ public class SymbolTable {
 		SymbolInfo... sourceSymbols ) throws DuplicateSymbolException {
 		for( SymbolInfo symbolFromWildcard : sourceSymbols ) {
 			if( symbolFromWildcard instanceof ImportedSymbolInfo ) {
-				// we skips the importing symbols in the target module to polluting the main module record
+				// we skip importing symbols in the target module to avoid polluting the main module record
 				continue;
 			}
 			if( isDuplicateSymbol( symbolFromWildcard.name() ) ) {
