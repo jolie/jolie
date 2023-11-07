@@ -43,7 +43,7 @@ import jolie.runtime.VariablePath;
 
 /**
  * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
- * 
+ *
  * @see JolieThread
  * @see VariablePath
  * @see jolie.State
@@ -72,7 +72,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 		/**
 		 * Constructor
-		 * 
+		 *
 		 * @param id the name identifier of the Scope instance to be created.
 		 */
 		public Scope( String id ) {
@@ -81,7 +81,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 		/**
 		 * Installs a termination/compensation handler for this <code>Scope</code>.
-		 * 
+		 *
 		 * @param process the termination/compensation handler to install.
 		 */
 		public void installCompensation( Process process ) {
@@ -90,7 +90,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 		/**
 		 * Installs a fault handler for a fault.
-		 * 
+		 *
 		 * @param faultName the fault name to install this handler for
 		 * @param process the fault handler to install
 		 */
@@ -102,7 +102,7 @@ public abstract class ExecutionThread extends JolieThread {
 		 * Returns the installed fault handler for the specified fault name. If no fault handler is present,
 		 * the default fault handler is returned instead. If there is no fault handler and there is no
 		 * default fault handler, <code>null</code> is returned.
-		 * 
+		 *
 		 * @param faultName the fault name of the fault handler to retrieve
 		 * @param erase <code>true</code> if after getting the fault handler it is to be uninstalled from
 		 *        the scope, <code>false</code> otherwise
@@ -128,7 +128,7 @@ public abstract class ExecutionThread extends JolieThread {
 		/**
 		 * Returns the termination/compensation handler for this scope. The handler does not get
 		 * uninstalled.
-		 * 
+		 *
 		 * @return the termination/compensation handler for this scope
 		 */
 		public Process getSelfCompensation() {
@@ -138,7 +138,7 @@ public abstract class ExecutionThread extends JolieThread {
 		/**
 		 * Returns the termination/compensation handler for the specified sub-scope. The handler gets
 		 * uninstalled as a result of this method.
-		 * 
+		 *
 		 * @param scopeName the scope name of the termination/compensation handler to retrieve
 		 * @return the termination/compensation handler for the specified sub-scope
 		 */
@@ -152,7 +152,7 @@ public abstract class ExecutionThread extends JolieThread {
 		/**
 		 * Puts all the compensation handlers defined in the passed <code>Scope</code> in the handler map of
 		 * this scope.
-		 * 
+		 *
 		 * @param otherScope the scope whose compensation handlers are to be taken
 		 */
 		public void mergeCompensations( Scope otherScope ) {
@@ -181,7 +181,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param process the Process to be executed by this thread
 	 * @param parent the parent of this thread
 	 */
@@ -193,7 +193,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param interpreter the Interpreter this thread should refer to
 	 * @param process the Process to be executed by this thread
 	 */
@@ -205,7 +205,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Kills this ExecutionThread, interrupting its activity as soon as possible.
-	 * 
+	 *
 	 * @param fault the fault causing the interruption.
 	 */
 	public synchronized void kill( FaultException fault ) {
@@ -225,7 +225,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Returns the fault which killed this thread, if any. null otherwise.
-	 * 
+	 *
 	 * @return the fault which killed this thread, if any. null otherwise.
 	 */
 	public FaultException killerFault() {
@@ -241,7 +241,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Returns true if this thread is killed, false otherwise.
-	 * 
+	 *
 	 * @return true if this thread is killed, false otherwise.
 	 */
 	public boolean isKilled() {
@@ -250,7 +250,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Returns the compensator of the current executing scope.
-	 * 
+	 *
 	 * @return the compensator of the current executing scope.
 	 */
 	public synchronized Process getCurrentScopeCompensation() {
@@ -263,7 +263,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Returns the compensator for scope name id.
-	 * 
+	 *
 	 * @param id the scope name owning the compensator to retrieve
 	 * @return the compensator for scope name id.
 	 */
@@ -278,7 +278,7 @@ public abstract class ExecutionThread extends JolieThread {
 	/**
 	 * Returns true if this thread is executing inside a scope. Use this method to check if calling a
 	 * variant of popScope is safe.
-	 * 
+	 *
 	 * @see #popScope()
 	 * @see #popScope(boolean)
 	 * @return true if this thread is executing inside a scope.
@@ -289,7 +289,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Returns the id of the current executing scope.
-	 * 
+	 *
 	 * @return the id of the current executing scope.
 	 */
 	public synchronized String currentScopeId() {
@@ -302,7 +302,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Registers a future to be cancelled when this thread is killed.
-	 * 
+	 *
 	 * @param f the future to cancel
 	 */
 	public synchronized void cancelIfKilled( Future< ? > f ) {
@@ -327,7 +327,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Returns the current fault handler for fault id.
-	 * 
+	 *
 	 * @param id the id of the fault handler to retrieve.
 	 * @param erase <code>true</code> if the fault handler should be removed before returning it.
 	 * @return the current fault handler for fault id.
@@ -342,7 +342,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Pushes scope id as the new current executing scope in the scope stack of this thread.
-	 * 
+	 *
 	 * @param id the id of the scope to push.
 	 */
 	public synchronized void pushScope( String id ) {
@@ -351,7 +351,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Pops the current executing scope from the scope stack of this thread.
-	 * 
+	 *
 	 * @param merge <code>true</code> if the popped scope compensators should be propagated upstream to
 	 *        the parent scope.
 	 */
@@ -382,7 +382,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Installs process as the compensator for the current scope.
-	 * 
+	 *
 	 * @param process the process to install as compensator for the current scope
 	 */
 	public synchronized void installCompensation( Process process ) {
@@ -395,7 +395,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Installs process as the fault handler for fault id.
-	 * 
+	 *
 	 * @param id the fault to be handled by process
 	 * @param process the Process to be called for handling fault id
 	 */
@@ -410,7 +410,7 @@ public abstract class ExecutionThread extends JolieThread {
 	/**
 	 * Returns the ExecutionThread the current thread should refer to. This method can be useful, e.g.,
 	 * for resolving VariablePaths outside the execution of an ExecutionThread.
-	 * 
+	 *
 	 * @return the ExecutionThread the current thread should refer to.
 	 */
 	public static ExecutionThread currentThread() {
@@ -439,7 +439,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Returns the State this ExecutionThread refers to.
-	 * 
+	 *
 	 * @return the State this ExecutionThread refers to
 	 * @see jolie.State
 	 */
@@ -447,7 +447,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Requests a message from the currently executing session.
-	 * 
+	 *
 	 * @param operation the operation on which the process wants to receive the message
 	 * @return a {@link Future} that will return the received message.
 	 */
@@ -455,7 +455,7 @@ public abstract class ExecutionThread extends JolieThread {
 
 	/**
 	 * Requests a message from the currently executing session.
-	 * 
+	 *
 	 * @param operations the map of possible operations on which the process wants to receive the
 	 *        message
 	 * @return a {@link Future} that will return the received message.

@@ -27,7 +27,7 @@ import jolie.runtime.Value;
 
 /**
  * {@link MonitoringEvent} fired when a monitor is attached to an {@link Interpreter}.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class MonitorAttachedEvent extends MonitoringEvent {

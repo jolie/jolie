@@ -25,7 +25,7 @@ import java.io.Serializable;
 
 /**
  * A convenience class for expressing a pair of objects.
- * 
+ *
  * @author Fabrizio Montesi
  * @param <K> The type of the first element in the pair
  * @param <V> The type of the second element in the pair

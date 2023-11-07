@@ -21,7 +21,7 @@ package jolie.util;
 
 /**
  * A callable that can throw an exception.
- * 
+ *
  * @param <R> the return type of the callable
  * @param <T> the type of the exception that the callable can throw
  */

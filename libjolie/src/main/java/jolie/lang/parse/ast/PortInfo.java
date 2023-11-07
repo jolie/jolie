@@ -31,7 +31,7 @@ import java.util.*;
 
 /**
  * Abstract class representing a port (shared between input and output ports).
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class PortInfo extends OLSyntaxNode implements OperationCollector, DocumentedNode {
@@ -48,7 +48,7 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 
 	/**
 	 * Returns the name identifier of the port.
-	 * 
+	 *
 	 * @return the name identifier of the port
 	 */
 	public String id() {
@@ -57,7 +57,7 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 
 	/**
 	 * Returns the operations of the port.
-	 * 
+	 *
 	 * @return the operations of the port.
 	 */
 	public Collection< OperationDeclaration > operations() {
@@ -66,7 +66,7 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 
 	/**
 	 * Returns the operations of the port, mapped by their names.
-	 * 
+	 *
 	 * @return the operations of the port, mapped by their names.
 	 */
 	@Override
@@ -91,7 +91,7 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 
 	/**
 	 * Returns the interfaces implemented by this port.
-	 * 
+	 *
 	 * @return the interfaces implemented by this port.
 	 */
 	public List< InterfaceDefinition > getInterfaceList() {

@@ -108,7 +108,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 	/**
 	 * To be called by OOITBuilder
-	 * 
+	 *
 	 * @param interpreter
 	 * @param id
 	 * @param locationExpr
@@ -159,7 +159,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	/**
 	 * Returns a new message with same operation and value, but resourcePath updated to the current one
 	 * of this output port.
-	 * 
+	 *
 	 * @param message the original message
 	 * @return a new message with same operation and value, but updated resource
 	 * @throws java.net.URISyntaxException
@@ -192,7 +192,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 	/**
 	 * Gets the protocol to be used for communicating with this output port.
-	 * 
+	 *
 	 * @return the protocol to be used for communicating with this output port.
 	 * @throws java.io.IOException
 	 * @throws java.net.URISyntaxException
@@ -255,7 +255,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 	/**
 	 * Returns the resource path of the location of this output port.
-	 * 
+	 *
 	 * @return the resource path of the location of this output port
 	 * @throws java.net.URISyntaxException
 	 */
@@ -288,7 +288,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 	/**
 	 * Returns a new and unused CommChannel for this OutputPort
-	 * 
+	 *
 	 * @return a CommChannel for this OutputPort
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
@@ -300,7 +300,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 	/**
 	 * Returns a CommChannel for this OutputPort, possibly reusing an open persistent channel.
-	 * 
+	 *
 	 * @return a CommChannel for this OutputPort
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
@@ -312,7 +312,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 	/**
 	 * Returns the location variable path of this output port.
-	 * 
+	 *
 	 * @return the location variable path of this output port
 	 */
 	public VariablePath locationVariablePath() {
@@ -321,7 +321,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 
 	/**
 	 * Returns the protocol configuration process of this output port.
-	 * 
+	 *
 	 * @return the protocol configuration process of this output port
 	 */
 	public Process configurationProcess() {

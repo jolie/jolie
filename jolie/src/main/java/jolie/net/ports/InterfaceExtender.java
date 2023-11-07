@@ -28,7 +28,7 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 
 /**
  * Represents a (runtime) interface extender
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class InterfaceExtender extends Interface {

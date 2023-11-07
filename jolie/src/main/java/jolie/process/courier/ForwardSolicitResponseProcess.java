@@ -44,7 +44,7 @@ import jolie.tracer.MessageTraceAction;
 import jolie.tracer.Tracer;
 
 /**
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class ForwardSolicitResponseProcess implements Process {

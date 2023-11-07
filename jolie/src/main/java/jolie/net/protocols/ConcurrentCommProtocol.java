@@ -25,7 +25,7 @@ import jolie.runtime.VariablePath;
 
 /**
  * A CommProtocol that can be used concurrently for multiple communications.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class ConcurrentCommProtocol extends CommProtocol {

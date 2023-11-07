@@ -31,7 +31,7 @@ import jolie.runtime.expression.Expression;
 
 /**
  * An embedding extension for JavaScript programs.
- * 
+ *
  * @author Fabrizio Montesi
  */
 @AndJarDeps( { "jolie-js.jar", "json-simple.jar", "nashorn-core.jar",

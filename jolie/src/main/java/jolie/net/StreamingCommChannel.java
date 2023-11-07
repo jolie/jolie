@@ -28,7 +28,7 @@ import jolie.net.protocols.CommProtocol;
 
 /**
  * This abstract class implements a communication channel based on a <code>CommProtocol</code>.
- * 
+ *
  * @author Fabrizio Montesi
  * @see SelectableStreamingCommChannel
  */

@@ -27,7 +27,7 @@ import jolie.runtime.Value;
 
 /**
  * JavaService offering various math related functionalities.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class MathService extends JavaService {

@@ -33,7 +33,7 @@ import jolie.util.Helpers;
  * This class implements the support for a selectable channel. A channel implementation based on
  * this class must provide methods for accessing its receiving <code>InputStream</code> and
  * <code>SelectableChannel</code>.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class SelectableStreamingCommChannel extends StreamingCommChannel {
@@ -56,14 +56,14 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 
 	/**
 	 * Returns the receiving <code>InputStream</code> of this channel.
-	 * 
+	 *
 	 * @return the receiving <code>InputStream</code> of this channel
 	 */
 	abstract public InputStream inputStream();
 
 	/**
 	 * Returns the receiving <code>SelectableChannel</code> of this channel.
-	 * 
+	 *
 	 * @return the receiving <code>SelectableChannel</code> of this channel
 	 */
 	abstract public SelectableChannel selectableChannel();

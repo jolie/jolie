@@ -26,13 +26,13 @@ import jolie.runtime.expression.Expression;
 
 /**
  * The factory interface for embedded service loader extensions.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public interface EmbeddedServiceLoaderFactory {
 	/**
 	 * Create an {@link EmbeddedServiceLoader}.
-	 * 
+	 *
 	 * @param interpreter the embedding {@link Interpreter}
 	 * @param configuration the {@link EmbeddedServiceLoader.EmbeddedServiceConfiguration}
 	 * @param channelDest the intended destination for the channel towards the embedded service

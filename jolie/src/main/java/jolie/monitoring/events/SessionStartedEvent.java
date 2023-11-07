@@ -26,7 +26,7 @@ import jolie.runtime.Value;
 
 /**
  * {@link MonitoringEvent} for a session start.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class SessionStartedEvent extends MonitoringEvent {

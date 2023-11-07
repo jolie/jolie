@@ -196,7 +196,8 @@ public class SolicitResponseExpression implements Expression {
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
-								+ outputPort.id() + "): " + e.getMessage() ).toRuntimeFaultException();
+								+ outputPort.id() + "): " + e.getMessage() )
+							.toRuntimeFaultException();
 					}
 				} else {
 					if( Interpreter.getInstance().isMonitoring() ) {
@@ -250,7 +251,7 @@ public class SolicitResponseExpression implements Expression {
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() )
-					.toRuntimeFaultException();
+				.toRuntimeFaultException();
 		} catch( FaultException e ) {
 			throw e.toRuntimeFaultException();
 		} finally {

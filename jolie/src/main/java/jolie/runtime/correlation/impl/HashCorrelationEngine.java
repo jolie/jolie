@@ -25,7 +25,7 @@ import jolie.Interpreter;
 
 /**
  * A hash table based correlation algorithm (stub).
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class HashCorrelationEngine extends SimpleCorrelationEngine {

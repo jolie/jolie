@@ -45,7 +45,7 @@ import joliex.java.ServiceFactory;
  * A {@link Service} using sockets as medium and sodep as protocol. Do not instantiate this class
  * directly, its API is due to change in the future! Use
  * {@link ServiceFactory#create(java.net.URI, java.lang.String, jolie.runtime.Value)} instead.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class SocketSodepService extends Service {

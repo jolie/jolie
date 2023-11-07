@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A utility class for managing shared state across different Jolie extensions.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public final class StaticUtils {

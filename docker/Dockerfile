@@ -18,7 +18,7 @@
 # To use this dockerfile locally, launch the following command from the root directory of your local copy of this repository.
 # docker build -f docker/Dockerfile -t jolielang/jolie .
 
-FROM maven:3-eclipse-temurin-11 as JolieBuild
+FROM maven:3-eclipse-temurin-21 as JolieBuild
 
 # Compile and install Jolie. We need it for running the release tools.
 COPY . /jolie-git
@@ -38,7 +38,7 @@ WORKDIR /jolie-git/release-tools
 RUN jolie release.ol ..
 
 # Start from scratch, copy the installer, install, remove the installer.
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /
 COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
 RUN apt-get update && apt-get install -y unzip \

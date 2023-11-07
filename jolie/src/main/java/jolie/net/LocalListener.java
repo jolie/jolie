@@ -36,7 +36,7 @@ import jolie.runtime.VariablePathBuilder;
 
 /**
  * <code>LocalListener</code> is used internally by the interpreter for receiving local messages.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class LocalListener extends CommListener {

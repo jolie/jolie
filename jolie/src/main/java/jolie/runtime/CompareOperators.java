@@ -25,7 +25,7 @@ import java.util.function.BiPredicate;
 
 /**
  * Boolean comparison operators for {@link Value} objects.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public final class CompareOperators {

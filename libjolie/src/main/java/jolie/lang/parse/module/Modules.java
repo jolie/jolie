@@ -38,17 +38,17 @@ public class Modules {
 
 	/**
 	 * Global module record cache
-	 * 
+	 *
 	 */
 	protected static final ModuleRecordCache CACHE = new ModuleRecordCache();
 
 	/**
 	 * parses jolie's code stream to ModuleParsedResult, which contains executable ast and it's
 	 * symbolTables.
-	 * 
+	 *
 	 * Note: this method is meant to be used through the execution of jolie program, as it calls static
 	 * crawl method that cache the result
-	 * 
+	 *
 	 * @param configuration
 	 * @param stream jolie code Inputstream
 	 * @param programURI resource URI
@@ -84,9 +84,9 @@ public class Modules {
 	/**
 	 * parses jolie's code stream to ModuleParsedResult, which contains executable ast and it's
 	 * symbolTables.
-	 * 
+	 *
 	 * Note: this method is meant to be used to parse jolie code, no cache will be store in memory
-	 * 
+	 *
 	 * @param configuration
 	 * @param stream jolie code Inputstream
 	 * @param programURI resource URI
@@ -120,7 +120,7 @@ public class Modules {
 
 	/**
 	 * Clear the module cache entry
-	 * 
+	 *
 	 * @param source source of module
 	 */
 	public static void freeCache( URI source ) {

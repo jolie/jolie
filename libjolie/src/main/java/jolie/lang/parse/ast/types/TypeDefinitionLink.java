@@ -100,16 +100,16 @@ public class TypeDefinitionLink extends TypeDefinition {
 
 	/*
 	 * @Override public boolean untypedSubTypes() { return linkedType.untypedSubTypes(); }
-	 * 
+	 *
 	 * @Override public boolean hasSubTypes() { return linkedType.hasSubTypes(); }
-	 * 
+	 *
 	 * @Override public TypeDefinition getSubType( String id ) { return linkedType.getSubType( id ); }
-	 * 
+	 *
 	 * @Override public NativeType nativeType() { return linkedType.nativeType(); }
-	 * 
+	 *
 	 * @Override public Set< Map.Entry< String, TypeDefinition > > subTypes() { return
 	 * linkedType.subTypes(); }
-	 * 
+	 *
 	 * @Override public boolean hasSubType( String id ) { return linkedType.hasSubType( id ); }
 	 */
 

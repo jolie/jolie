@@ -26,7 +26,7 @@ import jolie.runtime.JavaService;
 
 /**
  * Abstract class for implementing a {@link JavaService} supporting monitoring.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class AbstractMonitorJavaService extends JavaService {

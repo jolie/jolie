@@ -45,7 +45,7 @@ import jolie.util.Pair;
 
 /**
  * An ExecutionThread representing a session, equipped with a dedicated state and message queue.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class SessionThread extends ExecutionThread {
@@ -79,7 +79,7 @@ public class SessionThread extends ExecutionThread {
 	/**
 	 * Creates and returns a default list of handlers, initialized with default fault handlers for
 	 * built-in faults like, e.g., TypeMismatch.
-	 * 
+	 *
 	 * @param interpreter the <code>Interpreter</code> in which the returned map will be used
 	 * @return a newly created default list of handlers
 	 */
@@ -107,7 +107,7 @@ public class SessionThread extends ExecutionThread {
 
 	/**
 	 * Registers a <code>SessionListener</code> for receiving events from this session.
-	 * 
+	 *
 	 * @param listener the <code>SessionListener</code> to register
 	 */
 	public void addSessionListener( SessionListener listener ) {
@@ -116,7 +116,7 @@ public class SessionThread extends ExecutionThread {
 
 	/**
 	 * Constructs a SessionThread with a fresh State.
-	 * 
+	 *
 	 * @param interpreter the Interpreter this thread must refer to
 	 * @param process the Process this thread has to execute
 	 */
@@ -135,7 +135,7 @@ public class SessionThread extends ExecutionThread {
 	/**
 	 * Constructs a SessionThread cloning another ExecutionThread, copying the State and Scope stack of
 	 * the parent.
-	 * 
+	 *
 	 * @param process the Process this thread has to execute
 	 * @param parent the ExecutionThread to copy
 	 */
@@ -159,7 +159,7 @@ public class SessionThread extends ExecutionThread {
 
 	/**
 	 * Returns the State of this thread.
-	 * 
+	 *
 	 * @return the State of this thread
 	 * @see State
 	 */

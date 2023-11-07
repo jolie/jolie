@@ -120,7 +120,7 @@ import jolie.util.Pair;
 
 /**
  * Checks the well-formedness and validity of a JOLIE program.
- * 
+ *
  * @see Program
  * @author Fabrizio Montesi
  */
@@ -201,7 +201,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	/**
 	 * Returns the symbolTables. Used by the languageserver for vscode extension
-	 * 
+	 *
 	 * @return symbolTebles
 	 */
 	public Map< URI, SymbolTable > symbolTables() {

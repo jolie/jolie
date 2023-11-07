@@ -41,7 +41,7 @@ import jolie.util.Range;
 /**
  *
  * @author Claudio Guidi
- * 
+ *
  *         Modified by Francesco Bullini, 05/07/2012
  */
 public class SurfaceCreator {

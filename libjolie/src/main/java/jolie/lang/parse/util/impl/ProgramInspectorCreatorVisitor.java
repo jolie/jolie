@@ -103,7 +103,7 @@ import jolie.util.Pair;
 
 /**
  * Visitor for creating a {@link ProgramInspectorImpl} object.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class ProgramInspectorCreatorVisitor implements UnitOLVisitor {

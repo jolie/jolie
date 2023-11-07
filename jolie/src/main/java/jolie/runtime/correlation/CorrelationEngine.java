@@ -32,7 +32,7 @@ import jolie.runtime.correlation.impl.SimpleCorrelationEngine;
 
 /**
  * Generic abstract class for correlation algorithm implementations.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class CorrelationEngine implements SessionListener {

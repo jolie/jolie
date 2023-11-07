@@ -36,7 +36,7 @@ public class QueueUtils extends JavaService {
 
 	/**
 	 * Creates a new queue in the HashMap with the given queue_name as key
-	 * 
+	 *
 	 * @param queue_name the key corresponding to the queue
 	 * @return Boolean - false if the queue_name is already in use
 	 */
@@ -52,7 +52,7 @@ public class QueueUtils extends JavaService {
 
 	/**
 	 * Removes an existing queue from the HashMap
-	 * 
+	 *
 	 * @param queue_name the key corresponding to the queue
 	 * @return Boolean - false if the queue_name does not exist
 	 */
@@ -67,7 +67,7 @@ public class QueueUtils extends JavaService {
 
 	/**
 	 * Pushes an element at the end of an existing queue
-	 * 
+	 *
 	 * @param request
 	 * @return Boolean - false if the queue does not exist
 	 */
@@ -85,7 +85,7 @@ public class QueueUtils extends JavaService {
 
 	/**
 	 * Retrieves, but does not remove, the head of the queue
-	 * 
+	 *
 	 * @param queue_name
 	 * @return The element, null otherwise
 	 */
@@ -99,7 +99,7 @@ public class QueueUtils extends JavaService {
 
 	/**
 	 * Removes and returns the head of the queue
-	 * 
+	 *
 	 * @param queue_name
 	 * @return The element, null otherwise
 	 */
@@ -113,7 +113,7 @@ public class QueueUtils extends JavaService {
 
 	/**
 	 * Returns the size of an existing queue, null otherwise
-	 * 
+	 *
 	 * @param queue_name
 	 * @return The size of the queue, null otherwise
 	 */

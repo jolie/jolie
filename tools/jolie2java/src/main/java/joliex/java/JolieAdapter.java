@@ -31,7 +31,7 @@ import jolie.runtime.Value;
 /**
  * An adapter for calling One-Way and Request-Response operations of the embedder of a
  * {@code JavaService}.
- * 
+ *
  * @see JavaService
  * @author Fabrizio Montesi
  */

@@ -39,7 +39,7 @@ import jolie.runtime.ByteArray;
 
 /**
  * Utilities for handling HTTP messages.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class HttpUtils {

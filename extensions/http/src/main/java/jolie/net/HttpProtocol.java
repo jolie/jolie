@@ -92,7 +92,7 @@ import java.util.stream.Collectors;
 
 /**
  * HTTP protocol implementation
- * 
+ *
  * @author Fabrizio Montesi 14 Nov 2012 - Saverio Giallorenzo - Fabrizio Montesi: support for status
  *         codes
  */
@@ -367,7 +367,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		List< String > headerParameters =
 			getOperationSpecificParameterFirstValue( message.operationName(),
 				Parameters.OUTGOING_HEADERS ).children().values().stream().map( (vv -> vv.get( 0 ).strValue()) )
-					.collect( Collectors.toList() );
+				.collect( Collectors.toList() );
 
 		if( value.hasChildren() ) {
 			StringJoiner sj = new StringJoiner( "&" );
@@ -958,7 +958,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
 				"text/html text/css text/plain text/xml text/x-js application/json application/javascript application/x-www-form-urlencoded application/xhtml+xml application/xml x-font/otf x-font/ttf application/x-font-ttf" )
-					.toLowerCase();
+				.toLowerCase();
 			if( compression && !compressionTypes.equals( "*" )
 				&& !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
@@ -1538,13 +1538,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		HttpMessage message = new HttpParser( istream ).parse();
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
-		
+
 		final String charset =
-			( message.isResponse() && hasParameter( Parameters.FORCE_RECEIVING_CHARSET ) ) ?
-				getStringParameter( Parameters.FORCE_RECEIVING_CHARSET )
-			:
-				HttpUtils.getCharset( null, message );
-		
+			(message.isResponse() && hasParameter( Parameters.FORCE_RECEIVING_CHARSET ))
+				? getStringParameter( Parameters.FORCE_RECEIVING_CHARSET )
+				: HttpUtils.getCharset( null, message );
+
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {

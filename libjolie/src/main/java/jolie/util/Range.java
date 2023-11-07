@@ -28,7 +28,7 @@ import jolie.lang.Constants;
 
 /**
  * A <code>Range</code> instance represents a range between two natural numbers.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class Range implements Serializable {

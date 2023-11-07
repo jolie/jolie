@@ -68,7 +68,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Returns the resource path of this message.
-	 * 
+	 *
 	 * @return the resource path of this message
 	 */
 	public String resourcePath() {
@@ -83,7 +83,7 @@ public class CommMessage implements Serializable {
 	 * A message can have a generic identifier if it is meant to be used in a Notification. Also,
 	 * communication channels not supporting message identifiers could be generating messages equipped
 	 * with a generic identifier every time.
-	 * 
+	 *
 	 * @return <code>true</code> if this message has a generic identifier, <code>false</code> otherwise
 	 */
 	public boolean hasGenericRequestId() {
@@ -92,7 +92,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Returns the request identifier of this message.
-	 * 
+	 *
 	 * @return the request identifier of this message
 	 */
 	public long requestId() {
@@ -110,7 +110,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Creates a request message.
-	 * 
+	 *
 	 * @param operationName the name of the operation this request is meant for
 	 * @param resourcePath the resource path of this message
 	 * @param value the message data
@@ -122,7 +122,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Creates an empty (i.e. without data) response for the passed request.
-	 * 
+	 *
 	 * @param request the request message that caused this response
 	 * @return an empty response for the passed request
 	 */
@@ -132,7 +132,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Creates a response for the passed request.
-	 * 
+	 *
 	 * @param request the request message that caused this response
 	 * @param value the data to equip the response with
 	 * @return a response for the passed request
@@ -144,7 +144,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Creates a response message equipped with the passed fault.
-	 * 
+	 *
 	 * @param request the request message that caused this response
 	 * @param fault the fault to equip the response with
 	 * @return a response message equipped with the specified fault
@@ -156,7 +156,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param requestId the identifier for the request
 	 * @param operationName the operation name for this message
 	 * @param resourcePath the resource path for this message
@@ -174,7 +174,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Returns the id associated with the message
-	 * 
+	 *
 	 * @return the id associated with the message
 	 */
 	public long id() {
@@ -183,7 +183,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Returns the value representing the data contained in this message.
-	 * 
+	 *
 	 * @return the value representing the data contained in this message
 	 */
 	public Value value() {
@@ -192,7 +192,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * The operation name of this message.
-	 * 
+	 *
 	 * @return the operation name of this message
 	 */
 	public String operationName() {
@@ -201,7 +201,7 @@ public class CommMessage implements Serializable {
 
 	/**
 	 * Returns <code>true</code> if this message contains a fault, <code>false</code> otherwise.
-	 * 
+	 *
 	 * @return <code>true</code> if this message contains a fault, <code>false</code> otherwise
 	 */
 	public boolean isFault() {
@@ -212,7 +212,7 @@ public class CommMessage implements Serializable {
 	 * Returns the fault contained in this message.
 	 *
 	 * If this message does not contain a fault, <code>null</code> is returned.
-	 * 
+	 *
 	 * @return the fault contained in this message
 	 */
 	public FaultException fault() {

@@ -29,17 +29,17 @@ import jolie.net.CommCore;
 
 /**
  * A Utility class to make Jolie Module system backward compatible
- * 
+ *
  */
 public class ModuleSystemUtil {
 
 	/**
 	 * transform protocol OLSyntaxNode which declared as identifier token to an expression
-	 * 
+	 *
 	 * @param node an abstraction node defines PortInfo's protocol configuration
 	 * @param commCore
 	 * @return Abstract node where supported protocol identifier transform into ConstantStringExpression
-	 * 
+	 *
 	 */
 	public static OLSyntaxNode transformProtocolExpression( OLSyntaxNode node, CommCore commCore ) {
 		// case http -> "http" return ConstantString if content is a supported protocol, otherwise return
@@ -75,11 +75,11 @@ public class ModuleSystemUtil {
 	/**
 	 * transform protocol identifier which declared as VariableExpressionNode to proper expression for
 	 * parametric communication port
-	 * 
+	 *
 	 * @param protocolIdNode VariableExpressionNode defines PortInfo's protocol identifier. eg. a, http
 	 *        , sodep, a.b
 	 * @param commCore
-	 * 
+	 *
 	 * @return ConstantStringExpression, if the protocolId is contain value of supported protocol
 	 *         identifier eg. http -> "http", sodep -> "sodep". Otherwise, the protocol identifier is
 	 *         consider as a variable and return the parameter itself
@@ -98,10 +98,10 @@ public class ModuleSystemUtil {
 
 	/**
 	 * check if protocol string is supported by attempt to retrieve communication protocol factory
-	 * 
+	 *
 	 * @param protocolId Protocol identifier
 	 * @param commCore
-	 * 
+	 *
 	 * @return flag indicate if protocolId is a supported protocol
 	 */
 	private static boolean isProtocolSupported( String protocolId, CommCore commCore ) {

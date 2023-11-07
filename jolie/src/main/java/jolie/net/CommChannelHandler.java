@@ -30,7 +30,7 @@ import jolie.JolieThread;
 /**
  * <code>CommChannelHandler</code> is a <code>JolieThread</code> used by <code>CommCore</code> to
  * handle incoming communications.
- * 
+ *
  * @see JolieThread
  * @see CommCore
  * @author fmontesi
@@ -45,7 +45,7 @@ public class CommChannelHandler extends Thread implements InterpreterThread {
 	/**
 	 * Returns the current <code>CommChannelHandler</code> thread. This method must be called only if
 	 * the caller is sure that the current thread is a <code>CommChannelHandler</code>.
-	 * 
+	 *
 	 * @return the current <code>CommChannelHandler</code> thread
 	 */
 	public static CommChannelHandler currentThread() {
@@ -55,7 +55,7 @@ public class CommChannelHandler extends Thread implements InterpreterThread {
 	/**
 	 * Sets the <code>ExecutionThread</code> this thread must refer to. This is needed to refer to the
 	 * right variable state when in this thread.
-	 * 
+	 *
 	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state
 	 *        resolution
 	 */

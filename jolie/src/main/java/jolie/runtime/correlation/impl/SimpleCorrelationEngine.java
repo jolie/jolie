@@ -41,7 +41,7 @@ import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 /**
  * A simple correlation algorithm that performs a sequential check of each running session every
  * time a new message arrives or a session changes one of its correlation values.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class SimpleCorrelationEngine extends CorrelationEngine {

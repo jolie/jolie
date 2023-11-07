@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301 USA
 
-FROM maven:3-eclipse-temurin-17
+FROM maven:3-eclipse-temurin-21
 
 # Update apt db
 RUN apt-get update

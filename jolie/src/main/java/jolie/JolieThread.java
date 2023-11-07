@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A thread that can refer to its generating <code>Interpreter</code>. The name of
  * <code>JolieThread</code> is prefixed with the program file name of the generating
  * <code>Interpreter</code>.
- * 
+ *
  * @see Interpreter
  * @author Fabrizio Montesi
  */
@@ -46,7 +46,7 @@ public abstract class JolieThread implements Runnable {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @param name the suffix name for this thread
 	 * @see Interpreter
@@ -58,7 +58,7 @@ public abstract class JolieThread implements Runnable {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @see Interpreter
 	 */

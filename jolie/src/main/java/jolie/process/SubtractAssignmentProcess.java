@@ -30,7 +30,7 @@ import jolie.runtime.expression.Expression;
 /**
  * Subtract an expression value from a VariablePath's value, assigning the resulting value to the
  * VariablePath.
- * 
+ *
  * @see Expression
  * @see VariablePath
  * @author Karoly Szanto

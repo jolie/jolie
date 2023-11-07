@@ -34,7 +34,7 @@ import jolie.lang.Constants;
 
 /**
  * A very simple {@code ParsingContext} based upon an URI.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class URIParsingContext implements ParsingContext {
@@ -53,7 +53,7 @@ public class URIParsingContext implements ParsingContext {
 	 * URIParsingContext contructor. startLine, endLine, startColumn, endColumn indicate which part of
 	 * the source code in the source of the uri we are looking at, and the list code may contain the
 	 * indicated code
-	 * 
+	 *
 	 * @param uri
 	 * @param startLine
 	 * @param endLine

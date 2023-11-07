@@ -20,12 +20,12 @@ public class ImportPath {
 	/**
 	 * checks the format of target module path if it has a relative import format, by test if the first
 	 * index is empty
-	 * 
+	 *
 	 * eg. .package.module or [ "", "package", "module" ] is a relative import while package.module or [
 	 * "package", "module"] is not
-	 * 
+	 *
 	 * @return true if it has relative import format, false otherwise
-	 * 
+	 *
 	 */
 	protected boolean isRelativeImport() {
 		return pathParts.get( 0 ).isEmpty();

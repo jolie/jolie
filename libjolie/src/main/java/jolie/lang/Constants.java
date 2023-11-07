@@ -32,7 +32,7 @@ import jolie.util.Range;
 
 /**
  * Global constants.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public final class Constants {

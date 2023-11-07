@@ -101,7 +101,7 @@ import jolie.util.Pair;
 
 /**
  * Builds an optimized version of an OL parse tree.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class OLParseTreeOptimizer {
@@ -286,9 +286,9 @@ public class OLParseTreeOptimizer {
 			// } else {
 			/*
 			 * ( [ I ] A ) === I ;; A
-			 * 
+			 *
 			 * An NDChoice formed by only one element is equivalent to a sequence beginning with the same input.
-			 * 
+			 *
 			 * This is not true as of 19 Nov 07, because of InProcess special behaviour inside an
 			 * NDChoiceProcess
 			 */

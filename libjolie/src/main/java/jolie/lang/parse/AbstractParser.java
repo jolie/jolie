@@ -38,7 +38,7 @@ import jolie.lang.Keywords;
 /**
  * Skeleton implementation of a parser based on {@link jolie.lang.parse.Scanner}. Note that the
  * parsing process is not re-entrant.
- * 
+ *
  * @author Fabrizio Montesi
  * @see Scanner
  */
@@ -61,7 +61,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param scanner The scanner to use during the parsing procedure.
 	 */
 	public AbstractParser( Scanner scanner ) {
@@ -92,7 +92,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Gets a new token. Whitespace tokens are ignored, but the metNewline flag is set.
-	 * 
+	 *
 	 * @throws IOException If the internal scanner raises one.
 	 */
 	protected final void nextToken()
@@ -153,7 +153,7 @@ public abstract class AbstractParser {
 	/**
 	 * Gets a new token, and throws an {@link EOFException} if such token is of type
 	 * {@code jolie.lang.parse.Scanner.TokenType.EOF}.
-	 * 
+	 *
 	 * @throws IOException If the internal scanner raises one.
 	 * @throws EOFException If the next token is of type {@code jolie.lang.parse.Scanner.Token.EOF}
 	 */
@@ -167,7 +167,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Returns the Scanner object used by this parser.
-	 * 
+	 *
 	 * @return The Scanner used by this parser.
 	 */
 	public final Scanner scanner() {
@@ -182,7 +182,7 @@ public abstract class AbstractParser {
 	/**
 	 * Returns a simple {@link ParsingContext} from the underlying {@link Scanner} and does not take
 	 * startLine and endLine into account
-	 * 
+	 *
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContext() {
@@ -194,7 +194,7 @@ public abstract class AbstractParser {
 	/**
 	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner} taking start and
 	 * end line into account
-	 * 
+	 *
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContextDuringError() throws IOException {
@@ -242,7 +242,7 @@ public abstract class AbstractParser {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the current line of the parser
 	 */
 	public final int line() {
@@ -250,7 +250,7 @@ public abstract class AbstractParser {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the startLine
 	 */
 	public final int startLine() {
@@ -265,7 +265,7 @@ public abstract class AbstractParser {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the endLine
 	 */
 	public final int endLine() {
@@ -280,7 +280,7 @@ public abstract class AbstractParser {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the errorColumn
 	 */
 	public final int errorColumn() {
@@ -288,7 +288,7 @@ public abstract class AbstractParser {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the codeLine
 	 */
 	public final List< String > codeLine() {
@@ -298,7 +298,7 @@ public abstract class AbstractParser {
 	/**
 	 * Eats the current token, asserting its type. Calling eat( type, errorMessage ) is equivalent to
 	 * call subsequently tokenAssert( type, errorMessage ) and getToken().
-	 * 
+	 *
 	 * @param type The type of the token to eat.
 	 * @param errorMessage The error message to display in case of a wrong token type.
 	 * @throws ParserException If the token type is wrong.
@@ -313,7 +313,7 @@ public abstract class AbstractParser {
 	/**
 	 * Eats the current token, asserting its type. Calling eat( type, errorMessage ) is equivalent to
 	 * call subsequently tokenAssert( type, errorMessage ) and getToken().
-	 * 
+	 *
 	 * @param type The type of the token to eat.
 	 * @param errorMessage The error message to display in case of a wrong token type.
 	 * @param scopeName the name of the current scope e.g a service name, if the scope has one
@@ -350,7 +350,7 @@ public abstract class AbstractParser {
 	 * Eats the current token, asserting that it is an identifier (or an unreserved keyword). Calling
 	 * eatIdentifier( errorMessage ) is equivalent to call subsequently assertIdentifier( errorMessage )
 	 * and getToken().
-	 * 
+	 *
 	 * @param errorMessage The error message to throw as a {@link ParserException} in case the current
 	 *        token is not an identifier.
 	 * @param scopeName the name of the current scope e.g a service name, if the scope has one
@@ -372,7 +372,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Asserts that the current token is an identifier (or an unreserved keyword).
-	 * 
+	 *
 	 * @param errorMessage the error message to throw as a {@link ParserException} if the current token
 	 *        is not an identifier.
 	 * @throws ParserException if the current token is not an identifier.
@@ -386,7 +386,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Asserts that the current token is an identifier (or an unreserved keyword).
-	 * 
+	 *
 	 * @param errorMessage the error message to throw as a {@link ParserException} if the current token
 	 *        is not an identifier.
 	 * @param scopeName the name of the current scope e.g a service name, if the scope has one
@@ -402,7 +402,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Asserts the current token type.
-	 * 
+	 *
 	 * @param type The token type to assert.
 	 * @param errorMessage The error message to display in case of a wrong token type.
 	 * @throws ParserException If the token type is wrong.
@@ -427,7 +427,7 @@ public abstract class AbstractParser {
 	 * empty, the possibleTokens is checked whether it contains keywords close in levenshteins distance
 	 * to the tokenContent, and these words are added to the help message, such that the user can see
 	 * correct keywords matching closely to their own token.
-	 * 
+	 *
 	 * @param context context of the code, when parsing error occured
 	 * @param tokenContent content of the token, which was wrong or missing(if empty)
 	 * @param possibleTokens list of possible keywords, which the user could have meant or are missing
@@ -483,7 +483,7 @@ public abstract class AbstractParser {
 	/**
 	 * Creates the help message just like createHelpMessage, taking the code lines in the scope of the
 	 * error into consideration
-	 * 
+	 *
 	 * @param context
 	 * @param tokenContent
 	 * @param scope
@@ -545,7 +545,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Shortcut to throw a correctly formed ParserException.
-	 * 
+	 *
 	 * @param mesg The message to insert in the ParserException.
 	 * @throws ParserException Every time, as its the purpose of this method.
 	 */
@@ -582,7 +582,7 @@ public abstract class AbstractParser {
 	/**
 	 * Method to find all lines of code of the scope with the name we are looking at during a parsing
 	 * error
-	 * 
+	 *
 	 * @param name The name of the scope, e.g. the inputPort name
 	 * @param scope The scope we are in, e.g. inputPort
 	 */
@@ -602,7 +602,7 @@ public abstract class AbstractParser {
 
 	/**
 	 * Shortcut to throw a correctly formed ParserException.
-	 * 
+	 *
 	 * @param mesg The message to insert in the ParserException.
 	 * @param scopeName The name of the scope, e.g. the inputPort name
 	 * @param scope The scope we are in, e.g. an inputPort
@@ -843,7 +843,7 @@ public abstract class AbstractParser {
 	/**
 	 * Shortcut to throw a correctly formed ParserException, getting the message from an existing
 	 * exception.
-	 * 
+	 *
 	 * @param exception The exception to get the message from.
 	 * @throws ParserException Every time, as its the purpose of this method.
 	 */

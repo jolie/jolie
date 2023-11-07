@@ -26,7 +26,7 @@ import jolie.lang.Constants;
 
 /**
  * An exception for invalid/unsupported HTTP versions
- * 
+ *
  * @author Matthias Dieter Wallnöfer
  */
 public class UnsupportedHttpVersionException extends IOException {

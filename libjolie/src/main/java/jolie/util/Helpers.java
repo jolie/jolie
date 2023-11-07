@@ -31,7 +31,7 @@ import java.util.function.Supplier;
 
 /**
  * A convenience class with some helper functions for cleaner coding.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class Helpers {

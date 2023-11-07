@@ -39,7 +39,7 @@ public class ImportStatement extends OLSyntaxNode {
 
 	/**
 	 * Constructor for namespace import
-	 * 
+	 *
 	 * @param context parsing context
 	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
 	 *        should give this field ["", "A", "", "B"])
@@ -50,7 +50,7 @@ public class ImportStatement extends OLSyntaxNode {
 
 	/**
 	 * Constructor for qualified import
-	 * 
+	 *
 	 * @param context a parsing context
 	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
 	 *        should give this field ["", "A", "", "B"])
@@ -65,7 +65,7 @@ public class ImportStatement extends OLSyntaxNode {
 
 	/**
 	 * Constructor for qualified import
-	 * 
+	 *
 	 * @param context a parsing context
 	 * @param importTarget tokenized import target, empty denote a dot token ( import target for .A.B
 	 *        should give this field ["", "A", "", "B"])

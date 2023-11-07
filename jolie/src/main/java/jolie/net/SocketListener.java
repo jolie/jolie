@@ -35,7 +35,7 @@ import jolie.net.ports.InputPort;
 
 /**
  * A communication listener using sockets as backend.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class SocketListener extends CommListener {

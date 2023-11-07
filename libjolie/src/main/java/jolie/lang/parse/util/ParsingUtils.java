@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Utility class for accessing the functionalities of the JOLIE parsing library without having to
  * worry about correctly instantiating all the related objects (parser, scanner, etc.).
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class ParsingUtils {
@@ -102,7 +102,7 @@ public class ParsingUtils {
 	/**
 	 * Works just like parseProgram, but returns the SemanticVerifier instead. Is used by the
 	 * languageserver for the vscode extension
-	 * 
+	 *
 	 * @param inputStream
 	 * @param source
 	 * @param charset
@@ -146,7 +146,7 @@ public class ParsingUtils {
 
 	/**
 	 * Creates a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}.
-	 * 
+	 *
 	 * @param program the {@link jolie.lang.parse.ast.Program} to inspect
 	 * @return a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}
 	 * @see ProgramInspector

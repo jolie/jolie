@@ -29,7 +29,7 @@ import jolie.runtime.Value;
 
 /**
  * A simple channel for exchanging messages with a service powered by MetaService.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class MetaServiceChannel implements Cloneable {

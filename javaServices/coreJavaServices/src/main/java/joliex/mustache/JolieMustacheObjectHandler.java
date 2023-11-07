@@ -35,7 +35,7 @@ import jolie.runtime.ValueVector;
 public class JolieMustacheObjectHandler implements ObjectHandler {
 	/**
 	 * Find a value named "name" in the array of scopes in reverse order.
-	 * 
+	 *
 	 * @param name the variable name
 	 * @param scopes the ordered list of scopes
 	 * @return a wrapper that can be used to extract a value
@@ -59,7 +59,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 
 	/**
 	 * Coerce results to Java native iterables, functions, callables.
-	 * 
+	 *
 	 * @param object transform an unknown type to a known type
 	 * @return the new object
 	 */

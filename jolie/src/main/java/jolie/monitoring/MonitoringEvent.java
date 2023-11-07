@@ -27,7 +27,7 @@ import jolie.runtime.Value;
 /**
  * A monitoring event, supporting the {@link ValueConverter} interface for automatic transformation
  * between Jolie messages and Java objects.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class MonitoringEvent implements ValueConverter {

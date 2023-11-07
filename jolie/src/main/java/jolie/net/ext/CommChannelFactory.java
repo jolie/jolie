@@ -30,7 +30,7 @@ import jolie.net.ports.OutputPort;
 
 /**
  * A factory for delegating the creation of output communication channels to extensions.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class CommChannelFactory {
@@ -46,7 +46,7 @@ public abstract class CommChannelFactory {
 
 	/**
 	 * Creates and returns a communication channel.
-	 * 
+	 *
 	 * @param location the location URI to use
 	 * @param port the output port to refer to in the creation of the channel
 	 * @return a valid communication channel

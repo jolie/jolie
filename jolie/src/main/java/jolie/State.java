@@ -32,7 +32,7 @@ import jolie.runtime.VariablePath;
 /**
  * The state of a process, containing the values of its variables (inside of the root tree), its
  * internal links, and data structures for detecting alias loops.
- * 
+ *
  * @see Value
  * @see InternalLink
  * @author Fabrizio Montesi
@@ -49,7 +49,7 @@ public final class State implements Cloneable {
 
 	/**
 	 * Returns the InternalLink identified by id in this State scope.
-	 * 
+	 *
 	 * @param id the identifier of the requested InternalLink
 	 * @return the InternalLink identified by id
 	 */
@@ -71,7 +71,7 @@ public final class State implements Cloneable {
 
 	/**
 	 * Returns the root Value of this State.
-	 * 
+	 *
 	 * @return the root Value of this State
 	 * @see Value
 	 */

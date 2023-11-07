@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006-2021 Fabrizio Montesi <famontesi@gmail.com>
- * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk> 
+ * Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -140,7 +140,7 @@ import jolie.util.UriUtils;
 
 /**
  * Parser for a .ol file.
- * 
+ *
  * @author Fabrizio Montesi
  *
  */

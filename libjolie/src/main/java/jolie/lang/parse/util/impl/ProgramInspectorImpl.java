@@ -37,7 +37,7 @@ import jolie.lang.parse.util.ProgramInspector;
 
 /**
  * Implementation of {@link jolie.lang.parse.util.ProgramInspector}.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class ProgramInspectorImpl implements ProgramInspector {

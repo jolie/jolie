@@ -29,7 +29,7 @@ import jolie.runtime.InvalidIdException;
 
 /**
  * Executes a sub-routine.
- * 
+ *
  * @see DefinitionProcess
  * @author Fabrizio Montesi
  */
@@ -38,7 +38,7 @@ public class CallProcess implements Process {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param definitionName the name of the definition to execute.
 	 */
 	public CallProcess( String definitionName ) {

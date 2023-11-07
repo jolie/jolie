@@ -30,7 +30,7 @@ public class CodeCheckException extends Exception {
 
 	/**
 	 * Contructs a CodeCheckException from a list of CodeCheckMessages
-	 * 
+	 *
 	 * @param messageList
 	 */
 	public CodeCheckException( List< CodeCheckMessage > messageList ) {
@@ -39,7 +39,7 @@ public class CodeCheckException extends Exception {
 
 	/**
 	 * Returns the list of CodeCheckMessages from the CodeCheckException
-	 * 
+	 *
 	 * @return
 	 */
 	public List< CodeCheckMessage > messages() {

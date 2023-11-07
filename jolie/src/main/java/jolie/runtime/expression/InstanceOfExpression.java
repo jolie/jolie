@@ -29,7 +29,7 @@ import jolie.runtime.typing.TypeCheckingException;
 
 /**
  * Implements the instanceof operator.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class InstanceOfExpression implements Expression {
