@@ -274,7 +274,7 @@
 			<plugin>
 				<groupId>net.revelc.code.formatter</groupId>
 				<artifactId>formatter-maven-plugin</artifactId>
-				<version>2.11.0</version>
+				<version>2.23.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -284,9 +284,9 @@
 					</execution>
 				</executions>
 				<configuration>
-					<compilerSource>11</compilerSource>
-					<compilerCompliance>11</compilerCompliance>
-					<compilerTargetPlatform>11</compilerTargetPlatform>
+					<compilerSource>21</compilerSource>
+					<compilerCompliance>21</compilerCompliance>
+					<compilerTargetPlatform>21</compilerTargetPlatform>
 					<lineEnding>LF</lineEnding>
 					<encoding>UTF-8</encoding>
 					<configFile>java-jolie-style.xml</configFile>
