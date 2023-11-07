@@ -58,6 +58,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
 import jolie.lang.CodeCheckException;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
@@ -196,6 +197,22 @@ public class Interpreter {
 			if( r instanceof ExecutionThread ) {
 				t.setExecutionThread( (ExecutionThread) r );
 			}
+			return t;
+		}
+	}
+
+	private static class JolieVirtualExecutionThreadFactory implements ThreadFactory {
+		private final Interpreter interpreter;
+
+		public JolieVirtualExecutionThreadFactory( Interpreter interpreter ) {
+			this.interpreter = interpreter;
+		}
+
+		@Override
+		public Thread newThread( Runnable r ) {
+			var t = Thread.ofVirtual().name( interpreter.programFilename() + "-" + JolieThread.createThreadName() )
+				.unstarted( r );
+			t.setContextClassLoader( interpreter.getClassLoader() );
 			return t;
 		}
 	}
@@ -1074,7 +1091,7 @@ public class Interpreter {
 	private final ExecutorService nativeExecutorService =
 		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
 	private final ExecutorService processExecutorService =
-		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
+		Executors.newThreadPerTaskExecutor( new JolieVirtualExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.

@@ -473,9 +473,9 @@ public abstract class ExecutionThread extends JolieThread {
 
 	@Override
 	public final void run() {
-		JolieExecutorThread t = JolieExecutorThread.currentThread();
-		t.setExecutionThread( this );
-		t.setContextClassLoader( interpreter().getClassLoader() );
+		// JolieExecutorThread t = JolieExecutorThread.currentThread();
+		// t.setExecutionThread( this );
+		// t.setContextClassLoader( interpreter().getClassLoader() );
 		runProcess();
 	}
 
