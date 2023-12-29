@@ -221,6 +221,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
+	private static class ParameterValues {
+		private static final String NO_CHARSET = "no-charset";
+	}
+
 	private static class Headers {
 		private static final String CONTENT_TYPE = "Content-Type";
 		private static final String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
@@ -935,7 +939,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		encodedContent.contentType = encodedContent.contentType.toLowerCase();
 
 		headerBuilder.append( "Content-Type: " ).append( encodedContent.contentType );
-		if( charset != null ) {
+		if( charset != ParameterValues.NO_CHARSET ) {
 			headerBuilder.append( "; charset=" ).append( charset.toLowerCase() );
 		}
 		headerBuilder.append( HttpUtils.CRLF );
@@ -1044,7 +1048,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		// message's body in string format needed for the monitoring
 		String bodyMessageString =
-			encodedContent != null && encodedContent.content != null ? encodedContent.content.toString( charset ) : "";
+			encodedContent != null && encodedContent.content != null
+				? encodedContent.content.toString( charset.equals( ParameterValues.NO_CHARSET ) ? "utf-8" : charset )
+				: "";
 
 		if( Interpreter.getInstance().isMonitoring() ) {
 			Interpreter.getInstance().fireMonitorEvent(
@@ -1059,11 +1065,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
 
-		send_logDebugInfo( headerBuilder, encodedContent, charset );
+		send_logDebugInfo( headerBuilder, encodedContent,
+			charset.equals( ParameterValues.NO_CHARSET ) ? "utf-8" : charset );
 
 		Interpreter.getInstance().tracer().trace( () -> {
 			try {
-				final String traceMessage = prepareSendDebugString( headerBuilder, encodedContent, charset, true );
+				final String traceMessage = prepareSendDebugString( headerBuilder, encodedContent,
+					charset.equals( ParameterValues.NO_CHARSET ) ? "utf-8" : charset, true );
 				return new ProtocolTraceAction( ProtocolTraceAction.Type.HTTP, "HTTP MESSAGE SENT",
 					message.resourcePath(), traceMessage, null );
 			} catch( UnsupportedEncodingException e ) {
@@ -1538,13 +1546,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		HttpMessage message = new HttpParser( istream ).parse();
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
-		
+
 		final String charset =
-			( message.isResponse() && hasParameter( Parameters.FORCE_RECEIVING_CHARSET ) ) ?
-				getStringParameter( Parameters.FORCE_RECEIVING_CHARSET )
-			:
-				HttpUtils.getCharset( null, message );
-		
+			(message.isResponse() && hasParameter( Parameters.FORCE_RECEIVING_CHARSET ))
+				? getStringParameter( Parameters.FORCE_RECEIVING_CHARSET )
+				: HttpUtils.getCharset( null, message );
+
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {
