@@ -19,6 +19,11 @@
 	<name>http</name>
 	<description>HTTP protocol for Jolie.</description>
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory> 
+			</resource>
+    	</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

@@ -25,6 +25,7 @@ import jolie.js.JsUtils;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.monitoring.events.ProtocolMessageEvent;
+import jolie.net.constants.HttpProtocolConstants;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -935,7 +936,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		encodedContent.contentType = encodedContent.contentType.toLowerCase();
 
 		headerBuilder.append( "Content-Type: " ).append( encodedContent.contentType );
-		if( charset != null ) {
+		if( charset != null
+			&& (encodedContent.contentType.startsWith( "text/" )
+				|| (HttpProtocolConstants.CONTENTYPE_FOR_CHARSET != null
+					&& HttpProtocolConstants.CONTENTYPE_FOR_CHARSET.contains( encodedContent.contentType ))) ) {
 			headerBuilder.append( "; charset=" ).append( charset.toLowerCase() );
 		}
 		headerBuilder.append( HttpUtils.CRLF );
@@ -1538,13 +1542,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		HttpMessage message = new HttpParser( istream ).parse();
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
-		
+
 		final String charset =
-			( message.isResponse() && hasParameter( Parameters.FORCE_RECEIVING_CHARSET ) ) ?
-				getStringParameter( Parameters.FORCE_RECEIVING_CHARSET )
-			:
-				HttpUtils.getCharset( null, message );
-		
+			(message.isResponse() && hasParameter( Parameters.FORCE_RECEIVING_CHARSET ))
+				? getStringParameter( Parameters.FORCE_RECEIVING_CHARSET )
+				: HttpUtils.getCharset( null, message );
+
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if( checkBooleanParameter( Parameters.DEBUG ) ) {
