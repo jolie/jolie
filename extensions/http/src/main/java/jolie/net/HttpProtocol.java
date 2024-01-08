@@ -938,8 +938,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		headerBuilder.append( "Content-Type: " ).append( encodedContent.contentType );
 		if( charset != null
 			&& (encodedContent.contentType.startsWith( "text/" )
-				|| (HttpProtocolConstants.CONTENTYPE_FOR_CHARSET != null
-					&& HttpProtocolConstants.CONTENTYPE_FOR_CHARSET.contains( encodedContent.contentType ))) ) {
+				|| (HttpProtocolConstants.shouldHaveCharset( encodedContent.contentType ))) ) {
 			headerBuilder.append( "; charset=" ).append( charset.toLowerCase() );
 		}
 		headerBuilder.append( HttpUtils.CRLF );

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Http Global constants.
@@ -35,38 +36,35 @@ public final class HttpProtocolConstants {
 	 * charset string will be encoded to Content-Type header only if contentType starst with text/ or if
 	 * it is contained in this list
 	 */
-	public static final HashSet< String > CONTENTYPE_FOR_CHARSET;
+	private static final Set< String > CONTENT_TYPE_FOR_CHARSET;
 
 	static {
-		HashSet< String > contentTypeForCharset;
+		Set< String > contentTypeForCharset;
 		try {
 			contentTypeForCharset = readContentTypeListForCharset();
-		} catch( HttpProtocolConstantsException e ) {
-			System.out.println( e.getMessage() );
+		} catch( IOException e ) {
+			e.printStackTrace();
 			contentTypeForCharset = null;
 		}
-		CONTENTYPE_FOR_CHARSET = contentTypeForCharset;
+		CONTENT_TYPE_FOR_CHARSET = contentTypeForCharset;
 	}
 
-	private static HashSet< String > readContentTypeListForCharset() throws HttpProtocolConstantsException {
-		HashSet< String > contentTypesForCharset = new HashSet<>();
+	public static boolean shouldHaveCharset( String contentType ) {
+		return CONTENT_TYPE_FOR_CHARSET != null && CONTENT_TYPE_FOR_CHARSET.contains( contentType );
+	}
+
+	private static Set< String > readContentTypeListForCharset() throws IOException {
+		Set< String > contentTypesForCharset = new HashSet<>();
 
 		try( InputStream is =
-			HttpProtocolConstants.class.getClassLoader().getResourceAsStream( "http-contenttype-charset.txt" ) ) {
+			HttpProtocolConstants.class.getClassLoader().getResourceAsStream( "http-content-type-charset.txt" ) ) {
 			if( is == null ) {
-				throw new HttpProtocolConstantsException(
-					"ERROR: could not find http-contenttype-charset.txt. Your distribution of Jolie might be corrupted." );
+				throw new IOException(
+					"Could not find http-contenttype-charset.txt. Your distribution of Jolie might be corrupted." );
 			}
-			BufferedReader reader = new BufferedReader( new InputStreamReader( is ) );
-			String line;
-			while( (line = reader.readLine()) != null ) {
-				contentTypesForCharset.add( line );
-			}
+			new BufferedReader( new InputStreamReader( is ) ).lines().forEach( contentTypesForCharset::add );
 
 			return contentTypesForCharset;
-		} catch( IOException e ) {
-			throw new HttpProtocolConstantsException(
-				"ERROR: could not read from http-contenttype-charset.txt correctly." );
 		}
 	}
 
