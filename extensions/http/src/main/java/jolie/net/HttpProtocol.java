@@ -681,7 +681,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					" is sending a message with status code " +
 					statusCode +
 					", which is not in the HTTP specifications." );
-				statusDescription = "Internal Server Error";
+				statusCode = 500;
 			} else if( isLocationNeeded( statusCode ) && !hasParameter( Parameters.REDIRECT ) ) {
 				// if statusCode is a redirection code, location parameter is needed
 				Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
