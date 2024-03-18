@@ -469,8 +469,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
 		throws IOException {
 		EncodedContent ret = new EncodedContent();
-		if( inInputPort == false && (method == Method.GET || method == Method.DELETE) ) {
-			// We are building a GET or DELETE request
+
+		final boolean isOW = channel().parentPort().getOperationTypeDescription( message.operationName(),
+			Constants.ROOT_RESOURCE_PATH ) instanceof OneWayTypeDescription;
+
+		if( !inInputPort && (method == Method.GET || method == Method.DELETE)
+			|| inInputPort && isOW && !message.isFault() ) {
+			// no payload if we are building a GET or DELETE request (client) or a non-fault one-way response (server)
 			return ret;
 		}
 
@@ -982,7 +987,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 
 			headerBuilder.append( "Content-Length: " ).append( encodedContent.content.size() ).append( HttpUtils.CRLF );
-		} else {
+			// https://datatracker.ietf.org/doc/html/rfc9110#name-content-length
+		} else if( !inInputPort ) {
+			// a server response with no payload should not send back a zero-size content length header,
+			// contrarily to client requests where this behaviour is perfectly fine
 			headerBuilder.append( "Content-Length: 0" ).append( HttpUtils.CRLF );
 		}
 	}
