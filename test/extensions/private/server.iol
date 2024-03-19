@@ -47,8 +47,10 @@ type Person:void {
 
 interface ServerInterface {
 OneWay:
-	shutdown(void)
+	shutdown(void),
+	consume2(any)
 RequestResponse:
 	echoPerson(Person)(Person),
-	identity(any)(any)
+	identity(any)(any),
+	consume(any)(void)
 }
