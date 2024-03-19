@@ -80,7 +80,20 @@ define test
 	checkResponse2;
 	format = "binary"; // binary
 	identity@Server( reqVal )( response2 );
-	checkResponse2
+	checkResponse2;
+	// no response checking here, it just needs to pass
+	format = "html"; // HTML
+	consume@Server( reqVal )( );
+	format = "raw"; // plain-text
+	consume@Server( reqVal )( );
+	format = "binary"; // binary
+	consume@Server( reqVal )( );
+	format = "html"; // HTML
+	consume2@Server( reqVal );
+	format = "raw"; // plain-text
+	consume2@Server( reqVal );
+	format = "binary"; // binary
+	consume2@Server( reqVal )
 }
 
 define doTest

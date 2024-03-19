@@ -41,10 +41,12 @@ type HeaderIdentity:any {
 
 interface HeadersServerInterface {
 OneWay:
-	shutdown(undefined)
+	shutdown(undefined),
+	consume2(HeaderIdentity)
 RequestResponse:
 	echoPerson(HeaderPerson)(undefined),
-	identity(HeaderIdentity)(undefined)
+	identity(HeaderIdentity)(undefined),
+	consume(HeaderIdentity)(void)
 }
 
 execution { single }
@@ -80,6 +82,13 @@ main
 		[ identity( request )( response ) {
 			handleRequest
 		} ]
+		[ consume( request )( ) {
+			statusCode = 204;
+			if ( request.Authorization != "TOP_SECRET" ) {
+				statusCode = 403 // Forbidden
+			}
+		} ]
+		[ consume2( request ) ]
 	until
 		[ shutdown() ]
 }
