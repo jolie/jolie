@@ -322,6 +322,9 @@ public abstract class Type implements Cloneable {
 	public static final Type UNDEFINED =
 		Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.ANY ) ),
 			new Range( 0, Integer.MAX_VALUE ), true, null );
+	public static final Type VOID =
+		Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.VOID ) ),
+			new Range( 1, 1 ), false, null );
 
 	public static Type create(
 		BasicType< ? > basicType,
@@ -413,6 +416,15 @@ public abstract class Type implements Cloneable {
 	public Value cast( Value value )
 		throws TypeCastingException {
 		return cast( value, new StringBuilder( "#Message" ) );
+	}
+
+	public boolean isVoid() {
+		if( !(this instanceof TypeImpl) )
+			return false;
+		TypeImpl t = (TypeImpl) this;
+		return t.basicType().equals( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.VOID ) ) )
+			&& t.cardinality().equals( new Range( 1, 1 ) )
+			&& (t.subTypes() == null || t.subTypes().isEmpty());
 	}
 
 	public abstract Optional< Type > getMinimalType( Value value );
