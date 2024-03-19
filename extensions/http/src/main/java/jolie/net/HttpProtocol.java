@@ -392,7 +392,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void send_appendJsonQueryString( CommMessage message, StringBuilder headerBuilder )
+	private void send_appendJsonQueryString( CommMessage message, Type sendType, StringBuilder headerBuilder )
 		throws IOException {
 		getOperationSpecificParameterFirstValue( message.operationName(),
 			Parameters.OUTGOING_HEADERS ).children().forEach(
@@ -400,7 +400,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( message.value().isDefined() || message.value().hasChildren() ) {
 			headerBuilder.append( "?" );
 			StringBuilder builder = new StringBuilder();
-			JsUtils.valueToJsonString( message.value(), true, getSendType( message ), builder );
+			JsUtils.valueToJsonString( message.value(), true, sendType, builder );
 			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
 		}
 	}
@@ -466,16 +466,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private String contentDisposition = "";
 	}
 
-	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
+	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format,
+		Type sendType )
 		throws IOException {
 		EncodedContent ret = new EncodedContent();
 
-		final boolean isOW = channel().parentPort().getOperationTypeDescription( message.operationName(),
-			Constants.ROOT_RESOURCE_PATH ) instanceof OneWayTypeDescription;
-
 		if( !inInputPort && (method == Method.GET || method == Method.DELETE)
-			|| inInputPort && isOW && !message.isFault() ) {
-			// no payload if we are building a GET or DELETE request (client) or a non-fault one-way response (server)
+			|| inInputPort && sendType.isVoid() && !message.isFault() ) {
+			// no payload if we are building a GET or DELETE request (client) or an one-way respectively
+			// void-typed non-fault response (server)
 			return ret;
 		}
 
@@ -596,9 +595,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				error.getFirstChild( "code" ).setValue( -32000 );
 				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
 				error.getChildren( "data" ).set( 0, message.fault().value() );
-				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+				JsUtils.faultValueToJsonString( message.value(), sendType, jsonStringBuilder );
 			} else {
-				JsUtils.valueToJsonString( message.value(), true, getSendType( message ), jsonStringBuilder );
+				JsUtils.valueToJsonString( message.value(), true, sendType, jsonStringBuilder );
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if( "ndjson".equals( format ) ) {
@@ -609,12 +608,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				error.getFirstChild( "code" ).setValue( -32000 );
 				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
 				error.getChildren( "data" ).set( 0, message.fault().value() );
-				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), ndJsonStringBuilder );
+				JsUtils.faultValueToJsonString( message.value(), sendType, ndJsonStringBuilder );
 			} else {
 				if( !message.value().hasChildren( "item" ) ) {
 					Interpreter.getInstance().logWarning( "ndJson requires at least one child node 'item'" );
 				}
-				JsUtils.valueToNdJsonString( message.value(), true, getSendType( message ), ndJsonStringBuilder );
+				JsUtils.valueToNdJsonString( message.value(), true, sendType, ndJsonStringBuilder );
 			}
 			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );
 		} else if( "raw".equals( format ) ) {
@@ -667,9 +666,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder ) {
+	private void send_appendResponseHeaders( CommMessage message, Type sendType, StringBuilder headerBuilder ) {
 		int statusCode = DEFAULT_STATUS_CODE;
-		String statusDescription = null;
 
 		if( message.isFault()
 			&& hasOperationSpecificParameter( message.operationName(), Parameters.STATUS_CODES ) ) {
@@ -701,11 +699,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			statusCode = 500;
 		}
 
-		if( statusDescription == null ) {
-			statusDescription = STATUS_CODE_DESCRIPTIONS.get( statusCode );
-		}
-		headerBuilder.append( "HTTP/1.1 " ).append( statusCode ).append( " " ).append( statusDescription )
-			.append( HttpUtils.CRLF );
+		// https://datatracker.ietf.org/doc/html/rfc9110#name-200-ok
+		// we should not be sending a HTTP status code 200 with a null/void content (not empty one)
+		if( statusCode == 200 && sendType.isVoid() )
+			statusCode = 204;
+
+		headerBuilder.append( "HTTP/1.1 " ).append( statusCode ).append( " " )
+			.append( STATUS_CODE_DESCRIPTIONS.get( statusCode ) ).append( HttpUtils.CRLF );
 
 		// if redirect has been set, the redirect location parameter is set
 		if( hasParameter( Parameters.REDIRECT ) ) {
@@ -731,7 +731,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		headerBuilder.append( method.id() );
 	}
 
-	private void send_appendRequestPath( CommMessage message, Method method, String qsFormat,
+	private void send_appendRequestPath( CommMessage message, Method method, String qsFormat, Type sendType,
 		StringBuilder headerBuilder )
 		throws IOException {
 		String path = uri.getRawPath();
@@ -763,7 +763,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if( method == Method.GET ) {
 			if( qsFormat.equals( "json" ) ) {
-				send_appendJsonQueryString( message, headerBuilder );
+				send_appendJsonQueryString( message, sendType, headerBuilder );
 			} else {
 				send_appendQuerystring( message.value(), headerBuilder, message );
 			}
@@ -868,12 +868,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				: Method.POST;
 	}
 
-	private void send_appendRequestHeaders( CommMessage message, Method method, String qsFormat,
+	private void send_appendRequestHeaders( CommMessage message, Method method, String qsFormat, Type sendType,
 		StringBuilder headerBuilder )
 		throws IOException {
 		send_appendRequestMethod( method, headerBuilder );
 		headerBuilder.append( ' ' );
-		send_appendRequestPath( message, method, qsFormat, headerBuilder );
+		send_appendRequestPath( message, method, qsFormat, sendType, headerBuilder );
 		headerBuilder.append( " HTTP/1.1" ).append( HttpUtils.CRLF );
 		String host = uri.getHost();
 		if( uri.getScheme().equals( "localsocket" ) ) {
@@ -1026,11 +1026,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "utf-8" ), null );
 		String format = send_getFormat( message.operationName() );
 		String contentType = null;
+		Type sendType = getSendType( message );
 		StringBuilder headerBuilder = new StringBuilder();
 
 		if( inInputPort ) {
 			// We're responding to a request
-			send_appendResponseHeaders( message, headerBuilder );
+			send_appendResponseHeaders( message, sendType, headerBuilder );
 			send_appendResponseUserHeader( message, headerBuilder );
 			send_appendHeader( headerBuilder );
 
@@ -1045,10 +1046,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				}
 			}
 			send_appendRequestUserHeader( message, headerBuilder );
-			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
+			send_appendRequestHeaders( message, method, qsFormat, sendType, headerBuilder );
 		}
 
-		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
+		EncodedContent encodedContent = send_encodeContent( message, method, charset, format, sendType );
 		if( contentType != null ) {
 			encodedContent.contentType = contentType;
 		}
@@ -1778,7 +1779,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				ret = Type.UNDEFINED;
 			} else {
 				OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
-				ret = ow.requestType();
+				ret = (inInputPort) ? Type.VOID : ow.requestType();
 			}
 		} else if( opDesc.asRequestResponseTypeDescription() != null ) {
 			RequestResponseTypeDescription rr = opDesc.asRequestResponseTypeDescription();
