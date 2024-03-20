@@ -26,7 +26,7 @@ include "console.iol"
 
 interface HTTPInterface {
 RequestResponse:
-	default(undefined)(undefined)
+	default( undefined )( undefined ) throws NotFound
 }
 
 
@@ -44,14 +44,16 @@ Jolie:
 }
 
 
-
 define doTest
 {
-	
-	default@Server()( response )
-	if ( response.( "@header").statusCode == "501" ) {
-		throw( TestFailed, "Status code 200 expected")
-	}
-	
-}
+	default@Server()( response ); // first call: 200 Ok/204 No Content
+	if ( response.( "@header" ).statusCode != "200"
+		&& response.( "@header" ).statusCode != "204" ) {
+		throw( TestFailed, "Status code 200/204 expected: " + response.( "@header" ).statusCode )
+	};
 
+	default@Server()( response ); // second call: 404 Not Found
+	if ( response.( "@header" ).statusCode != "404" ) {
+		throw( TestFailed, "Status code 404 expected: " + response.( "@header" ).statusCode )
+	}
+}

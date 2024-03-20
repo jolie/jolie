@@ -22,9 +22,8 @@
 
 interface HTTPInterface {
 RequestResponse:
-	default(undefined)(undefined)
+	default( undefined )( undefined ) throws NotFound
 }
-
 
 execution { single }
 
@@ -32,13 +31,17 @@ inputPort ServerInput {
 Location: "socket://localhost:10101"
 Protocol: http {
 	.osc.default.cookies.sid = "sid"
+	.osc.default.statusCodes.NotFound = 404
 }
 Interfaces: HTTPInterface
 }
 
 main
 {
-	default( request )( response ) {
+	default( )( ) {
 		nullProcess
+	};
+	default( )( ) {
+		throw( NotFound )
 	}
 }
