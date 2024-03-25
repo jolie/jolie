@@ -47,14 +47,11 @@ import jolie.tracer.ProtocolTraceAction;
 import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -235,7 +232,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private String inputId = null;
 	private final Transformer transformer;
-	private final DocumentBuilderFactory docBuilderFactory;
 	private final DocumentBuilder docBuilder;
 	private final URI uri;
 	private final boolean inInputPort;
@@ -256,14 +252,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		URI uri,
 		boolean inInputPort,
 		TransformerFactory transformerFactory,
-		DocumentBuilderFactory docBuilderFactory,
 		DocumentBuilder docBuilder )
 		throws TransformerConfigurationException {
 		super( configurationPath );
 		this.uri = uri;
 		this.inInputPort = inInputPort;
 		this.transformer = transformerFactory.newTransformer();
-		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
 
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );

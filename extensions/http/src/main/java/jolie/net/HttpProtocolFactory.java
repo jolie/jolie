@@ -58,7 +58,6 @@ public class HttpProtocolFactory extends CommProtocolFactory {
 				location,
 				true,
 				transformerFactory,
-				docBuilderFactory,
 				docBuilder );
 		} catch( TransformerConfigurationException e ) {
 			throw new IOException( e );
@@ -74,7 +73,6 @@ public class HttpProtocolFactory extends CommProtocolFactory {
 				location,
 				false,
 				transformerFactory,
-				docBuilderFactory,
 				docBuilder );
 		} catch( TransformerConfigurationException e ) {
 			throw new IOException( e );
