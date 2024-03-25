@@ -42,8 +42,6 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import java.io.ByteArrayInputStream;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import jolie.net.http.HttpMessage;
@@ -88,7 +86,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 	private String inputId = null;
 	final private Transformer transformer;
 	final private Interpreter interpreter;
-	final private DocumentBuilderFactory docBuilderFactory;
 	final private DocumentBuilder docBuilder;
 	final private URI uri;
 	private final boolean inInputPort;
@@ -118,7 +115,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		URI uri,
 		boolean inInputPort,
 		Transformer transformer,
-		DocumentBuilderFactory docBuilderFactory,
 		DocumentBuilder docBuilder,
 		Interpreter interpreter ) {
 		super( configurationPath );
@@ -126,7 +122,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		this.transformer = transformer;
 		this.inInputPort = inInputPort;
 		this.interpreter = interpreter;
-		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
 
 		transformer.setOutputProperty( OutputKeys.ENCODING, "utf-8" );
@@ -468,10 +463,9 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			}
 
 			try {
-				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 				src.setEncoding( charset );
-				doc = builder.parse( src );
+				doc = docBuilder.parse( src );
 				if( message.isResponse() ) {
 					// test if the message contains a fault
 					try {
@@ -493,7 +487,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				} else {
 					documentToValue( value, doc );
 				}
-			} catch( ParserConfigurationException | SAXException pce ) {
+			} catch( SAXException pce ) {
 				throw new IOException( pce );
 			}
 

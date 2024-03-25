@@ -60,7 +60,6 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory {
 			location,
 			true,
 			transformer,
-			docBuilderFactory,
 			docBuilder,
 			commCore().interpreter() );
 	}
@@ -72,7 +71,6 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory {
 			location,
 			false,
 			transformer,
-			docBuilderFactory,
 			docBuilder,
 			commCore().interpreter() );
 	}
