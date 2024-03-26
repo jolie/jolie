@@ -64,7 +64,11 @@ import joliex.db.impl.NamedStatementParser;
 	"jdbc-sqlite.jar", // SQLite
 	"jt400.jar", // AS400
 	"hsqldb.jar", // HSQLDB
-	"db2jcc.jar" // DB2
+	"db2jcc.jar", // DB2
+	"HikariCP.jar",
+	"HikariCP-java7.jar",
+	"slf4j-simple.jar",
+	"slf4j-api.jar"
 } )
 public class DatabaseService extends JavaService {
 	private HikariDataSource connectionPoolDataSource = null;
@@ -76,12 +80,6 @@ public class DatabaseService extends JavaService {
 	private static boolean toLowerCase = false;
 	private static boolean toUpperCase = false;
 	private boolean mustCheckConnection = false;
-
-	// As far as i can tell, this mutex guarenteed that no update would happen in
-	// the middle of a transaction. However, using a connection pool, this can never
-	// happen, as each update and transaction executes on their own connection.
-	// This mutex is therefore no longer needed.
-	// private final Object transactionMutex = new Object();
 
 	private final static String TEMPLATE_FIELD = "_template";
 
@@ -122,49 +120,51 @@ public class DatabaseService extends JavaService {
 		boolean isEmbedded = false;
 		Optional< String > encoding = Optional
 			.ofNullable( request.hasChildren( "encoding" ) ? request.getFirstChild( "encoding" ).strValue() : null );
-
-		HikariConfig dataSourceConfig = new HikariConfig();
-		dataSourceConfig.setMaximumPoolSize( 6 ); // TODO: Figure this out
-		dataSourceConfig.setUsername( username );
-		dataSourceConfig.setPassword( password );
 		try {
-			if( driverClass == null ) {
-				if( "postgresql".equals( driver ) ) {
-					Class.forName( "org.postgresql.Driver" );
-				} else if( "mysql".equals( driver ) ) {
-					Class.forName( "com.mysql.jdbc.Driver" );
-				} else if( "derby".equals( driver ) ) {
-					Class.forName( "org.apache.derby.jdbc.ClientDriver" );
-				} else if( "sqlite".equals( driver ) ) {
-					Class.forName( "org.sqlite.JDBC" );
-					isEmbedded = true;
-				} else if( "sqlserver".equals( driver ) ) {
-					Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
-					separator = ";";
-					databaseName = "databaseName=" + databaseName;
-				} else if( "as400".equals( driver ) ) {
-					Class.forName( "com.ibm.as400.access.AS400JDBCDriver" );
-				} else if( "derby_embedded".equals( driver ) ) {
-					Class.forName( "org.apache.derby.jdbc.EmbeddedDriver" );
-					isEmbedded = true;
-					driver = "derby";
-				} else if( "hsqldb_hsql".equals( driver )
-					|| "hsqldb_hsqls".equals( driver )
-					|| "hsqldb_http".equals( driver )
-					|| "hsqldb_https".equals( driver ) ) {
-					Class.forName( "org.hsqldb.jdbcDriver" );
-				} else if( "hsqldb_embedded".equals( driver ) ) {
-					Class.forName( "org.hsqldb.jdbcDriver" );
-					isEmbedded = true;
-					driver = "hsqldb";
-				} else if( "db2".equals( driver ) ) {
-					Class.forName( "com.ibm.db2.jcc.DB2Driver" );
-				} else {
-					throw new FaultException( "InvalidDriver", "Unknown type of driver: " + driver );
-				}
-			} else {
-				Class.forName( driverClass );
+
+			switch( driver ) {
+			case "postgresql":
+				driverClass = "org.postgresql.Driver";
+				break;
+			case "mysql":
+				driverClass = "com.mysql.jdbc.Driver";
+				break;
+			case "derby":
+				driverClass = "org.apache.derby.jdbc.ClientDriver";
+				break;
+			case "sqlite":
+				driverClass = "org.sqlite.JDBC";
+				isEmbedded = true;
+				break;
+			case "sqlserver":
+				driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+				separator = ";";
+				databaseName = "databaseName=" + databaseName;
+				break;
+			case "as400":
+				driverClass = "com.ibm.as400.access.AS400JDBCDriver";
+				break;
+			case "derby_embedded":
+				Class.forName( "org.apache.derby.jdbc.EmbeddedDriver" );
+				isEmbedded = true;
+				driver = "derby";
+				break;
+			case "hsqldb_embedded":
+				isEmbedded = true;
+				driver = "hsqldb";
+			case "hsqldb_hsql":
+			case "hsqldb_hsqls":
+			case "hsqldb_http":
+			case "hsqldb_https":
+				driverClass = "org.hsqldb.jdbcDriver";
+				break;
+			case "db2":
+				driverClass = "com.ibm.db2.jcc.DB2Driver";
+				break;
+			default:
+				throw new FaultException( "InvalidDriver", "Unknown type of driver: " + driver );
 			}
+			Class.forName( driverClass );
 
 			if( isEmbedded ) {
 				connectionString = "jdbc:" + driver + ":" + databaseName;
@@ -197,7 +197,9 @@ public class DatabaseService extends JavaService {
 					connectionPoolDataSource.close();
 				} );
 			}
-		} catch( ClassNotFoundException e ) {
+		} catch(
+
+		ClassNotFoundException e ) {
 			throw new FaultException( "DriverClassNotFound", e );
 		}
 	}
