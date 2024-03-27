@@ -134,6 +134,20 @@ define doTest
 			throw( TestFailed, "Wrong HTTP status code" )
 		};
 		*/
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			illegalStatusCode@Server( )( )
+		};
+		if ( statusCode != 500 ) { // Internal Server Error
+			throw( TestFailed, "Wrong HTTP status code" )
+		};
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			illegalRedirectNoLocation@Server( )( )
+		};
+		if ( statusCode != 500 ) { // Internal Server Error
+			throw( TestFailed, "Wrong HTTP status code" )
+		};
 
 		if ( keepAlive ) {
 			keepAlive = false // now re-test with on-demand connections
