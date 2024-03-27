@@ -42,5 +42,8 @@ OneWay:
 RequestResponse:
 	echoPerson(Person)(Person),
 	identity(any)(any),
-	consume(any)(void)
+	consume(any)(void),
+
+	illegalStatusCode(void)(void),
+	illegalRedirectNoLocation(void)(void)
 }

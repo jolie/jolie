@@ -49,6 +49,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -74,8 +75,8 @@ public class HttpUtils {
 	public static final int DEFAULT_STATUS_CODE = 200;
 	public static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 
-	public static final Map< Integer, String > STATUS_CODE_DESCRIPTIONS = new HashMap<>();
-	public static final Set< Integer > LOCATION_REQUIRED_STATUS_CODES = new HashSet<>();
+	private static final Map< Integer, String > STATUS_CODE_DESCRIPTIONS = new HashMap<>();
+	private static final Set< Integer > LOCATION_REQUIRED_STATUS_CODES = new HashSet<>();
 
 	public static interface HttpProtocol {
 		CommMessage recv_internal( InputStream istream, OutputStream ostream ) throws IOException;
@@ -223,6 +224,18 @@ public class HttpUtils {
 		STATUS_CODE_DESCRIPTIONS.put( 511, "Network Authentication Required" );
 	}
 
+	public static boolean isLocationNeeded( int statusCode ) {
+		return LOCATION_REQUIRED_STATUS_CODES.contains( statusCode );
+	}
+
+	public static boolean isStatusCodeValid( int statusCode ) {
+		return STATUS_CODE_DESCRIPTIONS.containsKey( statusCode );
+	}
+
+	public static String getStatusCodeDescription( int statusCode ) {
+		return String.format( "%d %s", statusCode, STATUS_CODE_DESCRIPTIONS.get( statusCode ) );
+	}
+
 	// Checks if the message requests the channel to be closed or kept open
 	public static void recv_checkForChannelClosing( HttpMessage message, CommChannel channel ) {
 		if( channel != null ) {
@@ -265,15 +278,15 @@ public class HttpUtils {
 	}
 
 	private static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
-		StringBuilder httpMessage = new StringBuilder();
-		if( e instanceof UnsupportedEncodingException ) {
-			httpMessage.append( "HTTP/1.1 415 Unsupported Media Type" ).append( CRLF );
+		StringBuilder httpMessage = new StringBuilder( "HTTP/1.1 " );
+		if( e instanceof UnsupportedEncodingException ) { // 415 Unsupported Media Type
+			httpMessage.append( getStatusCodeDescription( 415 ) ).append( CRLF );
 		} else if( e instanceof UnsupportedMethodException ) {
 			UnsupportedMethodException ex = (UnsupportedMethodException) e;
-			if( ex.allowedMethods() == null ) {
-				httpMessage.append( "HTTP/1.1 501 Not Implemented" ).append( CRLF );
-			} else {
-				httpMessage.append( "HTTP/1.1 405 Method Not Allowed" ).append( CRLF );
+			if( ex.allowedMethods() == null ) { // 501 Not Implemented
+				httpMessage.append( getStatusCodeDescription( 501 ) ).append( CRLF );
+			} else { // 405 Method Not Allowed
+				httpMessage.append( getStatusCodeDescription( 405 ) ).append( CRLF );
 				httpMessage.append( "Allowed: " );
 				Method[] methods = ex.allowedMethods();
 				for( int i = 0; i < methods.length; i++ ) {
@@ -281,10 +294,10 @@ public class HttpUtils {
 				}
 				httpMessage.append( CRLF );
 			}
-		} else if( e instanceof UnsupportedHttpVersionException ) {
-			httpMessage.append( "HTTP/1.1 505 HTTP Version Not Supported" ).append( CRLF );
-		} else {
-			httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( CRLF );
+		} else if( e instanceof UnsupportedHttpVersionException ) { // 505 HTTP Version Not Supported
+			httpMessage.append( getStatusCodeDescription( 505 ) ).append( CRLF );
+		} else { // 500 Internal Server Error
+			httpMessage.append( getStatusCodeDescription( 500 ) ).append( CRLF );
 		}
 		String message = e.getMessage() != null ? e.getMessage() : e.toString();
 		ByteArray content = new ByteArray( message.getBytes( StandardCharsets.UTF_8 ) );
@@ -317,6 +330,12 @@ public class HttpUtils {
 		} catch( IOException e ) {
 			if( inInputPort && channel.isOpen() ) {
 				HttpUtils.errorGenerator( ostream, e );
+				// Do not re-throw an I/O exception on a working server when the client could be notified.
+				// E.g. it could have requested an invalid operation or passed an unsupported media format. In this
+				// case the server informs the client about its mistake and then it may continue to run.
+				// If this has not been possible (another I/O exception thrown) then we definitely need to bail out.
+				Interpreter.getInstance().logInfo( e.getMessage() );
+				return;
 			}
 			throw e;
 		}

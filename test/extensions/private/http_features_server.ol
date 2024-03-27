@@ -46,7 +46,10 @@ OneWay:
 RequestResponse:
 	echoPerson(HeaderPerson)(undefined),
 	identity(HeaderIdentity)(undefined),
-	consume(HeaderIdentity)(void)
+	consume(HeaderIdentity)(void),
+
+	illegalStatusCode(HeaderIdentity)(void),
+	illegalRedirectNoLocation(HeaderIdentity)(void)
 }
 
 execution { single }
@@ -89,6 +92,12 @@ main
 			}
 		} ]
 		[ consume2( request ) ]
+		[ illegalStatusCode ( )( ) {
+			statusCode = 0
+		} ]
+		[ illegalRedirectNoLocation ( )( ) {
+			statusCode = 302
+		} ]
 	until
 		[ shutdown() ]
 }
