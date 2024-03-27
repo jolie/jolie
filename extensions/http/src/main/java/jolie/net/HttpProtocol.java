@@ -461,9 +461,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				error.getChildren( "data" ).set( 0, message.fault().value() );
 				JsUtils.faultValueToJsonString( message.value(), sendType, ndJsonStringBuilder );
 			} else {
-				if( !message.value().hasChildren( "item" ) ) {
-					Interpreter.getInstance().logWarning( "ndJson requires at least one child node 'item'" );
-				}
 				JsUtils.valueToNdJsonString( message.value(), true, sendType, ndJsonStringBuilder );
 			}
 			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );

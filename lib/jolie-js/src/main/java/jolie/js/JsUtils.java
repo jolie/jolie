@@ -123,12 +123,15 @@ public class JsUtils {
 
 	public static void valueToNdJsonString( Value value, boolean extendedRoot, Type type, StringBuilder builder )
 		throws IOException {
+		if( !value.hasChildren( "item" ) ) {
+			throw new IOException( "ndJson requires at least one child node 'item'" );
+		}
+
 		for( Value item : value.getChildren( "item" ) ) {
 			valueToJsonString( item, extendedRoot, type, builder );
 			builder.append( '\n' );
 		}
 	}
-
 
 	public static void faultValueToJsonString( Value value, Type type, StringBuilder builder ) throws IOException {
 		builder.append( "{\"error\":{\"message\":\"" )
