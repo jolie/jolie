@@ -67,7 +67,8 @@ import jolie.xml.XmlUtils;
 public class HttpUtils {
 	public static final String CRLF = new String( new char[] { 13, 10 } );
 	public static final String BOUNDARY = "----jol13h77p77bound4r155";
-	public static final String URL_DECODER_ENC = "UTF-8";
+	public static final String URL_DECODER_ENC = StandardCharsets.UTF_8.toString();
+	public static final String DEFAULT_CONTENT_CHARSET = StandardCharsets.UTF_8.toString();
 	public static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC
 																					// 2616#7.2.1
 	public static final String DEFAULT_FORMAT = "xml";
@@ -341,7 +342,7 @@ public class HttpUtils {
 		}
 	}
 
-	public static String getCharset( String defaultCharset, HttpMessage message ) {
+	public static String getCharset( String paramCharset, HttpMessage message ) {
 		if( message != null && message.getProperty( "content-type" ) != null ) {
 			String[] contentType = message.getProperty( "content-type" ).split( ";" );
 			for( int i = 1; i < contentType.length; i++ ) {
@@ -353,10 +354,10 @@ public class HttpUtils {
 				}
 			}
 		}
-		if( defaultCharset != null && !defaultCharset.isEmpty() ) {
-			return defaultCharset;
+		if( paramCharset != null && !paramCharset.isEmpty() ) {
+			return paramCharset;
 		}
-		return "iso-8859-1"; // this follows RFC 2616 3.4.1 Missing Charset
+		return DEFAULT_CONTENT_CHARSET; // if no charset has been passed to us stick to the default one
 	}
 
 	public static ByteArray encode( String encoding, ByteArray content, StringBuilder headerBuilder )

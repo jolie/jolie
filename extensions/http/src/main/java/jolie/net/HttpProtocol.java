@@ -856,7 +856,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		Method method = send_getRequestMethod( message );
-		String charset = HttpUtils.getCharset( getStringParameter( HttpUtils.Parameters.CHARSET, "utf-8" ), null );
+		String charset = HttpUtils.getCharset( getStringParameter( HttpUtils.Parameters.CHARSET ), null );
 		String format = send_getFormat( message.operationName() );
 		String contentType = null;
 		Type sendType = getSendType( message );
