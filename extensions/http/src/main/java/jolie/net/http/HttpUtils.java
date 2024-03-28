@@ -258,26 +258,6 @@ public class HttpUtils {
 		}
 	}
 
-	public static String httpMessageTypeToString( HttpMessage.Type type ) {
-		switch( type ) {
-		case GET:
-			return "get";
-		case HEAD:
-			return "head";
-		case POST:
-			return "post";
-		case DELETE:
-			return "delete";
-		case PUT:
-			return "put";
-		case OPTIONS:
-			return "options";
-		case PATCH:
-			return "patch";
-		}
-		return null;
-	}
-
 	private static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
 		StringBuilder httpMessage = new StringBuilder( "HTTP/1.1 " );
 		if( e instanceof UnsupportedEncodingException ) { // 415 Unsupported Media Type
