@@ -30,7 +30,7 @@ inputPort ServerInput {
 Location: "socket://localhost:9000/"
 Protocol: http {
 	.format = "html";
-	.contentType = "application/text"
+	.contentType = "text/plain"
 }
 Interfaces: ServerIface
 }
