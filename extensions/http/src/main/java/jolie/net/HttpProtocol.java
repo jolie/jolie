@@ -1132,11 +1132,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private String getDefaultOperation( HttpMessage.Type t ) {
+	private String getDefaultOperation( String method ) {
+		method = method.toLowerCase();
 		if( hasParameter( HttpUtils.Parameters.DEFAULT_OPERATION ) ) {
 			Value dParam = getParameterFirstValue( HttpUtils.Parameters.DEFAULT_OPERATION );
-			String method = HttpUtils.httpMessageTypeToString( t );
-			if( method == null || dParam.hasChildren( method ) == false ) {
+			if( method.isEmpty() || !dParam.hasChildren( method ) ) {
 				return dParam.strValue();
 			} else {
 				return dParam.getFirstChild( method ).strValue();
@@ -1219,7 +1219,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_checkDefaultOp( HttpMessage message, HttpUtils.DecodedMessage decodedMessage ) {
 		if( "/".equals( decodedMessage.resourcePath )
 			&& !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
-			String defaultOpId = getDefaultOperation( message.type() );
+			String defaultOpId = getDefaultOperation( message.getMethod() );
 			if( defaultOpId != null ) {
 				Value body = decodedMessage.value;
 				decodedMessage.value = Value.create();
