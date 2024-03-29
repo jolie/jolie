@@ -440,7 +440,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
-		String charset = HttpUtils.getCharset( null, message );
+		String charset = HttpUtils.getResponseCharset( message );
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		CommMessage retVal = null;

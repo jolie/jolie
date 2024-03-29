@@ -323,7 +323,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		} else {
 			HttpParser parser = new HttpParser( istream );
 			HttpMessage message = parser.parse();
-			String charset = HttpUtils.getCharset( null, message );
+			String charset = HttpUtils.getResponseCharset( message );
 			HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 			if( message.isError() ) {

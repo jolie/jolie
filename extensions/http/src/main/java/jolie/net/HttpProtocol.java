@@ -29,6 +29,8 @@ import jolie.net.constants.HttpProtocolConstants;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.HttpUtils.ContentTypes;
+import jolie.net.http.HttpUtils.Formats;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.ports.Interface;
@@ -213,7 +215,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private String encoding = null;
-	private String responseFormat = null;
+	private String requestFormat = null;
+	private String requestCharset = null;
 	private boolean headRequest = false;
 
 	private void send_appendQuerystring( Value value, StringBuilder headerBuilder, CommMessage message )
@@ -303,16 +306,37 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	}
 
 	private String send_getFormat( String operationName ) {
-		String format = HttpUtils.DEFAULT_FORMAT;
-		if( inInputPort && responseFormat != null ) {
-			format = responseFormat;
-			responseFormat = null;
-		} else if( hasOperationSpecificParameter( operationName, HttpUtils.Parameters.FORMAT ) ) {
+		String format = null;
+		if( hasOperationSpecificParameter( operationName, HttpUtils.Parameters.FORMAT ) ) {
 			format = getOperationSpecificStringParameter( operationName, HttpUtils.Parameters.FORMAT );
 		} else if( hasParameter( HttpUtils.Parameters.FORMAT ) ) {
 			format = getStringParameter( HttpUtils.Parameters.FORMAT );
+		} else if( inInputPort && requestFormat != null ) {
+			// if we are on the server side and have no "format" parameter specified we apply content type
+			// negotiation according to RFC9110 section 12.5ff
+			format = requestFormat;
+			requestFormat = null;
 		}
+		if( format == null || format.isEmpty() )
+			format = HttpUtils.DEFAULT_FORMAT; // fall back to the default
 		return format;
+	}
+
+	private String send_getCharset( String operationName ) {
+		String charset = null;
+		if( hasOperationSpecificParameter( operationName, HttpUtils.Parameters.CHARSET ) ) {
+			charset = getOperationSpecificStringParameter( operationName, HttpUtils.Parameters.CHARSET );
+		} else if( hasParameter( HttpUtils.Parameters.CHARSET ) ) {
+			charset = getStringParameter( HttpUtils.Parameters.CHARSET );
+		} else if( inInputPort && requestCharset != null ) {
+			// if we are on the server side and have no "charset" parameter specified we apply content type
+			// negotiation according to RFC9110 section 12.5ff
+			charset = requestCharset;
+			requestCharset = null;
+		}
+		if( charset == null || charset.isEmpty() )
+			charset = HttpUtils.DEFAULT_CONTENT_CHARSET; // fall back to the default
+		return charset;
 	}
 
 	private HttpUtils.EncodedContent send_encodeContent( CommMessage message, Method method, String charset,
@@ -328,8 +352,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			return ret;
 		}
 
-		if( "xml".equals( format ) ) {
-			ret.contentType = "text/xml";
+		if( Formats.XML.equals( format ) ) {
+			ret.contentType = ContentTypes.TEXT_XML;
 			Document doc = docBuilder.newDocument();
 			Element root = doc.createElement( message.operationName() + ((inInputPort) ? "Response" : "") );
 			doc.appendChild( root );
@@ -350,11 +374,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				throw new IOException( e );
 			}
 			ret.content = new ByteArray( tmpStream.toByteArray() );
-		} else if( "binary".equals( format ) ) {
-			ret.contentType = "application/octet-stream";
+		} else if( Formats.BINARY.equals( format ) ) {
+			ret.contentType = ContentTypes.APPLICATION_OCTET_STREAM;
 			ret.content = message.value().byteArrayValue();
-		} else if( "html".equals( format ) ) {
-			ret.contentType = "text/html";
+		} else if( Formats.HTML.equals( format ) ) {
+			ret.contentType = ContentTypes.TEXT_HTML;
 			if( message.isFault() ) {
 				StringBuilder builder = new StringBuilder();
 				builder.append( "<html><head><title>" )
@@ -366,8 +390,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			} else {
 				ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
 			}
-		} else if( "multipart/form-data".equals( format ) ) {
-			ret.contentType = "multipart/form-data; boundary=" + HttpUtils.BOUNDARY;
+		} else if( Formats.FORM_DATA.equals( format ) ) {
+			ret.contentType = String.format( "%s; boundary=%s", ContentTypes.MULTIPART_FORM_DATA, HttpUtils.BOUNDARY );
 			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
 			StringBuilder builder = new StringBuilder();
 			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
@@ -415,8 +439,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			builder.append( "--" + HttpUtils.BOUNDARY + "--" );
 			bStream.write( builder.toString().getBytes( charset ) );
 			ret.content = new ByteArray( bStream.toByteArray() );
-		} else if( "x-www-form-urlencoded".equals( format ) ) {
-			ret.contentType = "application/x-www-form-urlencoded";
+		} else if( Formats.FORM_URLENCODED.equals( format ) ) {
+			ret.contentType = ContentTypes.APPLICATION_X_WWW_FORM_URLENCODED;
 			Iterator< Entry< String, ValueVector > > it =
 				message.value().children().entrySet().iterator();
 			StringBuilder builder = new StringBuilder();
@@ -438,7 +462,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				}
 			}
 			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
-		} else if( "json".equals( format ) ) {
+		} else if( Formats.JSON.equals( format ) ) {
 			ret.contentType = HttpUtils.ContentTypes.APPLICATION_JSON;
 			StringBuilder jsonStringBuilder = new StringBuilder();
 			if( message.isFault() ) {
@@ -451,7 +475,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				JsUtils.valueToJsonString( message.value(), true, sendType, jsonStringBuilder );
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
-		} else if( "ndjson".equals( format ) ) {
+		} else if( Formats.NDJSON.equals( format ) ) {
 			ret.contentType = HttpUtils.ContentTypes.APPLICATION_NDJSON;
 			StringBuilder ndJsonStringBuilder = new StringBuilder();
 			if( message.isFault() ) {
@@ -464,13 +488,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				JsUtils.valueToNdJsonString( message.value(), true, sendType, ndJsonStringBuilder );
 			}
 			ret.content = new ByteArray( ndJsonStringBuilder.toString().getBytes( charset ) );
-		} else if( "raw".equals( format ) ) {
-			ret.contentType = "text/plain";
+		} else if( Formats.RAW.equals( format ) ) {
+			ret.contentType = HttpUtils.ContentTypes.TEXT_PLAIN;
 			if( message.isFault() ) {
 				ret.content = new ByteArray( message.fault().value().strValue().getBytes( charset ) );
 			} else {
 				ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
 			}
+		} else {
+			throw new IOException( String.format( "Unrecognized transport format '%s'.", format ) );
 		}
 		return ret;
 	}
@@ -856,7 +882,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		Method method = send_getRequestMethod( message );
-		String charset = HttpUtils.getCharset( getStringParameter( HttpUtils.Parameters.CHARSET ), null );
+		String charset = send_getCharset( message.operationName() );
 		String format = send_getFormat( message.operationName() );
 		String contentType = null;
 		Type sendType = getSendType( message );
@@ -1089,17 +1115,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void recv_parseRequestFormat( String type )
-		throws IOException {
-		responseFormat = null;
-
-		if( "text/xml".equals( type ) ) {
-			responseFormat = "xml";
-		} else if( HttpUtils.ContentTypes.APPLICATION_JSON.equals( type ) ) {
-			responseFormat = "json";
-		}
-	}
-
 	private void recv_parseMessage( HttpMessage message, HttpUtils.DecodedMessage decodedMessage, String type,
 		String charset )
 		throws IOException {
@@ -1110,21 +1125,21 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if( getOperationSpecificStringParameter( operationName, HttpUtils.Parameters.FORCE_CONTENT_DECODING )
 			.equals( NativeType.RAW.id() ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
-		} else if( "text/html".equals( type ) ) {
+		} else if( ContentTypes.TEXT_HTML.equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
-		} else if( "application/x-www-form-urlencoded".equals( type ) ) {
+		} else if( ContentTypes.APPLICATION_X_WWW_FORM_URLENCODED.equals( type ) ) {
 			HttpUtils.parseForm( message, decodedMessage.value, charset );
-		} else if( "text/xml".equals( type ) || type.contains( "xml" ) ) {
+		} else if( ContentTypes.TEXT_XML.equals( type ) || type.contains( "xml" ) ) {
 			HttpUtils.parseXML( docBuilder, message, decodedMessage.value, charset );
-		} else if( "multipart/form-data".equals( type ) ) {
+		} else if( ContentTypes.MULTIPART_FORM_DATA.equals( type ) ) {
 			multiPartFormDataParser = HttpUtils.parseMultiPartFormData( message, decodedMessage.value );
-		} else if( "application/octet-stream".equals( type ) || type.startsWith( "image/" )
+		} else if( ContentTypes.APPLICATION_OCTET_STREAM.equals( type ) || type.startsWith( "image/" )
 			|| "application/zip".equals( type ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
-		} else if( HttpUtils.ContentTypes.APPLICATION_NDJSON.equals( type ) || type.contains( "ndjson" ) ) {
+		} else if( ContentTypes.APPLICATION_NDJSON.equals( type ) || type.contains( "ndjson" ) ) {
 			boolean strictEncoding = checkStringParameter( HttpUtils.Parameters.JSON_ENCODING, "strict" );
 			HttpUtils.parseNdJson( message, decodedMessage.value, strictEncoding, charset );
-		} else if( HttpUtils.ContentTypes.APPLICATION_JSON.equals( type ) || type.contains( "json" ) ) {
+		} else if( ContentTypes.APPLICATION_JSON.equals( type ) || type.contains( "json" ) ) {
 			boolean strictEncoding = checkStringParameter( HttpUtils.Parameters.JSON_ENCODING, "strict" );
 			HttpUtils.parseJson( message, decodedMessage.value, strictEncoding, charset );
 		} else {
@@ -1287,7 +1302,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		final String charset =
 			(message.isResponse() && hasParameter( HttpUtils.Parameters.FORCE_RECEIVING_CHARSET ))
 				? getStringParameter( HttpUtils.Parameters.FORCE_RECEIVING_CHARSET )
-				: HttpUtils.getCharset( null, message );
+				: HttpUtils.getResponseCharset( message );
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
@@ -1324,7 +1339,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			contentType = message.getProperty( "content-type" ).split( ";", 2 )[ 0 ].toLowerCase();
 		}
 
-		recv_parseRequestFormat( contentType );
+		requestFormat = HttpUtils.getRequestFormat( message );
+		requestCharset = HttpUtils.getRequestCharset( message );
 		if( !message.isResponse() ) {
 			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 				recv_templatedOperation( message, decodedMessage );

@@ -32,12 +32,17 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 
+import java.util.AbstractMap;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.DeflaterOutputStream;
@@ -69,8 +74,8 @@ public class HttpUtils {
 	public static final String BOUNDARY = "----jol13h77p77bound4r155";
 	public static final String URL_DECODER_ENC = StandardCharsets.UTF_8.toString();
 	public static final String DEFAULT_CONTENT_CHARSET = StandardCharsets.UTF_8.toString();
-	public static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC
-																					// 2616#7.2.1
+	public static final String DEFAULT_CONTENT_TYPE = ContentTypes.APPLICATION_OCTET_STREAM; // default content type per
+																								// RFC 2616#7.2.1
 	public static final String DEFAULT_FORMAT = "xml";
 
 	public static final int DEFAULT_STATUS_CODE = 200;
@@ -105,8 +110,25 @@ public class HttpUtils {
 	}
 
 	public static class ContentTypes {
+		public static final String TEXT_XML = "text/xml";
+		public static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
+		public static final String TEXT_HTML = "text/html";
+		public static final String MULTIPART_FORM_DATA = "multipart/form-data";
+		public static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
 		public static final String APPLICATION_JSON = "application/json";
 		public static final String APPLICATION_NDJSON = "application/x-ndjson";
+		public static final String TEXT_PLAIN = "text/plain";
+	}
+
+	public static class Formats {
+		public static final String XML = "xml";
+		public static final String BINARY = "binary";
+		public static final String HTML = "html";
+		public static final String FORM_DATA = "multipart/form-data";
+		public static final String FORM_URLENCODED = "x-www-form-urlencoded";
+		public static final String JSON = "json";
+		public static final String NDJSON = "ndjson";
+		public static final String RAW = "raw";
 	}
 
 	public static class Parameters {
@@ -322,7 +344,7 @@ public class HttpUtils {
 		}
 	}
 
-	public static String getCharset( String paramCharset, HttpMessage message ) {
+	public static String getResponseCharset( HttpMessage message ) {
 		if( message != null && message.getProperty( "content-type" ) != null ) {
 			String[] contentType = message.getProperty( "content-type" ).split( ";" );
 			for( int i = 1; i < contentType.length; i++ ) {
@@ -334,29 +356,108 @@ public class HttpUtils {
 				}
 			}
 		}
-		if( paramCharset != null && !paramCharset.isEmpty() ) {
-			return paramCharset;
-		}
 		return DEFAULT_CONTENT_CHARSET; // if no charset has been passed to us stick to the default one
 	}
 
-	public static ByteArray encode( String encoding, ByteArray content, StringBuilder headerBuilder )
+	private static PriorityQueue< Map.Entry< Double, String > > parseAcceptHeaders( String headerProperty ) {
+		PriorityQueue< Map.Entry< Double, String > > values = new PriorityQueue<>( new Comparator<>() {
+			@Override
+			public int compare( Entry< Double, String > arg0, Entry< Double, String > arg1 ) {
+				// inverse order
+				return -Double.compare( arg0.getKey(), arg1.getKey() );
+			}
+		} );
+
+		if( headerProperty == null )
+			return values;
+
+		for( String token : headerProperty.split( "," ) ) {
+			double weight = 1.;
+
+			String[] params = token.split( ";" );
+			if( params.length < 1 )
+				continue; // illegal token
+			String value = params[ 0 ].trim().toLowerCase();
+			if( value.isEmpty() )
+				continue; // illegal token
+
+			for( int i = 1; i < params.length; i++ ) {
+				String[] pair = params[ i ].trim().split( "=", 2 );
+				if( pair.length == 2 && pair[ 0 ].equals( "q" ) ) {
+					try {
+						// assume weight 1. on parsing errors
+						double parsedWeight = Double.parseDouble( pair[ 1 ] );
+						if( parsedWeight >= 0. && parsedWeight <= 1. )
+							weight = parsedWeight;
+					} catch( NumberFormatException ex ) {
+					}
+				}
+			}
+
+			values.add( new AbstractMap.SimpleEntry<>( weight, value ) );
+		}
+		return values;
+	}
+
+	public static String getRequestFormat( HttpMessage message ) {
+		for( Map.Entry< Double, String > type : parseAcceptHeaders( message.getProperty( "accept" ) ) ) {
+			if( !type.getValue().contains( "/" ) || type.getValue().contains( "*" ) )
+				continue; // we don't consider wildcard types
+
+			switch( type.getValue() ) {
+			case ContentTypes.TEXT_XML:
+				return Formats.XML;
+			case ContentTypes.APPLICATION_OCTET_STREAM:
+				return Formats.BINARY;
+			case ContentTypes.TEXT_HTML:
+				return Formats.HTML;
+			case ContentTypes.MULTIPART_FORM_DATA:
+				return Formats.FORM_DATA;
+			case ContentTypes.APPLICATION_X_WWW_FORM_URLENCODED:
+				return Formats.FORM_URLENCODED;
+			case ContentTypes.APPLICATION_JSON:
+				return Formats.JSON;
+			case ContentTypes.APPLICATION_NDJSON:
+				return Formats.NDJSON;
+			case ContentTypes.TEXT_PLAIN:
+				return Formats.RAW;
+			}
+		}
+		return null;
+	}
+
+	public static String getRequestCharset( HttpMessage message ) {
+		for( Map.Entry< Double, String > charset : parseAcceptHeaders( message.getProperty( "accept-charset" ) ) ) {
+			try {
+				if( Charset.isSupported( charset.getValue() ) )
+					return charset.getValue();
+			} catch( IllegalCharsetNameException ex ) {
+			}
+		}
+		return null;
+	}
+
+	public static ByteArray encode( String encodingHeader, ByteArray content, StringBuilder headerBuilder )
 		throws IOException {
-		// RFC 7231 section-5.3.4 introduced the "*" (any) option, we opt for gzip as a sane default
-		if( encoding.contains( "gzip" ) || encoding.contains( "*" ) ) {
-			ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
-			GZIPOutputStream outStream = new GZIPOutputStream( baOutStream );
-			outStream.write( content.getBytes() );
-			outStream.close();
-			content = new ByteArray( baOutStream.toByteArray() );
-			headerBuilder.append( "Content-Encoding: gzip" ).append( HttpUtils.CRLF );
-		} else if( encoding.contains( "deflate" ) ) {
-			ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
-			DeflaterOutputStream outStream = new DeflaterOutputStream( baOutStream );
-			outStream.write( content.getBytes() );
-			outStream.close();
-			content = new ByteArray( baOutStream.toByteArray() );
-			headerBuilder.append( "Content-Encoding: deflate" ).append( HttpUtils.CRLF );
+		for( Map.Entry< Double, String > encoding : parseAcceptHeaders( encodingHeader ) ) { // accept-encoding
+			// RFC 7231 section-5.3.4 introduced the "*" (any) option, we opt for gzip as a sane default
+			if( encoding.getValue().equals( "gzip" ) || encoding.getValue().equals( "*" ) ) {
+				ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
+				GZIPOutputStream outStream = new GZIPOutputStream( baOutStream );
+				outStream.write( content.getBytes() );
+				outStream.close();
+				content = new ByteArray( baOutStream.toByteArray() );
+				headerBuilder.append( "Content-Encoding: gzip" ).append( HttpUtils.CRLF );
+				return content;
+			} else if( encoding.getValue().equals( "deflate" ) ) {
+				ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
+				DeflaterOutputStream outStream = new DeflaterOutputStream( baOutStream );
+				outStream.write( content.getBytes() );
+				outStream.close();
+				content = new ByteArray( baOutStream.toByteArray() );
+				headerBuilder.append( "Content-Encoding: deflate" ).append( HttpUtils.CRLF );
+				return content;
+			}
 		}
 		return content;
 	}

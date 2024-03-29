@@ -1208,7 +1208,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
-		String charset = HttpUtils.getCharset( null, message );
+		String charset = HttpUtils.getResponseCharset( message );
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if( inInputPort && message.type() != HttpMessage.Type.POST ) {
