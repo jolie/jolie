@@ -220,18 +220,8 @@ public class HttpMessage {
 		statusCode = code;
 	}
 
-	public String getMethod() {
-		String method = "";
-		if( type == Type.GET ||
-			type == Type.HEAD ||
-			type == Type.POST ||
-			type == Type.DELETE ||
-			type == Type.PUT ||
-			type == Type.OPTIONS ||
-			type == Type.PATCH ) {
-			method = type.name();
-		}
-		return method;
+	public Method getMethod() throws UnsupportedMethodException {
+		return Method.fromString( type.name() );
 	}
 
 	public byte[] content() {
