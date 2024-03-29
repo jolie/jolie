@@ -33,6 +33,7 @@ import jolie.net.http.HttpUtils.ContentTypes;
 import jolie.net.http.HttpUtils.Formats;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
+import jolie.net.http.UnsupportedMethodException;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
@@ -1010,7 +1011,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			value.setValue( cookieValue );
 		} else if( NativeType.DOUBLE == type ) {
 			try {
-				value.setValue( new Double( cookieValue ) );
+				value.setValue( Double.parseDouble( cookieValue ) );
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
@@ -1184,10 +1185,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void recv_templatedOperation( HttpMessage message, HttpUtils.DecodedMessage decodedMessage ) {
-		if( message.getMethod().isEmpty() )
-			return;
-
+	private void recv_templatedOperation( HttpMessage message, HttpUtils.DecodedMessage decodedMessage )
+		throws UnsupportedMethodException {
 		// FIXME, TODO: strange jolie double slash
 		String uri = HttpUtils.cutBeforeQuerystring( message.requestPath().startsWith( "//" )
 			? message.requestPath().substring( 1 )
@@ -1196,18 +1195,19 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Iterator< Entry< String, ValueVector > > configurationIterator = configurationValue.children().entrySet()
 			.iterator();
 		boolean foundMatch = false;
+		String method = message.getMethod().name();
 		while( configurationIterator.hasNext() & !foundMatch ) {
 			Entry< String, ValueVector > configEntry = configurationIterator.next();
 
 			Value opConfig = configEntry.getValue().get( 0 );
-			Value uriTemplateResult = Value.create();
-			if( opConfig.hasChildren( HttpUtils.Parameters.TEMPLATE ) ) {
-				uriTemplateResult =
-					UriUtils.match( opConfig.getFirstChild( HttpUtils.Parameters.TEMPLATE ).strValue(), uri );
-			}
+			if( !opConfig.hasChildren( HttpUtils.Parameters.TEMPLATE ) )
+				continue;
+
+			Value uriTemplateResult =
+				UriUtils.match( opConfig.getFirstChild( HttpUtils.Parameters.TEMPLATE ).strValue(), uri );
 			String opConfigMethod = opConfig.firstChildOrDefault( HttpUtils.Parameters.METHOD, Value::strValue, "" );
 
-			if( uriTemplateResult.boolValue() && message.getMethod().equalsIgnoreCase( opConfigMethod ) ) {
+			if( uriTemplateResult.boolValue() && method.equalsIgnoreCase( opConfigMethod ) ) {
 				foundMatch = true;
 				decodedMessage.operationName = configEntry.getKey();
 				decodedMessage.resourcePath = "/";
@@ -1232,10 +1232,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private void recv_checkDefaultOp( HttpMessage message, HttpUtils.DecodedMessage decodedMessage ) {
+	private void recv_checkDefaultOp( HttpMessage message, HttpUtils.DecodedMessage decodedMessage )
+		throws UnsupportedMethodException {
 		if( "/".equals( decodedMessage.resourcePath )
 			&& !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
-			String defaultOpId = getDefaultOperation( message.getMethod() );
+			String defaultOpId = getDefaultOperation( message.getMethod().name() );
 			if( defaultOpId != null ) {
 				Value body = decodedMessage.value;
 				decodedMessage.value = Value.create();
