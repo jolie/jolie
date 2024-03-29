@@ -92,12 +92,18 @@ import java.util.stream.Collectors;
  *         codes
  */
 public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol {
-	private String inputId = null;
 	private final Transformer transformer;
 	private final DocumentBuilder docBuilder;
 	private final URI uri;
 	private final boolean inInputPort;
+
+	// FIXME the following fields need to be made thread-safe
+	private String inputId = null;
 	private MultiPartFormDataParser multiPartFormDataParser = null;
+	private String encoding = null;
+	private String requestFormat = null;
+	private String requestCharset = null;
+	private boolean headRequest = false;
 
 	@Override
 	public String name() {
@@ -213,11 +219,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 		}
 	}
-
-	private String encoding = null;
-	private String requestFormat = null;
-	private String requestCharset = null;
-	private boolean headRequest = false;
 
 	private void send_appendQuerystring( Value value, StringBuilder headerBuilder, CommMessage message )
 		throws IOException {
