@@ -82,6 +82,7 @@ public class HttpUtils {
 	public static final String DEFAULT_FORMAT = "xml";
 
 	public static final int DEFAULT_STATUS_CODE = 200;
+	public static final int DEFAULT_FAULT_STATUS_CODE = 500;
 	public static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 
 	private static final Map< Integer, String > STATUS_CODE_DESCRIPTIONS = new HashMap<>();
