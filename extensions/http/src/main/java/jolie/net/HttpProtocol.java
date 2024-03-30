@@ -81,10 +81,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * HTTP protocol implementation
@@ -218,50 +216,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					headerBuilder.append( HttpUtils.CRLF );
 				}
 			}
-		}
-	}
-
-	private void send_appendQuerystring( Value value, StringBuilder headerBuilder, CommMessage message )
-		throws IOException {
-		// get parameter for headers
-		List< String > headerParameters =
-			getOperationSpecificParameterFirstValue( message.operationName(),
-				HttpUtils.Parameters.OUTGOING_HEADERS ).children().values().stream()
-					.map( (vv -> vv.get( 0 ).strValue()) )
-					.collect( Collectors.toList() );
-
-		if( value.hasChildren() ) {
-			StringJoiner sj = new StringJoiner( "&" );
-
-			headerBuilder.append( '?' );
-			Iterator< Entry< String, ValueVector > > nodesIt = value.children().entrySet().iterator();
-			while( nodesIt.hasNext() ) {
-				Entry< String, ValueVector > entry = nodesIt.next();
-				if( headerParameters.contains( entry.getKey() ) ) {
-					// skip value declared for headers, do not append it to query string
-					continue;
-				}
-				Iterator< Value > vecIt = entry.getValue().iterator();
-				while( vecIt.hasNext() ) {
-					Value v = vecIt.next();
-					sj.add( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) + "="
-						+ URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) );
-				}
-			}
-			headerBuilder.append( sj.toString() );
-		}
-	}
-
-	private void send_appendJsonQueryString( CommMessage message, Type sendType, StringBuilder headerBuilder )
-		throws IOException {
-		getOperationSpecificParameterFirstValue( message.operationName(),
-			HttpUtils.Parameters.OUTGOING_HEADERS ).children().forEach(
-				( headerName, headerValues ) -> message.value().children().remove( headerValues.get( 0 ).strValue() ) );
-		if( message.value().isDefined() || message.value().hasChildren() ) {
-			headerBuilder.append( "?" );
-			StringBuilder builder = new StringBuilder();
-			JsUtils.valueToJsonString( message.value(), true, sendType, builder );
-			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
 		}
 	}
 
@@ -631,10 +585,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		if( method == Method.GET ) {
+			// we need to drop header parameters from the query value
+			Value queryValue = message.value().clone();
+			getOperationSpecificParameterFirstValue( message.operationName(),
+				HttpUtils.Parameters.OUTGOING_HEADERS ).children().forEach(
+					( headerName, headerValues ) -> queryValue.children().remove( headerValues.get( 0 ).strValue() ) );
+
 			if( qsFormat.equals( "json" ) ) {
-				send_appendJsonQueryString( message, sendType, headerBuilder );
+				HttpUtils.send_appendJsonQueryString( queryValue, sendType, headerBuilder );
 			} else {
-				send_appendQuerystring( message.value(), headerBuilder, message );
+				HttpUtils.send_appendQuerystring( queryValue, headerBuilder );
 			}
 		}
 	}
