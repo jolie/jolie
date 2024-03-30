@@ -25,6 +25,7 @@ package jolie.net.http;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -45,6 +46,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -62,6 +64,7 @@ import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.typing.Type;
 import jolie.xml.XmlUtils;
 
 /**
@@ -590,6 +593,36 @@ public class HttpUtils {
 			}
 		} catch( SAXException pce ) {
 			throw new IOException( pce );
+		}
+	}
+
+	public static void send_appendQuerystring( Value value, StringBuilder headerBuilder )
+		throws IOException {
+		if( value.hasChildren() ) {
+			StringJoiner sj = new StringJoiner( "&" );
+
+			headerBuilder.append( '?' );
+			Iterator< Entry< String, ValueVector > > nodesIt = value.children().entrySet().iterator();
+			while( nodesIt.hasNext() ) {
+				Entry< String, ValueVector > entry = nodesIt.next();
+				Iterator< Value > vecIt = entry.getValue().iterator();
+				while( vecIt.hasNext() ) {
+					Value v = vecIt.next();
+					sj.add( URLEncoder.encode( entry.getKey(), URL_DECODER_ENC ) + "="
+						+ URLEncoder.encode( v.strValue(), URL_DECODER_ENC ) );
+				}
+			}
+			headerBuilder.append( sj.toString() );
+		}
+	}
+
+	public static void send_appendJsonQueryString( Value value, Type sendType, StringBuilder headerBuilder )
+		throws IOException {
+		if( value.isDefined() || value.hasChildren() ) {
+			headerBuilder.append( "?" );
+			StringBuilder builder = new StringBuilder();
+			JsUtils.valueToJsonString( value, true, sendType, builder );
+			headerBuilder.append( URLEncoder.encode( builder.toString(), URL_DECODER_ENC ) );
 		}
 	}
 }
