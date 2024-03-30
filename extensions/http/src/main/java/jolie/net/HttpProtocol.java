@@ -494,31 +494,34 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 	private void send_appendResponseHeaders( CommMessage message, Type sendType, StringBuilder headerBuilder )
 		throws IOException {
-		int statusCode = HttpUtils.DEFAULT_STATUS_CODE;
+		int statusCode = !message.isFault() // HTTP 200 OK on success and HTTP 500 Internal Server Error on faults
+			? HttpUtils.DEFAULT_STATUS_CODE
+			: HttpUtils.DEFAULT_FAULT_STATUS_CODE;
 
-		if( message.isFault()
-			&& hasOperationSpecificParameter( message.operationName(), HttpUtils.Parameters.STATUS_CODES ) ) {
-			Value exceptionsValue = getOperationSpecificParameterFirstValue( message.operationName(),
+		if( hasOperationSpecificParameter( message.operationName(), HttpUtils.Parameters.STATUS_CODES ) ) {
+			Value statusCodesValue = getOperationSpecificParameterFirstValue( message.operationName(),
 				HttpUtils.Parameters.STATUS_CODES );
-			if( exceptionsValue.hasChildren( message.fault().faultName() ) ) {
-				statusCode = exceptionsValue.getFirstChild( message.fault().faultName() ).intValue();
+			if( message.isFault() && statusCodesValue.hasChildren( message.fault().faultName() ) ) {
+				statusCode = statusCodesValue.getFirstChild( message.fault().faultName() ).intValue(); // exception
+																										// status code
+			} else if( !message.isFault() && statusCodesValue.isInt() ) {
+				statusCode = statusCodesValue.intValue(); // custom success status code
 			}
 		} else if( hasParameter( HttpUtils.Parameters.STATUS_CODE ) ) {
 			statusCode = getIntParameter( HttpUtils.Parameters.STATUS_CODE );
-			if( !HttpUtils.isStatusCodeValid( statusCode ) ) {
-				throw new IOException( String.format(
-					"HTTP protocol for operation %s is sending a message with status code %d, which is not in the HTTP specifications.",
-					message.operationName(), statusCode ) );
-			} else if( HttpUtils.isLocationNeeded( statusCode ) && !hasParameter( HttpUtils.Parameters.REDIRECT ) ) {
-				// if statusCode is a redirection code, location parameter is needed
-				throw new IOException( String.format(
-					"HTTP protocol for operation %s is sending a message with status code %d, which expects a redirect parameter but the latter is not set.",
-					message.operationName(), statusCode ) );
-			}
 		} else if( hasParameter( HttpUtils.Parameters.REDIRECT ) ) {
 			statusCode = HttpUtils.DEFAULT_REDIRECTION_STATUS_CODE;
-		} else if( message.isFault() ) {
-			statusCode = 500;
+		}
+
+		if( !HttpUtils.isStatusCodeValid( statusCode ) ) {
+			throw new IOException( String.format(
+				"HTTP protocol for operation %s is sending a message with status code %d, which is not in the HTTP specifications.",
+				message.operationName(), statusCode ) );
+		} else if( HttpUtils.isLocationNeeded( statusCode ) && !hasParameter( HttpUtils.Parameters.REDIRECT ) ) {
+			// if statusCode is a redirection code, location parameter is needed
+			throw new IOException( String.format(
+				"HTTP protocol for operation %s is sending a message with status code %d, which expects a redirect parameter but the latter is not set.",
+				message.operationName(), statusCode ) );
 		}
 
 		// https://datatracker.ietf.org/doc/html/rfc9110#name-200-ok

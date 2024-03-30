@@ -29,16 +29,20 @@ service HttpTemplateServer{
     inputPort TestHttpTemplate {
         interfaces: HttpTemplateInterface
         protocol: "http"{
-           .compression= false
            .osc.getOrder.template = "/api/orders/{id}"
            .osc.getOrder.method = "GET"
            .osc.getOrder.inHeaders.Authorization = "token"
+           .osc.getOrder.statusCodes.Unauthorized = 403
            .osc.getOrders.template = "/api/orders"
            .osc.getOrders.method = "GET"
            .osc.getOrders.inHeaders.Authorization = "token"
+           .osc.getOrders.statusCodes.Unauthorized = 403
            .osc.addOrder.template="/api/orders"
            .osc.addOrder.method="POST"
            .osc.addOrder.inHeaders.Authorization = "token"
+           .osc.addOrder.statusCodes = 201
+           .osc.addOrder.statusCodes.Unauthorized = 403
+           .osc.addOrder.response.headers -> locationHeader
         }
         location : "socket://localhost:9099"
     }
@@ -47,21 +51,30 @@ service HttpTemplateServer{
     embed StringUtils as stringUtils
     embed Console as console
 
+    define validateToken {
+        if (request.token != "sometoken") {
+            throw( Unauthorized, "Unauthorized" )
+        }
+    }
+
     main{
         [getOrder(request)(response){
+           validateToken
            response.id = request.id
            response.ammount = global.orders.(request.id).ammount
         }]
         [getOrders(request)(response){
+            validateToken
             foreach (orderId : global.orders ){
                 response.orders[#response.orders]<< {id = orderId
                                                      ammount = global.orders.(orderId).ammount }
             }
         }]
-        [addOrder(request)(response){
+        [addOrder(request)(){
+            validateToken
             getRandomUUID@stringUtils(  )( orderId )
             global.orders.(orderId).ammount = request.ammount
-
+            locationHeader.Location = "/api/orders/" + orderId
         }]
     }
 }
