@@ -56,5 +56,5 @@ interface HttpTemplateInterface{
     getOrders(GetOrdersRequest)(GetOrdersResponse) throws Unauthorized,
     getOrder(GetOrderRequest)(GetOrderResponse) throws Unauthorized,
     addOrder(AddOrderRequest)(AddOrderResponse) throws Unauthorized,
-
+    notExisting(void)(void) // invalid call
 }
