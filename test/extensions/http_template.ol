@@ -51,6 +51,8 @@ service Main {
            osc.addOrder.method="POST"
            osc.addOrder.outHeaders.("Authorization")= "token"
            osc.addOrder.responseHeaders = "headers"
+           osc.notExisting.template="/api/orders/"
+           osc.notExisting.method="GET"
         }
         Location : "socket://localhost:9099"
     }
@@ -111,6 +113,11 @@ service Main {
                 if (!(resultGetOrder instanceof UnauthorizedException)) {
                     throw( TestFailed, "Should return Unauthorized" )
                 }
+            }
+
+            scope(s) {
+                install( TypeMismatch => nullProcess )
+                notExisting@TestHttpTemplate()()
             }
         }
     }

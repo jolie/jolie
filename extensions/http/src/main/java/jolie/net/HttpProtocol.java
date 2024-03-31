@@ -51,6 +51,7 @@ import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
 
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -311,7 +312,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if( Formats.XML.equals( format ) ) {
 			ret.contentType = ContentTypes.TEXT_XML;
 			Document doc = docBuilder.newDocument();
-			Element root = doc.createElement( message.operationName() + ((inInputPort) ? "Response" : "") );
+			Element root = null;
+			try {
+				root = doc.createElement( message.operationName() + ((inInputPort) ? "Response" : "") );
+			} catch( DOMException ex ) { // invalid operation (the operation name just contains the URI path)
+				root = doc.createElement( inInputPort ? "Response" : "Request" );
+			}
 			doc.appendChild( root );
 			if( message.isFault() ) {
 				Element faultElement = doc.createElement( message.fault().faultName() );
@@ -1465,7 +1471,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			channel().parentPort().getOperationTypeDescription( message.operationName(), Constants.ROOT_RESOURCE_PATH );
 
 		if( opDesc == null ) {
-			return null;
+			return Type.UNDEFINED;
 		}
 
 		if( opDesc.asOneWayTypeDescription() != null ) {
