@@ -776,7 +776,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			.append( HttpUtils.CRLF );
 
 		String contentType = getStringParameter( HttpUtils.Parameters.CONTENT_TYPE );
-		if( contentType.length() > 0 ) {
+		if( !contentType.isEmpty() ) {
 			encodedContent.contentType = contentType;
 		}
 		encodedContent.contentType = encodedContent.contentType.toLowerCase();
@@ -791,13 +791,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if( encodedContent.content != null ) {
 			String transferEncoding = getStringParameter( HttpUtils.Parameters.CONTENT_TRANSFER_ENCODING );
-			if( transferEncoding.length() > 0 ) {
+			if( !transferEncoding.isEmpty() ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " ).append( transferEncoding )
 					.append( HttpUtils.CRLF );
 			}
 
 			String contentDisposition = getStringParameter( HttpUtils.Parameters.CONTENT_DISPOSITION );
-			if( contentDisposition.length() > 0 ) {
+			if( !contentDisposition.isEmpty() ) {
 				encodedContent.contentDisposition = contentDisposition;
 				headerBuilder.append( "Content-Disposition: " ).append( encodedContent.contentDisposition )
 					.append( HttpUtils.CRLF );
