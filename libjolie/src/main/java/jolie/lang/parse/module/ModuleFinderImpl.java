@@ -35,7 +35,7 @@ import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 public class ModuleFinderImpl implements ModuleFinder {
 
-	private class ModuleLookUpTarget {
+	private static class ModuleLookUpTarget {
 		private final Path basePath;
 		private final ImportPath importPath;
 
