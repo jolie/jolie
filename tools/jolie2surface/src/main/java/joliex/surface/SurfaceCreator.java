@@ -246,7 +246,7 @@ public class SurfaceCreator {
 	}
 
 	private void printType( String type ) {
-		if( !type.equals( "" ) ) {
+		if( !type.isEmpty() ) {
 			System.out.println( type );
 		}
 
