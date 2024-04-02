@@ -1375,7 +1375,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			retVal =
 				new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value,
 					faultException );
-		} else if( message.isError() == false ) {
+		} else {
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath,
 				decodedMessage.value, null );

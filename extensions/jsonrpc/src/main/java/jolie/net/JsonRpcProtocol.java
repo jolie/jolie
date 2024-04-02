@@ -326,9 +326,6 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			String charset = HttpUtils.getResponseCharset( message );
 			HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-			if( message.isError() ) {
-				throw new IOException( "HTTP error: " + new String( message.content(), charset ) );
-			}
 			if( inInputPort && message.type() != HttpMessage.Type.POST ) {
 				throw new UnsupportedMethodException( "Only HTTP method POST allowed", Method.POST );
 			}

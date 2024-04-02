@@ -1306,7 +1306,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					fault = new FaultException( "InternalServerError", "" );
 				}
 				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, inputId, resourcePath, value, fault );
-			} else if( !message.isError() ) {
+			} else {
 				if( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
