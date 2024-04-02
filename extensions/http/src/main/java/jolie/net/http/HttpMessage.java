@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 
 public class HttpMessage {
 	public enum Type {
-		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, PATCH, UNSUPPORTED, ERROR
+		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, PATCH, UNSUPPORTED
 	}
 
 	public enum Version {
@@ -206,10 +206,6 @@ public class HttpMessage {
 
 	public boolean isResponse() {
 		return type == Type.RESPONSE;
-	}
-
-	public boolean isError() {
-		return type == Type.ERROR;
 	}
 
 	public int statusCode() {

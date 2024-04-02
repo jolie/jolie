@@ -448,9 +448,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		Value value = Value.create();
 		Document doc = null;
 
-		if( message.isError() ) {
-			throw new IOException( "HTTP error: " + new String( message.content(), charset ) );
-		}
 		if( inInputPort && message.type() != HttpMessage.Type.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
@@ -495,7 +492,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				// fault = new FaultException( "InternalServerError", "" );
 				// TODO support resourcePath
 				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, inputId, "/", value, fault );
-			} else if( !message.isError() ) {
+			} else {
 				// TODO support resourcePath
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
 				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, opname, "/", value, fault );
