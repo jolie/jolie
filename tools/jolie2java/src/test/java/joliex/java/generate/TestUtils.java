@@ -16,7 +16,7 @@
  * AUTHORS file.
  * *************************************************************************
  */
-package joliex.java.impl;
+package joliex.java.generate;
 
 import jolie.lang.Constants;
 

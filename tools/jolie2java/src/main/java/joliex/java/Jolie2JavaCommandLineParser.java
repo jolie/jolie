@@ -2,113 +2,92 @@ package joliex.java;
 
 import java.io.IOException;
 import java.util.List;
+
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
+import joliex.java.generate.JavaDocumentCreator;
 
 public class Jolie2JavaCommandLineParser extends CommandLineParser {
+    
+    private final String packageName;
+    private final String typesPackage;
+    private final String faultsPackage;
+    private final String interfacesPackage;
+    private final String outputDirectory;
+    private final boolean generateService;
+    private final String serviceName;
 
-	private final String packageName;
-	private final String format;
-	private final String targetPort;
-	private boolean addSource = false;
-	private final String outputDirectory;
-	private final boolean buildXml;
-	private final boolean javaservice;
+    public String packageName() { return packageName; }
+    public String typesPackage() { return typesPackage; }
+    public String faultsPackage() { return faultsPackage; }
+    public String interfacesPackage() { return interfacesPackage; }
+    public String outputDirectory() { return outputDirectory; }
+    public boolean generateService() { return generateService; }
+    public String serviceName() { return serviceName; }
 
-	public String getPackageName() {
-		return packageName;
-	}
+    private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
 
-	public String getFormat() {
-		return format;
-	}
+        private String packageName = null;
+        private String typesPackage = null;
+        private String faultsPackage = null;
+        private String interfacesPackage = null;
+        private String outputDirectory = null;
+        private boolean generateService = true;
+        private String serviceName = null;
 
-	public String getTargetPort() {
-		return targetPort;
-	}
+        public int onUnrecognizedArgument( List<String> argumentsList, int index ) throws CommandLineException {
+            
+            switch( argumentsList.get( index ) ) {
+                case "--packageName" -> { index++; packageName = argumentsList.get( index ); }
+                case "--typesPackage" -> { index++; typesPackage = argumentsList.get( index ); }
+                case "--faultsPackage" -> { index++; faultsPackage = argumentsList.get( index ); }
+                case "--interfacesPackage" -> { index++; interfacesPackage = argumentsList.get( index ); }
+                case "--outputDirectory" -> { index++; outputDirectory = argumentsList.get( index ); }
+                case "--generateService" -> { index++; generateService = Boolean.valueOf( argumentsList.get( index ) ); }
+                case "--serviceName" -> { index++; serviceName = argumentsList.get( index ); }
+                
+                /* deprecated flags */
+                case "--javaservice" -> { index++; generateService = Boolean.valueOf( argumentsList.get( index ) ); }
+                case "--addSource" -> { index++; }
+                case "--format" -> { index++; }
+                case "--buildXml" -> { index++; }
+                case "--targetPort" -> { index++; }
 
-	public boolean isAddSource() {
-		return addSource;
-	}
+                default -> throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
+            }
 
-	public String getOutputDirectory() {
-		return outputDirectory;
-	}
+            return index;
+        }
+    }
 
-	public void setAddSource( boolean addSource ) {
-		this.addSource = true;
-	}
+    public static Jolie2JavaCommandLineParser create( String[] args, ClassLoader parentClassLoader )
+    throws CommandLineException, IOException {
+        return new Jolie2JavaCommandLineParser( args, parentClassLoader, new JolieDummyArgumentHandler() );
+    }
 
-	public boolean isBuildXmlenabled() {
-		return buildXml;
-	}
+    private Jolie2JavaCommandLineParser( String[] args, ClassLoader parentClassLoader, JolieDummyArgumentHandler argHandler )
+    throws CommandLineException, IOException {
+        super( args, parentClassLoader, argHandler );
 
-	public boolean javaService() {
-		return javaservice;
-	}
+        packageName = argHandler.packageName;
+        typesPackage = argHandler.typesPackage;
+        faultsPackage = argHandler.faultsPackage;
+        interfacesPackage = argHandler.interfacesPackage;
+        outputDirectory = argHandler.outputDirectory;
+        generateService = argHandler.generateService;
+        serviceName = argHandler.serviceName;
+    }
 
-	private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
-
-		private String packageName = null;
-		private String format = null;
-		private String targetPort;
-		private Boolean addSource = false;
-		private String outputDirectory = null;
-		private Boolean buildXml = true;
-		private Boolean javaservice = false;
-
-		public int onUnrecognizedArgument( List< String > argumentsList, int index )
-			throws CommandLineException {
-			if( "--addSource".equals( argumentsList.get( index ) ) ) {
-				index++;
-				this.addSource = Boolean.valueOf( argumentsList.get( index ) );
-			} else if( "--packageName".equals( argumentsList.get( index ) ) ) {
-				index++;
-				packageName = argumentsList.get( index );
-			} else if( "--format".equals( argumentsList.get( index ) ) ) {
-				index++;
-				format = argumentsList.get( index );
-			} else if( "--targetPort".equals( argumentsList.get( index ) ) ) {
-				index++;
-				targetPort = argumentsList.get( index );
-			} else if( "--outputDirectory".equals( argumentsList.get( index ) ) ) {
-				index++;
-				outputDirectory = argumentsList.get( index );
-			} else if( "--javaservice".equals( argumentsList.get( index ) ) ) {
-				index++;
-				javaservice = Boolean.valueOf( argumentsList.get( index ) );
-			} else if( "--buildXml".equals( argumentsList.get( index ) ) ) {
-				index++;
-				buildXml = Boolean.valueOf( argumentsList.get( index ) );
-			} else {
-				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
-			}
-
-			return index;
-		}
-	}
-
-	public static Jolie2JavaCommandLineParser create( String[] args, ClassLoader parentClassLoader )
-		throws CommandLineException, IOException {
-		return new Jolie2JavaCommandLineParser( args, parentClassLoader, new JolieDummyArgumentHandler() );
-	}
-
-	private Jolie2JavaCommandLineParser( String[] args, ClassLoader parentClassLoader,
-		JolieDummyArgumentHandler argHandler )
-		throws CommandLineException, IOException {
-		super( args, parentClassLoader, argHandler );
-
-		packageName = argHandler.packageName;
-		format = argHandler.format;
-		targetPort = argHandler.targetPort;
-		addSource = argHandler.addSource;
-		outputDirectory = argHandler.outputDirectory;
-		buildXml = argHandler.buildXml;
-		javaservice = argHandler.javaservice;
-	}
-
-	@Override
-	protected String getHelpString() {
-		return "Usage: jolie2java --format [java|gwt] --packageName package_namespace [--javaservice produce files for javaservice implememtation] [--targetPort outputPort_to_be_encoded] [ --outputDirectory outputDirectory ] [--buildXml true|false] [--addSource true|false] file.ol";
-	}
+    @Override
+    protected String getHelpString() {
+        return new StringBuilder()
+            .append( "Usage: jolie2java --packageName <package>" ).append( "\n" )
+            .append( "                  [ --typesPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_TYPE_PACKAGE ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --faultsPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_FAULT_PACKAGE ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --interfacesPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_INTERFACE_PACKAGE ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --outputDirectory <path> (default=\"" ).append( JavaDocumentCreator.DEFAULT_OUTPUT_DIRECTORY ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --generateService <true|false> (default=true) ]" ).append( "\n" )
+            .append( "                  [ --serviceName <name> (default=\"" ).append( JavaDocumentCreator.DEFAULT_SERVICE_NAME ).append( "\") ]" ).append( "\n" )
+            .append( "                  <file.ol>" ).toString();
+    }
 }

@@ -14,14 +14,29 @@
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 	</properties>
 	<name>jolie2java</name>
 	<description>Tool to generate java project from Jolie interface</description>
 	<build>
-
 		<plugins>
+			<!-- skip PMD since it doesn't support java 21 atm -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+			<!-- skip code formatting -->
+			<plugin>
+				<groupId>net.revelc.code.formatter</groupId>
+				<artifactId>formatter-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -44,7 +59,6 @@
 								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/tools</outputDirectory>
-
 						</configuration>
 					</execution>
 				</executions>
@@ -62,6 +76,11 @@
 			<artifactId>jolie-cli</artifactId>
 			<version>${jolie.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>one.util</groupId>
+            <artifactId>streamex</artifactId>
+            <version>0.8.2</version>
+        </dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

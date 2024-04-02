@@ -1,76 +1,67 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package joliex.java;
-
-import jolie.cli.CommandLineException;
-import jolie.lang.CodeCheckException;
-import jolie.JolieURLStreamHandlerFactory;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.util.ParsingUtils;
-import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.FaultException;
-import joliex.java.impl.JavaDocumentCreator;
-import joliex.java.impl.JavaGWTDocumentCreator;
 
 import java.io.IOException;
 
-/**
- *
- * @author balint
- */
+import jolie.JolieURLStreamHandlerFactory;
+import jolie.cli.CommandLineException;
+import jolie.lang.CodeCheckException;
+import jolie.lang.parse.SemanticVerifier;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
+import jolie.lang.parse.util.ProgramInspector;
+import joliex.java.generate.JavaDocumentCreator;
+
 public class Jolie2Java {
 
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
 	}
 
-
 	public static void main( String[] args ) {
 		try {
+			final Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
-			Jolie2JavaCommandLineParser cmdParser =
-				Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
-
-			Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterConfiguration().inputStream(),
-				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
-				cmdParser.getInterpreterConfiguration().charset(),
-				cmdParser.getInterpreterConfiguration().includePaths(),
-				cmdParser.getInterpreterConfiguration().packagePaths(),
-				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-				cmdParser.getInterpreterConfiguration().constants(),
-				cmdParser.getInterpreterConfiguration().executionTarget(), false );
-
-			ProgramInspector inspector = ParsingUtils.createInspector( program );
-
-
-			String format = cmdParser.getFormat();
-			String packageName = cmdParser.getPackageName();
-			if( format == null ) {
-				format = "java";
-			}
-			if( format.equals( "java" ) && packageName != null ) {
-				JavaDocumentCreator documentJava = new JavaDocumentCreator( inspector, cmdParser.getPackageName(),
-					cmdParser.getTargetPort(), cmdParser.isAddSource(), cmdParser.getOutputDirectory(),
-					cmdParser.isBuildXmlenabled(), cmdParser.javaService() );
-				documentJava.ConvertDocument();
-			} else if( format.equals( "gwt" ) && packageName != null ) {
-				System.out.println( "WARNING: gwt conversion is deprecated, use it at your own risk" );
-				JavaGWTDocumentCreator documentJava =
-					new JavaGWTDocumentCreator( inspector, cmdParser.getPackageName(), cmdParser.getTargetPort() );
-				documentJava.ConvertDocument();
-
-			} else {
+			if ( cmdParser.packageName() == null ) {
 				System.out.print( cmdParser.getHelpString() );
+				return;
 			}
+
+			final ProgramInspector inspector = getInspector( cmdParser );
+			final JavaDocumentCreator jdc = new JavaDocumentCreator(
+				cmdParser.packageName(),
+				cmdParser.typesPackage(),
+				cmdParser.faultsPackage(),
+				cmdParser.interfacesPackage(),
+				cmdParser.outputDirectory(),
+				cmdParser.generateService(),
+				cmdParser.serviceName()
+			);
+			
+			jdc.generateClasses( inspector );
 
 			System.out.println( "Generation done!" );
-		} catch( CommandLineException e ) {
-			System.out.println( e.getMessage() );
-		} catch( IOException | FaultException | CodeCheckException e ) {
-			e.printStackTrace();
-		}
+		} 
+		catch( CommandLineException e ) { System.out.println( e.getMessage() ); }
+		catch( IOException | CodeCheckException e ) { e.printStackTrace(); }
+	}
+
+	private static ProgramInspector getInspector( Jolie2JavaCommandLineParser cmdParser ) throws CommandLineException, IOException, CodeCheckException  {
+		final SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+
+		configuration.setCheckForMain( false );
+
+		final Program program = ParsingUtils.parseProgram(
+			cmdParser.getInterpreterConfiguration().inputStream(),
+			cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+			cmdParser.getInterpreterConfiguration().charset(),
+			cmdParser.getInterpreterConfiguration().includePaths(),
+			cmdParser.getInterpreterConfiguration().packagePaths(),
+			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
+			cmdParser.getInterpreterConfiguration().constants(),
+			configuration,
+			true
+		);
+
+		return ParsingUtils.createInspector( program );
 	}
 }
