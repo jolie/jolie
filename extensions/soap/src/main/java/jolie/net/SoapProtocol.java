@@ -209,6 +209,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void parseWSDLTypes( XSOMParser schemaParser )
 		throws IOException {
 		Definition definition = getWSDLDefinition();
@@ -531,6 +532,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return wsdlDefinition;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String getSoapActionForOperation( String operationName )
 		throws IOException {
 		String soapAction = null;
@@ -550,6 +552,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return soapAction;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private Port getWSDLPort()
 		throws IOException {
 		Port port = wsdlPort;
@@ -570,6 +573,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return port;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String getOutputMessageRootElementName( String operationName )
 		throws IOException {
 		String elementName = operationName + ((received) ? "Response" : "");
@@ -611,6 +615,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return elementName;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String getOutputMessageNamespace( String operationName )
 		throws IOException {
 		String messageNamespace = "";
@@ -657,6 +662,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return messageNamespace;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String[] getParameterOrder( String operationName )
 		throws IOException {
 		List< String > parameters = null;
@@ -670,6 +676,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return (parameters == null) ? null : parameters.toArray( new String[ 0 ] );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void setOutputEncodingStyle( SOAPEnvelope soapEnvelope, String operationName )
 		throws IOException, SOAPException {
 		Port port = getWSDLPort();
@@ -694,6 +701,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 

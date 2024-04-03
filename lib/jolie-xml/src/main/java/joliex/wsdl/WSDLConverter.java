@@ -153,6 +153,7 @@ public class WSDLConverter {
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public void convert()
 		throws IOException {
 		convertTypes();
@@ -163,6 +164,7 @@ public class WSDLConverter {
 		writeData();
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void convertTypes()
 		throws IOException {
 		Types types = definition.getTypes();
@@ -379,6 +381,7 @@ public class WSDLConverter {
 		writeLine( "}" );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void convertService( Service service )
 		throws IOException {
 		// String comment = service.getDocumentationElement().getNodeValue();
@@ -387,6 +390,7 @@ public class WSDLConverter {
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void convertPort( Port port )
 		throws IOException {
 		String comment = "";
@@ -436,6 +440,7 @@ public class WSDLConverter {
 			name, location, protocol, portType.getQName().getLocalPart(), comment ) );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void convertPortType( PortType portType, Binding binding )
 		throws IOException {
 		String comment = "";
@@ -465,6 +470,7 @@ public class WSDLConverter {
 		interfaces.put( iface.name(), iface );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String convertOperationMessage( Message message, String operationName, Style style )
 		throws IOException {
 		String typeName = null; // "void" datatype per default
@@ -518,6 +524,7 @@ public class WSDLConverter {
 		return typeName;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private joliex.wsdl.impl.Operation convertOperation( Operation operation, Style style )
 		throws IOException {
 		String comment = "";
