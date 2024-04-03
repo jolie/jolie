@@ -22,6 +22,7 @@
 package joliex.util;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
@@ -75,7 +76,7 @@ public class MathService extends JavaService {
 		double ret = orig * power;
 		if( ret == Double.POSITIVE_INFINITY ) {
 			BigDecimal b = BigDecimal.valueOf( orig );
-			b = b.setScale( decimals, BigDecimal.ROUND_HALF_UP );
+			b = b.setScale( decimals, RoundingMode.HALF_UP );
 			ret = b.doubleValue();
 		} else {
 			ret = Math.round( ret ) / power;
