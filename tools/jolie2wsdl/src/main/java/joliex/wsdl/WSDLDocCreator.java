@@ -551,12 +551,12 @@ public class WSDLDocCreator {
 
 			// adding fault
 			if( !wsdlOp.getFaults().isEmpty() ) {
-				for( Object o : wsdlOp.getFaults().entrySet() ) {
+				for( Object o : wsdlOp.getFaults().keySet() ) {
 					BindingFault bindingFault = localDef.createBindingFault();
 					SOAPFault soapFault = (SOAPFault) extensionRegistry.createExtension( BindingFault.class,
 						new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "fault" ) );
 					soapFault.setUse( "literal" );
-					String faultName = ((Entry) o).getKey().toString();
+					String faultName = o.toString();
 					bindingFault.setName( faultName );
 					soapFault.setName( faultName );
 					bindingFault.addExtensibilityElement( soapFault );
