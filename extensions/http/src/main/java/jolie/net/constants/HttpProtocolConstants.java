@@ -62,7 +62,10 @@ public final class HttpProtocolConstants {
 				throw new IOException(
 					"Could not find http-contenttype-charset.txt. Your distribution of Jolie might be corrupted." );
 			}
-			new BufferedReader( new InputStreamReader( is ) ).lines().forEach( contentTypesForCharset::add );
+
+			try( BufferedReader r = new BufferedReader( new InputStreamReader( is ) ) ) {
+				r.lines().forEach( contentTypesForCharset::add );
+			}
 
 			return contentTypesForCharset;
 		}
