@@ -72,7 +72,7 @@ public class TimeService extends JavaService {
 	private TimeThread thread = null;
 	private final DateFormat dateFormat, dateTimeFormat;
 	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private final Map< Long, ScheduledFuture > scheduledFutureHashMap = new ConcurrentHashMap<>();
+	private final Map< Long, ScheduledFuture< ? > > scheduledFutureHashMap = new ConcurrentHashMap<>();
 	private final AtomicLong atomicLong = new AtomicLong();
 
 	public TimeService() {
@@ -433,7 +433,7 @@ public class TimeService extends JavaService {
 			operationName = "timeout";
 		}
 
-		ScheduledFuture scheduledFuture = executor.schedule( () -> {
+		ScheduledFuture< ? > scheduledFuture = executor.schedule( () -> {
 			sendMessage( CommMessage.createRequest( operationName, "/", request.getFirstChild( "message" ) ) );
 		}, request.intValue(), unit );
 		scheduledFutureHashMap.put( timeoutId, scheduledFuture );
@@ -443,7 +443,7 @@ public class TimeService extends JavaService {
 	@RequestResponse
 	public Boolean cancelTimeout( Value request ) {
 		long timeoutId = request.longValue();
-		ScheduledFuture f = scheduledFutureHashMap.remove( timeoutId );
+		ScheduledFuture< ? > f = scheduledFutureHashMap.remove( timeoutId );
 		return f != null && f.cancel( false );
 	}
 }
