@@ -46,8 +46,7 @@ public class Jolie2Plasma {
 	}
 
 	public static void main( String[] args ) {
-		try {
-			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Plasma.class.getClassLoader() );
+		try( CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Plasma.class.getClassLoader() ) ) {
 			final String[] arguments = cmdParser.getInterpreterConfiguration().arguments();
 			if( arguments.length < 2 ) {
 				throw new CommandLineException( "Insufficient number of arguments" );
