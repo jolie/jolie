@@ -1217,7 +1217,8 @@ public class JavaDocumentCreator {
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 				String variableType = null;
 				String variableName = null;
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType =
+					stringTypeDefinitionEntry.getValue();
 				if( subType instanceof TypeDefinitionLink ) {
 					if( ((TypeDefinitionLink) subType).linkedType() instanceof TypeDefinitionUndefined ) {
 						variableName = checkReservedKeywords( subType.name() );
@@ -1334,7 +1335,7 @@ public class JavaDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
 
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 				String variableName = getVariableName( subType );
 				String variableNameType = getVariableTypeName( subType );
 
@@ -1556,7 +1557,7 @@ public class JavaDocumentCreator {
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 				String variableName = subType.name();
 				String variableType = "Value";
 				if( subType.cardinality().max() > 1 ) {
@@ -1749,7 +1750,7 @@ public class JavaDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
 
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 				String variableName = getVariableName( subType );
 				String variableNameType = getVariableTypeName( subType );
 
@@ -1922,7 +1923,7 @@ public class JavaDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
 
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 
 				String variableName = getVariableName( subType );
 				String startingChar = variableName.substring( 0, 1 );
@@ -2058,14 +2059,14 @@ public class JavaDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 				// System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
-				if( ((Entry) stringTypeDefinitionEntry).getValue() instanceof TypeDefinitionLink ) {
+				if( stringTypeDefinitionEntry.getValue() instanceof TypeDefinitionLink ) {
 					if( !subTypeMap.containsKey(
-						((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName() ) ) {
+						((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedTypeName() ) ) {
 						subTypeMap.put(
-							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName(),
-							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
+							((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedTypeName(),
+							((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedType() );
 						parseSubType(
-							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
+							((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedType() );
 					}
 				}
 			}
