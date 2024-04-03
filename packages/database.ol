@@ -55,10 +55,14 @@ type QueryRequest:string { ? }
 
 type UpdateRequest:string { ? }
 
+type InitializeTransactionResponse:string { ? }
+
+type TransactionHandle:string { ? }
+
 interface DatabaseInterface {
 RequestResponse:
 	/**!
-	 * Connects to a database and eventually closes a previous connection
+	 * Connects to a database and closes any potential preexisting database connection.  
 	 *
 	 * Example with HSQLDB:
 	 * with ( connectionInfo ) {
@@ -114,8 +118,13 @@ RequestResponse:
 	 *     .mycol4 = "col4"
 	 *   }
 	 * _template does not currently support vectors.
+	 * 
+	 * To run the query within a specific transaction, a transaction handle can be provided using the field 'transactionHandle'.
+	 * In the example above, adding 'queryRequest.transactionHandle = "someTransactionHandle"' will make the database service
+	 * attempt to execute the query on the specific connection that handle references, and throw a TransactionException if this fails.
+	 *
 	 */
-	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
+	query(QueryRequest)(QueryResult) throws SQLException ConnectionError TransactionException,
 	/**!
 	 * Updates the database and returns a single status code
 	 *
@@ -127,8 +136,13 @@ RequestResponse:
 	 * updateRequest.country = Country;
 	 * updateRequest.data = r;
 	 * update@Database( updateRequest )( ret )
+	 *
+	 * To run the update within specific transaction, a transaction handle can be provided using the field 'transactionHandle'.
+	 * In the exmple above, adding 'updateRequest.transactionHandle = "someTransactionHandle"' will make the database service attempt
+	 * to execute the update in the specific connection associated with the handle, and throw a TransactionException if it cannot.
+	 * 
 	 */
-	update(UpdateRequest)(int) throws SQLException ConnectionError,
+	update(UpdateRequest)(int) throws SQLException ConnectionError TransactionException,
 	/**!
 	 * Checks the connection with the database. Throws ConnectionError if the connection is not functioning properly.
 	 */
@@ -136,7 +150,22 @@ RequestResponse:
 	/**!
 	 * Executes more than one database command in a single transaction
 	 */
-	executeTransaction(DatabaseTransactionRequest)(DatabaseTransactionResult) throws SQLException ConnectionError
+	executeTransaction(DatabaseTransactionRequest)(DatabaseTransactionResult) throws SQLException ConnectionError,
+	/**!
+	*  Designates a connection from the connection pool as an open transaction, and returns a string which can be used to refer to the now open transaction.	
+	*/
+	initializeTransaction( void )( InitializeTransactionResponse ) throws SQLException ConnectionError,
+	/**!
+	*  Commits and closes the connection associated with the transaction handle in CommitTransactionRequest. The connection is
+	*  then returned to the connection pool, and any further actions attempted using the transaction handle will throw a TransactionException.
+	*/
+	commitTransaction( TransactionHandle )( void ) throws SQLException ConnectionError TransactionException,
+	/**!
+	*  Rolls back and closes the connection associated with the handle TransactionHandle. The connection is
+	*  then returned to the connection pool, and any further actions attempted using the transaction handle will throw a TransactionException.
+	*/
+	abortTransaction(TransactionHandle)( void ) throws SQLException ConnectionError TransactionException,
+
 }
 
 service Database {
