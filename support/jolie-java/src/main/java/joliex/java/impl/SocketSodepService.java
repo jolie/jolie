@@ -56,6 +56,7 @@ public class SocketSodepService extends Service {
 
 	private final Lock lock = new ReentrantLock( true );
 
+	@SuppressWarnings( "unchecked" )
 	public SocketSodepService( ServiceFactory factory, URI location, Value protocolConfiguration )
 		throws IOException {
 		super( factory, location );

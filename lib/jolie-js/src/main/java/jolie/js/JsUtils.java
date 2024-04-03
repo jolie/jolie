@@ -164,6 +164,7 @@ public class JsUtils {
 	}
 
 	private static void jsonObjectToValue( JSONObject obj, Value value, boolean strictEncoding ) {
+		@SuppressWarnings( "unchecked" )
 		Map< String, Object > map = (Map< String, Object >) obj;
 		ValueVector vec;
 		for( Map.Entry< String, Object > entry : map.entrySet() ) {
