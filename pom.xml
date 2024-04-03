@@ -7,6 +7,7 @@
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.release>11</maven.compiler.release>
 		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
 		<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
 		<jolie.version>1.11.3-git</jolie.version>
