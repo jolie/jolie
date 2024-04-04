@@ -26,7 +26,6 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -36,8 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang3.ObjectUtils.Null;
 
 // Connection Pooling
 import com.zaxxer.hikari.HikariConfig;
@@ -90,7 +87,7 @@ public class DatabaseService extends JavaService {
 	private static boolean toLowerCase = false;
 	private static boolean toUpperCase = false;
 	private boolean mustCheckConnection = false;
-
+	private boolean transactionsEnabled = false;
 	private final static String TEMPLATE_FIELD = "_template";
 
 	@RequestResponse
@@ -101,6 +98,14 @@ public class DatabaseService extends JavaService {
 			password = null;
 			connectionPoolDataSource.close();
 			connectionPoolDataSource = null;
+			transactionMutexes.clear();
+
+			openTransactions.forEach((key, con) -> {
+				try {
+					con.close();
+				} catch (SQLException e) {
+				}
+			});
 		}
 	}
 
@@ -132,6 +137,7 @@ public class DatabaseService extends JavaService {
 		String attributes = request.getFirstChild("attributes").strValue();
 		String separator = "/";
 		boolean isEmbedded = false;
+		transactionsEnabled = false;
 		Optional<String> encoding = Optional
 				.ofNullable(request.hasChildren("encoding") ? request.getFirstChild("encoding").strValue() : null);
 		try {
@@ -158,7 +164,7 @@ public class DatabaseService extends JavaService {
 					driverClass = "com.ibm.as400.access.AS400JDBCDriver";
 					break;
 				case "derby_embedded":
-					Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+					driverClass = "org.apache.derby.jdbc.EmbeddedDriver";
 					isEmbedded = true;
 					driver = "derby";
 					break;
@@ -169,7 +175,7 @@ public class DatabaseService extends JavaService {
 				case "hsqldb_hsqls":
 				case "hsqldb_http":
 				case "hsqldb_https":
-					driverClass = "org.hsqldb.jdbcDriver";
+					driverClass = "org.hsqldb.jdbc.JDBCDriver";
 					break;
 				case "db2":
 					driverClass = "com.ibm.db2.jcc.DB2Driver";
@@ -244,31 +250,34 @@ public class DatabaseService extends JavaService {
 		if (request.hasChildren("transactionHandle")) {
 			Connection con;
 			String transactionHandle = request.getFirstChild("transactionHandle").strValue();
-			try {
-				synchronized (transactionMutexes.get(transactionHandle)) {
-					// ÆRØ:
-					// When two threads both call 'get' simultaniously, they can both access
-					// the lock. if the first one to execute then commits, the object is removed
-					// from the transactionMutexes map, but since the reference to the object is
-					// still present at the second thread,
-					// the object is not deleted. The second thread can then enter the protected
-					// block, and do work on a transaction that was already committed. Hence, this
-					// check, which ensures that if the scenario above occurs, it is detected, and
-					// no work is done.
-					if (transactionMutexes.get(transactionHandle) == null) {
-						throw new NullPointerException();
-					}
 
-					con = openTransactions.get(transactionHandle);
-					try (PreparedStatement stm = new NamedStatementParser(con, request.strValue(), request)
-							.getPreparedStatement();) {
-						resultValue.setValue(stm.executeUpdate());
-					} catch (SQLException e) {
-						throw createFaultException(e);
-					}
+			if (!transactionMutexes.containsKey(transactionHandle)) {
+				throw createTransactionException(
+						"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
+			}
+
+			synchronized (transactionMutexes.get(transactionHandle)) {
+				// ÆRØ:
+				// When two threads both call 'get' simultaniously, they can both access
+				// the lock. if the first one to execute then commits, the object is removed
+				// from the transactionMutexes map, but since the reference to the object is
+				// still present at the second thread,
+				// the object is not deleted. The second thread can then enter the protected
+				// block, and do work on a transaction that was already committed. Hence, this
+				// check, which ensures that if the scenario above occurs, it is detected, and
+				// no work is done.
+				if (!transactionMutexes.containsKey(transactionHandle)) {
+					throw createTransactionException(
+							"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
 				}
-			} catch (NullPointerException e) {
-				throw createTransactionException(e, transactionHandle);
+
+				con = openTransactions.get(transactionHandle);
+				try (PreparedStatement stm = new NamedStatementParser(con, request.strValue(), request)
+						.getPreparedStatement();) {
+					resultValue.setValue(stm.executeUpdate());
+				} catch (SQLException e) {
+					throw createFaultException(e);
+				}
 			}
 		} else {
 			try (Connection con = connectionPoolDataSource.getConnection()) {
@@ -280,6 +289,32 @@ public class DatabaseService extends JavaService {
 			}
 		}
 		return resultValue;
+	}
+
+	private void _tryEnableTransactions() throws FaultException {
+		if (!transactionsEnabled) {
+			try {
+				switch (driver) {
+					case "hsqldb":
+					case "hsqldb_embedded":
+					case "hsqldb_hsql":
+					case "hsqldb_hsqls":
+					case "hsqldb_http":
+					case "hsqldb_https":
+						Connection con = connectionPoolDataSource.getConnection();
+						PreparedStatement stm = con.prepareStatement("SET DATABASE TRANSACTION CONTROL MVCC;");
+						stm.execute();
+						con.close();
+						stm.close();
+						break;
+					case "sqlite":
+						throw createTransactionException("SQLite does not support manipulating multiple connections.");
+				}
+				transactionsEnabled = true;
+			} catch (SQLException e) {
+				throw createFaultException(e);
+			}
+		}
 	}
 
 	private static void setValue(Value fieldValue, ResultSet result, int columnType, int index)
@@ -525,33 +560,35 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue;
 
-		// ÆRØ: add tHandle as an optional child for a query
 		if (request.hasChildren("transactionHandle")) {
 			String transactionHandle = request.getFirstChild("transactionHandle").strValue();
-			try {
-				synchronized (transactionMutexes.get(transactionHandle)) {
-					// Ensure that no other thread has committed the transaction while this was
-					// waiting to access
-					if (transactionMutexes.get(transactionHandle) == null) {
-						throw new NullPointerException();
-					}
 
-					try (Connection con = openTransactions.get(transactionHandle);
-							PreparedStatement stm = new NamedStatementParser(con, request.strValue(), request)
-									.getPreparedStatement();) {
-						resultValue = _executeQuery(con, stm, request);
-					} catch (SQLException e) {
-						throw createFaultException(e);
-					}
+			if (!transactionMutexes.containsKey(transactionHandle)) {
+				throw createTransactionException(
+						"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
+			}
+
+			synchronized (transactionMutexes.get(transactionHandle)) {
+				// Ensure that no other thread has committed the transaction while this was
+				// waiting to access
+				if (!transactionMutexes.containsKey(transactionHandle)) {
+					throw createTransactionException(
+							"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
 				}
-			} catch (NullPointerException e) {
-				throw createTransactionException(e, transactionHandle);
+
+				try (Connection con = openTransactions.get(transactionHandle);
+						PreparedStatement stm = new NamedStatementParser(con, request.strValue(), request)
+								.getPreparedStatement();) {
+					resultValue = _executeQuery(stm, request);
+				} catch (SQLException e) {
+					throw createFaultException(e);
+				}
 			}
 		} else {
 			try (Connection con = connectionPoolDataSource.getConnection();
 					PreparedStatement stm = new NamedStatementParser(con, request.strValue(), request)
 							.getPreparedStatement()) {
-				resultValue = _executeQuery(con, stm, request);
+				resultValue = _executeQuery(stm, request);
 			} catch (SQLException e) {
 				throw createFaultException(e);
 			}
@@ -560,19 +597,19 @@ public class DatabaseService extends JavaService {
 		return resultValue;
 	}
 
-	private FaultException createTransactionException(NullPointerException e, String transaction) {
+	private FaultException createTransactionException(String message) {
+		Exception e = new Exception("Stack trace");
 		Value v = Value.create();
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		e.printStackTrace(new PrintStream(bs));
 		v.getNewChild("stackTrace").setValue(bs.toString());
 		v.getNewChild("message")
-				.setValue("Transaction with handle " + transaction + " does not exist or is no longer open.");
+				.setValue(message);
 		return new FaultException("TransactionException", v);
 	}
 
-	private Value _executeQuery(Connection con, PreparedStatement stm, Value request) throws SQLException {
+	private Value _executeQuery(PreparedStatement stm, Value request) throws SQLException {
 		Value resultValue = Value.create();
-
 		ResultSet result = stm.executeQuery();
 		if (request.hasChildren(TEMPLATE_FIELD)) {
 			resultSetToValueVectorWithTemplate(result, resultValue.getChildren("row"),
@@ -587,6 +624,7 @@ public class DatabaseService extends JavaService {
 	@RequestResponse
 	public Value initializeTransaction() throws FaultException {
 		_checkConnection();
+		_tryEnableTransactions();
 		Value response = Value.create();
 		Connection con;
 		try {
@@ -611,47 +649,54 @@ public class DatabaseService extends JavaService {
 	@RequestResponse
 	public void commitTransaction(Value request) throws FaultException {
 		_checkConnection();
-		try {
-			String transactionHandle = request.strValue();
-			synchronized (transactionMutexes.get(transactionHandle)) {
-				// Ensure that no other thread has committed the transaction while this was
-				// waiting to access
-				if (transactionMutexes.get(transactionHandle) == null) {
-					throw new NullPointerException();
-				}
+		String transactionHandle = request.strValue();
 
-				Connection con = openTransactions.get(transactionHandle);
-				try {
-					con.commit();
-					con.setAutoCommit(false); // ÆRØ: Don't know if this is needed, or if HikariCP resets it on close
-					openTransactions.remove(transactionHandle);
-					transactionMutexes.remove(transactionHandle);
-				} catch (SQLException e) {
-					_closeTransaction(con, transactionHandle);
-				}
-			}
-		} catch (NullPointerException e) {
-			throw createTransactionException(e, request.strValue());
+		if (!transactionMutexes.containsKey(transactionHandle)) {
+			throw createTransactionException(
+					"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
 		}
+
+		synchronized (transactionMutexes.get(transactionHandle)) {
+			// Ensure that no other thread has committed the transaction while this was
+			// waiting to access
+			if (!transactionMutexes.containsKey(transactionHandle)) {
+				throw createTransactionException(
+						"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
+			}
+
+			Connection con = openTransactions.get(transactionHandle);
+			try {
+				con.commit();
+				con.setAutoCommit(false); // ÆRØ: Don't know if this is needed, or if HikariCP resets it on close
+				openTransactions.remove(transactionHandle);
+				transactionMutexes.remove(transactionHandle);
+			} catch (SQLException e) {
+				_closeTransaction(con, transactionHandle);
+			}
+		}
+
 	}
 
 	@RequestResponse
 	public void abortTransaction(Value request) throws FaultException {
 		_checkConnection();
 		String transactionHandle = request.strValue();
-		try {
-			synchronized (transactionMutexes.get(transactionHandle)) {
-				// Ensure that no other thread has committed the transaction while this was
-				// waiting to access
-				if (transactionMutexes.get(transactionHandle) == null) {
-					throw new NullPointerException();
-				}
 
-				Connection con = openTransactions.get(transactionHandle);
-				_closeTransaction(con, transactionHandle);
+		if (!transactionMutexes.containsKey(transactionHandle)) {
+			throw createTransactionException(
+					"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
+		}
+
+		synchronized (transactionMutexes.get(transactionHandle)) {
+			// Ensure that no other thread has committed the transaction while this was
+			// waiting to access
+			if (!transactionMutexes.containsKey(transactionHandle)) {
+				throw createTransactionException(
+						"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open.");
 			}
-		} catch (NullPointerException e) {
-			throw createTransactionException(e, transactionHandle);
+
+			Connection con = openTransactions.get(transactionHandle);
+			_closeTransaction(con, transactionHandle);
 		}
 	}
 
@@ -681,7 +726,7 @@ public class DatabaseService extends JavaService {
 
 		config.setUsername(username);
 		config.setPassword(password);
-		config.setMaximumPoolSize(6); // TODO: Figure this out
+		config.setMaximumPoolSize(6); // TODO: ÆRØ Figure this out
 		config.setJdbcUrl(connectionString);
 		config.setDriverClassName(driverClass);
 
