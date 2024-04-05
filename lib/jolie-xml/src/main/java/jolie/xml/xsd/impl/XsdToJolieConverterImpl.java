@@ -156,6 +156,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 
 	}
 
+	@Override
 	public List< TypeDefinition > convert()
 		throws ConversionException {
 

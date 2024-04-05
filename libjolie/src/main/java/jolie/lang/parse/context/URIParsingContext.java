@@ -151,6 +151,7 @@ public class URIParsingContext implements ParsingContext {
 	/**
 	 * toString method, for easy printing
 	 */
+	@Override
 	public String toString() {
 		String contextString = "";
 		contextString += "source: " + uri + "\n";

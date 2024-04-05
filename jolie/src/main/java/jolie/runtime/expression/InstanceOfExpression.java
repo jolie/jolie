@@ -41,10 +41,12 @@ public class InstanceOfExpression implements Expression {
 		this.type = type;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new InstanceOfExpression( expression, type );
 	}
 
+	@Override
 	public Value evaluate() {
 		boolean ret = true;
 		try {

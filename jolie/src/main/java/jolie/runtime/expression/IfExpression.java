@@ -32,11 +32,13 @@ public class IfExpression implements Expression {
 		this.elseExpression = elseExpression;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new IfExpression( guard.cloneExpression( reason ), thenExpression.cloneExpression( reason ),
 			elseExpression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Value evaluate() {
 		return guard.evaluate().boolValue() ? thenExpression.evaluate() : elseExpression.evaluate();
 	}

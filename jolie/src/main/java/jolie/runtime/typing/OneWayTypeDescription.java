@@ -36,10 +36,12 @@ public class OneWayTypeDescription implements OperationTypeDescription {
 		return requestType;
 	}
 
+	@Override
 	public OneWayTypeDescription asOneWayTypeDescription() {
 		return this;
 	}
 
+	@Override
 	public RequestResponseTypeDescription asRequestResponseTypeDescription() {
 		return null;
 	}

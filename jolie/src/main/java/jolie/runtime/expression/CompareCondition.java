@@ -42,6 +42,7 @@ public class CompareCondition implements Expression {
 		this.compareOperator = compareOperator;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new CompareCondition(
 			leftExpression.cloneExpression( reason ),
@@ -49,6 +50,7 @@ public class CompareCondition implements Expression {
 			compareOperator );
 	}
 
+	@Override
 	public Value evaluate() {
 		return Value.create( compareOperator.test( leftExpression.evaluate(), rightExpression.evaluate() ) );
 	}

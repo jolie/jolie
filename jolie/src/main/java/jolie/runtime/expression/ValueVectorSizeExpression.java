@@ -32,10 +32,12 @@ public class ValueVectorSizeExpression implements Expression {
 		this.path = path;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new ValueVectorSizeExpression( path );
 	}
 
+	@Override
 	public Value evaluate() {
 		ValueVector vector = path.getValueVectorOrNull();
 		return Value.create( (vector == null) ? 0 : vector.size() );

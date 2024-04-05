@@ -38,6 +38,7 @@ public class CurrentHandlerProcess implements Process {
 		return CurrentHandlerProcess.LazyHolder.INSTANCE;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		Process ret = getInstance();
 		if( reason instanceof HandlerInstallationReason ) {
@@ -54,11 +55,13 @@ public class CurrentHandlerProcess implements Process {
 		return ret;
 	}
 
+	@Override
 	public void run() {
 		// We should never execute this process node.
 		assert (false);
 	}
 
+	@Override
 	public boolean isKillable() {
 		// TODO: check this
 		return true;

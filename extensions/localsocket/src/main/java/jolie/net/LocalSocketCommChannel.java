@@ -47,22 +47,26 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
 	}
 
+	@Override
 	protected void sendImpl( CommMessage message )
 		throws IOException {
 		protocol().send( socketOutputStream, message, bufferedInputStream );
 		socketOutputStream.flush();
 	}
 
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException {
 		return protocol().recv( bufferedInputStream, socketOutputStream );
 	}
 
+	@Override
 	protected void closeImpl()
 		throws IOException {
 		socket.close();
 	}
 
+	@Override
 	public synchronized boolean isReady()
 		throws IOException {
 		boolean ret = false;

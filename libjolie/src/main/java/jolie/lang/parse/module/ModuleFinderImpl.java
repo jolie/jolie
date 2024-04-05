@@ -64,6 +64,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 			.toArray( Path[]::new );
 	}
 
+	@Override
 	public ModuleSource find( URI source, ImportPath importPath ) throws ModuleNotFoundException {
 		Path parentPath =
 			Files.isRegularFile( Paths.get( source ) ) ? Paths.get( source ).getParent()

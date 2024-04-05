@@ -40,6 +40,7 @@ public class ForEachSubNodeProcess implements Process {
 		this.process = process;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ForEachSubNodeProcess(
 			(VariablePath) keyPath.cloneExpression( reason ),
@@ -47,6 +48,7 @@ public class ForEachSubNodeProcess implements Process {
 			process.copy( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		if( ExecutionThread.currentThread().isKilled() ) {
@@ -68,6 +70,7 @@ public class ForEachSubNodeProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

@@ -32,16 +32,19 @@ public class LinkOutProcess implements Process {
 		this.link = link;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new LinkOutProcess( link );
 	}
 
+	@Override
 	public void run() {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
 		InternalLink.getById( link ).recvMessage( null, null );
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

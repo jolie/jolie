@@ -55,6 +55,7 @@ public class InterfaceDefinition extends OLSyntaxNode
 		return operationsMap;
 	}
 
+	@Override
 	public String name() {
 		return name;
 	}

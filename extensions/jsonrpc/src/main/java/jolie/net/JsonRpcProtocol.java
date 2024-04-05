@@ -291,12 +291,14 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		}
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		setChannelInterface();
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
+	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
@@ -398,6 +400,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		channelInterface = channel().parentPort().getInterface();
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		setChannelInterface();

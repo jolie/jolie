@@ -39,6 +39,7 @@ public class SocketCommChannelFactory extends CommChannelFactory {
 		super( commCore );
 	}
 
+	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException {
 		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );

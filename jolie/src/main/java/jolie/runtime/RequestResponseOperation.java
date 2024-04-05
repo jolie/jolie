@@ -39,6 +39,7 @@ public class RequestResponseOperation extends InputOperation {
 		return typeDescription;
 	}
 
+	@Override
 	public Type requestType() {
 		return typeDescription.requestType();
 	}

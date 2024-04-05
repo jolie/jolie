@@ -35,10 +35,12 @@ public class ThrowProcess implements Process {
 		this.expression = expression;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ThrowProcess( faultName, expression );
 	}
 
+	@Override
 	public void run()
 		throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() )
@@ -51,6 +53,7 @@ public class ThrowProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

@@ -54,6 +54,7 @@ public class AssignmentProcess implements Process, Expression {
 		this.context = context;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new AssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
@@ -61,6 +62,7 @@ public class AssignmentProcess implements Process, Expression {
 			context );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new AssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
@@ -69,6 +71,7 @@ public class AssignmentProcess implements Process, Expression {
 	}
 
 	/** Evaluates the expression and stores its value in the variable. */
+	@Override
 	public void run() {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
@@ -83,12 +86,14 @@ public class AssignmentProcess implements Process, Expression {
 			context ) );
 	}
 
+	@Override
 	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.assignValue( expression.evaluate() );
 		return val;
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

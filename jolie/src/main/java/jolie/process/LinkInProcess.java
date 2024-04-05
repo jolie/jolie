@@ -73,10 +73,12 @@ public class LinkInProcess implements Process {
 		this.linkId = link;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new LinkInProcess( linkId );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		if( ExecutionThread.currentThread().isKilled() ) {
@@ -86,6 +88,7 @@ public class LinkInProcess implements Process {
 		(new Execution( this )).run();
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

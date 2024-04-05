@@ -33,10 +33,12 @@ public class IsIntExpression implements Expression {
 		this.path = path;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new IsIntExpression( path );
 	}
 
+	@Override
 	public Value evaluate() {
 		Value value = path.getValueOrNull();
 		return Value.create( value != null && value.isInt() );

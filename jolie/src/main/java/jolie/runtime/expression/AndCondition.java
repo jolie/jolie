@@ -42,6 +42,7 @@ public class AndCondition implements Expression {
 		this.children = children;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new AndCondition( children );
 	}
@@ -53,6 +54,7 @@ public class AndCondition implements Expression {
 	 * 
 	 * @return true if every condition is satisfied, false otherwise.
 	 */
+	@Override
 	public Value evaluate() {
 		for( Expression condition : children ) {
 			if( condition.evaluate().boolValue() == false ) {
