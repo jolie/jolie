@@ -707,6 +707,7 @@ public class OLParseTreeOptimizer {
 			programChildren.add( n );
 		}
 
+		@Override
 		public void visit( TypeChoiceDefinition n ) {
 			programChildren.add( n );
 		}

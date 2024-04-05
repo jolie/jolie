@@ -51,6 +51,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine {
 		super( interpreter );
 	}
 
+	@Override
 	public boolean routeMessage( CommMessage message, CommChannel channel ) {
 		for( SessionThread session : sessions ) {
 			if( correlate( session, message ) ) {
@@ -61,19 +62,23 @@ public class SimpleCorrelationEngine extends CorrelationEngine {
 		return false;
 	}
 
+	@Override
 	public void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message ) {
 		sessions.add( session );
 		initCorrelationValues( session, starter, message );
 	}
 
+	@Override
 	public void onSingleExecutionSessionStart( SessionThread session ) {
 		sessions.add( session );
 	}
 
+	@Override
 	public void onSessionExecuted( SessionThread session ) {
 		sessions.remove( session );
 	}
 
+	@Override
 	public void onSessionError( SessionThread session, FaultException fault ) {
 		onSessionExecuted( session );
 	}

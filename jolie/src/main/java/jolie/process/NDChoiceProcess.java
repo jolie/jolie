@@ -75,6 +75,7 @@ public class NDChoiceProcess implements Process {
 		return inputOperationsMap;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		@SuppressWarnings( "unchecked" )
 		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
@@ -91,6 +92,7 @@ public class NDChoiceProcess implements Process {
 	 * @throws jolie.runtime.FaultException
 	 * @throws jolie.runtime.ExitingException
 	 */
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		ExecutionThread ethread = ExecutionThread.currentThread();
@@ -109,6 +111,7 @@ public class NDChoiceProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

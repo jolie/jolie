@@ -33,10 +33,12 @@ public class IsDefinedExpression implements Expression {
 		this.path = path;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new IsDefinedExpression( path );
 	}
 
+	@Override
 	public Value evaluate() {
 		return Value.create( path.getValueOrNull() != null );
 	}

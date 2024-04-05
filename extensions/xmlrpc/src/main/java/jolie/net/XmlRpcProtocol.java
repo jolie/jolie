@@ -106,6 +106,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 	 */
 	private static final String ARRAY_KEY = "array";
 
+	@Override
 	public String name() {
 		return "xmlrpc";
 	}
@@ -298,6 +299,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		}
 	}
 
+	@Override
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		Document doc = docBuilder.newDocument();
@@ -431,11 +433,13 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		ostream.write( content.getBytes() );
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
+	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
@@ -504,6 +508,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		return retVal;
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );

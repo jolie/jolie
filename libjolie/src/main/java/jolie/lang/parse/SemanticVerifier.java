@@ -449,6 +449,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 		}
 	}
 
+	@Override
 	public void visit( TypeChoiceDefinition n ) {
 		checkCardinality( n );
 		boolean backupRootType = isTopLevelType;

@@ -37,14 +37,17 @@ public abstract class TransparentExecutionThread extends ExecutionThread {
 		super( process, parent );
 	}
 
+	@Override
 	public jolie.State state() {
 		return parent.state();
 	}
 
+	@Override
 	public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread ) {
 		return parent.requestMessage( operation, ethread );
 	}
 
+	@Override
 	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations,
 		ExecutionThread ethread ) {
 		return parent.requestMessage( operations, ethread );

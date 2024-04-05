@@ -63,6 +63,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory {
 		map.put( uuidStr, record );
 	}
 
+	@Override
 	public CommChannel createChannel( URI uri, OutputPort port )
 		throws IOException {
 		if( uri.getHost() != null && uri.getHost().equals( "localhost" ) ) {

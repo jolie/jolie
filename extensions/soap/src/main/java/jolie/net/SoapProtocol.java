@@ -173,6 +173,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	 * parameter add_attribute: void { .envelope: void { .attribute*: Attribute } .operation*: void {
 	 * .operation_name: string .attribute: Attribute } }
 	 */
+	@Override
 	public String name() {
 		return "soap";
 	}
@@ -701,6 +702,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
+	@Override
 	@SuppressWarnings( "unchecked" )
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
@@ -1118,6 +1120,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
@@ -1212,6 +1215,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	 * ); try { return schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) ); }
 	 * catch( SAXException e ) { throw new IOException( e ); } }
 	 */
+	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
@@ -1393,6 +1397,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return retVal;
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );

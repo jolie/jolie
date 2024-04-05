@@ -49,14 +49,17 @@ public class OneWayProcess implements InputOperationProcess {
 		this.context = context;
 	}
 
+	@Override
 	public void setSessionStarter( boolean isSessionStarter ) {
 		this.isSessionStarter = isSessionStarter;
 	}
 
+	@Override
 	public InputOperation inputOperation() {
 		return operation;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new OneWayProcess( operation, varPath, context );
 	}
@@ -65,6 +68,7 @@ public class OneWayProcess implements InputOperationProcess {
 		return varPath;
 	}
 
+	@Override
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent(
@@ -81,6 +85,7 @@ public class OneWayProcess implements InputOperationProcess {
 		return NullProcess.getInstance();
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		ExecutionThread ethread = ExecutionThread.currentThread();
@@ -119,6 +124,7 @@ public class OneWayProcess implements InputOperationProcess {
 	}
 
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

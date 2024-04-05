@@ -36,6 +36,7 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory {
 		super( commCore );
 	}
 
+	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException {
 		String path = location.getPath();

@@ -55,6 +55,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		private static final int LONG = 6;
 	}
 
+	@Override
 	public String name() {
 		return "sodep";
 	}
@@ -248,6 +249,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		super( configurationPath );
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
@@ -261,6 +263,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		writeMessage( oos, message );
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );

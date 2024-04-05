@@ -33,10 +33,12 @@ public class CompensateProcess implements Process {
 		this.id = id;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new CompensateProcess( id );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		ExecutionThread t = ExecutionThread.currentThread();
@@ -48,6 +50,7 @@ public class CompensateProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

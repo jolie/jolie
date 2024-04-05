@@ -35,12 +35,14 @@ public class WhileProcess implements Process {
 		this.process = process;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new WhileProcess(
 			condition.cloneExpression( reason ),
 			process.copy( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		if( ExecutionThread.currentThread().isKilled() ) {
@@ -54,6 +56,7 @@ public class WhileProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

@@ -35,14 +35,17 @@ public class PostDecrementProcess implements Process, Expression {
 		this.path = varPath;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
 
+	@Override
 	public void run() throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
@@ -64,6 +67,7 @@ public class PostDecrementProcess implements Process, Expression {
 		}
 	}
 
+	@Override
 	public Value evaluate() throws FaultException.RuntimeFaultException {
 		Value val = path.getValue();
 		Value orig = Value.create( val.intValue() );
@@ -82,6 +86,7 @@ public class PostDecrementProcess implements Process, Expression {
 		return orig;
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

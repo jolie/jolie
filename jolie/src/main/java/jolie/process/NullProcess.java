@@ -37,12 +37,15 @@ public class NullProcess implements Process {
 		return NullProcess.LazyHolder.INSTANCE;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return this;
 	}
 
+	@Override
 	public void run() {}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

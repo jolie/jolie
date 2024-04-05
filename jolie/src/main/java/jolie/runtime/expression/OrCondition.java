@@ -33,10 +33,12 @@ public class OrCondition implements Expression {
 		this.children = children;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new OrCondition( children );
 	}
 
+	@Override
 	public Value evaluate() {
 		for( Expression cond : children ) {
 			if( cond.evaluate().boolValue() ) {

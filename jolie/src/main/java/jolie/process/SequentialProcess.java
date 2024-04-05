@@ -36,6 +36,7 @@ public class SequentialProcess implements Process {
 		this.children = children;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		Process[] p = new Process[ children.length ];
 		int i = 0;
@@ -45,6 +46,7 @@ public class SequentialProcess implements Process {
 		return new SequentialProcess( p );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		final ExecutionThread ethread = ExecutionThread.currentThread();
@@ -56,6 +58,7 @@ public class SequentialProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return children[ 0 ].isKillable();
 	}

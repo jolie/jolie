@@ -66,15 +66,18 @@ public class SocketSodepService extends Service {
 		ostream = Channels.newOutputStream( socketChannel );
 	}
 
+	@Override
 	public void close()
 		throws IOException {
 		socketChannel.close();
 	}
 
+	@Override
 	protected Runnable createRequestResponseRunnable( CommMessage request, Callback callback ) {
 		return new RequestResponseRunnable( this, request, callback );
 	}
 
+	@Override
 	protected Runnable createOneWayRunnable( CommMessage message, Callback callback ) {
 		return new OneWayRunnable( this, message, callback );
 	}
@@ -90,6 +93,7 @@ public class SocketSodepService extends Service {
 			this.callback = callback;
 		}
 
+		@Override
 		public void run() {
 			service.lock.lock();
 			try {
@@ -129,6 +133,7 @@ public class SocketSodepService extends Service {
 			this.callback = callback;
 		}
 
+		@Override
 		public void run() {
 			service.lock.lock();
 			try {

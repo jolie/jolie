@@ -32,10 +32,12 @@ public class RunProcess implements Process {
 		this.expression = expression;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new RunProcess( expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException {
 		throw new FaultException( "UnsupportedStatement" );
@@ -58,6 +60,7 @@ public class RunProcess implements Process {
 		 */
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

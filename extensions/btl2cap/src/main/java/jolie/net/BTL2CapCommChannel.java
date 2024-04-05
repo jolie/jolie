@@ -44,6 +44,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		setToBeClosed( false ); // Bluetooth connections are kept open by default.
 	}
 
+	@Override
 	protected void sendImpl( CommMessage message )
 		throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
@@ -67,6 +68,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		}
 	}
 
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
@@ -81,6 +83,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		return protocol().recv( istream, null ); // TODO fix this null pointer
 	}
 
+	@Override
 	protected void closeImpl()
 		throws IOException {
 		connection.close();
@@ -92,6 +95,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
+	@Override
 	public boolean isReady() {
 		try {
 			return connection.ready();

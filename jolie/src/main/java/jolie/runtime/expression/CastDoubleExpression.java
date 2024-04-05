@@ -31,10 +31,12 @@ public class CastDoubleExpression implements Expression {
 		this.expression = expression;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new CastDoubleExpression( expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Value evaluate() {
 		return Value.create( expression.evaluate().doubleValue() );
 	}
