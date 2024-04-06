@@ -82,7 +82,7 @@ import org.w3c.dom.NodeList;
  * of the keyword array.
  * 
  */
-public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol {
+public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.Protocol {
 	private String inputId = null;
 	final private Transformer transformer;
 	final private Interpreter interpreter;

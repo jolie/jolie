@@ -88,7 +88,7 @@ public class HttpUtils {
 	private static final Map< Integer, String > STATUS_CODE_DESCRIPTIONS = new HashMap<>();
 	private static final Set< Integer > LOCATION_REQUIRED_STATUS_CODES = new HashSet<>();
 
-	public static interface HttpProtocol {
+	public static interface Protocol {
 		CommMessage recv_internal( InputStream istream, OutputStream ostream ) throws IOException;
 
 		void send_internal( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException;
@@ -317,10 +317,10 @@ public class HttpUtils {
 	}
 
 	public static CommMessage recv( InputStream istream, OutputStream ostream, boolean inInputPort, CommChannel channel,
-		HttpProtocol service )
+		Protocol protocol )
 		throws IOException {
 		try {
-			return service.recv_internal( istream, ostream );
+			return protocol.recv_internal( istream, ostream );
 		} catch( IOException e ) {
 			if( inInputPort && channel.isOpen() ) {
 				HttpUtils.errorGenerator( ostream, e );
@@ -330,10 +330,10 @@ public class HttpUtils {
 	}
 
 	public static void send( OutputStream ostream, CommMessage message, InputStream istream, boolean inInputPort,
-		CommChannel channel, HttpProtocol service )
+		CommChannel channel, Protocol protocol )
 		throws IOException {
 		try {
-			service.send_internal( ostream, message, istream );
+			protocol.send_internal( ostream, message, istream );
 		} catch( IOException e ) {
 			if( inInputPort && channel.isOpen() ) {
 				HttpUtils.errorGenerator( ostream, e );
