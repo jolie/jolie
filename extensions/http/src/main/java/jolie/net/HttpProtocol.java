@@ -92,7 +92,7 @@ import java.util.regex.Pattern;
  * @author Fabrizio Montesi 14 Nov 2012 - Saverio Giallorenzo - Fabrizio Montesi: support for status
  *         codes
  */
-public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol {
+public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 	private final Transformer transformer;
 	private final DocumentBuilder docBuilder;
 	private final URI uri;

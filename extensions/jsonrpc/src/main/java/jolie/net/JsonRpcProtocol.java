@@ -40,7 +40,7 @@ import java.util.Map.Entry;
  *
  *         2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
  */
-public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol {
+public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils.Protocol {
 	private final URI uri;
 	private final Interpreter interpreter;
 	private final boolean inInputPort;

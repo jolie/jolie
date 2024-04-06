@@ -139,7 +139,7 @@ import jolie.tracer.ProtocolTraceAction;
  *         Montesi: initial support for WSDL documents.
  *
  */
-public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol {
+public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Protocol {
 	private String inputId = null;
 	private final Interpreter interpreter;
 	private final MessageFactory messageFactory;
