@@ -49,11 +49,13 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 		// return remoteChannel.recv();
 	}
 
+	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException {
 		return remoteChannel.recvResponseFor( request );
 	}
 
+	@Override
 	public boolean isReady()
 		throws IOException {
 		return remoteChannel.isReady();

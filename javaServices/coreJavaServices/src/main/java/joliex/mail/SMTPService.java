@@ -116,20 +116,24 @@ public class SMTPService extends JavaService {
 			final String contentType = type;
 
 			DataHandler dh = new DataHandler( new DataSource() {
+				@Override
 				public InputStream getInputStream()
 					throws IOException {
 					return new ByteArrayInputStream( contentText.getBytes() );
 				}
 
+				@Override
 				public OutputStream getOutputStream()
 					throws IOException {
 					throw new IOException( "Operation not supported" );
 				}
 
+				@Override
 				public String getContentType() {
 					return contentType;
 				}
 
+				@Override
 				public String getName() {
 					return "mail attachment";
 				}
@@ -156,20 +160,24 @@ public class SMTPService extends JavaService {
 					final byte[] content = request.getChildren( "attachment" ).get( counter ).getFirstChild( "content" )
 						.byteArrayValue().getBytes();
 					dh = new DataHandler( new DataSource() {
+						@Override
 						public InputStream getInputStream()
 							throws IOException {
 							return new ByteArrayInputStream( content );
 						}
 
+						@Override
 						public OutputStream getOutputStream()
 							throws IOException {
 							throw new IOException( "Operation not supported" );
 						}
 
+						@Override
 						public String getContentType() {
 							return contentTypeMulti;
 						}
 
+						@Override
 						public String getName() {
 							return "mail attachemt";
 						}

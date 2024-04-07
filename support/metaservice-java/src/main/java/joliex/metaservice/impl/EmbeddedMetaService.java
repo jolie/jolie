@@ -115,10 +115,12 @@ public class EmbeddedMetaService extends MetaService {
 		}
 	}
 
+	@Override
 	protected CommChannel createCommChannel() {
 		return interpreter.commCore().getLocalCommChannel();
 	}
 
+	@Override
 	public MetaServiceChannel getChannel() {
 		return channel;
 	}
