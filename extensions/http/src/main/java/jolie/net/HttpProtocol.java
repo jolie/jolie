@@ -893,11 +893,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 			encodedContent.contentType = contentType;
 		}
 
-		// message's body in string format needed for the monitoring
-		String bodyMessageString =
-			encodedContent != null && encodedContent.content != null ? encodedContent.content.toString( charset ) : "";
+		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
+		headerBuilder.append( HttpUtils.CRLF );
 
 		if( Interpreter.getInstance().isMonitoring() ) {
+			// message's body in string format needed for the monitoring
+			String bodyMessageString =
+				encodedContent.content != null ? encodedContent.content.toString( charset ) : "";
+
 			Interpreter.getInstance().fireMonitorEvent(
 				new ProtocolMessageEvent(
 					bodyMessageString,
@@ -906,9 +909,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 					Long.toString( message.id() ),
 					ProtocolMessageEvent.Protocol.HTTP ) );
 		}
-
-		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
-		headerBuilder.append( HttpUtils.CRLF );
 
 		send_logDebugInfo( headerBuilder, encodedContent, charset );
 
