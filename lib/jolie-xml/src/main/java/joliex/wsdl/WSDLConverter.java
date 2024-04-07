@@ -102,16 +102,19 @@ public class WSDLConverter {
 		transformerFactory = TransformerFactory.newInstance();
 		schemaParser = new XSOMParser();
 		schemaParser.setErrorHandler( new ErrorHandler() {
+			@Override
 			public void warning( SAXParseException exception )
 				throws SAXException {
 				throw new SAXException( exception );
 			}
 
+			@Override
 			public void error( SAXParseException exception )
 				throws SAXException {
 				throw new SAXException( exception );
 			}
 
+			@Override
 			public void fatalError( SAXParseException exception )
 				throws SAXException {
 				throw new SAXException( exception );

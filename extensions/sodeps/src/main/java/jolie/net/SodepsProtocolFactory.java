@@ -37,6 +37,7 @@ public class SodepsProtocolFactory extends CommProtocolFactory {
 		super( commCore );
 	}
 
+	@Override
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		return new SSLProtocol(
@@ -46,6 +47,7 @@ public class SodepsProtocolFactory extends CommProtocolFactory {
 			false );
 	}
 
+	@Override
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		return new SSLProtocol(
