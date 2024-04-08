@@ -31,10 +31,12 @@ public class UndefProcess implements Process {
 		this.varPath = varPath;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new UndefProcess( (VariablePath) varPath.cloneExpression( reason ) );
 	}
 
+	@Override
 	public void run() {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
@@ -42,6 +44,7 @@ public class UndefProcess implements Process {
 		varPath.undef();
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

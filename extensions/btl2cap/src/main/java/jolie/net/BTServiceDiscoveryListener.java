@@ -37,6 +37,7 @@ public class BTServiceDiscoveryListener implements DiscoveryListener {
 		this.uuid = uuid;
 	}
 
+	@Override
 	public void deviceDiscovered( RemoteDevice btDevice, DeviceClass cod ) {}
 
 	public ServiceRecord getResult() {
@@ -51,8 +52,10 @@ public class BTServiceDiscoveryListener implements DiscoveryListener {
 		return serviceRecord;
 	}
 
+	@Override
 	public void inquiryCompleted( int discType ) {}
 
+	@Override
 	@SuppressWarnings( "unchecked" )
 	public void servicesDiscovered( int transID, ServiceRecord[] serviceRecords ) {
 		DataElement e;
@@ -85,6 +88,7 @@ public class BTServiceDiscoveryListener implements DiscoveryListener {
 		}
 	}
 
+	@Override
 	public void serviceSearchCompleted( int transID, int respCode ) {
 		synchronized( this ) {
 			completed = true;

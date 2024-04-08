@@ -37,6 +37,7 @@ public class LocalListenerFactory extends CommListenerFactory {
 			ConcurrentHashMap::new );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private static Map< String, LocalListener > locationToListener() {
 		return StaticUtils.retrieve( LocalListenerFactory.class, Map.class );
 	}

@@ -37,7 +37,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * Find a value named "name" in the array of scopes in reverse order.
 	 * 
 	 * @param name the variable name
-	 * @param scopes the ordered list of scopes
+	 * @param scopes0 the ordered list of scopes
 	 * @return a wrapper that can be used to extract a value
 	 */
 	public Wrapper find( String name, List< Object > scopes0 ) {

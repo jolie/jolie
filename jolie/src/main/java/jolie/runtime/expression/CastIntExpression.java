@@ -32,10 +32,12 @@ public class CastIntExpression implements Expression {
 		this.expression = expression;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new CastIntExpression( expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Value evaluate() {
 		return Value.create( expression.evaluate().intValue() );
 	}

@@ -52,6 +52,7 @@ public class Reflection extends JavaService {
 		RequestResponseTypeDescription desc )
 		throws FaultException, InterruptedException {
 		Value ret = Value.create();
+		@SuppressWarnings( "unchecked" )
 		jolie.process.Process p = new SolicitResponseProcess(
 			operationName,
 			port,

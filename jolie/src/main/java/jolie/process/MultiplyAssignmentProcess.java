@@ -49,12 +49,14 @@ public class MultiplyAssignmentProcess implements Process, Expression {
 		this.expression = expression;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new MultiplyAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new MultiplyAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
@@ -62,6 +64,7 @@ public class MultiplyAssignmentProcess implements Process, Expression {
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
+	@Override
 	public void run() {
 		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
@@ -69,12 +72,14 @@ public class MultiplyAssignmentProcess implements Process, Expression {
 		varPath.getValue().multiply( expression.evaluate() );
 	}
 
+	@Override
 	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.multiply( expression.evaluate() );
 		return val;
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

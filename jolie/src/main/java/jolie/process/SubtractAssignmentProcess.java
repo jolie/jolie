@@ -52,12 +52,14 @@ public class SubtractAssignmentProcess implements Process, Expression {
 		this.context = context;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
 			expression.cloneExpression( reason ), context );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new SubtractAssignmentProcess(
 			(VariablePath) varPath.cloneExpression( reason ),
@@ -65,6 +67,7 @@ public class SubtractAssignmentProcess implements Process, Expression {
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
+	@Override
 	public void run() {
 		if( ExecutionThread.currentThread().isKilled() ) {
 			return;
@@ -73,12 +76,14 @@ public class SubtractAssignmentProcess implements Process, Expression {
 		varPath.getValue().subtract( expression.evaluate() );
 	}
 
+	@Override
 	public Value evaluate() {
 		Value val = varPath.getValue();
 		val.subtract( expression.evaluate() );
 		return val;
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

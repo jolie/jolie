@@ -75,7 +75,7 @@ public class QueueUtils extends JavaService {
 		String queue_key = request.getFirstChild( "queue_name" ).strValue();
 		if( has_queue( queue_key ) ) {
 			Value element = request.getFirstChild( "element" );
-			LinkedList queue = queueMap.get( queue_key );
+			LinkedList< Value > queue = queueMap.get( queue_key );
 			queue.offerLast( element );
 			return true;
 		} else {
@@ -120,7 +120,7 @@ public class QueueUtils extends JavaService {
 	public Integer size( String queue_name ) {
 		Integer queue_size = null;
 		if( has_queue( queue_name ) ) {
-			LinkedList queue = queueMap.get( queue_name );
+			LinkedList< Value > queue = queueMap.get( queue_name );
 			queue_size = queue.size();
 		}
 		return queue_size;

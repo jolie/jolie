@@ -59,6 +59,7 @@ public class SolicitResponseProcess implements Process {
 		this.context = context;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new SolicitResponseProcess(
 			operationId,
@@ -70,6 +71,7 @@ public class SolicitResponseProcess implements Process {
 			context );
 	}
 
+	@Override
 	public void run()
 		throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() ) {
@@ -98,6 +100,7 @@ public class SolicitResponseProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

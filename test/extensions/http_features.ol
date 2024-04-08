@@ -86,6 +86,14 @@ define doTest
 			checkResponse2;
 			if ( statusCode != 200 ) { // OK
 				throw( TestFailed, "Wrong HTTP status code" )
+			};
+			consume@Server( reqVal )( );
+			if ( statusCode != 204 ) { // No Content
+				throw( TestFailed, "Wrong HTTP status code" )
+			};
+			consume2@Server( reqVal );
+			if ( statusCode != 204 ) { // No Content
+				throw( TestFailed, "Wrong HTTP status code" )
 			}
 		};
 
@@ -108,6 +116,36 @@ define doTest
 			}
 		};
 		if ( statusCode != 403 ) { // Forbidden
+			throw( TestFailed, "Wrong HTTP status code" )
+		};
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			consume@Server( reqVal )( )
+		};
+		if ( statusCode != 403 ) { // Forbidden
+			throw( TestFailed, "Wrong HTTP status code" )
+		};
+		/* not possible yet since for One-Way operations we may not change the return status code
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			consume2@Server( reqVal )
+		};
+		if ( statusCode != 403 ) { // Forbidden
+			throw( TestFailed, "Wrong HTTP status code" )
+		};
+		*/
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			illegalStatusCode@Server( )( )
+		};
+		if ( statusCode != 500 ) { // Internal Server Error
+			throw( TestFailed, "Wrong HTTP status code" )
+		};
+		scope( s ) {
+			install( TypeMismatch => nullProcess );
+			illegalRedirectNoLocation@Server( )( )
+		};
+		if ( statusCode != 500 ) { // Internal Server Error
 			throw( TestFailed, "Wrong HTTP status code" )
 		};
 

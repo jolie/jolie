@@ -33,6 +33,7 @@ public abstract class ConcurrentCommProtocol extends CommProtocol {
 		super( configurationPath );
 	}
 
+	@Override
 	public final boolean isThreadSafe() {
 		return true;
 	}

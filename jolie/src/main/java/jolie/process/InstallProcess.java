@@ -36,10 +36,12 @@ public class InstallProcess implements Process {
 		this.pairs = pairs;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new InstallProcess( pairs );
 	}
 
+	@Override
 	public void run() {
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Pair< String, Process > pair : pairs ) {
@@ -52,6 +54,7 @@ public class InstallProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return false;
 	}

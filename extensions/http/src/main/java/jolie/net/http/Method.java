@@ -37,6 +37,7 @@ public enum Method {
 		for( Method type : Method.values() ) {
 			ID_MAP.put( type.id(), type );
 		}
+		ID_MAP.put( "HEAD", GET ); // RFC 9110 section 9.3.2
 	}
 
 	private final String id;

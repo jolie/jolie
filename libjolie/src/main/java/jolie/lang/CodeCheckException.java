@@ -49,6 +49,7 @@ public class CodeCheckException extends Exception {
 	/**
 	 * Returns a string containing all CodeCheckMessages from the CodeCheckException
 	 */
+	@Override
 	public String getMessage() {
 		Iterator< CodeCheckMessage > iterator = messageList.iterator();
 		StringBuilder messageString = new StringBuilder();

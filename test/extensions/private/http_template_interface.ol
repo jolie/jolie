@@ -19,6 +19,10 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+type UnauthorizedException:void{
+    Unauthorized:string
+}
+
 type Order:void{
     id:string
     ammount:double
@@ -44,14 +48,13 @@ type AddOrderRequest:void{
     ammount:double
 }
 
-type AddOrderResponse:void
-
+type AddOrderResponse:undefined|UnauthorizedException // "undefined" for resp headers
 
 interface HttpTemplateInterface{
     RequestResponse:
 
-    getOrders(GetOrdersRequest)(GetOrdersResponse),
-    getOrder(GetOrderRequest)( GetOrderResponse),
-    addOrder(AddOrderRequest)(AddOrderResponse),
-
+    getOrders(GetOrdersRequest)(GetOrdersResponse) throws Unauthorized,
+    getOrder(GetOrderRequest)(GetOrderResponse) throws Unauthorized,
+    addOrder(AddOrderRequest)(AddOrderResponse) throws Unauthorized,
+    notExisting(void)(void) // invalid call
 }

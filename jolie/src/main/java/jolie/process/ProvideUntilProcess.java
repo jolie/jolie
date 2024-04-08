@@ -52,11 +52,13 @@ public class ProvideUntilProcess implements Process {
 		this.inputOperationsMap = Collections.unmodifiableMap( mutOperationsMap );
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ProvideUntilProcess( (NDChoiceProcess) provide.copy( reason ),
 			(NDChoiceProcess) until.copy( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		ExecutionThread ethread = ExecutionThread.currentThread();
@@ -85,6 +87,7 @@ public class ProvideUntilProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

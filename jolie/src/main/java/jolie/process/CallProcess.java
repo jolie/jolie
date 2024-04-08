@@ -45,11 +45,13 @@ public class CallProcess implements Process {
 		this.definitionName = definitionName;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new CallProcess( definitionName );
 	}
 
 	/** Executes the definition. */
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		try {
@@ -60,6 +62,7 @@ public class CallProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		try {
 			DefinitionProcess definition = Interpreter.getInstance().getDefinition( definitionName );

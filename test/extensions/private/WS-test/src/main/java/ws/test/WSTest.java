@@ -65,7 +65,7 @@ public class WSTest extends JavaService {
 
 	@RequestResponse
 	public void start( String url ) {
-		url = url.length() > 0 ? url : "http://localhost:14000/";
+		url = !url.isEmpty() ? url : "http://localhost:14000/";
 		e = Endpoint.publish( url, new WSTest() );
 	}
 

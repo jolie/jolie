@@ -49,7 +49,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
@@ -234,14 +233,9 @@ public class FileService extends JavaService {
 		} else {
 			properties.load( new InputStreamReader( istream, charset ) );
 		}
-		Enumeration< String > names = (Enumeration< String >) properties.propertyNames();
-		String name;
-		String propertyValue;
-		Matcher matcher;
-		while( names.hasMoreElements() ) {
-			name = names.nextElement();
-			propertyValue = properties.getProperty( name );
-			matcher = FILE_KEYWORD_PATTERN.matcher( propertyValue );
+		for( String name : properties.stringPropertyNames() ) {
+			String propertyValue = properties.getProperty( name );
+			Matcher matcher = FILE_KEYWORD_PATTERN.matcher( propertyValue );
 			if( matcher.matches() ) {
 				if( matcher.group( 1 ).length() > 1 ) { // The number of #
 					propertyValue = propertyValue.substring( 1 );

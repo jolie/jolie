@@ -53,7 +53,7 @@ public class UriUtils {
 	}
 
 	public static String resolve( String context, String target ) {
-		if( "".equals( context ) ) {
+		if( context.isEmpty() ) {
 			return target;
 		}
 

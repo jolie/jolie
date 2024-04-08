@@ -107,15 +107,18 @@ public class ScopeProcess implements Process {
 		this( id, process, true );
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ScopeProcess( id, process.copy( reason ), autoPop );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		(new Execution( this )).run();
 	}
 
+	@Override
 	public boolean isKillable() {
 		return process.isKillable();
 	}

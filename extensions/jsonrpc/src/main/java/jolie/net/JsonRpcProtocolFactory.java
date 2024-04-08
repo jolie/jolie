@@ -34,12 +34,14 @@ public class JsonRpcProtocolFactory extends CommProtocolFactory {
 		super( commCore );
 	}
 
+	@Override
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		return new JsonRpcProtocol( configurationPath, location,
 			commCore().interpreter(), false );
 	}
 
+	@Override
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		return new JsonRpcProtocol( configurationPath, location,

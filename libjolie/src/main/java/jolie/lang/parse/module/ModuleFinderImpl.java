@@ -35,7 +35,7 @@ import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 public class ModuleFinderImpl implements ModuleFinder {
 
-	private class ModuleLookUpTarget {
+	private static class ModuleLookUpTarget {
 		private final Path basePath;
 		private final ImportPath importPath;
 
@@ -64,6 +64,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 			.toArray( Path[]::new );
 	}
 
+	@Override
 	public ModuleSource find( URI source, ImportPath importPath ) throws ModuleNotFoundException {
 		Path parentPath =
 			Files.isRegularFile( Paths.get( source ) ) ? Paths.get( source ).getParent()

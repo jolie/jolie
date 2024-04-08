@@ -284,9 +284,9 @@ public class JavaGWTDocumentCreator {
 	private void ConvertSubTypes( TypeDefinition typeDefinition, StringBuilder builderHeaderclass ) {
 		Set< Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 		for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-			if( (((Entry) stringTypeDefinitionEntry).getValue() instanceof TypeInlineDefinition)
-				&& (Utils.hasSubTypes( ((TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue()) )) ) {
-				convertClass( (TypeDefinition) ((Entry) stringTypeDefinitionEntry).getValue(), builderHeaderclass );
+			if( (stringTypeDefinitionEntry.getValue() instanceof TypeInlineDefinition)
+				&& (Utils.hasSubTypes( stringTypeDefinitionEntry.getValue() )) ) {
+				convertClass( stringTypeDefinitionEntry.getValue(), builderHeaderclass );
 			}
 		}
 
@@ -461,7 +461,7 @@ public class JavaGWTDocumentCreator {
 
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
@@ -636,7 +636,7 @@ public class JavaGWTDocumentCreator {
 
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
@@ -687,7 +687,7 @@ public class JavaGWTDocumentCreator {
 		if( Utils.hasSubTypes( type ) ) {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( type );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 				if( subType instanceof TypeDefinitionLink ) {
 					// link
 					if( subType.cardinality().max() > 1 ) {
@@ -821,7 +821,7 @@ public class JavaGWTDocumentCreator {
 
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 
-				TypeDefinition subType = (TypeDefinition) (((Entry) stringTypeDefinitionEntry).getValue());
+				TypeDefinition subType = stringTypeDefinitionEntry.getValue();
 
 				String nameVariable = subType.name();
 				String startingChar = nameVariable.substring( 0, 1 );
@@ -981,14 +981,14 @@ public class JavaGWTDocumentCreator {
 			Set< Map.Entry< String, TypeDefinition > > supportSet = Utils.subTypes( typeDefinition );
 			for( Entry< String, TypeDefinition > stringTypeDefinitionEntry : supportSet ) {
 
-				if( ((Entry) stringTypeDefinitionEntry).getValue() instanceof TypeDefinitionLink ) {
+				if( stringTypeDefinitionEntry.getValue() instanceof TypeDefinitionLink ) {
 					if( !subTypeMap.containsKey(
-						((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName() ) ) {
+						((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedTypeName() ) ) {
 						subTypeMap.put(
-							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedTypeName(),
-							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
+							((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedTypeName(),
+							((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedType() );
 						parseSubType(
-							((TypeDefinitionLink) ((Entry) stringTypeDefinitionEntry).getValue()).linkedType() );
+							((TypeDefinitionLink) stringTypeDefinitionEntry.getValue()).linkedType() );
 					}
 				}
 			}

@@ -33,10 +33,12 @@ public class IsBoolExpression implements Expression {
 		this.path = path;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new IsBoolExpression( path );
 	}
 
+	@Override
 	public Value evaluate() {
 		Value value = path.getValueOrNull();
 		return Value.create( value != null && value.isBool() );

@@ -173,6 +173,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	 * parameter add_attribute: void { .envelope: void { .attribute*: Attribute } .operation*: void {
 	 * .operation_name: string .attribute: Attribute } }
 	 */
+	@Override
 	public String name() {
 		return "soap";
 	}
@@ -209,6 +210,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void parseWSDLTypes( XSOMParser schemaParser )
 		throws IOException {
 		Definition definition = getWSDLDefinition();
@@ -531,6 +533,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return wsdlDefinition;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String getSoapActionForOperation( String operationName )
 		throws IOException {
 		String soapAction = null;
@@ -550,6 +553,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return soapAction;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private Port getWSDLPort()
 		throws IOException {
 		Port port = wsdlPort;
@@ -570,6 +574,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return port;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String getOutputMessageRootElementName( String operationName )
 		throws IOException {
 		String elementName = operationName + ((received) ? "Response" : "");
@@ -611,6 +616,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return elementName;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String getOutputMessageNamespace( String operationName )
 		throws IOException {
 		String messageNamespace = "";
@@ -657,6 +663,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return messageNamespace;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private String[] getParameterOrder( String operationName )
 		throws IOException {
 		List< String > parameters = null;
@@ -670,6 +677,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return (parameters == null) ? null : parameters.toArray( new String[ 0 ] );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private void setOutputEncodingStyle( SOAPEnvelope soapEnvelope, String operationName )
 		throws IOException, SOAPException {
 		Port port = getWSDLPort();
@@ -694,6 +702,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
+	@Override
+	@SuppressWarnings( "unchecked" )
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 
@@ -1110,6 +1120,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
@@ -1204,11 +1215,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	 * ); try { return schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) ); }
 	 * catch( SAXException e ) { throw new IOException( e ); } }
 	 */
+	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
-		String charset = HttpUtils.getCharset( null, message );
+		String charset = HttpUtils.getResponseCharset( message );
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if( inInputPort && message.type() != HttpMessage.Type.POST ) {
@@ -1306,7 +1318,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					fault = new FaultException( "InternalServerError", "" );
 				}
 				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, inputId, resourcePath, value, fault );
-			} else if( !message.isError() ) {
+			} else {
 				if( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
@@ -1385,6 +1397,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return retVal;
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );

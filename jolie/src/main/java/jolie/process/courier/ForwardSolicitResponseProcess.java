@@ -71,6 +71,7 @@ public class ForwardSolicitResponseProcess implements Process {
 		this.context = context;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ForwardSolicitResponseProcess(
 			operationName,
@@ -92,6 +93,7 @@ public class ForwardSolicitResponseProcess implements Process {
 			context ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() ) {
@@ -173,6 +175,7 @@ public class ForwardSolicitResponseProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

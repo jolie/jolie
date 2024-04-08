@@ -133,30 +133,44 @@ define test
 {
 	echoPerson@SODEPServer( person )( response );
 	identity@SODEPServer( reqVal )( response2 );
+	consume@SODEPServer( reqVal )( );
+	consume2@SODEPServer( reqVal );
 	checkResponse;
 	echoPerson@SODEPSServer( person )( response );
 	identity@SODEPSServer( reqVal )( response2 );
+	consume@SODEPSServer( reqVal )( );
+	consume2@SODEPSServer( reqVal );
 	checkResponse;
 
 	echoPerson@SOAPServer( person )( response );
 	identity@SOAPServer( reqVal )( response2 );
+	consume@SOAPServer( reqVal )( );
+	consume2@SOAPServer( reqVal );
 	checkResponse;
 
 	echoPerson@JSONRPCServer( person )( response );
 	identity@JSONRPCServer( reqVal )( response2 );
+	consume@JSONRPCServer( reqVal )( );
+	consume2@JSONRPCServer( reqVal );
 	checkResponse;
 
 	method = "post";
 	format = "xml";
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
+	consume@HTTPServer( reqVal )( );
+	consume2@HTTPServer( reqVal );
 	checkResponse;
 	echoPerson@HTTPSServer( person )( response );
 	identity@HTTPSServer( reqVal )( response2 );
+	consume@HTTPSServer( reqVal )( );
+	consume2@HTTPSServer( reqVal );
 	checkResponse;
 	format = "json";
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
+	consume@HTTPServer( reqVal )( );
+	consume2@HTTPServer( reqVal );
 	checkResponse;
 	echoPerson@HTTPSServer( person )( response );
 	identity@HTTPSServer( reqVal )( response2 );
@@ -164,9 +178,13 @@ define test
 	method = "get"; // JSON-ified
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
+	consume@HTTPServer( reqVal )( );
+	consume2@HTTPServer( reqVal );
 	checkResponse;
 	echoPerson@HTTPSServer( person )( response );
 	identity@HTTPSServer( reqVal )( response2 );
+	consume@HTTPSServer( reqVal )( );
+	consume2@HTTPSServer( reqVal );
 	checkResponse
 }
 
