@@ -53,11 +53,11 @@ import jolie.runtime.embedding.RequestResponse;
 import joliex.db.impl.NamedStatementParser;
 
 /**
- * @author Fabrizio Montesi 2008 - Marco Montesi: defaultConnection string fix
- *         for Microsoft SQL
- *         Server (2009) - Claudio Guidi: added support for SQLite (2013) -
- *         Matthias Dieter
- *         Wallnöfer: added support for HSQLDB (2013)
+ * @author Fabrizio Montesi 2008 - Marco Montesi: connection string fix for
+ *         Microsoft SQL Server
+ *         (2009) - Claudio Guidi: added support for SQLite (2013) - Matthias
+ *         Dieter Wallnöfer:
+ *         added support for HSQLDB (2013)
  */
 @CanUseJars({
 		"derby.jar", // Java DB - Embedded
@@ -141,47 +141,49 @@ public class DatabaseService extends JavaService {
 		Optional<String> encoding = Optional
 				.ofNullable(request.hasChildren("encoding") ? request.getFirstChild("encoding").strValue() : null);
 		try {
-			switch (driver) {
-				case "postgresql":
-					driverClass = "org.postgresql.Driver";
-					break;
-				case "mysql":
-					driverClass = "com.mysql.jdbc.Driver";
-					break;
-				case "derby":
-					driverClass = "org.apache.derby.jdbc.ClientDriver";
-					break;
-				case "sqlite":
-					driverClass = "org.sqlite.JDBC";
-					isEmbedded = true;
-					break;
-				case "sqlserver":
-					driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-					separator = ";";
-					databaseName = "databaseName=" + databaseName;
-					break;
-				case "as400":
-					driverClass = "com.ibm.as400.access.AS400JDBCDriver";
-					break;
-				case "derby_embedded":
-					driverClass = "org.apache.derby.jdbc.EmbeddedDriver";
-					isEmbedded = true;
-					driver = "derby";
-					break;
-				case "hsqldb_embedded":
-					isEmbedded = true;
-					driver = "hsqldb";
-				case "hsqldb_hsql":
-				case "hsqldb_hsqls":
-				case "hsqldb_http":
-				case "hsqldb_https":
-					driverClass = "org.hsqldb.jdbc.JDBCDriver";
-					break;
-				case "db2":
-					driverClass = "com.ibm.db2.jcc.DB2Driver";
-					break;
-				default:
-					throw new FaultException("InvalidDriver", "Unknown type of driver: " + driver);
+			if (driverClass == null) {
+				switch (driver) {
+					case "postgresql":
+						driverClass = "org.postgresql.Driver";
+						break;
+					case "mysql":
+						driverClass = "com.mysql.jdbc.Driver";
+						break;
+					case "derby":
+						driverClass = "org.apache.derby.jdbc.ClientDriver";
+						break;
+					case "sqlite":
+						driverClass = "org.sqlite.JDBC";
+						isEmbedded = true;
+						break;
+					case "sqlserver":
+						driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+						separator = ";";
+						databaseName = "databaseName=" + databaseName;
+						break;
+					case "as400":
+						driverClass = "com.ibm.as400.access.AS400JDBCDriver";
+						break;
+					case "derby_embedded":
+						driverClass = "org.apache.derby.jdbc.EmbeddedDriver";
+						isEmbedded = true;
+						driver = "derby";
+						break;
+					case "hsqldb_embedded":
+						isEmbedded = true;
+						driver = "hsqldb";
+					case "hsqldb_hsql":
+					case "hsqldb_hsqls":
+					case "hsqldb_http":
+					case "hsqldb_https":
+						driverClass = "org.hsqldb.jdbc.JDBCDriver";
+						break;
+					case "db2":
+						driverClass = "com.ibm.db2.jcc.DB2Driver";
+						break;
+					default:
+						throw new FaultException("InvalidDriver", "Unknown type of driver: " + driver);
+				}
 			}
 			Class.forName(driverClass);
 
