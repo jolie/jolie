@@ -339,12 +339,22 @@ public class CommandLineParser implements AutoCloseable {
 			} else if( "--connlimit".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
-				cLimit = Integer.parseInt( argsList.get( i ) );
+				try {
+					cLimit = Integer.parseInt( argsList.get( i ) );
+				} catch( Exception e ) {
+					throw new CommandLineException(
+						"The number specified for cLimit (" + argsList.get( i ) + ") is not allowed" );
+				}
 				optionsList.add( argsList.get( i ) );
 			} else if( "--responseTimeout".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
-				rTimeout = Long.parseLong( argsList.get( i ) );
+				try {
+					rTimeout = Long.parseLong( argsList.get( i ) );
+				} catch( Exception e ) {
+					throw new CommandLineException(
+						"The number specified for rTimeout (" + argsList.get( i ) + ") is not allowed" );
+				}
 				optionsList.add( argsList.get( i ) );
 			} else if( "--correlationAlgorithm".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
