@@ -79,8 +79,7 @@ public class TypeFactory {
     }
 
     private JolieType parseChoice( Supplier<String> nameSupplier, TypeChoiceDefinition choiceDefinition ) {
-        final String name = nameSupplier.get();
-        return new Choice.Inline( name, createOptions( choiceDefinition, name, new AtomicInteger() ) );
+        return new Choice.Inline( nameSupplier.get(), createOptions( choiceDefinition, new AtomicInteger() ) );
     }
 
     private JolieType parseLink( TypeDefinitionLink linkDefinition ) {
@@ -107,7 +106,7 @@ public class TypeFactory {
     private List<Structure.Field> createFields( TypeInlineDefinition inlineDefinition ) {
         return EntryStream.of( inlineDefinition.subTypes().stream() )
             .parallel()
-            .mapKeys( NameFormatter::cleanName )
+            .mapKeys( NameFormatter::cleanFieldName )
             .chain( s -> EntryStream.of( s.grouping() ).parallel() )
             .flatMapKeyValue( (n, tds) -> tds.stream().map( td -> parseField( NameFormatter.getFieldName( n, td.name(), tds.size() == 1 ), td ) ) )
             .toList();
@@ -127,7 +126,7 @@ public class TypeFactory {
         );
     }
 
-    private List<Choice.Option> createOptions( TypeChoiceDefinition choiceDefinition, String name, AtomicInteger structureCount ) {
+    private List<Choice.Option> createOptions( TypeChoiceDefinition choiceDefinition, AtomicInteger structureCount ) {
         return unfoldChoice( choiceDefinition )
             .sequential()
             .map( td -> switch ( td ) {

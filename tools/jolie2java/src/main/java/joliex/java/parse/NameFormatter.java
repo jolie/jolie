@@ -15,13 +15,11 @@ import org.apache.commons.lang3.StringUtils;
 
 public class NameFormatter {
 
-    private static final Logger logger = Logger.getLogger( NameFormatter.class.getName() );
+    private static final Logger LOGGER = Logger.getLogger( NameFormatter.class.getName() );
 
     private static final Set<String> RESERVED_NAMES = Set.of(
-        "root",
+        "content",
         "children",
-        "jolieRepr",
-        "rootValue",
         "construct",
         "constructList"
     );
@@ -41,9 +39,8 @@ public class NameFormatter {
         "BinaryOperator",
         "Stream",
         "Collectors",
-        "JolieType",
-        "StructureType",
-        "BasicType",
+        "JolieValue",
+        "JolieNative",
         "JolieVoid",
         "Void",
         "JolieBool",
@@ -74,19 +71,19 @@ public class NameFormatter {
         "ConversionFunction"
     );
 
-    private static final String regenerateMessage = "As it wasn't possible to assign it a name, the field will not be accessible in a type-safe way, and it is therefore recommended to resolve the naming issues and then generate the classes again.";
+    private static final String REGEN_MSG = "As it wasn't possible to assign it a name, the field will not be accessible in a type-safe way, and it is therefore recommended to resolve the naming issues and then generate the classes again.";
 
     public static String getFieldName( String formattedName, String originalName, boolean isUnique ) {
         if ( formattedName.isEmpty() ) {
-            logger.warning( "Removing reserved characters from the field \"" + originalName + "\" left it blank and it was therefore not possible to assign it a name. " + regenerateMessage );
+            LOGGER.warning( "Removing reserved characters from the field \"" + originalName + "\" left it blank and it was therefore not possible to assign it a name. " + REGEN_MSG );
             return null;
         }
         if ( !isUnique && !originalName.equals( formattedName ) ) {
-            logger.warning( "Removing reserved characters from the field \"" + originalName + "\", resulting in the name: \"" + formattedName + "\", created a conflict with another field's name and it was therefore not possible to assign it a name. " + regenerateMessage );
+            LOGGER.warning( "Removing reserved characters from the field \"" + originalName + "\", resulting in the name: \"" + formattedName + "\", created a conflict with another field's name and it was therefore not possible to assign it a name. " + REGEN_MSG );
             return null;
         }
         if ( SourceVersion.isKeyword( formattedName ) || RESERVED_NAMES.contains( formattedName ) ) {
-            logger.warning( "Attempted to give the field \"" + originalName + "\" the name: \"" + formattedName + "\", but said name conflicts with a reserved name and it was therefore not possible to assign it a name. " + regenerateMessage );
+            LOGGER.warning( "Attempted to give the field \"" + originalName + "\" the name: \"" + formattedName + "\", but said name conflicts with a reserved name and it was therefore not possible to assign it a name. " + REGEN_MSG );
             return null;
         }
 
@@ -107,7 +104,7 @@ public class NameFormatter {
         }
 
         if ( formattedName.startsWith( "Custom" ) )
-            logger.warning( "Having types with names like \"" + name + "\", which is given the class name \"" + formattedName + "\", that has \"Custom\" as a prefix is not recommended, as this prefix is used to handle naming conflicts." );
+            LOGGER.warning( "Having types with names like \"" + name + "\", which is given the class name \"" + formattedName + "\", that has \"Custom\" as a prefix is not recommended, as this prefix is used to handle naming conflicts." );
 
         return formattedName;
     }
@@ -125,7 +122,7 @@ public class NameFormatter {
         };
     }
 
-    public static String cleanName( String name ) { return name.replaceAll( "\\W", "" ); }
+    public static String cleanFieldName( String name ) { return StringUtils.uncapitalize( name.replaceAll( "\\W", "" ) ); }
 
     public static Supplier<String> typeClassNameSupplier( String name ) { return () -> getTypeClassName( name ); }
 }
