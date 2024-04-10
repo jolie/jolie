@@ -1,0 +1,23 @@
+{
+  "test": "test",
+  "params": {
+    "testMath.ol": [
+      {
+        "name": "main",
+        "params": {}
+      }
+    ],
+    "testTime.ol": [
+      {
+        "name": "main",
+        "params": {}
+      }
+    ],
+    "testStringUtils.ol": [
+      {
+        "name": "main",
+        "params": {}
+      }
+    ]
+  }
+}

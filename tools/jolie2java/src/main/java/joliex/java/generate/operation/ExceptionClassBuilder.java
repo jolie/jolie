@@ -1,7 +1,5 @@
 package joliex.java.generate.operation;
 
-import java.util.ArrayList;
-import java.util.ListIterator;
 import java.util.Optional;
 
 import joliex.java.generate.JavaClassBuilder;
@@ -154,18 +152,22 @@ public abstract class ExceptionClassBuilder extends JavaClassBuilder {
         }
 
         private void appendOptionMethods( Choice choice ) {
-            final ArrayList<String> structureNames = new ArrayList<>();
-
-            choice.numberedOptions().forKeyValue( (i,t) -> {
-                appendExtraConstructor( switch( t ) { case Native n -> n == Native.VOID ? null : n.valueName(); case Definition d -> d.name(); }, "faultOption", choice.name(), String.valueOf( i ) );
-
-                if ( t instanceof Structure s )
-                    structureNames.add( s.name() );
-            } );
-
-            final ListIterator<String> it = structureNames.listIterator();
-            while ( it.hasNext() )
-                appendBuilderMethods( it.next(), String.valueOf( it.nextIndex() ) );
+            choice.numberedOptions()
+                .mapValues( t -> switch( t ) { 
+                    case Native n -> n == Native.VOID ? null : n.valueName(); 
+                    case Structure.Inline s -> choice.name() + "." + s.name(); 
+                    case Definition d -> d.name(); 
+                } )
+                .distinctValues()
+                .forKeyValue( (i,n) -> appendExtraConstructor( n, "faultOption", choice.name(), String.valueOf( i ) ) );
+            
+            choice.numberedOptions()
+                .mapToValuePartial( (i,t) -> Optional.ofNullable( switch ( t ) { 
+                    case Structure.Inline si -> choice.name() + "." + si.name();
+                    case Structure.Link sl -> sl.name();
+                    default -> null;
+                } ) )
+                .forKeyValue( (i,n) -> appendBuilderMethods( n, String.valueOf( i ) ) );
         }
 
         private void appendExtraConstructor( String paramType, String paramName, String wrapperClass, String createPostfix ) {

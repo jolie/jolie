@@ -88,6 +88,6 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
             .append( "                  [ --outputDirectory <path> (default=\"" ).append( JavaDocumentCreator.DEFAULT_OUTPUT_DIRECTORY ).append( "\") ]" ).append( "\n" )
             .append( "                  [ --generateService <true|false> (default=true) ]" ).append( "\n" )
             .append( "                  [ --serviceName <name> (default=\"" ).append( JavaDocumentCreator.DEFAULT_SERVICE_NAME ).append( "\") ]" ).append( "\n" )
-            .append( "                  <file.ol>" ).toString();
+            .append( "                  <file>" ).toString();
     }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "newJavaServices",
+  "version": "0.0.0",
+  "description": "",
+  "repo": "",
+  "keywords": [],
+  "author": "jolie",
+  "license": "ISC",
+  "scripts": {
+    "test": "jot jot.json"
+  },
+  "devDependencies": {
+    "@jolie/jot": "*"
+  },
+  "jolie": {
+    "dependencies": {},
+    "maven": {
+      "dependencies": {},
+      "indirectDependencies": {}
+    }
+  }
+}

@@ -74,7 +74,7 @@ public class ServiceClassBuilder extends JavaClassBuilder {
     private void appendRequestUnpacking( JolieOperation operation ) {
         switch ( operation.request() ) {
 
-            case Native n -> { if ( n == Native.ANY ) builder.newlineAppend( "switch ( request )" ).body( this::appendAnyCases ); }
+            case Native n when n == Native.ANY -> builder.newlineAppend( "switch ( request )" ).body( this::appendAnyCases );
 
             case Choice c -> builder.newlineAppend( "switch ( request )" ).body( () -> appendChoiceCases( c ) );
 

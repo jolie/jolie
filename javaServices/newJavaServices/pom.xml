@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>org.jolie-lang</groupId>
+        <artifactId>distribution</artifactId>
+        <relativePath>../../pom.xml</relativePath>
+        <version>1.0.0</version>
+    </parent>
+
+    <groupId>org.jolie-lang</groupId>
+    <artifactId>newJavaServices</artifactId>
+    <version>${jolie.version}</version>
+    <packaging>jar</packaging>
+
+    <properties>
+		<!-- jar files destinations -->
+		<outDir>lib</outDir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
+	</properties>
+
+    <name>newJavaServices</name>
+    <description>New Java services.</description>
+
+    <build>
+		<plugins>
+			<!-- skip PMD since it doesn't support java 21 atm -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+			<!-- skip code formatting -->
+			<plugin>
+				<groupId>net.revelc.code.formatter</groupId>
+				<artifactId>formatter-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+                            <goal>copy</goal>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <destFileName>${project.artifactId}-${project.version}.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${outDir}</outputDirectory>
+							<includeScope>compile</includeScope>
+                            <excludeArtifactIds>jolie</excludeArtifactIds>
+                            <excludeTransitive>true</excludeTransitive>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>jolie</artifactId>
+            <version>${jolie.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>jolie2java</artifactId>
+            <version>${jolie.version}</version>
+        </dependency>
+    </dependencies>
+</project>
