@@ -21,11 +21,11 @@ In order to ensure everything works correctly it is recommended to run the follo
 
     mvn clean install
 
-in the content directory in order to ensure that not only jolie2java, but also all the modules that might be required by it are installed and available. 
+in the main directory of the repository in order to ensure that not only jolie2java, but also all the modules that might be required by it, are installed and available. 
 
 ### Usage
 
-In order to easily access the tool it is recommended to work in the devcontainer provided in the content of the repository, at which point the tool can be used with the following command:
+In order to easily access the tool it is recommended to work in the devcontainer provided by the repository, from within which the tool can be used with the following command:
 
     jolie2java --packageName <package>
                [ --typesPackage <package> (default="types" ) ]
@@ -36,7 +36,7 @@ In order to easily access the tool it is recommended to work in the devcontainer
                [ --serviceName <name> (default="MainService") ] 
                <file>
 
-where **file** should be either a .ol or .iol file. Alternatively, if you aren't using the devcontainer, you can access the tool by replacing **jolie2java** with **java -jar /PATH/TO/jolie2java2.jar** in the above example.
+where **file** should be either a .ol or .iol file. Alternatively, if you aren't using the devcontainer, you can access the tool by replacing **jolie2java** with the path to the appropriate executable in the **launchers** directory of the repository in the above example.
 
 
 ## Documentation
