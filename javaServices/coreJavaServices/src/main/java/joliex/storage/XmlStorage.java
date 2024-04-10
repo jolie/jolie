@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.file.FileAlreadyExistsException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -68,8 +69,10 @@ public class XmlStorage extends AbstractStorageService {
 		throws FaultException {
 		try {
 			xmlFile = new File( request.getFirstChild( "filename" ).strValue() );
-			if( xmlFile.exists() == false ) {
-				xmlFile.createNewFile();
+			if( !xmlFile.exists() ) {
+				if( !xmlFile.createNewFile() ) {
+					throw new FileAlreadyExistsException( xmlFile.getAbsolutePath() );
+				}
 				valueToFile( Value.create() );
 			}
 
