@@ -45,7 +45,7 @@ public class StructureClassBuilder extends TypeClassBuilder {
             .codeBlock( this::appendStructureDocumentation )
             .newline();
 
-        StreamEx.of( "JolieType", "StructureType", "BasicType" )
+        StreamEx.of( "JolieValue", "JolieNative" )
             .append( 
                 structure.fields()
                     .parallelStream()
@@ -59,7 +59,7 @@ public class StructureClassBuilder extends TypeClassBuilder {
     }
 
     private void appendStructureDocumentation() {
-        builder.newlineAppend( "root: {@link " ).append( structure.nativeType().valueName() ).append( "}" ).append( structure.possibleRefinement().map( r -> "( " + r.definitionString() + " )" ).orElse( "" ) ).append( structure.fields().isEmpty() ? " { ? }" : "" );
+        builder.newlineAppend( "content: {@link " ).append( structure.nativeType().valueName() ).append( "}" ).append( structure.possibleRefinement().map( r -> "( " + r.definitionString() + " )" ).orElse( "" ) ).append( structure.fields().isEmpty() ? " { ? }" : "" );
 
         structure.fields().forEach( field ->  
             builder.indentedNewlineAppend( field.possibleName().map( n -> field.key().equals( n ) ? n : n + "(\"" + field.key() + "\")" ).orElse( "\"" + field.key() + "\"" ) ).append( field.min() != 1 || field.max() != 1 ? "[" + field.min() + "," + field.max() + "]" : "" ).append( ": {@link " ).append( field.typeName().replaceAll( "<.*>", "" ) ).append( "}" )
@@ -94,15 +94,13 @@ public class StructureClassBuilder extends TypeClassBuilder {
     private void appendConstructors() {
         builder.newNewlineAppend( "private " ).append( className ).append( "( Builder<?> builder )" )
             .body( () -> structure.possibleRefinement().ifPresentOrElse(
-                r -> builder.newlineAppend( "super( Refinement.validated( builder.root(), refinements ), builder.children() );" ), 
-                () -> builder.newlineAppend( "super( builder.root(), builder.children() );" )
+                r -> builder.newlineAppend( "super( Refinement.validated( builder.content(), refinements ), builder.children() );" ), 
+                () -> builder.newlineAppend( "super( builder.content(), builder.children() );" )
             ) );
     }
 
     private void appendMethods() {
-        if ( structure.nativeType() != Native.ANY && structure.nativeType() != Native.VOID )
-            builder.newNewlineAppend( "public " ).append( structure.nativeType().valueName() ).append( " rootValue() { return root().value(); }" );
-        else if ( !structure.fields().isEmpty() )
+        if ( !structure.fields().isEmpty() )
             builder.newline();
 
         methodBuilders.forEach( FieldMethodBuilder::appendGetter );
@@ -113,17 +111,17 @@ public class StructureClassBuilder extends TypeClassBuilder {
         builder.newNewlineAppend( "public static InlineBuilder construct() { return new InlineBuilder(); }" );
 
         if ( structure.nativeType() != Native.VOID ) {
-            builder.newlineAppend( "public static InlineBuilder construct( " ).append( structure.nativeType().wrapperName() ).append( " root ) { return construct().root( root ); }" );
+            builder.newlineAppend( "public static InlineBuilder construct( " ).append( structure.nativeType().wrapperName() ).append( " content ) { return construct().content( content ); }" );
             
             structure.nativeType().valueNames().forEach( vn -> 
-                builder.newlineAppend( "public static InlineBuilder construct( " ).append( vn ).append( " rootValue ) { return construct().root( rootValue ); }" ) 
+                builder.newlineAppend( "public static InlineBuilder construct( " ).append( vn ).append( " contentValue ) { return construct().content( contentValue ); }" ) 
             );
         }
 
         // nested construct methods
         builder.newline()
             .newlineAppend( "static <T> NestedBuilder<T> constructNested( Function<" ).append( className ).append( ", T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }" )
-            .newlineAppend( "static <T> NestedBuilder<T> constructNested( Function<" ).append( className ).append( ", T> doneFunc, JolieType t ) { return new NestedBuilder<>( doneFunc, t ); }" );
+            .newlineAppend( "static <T> NestedBuilder<T> constructNested( Function<" ).append( className ).append( ", T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }" );
         
         // list construct methods
         if ( listable )
@@ -131,17 +129,17 @@ public class StructureClassBuilder extends TypeClassBuilder {
                 .newlineAppend( "static InlineListBuilder constructList() { return new InlineListBuilder(); }" )
                 .newline()
                 .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }" )
-                .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieType> c ) { return new NestedListBuilder<>( doneFunc, c ); }" );
+                .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }" );
 
         // constructFrom method
-        builder.newNewlineAppend( "public static InlineBuilder constructFrom( JolieType t ) { return new InlineBuilder( t ); }" );
+        builder.newNewlineAppend( "public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }" );
                 
         // createFrom method
-        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieType t ) throws TypeValidationException { return constructFrom( t ).build(); }" );
+        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }" );
 
         // ValueConverter methods
         builder.newline()
-            .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" )
+            .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" )
             .newlineAppend( "public static " ).append( className ).append( " fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }" );
     }
 
@@ -155,7 +153,7 @@ public class StructureClassBuilder extends TypeClassBuilder {
             .body( () -> builder
                 .newline()
                 .newlineAppend( "private InlineBuilder() {}" )
-                .newlineAppend( "private InlineBuilder( JolieType t ) { super( JolieType.toStructure( t ) ); }" )
+                .newlineAppend( "private InlineBuilder( JolieValue t ) { super( t ); }" )
                 .newline()
                 .newlineAppend( "protected InlineBuilder self() { return this; }" )
                 .newline()
@@ -168,7 +166,7 @@ public class StructureClassBuilder extends TypeClassBuilder {
                 .newline()
                 .newlineAppend( "private final Function<" ).append( className ).append( ", T> doneFunc;" )
                 .newline()
-                .newlineAppend( "private NestedBuilder( Function<" ).append( className ).append( ", T> doneFunc, JolieType t ) { super( JolieType.toStructure( t ) ); this.doneFunc = doneFunc; }" )
+                .newlineAppend( "private NestedBuilder( Function<" ).append( className ).append( ", T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }" )
                 .newlineAppend( "private NestedBuilder( Function<" ).append( className ).append( ", T> doneFunc ) { this.doneFunc = doneFunc; }" )
                 .newline()
                 .newlineAppend( "protected NestedBuilder<T> self() { return this; }" )
@@ -199,34 +197,35 @@ public class StructureClassBuilder extends TypeClassBuilder {
     }
 
     private String buildFMCreationString( Structure.Field field ) {
-        final StringBuilder b = new StringBuilder();
-        final String wrapperName = switch( field.type() ) { 
-            case Native n -> n.wrapperName().replaceAll( "<.+>", "" ); 
-            case Definition d -> d.name(); 
+        return switch ( field.type() ) {
+            case Native n -> buildFMCreationString( "createNative", n.wrapperName().replace( "<?>", "" ), field.min(), field.max() );
+            case Definition d -> buildFMCreationString( "createCustom", d.name(), field.min(), field.max() );
         };
-
-        return b.append( "FieldManager.create( " ).append( field.min() != 1 || field.max() != 1 ? field.min() + ", " + field.max() + ", " : "" ).append( wrapperName ).append( "::fromValue, " ).append( wrapperName ).append( "::createFrom )" ).toString();
+    }
+    private String buildFMCreationString( String methodName, String wrapperName, int min, int max ) {
+        final StringBuilder b = new StringBuilder();
+        return b.append( "FieldManager." ).append( methodName ).append( "( " ).append( min != 1 || max != 1 ? min + ", " + max + ", " : "" ).append( wrapperName ).append( "::fromValue, " ).append( wrapperName ).append( "::createFrom )" ).toString();
     }
 
     private void appendBuilderConstructors() {
         builder.newline()
             .newlineAppend( "protected Builder() {}" )
-            .newlineAppend( "protected Builder( StructureType structure )" ).body( this::appendBuildFromConstructorDefinition );
+            .newlineAppend( "protected Builder( JolieValue structure )" ).body( this::appendBuildFromConstructorDefinition );
     }
 
     private void appendBuildFromConstructorDefinition() {
-        final String rootString = switch( structure.nativeType() ) {
+        final String contentString = switch( structure.nativeType() ) {
             case VOID -> "null";
-            case ANY -> "structure.root()";
-            default -> "structure.root() instanceof " + structure.nativeType().wrapperName() + " root ? root : null";
+            case ANY -> "structure.content()";
+            default -> "structure.content() instanceof " + structure.nativeType().wrapperName() + " content ? content : null";
         };
 
         if ( structure.fields().isEmpty() )
-            builder.newlineAppend( "super( " ).append( rootString ).append( ", structure.children() );" );
+            builder.newlineAppend( "super( " ).append( contentString ).append( ", structure.children() );" );
         else
             builder.newlineAppend( "super(" )
                 .indent()
-                    .newlineAppend( rootString ).append( "," )
+                    .newlineAppend( contentString ).append( "," )
                     .newlineAppend( "structure.children()" )
                     .indent()
                         .newlineAppend( ".entrySet()" )
@@ -235,7 +234,7 @@ public class StructureClassBuilder extends TypeClassBuilder {
                         .newlineAppend( ".collect( Collectors.toConcurrentMap(" )
                         .indent()
                             .newlineAppend( "Map.Entry::getKey," )
-                            .newlineAppend( "e -> FIELD_MAP.get( e.getKey() ).fromStructures( e.getValue() )" )
+                            .newlineAppend( "e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )" )
                         .dedent()
                         .newlineAppend( ") )" )
                     .dedent()
@@ -245,21 +244,21 @@ public class StructureClassBuilder extends TypeClassBuilder {
     
     private void appendBuilderMethods() {
         builder.newline()
-            .newlineAppend( "private " ).append( structure.nativeType().wrapperName() ).append( " root() { return " ).append( structure.nativeType() == Native.VOID ? "BasicType.create()" : "root" ).append( "; }" )
-            .newlineAppend( "private Map<String, List<StructureType>> children() { return children; }" );
+            .newlineAppend( "private " ).append( structure.nativeType().wrapperName() ).append( " content() { return " ).append( switch ( structure.nativeType() ) { case ANY -> "content == null ? JolieNative.create() : content"; case VOID -> "JolieNative.create()"; default -> "content"; } ).append( "; }" )
+            .newlineAppend( "private Map<String, List<JolieValue>> children() { return children; }" );
         
         if ( structure.nativeType() != Native.VOID ) {
-            builder.newNewlineAppend( "public B root( " ).append( structure.nativeType().wrapperName() ).append( " root ) { return super.root( root ); }" );
+            builder.newNewlineAppend( "public B content( " ).append( structure.nativeType().wrapperName() ).append( " content ) { return super.content( content ); }" );
             
             structure.nativeType().valueNames().forEach( vn ->
-                builder.newlineAppend( "public B root( " ).append( vn ).append( " value ) { return root( BasicType.create( value ) ); }" )
+                builder.newlineAppend( "public B content( " ).append( vn ).append( " value ) { return content( JolieNative.create( value ) ); }" )
             );
 
             if ( structure.nativeType() == Native.ANY ) {
-                builder.newlineAppend( "public B root( UnaryOperator<" ).append( structure.nativeType().wrapperName() ).append( "> rootOperator ) { return root( rootOperator.apply( root ) ); }" );
+                builder.newlineAppend( "public B content( UnaryOperator<" ).append( structure.nativeType().wrapperName() ).append( "> contentOperator ) { return content( contentOperator.apply( content ) ); }" );
             }
             else {
-                builder.newlineAppend( "public B root( UnaryOperator<" ).append( structure.nativeType().valueName() ).append( "> valueOperator ) { return root( valueOperator.apply( root.value() ) ); }" );
+                builder.newlineAppend( "public B content( UnaryOperator<" ).append( structure.nativeType().valueName() ).append( "> valueOperator ) { return content( valueOperator.apply( content.value() ) ); }" );
             }
         }
 
@@ -277,12 +276,12 @@ public class StructureClassBuilder extends TypeClassBuilder {
             .body( () -> {
                 builder.newlineAppend( "InlineBuilder builder = " ).append( className ).append( ".construct();" )
                     .newline()
-                    .newlineAppend( "builder.root( " ).append( structure.nativeType().wrapperName().replaceAll( "<.*>", "" ) ).append( ".fromValue( value ) );" );
+                    .newlineAppend( "builder.content( " ).append( structure.nativeType().wrapperName().replaceAll( "<.*>", "" ) ).append( ".fromValue( value ) );" );
             
                 builder.newNewlineAppend( "for ( Map.Entry<String, ValueVector> child : value.children().entrySet() )" );
 
 				if( structure.fields().isEmpty() )
-					builder.indentedNewlineAppend( "builder.put( child.getKey(), child.getValue().stream().parallel().map( StructureType::fromValue ).toList() );" );
+					builder.indentedNewlineAppend( "builder.put( child.getKey(), child.getValue().stream().parallel().map( JolieValue::fromValue ).toList() );" );
 				else
 					builder.body( () -> builder
 						.newlineAppend( "if ( !FIELD_MAP.containsKey( child.getKey() ) )" )
@@ -315,7 +314,7 @@ public class StructureClassBuilder extends TypeClassBuilder {
                 .newline()
                 .newlineAppend( "private final Function<List<" ).append( className ).append( ">, T> doneFunc;" )
                 .newline()
-                .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieType> c ) { super( c ); this.doneFunc = doneFunc; }" )
+                .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }" )
                 .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc ) { this.doneFunc = doneFunc; }" )
                 .newline()
                 .newlineAppend( "protected NestedListBuilder<T> self() { return this; }" )
@@ -326,29 +325,29 @@ public class StructureClassBuilder extends TypeClassBuilder {
 
     private void appendListBuilderDefinition() {
         builder.newline()
-            .newlineAppend( "protected ListBuilder( SequencedCollection<? extends JolieType> elements ) { super( elements.parallelStream().map( " ).append( className ).append( "::createFrom ).toList() ); }" )
+            .newlineAppend( "protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( " ).append( className ).append( "::createFrom ).toList() ); }" )
             .newlineAppend( "protected ListBuilder() {}" )
             .newline()
             .newlineAppend( "public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }" )
             .newlineAppend( "public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }" )
-            .newlineAppend( "public NestedBuilder<B> addConstructedFrom( JolieType t ) { return constructNested( this::add, t ); }" )
-            .newlineAppend( "public NestedBuilder<B> setConstructedFrom( int index, JolieType t ) { return constructNested( e -> set( index, e ), t ); }" )
+            .newlineAppend( "public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }" )
+            .newlineAppend( "public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }" )
             .newlineAppend( "public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }" );
 
         if ( structure.nativeType() != Native.VOID ) {
             builder.newline()
-                .newlineAppend( "public NestedBuilder<B> addConstructed( " ).append( structure.nativeType().wrapperName() ).append( " root ) { return addConstructed().root( root ); }" )
-                .newlineAppend( "public NestedBuilder<B> setConstructed( int index, " ).append( structure.nativeType().wrapperName() ).append( " root ) { return setConstructed( index ).root( root ); }" );
+                .newlineAppend( "public NestedBuilder<B> addConstructed( " ).append( structure.nativeType().wrapperName() ).append( " content ) { return addConstructed().content( content ); }" )
+                .newlineAppend( "public NestedBuilder<B> setConstructed( int index, " ).append( structure.nativeType().wrapperName() ).append( " content ) { return setConstructed( index ).content( content ); }" );
 
             structure.nativeType().valueNames().forEach( vn -> 
-                builder.newlineAppend( "public NestedBuilder<B> addConstructed( " ).append( vn ).append( " rootValue ) { return addConstructed( BasicType.create( rootValue ) ); }" )
-                    .newlineAppend( "public NestedBuilder<B> setConstructed( int index, " ).append( vn ).append( " rootValue ) { return setConstructed( index, BasicType.create( rootValue ) ); }" )
+                builder.newlineAppend( "public NestedBuilder<B> addConstructed( " ).append( vn ).append( " contentValue ) { return addConstructed( JolieNative.create( contentValue ) ); }" )
+                    .newlineAppend( "public NestedBuilder<B> setConstructed( int index, " ).append( vn ).append( " contentValue ) { return setConstructed( index, JolieNative.create( contentValue ) ); }" )
             );
 
             if ( structure.nativeType() == Native.ANY )
-                builder.newlineAppend( "public NestedBuilder<B> reconstruct( int index, UnaryOperator<" ).append( structure.nativeType().wrapperName() ).append( "> rootOperator ) { return reconstruct( index ).root( rootOperator ); }" );
+                builder.newlineAppend( "public NestedBuilder<B> reconstruct( int index, UnaryOperator<" ).append( structure.nativeType().wrapperName() ).append( "> contentOperator ) { return reconstruct( index ).content( contentOperator ); }" );
             else
-                builder.newlineAppend( "public NestedBuilder<B> reconstruct( int index, UnaryOperator<" ).append( structure.nativeType().valueName() ).append( "> valueOperator ) { return reconstruct( index ).root( valueOperator ); }" );
+                builder.newlineAppend( "public NestedBuilder<B> reconstruct( int index, UnaryOperator<" ).append( structure.nativeType().valueName() ).append( "> valueOperator ) { return reconstruct( index ).content( valueOperator ); }" );
         }
     }
 
@@ -356,7 +355,6 @@ public class StructureClassBuilder extends TypeClassBuilder {
         return field.possibleName().map( n -> {
             final String fieldKeyString = "\"" + field.key() + "\"";
             final String fieldTypeName = switch( field.type() ) {
-                case Undefined u -> "StructureType";
                 case Basic b -> b.nativeType().valueName();
                 default -> field.typeName();
             };
@@ -384,22 +382,22 @@ public class StructureClassBuilder extends TypeClassBuilder {
 
         public Optional<String> returnTypeWrapper() { return Optional.ofNullable( returnTypeWrapper ); }
         public String childRetrievalName() { return retrieveMethod.methodName; }
-        public String rootRetrievalName() { return retrieveMethod.methodName + retrieveMethod.rootPostfix; }
+        public String contentRetrievalName() { return retrieveMethod.methodName + retrieveMethod.contentPostfix; }
         public String valueRetrievalName() { return retrieveMethod.methodName + retrieveMethod.valuePostfix; }
         public String retrievalPostfix() { return retrievalPostfix; }
 
 
         private enum RetrieveMethod {
-            SINGLE( "firstChild", "Root", "Value" ),
-            LIST( "child", "Roots", "Values" );
+            SINGLE( "getFirstChild", "Content", "Value" ),
+            LIST( "getChild", "Contents", "Values" );
     
             private final String methodName;
-            private final String rootPostfix;
+            private final String contentPostfix;
             private final String valuePostfix;
     
-            private RetrieveMethod( String methodName, String rootPostfix, String valuePostfix ) {
+            private RetrieveMethod( String methodName, String contentPostfix, String valuePostfix ) {
                 this.methodName = methodName;
-                this.rootPostfix = rootPostfix;
+                this.contentPostfix = contentPostfix;
                 this.valuePostfix = valuePostfix;
             }
         }
@@ -429,7 +427,7 @@ public class StructureClassBuilder extends TypeClassBuilder {
 
             final String retrieveCall = switch ( fieldDefinition ) {
                 case Native n -> switch ( n ) {
-                    case ANY        -> buildRetrieveCall( fieldCardinality.rootRetrievalName(), null );
+                    case ANY        -> buildRetrieveCall( fieldCardinality.contentRetrievalName(), null );
                     default         -> buildRetrieveCall( fieldCardinality.valueRetrievalName(), n.wrapperName() );
                 };
                 case Undefined u    -> buildRetrieveCall( fieldCardinality.childRetrievalName(), null );
@@ -462,26 +460,26 @@ public class StructureClassBuilder extends TypeClassBuilder {
             builder.newline();
 
             switch ( fieldDefinition ) {
-                case Native n ->    appendValueSetters( n.wrapperName(), "rootEntry", n, "BasicType" );
-                case Basic b ->     appendValueSetters( b.name(), "childEntry", b.nativeType(), b.name() );
+                case Native n ->    appendValueSetters( n.wrapperName(), "contentEntry", "JolieValue", n, "JolieValue" );
+                case Basic b ->     appendValueSetters( b.name(), "childEntry", null, b.nativeType(), b.name() );
 
-                case Undefined u -> appendStructureSetters( u.name(), "childEntry", "StructureType", Native.ANY );
-                case Structure s -> appendStructureSetters( s.name(), "childEntry", s.name(), s.nativeType() );
+                case Undefined u -> appendStructureSetters( u.name(), "childEntry", Native.ANY );
+                case Structure s -> appendStructureSetters( s.name(), "childEntry", s.nativeType() );
                 
                 case Choice c ->    appendChoiceSetters( c );
             }
         }
 
-        private void appendStructureSetters( String setType, String setName, String className, Native nativeType ) {
-            appendSetMethod( setType, setName );
+        private void appendStructureSetters( String className, String paramName, Native nativeType ) {
+            appendSetMethod( className, paramName );
             appendConstructMethods( className, nativeType );
         }
 
-        private void appendValueSetters( String setType, String setName, Native type, String wrapperName ) {
-            appendSetMethod( setType, setName );
+        private void appendValueSetters( String setType, String setName, String contentWrapper, Native type, String valueWrapper ) {
+            appendSetMethod( setType, setName, contentWrapper, "" );
             if ( type != Native.VOID ) {
-                type.valueNames().forEach( vn -> appendSetMethod( vn, "valueEntry", wrapperName, "" ) );
-                appendReplaceMethod( type, wrapperName );
+                type.valueNames().forEach( vn -> appendSetMethod( vn, "valueEntry", valueWrapper, "" ) );
+                appendReplaceMethod( type, valueWrapper );
             }
         }
 
@@ -489,25 +487,32 @@ public class StructureClassBuilder extends TypeClassBuilder {
             appendSetMethod( choice.name(), "childEntry" );
             choice.numberedOptions().forKeyValue( (i,t) -> {
                 final String postfix = String.valueOf( i );
+                final String name = switch( t ) {
+                    case Native n -> n == Native.VOID ? null : n.valueName();
+                    case Basic.Inline b -> b.nativeType().valueName();
+                    case Structure.Inline s -> choice.name() + "." + s.name();
+                    case Definition d -> d.name();
+                };
+                
                 appendSetMethod( 
-                    switch( t ) {
-                        case Native n -> n.valueName();
-                        case Basic.Inline b -> b.nativeType().valueName();
-                        case Definition d -> d.name();
-                    }, 
+                    name, 
                     "optionEntry", 
                     choice.name(), 
                     postfix 
                 );
+
                 if ( t instanceof Structure s )
-                    appendConstructMethods( s.name(), s.nativeType(), postfix );
+                    appendConstructMethods( name, s.nativeType(), postfix );
             } );
         }
 
         private void appendSetMethod( String paramType, String paramName ) { appendSetMethod( paramType, paramName, null, "" ); }
         private void appendSetMethod( String paramType, String paramName, String wrapperName, String methodPostfix ) {
             final Optional<String> w = Optional.ofNullable( wrapperName );
-            builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( methodPostfix ).append( "( " ).append( paramType ).append( " " ).append( paramName ).append( " ) { return putAs( " ).append( fieldKeyString ).append( ", " ).append( paramName ).append( w.map( t -> ", " + t + "::create" + methodPostfix ).orElse( "" ) ).append( " ); }" );
+            if ( paramType != null )
+                builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( methodPostfix ).append( "( " ).append( paramType ).append( " " ).append( paramName ).append( " ) { return putAs( " ).append( fieldKeyString ).append( ", " ).append( paramName ).append( w.map( t -> ", " + t + "::create" + methodPostfix ).orElse( "" ) ).append( " ); }" );
+            else
+                builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( methodPostfix ).append( "() { return putAs( " ).append( fieldKeyString ).append( ", JolieValue.create() ); }" );
         }
 
         private void appendConstructMethods( String className, Native nativeType ) { appendConstructMethods( className, nativeType, "" ); }
@@ -516,24 +521,24 @@ public class StructureClassBuilder extends TypeClassBuilder {
             
             builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> construct" ).append( methodName ).append( "() { return " ).append( className ).append( ".constructNested( this::set" ).append( methodName ).append( " ); }" );
             if ( nativeType != Native.VOID ) {
-                builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> construct" ).append( methodName ).append( "( " ).append( nativeType.wrapperName() ).append( " root ) { return construct" ).append( methodName ).append( "().root( root ); }" );
-                nativeType.valueNames().forEach( vn -> builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> construct" ).append( methodName ).append( "( " ).append( vn ).append( " rootValue ) { return construct" ).append( methodName ).append( "().root( rootValue ); }" ) );
+                builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> construct" ).append( methodName ).append( "( " ).append( nativeType.wrapperName() ).append( " content ) { return construct" ).append( methodName ).append( "().content( content ); }" );
+                nativeType.valueNames().forEach( vn -> builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> construct" ).append( methodName ).append( "( " ).append( vn ).append( " contentValue ) { return construct" ).append( methodName ).append( "().content( contentValue ); }" ) );
             }
 
-            builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> construct" ).append( methodName ).append( "From( JolieType t ) { return " ).append( className ).append( ".constructNested( this::set" ).append( methodName ).append( ", t ); }" );
+            builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> construct" ).append( methodName ).append( "From( JolieValue t ) { return " ).append( className ).append( ".constructNested( this::set" ).append( methodName ).append( ", t ); }" );
             
             builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> reconstruct" ).append( methodName ).append( "() { return firstChild( " ).append( fieldKeyString ).append( " ).map( e -> construct" ).append( methodName ).append( "From( e ) ).orElse( construct" ).append( methodName ).append( "() ); }" );
             if ( nativeType == Native.ANY )
-                builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> reconstruct" ).append( methodName ).append( "( UnaryOperator<" ).append( nativeType.wrapperName() ).append( "> rootOperator ) { return reconstruct" ).append( methodName ).append( "().root( rootOperator ); }" );
+                builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> reconstruct" ).append( methodName ).append( "( UnaryOperator<" ).append( nativeType.wrapperName() ).append( "> contentOperator ) { return reconstruct" ).append( methodName ).append( "().content( contentOperator ); }" );
             else if ( nativeType != Native.VOID )
-                builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> reconstruct" ).append( methodName ).append( "( UnaryOperator<" ).append( nativeType.valueName() ).append( "> valueOperator ) { return reconstruct" ).append( methodName ).append( "().root( valueOperator ); }" );
+                builder.newlineAppend( "public " ).append( className ).append( ".NestedBuilder<B> reconstruct" ).append( methodName ).append( "( UnaryOperator<" ).append( nativeType.valueName() ).append( "> valueOperator ) { return reconstruct" ).append( methodName ).append( "().content( valueOperator ); }" );
         }
 
         private void appendReplaceMethod( Native valueType, String wrapperName ) {
             if ( valueType == Native.ANY )
-                builder.newlineAppend( "public B replace" ).append( fieldMethodName ).append( "( UnaryOperator<" ).append( valueType.wrapperName() ).append( "> rootOperator ) { return computeAs( " ).append( fieldKeyString ).append( ", (n,s) -> rootOperator.apply( s.root() ) ); }" );
+                builder.newlineAppend( "public B replace" ).append( fieldMethodName ).append( "( UnaryOperator<" ).append( valueType.wrapperName() ).append( "> contentOperator ) { return computeAs( " ).append( fieldKeyString ).append( ", (n,v) -> contentOperator.apply( v ), JolieValue::content, JolieValue::create ); }" );
             else if ( valueType != Native.VOID )
-                builder.newlineAppend( "public B replace" ).append( fieldMethodName ).append( "( UnaryOperator<" ).append( valueType.valueName() ).append( "> valueOperator ) { return computeAs( " ).append( fieldKeyString ).append( ", (n,v) -> valueOperator.apply( v ), s -> " ).append( valueType.wrapperName() ).append( ".class.cast( s.root() ).value(), " ).append( wrapperName ).append( "::create ); }" );
+                builder.newlineAppend( "public B replace" ).append( fieldMethodName ).append( "( UnaryOperator<" ).append( valueType.valueName() ).append( "> valueOperator ) { return computeAs( " ).append( fieldKeyString ).append( ", (n,v) -> valueOperator.apply( v ), s -> " ).append( valueType.wrapperName() ).append( ".class.cast( s.content() ).value(), " ).append( wrapperName ).append( "::create ); }" );
         }
     }
 
@@ -550,20 +555,18 @@ public class StructureClassBuilder extends TypeClassBuilder {
             builder.newline();
 
             switch ( fieldDefinition ) {
-                case Native n -> {
-                    if ( n == Native.ANY )  appendConstructibleListSetters( "BasicType", "SequencedCollection<? extends BasicType<?>>", "childRoots" );
-                    else                    appendValueListSetters( n, "BasicType" );
-                }
-                case Undefined u ->         appendConstructibleListSetters( "StructureType", "SequencedCollection<? extends " + u.name() + ">", "child" );
+                case Native n when n == Native.ANY -> appendConstructibleListSetters( "JolieNative", "childRoots", true );
+                case Native n ->            appendValueListSetters( n, "JolieValue" );
                 case Basic b ->             appendValueListSetters( b.nativeType(), b.name() );
-                case Definition d ->        appendConstructibleListSetters( d.name(), "SequencedCollection<? extends " + d.name() + ">", "child" );
+                case Definition d ->        appendConstructibleListSetters( d.name(), "child", false );
             }
         }
 
-        private void appendConstructibleListSetters( String className, String paramType, String paramName ) {
-            builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( "( " ).append( paramType ).append( " " ).append( paramName ).append( " ) { return put( " ).append( fieldKeyString ).append( ", " ).append( paramName ).append( " ); }" )
+        private void appendConstructibleListSetters( String className, String paramName, boolean isAny ) { appendConstructibleListSetters( className.replaceAll( "<?>", "" ), "SequencedCollection<? extends " + className + ">", paramName, isAny ); }
+        private void appendConstructibleListSetters( String className, String paramType, String paramName, boolean isAny ) {
+            builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( "( " ).append( paramType ).append( " " ).append( paramName ).append( " ) { return put( " ).append( fieldKeyString ).append( ", " ).append( paramName ).append( isAny ? ", JolieValue::create" : "" ).append( " ); }" )
                 .newlineAppend( "public " ).append( className ).append( ".NestedListBuilder<B> construct" ).append( fieldMethodName ).append( "() { return " ).append( className ).append( ".constructNestedList( this::set" ).append( fieldMethodName ).append( " ); }" )
-                .newlineAppend( "public " ).append( className ).append( ".NestedListBuilder<B> construct" ).append( fieldMethodName ).append( "From( SequencedCollection<? extends JolieType> c ) { return " ).append( className ).append( ".constructNestedList( this::set" ).append( fieldMethodName ).append( ", c ); }" )
+                .newlineAppend( "public " ).append( className ).append( ".NestedListBuilder<B> construct" ).append( fieldMethodName ).append( "From( SequencedCollection<? extends JolieValue> c ) { return " ).append( className ).append( ".constructNestedList( this::set" ).append( fieldMethodName ).append( ", c ); }" )
                 .newlineAppend( "public " ).append( className ).append( ".NestedListBuilder<B> reconstruct" ).append( fieldMethodName ).append( "() { return Optional.ofNullable( child( " ).append( fieldKeyString ).append( " ) ).map( c -> construct" ).append( fieldMethodName ).append( "From( c ) ).orElse( construct" ).append( fieldMethodName ).append( "() ); }" );
         }
 
@@ -571,9 +574,9 @@ public class StructureClassBuilder extends TypeClassBuilder {
             if ( nativeType != Native.VOID )
                 builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( "( SequencedCollection<" ).append( nativeType.valueName() ).append( "> values ) { return put( " ).append( fieldKeyString ).append( ", values, " ).append( wrapperName ).append( "::create ); }" )
                     .newlineAppend( "public B set" ).append( fieldMethodName ).append( "( " ).append( nativeType.valueName() ).append( "... values ) { return set" ).append( fieldMethodName ).append( "( List.of( values ) ); }" )
-                    .newlineAppend( "public B merge" ).append( fieldMethodName ).append( "( SequencedCollection<" ).append( nativeType.valueName() ).append( "> values, BinaryOperator<SequencedCollection<" ).append( nativeType.valueName() ).append( ">> valuesOperator ) { return compute( " ).append( fieldKeyString ).append( ", (n,c) -> c == null ? values : valuesOperator.apply( c, values ), s -> " ).append( nativeType.wrapperName() ).append( ".class.cast( s.root() ).value(), " ).append( wrapperName ).append( "::create ); }" );
+                    .newlineAppend( "public B merge" ).append( fieldMethodName ).append( "( SequencedCollection<" ).append( nativeType.valueName() ).append( "> values, BinaryOperator<SequencedCollection<" ).append( nativeType.valueName() ).append( ">> valuesOperator ) { return compute( " ).append( fieldKeyString ).append( ", (n,c) -> c == null ? values : valuesOperator.apply( c, values ), s -> " ).append( nativeType.wrapperName() ).append( ".class.cast( s.content() ).value(), " ).append( wrapperName ).append( "::create ); }" );
             else
-                builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( "( SequencedCollection<" ).append( nativeType.wrapperName() ).append( "> roots ) { return put( " ).append( fieldKeyString ).append( ", roots ); }" );
+                builder.newlineAppend( "public B set" ).append( fieldMethodName ).append( "( SequencedCollection<" ).append( nativeType.wrapperName() ).append( "> contents ) { return put( " ).append( fieldKeyString ).append( ", contents, " ).append( wrapperName ).append( "::create ); }" );
         }
     }
 }

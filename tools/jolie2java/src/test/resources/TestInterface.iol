@@ -140,7 +140,18 @@ void {
 |
 string
 
+type LinkedChoiceStructureType: void {
+  a*: ChoiceSimpleType
+  b*: ChoiceInlineType
+  c*: ChoiceLinkedType
+}
 
+type InlineChoiceStructureType: any {
+  a: int | long | double
+  b: FlatStructureType | InLineStructureType | bool {?}
+  c: ChoiceLinkedType | ChoiceInlineType
+  d: InlineChoiceStructureType | void
+}
 
 type RootValue1Type: string {
   .field: string
@@ -225,6 +236,10 @@ RequestResponse:
   testChoiceLinkedTypes( ChoiceLinkedType )( ChoiceLinkedType ),
 
   testChoiceInlineTypes( ChoiceInlineType )( ChoiceInlineType ),
+
+  testLinkedChoiceStructureType( LinkedChoiceStructureType )( LinkedChoiceStructureType ),
+
+  testInlineChoiceStructureType( InlineChoiceStructureType )( InlineChoiceStructureType ),
 
   testRootValue1( RootValue1Type )( RootValue1Type )
     throws TestFault2,

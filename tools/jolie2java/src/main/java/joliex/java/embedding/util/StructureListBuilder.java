@@ -8,9 +8,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-import joliex.java.embedding.JolieType;
-
-public abstract class StructureListBuilder<T extends JolieType, B> {
+public abstract class StructureListBuilder<T, B> {
 
     protected final ArrayList<T> elements;
 
@@ -34,9 +32,9 @@ public abstract class StructureListBuilder<T extends JolieType, B> {
     public final B replaceAll( UnaryOperator<T> operator ) { elements.replaceAll( operator ); return self(); }
 
     public final B remove( int index ) { elements.remove( index ); return self(); }
-    public final B remove( JolieType e ) { elements.remove( e ); return self(); }
+    public final B remove( Object e ) { elements.remove( e ); return self(); }
 
-    public final B removeAll( SequencedCollection<? extends JolieType> c ) { elements.removeAll( c ); return self(); }
+    public final B removeAll( SequencedCollection<?> c ) { elements.removeAll( c ); return self(); }
 
     public final B removeIf( Predicate<? super T> filter ) { elements.removeIf( filter ); return self(); }
 

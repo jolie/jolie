@@ -11,7 +11,6 @@ import joliex.java.parse.ast.JolieType.Native;
 import joliex.java.parse.ast.JolieType.Definition.Basic;
 import joliex.java.parse.ast.JolieType.Definition.Choice;
 import joliex.java.parse.ast.JolieType.Definition.Structure;
-import joliex.java.parse.ast.JolieType.Definition.Structure.Undefined;
 
 public class ServiceClassBuilder extends JavaClassBuilder {
     
@@ -75,8 +74,6 @@ public class ServiceClassBuilder extends JavaClassBuilder {
     private void appendRequestUnpacking( JolieOperation operation ) {
         switch ( operation.request() ) {
 
-            case Undefined u -> builder.newlineAppend( "final StructureType req = JolieType.toStructure( request );" );
-
             case Native n -> { if ( n == Native.ANY ) builder.newlineAppend( "switch ( request )" ).body( this::appendAnyCases ); }
 
             case Choice c -> builder.newlineAppend( "switch ( request )" ).body( () -> appendChoiceCases( c ) );
@@ -86,9 +83,9 @@ public class ServiceClassBuilder extends JavaClassBuilder {
     }
 
     private void appendAnyCases() {
-        builder.newlineAppend( "case BasicType.JolieVoid v -> {}" );
+        builder.newlineAppend( "case JolieNative.JolieVoid v -> {}" );
         Native.valueTypesOf( Native.ANY ).forEach( 
-            t -> builder.newlineAppend( "case BasicType." ).append( t.wrapperName() ).append( "( " ).append( t.valueName() ).append( " value ) -> {}" )
+            t -> builder.newlineAppend( "case JolieNative." ).append( t.wrapperName() ).append( "( " ).append( t.valueName() ).append( " value ) -> {}" )
         );
     }
 
@@ -112,12 +109,12 @@ public class ServiceClassBuilder extends JavaClassBuilder {
         else
             switch( operation.response() ) {
 
-                case Native n -> builder.newlineAppend( "return " ).append( n == Native.ANY ? "BasicType.create( /* value */ );" : "null; /* TODO: return actual value */" );
+                case Native n -> builder.newlineAppend( "return " ).append( n == Native.ANY ? "JolieNative.create( /* value */ );" : "null; /* TODO: return actual value */" );
 
                 case Basic b -> builder.newlineAppend( "return " ).append( b.name() ).append( ".create( null ); /* TODO: create with actual value */" );
                 
                 case Structure s -> builder
-                    .newlineAppend( "return " ).append( s instanceof Undefined ? "StructureType" : s.name() ).append( ".construct(" ).append( s.nativeType() == Native.VOID ? "" : " /* root */ " ).append( ")" )
+                    .newlineAppend( "return " ).append( s.name() ).append( ".construct(" ).append( s.nativeType() == Native.VOID ? "" : " /* root */ " ).append( ")" )
                     .indentedNewlineAppend( "/* fields */" )
                     .indentedNewlineAppend( ".build();" );
 

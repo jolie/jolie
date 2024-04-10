@@ -3,7 +3,7 @@ package joliex.java.embedding.util;
 import java.util.Collection;
 import java.util.List;
 
-import joliex.java.embedding.BasicType;
+import joliex.java.embedding.JolieNative;
 import joliex.java.embedding.TypeValidationException;
 
 public sealed interface Refinement<V> {
@@ -39,16 +39,16 @@ public sealed interface Refinement<V> {
     }
 
     
-    public static <V> V validated( V rootValue, Collection<? extends Refinement<V>> refinements ) {
-        if ( !refinements.parallelStream().anyMatch( r -> r.validate( rootValue ) ) )
-            throw new TypeValidationException( "The given root doesn't abide by the constraints imposed by the refinements of this type's root." );
+    public static <V> V validated( V contentValue, Collection<? extends Refinement<V>> refinements ) {
+        if ( !refinements.parallelStream().anyMatch( r -> r.validate( contentValue ) ) )
+            throw new TypeValidationException( "The given content doesn't abide by the constraints imposed by the refinements of this type's content." );
 
-        return rootValue;
+        return contentValue;
     }
 
-    public static <V, R extends BasicType<V>> R validated( R root, Collection<? extends Refinement<V>> refinements ) { 
-        validated( root.value(), refinements );
-        return root;
+    public static <V, R extends JolieNative<V>> R validated( R content, Collection<? extends Refinement<V>> refinements ) { 
+        validated( content.value(), refinements );
+        return content;
     }
 
     public static Refinement<Integer> createRange( Integer min, Integer max ) { return new Range<>( min, max ); }

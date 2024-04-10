@@ -41,7 +41,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     public void appendDefinition( boolean isInnerClass ) {
         builder.newline()
             .commentBlock( this::appendDocumentation )
-            .newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "sealed interface " ).append( className ).append( " extends StructureType" )
+            .newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "sealed interface " ).append( className ).append( " extends JolieValue" )
             .body( this::appendDefinitionBody );
     }
 
@@ -50,9 +50,8 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
             .newline()
             .codeBlock( this::appendChoiceDocumentation )
             .newline()
-            .newlineAppend( "@see JolieType" )
-            .newlineAppend( "@see StructureType" )
-            .newlineAppend( "@see BasicType" );
+            .newlineAppend( "@see JolieValue" )
+            .newlineAppend( "@see JolieNative" );
 
         methodBuilders.parallelStream().forEachOrdered( OptionMethodBuilder::appendDocumentationLinks );
     }
@@ -104,14 +103,14 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
         if ( listable )
             builder.newline()
                 .newlineAppend( "static InlineListBuilder constructList() { return new InlineListBuilder(); }" )
-                .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieType> c ) { return new NestedListBuilder<>( doneFunc, c ); }" )
+                .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }" )
                 .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }" );
 
         builder.newline()
-            .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieType t ) throws TypeValidationException" )
-            .body( () -> appendFromMethodBody( "Function", "JolieType", "t", "createFrom", "TypeValidationException", "\"The given JolieType couldn't be converted to any of the option types.\"" ) )
+            .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue t ) throws TypeValidationException" )
+            .body( () -> appendFromMethodBody( "Function", "JolieValue", "t", "createFrom", "TypeValidationException", "\"The given JolieValue couldn't be converted to any of the option types.\"" ) )
             .newline()
-            .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" )
+            .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" )
             .newlineAppend( "public static " ).append( className ).append( " fromValue( Value value ) throws TypeCheckingException" )
             .body( () -> appendFromMethodBody( "ConversionFunction", "Value", "value", "fromValue", "TypeCheckingException", "\"The given Value couldn't be converted to any of the option types.\"" ) );
     }
@@ -169,7 +168,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
             .newline()
             .newlineAppend( "private final Function<List<" ).append( className ).append( ">, T> doneFunc;" )
             .newline()
-            .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieType> c ) { super( c ); this.doneFunc = doneFunc; }" )
+            .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }" )
             .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc ) { this.doneFunc = doneFunc; }" )
             .newline()
             .newlineAppend( "protected NestedListBuilder<T> self() { return this; }" )
@@ -180,7 +179,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
 
     private void appendListBuilderDefinition() {
         builder.newline()
-            .newlineAppend( "protected ListBuilder( SequencedCollection<? extends JolieType> elements ) { super( elements.parallelStream().map( " ).append( className ).append( "::createFrom ).toList() ); }" )
+            .newlineAppend( "protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( " ).append( className ).append( "::createFrom ).toList() ); }" )
             .newlineAppend( "protected ListBuilder() {}" );
 
         methodBuilders.forEach( OptionMethodBuilder::appendListBuilderMethods );
@@ -207,12 +206,12 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     private class StructureMethodBuilder extends OptionMethodBuilder {
 
         private final String typeName;
-        private final Native root;
+        private final Native content;
 
-        public StructureMethodBuilder( String typeName, int number, Native root ) {
+        public StructureMethodBuilder( String typeName, int number, Native content ) {
             super( typeName, number );
             this.typeName = typeName;
-            this.root = root;
+            this.content = content;
         }
 
         public void appendDocumentationLinks() {
@@ -227,13 +226,13 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
                 .newline()
                 .newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "() { return " ).append( optionName ).append( ".construct(); }" );
                         
-            if ( root != Native.VOID ) {
-                builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "( " ).append( root.wrapperName() ).append( " root ) { return construct" ).append( number ).append( "().root( root ); }" );
-                root.valueNames().forEach( vn -> builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append("( " ).append( vn ).append( " rootValue ) { return construct" ).append( number ).append( "().root( rootValue ); }" ) );
+            if ( content != Native.VOID ) {
+                builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "( " ).append( content.wrapperName() ).append( " content ) { return construct" ).append( number ).append( "().content( content ); }" );
+                content.valueNames().forEach( vn -> builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append("( " ).append( vn ).append( " contentValue ) { return construct" ).append( number ).append( "().content( contentValue ); }" ) );
             }
 
-            builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "From( JolieType t ) { return " ).append( optionName ).append( ".constructFrom( t ); }" );
-            builder.newlineAppend( "public static " ).append( optionName ).append( " create" ).append( number ).append( "From( JolieType t ) throws TypeValidationException { return " ).append( optionName ).append( ".createFrom( t ); }" );
+            builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "From( JolieValue t ) { return " ).append( optionName ).append( ".constructFrom( t ); }" );
+            builder.newlineAppend( "public static " ).append( optionName ).append( " create" ).append( number ).append( "From( JolieValue t ) throws TypeValidationException { return " ).append( optionName ).append( ".createFrom( t ); }" );
         }
 
         public void appendListBuilderMethods() {
@@ -241,25 +240,25 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
                 .newlineAppend( "public B add" ).append( number ).append( "( " ).append( typeName ).append( " option ) { return add( create" ).append( number ).append( "( option ) ); }" )
                 .newlineAppend( "public B set" ).append( number ).append( "( int index, " ).append( typeName ).append( " option ) { return set( index, create" ).append( number ).append( "( option ) ); }" )
                 .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "() { return " ).append( typeName ).append( ".constructNested( this::add" ).append( number ).append( " ); }" )
-                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "From( JolieType t ) { return " ).append( typeName ).append( ".constructNested( this::add" ).append( number ).append( ", t ); }" )
+                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "From( JolieValue t ) { return " ).append( typeName ).append( ".constructNested( this::add" ).append( number ).append( ", t ); }" )
                 .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index ) { return " ).append( typeName ).append( ".constructNested( option -> set" ).append( number ).append( "( index, option ) ); }" )
-                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "From( int index, JolieType t ) { return " ).append( typeName ).append( ".constructNested( option -> set" ).append( number ).append( "( index, option ), t ); }" )
+                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "From( int index, JolieValue t ) { return " ).append( typeName ).append( ".constructNested( option -> set" ).append( number ).append( "( index, option ), t ); }" )
                 .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index ) { return " ).append( typeName ).append( ".constructNested( option -> set" ).append( number ).append( "( index, option ), elements.get( index ) ); }" );
             
-            if ( root != Native.VOID ) {
+            if ( content != Native.VOID ) {
                 builder
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "( " ).append( root.wrapperName() ).append( " root ) { return addConstructed" ).append( number ).append( "().root( root ); }" )
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index, " ).append( root.wrapperName() ).append( " root ) { return setConstructed" ).append( number ).append( "( index ).root( root ); }" );
+                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "( " ).append( content.wrapperName() ).append( " content ) { return addConstructed" ).append( number ).append( "().content( content ); }" )
+                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index, " ).append( content.wrapperName() ).append( " content ) { return setConstructed" ).append( number ).append( "( index ).content( content ); }" );
                 
-                root.valueNames().forEach( vn -> builder
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "( " ).append( vn ).append( " rootValue ) { return addConstructed" ).append( number ).append( "( BasicType.create( rootValue ) ); }" )
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index, " ).append( vn ).append( " rootValue ) { return setConstructed" ).append( number ).append( "( index, BasicType.create( rootValue ) ); }" )
+                content.valueNames().forEach( vn -> builder
+                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "( " ).append( vn ).append( " contentValue ) { return addConstructed" ).append( number ).append( "( JolieNative.create( contentValue ) ); }" )
+                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index, " ).append( vn ).append( " contentValue ) { return setConstructed" ).append( number ).append( "( index, JolieNative.create( contentValue ) ); }" )
                 );
                 
-                if ( root == Native.ANY )
-                    builder.newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index, UnaryOperator<" ).append( root.wrapperName() ).append( "> rootOperator ) { return reconstruct" ).append( number ).append( "( index ).root( rootOperator ); }" );
+                if ( content == Native.ANY )
+                    builder.newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index, UnaryOperator<" ).append( content.wrapperName() ).append( "> contentOperator ) { return reconstruct" ).append( number ).append( "( index ).content( contentOperator ); }" );
                 else
-                    builder.newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index, UnaryOperator<" ).append( root.valueName() ).append( "> valueOperator ) { return reconstruct" ).append( number ).append( "( index ).root( valueOperator ); }" );
+                    builder.newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index, UnaryOperator<" ).append( content.valueName() ).append( "> valueOperator ) { return reconstruct" ).append( number ).append( "( index ).content( valueOperator ); }" );
             }
         }
     }

@@ -42,7 +42,7 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
             .newlineAppend( "import java.util.stream.Collectors;" )
             .newline()
             .newlineAppend( "import joliex.java.embedding.*;" )
-            .newlineAppend( "import joliex.java.embedding.BasicType.*;" )
+            .newlineAppend( "import joliex.java.embedding.JolieNative.*;" )
             .newlineAppend( "import joliex.java.embedding.util.*;" );
     }
 

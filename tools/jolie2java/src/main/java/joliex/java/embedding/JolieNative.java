@@ -7,24 +7,26 @@ import java.util.function.Function;
 
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
+import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.typing.TypeCheckingException;
 
 import joliex.java.embedding.util.StructureListBuilder;
 
-public sealed interface BasicType<T> extends JolieType {
+public sealed interface JolieNative<T> extends ValueConverter {
     
+    Value jolieRepr();
+
     default T value() { return null; }
 
-    public static record JolieVoid() implements BasicType<Void> {
+    public static record JolieVoid() implements JolieNative<Void> {
+        
         public Value jolieRepr() { return Value.create(); }
 
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof JolieVoid;
-        }
-
+        public boolean equals( Object obj ) { return obj != null && obj instanceof JolieVoid; }
+        public int hashCode() { return 0; }
         public String toString() { return ""; }
 
-        public static JolieVoid createFrom( JolieType t ) { return new JolieVoid(); }
+        public static JolieVoid createFrom( JolieValue t ) { return new JolieVoid(); }
 
         public static Value toValue( JolieVoid t ) { return t.jolieRepr(); }
         public static JolieVoid fromValue( Value v ) throws TypeCheckingException {
@@ -35,30 +37,20 @@ public sealed interface BasicType<T> extends JolieType {
         }
     }
 
-    public static record JolieBool( Boolean value ) implements BasicType<Boolean> {
+    public static record JolieBool( Boolean value ) implements JolieNative<Boolean> {
+        
         public Value jolieRepr() { return Value.create( value ); }
 
-        public boolean equals( Object obj ) {
-            return obj != null && switch ( obj ) {
-
-                case BasicType<?> b -> value.equals( b.value() );
-
-                case StructureType s -> value.equals( s.root().value() ) && s.children().isEmpty();
-
-                default -> false;
-            };
-        }
+        public boolean equals( Object obj ) { return obj instanceof JolieBool b && value.equals( b.value() ); }
+        public int hashCode() { return value.hashCode(); }
 
         public String toString() { return value.toString(); }
 
-        public static JolieBool createFrom( JolieType t ) throws TypeValidationException { 
-            if ( t instanceof JolieBool v )
-                return v;
+        public static JolieBool createFrom( JolieValue j ) throws TypeValidationException { 
+            if ( j.content() instanceof JolieBool content )
+                return content;
             
-            if ( t instanceof StructureType s && s.root() instanceof JolieBool root )
-                return root;
-            
-            throw new TypeValidationException( "The given JolieType could not be converted to a JolieBool." );
+            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieBool." );
         }
 
         public static Value toValue( JolieBool t ) { return t.jolieRepr(); }
@@ -70,23 +62,20 @@ public sealed interface BasicType<T> extends JolieType {
         }
     }
 
-    public static record JolieInt( Integer value ) implements BasicType<Integer> {
+    public static record JolieInt( Integer value ) implements JolieNative<Integer> {
+        
         public Value jolieRepr() { return Value.create( value ); }
 
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof BasicType<?> b && value.equals( b.value() );
-        }
+        public boolean equals( Object obj ) { return obj instanceof JolieInt n && value.equals( n.value() ); }
+        public int hashCode() { return value.hashCode(); }
 
         public String toString() { return value.toString(); }
 
-        public static JolieInt createFrom( JolieType t ) throws TypeValidationException { 
-            if ( t instanceof JolieInt v )
-                return v;
+        public static JolieInt createFrom( JolieValue j ) throws TypeValidationException { 
+            if ( j.content() instanceof JolieInt content )
+                return content;
             
-            if ( t instanceof StructureType s && s.root() instanceof JolieInt root )
-                return root;
-            
-            throw new TypeValidationException( "The given JolieType could not be converted to a JolieInt." );
+            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieInt." );
         }
 
         public static Value toValue( JolieInt t ) { return t.jolieRepr(); }
@@ -98,23 +87,20 @@ public sealed interface BasicType<T> extends JolieType {
         }
     }
 
-    public static record JolieLong( Long value ) implements BasicType<Long> {
+    public static record JolieLong( Long value ) implements JolieNative<Long> {
+        
         public Value jolieRepr() { return Value.create( value ); }
 
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof BasicType<?> b && value.equals( b.value() );
-        }
+        public boolean equals( Object obj ) { return obj instanceof JolieLong n && value.equals( n.value() ); }
+        public int hashCode() { return value.hashCode(); }
 
         public String toString() { return value.toString(); }
 
-        public static JolieLong createFrom( JolieType t ) throws TypeValidationException { 
-            if ( t instanceof JolieLong v )
-                return v;
+        public static JolieLong createFrom( JolieValue j ) throws TypeValidationException {
+            if ( j.content() instanceof JolieLong content )
+                return content;
             
-            if ( t instanceof StructureType s && s.root() instanceof JolieLong root )
-                return root;
-            
-            throw new TypeValidationException( "The given JolieType could not be converted to a JolieLong." );
+            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieLong." );
         }
 
         public static Value toValue( JolieLong t ) { return t.jolieRepr(); }
@@ -126,23 +112,20 @@ public sealed interface BasicType<T> extends JolieType {
         }
     }
 
-    public static record JolieDouble( Double value ) implements BasicType<Double> {
+    public static record JolieDouble( Double value ) implements JolieNative<Double> {
+        
         public Value jolieRepr() { return Value.create( value ); }
 
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof BasicType<?> b && value.equals( b.value() );
-        }
+        public boolean equals( Object obj ) { return obj instanceof JolieDouble n && value.equals( n.value() ); }
+        public int hashCode() { return value.hashCode(); }
 
         public String toString() { return value.toString(); }
 
-        public static JolieDouble createFrom( JolieType t ) throws TypeValidationException { 
-            if ( t instanceof JolieDouble v )
-                return v;
+        public static JolieDouble createFrom( JolieValue j ) throws TypeValidationException { 
+            if ( j.content() instanceof JolieDouble content )
+                return content;
             
-            if ( t instanceof StructureType s && s.root() instanceof JolieDouble root )
-                return root;
-            
-            throw new TypeValidationException( "The given JolieType could not be converted to a JolieDouble." );
+            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieDouble." );
         }
 
         public static Value toValue( JolieDouble t ) { return t.jolieRepr(); }
@@ -154,23 +137,20 @@ public sealed interface BasicType<T> extends JolieType {
         }
     }
 
-    public static record JolieString( String value ) implements BasicType<String> {
+    public static record JolieString( String value ) implements JolieNative<String> {
+        
         public Value jolieRepr() { return Value.create( value ); }
 
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof BasicType<?> b && value.equals( b.value() );
-        }
+        public boolean equals( Object obj ) { return obj instanceof JolieString n && value.equals( n.value() ); }
+        public int hashCode() { return value.hashCode(); }
 
-        public String toString() { return value.toString(); }
+        public String toString() { return value; }
 
-        public static JolieString createFrom( JolieType t ) throws TypeValidationException { 
-            if ( t instanceof JolieString v )
-                return v;
+        public static JolieString createFrom( JolieValue j ) throws TypeValidationException {
+            if ( j.content() instanceof JolieString content )
+                return content;
             
-            if ( t instanceof StructureType s && s.root() instanceof JolieString root )
-                return root;
-            
-            throw new TypeValidationException( "The given JolieType could not be converted to a JolieString." );
+            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieString." );
         }
 
         public static Value toValue( JolieString t ) { return t.jolieRepr(); }
@@ -182,23 +162,20 @@ public sealed interface BasicType<T> extends JolieType {
         }
     }
 
-    public static record JolieRaw( ByteArray value ) implements BasicType<ByteArray> {
+    public static record JolieRaw( ByteArray value ) implements JolieNative<ByteArray> {
+        
         public Value jolieRepr() { return Value.create( value ); }
 
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof BasicType<?> b && value.equals( b.value() );
-        }
+        public boolean equals( Object obj ) { return obj instanceof JolieRaw n && value.equals( n.value() ); }
+        public int hashCode() { return value.hashCode(); }
 
         public String toString() { return value.toString(); }
 
-        public static JolieRaw createFrom( JolieType t ) throws TypeValidationException { 
-            if ( t instanceof JolieRaw v )
-                return v;
+        public static JolieRaw createFrom( JolieValue j ) throws TypeValidationException {
+            if ( j.content() instanceof JolieRaw content )
+                return content;
             
-            if ( t instanceof StructureType s && s.root() instanceof JolieRaw root )
-                return root;
-            
-            throw new TypeValidationException( "The given JolieType could not be converted to a JolieRaw." );
+            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieRaw." );
         }
 
         public static Value toValue( JolieRaw t ) { return t.jolieRepr(); }
@@ -218,15 +195,15 @@ public sealed interface BasicType<T> extends JolieType {
     public static JolieString create( String value ) { return Optional.ofNullable( value ).map( JolieString::new ).orElse( null ); }
     public static JolieRaw create( ByteArray value ) { return Optional.ofNullable( value ).map( JolieRaw::new ).orElse( null ); }
 
-    public static BasicType<?> createFrom( JolieType t ) { return switch( t ) { case StructureType s -> s.root(); case BasicType<?> b -> b; }; }
+    public static JolieNative<?> createFrom( JolieValue t ) { return t.content(); }
 
     public static InlineListBuilder constructList() { return new InlineListBuilder(); }
     
-    public static <T> NestedListBuilder<T> constructNestedList( Function<List<BasicType<?>>, T> f, SequencedCollection<? extends JolieType> c ) { return new NestedListBuilder<>( f, c ); }
-    public static <T> NestedListBuilder<T> constructNestedList( Function<List<BasicType<?>>, T> f ) { return new NestedListBuilder<>( f ); }
+    public static <T> NestedListBuilder<T> constructNestedList( Function<List<JolieNative<?>>, T> f, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( f, c ); }
+    public static <T> NestedListBuilder<T> constructNestedList( Function<List<JolieNative<?>>, T> f ) { return new NestedListBuilder<>( f ); }
     
-    public static Value toValue( BasicType<?> any ) { return any.jolieRepr(); }
-    public static BasicType<?> fromValue( Value value ) {
+    public static Value toValue( JolieNative<?> any ) { return any.jolieRepr(); }
+    public static JolieNative<?> fromValue( Value value ) {
         if ( value.isBool() )
             return new JolieBool( value.boolValue() );
         if ( value.isInt() )
@@ -242,9 +219,9 @@ public sealed interface BasicType<T> extends JolieType {
         return new JolieVoid();
     }
 
-    public static abstract class ListBuilder<B> extends StructureListBuilder<BasicType<?>, B> {
+    public static abstract class ListBuilder<B> extends StructureListBuilder<JolieNative<?>, B> {
 
-        protected ListBuilder( SequencedCollection<? extends JolieType> c ) { super( c.parallelStream().map( e -> switch ( e ) { case BasicType<?> b -> b; case StructureType s -> createFrom( s ); } ).toList() ); } 
+        protected ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c.parallelStream().map( JolieValue::content ).toList() ); }
         protected ListBuilder() {}
 
         protected abstract B self();
@@ -270,15 +247,15 @@ public sealed interface BasicType<T> extends JolieType {
 
         protected InlineListBuilder self() { return this; }
 
-        public List<BasicType<?>> build() { return super.build(); }
+        public List<JolieNative<?>> build() { return super.build(); }
     }
 
     public static class NestedListBuilder<B> extends ListBuilder<NestedListBuilder<B>> {
 
-        private final Function<List<BasicType<?>>, B> doneFunc;
+        private final Function<List<JolieNative<?>>, B> doneFunc;
 
-        private NestedListBuilder( Function<List<BasicType<?>>, B> doneFunc, SequencedCollection<? extends JolieType> structures ) { super( structures ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<BasicType<?>>, B> doneFunc ) { this.doneFunc = doneFunc; }
+        private NestedListBuilder( Function<List<JolieNative<?>>, B> doneFunc, SequencedCollection<? extends JolieValue> structures ) { super( structures ); this.doneFunc = doneFunc; }
+        private NestedListBuilder( Function<List<JolieNative<?>>, B> doneFunc ) { this.doneFunc = doneFunc; }
 
         protected NestedListBuilder<B> self() { return this; }
 

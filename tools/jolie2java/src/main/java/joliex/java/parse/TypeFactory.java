@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -45,8 +46,8 @@ public class TypeFactory {
         );
     }
 
-    private JolieType parse( String name, TypeDefinition typeDefinition ) { return parse( NameFormatter.typeClassNameSupplier( name ), typeDefinition ); }
-    private JolieType parse( Supplier<String> nameSupplier, TypeDefinition typeDefinition ) {
+    private JolieType parse( String name, TypeDefinition typeDefinition ) { return parse( NameFormatter.typeClassNameSupplier( name ), typeDefinition, false ); }
+    private JolieType parse( Supplier<String> nameSupplier, TypeDefinition typeDefinition, boolean isInner ) {
         return switch ( typeDefinition ) {
 
             case TypeDefinitionUndefined ud -> Undefined.getInstance();
@@ -55,7 +56,7 @@ public class TypeFactory {
 
             case TypeChoiceDefinition cd -> parseChoice( nameSupplier, cd );
 
-            case TypeDefinitionLink ld -> parseAlias( nameSupplier, ld );
+            case TypeDefinitionLink ld -> isInner ? parseLink( ld ) : parseAlias( nameSupplier, ld );
 
             default -> throw new UnsupportedOperationException( "Parsing the given TypeDefinition isn't supported: " + typeDefinition.getClass().getName() );
         };
@@ -78,37 +79,27 @@ public class TypeFactory {
     }
 
     private JolieType parseChoice( Supplier<String> nameSupplier, TypeChoiceDefinition choiceDefinition ) {
-        return new Choice.Inline(
-            nameSupplier.get(),
-            numberedOptions( choiceDefinition )
-                .mapKeyValue( (i,td) -> new Choice.Option( CompletableFuture.supplyAsync( () -> parseInner( () -> "S" + i, td ) ) ) )
-                .toList()
-        );
-    }
-
-    private JolieType parseAlias( Supplier<String> nameSupplier, TypeDefinitionLink linkDefinition ) {
-        final var d = get( unpackLink( linkDefinition ) );
-        return switch ( d ) {
-            case Basic.Inline b -> new Basic.Inline( nameSupplier.get(), b.nativeType(), b.refinement() );
-            case Structure.Inline s -> new Structure.Inline( nameSupplier.get(), s.nativeType(), s.nativeRefinement(), s.fields() );
-            case Choice.Inline c -> new Choice.Inline( nameSupplier.get(), c.options() );
-            default -> d;
-        };
-    }
-
-    private JolieType parseInner( Supplier<String> nameSupplier, TypeDefinition typeDefinition ) {
-        return typeDefinition instanceof TypeDefinitionLink ld
-            ? parseLink( ld )
-            : parse( nameSupplier, typeDefinition );
+        final String name = nameSupplier.get();
+        return new Choice.Inline( name, createOptions( choiceDefinition, name, new AtomicInteger() ) );
     }
 
     private JolieType parseLink( TypeDefinitionLink linkDefinition ) {
-        final var d = get( linkDefinition.linkedType() );
-        return switch ( d ) {
+        final JolieType t = get( linkDefinition.linkedType() );
+        return switch ( t ) {
             case Basic.Inline i -> new Basic.Link( i );
             case Structure.Inline i -> new Structure.Link( i );
             case Choice.Inline i -> new Choice.Link( i );
-            default -> d;
+            default -> t;
+        };
+    }
+
+    private JolieType parseAlias( Supplier<String> nameSupplier, TypeDefinitionLink linkDefinition ) {
+        final JolieType t = get( unpackLink( linkDefinition ) );
+        return switch ( t ) {
+            case Basic.Inline b -> new Basic.Inline( nameSupplier.get(), b.nativeType(), b.refinement() );
+            case Structure.Inline s -> new Structure.Inline( nameSupplier.get(), s.nativeType(), s.nativeRefinement(), s.fields() );
+            case Choice.Inline c -> new Choice.Inline( nameSupplier.get(), c.options() );
+            default -> t;
         };
     }
 
@@ -126,17 +117,28 @@ public class TypeFactory {
         return new Structure.Field(
             typeDefinition.name(),
             formattedName,
-            CompletableFuture.supplyAsync( () -> parseInner( 
+            CompletableFuture.supplyAsync( () -> parse( 
                 NameFormatter.typeClassNameSupplier( formattedName ), 
-                typeDefinition 
+                typeDefinition,
+                true
             ) ),
             typeDefinition.cardinality().min(),
             typeDefinition.cardinality().max()
         );
     }
 
-    private static EntryStream<Integer, TypeDefinition> numberedOptions( TypeChoiceDefinition choiceDefinition ) {
-        return EntryStream.of( unfoldChoice( choiceDefinition ).toList() ).mapKeys( i -> ++i );
+    private List<Choice.Option> createOptions( TypeChoiceDefinition choiceDefinition, String name, AtomicInteger structureCount ) {
+        return unfoldChoice( choiceDefinition )
+            .sequential()
+            .map( td -> switch ( td ) {
+                case TypeInlineDefinition id -> {
+                    final String n = id.hasSubTypes() || id.untypedSubTypes() ? "S" + structureCount.incrementAndGet() : null;
+                    yield new Choice.Option( CompletableFuture.completedFuture( parseInline( () -> n, id ) ) );
+                }
+                case TypeDefinitionLink ld -> new Choice.Option( CompletableFuture.supplyAsync( () -> parseLink( ld ) ) );
+                default -> throw new IllegalArgumentException( "Got a choice option of an unexpected type, class " + td.getClass().getName() + "." );
+            } )
+            .toList();
     }
 
     private static Stream<TypeDefinition> unfoldChoice( TypeChoiceDefinition choiceDefinition ) {

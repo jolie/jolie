@@ -29,6 +29,7 @@ public sealed interface JolieType {
             public static record Inline( String name, Native nativeType, NativeRefinement refinement ) implements Basic {
     
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Basic other && name.equals( other.name() ); }
+                public int hashCode() { return name.hashCode(); }
             }
     
             public static record Link( Inline definition ) implements Basic {
@@ -38,6 +39,7 @@ public sealed interface JolieType {
                 public NativeRefinement refinement() { return definition.refinement(); }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
+                public int hashCode() { return definition.hashCode(); }
             }
         }
     
@@ -64,6 +66,7 @@ public sealed interface JolieType {
             public static record Inline( String name, Native nativeType, NativeRefinement nativeRefinement, List<Field> fields ) implements Structure {
     
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
+                public int hashCode() { return name.hashCode(); }
             }
     
             public static record Link( Inline definition ) implements Structure {
@@ -74,20 +77,21 @@ public sealed interface JolieType {
                 public List<Field> fields() { return definition.fields(); }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
+                public int hashCode() { return definition.hashCode(); }
             }
 
             public static final class Undefined implements Structure {
 
-                private static final Undefined instance = new Undefined();
+                private static final Undefined INSTANCE = new Undefined();
         
                 private Undefined() {}
         
-                public String name() { return "JolieType"; }
+                public String name() { return "JolieValue"; }
                 public Native nativeType() { return Native.ANY; }
                 public NativeRefinement nativeRefinement() { return null; }
                 public List<Field> fields() { return List.of(); }
         
-                public static Undefined getInstance() { return instance; }
+                public static Undefined getInstance() { return INSTANCE; }
             }
         }
     
@@ -99,14 +103,14 @@ public sealed interface JolieType {
             }
     
             List<Option> options();
-    
             default EntryStream<Integer, JolieType> numberedOptions() {
                 return EntryStream.of( options() ).mapKeys( i -> ++i ).mapValues( Option::type );
             }
     
             public static record Inline( String name, List<Option> options ) implements Choice {
-    
+                
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Choice other && name.equals( other.name() ); }
+                public int hashCode() { return name.hashCode(); } 
             }
     
             public static record Link( Inline definition ) implements Choice {
@@ -115,6 +119,7 @@ public sealed interface JolieType {
                 public List<Option> options() { return definition.options(); }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
+                public int hashCode() { return definition.hashCode(); }
             }
         }
     }
@@ -126,7 +131,7 @@ public sealed interface JolieType {
         DOUBLE( "Double", "JolieDouble", "doubleValue", "isDouble" ),
         STRING( "String", "JolieString", "strValue", "isString" ),
         RAW( "ByteArray", "JolieRaw", "byteArrayValue", "isByteArray" ),
-        ANY( "BasicType<?>", "BasicType<?>", "valueObject", "" ),
+        ANY( "JolieNative<?>", "JolieNative<?>", "valueObject", "" ),
         VOID( "Void", "JolieVoid", "", "" );
 
         private static final Map<NativeType, Native> TRANSLATIONS = Map.of(

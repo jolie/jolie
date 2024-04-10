@@ -3,63 +3,82 @@ package joliex.java.embedding.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.typing.TypeCheckingException;
-import joliex.java.embedding.JolieType;
-import joliex.java.embedding.StructureType;
+import joliex.java.embedding.JolieNative;
+import joliex.java.embedding.JolieValue;
 import joliex.java.embedding.TypeValidationException;
 
-public sealed interface FieldManager<T extends JolieType> {
+public sealed interface FieldManager<T> {
 
-    public static record Interval<T extends Number & Comparable<T>>( T min, T max ) {}
+    Integer min();
+    Integer max();
+    ConversionFunction<? super Value, T> valueConverter();
+    Function<? super JolieValue, T> typeConverter();
 
-    ConversionFunction<Value, T> valueConverter();
-    Function<? super StructureType, T> structureConverter();
-    void validateCardinality( Collection<? extends JolieType> structures ) throws TypeValidationException;
+    List<JolieValue> fromValueVector( ValueVector vv ) throws TypeCheckingException;
+    List<JolieValue> fromJolieValues( List<JolieValue> ls );
+    
+    default void validateCardinality( Collection<? extends JolieValue> child ) throws TypeValidationException {
+        int size = child.size();
 
-    default List<T> fromValueVector( ValueVector values ) throws TypeCheckingException {
-        final List<T> fieldValues = new ArrayList<>();
-
-        for ( Value value : values )
-            fieldValues.add( valueConverter().apply( value ) );
-
-        return fieldValues;
+        if ( size < min() || size > max() )
+            throw new TypeValidationException( "Invalid Cardinality: the number of elements, " + size + ", is not within the range [" + min() + ":" + max() + "]." );
     }
 
-    default List<StructureType> fromStructures( Collection<? extends StructureType> structures ) {
-        return structures.parallelStream()
-            .map( s -> {
-                try {
-                    return JolieType.toStructure( structureConverter().apply( s ) );
-                } catch ( TypeValidationException e ) {
-                    return null;
-                }
-            } )
-            .filter( s -> s != null )
-            .toList();
-    }
+    public static record NativeManager<U extends JolieNative<?>>( Integer min, Integer max, ConversionFunction<? super Value, U> valueConverter, Function<? super JolieValue, U> typeConverter ) implements FieldManager<U> {
 
-    public static record FlatField<T extends JolieType>( ConversionFunction<Value, T> valueConverter, Function<? super StructureType, T> structureConverter ) implements FieldManager<T> {
-        
-        public void validateCardinality( Collection<? extends JolieType> child ) throws TypeValidationException {
-            if ( child.size() != 1 )
-                throw new TypeValidationException( "Invalid Cardinality: there should be exactly 1 element in this field, found " + child.size() + "." );
+        public List<JolieValue> fromValueVector( ValueVector values ) throws TypeCheckingException {
+            final List<JolieValue> fieldValues = new ArrayList<>();
+
+            for ( Value value : values )
+                fieldValues.add( JolieValue.create( valueConverter().apply( value ) ) );
+
+            return fieldValues;
+        }
+
+        public List<JolieValue> fromJolieValues( List<JolieValue> ls ) {
+            return ls.parallelStream()
+                .map( typeConverter()::apply )
+                .map( JolieValue::create )
+                .toList();
         }
     }
 
-    public static record VectorField<T extends JolieType>( Integer min, Integer max, ConversionFunction<Value, T> valueConverter, Function<? super StructureType, T> structureConverter ) implements FieldManager<T> {
-        
-        public void validateCardinality( Collection<? extends JolieType> child ) throws TypeValidationException {
-            int size = child.size();
+    public static record CustomManager<U extends JolieValue>( Integer min, Integer max, ConversionFunction<? super Value, U> valueConverter, Function<? super JolieValue, U> typeConverter ) implements FieldManager<U> {
 
-            if ( size < min() || size > max() )
-                throw new TypeValidationException( "Invalid Cardinality: the number of elements, " + size + ", is not within the range [" + min() + ":" + max() + "]." );
+        public List<JolieValue> fromValueVector( ValueVector values ) throws TypeCheckingException {
+            final List<JolieValue> fieldValues = new ArrayList<>();
+    
+            for ( Value value : values )
+                fieldValues.add( valueConverter().apply( value ) );
+    
+            return fieldValues;
+        }
+    
+        public List<JolieValue> fromJolieValues( List<JolieValue> c ) {
+            return c.parallelStream()
+                .map( j -> {
+                    try {
+                        return typeConverter().apply( j );
+                    } catch ( TypeValidationException e ) {
+                        return null;
+                    }
+                } )
+                .filter( Objects::nonNull )
+                .map( JolieValue.class::cast )
+                .toList();
         }
     }
 
-    public static <T extends JolieType> FieldManager<T> create( ConversionFunction<Value, T> valueConverter, Function<? super StructureType, T> structureConverter ) { return new FlatField<>( valueConverter, structureConverter ); }
-    public static <T extends JolieType> FieldManager<T> create( Integer min, Integer max, ConversionFunction<Value, T> valueConverter, Function<? super StructureType, T> structureConverter ) { return new VectorField<>( min, max, valueConverter, structureConverter ); }
+    public static <U extends JolieValue> CustomManager<U> createCustom( Integer min, Integer max, ConversionFunction<Value, U> valueConverter, Function<? super JolieValue, U> typeConverter ) { return new CustomManager<>( min, max, valueConverter, typeConverter ); }
+    public static <U extends JolieValue> CustomManager<U> createCustom( ConversionFunction<Value, U> valueConverter, Function<? super JolieValue, U> typeConverter ) { return createCustom( 1, 1, valueConverter, typeConverter ); }
+
+    public static <U extends JolieNative<?>> NativeManager<U> createNative( Integer min, Integer max, ConversionFunction<Value, U> valueConverter, Function<? super JolieValue, U> typeConverter ) { return new NativeManager<>( min, max, valueConverter, typeConverter ); }
+    public static <U extends JolieNative<?>> NativeManager<U> createNative( ConversionFunction<Value, U> valueConverter, Function<? super JolieValue, U> typeConverter ) { return createNative( 1, 1, valueConverter, typeConverter ); }
+
 }

@@ -30,10 +30,9 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.java.embedding.util.StructureBuilder;
 import joliex.java.embedding.util.StructureListBuilder;
-
 import joliex.java.Jolie2Java;
 import joliex.java.Jolie2JavaCommandLineParser;
-import joliex.java.embedding.JolieType;
+import joliex.java.embedding.JolieValue;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 
@@ -51,6 +50,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.SequencedCollection;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
@@ -112,17 +112,20 @@ public class JavaDocumentCreatorTest {
 		// Program program = parser.parse();
 		inspector = ParsingUtils.createInspector( program );
 
-		// testing interfaceOnly = true
 		final JavaDocumentCreator jdc =
 			new JavaDocumentCreator( PACKAGENAME, null, null, null, OUTPUTDIRECTORY, true, null );
 
 		jdc.generateClasses( inspector );
 
-		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 19,
+		assertEquals( "The number of generated files is wrong (generateService=true)", 21,
 			new File( OUTPUTDIRECTORY + "com/test/types" ).list().length );
-		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 4,
+		assertEquals( "The number of generated files is wrong (generateService=true)", 11,
+			new File( OUTPUTDIRECTORY + "com/test/faults" ).list().length );
+		assertEquals( "The number of generated files is wrong (generateService=true)", 1,
+			new File( OUTPUTDIRECTORY + "com/test/interfaces" ).list().length );
+		assertEquals( "The number of generated files is wrong (generateService=true)", 4,
 			new File( OUTPUTDIRECTORY + "com/test" ).list().length );
-		assertEquals( "The number of generated files is wrong (interfaceOnly=false)", 1,
+		assertEquals( "The number of generated files is wrong (generateService=true)", 1,
 			new File( OUTPUTDIRECTORY ).list().length );
 
 		// load classes
@@ -188,7 +191,7 @@ public class JavaDocumentCreatorTest {
 
 		assertEquals(
 			"Number of generated methods does not correspond",
-			32L,
+			34L,
 			Arrays.stream( TestInterface.getMethods() ).filter( m -> m.getName().startsWith( "test" ) ).count() );
 	}
 
@@ -202,7 +205,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > FlatStructureType = getTypeClass( "FlatStructureType" );
 
 		// invoke fromValue() and toValue()
-		JolieType flatStructureInstance = invokeFromValue( FlatStructureType, getFlatStructuredType() );
+		JolieValue flatStructureInstance = invokeFromValue( FlatStructureType, getFlatStructuredType() );
 		assertTrue(
 			compareValues( getFlatStructuredType(), invokeToValue( FlatStructureType, flatStructureInstance ), 0 ) );
 		System.out.println( testName + " fromValue() & toValue() OK" );
@@ -225,7 +228,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > FlatStructureVectorsType = getTypeClass( "FlatStructureVectorsType" );
 
 		// invoke fromValue() & toValue()
-		JolieType flatStructureVectorsInstance =
+		JolieValue flatStructureVectorsInstance =
 			invokeFromValue( FlatStructureVectorsType, getFlatStructuredVectorsType() );
 		assertTrue( compareValues( getFlatStructuredVectorsType(),
 			invokeToValue( FlatStructureVectorsType, flatStructureVectorsInstance ), 0 ) );
@@ -240,7 +243,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > InLineStructureType = getTypeClass( "InLineStructureType" );
 
 		// invoke fromValue() and toValue()
-		JolieType inLineStructureInstance = invokeFromValue( InLineStructureType, getInlineStructureType() );
+		JolieValue inLineStructureInstance = invokeFromValue( InLineStructureType, getInlineStructureType() );
 		assertTrue( compareValues( getInlineStructureType(),
 			invokeToValue( InLineStructureType, inLineStructureInstance ), 0 ) );
 		System.out.println( testName + " fromValue() & toValue() OK" );
@@ -265,7 +268,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > InLineStructureVectorsType = getTypeClass( "InLineStructureVectorsType" );
 
 		// invoke fromValue() and toValue()
-		JolieType inLineStructureVectorsInstance =
+		JolieValue inLineStructureVectorsInstance =
 			invokeFromValue( InLineStructureVectorsType, getInlineStructureVectorsType() );
 		assertTrue( compareValues( getInlineStructureVectorsType(),
 			invokeToValue( InLineStructureVectorsType, inLineStructureVectorsInstance ), 0 ) );
@@ -291,7 +294,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > NewType = getTypeClass( "NewType" );
 
 		// invoke fromValue() and toValue()
-		JolieType newInstance =
+		JolieValue newInstance =
 			invokeFromValue( NewType, getNewType() );
 		assertTrue( compareValues( getNewType(),
 			invokeToValue( NewType, newInstance ), 0 ) );
@@ -317,7 +320,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > LinkedTypeStructureType = getTypeClass( "LinkedTypeStructureType" );
 
 		// invoke fromValue() and toValue()
-		JolieType linkedTypeStructureInstance = invokeFromValue(
+		JolieValue linkedTypeStructureInstance = invokeFromValue(
 			LinkedTypeStructureType, getLinkedTypeStructureType() );
 		assertTrue( compareValues(
 			getLinkedTypeStructureType(),
@@ -350,7 +353,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > LinkedTypeStructureVectorsType = getTypeClass( "LinkedTypeStructureVectorsType" );
 
 		// invoke fromValue() and toValue()
-		JolieType linkedTypeStructureVectorsInstance = invokeFromValue(
+		JolieValue linkedTypeStructureVectorsInstance = invokeFromValue(
 			LinkedTypeStructureVectorsType, getLinkedTypeStructureVectorsType() );
 		assertTrue( compareValues(
 			getLinkedTypeStructureVectorsType(),
@@ -383,7 +386,7 @@ public class JavaDocumentCreatorTest {
 
 		// int
 		Value testValue = Value.create( TESTINTEGER );
-		JolieType choiceLinkedInstance = invokeFromValue( ChoiceLinkedType, testValue );
+		JolieValue choiceLinkedInstance = invokeFromValue( ChoiceLinkedType, testValue );
 		assertTrue( compareValues( testValue, invokeToValue( ChoiceLinkedType, choiceLinkedInstance ), 0 ) );
 
 		// InLineStructureType
@@ -432,7 +435,7 @@ public class JavaDocumentCreatorTest {
 		// invoke fromValue() and toValue()
 
 		// ChoiceInlineType1
-		JolieType choiceInlineInstance = invokeFromValue( ChoiceInlineType, getChoiceInlineType1() );
+		JolieValue choiceInlineInstance = invokeFromValue( ChoiceInlineType, getChoiceInlineType1() );
 		assertTrue(
 			compareValues( getChoiceInlineType1(), invokeToValue( ChoiceInlineType, choiceInlineInstance ), 0 ) );
 
@@ -478,7 +481,7 @@ public class JavaDocumentCreatorTest {
 
 		// string
 		Value testValue = Value.create( TESTSTRING );
-		JolieType choiceSimpleInstance = invokeFromValue( ChoiceSimpleType, testValue );
+		JolieValue choiceSimpleInstance = invokeFromValue( ChoiceSimpleType, testValue );
 		assertTrue( compareValues( testValue, invokeToValue( ChoiceSimpleType, choiceSimpleInstance ), 0 ) );
 
 		// int
@@ -501,8 +504,73 @@ public class JavaDocumentCreatorTest {
 		// checking TypeCheckingException
 		try {
 			testValue.setValue( TESTBOOL );
-			choiceSimpleInstance = invokeFromValue( ChoiceSimpleType, testValue );
+			invokeFromValue( ChoiceSimpleType, testValue );
 			assertTrue( "TypeCheckingException not thrown", false );
+		} catch( java.lang.reflect.InvocationTargetException e ) {
+		}
+		System.out.println( testName + " Exception raised OK" );
+	}
+
+	@Test
+	public void testLinkedChoiceStructureType() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IllegalArgumentException, InstantiationException {
+		String testName = "testLinkedChoiceStructureType";
+		// FileStructureVector
+		Class< ? > LinkedChoiceStructureType = getTypeClass( "LinkedChoiceStructureType" );
+
+		// invoke fromValue() and toValue()
+		JolieValue linkedChoiceStructureInstance = invokeFromValue(
+			LinkedChoiceStructureType, getLinkedChoiceStructureType() );
+		assertTrue( testName + " fromValue() & toValue() FAILED", compareValues(
+			getLinkedChoiceStructureType(),
+			invokeToValue( LinkedChoiceStructureType, linkedChoiceStructureInstance ),
+			0 
+		) );
+		System.out.println( testName + " fromValue() & toValue() OK" );
+
+		// invoke methods
+		invokingSetAddGetMethodsForLinkedChoiceStructureType();
+		System.out.println( testName + " invoking methods OK" );
+
+		// checking TypeCheckingException
+		Value exceptionValue = Value.create();
+		exceptionValue.getFirstChild( "zzzzzz" ).setValue( TESTBOOL );
+		try {
+			invokeFromValue( LinkedChoiceStructureType, exceptionValue );
+			assertTrue( "Exception not thrown", false );
+		} catch( java.lang.reflect.InvocationTargetException e ) {
+		}
+		System.out.println( testName + " Exception raised OK" );
+	}
+
+	@Test
+	public void testInlineChoiceStructureType() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, 
+	SecurityException, ClassNotFoundException, IllegalArgumentException, InstantiationException {
+
+		String testName = "testInlineChoiceStructureType";
+		// FileStructureVector
+		Class< ? > InlineChoiceStructureType = getTypeClass( "InlineChoiceStructureType" );
+
+		// invoke fromValue() and toValue()
+		JolieValue inlineChoiceStructureInstance = invokeFromValue(
+			InlineChoiceStructureType, getInlineChoiceStructureType() );
+
+		assertTrue( testName + " fromValue() & toValue() FAILED", compareValues(
+			getInlineChoiceStructureType(),
+			invokeToValue( InlineChoiceStructureType, inlineChoiceStructureInstance ),
+			0 
+		) );
+		System.out.println( testName + " fromValue() & toValue() OK" );
+
+		// invoke methods
+		invokingSetAddGetMethodsForInlineChoiceStructureType();
+		System.out.println( testName + " invoking methods OK" );
+
+		// checking TypeCheckingException
+		Value exceptionValue = Value.create();
+		exceptionValue.getFirstChild( "zzzzzz" ).setValue( TESTBOOL );
+		try {
+			invokeFromValue( InlineChoiceStructureType, exceptionValue );
+			assertTrue( "Exception not thrown", false );
 		} catch( java.lang.reflect.InvocationTargetException e ) {
 		}
 		System.out.println( testName + " Exception raised OK" );
@@ -518,7 +586,7 @@ public class JavaDocumentCreatorTest {
 			Class< ? > RootValueType = getTypeClass( "RootValue" + i + "Type" );
 
 			// invoke fromValue() & toValue()
-			JolieType rootValueInstance = invokeFromValue( RootValueType, getRootValue( i ) );
+			JolieValue rootValueInstance = invokeFromValue( RootValueType, getRootValue( i ) );
 			assertTrue( compareValues( getRootValue( i ), invokeToValue( RootValueType, rootValueInstance ), 0 ) );
 			System.out.println( testName + " fromValue() & toValue() OK" );
 		}
@@ -532,17 +600,17 @@ public class JavaDocumentCreatorTest {
 		return getClass( JavaDocumentCreator.DEFAULT_TYPE_PACKAGE, name );
 	}
 
-	private JolieType invokeFromValue( Class< ? > cls, Value value )
+	private JolieValue invokeFromValue( Class< ? > cls, Value value )
 		throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		return JolieType.class.cast( cls.getMethod( "fromValue", Value.class ).invoke( null, value ) );
+		return JolieValue.class.cast( cls.getMethod( "fromValue", Value.class ).invoke( null, value ) );
 	}
 
-	private Value invokeToValue( Class< ? > cls, JolieType t )
+	private Value invokeToValue( Class< ? > cls, JolieValue t )
 		throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return Value.class.cast( cls.getMethod( "toValue", cls ).invoke( null, t ) );
 	}
 
-	private Object invokeGet( Class< ? > cls, JolieType ins, String name )
+	private Object invokeGet( Class< ? > cls, JolieValue ins, String name )
 		throws IllegalAccessException, InvocationTargetException, SecurityException {
 		try {
 			return cls.getDeclaredMethod( name ).invoke( ins );
@@ -562,27 +630,45 @@ public class JavaDocumentCreatorTest {
 		}
 	}
 
-	private void invokeSet( StructureBuilder< ?, ? > ins, Object arg, String name )
+	private void invokeSet( StructureBuilder< ?, ? > ins, Object arg, String name ) throws IllegalAccessException, InvocationTargetException, SecurityException { 
+		invokeSet( ins, arg, name, arg.getClass() ); 
+	}
+	private void invokeSet( StructureBuilder< ?, ? > ins, Object arg, String name, Class< ? > cls )
 		throws IllegalAccessException, InvocationTargetException, SecurityException {
+		
+		final String methodName = "set" + StringUtils.capitalize( name );
 		try {
-			ins.getClass().getDeclaredMethod( "set" + StringUtils.capitalize( name ), arg.getClass() ).invoke( ins,
-				arg );
+			ins.getClass().getDeclaredMethod( methodName, cls ).invoke( ins, arg );
 		} catch( NoSuchMethodException e ) {
-			assertTrue( "set method for field " + name + " of type " + arg.getClass().getName() + " not found, class "
+			assertTrue( methodName + " method of type " + arg.getClass().getName() + " not found, class "
 				+ ins.getClass().getName(), false );
 		}
 	}
 
-	private void invokeAdd( StructureListBuilder< ?, ? > ins, Object arg, Integer choiceNr )
-		throws IllegalAccessException, InvocationTargetException, SecurityException {
-
-		final String methodName = Optional.ofNullable( choiceNr ).map( n -> "add" + n ).orElse( "add" );
+	private void invokeListSet( StructureBuilder< ?, ? > ins, Object arg, String name ) throws IllegalAccessException, InvocationTargetException, SecurityException {
+		final String methodName = "set" + StringUtils.capitalize( name );
 		try {
-			ins.getClass().getMethod( methodName, JolieType.class ).invoke( ins, arg );
+			ins.getClass().getDeclaredMethod( methodName, SequencedCollection.class ).invoke( ins, arg );
+		} catch( NoSuchMethodException e ) {
+			assertTrue( methodName + " method of type " + arg.getClass().getName() + " not found, class "
+				+ ins.getClass().getName(), false );
+		}
+	}
+
+	private void invokeAdd( StructureListBuilder< ?, ? > ins, Object arg, Integer choiceNr ) throws IllegalAccessException, InvocationTargetException, SecurityException {
+		if ( choiceNr == null )
+			invokeAdd( ins, arg, "add", Object.class );
+		else
+			invokeAdd( ins, arg, "add" + choiceNr, arg.getClass() );
+	}
+	private void invokeAdd( StructureListBuilder< ?, ? > ins, Object arg, String name, Class< ? > cls )
+		throws IllegalAccessException, InvocationTargetException, SecurityException {
+		try {
+			ins.getClass().getMethod( name, cls ).invoke( ins, arg );
 		} catch( NoSuchMethodException e ) {
 			assertTrue(
-				methodName + " method of type " + arg.getClass().getName() + " not found, class "
-					+ ins.getClass().getName(),
+				name + " method of type " + arg.getClass().getName() + " not found, class "
+					+ ins.getClass().getName() + "\n" + "Instead found: " + Arrays.stream( ins.getClass().getMethods() ).map( s -> "\n\t" + s ).reduce( (s1, s2) -> s1 + s2 ).orElse( "" ),
 				false );
 		}
 	}
@@ -607,10 +693,10 @@ public class JavaDocumentCreatorTest {
 		}
 	}
 
-	private JolieType invokeBuild( StructureBuilder< ?, ? > ins )
+	private JolieValue invokeBuild( StructureBuilder< ?, ? > ins )
 		throws IllegalAccessException, InvocationTargetException, SecurityException {
 		try {
-			return JolieType.class.cast( ins.getClass().getDeclaredMethod( "build" ).invoke( ins ) );
+			return JolieValue.class.cast( ins.getClass().getDeclaredMethod( "build" ).invoke( ins ) );
 		} catch( NoSuchMethodException e ) {
 			assertTrue( "build method not found, class " + ins.getClass().getName(), false );
 			return null;
@@ -628,27 +714,27 @@ public class JavaDocumentCreatorTest {
 
 		// setA()
 		Class< ? > InLineStructureType = getTypeClass( "InLineStructureType" );
-		JolieType inLineStructureInstance = invokeFromValue( InLineStructureType, getInlineStructureType() );
+		JolieValue inLineStructureInstance = invokeFromValue( InLineStructureType, getInlineStructureType() );
 		invokeSet( builder, inLineStructureInstance, "a" );
 
 		// setB()
 		Class< ? > InLineStructureVectorsType = getTypeClass( "InLineStructureVectorsType" );
-		JolieType inLineStructureVectorsInstance =
+		JolieValue inLineStructureVectorsInstance =
 			invokeFromValue( InLineStructureVectorsType, getInlineStructureVectorsType() );
 		invokeSet( builder, inLineStructureVectorsInstance, "b" );
 
 		// setC()
 		Class< ? > FlatStructureType = getTypeClass( "FlatStructureType" );
-		JolieType flatStructureInstance = invokeFromValue( FlatStructureType, getFlatStructuredType() );
+		JolieValue flatStructureInstance = invokeFromValue( FlatStructureType, getFlatStructuredType() );
 		invokeSet( builder, flatStructureInstance, "c" );
 
 		// setD()
 		Class< ? > NewType = getTypeClass( "NewType" );
-		JolieType newInstance = invokeFromValue( NewType, getNewType() );
+		JolieValue newInstance = invokeFromValue( NewType, getNewType() );
 		invokeSet( builder, newInstance, "d" );
 
 		// build()
-		JolieType linkedTypeStructureInstance = invokeBuild( builder );
+		JolieValue linkedTypeStructureInstance = invokeBuild( builder );
 
 		// check get methods
 		assertEquals( "Linked type a does not correspond.", inLineStructureInstance,
@@ -675,7 +761,7 @@ public class JavaDocumentCreatorTest {
 		Class< ? > InLineStructureType = getTypeClass( "InLineStructureType" );
 		int aElements = 10;
 		for( int i = 0; i < aElements; i++ ) {
-			JolieType inLineStructureInstance = invokeFromValue( InLineStructureType, getInlineStructureType() );
+			JolieValue inLineStructureInstance = invokeFromValue( InLineStructureType, getInlineStructureType() );
 			invokeAdd( aBuilder, inLineStructureInstance, null );
 		}
 		invokeDone( aBuilder );
@@ -685,13 +771,13 @@ public class JavaDocumentCreatorTest {
 		Class< ? > FlatStructureType = getTypeClass( "FlatStructureType" );
 		int cElements = 7;
 		for( int i = 0; i < cElements; i++ ) {
-			JolieType flatStructureInstance = invokeFromValue( FlatStructureType, getFlatStructuredType() );
+			JolieValue flatStructureInstance = invokeFromValue( FlatStructureType, getFlatStructuredType() );
 			invokeAdd( cBuilder, flatStructureInstance, null );
 		}
 		invokeDone( cBuilder );
 
 		// build()
-		JolieType linkedVectorsInstance = invokeBuild( builder );
+		JolieValue linkedVectorsInstance = invokeBuild( builder );
 
 		// check get methods
 		assertEquals( "Linked type a does not correspond.", aElements,
@@ -702,6 +788,114 @@ public class JavaDocumentCreatorTest {
 			List.class.cast( invokeGet( LinkedVectorsType, linkedVectorsInstance, "c" ) ).size() );
 		assertEquals( "Linked type d does not correspond.", 0,
 			List.class.cast( invokeGet( LinkedVectorsType, linkedVectorsInstance, "d" ) ).size() );
+	}
+
+	private void invokingSetAddGetMethodsForLinkedChoiceStructureType()
+		throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+		InstantiationException, ClassNotFoundException {
+
+		Class< ? > LinkedChoiceStructureType = getTypeClass( "LinkedChoiceStructureType" );
+		StructureBuilder< ?, ? > builder = invokeConstruct( LinkedChoiceStructureType );
+
+		// invoking methods
+
+		// setA()
+		Class< ? > ChoiceSimpleType = getTypeClass( "ChoiceSimpleType" );
+		List< ? > choiceSimpleList = List.of(
+			invokeFromValue( ChoiceSimpleType, Value.create( TESTINTEGER ) )
+		);
+		invokeListSet( builder, choiceSimpleList, "a" );
+
+		// constructB()
+		StructureListBuilder< ?, ? > bBuilder = invokeConstructListSet( builder, "b" );
+
+		// b.add1()
+		Class< ? > ChoiceInlineType1 = getTypeClass( "ChoiceInlineType$S1" );
+		JolieValue b1 = invokeFromValue( ChoiceInlineType1, getChoiceInlineType1() );
+		invokeAdd( bBuilder, b1, 1 );
+		
+		// b.add4()
+		Class< ? > ChoiceInlineType3 = getTypeClass( "ChoiceInlineType$S3" );
+		JolieValue b2 = invokeFromValue( ChoiceInlineType3, getChoiceInlineType3() );
+		invokeAdd( bBuilder, b2, 4 );
+
+		// b.add2()
+		Class< ? > ChoiceInlineType = getTypeClass( "ChoiceInlineType" );
+		JolieValue b3 = invokeFromValue( ChoiceInlineType, Value.create( TESTINTEGER ) );
+		invokeAdd( bBuilder, b3, null );
+
+		// b.done()
+		invokeDone( bBuilder );
+
+		// setC()
+		Class< ? > ChoiceLinkedType = getTypeClass( "ChoiceLinkedType" );
+		List< ? > choiceLinkedList = List.of(
+			invokeFromValue( ChoiceLinkedType, getFlatStructuredType() ),
+			invokeFromValue( ChoiceLinkedType, Value.create( TESTSTRING ) ),
+			invokeFromValue( ChoiceLinkedType, getLinkedTypeStructureType() ),
+			invokeFromValue( ChoiceLinkedType, Value.create( TESTINTEGER ) ),
+			invokeFromValue( ChoiceLinkedType, getFlatStructuredType() ),
+			invokeFromValue( ChoiceLinkedType, Value.create() )
+		);
+		invokeListSet( builder, choiceLinkedList, "c" );
+
+		// build()
+		JolieValue linkedTypeStructureInstance = invokeBuild( builder );
+
+		// check get methods
+		assertEquals( "Linked type a does not correspond.", choiceSimpleList,
+			invokeGet( LinkedChoiceStructureType, linkedTypeStructureInstance, "a" ) );
+
+		List< ? > choiceInlineList = List.class.cast( invokeGet( LinkedChoiceStructureType, linkedTypeStructureInstance, "b" ) );
+		assertEquals( "Linked type b1 does not correspond.", b1, choiceInlineList.get( 0 ) );
+		assertEquals( "Linked type b2 does not correspond.", b2, choiceInlineList.get( 1 ) );
+		assertTrue( "Linked type b3 does not correspond.", b3.equals( choiceInlineList.get( 2 ) ) );
+
+		assertEquals( "Linked type c does not correspond.", choiceLinkedList,
+			invokeGet( LinkedChoiceStructureType, linkedTypeStructureInstance, "c" ) );
+	}
+
+	private void invokingSetAddGetMethodsForInlineChoiceStructureType()
+		throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+		InstantiationException, ClassNotFoundException {
+
+		Class< ? > InlineChoiceStructureType = getTypeClass( "InlineChoiceStructureType" );
+		StructureBuilder< ?, ? > builder = invokeConstruct( InlineChoiceStructureType );
+
+		// invoking methods
+
+		// setA()
+		Class< ? > AType = getTypeClass( "InlineChoiceStructureType$AType" );
+		JolieValue aInstance = invokeFromValue( AType, Value.create( TESTDOUBLE ) );
+		invokeSet( builder, aInstance.content().value(), "a3" );
+
+		// setB()
+		Class< ? > InLineStructureType = getTypeClass( "InLineStructureType" );
+		JolieValue bInstance =
+			invokeFromValue( InLineStructureType, getInlineStructureType() );
+		invokeSet( builder, bInstance, "b2" );
+
+		// setC()
+		Class< ? > ChoiceInlineType = getTypeClass( "ChoiceInlineType" );
+		JolieValue cInstance = invokeFromValue( ChoiceInlineType, Value.create( TESTINTEGER ) );
+		invokeSet( builder, cInstance, "c2", ChoiceInlineType );
+
+		// setD()
+		JolieValue dInstance = invokeFromValue( InlineChoiceStructureType, getInlineChoiceStructureType() );
+		invokeSet( builder, dInstance, "d1" );
+
+		// build()
+		JolieValue inlineChoiceStructureInstance = invokeBuild( builder );
+
+		// check get methods
+		assertEquals( "Linked type a does not correspond.", aInstance,
+			invokeGet( InlineChoiceStructureType, inlineChoiceStructureInstance, "a" ) );
+		assertEquals( "Linked type b does not correspond.", bInstance,
+			invokeGet( InlineChoiceStructureType, inlineChoiceStructureInstance, "b" ) );
+		assertEquals( "Linked type c does not correspond.", cInstance,
+			invokeGet( InlineChoiceStructureType, inlineChoiceStructureInstance, "c" ) );
+		assertEquals( "Linked type d does not correspond.", dInstance,
+			invokeGet( InlineChoiceStructureType, inlineChoiceStructureInstance, "d" ) );
 	}
 
 	private Value getRootValue( int index ) {
@@ -757,6 +951,44 @@ public class JavaDocumentCreatorTest {
 
 		return testValue;
 
+	}
+
+	private Value getLinkedChoiceStructureType() {
+		final Value testValue = Value.create();
+		ValueVector vv;
+		
+		vv = testValue.getChildren( "a" );
+		vv.add( Value.create( TESTDOUBLE ) );
+		vv.add( Value.create( TESTSTRING ) );
+
+		vv = testValue.getChildren( "b" );
+		vv.add( getChoiceInlineType2() );
+		vv.add( getChoiceInlineType1() );
+		vv.add( Value.create( TESTINTEGER ) );
+		vv.add( getChoiceInlineType3() );
+
+		vv = testValue.getChildren( "c" );
+		vv.add( Value.create( TESTINTEGER ) );
+		vv.add( getInlineStructureType() );
+		vv.add( getFlatStructuredVectorsType() );
+
+		return testValue;
+	}
+
+	private Value getInlineChoiceStructureType() {
+		final Value testValue = Value.create( new ByteArray( TESTRAW ) );
+		testValue.setFirstChild( "a", TESTLONG );
+		testValue.getFirstChild( "b" ).deepCopy( getFlatStructuredType() );
+		testValue.getFirstChild( "c" ).deepCopy( getChoiceInlineType3() );
+		
+		final Value d = testValue.getFirstChild( "d" );
+		d.setValue( TESTBOOL );
+		d.setFirstChild( "a", TESTDOUBLE );
+		d.setFirstChild( "b", TESTBOOL );
+		d.getFirstChild( "c" );
+		d.getFirstChild( "d" );
+
+		return testValue;
 	}
 
 	private Value getChoiceInlineType1() {

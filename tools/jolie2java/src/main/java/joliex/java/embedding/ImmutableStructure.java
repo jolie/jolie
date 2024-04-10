@@ -8,16 +8,16 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class ImmutableStructure<T extends BasicType<?>> implements StructureType {
+public class ImmutableStructure<T extends JolieNative<?>> implements JolieValue {
 
-    private final T root;
-    private final Map<String, List<StructureType>> children;
+    private final T content;
+    private final Map<String, List<JolieValue>> children;
 
-    public ImmutableStructure( T root, Map<String, List<StructureType>> children ) throws TypeValidationException {
-        if ( root == null )
-            throw new TypeValidationException( "The root of this structure wasn't assigned a valid value." );
+    public ImmutableStructure( T content, Map<String, List<JolieValue>> children ) throws TypeValidationException {
+        if ( content == null )
+            throw new TypeValidationException( "The content of this structure wasn't assigned a valid value." );
 
-        this.root = root;
+        this.content = content;
         this.children = children == null 
             ? Map.of() 
             : children.entrySet()
@@ -28,27 +28,24 @@ public class ImmutableStructure<T extends BasicType<?>> implements StructureType
                 ) );
     }
 
-    public T root() { return root; }
-    public Map<String, List<StructureType>> children() { return children; }
+    public T content() { return content; }
+    public Map<String, List<JolieValue>> children() { return children; }
 
-    public boolean equals( Object obj ) {
-        return obj != null && switch ( obj ) {
-
-            case BasicType<?> other -> root().equals( other ) && children().isEmpty();
-
-            case StructureType other -> root().equals( other.root() ) && children().equals( other.children() );
-
-            default -> false;
-        };
+    public boolean equals( Object obj ) { return obj instanceof JolieValue j && content.equals( j.content() ) && children.equals( j.children() ); }
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + (content == null ? 0 : content.hashCode());
+        hash = 31 * hash + (children == null ? 0 : children.hashCode());
+        return hash;
     }
 
     public String toString() {
-        return (root() instanceof BasicType.JolieString ? "\"" + root().toString() + "\"" : root().toString())
+        return (content() instanceof JolieNative.JolieString ? "\"" + content().toString() + "\"" : content().toString())
             + children()
                 .entrySet()
                 .stream()
                 .flatMap( e -> {
-                    List<StructureType> ls = e.getValue();
+                    final List<JolieValue> ls = e.getValue();
                     return ls.size() == 1
                         ? Stream.of( e.getKey() + " = " + ls.getFirst().toString() )
                         : IntStream.range( 0, ls.size() ).mapToObj( i -> e.getKey() + "[" + i + "] = " + ls.get( i ).toString() );
@@ -58,39 +55,39 @@ public class ImmutableStructure<T extends BasicType<?>> implements StructureType
                 .orElse( "" );
     }
 
-    protected final <S extends StructureType> List<S> child( String name, Class<S> structureType ) {
-        return childOrDefault( name, List.of() )
+    protected final <S extends JolieValue> List<S> getChild( String name, Class<S> structureType ) {
+        return getChildOrDefault( name, List.of() )
             .stream()
             .map( structureType::cast )
             .filter( t -> t != null )
             .toList();
     }
 
-    protected final List<BasicType<?>> childRoots( String name ) {
-        return childOrDefault( name, List.of() ).stream().map( StructureType::root ).collect( Collectors.toUnmodifiableList() );
+    protected final List<JolieNative<?>> getChildContents( String name ) {
+        return getChildOrDefault( name, List.of() ).stream().map( JolieValue::content ).collect( Collectors.toUnmodifiableList() );
     }
 
-    protected final <R extends BasicType<?>> List<R> childRoots( String name, Class<R> wrapperType ) {
-        return childOrDefault( name, List.of() ).stream().map( StructureType::root ).map( wrapperType::cast ).toList();
+    protected final <R extends JolieNative<?>> List<R> getChildContents( String name, Class<R> wrapperType ) {
+        return getChildOrDefault( name, List.of() ).stream().map( JolieValue::content ).map( wrapperType::cast ).toList();
     }
 
-    protected final <U, R extends BasicType<U>> List<U> childValues( String name, Class<R> wrapperType ) {
-        return childOrDefault( name, List.of() ).stream().map( StructureType::root ).map( r -> wrapperType.cast( r ).value() ).toList();
+    protected final <U, R extends JolieNative<U>> List<U> getChildValues( String name, Class<R> wrapperType ) {
+        return getChildOrDefault( name, List.of() ).stream().map( JolieValue::content ).map( r -> wrapperType.cast( r ).value() ).toList();
     }
 
-    protected final <S extends StructureType> Optional<S> firstChild( String name, Class<S> structureType ) {
-        return firstChild( name ).map( structureType::cast );
+    protected final <S extends JolieValue> Optional<S> getFirstChild( String name, Class<S> structureType ) {
+        return getFirstChild( name ).map( structureType::cast );
     }
 
-    protected final Optional<BasicType<?>> firstChildRoot( String name ) {
-        return firstChild( name ).map( StructureType::root );
+    protected final Optional<JolieNative<?>> getFirstChildContent( String name ) {
+        return getFirstChild( name ).map( JolieValue::content );
     }
 
-    protected final <R extends BasicType<?>> Optional<R> firstChildRoot( String name, Class<R> wrapperType ) {
-        return firstChildRoot( name ).map( wrapperType::cast );
+    protected final <R extends JolieNative<?>> Optional<R> getFirstChildContent( String name, Class<R> wrapperType ) {
+        return getFirstChildContent( name ).map( wrapperType::cast );
     }
 
-    protected final <U, R extends BasicType<U>> Optional<U> firstChildValue( String name, Class<R> wrapperType ) {
-        return firstChildRoot( name ).map( r -> wrapperType.cast( r ).value() );
+    protected final <U, R extends JolieNative<U>> Optional<U> getFirstChildValue( String name, Class<R> wrapperType ) {
+        return getFirstChildContent( name ).map( r -> wrapperType.cast( r ).value() );
     }
 }

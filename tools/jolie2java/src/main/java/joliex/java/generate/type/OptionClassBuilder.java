@@ -48,15 +48,16 @@ public abstract class OptionClassBuilder extends JavaClassBuilder {
     
         private void appendDefinitionBody() {
             builder.newline()
-                .newlineAppend( "public BasicType<?> root() { return option.root(); }" )
-                .newlineAppend( "public Map<String, List<StructureType>> children() { return option.children(); }" )
+                .newlineAppend( "public JolieNative<?> content() { return option.content(); }" )
+                .newlineAppend( "public Map<String, List<JolieValue>> children() { return option.children(); }" )
                 .newline()
-                .newlineAppend( "public boolean equals( Object obj ) { return option.equals( obj ); }" )
+                .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof JolieValue j && content().equals( j.content() ) && children().equals( j.children() ); }" )
+                .newlineAppend( "public int hashCode() { return option.hashCode(); }" )
                 .newlineAppend( "public String toString() { return option.toString(); }" )
                 .newline()
-                .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieType t ) throws TypeValidationException { return new " ).append( className ).append( "( " ).append( choice.name() ).append( ".createFrom( t ) ); }" )
+                .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue t ) throws TypeValidationException { return new " ).append( className ).append( "( " ).append( choice.name() ).append( ".createFrom( t ) ); }" )
                 .newline()
-                .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" )
+                .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" )
                 .newlineAppend( "public static " ).append( className ).append( " fromValue( Value value ) throws TypeCheckingException { return new " ).append( className ).append( "( " ).append( choice.name() ).append( ".fromValue( value ) ); }" );
         }
     }
@@ -82,18 +83,19 @@ public abstract class OptionClassBuilder extends JavaClassBuilder {
 
         private void appendMethods() {
             builder.newline()
-                .newlineAppend( "public " ).append( structure.nativeType().wrapperName() ).append( " root() { return option.root(); }" )
-                .newlineAppend( "public Map<String, List<StructureType>> children() { return option.children(); }" )
+                .newlineAppend( "public " ).append( structure.nativeType().wrapperName() ).append( " content() { return option.content(); }" )
+                .newlineAppend( "public Map<String, List<JolieValue>> children() { return option.children(); }" )
                 .newline()
-                .newlineAppend( "public boolean equals( Object obj ) { return option.equals( obj ); }" )
+                .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof JolieValue j && content().equals( j.content() ) && children().equals( j.children() ); }" )
+                .newlineAppend( "public int hashCode() { return option.hashCode(); }" )
                 .newlineAppend( "public String toString() { return option.toString(); }" )
                 .newline()
                 .newlineAppend( "public static InlineBuilder construct() { return new InlineBuilder(); }" )
                 .newline()
-                .newlineAppend( "public static InlineBuilder constructFrom( JolieType t ) { return new InlineBuilder( t ); }" )
-                .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieType t ) throws TypeValidationException { return constructFrom( JolieType.toStructure( t ) ).build(); }" )
+                .newlineAppend( "public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }" )
+                .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }" )
                 .newline()
-                .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" )
+                .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" )
                 .newlineAppend( "public static " ).append( className ).append( " fromValue( Value value ) throws TypeCheckingException { return new " ).append( className ).append( "( " ).append( structure.name() ).append( ".fromValue( value ) ); }" );
         }
     
@@ -101,7 +103,7 @@ public abstract class OptionClassBuilder extends JavaClassBuilder {
             builder.newNewlineAppend( "public static class InlineBuilder extends " ).append( structure.name() ).append( ".Builder<InlineBuilder>" )
                 .body( () -> builder.newline()
                     .newlineAppend( "private InlineBuilder() {}" )
-                    .newlineAppend( "private InlineBuilder( JolieType t ) { super( JolieType.toStructure( t ) ); }" )
+                    .newlineAppend( "private InlineBuilder( JolieValue t ) { super( t ); }" )
                     .newline()
                     .newlineAppend( "protected InlineBuilder self() { return this; }" )
                     .newline()
@@ -141,7 +143,7 @@ public abstract class OptionClassBuilder extends JavaClassBuilder {
 
         private void appendLinkBody( String name ) {
             appendMethods(
-                "option.root()", 
+                "option.content()", 
                 name + ".createFrom( t )", 
                 () -> builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( name ).append( ".fromValue( value ) );" )
             );
@@ -158,34 +160,34 @@ public abstract class OptionClassBuilder extends JavaClassBuilder {
             switch ( type ) {
                 case ANY -> appendMethods( 
                     "option", 
-                    "BasicType.createFrom( t )", 
+                    "JolieNative.createFrom( t )", 
                     this::appendAnyFromValue 
                 );
                 case VOID -> appendMethods( 
-                    "BasicType.create()", 
+                    "JolieNative.create()", 
                     null, 
                     this::appendVoidFromValue 
                 );
                 default -> appendMethods( 
-                    "BasicType.create( option )", 
+                    "JolieNative.create( option )", 
                     type.wrapperName() + ".createFrom( t ).value()", 
                     this::appendNativeFromValue
                 );
             }
         }
 
-        private void appendMethods( String rootAccess, String createFrom, Runnable fromValueBody ) {
+        private void appendMethods( String contentAccess, String createFrom, Runnable fromValueBody ) {
             final Optional<String> cf = Optional.ofNullable( createFrom );
             builder.newline()
-                .newlineAppend( "public " ).append( type.wrapperName() ).append( " root() { return " ).append( rootAccess ).append( "; }" )
-                .newlineAppend( "public Map<String, List<StructureType>> children() { return Map.of(); }" )
+                .newlineAppend( "public " ).append( type.wrapperName() ).append( " content() { return " ).append( contentAccess ).append( "; }" )
+                .newlineAppend( "public Map<String, List<JolieValue>> children() { return Map.of(); }" )
                 .newline()
-                .newlineAppend( "public boolean equals( Object obj ) { return root().equals( obj ); }" )
-                .newlineAppend( "public String toString() { return root().toString(); }" )
+                .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof JolieValue j && content().equals( j.content() ) && children().equals( j.children() ); }" )
+                .newlineAppend( "public String toString() { return content().toString(); }" )
                 .newline()
-                .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieType t ) throws TypeValidationException { return new " ).append( className ).append( cf.map( c -> "( " + c + " )" ).orElse( "()" ) ).append( "; }" )
+                .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue t ) throws TypeValidationException { return new " ).append( className ).append( cf.map( c -> "( " + c + " )" ).orElse( "()" ) ).append( "; }" )
                 .newline()
-                .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" )
+                .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" )
                 .newlineAppend( "public static " ).append( className ).append( " fromValue( Value value ) throws TypeCheckingException" )
                 .body( () -> builder
                     .newlineAppend( "if ( value.hasChildren() )" )
@@ -196,7 +198,7 @@ public abstract class OptionClassBuilder extends JavaClassBuilder {
         }
 
         private void appendAnyFromValue() {
-            builder.newlineAppend( "return new " ).append( className ).append( "( BasicType.fromValue( value ) );" );
+            builder.newlineAppend( "return new " ).append( className ).append( "( JolieNative.fromValue( value ) );" );
         }
 
         private void appendVoidFromValue() {

@@ -80,7 +80,7 @@ public abstract class ExceptionClassBuilder extends JavaClassBuilder {
             if ( type == Native.ANY )
                 builder.newlineAppend( "import jolie.runtime.ByteArray;" )
                     .newline()
-                    .newlineAppend( "import joliex.java.embedding.BasicType;" );
+                    .newlineAppend( "import joliex.java.embedding.JolieNative;" );
             else {
                 builder.newlineAppend( "import jolie.runtime.Value;" );
 
@@ -103,9 +103,9 @@ public abstract class ExceptionClassBuilder extends JavaClassBuilder {
 
             if ( type == Native.ANY ) {
                 type.valueNames().forEach( 
-                    vn -> builder.newlineAppend( "public " ).append( className() ).append( "( " ).append( vn ).append( " faultValue ) { this( BasicType.create( faultValue ) ); }" ) 
+                    vn -> builder.newlineAppend( "public " ).append( className() ).append( "( " ).append( vn ).append( " faultValue ) { this( JolieNative.create( faultValue ) ); }" ) 
                 );
-                builder.newlineAppend( "public " ).append( className() ).append( "() { this( BasicType.create() ); }" ); 
+                builder.newlineAppend( "public " ).append( className() ).append( "() { this( JolieNative.create() ); }" ); 
             }
         }
     }
@@ -139,18 +139,18 @@ public abstract class ExceptionClassBuilder extends JavaClassBuilder {
                 .newline()
                 .newlineAppend( "public " ).append( className() ).append( "( " ).append( definition.name() ).append( " fault )" )
                 .body( () -> builder
-                    .newlineAppend( "super( \"" ).append( faultName ).append( "\", fault.jolieRepr() );" )
+                    .newlineAppend( "super( \"" ).append( faultName ).append( "\", JolieValue.toValue( fault ) );" )
                     .newlineAppend( "this.fault = fault;" )
                 );
 
             switch ( definition ) {
                 case Basic b -> appendExtraConstructor( b.nativeType().valueName(), "faultValue", b.name(), "" );
                 case Choice c -> appendOptionMethods( c );
-                case Structure s -> appendBuilderMethods( s instanceof Undefined ? "StructureType" : s.name() );
+                case Structure s -> appendBuilderMethods( s.name() );
             }
 
             if ( !(definition instanceof Undefined) )
-                builder.newNewlineAppend( "public static " ).append( className() ).append( " createFrom( JolieType t ) { return new " ).append( className() ).append( "( " ).append( definition.name() ).append( ".createFrom( t ) ); }" );
+                builder.newNewlineAppend( "public static " ).append( className() ).append( " createFrom( JolieValue t ) { return new " ).append( className() ).append( "( " ).append( definition.name() ).append( ".createFrom( t ) ); }" );
         }
 
         private void appendOptionMethods( Choice choice ) {
@@ -177,7 +177,7 @@ public abstract class ExceptionClassBuilder extends JavaClassBuilder {
         private void appendBuilderMethods( String builderClassName, String methodPostfix ) {
             builder.newline()
                 .newlineAppend( "public static " ).append( className() ).append( " create" ).append( methodPostfix ).append( "( Function<" ).append( builderClassName ).append( ".InlineBuilder, " ).append( builderClassName ).append( "> builder ) { return new " ).append( className() ).append( "( builder.apply( " ).append( builderClassName ).append( ".construct() ) ); }" )
-                .newlineAppend( "public static " ).append( className() ).append( " create" ).append( methodPostfix ).append( "From( JolieType t, Function<" ).append( builderClassName ).append( ".InlineBuilder, " ).append( builderClassName ).append( "> rebuilder ) { return new " ).append( className() ).append( "( rebuilder.apply( " ).append( builderClassName ).append( ".constructFrom( t ) ) ); }" );
+                .newlineAppend( "public static " ).append( className() ).append( " create" ).append( methodPostfix ).append( "From( JolieValue t, Function<" ).append( builderClassName ).append( ".InlineBuilder, " ).append( builderClassName ).append( "> rebuilder ) { return new " ).append( className() ).append( "( rebuilder.apply( " ).append( builderClassName ).append( ".constructFrom( t ) ) ); }" );
         }
     }
 }
