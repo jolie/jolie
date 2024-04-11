@@ -123,10 +123,12 @@ RequestResponse:
 	 *   }
 	 * _template does not currently support vectors.
 	 * 
-	 * To run the query within a specific transaction, a transaction handle can be provided using the field 'TxHandle'.
-	 * In the example above, adding 'queryRequest.TxHandle = "someTxHandle"' will make the database service
-	 * attempt to execute the query on the specific connection that handle references, and throw a TransactionException if this fails.
-	 *
+	 *  To run the query within specific transaction, a transaction handle can be provided along with the updateRequest.
+	 *	 	To execute the queryRequest above in an open transaction with txHandle 42, we can call update in the following way:
+	 *		updateDatabase@Database( {
+	 *			txHandle = 42
+	 * 			query = updateRequest	
+	 *		} )( ret )
 	 */
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError TransactionException,
 	/**!
@@ -141,9 +143,12 @@ RequestResponse:
 	 * updateRequest.data = r;
 	 * update@Database( updateRequest )( ret )
 	 *
-	 * To run the update within specific transaction, a transaction handle can be provided using the field 'TxHandle'.
-	 * In the exmple above, adding 'updateRequest.TxHandle = "someTxHandle"' will make the database service attempt
-	 * to execute the update in the specific connection associated with the handle, and throw a TransactionException if it cannot.
+	 * To run the update within specific transaction, a transaction handle can be provided along with the updateRequest.
+	 * 	To execute the updateRequest above in an open transaction with txHandle 42, we can call update in the following way:
+	 *	updateDatabase@Database( {
+	 *		txHandle = 42
+	 * 		query = updateRequest	
+	 *	} )( ret )
 	 * 
 	 */
 	update(UpdateRequest)(int) throws SQLException ConnectionError TransactionException,
