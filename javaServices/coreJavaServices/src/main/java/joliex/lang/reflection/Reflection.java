@@ -94,8 +94,10 @@ public class Reflection extends JavaService {
 		SessionThread t = new SessionThread( p, interpreter().initThread() );
 		final FaultReference ref = new FaultReference();
 		t.addSessionListener( new SessionListener() {
+			@Override
 			public void onSessionExecuted( SessionThread session ) {}
 
+			@Override
 			public void onSessionError( SessionThread session, FaultException fault ) {
 				ref.fault = fault;
 			}

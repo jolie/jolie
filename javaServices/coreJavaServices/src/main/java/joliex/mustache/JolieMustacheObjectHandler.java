@@ -40,6 +40,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * @param scopes0 the ordered list of scopes
 	 * @return a wrapper that can be used to extract a value
 	 */
+	@Override
 	public Wrapper find( String name, List< Object > scopes0 ) {
 		return scopes -> {
 			for( int i = scopes.size() - 1; i >= 0; i-- ) {
@@ -63,6 +64,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * @param object transform an unknown type to a known type
 	 * @return the new object
 	 */
+	@Override
 	public Object coerce( Object object ) {
 		return object;
 	}
@@ -76,6 +78,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * @param scopes the scopes present
 	 * @return the current writer
 	 */
+	@Override
 	public Writer iterate( Iteration iteration, Writer writer, Object object, List< Object > scopes ) {
 		if( object instanceof ValueVector ) {
 			ValueVector vec = (ValueVector) object;
@@ -101,6 +104,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * @param scopes the scopes present
 	 * @return the current writer
 	 */
+	@Override
 	public Writer falsey( Iteration iteration, Writer writer, Object object, List< Object > scopes ) {
 		if( object == null ) {
 			iteration.next( writer, object, scopes );
@@ -126,6 +130,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * @param code the code that was bound
 	 * @return the binding
 	 */
+	@Override
 	public Binding createBinding( String name, TemplateContext tc, Code code ) {
 		return scopes -> find( name, null ).call( scopes );
 	}
@@ -136,6 +141,7 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 * @param object the object to be displayed
 	 * @return a string representation of the object.
 	 */
+	@Override
 	public String stringify( Object object ) {
 		if( object instanceof Value ) {
 			return ((Value) object).strValue();

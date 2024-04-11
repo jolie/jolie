@@ -41,6 +41,7 @@ public class BluetoothService extends JavaService {
 		private final Value value = Value.create();
 		private boolean completed = false;
 
+		@Override
 		public void deviceDiscovered( RemoteDevice btDevice, DeviceClass cod ) {
 			Value dValue = Value.create();
 			dValue.getFirstChild( "address" ).setValue( btDevice.getBluetoothAddress() );
@@ -63,6 +64,7 @@ public class BluetoothService extends JavaService {
 			return value;
 		}
 
+		@Override
 		public void inquiryCompleted( int discType ) {
 			synchronized( value ) {
 				completed = true;
@@ -70,6 +72,7 @@ public class BluetoothService extends JavaService {
 			}
 		}
 
+		@Override
 		public void servicesDiscovered( int transID, ServiceRecord[] serviceRecords ) {
 			ValueVector vec = value.getChildren( "service" );
 			Value v;
@@ -81,6 +84,7 @@ public class BluetoothService extends JavaService {
 			}
 		}
 
+		@Override
 		public void serviceSearchCompleted( int transID, int respCode ) {}
 	}
 

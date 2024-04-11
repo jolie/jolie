@@ -35,6 +35,7 @@ public class RMICommChannelFactory extends CommChannelFactory {
 		super( commCore );
 	}
 
+	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException {
 		try {

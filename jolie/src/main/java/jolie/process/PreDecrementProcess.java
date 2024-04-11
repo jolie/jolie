@@ -35,10 +35,12 @@ public class PreDecrementProcess implements Process, Expression {
 		this.path = varPath;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new PreDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new PreDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
 	}
@@ -65,6 +67,7 @@ public class PreDecrementProcess implements Process, Expression {
 		}
 	}
 
+	@Override
 	public Value evaluate() {
 		Value val = path.getValue();
 		if( !val.isDefined() ) {
@@ -85,6 +88,7 @@ public class PreDecrementProcess implements Process, Expression {
 		return val;
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}
