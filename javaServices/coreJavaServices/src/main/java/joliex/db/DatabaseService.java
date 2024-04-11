@@ -76,7 +76,6 @@ public class DatabaseService extends JavaService {
 	private ConcurrentHashMap< Integer, Connection > openTxs = null;
 	private AtomicInteger txHandles = null;
 
-
 	private String connectionString = null;
 	private String username = null;
 	private String password = null;
@@ -254,7 +253,6 @@ public class DatabaseService extends JavaService {
 				throw createFaultException( e );
 			}
 		}
-
 		return resultValue;
 	}
 
@@ -442,14 +440,14 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue = Value.create();
 		ValueVector resultVector = resultValue.getChildren( "result" );
-		try( Connection con = connectionPool.getConnection() ) {
-			con.setAutoCommit( false );
+		try( Connection connection = connectionPool.getConnection() ) {
+			connection.setAutoCommit( false );
 			Value currResultValue;
 			int updateCount;
 
 			for( Value statementValue : request.getChildren( "statement" ) ) {
 				currResultValue = Value.create();
-				try( PreparedStatement stm = new NamedStatementParser( con, statementValue.strValue(),
+				try( PreparedStatement stm = new NamedStatementParser( connection, statementValue.strValue(),
 					statementValue )
 						.getPreparedStatement() ) {
 					updateCount = -1;
@@ -470,21 +468,20 @@ public class DatabaseService extends JavaService {
 					resultVector.add( currResultValue );
 				} catch( SQLException e ) {
 					try {
-						con.rollback();
+						connection.rollback();
 					} catch( SQLException e1 ) {
-						// Something has gone totally wrong. Close the connectionpool
 						close();
 					}
 					throw createFaultException( e );
 				}
 			}
 			try {
-				con.commit();
+				connection.commit();
 			} catch( SQLException e ) {
-				con.rollback();
+				connection.rollback();
 				throw createFaultException( e );
 			} finally {
-				con.setAutoCommit( true );
+				connection.setAutoCommit( true );
 			}
 		} catch( SQLException e ) {
 			throw createFaultException( e );
@@ -514,7 +511,6 @@ public class DatabaseService extends JavaService {
 			Connection tx = _tryGetOpenTransaction( txHandle );
 			try( PreparedStatement stm = new NamedStatementParser( tx, request.strValue(), request )
 				.getPreparedStatement(); ) {
-
 				resultValue = _executeQuery( stm, request );
 				openTxs.put( txHandle, tx );
 			} catch( SQLException e ) {
@@ -622,8 +618,6 @@ public class DatabaseService extends JavaService {
 		// This is what we want, we want to be able to remove a connection for multiple
 		// seconds for inter-service transactions.
 		config.setLeakDetectionThreshold( 0 );
-
 		return new HikariDataSource( config );
-
 	}
 }
